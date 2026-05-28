@@ -1,6 +1,6 @@
 # quantbt
 
-Vectorised Binance-Futures backtest SDK with Numba-compiled simulation kernels.
+Vectorised backtest SDK with Numba-compiled simulation kernels.
 
 ## Package layout
 
