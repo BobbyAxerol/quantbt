@@ -29,13 +29,14 @@ from ..metrics.performance import (
 from .themes import apply_theme, PALETTE
 
 
-# ── shared helpers ────────────────────────────────────────────────────────────
+# ── shared helpers ────────────────────────────────────────────────────────
+
 
 def _fmt_date(ax, interval_months: int = 3):
     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=interval_months))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, ha="center")
-
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=30, ha="right", fontsize=7)
+    ax.tick_params(axis='x', pad=2)
 
 def _annotate_liq(ax, result: BacktestResult, c: dict):
     if result.liquidated and result.liquidation_bar > 0:
@@ -109,7 +110,9 @@ def quick_plot(
 
     _fmt_date(ax_dd)
     fig.align_ylabels(axes)
-    plt.tight_layout(pad=1.2)
+    # Thêm dòng này trước plt.show()
+    fig.autofmt_xdate(rotation=30, ha='right')
+    plt.tight_layout(pad=1.5)
     plt.show()
 
 
@@ -218,7 +221,9 @@ def tearsheet(
         ax.set_xlim(eq.index.min(), eq.index.max())
 
     fig.align_ylabels([ax1, ax2, ax3, ax6])
-    plt.tight_layout(pad=1.5)
+
+    fig.autofmt_xdate(rotation=30, ha='right')
+    plt.tight_layout(pad=1.5, rect=[0, 0.02, 1, 1])
     plt.show()
 
 

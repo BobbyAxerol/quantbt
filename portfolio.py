@@ -34,6 +34,7 @@ from .core.preprocessor import (
 from .metrics.performance import full_report
 from .viz.plots import quick_plot, tearsheet as _tearsheet
 from .core.types import BacktestResult
+from .core.engine import _engine_portfolio
 
 
 class MultiSymbolPortfolio:
@@ -64,14 +65,12 @@ class MultiSymbolPortfolio:
             "fee_rate":     0.0004,
             "contract":     1.0,
             "funding":      True,
-            "fund_mul":     3.0,     # 3 sessions/day
         },
         "stock": {
             "trading_days": 252,
             "fee_rate":     0.0001,
             "contract":     100.0,
             "funding":      False,
-            "fund_mul":     1.0,
         },
     }
 
@@ -105,9 +104,8 @@ class MultiSymbolPortfolio:
         cfg = self._ASSET_CFG[atype]
         self.asset_type       = atype
         self.trading_days     = cfg["trading_days"]
-        self.fee_rate         = (fee_rate or cfg["fee_rate"]) / 2.0    # one-way
+        self.fee_rate         = (fee_rate if fee_rate is not None else cfg["fee_rate"]) / 2.0    # one-way
         self.use_funding      = use_funding if use_funding is not None else cfg["funding"]
-        self.fund_mul         = cfg["fund_mul"]
         self.maintenance_ratio = maintenance_ratio
         self.initial_capital  = initial_capital
         self.mode             = mode.lower()
@@ -125,13 +123,24 @@ class MultiSymbolPortfolio:
 
         # ── per-symbol config ─────────────────────────────────────────────
         def _per_sym(v, default):
-            return v if isinstance(v, dict) else {s: (v or default) for s in self.symbols}
+            return v if isinstance(v, dict) else {s: (default if v is None else v) for s in self.symbols}
 
         default_cs       = cfg["contract"]
         self.cs          = _per_sym(contract_size, default_cs)
         self.lev         = _per_sym(leverage, 1.0)
         self.alloc       = _per_sym(alloc_per_trade, 100_000.0)
         self.fund_rates  = _per_sym(funding_rate, 0.0001) if self.use_funding else {s: 0.0 for s in self.symbols}
+
+        if initial_capital <= 0.0:
+            raise ValueError("initial_capital must be > 0")
+        if any(v <= 0.0 for v in self.lev.values()):
+            raise ValueError("leverage must be > 0")
+        if any(v <= 0.0 for v in self.cs.values()):
+            raise ValueError("contract_size must be > 0")
+        if any(v < 0.0 for v in self.alloc.values()):
+            raise ValueError("alloc_per_trade must be >= 0")
+        if maintenance_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be >= 0")
 
         # ── datetime index ────────────────────────────────────────────────
         self._idx = validate_datetime(datetime_index)
@@ -157,7 +166,7 @@ class MultiSymbolPortfolio:
         # ── scale positions → notional units ─────────────────────────────
         self._scaled: Dict[str, pd.Series] = {}
         for s in self.symbols:
-            notional = self.alloc[s] * self.lev[s]
+            notional = self.alloc[s]
             denom    = self._close[s] if self.hedge_type == "notional" else self._close[s].iloc[0]
             self._scaled[s] = self._pos[s] * (notional / denom)
 
@@ -218,114 +227,81 @@ class MultiSymbolPortfolio:
         """Simulate and return BacktestResult."""
         idx  = self._idx
         n    = len(idx)
-        equity  = self.initial_capital
-        eq_arr  = np.zeros(n, dtype=np.float64)
-        eq_arr[0] = equity
-
-        # per-symbol cumulative pnl tracker
-        sym_cum = {s: 0.0 for s in self.symbols}
-        sym_arr = {s: np.zeros(n, dtype=np.float64) for s in self.symbols}
-
-        fee_arr = np.zeros(n, dtype=np.float64)
-        turn_arr = np.zeros(n, dtype=np.float64)
-
+        m    = len(self.symbols)
         is_fund = make_funding_mask(idx)
 
-        # pre-extract arrays for speed
-        close_m = {s: self._close[s].values  for s in self.symbols}
-        high_m  = {s: self._high[s].values   for s in self.symbols}
-        low_m   = {s: self._low[s].values    for s in self.symbols}
-        pos_m   = {s: self._scaled[s].values for s in self.symbols}
-        fr_m    = {}
-        for s in self.symbols:
-            v = self.fund_rates[s]
-            fr_m[s] = v if isinstance(v, np.ndarray) else np.full(n, float(v))
+        closes_m = np.zeros((n, m), dtype=np.float64)
+        highs_m  = np.zeros((n, m), dtype=np.float64)
+        lows_m   = np.zeros((n, m), dtype=np.float64)
+        target_m = np.zeros((n, m), dtype=np.float64)
+        funding_m = np.zeros((n, m), dtype=np.float64)
+        cs_arr   = np.zeros(m, dtype=np.float64)
+        lev_arr  = np.zeros(m, dtype=np.float64)
 
-        cs_d  = self.cs
-        lev_d = self.lev
+        for j, s in enumerate(self.symbols):
+            closes_m[:, j] = self._close[s].fillna(0.0).values
+            highs_m[:, j]  = self._high[s].fillna(self._close[s]).values
+            lows_m[:, j]   = self._low[s].fillna(self._close[s]).values
+            target_m[:, j] = self._scaled[s].fillna(0.0).values
+            cs_arr[j]      = float(self.cs[s])
+            lev_arr[j]     = float(self.lev[s])
 
-        liq_flag = False
-        liq_idx  = -1
+            fr = self.fund_rates[s]
+            if isinstance(fr, pd.Series):
+                ser = fr.copy()
+                if isinstance(ser.index, pd.DatetimeIndex):
+                    ser.index = ser.index.tz_localize("UTC") if ser.index.tz is None else ser.index.tz_convert("UTC")
+                funding_m[:, j] = ser.reindex(idx, method="ffill").fillna(0.0).values
+            elif isinstance(fr, np.ndarray):
+                if len(fr) != n:
+                    raise ValueError(f"funding_rate array for {s} must have length {n}")
+                funding_m[:, j] = fr.astype(np.float64)
+            else:
+                funding_m[:, j] = float(fr)
 
-        for i in range(1, n):
-            if liq_flag:
-                eq_arr[i] = 0.0
-                for s in self.symbols:
-                    sym_arr[s][i] = sym_arr[s][i - 1]
-                continue
+        fee_multiplier = 1.0 if self.use_binance_netting else 2.0
 
-            step_pnl = 0.0
-            total_mm = 0.0
-            total_mu = 0.0
-
-            for s in self.symbols:
-                cs   = cs_d[s]
-                lev  = lev_d[s]
-                p    = pos_m[s][i - 1]
-                c    = close_m[s]
-                h    = high_m[s]
-                l    = low_m[s]
-
-                # MTM
-                pnl = p * (c[i] - c[i - 1]) * cs
-                step_pnl += pnl
-                sym_cum[s] += pnl
-
-                # fee on signal change
-                delta = pos_m[s][i] - pos_m[s][i - 1]
-                if abs(delta) > 1e-12:
-                    tv  = abs(delta) * c[i] * cs
-                    fee = tv * self.fee_rate * (1 if self.use_binance_netting else 2)
-                    step_pnl   -= fee
-                    sym_cum[s] -= fee
-                    fee_arr[i] += fee
-                    notional_new = abs(pos_m[s][i]) * c[i] * cs
-                    notional_old = abs(pos_m[s][i - 1]) * c[i - 1] * cs
-                    turn_arr[i] += abs(notional_new - notional_old)
-
-                # margin
-                notional_i = abs(pos_m[s][i]) * c[i] * cs
-                total_mu  += notional_i / lev
-                total_mm  += notional_i * self.maintenance_ratio   # Binance formula
-
-                sym_arr[s][i] = sym_cum[s]
-
-            equity += step_pnl
-
-            # funding
-            if is_fund[i] and self.use_funding:
-                for s in self.symbols:
-                    p    = pos_m[s][i]
-                    fc   = p * close_m[s][i] * cs_d[s] * fr_m[s][i] * self.fund_mul
-                    equity      -= fc
-                    sym_cum[s]  -= fc
-                    sym_arr[s][i] = sym_cum[s]
-
-            # liquidation: equity below maintenance margin
-            if total_mm > 0 and equity <= total_mm:
-                liq_flag = True
-                liq_idx  = i
-                equity   = 0.0
-                eq_arr[i] = 0.0
-                continue
-
-            eq_arr[i] = equity
+        (
+            eq_arr,
+            pos_arr,
+            sym_arr,
+            fee_arr,
+            turn_arr,
+            liq_flag,
+            liq_idx,
+        ) = _engine_portfolio(
+            n_bars         = n,
+            n_syms         = m,
+            highs          = highs_m,
+            lows           = lows_m,
+            closes         = closes_m,
+            target_pos     = target_m,
+            funding_rates  = funding_m,
+            is_funding_bar = is_fund,
+            init_capital   = self.initial_capital,
+            leverages      = lev_arr,
+            maint_ratio    = self.maintenance_ratio,
+            fee_rate       = self.fee_rate,
+            contract_sizes = cs_arr,
+            fee_multiplier = fee_multiplier,
+            use_funding    = bool(self.use_funding),
+        )
 
         # ── assemble result ───────────────────────────────────────────────
         equity_s = pd.Series(eq_arr, index=idx, name="equity")
         returns  = equity_s.pct_change().fillna(0)
 
         pos_df   = pd.DataFrame(
-            {f"Position_{s}": pos_m[s] for s in self.symbols}, index=idx
+            {f"Position_{s}": pos_arr[:, j] for j, s in enumerate(self.symbols)}, index=idx
         )
         close_df = pd.DataFrame(
-            {f"Close_{s}": close_m[s] for s in self.symbols}, index=idx
+            {f"Close_{s}": closes_m[:, j] for j, s in enumerate(self.symbols)}, index=idx
         )
 
         self._daily_fee      = pd.Series(fee_arr, index=idx).resample("1D").sum()
         self._daily_turnover = pd.Series(turn_arr, index=idx).resample("1D").sum()
         self._pnl_per_sym    = {
-            s: pd.Series(sym_arr[s], index=idx) for s in self.symbols
+            s: pd.Series(sym_arr[:, j], index=idx) for j, s in enumerate(self.symbols)
         }
 
         self._result = BacktestResult(
@@ -339,9 +315,12 @@ class MultiSymbolPortfolio:
             liquidated      = liq_flag,
             liquidation_bar = int(liq_idx),
             metadata        = {
-                "mode":       self.mode,
-                "asset_type": self.asset_type,
-                "hedge_type": self.hedge_type,
+                "mode":                 self.mode,
+                "asset_type":           self.asset_type,
+                "hedge_type":           self.hedge_type,
+                "engine":               "numba_portfolio",
+                "initial_buying_power": self.initial_capital * float(np.mean(list(self.lev.values()))),
+                "funding_rate_unit":    "per_event",
             },
         )
         return self._result

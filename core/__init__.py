@@ -1,4 +1,4 @@
-from .engine       import _engine_units, _engine_pct_equity
+from .engine       import _engine_units, _engine_pct_equity, _engine_dca_ladder, _engine_portfolio
 from .types        import BacktestResult
 from .preprocessor import (
     validate_datetime,
@@ -11,6 +11,8 @@ from .preprocessor import (
 __all__ = [
     "_engine_units",
     "_engine_pct_equity",
+    "_engine_dca_ladder",
+    "_engine_portfolio",
     "BacktestResult",
     "validate_datetime",
     "align_series",

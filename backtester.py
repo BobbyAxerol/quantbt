@@ -18,6 +18,7 @@ hedge_type values
 'unit'              fixed unit count from first-bar price
 'signal_notional'   anchor on signal change; stable between transitions  ← recommended
 '%_equity'          dynamic sizing from live equity, no pre-scaling
+'dca_ladder'        signed structural level; High/Low limit fills at grid triggers
 
 Parameters (unchanged from original)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,6 +38,13 @@ alloc_per_trade     float | Dict[str, float]   notional per full signal unit
 hedge_type          str
 slippage            float   e.g. 0.0001 = 1 bps
 symbols             List[str] | None
+High / Low          required for dca_ladder limit-fill detection
+dca_base_notional   base order notional; defaults to alloc_per_trade
+dca_safety_notional safety order notional; defaults to alloc_per_trade
+dca_step_pct        AO1 distance from base entry, e.g. 0.01 = 1%
+dca_step_scale      multiplier for each next AO distance increment
+dca_volume_scale    multiplier for each next safety order notional
+dca_take_profit_pct TP from weighted average entry; 0 disables internal TP
 """
 
 from __future__ import annotations
@@ -46,7 +54,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from .core.engine      import _engine_units, _engine_pct_equity
+from .core.engine      import _engine_units, _engine_pct_equity, _engine_dca_ladder
 from .core.types       import BacktestResult
 from .core.preprocessor import (
     validate_datetime,
@@ -91,6 +99,14 @@ class BacktestEngine:
         symbols:            Optional[List[str]] = None,
         High:               Optional[Union[pd.Series, Dict[str, pd.Series]]] = None,
         Low:                Optional[Union[pd.Series, Dict[str, pd.Series]]] = None,
+        dca_base_notional:   Optional[Union[float, Dict[str, float]]] = None,
+        dca_safety_notional: Optional[Union[float, Dict[str, float]]] = None,
+        dca_step_pct:        Union[float, Dict[str, float]] = 0.01,
+        dca_step_scale:      Union[float, Dict[str, float]] = 1.0,
+        dca_volume_scale:    Union[float, Dict[str, float]] = 1.0,
+        dca_max_safety_orders: int = 5,
+        dca_take_profit_pct: Union[float, Dict[str, float]] = 0.0,
+        dca_allow_same_bar_exit: bool = False,
         # kept for backward compat, not used internally
         run_portfolio:      bool  = True,
         use_binance_netting: bool = True,
@@ -105,7 +121,22 @@ class BacktestEngine:
         self.use_funding_rate  = use_funding_rate
         self.alloc_per_trade   = alloc_per_trade
         self.hedge_type        = hedge_type
+        self._hedge_type_norm  = hedge_type.lower().strip()
+        self._is_dca_ladder    = self._hedge_type_norm in ("dca_ladder", "dca")
         self.slippage          = slippage
+        self.dca_max_safety_orders = int(dca_max_safety_orders)
+        self.dca_allow_same_bar_exit = bool(dca_allow_same_bar_exit)
+
+        if self.dca_max_safety_orders < 0:
+            raise ValueError("dca_max_safety_orders must be >= 0")
+        if self._is_dca_ladder and (High is None or Low is None):
+            raise ValueError("hedge_type='dca_ladder' requires High and Low for limit-fill detection")
+        if self.initial_capital <= 0.0:
+            raise ValueError("initial_capital must be > 0")
+        if self.leverage <= 0.0:
+            raise ValueError("leverage must be > 0")
+        if self.maintenance_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be >= 0")
 
         # ── datetime index ────────────────────────────────────────────────
         self._idx = validate_datetime(Datetime)
@@ -135,26 +166,65 @@ class BacktestEngine:
         else:
             self._contract_sizes = np.full(self.n_syms, float(contract_size), dtype=np.float64)
 
+        if np.any(self._contract_sizes <= 0.0):
+            raise ValueError("contract_size must be > 0")
+
         # ── funding rates ─────────────────────────────────────────────────
         fr_input = funding_rate if use_funding_rate else 0.0
         self._funding = prepare_funding(fr_input, self.symbols, self._idx)
 
         # ── alloc dict ────────────────────────────────────────────────────
         if isinstance(alloc_per_trade, dict):
-            self._alloc = alloc_per_trade
+            self._alloc = {s: float(alloc_per_trade[s]) for s in self.symbols}
         else:
             self._alloc = {s: float(alloc_per_trade) for s in self.symbols}
+
+        if any(v < 0.0 for v in self._alloc.values()):
+            raise ValueError("alloc_per_trade must be >= 0")
+
+        def _per_symbol_array(value, default_map):
+            out = []
+            for s in self.symbols:
+                default = default_map[s] if isinstance(default_map, dict) else default_map
+                if value is None:
+                    v = default
+                elif isinstance(value, dict):
+                    v = value.get(s, default)
+                else:
+                    v = value
+                out.append(float(v))
+            return np.array(out, dtype=np.float64)
+
+        # DCA ladder parameters. Defaults keep base and safety orders aligned
+        # with alloc_per_trade, while the grid geometry is explicit and stable.
+        self._dca_base_notional = _per_symbol_array(dca_base_notional, self._alloc)
+        self._dca_safety_notional = _per_symbol_array(dca_safety_notional, self._alloc)
+        self._dca_step_pct = _per_symbol_array(dca_step_pct, 0.01)
+        self._dca_step_scale = _per_symbol_array(dca_step_scale, 1.0)
+        self._dca_volume_scale = _per_symbol_array(dca_volume_scale, 1.0)
+        self._dca_take_profit_pct = _per_symbol_array(dca_take_profit_pct, 0.0)
+
+        if self._is_dca_ladder:
+            if self.dca_max_safety_orders > 0 and np.any(self._dca_step_pct <= 0.0):
+                raise ValueError("dca_step_pct must be > 0 when safety orders are enabled")
+            if np.any(self._dca_base_notional <= 0.0) or np.any(self._dca_safety_notional <= 0.0):
+                raise ValueError("DCA base/safety notionals must be > 0")
+            if np.any(self._dca_step_scale <= 0.0) or np.any(self._dca_volume_scale <= 0.0):
+                raise ValueError("DCA step/volume scales must be > 0")
 
         # ── scale signals → target units ──────────────────────────────────
         self._target_units: Dict[str, pd.Series] = {}
         for sym in self.symbols:
-            self._target_units[sym] = compute_target_units(
-                hedge_type     = self.hedge_type,
-                signal         = self._positions[sym],
-                close          = self._closes[sym],
-                alloc          = self._alloc[sym],
-                use_pyramiding = self.use_pyramiding,
-            )
+            if self._is_dca_ladder:
+                self._target_units[sym] = self._positions[sym].fillna(0.0)
+            else:
+                self._target_units[sym] = compute_target_units(
+                    hedge_type     = self.hedge_type,
+                    signal         = self._positions[sym],
+                    close          = self._closes[sym],
+                    alloc          = self._alloc[sym],
+                    use_pyramiding = self.use_pyramiding,
+                )
 
         # run on construction so result is immediately available
         self._result: Optional[BacktestResult] = None
@@ -179,7 +249,33 @@ class BacktestEngine:
 
         cs = self._contract_sizes
 
-        if self.hedge_type.lower() in ("%_equity", "pct_equity"):
+        if self._is_dca_ladder:
+            equity_arr, pos_arr, level_arr, liq_flag, liq_idx = _engine_dca_ladder(
+                n_bars              = self.n_bars,
+                n_syms              = self.n_syms,
+                highs               = highs,
+                lows                = lows,
+                closes              = closes,
+                signals             = signals,
+                funding_rates       = funding,
+                is_funding_bar      = is_funding,
+                init_capital        = self.initial_capital,
+                leverage            = self.leverage,
+                maint_ratio         = self.maintenance_ratio,
+                fee_rate            = self.fee_oneway,
+                contract_sizes      = cs,
+                market_slippage     = self.slippage,
+                base_notional       = self._dca_base_notional,
+                safety_notional     = self._dca_safety_notional,
+                step_pct            = self._dca_step_pct,
+                step_scale          = self._dca_step_scale,
+                volume_scale        = self._dca_volume_scale,
+                max_safety_orders   = self.dca_max_safety_orders,
+                take_profit_pct     = self._dca_take_profit_pct,
+                allow_same_bar_exit = self.dca_allow_same_bar_exit,
+            )
+            result_positions = pos_arr
+        elif self._hedge_type_norm in ("%_equity", "pct_equity"):
             alloc_pct = np.array(
                 [self._alloc[s] for s in self.symbols], dtype=np.float64
             )
@@ -203,6 +299,7 @@ class BacktestEngine:
                 slippage       = self.slippage,
                 alloc_pct      = alloc_pct,
             )
+            result_positions = signals
         else:
             equity_arr, liq_flag, liq_idx = _engine_units(
                 n_bars         = self.n_bars,
@@ -220,13 +317,14 @@ class BacktestEngine:
                 contract_sizes = cs,
                 slippage       = self.slippage,
             )
+            result_positions = signals
 
         equity  = pd.Series(equity_arr, index=self._idx, name="equity")
         returns = equity.pct_change().fillna(0)
 
         # positions DataFrame
         pos_df = pd.DataFrame(
-            {f"Position_{s}": signals[:, i] for i, s in enumerate(self.symbols)},
+            {f"Position_{s}": result_positions[:, i] for i, s in enumerate(self.symbols)},
             index=self._idx,
         )
         close_df = pd.DataFrame(
@@ -246,9 +344,17 @@ class BacktestEngine:
             liquidation_bar = int(liq_idx),
             metadata        = {
                 "hedge_type":        self.hedge_type,
+                "initial_buying_power": self.initial_capital * self.leverage,
                 "fee_oneway":        self.fee_oneway,
                 "slippage":          self.slippage,
                 "maintenance_ratio": self.maintenance_ratio,
+                "dca_actual_level": (
+                    pd.DataFrame(
+                        {f"Level_{s}": level_arr[:, i] for i, s in enumerate(self.symbols)},
+                        index=self._idx,
+                    )
+                    if self._is_dca_ladder else None
+                ),
             },
         )
         return self._result
@@ -313,8 +419,8 @@ class BacktestEngine:
 
     def tearsheet(
         self,
-        theme:        str = "dark",
-        figsize:      tuple = (16, 20),
+        theme:        str = "light",
+        figsize:      tuple = (18, 24),
         trading_days: int = 365,
         benchmark:    Optional[pd.Series] = None,
     ) -> None:
