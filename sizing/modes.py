@@ -4,7 +4,7 @@ quantbt.sizing.modes
 Position scaling: converts raw signal weights into target *units* (contracts)
 that the numba engine can consume directly.
 
-Four modes
+Five modes
 ~~~~~~~~~~
 notional
     target_units[i] = signal[i] × (alloc / close[i])
@@ -27,6 +27,11 @@ pct_equity
     Raw weight is passed straight through to the %_equity numba kernel,
     which sizes units from live equity at execution time.
     Returns the raw signal unchanged; no pre-scaling needed.
+
+dca_ladder
+    Raw signed structural level is passed straight through to the DCA ladder
+    execution kernel.  The kernel turns High/Low limit touches into actual
+    filled units at each grid trigger price.
 
 Parameters
 ----------
@@ -106,6 +111,14 @@ def scale_pct_equity(
     return signal if use_pyramiding else np.sign(signal).astype(float)
 
 
+def scale_dca_ladder(signal: pd.Series) -> pd.Series:
+    """
+    No pre-scaling.  Pass signed structural levels directly:
+    +1..+N for long ladders, -1..-N for short ladders, 0 for flat.
+    """
+    return signal.astype(float)
+
+
 # ── dispatcher ──────────────────────────────────────────────────────────────
 
 def compute_target_units(
@@ -120,7 +133,7 @@ def compute_target_units(
 
     Parameters
     ----------
-    hedge_type : {'notional', 'unit', 'signal_notional', '%_equity'}
+    hedge_type : {'notional', 'unit', 'signal_notional', '%_equity', 'dca_ladder'}
     signal     : raw weight series
     close      : close price series
     alloc      : notional per full unit of signal
@@ -140,7 +153,10 @@ def compute_target_units(
     if ht in ("%_equity", "pct_equity"):
         return scale_pct_equity(signal, use_pyramiding)
 
+    if ht in ("dca_ladder", "dca"):
+        return scale_dca_ladder(signal)
+
     raise ValueError(
         f"Unknown hedge_type '{hedge_type}'. "
-        "Choose from: 'notional', 'unit', 'signal_notional', '%_equity'."
+        "Choose from: 'notional', 'unit', 'signal_notional', '%_equity', 'dca_ladder'."
     )
