@@ -186,6 +186,10 @@ hr = msp.hitrate_per_symbol()
 For crypto portfolios, `funding_rate` is interpreted as the per-event funding
 rate applied on each 8h funding timestamp.
 
+Portfolio fees follow the same contract as `BacktestEngine`: pass a round-trip
+fee and the engine halves it internally to one-way before charging traded delta
+notional.
+
 ### Allocation modes
 
 | mode | description |

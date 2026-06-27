@@ -610,7 +610,6 @@ def _engine_portfolio(
     maint_ratio:     float,
     fee_rate:        float,
     contract_sizes:  np.ndarray,
-    fee_multiplier:  float,
     use_funding:     bool,
 ):
     """
@@ -711,7 +710,7 @@ def _engine_portfolio(
 
             delta = target_pos[i, s] - current_pos[s]
             if abs(delta) > 1e-12:
-                fee_est += abs(delta) * c * cs * fee_rate * fee_multiplier
+                fee_est += abs(delta) * c * cs * fee_rate
 
         can_rebalance = True
         if target_im > cur_im and (target_im - cur_im) + fee_est > equity - cur_im:
@@ -725,7 +724,7 @@ def _engine_portfolio(
                 delta = target_pos[i, s] - current_pos[s]
                 if abs(delta) > 1e-12:
                     tv = abs(delta) * c * cs
-                    fee = tv * fee_rate * fee_multiplier
+                    fee = tv * fee_rate
                     equity -= fee
                     current_pnl[s] -= fee
                     fee_arr[i] += fee
