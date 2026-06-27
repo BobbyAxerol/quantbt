@@ -47,7 +47,7 @@ class MultiSymbolPortfolio:
     closes           Dict[str, pd.Series]  close prices
     datetime_index   common DatetimeIndex (UTC)
     mode             'longshort' | 'market_neutral' | 'directional' | 'equal_weight'
-    fee_rate         one-way fee (None → asset-type default)
+    fee_rate         round-trip fee; halved internally to one-way
     alloc_per_trade  notional per full signal unit; float or per-symbol dict
     contract_size    float or per-symbol dict
     hedge_type       'notional' | 'unit'  (signal_notional not applicable here)
@@ -221,8 +221,6 @@ class MultiSymbolPortfolio:
         for s in self.symbols:
             self._scaled[s] = pos_df[s]
 
-    # ── simulation ────────────────────────────────────────────────────────────
-
     def run(self) -> BacktestResult:
         """Simulate and return BacktestResult."""
         idx  = self._idx
@@ -259,8 +257,6 @@ class MultiSymbolPortfolio:
             else:
                 funding_m[:, j] = float(fr)
 
-        fee_multiplier = 1.0 if self.use_binance_netting else 2.0
-
         (
             eq_arr,
             pos_arr,
@@ -283,7 +279,6 @@ class MultiSymbolPortfolio:
             maint_ratio    = self.maintenance_ratio,
             fee_rate       = self.fee_rate,
             contract_sizes = cs_arr,
-            fee_multiplier = fee_multiplier,
             use_funding    = bool(self.use_funding),
         )
 
@@ -382,9 +377,10 @@ class MultiSymbolPortfolio:
     def hitrate_per_symbol(self) -> Dict[str, Tuple[float, float]]:
         """Returns {sym: (long_hr_pct, short_hr_pct)} for every symbol."""
         out = {}
+        r = self.result
         for s in self.symbols:
-            pos  = self._scaled[s]
-            cl   = self._close[s]
+            pos  = r.positions[f"Position_{s}"]
+            cl   = r.closes[f"Close_{s}"]
             ret  = cl.pct_change().fillna(0)
             long_mask  = pos > 0
             short_mask = pos < 0
