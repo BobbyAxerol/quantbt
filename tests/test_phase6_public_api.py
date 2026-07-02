@@ -101,6 +101,27 @@ def test_event_driven_backtest_engine_routes_explicit_orders():
     assert engine.result.fills[0].price == 99.0
 
 
+def test_event_driven_backtest_engine_can_adapt_signals_to_market_orders():
+    df = _bars()
+    signal = pd.Series([0.0, 1.0, 1.0, 0.0], index=df.index)
+
+    engine = EventDrivenBacktestEngine(
+        data=df,
+        signals=signal,
+        symbols=["BTC"],
+        hedge_type="signal_notional",
+        alloc_per_trade=1_000.0,
+        account=AccountConfig(initial_capital=10_000.0, leverage=10.0),
+        use_funding=False,
+    )
+
+    assert engine.result.metadata["backend"] == "native_event"
+    assert len(engine.result.orders) == 2
+    assert len(engine.result.fills) == 2
+    assert engine.result.positions["Position_BTC"].iloc[1] == 10.0
+    assert engine.result.positions["Position_BTC"].iloc[3] == 0.0
+
+
 def test_portfolio_backtest_engine_wraps_legacy_portfolio_as_v2_result():
     df = _bars()
     positions = {

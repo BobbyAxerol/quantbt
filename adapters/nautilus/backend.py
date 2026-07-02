@@ -27,6 +27,7 @@ class NautilusBackendConfig:
     log_level: str = "ERROR"
     bypass_logging: bool = True
     bypass_risk: bool = False
+    close_positions_on_stop: bool = False
     use_test_instrument: bool = True
     metadata: Dict = field(default_factory=dict)
 
@@ -107,6 +108,7 @@ class NautilusBacktestEngine:
                 bar_type=str(bar_type),
                 trade_notional=Decimal(str(self.config.trade_notional)),
                 signals={int(ts.value): float(v) for ts, v in sig.items()},
+                close_positions_on_stop=self.config.close_positions_on_stop,
                 order_id_tag=self.config.strategy_id.rsplit("-", 1)[-1],
             )
         )
@@ -131,6 +133,7 @@ class NautilusBacktestEngine:
                 metadata={
                     "instrument_id": str(instrument.id),
                     "bar_type": str(bar_type),
+                    "close_positions_on_stop": self.config.close_positions_on_stop,
                     **self.config.metadata,
                     **(params or {}),
                 },
@@ -162,6 +165,7 @@ class NautilusBacktestEngine:
             bar_type: str
             trade_notional: Decimal
             signals: Dict[int, float]
+            close_positions_on_stop: bool = False
 
         class QuantBTSignalStrategy(nt.Strategy):
             def __init__(self, config: QuantBTSignalConfig):
@@ -216,6 +220,7 @@ class NautilusBacktestEngine:
 
             def on_stop(self):
                 self.cancel_all_orders(self.instrument_id)
-                self.close_all_positions(self.instrument_id)
+                if self.config.close_positions_on_stop:
+                    self.close_all_positions(self.instrument_id)
 
         return QuantBTSignalStrategy, QuantBTSignalConfig

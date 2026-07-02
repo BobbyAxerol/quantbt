@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-import runpy
 import sys
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 
 PROJECT_ROOT = Path("/root/bobby/pool_alpha")
@@ -35,7 +34,7 @@ def summarize_result(name: str, result) -> Dict:
     from quantbt.metrics import full_report
 
     rpt = full_report(result)
-    return {
+    summary = {
         "name": name,
         "backend": result.metadata.get("backend", "legacy"),
         "initial_capital": float(result.initial_capital),
@@ -46,6 +45,10 @@ def summarize_result(name: str, result) -> Dict:
         "trades": int(rpt["num_trades"]),
         "liquidated": bool(result.liquidated),
     }
+    for key in ("orders_count", "fills_count", "positions_count"):
+        if key in result.metadata:
+            summary[key] = int(result.metadata[key])
+    return summary
 
 
 def run_legacy_pct_equity(df):
@@ -91,42 +94,24 @@ def run_v2_vectorized_signal_notional(df):
     return summarize_result("v2_native_vectorized_signal_notional", engine.result)
 
 
-def run_v2_event_transition_orders(df, max_orders: int = 200):
-    from quantbt import AccountConfig, BacktestEngineV2, ExecutionConfig, OrderIntent, OrderSide, OrderType, TimeInForce
-
-    orders = []
-    current_target = 0.0
-    for ts, target in df["pos_weight"].fillna(0.0).items():
-        target_qty = float(target)
-        delta = target_qty - current_target
-        if abs(delta) > 0.0:
-            orders.append(
-                OrderIntent(
-                    timestamp=ts,
-                    symbol="ETHUSDT",
-                    side=OrderSide.BUY if delta > 0.0 else OrderSide.SELL,
-                    order_type=OrderType.MARKET,
-                    qty=abs(delta),
-                    tif=TimeInForce.IOC,
-                )
-            )
-            current_target = target_qty
-        if len(orders) >= max_orders:
-            break
+def run_v2_event_signal_notional(df):
+    from quantbt import AccountConfig, BacktestEngineV2, ExecutionConfig
 
     engine = BacktestEngineV2(
         data=df[["open", "high", "low", "close", "volume"]],
+        signals=df["pos_weight"],
         symbols=["ETHUSDT"],
         backend="native_event",
-        orders=orders,
         account=AccountConfig(initial_capital=20_000, leverage=5, maintenance_ratio=0.005),
         execution=ExecutionConfig(slippage_bps=1.0),
         fee_rate=0.0002,
         use_funding=True,
         funding_rate=0.0001,
+        alloc_per_trade=10_000,
+        hedge_type="signal_notional",
     )
-    summary = summarize_result("v2_native_event_transition_orders", engine.result)
-    summary["orders"] = len(orders)
+    summary = summarize_result("v2_native_event_signal_notional", engine.result)
+    summary["orders"] = len(engine.result.orders)
     summary["fills"] = len(engine.result.fills)
     return summary
 
@@ -170,21 +155,42 @@ def run_nautilus_optional(df):
         from quantbt.adapters.nautilus import NautilusBacktestEngine
 
         NautilusBacktestEngine.check_available()
-        sample = df.iloc[:1_000].copy()
+        sample = sample_with_transitions(df, min_transitions=20, max_rows=8_000)
         engine = BacktestEngineV2(
             data=sample[["open", "high", "low", "close", "volume"]],
             signals=sample["pos_weight"],
             symbols=["BTCUSDT-PERP.BINANCE"],
             backend="nautilus",
-            account=AccountConfig(initial_capital=10_000, leverage=10, maintenance_ratio=0.005),
-            alloc_per_trade=1_000,
+            account=AccountConfig(initial_capital=20_000, leverage=5, maintenance_ratio=0.005),
+            alloc_per_trade=10_000,
             use_funding=False,
         )
-        return summarize_result("nautilus_optional_signal_series", engine.result)
+        summary = summarize_result("nautilus_optional_signal_series", engine.result)
+        summary["rows"] = int(len(sample))
+        summary["pos_changes"] = int((sample["pos_weight"].fillna(0.0).diff().fillna(0.0) != 0.0).sum())
+        return summary
     except ImportError as exc:
         return {"name": "nautilus_optional_signal_series", "status": "skipped", "reason": str(exc)}
     except Exception as exc:
         return {"name": "nautilus_optional_signal_series", "status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
+
+
+def sample_with_transitions(df, min_transitions: int, max_rows: int):
+    pos = df["pos_weight"].fillna(0.0)
+    change_locs = list(pos.diff().fillna(0.0).ne(0.0).to_numpy().nonzero()[0])
+    if not change_locs:
+        return df.iloc[:max_rows].copy()
+    start = max(0, change_locs[0] - 10)
+    end = min(len(df), start + max_rows)
+    for loc in change_locs:
+        if loc <= start:
+            continue
+        if loc - start >= max_rows:
+            break
+        if sum(1 for x in change_locs if start <= x < loc) >= min_transitions:
+            end = min(len(df), loc + 10)
+            break
+    return df.iloc[start:end].copy()
 
 
 def main() -> int:
@@ -200,7 +206,7 @@ def main() -> int:
         },
         run_legacy_pct_equity(df),
         run_v2_vectorized_signal_notional(df),
-        run_v2_event_transition_orders(df),
+        run_v2_event_signal_notional(df),
         run_v2_basket_smoke(df),
         run_nautilus_optional(df),
     ]
