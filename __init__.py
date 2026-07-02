@@ -50,10 +50,12 @@ from .portfolio  import MultiSymbolPortfolio
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2
-from .core.orders import Fill, OrderIntent, Trade
+from .core.orders import BasketIntent, Fill, OrderIntent, Trade
+from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.schema import (
     AccountConfig,
     AssetType,
+    BasketExecutionPolicy,
     BasketLegSpec,
     BasketSpec,
     ExecutionConfig,
@@ -103,12 +105,15 @@ __all__ = [
     "BacktestResultV2",
     "AccountConfig",
     "AssetType",
+    "BasketExecutionPolicy",
+    "BasketIntent",
     "BasketLegSpec",
     "BasketSpec",
     "ExecutionConfig",
     "FeeModel",
     "Fill",
     "FillPricePolicy",
+    "FrozenBasketPlan",
     "InstrumentSpec",
     "LiquiditySide",
     "MarginMode",
@@ -120,6 +125,7 @@ __all__ = [
     "SignalSpec",
     "TimeInForce",
     "Trade",
+    "build_frozen_basket_orders",
     # metrics
     "full_report",
     "sharpe",

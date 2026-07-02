@@ -75,6 +75,11 @@ class SameBarPolicy(str, Enum):
     EXIT_FIRST = "exit_first"
 
 
+class BasketExecutionPolicy(str, Enum):
+    BEST_EFFORT = "best_effort"
+    ALL_OR_NONE = "all_or_none"
+
+
 @dataclass(frozen=True)
 class FeeModel:
     maker: float = 0.0
@@ -191,6 +196,7 @@ class BasketSpec:
     gross_notional: float
     freeze_hedge: bool = True
     hedged_margin_offset: float = 0.0
+    execution_policy: BasketExecutionPolicy = BasketExecutionPolicy.BEST_EFFORT
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:

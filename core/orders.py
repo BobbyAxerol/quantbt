@@ -45,6 +45,20 @@ class OrderIntent:
 
 
 @dataclass(frozen=True)
+class BasketIntent:
+    timestamp: object
+    basket_id: str
+    signal: float
+    gross_notional: Optional[float] = None
+    tag: Optional[str] = None
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.basket_id:
+            raise ValueError("basket_id is required")
+
+
+@dataclass(frozen=True)
 class Fill:
     timestamp: object
     symbol: str
