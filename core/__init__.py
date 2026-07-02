@@ -3,10 +3,12 @@ from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
 from .results      import BacktestResultV2
-from .orders       import Fill, OrderIntent, Trade
+from .orders       import BasketIntent, Fill, OrderIntent, Trade
+from .basket       import FrozenBasketPlan, build_frozen_basket_orders
 from .schema       import (
     AccountConfig,
     AssetType,
+    BasketExecutionPolicy,
     BasketLegSpec,
     BasketSpec,
     ExecutionConfig,
@@ -41,12 +43,15 @@ __all__ = [
     "BacktestResultV2",
     "AccountConfig",
     "AssetType",
+    "BasketExecutionPolicy",
+    "BasketIntent",
     "BasketLegSpec",
     "BasketSpec",
     "ExecutionConfig",
     "FeeModel",
     "Fill",
     "FillPricePolicy",
+    "FrozenBasketPlan",
     "InstrumentSpec",
     "LiquiditySide",
     "MarginMode",
@@ -58,6 +63,7 @@ __all__ = [
     "SignalSpec",
     "TimeInForce",
     "Trade",
+    "build_frozen_basket_orders",
     "validate_datetime",
     "align_series",
     "prepare_funding",

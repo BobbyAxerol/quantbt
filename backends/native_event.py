@@ -21,11 +21,13 @@ from ..core.event import (
     TIF_IOC,
     _engine_event_v1,
 )
+from ..core.basket import build_frozen_basket_orders
 from ..core.orders import Fill, OrderIntent
 from ..core.preprocessor import align_series, build_arrays, prepare_funding, validate_datetime
 from ..core.results import BacktestResultV2
 from ..core.schema import (
     AccountConfig,
+    BasketSpec,
     ExecutionConfig,
     LiquiditySide,
     OrderSide,
@@ -232,6 +234,52 @@ class NativeEventBackend:
                 "liquidation_reason": int(liq_reason),
             },
         )
+
+    def run_basket(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        basket: BasketSpec,
+        signal: pd.Series,
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        hedge_ratios: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        symbols: Optional[List[str]] = None,
+    ) -> BacktestResultV2:
+        """
+        Build frozen basket orders from a scalar signal and execute them.
+
+        Basket legs are sized once on signal transitions and held constant until
+        the next transition. Phase 4 carries all-or-none policy in metadata; the
+        current matching kernel executes generated leg orders best-effort.
+        """
+        plan = build_frozen_basket_orders(
+            datetime_index=datetime_index,
+            basket=basket,
+            signal=signal,
+            closes=closes,
+            hedge_ratios=hedge_ratios,
+            order_type=OrderType.MARKET,
+            tif=TimeInForce.IOC,
+        )
+        result = self.run_orders(
+            datetime_index=datetime_index,
+            orders=plan.orders,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            funding_rate=funding_rate,
+            contract_size=contract_size,
+            leverage=leverage,
+            symbols=symbols,
+        )
+        result.metadata["basket_plan"] = plan
+        result.metadata["basket_target_units"] = plan.target_units
+        result.metadata["basket_execution_policy"] = basket.execution_policy.value
+        return result
 
     @staticmethod
     def _bar_index(idx: pd.DatetimeIndex, timestamp) -> int:
