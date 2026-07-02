@@ -47,7 +47,9 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
+from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2
 from .core.orders import BasketIntent, Fill, OrderIntent, Trade
@@ -96,11 +98,15 @@ __author__  = "quantbt"
 __all__ = [
     # engines
     "BacktestEngine",
+    "BacktestEngineV2",
+    "EventDrivenBacktestEngine",
     "MultiSymbolPortfolio",
+    "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
+    "PortfolioBacktestEngine",
     "BacktestResult",
     "BacktestResultV2",
     "AccountConfig",
