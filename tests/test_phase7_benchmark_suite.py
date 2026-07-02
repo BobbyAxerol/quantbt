@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from quantbt.benchmarks.run_phase7 import PROFILES, _markdown_report, _skipped
 
@@ -24,7 +25,8 @@ def test_phase7_markdown_report_includes_backend_status():
 
 
 def test_phase7_threshold_file_is_valid_json():
-    with open("benchmarks/phase7_thresholds.json", "r", encoding="utf-8") as fh:
+    package_root = Path(__file__).resolve().parents[1]
+    with open(package_root / "benchmarks" / "phase7_thresholds.json", "r", encoding="utf-8") as fh:
         thresholds = json.load(fh)
 
     assert thresholds["native_vectorized"]["standard_max_seconds_per_million_bar_symbols"] > 0

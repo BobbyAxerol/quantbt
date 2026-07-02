@@ -21,7 +21,7 @@ def test_nautilus_timeframe_mapping_is_explicit():
     assert timeframe_to_nautilus("1w") == "1-WEEK"
 
     with pytest.raises(ValueError):
-        timeframe_to_nautilus("2h")
+        timeframe_to_nautilus("3h")
 
 
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():
