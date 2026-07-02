@@ -47,6 +47,7 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
+from .backends   import NativeVectorizedBackend, NativeVectorizedConfig
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2
 from .core.orders import Fill, OrderIntent, Trade
@@ -94,6 +95,8 @@ __all__ = [
     # engines
     "BacktestEngine",
     "MultiSymbolPortfolio",
+    "NativeVectorizedBackend",
+    "NativeVectorizedConfig",
     "BacktestResult",
     "BacktestResultV2",
     "AccountConfig",
