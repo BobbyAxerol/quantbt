@@ -8,7 +8,10 @@ Vectorised backtest SDK with Numba-compiled simulation kernels.
 quantbt/
 ├── __init__.py              public API
 ├── backtester.py            BacktestEngine
+├── engines.py               BacktestEngineV2 facade and backend selector
 ├── portfolio.py             MultiSymbolPortfolio wrapper + allocation modes
+├── backends/                native vectorized and event-driven V2 backends
+├── adapters/nautilus/       optional Nautilus validation backend
 ├── core/
 │   ├── engine.py            Numba JIT kernels incl. single, DCA, portfolio
 │   ├── types.py             BacktestResult dataclass
@@ -21,6 +24,55 @@ quantbt/
     ├── themes.py             dark / light palette + rcParams
     └── plots.py              quick_plot · tearsheet
 ```
+
+---
+
+## Backend selection
+
+Legacy APIs remain supported:
+
+- `BacktestEngine`
+- `MultiSymbolPortfolio`
+
+New V2 APIs share `BacktestResultV2` and make backend selection explicit:
+
+```python
+from quantbt import AccountConfig, BacktestEngineV2
+
+engine = BacktestEngineV2(
+    data=df,
+    signals=signal,
+    symbols=["BTCUSDT"],
+    backend="native_vectorized",  # native_vectorized | native_event | nautilus
+    account=AccountConfig(initial_capital=20_000, leverage=5),
+    alloc_per_trade=50_000,
+    use_funding=False,
+)
+result = engine.result
+```
+
+Use:
+
+- `native_vectorized` for optimizer/research speed.
+- `native_event` for order lifecycle, limit fills, grids, baskets.
+- `nautilus` for optional high-fidelity validation.
+
+Detailed guides:
+
+- [Backend selection](docs/backend_selection.md)
+- [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md)
+- [Margin and leverage](docs/margin_leverage.md)
+- [Order fill policies](docs/order_fill_policies.md)
+- [Pair and basket guide](docs/pair_basket_guide.md)
+- [Nautilus backend](docs/nautilus_backend.md)
+
+Examples:
+
+- [Single order event](examples/single_order_event.py)
+- [DCA/grid ladder](examples/dca_grid_ladder.py)
+- [Multi-symbol portfolio](examples/multi_symbol_portfolio.py)
+- [Pair basket](examples/pair_basket_event.py)
+- [Nautilus validation](examples/nautilus_validation.py)
 
 ---
 
