@@ -16,6 +16,7 @@ from ..core.preprocessor import align_series, build_arrays, prepare_funding, val
 from ..core.results import BacktestResultV2
 from ..core.schema import AccountConfig, ExecutionConfig
 from ..core.vectorized import _engine_units_v2
+from ..sizing.modes import compute_target_units
 
 
 @dataclass(frozen=True)
@@ -165,8 +166,69 @@ class NativeVectorizedBackend:
             },
         )
 
+    def run_signals(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        positions: Dict[str, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        alloc_per_trade: Union[float, Dict[str, float]] = 100_000.0,
+        hedge_type: str = "signal_notional",
+        use_pyramiding: bool = True,
+        symbols: Optional[List[str]] = None,
+    ) -> BacktestResultV2:
+        """
+        Scale raw position signals into target units, then run the V2 kernel.
+
+        Phase 2 supports target-unit sizing modes here. `%_equity` and
+        `dca_ladder` remain on the legacy kernels until their V2 diagnostics
+        kernels are added.
+        """
+        ht = hedge_type.lower().strip()
+        if ht in ("%_equity", "pct_equity", "dca_ladder", "dca"):
+            raise NotImplementedError(f"NativeVectorizedBackend.run_signals does not yet support hedge_type={hedge_type!r}")
+
+        idx = validate_datetime(datetime_index)
+        symbol_list = symbols or list(positions.keys())
+        pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
+        close_dict = align_series(closes, symbol_list, idx)
+        alloc = self._per_symbol_mapping(alloc_per_trade, symbol_list, default=100_000.0)
+
+        target_units = {
+            s: compute_target_units(
+                hedge_type=hedge_type,
+                signal=pos_dict[s],
+                close=close_dict[s],
+                alloc=alloc[s],
+                use_pyramiding=use_pyramiding,
+            )
+            for s in symbol_list
+        }
+
+        return self.run_target_units(
+            datetime_index=idx,
+            target_units=target_units,
+            closes=close_dict,
+            highs=highs,
+            lows=lows,
+            funding_rate=funding_rate,
+            contract_size=contract_size,
+            leverage=leverage,
+            symbols=symbol_list,
+        )
+
     @staticmethod
     def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:
         if isinstance(value, dict):
             return np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
         return np.full(len(symbols), float(value), dtype=np.float64)
+
+    @staticmethod
+    def _per_symbol_mapping(value, symbols: List[str], default: float) -> Dict[str, float]:
+        if isinstance(value, dict):
+            return {s: float(value.get(s, default)) for s in symbols}
+        return {s: float(value) for s in symbols}
