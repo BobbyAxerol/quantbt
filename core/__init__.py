@@ -1,4 +1,5 @@
 from .engine       import _engine_units, _engine_pct_equity, _engine_dca_ladder, _engine_portfolio
+from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
 from .results      import BacktestResultV2
@@ -31,6 +32,7 @@ from .preprocessor import (
 
 __all__ = [
     "_engine_units",
+    "_engine_event_v1",
     "_engine_units_v2",
     "_engine_pct_equity",
     "_engine_dca_ladder",
