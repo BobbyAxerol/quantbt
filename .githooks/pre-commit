@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+branch="$(git symbolic-ref --quiet --short HEAD || true)"
+
+case "$branch" in
+  main|master)
+    echo "Refusing to commit on protected branch '$branch'."
+    echo "Switch to dev for quantbt research and implementation work."
+    exit 1
+    ;;
+esac
