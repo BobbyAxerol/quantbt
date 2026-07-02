@@ -48,6 +48,26 @@ Advanced — standalone metrics + plots::
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
 from .core.types import BacktestResult
+from .core.results import BacktestResultV2
+from .core.orders import Fill, OrderIntent, Trade
+from .core.schema import (
+    AccountConfig,
+    AssetType,
+    BasketLegSpec,
+    BasketSpec,
+    ExecutionConfig,
+    FeeModel,
+    FillPricePolicy,
+    InstrumentSpec,
+    LiquiditySide,
+    MarginMode,
+    OmsMode,
+    OrderSide,
+    OrderType,
+    SameBarPolicy,
+    SignalSpec,
+    TimeInForce,
+)
 
 from .metrics import (
     full_report,
@@ -75,6 +95,26 @@ __all__ = [
     "BacktestEngine",
     "MultiSymbolPortfolio",
     "BacktestResult",
+    "BacktestResultV2",
+    "AccountConfig",
+    "AssetType",
+    "BasketLegSpec",
+    "BasketSpec",
+    "ExecutionConfig",
+    "FeeModel",
+    "Fill",
+    "FillPricePolicy",
+    "InstrumentSpec",
+    "LiquiditySide",
+    "MarginMode",
+    "OmsMode",
+    "OrderIntent",
+    "OrderSide",
+    "OrderType",
+    "SameBarPolicy",
+    "SignalSpec",
+    "TimeInForce",
+    "Trade",
     # metrics
     "full_report",
     "sharpe",
