@@ -76,3 +76,23 @@ def test_native_vectorized_backend_records_fee_and_turnover_costs():
     assert result.diagnostics["turnover"].iloc[2] == 1_100.0
     assert result.fees.iloc[2] == 1.1
     assert result.equity.iloc[2] == 10_097.9
+
+
+def test_native_vectorized_backend_scales_raw_signal_notional_signals():
+    idx = pd.date_range("2024-01-01", periods=4, freq="1D", tz="UTC")
+    signal = pd.Series([0.0, 1.0, 1.0, 0.5], index=idx)
+    close = pd.Series([100.0, 100.0, 110.0, 120.0], index=idx)
+
+    result = _backend(leverage=10.0).run_signals(
+        datetime_index=idx,
+        positions={"BTC": signal},
+        closes={"BTC": close},
+        highs={"BTC": close},
+        lows={"BTC": close},
+        alloc_per_trade=1_000.0,
+        hedge_type="signal_notional",
+    )
+
+    assert result.positions["Position_BTC"].iloc[1] == 10.0
+    assert result.positions["Position_BTC"].iloc[2] == 10.0
+    assert result.positions["Position_BTC"].iloc[3] == 1_000.0 / 120.0 * 0.5
