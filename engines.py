@@ -16,8 +16,9 @@ from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBac
 from .core.orders import OrderIntent
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2
-from .core.schema import AccountConfig, BasketSpec, ExecutionConfig
+from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
 from .portfolio import MultiSymbolPortfolio
+from .sizing.modes import compute_target_units
 
 
 SeriesMap = Dict[str, pd.Series]
@@ -178,11 +179,25 @@ class BacktestEngineV2:
                 symbols=symbols,
             )
 
-        if not self.orders:
-            raise ValueError("native_event requires explicit orders or a basket")
+        orders = self.orders
+        if not orders:
+            raw_positions = self.positions if self.positions is not None else self.signals
+            if raw_positions is None:
+                raise ValueError("native_event requires explicit orders, signals, positions, or a basket")
+            orders = tuple(
+                _build_market_rebalance_orders(
+                    datetime_index=idx,
+                    positions=_as_series_map(raw_positions, symbols),
+                    closes=closes,
+                    alloc_per_trade=self.alloc_per_trade,
+                    hedge_type=self.hedge_type,
+                    use_pyramiding=self.use_pyramiding,
+                    symbols=symbols,
+                )
+            )
         return backend.run_orders(
             datetime_index=idx,
-            orders=self.orders,
+            orders=orders,
             closes=closes,
             highs=highs,
             lows=lows,
@@ -435,6 +450,67 @@ def _as_series_map(value: Union[pd.Series, SeriesMap], symbols: List[str]) -> Se
             raise ValueError("single series input requires exactly one symbol")
         return {symbols[0]: value}
     return {s: value[s] for s in symbols}
+
+
+def _build_market_rebalance_orders(
+    datetime_index: pd.DatetimeIndex,
+    positions: SeriesMap,
+    closes: SeriesMap,
+    alloc_per_trade: Union[float, Dict[str, float]],
+    hedge_type: str,
+    use_pyramiding: bool,
+    symbols: List[str],
+) -> List[OrderIntent]:
+    ht = hedge_type.lower().strip()
+    if ht in ("%_equity", "pct_equity", "dca_ladder", "dca"):
+        raise NotImplementedError(
+            "native_event signal adapter supports pre-scalable target-unit modes "
+            "('signal_notional', 'notional', 'unit'). Use explicit orders for "
+            f"hedge_type={hedge_type!r}."
+        )
+
+    alloc = _per_symbol_mapping(alloc_per_trade, symbols, default=100_000.0)
+    orders: List[OrderIntent] = []
+    for symbol in symbols:
+        signal = positions[symbol].copy()
+        close = closes[symbol].copy()
+        if isinstance(signal.index, pd.DatetimeIndex):
+            signal.index = signal.index.tz_localize("UTC") if signal.index.tz is None else signal.index.tz_convert("UTC")
+        if isinstance(close.index, pd.DatetimeIndex):
+            close.index = close.index.tz_localize("UTC") if close.index.tz is None else close.index.tz_convert("UTC")
+        signal = signal[~signal.index.duplicated(keep="first")].reindex(datetime_index, method="ffill").fillna(0.0)
+        close = close[~close.index.duplicated(keep="first")].reindex(datetime_index, method="ffill")
+        target_units = compute_target_units(
+            hedge_type=hedge_type,
+            signal=signal,
+            close=close,
+            alloc=alloc[symbol],
+            use_pyramiding=use_pyramiding,
+        ).fillna(0.0)
+        prev = 0.0
+        for ts, target in target_units.items():
+            target = float(target)
+            delta = target - prev
+            if abs(delta) > 1e-12:
+                orders.append(
+                    OrderIntent(
+                        timestamp=ts,
+                        symbol=symbol,
+                        side=OrderSide.BUY if delta > 0.0 else OrderSide.SELL,
+                        order_type=OrderType.MARKET,
+                        qty=abs(delta),
+                        tif=TimeInForce.IOC,
+                        tag=f"signal_rebalance:{hedge_type}",
+                    )
+                )
+            prev = target
+    return sorted(orders, key=lambda order: pd.Timestamp(order.timestamp).value)
+
+
+def _per_symbol_mapping(value, symbols: List[str], default: float) -> Dict[str, float]:
+    if isinstance(value, dict):
+        return {s: float(value.get(s, default)) for s in symbols}
+    return {s: float(value) for s in symbols}
 
 
 def _first_signal(value: Optional[Union[pd.Series, SeriesMap]]) -> Optional[pd.Series]:

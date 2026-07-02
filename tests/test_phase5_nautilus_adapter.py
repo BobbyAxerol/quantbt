@@ -73,6 +73,34 @@ def test_result_from_nautilus_reports_accepts_money_strings():
     assert result.equity.tolist() == [10_000.0, 10_025.5]
 
 
+def test_result_from_nautilus_reports_rebuilds_positions_from_fills():
+    idx = pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC")
+    account = pd.DataFrame({"total": [10_000.0, 10_010.0, 10_020.0, 10_030.0]}, index=idx)
+    fills = pd.DataFrame(
+        {
+            "instrument_id": ["BTCUSDT-PERP.BINANCE", "BTCUSDT-PERP.BINANCE"],
+            "side": ["BUY", "SELL"],
+            "filled_qty": [2.0, 0.5],
+            "ts_last": [idx[1], idx[2]],
+        }
+    )
+
+    result = result_from_nautilus_reports(
+        account_report=account,
+        fills_report=fills,
+        orders_report=fills,
+        symbols=["BTCUSDT-PERP.BINANCE"],
+        initial_capital=10_000.0,
+    )
+
+    pos = result.positions["Position_BTCUSDT-PERP.BINANCE"]
+    assert pos.iloc[0] == 0.0
+    assert pos.iloc[1] == 2.0
+    assert pos.iloc[2] == 1.5
+    assert pos.iloc[3] == 1.5
+    assert result.metadata["fills_count"] == 2
+
+
 def test_nautilus_config_validates_identifiers_and_capital():
     with pytest.raises(ValueError):
         NautilusBackendConfig(starting_balance=0.0)
