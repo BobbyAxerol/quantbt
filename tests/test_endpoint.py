@@ -44,6 +44,8 @@ def test_endpoint_pct_equity_uses_legacy_backtester():
 
     assert result.metadata["hedge_type"] == "%_equity"
     assert result.initial_capital == 10_000.0
+    assert result.fills == ()
+    assert result.metadata["order_report"].empty
     assert endpoint.full_report()["num_trades"] >= 2
 
 
@@ -64,8 +66,13 @@ def test_endpoint_signal_notional_vectorized_and_event_match():
     r_vec = vectorized.backtest(data=df, signal=signal, symbols=["BTC"])
     r_evt = event.backtest(data=df, signal=signal, symbols=["BTC"])
 
+    assert r_vec.fills == ()
+    assert r_vec.metadata["order_report"].empty
     assert r_vec.equity.equals(r_evt.equity)
     assert len(r_evt.fills) == 2
+    assert len(event.fills) == 2
+    assert not event.order_report.empty
+    assert r_evt.metadata["orders_report"].equals(r_evt.metadata["order_report"])
 
 
 def test_endpoint_orders_simulation():

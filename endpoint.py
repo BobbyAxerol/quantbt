@@ -372,6 +372,26 @@ class QuantBTEndpoint:
         """Return `full_report()` for the latest result."""
         return self.full_report()
 
+    @property
+    def latest_orders(self):
+        """Return latest explicit/generated orders, or an empty tuple."""
+        return getattr(self._require_result(), "orders", ())
+
+    @property
+    def fills(self):
+        """Return latest fills, or an empty tuple for non-event results."""
+        return getattr(self._require_result(), "fills", ())
+
+    @property
+    def order_report(self) -> pd.DataFrame:
+        """Return latest order report, or an empty DataFrame."""
+        return self._require_result().metadata.get("order_report", pd.DataFrame())
+
+    @property
+    def fills_report(self) -> pd.DataFrame:
+        """Return latest fills report, or an empty DataFrame."""
+        return self._require_result().metadata.get("fills_report", pd.DataFrame())
+
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
         frame, idx, sig = _normalize_single_data(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index)
         backend = _resolve_backend(self.config)
@@ -397,7 +417,7 @@ class QuantBTEndpoint:
                 symbols=None,
                 **self.config.dca_kwargs,
             )
-            self.result = self.engine.result
+            self._store_result(self.engine.result)
             return self.result
 
         self.engine = BacktestEngineV2(
@@ -416,7 +436,7 @@ class QuantBTEndpoint:
             contract_size=self.config.contract_size,
             nautilus_config=self.config.nautilus_config,
         )
-        self.result = self.engine.result
+        self._store_result(self.engine.result)
         return self.result
 
     def _run_orders(self, data, orders, datetime_index, symbols):
@@ -435,7 +455,7 @@ class QuantBTEndpoint:
             funding_rate=self.config.funding_rate,
             contract_size=self.config.contract_size,
         )
-        self.result = self.engine.result
+        self._store_result(self.engine.result)
         return self.result
 
     def _run_basket(self, data, signal, signal_col, basket, closes, highs, lows, datetime_index, symbols):
@@ -469,7 +489,7 @@ class QuantBTEndpoint:
             funding_rate=self.config.funding_rate,
             contract_size=self.config.contract_size,
         )
-        self.result = self.engine.result
+        self._store_result(self.engine.result)
         return self.result
 
     def _run_portfolio(self, data, positions, closes, highs, lows, datetime_index, symbols):
@@ -503,13 +523,59 @@ class QuantBTEndpoint:
             leverage=self.config.account.leverage,
             maintenance_ratio=self.config.account.maintenance_ratio,
         )
-        self.result = self.engine.result
+        self._store_result(self.engine.result)
         return self.result
+
+    def _store_result(self, result):
+        _normalize_result_contract(result)
+        self.result = result
+        return result
 
     def _require_result(self):
         if self.result is None:
             raise RuntimeError("run backtest() or simulate() before requesting results")
         return self.result
+
+
+def _normalize_result_contract(result) -> None:
+    """
+    Make common result artifacts safe to access across all endpoint backends.
+
+    Legacy and vectorized results do not naturally have fills/orders. Notebook
+    integrations still benefit from stable empty artifacts instead of
+    AttributeError/KeyError.
+    """
+    metadata = result.metadata
+    if not hasattr(result, "orders"):
+        setattr(result, "orders", ())
+    if not hasattr(result, "fills"):
+        setattr(result, "fills", ())
+
+    order_report = metadata.get("order_report")
+    if order_report is None:
+        order_report = metadata.get("orders_report")
+    if order_report is None:
+        order_report = pd.DataFrame()
+    metadata["order_report"] = order_report
+    if metadata.get("orders_report") is None:
+        metadata["orders_report"] = order_report
+
+    if metadata.get("fills_report") is None:
+        metadata["fills_report"] = _fills_to_frame(getattr(result, "fills", ()))
+    if metadata.get("positions_report") is None:
+        metadata["positions_report"] = pd.DataFrame()
+    if "orders_count" not in metadata:
+        metadata["orders_count"] = len(getattr(result, "orders", ()))
+    if "fills_count" not in metadata:
+        metadata["fills_count"] = len(getattr(result, "fills", ()))
+
+
+def _fills_to_frame(fills) -> pd.DataFrame:
+    rows = []
+    for fill in fills:
+        row = getattr(fill, "__dict__", None)
+        rows.append(dict(row) if row is not None else {"fill": fill})
+    return pd.DataFrame(rows)
 
 
 def format_metrics_report(report: Dict) -> str:

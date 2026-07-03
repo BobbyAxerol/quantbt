@@ -28,10 +28,13 @@ class NautilusBackendConfig:
     bypass_logging: bool = True
     bypass_risk: bool = False
     close_positions_on_stop: bool = False
+    force_flat_on_stop: Optional[bool] = None
     use_test_instrument: bool = True
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.force_flat_on_stop is not None:
+            object.__setattr__(self, "close_positions_on_stop", bool(self.force_flat_on_stop))
         if self.starting_balance <= 0.0:
             raise ValueError("starting_balance must be > 0")
         if self.trade_notional < 0.0:

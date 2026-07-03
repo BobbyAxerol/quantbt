@@ -110,6 +110,12 @@ def test_nautilus_config_validates_identifiers_and_capital():
         NautilusBackendConfig(trader_id="BACKTESTER")
 
 
+def test_nautilus_config_accepts_force_flat_alias():
+    cfg = NautilusBackendConfig(force_flat_on_stop=True)
+
+    assert cfg.close_positions_on_stop is True
+
+
 def test_nautilus_dependency_is_lazy_and_reports_missing_package_cleanly():
     try:
         import nautilus_trader  # noqa: F401
