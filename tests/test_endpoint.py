@@ -6,6 +6,7 @@ from quantbt import (
     AccountConfig,
     BasketLegSpec,
     BasketSpec,
+    format_metrics_report,
     OrderIntent,
     OrderSide,
     OrderType,
@@ -147,3 +148,65 @@ def test_endpoint_dca_ladder_requires_high_low_and_runs():
 
     assert result.metadata["hedge_type"] == "dca_ladder"
     assert result.metadata["dca_actual_level"] is not None
+
+
+def test_endpoint_show_metrics_uses_legacy_text_format(capsys):
+    df = _bars()
+    signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=df.index)
+
+    endpoint = QuantBTEndpoint.signal_notional(
+        backend="native_vectorized",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    endpoint.backtest(data=df, signal=signal, symbols=["BTC"])
+    report = endpoint.show_metrics()
+    output = capsys.readouterr().out
+
+    assert report["initial_capital"] == 20_000.0
+    assert "  Initial Capital   $        20,000" in output
+    assert "  Final Equity      $" in output
+    assert "  Max DD Duration" in output
+    assert "  Avg Loss" in output
+    assert "initial_capital:" not in output
+
+
+def test_endpoint_direct_constructor_accepts_account_kwargs():
+    endpoint = QuantBTEndpoint(
+        mode="single_signal",
+        backend="native_vectorized",
+        sizing="signal_notional",
+        initial_capital=20_000.0,
+        leverage=3.0,
+        alloc_per_trade=1_000.0,
+        use_funding=False,
+    )
+
+    assert endpoint.config.account.initial_capital == 20_000.0
+    assert endpoint.config.account.leverage == 3.0
+    assert format_metrics_report(
+        {
+            "initial_capital": 20_000.0,
+            "final_equity": 21_000.0,
+            "total_return_pct": 5.0,
+            "cagr_pct": 5.0,
+            "sharpe": 1.0,
+            "sortino": 1.0,
+            "calmar": 1.0,
+            "omega": 1.0,
+            "max_drawdown_pct": 1.0,
+            "avg_drawdown_pct": 0.5,
+            "max_dd_duration_days": 3,
+            "profit_factor": 1.2,
+            "long_hitrate_pct": 50.0,
+            "short_hitrate_pct": 0.0,
+            "avg_win_pct": 1.0,
+            "avg_loss_pct": -1.0,
+            "expectancy_pct": 0.1,
+            "num_trades": 2,
+            "liquidated": False,
+        }
+    ).startswith("\n  Initial Capital")

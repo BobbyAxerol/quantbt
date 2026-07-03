@@ -131,7 +131,7 @@ class QuantBTEndpoint:
         >>> endpoint = QuantBTEndpoint(mode="single_signal", sizing="signal_notional")
         >>> result = endpoint.backtest(data=df, signal_col="position")
         """
-        self.config = config or EndpointConfig(**kwargs)
+        self.config = config or _config_from_kwargs(**kwargs)
         self.result: Optional[Union[BacktestResult, BacktestResultV2]] = None
         self.engine = None
 
@@ -320,8 +320,7 @@ class QuantBTEndpoint:
         `BacktestEngine.analyze()` without forcing a plot.
         """
         rpt = self.full_report(trading_days=trading_days)
-        for key, value in rpt.items():
-            print(f"{key}: {value}")
+        print(format_metrics_report(rpt))
         return rpt
 
     def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6)):
@@ -511,6 +510,70 @@ class QuantBTEndpoint:
         if self.result is None:
             raise RuntimeError("run backtest() or simulate() before requesting results")
         return self.result
+
+
+def format_metrics_report(report: Dict) -> str:
+    """
+    Format a metrics dictionary as a legacy-style text report.
+
+    The returned string is intentionally plain monospaced text so notebooks,
+    terminals, logs, and services all render the same high-signal report.
+    """
+    lines = [
+        ("Initial Capital", _fmt_money(report.get("initial_capital"), decimals=0)),
+        ("Final Equity", _fmt_money(report.get("final_equity"), decimals=2)),
+        ("Total Return", _fmt_pct(report.get("total_return_pct"), signed=True, decimals=2)),
+        ("CAGR", _fmt_pct(report.get("cagr_pct"), signed=True, decimals=2)),
+        ("Sharpe Ratio", _fmt_float(report.get("sharpe"), decimals=3)),
+        ("Sortino Ratio", _fmt_float(report.get("sortino"), decimals=3)),
+        ("Calmar Ratio", _fmt_float(report.get("calmar"), decimals=3)),
+        ("Omega Ratio", _fmt_float(report.get("omega"), decimals=3)),
+        ("Max Drawdown", _fmt_pct(report.get("max_drawdown_pct"), signed=False, decimals=2)),
+        ("Avg Drawdown", _fmt_pct(report.get("avg_drawdown_pct"), signed=False, decimals=2)),
+        ("Max DD Duration", _fmt_days(report.get("max_dd_duration_days"))),
+        ("Profit Factor", _fmt_float(report.get("profit_factor"), decimals=3)),
+        ("Long Hit Rate", _fmt_pct(report.get("long_hitrate_pct"), signed=False, decimals=2)),
+        ("Short Hit Rate", _fmt_pct(report.get("short_hitrate_pct"), signed=False, decimals=2)),
+        ("Avg Win", _fmt_pct(report.get("avg_win_pct"), signed=True, decimals=3)),
+        ("Avg Loss", _fmt_pct(report.get("avg_loss_pct"), signed=True, decimals=3)),
+        ("Expectancy", _fmt_pct(report.get("expectancy_pct"), signed=True, decimals=3)),
+        ("Number of Trades", _fmt_int(report.get("num_trades"))),
+        ("Liquidated", f"{'Yes' if report.get('liquidated') else 'No':>14}"),
+    ]
+    col_width = max(len(key) for key, _ in lines)
+    body = "\n".join(f"  {key:<{col_width}}  {value}" for key, value in lines)
+    return f"\n{body}\n"
+
+
+def _fmt_money(value, decimals: int) -> str:
+    if value is None or pd.isna(value):
+        return f"{'n/a':>15}"
+    return f"$ {float(value):>13,.{decimals}f}"
+
+
+def _fmt_pct(value, signed: bool, decimals: int) -> str:
+    if value is None or pd.isna(value):
+        return f"{'n/a':>15}"
+    sign = "+" if signed else ""
+    return f"{float(value):>{sign}13.{decimals}f}%"
+
+
+def _fmt_float(value, decimals: int) -> str:
+    if value is None or pd.isna(value):
+        return f"{'n/a':>14}"
+    return f"{float(value):>14.{decimals}f}"
+
+
+def _fmt_days(value) -> str:
+    if value is None or pd.isna(value):
+        return f"{'n/a':>16}"
+    return f"{int(value):>11d} days"
+
+
+def _fmt_int(value) -> str:
+    if value is None or pd.isna(value):
+        return f"{'n/a':>14}"
+    return f"{int(value):>14,d}"
 
 
 def _config_from_kwargs(**kwargs) -> EndpointConfig:
