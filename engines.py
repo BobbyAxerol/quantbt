@@ -8,6 +8,7 @@ Nautilus validation runs.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
@@ -210,6 +211,7 @@ class BacktestEngineV2:
     def _run_nautilus(self) -> BacktestResultV2:
         from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine
 
+        symbol_override = self.symbols[0] if self.symbols else None
         data = _single_frame(self.data)
         if data is None:
             idx, closes, highs, lows, symbols = self._market_data()
@@ -235,9 +237,12 @@ class BacktestEngineV2:
                 iter(self.alloc_per_trade.values())
             )
             config = NautilusBackendConfig(
+                instrument_id=symbol_override or "BTCUSDT-PERP.BINANCE",
                 starting_balance=self.account.initial_capital,
                 trade_notional=float(trade_notional),
             )
+        elif symbol_override and config.instrument_id == "BTCUSDT-PERP.BINANCE":
+            config = replace(config, instrument_id=symbol_override)
         return NautilusBacktestEngine(config).run_signal_series(data=data, signal=signal)
 
     def _market_data(self) -> Tuple[pd.DatetimeIndex, SeriesMap, SeriesMap, SeriesMap, List[str]]:

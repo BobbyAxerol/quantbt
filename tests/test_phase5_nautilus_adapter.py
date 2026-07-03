@@ -3,13 +3,18 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from quantbt import AccountConfig, BacktestEngineV2
 from quantbt.adapters.nautilus import (
     NautilusBackendConfig,
     NautilusBacktestEngine,
     ensure_utc_ohlcv,
+    make_binance_perpetual,
+    normalize_binance_perp_symbol,
     result_from_nautilus_reports,
+    supported_binance_perpetuals,
     timeframe_to_nautilus,
 )
+from quantbt.adapters.nautilus._dependency import require_nautilus
 
 
 def test_nautilus_timeframe_mapping_is_explicit():
@@ -22,6 +27,75 @@ def test_nautilus_timeframe_mapping_is_explicit():
 
     with pytest.raises(ValueError):
         timeframe_to_nautilus("3h")
+
+
+def test_nautilus_supported_binance_perpetual_symbols():
+    supported = supported_binance_perpetuals()
+
+    assert "BTCUSDT-PERP.BINANCE" in supported
+    assert "ETHUSDT-PERP.BINANCE" in supported
+    assert "BNBUSDT-PERP.BINANCE" in supported
+    assert "SOLUSDT-PERP.BINANCE" in supported
+    assert "DOGEUSDT-PERP.BINANCE" in supported
+    assert "ARBUSDT-PERP.BINANCE" in supported
+    assert "LINKUSDT-PERP.BINANCE" in supported
+    assert normalize_binance_perp_symbol("ARP") == "ARBUSDT"
+
+
+def test_nautilus_can_build_supported_binance_perpetuals():
+    try:
+        nt = require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    for instrument_id in (
+        "BNBUSDT-PERP.BINANCE",
+        "SOLUSDT-PERP.BINANCE",
+        "DOGEUSDT-PERP.BINANCE",
+        "LINKUSDT-PERP.BINANCE",
+    ):
+        instrument = make_binance_perpetual(instrument_id, nt)
+        assert str(instrument.id) == instrument_id
+        assert instrument.quote_currency.code == "USDT"
+
+
+def test_nautilus_backend_uses_symbol_override_for_supported_perpetual():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=24, freq="1h", tz="UTC")
+    close = pd.Series([100.0 + (i % 5) for i in range(len(idx))], index=idx)
+    df = pd.DataFrame(
+        {
+            "open": close,
+            "high": close + 1.0,
+            "low": close - 1.0,
+            "close": close,
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    signal = pd.Series([0.0] * 4 + [1.0] * 10 + [0.0] * 10, index=idx)
+
+    engine = BacktestEngineV2(
+        data=df,
+        signals=signal,
+        symbols=["SOLUSDT-PERP.BINANCE"],
+        backend="nautilus",
+        account=AccountConfig(initial_capital=20_000.0, leverage=5.0),
+        alloc_per_trade=1_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            timeframe="1h",
+            starting_balance=20_000.0,
+            trade_notional=1_000.0,
+        ),
+    )
+
+    assert engine.result.metadata["instrument_id"] == "SOLUSDT-PERP.BINANCE"
+    assert engine.result.metadata["orders_count"] >= 1
 
 
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():

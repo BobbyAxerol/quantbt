@@ -586,7 +586,7 @@ bt = QuantBTEndpoint.nautilus_validation(
 result = bt.simulate(
     data=df,
     signal_col="pos_weight",
-    symbols=["BTCUSDT-PERP.BINANCE"],
+    symbols=["ETHUSDT-PERP.BINANCE"],
 )
 
 fills = bt.fills_report
@@ -596,8 +596,12 @@ result.show_metrics()
 Requirements:
 
 - `nautilus-trader` installed in the active Poetry environment;
-- current adapter supports the validation instrument
-  `BTCUSDT-PERP.BINANCE`;
+- current adapter supports Binance USDT perpetual validation instruments:
+  `BTCUSDT-PERP.BINANCE`, `ETHUSDT-PERP.BINANCE`, `BNBUSDT-PERP.BINANCE`,
+  `SOLUSDT-PERP.BINANCE`, `DOGEUSDT-PERP.BINANCE`, `ARBUSDT-PERP.BINANCE`,
+  and `LINKUSDT-PERP.BINANCE`;
+- shorthand symbols such as `ETHUSDT`, `SOL`, and `ARP` are normalized where
+  possible;
 - OHLCV data is converted to Nautilus external bars;
 - signal is a single-symbol target series.
 

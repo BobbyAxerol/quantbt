@@ -12,7 +12,7 @@ import pandas as pd
 
 from ...core.results import BacktestResultV2
 from ._dependency import require_nautilus
-from .instruments import ensure_utc_ohlcv, timeframe_to_nautilus
+from .instruments import ensure_utc_ohlcv, make_binance_perpetual, timeframe_to_nautilus
 from .reports import result_from_nautilus_reports
 
 
@@ -148,9 +148,7 @@ class NautilusBacktestEngine:
     def _make_instrument(self, nt):
         if not self.config.use_test_instrument:
             raise NotImplementedError("custom Nautilus instruments are not wired yet")
-        if self.config.instrument_id != "BTCUSDT-PERP.BINANCE":
-            raise NotImplementedError("Phase 5 test instrument support is limited to BTCUSDT-PERP.BINANCE")
-        return nt.TestInstrumentProvider.btcusdt_perp_binance()
+        return make_binance_perpetual(self.config.instrument_id, nt)
 
     @staticmethod
     def _align_signal(signal: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:

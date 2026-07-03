@@ -4,30 +4,43 @@ from _bootstrap import PROJECT_ROOT  # noqa: F401
 
 import pandas as pd
 
-from quantbt import AccountConfig, BacktestEngineV2
+from quantbt import QuantBTEndpoint
+from quantbt.adapters.nautilus import NautilusBackendConfig
 
 
-idx = pd.date_range("2024-01-01", periods=5, freq="1h", tz="UTC")
+idx = pd.date_range("2024-01-01", periods=48, freq="1h", tz="UTC")
+close = pd.Series([100.0 + (i % 7) for i in range(len(idx))], index=idx)
 df = pd.DataFrame(
     {
-        "open": [100.0, 101.0, 102.0, 101.0, 103.0],
-        "high": [101.0, 103.0, 103.0, 104.0, 105.0],
-        "low": [99.0, 100.0, 100.5, 100.0, 102.0],
-        "close": [101.0, 102.0, 101.0, 103.0, 104.0],
-        "volume": [1_000.0, 1_100.0, 1_200.0, 1_300.0, 1_400.0],
+        "open": close,
+        "high": close + 1.0,
+        "low": close - 1.0,
+        "close": close,
+        "volume": 1_000.0,
+        "pos_weight": [0.0] * 5 + [1.0] * 20 + [0.0] * 23,
     },
     index=idx,
 )
-signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=idx)
 
-engine = BacktestEngineV2(
-    data=df,
-    signals=signal,
-    symbols=["BTCUSDT-PERP.BINANCE"],
-    backend="nautilus",
-    account=AccountConfig(initial_capital=10_000.0, leverage=10.0),
-    alloc_per_trade=1_000.0,
+bt = QuantBTEndpoint.nautilus_validation(
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
     use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        timeframe="1h",
+        starting_balance=20_000,
+        trade_notional=10_000,
+        close_positions_on_stop=False,
+    ),
 )
 
-print(engine.result.equity.tail())
+result = bt.simulate(
+    data=df,
+    signal_col="pos_weight",
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+
+result.show_metrics()
+print(bt.fills_report.tail())
