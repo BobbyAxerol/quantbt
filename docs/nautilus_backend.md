@@ -11,6 +11,7 @@ engine = BacktestEngineV2(
     signals=signal,
     symbols=["ETHUSDT-PERP.BINANCE"],
     backend="nautilus",
+    hedge_type="signal_notional",
     account=AccountConfig(initial_capital=20_000, leverage=5),
     alloc_per_trade=10_000,
     use_funding=False,
@@ -36,10 +37,20 @@ The adapter also accepts shorthand such as `ETHUSDT`, `SOL`, or `LINK`.
 Scope:
 
 - single-symbol signal series;
+- sizing modes: `signal_notional`, `notional`, `unit`, and `%_equity`;
 - external OHLCV bars through Nautilus `BarDataWrangler`;
 - market delta orders to target signal notional;
 - account, orders, fills, and positions reports converted to
   `BacktestResultV2`.
+
+Not yet in the Nautilus adapter:
+
+- DCA/grid ladder limit simulation;
+- explicit order replay;
+- pair/basket trading;
+- multi-symbol portfolio validation.
+
+Those workflows should use native QuantBT backends today.
 
 Why optional:
 

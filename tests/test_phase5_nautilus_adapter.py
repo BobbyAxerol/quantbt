@@ -98,6 +98,57 @@ def test_nautilus_backend_uses_symbol_override_for_supported_perpetual():
     assert engine.result.metadata["orders_count"] >= 1
 
 
+@pytest.mark.parametrize(
+    ("hedge_type", "alloc_per_trade"),
+    [
+        ("signal_notional", 1_000.0),
+        ("notional", 1_000.0),
+        ("unit", 1_000.0),
+        ("%_equity", 0.5),
+    ],
+)
+def test_nautilus_backend_supports_single_symbol_sizing_modes(hedge_type, alloc_per_trade):
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=18, freq="1h", tz="UTC")
+    close = pd.Series([100.0 + i for i in range(len(idx))], index=idx)
+    df = pd.DataFrame(
+        {
+            "open": close,
+            "high": close + 1.0,
+            "low": close - 1.0,
+            "close": close,
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    signal = pd.Series([0.0] * 3 + [1.0] * 10 + [0.0] * 5, index=idx)
+
+    engine = BacktestEngineV2(
+        data=df,
+        signals=signal,
+        symbols=["BNBUSDT-PERP.BINANCE"],
+        backend="nautilus",
+        hedge_type=hedge_type,
+        account=AccountConfig(initial_capital=20_000.0, leverage=5.0),
+        alloc_per_trade=alloc_per_trade,
+        use_funding=False,
+    )
+
+    assert engine.result.metadata["instrument_id"] == "BNBUSDT-PERP.BINANCE"
+    assert engine.result.metadata["sizing_mode"] == hedge_type
+    assert engine.result.metadata["orders_count"] >= 1
+    assert engine.result.equity.iloc[-1] > 0.0
+
+
+def test_nautilus_config_rejects_dca_ladder_until_event_ladder_is_supported():
+    with pytest.raises(NotImplementedError):
+        NautilusBackendConfig(sizing_mode="dca_ladder")
+
+
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():
     raw = pd.DataFrame(
         {

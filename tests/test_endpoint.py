@@ -245,3 +245,16 @@ def test_endpoint_direct_constructor_accepts_account_kwargs():
             "liquidated": False,
         }
     ).startswith("\n  Initial Capital")
+
+
+def test_nautilus_endpoint_accepts_legacy_hedge_type_alias():
+    endpoint = QuantBTEndpoint.nautilus_validation(
+        hedge_type="%_equity",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        use_funding=False,
+    )
+
+    assert endpoint.config.backend == "nautilus"
+    assert endpoint.config.sizing == "%_equity"
