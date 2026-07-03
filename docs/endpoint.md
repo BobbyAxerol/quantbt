@@ -573,6 +573,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     initial_capital=20_000,
     leverage=5,
     alloc_per_trade=10_000,
+    hedge_type="signal_notional",
     fee_rate=0.0002,
     use_funding=False,
     nautilus_config=NautilusBackendConfig(
@@ -602,6 +603,12 @@ Requirements:
   and `LINKUSDT-PERP.BINANCE`;
 - shorthand symbols such as `ETHUSDT`, `SOL`, and `ARP` are normalized where
   possible;
+- single-symbol sizing modes supported today: `signal_notional`, `notional`,
+  `unit`, and `%_equity`; pass either `hedge_type=` or `sizing=` to the
+  endpoint factory;
+- DCA/grid, explicit order replay, pair trading, and multi-symbol portfolio
+  validation remain on native QuantBT backends until their Nautilus event
+  adapters are added;
 - OHLCV data is converted to Nautilus external bars;
 - signal is a single-symbol target series.
 

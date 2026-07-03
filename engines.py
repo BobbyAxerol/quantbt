@@ -212,6 +212,9 @@ class BacktestEngineV2:
         from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine
 
         symbol_override = self.symbols[0] if self.symbols else None
+        trade_notional = self.alloc_per_trade if not isinstance(self.alloc_per_trade, dict) else next(
+            iter(self.alloc_per_trade.values())
+        )
         data = _single_frame(self.data)
         if data is None:
             idx, closes, highs, lows, symbols = self._market_data()
@@ -233,16 +236,23 @@ class BacktestEngineV2:
 
         config = self.nautilus_config
         if config is None:
-            trade_notional = self.alloc_per_trade if not isinstance(self.alloc_per_trade, dict) else next(
-                iter(self.alloc_per_trade.values())
-            )
             config = NautilusBackendConfig(
                 instrument_id=symbol_override or "BTCUSDT-PERP.BINANCE",
                 starting_balance=self.account.initial_capital,
                 trade_notional=float(trade_notional),
+                sizing_mode=self.hedge_type,
+                use_pyramiding=self.use_pyramiding,
             )
-        elif symbol_override and config.instrument_id == "BTCUSDT-PERP.BINANCE":
-            config = replace(config, instrument_id=symbol_override)
+        else:
+            updates = {
+                "starting_balance": self.account.initial_capital,
+                "trade_notional": float(trade_notional),
+                "sizing_mode": self.hedge_type,
+                "use_pyramiding": self.use_pyramiding,
+            }
+            if symbol_override and config.instrument_id == "BTCUSDT-PERP.BINANCE":
+                updates["instrument_id"] = symbol_override
+            config = replace(config, **updates)
         return NautilusBacktestEngine(config).run_signal_series(data=data, signal=signal)
 
     def _market_data(self) -> Tuple[pd.DatetimeIndex, SeriesMap, SeriesMap, SeriesMap, List[str]]:

@@ -22,6 +22,8 @@ class NautilusBackendConfig:
     timeframe: str = "1h"
     starting_balance: float = 10_000.0
     trade_notional: float = 1_000.0
+    sizing_mode: str = "signal_notional"
+    use_pyramiding: bool = True
     strategy_id: str = "QuantBT-001"
     trader_id: str = "BACKTESTER-001"
     log_level: str = "ERROR"
@@ -39,6 +41,11 @@ class NautilusBackendConfig:
             raise ValueError("starting_balance must be > 0")
         if self.trade_notional < 0.0:
             raise ValueError("trade_notional must be >= 0")
+        sizing = self.sizing_mode.lower().strip()
+        if sizing in ("dca_ladder", "dca"):
+            raise NotImplementedError("Nautilus DCA/grid validation is not implemented yet")
+        if sizing not in {"signal_notional", "signal", "notional", "unit", "%_equity", "pct_equity"}:
+            raise ValueError("sizing_mode must be one of signal_notional, notional, unit, or %_equity")
         if "-" not in self.strategy_id:
             raise ValueError("strategy_id must contain '-' for Nautilus order_id_tag extraction")
         if "-" not in self.trader_id:
@@ -110,6 +117,9 @@ class NautilusBacktestEngine:
                 instrument_id=str(instrument.id),
                 bar_type=str(bar_type),
                 trade_notional=Decimal(str(self.config.trade_notional)),
+                starting_balance=Decimal(str(self.config.starting_balance)),
+                sizing_mode=self.config.sizing_mode,
+                use_pyramiding=self.config.use_pyramiding,
                 signals={int(ts.value): float(v) for ts, v in sig.items()},
                 close_positions_on_stop=self.config.close_positions_on_stop,
                 order_id_tag=self.config.strategy_id.rsplit("-", 1)[-1],
@@ -136,6 +146,8 @@ class NautilusBacktestEngine:
                 metadata={
                     "instrument_id": str(instrument.id),
                     "bar_type": str(bar_type),
+                    "sizing_mode": self.config.sizing_mode,
+                    "trade_notional": self.config.trade_notional,
                     "close_positions_on_stop": self.config.close_positions_on_stop,
                     **self.config.metadata,
                     **(params or {}),
@@ -165,7 +177,10 @@ class NautilusBacktestEngine:
             instrument_id: str
             bar_type: str
             trade_notional: Decimal
+            starting_balance: Decimal
             signals: Dict[int, float]
+            sizing_mode: str = "signal_notional"
+            use_pyramiding: bool = True
             close_positions_on_stop: bool = False
 
         class QuantBTSignalStrategy(nt.Strategy):
@@ -174,9 +189,13 @@ class NautilusBacktestEngine:
                 self.instrument_id = nt.InstrumentId.from_str(config.instrument_id)
                 self.bar_type = nt.BarType.from_str(config.bar_type)
                 self.trade_notional = config.trade_notional
+                self.starting_balance = config.starting_balance
+                self.sizing_mode = config.sizing_mode.lower().strip()
+                self.use_pyramiding = bool(config.use_pyramiding)
                 self.signals = config.signals
                 self.instrument = None
                 self.current_signal = 0.0
+                self.first_price = 0.0
 
             def on_start(self):
                 self.instrument = self.cache.instrument(self.instrument_id)
@@ -186,14 +205,19 @@ class NautilusBacktestEngine:
                 self.subscribe_bars(self.bar_type)
 
             def on_bar(self, bar):
-                signal = float(self.signals.get(int(bar.ts_event), self.current_signal))
-                if signal == self.current_signal:
+                raw_signal = float(self.signals.get(int(bar.ts_event), self.current_signal))
+                signal = raw_signal if self.use_pyramiding else self._sign(raw_signal)
+                signal_changed = signal != self.current_signal
+                if self.sizing_mode not in ("notional",) and not signal_changed:
                     return
                 price = self.cache.price(self.instrument_id, nt.PriceType.LAST)
                 if price is None:
                     return
+                price_value = float(price)
+                if self.first_price <= 0.0:
+                    self.first_price = price_value
                 current_qty = self._current_qty()
-                target_qty = 0.0 if signal == 0.0 else float(self.trade_notional) * signal / float(price)
+                target_qty = self._target_qty(signal=signal, price=price_value)
                 delta = target_qty - current_qty
                 if abs(delta) < float(self.instrument.size_increment):
                     self.current_signal = signal
@@ -207,6 +231,42 @@ class NautilusBacktestEngine:
                 )
                 self.submit_order(order)
                 self.current_signal = signal
+
+            def _target_qty(self, signal: float, price: float) -> float:
+                if signal == 0.0 or price <= 0.0:
+                    return 0.0
+                sizing = self.sizing_mode
+                allocation = float(self.trade_notional)
+                if sizing in ("signal_notional", "signal", "notional"):
+                    return allocation * signal / price
+                if sizing == "unit":
+                    return 0.0 if self.first_price <= 0.0 else allocation * signal / self.first_price
+                if sizing in ("%_equity", "pct_equity"):
+                    alloc_pct = allocation / 100.0 if allocation > 1.0 else allocation
+                    return self._equity() * alloc_pct * signal / price
+                raise RuntimeError(f"unsupported Nautilus sizing_mode={self.sizing_mode!r}")
+
+            def _equity(self) -> float:
+                equity = self.portfolio.equity(venue=self.instrument_id.venue)
+                if equity is None:
+                    return float(self.starting_balance)
+                if isinstance(equity, dict):
+                    if not equity:
+                        return float(self.starting_balance)
+                    equity = next(iter(equity.values()))
+                try:
+                    return float(equity)
+                except (TypeError, ValueError):
+                    text = str(equity).replace(",", "").strip()
+                    return float(text.split()[0])
+
+            @staticmethod
+            def _sign(value: float) -> float:
+                if value > 0.0:
+                    return 1.0
+                if value < 0.0:
+                    return -1.0
+                return 0.0
 
             def _current_qty(self) -> float:
                 positions = self.cache.positions_open(instrument_id=self.instrument_id)

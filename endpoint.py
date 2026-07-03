@@ -220,7 +220,8 @@ class QuantBTEndpoint:
         single-symbol signal series using the optional NautilusTrader adapter.
         Nautilus must be installed in the active environment.
         """
-        return cls(_config_from_kwargs(mode="nautilus_validation", backend="nautilus", sizing="signal_notional", **kwargs))
+        sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", "signal_notional"))
+        return cls(_config_from_kwargs(mode="nautilus_validation", backend="nautilus", sizing=sizing, **kwargs))
 
     def backtest(
         self,
@@ -643,6 +644,10 @@ def _fmt_int(value) -> str:
 
 
 def _config_from_kwargs(**kwargs) -> EndpointConfig:
+    hedge_type_alias = kwargs.pop("hedge_type", None)
+    if hedge_type_alias is not None and "sizing" not in kwargs:
+        kwargs["sizing"] = hedge_type_alias
+
     initial_capital = kwargs.pop("initial_capital", None)
     leverage = kwargs.pop("leverage", None)
     maintenance_ratio = kwargs.pop("maintenance_ratio", None)

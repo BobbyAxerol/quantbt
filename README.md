@@ -83,6 +83,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     initial_capital=20_000,
     leverage=5,
     alloc_per_trade=10_000,
+    hedge_type="signal_notional",
     use_funding=False,
     nautilus_config=NautilusBackendConfig(timeframe="1h"),
 )
@@ -96,6 +97,9 @@ result = bt.simulate(
 result.show_metrics()
 fills = bt.fills_report
 ```
+
+Nautilus currently validates single-symbol signal sizing modes:
+`signal_notional`, `notional`, `unit`, and `%_equity`.
 
 Supported Nautilus validation instruments:
 
