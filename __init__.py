@@ -47,6 +47,7 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
+from .endpoint import EndpointConfig, QuantBTEndpoint
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
 from .adapters.nautilus import NautilusBacktestEngine
@@ -99,6 +100,7 @@ __all__ = [
     # engines
     "BacktestEngine",
     "BacktestEngineV2",
+    "EndpointConfig",
     "EventDrivenBacktestEngine",
     "MultiSymbolPortfolio",
     "NautilusBacktestEngine",
@@ -107,6 +109,7 @@ __all__ = [
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
     "PortfolioBacktestEngine",
+    "QuantBTEndpoint",
     "BacktestResult",
     "BacktestResultV2",
     "AccountConfig",

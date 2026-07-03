@@ -59,6 +59,7 @@ Use:
 
 Detailed guides:
 
+- [Endpoint contract](docs/endpoint.md)
 - [Backend selection](docs/backend_selection.md)
 - [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md)
 - [Margin and leverage](docs/margin_leverage.md)
