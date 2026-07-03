@@ -63,6 +63,32 @@ class BacktestResultV2:
     def daily_returns(self) -> pd.Series:
         return self.daily_equity.pct_change().dropna()
 
+    def full_report(self, trading_days: int = 365) -> Dict:
+        """Return the standard QuantBT metrics dictionary for this result."""
+        from ..metrics.performance import full_report
+
+        return full_report(self, trading_days=trading_days)
+
+    def show_metrics(self, trading_days: int = 365) -> Dict:
+        """Print a legacy-style metrics report and return the metrics dict."""
+        from ..endpoint import format_metrics_report
+
+        report = self.full_report(trading_days=trading_days)
+        print(format_metrics_report(report))
+        return report
+
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6)):
+        """Plot cumulative return and drawdown for this result."""
+        from ..viz import quick_plot
+
+        return quick_plot(self, theme=theme, figsize=figsize)
+
+    def tearsheet(self, theme: str = "dark", benchmark=None):
+        """Render the QuantBT tearsheet for this result."""
+        from ..viz import tearsheet
+
+        return tearsheet(self, theme=theme, benchmark=benchmark)
+
     @classmethod
     def from_legacy(cls, result: BacktestResult) -> "BacktestResultV2":
         return cls(

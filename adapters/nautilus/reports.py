@@ -19,6 +19,7 @@ def result_from_nautilus_reports(
     orders_report: Optional[pd.DataFrame] = None,
     fills_report: Optional[pd.DataFrame] = None,
     positions_report: Optional[pd.DataFrame] = None,
+    closes: Optional[Dict[str, pd.Series]] = None,
     metadata: Optional[Dict] = None,
 ) -> BacktestResultV2:
     if account_report is None or account_report.empty:
@@ -27,25 +28,49 @@ def result_from_nautilus_reports(
     account = account_report.copy()
     account.index = pd.to_datetime(account.index, utc=True)
     total_col = _pick_total_column(account)
-    equity = _coerce_money_series(account[total_col], initial_capital)
-    equity.name = "equity"
+    account_equity = _coerce_money_series(account[total_col], initial_capital)
+    account_equity.name = "account_equity"
+
+    if closes is not None:
+        close_df = _close_frame(closes=closes, symbols=symbols)
+        idx = close_df.index
+        positions = _positions_from_fills(fills_report if fills_report is not None else orders_report, symbols, idx)
+        equity = _reconstruct_equity_from_fills(
+            fills_report=fills_report if fills_report is not None else orders_report,
+            closes=close_df,
+            symbols=symbols,
+            initial_capital=initial_capital,
+        )
+    else:
+        equity = account_equity.copy()
+        equity.name = "equity"
+        idx = equity.index
+        positions = _positions_from_fills(fills_report if fills_report is not None else orders_report, symbols, idx)
+        close_df = pd.DataFrame(index=idx)
+        for sym in symbols:
+            close_df[f"Close_{sym}"] = 0.0
+
     returns = equity.pct_change().fillna(0.0)
 
-    positions = _positions_from_fills(fills_report if fills_report is not None else orders_report, symbols, equity.index)
-    closes = pd.DataFrame(index=equity.index)
-    for sym in symbols:
-        closes[f"Close_{sym}"] = 0.0
+    account_final = float(account_equity.iloc[-1])
+    reconstructed_final = float(equity.iloc[-1])
 
     return BacktestResultV2(
         equity=equity,
         returns=returns,
         positions=positions,
-        closes=closes,
+        closes=close_df,
         symbols=symbols,
         initial_capital=initial_capital,
         leverage=leverage,
         metadata={
             "backend": "nautilus",
+            "account_report": account_report,
+            "account_equity": account_equity,
+            "equity_source": "fills_reconstructed" if closes is not None else "account_report",
+            "account_final_equity": account_final,
+            "reconstructed_final_equity": reconstructed_final,
+            "account_reconstructed_diff": reconstructed_final - account_final,
             "orders_report": orders_report,
             "fills_report": fills_report,
             "positions_report": positions_report,
@@ -55,6 +80,71 @@ def result_from_nautilus_reports(
             **(metadata or {}),
         },
     )
+
+
+def _close_frame(closes: Dict[str, pd.Series], symbols: List[str]) -> pd.DataFrame:
+    if not symbols:
+        raise ValueError("symbols are required")
+    idx = pd.DatetimeIndex(pd.to_datetime(closes[symbols[0]].index, utc=True))
+    frame = pd.DataFrame(index=idx)
+    for sym in symbols:
+        close = closes[sym].copy()
+        close.index = pd.DatetimeIndex(pd.to_datetime(close.index, utc=True))
+        frame[f"Close_{sym}"] = pd.to_numeric(close.reindex(idx, method="ffill"), errors="coerce").ffill()
+    return frame
+
+
+def _reconstruct_equity_from_fills(
+    fills_report: Optional[pd.DataFrame],
+    closes: pd.DataFrame,
+    symbols: List[str],
+    initial_capital: float,
+) -> pd.Series:
+    equity = pd.Series(initial_capital, index=closes.index, dtype=float, name="equity")
+    if len(closes) == 0:
+        return equity
+
+    pos = {sym: 0.0 for sym in symbols}
+    fills_by_ts = _fills_by_timestamp(fills_report)
+    value = float(initial_capital)
+
+    for i, ts in enumerate(closes.index):
+        if i > 0:
+            prev = closes.index[i - 1]
+            for sym in symbols:
+                qty = pos[sym]
+                if qty != 0.0:
+                    value += qty * (
+                        float(closes.loc[ts, f"Close_{sym}"]) - float(closes.loc[prev, f"Close_{sym}"])
+                    )
+
+        if ts in fills_by_ts:
+            for _, fill in fills_by_ts[ts].iterrows():
+                sym = str(fill.get("instrument_id", ""))
+                if sym not in pos:
+                    continue
+                signed_qty = _signed_fill_qty(fill)
+                fill_price = _coerce_float(fill.get("avg_px", fill.get("price", 0.0)))
+                close_price = float(closes.loc[ts, f"Close_{sym}"])
+                value += signed_qty * (close_price - fill_price)
+                value -= _coerce_commission(fill.get("commissions", 0.0))
+                pos[sym] += signed_qty
+
+        equity.iloc[i] = value
+
+    return equity
+
+
+def _fills_by_timestamp(report: Optional[pd.DataFrame]) -> Dict[pd.Timestamp, pd.DataFrame]:
+    if report is None or report.empty:
+        return {}
+    fills = report.copy()
+    ts_col = "ts_last" if "ts_last" in fills.columns else "ts_init"
+    if ts_col not in fills.columns:
+        return {}
+    fills["_timestamp"] = _coerce_timestamp(fills[ts_col])
+    fills = fills.dropna(subset=["_timestamp"]).sort_values("_timestamp")
+    return {ts: group.drop(columns=["_timestamp"]) for ts, group in fills.groupby("_timestamp", sort=True)}
 
 
 def _pick_total_column(account_report: pd.DataFrame) -> str:
@@ -110,6 +200,13 @@ def _positions_from_fills(report: Optional[pd.DataFrame], symbols: List[str], id
     return positions
 
 
+def _signed_fill_qty(row) -> float:
+    qty = _coerce_float(row.get("filled_qty", 0.0))
+    side = str(row.get("side", "")).upper()
+    sign = 1.0 if side == "BUY" else -1.0 if side == "SELL" else 0.0
+    return sign * qty
+
+
 def _coerce_timestamp(values: pd.Series) -> pd.Series:
     if pd.api.types.is_datetime64_any_dtype(values):
         return pd.to_datetime(values, utc=True)
@@ -126,3 +223,9 @@ def _coerce_float(value) -> float:
         extracted = pd.Series([str(value)]).str.extract(r"([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", expand=False)
         parsed = pd.to_numeric(extracted, errors="coerce").iloc[0]
         return 0.0 if pd.isna(parsed) else float(parsed)
+
+
+def _coerce_commission(value) -> float:
+    if isinstance(value, (list, tuple)):
+        return sum(_coerce_commission(v) for v in value)
+    return abs(_coerce_float(value))
