@@ -178,6 +178,11 @@ rpt = bt.show_metrics(trading_days=365)
 bt.quick_plot(theme="dark", figsize=(14, 6))
 bt.tearsheet(theme="dark")
 
+bt.latest_orders
+bt.fills
+bt.order_report
+bt.fills_report
+
 bt.export_orders("orders.csv")
 bt.export_fills("fills.csv")
 ```
@@ -304,8 +309,8 @@ result = bt.simulate(
     symbols=["ETHUSDT"],
 )
 
-fills = result.fills
-orders = result.metadata["order_report"]
+fills = bt.fills
+orders = bt.order_report
 ```
 
 Input requirement is the same as vectorized signal-notional.
@@ -314,7 +319,9 @@ Routing:
 
 - backend: `native_event`;
 - generated market orders are emitted on signal transitions;
-- `result.fills` and `result.metadata["order_report"]` are available.
+- `bt.fills` and `bt.order_report` are available.
+- `result.fills` and `result.metadata["order_report"]` are also normalized by
+  the endpoint for notebook compatibility.
 
 For plain market rebalance signals, native vectorized and native event should
 match equity closely. Use event mode when fill-level diagnostics matter.
@@ -484,7 +491,7 @@ Diagnostics:
 ```python
 result.metadata["basket_plan"]
 result.metadata["basket_target_units"]
-result.fills
+bt.fills
 ```
 
 Routing:
@@ -563,7 +570,7 @@ bt = QuantBTEndpoint.nautilus_validation(
         timeframe="1h",
         starting_balance=20_000,
         trade_notional=10_000,
-        force_flat_on_stop=False,
+        close_positions_on_stop=False,
     ),
 )
 
@@ -573,7 +580,7 @@ result = bt.simulate(
     symbols=["BTCUSDT-PERP.BINANCE"],
 )
 
-fills = result.metadata["fills_report"]
+fills = bt.fills_report
 ```
 
 Requirements:
