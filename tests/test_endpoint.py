@@ -181,6 +181,34 @@ def test_endpoint_show_metrics_uses_legacy_text_format(capsys):
     assert "initial_capital:" not in output
 
 
+def test_endpoint_result_objects_expose_metrics_helpers(capsys):
+    df = _bars()
+    df["pos"] = [0.0, 1.0, 1.0, 0.0, 0.0]
+
+    legacy = QuantBTEndpoint.pct_equity(
+        initial_capital=10_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    ).backtest(data=df, signal_col="pos")
+    v2 = QuantBTEndpoint.signal_notional(
+        backend="native_event",
+        initial_capital=10_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    ).simulate(data=df, signal_col="pos", symbols=["BTC"])
+
+    assert legacy.show_metrics()["initial_capital"] == 10_000.0
+    assert v2.show_metrics()["initial_capital"] == 10_000.0
+    output = capsys.readouterr().out
+
+    assert output.count("Initial Capital") == 2
+    assert "Final Equity" in output
+
+
 def test_endpoint_direct_constructor_accepts_account_kwargs():
     endpoint = QuantBTEndpoint(
         mode="single_signal",
