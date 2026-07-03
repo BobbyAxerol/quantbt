@@ -47,7 +47,33 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
+from .endpoint import EndpointConfig, QuantBTEndpoint, format_metrics_report
+from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
+from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
+from .core.results import BacktestResultV2
+from .core.orders import BasketIntent, Fill, OrderIntent, Trade
+from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
+from .core.schema import (
+    AccountConfig,
+    AssetType,
+    BasketExecutionPolicy,
+    BasketLegSpec,
+    BasketSpec,
+    ExecutionConfig,
+    FeeModel,
+    FillPricePolicy,
+    InstrumentSpec,
+    LiquiditySide,
+    MarginMode,
+    OmsMode,
+    OrderSide,
+    OrderType,
+    SameBarPolicy,
+    SignalSpec,
+    TimeInForce,
+)
 
 from .metrics import (
     full_report,
@@ -73,8 +99,43 @@ __author__  = "quantbt"
 __all__ = [
     # engines
     "BacktestEngine",
+    "BacktestEngineV2",
+    "EndpointConfig",
+    "EventDrivenBacktestEngine",
     "MultiSymbolPortfolio",
+    "NautilusBacktestEngine",
+    "NativeEventBackend",
+    "NativeEventConfig",
+    "NativeVectorizedBackend",
+    "NativeVectorizedConfig",
+    "PortfolioBacktestEngine",
+    "QuantBTEndpoint",
+    "format_metrics_report",
     "BacktestResult",
+    "BacktestResultV2",
+    "AccountConfig",
+    "AssetType",
+    "BasketExecutionPolicy",
+    "BasketIntent",
+    "BasketLegSpec",
+    "BasketSpec",
+    "ExecutionConfig",
+    "FeeModel",
+    "Fill",
+    "FillPricePolicy",
+    "FrozenBasketPlan",
+    "InstrumentSpec",
+    "LiquiditySide",
+    "MarginMode",
+    "OmsMode",
+    "OrderIntent",
+    "OrderSide",
+    "OrderType",
+    "SameBarPolicy",
+    "SignalSpec",
+    "TimeInForce",
+    "Trade",
+    "build_frozen_basket_orders",
     # metrics
     "full_report",
     "sharpe",
