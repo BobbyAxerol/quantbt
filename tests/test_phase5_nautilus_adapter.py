@@ -226,6 +226,38 @@ def test_result_from_nautilus_reports_rebuilds_positions_from_fills():
     assert result.metadata["fills_count"] == 2
 
 
+def test_result_from_nautilus_reports_reconstructs_full_bar_equity_from_fills():
+    idx = pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC")
+    account = pd.DataFrame({"total": [10_000.0, 10_020.0]}, index=[idx[1], idx[2]])
+    fills = pd.DataFrame(
+        {
+            "instrument_id": ["BTCUSDT-PERP.BINANCE", "BTCUSDT-PERP.BINANCE"],
+            "side": ["BUY", "SELL"],
+            "filled_qty": [2.0, 0.5],
+            "avg_px": [110.0, 120.0],
+            "commissions": ["0 USDT", "0 USDT"],
+            "ts_last": [idx[1], idx[2]],
+        }
+    )
+    closes = {"BTCUSDT-PERP.BINANCE": pd.Series([100.0, 110.0, 120.0, 115.0], index=idx)}
+
+    result = result_from_nautilus_reports(
+        account_report=account,
+        fills_report=fills,
+        orders_report=fills,
+        symbols=["BTCUSDT-PERP.BINANCE"],
+        initial_capital=10_000.0,
+        closes=closes,
+    )
+
+    assert result.equity.index.equals(idx)
+    assert result.closes["Close_BTCUSDT-PERP.BINANCE"].tolist() == [100.0, 110.0, 120.0, 115.0]
+    assert result.equity.tolist() == [10_000.0, 10_000.0, 10_020.0, 10_012.5]
+    assert result.metadata["account_equity"].tolist() == [10_000.0, 10_020.0]
+    assert result.metadata["equity_source"] == "fills_reconstructed"
+    assert result.metadata["account_reconstructed_diff"] == -7.5
+
+
 def test_nautilus_config_validates_identifiers_and_capital():
     with pytest.raises(ValueError):
         NautilusBackendConfig(starting_balance=0.0)

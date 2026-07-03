@@ -143,6 +143,7 @@ class NautilusBacktestEngine:
                 positions_report=positions_report,
                 symbols=[str(instrument.id)],
                 initial_capital=self.config.starting_balance,
+                closes={str(instrument.id): df["close"]},
                 metadata={
                     "instrument_id": str(instrument.id),
                     "bar_type": str(bar_type),
