@@ -1,0 +1,93 @@
+"""
+quantbt.core.results
+--------------------
+Richer result contract for upgraded backends.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Sequence
+
+import numpy as np
+import pandas as pd
+
+from .orders import Fill, OrderIntent, Trade
+from .types import BacktestResult
+
+
+@dataclass
+class BacktestResultV2:
+    equity: pd.Series
+    returns: pd.Series
+    positions: pd.DataFrame
+    closes: pd.DataFrame
+    symbols: List[str]
+    initial_capital: float
+    leverage: float = 1.0
+    liquidated: bool = False
+    liquidation_bar: int = -1
+    orders: Sequence[OrderIntent] = field(default_factory=tuple)
+    fills: Sequence[Fill] = field(default_factory=tuple)
+    trades: Sequence[Trade] = field(default_factory=tuple)
+    fees: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
+    funding: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
+    margin: pd.DataFrame = field(default_factory=pd.DataFrame)
+    diagnostics: pd.DataFrame = field(default_factory=pd.DataFrame)
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.initial_capital <= 0.0:
+            raise ValueError("initial_capital must be > 0")
+        if self.leverage <= 0.0:
+            raise ValueError("leverage must be > 0")
+        if not isinstance(self.equity.index, pd.DatetimeIndex):
+            raise ValueError("equity must be indexed by DatetimeIndex")
+        if len(self.returns) != len(self.equity):
+            raise ValueError("returns must have the same length as equity")
+        if len(self.positions) != len(self.equity):
+            raise ValueError("positions must have the same length as equity")
+        if len(self.closes) != len(self.equity):
+            raise ValueError("closes must have the same length as equity")
+
+    @property
+    def drawdown(self) -> pd.Series:
+        peak = self.equity.cummax()
+        return (peak - self.equity) / peak.replace(0, np.nan)
+
+    @property
+    def daily_equity(self) -> pd.Series:
+        return self.equity.resample("1D").last().ffill().dropna()
+
+    @property
+    def daily_returns(self) -> pd.Series:
+        return self.daily_equity.pct_change().dropna()
+
+    @classmethod
+    def from_legacy(cls, result: BacktestResult) -> "BacktestResultV2":
+        return cls(
+            equity=result.equity.copy(),
+            returns=result.returns.copy(),
+            positions=result.positions.copy(),
+            closes=result.closes.copy(),
+            symbols=list(result.symbols),
+            initial_capital=float(result.initial_capital),
+            leverage=float(result.leverage),
+            liquidated=bool(result.liquidated),
+            liquidation_bar=int(result.liquidation_bar),
+            metadata=dict(result.metadata),
+        )
+
+    def to_legacy(self) -> BacktestResult:
+        return BacktestResult(
+            equity=self.equity.copy(),
+            returns=self.returns.copy(),
+            positions=self.positions.copy(),
+            closes=self.closes.copy(),
+            symbols=list(self.symbols),
+            initial_capital=float(self.initial_capital),
+            leverage=float(self.leverage),
+            liquidated=bool(self.liquidated),
+            liquidation_bar=int(self.liquidation_bar),
+            metadata=dict(self.metadata),
+        )
