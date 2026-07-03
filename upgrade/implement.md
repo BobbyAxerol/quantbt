@@ -277,6 +277,52 @@ Acceptance:
 - Result converts to `BacktestResultV2`.
 - At least 3 golden tests compare NativeEvent vs Nautilus on simple cases.
 
+Current status:
+
+- Implemented single-symbol Nautilus validation for signal-series strategies.
+- Supported single-symbol sizing modes:
+  - `signal_notional`;
+  - `notional`;
+  - `unit`;
+  - `%_equity`.
+- Supported Binance USDT perpetual validation instruments:
+  - BTC, ETH, BNB, SOL, DOGE, ARB, LINK.
+- Nautilus report conversion now reconstructs full bar-by-bar equity and
+  positions from fills plus OHLCV close, while preserving raw account reports for
+  audit.
+
+Planned Nautilus upgrades, not implemented yet:
+
+- **Explicit order replay**
+  - Convert `OrderIntent` into Nautilus market/limit/stop orders.
+  - Preserve TIF, reduce-only, order tags, and reject/cancel diagnostics.
+  - Compare native event order reports vs Nautilus order/fill reports.
+- **DCA/grid ladder validation**
+  - Convert structural ladder levels into Nautilus limit safety orders.
+  - Model base order, safety order activation, take-profit, same-bar ambiguity,
+    and high/low trigger behavior explicitly.
+  - Add parity tests against native DCA golden cases.
+- **Pair/basket validation**
+  - Convert `BasketSpec` / `BasketIntent` into multi-leg Nautilus orders.
+  - Support frozen hedge-ratio entry, exact-unit exit, all-or-none or
+    best-effort execution policy.
+  - Add spread/accounting diagnostics per leg and per basket.
+- **Multi-symbol portfolio validation**
+  - Run multiple instruments in one Nautilus venue/account.
+  - Convert position matrix signals into per-symbol target orders.
+  - Reconcile cross-symbol margin, netting, funding, fees, and equity reports.
+- **Institutional parity audit**
+  - Add a reusable native-vs-Nautilus comparison report:
+    - transition timestamp;
+    - target quantity;
+    - fill price;
+    - fee;
+    - position;
+    - reconstructed equity;
+    - account report equity;
+    - native equity diff.
+  - Promote any known intentional differences into documented test fixtures.
+
 ---
 
 ## Phase 6 - Public API And Migration

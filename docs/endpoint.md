@@ -209,6 +209,15 @@ dictionary as `full_report()`:
   Avg Loss                 -1.273%
 ```
 
+The latest result object also exposes the same convenience methods:
+
+```python
+result.full_report()
+result.show_metrics()
+result.quick_plot()
+result.tearsheet()
+```
+
 Use `backtest()` for signal/portfolio research. Use `simulate()` when the input
 is closer to an execution simulation, such as orders, baskets, or Nautilus
 validation. Internally both methods use the same router.
@@ -564,6 +573,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     initial_capital=20_000,
     leverage=5,
     alloc_per_trade=10_000,
+    hedge_type="signal_notional",
     fee_rate=0.0002,
     use_funding=False,
     nautilus_config=NautilusBackendConfig(
@@ -577,17 +587,28 @@ bt = QuantBTEndpoint.nautilus_validation(
 result = bt.simulate(
     data=df,
     signal_col="pos_weight",
-    symbols=["BTCUSDT-PERP.BINANCE"],
+    symbols=["ETHUSDT-PERP.BINANCE"],
 )
 
 fills = bt.fills_report
+result.show_metrics()
 ```
 
 Requirements:
 
 - `nautilus-trader` installed in the active Poetry environment;
-- current adapter supports the validation instrument
-  `BTCUSDT-PERP.BINANCE`;
+- current adapter supports Binance USDT perpetual validation instruments:
+  `BTCUSDT-PERP.BINANCE`, `ETHUSDT-PERP.BINANCE`, `BNBUSDT-PERP.BINANCE`,
+  `SOLUSDT-PERP.BINANCE`, `DOGEUSDT-PERP.BINANCE`, `ARBUSDT-PERP.BINANCE`,
+  and `LINKUSDT-PERP.BINANCE`;
+- shorthand symbols such as `ETHUSDT`, `SOL`, and `ARP` are normalized where
+  possible;
+- single-symbol sizing modes supported today: `signal_notional`, `notional`,
+  `unit`, and `%_equity`; pass either `hedge_type=` or `sizing=` to the
+  endpoint factory;
+- DCA/grid, explicit order replay, pair trading, and multi-symbol portfolio
+  validation remain on native QuantBT backends until their Nautilus event
+  adapters are added;
 - OHLCV data is converted to Nautilus external bars;
 - signal is a single-symbol target series.
 
