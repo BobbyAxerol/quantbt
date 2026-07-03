@@ -209,6 +209,15 @@ dictionary as `full_report()`:
   Avg Loss                 -1.273%
 ```
 
+The latest result object also exposes the same convenience methods:
+
+```python
+result.full_report()
+result.show_metrics()
+result.quick_plot()
+result.tearsheet()
+```
+
 Use `backtest()` for signal/portfolio research. Use `simulate()` when the input
 is closer to an execution simulation, such as orders, baskets, or Nautilus
 validation. Internally both methods use the same router.
@@ -581,6 +590,7 @@ result = bt.simulate(
 )
 
 fills = bt.fills_report
+result.show_metrics()
 ```
 
 Requirements:
