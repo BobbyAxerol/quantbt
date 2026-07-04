@@ -6,6 +6,7 @@ from quantbt import (
     AccountConfig,
     BasketLegSpec,
     BasketSpec,
+    BacktestResultV2,
     format_metrics_report,
     OrderIntent,
     OrderSide,
@@ -258,3 +259,53 @@ def test_nautilus_endpoint_accepts_legacy_hedge_type_alias():
 
     assert endpoint.config.backend == "nautilus"
     assert endpoint.config.sizing == "%_equity"
+
+
+def test_nautilus_endpoint_forwards_use_pyramiding_to_adapter(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_signal_series(self, data, signal):
+            idx = data.index
+            equity = pd.Series(10_000.0, index=idx)
+            positions = pd.DataFrame({"Position_ETHUSDT-PERP.BINANCE": 0.0}, index=idx)
+            closes = pd.DataFrame({"Close_ETHUSDT-PERP.BINANCE": data["close"]}, index=idx)
+            return BacktestResultV2(
+                equity=equity,
+                returns=equity.pct_change().fillna(0.0),
+                positions=positions,
+                closes=closes,
+                symbols=["ETHUSDT-PERP.BINANCE"],
+                initial_capital=10_000.0,
+                metadata={"use_pyramiding": captured["config"].use_pyramiding},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    signal = pd.Series([0.0, 1.4, 1.4, 0.0, 0.0], index=df.index)
+    endpoint = QuantBTEndpoint.nautilus_validation(
+        hedge_type="%_equity",
+        initial_capital=10_000.0,
+        alloc_per_trade=0.5,
+        use_pyramiding=False,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            instrument_id="ETHUSDT-PERP.BINANCE",
+            timeframe="1h",
+            use_pyramiding=True,
+        ),
+    )
+
+    result = endpoint.simulate(data=df, signal=signal, symbols=["ETHUSDT-PERP.BINANCE"])
+
+    assert captured["config"].use_pyramiding is False
+    assert captured["config"].sizing_mode == "%_equity"
+    assert captured["config"].trade_notional == 0.5
+    assert result.metadata["use_pyramiding"] is False

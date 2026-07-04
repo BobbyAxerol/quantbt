@@ -574,6 +574,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     leverage=5,
     alloc_per_trade=10_000,
     hedge_type="signal_notional",
+    use_pyramiding=True,
     fee_rate=0.0002,
     use_funding=False,
     nautilus_config=NautilusBackendConfig(
@@ -606,6 +607,9 @@ Requirements:
 - single-symbol sizing modes supported today: `signal_notional`, `notional`,
   `unit`, and `%_equity`; pass either `hedge_type=` or `sizing=` to the
   endpoint factory;
+- `use_pyramiding` is controlled at the endpoint level and forwarded into the
+  Nautilus strategy adapter. `False` snaps raw signals to `-1/0/1`; `True`
+  preserves fractional scales such as `1.4` in `%_equity` sizing;
 - DCA/grid, explicit order replay, pair trading, and multi-symbol portfolio
   validation remain on native QuantBT backends until their Nautilus event
   adapters are added;
@@ -618,6 +622,7 @@ Nautilus metadata:
 result.metadata["orders_report"]
 result.metadata["fills_report"]
 result.metadata["positions_report"]
+result.metadata["use_pyramiding"]
 result.metadata["orders_count"]
 result.metadata["fills_count"]
 result.metadata["positions_count"]
