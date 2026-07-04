@@ -26,6 +26,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     initial_capital=20_000,
     leverage=5,
     alloc_per_trade=10_000,
+    use_pyramiding=True,
     fee_rate=0.0002,
     use_funding=False,
     nautilus_config=NautilusBackendConfig(
