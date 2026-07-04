@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install numpy pandas numba matplotlib seaborn pytest
+
+      - name: Run core tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/..
+        run: |
+          pytest tests \
+            --ignore=tests/test_real.py \
+            --ignore=tests/test_real_endpoints.py \
+            --ignore=tests/test_phase5_nautilus_adapter.py
