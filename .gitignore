@@ -28,3 +28,6 @@ ENV/
 
 .DS_Store
 Thumbs.db
+
+upgrade/
+benchmarks/
