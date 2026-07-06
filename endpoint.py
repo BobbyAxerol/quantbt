@@ -76,6 +76,9 @@ class EndpointConfig:
         Asset type used by portfolio endpoint defaults.
     basket:
         Optional basket spec stored at construction time for basket simulations.
+    arbitrage_spec:
+        Optional arbitrage spec stored at construction time for the future
+        ArbitrageBacktestEngine.
     symbols:
         Optional symbol list. Single-symbol endpoints use the first symbol.
     dca_kwargs:
@@ -102,6 +105,7 @@ class EndpointConfig:
     portfolio_mode: str = "longshort"
     asset_type: str = "crypto"
     basket: Optional[BasketSpec] = None
+    arbitrage_spec: object = None
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -201,6 +205,27 @@ class QuantBTEndpoint:
         return cls(_config_from_kwargs(mode="basket", backend="native_event", basket=basket, **kwargs))
 
     @classmethod
+    def arbitrage(cls, arb_type: str, spec, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a Phase A arbitrage endpoint skeleton.
+
+        The full `ArbitrageBacktestEngine` route is intentionally not wired yet.
+        Use `build_arbitrage_order_plan()` for golden tests until the engine
+        phase lands.
+        """
+        metadata = dict(kwargs.pop("metadata", {}))
+        metadata["arb_type"] = arb_type
+        return cls(
+            _config_from_kwargs(
+                mode="arbitrage",
+                backend=backend,
+                arbitrage_spec=spec,
+                metadata=metadata,
+                **kwargs,
+            )
+        )
+
+    @classmethod
     def portfolio(cls, portfolio_mode: str = "longshort", **kwargs) -> "QuantBTEndpoint":
         """
         Create a multi-symbol portfolio endpoint.
@@ -268,6 +293,12 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if mode == "arbitrage":
+            raise NotImplementedError(
+                "QuantBTEndpoint.arbitrage is a Phase A API skeleton; "
+                "use build_arbitrage_order_plan() for golden tests until "
+                "ArbitrageBacktestEngine is implemented."
+            )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
         if mode == "orders":
