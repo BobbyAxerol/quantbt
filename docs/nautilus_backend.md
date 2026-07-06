@@ -14,6 +14,7 @@ engine = BacktestEngineV2(
     hedge_type="signal_notional",
     account=AccountConfig(initial_capital=20_000, leverage=5),
     alloc_per_trade=10_000,
+    use_pyramiding=True,
     use_funding=False,
 )
 
@@ -38,6 +39,8 @@ Scope:
 
 - single-symbol signal series;
 - sizing modes: `signal_notional`, `notional`, `unit`, and `%_equity`;
+- endpoint/engine-level `use_pyramiding`, where `False` snaps raw signals to
+  direction only and `True` preserves fractional signal scale;
 - external OHLCV bars through Nautilus `BarDataWrangler`;
 - market delta orders to target signal notional;
 - account, orders, fills, and positions reports converted to

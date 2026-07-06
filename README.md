@@ -84,6 +84,7 @@ bt = QuantBTEndpoint.nautilus_validation(
     leverage=5,
     alloc_per_trade=10_000,
     hedge_type="signal_notional",
+    use_pyramiding=True,
     use_funding=False,
     nautilus_config=NautilusBackendConfig(timeframe="1h"),
 )
@@ -100,6 +101,8 @@ fills = bt.fills_report
 
 Nautilus currently validates single-symbol signal sizing modes:
 `signal_notional`, `notional`, `unit`, and `%_equity`.
+Set `use_pyramiding=False` at the endpoint level when fractional signals should
+be snapped to `-1/0/1`; leave it true to preserve scales such as `1.4`.
 
 Supported Nautilus validation instruments:
 

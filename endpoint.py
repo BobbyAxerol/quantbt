@@ -219,6 +219,10 @@ class QuantBTEndpoint:
         This is for smaller high-fidelity validation runs. It currently supports
         single-symbol signal series using the optional NautilusTrader adapter.
         Nautilus must be installed in the active environment.
+
+        `use_pyramiding` is forwarded to the Nautilus strategy adapter. When it
+        is false, fractional signals such as `1.4` are snapped to `1.0`; when it
+        is true, the raw signal scale is preserved.
         """
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", "signal_notional"))
         return cls(_config_from_kwargs(mode="nautilus_validation", backend="nautilus", sizing=sizing, **kwargs))

@@ -149,6 +149,7 @@ class NautilusBacktestEngine:
                     "bar_type": str(bar_type),
                     "sizing_mode": self.config.sizing_mode,
                     "trade_notional": self.config.trade_notional,
+                    "use_pyramiding": self.config.use_pyramiding,
                     "close_positions_on_stop": self.config.close_positions_on_stop,
                     **self.config.metadata,
                     **(params or {}),
