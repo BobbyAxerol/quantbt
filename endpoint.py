@@ -17,7 +17,15 @@ import pandas as pd
 
 from .backtester import BacktestEngine
 from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
-from .core.arbitrage import BasisArbitrageSpec, StatArbPairSpec, build_arbitrage_order_plan
+from .core.arbitrage import (
+    BasisArbitrageSpec,
+    CalendarSpreadSpec,
+    FundingArbitrageSpec,
+    IndexBasketArbSpec,
+    SpotPerpCashCarrySpec,
+    StatArbPairSpec,
+    build_arbitrage_order_plan,
+)
 from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
@@ -543,9 +551,10 @@ class QuantBTEndpoint:
         spec = self.config.arbitrage_spec
         if spec is None:
             raise ValueError("arbitrage endpoint requires an arbitrage spec")
-        if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec)):
+        phase_g_package_specs = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
+        if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec, *phase_g_package_specs)):
             raise NotImplementedError(
-                "Phase C/D supports BasisArbitrageSpec and StatArbPairSpec on native_event only; "
+                "Phase C-G supports BasisArbitrageSpec, StatArbPairSpec, and package-style Phase G specs; "
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)
@@ -564,6 +573,8 @@ class QuantBTEndpoint:
             symbols=symbols or spec_symbols,
         )
         if backend == "nautilus":
+            if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec)):
+                raise NotImplementedError("Phase F Nautilus arbitrage supports BasisArbitrageSpec and StatArbPairSpec only")
             result = self._run_nautilus_arbitrage(
                 spec=spec,
                 signal=sig,
@@ -607,8 +618,21 @@ class QuantBTEndpoint:
                 leverage=self.config.account.leverage,
                 hedge_ratios=hedge_ratios,
             )
-        else:
+        elif isinstance(spec, StatArbPairSpec):
             result = self.engine.run_stat_arb_pair_arbitrage(
+                datetime_index=idx,
+                spec=spec,
+                signal=sig,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=self.config.funding_rate,
+                contract_size=self.config.contract_size,
+                leverage=self.config.account.leverage,
+                hedge_ratios=hedge_ratios,
+            )
+        else:
+            result = self.engine.run_package_arbitrage(
                 datetime_index=idx,
                 spec=spec,
                 signal=sig,
