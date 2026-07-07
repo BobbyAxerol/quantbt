@@ -766,6 +766,9 @@ Implementation notes:
 
 ### Phase F - Nautilus Arb Validation
 
+Status: implemented via `NautilusBacktestEngine.run_order_packages()` and
+`QuantBTEndpoint.arbitrage(..., backend="nautilus", ...)`.
+
 Deliverables:
 
 - Nautilus strategy adapter for component order packages.
@@ -776,6 +779,19 @@ Acceptance:
 
 - parity test with native event on simple market fills.
 - metadata exposes Nautilus orders/fills and package mapping.
+
+Implementation notes:
+
+- `build_nautilus_package_order_table()` converts quantbt `OrderIntent`
+  component orders into a stable package mapping table.
+- The Nautilus package strategy submits market IOC component orders once per
+  package timestamp across all subscribed instruments.
+- Endpoint integration reuses Basis and StatArb package plans, then forwards
+  component orders to Nautilus.
+- Metadata exposes `package_order_map`, `package_target_units`, raw Nautilus
+  reports, and arb identifiers.
+- Current Nautilus instrument helper supports Binance perpetual test/synthetic
+  instruments; quarterly/futures instrument wiring remains a later extension.
 
 ### Phase G - Advanced Arb Types
 
