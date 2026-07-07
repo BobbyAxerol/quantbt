@@ -16,6 +16,8 @@ from typing import Dict, Optional, Sequence, Union
 import pandas as pd
 
 from .backtester import BacktestEngine
+from .backends import NativeEventBackend, NativeEventConfig
+from .core.arbitrage import BasisArbitrageSpec
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig
@@ -207,11 +209,11 @@ class QuantBTEndpoint:
     @classmethod
     def arbitrage(cls, arb_type: str, spec, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
         """
-        Create a Phase A arbitrage endpoint skeleton.
+        Create an arbitrage endpoint.
 
-        The full `ArbitrageBacktestEngine` route is intentionally not wired yet.
-        Use `build_arbitrage_order_plan()` for golden tests until the engine
-        phase lands.
+        Phase C supports native-event `BasisArbitrageSpec` for USDM linear
+        perp-vs-quarterly style package trades. Other arbitrage specs remain
+        schema/order-plan only until their engine phases land.
         """
         metadata = dict(kwargs.pop("metadata", {}))
         metadata["arb_type"] = arb_type
@@ -263,6 +265,7 @@ class QuantBTEndpoint:
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
         lows: Optional[SeriesMap] = None,
+        hedge_ratios: Optional[SeriesMap] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         symbols: Optional[Sequence[str]] = None,
     ):
@@ -294,10 +297,16 @@ class QuantBTEndpoint:
         """
         mode = self.config.mode.lower().strip()
         if mode == "arbitrage":
-            raise NotImplementedError(
-                "QuantBTEndpoint.arbitrage is a Phase A API skeleton; "
-                "use build_arbitrage_order_plan() for golden tests until "
-                "ArbitrageBacktestEngine is implemented."
+            return self._run_arbitrage(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                hedge_ratios=hedge_ratios,
+                datetime_index=datetime_index,
+                symbols=symbols,
             )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
@@ -528,6 +537,53 @@ class QuantBTEndpoint:
         self._store_result(self.engine.result)
         return self.result
 
+    def _run_arbitrage(self, data, signal, signal_col, closes, highs, lows, hedge_ratios, datetime_index, symbols):
+        spec = self.config.arbitrage_spec
+        if spec is None:
+            raise ValueError("arbitrage endpoint requires an arbitrage spec")
+        if not isinstance(spec, BasisArbitrageSpec):
+            raise NotImplementedError(
+                "Phase C supports BasisArbitrageSpec on native_event only; "
+                f"got {type(spec).__name__}"
+            )
+        backend = _resolve_backend(self.config)
+        if backend != "native_event":
+            raise NotImplementedError("Phase C arbitrage endpoint supports backend='native_event' only")
+        sig = signal if signal is not None else _signal_from_data(data, signal_col)
+        if sig is None:
+            raise ValueError("arbitrage endpoint requires signal or signal_col")
+        spec_symbols = [leg.symbol for leg in spec.legs]
+        close_map, high_map, low_map, idx, _ = _normalize_symbol_data(
+            data=data,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            datetime_index=datetime_index,
+            symbols=symbols or spec_symbols,
+        )
+        self.engine = NativeEventBackend(
+            NativeEventConfig(
+                account=self.config.account,
+                execution=self.config.execution,
+                fee_rate=self.config.v2_fee_rate,
+                use_funding=self.config.use_funding,
+            )
+        )
+        result = self.engine.run_basis_arbitrage(
+            datetime_index=idx,
+            spec=spec,
+            signal=sig,
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            funding_rate=self.config.funding_rate,
+            contract_size=self.config.contract_size,
+            leverage=self.config.account.leverage,
+            hedge_ratios=hedge_ratios,
+        )
+        self._store_result(result)
+        return self.result
+
     def _run_portfolio(self, data, positions, closes, highs, lows, datetime_index, symbols):
         pos_map = _positions_to_map(positions)
         if not pos_map:
@@ -730,7 +786,7 @@ def _resolve_backend(config: EndpointConfig) -> str:
         return "legacy"
     if mode == "nautilus_validation":
         return "nautilus"
-    if mode in ("orders", "basket"):
+    if mode in ("orders", "basket", "arbitrage"):
         return "native_event"
     return "native_vectorized"
 
