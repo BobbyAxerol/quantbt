@@ -35,6 +35,7 @@ def build_frozen_basket_orders(
     hedge_ratios: Optional[Dict[str, pd.Series]] = None,
     order_type: OrderType = OrderType.MARKET,
     tif: TimeInForce = TimeInForce.IOC,
+    rebalance_threshold: Optional[float] = None,
     min_abs_delta: float = 1e-12,
 ) -> FrozenBasketPlan:
     """
@@ -49,6 +50,8 @@ def build_frozen_basket_orders(
         raise NotImplementedError("Phase 4 basket order generation supports market orders")
     if min_abs_delta < 0.0:
         raise ValueError("min_abs_delta must be >= 0")
+    if rebalance_threshold is not None and rebalance_threshold < 0.0:
+        raise ValueError("rebalance_threshold must be >= 0")
 
     idx = validate_datetime(datetime_index)
     symbols = [leg.symbol for leg in basket.legs]
@@ -73,8 +76,15 @@ def build_frozen_basket_orders(
         if abs(raw_signal) < min_abs_delta:
             raw_signal = 0.0
 
-        changed = abs(raw_signal - current_signal) > min_abs_delta
-        if changed:
+        signal_changed = abs(raw_signal - current_signal) > min_abs_delta
+        ratio_drift = _max_ratio_drift(current_units, ratio_dict, symbols, ts)
+        should_rebalance = (
+            rebalance_threshold is not None
+            and raw_signal != 0.0
+            and not signal_changed
+            and ratio_drift > rebalance_threshold
+        )
+        if signal_changed or should_rebalance:
             target_units = _compute_entry_units(
                 basket=basket,
                 signal_value=raw_signal,
@@ -103,6 +113,8 @@ def build_frozen_basket_orders(
                             "basket_signal": raw_signal,
                             "basket_policy": basket.execution_policy.value,
                             "hedge_frozen": basket.freeze_hedge,
+                            "rebalance": should_rebalance,
+                            "ratio_drift": ratio_drift,
                             "target_units": target_units[sym],
                             "previous_units": current_units[sym],
                         },
@@ -127,6 +139,7 @@ def build_frozen_basket_orders(
             "freeze_hedge": basket.freeze_hedge,
             "execution_policy": basket.execution_policy.value,
             "hedged_margin_offset": basket.hedged_margin_offset,
+            "rebalance_threshold": rebalance_threshold,
         },
     )
 
@@ -196,3 +209,26 @@ def _compute_entry_units(
         s: basket_units * float(ratios[s].loc[timestamp]) * signal_side
         for s in symbols
     }
+
+
+def _max_ratio_drift(
+    current_units: Dict[str, float],
+    ratios: Dict[str, pd.Series],
+    symbols: list[str],
+    timestamp,
+) -> float:
+    if not symbols:
+        return 0.0
+    ref_symbol = symbols[0]
+    frozen_ref = float(current_units[ref_symbol])
+    current_ref = float(ratios[ref_symbol].loc[timestamp])
+    if abs(frozen_ref) <= 1e-12 or abs(current_ref) <= 1e-12:
+        return 0.0
+
+    max_drift = 0.0
+    for symbol in symbols[1:]:
+        frozen_ratio = float(current_units[symbol]) / frozen_ref
+        current_ratio = float(ratios[symbol].loc[timestamp]) / current_ref
+        denom = max(abs(frozen_ratio), 1e-12)
+        max_drift = max(max_drift, abs(current_ratio - frozen_ratio) / denom)
+    return max_drift

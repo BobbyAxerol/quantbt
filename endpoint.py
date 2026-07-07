@@ -17,7 +17,7 @@ import pandas as pd
 
 from .backtester import BacktestEngine
 from .backends import NativeEventBackend, NativeEventConfig
-from .core.arbitrage import BasisArbitrageSpec
+from .core.arbitrage import BasisArbitrageSpec, StatArbPairSpec
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig
@@ -212,8 +212,9 @@ class QuantBTEndpoint:
         Create an arbitrage endpoint.
 
         Phase C supports native-event `BasisArbitrageSpec` for USDM linear
-        perp-vs-quarterly style package trades. Other arbitrage specs remain
-        schema/order-plan only until their engine phases land.
+        perp-vs-quarterly style package trades. Phase D adds
+        `StatArbPairSpec` via frozen basket execution. Other arbitrage specs
+        remain schema/order-plan only until their engine phases land.
         """
         metadata = dict(kwargs.pop("metadata", {}))
         metadata["arb_type"] = arb_type
@@ -541,9 +542,9 @@ class QuantBTEndpoint:
         spec = self.config.arbitrage_spec
         if spec is None:
             raise ValueError("arbitrage endpoint requires an arbitrage spec")
-        if not isinstance(spec, BasisArbitrageSpec):
+        if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec)):
             raise NotImplementedError(
-                "Phase C supports BasisArbitrageSpec on native_event only; "
+                "Phase C/D supports BasisArbitrageSpec and StatArbPairSpec on native_event only; "
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)
@@ -569,18 +570,32 @@ class QuantBTEndpoint:
                 use_funding=self.config.use_funding,
             )
         )
-        result = self.engine.run_basis_arbitrage(
-            datetime_index=idx,
-            spec=spec,
-            signal=sig,
-            closes=close_map,
-            highs=high_map,
-            lows=low_map,
-            funding_rate=self.config.funding_rate,
-            contract_size=self.config.contract_size,
-            leverage=self.config.account.leverage,
-            hedge_ratios=hedge_ratios,
-        )
+        if isinstance(spec, BasisArbitrageSpec):
+            result = self.engine.run_basis_arbitrage(
+                datetime_index=idx,
+                spec=spec,
+                signal=sig,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=self.config.funding_rate,
+                contract_size=self.config.contract_size,
+                leverage=self.config.account.leverage,
+                hedge_ratios=hedge_ratios,
+            )
+        else:
+            result = self.engine.run_stat_arb_pair_arbitrage(
+                datetime_index=idx,
+                spec=spec,
+                signal=sig,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=self.config.funding_rate,
+                contract_size=self.config.contract_size,
+                leverage=self.config.account.leverage,
+                hedge_ratios=hedge_ratios,
+            )
         self._store_result(result)
         return self.result
 
