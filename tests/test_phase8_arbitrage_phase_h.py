@@ -7,6 +7,7 @@ import pytest
 from quantbt import (
     ArbExecutionPolicy,
     ArbitrageLeg,
+    ArbitrageSpec,
     BasisArbitrageSpec,
     ContractType,
     HedgePolicy,
@@ -19,9 +20,9 @@ from quantbt import (
     SizingPolicy,
     SizingPolicyKind,
     SpotPerpCashCarrySpec,
+    StatArbPairSpec,
     build_arbitrage_order_plan,
 )
-from quantbt.core.event import ORDER_STATUS_REJECTED, REJECT_INSUFFICIENT_MARGIN
 from quantbt.core.schema import AccountConfig, ExecutionConfig
 
 
@@ -33,7 +34,7 @@ def _idx(periods=5, *, tz="UTC"):
     return pd.date_range("2024-01-01", periods=periods, freq="8h", tz=tz)
 
 
-def _basis_spec(*, notional=10_000.0, fee_rate=0.0, qty_step=0.001, contract_size=1.0):
+def _basis_spec(*, notional=10_000.0, fee_rate=0.0, qty_step=0.001, contract_size=1.0, execution_policy=None):
     return BasisArbitrageSpec(
         arb_id="BTC_BASIS_GOLDEN",
         legs=(
@@ -68,7 +69,7 @@ def _basis_spec(*, notional=10_000.0, fee_rate=0.0, qty_step=0.001, contract_siz
             notional=notional,
             reference_symbol=PERP,
         ),
-        execution_policy=ArbExecutionPolicy(kind=PackageExecutionKind.ATOMIC_ALL_OR_NONE),
+        execution_policy=execution_policy or ArbExecutionPolicy(kind=PackageExecutionKind.ATOMIC_ALL_OR_NONE),
     )
 
 
@@ -175,7 +176,7 @@ def test_phase_h_intrabar_liquidation_uses_adverse_high_low_across_package_legs(
         QUARTERLY: pd.Series([100.0, 100.0, 1.0, 100.0], index=idx),
     }
 
-    result = _event(initial_capital=1_000.0, leverage=10.0).run_basis_arbitrage(
+    result = _event(initial_capital=2_000.0, leverage=10.0).run_basis_arbitrage(
         datetime_index=idx,
         spec=_basis_spec(notional=8_000.0),
         signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx),
@@ -189,7 +190,7 @@ def test_phase_h_intrabar_liquidation_uses_adverse_high_low_across_package_legs(
     assert result.equity.iloc[2] == 0.0
 
 
-def test_phase_h_margin_rejects_oversized_package_components_and_exposes_report():
+def test_phase_h_atomic_margin_preflight_rejects_whole_package_without_partial_exposure():
     idx = _idx(4)
     result = _event(initial_capital=1_000.0, leverage=1.0, use_funding=False).run_basis_arbitrage(
         datetime_index=idx,
@@ -200,9 +201,77 @@ def test_phase_h_margin_rejects_oversized_package_components_and_exposes_report(
 
     order_report = result.metadata["order_report"]
     assert len(result.fills) == 0
-    assert set(order_report["status"]) == {ORDER_STATUS_REJECTED}
-    assert set(order_report["reject_code"]) == {REJECT_INSUFFICIENT_MARGIN}
+    assert order_report.empty
+    rejection_report = result.metadata["package_rejection_report"]
+    assert set(rejection_report["reason"]) == {"insufficient_margin_atomic"}
     assert result.positions.abs().sum().sum() == 0.0
+    assert result.metadata["package_target_units"].abs().sum().sum() == 0.0
+
+
+def test_phase_h_best_effort_package_allows_component_partial_fill_on_margin_reject():
+    idx = _idx(4)
+    result = _event(initial_capital=1_500.0, leverage=1.0, use_funding=False).run_basis_arbitrage(
+        datetime_index=idx,
+        spec=_basis_spec(
+            notional=1_000.0,
+            execution_policy=ArbExecutionPolicy(kind=PackageExecutionKind.BEST_EFFORT),
+        ),
+        signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx),
+        closes={
+            PERP: pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+            QUARTERLY: pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+        },
+    )
+
+    order_report = result.metadata["order_report"]
+    assert len(result.fills) == 2
+    assert len(order_report) == 2
+    assert order_report["fill_qty"].sum() == pytest.approx(20.0)
+    rejection_report = result.metadata["package_rejection_report"]
+    assert set(rejection_report["reason"]) == {"insufficient_margin_best_effort"}
+    assert set(rejection_report["failed_legs"]) == {QUARTERLY}
+    assert result.positions[f"Position_{PERP}"].iloc[1] == -10.0
+    assert result.positions[f"Position_{QUARTERLY}"].iloc[1] == 0.0
+    assert result.positions.iloc[-1].abs().sum() == 0.0
+
+
+def test_phase_h_stat_arb_pair_uses_atomic_margin_preflight_in_event_and_vectorized():
+    idx = _idx(4)
+    closes = {
+        "ETH": pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+        "SOL": pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+    }
+    spec = StatArbPairSpec(
+        arb_id="STAT_ARB_PREFLIGHT",
+        legs=(
+            ArbitrageLeg("ETH", 1.0, role="base", contract_type=ContractType.LINEAR),
+            ArbitrageLeg("SOL", -1.0, role="hedge", contract_type=ContractType.LINEAR),
+        ),
+        hedge_policy=HedgePolicy(HedgePolicyKind.DELTA_NEUTRAL, freeze_on_entry=True),
+        sizing_policy=SizingPolicy(SizingPolicyKind.TARGET_GROSS_NOTIONAL, notional=10_000.0),
+        execution_policy=ArbExecutionPolicy(kind=PackageExecutionKind.ATOMIC_ALL_OR_NONE),
+    )
+    signal = pd.Series([0.0, 1.0, 1.0, 0.0], index=idx)
+
+    event = _event(initial_capital=1_000.0, leverage=1.0, use_funding=False).run_stat_arb_pair_arbitrage(
+        idx,
+        spec,
+        signal,
+        closes,
+    )
+    vectorized = _vectorized(initial_capital=1_000.0, leverage=1.0, use_funding=False).run_stat_arb_pair_arbitrage(
+        idx,
+        spec,
+        signal,
+        closes,
+    )
+
+    assert len(event.fills) == 0
+    assert event.metadata["order_report"].empty
+    assert set(event.metadata["package_rejection_report"]["reason"]) == {"insufficient_margin_atomic"}
+    assert event.positions.abs().sum().sum() == 0.0
+    assert vectorized.positions.abs().sum().sum() == 0.0
+    assert event.metadata["package_target_units"].equals(vectorized.metadata["package_target_units"])
 
 
 def test_phase_h_precision_contract_size_and_timezone_alignment_are_explicit():
@@ -231,6 +300,40 @@ def test_phase_h_precision_contract_size_and_timezone_alignment_are_explicit():
             spec=spec,
             signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx_naive),
             closes={PERP: closes[PERP]},
+        )
+
+    bad_closes = dict(closes)
+    bad_closes[PERP] = pd.Series([100.0, np.nan, 100.0, 100.0], index=idx_naive)
+    with pytest.raises(ValueError, match="finite and > 0"):
+        build_arbitrage_order_plan(
+            datetime_index=idx_naive,
+            spec=spec,
+            signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx_naive),
+            closes=bad_closes,
+        )
+
+
+def test_phase_h_inverse_quanto_contract_sizing_fails_explicitly_until_supported():
+    idx = _idx(4)
+    spec = ArbitrageSpec(
+        arb_id="INVERSE_GAP",
+        legs=(
+            ArbitrageLeg(PERP, -1.0, contract_type=ContractType.INVERSE),
+            ArbitrageLeg(QUARTERLY, 1.0, contract_type=ContractType.LINEAR),
+        ),
+        hedge_policy=HedgePolicy(HedgePolicyKind.BASE_QTY_EQUAL),
+        sizing_policy=SizingPolicy(SizingPolicyKind.TARGET_BASE_QTY, base_qty=1.0),
+    )
+
+    with pytest.raises(NotImplementedError, match="inverse/quanto"):
+        build_arbitrage_order_plan(
+            datetime_index=idx,
+            spec=spec,
+            signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx),
+            closes={
+                PERP: pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+                QUARTERLY: pd.Series([100.0, 100.0, 100.0, 100.0], index=idx),
+            },
         )
 
 

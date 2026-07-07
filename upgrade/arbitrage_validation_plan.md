@@ -9,7 +9,7 @@ can be treated as institutional-grade for research production.
 
 ## Current Status
 
-Arbitrage is implemented through Phase G.1.
+Arbitrage is implemented through Phase H hardening.
 
 Implemented and tested:
 
@@ -23,6 +23,9 @@ Implemented and tested:
   execution for calendar spread, funding arbitrage, spot-perp cash carry, and
   index-basket arbitrage.
 - Phase H: deterministic golden test expansion for package mechanics.
+- Phase H hardening: package margin preflight, atomic all-or-none rollback,
+  best-effort component partial-fill semantics, strict close-data policy, and
+  explicit inverse/quanto sizing guardrails.
 
 Not fully complete:
 
@@ -33,6 +36,8 @@ Not fully complete:
 - Quarterly/futures instrument wiring in Nautilus.
 - Real exchange precision/min-notional fixtures for all symbols and venues.
 - Real strategy notebooks / historical-data parity reports.
+- True order-book/volume partial fills.
+- Real inverse/quanto contract sizing formulas.
 
 ## Why Phase G.1
 
@@ -76,11 +81,12 @@ Unit and integration tests exist under:
 - `tests/test_phase8_arbitrage_phase_f.py`
 - `tests/test_phase8_arbitrage_phase_g.py`
 
-Current full test suite result after Phase G.1:
+Current test suite result after Phase H hardening:
 
 - Phase G.1 baseline: `86 passed`
-- Phase H focused arbitrage suite: `45 passed`
-- Phase H full suite: `92 passed`
+- Phase H focused arbitrage test file: `9 passed`
+- Phase H arbitrage phases plus endpoint suite: `49 passed`
+- Phase H full suite: `96 passed`
 
 Important covered cases:
 
@@ -102,6 +108,9 @@ Important covered cases:
 - Phase H golden cases for fee/slippage, long/short funding direction,
   intrabar liquidation, margin rejection, precision/contract-size/timezone
   alignment, missing close data, and spot-perp cash carry parity.
+- Phase H hardening cases for atomic margin preflight with no partial exposure,
+  best-effort component partial fill without orphan exits, NaN/non-positive
+  close rejection, and inverse/quanto explicit `NotImplementedError`.
 
 ## What Has Not Been Proven Yet
 
@@ -115,7 +124,7 @@ Still unproven:
 - Funding timestamp alignment against exchange funding windows on real data.
 - Liquidation parity across package hedges under stressed intrabar high/low.
 - Slippage and fee parity between native event, vectorized, and Nautilus.
-- Partial-fill semantics for package trades.
+- Quantity partial-fill semantics against order-book depth or bar liquidity.
 - Cross-venue account/margin behavior.
 - Real basis trade PnL against independent exchange/account calculations.
 - Real stat-arb strategy behavior from notebook/service entrypoints.
@@ -136,7 +145,7 @@ Add more deterministic tests for:
 - Funding paid by long and received by short.
 - Liquidation under worst intrabar high/low.
 - Margin reject on one leg and full package rejection.
-- Best-effort package with visible residual exposure.
+- Best-effort package with visible residual exposure and no orphan exit orders.
 - `qty_step`, `min_qty`, `min_notional`, and `contract_size` interactions.
 - Missing data / NaN data / timezone data.
 
@@ -251,13 +260,28 @@ Implemented cases:
   behavior.
 - Spot-perp cash-carry event vs vectorized parity with funding.
 
+Implemented Phase H hardening cases:
+
+- Package margin preflight runs before generated orders are sent to native
+  event/vectorized engines.
+- `ATOMIC_ALL_OR_NONE` rejects the whole package when execution-time margin is
+  insufficient, records `insufficient_margin_atomic`, and keeps target units at
+  the actual current exposure.
+- `BEST_EFFORT` applies component-level package preflight, records
+  `insufficient_margin_best_effort` per failed leg, and only emits close orders
+  for legs that actually opened.
+- NaN, infinite, missing-after-alignment, or non-positive close data fails
+  before sizing.
+- Inverse/quanto legs fail explicitly in generic order planning until proper
+  contract-value sizing is implemented.
+
 Remaining Phase H-style cases to add later:
 
-- Partial-fill package behavior.
-- Atomic rollback when one component fills and another component is rejected by
-  execution-time margin.
-- More missing-data/NaN policies.
-- Inverse/quanto contract sizing once those specs are enabled.
+- True quantity partial fills against bar volume/order-book liquidity.
+- More venue-specific missing-data policies, such as halt calendars and
+  stale-price maximum age.
+- Real inverse/quanto implementation after Binance COIN-M and quanto contract
+  formulas are encoded.
 
 ### Phase I - Nautilus Instrument And Parity Hardening
 

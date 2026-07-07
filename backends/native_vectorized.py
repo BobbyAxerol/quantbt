@@ -18,12 +18,15 @@ from ..core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionCon
 from ..core.vectorized import _engine_units_v2
 from ..core.arbitrage import (
     ArbitrageSpec,
+    ArbitragePlan,
     BasisArbitrageSpec,
     CalendarSpreadSpec,
     CrossExchangeArbSpec,
     FundingArbitrageSpec,
     IndexBasketArbSpec,
     OptionsVolArbSpec,
+    PackageExecutionKind,
+    PackageRejection,
     SizingPolicyKind,
     SpotPerpCashCarrySpec,
     StatArbPairSpec,
@@ -31,7 +34,9 @@ from ..core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
+from ..core.orders import OrderIntent
 from ..core.preprocessor import make_funding_mask
+from ..core.schema import OrderSide
 from ..sizing.modes import compute_target_units
 
 
@@ -273,6 +278,7 @@ class NativeVectorizedBackend:
         )
         contract_sizes = self._contract_size_for_spec(spec, contract_size)
         fee_rates = self._fee_rate_for_spec(spec)
+        plan = self._apply_atomic_package_margin_policy(idx, plan, close_dict, contract_sizes, fee_rates, leverage)
         basis_funding = self._funding_for_spec(spec, funding_rate)
         target_units = {symbol: plan.target_units[symbol] for symbol in symbols}
 
@@ -350,7 +356,23 @@ class NativeVectorizedBackend:
         )
         contract_sizes = self._contract_size_for_spec(spec, contract_size)
         fee_rates = self._fee_rate_for_spec(spec)
-        target_units = {symbol: plan.target_units[symbol] for symbol in symbols}
+        arb_plan = self._apply_atomic_package_margin_policy(
+            idx=idx,
+            plan=ArbitragePlan(
+                spec=spec,
+                orders=plan.orders,
+                target_units=plan.target_units,
+                signals=plan.signals,
+                entry_ratios=plan.entry_ratios,
+                rejections=(),
+                metadata=plan.metadata,
+            ),
+            closes=close_dict,
+            contract_sizes=contract_sizes,
+            fee_rates=fee_rates,
+            leverage=leverage,
+        )
+        target_units = {symbol: arb_plan.target_units[symbol] for symbol in symbols}
 
         result = self.run_target_units(
             datetime_index=idx,
@@ -382,9 +404,12 @@ class NativeVectorizedBackend:
                 "engine": "units_v2_stat_arb_pair",
                 "arb_id": spec.arb_id,
                 "arb_type": spec.arb_type.value,
-                "arbitrage_plan": plan,
-                "package_target_units": plan.target_units,
-                "beta_drift_report": self._stat_arb_beta_drift_report(idx, spec, plan, rebalance_threshold),
+                "arbitrage_plan": arb_plan,
+                "package_target_units": arb_plan.target_units,
+                "package_rejection_report": arb_plan.rejection_report,
+                "basket_plan": plan,
+                "basket_target_units": arb_plan.target_units,
+                "beta_drift_report": self._stat_arb_beta_drift_report(idx, spec, arb_plan, rebalance_threshold),
                 "leg_pnl_report": leg_pnl_report,
                 "package_pnl_report": package_report,
                 "rebalance_threshold": rebalance_threshold,
@@ -426,6 +451,7 @@ class NativeVectorizedBackend:
         )
         contract_sizes = self._contract_size_for_spec(spec, contract_size)
         fee_rates = self._fee_rate_for_spec(spec)
+        plan = self._apply_atomic_package_margin_policy(idx, plan, close_dict, contract_sizes, fee_rates, leverage)
         package_funding = self._funding_for_spec(spec, funding_rate)
         target_units = {symbol: plan.target_units[symbol] for symbol in symbols}
 
@@ -483,6 +509,202 @@ class NativeVectorizedBackend:
         if isinstance(value, dict):
             return {s: float(value.get(s, default)) for s in symbols}
         return {s: float(value) for s in symbols}
+
+    def _apply_atomic_package_margin_policy(
+        self,
+        idx: pd.DatetimeIndex,
+        plan: ArbitragePlan,
+        closes: Dict[str, pd.Series],
+        contract_sizes: Dict[str, float],
+        fee_rates: Dict[str, float],
+        leverage: Optional[Union[float, Dict[str, float]]],
+    ) -> ArbitragePlan:
+        spec = plan.spec
+        if spec.execution_policy.kind not in (PackageExecutionKind.ATOMIC_ALL_OR_NONE, PackageExecutionKind.BEST_EFFORT):
+            return plan
+
+        symbols = [leg.symbol for leg in spec.legs]
+        current_units = {symbol: 0.0 for symbol in symbols}
+        equity = float(self.config.account.initial_capital)
+        target_rows = []
+        orders = []
+        rejections = list(plan.rejections)
+        leverages = self._leverage_mapping(leverage, symbols)
+        slippage = self.config.execution.slippage_rate
+
+        for i, ts in enumerate(idx):
+            if i > 0:
+                prev_ts = idx[i - 1]
+                for symbol in symbols:
+                    units = current_units[symbol]
+                    if units != 0.0:
+                        equity += units * (
+                            float(closes[symbol].loc[ts]) - float(closes[symbol].loc[prev_ts])
+                        ) * float(contract_sizes[symbol])
+
+            original_desired = {symbol: float(plan.target_units.loc[ts, symbol]) for symbol in symbols}
+            changed_symbols = [
+                symbol for symbol in symbols
+                if abs(original_desired[symbol] - current_units[symbol]) > 1e-12
+            ]
+            if changed_symbols:
+                if spec.execution_policy.kind is PackageExecutionKind.ATOMIC_ALL_OR_NONE:
+                    allowed, details = self._atomic_package_has_margin(
+                        ts=ts,
+                        symbols=symbols,
+                        current_units=current_units,
+                        desired_units=original_desired,
+                        closes=closes,
+                        contract_sizes=contract_sizes,
+                        fee_rates=fee_rates,
+                        leverages=leverages,
+                        equity=equity,
+                        slippage=slippage,
+                    )
+                    if not allowed:
+                        rejections.append(
+                            PackageRejection(
+                                timestamp=ts,
+                                arb_id=spec.arb_id,
+                                reason="insufficient_margin_atomic",
+                                failed_legs=tuple(changed_symbols),
+                                metadata={"details": details, "policy": spec.execution_policy.kind.value},
+                            )
+                        )
+                    else:
+                        self._append_package_orders(orders, ts, spec, symbols, current_units, original_desired)
+                        equity -= float(details.get("cost", 0.0))
+                        current_units = original_desired
+                else:
+                    for symbol in symbols:
+                        if abs(original_desired[symbol] - current_units[symbol]) <= 1e-12:
+                            continue
+                        candidate_units = dict(current_units)
+                        candidate_units[symbol] = original_desired[symbol]
+                        allowed, details = self._atomic_package_has_margin(
+                            ts=ts,
+                            symbols=symbols,
+                            current_units=current_units,
+                            desired_units=candidate_units,
+                            closes=closes,
+                            contract_sizes=contract_sizes,
+                            fee_rates=fee_rates,
+                            leverages=leverages,
+                            equity=equity,
+                            slippage=slippage,
+                        )
+                        if not allowed:
+                            rejections.append(
+                                PackageRejection(
+                                    timestamp=ts,
+                                    arb_id=spec.arb_id,
+                                    reason="insufficient_margin_best_effort",
+                                    failed_legs=(symbol,),
+                                    metadata={"details": details, "policy": spec.execution_policy.kind.value},
+                                )
+                            )
+                            continue
+                        self._append_package_orders(orders, ts, spec, [symbol], current_units, candidate_units)
+                        equity -= float(details.get("cost", 0.0))
+                        current_units = candidate_units
+
+            target_rows.append({symbol: current_units[symbol] for symbol in symbols})
+
+        return ArbitragePlan(
+            spec=spec,
+            orders=tuple(orders),
+            target_units=pd.DataFrame(target_rows, index=idx),
+            signals=plan.signals,
+            entry_ratios=plan.entry_ratios,
+            rejections=tuple(rejections),
+            metadata={**plan.metadata, "execution_margin_policy": "package_preflight"},
+        )
+
+    @staticmethod
+    def _append_package_orders(
+        orders: List[OrderIntent],
+        ts,
+        spec: ArbitrageSpec,
+        symbols: List[str],
+        current_units: Dict[str, float],
+        desired_units: Dict[str, float],
+    ) -> None:
+        for symbol in symbols:
+            delta = desired_units[symbol] - current_units[symbol]
+            if abs(delta) <= 1e-12:
+                continue
+            side = OrderSide.BUY if delta > 0.0 else OrderSide.SELL
+            orders.append(
+                OrderIntent(
+                    timestamp=ts,
+                    symbol=symbol,
+                    side=side,
+                    order_type=spec.execution_policy.order_type,
+                    qty=abs(delta),
+                    tif=spec.execution_policy.tif,
+                    tag=spec.arb_id,
+                    metadata={
+                        "arb_id": spec.arb_id,
+                        "arb_type": spec.arb_type.value,
+                        "package_policy": spec.execution_policy.kind.value,
+                        "hedge_policy": spec.hedge_policy.kind.value,
+                        "sizing_policy": spec.sizing_policy.kind.value,
+                        "target_units": desired_units[symbol],
+                        "previous_units": current_units[symbol],
+                    },
+                )
+            )
+
+    def _atomic_package_has_margin(
+        self,
+        ts,
+        symbols: List[str],
+        current_units: Dict[str, float],
+        desired_units: Dict[str, float],
+        closes: Dict[str, pd.Series],
+        contract_sizes: Dict[str, float],
+        fee_rates: Dict[str, float],
+        leverages: Dict[str, float],
+        equity: float,
+        slippage: float,
+    ) -> tuple[bool, Dict[str, float]]:
+        cur_im = 0.0
+        margin_delta_sum = 0.0
+        cost_sum = 0.0
+        for symbol in symbols:
+            close_price = float(closes[symbol].loc[ts])
+            cs = float(contract_sizes[symbol])
+            lev = float(leverages[symbol])
+            current = float(current_units[symbol])
+            target = float(desired_units[symbol])
+            cur_im += abs(current) * close_price * cs / lev
+            delta = target - current
+            if abs(delta) <= 1e-12:
+                continue
+            exec_price = close_price * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
+            old_im = abs(current) * close_price * cs / lev
+            new_im = abs(target) * exec_price * cs / lev
+            margin_delta_sum += new_im - old_im
+            cost_sum += abs(delta) * exec_price * cs * float(fee_rates[symbol])
+            cost_sum += abs(delta) * abs(exec_price - close_price) * cs
+
+        available = max(0.0, float(equity) - cur_im)
+        required = cost_sum + max(0.0, margin_delta_sum)
+        return required <= available + 1e-12, {
+            "available": available,
+            "required": required,
+            "current_initial_margin": cur_im,
+            "margin_delta": margin_delta_sum,
+            "cost": cost_sum,
+        }
+
+    def _leverage_mapping(self, leverage, symbols: List[str]) -> Dict[str, float]:
+        default = float(self.config.account.leverage)
+        if isinstance(leverage, dict):
+            return {symbol: float(leverage.get(symbol, default)) for symbol in symbols}
+        if leverage is None:
+            return {symbol: default for symbol in symbols}
+        return {symbol: float(leverage) for symbol in symbols}
 
     @staticmethod
     def _fee_rate_metadata(fee_rates: np.ndarray, symbols: List[str]):
