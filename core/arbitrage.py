@@ -1,7 +1,7 @@
 """
 quantbt.core.arbitrage
 ----------------------
-Phase A arbitrage domain schema and executable order-plan helpers.
+Phase A/B arbitrage domain schema and executable order-plan helpers.
 
 This module intentionally stops short of a full ArbitrageBacktestEngine.  It
 defines the public domain objects and deterministic package order planning
@@ -20,6 +20,12 @@ import pandas as pd
 from .orders import OrderIntent
 from .preprocessor import align_series, validate_datetime
 from .schema import OrderSide, OrderType, TimeInForce
+
+
+def _coerce_enum(enum_cls, value):
+    if isinstance(value, enum_cls):
+        return value
+    return enum_cls(value)
 
 
 class ArbitrageType(str, Enum):
@@ -65,6 +71,146 @@ class PackageExecutionKind(str, Enum):
     REBALANCE_ONLY = "rebalance_only"
 
 
+class SpreadFormulaKind(str, Enum):
+    PRICE_DIFF = "price_diff"
+    LOG_RESIDUAL = "log_residual"
+    RATIO = "ratio"
+    ANNUALIZED_BASIS = "annualized_basis"
+    FUNDING_SPREAD = "funding_spread"
+    BASKET_RESIDUAL = "basket_residual"
+    TRIANGULAR = "triangular"
+    OPTIONS_VOL = "options_vol"
+    CUSTOM = "custom"
+
+
+class SignalModelKind(str, Enum):
+    EXTERNAL = "external"
+    THRESHOLD = "threshold"
+    ZSCORE = "zscore"
+    CUSTOM = "custom"
+
+
+class CostModelKind(str, Enum):
+    PER_LEG_FEE = "per_leg_fee"
+    FLAT_BPS = "flat_bps"
+    SPREAD_PLUS_FEE = "spread_plus_fee"
+    CUSTOM = "custom"
+
+
+class CarryModelKind(str, Enum):
+    NONE = "none"
+    FUNDING = "funding"
+    BORROW = "borrow"
+    CASH_YIELD = "cash_yield"
+    FUNDING_AND_BORROW = "funding_and_borrow"
+    CUSTOM = "custom"
+
+
+class MarginModelKind(str, Enum):
+    GROSS = "gross"
+    HEDGED_OFFSET = "hedged_offset"
+    PORTFOLIO = "portfolio"
+    VENUE = "venue"
+    CUSTOM = "custom"
+
+
+class LifecycleModelKind(str, Enum):
+    OPEN_ENDED = "open_ended"
+    EXPIRY_SETTLEMENT = "expiry_settlement"
+    ROLLING = "rolling"
+    EXERCISE = "exercise"
+    CUSTOM = "custom"
+
+
+@dataclass(frozen=True)
+class SpreadFormula:
+    kind: SpreadFormulaKind = SpreadFormulaKind.CUSTOM
+    base_symbol: Optional[str] = None
+    quote_symbol: Optional[str] = None
+    fair_value: Optional[float] = None
+    annualization_days: float = 365.0
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(SpreadFormulaKind, self.kind))
+        if self.fair_value is not None and not isfinite(float(self.fair_value)):
+            raise ValueError("fair_value must be finite")
+        if self.annualization_days <= 0.0:
+            raise ValueError("annualization_days must be > 0")
+
+
+@dataclass(frozen=True)
+class SignalModel:
+    kind: SignalModelKind = SignalModelKind.EXTERNAL
+    entry_threshold: Optional[float] = None
+    exit_threshold: Optional[float] = None
+    lookback: Optional[int] = None
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(SignalModelKind, self.kind))
+        if self.lookback is not None and self.lookback <= 0:
+            raise ValueError("lookback must be > 0")
+
+
+@dataclass(frozen=True)
+class CostModel:
+    kind: CostModelKind = CostModelKind.PER_LEG_FEE
+    fee_bps: float = 0.0
+    slippage_bps: float = 0.0
+    spread_bps: float = 0.0
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(CostModelKind, self.kind))
+        if self.fee_bps < 0.0 or self.slippage_bps < 0.0 or self.spread_bps < 0.0:
+            raise ValueError("cost bps values must be >= 0")
+
+
+@dataclass(frozen=True)
+class CarryModel:
+    kind: CarryModelKind = CarryModelKind.NONE
+    funding_interval_hours: Optional[float] = None
+    borrow_rate: float = 0.0
+    cash_yield: float = 0.0
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(CarryModelKind, self.kind))
+        if self.funding_interval_hours is not None and self.funding_interval_hours <= 0.0:
+            raise ValueError("funding_interval_hours must be > 0")
+        if self.borrow_rate < 0.0:
+            raise ValueError("borrow_rate must be >= 0")
+
+
+@dataclass(frozen=True)
+class MarginModel:
+    kind: MarginModelKind = MarginModelKind.GROSS
+    hedged_margin_offset: float = 0.0
+    maintenance_ratio: Optional[float] = None
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(MarginModelKind, self.kind))
+        if not 0.0 <= self.hedged_margin_offset <= 1.0:
+            raise ValueError("hedged_margin_offset must be in [0, 1]")
+        if self.maintenance_ratio is not None and self.maintenance_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be >= 0")
+
+
+@dataclass(frozen=True)
+class LifecycleModel:
+    kind: LifecycleModelKind = LifecycleModelKind.OPEN_ENDED
+    roll_days_before_expiry: Optional[int] = None
+    force_flat_before_expiry: bool = True
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(LifecycleModelKind, self.kind))
+        if self.roll_days_before_expiry is not None and self.roll_days_before_expiry < 0:
+            raise ValueError("roll_days_before_expiry must be >= 0")
+
+
 @dataclass(frozen=True)
 class ArbitrageLeg:
     symbol: str
@@ -87,6 +233,7 @@ class ArbitrageLeg:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "contract_type", _coerce_enum(ContractType, self.contract_type))
         if not self.symbol:
             raise ValueError("symbol is required")
         if not isfinite(float(self.ratio)) or float(self.ratio) == 0.0:
@@ -101,6 +248,16 @@ class ArbitrageLeg:
             raise ValueError("tick_size must be >= 0")
         if self.fee_rate is not None and self.fee_rate < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        if self.expiry is not None:
+            expiry = pd.Timestamp(self.expiry)
+            if expiry.tz is None:
+                expiry = expiry.tz_localize("UTC")
+            else:
+                expiry = expiry.tz_convert("UTC")
+            object.__setattr__(self, "expiry", expiry)
+        if self.contract_type in (ContractType.LINEAR, ContractType.INVERSE, ContractType.QUANTO):
+            if self.asset_class not in ("future", "perp", "derivative", "crypto"):
+                raise ValueError("derivative contract legs must use future/perp/derivative asset_class")
 
 
 @dataclass(frozen=True)
@@ -112,6 +269,7 @@ class HedgePolicy:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(HedgePolicyKind, self.kind))
         if self.rebalance_threshold is not None and self.rebalance_threshold < 0.0:
             raise ValueError("rebalance_threshold must be >= 0")
 
@@ -126,6 +284,7 @@ class SizingPolicy:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(SizingPolicyKind, self.kind))
         if self.notional is not None and self.notional <= 0.0:
             raise ValueError("notional must be > 0")
         if self.base_qty is not None and self.base_qty <= 0.0:
@@ -148,6 +307,9 @@ class ArbExecutionPolicy:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "kind", _coerce_enum(PackageExecutionKind, self.kind))
+        object.__setattr__(self, "order_type", _coerce_enum(OrderType, self.order_type))
+        object.__setattr__(self, "tif", _coerce_enum(TimeInForce, self.tif))
         if self.kind is PackageExecutionKind.ATOMIC_ALL_OR_NONE and self.allow_partial_fill:
             raise ValueError("atomic_all_or_none cannot allow partial fills")
         if self.kind is PackageExecutionKind.BEST_EFFORT and not self.allow_partial_fill:
@@ -160,11 +322,18 @@ class ArbitrageSpec:
     legs: Tuple[ArbitrageLeg, ...]
     hedge_policy: HedgePolicy
     sizing_policy: SizingPolicy
+    spread_formula: SpreadFormula = field(default_factory=SpreadFormula)
+    signal_model: SignalModel = field(default_factory=SignalModel)
+    cost_model: CostModel = field(default_factory=CostModel)
+    carry_model: CarryModel = field(default_factory=CarryModel)
+    margin_model: MarginModel = field(default_factory=MarginModel)
+    lifecycle_model: LifecycleModel = field(default_factory=LifecycleModel)
     execution_policy: ArbExecutionPolicy = field(default_factory=ArbExecutionPolicy)
     arb_type: ArbitrageType = ArbitrageType.BASIS
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "arb_type", _coerce_enum(ArbitrageType, self.arb_type))
         if not self.arb_id:
             raise ValueError("arb_id is required")
         if len(self.legs) < 2:
@@ -172,6 +341,19 @@ class ArbitrageSpec:
         symbols = [leg.symbol for leg in self.legs]
         if len(set(symbols)) != len(symbols):
             raise ValueError("arbitrage legs must have unique symbols")
+        roles = [leg.role for leg in self.legs if leg.role and leg.role != "leg"]
+        if len(set(roles)) != len(roles):
+            raise ValueError("arbitrage legs must have unique roles")
+        if self.sizing_policy.reference_symbol is not None and self.sizing_policy.reference_symbol not in symbols:
+            raise ValueError("sizing_policy.reference_symbol must be one of the leg symbols")
+        if self.spread_formula.base_symbol is not None and self.spread_formula.base_symbol not in symbols:
+            raise ValueError("spread_formula.base_symbol must be one of the leg symbols")
+        if self.spread_formula.quote_symbol is not None and self.spread_formula.quote_symbol not in symbols:
+            raise ValueError("spread_formula.quote_symbol must be one of the leg symbols")
+        if self.lifecycle_model.kind in (LifecycleModelKind.EXPIRY_SETTLEMENT, LifecycleModelKind.ROLLING):
+            expiring = [leg for leg in self.legs if leg.expiry is not None]
+            if not expiring:
+                raise ValueError("expiry lifecycle requires at least one leg expiry")
 
 
 @dataclass(frozen=True)
@@ -193,10 +375,23 @@ class BasisArbitrageSpec(ArbitrageSpec):
 class CalendarSpreadSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.CALENDAR_SPREAD
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        expiries = [leg.expiry for leg in self.legs]
+        if any(expiry is None for expiry in expiries):
+            raise ValueError("CalendarSpreadSpec requires expiry on every leg")
+        if len(set(expiries)) < 2:
+            raise ValueError("CalendarSpreadSpec requires at least two distinct expiries")
+
 
 @dataclass(frozen=True)
 class FundingArbitrageSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.FUNDING
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not any(leg.funding_enabled for leg in self.legs):
+            raise ValueError("FundingArbitrageSpec requires at least one funding-enabled leg")
 
 
 @dataclass(frozen=True)
