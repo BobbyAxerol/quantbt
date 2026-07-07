@@ -195,7 +195,8 @@ def test_best_effort_arbitrage_package_keeps_valid_legs_and_reports_failed_legs(
     assert [order.symbol for order in plan.orders] == ["BTCUSDT-PERP.BINANCE", "BTCUSDT-PERP.BINANCE"]
 
 
-def test_arbitrage_endpoint_phase_a_stores_spec_and_raises_clear_engine_gap():
+def test_arbitrage_endpoint_stores_spec_and_runs_phase_c_basis_engine():
+    idx = _idx()
     endpoint = QuantBTEndpoint.arbitrage(
         arb_type="basis",
         spec=_basis_spec(),
@@ -206,6 +207,9 @@ def test_arbitrage_endpoint_phase_a_stores_spec_and_raises_clear_engine_gap():
     assert endpoint.config.mode == "arbitrage"
     assert endpoint.config.arbitrage_spec.arb_id == "BTC_USDM_PERP_QUARTERLY"
     assert endpoint.config.metadata["arb_type"] == "basis"
-    with pytest.raises(NotImplementedError, match="Phase A API skeleton"):
-        endpoint.simulate(data={}, signal=pd.Series(dtype=float))
-
+    result = endpoint.simulate(
+        closes=_basis_closes(idx),
+        datetime_index=idx,
+        signal=pd.Series([0.0, 1.0, 1.0, 0.0], index=idx),
+    )
+    assert result.metadata["engine"] == "event_v1_basis_arbitrage"

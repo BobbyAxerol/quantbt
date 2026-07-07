@@ -675,6 +675,9 @@ Acceptance:
 
 ### Phase C - BasisArbitrageSpec Minimal Native Event
 
+Status: implemented in `NativeEventBackend.run_basis_arbitrage()` and
+`QuantBTEndpoint.arbitrage(..., spec=BasisArbitrageSpec(...))`.
+
 Deliverables:
 
 - USDM linear perp-vs-quarterly support.
@@ -691,6 +694,15 @@ Acceptance:
 - package PnL equals leg PnL sum;
 - close all legs together at exit;
 - result has spread_report and leg_pnl_report.
+
+Implementation notes:
+
+- Signal transitions generate package leg orders from `build_arbitrage_order_plan()`.
+- Units are frozen through `package_target_units` until the next transition.
+- Per-leg `fee_rate` is respected by the native event kernel.
+- Scalar funding inputs are applied only to legs with `funding_enabled=True`.
+- `result.metadata["spread_report"]`, `result.metadata["leg_pnl_report"]`, and
+  `result.metadata["package_pnl_report"]` are the primary Phase C diagnostics.
 
 ### Phase D - StatArbPairSpec / Basket Integration
 
@@ -847,4 +859,3 @@ Official docs and references worth re-checking before coding:
   qty: perp, quarterly, mark/index, or configurable?
 - Should funding data be required for perp basis backtests, or optional with
   explicit warning?
-

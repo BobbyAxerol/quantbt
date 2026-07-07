@@ -103,7 +103,7 @@ def _engine_event_v1(
     init_capital:    float,
     leverages:       np.ndarray,
     maint_ratio:     float,
-    fee_rate:        float,
+    fee_rates:       np.ndarray,
     contract_sizes:  np.ndarray,
     slippage:        float,
     use_funding:     bool,
@@ -235,7 +235,7 @@ def _engine_event_v1(
             cs = contract_sizes[sym]
             c = closes[i, sym]
             trade_notional = abs(delta) * exec_price * cs
-            fee_cost = trade_notional * fee_rate
+            fee_cost = trade_notional * fee_rates[sym]
 
             cur_im, _ = _event_close_margin(
                 n_syms, current_pos, closes, contract_sizes, leverages, maint_ratio, i
