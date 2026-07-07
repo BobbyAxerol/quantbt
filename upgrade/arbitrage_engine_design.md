@@ -706,6 +706,9 @@ Implementation notes:
 
 ### Phase D - StatArbPairSpec / Basket Integration
 
+Status: implemented in `NativeEventBackend.run_stat_arb_pair_arbitrage()` and
+`QuantBTEndpoint.arbitrage(..., spec=StatArbPairSpec(...))`.
+
 Deliverables:
 
 - reuse BasketSpec / frozen basket order plan;
@@ -718,6 +721,17 @@ Acceptance:
 - no price-drift micro rebalancing;
 - exit closes exact frozen units;
 - beta drift diagnostic exists.
+
+Implementation notes:
+
+- `StatArbPairSpec` is converted internally to `BasketSpec` and executed by the
+  frozen basket planner.
+- Dynamic `hedge_ratios` are sampled on signal transitions and held frozen while
+  the signal is unchanged.
+- `HedgePolicy.rebalance_threshold` can trigger package rebalance on beta drift
+  only; price movement alone does not rebalance the package.
+- `result.metadata["beta_drift_report"]` records frozen ratio, current ratio,
+  relative drift, threshold, and breach state per leg.
 
 ### Phase E - Native Vectorized Arb Fast Path
 

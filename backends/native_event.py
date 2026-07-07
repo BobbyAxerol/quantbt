@@ -21,13 +21,20 @@ from ..core.event import (
     TIF_IOC,
     _engine_event_v1,
 )
-from ..core.arbitrage import BasisArbitrageSpec, build_arbitrage_order_plan
+from ..core.arbitrage import (
+    ArbitrageSpec,
+    BasisArbitrageSpec,
+    SizingPolicyKind,
+    StatArbPairSpec,
+    build_arbitrage_order_plan,
+)
 from ..core.basket import build_frozen_basket_orders
 from ..core.orders import Fill, OrderIntent
 from ..core.preprocessor import align_series, build_arrays, make_funding_mask, prepare_funding, validate_datetime
 from ..core.results import BacktestResultV2
 from ..core.schema import (
     AccountConfig,
+    BasketLegSpec,
     BasketSpec,
     ExecutionConfig,
     LiquiditySide,
@@ -257,6 +264,8 @@ class NativeEventBackend:
         funding_rate: Union[float, pd.Series, Dict] = 0.0,
         contract_size: Union[float, Dict[str, float]] = 1.0,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        rebalance_threshold: Optional[float] = None,
         symbols: Optional[List[str]] = None,
     ) -> BacktestResultV2:
         """
@@ -274,6 +283,7 @@ class NativeEventBackend:
             hedge_ratios=hedge_ratios,
             order_type=OrderType.MARKET,
             tif=TimeInForce.IOC,
+            rebalance_threshold=rebalance_threshold,
         )
         result = self.run_orders(
             datetime_index=datetime_index,
@@ -284,11 +294,83 @@ class NativeEventBackend:
             funding_rate=funding_rate,
             contract_size=contract_size,
             leverage=leverage,
+            fee_rate=fee_rate,
             symbols=symbols,
         )
         result.metadata["basket_plan"] = plan
         result.metadata["basket_target_units"] = plan.target_units
         result.metadata["basket_execution_policy"] = basket.execution_policy.value
+        return result
+
+    def run_stat_arb_pair_arbitrage(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        spec: StatArbPairSpec,
+        signal: pd.Series,
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        hedge_ratios: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Optional[Union[float, Dict[str, float]]] = None,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+    ) -> BacktestResultV2:
+        """
+        Execute a Phase D stat-arb pair through the frozen basket planner.
+
+        Dynamic hedge-ratio series are sampled at entry and held frozen until
+        exit. If `spec.hedge_policy.rebalance_threshold` is set, only hedge
+        ratio drift beyond that threshold can trigger a package rebalance; price
+        movement alone does not create micro-rebalancing orders.
+        """
+        if not isinstance(spec, StatArbPairSpec):
+            raise TypeError("run_stat_arb_pair_arbitrage requires a StatArbPairSpec")
+        basket = self._stat_arb_basket_from_spec(spec)
+        idx = validate_datetime(datetime_index)
+        symbols = [leg.symbol for leg in spec.legs]
+        close_dict = align_series(closes, symbols, idx)
+        contract_sizes = self._contract_size_for_spec(spec, contract_size)
+        fee_rates = self._fee_rate_for_spec(spec)
+        rebalance_threshold = spec.hedge_policy.rebalance_threshold
+        if not spec.hedge_policy.freeze_on_entry and rebalance_threshold is None:
+            rebalance_threshold = 0.0
+
+        result = self.run_basket(
+            datetime_index=idx,
+            basket=basket,
+            signal=signal,
+            closes=close_dict,
+            highs=highs,
+            lows=lows,
+            hedge_ratios=hedge_ratios,
+            funding_rate=funding_rate,
+            contract_size=contract_sizes,
+            leverage=leverage,
+            fee_rate=fee_rates,
+            rebalance_threshold=rebalance_threshold,
+            symbols=symbols,
+        )
+        plan = result.metadata["basket_plan"]
+        beta_drift_report = self._stat_arb_beta_drift_report(
+            idx=idx,
+            spec=spec,
+            plan=plan,
+            rebalance_threshold=rebalance_threshold,
+        )
+        result.metadata.update(
+            {
+                "backend": "native_event",
+                "engine": "event_v1_stat_arb_pair",
+                "arb_id": spec.arb_id,
+                "arb_type": spec.arb_type.value,
+                "arbitrage_plan": plan,
+                "package_target_units": plan.target_units,
+                "beta_drift_report": beta_drift_report,
+                "rebalance_threshold": rebalance_threshold,
+                "fee_rate_oneway": fee_rates,
+                "contract_size": contract_sizes,
+            }
+        )
         return result
 
     def run_basis_arbitrage(
@@ -434,7 +516,7 @@ class NativeEventBackend:
             return float(fee_rates[0])
         return {symbol: float(fee_rates[i]) for i, symbol in enumerate(symbols)}
 
-    def _fee_rate_for_spec(self, spec: BasisArbitrageSpec) -> Dict[str, float]:
+    def _fee_rate_for_spec(self, spec: ArbitrageSpec) -> Dict[str, float]:
         default_rates = self.config.fee_rate
         out: Dict[str, float] = {}
         for leg in spec.legs:
@@ -448,7 +530,7 @@ class NativeEventBackend:
 
     @staticmethod
     def _contract_size_for_spec(
-        spec: BasisArbitrageSpec,
+        spec: ArbitrageSpec,
         contract_size: Optional[Union[float, Dict[str, float]]],
     ) -> Dict[str, float]:
         out = {leg.symbol: float(leg.contract_size) for leg in spec.legs}
@@ -468,6 +550,70 @@ class NativeEventBackend:
                 for leg in spec.legs
             }
         return {leg.symbol: funding_rate if leg.symbol in funding_symbols else 0.0 for leg in spec.legs}
+
+    @staticmethod
+    def _stat_arb_basket_from_spec(spec: StatArbPairSpec) -> BasketSpec:
+        if spec.sizing_policy.kind is not SizingPolicyKind.TARGET_GROSS_NOTIONAL:
+            raise NotImplementedError("Phase D StatArbPairSpec requires target_gross_notional sizing")
+        return BasketSpec(
+            basket_id=spec.arb_id,
+            legs=tuple(BasketLegSpec(symbol=leg.symbol, ratio=float(leg.ratio)) for leg in spec.legs),
+            gross_notional=float(spec.sizing_policy.notional),
+            freeze_hedge=bool(spec.hedge_policy.freeze_on_entry),
+            hedged_margin_offset=float(spec.margin_model.hedged_margin_offset),
+            metadata={
+                "arb_type": spec.arb_type.value,
+                "hedge_policy": spec.hedge_policy.kind.value,
+                "sizing_policy": spec.sizing_policy.kind.value,
+            },
+        )
+
+    @staticmethod
+    def _stat_arb_beta_drift_report(
+        idx: pd.DatetimeIndex,
+        spec: StatArbPairSpec,
+        plan,
+        rebalance_threshold: Optional[float],
+    ) -> pd.DataFrame:
+        symbols = [leg.symbol for leg in spec.legs]
+        reference_symbol = symbols[0]
+        rows = []
+        for ts in idx:
+            ref_units = float(plan.target_units.loc[ts, reference_symbol])
+            ref_ratio = float(plan.entry_ratios.loc[ts, reference_symbol])
+            active = abs(ref_units) > 1e-12 and abs(ref_ratio) > 1e-12
+            for symbol in symbols:
+                units = float(plan.target_units.loc[ts, symbol])
+                current_ratio = float(plan.entry_ratios.loc[ts, symbol])
+                if active:
+                    frozen_ratio_to_ref = units / ref_units
+                    current_ratio_to_ref = current_ratio / ref_ratio
+                    abs_drift = abs(current_ratio_to_ref - frozen_ratio_to_ref)
+                    rel_drift = abs_drift / max(abs(frozen_ratio_to_ref), 1e-12)
+                else:
+                    frozen_ratio_to_ref = 0.0
+                    current_ratio_to_ref = 0.0
+                    abs_drift = 0.0
+                    rel_drift = 0.0
+                rows.append(
+                    {
+                        "timestamp": ts,
+                        "symbol": symbol,
+                        "reference_symbol": reference_symbol,
+                        "target_units": units,
+                        "frozen_ratio_to_ref": frozen_ratio_to_ref,
+                        "current_ratio_to_ref": current_ratio_to_ref,
+                        "abs_beta_drift": abs_drift,
+                        "rel_beta_drift": rel_drift,
+                        "rebalance_threshold": rebalance_threshold,
+                        "breached": (
+                            rebalance_threshold is not None
+                            and rel_drift > rebalance_threshold
+                            and symbol != reference_symbol
+                        ),
+                    }
+                )
+        return pd.DataFrame(rows)
 
     def _basis_leg_pnl_report(
         self,
