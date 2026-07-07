@@ -16,7 +16,7 @@ from typing import Dict, Optional, Sequence, Union
 import pandas as pd
 
 from .backtester import BacktestEngine
-from .backends import NativeEventBackend, NativeEventConfig
+from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
 from .core.arbitrage import BasisArbitrageSpec, StatArbPairSpec
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
@@ -548,8 +548,8 @@ class QuantBTEndpoint:
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)
-        if backend != "native_event":
-            raise NotImplementedError("Phase C arbitrage endpoint supports backend='native_event' only")
+        if backend not in ("native_event", "native_vectorized"):
+            raise NotImplementedError("Phase E arbitrage endpoint supports backend='native_event' or 'native_vectorized'")
         sig = signal if signal is not None else _signal_from_data(data, signal_col)
         if sig is None:
             raise ValueError("arbitrage endpoint requires signal or signal_col")
@@ -562,14 +562,24 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols or spec_symbols,
         )
-        self.engine = NativeEventBackend(
-            NativeEventConfig(
-                account=self.config.account,
-                execution=self.config.execution,
-                fee_rate=self.config.v2_fee_rate,
-                use_funding=self.config.use_funding,
+        if backend == "native_event":
+            self.engine = NativeEventBackend(
+                NativeEventConfig(
+                    account=self.config.account,
+                    execution=self.config.execution,
+                    fee_rate=self.config.v2_fee_rate,
+                    use_funding=self.config.use_funding,
+                )
             )
-        )
+        else:
+            self.engine = NativeVectorizedBackend(
+                NativeVectorizedConfig(
+                    account=self.config.account,
+                    execution=self.config.execution,
+                    fee_rate=self.config.v2_fee_rate,
+                    use_funding=self.config.use_funding,
+                )
+            )
         if isinstance(spec, BasisArbitrageSpec):
             result = self.engine.run_basis_arbitrage(
                 datetime_index=idx,
