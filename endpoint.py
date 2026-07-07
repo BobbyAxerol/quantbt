@@ -9,7 +9,7 @@ objects.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
@@ -17,10 +17,11 @@ import pandas as pd
 
 from .backtester import BacktestEngine
 from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
-from .core.arbitrage import BasisArbitrageSpec, StatArbPairSpec
+from .core.arbitrage import BasisArbitrageSpec, StatArbPairSpec, build_arbitrage_order_plan
+from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
-from .core.schema import AccountConfig, BasketSpec, ExecutionConfig
+from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderType, TimeInForce
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
@@ -548,8 +549,8 @@ class QuantBTEndpoint:
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)
-        if backend not in ("native_event", "native_vectorized"):
-            raise NotImplementedError("Phase E arbitrage endpoint supports backend='native_event' or 'native_vectorized'")
+        if backend not in ("native_event", "native_vectorized", "nautilus"):
+            raise NotImplementedError("Phase F arbitrage endpoint supports backend='native_event', 'native_vectorized', or 'nautilus'")
         sig = signal if signal is not None else _signal_from_data(data, signal_col)
         if sig is None:
             raise ValueError("arbitrage endpoint requires signal or signal_col")
@@ -562,6 +563,19 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols or spec_symbols,
         )
+        if backend == "nautilus":
+            result = self._run_nautilus_arbitrage(
+                spec=spec,
+                signal=sig,
+                close_map=close_map,
+                high_map=high_map,
+                low_map=low_map,
+                idx=idx,
+                hedge_ratios=hedge_ratios,
+            )
+            self._store_result(result)
+            return self.result
+
         if backend == "native_event":
             self.engine = NativeEventBackend(
                 NativeEventConfig(
@@ -608,6 +622,86 @@ class QuantBTEndpoint:
             )
         self._store_result(result)
         return self.result
+
+    def _run_nautilus_arbitrage(self, spec, signal, close_map, high_map, low_map, idx, hedge_ratios):
+        from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine
+
+        symbols = [leg.symbol for leg in spec.legs]
+        if isinstance(spec, BasisArbitrageSpec):
+            plan = build_arbitrage_order_plan(
+                datetime_index=idx,
+                spec=spec,
+                signal=signal,
+                closes=close_map,
+                hedge_ratios=hedge_ratios,
+            )
+            extra_metadata = {
+                "spread_report": NativeVectorizedBackend(
+                    NativeVectorizedConfig(account=self.config.account, execution=self.config.execution)
+                )._basis_spread_report(idx, spec, close_map, plan.target_units),
+                "package_rejection_report": plan.rejection_report,
+            }
+        elif isinstance(spec, StatArbPairSpec):
+            basket = BasketSpec(
+                basket_id=spec.arb_id,
+                legs=tuple(BasketLegSpec(symbol=leg.symbol, ratio=float(leg.ratio)) for leg in spec.legs),
+                gross_notional=float(spec.sizing_policy.notional),
+                freeze_hedge=bool(spec.hedge_policy.freeze_on_entry),
+                hedged_margin_offset=float(spec.margin_model.hedged_margin_offset),
+            )
+            rebalance_threshold = spec.hedge_policy.rebalance_threshold
+            if not spec.hedge_policy.freeze_on_entry and rebalance_threshold is None:
+                rebalance_threshold = 0.0
+            plan = build_frozen_basket_orders(
+                datetime_index=idx,
+                basket=basket,
+                signal=signal,
+                closes=close_map,
+                hedge_ratios=hedge_ratios,
+                order_type=OrderType.MARKET,
+                tif=TimeInForce.IOC,
+                rebalance_threshold=rebalance_threshold,
+            )
+            extra_metadata = {
+                "beta_drift_report": NativeVectorizedBackend(
+                    NativeVectorizedConfig(account=self.config.account, execution=self.config.execution)
+                )._stat_arb_beta_drift_report(idx, spec, plan, rebalance_threshold),
+                "rebalance_threshold": rebalance_threshold,
+            }
+        else:
+            raise NotImplementedError(f"Nautilus arbitrage does not support {type(spec).__name__}")
+
+        data = _frames_from_symbol_maps(close_map, high_map, low_map, symbols)
+        config = self.config.nautilus_config
+        if config is None:
+            config = NautilusBackendConfig(
+                timeframe=str(self.config.metadata.get("timeframe", "1h")),
+                starting_balance=self.config.account.initial_capital,
+                trade_notional=0.0,
+                sizing_mode="notional",
+            )
+        else:
+            config = replace(
+                config,
+                starting_balance=self.config.account.initial_capital,
+                trade_notional=0.0,
+                sizing_mode="notional",
+            )
+        self.engine = NautilusBacktestEngine(config)
+        result = self.engine.run_order_packages(
+            data=data,
+            orders=plan.orders,
+            symbols=symbols,
+            params={
+                "arb_id": spec.arb_id,
+                "arb_type": spec.arb_type.value,
+                "arbitrage_plan": plan,
+                "package_target_units": plan.target_units,
+                **extra_metadata,
+            },
+        )
+        result.metadata["engine"] = "nautilus_arbitrage_package"
+        return result
 
     def _run_portfolio(self, data, positions, closes, highs, lows, datetime_index, symbols):
         pos_map = _positions_to_map(positions)
@@ -848,6 +942,23 @@ def _normalize_symbol_data(data, closes, highs, lows, datetime_index, symbols):
     high_map = {s: _align_series(frames[s].get("high", frames[s]["close"]), idx) for s in symbol_list}
     low_map = {s: _align_series(frames[s].get("low", frames[s]["close"]), idx) for s in symbol_list}
     return close_map, high_map, low_map, idx, symbol_list
+
+
+def _frames_from_symbol_maps(close_map, high_map, low_map, symbols) -> FrameMap:
+    frames = {}
+    for symbol in symbols:
+        close = close_map[symbol]
+        frames[symbol] = pd.DataFrame(
+            {
+                "open": close,
+                "high": high_map.get(symbol, close),
+                "low": low_map.get(symbol, close),
+                "close": close,
+                "volume": 0.0,
+            },
+            index=close.index,
+        )
+    return frames
 
 
 def _standardize_frame(data, datetime_index=None) -> pd.DataFrame:
