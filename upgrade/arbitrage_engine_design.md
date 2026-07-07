@@ -795,6 +795,8 @@ Implementation notes:
 
 ### Phase G - Advanced Arb Types
 
+Status: Phase G.1 implemented.
+
 Add gradually:
 
 - CalendarSpreadSpec with expiry/roll.
@@ -804,6 +806,27 @@ Add gradually:
 - CrossExchangeArbSpec with venue/account split.
 - TriangularArbSpec with sequence/latency.
 - OptionsVolArbSpec with Greeks/IV surface.
+
+Implementation notes:
+
+- Added domain validation for calendar, funding, spot-perp cash carry, index
+  basket, cross-exchange, triangular, and options-vol specs.
+- Added generic package-style engine routes:
+  - `NativeEventBackend.run_package_arbitrage()`;
+  - `NativeVectorizedBackend.run_package_arbitrage()`;
+  - `QuantBTEndpoint.arbitrage(...)` for native event/vectorized Phase G package
+    specs.
+- Package-style route currently supports:
+  - `CalendarSpreadSpec`;
+  - `FundingArbitrageSpec`;
+  - `SpotPerpCashCarrySpec`;
+  - `IndexBasketArbSpec`.
+- Reports include `spread_report`, `carry_report`, `leg_pnl_report`,
+  `package_pnl_report`, and `package_target_units`.
+- `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec` remain
+  explicit specialized-engine gaps. They now validate domain shape but raise
+  clear `NotImplementedError` in generic engines because they require venue
+  account state, sequence/latency modeling, or Greeks/IV surface semantics.
 
 ## Initial API Sketch
 

@@ -24,8 +24,15 @@ from ..core.event import (
 from ..core.arbitrage import (
     ArbitrageSpec,
     BasisArbitrageSpec,
+    CalendarSpreadSpec,
+    CrossExchangeArbSpec,
+    FundingArbitrageSpec,
+    IndexBasketArbSpec,
+    OptionsVolArbSpec,
     SizingPolicyKind,
+    SpotPerpCashCarrySpec,
     StatArbPairSpec,
+    TriangularArbSpec,
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
@@ -466,6 +473,101 @@ class NativeEventBackend:
         )
         return result
 
+    def run_package_arbitrage(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        spec: ArbitrageSpec,
+        signal: pd.Series,
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Optional[Union[float, Dict[str, float]]] = None,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        hedge_ratios: Optional[Dict[str, pd.Series]] = None,
+    ) -> BacktestResultV2:
+        """
+        Execute Phase G package-style advanced arbitrage specs.
+
+        This route is intentionally limited to advanced arbitrage types whose
+        execution can be represented as frozen package target units. Types that
+        require sequencing, cross-venue account state, or options Greeks remain
+        explicit NotImplemented paths.
+        """
+        unsupported = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
+        if isinstance(spec, unsupported):
+            raise NotImplementedError(f"{type(spec).__name__} requires a specialized Phase G+ engine")
+        supported = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
+        if not isinstance(spec, supported):
+            raise TypeError("run_package_arbitrage requires a Phase G package-style arbitrage spec")
+
+        idx = validate_datetime(datetime_index)
+        symbols = [leg.symbol for leg in spec.legs]
+        close_dict = align_series(closes, symbols, idx)
+        contract_sizes = self._contract_size_for_spec(spec, contract_size)
+        fee_rates = self._fee_rate_for_spec(spec)
+        package_funding = self._funding_for_spec(spec, funding_rate)
+        plan = build_arbitrage_order_plan(
+            datetime_index=idx,
+            spec=spec,
+            signal=signal,
+            closes=close_dict,
+            hedge_ratios=hedge_ratios,
+        )
+        result = self.run_orders(
+            datetime_index=idx,
+            orders=plan.orders,
+            closes=close_dict,
+            highs=highs,
+            lows=lows,
+            funding_rate=package_funding,
+            contract_size=contract_sizes,
+            leverage=leverage,
+            fee_rate=fee_rates,
+            symbols=symbols,
+        )
+
+        funding_dict = prepare_funding(package_funding if self.config.use_funding else 0.0, symbols, idx)
+        leg_pnl_report = self._basis_leg_pnl_report(
+            idx=idx,
+            spec=spec,
+            result=result,
+            closes=close_dict,
+            funding=funding_dict,
+            contract_sizes=contract_sizes,
+        )
+        package_pnl = leg_pnl_report.groupby("timestamp", sort=False)["total_pnl"].sum().reindex(idx, fill_value=0.0)
+        package_report = pd.DataFrame(
+            {
+                "package_pnl": package_pnl,
+                "equity_delta": result.equity.diff().fillna(0.0),
+            },
+            index=idx,
+        )
+        package_report["pnl_residual"] = package_report["equity_delta"] - package_report["package_pnl"]
+        diagnostics = result.diagnostics.copy()
+        diagnostics["package_pnl"] = package_report["package_pnl"]
+        diagnostics["package_pnl_residual"] = package_report["pnl_residual"]
+        result.diagnostics = diagnostics
+        result.metadata.update(
+            {
+                "backend": "native_event",
+                "engine": f"event_v1_{spec.arb_type.value}",
+                "arb_id": spec.arb_id,
+                "arb_type": spec.arb_type.value,
+                "arbitrage_plan": plan,
+                "package_target_units": plan.target_units,
+                "package_rejection_report": plan.rejection_report,
+                "spread_report": self._basis_spread_report(idx, spec, close_dict, plan.target_units),
+                "leg_pnl_report": leg_pnl_report,
+                "package_pnl_report": package_report,
+                "carry_report": self._carry_report(idx, spec, result, close_dict, funding_dict, contract_sizes),
+                "fee_rate_oneway": fee_rates,
+                "contract_size": contract_sizes,
+            }
+        )
+        return result
+
     @staticmethod
     def _bar_index(idx: pd.DatetimeIndex, timestamp) -> int:
         ts = pd.Timestamp(timestamp)
@@ -542,7 +644,7 @@ class NativeEventBackend:
         return {leg.symbol: float(contract_size) for leg in spec.legs}
 
     @staticmethod
-    def _funding_for_spec(spec: BasisArbitrageSpec, funding_rate: Union[float, pd.Series, Dict]):
+    def _funding_for_spec(spec: ArbitrageSpec, funding_rate: Union[float, pd.Series, Dict]):
         funding_symbols = {leg.symbol for leg in spec.legs if leg.funding_enabled}
         if isinstance(funding_rate, dict):
             return {
@@ -679,7 +781,7 @@ class NativeEventBackend:
     @staticmethod
     def _basis_spread_report(
         idx: pd.DatetimeIndex,
-        spec: BasisArbitrageSpec,
+        spec: ArbitrageSpec,
         closes: Dict[str, pd.Series],
         target_units: pd.DataFrame,
     ) -> pd.DataFrame:
@@ -723,6 +825,40 @@ class NativeEventBackend:
         for symbol in symbols:
             report[f"target_units_{symbol}"] = target_units[symbol]
         return report
+
+    @staticmethod
+    def _carry_report(
+        idx: pd.DatetimeIndex,
+        spec: ArbitrageSpec,
+        result: BacktestResultV2,
+        closes: Dict[str, pd.Series],
+        funding: Dict[str, pd.Series],
+        contract_sizes: Dict[str, float],
+    ) -> pd.DataFrame:
+        rows = []
+        funding_mask = make_funding_mask(idx)
+        for i, ts in enumerate(idx):
+            for leg in spec.legs:
+                symbol = leg.symbol
+                prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
+                close_price = float(closes[symbol].iloc[i])
+                notional = abs(prev_units) * close_price * float(contract_sizes[symbol])
+                funding_cost = 0.0
+                if funding_mask[i] and leg.funding_enabled:
+                    funding_cost = prev_units * close_price * float(contract_sizes[symbol]) * float(funding[symbol].iloc[i])
+                rows.append(
+                    {
+                        "timestamp": ts,
+                        "symbol": symbol,
+                        "role": leg.role,
+                        "funding_enabled": bool(leg.funding_enabled),
+                        "borrow_rate": float(spec.carry_model.borrow_rate),
+                        "cash_yield": float(spec.carry_model.cash_yield),
+                        "notional": notional,
+                        "funding_cost": funding_cost,
+                    }
+                )
+        return pd.DataFrame(rows)
 
     @staticmethod
     def _build_fills(sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee) -> List[Fill]:

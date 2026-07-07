@@ -392,6 +392,8 @@ class FundingArbitrageSpec(ArbitrageSpec):
         super().__post_init__()
         if not any(leg.funding_enabled for leg in self.legs):
             raise ValueError("FundingArbitrageSpec requires at least one funding-enabled leg")
+        if self.carry_model.kind not in (CarryModelKind.NONE, CarryModelKind.FUNDING, CarryModelKind.FUNDING_AND_BORROW, CarryModelKind.CUSTOM):
+            raise ValueError("FundingArbitrageSpec requires a funding-compatible carry model")
 
 
 @dataclass(frozen=True)
@@ -403,25 +405,71 @@ class StatArbPairSpec(ArbitrageSpec):
 class IndexBasketArbSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.INDEX_BASKET
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if len(self.legs) < 3:
+            raise ValueError("IndexBasketArbSpec requires at least three legs")
+        if self.sizing_policy.kind is not SizingPolicyKind.TARGET_GROSS_NOTIONAL:
+            raise ValueError("IndexBasketArbSpec requires target_gross_notional sizing")
+
 
 @dataclass(frozen=True)
 class TriangularArbSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.TRIANGULAR
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if len(self.legs) != 3:
+            raise ValueError("TriangularArbSpec requires exactly three legs")
+        currencies = []
+        for leg in self.legs:
+            if not leg.base_currency or not leg.quote_currency:
+                raise ValueError("TriangularArbSpec requires base_currency and quote_currency on every leg")
+            currencies.append((leg.base_currency, leg.quote_currency))
+        unique_currencies = {currency for pair in currencies for currency in pair}
+        if len(unique_currencies) != 3:
+            raise ValueError("TriangularArbSpec requires exactly three currencies")
 
 
 @dataclass(frozen=True)
 class CrossExchangeArbSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.CROSS_EXCHANGE
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        venues = [leg.venue for leg in self.legs]
+        if any(venue is None or venue == "" for venue in venues):
+            raise ValueError("CrossExchangeArbSpec requires venue on every leg")
+        if len(set(venues)) < 2:
+            raise ValueError("CrossExchangeArbSpec requires at least two venues")
+
 
 @dataclass(frozen=True)
 class SpotPerpCashCarrySpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.SPOT_PERP_CASH_CARRY
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        has_spot = any(leg.contract_type is ContractType.SPOT for leg in self.legs)
+        has_derivative = any(leg.contract_type in (ContractType.LINEAR, ContractType.INVERSE, ContractType.QUANTO) for leg in self.legs)
+        if not has_spot or not has_derivative:
+            raise ValueError("SpotPerpCashCarrySpec requires at least one spot leg and one derivative leg")
+        if not any(leg.funding_enabled for leg in self.legs if leg.contract_type is not ContractType.SPOT):
+            raise ValueError("SpotPerpCashCarrySpec requires a funding-enabled derivative leg")
+        if self.hedge_policy.kind not in (HedgePolicyKind.BASE_QTY_EQUAL, HedgePolicyKind.DELTA_NEUTRAL):
+            raise ValueError("SpotPerpCashCarrySpec requires base_qty_equal or delta_neutral hedge policy")
+
 
 @dataclass(frozen=True)
 class OptionsVolArbSpec(ArbitrageSpec):
     arb_type: ArbitrageType = ArbitrageType.OPTIONS_VOL
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not any(leg.contract_type is ContractType.OPTION for leg in self.legs):
+            raise ValueError("OptionsVolArbSpec requires at least one option leg")
+        if self.hedge_policy.kind not in (HedgePolicyKind.VEGA_NEUTRAL, HedgePolicyKind.DELTA_NEUTRAL):
+            raise ValueError("OptionsVolArbSpec requires vega_neutral or delta_neutral hedge policy")
 
 
 @dataclass(frozen=True)
