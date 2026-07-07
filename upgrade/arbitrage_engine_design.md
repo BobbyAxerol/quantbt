@@ -735,6 +735,10 @@ Implementation notes:
 
 ### Phase E - Native Vectorized Arb Fast Path
 
+Status: implemented in `NativeVectorizedBackend.run_basis_arbitrage()`,
+`NativeVectorizedBackend.run_stat_arb_pair_arbitrage()`, and
+`QuantBTEndpoint.arbitrage(..., backend="native_vectorized", ...)`.
+
 Deliverables:
 
 - Numba kernel for package target units and PnL.
@@ -745,6 +749,20 @@ Acceptance:
 
 - matches native event under deterministic market-fill assumptions;
 - much faster for grid search.
+
+Implementation notes:
+
+- The existing `_engine_units_v2` Numba kernel is now the package target-units
+  fast path and supports per-symbol fee rates.
+- Basis and stat-arb vectorized routes reuse the same frozen target-unit plans as
+  the native event routes, then execute those target units through the Numba
+  kernel.
+- Vectorized reports expose `spread_report`, `beta_drift_report`,
+  `leg_pnl_report`, and `package_pnl_report` without event fill objects.
+- Unit tests assert parity against native event under zero-slippage deterministic
+  market-fill assumptions.
+- `benchmarks/run_arbitrage_phase_e.py` provides basis/stat-arb event vs
+  vectorized smoke and standard benchmark profiles.
 
 ### Phase F - Nautilus Arb Validation
 

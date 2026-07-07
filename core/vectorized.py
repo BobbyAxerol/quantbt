@@ -32,7 +32,7 @@ def _engine_units_v2(
     init_capital:    float,
     leverages:       np.ndarray,
     maint_ratio:     float,
-    fee_rate:        float,
+    fee_rates:       np.ndarray,
     contract_sizes:  np.ndarray,
     slippage:        float,
     use_funding:     bool,
@@ -135,7 +135,7 @@ def _engine_units_v2(
             cs = contract_sizes[s]
             exec_p = c * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
             trade_notional = abs(delta) * exec_p * cs
-            fee_cost = trade_notional * fee_rate
+            fee_cost = trade_notional * fee_rates[s]
             slip_cost = abs(delta) * abs(exec_p - c) * cs
 
             old_im = abs(current_pos[s]) * c * cs / leverages[s]
