@@ -20,10 +20,13 @@ from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBac
 from .core.arbitrage import (
     BasisArbitrageSpec,
     CalendarSpreadSpec,
+    CrossExchangeArbSpec,
     FundingArbitrageSpec,
     IndexBasketArbSpec,
+    OptionsVolArbSpec,
     SpotPerpCashCarrySpec,
     StatArbPairSpec,
+    TriangularArbSpec,
     build_arbitrage_order_plan,
 )
 from .core.basket import build_frozen_basket_orders
@@ -220,10 +223,20 @@ class QuantBTEndpoint:
         """
         Create an arbitrage endpoint.
 
-        Phase C supports native-event `BasisArbitrageSpec` for USDM linear
-        perp-vs-quarterly style package trades. Phase D adds
-        `StatArbPairSpec` via frozen basket execution. Other arbitrage specs
-        remain schema/order-plan only until their engine phases land.
+        Supported today:
+
+        - `BasisArbitrageSpec`: native event, native vectorized, Nautilus
+          package-order validation.
+        - `StatArbPairSpec`: native event, native vectorized, Nautilus
+          package-order validation.
+        - `CalendarSpreadSpec`, `FundingArbitrageSpec`,
+          `SpotPerpCashCarrySpec`, and `IndexBasketArbSpec`: native event and
+          native vectorized package-style execution.
+
+        `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec`
+        are schema-validated but intentionally not executable through the
+        generic package route because they require specialized account,
+        sequence, latency, or Greek-aware engines.
         """
         metadata = dict(kwargs.pop("metadata", {}))
         metadata["arb_type"] = arb_type
@@ -236,6 +249,73 @@ class QuantBTEndpoint:
                 **kwargs,
             )
         )
+
+    @staticmethod
+    def arbitrage_support_matrix() -> Dict[str, Dict[str, str]]:
+        """
+        Return the public arbitrage endpoint support matrix.
+
+        Services can call this helper to decide which spec/backend pair is safe
+        before constructing a run. A status of `supported` means the endpoint
+        can execute the spec. A status of `schema_only` means the dataclass and
+        validation exist, but execution should wait for a specialized engine.
+        """
+        return {
+            "BasisArbitrageSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized,nautilus",
+                "route": "run_basis_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty; linear contracts only",
+            },
+            "StatArbPairSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized,nautilus",
+                "route": "run_stat_arb_pair_arbitrage",
+                "sizing": "target_gross_notional; optional dynamic hedge_ratios",
+            },
+            "CalendarSpreadSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "FundingArbitrageSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "SpotPerpCashCarrySpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "IndexBasketArbSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_gross_notional",
+            },
+            "CrossExchangeArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs venue/account split engine",
+                "sizing": "not executable yet",
+            },
+            "TriangularArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs sequenced path execution engine",
+                "sizing": "not executable yet",
+            },
+            "OptionsVolArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs option/greeks engine",
+                "sizing": "not executable yet",
+            },
+        }
 
     @classmethod
     def portfolio(cls, portfolio_mode: str = "longshort", **kwargs) -> "QuantBTEndpoint":
@@ -552,9 +632,15 @@ class QuantBTEndpoint:
         if spec is None:
             raise ValueError("arbitrage endpoint requires an arbitrage spec")
         phase_g_package_specs = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
+        schema_only_specs = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
+        if isinstance(spec, schema_only_specs):
+            raise NotImplementedError(
+                f"{type(spec).__name__} is schema-validated but requires a specialized arbitrage engine; "
+                "do not route it through generic package execution"
+            )
         if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec, *phase_g_package_specs)):
             raise NotImplementedError(
-                "Phase C-G supports BasisArbitrageSpec, StatArbPairSpec, and package-style Phase G specs; "
+                "Arbitrage endpoint supports BasisArbitrageSpec, StatArbPairSpec, and package-style Phase G specs; "
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)

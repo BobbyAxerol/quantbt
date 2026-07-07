@@ -57,6 +57,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
+| `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.portfolio()` | `portfolio` | `legacy_portfolio` | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
 
@@ -508,6 +509,153 @@ Routing:
 - backend: `native_event`;
 - engine: `BacktestEngineV2`.
 
+## Arbitrage
+
+Use this for package-style arbitrage where one scalar signal expands into
+multiple legs that should be sized together.
+
+```python
+from quantbt import (
+    ArbitrageLeg,
+    ContractType,
+    HedgePolicy,
+    HedgePolicyKind,
+    QuantBTEndpoint,
+    SizingPolicy,
+    SizingPolicyKind,
+    StatArbPairSpec,
+)
+
+spec = StatArbPairSpec(
+    arb_id="ETH_SOL_STAT_ARB",
+    legs=(
+        ArbitrageLeg("ETHUSDT-PERP.BINANCE", ratio=1.0, role="base", contract_type=ContractType.LINEAR),
+        ArbitrageLeg("SOLUSDT-PERP.BINANCE", ratio=-1.0, role="hedge", contract_type=ContractType.LINEAR),
+    ),
+    hedge_policy=HedgePolicy(HedgePolicyKind.DELTA_NEUTRAL, freeze_on_entry=True),
+    sizing_policy=SizingPolicy(SizingPolicyKind.TARGET_GROSS_NOTIONAL, notional=50_000),
+)
+
+bt = QuantBTEndpoint.arbitrage(
+    arb_type="stat_arb_pair",
+    spec=spec,
+    backend="native_vectorized",
+    initial_capital=100_000,
+    leverage=5,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = bt.backtest(
+    data={
+        "ETHUSDT-PERP.BINANCE": eth_df,
+        "SOLUSDT-PERP.BINANCE": sol_df,
+    },
+    signal=entry_exit_signal,
+    hedge_ratios={
+        "ETHUSDT-PERP.BINANCE": eth_beta,
+        "SOLUSDT-PERP.BINANCE": -sol_beta,
+    },
+)
+
+bt.show_metrics()
+result.metadata["package_target_units"]
+result.metadata["leg_pnl_report"]
+result.metadata["beta_drift_report"]
+```
+
+Supported executable specs:
+
+| Spec | Native event | Native vectorized | Nautilus | Notes |
+|---|---:|---:|---:|---|
+| `BasisArbitrageSpec` | yes | yes | package validation | linear USDM-style legs only today |
+| `StatArbPairSpec` | yes | yes | package validation | frozen hedge-ratio pair; dynamic `hedge_ratios` supported |
+| `CalendarSpreadSpec` | yes | yes | no | package-style futures spread |
+| `FundingArbitrageSpec` | yes | yes | no | funding-enabled leg required |
+| `SpotPerpCashCarrySpec` | yes | yes | no | spot plus funding-enabled derivative |
+| `IndexBasketArbSpec` | yes | yes | no | requires `target_gross_notional` sizing |
+
+Schema-only specs that must not be routed through generic package execution yet:
+
+| Spec | Why it is not executable yet |
+|---|---|
+| `CrossExchangeArbSpec` | needs venue/account split, transfer state, borrow constraints, and venue-specific margin |
+| `TriangularArbSpec` | needs sequenced path execution, latency, partial-fill propagation, and path PnL |
+| `OptionsVolArbSpec` | needs option instruments, Greeks, IV surface, expiry, assignment, and hedge behavior |
+
+You can inspect the live matrix from Python:
+
+```python
+matrix = QuantBTEndpoint.arbitrage_support_matrix()
+matrix["StatArbPairSpec"]
+```
+
+Input requirement:
+
+- `spec`: one supported arbitrage spec passed to `QuantBTEndpoint.arbitrage()`;
+- `data`: `{symbol: DataFrame}` for all spec legs, or explicit `closes/highs/lows`;
+- `signal`: scalar entry/exit series where `0` means flat and sign controls
+  package direction;
+- `hedge_ratios`: optional per-leg ratio series for dynamic beta/hedge models;
+- each price series must be finite and strictly positive after UTC alignment.
+
+Package execution policy:
+
+- `PackageExecutionKind.ATOMIC_ALL_OR_NONE`: the package is preflighted as a
+  whole. If margin is insufficient, no leg order is generated and
+  `package_rejection_report` records `insufficient_margin_atomic`;
+- `PackageExecutionKind.BEST_EFFORT`: legs are preflighted sequentially. Legs
+  with enough margin can open, rejected legs are recorded as
+  `insufficient_margin_best_effort`, and only actual open legs are later closed.
+
+Current hard guards:
+
+- inverse and quanto contract sizing raises `NotImplementedError` until proper
+  contract-value formulas are implemented;
+- `BasisArbitrageSpec` remains linear-only;
+- missing, NaN, infinite, or non-positive close data raises `ValueError`.
+
+Basis example:
+
+```python
+from quantbt import BasisArbitrageSpec
+
+spec = BasisArbitrageSpec(
+    arb_id="BTC_PERP_QUARTERLY_BASIS",
+    legs=(
+        ArbitrageLeg("BTCUSDT-PERP.BINANCE", ratio=-1.0, role="perp", contract_type=ContractType.LINEAR),
+        ArbitrageLeg("BTCUSDT-QUARTERLY.BINANCE", ratio=1.0, role="quarterly", contract_type=ContractType.LINEAR),
+    ),
+    hedge_policy=HedgePolicy(HedgePolicyKind.BASE_QTY_EQUAL, freeze_on_entry=True),
+    sizing_policy=SizingPolicy(
+        SizingPolicyKind.TARGET_NOTIONAL_TO_BASE_QTY,
+        notional=100_000,
+        reference_symbol="BTCUSDT-PERP.BINANCE",
+    ),
+)
+
+bt = QuantBTEndpoint.arbitrage(
+    arb_type="basis",
+    spec=spec,
+    backend="native_event",
+    initial_capital=50_000,
+    leverage=5,
+    fee_rate=0.0002,
+)
+
+result = bt.simulate(data=data_by_symbol, signal=basis_signal)
+result.metadata["spread_report"]
+result.metadata["package_rejection_report"]
+```
+
+Routing:
+
+- `native_vectorized`: fastest path for supported package specs;
+- `native_event`: fill/order diagnostics, package rejection reports, and
+  native event margin/liquidation lifecycle;
+- `nautilus`: validation adapter for `BasisArbitrageSpec` and
+  `StatArbPairSpec` package orders only.
+
 ## Multi-Symbol Portfolio
 
 Use this for a position matrix across many symbols.
@@ -697,3 +845,19 @@ Rules for services:
 `basket endpoint requires a BasketSpec`
 
 - Pass `basket=BasketSpec(...)` either to the factory or to `simulate()`.
+
+`arbitrage endpoint requires an arbitrage spec`
+
+- Build a spec such as `BasisArbitrageSpec` or `StatArbPairSpec`, then pass it
+  to `QuantBTEndpoint.arbitrage(arb_type="...", spec=spec, ...)`.
+
+`inverse/quanto contract sizing is not implemented`
+
+- Generic arbitrage execution currently supports spot and linear contracts.
+  Inverse/quanto legs are guarded until exchange-specific sizing formulas are
+  implemented.
+
+`is schema-validated but requires a specialized arbitrage engine`
+
+- The spec exists, but should not be run through generic package execution.
+  Check `QuantBTEndpoint.arbitrage_support_matrix()` for the supported route.

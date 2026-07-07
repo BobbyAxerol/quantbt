@@ -15,6 +15,7 @@ from enum import Enum
 from math import floor, isfinite
 from typing import Dict, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 
 from .orders import OrderIntent
@@ -535,6 +536,8 @@ def build_arbitrage_order_plan(
         raise ValueError(f"missing closes for arbitrage legs: {missing}")
 
     close_dict = align_series(closes, symbols, idx)
+    _validate_plan_market_data(close_dict, symbols, idx)
+    _reject_unsupported_contract_sizing(spec)
     sig = _align_signal(signal, idx)
     ratio_dict = _build_ratio_series(spec, hedge_ratios, symbols, idx)
 
@@ -700,6 +703,32 @@ def _compute_target_units(
         symbol: base_qty * float(ratios[symbol].loc[timestamp]) * side
         for symbol in symbols
     }
+
+
+def _validate_plan_market_data(
+    closes: Dict[str, pd.Series],
+    symbols: list[str],
+    idx: pd.DatetimeIndex,
+) -> None:
+    for symbol in symbols:
+        prices = pd.to_numeric(closes[symbol], errors="coerce").reindex(idx)
+        values = prices.to_numpy(dtype=float)
+        bad = prices.isna().to_numpy() | ~np.isfinite(values) | (values <= 0.0)
+        if bool(bad.any()):
+            first_bad = prices.index[bad][0]
+            raise ValueError(
+                f"arbitrage closes must be finite and > 0 for {symbol!r}; "
+                f"first bad timestamp={first_bad}"
+            )
+
+
+def _reject_unsupported_contract_sizing(spec: ArbitrageSpec) -> None:
+    unsupported = [leg.symbol for leg in spec.legs if leg.contract_type in (ContractType.INVERSE, ContractType.QUANTO)]
+    if unsupported:
+        raise NotImplementedError(
+            "inverse/quanto contract sizing is not implemented in arbitrage order planning; "
+            f"unsupported legs={unsupported}"
+        )
 
 
 def _round_to_common_step(value: float, legs: Tuple[ArbitrageLeg, ...]) -> float:
