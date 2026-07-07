@@ -706,6 +706,9 @@ Implementation notes:
 
 ### Phase D - StatArbPairSpec / Basket Integration
 
+Status: implemented in `NativeEventBackend.run_stat_arb_pair_arbitrage()` and
+`QuantBTEndpoint.arbitrage(..., spec=StatArbPairSpec(...))`.
+
 Deliverables:
 
 - reuse BasketSpec / frozen basket order plan;
@@ -719,7 +722,22 @@ Acceptance:
 - exit closes exact frozen units;
 - beta drift diagnostic exists.
 
+Implementation notes:
+
+- `StatArbPairSpec` is converted internally to `BasketSpec` and executed by the
+  frozen basket planner.
+- Dynamic `hedge_ratios` are sampled on signal transitions and held frozen while
+  the signal is unchanged.
+- `HedgePolicy.rebalance_threshold` can trigger package rebalance on beta drift
+  only; price movement alone does not rebalance the package.
+- `result.metadata["beta_drift_report"]` records frozen ratio, current ratio,
+  relative drift, threshold, and breach state per leg.
+
 ### Phase E - Native Vectorized Arb Fast Path
+
+Status: implemented in `NativeVectorizedBackend.run_basis_arbitrage()`,
+`NativeVectorizedBackend.run_stat_arb_pair_arbitrage()`, and
+`QuantBTEndpoint.arbitrage(..., backend="native_vectorized", ...)`.
 
 Deliverables:
 
@@ -732,7 +750,24 @@ Acceptance:
 - matches native event under deterministic market-fill assumptions;
 - much faster for grid search.
 
+Implementation notes:
+
+- The existing `_engine_units_v2` Numba kernel is now the package target-units
+  fast path and supports per-symbol fee rates.
+- Basis and stat-arb vectorized routes reuse the same frozen target-unit plans as
+  the native event routes, then execute those target units through the Numba
+  kernel.
+- Vectorized reports expose `spread_report`, `beta_drift_report`,
+  `leg_pnl_report`, and `package_pnl_report` without event fill objects.
+- Unit tests assert parity against native event under zero-slippage deterministic
+  market-fill assumptions.
+- `benchmarks/run_arbitrage_phase_e.py` provides basis/stat-arb event vs
+  vectorized smoke and standard benchmark profiles.
+
 ### Phase F - Nautilus Arb Validation
+
+Status: implemented via `NautilusBacktestEngine.run_order_packages()` and
+`QuantBTEndpoint.arbitrage(..., backend="nautilus", ...)`.
 
 Deliverables:
 
@@ -745,7 +780,22 @@ Acceptance:
 - parity test with native event on simple market fills.
 - metadata exposes Nautilus orders/fills and package mapping.
 
+Implementation notes:
+
+- `build_nautilus_package_order_table()` converts quantbt `OrderIntent`
+  component orders into a stable package mapping table.
+- The Nautilus package strategy submits market IOC component orders once per
+  package timestamp across all subscribed instruments.
+- Endpoint integration reuses Basis and StatArb package plans, then forwards
+  component orders to Nautilus.
+- Metadata exposes `package_order_map`, `package_target_units`, raw Nautilus
+  reports, and arb identifiers.
+- Current Nautilus instrument helper supports Binance perpetual test/synthetic
+  instruments; quarterly/futures instrument wiring remains a later extension.
+
 ### Phase G - Advanced Arb Types
+
+Status: Phase G.1 implemented.
 
 Add gradually:
 
@@ -756,6 +806,27 @@ Add gradually:
 - CrossExchangeArbSpec with venue/account split.
 - TriangularArbSpec with sequence/latency.
 - OptionsVolArbSpec with Greeks/IV surface.
+
+Implementation notes:
+
+- Added domain validation for calendar, funding, spot-perp cash carry, index
+  basket, cross-exchange, triangular, and options-vol specs.
+- Added generic package-style engine routes:
+  - `NativeEventBackend.run_package_arbitrage()`;
+  - `NativeVectorizedBackend.run_package_arbitrage()`;
+  - `QuantBTEndpoint.arbitrage(...)` for native event/vectorized Phase G package
+    specs.
+- Package-style route currently supports:
+  - `CalendarSpreadSpec`;
+  - `FundingArbitrageSpec`;
+  - `SpotPerpCashCarrySpec`;
+  - `IndexBasketArbSpec`.
+- Reports include `spread_report`, `carry_report`, `leg_pnl_report`,
+  `package_pnl_report`, and `package_target_units`.
+- `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec` remain
+  explicit specialized-engine gaps. They now validate domain shape but raise
+  clear `NotImplementedError` in generic engines because they require venue
+  account state, sequence/latency modeling, or Greeks/IV surface semantics.
 
 ## Initial API Sketch
 
