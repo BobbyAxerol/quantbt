@@ -22,6 +22,7 @@ Implemented and tested:
 - Phase G.1: advanced package-style specs and generic native event/vectorized
   execution for calendar spread, funding arbitrage, spot-perp cash carry, and
   index-basket arbitrage.
+- Phase H: deterministic golden test expansion for package mechanics.
 
 Not fully complete:
 
@@ -77,7 +78,9 @@ Unit and integration tests exist under:
 
 Current full test suite result after Phase G.1:
 
-- `86 passed`
+- Phase G.1 baseline: `86 passed`
+- Phase H focused arbitrage suite: `45 passed`
+- Phase H full suite: `92 passed`
 
 Important covered cases:
 
@@ -96,6 +99,9 @@ Important covered cases:
 - Domain validation for advanced specs.
 - Generic engine refusal for specialized specs that need a separate execution
   model.
+- Phase H golden cases for fee/slippage, long/short funding direction,
+  intrabar liquidation, margin rejection, precision/contract-size/timezone
+  alignment, missing close data, and spot-perp cash carry parity.
 
 ## What Has Not Been Proven Yet
 
@@ -222,6 +228,8 @@ Recommended phases before calling arbitrage contribution-ready:
 
 ### Phase H - Deterministic Golden Test Expansion
 
+Status: implemented in `tests/test_phase8_arbitrage_phase_h.py`.
+
 Goal:
 
 - Add the full native engine golden matrix for package mechanics.
@@ -230,6 +238,26 @@ Expected output:
 
 - More tests for margin, liquidation, slippage, funding, precision, and
   rejection.
+
+Implemented cases:
+
+- Per-leg fee and market slippage prices for basis entry/exit.
+- Package PnL residual remains zero after fee/slippage decomposition.
+- Positive funding is received by a short perp and paid by a long perp.
+- Intrabar high/low liquidation across package legs.
+- Oversized package components are rejected by margin checks and visible in
+  `order_report`.
+- `qty_step`, `contract_size`, timezone normalization, and missing close-key
+  behavior.
+- Spot-perp cash-carry event vs vectorized parity with funding.
+
+Remaining Phase H-style cases to add later:
+
+- Partial-fill package behavior.
+- Atomic rollback when one component fills and another component is rejected by
+  execution-time margin.
+- More missing-data/NaN policies.
+- Inverse/quanto contract sizing once those specs are enabled.
 
 ### Phase I - Nautilus Instrument And Parity Hardening
 
