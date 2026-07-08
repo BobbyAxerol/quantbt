@@ -363,6 +363,62 @@ def test_walkforward_phase4_rejects_non_timestamped_strategy_output():
         engine.run(data=_bars(idx), params={"window": 10})
 
 
+def test_walkforward_phase4_rejects_partial_fold_strategy_output():
+    idx = _idx()
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index[:-1])
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(split_mode=2022, split_frequency="quarterly"),
+    )
+
+    with pytest.raises(ValueError, match="cover every expected fold timestamp"):
+        engine.run(data=_bars(idx), params={"window": 10})
+
+
+def test_walkforward_phase4_scoring_trading_days_controls_annualized_sharpe():
+    idx = pd.date_range("2024-01-01", periods=6, freq="1D", tz="UTC")
+    data = _bars(idx)
+    data["close"] = [100.0, 101.0, 103.0, 102.0, 104.0, 107.0]
+    signal = pd.Series([0.0, 1.0, 1.0, 1.0, 1.0, 1.0], index=idx)
+
+    sharpe_252 = score_strategy_output(data, signal, idx, trading_days=252)["sharpe"]
+    sharpe_365 = score_strategy_output(data, signal, idx, trading_days=365)["sharpe"]
+
+    assert sharpe_365 > sharpe_252
+    assert sharpe_365 / sharpe_252 == pytest.approx(np.sqrt(365 / 252))
+
+
+def test_walkforward_phase4_endpoint_exposes_scoring_trading_days_metadata():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index)
+
+    bt = QuantBTEndpoint.walk_forward(
+        strategy_class=strategy,
+        split_mode=2022,
+        split_frequency="quarterly",
+        target_mode="signal_notional",
+        optimization_mode="mode_1_decay",
+        optimization_config={"scoring_trading_days": 252},
+        optuna_trials=4,
+        random_seed=5,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"side": [1.0]})
+
+    assert result.metadata["walk_forward"]["scoring_trading_days"] == 252
+
+
 def test_walkforward_phase4_param_range_validation_catches_invalid_math():
     with pytest.raises(ValueError, match="high must be >= low"):
         validate_param_ranges({"window": (30, 10, 1)})

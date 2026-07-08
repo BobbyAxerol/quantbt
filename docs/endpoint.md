@@ -809,6 +809,8 @@ wfo = QuantBTEndpoint.walk_forward(
         #             "sbb_decay_lambda", "sbb_std_penalty"
         # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
         #                     "flat_min_samples", "flat_selector"
+        # crypto default annualization: 365; equities often use 252
+        "scoring_trading_days": 365,
         "use_numba": True,
     },
     optuna_trials=100,
@@ -877,14 +879,17 @@ Important rules:
 - train data is always strictly before the OOS test window;
 - outputs are sliced to `test_index` before stitching;
 - strategy outputs must be timestamp-indexed `pd.Series`, `pd.DataFrame`, or
-  `{symbol: pd.Series}`; non-DatetimeIndex output is rejected to avoid silent
-  all-zero OOS stitching;
+  `{symbol: pd.Series}` and cover every timestamp in the requested fold;
+  missing fold timestamps are rejected to avoid silent all-zero OOS stitching;
 - values outside OOS windows are filled with `0.0`;
 - fixed-parameter runs pass `params=...`;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`, and
   `mode_3_flat_minima`;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
+- optimization Sharpe annualization uses `scoring_trading_days` from
+  `optimization_config` (`365` for always-on crypto by default, often `252` for
+  equities);
 - `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
   returns to estimate synthetic OOS robustness;
 - `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
