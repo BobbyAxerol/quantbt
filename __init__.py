@@ -58,7 +58,10 @@ from .walkforward import (
     WalkForwardTrialRecord,
     logging_callback,
     score_strategy_output,
+    select_flat_minima_record,
+    stationary_bootstrap_sharpes,
     stitch_oos_outputs,
+    strategy_return_series,
 )
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
@@ -169,7 +172,10 @@ __all__ = [
     "DuplicatePruner",
     "logging_callback",
     "score_strategy_output",
+    "select_flat_minima_record",
+    "stationary_bootstrap_sharpes",
     "stitch_oos_outputs",
+    "strategy_return_series",
     "BacktestResult",
     "BacktestResultV2",
     "AccountConfig",

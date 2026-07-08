@@ -87,6 +87,8 @@ Tests:
 
 ## Phase 3 - Robust Objectives And Numba Compute Helpers
 
+Status: implemented in the Phase 3 foundation.
+
 Goal:
 
 - Add robustness tools without turning the engine into a black box.
@@ -99,11 +101,26 @@ Scope:
 - Seeded reproducibility for bootstrap/Monte Carlo.
 - Fallback to Python/NumPy baseline for debug.
 
+Implemented notes:
+
+- `optimization_mode="mode_2_sbb"` runs Optuna over parameter ranges and scores
+  each trial with seeded stationary block bootstrap on the train-fold return
+  proxy.
+- `optimization_mode="mode_3_flat_minima"` scores trials with the decay
+  objective, clusters top trials in normalized parameter space, and selects the
+  medoid of the densest stable cluster when available.
+- Repeated score/turnover and bootstrap-Sharpe loops use optional numba kernels.
+  If numba is unavailable, the Python/NumPy baseline path is used.
+- `numba_enabled` and selector/bootstrap metadata are exposed in
+  `result.metadata["walk_forward"]`.
+
 Tests:
 
-- Bootstrap reproducibility with fixed seed.
-- Flat-minima selector chooses the stable cluster, not a sharp isolated peak.
-- Numeric equivalence between Python/NumPy and Numba helpers.
+- Bootstrap reproducibility with fixed seed: implemented.
+- Flat-minima selector chooses the stable cluster, not a sharp isolated peak:
+  implemented.
+- Numeric equivalence between Python/NumPy and numba/fallback helpers:
+  implemented.
 
 ## Phase 4 - Production Hardening
 
