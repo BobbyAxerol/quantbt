@@ -832,6 +832,20 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
 
+Preflight helpers:
+
+```python
+from quantbt import (
+    benchmark_walkforward_kernels,
+    validate_param_ranges,
+    walkforward_support_matrix,
+)
+
+walkforward_support_matrix()
+validate_param_ranges({"window": (10, 100, 5)})
+benchmark_walkforward_kernels(n_obs=2_000, n_samples=128).to_dict()
+```
+
 Supported target routes:
 
 - `signal_notional`, `notional`, and `unit`: strategy returns one scalar
@@ -862,6 +876,9 @@ Important rules:
 
 - train data is always strictly before the OOS test window;
 - outputs are sliced to `test_index` before stitching;
+- strategy outputs must be timestamp-indexed `pd.Series`, `pd.DataFrame`, or
+  `{symbol: pd.Series}`; non-DatetimeIndex output is rejected to avoid silent
+  all-zero OOS stitching;
 - values outside OOS windows are filled with `0.0`;
 - fixed-parameter runs pass `params=...`;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`, and
