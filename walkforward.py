@@ -148,6 +148,8 @@ class WalkForwardConfig:
     flat_min_samples: int = 3
     flat_selector: str = "medoid"
     scoring_trading_days: int = 365
+    min_trades_per_year: Optional[float] = None
+    trade_penalty_factor: Optional[float] = None
     use_numba: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -197,6 +199,14 @@ class WalkForwardConfig:
         if scoring_days <= 0:
             raise ValueError("scoring_trading_days must be > 0")
         object.__setattr__(self, "scoring_trading_days", scoring_days)
+        min_trades = None if self.min_trades_per_year is None else float(self.min_trades_per_year)
+        if min_trades is not None and min_trades < 0.0:
+            raise ValueError("min_trades_per_year must be >= 0 when provided")
+        object.__setattr__(self, "min_trades_per_year", min_trades)
+        penalty_factor = None if self.trade_penalty_factor is None else float(self.trade_penalty_factor)
+        if penalty_factor is not None and penalty_factor < 0.0:
+            raise ValueError("trade_penalty_factor must be >= 0 when provided")
+        object.__setattr__(self, "trade_penalty_factor", penalty_factor)
 
 
 @dataclass
@@ -439,6 +449,8 @@ class WalkForwardEngine:
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
                 "scoring_trading_days": self.config.scoring_trading_days,
+                "min_trades_per_year": self.config.min_trades_per_year,
+                "trade_penalty_factor": self.config.trade_penalty_factor,
                 "numba_enabled": bool(self.config.use_numba and _NUMBA_AVAILABLE),
                 **self.config.metadata,
             },
@@ -572,9 +584,16 @@ class WalkForwardEngine:
                 trading_days=int(self.config.scoring_trading_days),
                 use_numba=bool(self.config.use_numba),
             )
-            d = is_metrics["sharpe"] - oos_metrics["sharpe"]
-            is_scores.append(is_metrics["sharpe"])
-            oos_scores.append(oos_metrics["sharpe"])
+            is_required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            oos_required_trades = _required_trades_for_index(fold.test_index, self.config.min_trades_per_year)
+            factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+            is_penalty = trade_frequency_penalty(is_metrics["trade_count"], is_required_trades, factor)
+            oos_penalty = trade_frequency_penalty(oos_metrics["trade_count"], oos_required_trades, factor)
+            is_sharpe = is_metrics["sharpe"] - is_penalty
+            oos_sharpe = oos_metrics["sharpe"] - oos_penalty
+            d = is_sharpe - oos_sharpe
+            is_scores.append(is_sharpe)
+            oos_scores.append(oos_sharpe)
             decay.append(d)
             fold_metrics.append(
                 {
@@ -583,11 +602,19 @@ class WalkForwardEngine:
                     "train_end": fold.train_end,
                     "test_start": fold.test_start,
                     "test_end": fold.test_end,
-                    "is_sharpe": is_metrics["sharpe"],
-                    "oos_sharpe": oos_metrics["sharpe"],
+                    "is_sharpe": is_sharpe,
+                    "oos_sharpe": oos_sharpe,
+                    "is_sharpe_raw": is_metrics["sharpe"],
+                    "oos_sharpe_raw": oos_metrics["sharpe"],
                     "decay": d,
                     "is_turnover": is_metrics["turnover"],
                     "oos_turnover": oos_metrics["turnover"],
+                    "is_trade_count": is_metrics["trade_count"],
+                    "oos_trade_count": oos_metrics["trade_count"],
+                    "is_required_trades": is_required_trades,
+                    "oos_required_trades": oos_required_trades,
+                    "is_trade_penalty": is_penalty,
+                    "oos_trade_penalty": oos_penalty,
                 }
             )
 
@@ -660,14 +687,19 @@ class WalkForwardEngine:
             )
             synthetic_mean = float(np.mean(boot)) if len(boot) else 0.0
             synthetic_std = float(np.std(boot, ddof=1)) if len(boot) > 1 else 0.0
-            d = float(is_metrics["sharpe"] - synthetic_mean)
+            required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+            penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
+            is_sharpe = is_metrics["sharpe"] - penalty
+            synthetic_sharpe = synthetic_mean - penalty
+            d = float(is_sharpe - synthetic_sharpe)
             fold_objective = (
-                synthetic_mean
+                synthetic_sharpe
                 - float(self.config.sbb_decay_lambda) * max(0.0, d)
                 - float(self.config.sbb_std_penalty) * synthetic_std
             )
-            is_scores.append(is_metrics["sharpe"])
-            synthetic_scores.append(synthetic_mean)
+            is_scores.append(is_sharpe)
+            synthetic_scores.append(synthetic_sharpe)
             synthetic_stds.append(synthetic_std)
             decay.append(d)
             fold_metrics.append(
@@ -677,14 +709,19 @@ class WalkForwardEngine:
                     "train_end": fold.train_end,
                     "test_start": fold.test_start,
                     "test_end": fold.test_end,
-                    "is_sharpe": is_metrics["sharpe"],
-                    "synthetic_oos_sharpe": synthetic_mean,
+                    "is_sharpe": is_sharpe,
+                    "synthetic_oos_sharpe": synthetic_sharpe,
+                    "is_sharpe_raw": is_metrics["sharpe"],
+                    "synthetic_oos_sharpe_raw": synthetic_mean,
                     "synthetic_oos_std": synthetic_std,
                     "decay": d,
                     "sbb_objective": float(fold_objective),
                     "sbb_samples": int(self.config.sbb_samples),
                     "sbb_block_length": int(self.config.sbb_block_length),
                     "is_turnover": is_metrics["turnover"],
+                    "is_trade_count": is_metrics["trade_count"],
+                    "is_required_trades": required_trades,
+                    "is_trade_penalty": penalty,
                 }
             )
 
@@ -896,6 +933,35 @@ def validate_param_ranges(param_ranges: Dict[str, Any], context: str = "walk-for
     return param_ranges
 
 
+def trade_frequency_penalty(
+    actual_trades: float,
+    required_trades: float,
+    penalty_factor: Optional[float],
+) -> float:
+    """
+    Smooth normalized linear penalty for under-trading.
+
+    Returns zero when disabled, when required trades are non-positive, or when
+    actual trades meet/exceed the required count.
+    """
+    if penalty_factor is None or penalty_factor <= 0.0 or required_trades <= 0.0:
+        return 0.0
+    actual = max(0.0, float(actual_trades))
+    required = max(0.0, float(required_trades))
+    return float(penalty_factor) * max(0.0, 1.0 - actual / required)
+
+
+def _required_trades_for_index(index: pd.DatetimeIndex, min_trades_per_year: Optional[float]) -> float:
+    if min_trades_per_year is None or min_trades_per_year <= 0.0 or len(index) == 0:
+        return 0.0
+    idx = validate_datetime(index)
+    if len(idx) <= 1:
+        duration_days = 1.0 / 365.0
+    else:
+        duration_days = max((idx[-1] - idx[0]).total_seconds() / 86_400.0, 1.0 / 365.0)
+    return float(min_trades_per_year) * (duration_days / 365.0)
+
+
 def _validate_timestamped_index(index, context: str) -> None:
     if not isinstance(index, pd.DatetimeIndex):
         raise TypeError(f"{context}: output must use a pandas DatetimeIndex, got {type(index).__name__}")
@@ -936,12 +1002,13 @@ def score_strategy_output(
     returns_arr = strat_returns.to_numpy(dtype=np.float64)
     pos_arr = position_matrix.to_numpy(dtype=np.float64)
     if bool(use_numba) and _NUMBA_AVAILABLE:
-        mean, sd, sharpe, turnover = _score_returns_positions_numba(returns_arr, pos_arr, float(trading_days))
+        mean, sd, sharpe, turnover, trade_count = _score_returns_positions_numba(returns_arr, pos_arr, float(trading_days))
     else:
-        mean, sd, sharpe, turnover = _score_returns_positions_python(returns_arr, pos_arr, float(trading_days))
+        mean, sd, sharpe, turnover, trade_count = _score_returns_positions_python(returns_arr, pos_arr, float(trading_days))
     return {
         "sharpe": float(sharpe),
         "turnover": float(turnover),
+        "trade_count": float(trade_count),
         "mean_return": float(mean),
         "volatility": float(sd),
     }
@@ -1100,20 +1167,26 @@ def _score_returns_positions_python(
     returns: np.ndarray,
     positions: np.ndarray,
     trading_days: float,
-) -> Tuple[float, float, float, float]:
+) -> Tuple[float, float, float, float, float]:
     returns = np.asarray(returns, dtype=np.float64)
     positions = np.asarray(positions, dtype=np.float64)
     if returns.size == 0:
-        return 0.0, 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0, 0.0
     mean = float(np.mean(returns))
     sd = float(np.std(returns, ddof=1)) if returns.size > 1 else 0.0
     sharpe = (mean / sd) * float(np.sqrt(trading_days)) if sd > 0.0 else 0.0
     turnover = 0.0
+    trade_count = 0.0
     if positions.ndim == 1:
         positions = positions.reshape((-1, 1))
+    if positions.shape[0] > 0:
+        trade_count += float(np.count_nonzero(np.abs(positions[0, :]) > 0.0))
     if positions.shape[0] > 1:
-        turnover = float(np.abs(np.diff(positions, axis=0)).sum())
-    return mean, sd, sharpe, turnover
+        diffs = np.diff(positions, axis=0)
+        turnover = float(np.abs(diffs).sum())
+        trade_count = float(np.count_nonzero(np.abs(diffs) > 0.0))
+        trade_count += float(np.count_nonzero(np.abs(positions[0, :]) > 0.0))
+    return mean, sd, sharpe, turnover, trade_count
 
 
 def _bootstrap_sharpes_python(returns: np.ndarray, indices: np.ndarray, trading_days: float) -> np.ndarray:
@@ -1132,7 +1205,7 @@ if _NUMBA_AVAILABLE:
     def _score_returns_positions_numba(returns, positions, trading_days):  # pragma: no cover - compared via tests
         n = returns.shape[0]
         if n == 0:
-            return 0.0, 0.0, 0.0, 0.0
+            return 0.0, 0.0, 0.0, 0.0, 0.0
         total = 0.0
         for i in range(n):
             total += returns[i]
@@ -1148,12 +1221,19 @@ if _NUMBA_AVAILABLE:
         if sd > 0.0:
             sharpe = (mean / sd) * (trading_days ** 0.5)
         turnover = 0.0
+        trade_count = 0.0
+        if positions.shape[0] > 0:
+            for j in range(positions.shape[1]):
+                if abs(positions[0, j]) > 0.0:
+                    trade_count += 1.0
         if positions.shape[0] > 1:
             for i in range(1, positions.shape[0]):
                 for j in range(positions.shape[1]):
                     diff = positions[i, j] - positions[i - 1, j]
                     turnover += abs(diff)
-        return mean, sd, sharpe, turnover
+                    if abs(diff) > 0.0:
+                        trade_count += 1.0
+        return mean, sd, sharpe, turnover, trade_count
 
     @njit(cache=True)
     def _bootstrap_sharpes_numba(returns, indices, trading_days):  # pragma: no cover - compared via tests
@@ -1708,6 +1788,8 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "flat_min_samples": config.flat_min_samples,
         "flat_selector": config.flat_selector,
         "scoring_trading_days": config.scoring_trading_days,
+        "min_trades_per_year": config.min_trades_per_year,
+        "trade_penalty_factor": config.trade_penalty_factor,
         "use_numba": config.use_numba,
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
