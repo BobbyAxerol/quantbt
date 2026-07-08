@@ -107,8 +107,13 @@ Implemented notes:
   each trial with seeded stationary block bootstrap on the train-fold return
   proxy.
 - `optimization_mode="mode_3_flat_minima"` scores trials with the decay
-  objective, clusters top trials in normalized parameter space, and selects the
-  medoid of the densest stable cluster when available.
+  objective, clusters top trials in normalized parameter space with
+  `sklearn.DBSCAN` when available and a deterministic NumPy DBSCAN fallback
+  otherwise, then selects the medoid or snapped centroid of the densest stable
+  cluster when available.
+- `flat_selector="centroid"` creates executable params by snapping centroid
+  coordinates back to the declared parameter grid, then evaluates that params
+  set before final OOS stitching/backtest.
 - Repeated score/turnover and bootstrap-Sharpe loops use optional numba kernels.
   If numba is unavailable, the Python/NumPy baseline path is used.
 - `numba_enabled` and selector/bootstrap metadata are exposed in
