@@ -129,6 +129,8 @@ Tests:
 
 ## Phase 4 - Production Hardening
 
+Status: implemented in the Phase 4 foundation.
+
 Goal:
 
 - Make WalkForwardEngine safe to use as a shared research engine.
@@ -142,12 +144,34 @@ Scope:
 - Compatibility matrix for all current QuantBT routes.
 - Reserved hooks for future arbitrage Phase I+ and Nautilus parity upgrades.
 
+Implemented notes:
+
+- Public `walkforward_support_matrix()` exposes current target routes, expected
+  strategy output schema, final engine route, and support status.
+- Public `validate_walkforward_strategy_output()` rejects non-timestamped
+  Series/DataFrame/dict outputs before slicing/stitching to prevent silent
+  all-zero OOS results.
+- Strategy adapter exceptions include fold id and train/test date ranges.
+- Public `validate_param_ranges()` fails early on invalid optimization math
+  such as `high < low`, non-positive steps, empty categoricals, or `None`
+  fixed values.
+- Public `benchmark_walkforward_kernels()` returns a deterministic
+  `WalkForwardBenchmarkSnapshot` with Python vs accelerated scoring/bootstrap
+  timings and numeric equivalence diffs.
+- `nautilus_validation` remains reserved in the support matrix. Future Nautilus
+  WFO parity should route through the same timestamped signal contract.
+
 Tests:
 
-- Full endpoint compatibility.
-- Invariant tests.
-- Reproducibility tests.
-- Performance baseline snapshots.
+- Full endpoint compatibility: implemented in walk-forward smoke tests for
+  single signal, `%_equity`, portfolio, basket-compatible routing, and supported
+  arbitrage package routing.
+- Invariant tests: implemented for no-lookahead, rolling train window bounds,
+  stitched OOS boundaries, and timestamped output validation.
+- Reproducibility tests: implemented for bootstrap fixed seed and WFO metadata
+  hash/seed exposure.
+- Performance baseline snapshots: implemented as deterministic lightweight
+  kernel benchmark smoke tests without hard wall-clock thresholds.
 
 ## Arbitrage Compatibility Note
 

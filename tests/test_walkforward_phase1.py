@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import numpy as np
+import pytest
 
 from quantbt import (
     ArbitrageLeg,
@@ -15,9 +16,12 @@ from quantbt import (
     WalkForwardConfig,
     WalkForwardEngine,
     WalkForwardTrialRecord,
+    benchmark_walkforward_kernels,
     score_strategy_output,
     select_flat_minima_record,
     stationary_bootstrap_sharpes,
+    validate_param_ranges,
+    walkforward_support_matrix,
 )
 
 
@@ -189,7 +193,7 @@ def test_walkforward_phase2_fixed_params_expose_fold_metrics_and_best_trial():
     )
     result = engine.run(data=data, params={"side": 1.0})
 
-    assert result.metadata["engine"] == "walk_forward_phase3"
+    assert result.metadata["engine"] == "walk_forward_phase4"
     assert result.best_trial["params"] == {"side": 1.0}
     assert result.best_trial["fold_metrics"]
     assert set(["objective", "mean_is_sharpe", "mean_oos_sharpe", "mean_decay"]).issubset(result.trial_table.columns)
@@ -342,3 +346,82 @@ def test_walkforward_phase3_flat_minima_centroid_snaps_to_valid_param_grid():
     assert selected.selection_metadata["selector"] == "centroid"
     assert selected.selection_metadata["requires_evaluation"] is True
     assert selected.selection_metadata["medoid_params"]["x"] == 24
+
+
+def test_walkforward_phase4_rejects_non_timestamped_strategy_output():
+    idx = _idx()
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series([1.0] * len(test_index))
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(split_mode=2022, split_frequency="quarterly"),
+    )
+
+    with pytest.raises(TypeError, match="DatetimeIndex"):
+        engine.run(data=_bars(idx), params={"window": 10})
+
+
+def test_walkforward_phase4_param_range_validation_catches_invalid_math():
+    with pytest.raises(ValueError, match="high must be >= low"):
+        validate_param_ranges({"window": (30, 10, 1)})
+    with pytest.raises(ValueError, match="step must be > 0"):
+        validate_param_ranges({"window": (10, 30, 0)})
+    with pytest.raises(ValueError, match="categorical choices"):
+        validate_param_ranges({"mode": []})
+
+
+def test_walkforward_phase4_support_matrix_covers_current_routes():
+    matrix = walkforward_support_matrix()
+
+    assert {
+        "signal_notional",
+        "notional",
+        "unit",
+        "pct_equity",
+        "dca_ladder",
+        "portfolio",
+        "basket",
+        "arbitrage",
+    } <= set(matrix["target_mode"])
+    assert set(matrix.columns) == {"target_mode", "expected_output", "final_engine", "status", "notes"}
+
+
+def test_walkforward_phase4_benchmark_snapshot_is_finite_and_equivalent():
+    snap = benchmark_walkforward_kernels(n_obs=128, n_samples=8, seed=21, use_numba=True)
+    payload = snap.to_dict()
+
+    assert payload["n_obs"] == 128
+    assert payload["n_samples"] == 8
+    assert payload["python_score_seconds"] >= 0.0
+    assert payload["accelerated_score_seconds"] >= 0.0
+    assert payload["python_bootstrap_seconds"] >= 0.0
+    assert payload["accelerated_bootstrap_seconds"] >= 0.0
+    assert payload["max_score_abs_diff"] < 1e-12
+    assert payload["max_bootstrap_abs_diff"] < 1e-12
+
+
+def test_walkforward_phase4_rolling_split_uses_bounded_train_window():
+    idx = pd.date_range("2021-01-01", "2022-09-30", freq="1D", tz="UTC")
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(
+            split_mode=2022,
+            split_frequency="quarterly",
+            window_mode="rolling",
+            train_window="180D",
+            min_train_bars=120,
+        ),
+    )
+    result = engine.run(data=_bars(idx), params={"window": 10})
+
+    assert len(result.folds) == 3
+    for fold in result.folds:
+        assert fold.train_index.max() < fold.test_index.min()
+        assert fold.train_index.min() >= fold.test_start - pd.Timedelta("180D")
+        assert len(fold.train_index) <= 180

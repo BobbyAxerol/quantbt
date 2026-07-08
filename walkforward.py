@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 import hashlib
 import json
 import operator
+import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -35,6 +36,50 @@ except Exception:  # pragma: no cover - optional dependency guard
 
 
 StrategyOutput = Union[pd.Series, pd.DataFrame, Dict[str, pd.Series]]
+
+
+@dataclass(frozen=True)
+class WalkForwardCompatibilityEntry:
+    """One public walk-forward endpoint compatibility row."""
+
+    target_mode: str
+    expected_output: str
+    final_engine: str
+    status: str
+    notes: str = ""
+
+
+@dataclass(frozen=True)
+class WalkForwardBenchmarkSnapshot:
+    """Small deterministic kernel benchmark snapshot for audit/CI smoke tests."""
+
+    n_obs: int
+    n_samples: int
+    seed: int
+    numba_available: bool
+    numba_requested: bool
+    python_score_seconds: float
+    accelerated_score_seconds: float
+    python_bootstrap_seconds: float
+    accelerated_bootstrap_seconds: float
+    max_score_abs_diff: float
+    max_bootstrap_abs_diff: float
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a JSON-serializable snapshot."""
+        return {
+            "n_obs": self.n_obs,
+            "n_samples": self.n_samples,
+            "seed": self.seed,
+            "numba_available": self.numba_available,
+            "numba_requested": self.numba_requested,
+            "python_score_seconds": self.python_score_seconds,
+            "accelerated_score_seconds": self.accelerated_score_seconds,
+            "python_bootstrap_seconds": self.python_bootstrap_seconds,
+            "accelerated_bootstrap_seconds": self.accelerated_bootstrap_seconds,
+            "max_score_abs_diff": self.max_score_abs_diff,
+            "max_bootstrap_abs_diff": self.max_bootstrap_abs_diff,
+        }
 
 
 @dataclass(frozen=True)
@@ -229,6 +274,84 @@ def logging_callback(study, frozen_trial) -> None:
         study.set_user_attr("previous_best_value", study.best_value)
 
 
+def walkforward_support_matrix(as_dataframe: bool = True):
+    """
+    Return the current walk-forward compatibility matrix.
+
+    This is intentionally public so notebooks/services can validate a route
+    before wiring a strategy into `QuantBTEndpoint.walk_forward(...)`.
+    """
+    entries = [
+        WalkForwardCompatibilityEntry(
+            target_mode="signal_notional",
+            expected_output="pd.Series scalar signal",
+            final_engine="native_vectorized or native_event",
+            status="supported",
+            notes="Recommended default for single-symbol systematic alpha.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="notional",
+            expected_output="pd.Series scalar target",
+            final_engine="native_vectorized or native_event",
+            status="supported",
+            notes="Explicit notional sizing route.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="unit",
+            expected_output="pd.Series scalar target",
+            final_engine="native_vectorized or native_event",
+            status="supported",
+            notes="Explicit unit sizing route.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="pct_equity",
+            expected_output="pd.Series scalar weight",
+            final_engine="legacy BacktestEngine",
+            status="supported",
+            notes="Legacy `%_equity` accounting route.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="dca_ladder",
+            expected_output="pd.Series structural ladder level",
+            final_engine="legacy BacktestEngine",
+            status="supported",
+            notes="Requires high/low data for intrabar ladder fills.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="portfolio",
+            expected_output="pd.DataFrame or dict[str, pd.Series]",
+            final_engine="PortfolioBacktestEngine",
+            status="supported",
+            notes="Multi-symbol portfolio positions stitched across OOS folds.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="basket",
+            expected_output="pd.Series scalar basket signal",
+            final_engine="native_event basket route",
+            status="supported",
+            notes="Requires BasketSpec on the endpoint.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="arbitrage",
+            expected_output="pd.Series scalar package signal",
+            final_engine="supported arbitrage package route",
+            status="partial",
+            notes="Current supported arbitrage specs only; future specialized engines reserved.",
+        ),
+        WalkForwardCompatibilityEntry(
+            target_mode="nautilus_validation",
+            expected_output="pd.Series scalar signal",
+            final_engine="Nautilus adapter",
+            status="reserved",
+            notes="Reserved for future WFO parity validation, not routed by walk-forward today.",
+        ),
+    ]
+    rows = [entry.__dict__ for entry in entries]
+    if as_dataframe:
+        return pd.DataFrame(rows)
+    return rows
+
+
 class WalkForwardEngine:
     """
     Time-safe walk-forward splitter and OOS stitcher.
@@ -296,7 +419,7 @@ class WalkForwardEngine:
             trial_table=_trial_table(trial_records),
             best_trial=_trial_to_dict(selected_record),
             metadata={
-                "engine": "walk_forward_phase3",
+                "engine": "walk_forward_phase4",
                 "split_mode": str(self.config.split_mode),
                 "split_frequency": self.config.split_frequency,
                 "window_mode": self.config.window_mode,
@@ -321,6 +444,7 @@ class WalkForwardEngine:
         """Run Optuna optimization and return the selected trial plus ledger."""
         if not param_ranges:
             raise ValueError(f"{self.config.optimization_mode} optimization requires param_ranges")
+        validate_param_ranges(param_ranges, context=self.config.optimization_mode)
         try:
             import optuna
         except ImportError as exc:  # pragma: no cover - environment guard
@@ -415,6 +539,7 @@ class WalkForwardEngine:
                 train_index=fold.train_index,
                 test_index=fold.train_index,
                 fold=fold,
+                context="in-sample scoring",
             )
             oos_output = self._call_strategy_for_indices(
                 data=data,
@@ -422,6 +547,7 @@ class WalkForwardEngine:
                 train_index=fold.train_index,
                 test_index=fold.test_index,
                 fold=fold,
+                context="out-of-sample scoring",
             )
             is_metrics = score_strategy_output(data, is_output, fold.train_index)
             oos_metrics = score_strategy_output(data, oos_output, fold.test_index)
@@ -492,6 +618,7 @@ class WalkForwardEngine:
                 train_index=fold.train_index,
                 test_index=fold.train_index,
                 fold=fold,
+                context="sbb train scoring",
             )
             is_metrics = score_strategy_output(
                 data,
@@ -632,33 +759,135 @@ class WalkForwardEngine:
         train_index: pd.DatetimeIndex,
         test_index: pd.DatetimeIndex,
         fold: WalkForwardFold,
+        context: str = "out-of-sample generation",
     ) -> StrategyOutput:
         strategy = self.strategy() if isinstance(self.strategy, type) else self.strategy
-        if hasattr(strategy, "build_signal"):
-            return strategy.build_signal(
-                data=data,
-                params=params,
-                train_index=train_index,
-                test_index=test_index,
-                fold=fold,
-            )
-        if hasattr(strategy, "generate_signal"):
-            return strategy.generate_signal(
-                data=data,
-                params=params,
-                train_index=train_index,
-                test_index=test_index,
-                fold=fold,
-            )
-        if callable(strategy):
-            return strategy(
-                data=data,
-                params=params,
-                train_index=train_index,
-                test_index=test_index,
-                fold=fold,
-            )
-        raise TypeError("strategy must be callable or expose build_signal/generate_signal")
+        try:
+            if hasattr(strategy, "build_signal"):
+                output = strategy.build_signal(
+                    data=data,
+                    params=params,
+                    train_index=train_index,
+                    test_index=test_index,
+                    fold=fold,
+                )
+            elif hasattr(strategy, "generate_signal"):
+                output = strategy.generate_signal(
+                    data=data,
+                    params=params,
+                    train_index=train_index,
+                    test_index=test_index,
+                    fold=fold,
+                )
+            elif callable(strategy):
+                output = strategy(
+                    data=data,
+                    params=params,
+                    train_index=train_index,
+                    test_index=test_index,
+                    fold=fold,
+                )
+            else:
+                raise TypeError("strategy must be callable or expose build_signal/generate_signal")
+        except Exception as exc:
+            raise RuntimeError(
+                "walk-forward strategy failed during "
+                f"{context} for fold_id={fold.fold_id}, "
+                f"train=[{fold.train_start}, {fold.train_end}], "
+                f"test=[{test_index[0]}, {test_index[-1]}]"
+            ) from exc
+        return validate_walkforward_strategy_output(
+            output,
+            expected_index=test_index,
+            context=f"{context} fold_id={fold.fold_id}",
+        )
+
+
+def validate_walkforward_strategy_output(
+    output: StrategyOutput,
+    expected_index: pd.DatetimeIndex,
+    context: str = "walk-forward strategy output",
+) -> StrategyOutput:
+    """
+    Validate strategy output before slicing/stitching.
+
+    Walk-forward output must be timestamp-indexed. Accepting RangeIndex or
+    array-like output would silently reindex to all zeros, which is dangerous in
+    production research.
+    """
+    idx = validate_datetime(expected_index)
+    if len(idx) == 0:
+        raise ValueError(f"{context}: expected_index is empty")
+
+    if isinstance(output, pd.Series):
+        _validate_timestamped_index(output.index, context=context)
+        _validate_index_overlap(output.index, idx, context=context)
+        return output
+
+    if isinstance(output, pd.DataFrame):
+        if len(output.columns) == 0:
+            raise ValueError(f"{context}: DataFrame output must have at least one column")
+        _validate_timestamped_index(output.index, context=context)
+        _validate_index_overlap(output.index, idx, context=context)
+        return output
+
+    if isinstance(output, dict):
+        if not output:
+            raise ValueError(f"{context}: dict output must contain at least one symbol")
+        for symbol, series in output.items():
+            if not isinstance(symbol, str) or not symbol:
+                raise ValueError(f"{context}: dict output keys must be non-empty symbol strings")
+            if not isinstance(series, pd.Series):
+                raise TypeError(f"{context}: dict output for {symbol!r} must be a pandas Series")
+            _validate_timestamped_index(series.index, context=f"{context} symbol={symbol}")
+            _validate_index_overlap(series.index, idx, context=f"{context} symbol={symbol}")
+        return output
+
+    raise TypeError(
+        f"{context}: strategy output must be pd.Series, pd.DataFrame, or dict[str, pd.Series]; "
+        f"got {type(output).__name__}"
+    )
+
+
+def validate_param_ranges(param_ranges: Dict[str, Any], context: str = "walk-forward optimization") -> Dict[str, Any]:
+    """Validate Optuna/default parameter ranges and return the original mapping."""
+    if not isinstance(param_ranges, dict):
+        raise TypeError(f"{context}: param_ranges must be a dict, got {type(param_ranges).__name__}")
+    if not param_ranges:
+        raise ValueError(f"{context}: param_ranges must not be empty")
+    for name, spec in param_ranges.items():
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"{context}: parameter names must be non-empty strings")
+        if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
+            low = float(spec[0])
+            high = float(spec[1])
+            if high < low:
+                raise ValueError(f"{context}: param_ranges[{name!r}] high must be >= low")
+            if len(spec) == 3 and float(spec[2]) <= 0.0:
+                raise ValueError(f"{context}: param_ranges[{name!r}] step must be > 0")
+        elif isinstance(spec, (list, tuple)):
+            if not spec:
+                raise ValueError(f"{context}: param_ranges[{name!r}] categorical choices must not be empty")
+        elif spec is None:
+            raise ValueError(f"{context}: param_ranges[{name!r}] fixed value must not be None")
+    return param_ranges
+
+
+def _validate_timestamped_index(index, context: str) -> None:
+    if not isinstance(index, pd.DatetimeIndex):
+        raise TypeError(f"{context}: output must use a pandas DatetimeIndex, got {type(index).__name__}")
+    if len(index) == 0:
+        raise ValueError(f"{context}: output index is empty")
+
+
+def _validate_index_overlap(index: pd.DatetimeIndex, expected_index: pd.DatetimeIndex, context: str) -> None:
+    output_index = validate_datetime(index)
+    overlap = output_index.intersection(expected_index)
+    if len(overlap) == 0:
+        raise ValueError(
+            f"{context}: output index has no overlap with expected fold index "
+            f"[{expected_index[0]}, {expected_index[-1]}]"
+        )
 
 
 def score_strategy_output(
@@ -757,6 +986,72 @@ def stationary_bootstrap_sharpes(
     if bool(use_numba) and _NUMBA_AVAILABLE:
         return _bootstrap_sharpes_numba(clean, indices, float(trading_days))
     return _bootstrap_sharpes_python(clean, indices, float(trading_days))
+
+
+def benchmark_walkforward_kernels(
+    n_obs: int = 2_000,
+    n_samples: int = 128,
+    seed: int = 42,
+    use_numba: bool = True,
+) -> WalkForwardBenchmarkSnapshot:
+    """
+    Run a deterministic lightweight benchmark for WFO numeric kernels.
+
+    The snapshot is intended for smoke/performance-regression tracking. Unit
+    tests should assert finite timings and numerical equivalence, not hard wall
+    clock thresholds.
+    """
+    if n_obs < 2:
+        raise ValueError("n_obs must be >= 2")
+    if n_samples < 1:
+        raise ValueError("n_samples must be >= 1")
+    rng = np.random.default_rng(int(seed))
+    returns = rng.normal(loc=0.0002, scale=0.01, size=int(n_obs)).astype(np.float64)
+    positions = rng.choice(np.array([-1.0, 0.0, 1.0], dtype=np.float64), size=(int(n_obs), 3))
+    indices = _stationary_bootstrap_indices(
+        n_obs=int(n_obs),
+        n_samples=int(n_samples),
+        block_length=max(2, int(np.sqrt(n_obs))),
+        seed=int(seed),
+    )
+
+    start = time.perf_counter()
+    py_score = _score_returns_positions_python(returns, positions, 365.0)
+    python_score_seconds = time.perf_counter() - start
+
+    start = time.perf_counter()
+    accelerated_score = (
+        _score_returns_positions_numba(returns, positions, 365.0)
+        if bool(use_numba) and _NUMBA_AVAILABLE
+        else _score_returns_positions_python(returns, positions, 365.0)
+    )
+    accelerated_score_seconds = time.perf_counter() - start
+
+    start = time.perf_counter()
+    py_boot = _bootstrap_sharpes_python(returns, indices, 365.0)
+    python_bootstrap_seconds = time.perf_counter() - start
+
+    start = time.perf_counter()
+    accelerated_boot = (
+        _bootstrap_sharpes_numba(returns, indices, 365.0)
+        if bool(use_numba) and _NUMBA_AVAILABLE
+        else _bootstrap_sharpes_python(returns, indices, 365.0)
+    )
+    accelerated_bootstrap_seconds = time.perf_counter() - start
+
+    return WalkForwardBenchmarkSnapshot(
+        n_obs=int(n_obs),
+        n_samples=int(n_samples),
+        seed=int(seed),
+        numba_available=bool(_NUMBA_AVAILABLE),
+        numba_requested=bool(use_numba),
+        python_score_seconds=float(python_score_seconds),
+        accelerated_score_seconds=float(accelerated_score_seconds),
+        python_bootstrap_seconds=float(python_bootstrap_seconds),
+        accelerated_bootstrap_seconds=float(accelerated_bootstrap_seconds),
+        max_score_abs_diff=float(np.max(np.abs(np.asarray(py_score) - np.asarray(accelerated_score)))),
+        max_bootstrap_abs_diff=float(np.max(np.abs(py_boot - accelerated_boot))),
+    )
 
 
 def _stationary_bootstrap_indices(n_obs: int, n_samples: int, block_length: int, seed: int) -> np.ndarray:
