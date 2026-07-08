@@ -317,3 +317,28 @@ def test_walkforward_phase3_flat_minima_selector_prefers_dense_cluster_over_shar
     assert selected.params["x"] in {20, 21, 22}
     assert selected.selection_metadata["objective_mode"] == "mode_3_flat_minima"
     assert selected.selection_metadata["cluster_size"] == 3
+    assert selected.selection_metadata["cluster_method"] in {"sklearn.DBSCAN", "numpy_dbscan_fallback"}
+
+
+def test_walkforward_phase3_flat_minima_centroid_snaps_to_valid_param_grid():
+    records = [
+        WalkForwardTrialRecord(0, {"x": 20}, 9.0, 0.0, 9.0, 0.0, 0.0, []),
+        WalkForwardTrialRecord(1, {"x": 24}, 8.9, 0.0, 8.9, 0.0, 0.0, []),
+        WalkForwardTrialRecord(2, {"x": 28}, 8.8, 0.0, 8.8, 0.0, 0.0, []),
+        WalkForwardTrialRecord(3, {"x": 90}, 8.7, 0.0, 8.7, 0.0, 0.0, []),
+    ]
+    cfg = WalkForwardConfig(
+        optimization_mode="mode_3_flat_minima",
+        flat_selector="centroid",
+        flat_top_fraction=1.0,
+        flat_eps=0.1,
+        flat_min_samples=2,
+    )
+
+    selected = select_flat_minima_record(records, {"x": (0, 100, 4)}, config=cfg)
+
+    assert selected.trial_id == -1
+    assert selected.params["x"] == 24
+    assert selected.selection_metadata["selector"] == "centroid"
+    assert selected.selection_metadata["requires_evaluation"] is True
+    assert selected.selection_metadata["medoid_params"]["x"] == 24

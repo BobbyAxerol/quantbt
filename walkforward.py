@@ -374,6 +374,16 @@ class WalkForwardEngine:
         )
         if self.config.optimization_mode == "mode_3_flat_minima":
             best = select_flat_minima_record(records, param_ranges, config=self.config)
+            if best.selection_metadata.get("requires_evaluation"):
+                evaluated = self.evaluate_params(data=data, folds=folds, params=best.params, trial_id=-1)
+                best = _with_selection_metadata(
+                    evaluated,
+                    {
+                        **best.selection_metadata,
+                        "evaluated_after_selection": True,
+                    },
+                )
+                records.append(best)
         else:
             best_params = dict(study.best_params)
             best = next((record for record in records if record.params == best_params), None)
@@ -888,7 +898,11 @@ def select_flat_minima_record(
             },
         )
 
-    labels = _density_cluster_labels(matrix, eps=float(config.flat_eps), min_samples=int(config.flat_min_samples))
+    labels, cluster_method = _dbscan_cluster_labels(
+        matrix,
+        eps=float(config.flat_eps),
+        min_samples=int(config.flat_min_samples),
+    )
     cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
     if not cluster_ids:
         return _with_selection_metadata(
@@ -900,6 +914,7 @@ def select_flat_minima_record(
                 "top_trials": int(top_n),
                 "eps": float(config.flat_eps),
                 "min_samples": int(config.flat_min_samples),
+                "cluster_method": cluster_method,
             },
         )
 
@@ -916,7 +931,27 @@ def select_flat_minima_record(
     centroid = np.mean(matrix[best_cluster], axis=0)
     distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
     selected_idx = int(best_cluster[int(np.argmin(distances))])
-    selected = top[selected_idx]
+    medoid = top[selected_idx]
+    centroid_params = _centroid_params(
+        centroid=centroid,
+        names=names,
+        param_ranges=param_ranges,
+        base_params=medoid.params,
+    )
+    selected = medoid
+    requires_evaluation = False
+    if config.flat_selector == "centroid":
+        selected = WalkForwardTrialRecord(
+            trial_id=-1,
+            params=centroid_params,
+            objective=float(np.mean([top[i].objective for i in best_cluster])),
+            mean_is_sharpe=float(np.mean([top[i].mean_is_sharpe for i in best_cluster])),
+            mean_oos_sharpe=float(np.mean([top[i].mean_oos_sharpe for i in best_cluster])),
+            mean_decay=float(np.mean([top[i].mean_decay for i in best_cluster])),
+            std_decay=float(np.mean([top[i].std_decay for i in best_cluster])),
+            fold_metrics=[],
+        )
+        requires_evaluation = True
     return _with_selection_metadata(
         selected,
         {
@@ -924,12 +959,18 @@ def select_flat_minima_record(
             "selector": str(config.flat_selector),
             "param_names": names,
             "selected_trial_id": int(selected.trial_id),
+            "medoid_trial_id": int(medoid.trial_id),
+            "medoid_params": dict(medoid.params),
+            "centroid_params": centroid_params,
+            "centroid_normalized": [float(x) for x in centroid.tolist()],
+            "requires_evaluation": requires_evaluation,
             "cluster_size": int(len(best_cluster)),
             "cluster_mean_objective": float(np.mean([top[i].objective for i in best_cluster])),
             "cluster_best_objective": float(np.max([top[i].objective for i in best_cluster])),
             "top_trials": int(top_n),
             "eps": float(config.flat_eps),
             "min_samples": int(config.flat_min_samples),
+            "cluster_method": cluster_method,
         },
     )
 
@@ -992,6 +1033,52 @@ def _normalize_param_values(values: Sequence[Any], spec: Any) -> np.ndarray:
     if span == 0.0:
         return np.zeros(len(values), dtype=np.float64)
     return (numeric - float(np.min(numeric))) / span
+
+
+def _centroid_params(
+    centroid: np.ndarray,
+    names: Sequence[str],
+    param_ranges: Dict[str, Any],
+    base_params: Dict[str, Any],
+) -> Dict[str, Any]:
+    params = dict(base_params)
+    for value, name in zip(centroid, names):
+        params[name] = _denormalize_param_value(float(value), param_ranges[name])
+    return params
+
+
+def _denormalize_param_value(value: float, spec: Any) -> Any:
+    clipped = min(1.0, max(0.0, float(value)))
+    if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
+        low = float(spec[0])
+        high = float(spec[1])
+        raw = low + clipped * (high - low)
+        step = spec[2] if len(spec) == 3 else None
+        if step is not None:
+            step_f = float(step)
+            if step_f > 0.0:
+                raw = low + round((raw - low) / step_f) * step_f
+        raw = min(high, max(low, raw))
+        if _looks_int(spec[0]) and _looks_int(spec[1]) and (step is None or _looks_int(step)):
+            return int(round(raw))
+        return float(raw)
+    if isinstance(spec, (list, tuple)):
+        choices = list(spec)
+        if not choices:
+            raise ValueError("cannot denormalize an empty categorical parameter range")
+        idx = int(round(clipped * (len(choices) - 1)))
+        return choices[min(len(choices) - 1, max(0, idx))]
+    return spec
+
+
+def _dbscan_cluster_labels(matrix: np.ndarray, eps: float, min_samples: int) -> Tuple[np.ndarray, str]:
+    try:
+        from sklearn.cluster import DBSCAN
+
+        labels = DBSCAN(eps=float(eps), min_samples=int(min_samples), metric="euclidean").fit_predict(matrix)
+        return labels.astype(np.int64), "sklearn.DBSCAN"
+    except Exception:
+        return _density_cluster_labels(matrix, eps=float(eps), min_samples=int(min_samples)), "numpy_dbscan_fallback"
 
 
 def _density_cluster_labels(matrix: np.ndarray, eps: float, min_samples: int) -> np.ndarray:

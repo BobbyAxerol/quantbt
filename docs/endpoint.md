@@ -871,8 +871,8 @@ Important rules:
 - `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
   returns to estimate synthetic OOS robustness;
 - `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
-  selects the medoid of the densest stable cluster instead of a sharp isolated
-  peak;
+  selects the medoid or snapped centroid of the densest stable cluster instead
+  of a sharp isolated peak;
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 
@@ -900,7 +900,9 @@ Mode 3 flat-minima selector:
 2. take the top flat_top_fraction trials;
 3. normalize numeric/categorical params into [0, 1];
 4. density-cluster the top region with flat_eps and flat_min_samples;
-5. select the medoid of the densest cluster.
+5. select `flat_selector="medoid"` or `flat_selector="centroid"`;
+6. if centroid is selected, snap it back to the declared param grid and
+   evaluate it before the final stitched backtest.
 ```
 
 ## Service Integration Pattern
