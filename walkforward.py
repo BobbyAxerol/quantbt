@@ -147,6 +147,7 @@ class WalkForwardConfig:
     flat_eps: float = 0.15
     flat_min_samples: int = 3
     flat_selector: str = "medoid"
+    scoring_trading_days: int = 365
     use_numba: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -189,6 +190,13 @@ class WalkForwardConfig:
         if selector not in {"medoid", "centroid"}:
             raise ValueError("flat_selector must be medoid or centroid")
         object.__setattr__(self, "flat_selector", selector)
+        try:
+            scoring_days = int(self.scoring_trading_days)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("scoring_trading_days must be a positive integer") from exc
+        if scoring_days <= 0:
+            raise ValueError("scoring_trading_days must be > 0")
+        object.__setattr__(self, "scoring_trading_days", scoring_days)
 
 
 @dataclass
@@ -430,6 +438,7 @@ class WalkForwardEngine:
                 "data_hash": _data_hash(data),
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
+                "scoring_trading_days": self.config.scoring_trading_days,
                 "numba_enabled": bool(self.config.use_numba and _NUMBA_AVAILABLE),
                 **self.config.metadata,
             },
@@ -549,8 +558,20 @@ class WalkForwardEngine:
                 fold=fold,
                 context="out-of-sample scoring",
             )
-            is_metrics = score_strategy_output(data, is_output, fold.train_index)
-            oos_metrics = score_strategy_output(data, oos_output, fold.test_index)
+            is_metrics = score_strategy_output(
+                data,
+                is_output,
+                fold.train_index,
+                trading_days=int(self.config.scoring_trading_days),
+                use_numba=bool(self.config.use_numba),
+            )
+            oos_metrics = score_strategy_output(
+                data,
+                oos_output,
+                fold.test_index,
+                trading_days=int(self.config.scoring_trading_days),
+                use_numba=bool(self.config.use_numba),
+            )
             d = is_metrics["sharpe"] - oos_metrics["sharpe"]
             is_scores.append(is_metrics["sharpe"])
             oos_scores.append(oos_metrics["sharpe"])
@@ -624,6 +645,7 @@ class WalkForwardEngine:
                 data,
                 is_output,
                 fold.train_index,
+                trading_days=int(self.config.scoring_trading_days),
                 use_numba=self.config.use_numba,
             )
             returns = strategy_return_series(data, is_output, fold.train_index).to_numpy(dtype=np.float64)
@@ -633,6 +655,7 @@ class WalkForwardEngine:
                 n_samples=int(self.config.sbb_samples),
                 block_length=int(self.config.sbb_block_length),
                 seed=seed,
+                trading_days=int(self.config.scoring_trading_days),
                 use_numba=bool(self.config.use_numba),
             )
             synthetic_mean = float(np.mean(boot)) if len(boot) else 0.0
@@ -821,14 +844,14 @@ def validate_walkforward_strategy_output(
 
     if isinstance(output, pd.Series):
         _validate_timestamped_index(output.index, context=context)
-        _validate_index_overlap(output.index, idx, context=context)
+        _validate_index_coverage(output.index, idx, context=context)
         return output
 
     if isinstance(output, pd.DataFrame):
         if len(output.columns) == 0:
             raise ValueError(f"{context}: DataFrame output must have at least one column")
         _validate_timestamped_index(output.index, context=context)
-        _validate_index_overlap(output.index, idx, context=context)
+        _validate_index_coverage(output.index, idx, context=context)
         return output
 
     if isinstance(output, dict):
@@ -840,7 +863,7 @@ def validate_walkforward_strategy_output(
             if not isinstance(series, pd.Series):
                 raise TypeError(f"{context}: dict output for {symbol!r} must be a pandas Series")
             _validate_timestamped_index(series.index, context=f"{context} symbol={symbol}")
-            _validate_index_overlap(series.index, idx, context=f"{context} symbol={symbol}")
+            _validate_index_coverage(series.index, idx, context=f"{context} symbol={symbol}")
         return output
 
     raise TypeError(
@@ -880,13 +903,14 @@ def _validate_timestamped_index(index, context: str) -> None:
         raise ValueError(f"{context}: output index is empty")
 
 
-def _validate_index_overlap(index: pd.DatetimeIndex, expected_index: pd.DatetimeIndex, context: str) -> None:
+def _validate_index_coverage(index: pd.DatetimeIndex, expected_index: pd.DatetimeIndex, context: str) -> None:
     output_index = validate_datetime(index)
-    overlap = output_index.intersection(expected_index)
-    if len(overlap) == 0:
+    missing = expected_index.difference(output_index)
+    if len(missing) > 0:
+        sample = ", ".join(str(ts) for ts in missing[:3])
         raise ValueError(
-            f"{context}: output index has no overlap with expected fold index "
-            f"[{expected_index[0]}, {expected_index[-1]}]"
+            f"{context}: output index must cover every expected fold timestamp; "
+            f"missing {len(missing)} of {len(expected_index)} timestamps, first missing: {sample}"
         )
 
 
@@ -1683,6 +1707,7 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "flat_eps": config.flat_eps,
         "flat_min_samples": config.flat_min_samples,
         "flat_selector": config.flat_selector,
+        "scoring_trading_days": config.scoring_trading_days,
         "use_numba": config.use_numba,
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()

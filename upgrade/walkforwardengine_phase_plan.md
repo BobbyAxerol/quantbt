@@ -149,8 +149,12 @@ Implemented notes:
 - Public `walkforward_support_matrix()` exposes current target routes, expected
   strategy output schema, final engine route, and support status.
 - Public `validate_walkforward_strategy_output()` rejects non-timestamped
-  Series/DataFrame/dict outputs before slicing/stitching to prevent silent
-  all-zero OOS results.
+  Series/DataFrame/dict outputs and outputs that do not cover every requested
+  fold timestamp before slicing/stitching to prevent silent all-zero or partial
+  OOS results.
+- `scoring_trading_days` is configurable for optimization-time Sharpe
+  annualization, so crypto/equity/intraday research can use the correct
+  convention without changing final accounting.
 - Strategy adapter exceptions include fold id and train/test date ranges.
 - Public `validate_param_ranges()` fails early on invalid optimization math
   such as `high < low`, non-positive steps, empty categoricals, or `None`
