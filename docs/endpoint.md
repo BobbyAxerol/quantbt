@@ -782,7 +782,7 @@ Routing:
 - backend: `nautilus`;
 - engine: `BacktestEngineV2` with Nautilus adapter.
 
-## Walk-Forward Phase 1
+## Walk-Forward
 
 Use this to generate OOS signals/positions fold by fold, stitch them into one
 continuous timeline, and run one final QuantBT backtest. The final simulation
@@ -801,6 +801,11 @@ wfo = QuantBTEndpoint.walk_forward(
     split_mode="walk_forward_2022",
     split_frequency="quarterly",
     target_mode="signal_notional",
+    optimization_mode="mode_1_decay",
+    optimization_config={"decay_lambda": 0.5, "decay_gamma": 0.5},
+    optuna_trials=100,
+    optuna_early_stopping=25,
+    random_seed=42,
     initial_capital=20_000,
     leverage=5,
     alloc_per_trade=10_000,
@@ -811,10 +816,12 @@ wfo = QuantBTEndpoint.walk_forward(
 result = wfo.backtest(
     data=df,
     symbols=["BTCUSDT"],
-    params={"window": 20},
+    param_ranges={"window": (10, 100, 5)},
 )
 
 result.metadata["walk_forward"]["fold_table"]
+result.metadata["walk_forward"]["trial_table"]
+result.metadata["walk_forward"]["best_trial"]
 ```
 
 Phase 1 supported target routes:
@@ -848,8 +855,19 @@ Important rules:
 - train data is always strictly before the OOS test window;
 - outputs are sliced to `test_index` before stitching;
 - values outside OOS windows are filled with `0.0`;
-- Phase 1 does not optimize parameters yet. Pass fixed `params=...`; Optuna and
-  robust objectives are scheduled for later phases.
+- fixed-parameter runs pass `params=...`;
+- Phase 2 supports `optimization_mode="mode_1_decay"` with Optuna;
+- optimization-time scoring uses a transparent return proxy on strategy output;
+  final accounting still comes from the stitched QuantBT backtest;
+- bootstrap/SBB and flat-minima selection are scheduled for later phases.
+
+Mode 1 objective:
+
+```text
+objective = mean_oos_sharpe
+            - decay_lambda * std(IS_sharpe - OOS_sharpe)
+            - decay_gamma * max(0, mean(IS_sharpe - OOS_sharpe))
+```
 
 ## Service Integration Pattern
 
