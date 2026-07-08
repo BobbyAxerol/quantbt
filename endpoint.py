@@ -38,6 +38,7 @@ from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
 from .viz import quick_plot as _quick_plot
 from .viz import tearsheet as _tearsheet
+from .walkforward import WalkForwardConfig, WalkForwardEngine
 
 
 SeriesMap = Dict[str, pd.Series]
@@ -54,7 +55,7 @@ class EndpointConfig:
     mode:
         Strategy integration mode. Supported values are `single_signal`,
         `pct_equity`, `signal_notional`, `dca_ladder`, `orders`, `basket`,
-        `portfolio`, and `nautilus_validation`.
+        `portfolio`, `arbitrage`, `walk_forward`, and `nautilus_validation`.
     backend:
         Engine selector. Use `auto` for domain-safe defaults, or explicitly set
         `legacy`, `native_vectorized`, `native_event`, or `nautilus`.
@@ -99,6 +100,11 @@ class EndpointConfig:
         Extra DCA ladder parameters forwarded to legacy `BacktestEngine`.
     nautilus_config:
         Optional `NautilusBackendConfig` instance for Nautilus validation runs.
+    strategy_class:
+        Optional strategy callable/class for `walk_forward` mode. The strategy
+        must return a Series, DataFrame, or `{symbol: Series}` OOS output.
+    walkforward_config:
+        Optional `WalkForwardConfig` for split/stitch behavior.
     metadata:
         Free-form service metadata carried by the endpoint.
     """
@@ -123,6 +129,9 @@ class EndpointConfig:
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
+    strategy_class: object = None
+    walkforward_config: Optional[WalkForwardConfig] = None
+    walkforward_target_mode: str = "signal_notional"
     metadata: Dict = field(default_factory=dict)
 
     @property
@@ -344,6 +353,49 @@ class QuantBTEndpoint:
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", "signal_notional"))
         return cls(_config_from_kwargs(mode="nautilus_validation", backend="nautilus", sizing=sizing, **kwargs))
 
+    @classmethod
+    def walk_forward(
+        cls,
+        strategy_class,
+        split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022",
+        split_frequency: str = "quarterly",
+        target_mode: str = "signal_notional",
+        window_mode: str = "expanding",
+        train_window: Optional[str] = None,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create a Phase 1 walk-forward endpoint.
+
+        The strategy callable/class is invoked once per fold and must return OOS
+        signal/position output indexed by timestamp. The stitched OOS output is
+        then routed into an existing QuantBT backtest path, so boundary trades
+        are charged by the normal engine instead of averaging fold equities.
+        """
+        wf_config = kwargs.pop("walkforward_config", None)
+        if wf_config is None:
+            wf_config = WalkForwardConfig(
+                split_mode=split_mode,
+                split_frequency=split_frequency,
+                window_mode=window_mode,
+                train_window=train_window,
+                target_mode=target_mode,
+            )
+        default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
+        sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
+        backend = kwargs.pop("backend", "auto")
+        return cls(
+            _config_from_kwargs(
+                mode="walk_forward",
+                backend=backend,
+                sizing=sizing,
+                strategy_class=strategy_class,
+                walkforward_config=wf_config,
+                walkforward_target_mode=target_mode,
+                **kwargs,
+            )
+        )
+
     def backtest(
         self,
         data=None,
@@ -358,6 +410,8 @@ class QuantBTEndpoint:
         hedge_ratios: Optional[SeriesMap] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         symbols: Optional[Sequence[str]] = None,
+        params: Optional[Dict] = None,
+        param_ranges: Optional[Dict] = None,
     ):
         """
         Run the configured backtest and store the result.
@@ -386,6 +440,21 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if mode == "walk_forward":
+            return self._run_walk_forward(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                positions=positions,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                hedge_ratios=hedge_ratios,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                params=params,
+                param_ranges=param_ranges,
+            )
         if mode == "arbitrage":
             return self._run_arbitrage(
                 data=data,
@@ -732,6 +801,100 @@ class QuantBTEndpoint:
             )
         self._store_result(result)
         return self.result
+
+    def _run_walk_forward(
+        self,
+        data,
+        signal,
+        signal_col,
+        positions,
+        closes,
+        highs,
+        lows,
+        hedge_ratios,
+        datetime_index,
+        symbols,
+        params,
+        param_ranges,
+    ):
+        if self.config.strategy_class is None:
+            raise ValueError("walk_forward endpoint requires strategy_class")
+        wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
+        engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config)
+        wf_result = engine.run(
+            data=data if data is not None else closes,
+            params=params,
+            param_ranges=param_ranges,
+            datetime_index=datetime_index,
+        )
+        target_mode = self.config.walkforward_target_mode.lower().strip()
+        stitched = wf_result.oos_output
+        if stitched is None:
+            raise ValueError("walk-forward strategy produced no OOS output")
+
+        if target_mode == "portfolio":
+            if isinstance(stitched, pd.Series):
+                raise TypeError("portfolio walk_forward target_mode requires DataFrame or {symbol: Series} output")
+            result = self._run_portfolio(
+                data=data,
+                positions=stitched,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        elif target_mode == "arbitrage":
+            if not isinstance(stitched, pd.Series):
+                raise TypeError("arbitrage walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_arbitrage(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                hedge_ratios=hedge_ratios,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        elif target_mode == "basket":
+            if not isinstance(stitched, pd.Series):
+                raise TypeError("basket walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_basket(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                basket=self.config.basket,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        else:
+            if not isinstance(stitched, pd.Series):
+                raise TypeError(f"{target_mode} walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_single(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+
+        wf_result.backtest_result = result
+        result.metadata["walk_forward"] = {
+            "engine": wf_result.metadata["engine"],
+            "target_mode": target_mode,
+            "n_folds": wf_result.metadata["n_folds"],
+            "params": wf_result.params,
+            "fold_table": wf_result.fold_table,
+        }
+        result.metadata["walk_forward_result"] = wf_result
+        self.engine = engine
+        self.result = result
+        return result
 
     def _run_nautilus_arbitrage(self, spec, signal, close_map, high_map, low_map, idx, hedge_ratios):
         from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine

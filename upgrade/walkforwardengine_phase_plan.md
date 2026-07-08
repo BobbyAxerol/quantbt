@@ -1,0 +1,119 @@
+# WalkForwardEngine Phase Plan
+
+Date: 2026-07-08
+Branch: dev
+
+This is the agreed implementation plan for upgrading QuantBT with an
+institutional-grade, transparent WalkForwardEngine while staying compatible
+with the current QuantBT endpoints.
+
+## Design Principles
+
+- Do not replace existing backtest engines.
+- Walk-forward owns split, train/validation orchestration, OOS stitching,
+  objective scoring, robustness selection, and reporting.
+- Existing QuantBT endpoints own the final backtest simulation.
+- OOS positions/signals must be stitched into one continuous timeline and then
+  backtested once, so boundary trades, fees, slippage, funding, and margin are
+  accounted for by the same engine used in normal research.
+- Numba belongs in repeated numeric loops such as metrics, bootstrap,
+  Monte Carlo, and simulation kernels. Config, pandas alignment, reports, and
+  strategy adapters stay in Python.
+- All stochastic logic must expose seed/config/data/kernel metadata for audit.
+
+## Phase 1 - Split, Stitch, Endpoint Contract
+
+Goal:
+
+- Add the stable public integration surface and correctness foundation.
+
+Scope:
+
+- `QuantBTEndpoint.walk_forward(...)` factory.
+- `WalkForwardEngine` with expanding/rolling split generation.
+- Yearly, semi-yearly, and quarterly OOS windows.
+- Strategy callable/class adapter returning OOS signal/position output.
+- OOS stitcher for Series, DataFrame, or `{symbol: Series}` outputs.
+- Final single-run backtest routing through existing QuantBT paths:
+  `signal_notional`, `%_equity`, `dca_ladder`, explicit orders later,
+  portfolio, basket, and supported arbitrage specs.
+- Traceback-friendly fold table and metadata.
+
+Tests:
+
+- No lookahead split invariants.
+- OOS stitch preserves fold boundaries.
+- Boundary position changes are represented in the stitched signal.
+- Compatibility smoke tests for `signal_notional`, `%_equity`, portfolio, and
+  currently supported arbitrage package specs.
+
+## Phase 2 - Objective Mode 1 And Optuna Basics
+
+Goal:
+
+- Run real optimization over WFO folds with transparent decay scoring.
+
+Scope:
+
+- Parameter range parser and Optuna trial sampler.
+- Duplicate trial pruning.
+- Early stopping callback.
+- `mode_1_decay` objective:
+  `mean_oos_sharpe - lambda * std(decay) - gamma * max(0, mean(decay))`.
+- Per-fold IS/OOS metrics.
+- Trial ledger with params, objective components, data hash, config hash, seed.
+
+Tests:
+
+- Synthetic strategy with known robust parameter.
+- Duplicate-pruner behavior.
+- Early-stopping behavior.
+- Objective component audit.
+
+## Phase 3 - Robust Objectives And Numba Compute Helpers
+
+Goal:
+
+- Add robustness tools without turning the engine into a black box.
+
+Scope:
+
+- `mode_2_sbb` stationary block bootstrap objective.
+- `mode_3_flat_minima` top-trial clustering with centroid/medoid selection.
+- Numba metric/bootstrap kernels where profiling shows repeated numeric loops.
+- Seeded reproducibility for bootstrap/Monte Carlo.
+- Fallback to Python/NumPy baseline for debug.
+
+Tests:
+
+- Bootstrap reproducibility with fixed seed.
+- Flat-minima selector chooses the stable cluster, not a sharp isolated peak.
+- Numeric equivalence between Python/NumPy and Numba helpers.
+
+## Phase 4 - Production Hardening
+
+Goal:
+
+- Make WalkForwardEngine safe to use as a shared research engine.
+
+Scope:
+
+- Benchmark suite with cold/warm Numba timing.
+- Performance regression checks.
+- Full docs and examples.
+- Clear error messages for strategy adapter/data/param issues.
+- Compatibility matrix for all current QuantBT routes.
+- Reserved hooks for future arbitrage Phase I+ and Nautilus parity upgrades.
+
+Tests:
+
+- Full endpoint compatibility.
+- Invariant tests.
+- Reproducibility tests.
+- Performance baseline snapshots.
+
+## Arbitrage Compatibility Note
+
+Current supported arbitrage specs should be routable through walk-forward as
+stitched OOS signal series. Specialized arbitrage engines that are schema-only
+today should remain traceable and fail clearly until their engines are added.

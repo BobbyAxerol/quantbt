@@ -58,6 +58,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
+| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
 | `QuantBTEndpoint.portfolio()` | `portfolio` | `legacy_portfolio` | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
 
@@ -780,6 +781,75 @@ Routing:
 
 - backend: `nautilus`;
 - engine: `BacktestEngineV2` with Nautilus adapter.
+
+## Walk-Forward Phase 1
+
+Use this to generate OOS signals/positions fold by fold, stitch them into one
+continuous timeline, and run one final QuantBT backtest. The final simulation
+uses the same engines as normal research, so fold-boundary trades are charged
+with normal fees/slippage/margin behavior.
+
+```python
+from quantbt import QuantBTEndpoint
+
+def strategy(data, params, train_index, test_index, fold):
+    # Phase 1 contract: return OOS output only, indexed by test_index.
+    return data["close"].reindex(test_index).gt(data["close"].rolling(params["window"]).mean()).astype(float)
+
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    target_mode="signal_notional",
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = wfo.backtest(
+    data=df,
+    symbols=["BTCUSDT"],
+    params={"window": 20},
+)
+
+result.metadata["walk_forward"]["fold_table"]
+```
+
+Phase 1 supported target routes:
+
+- `signal_notional`, `notional`, and `unit`: strategy returns one scalar
+  `pd.Series`; final run uses native vectorized/event according to backend.
+- `pct_equity` / `%_equity`: strategy returns one scalar `pd.Series`; final run
+  uses the legacy `%_equity` engine.
+- `dca_ladder`: strategy returns structural ladder levels; final run uses the
+  legacy DCA engine and requires `high/low`.
+- `portfolio`: strategy returns a `DataFrame` or `{symbol: Series}`; final run
+  uses `PortfolioBacktestEngine`.
+- `basket`: strategy returns one scalar basket signal; final run uses the
+  configured `BasketSpec`.
+- `arbitrage`: strategy returns one scalar package signal; final run uses the
+  configured arbitrage spec. Supported arbitrage specs follow
+  `QuantBTEndpoint.arbitrage_support_matrix()`.
+
+Strategy adapter contract:
+
+```python
+def strategy(data, params, train_index, test_index, fold):
+    return oos_signal_or_positions
+```
+
+Classes/objects can expose either `build_signal(...)` or `generate_signal(...)`
+with the same arguments.
+
+Important rules:
+
+- train data is always strictly before the OOS test window;
+- outputs are sliced to `test_index` before stitching;
+- values outside OOS windows are filled with `0.0`;
+- Phase 1 does not optimize parameters yet. Pass fixed `params=...`; Optuna and
+  robust objectives are scheduled for later phases.
 
 ## Service Integration Pattern
 
