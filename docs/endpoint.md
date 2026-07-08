@@ -802,7 +802,15 @@ wfo = QuantBTEndpoint.walk_forward(
     split_frequency="quarterly",
     target_mode="signal_notional",
     optimization_mode="mode_1_decay",
-    optimization_config={"decay_lambda": 0.5, "decay_gamma": 0.5},
+    optimization_config={
+        "decay_lambda": 0.5,
+        "decay_gamma": 0.5,
+        # mode_2_sbb: "sbb_samples", "sbb_block_length",
+        #             "sbb_decay_lambda", "sbb_std_penalty"
+        # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
+        #                     "flat_min_samples", "flat_selector"
+        "use_numba": True,
+    },
     optuna_trials=100,
     optuna_early_stopping=25,
     random_seed=42,
@@ -824,7 +832,7 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
 
-Phase 1 supported target routes:
+Supported target routes:
 
 - `signal_notional`, `notional`, and `unit`: strategy returns one scalar
   `pd.Series`; final run uses native vectorized/event according to backend.
@@ -856,10 +864,17 @@ Important rules:
 - outputs are sliced to `test_index` before stitching;
 - values outside OOS windows are filled with `0.0`;
 - fixed-parameter runs pass `params=...`;
-- Phase 2 supports `optimization_mode="mode_1_decay"` with Optuna;
+- optimization modes are `mode_1_decay`, `mode_2_sbb`, and
+  `mode_3_flat_minima`;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
-- bootstrap/SBB and flat-minima selection are scheduled for later phases.
+- `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
+  returns to estimate synthetic OOS robustness;
+- `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
+  selects the medoid of the densest stable cluster instead of a sharp isolated
+  peak;
+- numba accelerates repeated scoring/bootstrap loops when installed; Python /
+  NumPy fallback remains available for debug and equivalence tests.
 
 Mode 1 objective:
 
@@ -867,6 +882,25 @@ Mode 1 objective:
 objective = mean_oos_sharpe
             - decay_lambda * std(IS_sharpe - OOS_sharpe)
             - decay_gamma * max(0, mean(IS_sharpe - OOS_sharpe))
+```
+
+Mode 2 SBB objective:
+
+```text
+synthetic = stationary_block_bootstrap(train_return_proxy)
+objective = mean(synthetic_sharpe)
+            - sbb_decay_lambda * max(0, IS_sharpe - mean(synthetic_sharpe))
+            - sbb_std_penalty * std(synthetic_sharpe)
+```
+
+Mode 3 flat-minima selector:
+
+```text
+1. score trials with the same decay objective as mode_1_decay;
+2. take the top flat_top_fraction trials;
+3. normalize numeric/categorical params into [0, 1];
+4. density-cluster the top region with flat_eps and flat_min_samples;
+5. select the medoid of the densest cluster.
 ```
 
 ## Service Integration Pattern

@@ -376,7 +376,9 @@ class QuantBTEndpoint:
         signal/position output indexed by timestamp. The stitched OOS output is
         then routed into an existing QuantBT backtest path, so boundary trades
         are charged by the normal engine instead of averaging fold equities.
-        Phase 2 supports `optimization_mode="mode_1_decay"` with Optuna.
+        Supported optimization modes are `mode_1_decay`, `mode_2_sbb`, and
+        `mode_3_flat_minima`. Fixed-parameter runs can leave
+        `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
         optimization_config = dict(optimization_config or {})
         wf_config = kwargs.pop("walkforward_config", None)
@@ -393,6 +395,15 @@ class QuantBTEndpoint:
                 random_seed=random_seed,
                 decay_lambda=float(optimization_config.get("decay_lambda", 0.5)),
                 decay_gamma=float(optimization_config.get("decay_gamma", 0.5)),
+                sbb_samples=int(optimization_config.get("sbb_samples", 256)),
+                sbb_block_length=int(optimization_config.get("sbb_block_length", 20)),
+                sbb_decay_lambda=float(optimization_config.get("sbb_decay_lambda", 0.5)),
+                sbb_std_penalty=float(optimization_config.get("sbb_std_penalty", 0.1)),
+                flat_top_fraction=float(optimization_config.get("flat_top_fraction", 0.1)),
+                flat_eps=float(optimization_config.get("flat_eps", 0.15)),
+                flat_min_samples=int(optimization_config.get("flat_min_samples", 3)),
+                flat_selector=str(optimization_config.get("flat_selector", "medoid")),
+                use_numba=bool(optimization_config.get("use_numba", True)),
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
@@ -909,6 +920,7 @@ class QuantBTEndpoint:
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
             "random_seed": wf_result.metadata.get("random_seed"),
+            "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         result.metadata["walk_forward_result"] = wf_result
         self.engine = engine
