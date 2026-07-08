@@ -57,6 +57,8 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
+| `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
+| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
 | `QuantBTEndpoint.portfolio()` | `portfolio` | `legacy_portfolio` | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
 
@@ -508,6 +510,153 @@ Routing:
 - backend: `native_event`;
 - engine: `BacktestEngineV2`.
 
+## Arbitrage
+
+Use this for package-style arbitrage where one scalar signal expands into
+multiple legs that should be sized together.
+
+```python
+from quantbt import (
+    ArbitrageLeg,
+    ContractType,
+    HedgePolicy,
+    HedgePolicyKind,
+    QuantBTEndpoint,
+    SizingPolicy,
+    SizingPolicyKind,
+    StatArbPairSpec,
+)
+
+spec = StatArbPairSpec(
+    arb_id="ETH_SOL_STAT_ARB",
+    legs=(
+        ArbitrageLeg("ETHUSDT-PERP.BINANCE", ratio=1.0, role="base", contract_type=ContractType.LINEAR),
+        ArbitrageLeg("SOLUSDT-PERP.BINANCE", ratio=-1.0, role="hedge", contract_type=ContractType.LINEAR),
+    ),
+    hedge_policy=HedgePolicy(HedgePolicyKind.DELTA_NEUTRAL, freeze_on_entry=True),
+    sizing_policy=SizingPolicy(SizingPolicyKind.TARGET_GROSS_NOTIONAL, notional=50_000),
+)
+
+bt = QuantBTEndpoint.arbitrage(
+    arb_type="stat_arb_pair",
+    spec=spec,
+    backend="native_vectorized",
+    initial_capital=100_000,
+    leverage=5,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = bt.backtest(
+    data={
+        "ETHUSDT-PERP.BINANCE": eth_df,
+        "SOLUSDT-PERP.BINANCE": sol_df,
+    },
+    signal=entry_exit_signal,
+    hedge_ratios={
+        "ETHUSDT-PERP.BINANCE": eth_beta,
+        "SOLUSDT-PERP.BINANCE": -sol_beta,
+    },
+)
+
+bt.show_metrics()
+result.metadata["package_target_units"]
+result.metadata["leg_pnl_report"]
+result.metadata["beta_drift_report"]
+```
+
+Supported executable specs:
+
+| Spec | Native event | Native vectorized | Nautilus | Notes |
+|---|---:|---:|---:|---|
+| `BasisArbitrageSpec` | yes | yes | package validation | linear USDM-style legs only today |
+| `StatArbPairSpec` | yes | yes | package validation | frozen hedge-ratio pair; dynamic `hedge_ratios` supported |
+| `CalendarSpreadSpec` | yes | yes | no | package-style futures spread |
+| `FundingArbitrageSpec` | yes | yes | no | funding-enabled leg required |
+| `SpotPerpCashCarrySpec` | yes | yes | no | spot plus funding-enabled derivative |
+| `IndexBasketArbSpec` | yes | yes | no | requires `target_gross_notional` sizing |
+
+Schema-only specs that must not be routed through generic package execution yet:
+
+| Spec | Why it is not executable yet |
+|---|---|
+| `CrossExchangeArbSpec` | needs venue/account split, transfer state, borrow constraints, and venue-specific margin |
+| `TriangularArbSpec` | needs sequenced path execution, latency, partial-fill propagation, and path PnL |
+| `OptionsVolArbSpec` | needs option instruments, Greeks, IV surface, expiry, assignment, and hedge behavior |
+
+You can inspect the live matrix from Python:
+
+```python
+matrix = QuantBTEndpoint.arbitrage_support_matrix()
+matrix["StatArbPairSpec"]
+```
+
+Input requirement:
+
+- `spec`: one supported arbitrage spec passed to `QuantBTEndpoint.arbitrage()`;
+- `data`: `{symbol: DataFrame}` for all spec legs, or explicit `closes/highs/lows`;
+- `signal`: scalar entry/exit series where `0` means flat and sign controls
+  package direction;
+- `hedge_ratios`: optional per-leg ratio series for dynamic beta/hedge models;
+- each price series must be finite and strictly positive after UTC alignment.
+
+Package execution policy:
+
+- `PackageExecutionKind.ATOMIC_ALL_OR_NONE`: the package is preflighted as a
+  whole. If margin is insufficient, no leg order is generated and
+  `package_rejection_report` records `insufficient_margin_atomic`;
+- `PackageExecutionKind.BEST_EFFORT`: legs are preflighted sequentially. Legs
+  with enough margin can open, rejected legs are recorded as
+  `insufficient_margin_best_effort`, and only actual open legs are later closed.
+
+Current hard guards:
+
+- inverse and quanto contract sizing raises `NotImplementedError` until proper
+  contract-value formulas are implemented;
+- `BasisArbitrageSpec` remains linear-only;
+- missing, NaN, infinite, or non-positive close data raises `ValueError`.
+
+Basis example:
+
+```python
+from quantbt import BasisArbitrageSpec
+
+spec = BasisArbitrageSpec(
+    arb_id="BTC_PERP_QUARTERLY_BASIS",
+    legs=(
+        ArbitrageLeg("BTCUSDT-PERP.BINANCE", ratio=-1.0, role="perp", contract_type=ContractType.LINEAR),
+        ArbitrageLeg("BTCUSDT-QUARTERLY.BINANCE", ratio=1.0, role="quarterly", contract_type=ContractType.LINEAR),
+    ),
+    hedge_policy=HedgePolicy(HedgePolicyKind.BASE_QTY_EQUAL, freeze_on_entry=True),
+    sizing_policy=SizingPolicy(
+        SizingPolicyKind.TARGET_NOTIONAL_TO_BASE_QTY,
+        notional=100_000,
+        reference_symbol="BTCUSDT-PERP.BINANCE",
+    ),
+)
+
+bt = QuantBTEndpoint.arbitrage(
+    arb_type="basis",
+    spec=spec,
+    backend="native_event",
+    initial_capital=50_000,
+    leverage=5,
+    fee_rate=0.0002,
+)
+
+result = bt.simulate(data=data_by_symbol, signal=basis_signal)
+result.metadata["spread_report"]
+result.metadata["package_rejection_report"]
+```
+
+Routing:
+
+- `native_vectorized`: fastest path for supported package specs;
+- `native_event`: fill/order diagnostics, package rejection reports, and
+  native event margin/liquidation lifecycle;
+- `nautilus`: validation adapter for `BasisArbitrageSpec` and
+  `StatArbPairSpec` package orders only.
+
 ## Multi-Symbol Portfolio
 
 Use this for a position matrix across many symbols.
@@ -633,6 +782,151 @@ Routing:
 - backend: `nautilus`;
 - engine: `BacktestEngineV2` with Nautilus adapter.
 
+## Walk-Forward
+
+Use this to generate OOS signals/positions fold by fold, stitch them into one
+continuous timeline, and run one final QuantBT backtest. The final simulation
+uses the same engines as normal research, so fold-boundary trades are charged
+with normal fees/slippage/margin behavior.
+
+```python
+from quantbt import QuantBTEndpoint
+
+def strategy(data, params, train_index, test_index, fold):
+    # Phase 1 contract: return OOS output only, indexed by test_index.
+    return data["close"].reindex(test_index).gt(data["close"].rolling(params["window"]).mean()).astype(float)
+
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    target_mode="signal_notional",
+    optimization_mode="mode_1_decay",
+    optimization_config={
+        "decay_lambda": 0.5,
+        "decay_gamma": 0.5,
+        # mode_2_sbb: "sbb_samples", "sbb_block_length",
+        #             "sbb_decay_lambda", "sbb_std_penalty"
+        # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
+        #                     "flat_min_samples", "flat_selector"
+        # crypto default annualization: 365; equities often use 252
+        "scoring_trading_days": 365,
+        "use_numba": True,
+    },
+    optuna_trials=100,
+    optuna_early_stopping=25,
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = wfo.backtest(
+    data=df,
+    symbols=["BTCUSDT"],
+    param_ranges={"window": (10, 100, 5)},
+)
+
+result.metadata["walk_forward"]["fold_table"]
+result.metadata["walk_forward"]["trial_table"]
+result.metadata["walk_forward"]["best_trial"]
+```
+
+Preflight helpers:
+
+```python
+from quantbt import (
+    benchmark_walkforward_kernels,
+    validate_param_ranges,
+    walkforward_support_matrix,
+)
+
+walkforward_support_matrix()
+validate_param_ranges({"window": (10, 100, 5)})
+benchmark_walkforward_kernels(n_obs=2_000, n_samples=128).to_dict()
+```
+
+Supported target routes:
+
+- `signal_notional`, `notional`, and `unit`: strategy returns one scalar
+  `pd.Series`; final run uses native vectorized/event according to backend.
+- `pct_equity` / `%_equity`: strategy returns one scalar `pd.Series`; final run
+  uses the legacy `%_equity` engine.
+- `dca_ladder`: strategy returns structural ladder levels; final run uses the
+  legacy DCA engine and requires `high/low`.
+- `portfolio`: strategy returns a `DataFrame` or `{symbol: Series}`; final run
+  uses `PortfolioBacktestEngine`.
+- `basket`: strategy returns one scalar basket signal; final run uses the
+  configured `BasketSpec`.
+- `arbitrage`: strategy returns one scalar package signal; final run uses the
+  configured arbitrage spec. Supported arbitrage specs follow
+  `QuantBTEndpoint.arbitrage_support_matrix()`.
+
+Strategy adapter contract:
+
+```python
+def strategy(data, params, train_index, test_index, fold):
+    return oos_signal_or_positions
+```
+
+Classes/objects can expose either `build_signal(...)` or `generate_signal(...)`
+with the same arguments.
+
+Important rules:
+
+- train data is always strictly before the OOS test window;
+- outputs are sliced to `test_index` before stitching;
+- strategy outputs must be timestamp-indexed `pd.Series`, `pd.DataFrame`, or
+  `{symbol: pd.Series}` and cover every timestamp in the requested fold;
+  missing fold timestamps are rejected to avoid silent all-zero OOS stitching;
+- values outside OOS windows are filled with `0.0`;
+- fixed-parameter runs pass `params=...`;
+- optimization modes are `mode_1_decay`, `mode_2_sbb`, and
+  `mode_3_flat_minima`;
+- optimization-time scoring uses a transparent return proxy on strategy output;
+  final accounting still comes from the stitched QuantBT backtest;
+- optimization Sharpe annualization uses `scoring_trading_days` from
+  `optimization_config` (`365` for always-on crypto by default, often `252` for
+  equities);
+- `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
+  returns to estimate synthetic OOS robustness;
+- `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
+  selects the medoid or snapped centroid of the densest stable cluster instead
+  of a sharp isolated peak;
+- numba accelerates repeated scoring/bootstrap loops when installed; Python /
+  NumPy fallback remains available for debug and equivalence tests.
+
+Mode 1 objective:
+
+```text
+objective = mean_oos_sharpe
+            - decay_lambda * std(IS_sharpe - OOS_sharpe)
+            - decay_gamma * max(0, mean(IS_sharpe - OOS_sharpe))
+```
+
+Mode 2 SBB objective:
+
+```text
+synthetic = stationary_block_bootstrap(train_return_proxy)
+objective = mean(synthetic_sharpe)
+            - sbb_decay_lambda * max(0, IS_sharpe - mean(synthetic_sharpe))
+            - sbb_std_penalty * std(synthetic_sharpe)
+```
+
+Mode 3 flat-minima selector:
+
+```text
+1. score trials with the same decay objective as mode_1_decay;
+2. take the top flat_top_fraction trials;
+3. normalize numeric/categorical params into [0, 1];
+4. density-cluster the top region with flat_eps and flat_min_samples;
+5. select `flat_selector="medoid"` or `flat_selector="centroid"`;
+6. if centroid is selected, snap it back to the declared param grid and
+   evaluate it before the final stitched backtest.
+```
+
 ## Service Integration Pattern
 
 Recommended shape for alpha services:
@@ -697,3 +991,19 @@ Rules for services:
 `basket endpoint requires a BasketSpec`
 
 - Pass `basket=BasketSpec(...)` either to the factory or to `simulate()`.
+
+`arbitrage endpoint requires an arbitrage spec`
+
+- Build a spec such as `BasisArbitrageSpec` or `StatArbPairSpec`, then pass it
+  to `QuantBTEndpoint.arbitrage(arb_type="...", spec=spec, ...)`.
+
+`inverse/quanto contract sizing is not implemented`
+
+- Generic arbitrage execution currently supports spot and linear contracts.
+  Inverse/quanto legs are guarded until exchange-specific sizing formulas are
+  implemented.
+
+`is schema-validated but requires a specialized arbitrage engine`
+
+- The spec exists, but should not be run through generic package execution.
+  Check `QuantBTEndpoint.arbitrage_support_matrix()` for the supported route.

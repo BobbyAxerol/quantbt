@@ -6,8 +6,10 @@ risk management, allocation modes, and attribution.
 
 Fixes vs original
 ~~~~~~~~~~~~~~~~~
+* Signal-notional portfolio sizing freezes units until signal changes, avoiding
+  price-drift micro-rebalancing.
 * Market-neutral scaling: long and short sides are scaled simultaneously from
-  the ORIGINAL notional, not sequentially (which caused net != 0).
+  the ORIGINAL signed notional, not unit counts.
 * Maintenance margin = notional × mm_rate  (Binance formula, not im × mm_rate).
 * Funding fires once per 8h window via make_funding_mask, not per-bar within hour.
 * _run_portfolio_numba is wired in for crypto intrabar liquidation.
@@ -35,6 +37,7 @@ from .metrics.performance import full_report
 from .viz.plots import quick_plot, tearsheet as _tearsheet
 from .core.types import BacktestResult
 from .core.engine import _engine_portfolio
+from .sizing.modes import compute_target_units
 
 
 class MultiSymbolPortfolio:
@@ -50,7 +53,7 @@ class MultiSymbolPortfolio:
     fee_rate         round-trip fee; halved internally to one-way
     alloc_per_trade  notional per full signal unit; float or per-symbol dict
     contract_size    float or per-symbol dict
-    hedge_type       'notional' | 'unit'  (signal_notional not applicable here)
+    hedge_type       'signal_notional' | 'notional' | 'unit'
     initial_capital  float
     asset_type       'crypto' | 'stock'
     use_funding      override funding; None → follows asset_type
@@ -83,7 +86,7 @@ class MultiSymbolPortfolio:
         fee_rate:          Optional[float] = None,
         alloc_per_trade:   Union[float, Dict[str, float]] = 100_000.0,
         contract_size:     Union[float, Dict[str, float]] = None,
-        hedge_type:        str   = "notional",
+        hedge_type:        str   = "signal_notional",
         initial_capital:   float = 100_000.0,
         asset_type:        str   = "crypto",
         use_funding:       Optional[bool] = None,
@@ -115,6 +118,9 @@ class MultiSymbolPortfolio:
         valid_modes = {"longshort", "market_neutral", "directional", "equal_weight"}
         if self.mode not in valid_modes:
             raise ValueError(f"mode must be one of {valid_modes}")
+        valid_hedge_types = {"signal_notional", "signal", "notional", "unit"}
+        if self.hedge_type not in valid_hedge_types:
+            raise ValueError(f"portfolio hedge_type must be one of {valid_hedge_types}")
 
         # ── symbols ───────────────────────────────────────────────────────
         self.symbols = list(positions.keys())
@@ -166,9 +172,13 @@ class MultiSymbolPortfolio:
         # ── scale positions → notional units ─────────────────────────────
         self._scaled: Dict[str, pd.Series] = {}
         for s in self.symbols:
-            notional = self.alloc[s]
-            denom    = self._close[s] if self.hedge_type == "notional" else self._close[s].iloc[0]
-            self._scaled[s] = self._pos[s] * (notional / denom)
+            self._scaled[s] = compute_target_units(
+                hedge_type=self.hedge_type,
+                signal=self._pos[s],
+                close=self._close[s],
+                alloc=self.alloc[s],
+                use_pyramiding=True,
+            )
 
         # ── apply portfolio mode ──────────────────────────────────────────
         self._apply_mode()
@@ -188,35 +198,47 @@ class MultiSymbolPortfolio:
         All scaling is done from the original notional simultaneously.
         """
         pos_df = pd.DataFrame({s: self._scaled[s] for s in self.symbols})
+        close_df = pd.DataFrame({s: self._close[s] for s in self.symbols})
+        cs = pd.Series({s: float(self.cs[s]) for s in self.symbols})
+
+        def _signed_notional(units: pd.DataFrame) -> pd.DataFrame:
+            return units.mul(close_df, axis=0).mul(cs, axis=1)
 
         if self.mode == "market_neutral":
             # Scale each side so gross_long_notional == gross_short_notional every bar.
-            # Capture long/short sums from the ORIGINAL positions in one pass.
-            long_mask  = pos_df > 0
-            short_mask = pos_df < 0
-            long_sum   = (pos_df * long_mask).sum(axis=1)          # positive
-            short_sum  = (pos_df * short_mask).abs().sum(axis=1)   # positive
+            # Capture long/short sums from the ORIGINAL signed notional in one pass.
+            notional_df = _signed_notional(pos_df)
+            long_mask  = notional_df > 0
+            short_mask = notional_df < 0
+            long_sum   = (notional_df * long_mask).sum(axis=1)          # positive
+            short_sum  = (notional_df * short_mask).abs().sum(axis=1)   # positive
 
             target = (long_sum + short_sum) / 2.0   # equal notional on each side
 
             for s in self.symbols:
-                col = pos_df[s]
+                col = notional_df[s]
+                original_units = pos_df[s]
                 # scale independently per side; avoids the sequential mutation bug
                 long_scale  = (target / long_sum.replace(0, np.nan)).fillna(1.0)
                 short_scale = (target / short_sum.replace(0, np.nan)).fillna(1.0)
-                pos_df[s]   = np.where(col > 0, col * long_scale,
-                              np.where(col < 0, col * short_scale, 0.0))
+                pos_df[s]   = np.where(col > 0, original_units * long_scale,
+                              np.where(col < 0, original_units * short_scale, 0.0))
 
         elif self.mode == "directional":
-            notional = pos_df.abs()
+            notional = _signed_notional(pos_df).abs()
             dominant = notional.idxmax(axis=1)
             for s in self.symbols:
                 pos_df[s] = pos_df[s].where(dominant == s, 0.0)
 
         elif self.mode == "equal_weight":
-            active  = (pos_df != 0).sum(axis=1).replace(0, 1)
-            weights = 1.0 / active
-            pos_df  = pos_df.mul(weights, axis=0)
+            notional_df = _signed_notional(pos_df)
+            active = (notional_df != 0).sum(axis=1)
+            gross = notional_df.abs().sum(axis=1)
+            target_abs = (gross / active.replace(0, np.nan)).fillna(0.0)
+            for s in self.symbols:
+                denom = (close_df[s] * float(self.cs[s])).replace(0.0, np.nan)
+                sign = np.sign(notional_df[s])
+                pos_df[s] = (sign * target_abs / denom).fillna(0.0)
 
         for s in self.symbols:
             self._scaled[s] = pos_df[s]

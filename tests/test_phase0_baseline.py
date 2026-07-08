@@ -58,6 +58,67 @@ def test_multisymbol_portfolio_leverage_gates_buying_power_not_alloc_size():
     assert rejected.result.equity.iloc[2] == 10_000.0
 
 
+def test_multisymbol_portfolio_default_signal_notional_freezes_units_until_signal_changes():
+    idx = pd.date_range("2024-01-01", periods=3, freq="1D", tz="UTC")
+    pos = pd.Series([0.0, 1.0, 1.0], index=idx)
+    close = pd.Series([100.0, 100.0, 200.0], index=idx)
+
+    msp = MultiSymbolPortfolio(
+        positions={"BTC": pos},
+        closes={"BTC": close},
+        highs={"BTC": close},
+        lows={"BTC": close},
+        datetime_index=idx,
+        mode="longshort",
+        fee_rate=0.0,
+        alloc_per_trade=1_000.0,
+        initial_capital=10_000.0,
+        leverage=10.0,
+        asset_type="crypto",
+        use_funding=False,
+    )
+
+    assert msp.hedge_type == "signal_notional"
+    assert msp.result.positions["Position_BTC"].iloc[1] == 10.0
+    assert msp.result.positions["Position_BTC"].iloc[2] == 10.0
+    assert msp.result.equity.iloc[2] == 11_000.0
+
+
+def test_multisymbol_portfolio_market_neutral_scales_by_notional_not_units():
+    idx = pd.date_range("2024-01-01", periods=2, freq="1D", tz="UTC")
+    positions = {
+        "BTC": pd.Series([0.0, 1.0], index=idx),
+        "ETH": pd.Series([0.0, -1.0], index=idx),
+    }
+    closes = {
+        "BTC": pd.Series([100.0, 100.0], index=idx),
+        "ETH": pd.Series([10.0, 10.0], index=idx),
+    }
+
+    msp = MultiSymbolPortfolio(
+        positions=positions,
+        closes=closes,
+        highs=closes,
+        lows=closes,
+        datetime_index=idx,
+        mode="market_neutral",
+        fee_rate=0.0,
+        alloc_per_trade={"BTC": 1_000.0, "ETH": 2_000.0},
+        initial_capital=100_000.0,
+        leverage=5.0,
+        asset_type="crypto",
+        use_funding=False,
+    )
+
+    btc_units = msp.result.positions["Position_BTC"].iloc[1]
+    eth_units = msp.result.positions["Position_ETH"].iloc[1]
+    btc_notional = abs(btc_units * closes["BTC"].iloc[1])
+    eth_notional = abs(eth_units * closes["ETH"].iloc[1])
+
+    assert btc_notional == eth_notional
+    assert btc_notional == 1_500.0
+
+
 def test_dca_ladder_fills_safety_order_at_grid_trigger_price():
     idx = pd.date_range("2024-01-01", periods=3, freq="1D", tz="UTC")
     signal = pd.Series([0.0, 2.0, 2.0], index=idx)

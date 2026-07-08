@@ -248,6 +248,15 @@ def test_endpoint_direct_constructor_accepts_account_kwargs():
     ).startswith("\n  Initial Capital")
 
 
+def test_endpoint_arbitrage_support_matrix_exposes_supported_and_schema_only_specs():
+    matrix = QuantBTEndpoint.arbitrage_support_matrix()
+
+    assert matrix["StatArbPairSpec"]["status"] == "supported"
+    assert "native_vectorized" in matrix["BasisArbitrageSpec"]["backends"]
+    assert matrix["TriangularArbSpec"]["status"] == "schema_only"
+    assert matrix["OptionsVolArbSpec"]["backends"] == "none"
+
+
 def test_nautilus_endpoint_accepts_legacy_hedge_type_alias():
     endpoint = QuantBTEndpoint.nautilus_validation(
         hedge_type="%_equity",
