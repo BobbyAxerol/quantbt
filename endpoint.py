@@ -404,6 +404,8 @@ class QuantBTEndpoint:
                 flat_min_samples=int(optimization_config.get("flat_min_samples", 3)),
                 flat_selector=str(optimization_config.get("flat_selector", "medoid")),
                 scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
+                min_trades_per_year=optimization_config.get("min_trades_per_year"),
+                trade_penalty_factor=optimization_config.get("trade_penalty_factor"),
                 use_numba=bool(optimization_config.get("use_numba", True)),
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
@@ -922,6 +924,8 @@ class QuantBTEndpoint:
             "config_hash": wf_result.metadata.get("config_hash"),
             "random_seed": wf_result.metadata.get("random_seed"),
             "scoring_trading_days": wf_result.metadata.get("scoring_trading_days"),
+            "min_trades_per_year": wf_result.metadata.get("min_trades_per_year"),
+            "trade_penalty_factor": wf_result.metadata.get("trade_penalty_factor"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         result.metadata["walk_forward_result"] = wf_result

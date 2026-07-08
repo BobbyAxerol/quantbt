@@ -811,6 +811,9 @@ wfo = QuantBTEndpoint.walk_forward(
         #                     "flat_min_samples", "flat_selector"
         # crypto default annualization: 365; equities often use 252
         "scoring_trading_days": 365,
+        # optional under-trading penalty; None disables it
+        "min_trades_per_year": None,
+        "trade_penalty_factor": None,
         "use_numba": True,
     },
     optuna_trials=100,
@@ -890,6 +893,9 @@ Important rules:
 - optimization Sharpe annualization uses `scoring_trading_days` from
   `optimization_config` (`365` for always-on crypto by default, often `252` for
   equities);
+- optional trade-frequency penalization can be enabled with
+  `min_trades_per_year` and `trade_penalty_factor` to avoid low-trade Sharpe
+  overfitting; leaving either unset keeps existing behavior unchanged;
 - `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
   returns to estimate synthetic OOS robustness;
 - `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
@@ -926,6 +932,19 @@ Mode 3 flat-minima selector:
 6. if centroid is selected, snap it back to the declared param grid and
    evaluate it before the final stitched backtest.
 ```
+
+Optional trade-frequency penalty:
+
+```text
+required_trades = min_trades_per_year * fold_duration_days / 365
+penalty = trade_penalty_factor * max(0, 1 - actual_trade_count / required_trades)
+penalized_sharpe = raw_sharpe - penalty
+```
+
+`actual_trade_count` is the number of initial non-zero fold positions plus
+timestamp-to-timestamp position changes, not the notional size of those changes.
+This keeps the penalty focused on under-trading rather than allocation
+magnitude.
 
 ## Service Integration Pattern
 
