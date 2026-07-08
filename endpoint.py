@@ -362,16 +362,23 @@ class QuantBTEndpoint:
         target_mode: str = "signal_notional",
         window_mode: str = "expanding",
         train_window: Optional[str] = None,
+        optimization_mode: str = "none",
+        optimization_config: Optional[Dict] = None,
+        optuna_trials: int = 0,
+        optuna_early_stopping: Optional[int] = None,
+        random_seed: int = 42,
         **kwargs,
     ) -> "QuantBTEndpoint":
         """
-        Create a Phase 1 walk-forward endpoint.
+        Create a walk-forward endpoint.
 
         The strategy callable/class is invoked once per fold and must return OOS
         signal/position output indexed by timestamp. The stitched OOS output is
         then routed into an existing QuantBT backtest path, so boundary trades
         are charged by the normal engine instead of averaging fold equities.
+        Phase 2 supports `optimization_mode="mode_1_decay"` with Optuna.
         """
+        optimization_config = dict(optimization_config or {})
         wf_config = kwargs.pop("walkforward_config", None)
         if wf_config is None:
             wf_config = WalkForwardConfig(
@@ -380,6 +387,12 @@ class QuantBTEndpoint:
                 window_mode=window_mode,
                 train_window=train_window,
                 target_mode=target_mode,
+                optimization_mode=optimization_mode,
+                optuna_trials=optuna_trials,
+                optuna_early_stopping=optuna_early_stopping,
+                random_seed=random_seed,
+                decay_lambda=float(optimization_config.get("decay_lambda", 0.5)),
+                decay_gamma=float(optimization_config.get("decay_gamma", 0.5)),
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
@@ -890,6 +903,12 @@ class QuantBTEndpoint:
             "n_folds": wf_result.metadata["n_folds"],
             "params": wf_result.params,
             "fold_table": wf_result.fold_table,
+            "trial_table": wf_result.trial_table,
+            "best_trial": wf_result.best_trial,
+            "optimization_mode": wf_result.metadata.get("optimization_mode"),
+            "data_hash": wf_result.metadata.get("data_hash"),
+            "config_hash": wf_result.metadata.get("config_hash"),
+            "random_seed": wf_result.metadata.get("random_seed"),
         }
         result.metadata["walk_forward_result"] = wf_result
         self.engine = engine

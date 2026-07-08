@@ -48,7 +48,18 @@ Advanced — standalone metrics + plots::
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
 from .endpoint import EndpointConfig, QuantBTEndpoint, format_metrics_report
-from .walkforward import WalkForwardConfig, WalkForwardEngine, WalkForwardFold, WalkForwardResult, stitch_oos_outputs
+from .walkforward import (
+    DuplicatePruner,
+    EarlyStoppingCallback,
+    WalkForwardConfig,
+    WalkForwardEngine,
+    WalkForwardFold,
+    WalkForwardResult,
+    WalkForwardTrialRecord,
+    logging_callback,
+    score_strategy_output,
+    stitch_oos_outputs,
+)
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
 from .adapters.nautilus import NautilusBacktestEngine
@@ -153,6 +164,11 @@ __all__ = [
     "WalkForwardEngine",
     "WalkForwardFold",
     "WalkForwardResult",
+    "WalkForwardTrialRecord",
+    "EarlyStoppingCallback",
+    "DuplicatePruner",
+    "logging_callback",
+    "score_strategy_output",
     "stitch_oos_outputs",
     "BacktestResult",
     "BacktestResultV2",

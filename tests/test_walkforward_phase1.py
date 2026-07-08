@@ -13,6 +13,7 @@ from quantbt import (
     SizingPolicyKind,
     WalkForwardConfig,
     WalkForwardEngine,
+    score_strategy_output,
 )
 
 
@@ -168,3 +169,69 @@ def test_walkforward_endpoint_routes_supported_arbitrage_signal():
     assert result.metadata["engine"] == "units_v2_basis_arbitrage"
     assert result.metadata["walk_forward"]["target_mode"] == "arbitrage"
     assert "package_target_units" in result.metadata
+
+
+def test_walkforward_phase2_fixed_params_expose_fold_metrics_and_best_trial():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(float(params["side"]), index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(split_mode=2022, split_frequency="quarterly"),
+    )
+    result = engine.run(data=data, params={"side": 1.0})
+
+    assert result.metadata["engine"] == "walk_forward_phase2"
+    assert result.best_trial["params"] == {"side": 1.0}
+    assert result.best_trial["fold_metrics"]
+    assert set(["objective", "mean_is_sharpe", "mean_oos_sharpe", "mean_decay"]).issubset(result.trial_table.columns)
+
+
+def test_walkforward_phase2_mode_1_decay_optimizes_with_optuna_and_records_ledger():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        side = 1.0 if int(params["go_long"]) == 1 else -1.0
+        return pd.Series(side, index=test_index)
+
+    bt = QuantBTEndpoint.walk_forward(
+        strategy_class=strategy,
+        split_mode=2022,
+        split_frequency="quarterly",
+        target_mode="signal_notional",
+        optimization_mode="mode_1_decay",
+        optimization_config={"decay_lambda": 0.5, "decay_gamma": 0.5},
+        optuna_trials=12,
+        random_seed=7,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"go_long": (0, 1, 1)})
+    wf = result.metadata["walk_forward"]
+
+    assert wf["optimization_mode"] == "mode_1_decay"
+    assert wf["params"]["go_long"] == 1
+    assert wf["best_trial"]["objective"] == wf["trial_table"]["objective"].max()
+    assert wf["config_hash"]
+    assert wf["data_hash"]
+
+
+def test_walkforward_score_strategy_output_is_transparent_return_proxy():
+    idx = pd.date_range("2024-01-01", periods=4, freq="1D", tz="UTC")
+    data = _bars(idx)
+    data["close"] = [100.0, 110.0, 121.0, 133.1]
+    signal = pd.Series([0.0, 1.0, 1.0, 1.0], index=idx)
+
+    metrics = score_strategy_output(data, signal, idx)
+
+    assert metrics["turnover"] == 1.0
+    assert metrics["mean_return"] > 0.0

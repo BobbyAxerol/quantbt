@@ -23,6 +23,8 @@ with the current QuantBT endpoints.
 
 ## Phase 1 - Split, Stitch, Endpoint Contract
 
+Status: implemented.
+
 Goal:
 
 - Add the stable public integration surface and correctness foundation.
@@ -49,6 +51,8 @@ Tests:
 
 ## Phase 2 - Objective Mode 1 And Optuna Basics
 
+Status: implemented in the Phase 2 foundation.
+
 Goal:
 
 - Run real optimization over WFO folds with transparent decay scoring.
@@ -62,6 +66,17 @@ Scope:
   `mean_oos_sharpe - lambda * std(decay) - gamma * max(0, mean(decay))`.
 - Per-fold IS/OOS metrics.
 - Trial ledger with params, objective components, data hash, config hash, seed.
+
+Implemented notes:
+
+- `optimization_mode="mode_1_decay"` is available through
+  `QuantBTEndpoint.walk_forward(...)`.
+- The optimizer uses transparent return-proxy scoring on strategy output for
+  IS/OOS fold metrics, then runs the final stitched QuantBT backtest once with
+  the selected params.
+- `trial_table`, `best_trial`, `fold_table`, data hash, config hash, and random
+  seed are exposed in `result.metadata["walk_forward"]`.
+- Bootstrap/SBB and flat-minima are intentionally left for Phase 3.
 
 Tests:
 
