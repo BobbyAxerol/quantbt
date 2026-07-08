@@ -11,6 +11,14 @@ can be treated as institutional-grade for research production.
 
 Arbitrage is implemented through Phase H hardening.
 
+Temporary pause note:
+
+- Pause arbitrage engine upgrades before Phase I.
+- Native event and native vectorized arbitrage routes are usable for internal
+  validation and strategy research, with the caveats below.
+- Next arbitrage work should resume with Phase I Nautilus instrument/parity
+  hardening, then real-strategy validation and remaining specialized engines.
+
 Implemented and tested:
 
 - Phase A: public arbitrage schema and deterministic package order plan.
