@@ -20,10 +20,13 @@ from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBac
 from .core.arbitrage import (
     BasisArbitrageSpec,
     CalendarSpreadSpec,
+    CrossExchangeArbSpec,
     FundingArbitrageSpec,
     IndexBasketArbSpec,
+    OptionsVolArbSpec,
     SpotPerpCashCarrySpec,
     StatArbPairSpec,
+    TriangularArbSpec,
     build_arbitrage_order_plan,
 )
 from .core.basket import build_frozen_basket_orders
@@ -35,6 +38,7 @@ from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
 from .viz import quick_plot as _quick_plot
 from .viz import tearsheet as _tearsheet
+from .walkforward import WalkForwardConfig, WalkForwardEngine
 
 
 SeriesMap = Dict[str, pd.Series]
@@ -51,7 +55,7 @@ class EndpointConfig:
     mode:
         Strategy integration mode. Supported values are `single_signal`,
         `pct_equity`, `signal_notional`, `dca_ladder`, `orders`, `basket`,
-        `portfolio`, and `nautilus_validation`.
+        `portfolio`, `arbitrage`, `walk_forward`, and `nautilus_validation`.
     backend:
         Engine selector. Use `auto` for domain-safe defaults, or explicitly set
         `legacy`, `native_vectorized`, `native_event`, or `nautilus`.
@@ -96,6 +100,11 @@ class EndpointConfig:
         Extra DCA ladder parameters forwarded to legacy `BacktestEngine`.
     nautilus_config:
         Optional `NautilusBackendConfig` instance for Nautilus validation runs.
+    strategy_class:
+        Optional strategy callable/class for `walk_forward` mode. The strategy
+        must return a Series, DataFrame, or `{symbol: Series}` OOS output.
+    walkforward_config:
+        Optional `WalkForwardConfig` for split/stitch behavior.
     metadata:
         Free-form service metadata carried by the endpoint.
     """
@@ -120,6 +129,9 @@ class EndpointConfig:
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
+    strategy_class: object = None
+    walkforward_config: Optional[WalkForwardConfig] = None
+    walkforward_target_mode: str = "signal_notional"
     metadata: Dict = field(default_factory=dict)
 
     @property
@@ -220,10 +232,20 @@ class QuantBTEndpoint:
         """
         Create an arbitrage endpoint.
 
-        Phase C supports native-event `BasisArbitrageSpec` for USDM linear
-        perp-vs-quarterly style package trades. Phase D adds
-        `StatArbPairSpec` via frozen basket execution. Other arbitrage specs
-        remain schema/order-plan only until their engine phases land.
+        Supported today:
+
+        - `BasisArbitrageSpec`: native event, native vectorized, Nautilus
+          package-order validation.
+        - `StatArbPairSpec`: native event, native vectorized, Nautilus
+          package-order validation.
+        - `CalendarSpreadSpec`, `FundingArbitrageSpec`,
+          `SpotPerpCashCarrySpec`, and `IndexBasketArbSpec`: native event and
+          native vectorized package-style execution.
+
+        `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec`
+        are schema-validated but intentionally not executable through the
+        generic package route because they require specialized account,
+        sequence, latency, or Greek-aware engines.
         """
         metadata = dict(kwargs.pop("metadata", {}))
         metadata["arb_type"] = arb_type
@@ -236,6 +258,73 @@ class QuantBTEndpoint:
                 **kwargs,
             )
         )
+
+    @staticmethod
+    def arbitrage_support_matrix() -> Dict[str, Dict[str, str]]:
+        """
+        Return the public arbitrage endpoint support matrix.
+
+        Services can call this helper to decide which spec/backend pair is safe
+        before constructing a run. A status of `supported` means the endpoint
+        can execute the spec. A status of `schema_only` means the dataclass and
+        validation exist, but execution should wait for a specialized engine.
+        """
+        return {
+            "BasisArbitrageSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized,nautilus",
+                "route": "run_basis_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty; linear contracts only",
+            },
+            "StatArbPairSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized,nautilus",
+                "route": "run_stat_arb_pair_arbitrage",
+                "sizing": "target_gross_notional; optional dynamic hedge_ratios",
+            },
+            "CalendarSpreadSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "FundingArbitrageSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "SpotPerpCashCarrySpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_notional_to_base_qty or target_base_qty",
+            },
+            "IndexBasketArbSpec": {
+                "status": "supported",
+                "backends": "native_event,native_vectorized",
+                "route": "run_package_arbitrage",
+                "sizing": "target_gross_notional",
+            },
+            "CrossExchangeArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs venue/account split engine",
+                "sizing": "not executable yet",
+            },
+            "TriangularArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs sequenced path execution engine",
+                "sizing": "not executable yet",
+            },
+            "OptionsVolArbSpec": {
+                "status": "schema_only",
+                "backends": "none",
+                "route": "needs option/greeks engine",
+                "sizing": "not executable yet",
+            },
+        }
 
     @classmethod
     def portfolio(cls, portfolio_mode: str = "longshort", **kwargs) -> "QuantBTEndpoint":
@@ -264,6 +353,74 @@ class QuantBTEndpoint:
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", "signal_notional"))
         return cls(_config_from_kwargs(mode="nautilus_validation", backend="nautilus", sizing=sizing, **kwargs))
 
+    @classmethod
+    def walk_forward(
+        cls,
+        strategy_class,
+        split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022",
+        split_frequency: str = "quarterly",
+        target_mode: str = "signal_notional",
+        window_mode: str = "expanding",
+        train_window: Optional[str] = None,
+        optimization_mode: str = "none",
+        optimization_config: Optional[Dict] = None,
+        optuna_trials: int = 0,
+        optuna_early_stopping: Optional[int] = None,
+        random_seed: int = 42,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create a walk-forward endpoint.
+
+        The strategy callable/class is invoked once per fold and must return OOS
+        signal/position output indexed by timestamp. The stitched OOS output is
+        then routed into an existing QuantBT backtest path, so boundary trades
+        are charged by the normal engine instead of averaging fold equities.
+        Supported optimization modes are `mode_1_decay`, `mode_2_sbb`, and
+        `mode_3_flat_minima`. Fixed-parameter runs can leave
+        `optimization_mode="none"` and pass `params=...` to `backtest()`.
+        """
+        optimization_config = dict(optimization_config or {})
+        wf_config = kwargs.pop("walkforward_config", None)
+        if wf_config is None:
+            wf_config = WalkForwardConfig(
+                split_mode=split_mode,
+                split_frequency=split_frequency,
+                window_mode=window_mode,
+                train_window=train_window,
+                target_mode=target_mode,
+                optimization_mode=optimization_mode,
+                optuna_trials=optuna_trials,
+                optuna_early_stopping=optuna_early_stopping,
+                random_seed=random_seed,
+                decay_lambda=float(optimization_config.get("decay_lambda", 0.5)),
+                decay_gamma=float(optimization_config.get("decay_gamma", 0.5)),
+                sbb_samples=int(optimization_config.get("sbb_samples", 256)),
+                sbb_block_length=int(optimization_config.get("sbb_block_length", 20)),
+                sbb_decay_lambda=float(optimization_config.get("sbb_decay_lambda", 0.5)),
+                sbb_std_penalty=float(optimization_config.get("sbb_std_penalty", 0.1)),
+                flat_top_fraction=float(optimization_config.get("flat_top_fraction", 0.1)),
+                flat_eps=float(optimization_config.get("flat_eps", 0.15)),
+                flat_min_samples=int(optimization_config.get("flat_min_samples", 3)),
+                flat_selector=str(optimization_config.get("flat_selector", "medoid")),
+                scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
+                use_numba=bool(optimization_config.get("use_numba", True)),
+            )
+        default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
+        sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
+        backend = kwargs.pop("backend", "auto")
+        return cls(
+            _config_from_kwargs(
+                mode="walk_forward",
+                backend=backend,
+                sizing=sizing,
+                strategy_class=strategy_class,
+                walkforward_config=wf_config,
+                walkforward_target_mode=target_mode,
+                **kwargs,
+            )
+        )
+
     def backtest(
         self,
         data=None,
@@ -278,6 +435,8 @@ class QuantBTEndpoint:
         hedge_ratios: Optional[SeriesMap] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         symbols: Optional[Sequence[str]] = None,
+        params: Optional[Dict] = None,
+        param_ranges: Optional[Dict] = None,
     ):
         """
         Run the configured backtest and store the result.
@@ -306,6 +465,21 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if mode == "walk_forward":
+            return self._run_walk_forward(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                positions=positions,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                hedge_ratios=hedge_ratios,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                params=params,
+                param_ranges=param_ranges,
+            )
         if mode == "arbitrage":
             return self._run_arbitrage(
                 data=data,
@@ -552,9 +726,15 @@ class QuantBTEndpoint:
         if spec is None:
             raise ValueError("arbitrage endpoint requires an arbitrage spec")
         phase_g_package_specs = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
+        schema_only_specs = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
+        if isinstance(spec, schema_only_specs):
+            raise NotImplementedError(
+                f"{type(spec).__name__} is schema-validated but requires a specialized arbitrage engine; "
+                "do not route it through generic package execution"
+            )
         if not isinstance(spec, (BasisArbitrageSpec, StatArbPairSpec, *phase_g_package_specs)):
             raise NotImplementedError(
-                "Phase C-G supports BasisArbitrageSpec, StatArbPairSpec, and package-style Phase G specs; "
+                "Arbitrage endpoint supports BasisArbitrageSpec, StatArbPairSpec, and package-style Phase G specs; "
                 f"got {type(spec).__name__}"
             )
         backend = _resolve_backend(self.config)
@@ -646,6 +826,108 @@ class QuantBTEndpoint:
             )
         self._store_result(result)
         return self.result
+
+    def _run_walk_forward(
+        self,
+        data,
+        signal,
+        signal_col,
+        positions,
+        closes,
+        highs,
+        lows,
+        hedge_ratios,
+        datetime_index,
+        symbols,
+        params,
+        param_ranges,
+    ):
+        if self.config.strategy_class is None:
+            raise ValueError("walk_forward endpoint requires strategy_class")
+        wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
+        engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config)
+        wf_result = engine.run(
+            data=data if data is not None else closes,
+            params=params,
+            param_ranges=param_ranges,
+            datetime_index=datetime_index,
+        )
+        target_mode = self.config.walkforward_target_mode.lower().strip()
+        stitched = wf_result.oos_output
+        if stitched is None:
+            raise ValueError("walk-forward strategy produced no OOS output")
+
+        if target_mode == "portfolio":
+            if isinstance(stitched, pd.Series):
+                raise TypeError("portfolio walk_forward target_mode requires DataFrame or {symbol: Series} output")
+            result = self._run_portfolio(
+                data=data,
+                positions=stitched,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        elif target_mode == "arbitrage":
+            if not isinstance(stitched, pd.Series):
+                raise TypeError("arbitrage walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_arbitrage(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                hedge_ratios=hedge_ratios,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        elif target_mode == "basket":
+            if not isinstance(stitched, pd.Series):
+                raise TypeError("basket walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_basket(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                basket=self.config.basket,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        else:
+            if not isinstance(stitched, pd.Series):
+                raise TypeError(f"{target_mode} walk_forward target_mode requires a scalar signal Series output")
+            result = self._run_single(
+                data=data,
+                signal=stitched,
+                signal_col=None,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+
+        wf_result.backtest_result = result
+        result.metadata["walk_forward"] = {
+            "engine": wf_result.metadata["engine"],
+            "target_mode": target_mode,
+            "n_folds": wf_result.metadata["n_folds"],
+            "params": wf_result.params,
+            "fold_table": wf_result.fold_table,
+            "trial_table": wf_result.trial_table,
+            "best_trial": wf_result.best_trial,
+            "optimization_mode": wf_result.metadata.get("optimization_mode"),
+            "data_hash": wf_result.metadata.get("data_hash"),
+            "config_hash": wf_result.metadata.get("config_hash"),
+            "random_seed": wf_result.metadata.get("random_seed"),
+            "scoring_trading_days": wf_result.metadata.get("scoring_trading_days"),
+            "numba_enabled": wf_result.metadata.get("numba_enabled"),
+        }
+        result.metadata["walk_forward_result"] = wf_result
+        self.engine = engine
+        self.result = result
+        return result
 
     def _run_nautilus_arbitrage(self, spec, signal, close_map, high_map, low_map, idx, hedge_ratios):
         from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine

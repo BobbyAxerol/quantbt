@@ -48,6 +48,27 @@ Advanced — standalone metrics + plots::
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
 from .endpoint import EndpointConfig, QuantBTEndpoint, format_metrics_report
+from .walkforward import (
+    DuplicatePruner,
+    EarlyStoppingCallback,
+    WalkForwardBenchmarkSnapshot,
+    WalkForwardCompatibilityEntry,
+    WalkForwardConfig,
+    WalkForwardEngine,
+    WalkForwardFold,
+    WalkForwardResult,
+    WalkForwardTrialRecord,
+    benchmark_walkforward_kernels,
+    logging_callback,
+    score_strategy_output,
+    select_flat_minima_record,
+    stationary_bootstrap_sharpes,
+    stitch_oos_outputs,
+    strategy_return_series,
+    validate_param_ranges,
+    validate_walkforward_strategy_output,
+    walkforward_support_matrix,
+)
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
 from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
 from .adapters.nautilus import NautilusBacktestEngine
@@ -148,6 +169,25 @@ __all__ = [
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "WalkForwardConfig",
+    "WalkForwardEngine",
+    "WalkForwardFold",
+    "WalkForwardResult",
+    "WalkForwardTrialRecord",
+    "WalkForwardBenchmarkSnapshot",
+    "WalkForwardCompatibilityEntry",
+    "EarlyStoppingCallback",
+    "DuplicatePruner",
+    "benchmark_walkforward_kernels",
+    "logging_callback",
+    "score_strategy_output",
+    "select_flat_minima_record",
+    "stationary_bootstrap_sharpes",
+    "stitch_oos_outputs",
+    "strategy_return_series",
+    "validate_param_ranges",
+    "validate_walkforward_strategy_output",
+    "walkforward_support_matrix",
     "BacktestResult",
     "BacktestResultV2",
     "AccountConfig",
