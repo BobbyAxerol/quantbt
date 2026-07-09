@@ -15,6 +15,7 @@ import hashlib
 import json
 import operator
 import time
+import warnings
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -106,7 +107,7 @@ class WalkForwardConfig:
         String such as `walk_forward_2022`, an integer year, or a timestamp-like
         value marking the first OOS period.
     split_frequency:
-        `yearly`, `semi_yearly`, or `quarterly`.
+        `yearly`, `semi_yearly`, `quarterly`, `monthly`, or `weekly`.
     window_mode:
         `expanding` keeps the first train timestamp fixed. `rolling` uses
         `train_window` as the train lookback.
@@ -139,10 +140,24 @@ class WalkForwardConfig:
     random_seed: int = 42
     decay_lambda: float = 0.5
     decay_gamma: float = 0.5
+    top_is_fraction: float = 0.10
+    top_is_k: Optional[int] = None
+    candidate_selection_metric: str = "robust_decay"
+    candidate_decay_lambda: Optional[float] = None
+    candidate_decay_gamma: Optional[float] = None
     sbb_samples: int = 256
     sbb_block_length: int = 20
     sbb_decay_lambda: float = 0.5
     sbb_std_penalty: float = 0.1
+    sbb_simulation: str = "stationary"
+    regime_count: int = 3
+    regime_lookback: int = 20
+    regime_weights: Optional[Dict[Union[int, str], float]] = None
+    stress_vol_multiplier: float = 1.0
+    garch_p: int = 1
+    garch_q: int = 1
+    garch_dist: str = "t"
+    garch_vol_multiplier: float = 1.0
     flat_top_fraction: float = 0.1
     flat_eps: float = 0.15
     flat_min_samples: int = 3
@@ -155,8 +170,8 @@ class WalkForwardConfig:
 
     def __post_init__(self) -> None:
         freq = self.split_frequency.lower().strip()
-        if freq not in {"yearly", "semi_yearly", "quarterly"}:
-            raise ValueError("split_frequency must be yearly, semi_yearly, or quarterly")
+        if freq not in {"yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
+            raise ValueError("split_frequency must be yearly, semi_yearly, quarterly, monthly, or weekly")
         object.__setattr__(self, "split_frequency", freq)
 
         mode = self.window_mode.lower().strip()
@@ -178,10 +193,48 @@ class WalkForwardConfig:
             raise ValueError("optuna_trials must be >= 0")
         if self.optuna_early_stopping is not None and self.optuna_early_stopping <= 0:
             raise ValueError("optuna_early_stopping must be > 0")
+        if not 0.0 < self.top_is_fraction <= 1.0:
+            raise ValueError("top_is_fraction must be in (0, 1]")
+        if self.top_is_k is not None and self.top_is_k <= 0:
+            raise ValueError("top_is_k must be > 0 when provided")
+        metric = self.candidate_selection_metric.lower().strip()
+        if metric not in {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe"}:
+            raise ValueError("candidate_selection_metric must be robust_decay, mean_oos_sharpe, or mean_is_sharpe")
+        object.__setattr__(self, "candidate_selection_metric", metric)
+        candidate_decay_lambda = None if self.candidate_decay_lambda is None else float(self.candidate_decay_lambda)
+        if candidate_decay_lambda is not None and candidate_decay_lambda < 0.0:
+            raise ValueError("candidate_decay_lambda must be >= 0 when provided")
+        object.__setattr__(self, "candidate_decay_lambda", candidate_decay_lambda)
+        candidate_decay_gamma = None if self.candidate_decay_gamma is None else float(self.candidate_decay_gamma)
+        if candidate_decay_gamma is not None and candidate_decay_gamma < 0.0:
+            raise ValueError("candidate_decay_gamma must be >= 0 when provided")
+        object.__setattr__(self, "candidate_decay_gamma", candidate_decay_gamma)
         if self.sbb_samples <= 0:
             raise ValueError("sbb_samples must be > 0")
         if self.sbb_block_length <= 0:
             raise ValueError("sbb_block_length must be > 0")
+        sim = self.sbb_simulation.lower().strip()
+        if sim not in {"stationary", "regime", "stress", "garch"}:
+            raise ValueError("sbb_simulation must be stationary, regime, stress, or garch")
+        object.__setattr__(self, "sbb_simulation", sim)
+        if self.regime_count < 2:
+            raise ValueError("regime_count must be >= 2")
+        if self.regime_lookback <= 0:
+            raise ValueError("regime_lookback must be > 0")
+        weights = None
+        if self.regime_weights is not None:
+            weights = _normalize_regime_weights(self.regime_weights, int(self.regime_count))
+        object.__setattr__(self, "regime_weights", weights)
+        if self.stress_vol_multiplier <= 0.0:
+            raise ValueError("stress_vol_multiplier must be > 0")
+        if self.garch_p <= 0 or self.garch_q <= 0:
+            raise ValueError("garch_p and garch_q must be > 0")
+        garch_dist = self.garch_dist.lower().strip()
+        if garch_dist not in {"normal", "gaussian", "t", "studentst"}:
+            raise ValueError("garch_dist must be normal, gaussian, t, or studentst")
+        object.__setattr__(self, "garch_dist", "normal" if garch_dist == "gaussian" else garch_dist)
+        if self.garch_vol_multiplier <= 0.0:
+            raise ValueError("garch_vol_multiplier must be > 0")
         if not 0.0 < self.flat_top_fraction <= 1.0:
             raise ValueError("flat_top_fraction must be in (0, 1]")
         if self.flat_eps <= 0.0:
@@ -219,6 +272,7 @@ class WalkForwardResult:
     params: Dict[str, Any]
     backtest_result: Any = None
     trial_table: pd.DataFrame = field(default_factory=pd.DataFrame)
+    candidate_table: pd.DataFrame = field(default_factory=pd.DataFrame)
     best_trial: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -398,28 +452,30 @@ class WalkForwardEngine:
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
         idx = _infer_datetime_index(data, datetime_index)
+        data_for_strategy = _align_data_to_datetime_index(data, idx)
         folds = self.build_folds(idx)
         trial_records: List[WalkForwardTrialRecord] = []
+        candidate_records: List[WalkForwardTrialRecord] = []
         if params is not None:
             chosen_params = dict(params)
-            selected_record = self.evaluate_params(data=data, folds=folds, params=chosen_params, trial_id=0)
+            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
         elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima"} and self.config.optuna_trials > 0:
-            selected_record, trial_records = self.optimize_params(
-                data=data,
+            selected_record, trial_records, candidate_records = self.optimize_params(
+                data=data_for_strategy,
                 folds=folds,
                 param_ranges=param_ranges or {},
             )
             chosen_params = dict(selected_record.params)
         else:
             chosen_params = dict(_default_params_from_ranges(param_ranges or {}))
-            selected_record = self.evaluate_params(data=data, folds=folds, params=chosen_params, trial_id=0)
+            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
 
         outputs: List[StrategyOutput] = []
 
         for fold in folds:
-            out = self._call_strategy(data=data, params=chosen_params, fold=fold)
+            out = self._call_strategy(data=data_for_strategy, params=chosen_params, fold=fold)
             outputs.append(_slice_output_to_test(out, fold.test_index))
 
         stitched = stitch_oos_outputs(
@@ -435,6 +491,7 @@ class WalkForwardEngine:
             fold_table=fold_table,
             params=chosen_params,
             trial_table=_trial_table(trial_records),
+            candidate_table=_trial_table(candidate_records),
             best_trial=_trial_to_dict(selected_record),
             metadata={
                 "engine": "walk_forward_phase4",
@@ -445,12 +502,27 @@ class WalkForwardEngine:
                 "optimization_mode": self.config.optimization_mode,
                 "n_folds": len(folds),
                 "n_trials": len(trial_records),
-                "data_hash": _data_hash(data),
+                "n_candidates": len(candidate_records),
+                "top_is_fraction": self.config.top_is_fraction,
+                "top_is_k": self.config.top_is_k,
+                "candidate_selection_metric": self.config.candidate_selection_metric,
+                "data_hash": _data_hash(data_for_strategy),
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
                 "scoring_trading_days": self.config.scoring_trading_days,
                 "min_trades_per_year": self.config.min_trades_per_year,
                 "trade_penalty_factor": self.config.trade_penalty_factor,
+                "sbb_simulation": self.config.sbb_simulation,
+                "sbb_samples": self.config.sbb_samples,
+                "sbb_block_length": self.config.sbb_block_length,
+                "regime_count": self.config.regime_count,
+                "regime_lookback": self.config.regime_lookback,
+                "regime_weights": self.config.regime_weights,
+                "stress_vol_multiplier": self.config.stress_vol_multiplier,
+                "garch_p": self.config.garch_p,
+                "garch_q": self.config.garch_q,
+                "garch_dist": self.config.garch_dist,
+                "garch_vol_multiplier": self.config.garch_vol_multiplier,
                 "numba_enabled": bool(self.config.use_numba and _NUMBA_AVAILABLE),
                 **self.config.metadata,
             },
@@ -461,8 +533,8 @@ class WalkForwardEngine:
         data,
         folds: Sequence[WalkForwardFold],
         param_ranges: Dict[str, Any],
-    ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord]]:
-        """Run Optuna optimization and return the selected trial plus ledger."""
+    ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
+        """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
         if not param_ranges:
             raise ValueError(f"{self.config.optimization_mode} optimization requires param_ranges")
         validate_param_ranges(param_ranges, context=self.config.optimization_mode)
@@ -495,7 +567,7 @@ class WalkForwardEngine:
             if self.config.optimization_mode == "mode_2_sbb":
                 record = self.evaluate_params_sbb(data=data, folds=folds, params=params, trial_id=trial.number)
             else:
-                record = self.evaluate_params(data=data, folds=folds, params=params, trial_id=trial.number)
+                record = self.evaluate_params_is(data=data, folds=folds, params=params, trial_id=trial.number)
             records.append(record)
             trial.set_user_attr("fold_metrics", record.fold_metrics)
             trial.set_user_attr("params", record.params)
@@ -517,28 +589,103 @@ class WalkForwardEngine:
             callbacks=callbacks,
             show_progress_bar=False,
         )
-        if self.config.optimization_mode == "mode_3_flat_minima":
-            best = select_flat_minima_record(records, param_ranges, config=self.config)
-            if best.selection_metadata.get("requires_evaluation"):
-                evaluated = self.evaluate_params(data=data, folds=folds, params=best.params, trial_id=-1)
-                best = _with_selection_metadata(
-                    evaluated,
-                    {
-                        **best.selection_metadata,
-                        "evaluated_after_selection": True,
-                    },
-                )
-                records.append(best)
-        else:
-            best_params = dict(study.best_params)
-            best = next((record for record in records if record.params == best_params), None)
-            if best is None:
-                if self.config.optimization_mode == "mode_2_sbb":
-                    best = self.evaluate_params_sbb(data=data, folds=folds, params=best_params, trial_id=study.best_trial.number)
-                else:
-                    best = self.evaluate_params(data=data, folds=folds, params=best_params, trial_id=study.best_trial.number)
-                records.append(best)
-        return best, records
+        candidates = _select_is_candidate_records(records, param_ranges, self.config)
+        candidate_records = []
+        seen_candidate_params = set()
+        for candidate_id, candidate in enumerate(candidates):
+            params_key = tuple(sorted(candidate.params.items()))
+            if params_key in seen_candidate_params:
+                continue
+            seen_candidate_params.add(params_key)
+            evaluated = self.evaluate_params(
+                data=data,
+                folds=folds,
+                params=dict(candidate.params),
+                trial_id=int(candidate.trial_id),
+            )
+            evaluated = _with_selection_metadata(
+                evaluated,
+                {
+                    **candidate.selection_metadata,
+                    "stage": "oos_candidate_selection",
+                    "candidate_id": int(candidate_id),
+                    "source_trial_id": int(candidate.trial_id),
+                    "source_is_objective": float(candidate.objective),
+                    "oos_seen_by_optuna": False,
+                },
+            )
+            candidate_records.append(evaluated)
+        if not candidate_records:
+            raise ValueError("anti-leakage optimization produced no OOS candidates")
+        best = _select_oos_candidate_record(candidate_records, self.config)
+        records.extend(candidate_records)
+        return best, records, candidate_records
+
+    def evaluate_params_is(
+        self,
+        data,
+        folds: Sequence[WalkForwardFold],
+        params: Dict[str, Any],
+        trial_id: int = 0,
+    ) -> WalkForwardTrialRecord:
+        """Score params on in-sample folds only for anti-leakage Optuna search."""
+        fold_metrics = []
+        is_scores = []
+
+        for fold in folds:
+            is_output = self._call_strategy_for_indices(
+                data=data,
+                params=params,
+                train_index=fold.train_index,
+                test_index=fold.train_index,
+                fold=fold,
+                context="anti-leakage in-sample search",
+            )
+            is_metrics = score_strategy_output(
+                data,
+                is_output,
+                fold.train_index,
+                trading_days=int(self.config.scoring_trading_days),
+                use_numba=bool(self.config.use_numba),
+            )
+            required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+            penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
+            is_sharpe = is_metrics["sharpe"] - penalty
+            is_scores.append(is_sharpe)
+            fold_metrics.append(
+                {
+                    "fold_id": fold.fold_id,
+                    "train_start": fold.train_start,
+                    "train_end": fold.train_end,
+                    "test_start": fold.test_start,
+                    "test_end": fold.test_end,
+                    "is_sharpe": is_sharpe,
+                    "is_sharpe_raw": is_metrics["sharpe"],
+                    "is_turnover": is_metrics["turnover"],
+                    "is_trade_count": is_metrics["trade_count"],
+                    "is_required_trades": required_trades,
+                    "is_trade_penalty": penalty,
+                    "oos_evaluated": False,
+                }
+            )
+
+        mean_is = float(np.mean(is_scores)) if is_scores else 0.0
+        return WalkForwardTrialRecord(
+            trial_id=int(trial_id),
+            params=dict(params),
+            objective=mean_is,
+            mean_is_sharpe=mean_is,
+            mean_oos_sharpe=0.0,
+            mean_decay=0.0,
+            std_decay=0.0,
+            fold_metrics=fold_metrics,
+            selection_metadata={
+                "stage": "is_search",
+                "objective_mode": self.config.optimization_mode,
+                "oos_seen_by_optuna": False,
+            },
+        )
 
     def evaluate_params(
         self,
@@ -622,10 +769,12 @@ class WalkForwardEngine:
         mean_is = float(np.mean(is_scores)) if is_scores else 0.0
         mean_decay = float(np.mean(decay)) if decay else 0.0
         std_decay = float(np.std(decay, ddof=1)) if len(decay) > 1 else 0.0
+        decay_lambda = self.config.decay_lambda if self.config.candidate_decay_lambda is None else self.config.candidate_decay_lambda
+        decay_gamma = self.config.decay_gamma if self.config.candidate_decay_gamma is None else self.config.candidate_decay_gamma
         objective = (
             mean_oos
-            - float(self.config.decay_lambda) * std_decay
-            - float(self.config.decay_gamma) * max(0.0, mean_decay)
+            - float(decay_lambda) * std_decay
+            - float(decay_gamma) * max(0.0, mean_decay)
         )
         return WalkForwardTrialRecord(
             trial_id=int(trial_id),
@@ -646,12 +795,13 @@ class WalkForwardEngine:
         trial_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """
-        Score params with stationary block bootstrap synthetic OOS robustness.
+        Score params with train-only synthetic OOS robustness.
 
         The strategy is evaluated on each train fold, then its train return
-        proxy is resampled with seeded stationary block bootstrap. The selected
+        proxy is simulated with the selected Mode 2 generator. The selected
         objective rewards high synthetic Sharpe and penalizes estimated decay
-        from original IS Sharpe to synthetic Sharpe.
+        from original IS Sharpe to synthetic Sharpe. OOS bars are not evaluated
+        inside the Optuna objective.
         """
         fold_metrics = []
         is_scores = []
@@ -677,13 +827,22 @@ class WalkForwardEngine:
             )
             returns = strategy_return_series(data, is_output, fold.train_index).to_numpy(dtype=np.float64)
             seed = int(self.config.random_seed) + int(trial_id) * 100_003 + int(fold.fold_id) * 9_176
-            boot = stationary_bootstrap_sharpes(
+            boot = synthetic_walkforward_sharpes(
                 returns=returns,
                 n_samples=int(self.config.sbb_samples),
                 block_length=int(self.config.sbb_block_length),
                 seed=seed,
                 trading_days=int(self.config.scoring_trading_days),
                 use_numba=bool(self.config.use_numba),
+                simulation=self.config.sbb_simulation,
+                regime_count=int(self.config.regime_count),
+                regime_lookback=int(self.config.regime_lookback),
+                regime_weights=self.config.regime_weights,
+                stress_vol_multiplier=float(self.config.stress_vol_multiplier),
+                garch_p=int(self.config.garch_p),
+                garch_q=int(self.config.garch_q),
+                garch_dist=self.config.garch_dist,
+                garch_vol_multiplier=float(self.config.garch_vol_multiplier),
             )
             synthetic_mean = float(np.mean(boot)) if len(boot) else 0.0
             synthetic_std = float(np.std(boot, ddof=1)) if len(boot) > 1 else 0.0
@@ -718,6 +877,15 @@ class WalkForwardEngine:
                     "sbb_objective": float(fold_objective),
                     "sbb_samples": int(self.config.sbb_samples),
                     "sbb_block_length": int(self.config.sbb_block_length),
+                    "sbb_simulation": self.config.sbb_simulation,
+                    "regime_count": int(self.config.regime_count),
+                    "regime_lookback": int(self.config.regime_lookback),
+                    "regime_weights": self.config.regime_weights,
+                    "stress_vol_multiplier": float(self.config.stress_vol_multiplier),
+                    "garch_p": int(self.config.garch_p),
+                    "garch_q": int(self.config.garch_q),
+                    "garch_dist": self.config.garch_dist,
+                    "garch_vol_multiplier": float(self.config.garch_vol_multiplier),
                     "is_turnover": is_metrics["turnover"],
                     "is_trade_count": is_metrics["trade_count"],
                     "is_required_trades": required_trades,
@@ -745,9 +913,20 @@ class WalkForwardEngine:
             std_decay=std_decay,
             fold_metrics=fold_metrics,
             selection_metadata={
+                "stage": "is_search",
                 "objective_mode": "mode_2_sbb",
                 "sbb_samples": int(self.config.sbb_samples),
                 "sbb_block_length": int(self.config.sbb_block_length),
+                "sbb_simulation": self.config.sbb_simulation,
+                "regime_count": int(self.config.regime_count),
+                "regime_lookback": int(self.config.regime_lookback),
+                "regime_weights": self.config.regime_weights,
+                "stress_vol_multiplier": float(self.config.stress_vol_multiplier),
+                "garch_p": int(self.config.garch_p),
+                "garch_q": int(self.config.garch_q),
+                "garch_dist": self.config.garch_dist,
+                "garch_vol_multiplier": float(self.config.garch_vol_multiplier),
+                "oos_seen_by_optuna": False,
             },
         )
 
@@ -1079,6 +1258,97 @@ def stationary_bootstrap_sharpes(
     return _bootstrap_sharpes_python(clean, indices, float(trading_days))
 
 
+def synthetic_walkforward_sharpes(
+    returns: np.ndarray,
+    n_samples: int,
+    block_length: int,
+    seed: int,
+    trading_days: int = 365,
+    use_numba: bool = True,
+    simulation: str = "stationary",
+    regime_count: int = 3,
+    regime_lookback: int = 20,
+    regime_weights: Optional[Dict[Union[int, str], float]] = None,
+    stress_vol_multiplier: float = 1.0,
+    garch_p: int = 1,
+    garch_q: int = 1,
+    garch_dist: str = "t",
+    garch_vol_multiplier: float = 1.0,
+) -> np.ndarray:
+    """
+    Generate train-only synthetic Sharpe samples for Mode 2 WFO scoring.
+
+    `stationary` preserves the legacy SBB behavior. `regime` bootstraps blocks
+    from volatility regimes estimated on the IS return proxy. `stress` keeps the
+    SBB dependence model but scales demeaned returns before sampling. `garch`
+    fits a GARCH(p, q) model on IS returns and simulates volatility-clustered
+    paths with a deterministic seed.
+    """
+    sim = str(simulation).lower().strip()
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    if clean.size < 2:
+        return np.zeros(int(n_samples), dtype=np.float64)
+    if sim == "stationary":
+        return stationary_bootstrap_sharpes(clean, n_samples, block_length, seed, trading_days, use_numba)
+    if sim == "stress":
+        stressed = _stress_returns(clean, float(stress_vol_multiplier))
+        return stationary_bootstrap_sharpes(stressed, n_samples, block_length, seed, trading_days, use_numba)
+    if sim == "regime":
+        labels = volatility_regime_labels(clean, regime_count=int(regime_count), lookback=int(regime_lookback))
+        weights = _normalize_regime_weights(regime_weights, int(regime_count)) if regime_weights is not None else None
+        indices = _regime_bootstrap_indices(
+            labels=labels,
+            n_samples=int(n_samples),
+            block_length=int(block_length),
+            seed=int(seed),
+            regime_weights=weights,
+            regime_count=int(regime_count),
+        )
+        if bool(use_numba) and _NUMBA_AVAILABLE:
+            return _bootstrap_sharpes_numba(clean, indices, float(trading_days))
+        return _bootstrap_sharpes_python(clean, indices, float(trading_days))
+    if sim == "garch":
+        paths = _garch_simulated_paths(
+            clean,
+            n_samples=int(n_samples),
+            seed=int(seed),
+            p=int(garch_p),
+            q=int(garch_q),
+            dist=str(garch_dist),
+            vol_multiplier=float(garch_vol_multiplier),
+        )
+        if bool(use_numba) and _NUMBA_AVAILABLE:
+            return _path_sharpes_numba(paths, float(trading_days))
+        return _path_sharpes_python(paths, float(trading_days))
+    raise ValueError("simulation must be stationary, regime, stress, or garch")
+
+
+def volatility_regime_labels(returns: np.ndarray, regime_count: int = 3, lookback: int = 20) -> np.ndarray:
+    """
+    Assign trailing-volatility regime labels from 0 (low vol) to N-1 (high vol).
+
+    The function uses only the in-sample return proxy passed by the caller. It
+    does not inspect future OOS bars, so it is safe inside the WFO objective.
+    """
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    if clean.size == 0:
+        return np.zeros(0, dtype=np.int64)
+    n_regimes = max(2, int(regime_count))
+    window = max(1, int(lookback))
+    trailing_vol = np.empty(clean.size, dtype=np.float64)
+    abs_ret = np.abs(clean)
+    cumsum = np.concatenate(([0.0], np.cumsum(abs_ret)))
+    for i in range(clean.size):
+        start = max(0, i + 1 - window)
+        trailing_vol[i] = (cumsum[i + 1] - cumsum[start]) / float(i + 1 - start)
+    quantiles = np.linspace(0.0, 1.0, n_regimes + 1)[1:-1]
+    cuts = np.quantile(trailing_vol, quantiles) if quantiles.size else np.array([], dtype=np.float64)
+    labels = np.searchsorted(cuts, trailing_vol, side="right").astype(np.int64)
+    return np.minimum(labels, n_regimes - 1)
+
+
 def benchmark_walkforward_kernels(
     n_obs: int = 2_000,
     n_samples: int = 128,
@@ -1163,6 +1433,180 @@ def _stationary_bootstrap_indices(n_obs: int, n_samples: int, block_length: int,
     return indices
 
 
+def _regime_bootstrap_indices(
+    labels: np.ndarray,
+    n_samples: int,
+    block_length: int,
+    seed: int,
+    regime_weights: Optional[Dict[Union[int, str], float]] = None,
+    regime_count: Optional[int] = None,
+) -> np.ndarray:
+    labels = np.asarray(labels, dtype=np.int64)
+    if labels.size <= 0:
+        raise ValueError("labels must not be empty")
+    n_obs = int(labels.size)
+    n_regimes = max(int(np.max(labels)) + 1, 2 if regime_count is None else int(regime_count))
+    rng = np.random.default_rng(int(seed))
+    p = 1.0 / max(1.0, float(block_length))
+    if regime_weights is None:
+        counts = np.bincount(labels, minlength=n_regimes).astype(np.float64)
+        probs = counts / counts.sum()
+    else:
+        probs = np.zeros(n_regimes, dtype=np.float64)
+        for key, value in regime_weights.items():
+            idx = _regime_key_to_index(key, n_regimes)
+            probs[idx] = float(value)
+        total = float(probs.sum())
+        if total <= 0.0:
+            raise ValueError("regime_weights must sum to a positive value")
+        probs = probs / total
+
+    starts_by_regime = [np.flatnonzero(labels == regime) for regime in range(n_regimes)]
+    all_starts = np.arange(n_obs, dtype=np.int64)
+    indices = np.empty((int(n_samples), n_obs), dtype=np.int64)
+    for sample in range(int(n_samples)):
+        current_regime = int(rng.choice(n_regimes, p=probs))
+        choices = starts_by_regime[current_regime]
+        if choices.size == 0:
+            choices = all_starts
+        current = int(rng.choice(choices))
+        indices[sample, 0] = current
+        for i in range(1, n_obs):
+            next_current = (current + 1) % n_obs
+            if rng.random() < p or labels[next_current] != current_regime:
+                current_regime = int(rng.choice(n_regimes, p=probs))
+                choices = starts_by_regime[current_regime]
+                if choices.size == 0:
+                    choices = all_starts
+                current = int(rng.choice(choices))
+            else:
+                current = next_current
+            indices[sample, i] = current
+    return indices
+
+
+def _stress_returns(returns: np.ndarray, vol_multiplier: float) -> np.ndarray:
+    clean = np.asarray(returns, dtype=np.float64)
+    mean = float(np.mean(clean)) if clean.size else 0.0
+    return mean + (clean - mean) * float(vol_multiplier)
+
+
+def _normalize_regime_weights(
+    weights: Optional[Dict[Union[int, str], float]],
+    regime_count: int,
+) -> Optional[Dict[int, float]]:
+    if weights is None:
+        return None
+    n_regimes = max(2, int(regime_count))
+    out: Dict[int, float] = {}
+    for key, value in weights.items():
+        idx = _regime_key_to_index(key, n_regimes)
+        val = float(value)
+        if val < 0.0:
+            raise ValueError("regime_weights values must be >= 0")
+        out[idx] = out.get(idx, 0.0) + val
+    total = sum(out.values())
+    if total <= 0.0:
+        raise ValueError("regime_weights must sum to a positive value")
+    return {key: value / total for key, value in out.items()}
+
+
+def _regime_key_to_index(key: Union[int, str], regime_count: int) -> int:
+    n_regimes = max(2, int(regime_count))
+    if isinstance(key, (int, np.integer)):
+        idx = int(key)
+    else:
+        raw = str(key).lower().strip()
+        aliases = {
+            "low": 0,
+            "low_vol": 0,
+            "calm": 0,
+            "mid": n_regimes // 2,
+            "medium": n_regimes // 2,
+            "normal": n_regimes // 2,
+            "high": n_regimes - 1,
+            "high_vol": n_regimes - 1,
+            "crash": n_regimes - 1,
+            "stress": n_regimes - 1,
+        }
+        idx = aliases[raw] if raw in aliases else int(raw)
+    if idx < 0 or idx >= n_regimes:
+        raise ValueError(f"regime key {key!r} is outside [0, {n_regimes - 1}]")
+    return idx
+
+
+def _garch_simulated_paths(
+    returns: np.ndarray,
+    n_samples: int,
+    seed: int,
+    p: int,
+    q: int,
+    dist: str,
+    vol_multiplier: float,
+) -> np.ndarray:
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    min_obs = max(30, (int(p) + int(q)) * 12)
+    if clean.size < min_obs:
+        raise ValueError(f"garch simulation requires at least {min_obs} finite IS returns")
+    try:
+        from arch import arch_model
+    except Exception as exc:  # pragma: no cover - optional dependency guard
+        raise ImportError("sbb_simulation='garch' requires the optional arch package") from exc
+
+    scaled = clean * 100.0
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model = arch_model(
+            scaled,
+            mean="Constant",
+            vol="GARCH",
+            p=int(p),
+            q=int(q),
+            dist=str(dist),
+            rescale=False,
+        )
+        result = model.fit(disp="off", show_warning=False)
+
+    params = result.params
+    mu = float(params.get("mu", 0.0))
+    omega = max(float(params.get("omega", np.var(scaled) * 0.01)), 1e-12)
+    alphas = np.array([max(float(params.get(f"alpha[{i}]", 0.0)), 0.0) for i in range(1, int(p) + 1)])
+    betas = np.array([max(float(params.get(f"beta[{i}]", 0.0)), 0.0) for i in range(1, int(q) + 1)])
+    total_persistence = float(alphas.sum() + betas.sum())
+    unconditional_var = float(np.var(scaled, ddof=1))
+    if total_persistence < 0.999:
+        unconditional_var = max(omega / max(1e-12, 1.0 - total_persistence), 1e-12)
+    rng = np.random.default_rng(int(seed))
+    paths_pct = np.empty((int(n_samples), clean.size), dtype=np.float64)
+    max_lag = max(int(p), int(q), 1)
+    nu = max(float(params.get("nu", 8.0)), 2.1)
+    for sample_id in range(int(n_samples)):
+        eps = np.zeros(clean.size + max_lag, dtype=np.float64)
+        sigma2 = np.full(clean.size + max_lag, unconditional_var, dtype=np.float64)
+        for t in range(max_lag, clean.size + max_lag):
+            var_t = omega
+            for i, alpha in enumerate(alphas, start=1):
+                var_t += float(alpha) * eps[t - i] * eps[t - i]
+            for j, beta in enumerate(betas, start=1):
+                var_t += float(beta) * sigma2[t - j]
+            sigma2[t] = max(var_t, 1e-12)
+            if str(dist).lower() in {"t", "studentst"}:
+                shock = float(rng.standard_t(nu)) * float(np.sqrt((nu - 2.0) / nu))
+            else:
+                shock = float(rng.normal())
+            eps[t] = float(np.sqrt(sigma2[t])) * shock
+            paths_pct[sample_id, t - max_lag] = mu + eps[t]
+    paths = paths_pct / 100.0
+    return _stress_paths(paths, float(vol_multiplier))
+
+
+def _stress_paths(paths: np.ndarray, vol_multiplier: float) -> np.ndarray:
+    arr = np.asarray(paths, dtype=np.float64)
+    means = np.mean(arr, axis=1, keepdims=True)
+    return means + (arr - means) * float(vol_multiplier)
+
+
 def _score_returns_positions_python(
     returns: np.ndarray,
     positions: np.ndarray,
@@ -1193,6 +1637,17 @@ def _bootstrap_sharpes_python(returns: np.ndarray, indices: np.ndarray, trading_
     out = np.empty(indices.shape[0], dtype=np.float64)
     for i in range(indices.shape[0]):
         sample = returns[indices[i]]
+        mean = float(np.mean(sample))
+        sd = float(np.std(sample, ddof=1)) if sample.size > 1 else 0.0
+        out[i] = (mean / sd) * float(np.sqrt(trading_days)) if sd > 0.0 else 0.0
+    return out
+
+
+def _path_sharpes_python(paths: np.ndarray, trading_days: float) -> np.ndarray:
+    arr = np.asarray(paths, dtype=np.float64)
+    out = np.empty(arr.shape[0], dtype=np.float64)
+    for i in range(arr.shape[0]):
+        sample = arr[i]
         mean = float(np.mean(sample))
         sd = float(np.std(sample, ddof=1)) if sample.size > 1 else 0.0
         out[i] = (mean / sd) * float(np.sqrt(trading_days)) if sd > 0.0 else 0.0
@@ -1258,6 +1713,29 @@ if _NUMBA_AVAILABLE:
                 out[sample_id] = 0.0
         return out
 
+    @njit(cache=True)
+    def _path_sharpes_numba(paths, trading_days):  # pragma: no cover - compared via tests
+        n_samples = paths.shape[0]
+        n_obs = paths.shape[1]
+        out = np.empty(n_samples, dtype=np.float64)
+        for sample_id in range(n_samples):
+            total = 0.0
+            for i in range(n_obs):
+                total += paths[sample_id, i]
+            mean = total / n_obs
+            sd = 0.0
+            if n_obs > 1:
+                var = 0.0
+                for i in range(n_obs):
+                    diff = paths[sample_id, i] - mean
+                    var += diff * diff
+                sd = (var / (n_obs - 1)) ** 0.5
+            if sd > 0.0:
+                out[sample_id] = (mean / sd) * (trading_days ** 0.5)
+            else:
+                out[sample_id] = 0.0
+        return out
+
 else:
 
     def _score_returns_positions_numba(returns, positions, trading_days):  # pragma: no cover - fallback alias
@@ -1265,6 +1743,9 @@ else:
 
     def _bootstrap_sharpes_numba(returns, indices, trading_days):  # pragma: no cover - fallback alias
         return _bootstrap_sharpes_python(returns, indices, trading_days)
+
+    def _path_sharpes_numba(paths, trading_days):  # pragma: no cover - fallback alias
+        return _path_sharpes_python(paths, trading_days)
 
 
 def select_flat_minima_record(
@@ -1370,6 +1851,56 @@ def select_flat_minima_record(
             "eps": float(config.flat_eps),
             "min_samples": int(config.flat_min_samples),
             "cluster_method": cluster_method,
+        },
+    )
+
+
+def _select_is_candidate_records(
+    records: Sequence[WalkForwardTrialRecord],
+    param_ranges: Dict[str, Any],
+    config: WalkForwardConfig,
+) -> List[WalkForwardTrialRecord]:
+    completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
+    if not completed:
+        raise ValueError("anti-leakage optimization completed no valid in-sample trials")
+    ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
+    top_n = _candidate_count(len(ranked), config)
+    top = ranked[:top_n]
+    if config.optimization_mode == "mode_3_flat_minima":
+        flat = select_flat_minima_record(completed, param_ranges, config=config)
+        return [flat, *top]
+    return top
+
+
+def _candidate_count(n_records: int, config: WalkForwardConfig) -> int:
+    if n_records <= 0:
+        return 0
+    if config.top_is_k is not None:
+        return max(1, min(n_records, int(config.top_is_k)))
+    return max(1, min(n_records, int(np.ceil(n_records * float(config.top_is_fraction)))))
+
+
+def _select_oos_candidate_record(
+    records: Sequence[WalkForwardTrialRecord],
+    config: WalkForwardConfig,
+) -> WalkForwardTrialRecord:
+    metric = config.candidate_selection_metric
+    if metric == "robust_decay":
+        key = lambda record: record.objective
+    elif metric == "mean_oos_sharpe":
+        key = lambda record: record.mean_oos_sharpe
+    elif metric == "mean_is_sharpe":
+        key = lambda record: record.mean_is_sharpe
+    else:  # pragma: no cover - validated in config
+        raise ValueError(f"unsupported candidate_selection_metric: {metric}")
+    selected = max(records, key=key)
+    return _with_selection_metadata(
+        selected,
+        {
+            **selected.selection_metadata,
+            "selected_by": metric,
+            "candidate_selection_complete": True,
+            "oos_seen_by_optuna": False,
         },
     )
 
@@ -1571,6 +2102,44 @@ def _infer_datetime_index(data, datetime_index) -> pd.DatetimeIndex:
     raise ValueError("datetime_index is required when data has no DatetimeIndex")
 
 
+def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex):
+    """
+    Return a data view/copy whose timestamp index matches WFO fold indices.
+
+    `validate_datetime` normalizes fold indices to UTC. Real research frames
+    are often tz-naive; passing them unchanged into a strategy makes common
+    code like `series.reindex(test_index)` silently return all NaN. Alignment is
+    length-preserving and does not inspect future values.
+    """
+    if isinstance(data, pd.DataFrame):
+        if len(data) != len(idx):
+            return data
+        out = data.copy()
+        out.index = idx
+        return out
+    if isinstance(data, pd.Series):
+        if len(data) != len(idx):
+            return data
+        out = data.copy()
+        out.index = idx
+        return out
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, pd.DataFrame) and len(value) == len(idx):
+                item = value.copy()
+                item.index = idx
+                out[key] = item
+            elif isinstance(value, pd.Series) and len(value) == len(idx):
+                item = value.copy()
+                item.index = idx
+                out[key] = item
+            else:
+                out[key] = value
+        return out
+    return data
+
+
 def _first_oos_timestamp(split_mode) -> pd.Timestamp:
     if isinstance(split_mode, int):
         ts = pd.Timestamp(year=int(split_mode), month=1, day=1, tz="UTC")
@@ -1594,6 +2163,10 @@ def _frequency_offset(split_frequency: str) -> pd.DateOffset:
         return pd.DateOffset(months=6)
     if split_frequency == "quarterly":
         return pd.DateOffset(months=3)
+    if split_frequency == "monthly":
+        return pd.DateOffset(months=1)
+    if split_frequency == "weekly":
+        return pd.DateOffset(weeks=1)
     raise ValueError("unsupported split_frequency")
 
 
@@ -1779,10 +2352,24 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "random_seed": config.random_seed,
         "decay_lambda": config.decay_lambda,
         "decay_gamma": config.decay_gamma,
+        "top_is_fraction": config.top_is_fraction,
+        "top_is_k": config.top_is_k,
+        "candidate_selection_metric": config.candidate_selection_metric,
+        "candidate_decay_lambda": config.candidate_decay_lambda,
+        "candidate_decay_gamma": config.candidate_decay_gamma,
         "sbb_samples": config.sbb_samples,
         "sbb_block_length": config.sbb_block_length,
         "sbb_decay_lambda": config.sbb_decay_lambda,
         "sbb_std_penalty": config.sbb_std_penalty,
+        "sbb_simulation": config.sbb_simulation,
+        "regime_count": config.regime_count,
+        "regime_lookback": config.regime_lookback,
+        "regime_weights": config.regime_weights,
+        "stress_vol_multiplier": config.stress_vol_multiplier,
+        "garch_p": config.garch_p,
+        "garch_q": config.garch_q,
+        "garch_dist": config.garch_dist,
+        "garch_vol_multiplier": config.garch_vol_multiplier,
         "flat_top_fraction": config.flat_top_fraction,
         "flat_eps": config.flat_eps,
         "flat_min_samples": config.flat_min_samples,
