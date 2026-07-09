@@ -20,6 +20,7 @@ from quantbt import (
     score_strategy_output,
     select_flat_minima_record,
     stationary_bootstrap_sharpes,
+    trade_frequency_penalty,
     validate_param_ranges,
     walkforward_support_matrix,
 )
@@ -242,7 +243,16 @@ def test_walkforward_score_strategy_output_is_transparent_return_proxy():
     metrics = score_strategy_output(data, signal, idx)
 
     assert metrics["turnover"] == 1.0
+    assert metrics["trade_count"] == 1.0
     assert metrics["mean_return"] > 0.0
+
+
+def test_walkforward_trade_frequency_penalty_formula_is_normalized_linear():
+    assert trade_frequency_penalty(actual_trades=10, required_trades=10, penalty_factor=2.0) == 0.0
+    assert trade_frequency_penalty(actual_trades=5, required_trades=10, penalty_factor=2.0) == 1.0
+    assert trade_frequency_penalty(actual_trades=0, required_trades=10, penalty_factor=2.0) == 2.0
+    assert trade_frequency_penalty(actual_trades=0, required_trades=0, penalty_factor=2.0) == 0.0
+    assert trade_frequency_penalty(actual_trades=0, required_trades=10, penalty_factor=None) == 0.0
 
 
 def test_walkforward_phase3_score_helpers_match_numba_and_python_paths():
@@ -417,6 +427,89 @@ def test_walkforward_phase4_endpoint_exposes_scoring_trading_days_metadata():
     result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"side": [1.0]})
 
     assert result.metadata["walk_forward"]["scoring_trading_days"] == 252
+
+
+def test_walkforward_optional_trade_frequency_penalty_adjusts_fold_sharpes():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(
+            split_mode=2022,
+            split_frequency="quarterly",
+            min_trades_per_year=365.0,
+            trade_penalty_factor=2.0,
+        ),
+    )
+    result = engine.run(data=data, params={"side": 1.0})
+    first_fold = result.best_trial["fold_metrics"][0]
+
+    assert first_fold["oos_trade_count"] == 1.0
+    assert first_fold["oos_required_trades"] > 0.0
+    assert 0.0 < first_fold["oos_trade_penalty"] < 2.0
+    assert first_fold["oos_sharpe"] == pytest.approx(
+        first_fold["oos_sharpe_raw"] - first_fold["oos_trade_penalty"]
+    )
+
+
+def test_walkforward_trade_frequency_penalty_is_optional_endpoint_metadata():
+    idx = _idx()
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index)
+
+    bt = QuantBTEndpoint.walk_forward(
+        strategy_class=strategy,
+        split_mode=2022,
+        split_frequency="quarterly",
+        target_mode="signal_notional",
+        optimization_config={"min_trades_per_year": 24.0, "trade_penalty_factor": 1.5},
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=_bars(idx), symbols=["BTC"], params={"side": 1.0})
+    wf = result.metadata["walk_forward"]
+
+    assert wf["min_trades_per_year"] == 24.0
+    assert wf["trade_penalty_factor"] == 1.5
+
+
+def test_walkforward_trade_frequency_penalty_applies_to_sbb_mode():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(1.0, index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(
+            split_mode=2022,
+            split_frequency="quarterly",
+            optimization_mode="mode_2_sbb",
+            sbb_samples=16,
+            min_trades_per_year=365.0,
+            trade_penalty_factor=2.0,
+        ),
+    )
+    folds = engine.build_folds(data.index)
+    record = engine.evaluate_params_sbb(data=data, folds=folds, params={"side": 1.0})
+    first_fold = record.fold_metrics[0]
+
+    assert first_fold["is_trade_count"] == 1.0
+    assert first_fold["is_trade_penalty"] > 0.0
+    assert first_fold["synthetic_oos_sharpe"] == pytest.approx(
+        first_fold["synthetic_oos_sharpe_raw"] - first_fold["is_trade_penalty"]
+    )
 
 
 def test_walkforward_phase4_param_range_validation_catches_invalid_math():
