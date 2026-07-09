@@ -805,6 +805,12 @@ wfo = QuantBTEndpoint.walk_forward(
     optimization_config={
         "decay_lambda": 0.5,
         "decay_gamma": 0.5,
+        # anti-leakage candidate selection after IS-only Optuna search
+        "top_is_fraction": 0.10,
+        "top_is_k": None,
+        "candidate_selection_metric": "robust_decay",
+        "candidate_decay_lambda": None,
+        "candidate_decay_gamma": None,
         # mode_2_sbb: "sbb_samples", "sbb_block_length",
         #             "sbb_decay_lambda", "sbb_std_penalty"
         # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
@@ -834,6 +840,7 @@ result = wfo.backtest(
 
 result.metadata["walk_forward"]["fold_table"]
 result.metadata["walk_forward"]["trial_table"]
+result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
 
@@ -888,6 +895,12 @@ Important rules:
 - fixed-parameter runs pass `params=...`;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`, and
   `mode_3_flat_minima`;
+- for all optimization modes, Optuna receives only in-sample or synthetic
+  in-sample objectives; OOS scoring is delayed until after the top IS candidate
+  set is frozen, reducing indirect look-ahead bias;
+- candidate selection is controlled by `top_is_fraction` or `top_is_k`; OOS
+  candidate ranking uses `candidate_selection_metric`, defaulting to
+  `robust_decay`;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
 - optimization Sharpe annualization uses `scoring_trading_days` from
@@ -907,9 +920,11 @@ Important rules:
 Mode 1 objective:
 
 ```text
-objective = mean_oos_sharpe
-            - decay_lambda * std(IS_sharpe - OOS_sharpe)
-            - decay_gamma * max(0, mean(IS_sharpe - OOS_sharpe))
+Stage 1 Optuna objective = mean(IS_sharpe_after_penalties)
+
+Stage 2 candidate objective = mean_oos_sharpe
+                            - candidate_decay_lambda * std(IS - OOS)
+                            - candidate_decay_gamma * max(0, mean(IS - OOS))
 ```
 
 Mode 2 SBB objective:
@@ -924,13 +939,13 @@ objective = mean(synthetic_sharpe)
 Mode 3 flat-minima selector:
 
 ```text
-1. score trials with the same decay objective as mode_1_decay;
+1. score trials with the same IS-only objective as mode_1_decay;
 2. take the top flat_top_fraction trials;
 3. normalize numeric/categorical params into [0, 1];
 4. density-cluster the top region with flat_eps and flat_min_samples;
 5. select `flat_selector="medoid"` or `flat_selector="centroid"`;
 6. if centroid is selected, snap it back to the declared param grid and
-   evaluate it before the final stitched backtest.
+   include it in the frozen OOS candidate set.
 ```
 
 Optional trade-frequency penalty:

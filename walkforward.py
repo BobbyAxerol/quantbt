@@ -139,6 +139,11 @@ class WalkForwardConfig:
     random_seed: int = 42
     decay_lambda: float = 0.5
     decay_gamma: float = 0.5
+    top_is_fraction: float = 0.10
+    top_is_k: Optional[int] = None
+    candidate_selection_metric: str = "robust_decay"
+    candidate_decay_lambda: Optional[float] = None
+    candidate_decay_gamma: Optional[float] = None
     sbb_samples: int = 256
     sbb_block_length: int = 20
     sbb_decay_lambda: float = 0.5
@@ -178,6 +183,22 @@ class WalkForwardConfig:
             raise ValueError("optuna_trials must be >= 0")
         if self.optuna_early_stopping is not None and self.optuna_early_stopping <= 0:
             raise ValueError("optuna_early_stopping must be > 0")
+        if not 0.0 < self.top_is_fraction <= 1.0:
+            raise ValueError("top_is_fraction must be in (0, 1]")
+        if self.top_is_k is not None and self.top_is_k <= 0:
+            raise ValueError("top_is_k must be > 0 when provided")
+        metric = self.candidate_selection_metric.lower().strip()
+        if metric not in {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe"}:
+            raise ValueError("candidate_selection_metric must be robust_decay, mean_oos_sharpe, or mean_is_sharpe")
+        object.__setattr__(self, "candidate_selection_metric", metric)
+        candidate_decay_lambda = None if self.candidate_decay_lambda is None else float(self.candidate_decay_lambda)
+        if candidate_decay_lambda is not None and candidate_decay_lambda < 0.0:
+            raise ValueError("candidate_decay_lambda must be >= 0 when provided")
+        object.__setattr__(self, "candidate_decay_lambda", candidate_decay_lambda)
+        candidate_decay_gamma = None if self.candidate_decay_gamma is None else float(self.candidate_decay_gamma)
+        if candidate_decay_gamma is not None and candidate_decay_gamma < 0.0:
+            raise ValueError("candidate_decay_gamma must be >= 0 when provided")
+        object.__setattr__(self, "candidate_decay_gamma", candidate_decay_gamma)
         if self.sbb_samples <= 0:
             raise ValueError("sbb_samples must be > 0")
         if self.sbb_block_length <= 0:
@@ -219,6 +240,7 @@ class WalkForwardResult:
     params: Dict[str, Any]
     backtest_result: Any = None
     trial_table: pd.DataFrame = field(default_factory=pd.DataFrame)
+    candidate_table: pd.DataFrame = field(default_factory=pd.DataFrame)
     best_trial: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -400,12 +422,13 @@ class WalkForwardEngine:
         idx = _infer_datetime_index(data, datetime_index)
         folds = self.build_folds(idx)
         trial_records: List[WalkForwardTrialRecord] = []
+        candidate_records: List[WalkForwardTrialRecord] = []
         if params is not None:
             chosen_params = dict(params)
             selected_record = self.evaluate_params(data=data, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
         elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima"} and self.config.optuna_trials > 0:
-            selected_record, trial_records = self.optimize_params(
+            selected_record, trial_records, candidate_records = self.optimize_params(
                 data=data,
                 folds=folds,
                 param_ranges=param_ranges or {},
@@ -435,6 +458,7 @@ class WalkForwardEngine:
             fold_table=fold_table,
             params=chosen_params,
             trial_table=_trial_table(trial_records),
+            candidate_table=_trial_table(candidate_records),
             best_trial=_trial_to_dict(selected_record),
             metadata={
                 "engine": "walk_forward_phase4",
@@ -445,6 +469,10 @@ class WalkForwardEngine:
                 "optimization_mode": self.config.optimization_mode,
                 "n_folds": len(folds),
                 "n_trials": len(trial_records),
+                "n_candidates": len(candidate_records),
+                "top_is_fraction": self.config.top_is_fraction,
+                "top_is_k": self.config.top_is_k,
+                "candidate_selection_metric": self.config.candidate_selection_metric,
                 "data_hash": _data_hash(data),
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
@@ -461,8 +489,8 @@ class WalkForwardEngine:
         data,
         folds: Sequence[WalkForwardFold],
         param_ranges: Dict[str, Any],
-    ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord]]:
-        """Run Optuna optimization and return the selected trial plus ledger."""
+    ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
+        """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
         if not param_ranges:
             raise ValueError(f"{self.config.optimization_mode} optimization requires param_ranges")
         validate_param_ranges(param_ranges, context=self.config.optimization_mode)
@@ -495,7 +523,7 @@ class WalkForwardEngine:
             if self.config.optimization_mode == "mode_2_sbb":
                 record = self.evaluate_params_sbb(data=data, folds=folds, params=params, trial_id=trial.number)
             else:
-                record = self.evaluate_params(data=data, folds=folds, params=params, trial_id=trial.number)
+                record = self.evaluate_params_is(data=data, folds=folds, params=params, trial_id=trial.number)
             records.append(record)
             trial.set_user_attr("fold_metrics", record.fold_metrics)
             trial.set_user_attr("params", record.params)
@@ -517,28 +545,103 @@ class WalkForwardEngine:
             callbacks=callbacks,
             show_progress_bar=False,
         )
-        if self.config.optimization_mode == "mode_3_flat_minima":
-            best = select_flat_minima_record(records, param_ranges, config=self.config)
-            if best.selection_metadata.get("requires_evaluation"):
-                evaluated = self.evaluate_params(data=data, folds=folds, params=best.params, trial_id=-1)
-                best = _with_selection_metadata(
-                    evaluated,
-                    {
-                        **best.selection_metadata,
-                        "evaluated_after_selection": True,
-                    },
-                )
-                records.append(best)
-        else:
-            best_params = dict(study.best_params)
-            best = next((record for record in records if record.params == best_params), None)
-            if best is None:
-                if self.config.optimization_mode == "mode_2_sbb":
-                    best = self.evaluate_params_sbb(data=data, folds=folds, params=best_params, trial_id=study.best_trial.number)
-                else:
-                    best = self.evaluate_params(data=data, folds=folds, params=best_params, trial_id=study.best_trial.number)
-                records.append(best)
-        return best, records
+        candidates = _select_is_candidate_records(records, param_ranges, self.config)
+        candidate_records = []
+        seen_candidate_params = set()
+        for candidate_id, candidate in enumerate(candidates):
+            params_key = tuple(sorted(candidate.params.items()))
+            if params_key in seen_candidate_params:
+                continue
+            seen_candidate_params.add(params_key)
+            evaluated = self.evaluate_params(
+                data=data,
+                folds=folds,
+                params=dict(candidate.params),
+                trial_id=int(candidate.trial_id),
+            )
+            evaluated = _with_selection_metadata(
+                evaluated,
+                {
+                    **candidate.selection_metadata,
+                    "stage": "oos_candidate_selection",
+                    "candidate_id": int(candidate_id),
+                    "source_trial_id": int(candidate.trial_id),
+                    "source_is_objective": float(candidate.objective),
+                    "oos_seen_by_optuna": False,
+                },
+            )
+            candidate_records.append(evaluated)
+        if not candidate_records:
+            raise ValueError("anti-leakage optimization produced no OOS candidates")
+        best = _select_oos_candidate_record(candidate_records, self.config)
+        records.extend(candidate_records)
+        return best, records, candidate_records
+
+    def evaluate_params_is(
+        self,
+        data,
+        folds: Sequence[WalkForwardFold],
+        params: Dict[str, Any],
+        trial_id: int = 0,
+    ) -> WalkForwardTrialRecord:
+        """Score params on in-sample folds only for anti-leakage Optuna search."""
+        fold_metrics = []
+        is_scores = []
+
+        for fold in folds:
+            is_output = self._call_strategy_for_indices(
+                data=data,
+                params=params,
+                train_index=fold.train_index,
+                test_index=fold.train_index,
+                fold=fold,
+                context="anti-leakage in-sample search",
+            )
+            is_metrics = score_strategy_output(
+                data,
+                is_output,
+                fold.train_index,
+                trading_days=int(self.config.scoring_trading_days),
+                use_numba=bool(self.config.use_numba),
+            )
+            required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+            penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
+            is_sharpe = is_metrics["sharpe"] - penalty
+            is_scores.append(is_sharpe)
+            fold_metrics.append(
+                {
+                    "fold_id": fold.fold_id,
+                    "train_start": fold.train_start,
+                    "train_end": fold.train_end,
+                    "test_start": fold.test_start,
+                    "test_end": fold.test_end,
+                    "is_sharpe": is_sharpe,
+                    "is_sharpe_raw": is_metrics["sharpe"],
+                    "is_turnover": is_metrics["turnover"],
+                    "is_trade_count": is_metrics["trade_count"],
+                    "is_required_trades": required_trades,
+                    "is_trade_penalty": penalty,
+                    "oos_evaluated": False,
+                }
+            )
+
+        mean_is = float(np.mean(is_scores)) if is_scores else 0.0
+        return WalkForwardTrialRecord(
+            trial_id=int(trial_id),
+            params=dict(params),
+            objective=mean_is,
+            mean_is_sharpe=mean_is,
+            mean_oos_sharpe=0.0,
+            mean_decay=0.0,
+            std_decay=0.0,
+            fold_metrics=fold_metrics,
+            selection_metadata={
+                "stage": "is_search",
+                "objective_mode": self.config.optimization_mode,
+                "oos_seen_by_optuna": False,
+            },
+        )
 
     def evaluate_params(
         self,
@@ -622,10 +725,12 @@ class WalkForwardEngine:
         mean_is = float(np.mean(is_scores)) if is_scores else 0.0
         mean_decay = float(np.mean(decay)) if decay else 0.0
         std_decay = float(np.std(decay, ddof=1)) if len(decay) > 1 else 0.0
+        decay_lambda = self.config.decay_lambda if self.config.candidate_decay_lambda is None else self.config.candidate_decay_lambda
+        decay_gamma = self.config.decay_gamma if self.config.candidate_decay_gamma is None else self.config.candidate_decay_gamma
         objective = (
             mean_oos
-            - float(self.config.decay_lambda) * std_decay
-            - float(self.config.decay_gamma) * max(0.0, mean_decay)
+            - float(decay_lambda) * std_decay
+            - float(decay_gamma) * max(0.0, mean_decay)
         )
         return WalkForwardTrialRecord(
             trial_id=int(trial_id),
@@ -745,9 +850,11 @@ class WalkForwardEngine:
             std_decay=std_decay,
             fold_metrics=fold_metrics,
             selection_metadata={
+                "stage": "is_search",
                 "objective_mode": "mode_2_sbb",
                 "sbb_samples": int(self.config.sbb_samples),
                 "sbb_block_length": int(self.config.sbb_block_length),
+                "oos_seen_by_optuna": False,
             },
         )
 
@@ -1374,6 +1481,56 @@ def select_flat_minima_record(
     )
 
 
+def _select_is_candidate_records(
+    records: Sequence[WalkForwardTrialRecord],
+    param_ranges: Dict[str, Any],
+    config: WalkForwardConfig,
+) -> List[WalkForwardTrialRecord]:
+    completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
+    if not completed:
+        raise ValueError("anti-leakage optimization completed no valid in-sample trials")
+    ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
+    top_n = _candidate_count(len(ranked), config)
+    top = ranked[:top_n]
+    if config.optimization_mode == "mode_3_flat_minima":
+        flat = select_flat_minima_record(completed, param_ranges, config=config)
+        return [flat, *top]
+    return top
+
+
+def _candidate_count(n_records: int, config: WalkForwardConfig) -> int:
+    if n_records <= 0:
+        return 0
+    if config.top_is_k is not None:
+        return max(1, min(n_records, int(config.top_is_k)))
+    return max(1, min(n_records, int(np.ceil(n_records * float(config.top_is_fraction)))))
+
+
+def _select_oos_candidate_record(
+    records: Sequence[WalkForwardTrialRecord],
+    config: WalkForwardConfig,
+) -> WalkForwardTrialRecord:
+    metric = config.candidate_selection_metric
+    if metric == "robust_decay":
+        key = lambda record: record.objective
+    elif metric == "mean_oos_sharpe":
+        key = lambda record: record.mean_oos_sharpe
+    elif metric == "mean_is_sharpe":
+        key = lambda record: record.mean_is_sharpe
+    else:  # pragma: no cover - validated in config
+        raise ValueError(f"unsupported candidate_selection_metric: {metric}")
+    selected = max(records, key=key)
+    return _with_selection_metadata(
+        selected,
+        {
+            **selected.selection_metadata,
+            "selected_by": metric,
+            "candidate_selection_complete": True,
+            "oos_seen_by_optuna": False,
+        },
+    )
+
+
 def _with_selection_metadata(record: WalkForwardTrialRecord, metadata: Dict[str, Any]) -> WalkForwardTrialRecord:
     return WalkForwardTrialRecord(
         trial_id=record.trial_id,
@@ -1779,6 +1936,11 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "random_seed": config.random_seed,
         "decay_lambda": config.decay_lambda,
         "decay_gamma": config.decay_gamma,
+        "top_is_fraction": config.top_is_fraction,
+        "top_is_k": config.top_is_k,
+        "candidate_selection_metric": config.candidate_selection_metric,
+        "candidate_decay_lambda": config.candidate_decay_lambda,
+        "candidate_decay_gamma": config.candidate_decay_gamma,
         "sbb_samples": config.sbb_samples,
         "sbb_block_length": config.sbb_block_length,
         "sbb_decay_lambda": config.sbb_decay_lambda,

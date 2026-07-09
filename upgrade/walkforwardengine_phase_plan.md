@@ -265,6 +265,10 @@ UPGRADE MỚI
 
 # Đặc tả Đề xuất Nâng cấp QuantBT: Anti-Leakage WFO & Advanced Simulation (Mode 2)
 
+Phase A status on `feat/wfengine`: implementing the anti-leakage redesign
+inside the existing `mode_1_decay`, `mode_2_sbb`, and `mode_3_flat_minima`
+routes rather than adding new public modes.
+
 Tài liệu này đề xuất phương án nâng cấp tổng quát cấu trúc của bộ máy tối ưu hóa Walk-Forward Optimization (WFO) và mô phỏng giả lập của `quantbt` để ứng dụng cho mọi loại chiến thuật giao dịch (Strategy-Agnostic).
 
 ---
@@ -300,6 +304,20 @@ graph TD
     *   Chỉ mang đúng $K$ bộ tham số trong tập $\Phi$ đi đánh giá trên OOS của tất cả các Folds.
     *   Tính toán Decay cho từng ứng viên: $Decay = Sharpe_{IS} - Sharpe_{OOS}$.
     *   Lựa chọn bộ tham số cuối cùng có chỉ số Decay tối ưu và ổn định nhất.
+
+Implemented Phase A convention:
+
+- Optuna trial objective for `mode_1_decay` and `mode_3_flat_minima` is now
+  IS-only: `mean(IS_sharpe_after_penalties)`.
+- Optuna trial objective for `mode_2_sbb` remains train-only synthetic
+  robustness: SBB is sampled from train-fold return proxy only.
+- OOS is evaluated only after the IS candidate set is frozen by
+  `top_is_fraction` or `top_is_k`.
+- `candidate_selection_metric` controls final candidate ranking. Default
+  `robust_decay` uses:
+  `mean_oos - lambda * std(IS - OOS) - gamma * max(0, mean(IS - OOS))`.
+- `candidate_table` is exposed in endpoint metadata to audit which frozen
+  candidates touched OOS. `trial_table` remains the Stage 1 IS-search ledger.
 
 ---
 

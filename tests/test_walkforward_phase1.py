@@ -229,9 +229,41 @@ def test_walkforward_phase2_mode_1_decay_optimizes_with_optuna_and_records_ledge
 
     assert wf["optimization_mode"] == "mode_1_decay"
     assert wf["params"]["go_long"] == 1
-    assert wf["best_trial"]["objective"] == wf["trial_table"]["objective"].max()
+    assert wf["best_trial"]["objective"] == wf["candidate_table"]["objective"].max()
+    assert wf["best_trial"]["selection_metadata"]["oos_seen_by_optuna"] is False
+    assert wf["candidate_table"]["selection_metadata"].notna().any()
     assert wf["config_hash"]
     assert wf["data_hash"]
+
+
+def test_walkforward_phase_a_optuna_search_does_not_evaluate_oos_per_trial():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+    calls = []
+
+    def strategy(data, params, train_index, test_index, fold):
+        calls.append({"fold_id": fold.fold_id, "is_train_index": train_index.equals(test_index)})
+        side = 1.0 if int(params["go_long"]) == 1 else -1.0
+        return pd.Series(side, index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(
+            split_mode=2022,
+            split_frequency="quarterly",
+            optimization_mode="mode_1_decay",
+            optuna_trials=8,
+            top_is_k=1,
+            random_seed=7,
+        ),
+    )
+    folds = engine.build_folds(data.index)
+    _, _, candidates = engine.optimize_params(data=data, folds=folds, param_ranges={"go_long": (0, 1, 1)})
+
+    oos_calls = [call for call in calls if not call["is_train_index"]]
+    assert len(candidates) == 1
+    assert len(oos_calls) == len(folds)
 
 
 def test_walkforward_score_strategy_output_is_transparent_return_proxy():
@@ -308,7 +340,8 @@ def test_walkforward_phase3_mode_2_sbb_optimizes_and_records_bootstrap_metrics()
     assert wf["optimization_mode"] == "mode_2_sbb"
     assert wf["params"]["go_long"] == 1
     assert wf["best_trial"]["selection_metadata"]["objective_mode"] == "mode_2_sbb"
-    assert "synthetic_oos_sharpe" in wf["best_trial"]["fold_metrics"][0]
+    assert wf["best_trial"]["selection_metadata"]["oos_seen_by_optuna"] is False
+    assert len(wf["candidate_table"]) >= 1
 
 
 def test_walkforward_phase3_flat_minima_selector_prefers_dense_cluster_over_sharp_peak():
