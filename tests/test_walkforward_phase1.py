@@ -26,6 +26,7 @@ from quantbt import (
     volatility_regime_labels,
     walkforward_support_matrix,
 )
+from quantbt.walkforward import _regime_bootstrap_indices
 
 
 def _bars(index, close=100.0):
@@ -312,6 +313,41 @@ def test_walkforward_phase3_stationary_bootstrap_is_seed_reproducible():
     assert not np.allclose(first, different)
 
 
+def test_walkforward_phase_b_stationary_and_unit_stress_match_legacy_sbb_exactly():
+    returns = np.array([0.0, 0.01, -0.004, 0.02, -0.003, 0.006] * 8, dtype=float)
+
+    legacy = stationary_bootstrap_sharpes(
+        returns,
+        n_samples=32,
+        block_length=5,
+        seed=77,
+        trading_days=365,
+        use_numba=False,
+    )
+    stationary = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=32,
+        block_length=5,
+        seed=77,
+        trading_days=365,
+        simulation="stationary",
+        use_numba=True,
+    )
+    unit_stress = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=32,
+        block_length=5,
+        seed=77,
+        trading_days=365,
+        simulation="stress",
+        stress_vol_multiplier=1.0,
+        use_numba=True,
+    )
+
+    np.testing.assert_allclose(stationary, legacy)
+    np.testing.assert_allclose(unit_stress, legacy)
+
+
 def test_walkforward_phase_b_supports_monthly_and_weekly_splits():
     idx = pd.date_range("2021-01-01", periods=220, freq="D", tz="UTC")
     data = _bars(idx)
@@ -374,6 +410,41 @@ def test_walkforward_phase_b_regime_and_stress_simulations_are_seeded():
     assert stressed.shape == (24,)
     assert np.isfinite(first).all()
     assert np.isfinite(stressed).all()
+
+
+def test_walkforward_phase_b_regime_labels_detect_trailing_high_volatility():
+    low_vol = np.array([0.0005, -0.0004] * 30, dtype=float)
+    high_vol = np.array([0.02, -0.018, 0.025, -0.021] * 15, dtype=float)
+    labels = volatility_regime_labels(np.concatenate([low_vol, high_vol]), regime_count=3, lookback=10)
+
+    assert float(np.median(labels[:30])) <= 1.0
+    assert labels[-20:].min() >= 1
+    assert labels[-20:].max() == 2
+    assert float(np.mean(labels[-20:])) > float(np.mean(labels[:30]))
+
+
+def test_walkforward_phase_b_regime_weights_select_requested_regime_blocks():
+    labels = np.array([0] * 30 + [1] * 30 + [2] * 30, dtype=np.int64)
+
+    high_indices = _regime_bootstrap_indices(
+        labels,
+        n_samples=6,
+        block_length=8,
+        seed=31,
+        regime_weights={"high": 1.0},
+        regime_count=3,
+    )
+    low_indices = _regime_bootstrap_indices(
+        labels,
+        n_samples=6,
+        block_length=8,
+        seed=31,
+        regime_weights={"low": 1.0},
+        regime_count=3,
+    )
+
+    assert np.all(labels[high_indices] == 2)
+    assert np.all(labels[low_indices] == 0)
 
 
 def test_walkforward_phase_b_regime_weights_tolerate_missing_regime_labels():
