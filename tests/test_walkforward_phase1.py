@@ -20,8 +20,10 @@ from quantbt import (
     score_strategy_output,
     select_flat_minima_record,
     stationary_bootstrap_sharpes,
+    synthetic_walkforward_sharpes,
     trade_frequency_penalty,
     validate_param_ranges,
+    volatility_regime_labels,
     walkforward_support_matrix,
 )
 
@@ -310,6 +312,120 @@ def test_walkforward_phase3_stationary_bootstrap_is_seed_reproducible():
     assert not np.allclose(first, different)
 
 
+def test_walkforward_phase_b_supports_monthly_and_weekly_splits():
+    idx = pd.date_range("2021-01-01", periods=220, freq="D", tz="UTC")
+    data = _bars(idx)
+
+    monthly = WalkForwardEngine(
+        strategy=lambda data, params, train_index, test_index, fold: pd.Series(1.0, index=test_index),
+        config=WalkForwardConfig(split_mode="2021-04-01", split_frequency="monthly", min_train_bars=10, min_test_bars=10),
+    ).build_folds(data.index)
+    weekly = WalkForwardEngine(
+        strategy=lambda data, params, train_index, test_index, fold: pd.Series(1.0, index=test_index),
+        config=WalkForwardConfig(split_mode="2021-04-01", split_frequency="weekly", min_train_bars=10, min_test_bars=5),
+    ).build_folds(data.index)
+
+    assert len(monthly) >= 3
+    assert len(weekly) > len(monthly)
+    assert all(fold.train_end < fold.test_start for fold in monthly + weekly)
+
+
+def test_walkforward_phase_b_regime_and_stress_simulations_are_seeded():
+    returns = np.array([0.001, -0.002, 0.003, -0.004, 0.008, -0.009, 0.002, -0.001] * 20, dtype=float)
+    labels = volatility_regime_labels(returns, regime_count=3, lookback=5)
+
+    assert set(labels.tolist()).issubset({0, 1, 2})
+    assert labels.shape[0] == returns.shape[0]
+
+    first = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=24,
+        block_length=4,
+        seed=21,
+        simulation="regime",
+        regime_count=3,
+        regime_lookback=5,
+        regime_weights={"high": 0.7, "low": 0.3},
+        use_numba=True,
+    )
+    second = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=24,
+        block_length=4,
+        seed=21,
+        simulation="regime",
+        regime_count=3,
+        regime_lookback=5,
+        regime_weights={"high": 0.7, "low": 0.3},
+        use_numba=False,
+    )
+    stressed = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=24,
+        block_length=4,
+        seed=21,
+        simulation="stress",
+        stress_vol_multiplier=2.0,
+        use_numba=True,
+    )
+
+    np.testing.assert_allclose(first, second)
+    assert first.shape == (24,)
+    assert stressed.shape == (24,)
+    assert np.isfinite(first).all()
+    assert np.isfinite(stressed).all()
+
+
+def test_walkforward_phase_b_regime_weights_tolerate_missing_regime_labels():
+    returns = np.full(80, 0.001, dtype=float)
+
+    out = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=8,
+        block_length=5,
+        seed=7,
+        simulation="regime",
+        regime_count=3,
+        regime_weights={"high": 1.0},
+        use_numba=False,
+    )
+
+    assert out.shape == (8,)
+    assert np.isfinite(out).all()
+
+
+def test_walkforward_phase_b_garch_simulation_is_seeded_when_arch_is_available():
+    pytest.importorskip("arch")
+    rng = np.random.default_rng(123)
+    returns = rng.standard_t(7, size=140).astype(float) * 0.01 + 0.0002
+
+    first = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=6,
+        block_length=10,
+        seed=99,
+        simulation="garch",
+        garch_p=1,
+        garch_q=1,
+        garch_dist="t",
+        use_numba=True,
+    )
+    second = synthetic_walkforward_sharpes(
+        returns,
+        n_samples=6,
+        block_length=10,
+        seed=99,
+        simulation="garch",
+        garch_p=1,
+        garch_q=1,
+        garch_dist="t",
+        use_numba=False,
+    )
+
+    np.testing.assert_allclose(first, second)
+    assert np.isfinite(first).all()
+
+
 def test_walkforward_phase3_mode_2_sbb_optimizes_and_records_bootstrap_metrics():
     idx = _idx()
     data = _bars(idx)
@@ -342,6 +458,49 @@ def test_walkforward_phase3_mode_2_sbb_optimizes_and_records_bootstrap_metrics()
     assert wf["best_trial"]["selection_metadata"]["objective_mode"] == "mode_2_sbb"
     assert wf["best_trial"]["selection_metadata"]["oos_seen_by_optuna"] is False
     assert len(wf["candidate_table"]) >= 1
+
+
+def test_walkforward_phase_b_mode_2_regime_endpoint_records_simulation_metadata():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        side = 1.0 if int(params["go_long"]) == 1 else -1.0
+        return pd.Series(side, index=test_index)
+
+    bt = QuantBTEndpoint.walk_forward(
+        strategy_class=strategy,
+        split_mode=2022,
+        split_frequency="monthly",
+        target_mode="signal_notional",
+        optimization_mode="mode_2_sbb",
+        optimization_config={
+            "sbb_samples": 12,
+            "sbb_block_length": 6,
+            "sbb_simulation": "regime",
+            "regime_count": 3,
+            "regime_lookback": 5,
+            "regime_weights": {"high": 0.6, "low": 0.4},
+            "use_numba": True,
+        },
+        optuna_trials=4,
+        random_seed=13,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"go_long": (0, 1, 1)})
+    wf = result.metadata["walk_forward"]
+    best = wf["best_trial"]
+
+    assert wf["split_frequency"] == "monthly"
+    assert wf["sbb_simulation"] == "regime"
+    assert best["selection_metadata"]["sbb_simulation"] == "regime"
+    assert len(wf["candidate_table"]) >= 1
+    assert wf["best_trial"]["selection_metadata"]["oos_seen_by_optuna"] is False
 
 
 def test_walkforward_phase3_flat_minima_selector_prefers_dense_cluster_over_sharp_peak():
