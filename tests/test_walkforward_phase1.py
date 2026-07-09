@@ -91,6 +91,23 @@ def test_walkforward_endpoint_routes_stitched_signal_to_signal_notional():
     assert result.positions["Position_BTC"].loc["2022-01-02"] > 0.0
 
 
+def test_walkforward_naive_data_index_is_aligned_to_fold_timezone_for_strategy():
+    idx = pd.date_range("2021-07-01", "2022-09-30", freq="1D")
+    data = _bars(idx)
+    data["raw_signal"] = 1.0
+
+    def strategy(data, params, train_index, test_index, fold):
+        return data["raw_signal"].reindex(test_index).fillna(0.0)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(split_mode=2022, split_frequency="quarterly"),
+    )
+    result = engine.run(data=data, params={})
+
+    assert int((result.oos_output != 0.0).sum()) == sum(len(fold.test_index) for fold in result.folds)
+
+
 def test_walkforward_endpoint_routes_pct_equity_to_legacy_backtester():
     idx = _idx()
 

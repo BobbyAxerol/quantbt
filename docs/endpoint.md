@@ -899,6 +899,8 @@ with the same arguments.
 Important rules:
 
 - train data is always strictly before the OOS test window;
+- data passed into the strategy is aligned to the UTC fold index, so tz-naive
+  research frames can safely use `series.reindex(test_index)`;
 - outputs are sliced to `test_index` before stitching;
 - strategy outputs must be timestamp-indexed `pd.Series`, `pd.DataFrame`, or
   `{symbol: pd.Series}` and cover every timestamp in the requested fold;

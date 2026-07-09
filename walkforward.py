@@ -452,29 +452,30 @@ class WalkForwardEngine:
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
         idx = _infer_datetime_index(data, datetime_index)
+        data_for_strategy = _align_data_to_datetime_index(data, idx)
         folds = self.build_folds(idx)
         trial_records: List[WalkForwardTrialRecord] = []
         candidate_records: List[WalkForwardTrialRecord] = []
         if params is not None:
             chosen_params = dict(params)
-            selected_record = self.evaluate_params(data=data, folds=folds, params=chosen_params, trial_id=0)
+            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
         elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima"} and self.config.optuna_trials > 0:
             selected_record, trial_records, candidate_records = self.optimize_params(
-                data=data,
+                data=data_for_strategy,
                 folds=folds,
                 param_ranges=param_ranges or {},
             )
             chosen_params = dict(selected_record.params)
         else:
             chosen_params = dict(_default_params_from_ranges(param_ranges or {}))
-            selected_record = self.evaluate_params(data=data, folds=folds, params=chosen_params, trial_id=0)
+            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
 
         outputs: List[StrategyOutput] = []
 
         for fold in folds:
-            out = self._call_strategy(data=data, params=chosen_params, fold=fold)
+            out = self._call_strategy(data=data_for_strategy, params=chosen_params, fold=fold)
             outputs.append(_slice_output_to_test(out, fold.test_index))
 
         stitched = stitch_oos_outputs(
@@ -505,7 +506,7 @@ class WalkForwardEngine:
                 "top_is_fraction": self.config.top_is_fraction,
                 "top_is_k": self.config.top_is_k,
                 "candidate_selection_metric": self.config.candidate_selection_metric,
-                "data_hash": _data_hash(data),
+                "data_hash": _data_hash(data_for_strategy),
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
                 "scoring_trading_days": self.config.scoring_trading_days,
@@ -2099,6 +2100,44 @@ def _infer_datetime_index(data, datetime_index) -> pd.DatetimeIndex:
         if isinstance(first, pd.DataFrame) or isinstance(first, pd.Series):
             return validate_datetime(first.index)
     raise ValueError("datetime_index is required when data has no DatetimeIndex")
+
+
+def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex):
+    """
+    Return a data view/copy whose timestamp index matches WFO fold indices.
+
+    `validate_datetime` normalizes fold indices to UTC. Real research frames
+    are often tz-naive; passing them unchanged into a strategy makes common
+    code like `series.reindex(test_index)` silently return all NaN. Alignment is
+    length-preserving and does not inspect future values.
+    """
+    if isinstance(data, pd.DataFrame):
+        if len(data) != len(idx):
+            return data
+        out = data.copy()
+        out.index = idx
+        return out
+    if isinstance(data, pd.Series):
+        if len(data) != len(idx):
+            return data
+        out = data.copy()
+        out.index = idx
+        return out
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, pd.DataFrame) and len(value) == len(idx):
+                item = value.copy()
+                item.index = idx
+                out[key] = item
+            elif isinstance(value, pd.Series) and len(value) == len(idx):
+                item = value.copy()
+                item.index = idx
+                out[key] = item
+            else:
+                out[key] = value
+        return out
+    return data
 
 
 def _first_oos_timestamp(split_mode) -> pd.Timestamp:
