@@ -15,6 +15,7 @@ import hashlib
 import json
 import operator
 import time
+import warnings
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -106,7 +107,7 @@ class WalkForwardConfig:
         String such as `walk_forward_2022`, an integer year, or a timestamp-like
         value marking the first OOS period.
     split_frequency:
-        `yearly`, `semi_yearly`, or `quarterly`.
+        `yearly`, `semi_yearly`, `quarterly`, `monthly`, or `weekly`.
     window_mode:
         `expanding` keeps the first train timestamp fixed. `rolling` uses
         `train_window` as the train lookback.
@@ -148,6 +149,15 @@ class WalkForwardConfig:
     sbb_block_length: int = 20
     sbb_decay_lambda: float = 0.5
     sbb_std_penalty: float = 0.1
+    sbb_simulation: str = "stationary"
+    regime_count: int = 3
+    regime_lookback: int = 20
+    regime_weights: Optional[Dict[Union[int, str], float]] = None
+    stress_vol_multiplier: float = 1.0
+    garch_p: int = 1
+    garch_q: int = 1
+    garch_dist: str = "t"
+    garch_vol_multiplier: float = 1.0
     flat_top_fraction: float = 0.1
     flat_eps: float = 0.15
     flat_min_samples: int = 3
@@ -160,8 +170,8 @@ class WalkForwardConfig:
 
     def __post_init__(self) -> None:
         freq = self.split_frequency.lower().strip()
-        if freq not in {"yearly", "semi_yearly", "quarterly"}:
-            raise ValueError("split_frequency must be yearly, semi_yearly, or quarterly")
+        if freq not in {"yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
+            raise ValueError("split_frequency must be yearly, semi_yearly, quarterly, monthly, or weekly")
         object.__setattr__(self, "split_frequency", freq)
 
         mode = self.window_mode.lower().strip()
@@ -203,6 +213,28 @@ class WalkForwardConfig:
             raise ValueError("sbb_samples must be > 0")
         if self.sbb_block_length <= 0:
             raise ValueError("sbb_block_length must be > 0")
+        sim = self.sbb_simulation.lower().strip()
+        if sim not in {"stationary", "regime", "stress", "garch"}:
+            raise ValueError("sbb_simulation must be stationary, regime, stress, or garch")
+        object.__setattr__(self, "sbb_simulation", sim)
+        if self.regime_count < 2:
+            raise ValueError("regime_count must be >= 2")
+        if self.regime_lookback <= 0:
+            raise ValueError("regime_lookback must be > 0")
+        weights = None
+        if self.regime_weights is not None:
+            weights = _normalize_regime_weights(self.regime_weights, int(self.regime_count))
+        object.__setattr__(self, "regime_weights", weights)
+        if self.stress_vol_multiplier <= 0.0:
+            raise ValueError("stress_vol_multiplier must be > 0")
+        if self.garch_p <= 0 or self.garch_q <= 0:
+            raise ValueError("garch_p and garch_q must be > 0")
+        garch_dist = self.garch_dist.lower().strip()
+        if garch_dist not in {"normal", "gaussian", "t", "studentst"}:
+            raise ValueError("garch_dist must be normal, gaussian, t, or studentst")
+        object.__setattr__(self, "garch_dist", "normal" if garch_dist == "gaussian" else garch_dist)
+        if self.garch_vol_multiplier <= 0.0:
+            raise ValueError("garch_vol_multiplier must be > 0")
         if not 0.0 < self.flat_top_fraction <= 1.0:
             raise ValueError("flat_top_fraction must be in (0, 1]")
         if self.flat_eps <= 0.0:
@@ -479,6 +511,17 @@ class WalkForwardEngine:
                 "scoring_trading_days": self.config.scoring_trading_days,
                 "min_trades_per_year": self.config.min_trades_per_year,
                 "trade_penalty_factor": self.config.trade_penalty_factor,
+                "sbb_simulation": self.config.sbb_simulation,
+                "sbb_samples": self.config.sbb_samples,
+                "sbb_block_length": self.config.sbb_block_length,
+                "regime_count": self.config.regime_count,
+                "regime_lookback": self.config.regime_lookback,
+                "regime_weights": self.config.regime_weights,
+                "stress_vol_multiplier": self.config.stress_vol_multiplier,
+                "garch_p": self.config.garch_p,
+                "garch_q": self.config.garch_q,
+                "garch_dist": self.config.garch_dist,
+                "garch_vol_multiplier": self.config.garch_vol_multiplier,
                 "numba_enabled": bool(self.config.use_numba and _NUMBA_AVAILABLE),
                 **self.config.metadata,
             },
@@ -751,12 +794,13 @@ class WalkForwardEngine:
         trial_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """
-        Score params with stationary block bootstrap synthetic OOS robustness.
+        Score params with train-only synthetic OOS robustness.
 
         The strategy is evaluated on each train fold, then its train return
-        proxy is resampled with seeded stationary block bootstrap. The selected
+        proxy is simulated with the selected Mode 2 generator. The selected
         objective rewards high synthetic Sharpe and penalizes estimated decay
-        from original IS Sharpe to synthetic Sharpe.
+        from original IS Sharpe to synthetic Sharpe. OOS bars are not evaluated
+        inside the Optuna objective.
         """
         fold_metrics = []
         is_scores = []
@@ -782,13 +826,22 @@ class WalkForwardEngine:
             )
             returns = strategy_return_series(data, is_output, fold.train_index).to_numpy(dtype=np.float64)
             seed = int(self.config.random_seed) + int(trial_id) * 100_003 + int(fold.fold_id) * 9_176
-            boot = stationary_bootstrap_sharpes(
+            boot = synthetic_walkforward_sharpes(
                 returns=returns,
                 n_samples=int(self.config.sbb_samples),
                 block_length=int(self.config.sbb_block_length),
                 seed=seed,
                 trading_days=int(self.config.scoring_trading_days),
                 use_numba=bool(self.config.use_numba),
+                simulation=self.config.sbb_simulation,
+                regime_count=int(self.config.regime_count),
+                regime_lookback=int(self.config.regime_lookback),
+                regime_weights=self.config.regime_weights,
+                stress_vol_multiplier=float(self.config.stress_vol_multiplier),
+                garch_p=int(self.config.garch_p),
+                garch_q=int(self.config.garch_q),
+                garch_dist=self.config.garch_dist,
+                garch_vol_multiplier=float(self.config.garch_vol_multiplier),
             )
             synthetic_mean = float(np.mean(boot)) if len(boot) else 0.0
             synthetic_std = float(np.std(boot, ddof=1)) if len(boot) > 1 else 0.0
@@ -823,6 +876,15 @@ class WalkForwardEngine:
                     "sbb_objective": float(fold_objective),
                     "sbb_samples": int(self.config.sbb_samples),
                     "sbb_block_length": int(self.config.sbb_block_length),
+                    "sbb_simulation": self.config.sbb_simulation,
+                    "regime_count": int(self.config.regime_count),
+                    "regime_lookback": int(self.config.regime_lookback),
+                    "regime_weights": self.config.regime_weights,
+                    "stress_vol_multiplier": float(self.config.stress_vol_multiplier),
+                    "garch_p": int(self.config.garch_p),
+                    "garch_q": int(self.config.garch_q),
+                    "garch_dist": self.config.garch_dist,
+                    "garch_vol_multiplier": float(self.config.garch_vol_multiplier),
                     "is_turnover": is_metrics["turnover"],
                     "is_trade_count": is_metrics["trade_count"],
                     "is_required_trades": required_trades,
@@ -854,6 +916,15 @@ class WalkForwardEngine:
                 "objective_mode": "mode_2_sbb",
                 "sbb_samples": int(self.config.sbb_samples),
                 "sbb_block_length": int(self.config.sbb_block_length),
+                "sbb_simulation": self.config.sbb_simulation,
+                "regime_count": int(self.config.regime_count),
+                "regime_lookback": int(self.config.regime_lookback),
+                "regime_weights": self.config.regime_weights,
+                "stress_vol_multiplier": float(self.config.stress_vol_multiplier),
+                "garch_p": int(self.config.garch_p),
+                "garch_q": int(self.config.garch_q),
+                "garch_dist": self.config.garch_dist,
+                "garch_vol_multiplier": float(self.config.garch_vol_multiplier),
                 "oos_seen_by_optuna": False,
             },
         )
@@ -1186,6 +1257,97 @@ def stationary_bootstrap_sharpes(
     return _bootstrap_sharpes_python(clean, indices, float(trading_days))
 
 
+def synthetic_walkforward_sharpes(
+    returns: np.ndarray,
+    n_samples: int,
+    block_length: int,
+    seed: int,
+    trading_days: int = 365,
+    use_numba: bool = True,
+    simulation: str = "stationary",
+    regime_count: int = 3,
+    regime_lookback: int = 20,
+    regime_weights: Optional[Dict[Union[int, str], float]] = None,
+    stress_vol_multiplier: float = 1.0,
+    garch_p: int = 1,
+    garch_q: int = 1,
+    garch_dist: str = "t",
+    garch_vol_multiplier: float = 1.0,
+) -> np.ndarray:
+    """
+    Generate train-only synthetic Sharpe samples for Mode 2 WFO scoring.
+
+    `stationary` preserves the legacy SBB behavior. `regime` bootstraps blocks
+    from volatility regimes estimated on the IS return proxy. `stress` keeps the
+    SBB dependence model but scales demeaned returns before sampling. `garch`
+    fits a GARCH(p, q) model on IS returns and simulates volatility-clustered
+    paths with a deterministic seed.
+    """
+    sim = str(simulation).lower().strip()
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    if clean.size < 2:
+        return np.zeros(int(n_samples), dtype=np.float64)
+    if sim == "stationary":
+        return stationary_bootstrap_sharpes(clean, n_samples, block_length, seed, trading_days, use_numba)
+    if sim == "stress":
+        stressed = _stress_returns(clean, float(stress_vol_multiplier))
+        return stationary_bootstrap_sharpes(stressed, n_samples, block_length, seed, trading_days, use_numba)
+    if sim == "regime":
+        labels = volatility_regime_labels(clean, regime_count=int(regime_count), lookback=int(regime_lookback))
+        weights = _normalize_regime_weights(regime_weights, int(regime_count)) if regime_weights is not None else None
+        indices = _regime_bootstrap_indices(
+            labels=labels,
+            n_samples=int(n_samples),
+            block_length=int(block_length),
+            seed=int(seed),
+            regime_weights=weights,
+            regime_count=int(regime_count),
+        )
+        if bool(use_numba) and _NUMBA_AVAILABLE:
+            return _bootstrap_sharpes_numba(clean, indices, float(trading_days))
+        return _bootstrap_sharpes_python(clean, indices, float(trading_days))
+    if sim == "garch":
+        paths = _garch_simulated_paths(
+            clean,
+            n_samples=int(n_samples),
+            seed=int(seed),
+            p=int(garch_p),
+            q=int(garch_q),
+            dist=str(garch_dist),
+            vol_multiplier=float(garch_vol_multiplier),
+        )
+        if bool(use_numba) and _NUMBA_AVAILABLE:
+            return _path_sharpes_numba(paths, float(trading_days))
+        return _path_sharpes_python(paths, float(trading_days))
+    raise ValueError("simulation must be stationary, regime, stress, or garch")
+
+
+def volatility_regime_labels(returns: np.ndarray, regime_count: int = 3, lookback: int = 20) -> np.ndarray:
+    """
+    Assign trailing-volatility regime labels from 0 (low vol) to N-1 (high vol).
+
+    The function uses only the in-sample return proxy passed by the caller. It
+    does not inspect future OOS bars, so it is safe inside the WFO objective.
+    """
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    if clean.size == 0:
+        return np.zeros(0, dtype=np.int64)
+    n_regimes = max(2, int(regime_count))
+    window = max(1, int(lookback))
+    trailing_vol = np.empty(clean.size, dtype=np.float64)
+    abs_ret = np.abs(clean)
+    cumsum = np.concatenate(([0.0], np.cumsum(abs_ret)))
+    for i in range(clean.size):
+        start = max(0, i + 1 - window)
+        trailing_vol[i] = (cumsum[i + 1] - cumsum[start]) / float(i + 1 - start)
+    quantiles = np.linspace(0.0, 1.0, n_regimes + 1)[1:-1]
+    cuts = np.quantile(trailing_vol, quantiles) if quantiles.size else np.array([], dtype=np.float64)
+    labels = np.searchsorted(cuts, trailing_vol, side="right").astype(np.int64)
+    return np.minimum(labels, n_regimes - 1)
+
+
 def benchmark_walkforward_kernels(
     n_obs: int = 2_000,
     n_samples: int = 128,
@@ -1270,6 +1432,180 @@ def _stationary_bootstrap_indices(n_obs: int, n_samples: int, block_length: int,
     return indices
 
 
+def _regime_bootstrap_indices(
+    labels: np.ndarray,
+    n_samples: int,
+    block_length: int,
+    seed: int,
+    regime_weights: Optional[Dict[Union[int, str], float]] = None,
+    regime_count: Optional[int] = None,
+) -> np.ndarray:
+    labels = np.asarray(labels, dtype=np.int64)
+    if labels.size <= 0:
+        raise ValueError("labels must not be empty")
+    n_obs = int(labels.size)
+    n_regimes = max(int(np.max(labels)) + 1, 2 if regime_count is None else int(regime_count))
+    rng = np.random.default_rng(int(seed))
+    p = 1.0 / max(1.0, float(block_length))
+    if regime_weights is None:
+        counts = np.bincount(labels, minlength=n_regimes).astype(np.float64)
+        probs = counts / counts.sum()
+    else:
+        probs = np.zeros(n_regimes, dtype=np.float64)
+        for key, value in regime_weights.items():
+            idx = _regime_key_to_index(key, n_regimes)
+            probs[idx] = float(value)
+        total = float(probs.sum())
+        if total <= 0.0:
+            raise ValueError("regime_weights must sum to a positive value")
+        probs = probs / total
+
+    starts_by_regime = [np.flatnonzero(labels == regime) for regime in range(n_regimes)]
+    all_starts = np.arange(n_obs, dtype=np.int64)
+    indices = np.empty((int(n_samples), n_obs), dtype=np.int64)
+    for sample in range(int(n_samples)):
+        current_regime = int(rng.choice(n_regimes, p=probs))
+        choices = starts_by_regime[current_regime]
+        if choices.size == 0:
+            choices = all_starts
+        current = int(rng.choice(choices))
+        indices[sample, 0] = current
+        for i in range(1, n_obs):
+            next_current = (current + 1) % n_obs
+            if rng.random() < p or labels[next_current] != current_regime:
+                current_regime = int(rng.choice(n_regimes, p=probs))
+                choices = starts_by_regime[current_regime]
+                if choices.size == 0:
+                    choices = all_starts
+                current = int(rng.choice(choices))
+            else:
+                current = next_current
+            indices[sample, i] = current
+    return indices
+
+
+def _stress_returns(returns: np.ndarray, vol_multiplier: float) -> np.ndarray:
+    clean = np.asarray(returns, dtype=np.float64)
+    mean = float(np.mean(clean)) if clean.size else 0.0
+    return mean + (clean - mean) * float(vol_multiplier)
+
+
+def _normalize_regime_weights(
+    weights: Optional[Dict[Union[int, str], float]],
+    regime_count: int,
+) -> Optional[Dict[int, float]]:
+    if weights is None:
+        return None
+    n_regimes = max(2, int(regime_count))
+    out: Dict[int, float] = {}
+    for key, value in weights.items():
+        idx = _regime_key_to_index(key, n_regimes)
+        val = float(value)
+        if val < 0.0:
+            raise ValueError("regime_weights values must be >= 0")
+        out[idx] = out.get(idx, 0.0) + val
+    total = sum(out.values())
+    if total <= 0.0:
+        raise ValueError("regime_weights must sum to a positive value")
+    return {key: value / total for key, value in out.items()}
+
+
+def _regime_key_to_index(key: Union[int, str], regime_count: int) -> int:
+    n_regimes = max(2, int(regime_count))
+    if isinstance(key, (int, np.integer)):
+        idx = int(key)
+    else:
+        raw = str(key).lower().strip()
+        aliases = {
+            "low": 0,
+            "low_vol": 0,
+            "calm": 0,
+            "mid": n_regimes // 2,
+            "medium": n_regimes // 2,
+            "normal": n_regimes // 2,
+            "high": n_regimes - 1,
+            "high_vol": n_regimes - 1,
+            "crash": n_regimes - 1,
+            "stress": n_regimes - 1,
+        }
+        idx = aliases[raw] if raw in aliases else int(raw)
+    if idx < 0 or idx >= n_regimes:
+        raise ValueError(f"regime key {key!r} is outside [0, {n_regimes - 1}]")
+    return idx
+
+
+def _garch_simulated_paths(
+    returns: np.ndarray,
+    n_samples: int,
+    seed: int,
+    p: int,
+    q: int,
+    dist: str,
+    vol_multiplier: float,
+) -> np.ndarray:
+    clean = np.asarray(returns, dtype=np.float64)
+    clean = clean[np.isfinite(clean)]
+    min_obs = max(30, (int(p) + int(q)) * 12)
+    if clean.size < min_obs:
+        raise ValueError(f"garch simulation requires at least {min_obs} finite IS returns")
+    try:
+        from arch import arch_model
+    except Exception as exc:  # pragma: no cover - optional dependency guard
+        raise ImportError("sbb_simulation='garch' requires the optional arch package") from exc
+
+    scaled = clean * 100.0
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model = arch_model(
+            scaled,
+            mean="Constant",
+            vol="GARCH",
+            p=int(p),
+            q=int(q),
+            dist=str(dist),
+            rescale=False,
+        )
+        result = model.fit(disp="off", show_warning=False)
+
+    params = result.params
+    mu = float(params.get("mu", 0.0))
+    omega = max(float(params.get("omega", np.var(scaled) * 0.01)), 1e-12)
+    alphas = np.array([max(float(params.get(f"alpha[{i}]", 0.0)), 0.0) for i in range(1, int(p) + 1)])
+    betas = np.array([max(float(params.get(f"beta[{i}]", 0.0)), 0.0) for i in range(1, int(q) + 1)])
+    total_persistence = float(alphas.sum() + betas.sum())
+    unconditional_var = float(np.var(scaled, ddof=1))
+    if total_persistence < 0.999:
+        unconditional_var = max(omega / max(1e-12, 1.0 - total_persistence), 1e-12)
+    rng = np.random.default_rng(int(seed))
+    paths_pct = np.empty((int(n_samples), clean.size), dtype=np.float64)
+    max_lag = max(int(p), int(q), 1)
+    nu = max(float(params.get("nu", 8.0)), 2.1)
+    for sample_id in range(int(n_samples)):
+        eps = np.zeros(clean.size + max_lag, dtype=np.float64)
+        sigma2 = np.full(clean.size + max_lag, unconditional_var, dtype=np.float64)
+        for t in range(max_lag, clean.size + max_lag):
+            var_t = omega
+            for i, alpha in enumerate(alphas, start=1):
+                var_t += float(alpha) * eps[t - i] * eps[t - i]
+            for j, beta in enumerate(betas, start=1):
+                var_t += float(beta) * sigma2[t - j]
+            sigma2[t] = max(var_t, 1e-12)
+            if str(dist).lower() in {"t", "studentst"}:
+                shock = float(rng.standard_t(nu)) * float(np.sqrt((nu - 2.0) / nu))
+            else:
+                shock = float(rng.normal())
+            eps[t] = float(np.sqrt(sigma2[t])) * shock
+            paths_pct[sample_id, t - max_lag] = mu + eps[t]
+    paths = paths_pct / 100.0
+    return _stress_paths(paths, float(vol_multiplier))
+
+
+def _stress_paths(paths: np.ndarray, vol_multiplier: float) -> np.ndarray:
+    arr = np.asarray(paths, dtype=np.float64)
+    means = np.mean(arr, axis=1, keepdims=True)
+    return means + (arr - means) * float(vol_multiplier)
+
+
 def _score_returns_positions_python(
     returns: np.ndarray,
     positions: np.ndarray,
@@ -1300,6 +1636,17 @@ def _bootstrap_sharpes_python(returns: np.ndarray, indices: np.ndarray, trading_
     out = np.empty(indices.shape[0], dtype=np.float64)
     for i in range(indices.shape[0]):
         sample = returns[indices[i]]
+        mean = float(np.mean(sample))
+        sd = float(np.std(sample, ddof=1)) if sample.size > 1 else 0.0
+        out[i] = (mean / sd) * float(np.sqrt(trading_days)) if sd > 0.0 else 0.0
+    return out
+
+
+def _path_sharpes_python(paths: np.ndarray, trading_days: float) -> np.ndarray:
+    arr = np.asarray(paths, dtype=np.float64)
+    out = np.empty(arr.shape[0], dtype=np.float64)
+    for i in range(arr.shape[0]):
+        sample = arr[i]
         mean = float(np.mean(sample))
         sd = float(np.std(sample, ddof=1)) if sample.size > 1 else 0.0
         out[i] = (mean / sd) * float(np.sqrt(trading_days)) if sd > 0.0 else 0.0
@@ -1365,6 +1712,29 @@ if _NUMBA_AVAILABLE:
                 out[sample_id] = 0.0
         return out
 
+    @njit(cache=True)
+    def _path_sharpes_numba(paths, trading_days):  # pragma: no cover - compared via tests
+        n_samples = paths.shape[0]
+        n_obs = paths.shape[1]
+        out = np.empty(n_samples, dtype=np.float64)
+        for sample_id in range(n_samples):
+            total = 0.0
+            for i in range(n_obs):
+                total += paths[sample_id, i]
+            mean = total / n_obs
+            sd = 0.0
+            if n_obs > 1:
+                var = 0.0
+                for i in range(n_obs):
+                    diff = paths[sample_id, i] - mean
+                    var += diff * diff
+                sd = (var / (n_obs - 1)) ** 0.5
+            if sd > 0.0:
+                out[sample_id] = (mean / sd) * (trading_days ** 0.5)
+            else:
+                out[sample_id] = 0.0
+        return out
+
 else:
 
     def _score_returns_positions_numba(returns, positions, trading_days):  # pragma: no cover - fallback alias
@@ -1372,6 +1742,9 @@ else:
 
     def _bootstrap_sharpes_numba(returns, indices, trading_days):  # pragma: no cover - fallback alias
         return _bootstrap_sharpes_python(returns, indices, trading_days)
+
+    def _path_sharpes_numba(paths, trading_days):  # pragma: no cover - fallback alias
+        return _path_sharpes_python(paths, trading_days)
 
 
 def select_flat_minima_record(
@@ -1751,6 +2124,10 @@ def _frequency_offset(split_frequency: str) -> pd.DateOffset:
         return pd.DateOffset(months=6)
     if split_frequency == "quarterly":
         return pd.DateOffset(months=3)
+    if split_frequency == "monthly":
+        return pd.DateOffset(months=1)
+    if split_frequency == "weekly":
+        return pd.DateOffset(weeks=1)
     raise ValueError("unsupported split_frequency")
 
 
@@ -1945,6 +2322,15 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "sbb_block_length": config.sbb_block_length,
         "sbb_decay_lambda": config.sbb_decay_lambda,
         "sbb_std_penalty": config.sbb_std_penalty,
+        "sbb_simulation": config.sbb_simulation,
+        "regime_count": config.regime_count,
+        "regime_lookback": config.regime_lookback,
+        "regime_weights": config.regime_weights,
+        "stress_vol_multiplier": config.stress_vol_multiplier,
+        "garch_p": config.garch_p,
+        "garch_q": config.garch_q,
+        "garch_dist": config.garch_dist,
+        "garch_vol_multiplier": config.garch_vol_multiplier,
         "flat_top_fraction": config.flat_top_fraction,
         "flat_eps": config.flat_eps,
         "flat_min_samples": config.flat_min_samples,

@@ -799,7 +799,7 @@ def strategy(data, params, train_index, test_index, fold):
 wfo = QuantBTEndpoint.walk_forward(
     strategy_class=strategy,
     split_mode="walk_forward_2022",
-    split_frequency="quarterly",
+    split_frequency="quarterly",  # yearly | semi_yearly | quarterly | monthly | weekly
     target_mode="signal_notional",
     optimization_mode="mode_1_decay",
     optimization_config={
@@ -811,8 +811,20 @@ wfo = QuantBTEndpoint.walk_forward(
         "candidate_selection_metric": "robust_decay",
         "candidate_decay_lambda": None,
         "candidate_decay_gamma": None,
-        # mode_2_sbb: "sbb_samples", "sbb_block_length",
-        #             "sbb_decay_lambda", "sbb_std_penalty"
+        # mode_2_sbb:
+        "sbb_samples": 256,
+        "sbb_block_length": 20,
+        "sbb_decay_lambda": 0.5,
+        "sbb_std_penalty": 0.1,
+        "sbb_simulation": "stationary",  # stationary | regime | stress | garch
+        "regime_count": 3,
+        "regime_lookback": 20,
+        "regime_weights": None,          # e.g. {"high": 0.6, "low": 0.4}
+        "stress_vol_multiplier": 1.0,
+        "garch_p": 1,
+        "garch_q": 1,
+        "garch_dist": "t",
+        "garch_vol_multiplier": 1.0,
         # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
         #                     "flat_min_samples", "flat_selector"
         # crypto default annualization: 365; equities often use 252
@@ -893,6 +905,9 @@ Important rules:
   missing fold timestamps are rejected to avoid silent all-zero OOS stitching;
 - values outside OOS windows are filled with `0.0`;
 - fixed-parameter runs pass `params=...`;
+- `split_frequency` supports `yearly`, `semi_yearly`, `quarterly`, `monthly`,
+  and `weekly`; choose shorter splits for short-horizon/intraday strategies
+  only when each train/OOS fold still has enough bars;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`, and
   `mode_3_flat_minima`;
 - for all optimization modes, Optuna receives only in-sample or synthetic
@@ -909,8 +924,9 @@ Important rules:
 - optional trade-frequency penalization can be enabled with
   `min_trades_per_year` and `trade_penalty_factor` to avoid low-trade Sharpe
   overfitting; leaving either unset keeps existing behavior unchanged;
-- `mode_2_sbb` uses seeded stationary block bootstrap on train-fold strategy
-  returns to estimate synthetic OOS robustness;
+- `mode_2_sbb` uses seeded train-fold synthetic simulation on strategy returns
+  to estimate synthetic OOS robustness. Default `sbb_simulation="stationary"`
+  preserves legacy stationary block bootstrap behavior;
 - `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
   selects the medoid or snapped centroid of the densest stable cluster instead
   of a sharp isolated peak;
@@ -930,10 +946,70 @@ Stage 2 candidate objective = mean_oos_sharpe
 Mode 2 SBB objective:
 
 ```text
-synthetic = stationary_block_bootstrap(train_return_proxy)
+synthetic = mode_2_simulation(train_return_proxy)
 objective = mean(synthetic_sharpe)
             - sbb_decay_lambda * max(0, IS_sharpe - mean(synthetic_sharpe))
             - sbb_std_penalty * std(synthetic_sharpe)
+```
+
+Mode 2 simulation choices:
+
+- `stationary`: seeded stationary block bootstrap over IS strategy-return
+  proxy. This is the default and fastest option.
+- `regime`: trailing-volatility regimes are estimated on IS returns only, then
+  blocks are sampled from selected regimes. Use `regime_weights` to stress the
+  synthetic OOS mix, for example `{"high": 0.7, "low": 0.3}`.
+- `stress`: demeaned IS returns are scaled by `stress_vol_multiplier` before
+  SBB. This is useful for fast 1.5x/2x volatility stress tests.
+- `garch`: fits `arch` GARCH(p, q) on IS returns only and simulates
+  volatility-clustered paths. It is optional, slower than SBB, and should be
+  used with enough train bars.
+
+Regime-conditioned example:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="2022-01-01",
+    split_frequency="monthly",
+    target_mode="signal_notional",
+    optimization_mode="mode_2_sbb",
+    optimization_config={
+        "sbb_simulation": "regime",
+        "sbb_samples": 512,
+        "sbb_block_length": 24,
+        "regime_count": 3,
+        "regime_lookback": 48,
+        "regime_weights": {"high": 0.6, "normal": 0.3, "low": 0.1},
+        "scoring_trading_days": 365,
+        "use_numba": True,
+    },
+    optuna_trials=150,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+)
+```
+
+GARCH stress example:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode=2022,
+    split_frequency="quarterly",
+    target_mode="signal_notional",
+    optimization_mode="mode_2_sbb",
+    optimization_config={
+        "sbb_simulation": "garch",
+        "sbb_samples": 128,
+        "garch_p": 1,
+        "garch_q": 1,
+        "garch_dist": "t",
+        "garch_vol_multiplier": 1.5,
+    },
+    optuna_trials=80,
+)
 ```
 
 Mode 3 flat-minima selector:

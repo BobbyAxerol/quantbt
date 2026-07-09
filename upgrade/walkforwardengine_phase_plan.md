@@ -269,6 +269,9 @@ Phase A status on `feat/wfengine`: implementing the anti-leakage redesign
 inside the existing `mode_1_decay`, `mode_2_sbb`, and `mode_3_flat_minima`
 routes rather than adding new public modes.
 
+Phase B status on `feat/wfengine`: implemented advanced Mode 2 simulation and
+shorter split frequencies without adding new public optimization modes.
+
 Tài liệu này đề xuất phương án nâng cấp tổng quát cấu trúc của bộ máy tối ưu hóa Walk-Forward Optimization (WFO) và mô phỏng giả lập của `quantbt` để ứng dụng cho mọi loại chiến thuật giao dịch (Strategy-Agnostic).
 
 ---
@@ -360,6 +363,28 @@ Mode 2 của `quantbt` hiện tại sử dụng **Stationary Block Bootstrap (SB
 ### B. Parametric Modeling Simulation (Mô phỏng tham số hóa)
 *   Tích hợp các mô hình thống kê như **GARCH** (mô phỏng cụm biến động volatility clustering) hoặc **HMM (Hidden Markov Model)** để tự động sinh ra (synthesize) các chuỗi lợi nhuận nhân tạo có phân phối đuôi béo (fat tails) và độ biến động có thể co giãn theo tham số (ví dụ: stress-test hệ thống bằng cách nhân 1.5x hoặc 2.0x biến động volatily của tập IS).
 
+Implemented Phase B convention:
+
+- `optimization_mode="mode_2_sbb"` remains the public route. The internal
+  simulator is selected with `sbb_simulation`.
+- Supported `sbb_simulation` values:
+  - `stationary`: legacy seeded stationary block bootstrap on IS strategy
+    return proxy. This remains the default.
+  - `regime`: trailing-volatility regime labels estimated on IS only, with
+    optional `regime_weights` such as `{"high": 0.7, "low": 0.3}`.
+  - `stress`: demeaned IS returns scaled by `stress_vol_multiplier`, then
+    passed through SBB.
+  - `garch`: optional `arch` GARCH(p, q) fit on IS returns only, then seeded
+    volatility-clustered path simulation with optional `garch_vol_multiplier`.
+- All Mode 2 synthetic objectives remain train-only. OOS is still touched only
+  after the frozen IS candidate set is selected.
+- Repeated Sharpe scoring for bootstrap/path samples uses numba when available;
+  Python/NumPy fallback is kept for debug and equivalence tests.
+- Endpoint metadata exposes `sbb_simulation`, SBB settings, regime settings,
+  GARCH settings, `config_hash`, and candidate ledgers.
+- GARCH is not default because it is slower and requires enough train bars. Use
+  it intentionally for strategies where volatility clustering is material.
+
 ---
 
 ## 6. Đánh giá tính linh hoạt cấu trúc thời gian của QuantBT
@@ -368,3 +393,13 @@ Qua phân tích mã nguồn `quantbt/walkforward.py`, công cụ hiện tại c�
 
 *   **Hạn chế hiện tại**: Biến `split_frequency` trong `walkforward.py` chỉ chấp nhận 3 giá trị cứng: `"yearly"`, `"semi_yearly"`, và `"quarterly"`. Nếu nhập các giá trị khác sẽ báo lỗi `ValueError`.
 *   **Đề xuất nâng cấp**: Đối với các chiến thuật giao dịch tần suất cao (High-Frequency Trading) hoặc chiến thuật giữ lệnh ngắn hạn (Short-Horizon/Intraday), chu kỳ tối ưu hóa và test cần ngắn hơn nhiều. Chúng tôi đề xuất `quantbt` mở rộng thêm hỗ trợ cho các chu kỳ phân tách ngắn hơn bao gồm: `"monthly"` (Hàng tháng) và `"weekly"` (Hàng tuần) bằng cách bổ sung các quy tắc tính toán offset tương ứng.
+
+Implemented Phase B convention:
+
+- `split_frequency` now accepts `yearly`, `semi_yearly`, `quarterly`,
+  `monthly`, and `weekly`.
+- The no-lookahead invariant stays unchanged: `train_index < test_start` for
+  every fold, and OOS windows are still sliced/stiched by timestamp.
+- Short frequencies should be paired with realistic `min_train_bars` and
+  `min_test_bars` so the optimizer does not score statistically meaningless
+  folds.
