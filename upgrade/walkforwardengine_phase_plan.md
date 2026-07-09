@@ -256,3 +256,97 @@ factor = 1.0 if self.config.trade_penalty_factor is None else self.config.trade_
 penalty = trade_frequency_penalty(is_trades, is_required, factor)
 is_sharpe_penalized = is_metrics["sharpe"] - penalty
 ```
+
+
+
+
+UPGRADE MỚI
+
+
+# Đặc tả Đề xuất Nâng cấp QuantBT: Anti-Leakage WFO & Advanced Simulation (Mode 2)
+
+Tài liệu này đề xuất phương án nâng cấp tổng quát cấu trúc của bộ máy tối ưu hóa Walk-Forward Optimization (WFO) và mô phỏng giả lập của `quantbt` để ứng dụng cho mọi loại chiến thuật giao dịch (Strategy-Agnostic).
+
+---
+
+## 1. Vấn đề của cấu trúc cũ (Mode 1 & Mode 3 hiện tại)
+Trong `quantbt`, quá trình tìm kiếm tham số của Optuna sử dụng hàm mục tiêu:
+$$Objective = Mean(Sharpe_{OOS}) - \lambda \cdot Std(Decay) - \gamma \cdot \max(0, Mean(Decay))$$
+
+*   **Rò rỉ dữ liệu OOS gián tiếp (Look-ahead Bias)**: Vì hiệu năng Out-of-Sample (`oos_sharpe`) được tính toán và trả về cho Optuna ở **từng trial**, thuật toán tìm kiếm (TPE Sampler) sẽ liên tục tinh chỉnh các tham số để tối đa hóa Sharpe trên tập OOS. Tập OOS vô tình bị biến thành tập huấn luyện thứ hai.
+*   **Hậu quả**: Sharpe OOS trong báo cáo luôn cao vượt trội so với thực tế giao dịch Live sau này.
+
+---
+
+## 2. Đề xuất Ý tưởng 1: Two-Stage Optimization (Tối ưu hóa Hai giai đoạn độc lập)
+
+Ý tưởng cốt lõi là **cô lập hoàn toàn tập OOS** khỏi thuật toán tìm kiếm của Optuna:
+
+```mermaid
+graph TD
+    A[Giai đoạn 1: Chỉ chạy Optuna trên IS] --> B(Tìm ra Top K ứng viên có Sharpe IS tốt nhất)
+    B --> C[Giai đoạn 2: Đánh giá OOS]
+    C --> D(Chạy thử K ứng viên trên OOS để tính Decay)
+    D --> E(Chọn ứng viên có Decay thấp và ổn định nhất làm Best Params)
+```
+
+### Chi tiết thuật toán:
+1.  **Giai đoạn 1 (Train strictly on IS)**:
+    *   Optuna thực hiện $N$ trials. Hàm mục tiêu chỉ tính toán hiệu suất trên tập IS:
+        $$Objective_{IS} = Sharpe_{IS} - \text{Penalty}_{trades}$$
+    *   Kết quả Giai đoạn 1 là danh sách $K$ bộ tham số ứng viên tốt nhất trên IS:
+        $$\Phi = \{\theta_1, \theta_2, \dots, \theta_K\}$$
+2.  **Giai đoạn 2 (Select on OOS)**:
+    *   Chỉ mang đúng $K$ bộ tham số trong tập $\Phi$ đi đánh giá trên OOS của tất cả các Folds.
+    *   Tính toán Decay cho từng ứng viên: $Decay = Sharpe_{IS} - Sharpe_{OOS}$.
+    *   Lựa chọn bộ tham số cuối cùng có chỉ số Decay tối ưu và ổn định nhất.
+
+---
+
+## 3. Đề xuất Ý tưởng 2: Flat Minima on In-Sample (Gom cụm trên IS)
+
+Thay vì gom cụm DBSCAN trên các Trial đã bị nhiễm Look-ahead bias của tập OOS, ta thực hiện gom cụm **thuần túy trên tập IS**:
+
+1.  **Bước 1**: Chạy Optuna tìm kiếm tham số tối ưu **chỉ trên tập IS** để đạt Sharpe IS cao nhất.
+2.  **Bước 2**: Lọc ra Top $N$ trials tốt nhất trên IS.
+3.  **Bước 3**: Chạy thuật toán **DBSCAN trên tập IS** để tìm ra các "thung lũng phẳng" (Flat Minima) tiềm năng của riêng tập IS.
+4.  **Bước 4**: Xác định điểm trọng tâm (Centroid/Medoid) của các cụm thung lũng phẳng này. Ta thu được danh sách các trọng tâm robust $\Phi_{centroids}$.
+5.  **Bước 5**: Đem duy nhất các điểm trọng tâm này đi test trên OOS để đo Decay và chọn ra bộ tham số cuối cùng.
+
+---
+
+## 4. Thảo luận chuyên sâu về tham số ($N$ Trials & Giá trị $K$)
+
+### Thảo luận 1: Số lượng $N = 400$ Trials đã đủ chưa?
+*   Số lượng trials cần thiết phụ thuộc vào số lượng tham số cần tối ưu (Dimensionality of Search Space) và độ rộng của từng dải tham số.
+*   Với các chiến thuật giao dịch thông thường (dưới 10 tham số), thuật toán **TPE (Tree-structured Parzen Estimator)** của Optuna chỉ cần khoảng **100 đến 150 trials** là bắt đầu hiểu được phân phối xác suất và hội tụ vào vùng tối ưu. Do đó, mức cấu hình **$N = 300$ đến $400$ trials là hoàn toàn đủ** để quét sạch không gian IS, đảm bảo tìm ra các thung lũng phẳng ổn định.
+
+### Thảo luận 2: Nên chọn $K = 20$ hay $K = 50$ ứng viên cho Giai đoạn 2?
+Việc chọn số lượng ứng viên $K$ để mang sang test trên OOS là một bài toán **Trade-off (Đánh đổi)**:
+*   **Nếu chọn $K = 20$ (Bảo thủ - Kiểm soát chặt Bias)**: Lực lượng tập chọn lọc rất nhỏ. Xác suất Optuna gặp may (False Discovery Rate) trên OOS cực kỳ thấp. Tuy nhiên, có thể bỏ sót những bộ tham số có Sharpe IS đứng ở vị trí thứ 30-40 nhưng lại cực kỳ robust trên tập OOS.
+*   **Nếu chọn $K = 50$ (Tìm kiếm cơ hội - Rủi ro Bias tăng)**: Tăng tập ứng viên đa dạng, tăng cơ hội thích ứng khi OOS có sự chuyển dịch regime đột ngột. Tuy nhiên, xác suất chọn phải một bộ tham số "ăn may trên OOS" sẽ tăng lên đáng kể (gấp 2.5 lần so với $K=20$).
+*   **💡 Giải pháp đề xuất tốt nhất (Dynamic K-Ratio)**: Cấu hình thông số `top_is_fraction` (ví dụ `0.05` tương đương top 5%, hoặc `0.10` tương đương top 10% số trials đã chạy hoàn thành) thay vì số $K$ cố định.
+
+---
+
+## 5. Đề xuất nâng cấp cho Mode 2 (Conditional Bootstrap & Simulation)
+
+Mode 2 của `quantbt` hiện tại sử dụng **Stationary Block Bootstrap (SBB)** để xáo trộn ngẫu nhiên chuỗi lợi nhuận nhằm kiểm chứng tính bền vững. Tuy nhiên, phương pháp phi tham số này có giới hạn là **chỉ xáo trộn lại lịch sử sẵn có** (không tạo ra các kịch bản thị trường mới).
+
+Để nâng cấp Mode 2 theo các tiêu chuẩn tiên tiến của các quỹ Quant lớn, chúng tôi đề xuất bổ sung các tùy chọn giả lập sau:
+
+### A. Regime-Conditioned Bootstrap (Bootstrap có điều kiện trạng thái)
+*   **Cách hoạt động**: Phân tách lịch sử dữ liệu IS thành các trạng thái thị trường khác nhau (ví dụ: High Volatility, Low Volatility, Bull-Trend, Bear-Trend).
+*   **Cấu hình mô phỏng**: Cho phép người dùng tùy chỉnh kịch bản test trên OOS bằng cách gán trọng số cấu trúc (ví dụ: mô phỏng 1000 mẫu OOS giả lập chứa 30% mẫu High Volatility Crash và 70% mẫu Low Volatility). SBB sẽ chỉ bốc các khối dữ liệu (blocks) thuộc regime được cấu hình để ghép nối.
+
+### B. Parametric Modeling Simulation (Mô phỏng tham số hóa)
+*   Tích hợp các mô hình thống kê như **GARCH** (mô phỏng cụm biến động volatility clustering) hoặc **HMM (Hidden Markov Model)** để tự động sinh ra (synthesize) các chuỗi lợi nhuận nhân tạo có phân phối đuôi béo (fat tails) và độ biến động có thể co giãn theo tham số (ví dụ: stress-test hệ thống bằng cách nhân 1.5x hoặc 2.0x biến động volatily của tập IS).
+
+---
+
+## 6. Đánh giá tính linh hoạt cấu trúc thời gian của QuantBT
+
+Qua phân tích mã nguồn `quantbt/walkforward.py`, công cụ hiện tại có tính linh hoạt cao về mặt xử lý dữ liệu (không phụ thuộc vào độ phân giải dữ liệu đầu vào - Data Resolution, có thể chạy từ 1m, 1h đến 1d). Tuy nhiên, **cấu trúc chia Fold (Split Frequency) vẫn còn bị giới hạn cứng**:
+
+*   **Hạn chế hiện tại**: Biến `split_frequency` trong `walkforward.py` chỉ chấp nhận 3 giá trị cứng: `"yearly"`, `"semi_yearly"`, và `"quarterly"`. Nếu nhập các giá trị khác sẽ báo lỗi `ValueError`.
+*   **Đề xuất nâng cấp**: Đối với các chiến thuật giao dịch tần suất cao (High-Frequency Trading) hoặc chiến thuật giữ lệnh ngắn hạn (Short-Horizon/Intraday), chu kỳ tối ưu hóa và test cần ngắn hơn nhiều. Chúng tôi đề xuất `quantbt` mở rộng thêm hỗ trợ cho các chu kỳ phân tách ngắn hơn bao gồm: `"monthly"` (Hàng tháng) và `"weekly"` (Hàng tuần) bằng cách bổ sung các quy tắc tính toán offset tương ứng.
