@@ -536,7 +536,14 @@ class QuantBTEndpoint:
             )
         raise ValueError(f"unsupported endpoint mode={self.config.mode!r}")
 
-    def simulate(self, *args, **kwargs):
+    def simulate(
+        self,
+        *args,
+        show_order_logs: bool = False,
+        order_log_mode: str = "fills_only",
+        order_log_limit: int = 500,
+        **kwargs,
+    ):
         """
         Alias for `backtest()` used by order, basket, and Nautilus workflows.
 
@@ -544,7 +551,10 @@ class QuantBTEndpoint:
         simulation than a pure signal backtest. The routing and return contract
         are identical to `backtest()`.
         """
-        return self.backtest(*args, **kwargs)
+        result = self.backtest(*args, **kwargs)
+        if show_order_logs:
+            _print_order_logs(result, mode=order_log_mode, limit=order_log_limit)
+        return result
 
     def full_report(self, trading_days: int = 365) -> Dict:
         """
@@ -1352,6 +1362,27 @@ def _positions_to_map(positions) -> Dict[str, pd.Series]:
     if isinstance(positions, pd.DataFrame):
         return {str(col): positions[col] for col in positions.columns}
     return dict(positions)
+
+
+def _print_order_logs(result, mode: str = "fills_only", limit: int = 500) -> None:
+    try:
+        from .reporting.nautilus_bundle import format_nautilus_event_log
+
+        orders_report = result.metadata.get("orders_report")
+        if orders_report is None:
+            orders_report = result.metadata.get("order_report")
+        lines = format_nautilus_event_log(
+            fills_report=result.metadata.get("fills_report"),
+            orders_report=orders_report,
+            positions=getattr(result, "positions", None),
+            mode=mode,
+            limit=int(limit),
+        )
+    except Exception as exc:
+        print(f"Order log unavailable: {type(exc).__name__}: {exc}")
+        return
+    for line in lines:
+        print(line)
 
 
 def _infer_index(data, datetime_index):
