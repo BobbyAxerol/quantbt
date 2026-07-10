@@ -387,8 +387,7 @@ export_nautilus_report_bundle(
     quantstats_frequency="1D",
     print_fills=True,
     fill_log_limit=500,
-    fill_log_start=None,
-    fill_log_end=None,
+    fill_log_mode="fills_only",
 )
 ```
 
@@ -533,7 +532,7 @@ Fill/event logging:
 - Optional modes:
   - `print_fills=True`: print fill rows to stdout while exporting;
   - `fill_log_limit=500`: cap console/log text for large multi-year runs;
-  - `fill_log_start` / `fill_log_end`: restrict log window;
+  - `fill_log_mode="fills_only"`: choose fills/order/position-change detail;
   - `include_no_fill_bars=False`: avoid printing every no-op bar by default.
 - The log should make it obvious this is event-driven:
 
@@ -548,7 +547,7 @@ Fill/event logging:
 fill_log_mode="fills_only"  # fills_only | order_events | bars_debug
 ```
 
-- `bars_debug` must require a date range or max row cap to avoid giant logs.
+- `bars_debug` must use `fill_log_limit` as a hard cap to avoid giant logs.
 
 Endpoint usage target:
 
@@ -586,6 +585,7 @@ export_nautilus_report_bundle(
     make_quantstats=True,
     print_fills=True,
     fill_log_limit=300,
+    fill_log_mode="fills_only",
 )
 ```
 
@@ -609,7 +609,7 @@ Testing plan:
   - empty orders/fills/positions reports still create valid manifest;
   - trade log parser handles Nautilus money strings and missing close times;
   - daily QuantStats input is resampled from intraday equity correctly;
-  - fill log respects `fill_log_limit` and date range.
+  - fill log respects `fill_log_limit` and selected mode.
 - Integration smoke:
   - run a small `QuantBTEndpoint.nautilus_validation(...)` backtest;
   - export report bundle;

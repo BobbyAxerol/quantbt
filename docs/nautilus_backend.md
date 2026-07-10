@@ -4,7 +4,7 @@ The Nautilus adapter is an optional validation backend for smaller, high-fidelit
 single-symbol runs. Native QuantBT engines remain the fast research path.
 
 ```python
-from quantbt import AccountConfig, BacktestEngineV2
+from quantbt import AccountConfig, BacktestEngineV2, export_nautilus_report_bundle
 
 engine = BacktestEngineV2(
     data=df,
@@ -20,6 +20,15 @@ engine = BacktestEngineV2(
 
 result = engine.result
 result.show_metrics()
+
+report_dir = export_nautilus_report_bundle(
+    result=result,
+    output_dir="reports",
+    strategy_id="eth_nautilus_validation",
+    make_quantstats=True,
+    print_fills=True,
+    fill_log_limit=300,
+)
 ```
 
 Supported Binance USDT perpetual validation instruments:
@@ -45,6 +54,19 @@ Scope:
 - market delta orders to target signal notional;
 - account, orders, fills, and positions reports converted to
   `BacktestResultV2`.
+
+Report bundle:
+
+- `export_nautilus_report_bundle(...)` writes a self-contained evidence folder
+  containing raw Nautilus `account_report.csv`, `orders_report.csv`,
+  `fills_report.csv`, `positions_report.csv`, normalized `trade_log.csv`,
+  `fill_log.txt`, `run_manifest.json`, `metrics_summary.json`,
+  equity/returns CSVs, and optional `quantstats_daily.html`.
+- QuantStats input is daily-resampled from the equity curve by default, which
+  is safer for multi-year intraday runs than treating raw 15m returns as daily
+  returns.
+- `fill_log_mode` supports `fills_only`, `order_events`, and `bars_debug`; all
+  modes are bounded by `fill_log_limit`.
 
 Not yet in the Nautilus adapter:
 

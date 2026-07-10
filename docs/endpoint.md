@@ -715,7 +715,7 @@ Use this for smaller high-fidelity validation runs through the optional
 NautilusTrader adapter. It is not the fast path for broad parameter sweeps.
 
 ```python
-from quantbt import QuantBTEndpoint
+from quantbt import QuantBTEndpoint, export_nautilus_report_bundle
 from quantbt.adapters.nautilus import NautilusBackendConfig
 
 bt = QuantBTEndpoint.nautilus_validation(
@@ -738,10 +738,21 @@ result = bt.simulate(
     data=df,
     signal_col="pos_weight",
     symbols=["ETHUSDT-PERP.BINANCE"],
+    show_order_logs=True,
+    order_log_mode="fills_only",
+    order_log_limit=300,
 )
 
 fills = bt.fills_report
 result.show_metrics()
+
+report_dir = export_nautilus_report_bundle(
+    result=result,
+    output_dir="reports",
+    strategy_id="eth_validation",
+    make_quantstats=True,
+    print_fills=False,
+)
 ```
 
 Requirements:
@@ -764,6 +775,13 @@ Requirements:
   adapters are added;
 - OHLCV data is converted to Nautilus external bars;
 - signal is a single-symbol target series.
+- `simulate(show_order_logs=True, order_log_mode="fills_only")` prints a
+  bounded execution trace from Nautilus fills/orders. Supported modes are
+  `fills_only`, `order_events`, and `bars_debug`; use `order_log_limit` to cap
+  output for long multi-year intraday runs.
+- `export_nautilus_report_bundle(...)` writes raw Nautilus account/order/fill/
+  position reports, normalized trade logs, a run manifest, equity/returns CSVs,
+  and optional QuantStats daily HTML.
 
 Nautilus metadata:
 
