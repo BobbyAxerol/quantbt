@@ -362,7 +362,7 @@ def test_simulate_can_print_bounded_nautilus_order_logs(monkeypatch, capsys):
         nautilus_config=NautilusBackendConfig(instrument_id="ETHUSDT-PERP.BINANCE", timeframe="1h"),
     )
 
-    endpoint.simulate(
+    result = endpoint.simulate(
         data=_bars(),
         signal=pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=_bars().index),
         symbols=["ETHUSDT-PERP.BINANCE"],
@@ -373,3 +373,5 @@ def test_simulate_can_print_bounded_nautilus_order_logs(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "FILL BUY" in out
     assert "SELL" not in out
+    assert result.metadata["run_config"]["account"]["initial_capital"] == 10_000.0
+    assert result.metadata["run_config"]["nautilus"]["timeframe"] == "1h"

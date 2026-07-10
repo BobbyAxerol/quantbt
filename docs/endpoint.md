@@ -751,6 +751,7 @@ report_dir = export_nautilus_report_bundle(
     output_dir="reports",
     strategy_id="eth_validation",
     make_quantstats=True,
+    quantstats_periods_per_year=365,
     print_fills=False,
 )
 ```
@@ -781,7 +782,10 @@ Requirements:
   output for long multi-year intraday runs.
 - `export_nautilus_report_bundle(...)` writes raw Nautilus account/order/fill/
   position reports, normalized trade logs, a run manifest, equity/returns CSVs,
-  and optional QuantStats daily HTML.
+  `config.json`, and optional QuantStats daily HTML. `config.json` is filled
+  from endpoint/result metadata even when no explicit `config=` is passed.
+  QuantStats uses daily equity returns by default with
+  `quantstats_periods_per_year=365` for crypto.
 
 Nautilus metadata:
 

@@ -385,6 +385,7 @@ export_nautilus_report_bundle(
     benchmark_returns=None,
     make_quantstats=True,
     quantstats_frequency="1D",
+    quantstats_periods_per_year=365,
     print_fills=True,
     fill_log_limit=500,
     fill_log_mode="fills_only",
@@ -451,6 +452,12 @@ Required artifacts:
 - `run_manifest.json`
   - evidence file proving which backend, config, data span and report inputs
     were used.
+- `config.json`
+  - endpoint/backend configuration used for the run;
+  - auto-filled from `result.metadata["run_config"]` when the caller does not
+    pass explicit config;
+  - must include capital, leverage, maintenance, fee, slippage, sizing,
+    funding, instrument, and timeframe when available.
 - `fill_log.txt`
   - human-readable execution trace for review.
 
@@ -466,6 +473,8 @@ daily_returns = daily_equity.pct_change().dropna()
 ```
 
 - Keep raw intraday `equity_curve.csv` and `returns.csv` for audit.
+- Pass `periods_per_year=365` to QuantStats by default for crypto; expose
+  `quantstats_periods_per_year` so stocks/futures can override this.
 - Optional intraday QuantStats output may be allowed, but must be clearly named
   experimental because annualization assumptions can be misleading on raw 15m
   returns.

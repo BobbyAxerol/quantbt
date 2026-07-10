@@ -74,8 +74,9 @@ def _synthetic_result():
 def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch):
     result = _synthetic_result()
 
-    def fake_html(returns, benchmark=None, output=None, title=None):
+    def fake_html(returns, benchmark=None, output=None, title=None, periods_per_year=None, **kwargs):
         assert not returns.empty
+        assert periods_per_year == 365
         assert output is not None
         with open(output, "w", encoding="utf-8") as handle:
             handle.write("<html>fake quantstats</html>")
@@ -86,7 +87,7 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
         result=result,
         output_dir=tmp_path,
         strategy_id="alpha-test",
-        config={"timeframe": "12h"},
+        config={"note": "manual annotation"},
         make_quantstats=True,
         print_fills=False,
         fill_log_limit=2,
@@ -115,6 +116,14 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
     assert manifest["fills_count"] == 3
     assert manifest["positions_count"] == 1
     assert manifest["account_reconstructed_diff"] == 0
+
+    config = pd.read_json(report_dir / "config.json", typ="series")
+    assert config["initial_capital"] == 10_000.0
+    assert config["leverage"] == 3.0
+    assert config["trade_notional"] == 0.5
+    assert config["sizing_mode"] == "%_equity"
+    assert config["timeframe"] == "12-HOUR"
+    assert config["note"] == "manual annotation"
 
     trade_log = pd.read_csv(report_dir / "trade_log.csv")
     assert list(trade_log.columns)[:5] == ["strategy_id", "symbol", "exchange", "instrument_id", "position_type"]
@@ -189,3 +198,26 @@ def test_quantstats_returns_are_daily_resampled_from_intraday_equity():
 
     assert len(daily) == 3
     assert daily.index.freq is None or str(daily.index.freq).startswith("<Day")
+
+
+def test_quantstats_periods_per_year_defaults_to_crypto_365(tmp_path, monkeypatch):
+    result = _synthetic_result()
+    captured = {}
+
+    def fake_html(returns, benchmark=None, output=None, title=None, periods_per_year=None, **kwargs):
+        captured["periods_per_year"] = periods_per_year
+        with open(output, "w", encoding="utf-8") as handle:
+            handle.write("<html>fake quantstats</html>")
+
+    monkeypatch.setitem(__import__("sys").modules, "quantstats", types.SimpleNamespace(reports=types.SimpleNamespace(html=fake_html)))
+
+    report_dir = export_nautilus_report_bundle(
+        result=result,
+        output_dir=tmp_path,
+        strategy_id="crypto",
+        make_quantstats=True,
+    )
+
+    manifest = pd.read_json(report_dir / "run_manifest.json", typ="series")
+    assert captured["periods_per_year"] == 365
+    assert manifest["quantstats_periods_per_year"] == 365

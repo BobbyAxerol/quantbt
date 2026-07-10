@@ -103,6 +103,7 @@ report_dir = export_nautilus_report_bundle(
     output_dir="reports",
     strategy_id="sol_validation",
     make_quantstats=True,
+    quantstats_periods_per_year=365,
 )
 ```
 

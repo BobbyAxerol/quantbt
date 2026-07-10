@@ -26,6 +26,7 @@ report_dir = export_nautilus_report_bundle(
     output_dir="reports",
     strategy_id="eth_nautilus_validation",
     make_quantstats=True,
+    quantstats_periods_per_year=365,
     print_fills=True,
     fill_log_limit=300,
 )
@@ -61,10 +62,13 @@ Report bundle:
   containing raw Nautilus `account_report.csv`, `orders_report.csv`,
   `fills_report.csv`, `positions_report.csv`, normalized `trade_log.csv`,
   `fill_log.txt`, `run_manifest.json`, `metrics_summary.json`,
-  equity/returns CSVs, and optional `quantstats_daily.html`.
+  `config.json`, equity/returns CSVs, and optional `quantstats_daily.html`.
+  `config.json` is auto-filled from endpoint/result run metadata, including
+  capital, leverage, fees, slippage, sizing, funding, instrument, and timeframe.
 - QuantStats input is daily-resampled from the equity curve by default, which
   is safer for multi-year intraday runs than treating raw 15m returns as daily
-  returns.
+  returns. The default annualization is `quantstats_periods_per_year=365` for
+  crypto; override it for stocks/futures if needed.
 - `fill_log_mode` supports `fills_only`, `order_events`, and `bars_debug`; all
   modes are bounded by `fill_log_limit`.
 
