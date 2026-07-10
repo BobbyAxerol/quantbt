@@ -39,7 +39,7 @@ poetry add nautilus-trader
 ## Quick Start
 
 ```python
-from quantbt import QuantBTEndpoint
+from quantbt import QuantBTEndpoint, export_nautilus_report_bundle
 
 bt = QuantBTEndpoint.signal_notional(
     backend="native_vectorized",
@@ -97,6 +97,14 @@ result = bt.simulate(
 
 result.show_metrics()
 fills = bt.fills_report
+
+report_dir = export_nautilus_report_bundle(
+    result=result,
+    output_dir="reports",
+    strategy_id="sol_validation",
+    make_quantstats=True,
+    quantstats_periods_per_year=365,
+)
 ```
 
 Nautilus currently validates single-symbol signal sizing modes:
