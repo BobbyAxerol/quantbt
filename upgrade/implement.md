@@ -325,6 +325,319 @@ Planned Nautilus upgrades, not implemented yet:
 
 ---
 
+## Phase 5.1 - Nautilus Trustee Report Bundle
+
+Purpose:
+
+Build a professional report/export service around the existing Nautilus backend
+so QuantBT can be used when third-party cloud platforms cannot run long,
+high-resolution backtests such as multi-year 15m data.
+
+This phase is **not** a new backtest engine.
+
+It is a reporting and evidence layer on top of:
+
+```text
+QuantBTEndpoint.nautilus_validation(...)
+  -> NautilusTrader BacktestEngine
+  -> raw Nautilus account/order/fill/position reports
+  -> QuantBT BacktestResultV2
+  -> report bundle folder
+```
+
+Design position:
+
+- The strategy/signal timeline is passed into `QuantBTEndpoint` before the
+  backend simulation. This is the correct boundary.
+- Backtest engines should not be responsible for strategy feature generation or
+  look-ahead validation. That responsibility belongs to the strategy/research
+  layer.
+- Nautilus should receive the signal timeline, convert signal transitions into
+  orders, simulate event-driven execution, and calculate account/fill/position
+  results.
+- Do **not** add a second strategy abstraction inside the report service.
+- Do **not** make the report text claim that "signals are externally generated"
+  as a caveat. In this architecture, signal input is the normal endpoint
+  contract, similar to vectorbt/backtrader-style signal or target-position
+  APIs.
+- The report should instead emphasize the factual backend:
+  - backend: `nautilus`;
+  - engine: `NautilusTrader BacktestEngine`;
+  - execution model: event-driven bar execution;
+  - sizing mode;
+  - account settings;
+  - instrument/timeframe;
+  - order/fill/position counts.
+
+Deliverables:
+
+- Add a service/exporter module, for example:
+  - `quantbt/reporting/nautilus_bundle.py`; or
+  - `quantbt/services/nautilus_report.py`.
+- Public function or class:
+
+```python
+export_nautilus_report_bundle(
+    result,
+    output_dir,
+    strategy_id,
+    config=None,
+    benchmark_returns=None,
+    make_quantstats=True,
+    quantstats_frequency="1D",
+    print_fills=True,
+    fill_log_limit=500,
+    fill_log_start=None,
+    fill_log_end=None,
+)
+```
+
+- Input is a completed `BacktestResultV2` returned by:
+
+```python
+bt = QuantBTEndpoint.nautilus_validation(...)
+result = bt.simulate(...)
+```
+
+- The service reads from:
+  - `result.equity`;
+  - `result.returns`;
+  - `result.positions`;
+  - `result.metadata["account_report"]`;
+  - `result.metadata["orders_report"]`;
+  - `result.metadata["fills_report"]`;
+  - `result.metadata["positions_report"]`;
+  - `result.metadata` for run/config diagnostics.
+
+Report folder layout:
+
+```text
+report_{strategy_id}_{timestamp}/
+  quantstats_daily.html
+  equity_curve.csv
+  returns.csv
+  account_report.csv
+  orders_report.csv
+  fills_report.csv
+  positions_report.csv
+  trade_log.csv
+  fill_log.txt
+  metrics_summary.json
+  run_manifest.json
+  config.json
+```
+
+Required artifacts:
+
+- `account_report.csv`
+  - raw Nautilus account report;
+  - required for account-balance audit.
+- `orders_report.csv`
+  - raw Nautilus order lifecycle report.
+- `fills_report.csv`
+  - raw Nautilus fill report when available;
+  - fallback to orders report only when Nautilus does not expose fills.
+- `positions_report.csv`
+  - raw Nautilus positions report.
+- `trade_log.csv`
+  - normalized closed-trade view built from `positions_report` and/or fills.
+- `equity_curve.csv`
+  - timestamp, equity, drawdown, returns.
+- `returns.csv`
+  - returns used by QuantStats.
+- `quantstats_daily.html`
+  - primary visual performance report.
+- `metrics_summary.json`
+  - compact metrics for dashboards/services.
+- `run_manifest.json`
+  - evidence file proving which backend, config, data span and report inputs
+    were used.
+- `fill_log.txt`
+  - human-readable execution trace for review.
+
+QuantStats policy:
+
+- Use `quantstats.reports.html(...)` as the default HTML performance report.
+- For long 15m or intraday data, primary QuantStats report should normally use
+  daily resampled returns:
+
+```python
+daily_equity = equity.resample("1D").last().dropna()
+daily_returns = daily_equity.pct_change().dropna()
+```
+
+- Keep raw intraday `equity_curve.csv` and `returns.csv` for audit.
+- Optional intraday QuantStats output may be allowed, but must be clearly named
+  experimental because annualization assumptions can be misleading on raw 15m
+  returns.
+
+Trade log schema:
+
+```text
+strategy_id
+symbol
+exchange
+instrument_id
+position_type
+open_datetime
+close_datetime
+entry_price
+exit_price
+quantity
+realized_pnl
+fees
+duration_seconds
+return_pct
+order_ids
+```
+
+Run manifest schema:
+
+```text
+strategy_id
+run_id
+created_at
+backend
+engine
+instrument_id
+timeframe
+data_start
+data_end
+bar_count
+signal_count
+signal_changes
+initial_capital
+leverage
+alloc_per_trade
+sizing_mode
+fee_rate
+use_funding
+orders_count
+fills_count
+positions_count
+account_final_equity
+reconstructed_final_equity
+account_reconstructed_diff
+quantbt_git_commit
+nautilus_version
+python_version
+data_hash
+signal_hash
+```
+
+Fill/event logging:
+
+- Add a bounded human-readable execution log, similar in spirit to
+  `alphas_storage/simulation_alpha/services.py`, but more controlled.
+- Default should print only on fills/order events, not every bar.
+- Optional modes:
+  - `print_fills=True`: print fill rows to stdout while exporting;
+  - `fill_log_limit=500`: cap console/log text for large multi-year runs;
+  - `fill_log_start` / `fill_log_end`: restrict log window;
+  - `include_no_fill_bars=False`: avoid printing every no-op bar by default.
+- The log should make it obvious this is event-driven:
+
+```text
+2021-01-01 12:00:00 BUY 0.125 BTCUSDT-PERP.BINANCE @ 32000.5 fee=...
+2021-01-04 08:15:00 SELL 0.125 BTCUSDT-PERP.BINANCE @ 33510.0 fee=...
+```
+
+- If full per-bar trace is needed, expose an explicit debug mode:
+
+```python
+fill_log_mode="fills_only"  # fills_only | order_events | bars_debug
+```
+
+- `bars_debug` must require a date range or max row cap to avoid giant logs.
+
+Endpoint usage target:
+
+```python
+from quantbt import QuantBTEndpoint
+from quantbt.adapters.nautilus import NautilusBackendConfig
+from quantbt.reporting import export_nautilus_report_bundle
+
+bt = QuantBTEndpoint.nautilus_validation(
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    hedge_type="%_equity",
+    fee_rate=0.0005,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        timeframe="1h",
+        starting_balance=20_000,
+        trade_notional=0.5,
+        close_positions_on_stop=False,
+    ),
+)
+
+result = bt.simulate(
+    data=df_result,
+    signal_col="pos_weight",
+    symbols=["BTCUSDT-PERP.BINANCE"],
+)
+
+export_nautilus_report_bundle(
+    result=result,
+    output_dir="/root/bobby/pool_alpha/alphas_storage/simulation_alpha/reports",
+    strategy_id="my_alpha_001",
+    config={"note": "nautilus trustee validation"},
+    make_quantstats=True,
+    print_fills=True,
+    fill_log_limit=300,
+)
+```
+
+Implementation rules:
+
+- Keep this phase outside core engine accounting.
+- Do not change native vectorized/event behavior.
+- Do not add alpha feature computation to Nautilus adapter.
+- Do not make report export mandatory for every backtest run.
+- Report export must be an explicit call after endpoint simulation.
+- QuantStats should be optional; if missing, exporter should still dump CSV/JSON
+  and warn clearly.
+- Avoid huge console output by default.
+- Never mutate `result.metadata` reports in-place; copy before normalization.
+- Preserve raw Nautilus reports exactly as CSV.
+
+Testing plan:
+
+- Unit tests:
+  - exporter creates expected folder/files from a synthetic `BacktestResultV2`;
+  - empty orders/fills/positions reports still create valid manifest;
+  - trade log parser handles Nautilus money strings and missing close times;
+  - daily QuantStats input is resampled from intraday equity correctly;
+  - fill log respects `fill_log_limit` and date range.
+- Integration smoke:
+  - run a small `QuantBTEndpoint.nautilus_validation(...)` backtest;
+  - export report bundle;
+  - assert raw reports exist and row counts match `result.metadata`;
+  - assert `quantstats_daily.html` exists when `quantstats` is installed.
+- Regression checks:
+  - `orders_count`, `fills_count`, `positions_count` in manifest match metadata;
+  - `account_reconstructed_diff` is saved and visible;
+  - `trade_log.csv` has stable column order;
+  - fill log contains timestamps, side, qty, instrument and price.
+- Performance sanity:
+  - exporter should stream/write CSVs directly;
+  - no expensive plots required by default;
+  - QuantStats daily resampling should handle multi-year 15m equity without
+    exploding output size.
+
+Acceptance:
+
+- User can run Nautilus endpoint on long 15m data and then call one exporter
+  function to produce a professional report folder.
+- Report folder contains QuantStats HTML plus raw account/order/fill/position
+  evidence.
+- Console and `fill_log.txt` show executed fills in a bounded, readable way.
+- No new strategy execution abstraction is introduced.
+- Nautilus remains the event-driven third-party execution/accounting backend.
+
+---
+
 ## Phase 6 - Public API And Migration
 
 Deliverables:
