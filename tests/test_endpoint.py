@@ -318,3 +318,60 @@ def test_nautilus_endpoint_forwards_use_pyramiding_to_adapter(monkeypatch):
     assert captured["config"].sizing_mode == "%_equity"
     assert captured["config"].trade_notional == 0.5
     assert result.metadata["use_pyramiding"] is False
+
+
+def test_simulate_can_print_bounded_nautilus_order_logs(monkeypatch, capsys):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            self.config = config
+
+        def run_signal_series(self, data, signal):
+            idx = data.index
+            equity = pd.Series(10_000.0, index=idx)
+            positions = pd.DataFrame({"Position_ETHUSDT-PERP.BINANCE": [0.0, 1.0, 1.0, 0.0, 0.0]}, index=idx)
+            closes = pd.DataFrame({"Close_ETHUSDT-PERP.BINANCE": data["close"]}, index=idx)
+            fills = pd.DataFrame(
+                {
+                    "instrument_id": ["ETHUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+                    "side": ["BUY", "SELL"],
+                    "filled_qty": [1.0, 1.0],
+                    "avg_px": [100.0, 102.0],
+                    "commissions": ["0.1 USDT", "0.1 USDT"],
+                    "ts_last": [idx[1], idx[3]],
+                }
+            )
+            return BacktestResultV2(
+                equity=equity,
+                returns=equity.pct_change().fillna(0.0),
+                positions=positions,
+                closes=closes,
+                symbols=["ETHUSDT-PERP.BINANCE"],
+                initial_capital=10_000.0,
+                metadata={"backend": "nautilus", "fills_report": fills, "orders_report": fills},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    endpoint = QuantBTEndpoint.nautilus_validation(
+        initial_capital=10_000.0,
+        alloc_per_trade=1_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(instrument_id="ETHUSDT-PERP.BINANCE", timeframe="1h"),
+    )
+
+    result = endpoint.simulate(
+        data=_bars(),
+        signal=pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=_bars().index),
+        symbols=["ETHUSDT-PERP.BINANCE"],
+        show_order_logs=True,
+        order_log_limit=1,
+    )
+
+    out = capsys.readouterr().out
+    assert "FILL BUY" in out
+    assert "SELL" not in out
+    assert result.metadata["run_config"]["account"]["initial_capital"] == 10_000.0
+    assert result.metadata["run_config"]["nautilus"]["timeframe"] == "1h"
