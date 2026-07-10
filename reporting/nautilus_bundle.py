@@ -46,6 +46,7 @@ def export_nautilus_report_bundle(
     benchmark_returns: Optional[pd.Series] = None,
     make_quantstats: bool = True,
     quantstats_frequency: str = "1D",
+    quantstats_periods_per_year: int = 365,
     print_fills: bool = False,
     fill_log_limit: int = 500,
     fill_log_mode: str = "fills_only",
@@ -70,6 +71,8 @@ def export_nautilus_report_bundle(
         Generate `quantstats_daily.html` when quantstats is installed.
     quantstats_frequency:
         Resampling frequency for QuantStats input. Default is daily.
+    quantstats_periods_per_year:
+        Annualization factor passed to QuantStats. Default is 365 for crypto.
     print_fills:
         Print bounded fill/order event lines to stdout while exporting.
     fill_log_limit:
@@ -95,7 +98,9 @@ def export_nautilus_report_bundle(
     report_dir.mkdir(parents=True, exist_ok=True)
 
     metadata = dict(result.metadata or {})
-    config_payload = dict(config or {})
+    config_payload = _config_payload_from_result(result=result, metadata=metadata)
+    if config:
+        config_payload.update(dict(config))
 
     account_report = _report_frame(metadata.get("account_report"))
     orders_report = _report_frame(metadata.get("orders_report", metadata.get("order_report")))
@@ -144,6 +149,7 @@ def export_nautilus_report_bundle(
             result=result,
             output_path=report_dir / "quantstats_daily.html",
             frequency=quantstats_frequency,
+            periods_per_year=int(quantstats_periods_per_year),
             benchmark_returns=benchmark_returns,
             manifest=manifest,
         )
@@ -269,9 +275,12 @@ def _try_write_quantstats_html(
     result: BacktestResultV2,
     output_path: Path,
     frequency: str,
+    periods_per_year: int,
     benchmark_returns: Optional[pd.Series],
     manifest: Dict[str, Any],
 ) -> None:
+    manifest["quantstats_frequency"] = frequency
+    manifest["quantstats_periods_per_year"] = int(periods_per_year)
     try:
         import quantstats as qs
     except Exception as exc:
@@ -288,10 +297,10 @@ def _try_write_quantstats_html(
             benchmark=benchmark_returns,
             output=str(output_path),
             title=f"QuantBT Nautilus Report - {manifest.get('strategy_id', '')}",
+            periods_per_year=periods_per_year,
         )
         manifest["quantstats_status"] = "written"
         manifest["quantstats_file"] = output_path.name
-        manifest["quantstats_frequency"] = frequency
     except Exception as exc:
         manifest["quantstats_status"] = f"failed: {type(exc).__name__}: {exc}"
 
@@ -387,6 +396,33 @@ def _run_manifest(
     }
 
 
+def _config_payload_from_result(result: BacktestResultV2, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    payload = dict(metadata.get("run_config") or {})
+    payload.setdefault("backend", metadata.get("backend", "nautilus"))
+    payload.setdefault("engine", metadata.get("engine", "NautilusTrader BacktestEngine"))
+    payload.setdefault("instrument_id", metadata.get("instrument_id") or _first_symbol(result))
+    payload.setdefault("bar_type", metadata.get("bar_type"))
+    payload.setdefault("timeframe", metadata.get("timeframe") or _bar_timeframe(metadata.get("bar_type")))
+    payload.setdefault("initial_capital", _safe_float(metadata.get("initial_capital")) or float(result.initial_capital))
+    payload.setdefault("leverage", _safe_float(metadata.get("leverage")) or float(result.leverage))
+    payload.setdefault("maintenance_ratio", _safe_float(metadata.get("maintenance_ratio")))
+    payload.setdefault("fee_rate", _safe_float(metadata.get("fee_rate")))
+    payload.setdefault("fee_round_trip", _safe_float(metadata.get("fee_round_trip")))
+    payload.setdefault("slippage", _safe_float(metadata.get("slippage")))
+    payload.setdefault("slippage_bps", _safe_float(metadata.get("slippage_bps")))
+    payload.setdefault("alloc_per_trade", metadata.get("alloc_per_trade", metadata.get("trade_notional")))
+    payload.setdefault("trade_notional", metadata.get("trade_notional"))
+    payload.setdefault("sizing_mode", metadata.get("sizing_mode"))
+    payload.setdefault("use_pyramiding", metadata.get("use_pyramiding"))
+    payload.setdefault("use_funding", metadata.get("use_funding"))
+    payload.setdefault("funding_rate", metadata.get("funding_rate"))
+    payload.setdefault("close_positions_on_stop", metadata.get("close_positions_on_stop"))
+    payload.setdefault("orders_count", int(metadata.get("orders_count", 0) or 0))
+    payload.setdefault("fills_count", int(metadata.get("fills_count", 0) or 0))
+    payload.setdefault("positions_count", int(metadata.get("positions_count", 0) or 0))
+    return payload
+
+
 def _report_frame(value: Any) -> pd.DataFrame:
     if isinstance(value, pd.DataFrame):
         return value.copy()
@@ -466,7 +502,7 @@ def _bar_timeframe(bar_type: Any) -> Optional[str]:
         return None
     parts = str(bar_type).split("-")
     if len(parts) >= 4:
-        return "-".join(parts[-3:-1])
+        return "-".join(parts[-4:-2])
     return None
 
 

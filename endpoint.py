@@ -9,7 +9,7 @@ objects.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
@@ -1090,6 +1090,7 @@ class QuantBTEndpoint:
 
     def _store_result(self, result):
         _normalize_result_contract(result)
+        _attach_endpoint_run_config(result, self.config)
         self.result = result
         return result
 
@@ -1130,6 +1131,87 @@ def _normalize_result_contract(result) -> None:
         metadata["orders_count"] = len(getattr(result, "orders", ()))
     if "fills_count" not in metadata:
         metadata["fills_count"] = len(getattr(result, "fills", ()))
+
+
+def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
+    metadata = result.metadata
+    payload = _endpoint_run_config_payload(config)
+    metadata["run_config"] = payload
+    metadata.setdefault("initial_capital", payload["account"]["initial_capital"])
+    metadata.setdefault("leverage", payload["account"]["leverage"])
+    metadata.setdefault("maintenance_ratio", payload["account"]["maintenance_ratio"])
+    metadata.setdefault("fee_rate", payload["fees"]["one_way_fee_rate"])
+    metadata.setdefault("fee_round_trip", payload["fees"]["round_trip_fee"])
+    metadata.setdefault("alloc_per_trade", payload["sizing"]["alloc_per_trade"])
+    metadata.setdefault("slippage", payload["execution"]["legacy_slippage_rate"])
+    metadata.setdefault("slippage_bps", payload["execution"]["slippage_bps"])
+    metadata.setdefault("use_funding", payload["funding"]["use_funding"])
+
+
+def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
+    payload = {
+        "mode": config.mode,
+        "backend": config.backend,
+        "portfolio_mode": config.portfolio_mode,
+        "asset_type": config.asset_type,
+        "account": _jsonable(asdict(config.account)),
+        "execution": {
+            **_jsonable(asdict(config.execution)),
+            "legacy_slippage_rate": float(config.slippage),
+            "slippage_bps": float(config.execution.slippage_bps),
+        },
+        "fees": {
+            "round_trip_fee": float(config.fee),
+            "one_way_fee_rate": float(config.v2_fee_rate),
+            "explicit_fee_rate": None if config.fee_rate is None else float(config.fee_rate),
+        },
+        "sizing": {
+            "hedge_type": config.sizing,
+            "alloc_per_trade": _jsonable(config.alloc_per_trade),
+            "use_pyramiding": bool(config.use_pyramiding),
+            "contract_size": _jsonable(config.contract_size),
+        },
+        "funding": {
+            "use_funding": bool(config.use_funding),
+            "funding_rate": _jsonable(config.funding_rate),
+        },
+        "dca_kwargs": _jsonable(config.dca_kwargs),
+        "symbols": _jsonable(config.symbols),
+        "metadata": _jsonable(config.metadata),
+    }
+    if config.nautilus_config is not None:
+        payload["nautilus"] = _jsonable(
+            asdict(config.nautilus_config) if is_dataclass(config.nautilus_config) else vars(config.nautilus_config)
+        )
+    return payload
+
+
+def _jsonable(value):
+    if is_dataclass(value):
+        return _jsonable(asdict(value))
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, pd.Series):
+        return {
+            "type": "Series",
+            "name": value.name,
+            "rows": int(len(value)),
+            "start": str(value.index[0]) if len(value) else None,
+            "end": str(value.index[-1]) if len(value) else None,
+        }
+    if isinstance(value, pd.DataFrame):
+        return {
+            "type": "DataFrame",
+            "rows": int(len(value)),
+            "columns": list(value.columns),
+            "start": str(value.index[0]) if len(value) else None,
+            "end": str(value.index[-1]) if len(value) else None,
+        }
+    if hasattr(value, "value"):
+        return value.value
+    return value
 
 
 def _fills_to_frame(fills) -> pd.DataFrame:
