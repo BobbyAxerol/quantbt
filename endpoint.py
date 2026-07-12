@@ -437,6 +437,47 @@ class QuantBTEndpoint:
             )
         )
 
+    @classmethod
+    def train_test_split(
+        cls,
+        strategy_class,
+        test_start: Union[str, int, pd.Timestamp],
+        target_mode: str = "signal_notional",
+        window_mode: str = "expanding",
+        train_window: Optional[str] = None,
+        optimization_mode: str = "none",
+        optimization_config: Optional[Dict] = None,
+        optuna_trials: int = 0,
+        optuna_early_stopping: Optional[int] = None,
+        random_seed: int = 42,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create a single holdout train/test endpoint.
+
+        This is a convenience wrapper around `walk_forward(...)` with
+        `split_frequency="single"`. The strategy is optimized on the train
+        segment before `test_start`, emits OOS output on the holdout segment,
+        then the stitched holdout signal is routed into the selected QuantBT
+        target mode. `optimization_mode` accepts the same values as
+        walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`, and
+        `mode_3_flat_minima`.
+        """
+        return cls.walk_forward(
+            strategy_class=strategy_class,
+            split_mode=test_start,
+            split_frequency="single",
+            target_mode=target_mode,
+            window_mode=window_mode,
+            train_window=train_window,
+            optimization_mode=optimization_mode,
+            optimization_config=optimization_config,
+            optuna_trials=optuna_trials,
+            optuna_early_stopping=optuna_early_stopping,
+            random_seed=random_seed,
+            **kwargs,
+        )
+
     def backtest(
         self,
         data=None,
