@@ -107,7 +107,8 @@ class WalkForwardConfig:
         String such as `walk_forward_2022`, an integer year, or a timestamp-like
         value marking the first OOS period.
     split_frequency:
-        `yearly`, `semi_yearly`, `quarterly`, `monthly`, or `weekly`.
+        `single`, `yearly`, `semi_yearly`, `quarterly`, `monthly`, or
+        `weekly`. `single` creates one train/test holdout fold.
     window_mode:
         `expanding` keeps the first train timestamp fixed. `rolling` uses
         `train_window` as the train lookback.
@@ -170,8 +171,8 @@ class WalkForwardConfig:
 
     def __post_init__(self) -> None:
         freq = self.split_frequency.lower().strip()
-        if freq not in {"yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
-            raise ValueError("split_frequency must be yearly, semi_yearly, quarterly, monthly, or weekly")
+        if freq not in {"single", "yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
+            raise ValueError("split_frequency must be single, yearly, semi_yearly, quarterly, monthly, or weekly")
         object.__setattr__(self, "split_frequency", freq)
 
         mode = self.window_mode.lower().strip()
@@ -941,6 +942,26 @@ class WalkForwardEngine:
             raise ValueError("first OOS timestamp must be after the first data timestamp")
         if first_oos > idx[-1]:
             raise ValueError("first OOS timestamp is after the available data")
+
+        if self.config.split_frequency == "single":
+            train_start = idx[0] if self.config.window_mode == "expanding" else first_oos - pd.Timedelta(self.config.train_window)
+            train_index = idx[(idx >= train_start) & (idx < first_oos)]
+            test_index = idx[idx >= first_oos]
+            if len(train_index) < self.config.min_train_bars:
+                raise ValueError("train/test split produced too few train bars")
+            if len(test_index) < self.config.min_test_bars:
+                raise ValueError("train/test split produced too few test bars")
+            return [
+                WalkForwardFold(
+                    fold_id=0,
+                    train_start=train_index[0],
+                    train_end=train_index[-1],
+                    test_start=test_index[0],
+                    test_end=test_index[-1],
+                    train_index=train_index,
+                    test_index=test_index,
+                )
+            ]
 
         step = _frequency_offset(self.config.split_frequency)
         folds: List[WalkForwardFold] = []

@@ -67,6 +67,110 @@ def test_walkforward_phase1_splitter_has_no_lookahead_and_stitches_oos_series():
     assert result.fold_table["train_bars"].min() > 0
 
 
+def test_train_test_split_single_fold_has_no_lookahead_and_stitches_holdout():
+    idx = _idx()
+
+    def strategy(data, params, train_index, test_index, fold):
+        assert fold.fold_id == 0
+        return pd.Series(float(params["side"]), index=test_index)
+
+    engine = WalkForwardEngine(
+        strategy=strategy,
+        config=WalkForwardConfig(split_mode="2022-01-01", split_frequency="single"),
+    )
+    result = engine.run(data=_bars(idx), params={"side": 1.0})
+
+    assert len(result.folds) == 1
+    fold = result.folds[0]
+    assert fold.train_index.max() < fold.test_index.min()
+    assert result.oos_output.loc["2021-12-31"] == 0.0
+    assert result.oos_output.loc["2022-01-01"] == 1.0
+    assert result.oos_output.loc[idx[-1]] == 1.0
+    assert result.metadata["split_frequency"] == "single"
+
+
+def test_train_test_split_endpoint_runs_declared_fixed_params():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        return pd.Series(float(params["side"]), index=test_index)
+
+    bt = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="signal_notional",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], params={"side": 1.0})
+    wf = result.metadata["walk_forward"]
+
+    assert wf["split_frequency"] == "single"
+    assert wf["n_folds"] == 1
+    assert wf["params"] == {"side": 1.0}
+    assert result.positions["Position_BTC"].loc["2022-01-01"] > 0.0
+
+
+@pytest.mark.parametrize(
+    "optimization_mode,optimization_config",
+    [
+        ("mode_1_decay", {"top_is_k": 2, "decay_lambda": 0.5, "decay_gamma": 0.5}),
+        ("mode_2_sbb", {"top_is_k": 2, "sbb_samples": 16, "sbb_block_length": 10, "use_numba": True}),
+        (
+            "mode_3_flat_minima",
+            {
+                "top_is_k": 2,
+                "flat_top_fraction": 1.0,
+                "flat_eps": 1.0,
+                "flat_min_samples": 1,
+                "flat_selector": "medoid",
+            },
+        ),
+    ],
+)
+def test_train_test_split_endpoint_tunes_params_with_walkforward_optuna_modes(
+    optimization_mode,
+    optimization_config,
+):
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        side = 1.0 if int(params["go_long"]) == 1 else -1.0
+        return pd.Series(side, index=test_index)
+
+    bt = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="signal_notional",
+        optimization_mode=optimization_mode,
+        optimization_config=optimization_config,
+        optuna_trials=8,
+        random_seed=11,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"go_long": (0, 1, 1)})
+    wf = result.metadata["walk_forward"]
+
+    assert wf["split_frequency"] == "single"
+    assert wf["n_folds"] == 1
+    assert wf["optimization_mode"] == optimization_mode
+    assert wf["params"]["go_long"] == 1
+    assert wf["best_trial"]["selection_metadata"]["oos_seen_by_optuna"] is False
+    assert len(wf["trial_table"]) >= 1
+    assert len(wf["candidate_table"]) >= 1
+
+
 def test_walkforward_endpoint_routes_stitched_signal_to_signal_notional():
     idx = _idx()
 
