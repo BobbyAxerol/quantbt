@@ -59,6 +59,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
+| `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | single train/test holdout using the same WFO optimization modes |
 | `QuantBTEndpoint.portfolio()` | `portfolio` | `legacy_portfolio` | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
 
@@ -878,6 +879,32 @@ result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
 
+Single train/test holdout:
+
+```python
+tts = QuantBTEndpoint.train_test_split(
+    strategy_class=strategy,
+    test_start="2024-01-01",
+    target_mode="pct_equity",
+    optimization_mode="mode_2_sbb",  # none | mode_1_decay | mode_2_sbb | mode_3_flat_minima
+    optimization_config={
+        "sbb_samples": 256,
+        "sbb_block_length": 24,
+        "scoring_trading_days": 365,
+        "min_trades_per_year": 20,
+        "trade_penalty_factor": 0.5,
+    },
+    optuna_trials=100,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee=0.0004,
+)
+
+result = tts.backtest(data=df, param_ranges=param_ranges)
+result.metadata["walk_forward"]["split_frequency"]  # "single"
+```
+
 Preflight helpers:
 
 ```python
@@ -929,9 +956,9 @@ Important rules:
   missing fold timestamps are rejected to avoid silent all-zero OOS stitching;
 - values outside OOS windows are filled with `0.0`;
 - fixed-parameter runs pass `params=...`;
-- `split_frequency` supports `yearly`, `semi_yearly`, `quarterly`, `monthly`,
-  and `weekly`; choose shorter splits for short-horizon/intraday strategies
-  only when each train/OOS fold still has enough bars;
+- `split_frequency` supports `single`, `yearly`, `semi_yearly`, `quarterly`,
+  `monthly`, and `weekly`; `single` is used by
+  `QuantBTEndpoint.train_test_split(...)` for one holdout fold;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`, and
   `mode_3_flat_minima`;
 - for all optimization modes, Optuna receives only in-sample or synthetic
