@@ -168,7 +168,6 @@ class WalkForwardConfig:
     plateau_std_penalty: float = 0.50
     plateau_size_bonus: float = 0.01
     scoring_backend: str = "proxy"
-    proxy_signal_lag: int = 1
     scoring_trading_days: int = 365
     min_trades_per_year: Optional[float] = None
     trade_penalty_factor: Optional[float] = None
@@ -268,9 +267,6 @@ class WalkForwardConfig:
         if opt_mode == "mode_2_sbb" and scoring_backend == "endpoint":
             raise ValueError("mode_2_sbb requires scoring_backend='proxy' because it simulates train return paths")
         object.__setattr__(self, "scoring_backend", scoring_backend)
-        if int(self.proxy_signal_lag) < 0:
-            raise ValueError("proxy_signal_lag must be >= 0")
-        object.__setattr__(self, "proxy_signal_lag", int(self.proxy_signal_lag))
         try:
             scoring_days = int(self.scoring_trading_days)
         except (TypeError, ValueError) as exc:
@@ -559,7 +555,6 @@ class WalkForwardEngine:
                 "plateau_std_penalty": self.config.plateau_std_penalty,
                 "plateau_size_bonus": self.config.plateau_size_bonus,
                 "scoring_backend": self.config.scoring_backend,
-                "proxy_signal_lag": self.config.proxy_signal_lag,
                 **self.config.metadata,
             },
         )
@@ -869,7 +864,6 @@ class WalkForwardEngine:
                 data,
                 is_output,
                 fold.train_index,
-                signal_lag=int(self.config.proxy_signal_lag),
             ).to_numpy(dtype=np.float64)
             seed = int(self.config.random_seed) + int(trial_id) * 100_003 + int(fold.fold_id) * 9_176
             boot = synthetic_walkforward_sharpes(
@@ -1073,7 +1067,6 @@ class WalkForwardEngine:
             index,
             trading_days=int(self.config.scoring_trading_days),
             use_numba=bool(self.config.use_numba),
-            signal_lag=int(self.config.proxy_signal_lag),
         )
 
     def _call_strategy(self, data, params: Dict[str, Any], fold: WalkForwardFold) -> StrategyOutput:
@@ -1259,7 +1252,6 @@ def score_strategy_output(
     index: pd.DatetimeIndex,
     trading_days: int = 365,
     use_numba: bool = True,
-    signal_lag: int = 1,
 ) -> Dict[str, float]:
     """
     Score strategy output with a transparent return proxy.
@@ -1271,7 +1263,7 @@ def score_strategy_output(
     idx = validate_datetime(index)
     if len(idx) < 2:
         return {"sharpe": 0.0, "turnover": 0.0, "mean_return": 0.0, "volatility": 0.0}
-    strat_returns = strategy_return_series(data, output, idx, signal_lag=signal_lag)
+    strat_returns = strategy_return_series(data, output, idx)
     position_matrix = strategy_position_frame(output, idx)
     returns_arr = strat_returns.to_numpy(dtype=np.float64)
     pos_arr = position_matrix.to_numpy(dtype=np.float64)
@@ -1301,27 +1293,26 @@ def strategy_position_frame(output: StrategyOutput, index: pd.DatetimeIndex) -> 
     return pd.DataFrame({"DEFAULT": _normalize_series_output(output).reindex(idx).fillna(0.0)}, index=idx)
 
 
-def strategy_return_series(data, output: StrategyOutput, index: pd.DatetimeIndex, signal_lag: int = 1) -> pd.Series:
-    """Return the transparent shifted-position return proxy used by WFO scoring."""
+def strategy_return_series(data, output: StrategyOutput, index: pd.DatetimeIndex) -> pd.Series:
+    """Return the transparent position return proxy used by WFO scoring."""
     idx = validate_datetime(index)
     if len(idx) == 0:
         return pd.Series(dtype=float, index=idx)
-    lag = max(0, int(signal_lag))
     close_map = _close_map_from_data(data)
     if isinstance(output, pd.DataFrame):
         symbols = list(output.columns)
         pos = _normalize_frame_output(output, symbols).reindex(idx).fillna(0.0)
         returns = pd.DataFrame({s: close_map[s].reindex(idx).pct_change().fillna(0.0) for s in symbols})
-        strat_returns = (pos.shift(lag).fillna(0.0) * returns).mean(axis=1)
+        strat_returns = (pos * returns).mean(axis=1)
     elif isinstance(output, dict):
         symbols = list(output.keys())
         pos = pd.DataFrame({s: _normalize_series_output(output[s]).reindex(idx).fillna(0.0) for s in symbols})
         returns = pd.DataFrame({s: close_map[s].reindex(idx).pct_change().fillna(0.0) for s in symbols})
-        strat_returns = (pos.shift(lag).fillna(0.0) * returns).mean(axis=1)
+        strat_returns = (pos * returns).mean(axis=1)
     else:
         series = _normalize_series_output(output).reindex(idx).fillna(0.0)
         close = next(iter(close_map.values())).reindex(idx)
-        strat_returns = series.shift(lag).fillna(0.0) * close.pct_change().fillna(0.0)
+        strat_returns = series * close.pct_change().fillna(0.0)
     return strat_returns.fillna(0.0).astype(float)
 
 
@@ -2636,7 +2627,6 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "plateau_std_penalty": config.plateau_std_penalty,
         "plateau_size_bonus": config.plateau_size_bonus,
         "scoring_backend": config.scoring_backend,
-        "proxy_signal_lag": config.proxy_signal_lag,
         "scoring_trading_days": config.scoring_trading_days,
         "min_trades_per_year": config.min_trades_per_year,
         "trade_penalty_factor": config.trade_penalty_factor,

@@ -428,7 +428,6 @@ class QuantBTEndpoint:
                 plateau_std_penalty=float(optimization_config.get("plateau_std_penalty", 0.50)),
                 plateau_size_bonus=float(optimization_config.get("plateau_size_bonus", 0.01)),
                 scoring_backend=scoring_backend,
-                proxy_signal_lag=int(optimization_config.get("proxy_signal_lag", 1)),
                 scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
                 min_trades_per_year=optimization_config.get("min_trades_per_year"),
                 trade_penalty_factor=optimization_config.get("trade_penalty_factor"),
@@ -1037,7 +1036,6 @@ class QuantBTEndpoint:
             "plateau_std_penalty": wf_result.metadata.get("plateau_std_penalty"),
             "plateau_size_bonus": wf_result.metadata.get("plateau_size_bonus"),
             "scoring_backend": wf_result.metadata.get("scoring_backend"),
-            "proxy_signal_lag": wf_result.metadata.get("proxy_signal_lag"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         result.metadata["walk_forward_result"] = wf_result
