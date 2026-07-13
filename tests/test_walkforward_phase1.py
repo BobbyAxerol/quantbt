@@ -163,6 +163,36 @@ def test_train_test_split_metrics_default_to_test_scope():
     assert full_report["cagr_pct"] < auto_report["cagr_pct"]
 
 
+def test_endpoint_metrics_scope_survives_missing_module_global(monkeypatch):
+    import quantbt.endpoint as endpoint_module
+
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        signal = pd.Series(1.0, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    bt = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="pct_equity",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    bt.backtest(data=data, params={})
+
+    monkeypatch.delattr(endpoint_module, "scoped_result", raising=False)
+
+    report = bt.full_report()
+    assert report["final_equity"] > 20_000.0
+
+
 def test_walkforward_result_quick_plot_accepts_default_oos_scope(monkeypatch):
     idx = _idx()
     data = _bars(idx)

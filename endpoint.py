@@ -33,7 +33,6 @@ from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderType, TimeInForce
-from .core.scopes import scoped_result
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
@@ -1153,6 +1152,8 @@ class QuantBTEndpoint:
         return self.result
 
     def _result_for_report_scope(self, scope: str):
+        from .core.scopes import scoped_result
+
         return scoped_result(self._require_result(), scope=scope)
 
 
