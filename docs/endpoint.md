@@ -859,7 +859,6 @@ wfo = QuantBTEndpoint.walk_forward(
         # train-only selector for strict train/test split:
         # "candidate_selection_metric": "is_plateau_robust",
         # "scoring_backend": "endpoint",   # endpoint | proxy
-        # "proxy_signal_lag": 1,           # used only by proxy scoring
         # "plateau_quantile": 0.25,
         # "plateau_median_weight": 0.25,
         # "plateau_std_penalty": 0.50,
@@ -989,7 +988,9 @@ Important rules:
   (`pct_equity`, `signal_notional`, or `dca_ladder`) instead of the fast proxy.
   Set `scoring_backend="proxy"` when you explicitly want approximate scoring;
   `mode_2_sbb` always uses proxy return paths because it needs synthetic
-  bootstrap/GARCH simulations;
+  bootstrap/GARCH simulations. Proxy scoring uses the signal exactly as emitted
+  by the strategy adapter; execution lag, if desired, belongs in the strategy
+  layer;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
 - optimization Sharpe annualization uses `scoring_trading_days` from

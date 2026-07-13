@@ -507,7 +507,7 @@ def test_walkforward_score_strategy_output_is_transparent_return_proxy():
 
     assert metrics["turnover"] == 1.0
     assert metrics["trade_count"] == 1.0
-    assert metrics["mean_return"] > 0.0
+    assert metrics["mean_return"] == pytest.approx(0.075)
 
 
 def test_walkforward_trade_frequency_penalty_formula_is_normalized_linear():
