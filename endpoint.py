@@ -1210,6 +1210,7 @@ def _normalize_result_contract(result) -> None:
 def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
     metadata = result.metadata
     payload = _endpoint_run_config_payload(config)
+    _sync_applied_nautilus_config(payload, metadata)
     metadata["run_config"] = payload
     metadata.setdefault("initial_capital", payload["account"]["initial_capital"])
     metadata.setdefault("leverage", payload["account"]["leverage"])
@@ -1220,6 +1221,32 @@ def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
     metadata.setdefault("slippage", payload["execution"]["legacy_slippage_rate"])
     metadata.setdefault("slippage_bps", payload["execution"]["slippage_bps"])
     metadata.setdefault("use_funding", payload["funding"]["use_funding"])
+
+
+def _sync_applied_nautilus_config(payload: Dict, metadata: Dict) -> None:
+    """Keep report run_config aligned with the adapter config that actually ran."""
+    if payload.get("backend") != "nautilus":
+        return
+    nautilus = dict(payload.get("nautilus") or {})
+    if not nautilus:
+        return
+
+    for source_key, target_key in (
+        ("instrument_id", "instrument_id"),
+        ("sizing_mode", "sizing_mode"),
+        ("trade_notional", "trade_notional"),
+        ("use_pyramiding", "use_pyramiding"),
+        ("close_positions_on_stop", "close_positions_on_stop"),
+    ):
+        if metadata.get(source_key) is not None:
+            nautilus[target_key] = _jsonable(metadata[source_key])
+
+    if metadata.get("timeframe") is not None:
+        nautilus["timeframe"] = _jsonable(metadata["timeframe"])
+    if metadata.get("initial_capital") is not None:
+        nautilus["starting_balance"] = _jsonable(metadata["initial_capital"])
+
+    payload["nautilus"] = nautilus
 
 
 def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
