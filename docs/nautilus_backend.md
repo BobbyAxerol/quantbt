@@ -63,8 +63,10 @@ Report bundle:
   `fills_report.csv`, `positions_report.csv`, normalized `trade_log.csv`,
   `fill_log.txt`, `run_manifest.json`, `metrics_summary.json`,
   `config.json`, equity/returns CSVs, and optional `quantstats_daily.html`.
-  `config.json` is auto-filled from endpoint/result run metadata, including
-  capital, leverage, fees, slippage, sizing, funding, instrument, and timeframe.
+  `config.json` is auto-filled from endpoint/result run metadata using grouped
+  `effective_*` sections for capital, leverage, fees, slippage, sizing,
+  funding, instrument, and timeframe. Extra `config={...}` values are saved
+  under `annotations`, not mixed into the effective execution settings.
 - QuantStats input is daily-resampled from the equity curve by default, which
   is safer for multi-year intraday runs than treating raw 15m returns as daily
   returns. The default annualization is `quantstats_periods_per_year=365` for

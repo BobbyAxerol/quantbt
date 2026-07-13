@@ -790,8 +790,12 @@ Requirements:
 - `export_nautilus_report_bundle(...)` writes raw Nautilus account/order/fill/
   position reports, normalized trade logs, a run manifest, equity/returns CSVs,
   `config.json`, and optional QuantStats daily HTML. `config.json` is filled
-  from endpoint/result metadata even when no explicit `config=` is passed.
-  QuantStats uses daily equity returns by default with
+  from endpoint/result metadata even when no explicit `config=` is passed. The
+  report config uses grouped fields such as `effective_account`,
+  `effective_sizing`, `effective_fees`, and `effective_execution` so there is
+  one clear effective view; extra `config={...}` values are saved under
+  `annotations` and do not override execution metadata. QuantStats uses daily
+  equity returns by default with
   `quantstats_periods_per_year=365` for crypto.
 
 Nautilus metadata:
