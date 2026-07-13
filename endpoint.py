@@ -597,25 +597,35 @@ class QuantBTEndpoint:
             _print_order_logs(result, mode=order_log_mode, limit=order_log_limit)
         return result
 
-    def full_report(self, trading_days: int = 365) -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
         """
         Return the full QuantBT metrics dictionary for the latest result.
+
+        Parameters
+        ----------
+        trading_days:
+            Annualization calendar. Use 365 for crypto and 252 for equities.
+        scope:
+            `auto` uses the natural reporting scope for the endpoint. For
+            walk-forward and train/test split runs this means OOS/test bars
+            only; other endpoints use the full result. Pass `full` to audit the
+            complete stitched timeline, or `test`/`oos` to force OOS reporting.
 
         Raises
         ------
         RuntimeError
             If no backtest has been run yet.
         """
-        return _full_report(self._require_result(), trading_days=trading_days)
+        return _full_report(self._result_for_report_scope(scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365) -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
         """
         Print key metrics and return the full metrics dictionary.
 
         This intentionally mirrors the convenience style of legacy
         `BacktestEngine.analyze()` without forcing a plot.
         """
-        rpt = self.full_report(trading_days=trading_days)
+        rpt = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(rpt))
         return rpt
 
@@ -980,6 +990,7 @@ class QuantBTEndpoint:
             "engine": wf_result.metadata["engine"],
             "target_mode": target_mode,
             "n_folds": wf_result.metadata["n_folds"],
+            "report_scope": "test" if wf_result.metadata.get("split_frequency") == "single" else "oos",
             "split_frequency": wf_result.metadata.get("split_frequency"),
             "window_mode": wf_result.metadata.get("window_mode"),
             "params": wf_result.params,
@@ -1140,6 +1151,17 @@ class QuantBTEndpoint:
             raise RuntimeError("run backtest() or simulate() before requesting results")
         return self.result
 
+    def _result_for_report_scope(self, scope: str):
+        result = self._require_result()
+        normalized = str(scope or "auto").lower().strip()
+        if normalized == "auto":
+            normalized = "oos" if "walk_forward" in result.metadata else "full"
+        if normalized == "full":
+            return result
+        if normalized in {"test", "oos"}:
+            return _slice_result_to_walk_forward_oos(result, scope=normalized)
+        raise ValueError("scope must be auto, full, test, or oos")
+
 
 def _normalize_result_contract(result) -> None:
     """
@@ -1172,6 +1194,71 @@ def _normalize_result_contract(result) -> None:
         metadata["orders_count"] = len(getattr(result, "orders", ()))
     if "fills_count" not in metadata:
         metadata["fills_count"] = len(getattr(result, "fills", ()))
+
+
+def _slice_result_to_walk_forward_oos(result, scope: str):
+    wf_meta = result.metadata.get("walk_forward")
+    if not wf_meta:
+        raise ValueError(f"scope={scope!r} is only available for walk_forward/train_test_split results")
+    fold_table = wf_meta.get("fold_table")
+    if fold_table is None or len(fold_table) == 0:
+        raise ValueError("walk-forward result does not contain a fold_table")
+
+    idx = result.equity.index
+    mask = pd.Series(False, index=idx)
+    for _, row in fold_table.iterrows():
+        start = pd.Timestamp(row["test_start"])
+        end = pd.Timestamp(row["test_end"])
+        mask |= (idx >= start) & (idx <= end)
+    if not bool(mask.any()):
+        raise ValueError("walk-forward OOS/test scope contains no bars in result index")
+
+    sliced_metadata = dict(result.metadata)
+    sliced_wf_meta = dict(wf_meta)
+    sliced_wf_meta["report_scope"] = scope
+    sliced_metadata["walk_forward"] = sliced_wf_meta
+
+    if isinstance(result, BacktestResultV2):
+        return BacktestResultV2(
+            equity=result.equity.loc[mask].copy(),
+            returns=result.returns.loc[mask].copy(),
+            positions=result.positions.loc[mask].copy(),
+            closes=result.closes.loc[mask].copy(),
+            symbols=list(result.symbols),
+            initial_capital=float(result.initial_capital),
+            leverage=float(result.leverage),
+            liquidated=bool(result.liquidated),
+            liquidation_bar=int(result.liquidation_bar),
+            orders=getattr(result, "orders", ()),
+            fills=getattr(result, "fills", ()),
+            trades=getattr(result, "trades", ()),
+            fees=_slice_indexed_like(result.fees, mask),
+            funding=_slice_indexed_like(result.funding, mask),
+            margin=_slice_indexed_like(result.margin, mask),
+            diagnostics=_slice_indexed_like(result.diagnostics, mask),
+            metadata=sliced_metadata,
+        )
+
+    return BacktestResult(
+        equity=result.equity.loc[mask].copy(),
+        returns=result.returns.loc[mask].copy(),
+        positions=result.positions.loc[mask].copy(),
+        closes=result.closes.loc[mask].copy(),
+        symbols=list(result.symbols),
+        initial_capital=float(result.initial_capital),
+        leverage=float(result.leverage),
+        liquidated=bool(result.liquidated),
+        liquidation_bar=int(result.liquidation_bar),
+        metadata=sliced_metadata,
+    )
+
+
+def _slice_indexed_like(obj, mask: pd.Series):
+    if obj is None:
+        return obj
+    if isinstance(obj, (pd.Series, pd.DataFrame)) and obj.index.equals(mask.index):
+        return obj.loc[mask].copy()
+    return obj
 
 
 def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
