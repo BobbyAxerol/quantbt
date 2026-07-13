@@ -61,6 +61,7 @@ from .walkforward import (
     benchmark_walkforward_kernels,
     logging_callback,
     score_strategy_output,
+    select_is_plateau_robust_record,
     select_flat_minima_record,
     stationary_bootstrap_sharpes,
     synthetic_walkforward_sharpes,

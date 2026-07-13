@@ -18,6 +18,7 @@ from quantbt import (
     WalkForwardTrialRecord,
     benchmark_walkforward_kernels,
     score_strategy_output,
+    select_is_plateau_robust_record,
     select_flat_minima_record,
     stationary_bootstrap_sharpes,
     synthetic_walkforward_sharpes,
@@ -846,6 +847,71 @@ def test_walkforward_phase3_flat_minima_centroid_snaps_to_valid_param_grid():
     assert selected.selection_metadata["selector"] == "centroid"
     assert selected.selection_metadata["requires_evaluation"] is True
     assert selected.selection_metadata["medoid_params"]["x"] == 24
+
+
+def test_is_plateau_robust_selector_prefers_dense_train_plateau_over_isolated_spike():
+    records = [
+        WalkForwardTrialRecord(0, {"x": 95}, 12.0, 12.0, 0.0, 0.0, 0.0, []),
+        WalkForwardTrialRecord(1, {"x": 20}, 9.2, 9.2, 0.0, 0.0, 0.0, []),
+        WalkForwardTrialRecord(2, {"x": 21}, 9.1, 9.1, 0.0, 0.0, 0.0, []),
+        WalkForwardTrialRecord(3, {"x": 22}, 9.0, 9.0, 0.0, 0.0, 0.0, []),
+        WalkForwardTrialRecord(4, {"x": 23}, 8.9, 8.9, 0.0, 0.0, 0.0, []),
+    ]
+    cfg = WalkForwardConfig(
+        optimization_mode="mode_1_decay",
+        candidate_selection_metric="is_plateau_robust",
+        top_is_fraction=1.0,
+        flat_eps=0.04,
+        flat_min_samples=2,
+        plateau_quantile=0.25,
+        plateau_std_penalty=0.5,
+    )
+
+    selected = select_is_plateau_robust_record(records, {"x": (0, 100, 1)}, config=cfg)
+
+    assert selected.params["x"] in {20, 21, 22, 23}
+    assert selected.selection_metadata["selected_by"] == "is_plateau_robust"
+    assert selected.selection_metadata["oos_used_for_selection"] is False
+    assert selected.selection_metadata["cluster_size"] == 4
+
+
+def test_train_test_split_can_select_is_plateau_robust_without_oos_selection():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        signal = pd.Series(1.0 if int(params["go_long"]) == 1 else -1.0, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    bt = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="pct_equity",
+        optimization_mode="mode_1_decay",
+        optimization_config={
+            "top_is_fraction": 1.0,
+            "candidate_selection_metric": "is_plateau_robust",
+            "flat_eps": 1.0,
+            "flat_min_samples": 1,
+            "plateau_quantile": 0.25,
+        },
+        optuna_trials=6,
+        random_seed=7,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, param_ranges={"go_long": (0, 1, 1)})
+    best_meta = result.metadata["walk_forward"]["best_trial"]["selection_metadata"]
+
+    assert result.metadata["walk_forward"]["candidate_selection_metric"] == "is_plateau_robust"
+    assert best_meta["selected_by"] == "is_plateau_robust"
+    assert best_meta["oos_seen_by_optuna"] is False
+    assert best_meta["oos_used_for_selection"] is False
 
 
 def test_walkforward_phase4_rejects_non_timestamped_strategy_output():
