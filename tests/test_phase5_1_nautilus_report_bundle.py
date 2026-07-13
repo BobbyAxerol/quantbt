@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import types
+import json
 
 import pandas as pd
 
@@ -57,6 +58,10 @@ def _synthetic_result():
             "bar_type": "BTCUSDT-PERP.BINANCE-12-HOUR-LAST-EXTERNAL",
             "sizing_mode": "%_equity",
             "trade_notional": 0.5,
+            "fee_rate": 0.0005,
+            "fee_round_trip": 0.0004,
+            "slippage": 0.0002,
+            "slippage_bps": 0.0,
             "orders_count": 3,
             "fills_count": 3,
             "positions_count": 1,
@@ -67,6 +72,37 @@ def _synthetic_result():
             "orders_report": fills.copy(),
             "fills_report": fills,
             "positions_report": positions_report,
+            "run_config": {
+                "account": {
+                    "initial_capital": 10_000.0,
+                    "leverage": 3.0,
+                    "maintenance_ratio": 0.005,
+                    "margin_mode": "cross",
+                    "oms_mode": "netting",
+                    "base_currency": "USDT",
+                },
+                "sizing": {
+                    "hedge_type": "%_equity",
+                    "alloc_per_trade": 0.5,
+                    "contract_size": 1.0,
+                    "use_pyramiding": False,
+                },
+                "fees": {
+                    "explicit_fee_rate": 0.0005,
+                    "one_way_fee_rate": 0.0005,
+                    "round_trip_fee": 0.0004,
+                },
+                "execution": {
+                    "legacy_slippage_rate": 0.0002,
+                    "slippage_bps": 0.0,
+                    "fill_price_policy": "bar_market",
+                    "same_bar_policy": "close",
+                    "allow_partial_fill": False,
+                    "reject_on_insufficient_margin": True,
+                },
+                "funding": {"use_funding": False, "funding_rate": 0.0},
+                "nautilus": {"timeframe": "12h", "close_positions_on_stop": False},
+            },
         },
     )
 
@@ -117,13 +153,14 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
     assert manifest["positions_count"] == 1
     assert manifest["account_reconstructed_diff"] == 0
 
-    config = pd.read_json(report_dir / "config.json", typ="series")
-    assert config["initial_capital"] == 10_000.0
-    assert config["leverage"] == 3.0
-    assert config["trade_notional"] == 0.5
-    assert config["sizing_mode"] == "%_equity"
-    assert config["timeframe"] == "12-HOUR"
-    assert config["note"] == "manual annotation"
+    config = json.loads((report_dir / "config.json").read_text(encoding="utf-8"))
+    assert config["schema_version"] == 2
+    assert config["effective_account"]["initial_capital"] == 10_000.0
+    assert config["effective_account"]["leverage"] == 3.0
+    assert config["effective_sizing"]["trade_notional"] == 0.5
+    assert config["effective_sizing"]["sizing_mode"] == "%_equity"
+    assert config["instrument"]["timeframe"] == "12-HOUR"
+    assert config["annotations"]["note"] == "manual annotation"
 
     trade_log = pd.read_csv(report_dir / "trade_log.csv")
     assert list(trade_log.columns)[:5] == ["strategy_id", "symbol", "exchange", "instrument_id", "position_type"]
@@ -133,6 +170,31 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
     assert len(fill_log) == 2
     assert "FILL BUY" in fill_log[0]
     assert "BTCUSDT-PERP.BINANCE" in fill_log[0]
+
+
+def test_config_json_has_single_effective_fee_and_execution_view(tmp_path):
+    result = _synthetic_result()
+
+    report_dir = export_nautilus_report_bundle(
+        result=result,
+        output_dir=tmp_path,
+        strategy_id="clean-config",
+        make_quantstats=False,
+    )
+
+    config = json.loads((report_dir / "config.json").read_text(encoding="utf-8"))
+    assert "fee_rate" not in config
+    assert "fee_round_trip" not in config
+    assert "slippage" not in config
+    assert "slippage_bps" not in config
+    assert "fees" not in config
+    assert "execution" not in config
+    assert config["effective_fees"]["requested_fee_rate"] == 0.0005
+    assert config["effective_fees"]["requested_fee_convention"] == "one_way"
+    assert config["effective_fees"]["legacy_fee_round_trip_ignored"] == 0.0004
+    assert config["effective_fees"]["custom_fee_rate_applied_to_nautilus"] is False
+    assert config["effective_execution"]["requested_slippage_rate"] == 0.0002
+    assert config["effective_execution"]["custom_slippage_applied_to_nautilus"] is False
 
 
 def test_export_nautilus_report_bundle_handles_empty_raw_reports(tmp_path):
