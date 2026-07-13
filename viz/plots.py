@@ -53,11 +53,15 @@ def quick_plot(
     theme:     str = "dark",
     figsize:   tuple = (14, 6),
     title:     Optional[str] = None,
+    scope:     str = "auto",
 ) -> None:
     """
     Two-panel figure: cumulative return (top) and drawdown (bottom).
     Suitable as a fast sanity-check or inline notebook output.
     """
+    from ..core.scopes import scoped_result
+
+    result = scoped_result(result, scope=scope)
     c = apply_theme(theme)
 
     eq  = result.daily_equity
@@ -125,6 +129,7 @@ def tearsheet(
     trading_days:  int = 365,
     benchmark:     Optional[pd.Series] = None,
     title:         Optional[str] = None,
+    scope:         str = "auto",
 ) -> None:
     """
     Full performance tearsheet.
@@ -138,6 +143,9 @@ def tearsheet(
     5  Per-symbol PnL contribution
     6  Daily position exposure
     """
+    from ..core.scopes import scoped_result
+
+    result = scoped_result(result, scope=scope)
     c   = apply_theme(theme)
     rpt = full_report(result, trading_days)
 

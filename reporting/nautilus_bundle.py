@@ -100,7 +100,7 @@ def export_nautilus_report_bundle(
     metadata = dict(result.metadata or {})
     config_payload = _config_payload_from_result(result=result, metadata=metadata)
     if config:
-        config_payload.update(dict(config))
+        config_payload["annotations"] = {**dict(config_payload.get("annotations", {})), **dict(config)}
 
     account_report = _report_frame(metadata.get("account_report"))
     orders_report = _report_frame(metadata.get("orders_report", metadata.get("order_report")))
@@ -397,30 +397,80 @@ def _run_manifest(
 
 
 def _config_payload_from_result(result: BacktestResultV2, metadata: Dict[str, Any]) -> Dict[str, Any]:
-    payload = dict(metadata.get("run_config") or {})
-    payload.setdefault("backend", metadata.get("backend", "nautilus"))
-    payload.setdefault("engine", metadata.get("engine", "NautilusTrader BacktestEngine"))
-    payload.setdefault("instrument_id", metadata.get("instrument_id") or _first_symbol(result))
-    payload.setdefault("bar_type", metadata.get("bar_type"))
-    payload.setdefault("timeframe", metadata.get("timeframe") or _bar_timeframe(metadata.get("bar_type")))
-    payload.setdefault("initial_capital", _safe_float(metadata.get("initial_capital")) or float(result.initial_capital))
-    payload.setdefault("leverage", _safe_float(metadata.get("leverage")) or float(result.leverage))
-    payload.setdefault("maintenance_ratio", _safe_float(metadata.get("maintenance_ratio")))
-    payload.setdefault("fee_rate", _safe_float(metadata.get("fee_rate")))
-    payload.setdefault("fee_round_trip", _safe_float(metadata.get("fee_round_trip")))
-    payload.setdefault("slippage", _safe_float(metadata.get("slippage")))
-    payload.setdefault("slippage_bps", _safe_float(metadata.get("slippage_bps")))
-    payload.setdefault("alloc_per_trade", metadata.get("alloc_per_trade", metadata.get("trade_notional")))
-    payload.setdefault("trade_notional", metadata.get("trade_notional"))
-    payload.setdefault("sizing_mode", metadata.get("sizing_mode"))
-    payload.setdefault("use_pyramiding", metadata.get("use_pyramiding"))
-    payload.setdefault("use_funding", metadata.get("use_funding"))
-    payload.setdefault("funding_rate", metadata.get("funding_rate"))
-    payload.setdefault("close_positions_on_stop", metadata.get("close_positions_on_stop"))
-    payload.setdefault("orders_count", int(metadata.get("orders_count", 0) or 0))
-    payload.setdefault("fills_count", int(metadata.get("fills_count", 0) or 0))
-    payload.setdefault("positions_count", int(metadata.get("positions_count", 0) or 0))
-    return payload
+    run_config = dict(metadata.get("run_config") or {})
+    account = dict(run_config.get("account") or {})
+    execution = dict(run_config.get("execution") or {})
+    fees = dict(run_config.get("fees") or {})
+    sizing = dict(run_config.get("sizing") or {})
+    funding = dict(run_config.get("funding") or {})
+    nautilus = dict(run_config.get("nautilus") or {})
+
+    requested_fee_rate = _safe_float(metadata.get("fee_rate"))
+    if requested_fee_rate is None:
+        requested_fee_rate = _safe_float(fees.get("one_way_fee_rate"))
+    requested_slippage = _safe_float(metadata.get("slippage"))
+    if requested_slippage is None:
+        requested_slippage = _safe_float(execution.get("legacy_slippage_rate"))
+    requested_slippage_bps = _safe_float(metadata.get("slippage_bps"))
+    if requested_slippage_bps is None:
+        requested_slippage_bps = _safe_float(execution.get("slippage_bps"))
+
+    return {
+        "schema_version": 2,
+        "backend": metadata.get("backend", "nautilus"),
+        "engine": metadata.get("engine", "NautilusTrader BacktestEngine"),
+        "instrument": {
+            "instrument_id": metadata.get("instrument_id") or _first_symbol(result),
+            "bar_type": metadata.get("bar_type"),
+            "timeframe": metadata.get("timeframe") or _bar_timeframe(metadata.get("bar_type")),
+        },
+        "effective_account": {
+            "initial_capital": _safe_float(metadata.get("initial_capital")) or float(result.initial_capital),
+            "leverage": _safe_float(metadata.get("leverage")) or float(result.leverage),
+            "maintenance_ratio": _safe_float(metadata.get("maintenance_ratio")),
+            "margin_mode": account.get("margin_mode"),
+            "oms_mode": account.get("oms_mode"),
+            "base_currency": account.get("base_currency"),
+        },
+        "effective_sizing": {
+            "sizing_mode": metadata.get("sizing_mode") or sizing.get("hedge_type"),
+            "hedge_type": sizing.get("hedge_type"),
+            "trade_notional": metadata.get("trade_notional"),
+            "alloc_per_trade": metadata.get("alloc_per_trade", sizing.get("alloc_per_trade")),
+            "use_pyramiding": metadata.get("use_pyramiding", sizing.get("use_pyramiding")),
+            "contract_size": sizing.get("contract_size"),
+        },
+        "effective_fees": {
+            "requested_fee_rate": requested_fee_rate,
+            "requested_fee_convention": "one_way",
+            "requested_fee_source": "endpoint.fee_rate",
+            "legacy_fee_round_trip_ignored": fees.get("round_trip_fee"),
+            "applied_by": "NautilusTrader MakerTakerFeeModel",
+            "custom_fee_rate_applied_to_nautilus": False,
+        },
+        "effective_execution": {
+            "requested_slippage_rate": requested_slippage,
+            "requested_slippage_bps": requested_slippage_bps,
+            "requested_slippage_source": "endpoint.slippage",
+            "applied_by": "NautilusTrader bar market execution",
+            "custom_slippage_applied_to_nautilus": False,
+            "fill_price_policy": execution.get("fill_price_policy"),
+            "same_bar_policy": execution.get("same_bar_policy"),
+            "allow_partial_fill": execution.get("allow_partial_fill"),
+            "reject_on_insufficient_margin": execution.get("reject_on_insufficient_margin"),
+        },
+        "funding": {
+            "use_funding": metadata.get("use_funding", funding.get("use_funding")),
+            "funding_rate": metadata.get("funding_rate", funding.get("funding_rate")),
+        },
+        "nautilus": nautilus,
+        "diagnostics": {
+            "orders_count": int(metadata.get("orders_count", 0) or 0),
+            "fills_count": int(metadata.get("fills_count", 0) or 0),
+            "positions_count": int(metadata.get("positions_count", 0) or 0),
+        },
+        "annotations": {},
+    }
 
 
 def _report_frame(value: Any) -> pd.DataFrame:

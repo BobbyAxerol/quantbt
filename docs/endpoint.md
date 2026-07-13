@@ -175,11 +175,11 @@ All time indexes are normalized to UTC and aligned to the run index.
 result = bt.backtest(...)
 result = bt.simulate(...)
 
-rpt = bt.full_report(trading_days=365)
-rpt = bt.show_metrics(trading_days=365)
+rpt = bt.full_report(trading_days=365, scope="auto")
+rpt = bt.show_metrics(trading_days=365, scope="auto")
 
-bt.quick_plot(theme="dark", figsize=(14, 6))
-bt.tearsheet(theme="dark")
+bt.quick_plot(theme="dark", figsize=(14, 6), scope="auto")
+bt.tearsheet(theme="dark", scope="auto")
 
 bt.latest_orders
 bt.fills
@@ -192,6 +192,12 @@ bt.export_fills("fills.csv")
 
 `show_metrics()` prints a stable legacy-style text report and returns the same
 dictionary as `full_report()`:
+
+`scope="auto"` reports the natural tested window for endpoint and result helper
+methods. Normal endpoints use the full result; `walk_forward()` and
+`train_test_split()` report/plot OOS-test bars only so CAGR, Sharpe, Sortino,
+and Calmar are annualized on the period actually traded. Pass `scope="full"` to
+audit the complete stitched timeline with flat train bars included.
 
 ```text
   Initial Capital   $        20,000
@@ -215,9 +221,9 @@ dictionary as `full_report()`:
 The latest result object also exposes the same convenience methods:
 
 ```python
-result.full_report()
-result.show_metrics()
-result.quick_plot()
+result.full_report(scope="auto")
+result.show_metrics(scope="auto")
+result.quick_plot(scope="auto")
 result.tearsheet()
 ```
 
@@ -784,8 +790,12 @@ Requirements:
 - `export_nautilus_report_bundle(...)` writes raw Nautilus account/order/fill/
   position reports, normalized trade logs, a run manifest, equity/returns CSVs,
   `config.json`, and optional QuantStats daily HTML. `config.json` is filled
-  from endpoint/result metadata even when no explicit `config=` is passed.
-  QuantStats uses daily equity returns by default with
+  from endpoint/result metadata even when no explicit `config=` is passed. The
+  report config uses grouped fields such as `effective_account`,
+  `effective_sizing`, `effective_fees`, and `effective_execution` so there is
+  one clear effective view; extra `config={...}` values are saved under
+  `annotations` and do not override execution metadata. QuantStats uses daily
+  equity returns by default with
   `quantstats_periods_per_year=365` for crypto.
 
 Nautilus metadata:
@@ -850,6 +860,13 @@ wfo = QuantBTEndpoint.walk_forward(
         "garch_vol_multiplier": 1.0,
         # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
         #                     "flat_min_samples", "flat_selector"
+        # train-only selector for strict train/test split:
+        # "candidate_selection_metric": "is_plateau_robust",
+        # "scoring_backend": "endpoint",   # endpoint | proxy
+        # "plateau_quantile": 0.25,
+        # "plateau_median_weight": 0.25,
+        # "plateau_std_penalty": 0.50,
+        # "plateau_size_bonus": 0.01,
         # crypto default annualization: 365; equities often use 252
         "scoring_trading_days": 365,
         # optional under-trading penalty; None disables it
@@ -964,9 +981,20 @@ Important rules:
 - for all optimization modes, Optuna receives only in-sample or synthetic
   in-sample objectives; OOS scoring is delayed until after the top IS candidate
   set is frozen, reducing indirect look-ahead bias;
-- candidate selection is controlled by `top_is_fraction` or `top_is_k`; OOS
-  candidate ranking uses `candidate_selection_metric`, defaulting to
-  `robust_decay`;
+- candidate selection is controlled by `top_is_fraction` or `top_is_k`;
+  `candidate_selection_metric` defaults to `robust_decay`. For strict
+  train/test split validation, use `candidate_selection_metric="is_plateau_robust"`
+  to select final params from the dense train-only plateau; OOS is then used
+  only for final reporting/audit, not for parameter selection;
+- endpoint-created WFO for single-symbol routes defaults to
+  `scoring_backend="endpoint"` for `mode_1_decay` and `mode_3_flat_minima`.
+  This means Optuna scores the train fold with the same selected QuantBT route
+  (`pct_equity`, `signal_notional`, or `dca_ladder`) instead of the fast proxy.
+  Set `scoring_backend="proxy"` when you explicitly want approximate scoring;
+  `mode_2_sbb` always uses proxy return paths because it needs synthetic
+  bootstrap/GARCH simulations. Proxy scoring uses the signal exactly as emitted
+  by the strategy adapter; execution lag, if desired, belongs in the strategy
+  layer;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
 - optimization Sharpe annualization uses `scoring_trading_days` from

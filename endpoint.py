@@ -382,6 +382,12 @@ class QuantBTEndpoint:
         """
         optimization_config = dict(optimization_config or {})
         wf_config = kwargs.pop("walkforward_config", None)
+        scoring_backend = str(
+            optimization_config.get(
+                "scoring_backend",
+                _default_walkforward_scoring_backend(target_mode=target_mode, optimization_mode=optimization_mode),
+            )
+        )
         if wf_config is None:
             wf_config = WalkForwardConfig(
                 split_mode=split_mode,
@@ -417,6 +423,11 @@ class QuantBTEndpoint:
                 flat_eps=float(optimization_config.get("flat_eps", 0.15)),
                 flat_min_samples=int(optimization_config.get("flat_min_samples", 3)),
                 flat_selector=str(optimization_config.get("flat_selector", "medoid")),
+                plateau_quantile=float(optimization_config.get("plateau_quantile", 0.25)),
+                plateau_median_weight=float(optimization_config.get("plateau_median_weight", 0.25)),
+                plateau_std_penalty=float(optimization_config.get("plateau_std_penalty", 0.50)),
+                plateau_size_bonus=float(optimization_config.get("plateau_size_bonus", 0.01)),
+                scoring_backend=scoring_backend,
                 scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
                 min_trades_per_year=optimization_config.get("min_trades_per_year"),
                 trade_penalty_factor=optimization_config.get("trade_penalty_factor"),
@@ -597,39 +608,49 @@ class QuantBTEndpoint:
             _print_order_logs(result, mode=order_log_mode, limit=order_log_limit)
         return result
 
-    def full_report(self, trading_days: int = 365) -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
         """
         Return the full QuantBT metrics dictionary for the latest result.
+
+        Parameters
+        ----------
+        trading_days:
+            Annualization calendar. Use 365 for crypto and 252 for equities.
+        scope:
+            `auto` uses the natural reporting scope for the endpoint. For
+            walk-forward and train/test split runs this means OOS/test bars
+            only; other endpoints use the full result. Pass `full` to audit the
+            complete stitched timeline, or `test`/`oos` to force OOS reporting.
 
         Raises
         ------
         RuntimeError
             If no backtest has been run yet.
         """
-        return _full_report(self._require_result(), trading_days=trading_days)
+        return _full_report(self._result_for_report_scope(scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365) -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
         """
         Print key metrics and return the full metrics dictionary.
 
         This intentionally mirrors the convenience style of legacy
         `BacktestEngine.analyze()` without forcing a plot.
         """
-        rpt = self.full_report(trading_days=trading_days)
+        rpt = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(rpt))
         return rpt
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6)):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
         """
         Plot cumulative return and drawdown for the latest result.
         """
-        return _quick_plot(self._require_result(), theme=theme, figsize=figsize)
+        return _quick_plot(self._require_result(), theme=theme, figsize=figsize, scope=scope)
 
-    def tearsheet(self, theme: str = "dark", benchmark=None):
+    def tearsheet(self, theme: str = "dark", benchmark=None, scope: str = "auto"):
         """
         Render the full QuantBT tearsheet for the latest result.
         """
-        return _tearsheet(self._require_result(), theme=theme, benchmark=benchmark)
+        return _tearsheet(self._require_result(), theme=theme, benchmark=benchmark, scope=scope)
 
     def export_orders(self, path: Union[str, Path]) -> None:
         """
@@ -912,14 +933,15 @@ class QuantBTEndpoint:
         if self.config.strategy_class is None:
             raise ValueError("walk_forward endpoint requires strategy_class")
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
-        engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config)
+        target_mode = self.config.walkforward_target_mode.lower().strip()
+        scorer = _make_walkforward_endpoint_scorer(self.config, target_mode=target_mode, symbols=symbols) if wf_config.scoring_backend == "endpoint" else None
+        engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config, scorer=scorer)
         wf_result = engine.run(
             data=data if data is not None else closes,
             params=params,
             param_ranges=param_ranges,
             datetime_index=datetime_index,
         )
-        target_mode = self.config.walkforward_target_mode.lower().strip()
         stitched = wf_result.oos_output
         if stitched is None:
             raise ValueError("walk-forward strategy produced no OOS output")
@@ -980,6 +1002,7 @@ class QuantBTEndpoint:
             "engine": wf_result.metadata["engine"],
             "target_mode": target_mode,
             "n_folds": wf_result.metadata["n_folds"],
+            "report_scope": "test" if wf_result.metadata.get("split_frequency") == "single" else "oos",
             "split_frequency": wf_result.metadata.get("split_frequency"),
             "window_mode": wf_result.metadata.get("window_mode"),
             "params": wf_result.params,
@@ -1008,6 +1031,11 @@ class QuantBTEndpoint:
             "garch_q": wf_result.metadata.get("garch_q"),
             "garch_dist": wf_result.metadata.get("garch_dist"),
             "garch_vol_multiplier": wf_result.metadata.get("garch_vol_multiplier"),
+            "plateau_quantile": wf_result.metadata.get("plateau_quantile"),
+            "plateau_median_weight": wf_result.metadata.get("plateau_median_weight"),
+            "plateau_std_penalty": wf_result.metadata.get("plateau_std_penalty"),
+            "plateau_size_bonus": wf_result.metadata.get("plateau_size_bonus"),
+            "scoring_backend": wf_result.metadata.get("scoring_backend"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         result.metadata["walk_forward_result"] = wf_result
@@ -1140,6 +1168,11 @@ class QuantBTEndpoint:
             raise RuntimeError("run backtest() or simulate() before requesting results")
         return self.result
 
+    def _result_for_report_scope(self, scope: str):
+        from .core.scopes import scoped_result
+
+        return scoped_result(self._require_result(), scope=scope)
+
 
 def _normalize_result_contract(result) -> None:
     """
@@ -1177,6 +1210,7 @@ def _normalize_result_contract(result) -> None:
 def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
     metadata = result.metadata
     payload = _endpoint_run_config_payload(config)
+    _sync_applied_nautilus_config(payload, metadata)
     metadata["run_config"] = payload
     metadata.setdefault("initial_capital", payload["account"]["initial_capital"])
     metadata.setdefault("leverage", payload["account"]["leverage"])
@@ -1187,6 +1221,32 @@ def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
     metadata.setdefault("slippage", payload["execution"]["legacy_slippage_rate"])
     metadata.setdefault("slippage_bps", payload["execution"]["slippage_bps"])
     metadata.setdefault("use_funding", payload["funding"]["use_funding"])
+
+
+def _sync_applied_nautilus_config(payload: Dict, metadata: Dict) -> None:
+    """Keep report run_config aligned with the adapter config that actually ran."""
+    if payload.get("backend") != "nautilus":
+        return
+    nautilus = dict(payload.get("nautilus") or {})
+    if not nautilus:
+        return
+
+    for source_key, target_key in (
+        ("instrument_id", "instrument_id"),
+        ("sizing_mode", "sizing_mode"),
+        ("trade_notional", "trade_notional"),
+        ("use_pyramiding", "use_pyramiding"),
+        ("close_positions_on_stop", "close_positions_on_stop"),
+    ):
+        if metadata.get(source_key) is not None:
+            nautilus[target_key] = _jsonable(metadata[source_key])
+
+    if metadata.get("timeframe") is not None:
+        nautilus["timeframe"] = _jsonable(metadata["timeframe"])
+    if metadata.get("initial_capital") is not None:
+        nautilus["starting_balance"] = _jsonable(metadata["initial_capital"])
+
+    payload["nautilus"] = nautilus
 
 
 def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
@@ -1382,6 +1442,76 @@ def _resolve_backend(config: EndpointConfig) -> str:
     if mode in ("orders", "basket", "arbitrage"):
         return "native_event"
     return "native_vectorized"
+
+
+def _default_walkforward_scoring_backend(target_mode: str, optimization_mode: str) -> str:
+    mode = str(target_mode).lower().strip()
+    opt_mode = str(optimization_mode).lower().strip()
+    if opt_mode == "mode_2_sbb":
+        return "proxy"
+    if mode in {"pct_equity", "%_equity", "signal_notional", "single_signal", "dca_ladder"}:
+        return "endpoint"
+    return "proxy"
+
+
+def _make_walkforward_endpoint_scorer(config: EndpointConfig, target_mode: str, symbols=None):
+    score_config = _walkforward_scoring_config(config, target_mode)
+    symbol_list = list(symbols or config.symbols or ["DEFAULT"])
+
+    def scorer(data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
+        temp = QuantBTEndpoint(score_config)
+        sliced_data = _slice_wf_data_to_index(data, index)
+        try:
+            if score_config.mode == "portfolio":
+                result = temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
+            else:
+                result = temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
+            report = result.full_report(trading_days=trading_days, scope="full")
+        except Exception as exc:
+            raise RuntimeError(
+                "walk-forward endpoint scoring failed during "
+                f"{context} for fold_id={fold.fold_id}; target_mode={target_mode!r}; params={params}"
+            ) from exc
+        return {
+            "sharpe": float(report.get("sharpe", 0.0)),
+            "turnover": float(report.get("num_trades", 0.0)),
+            "trade_count": float(report.get("num_trades", 0.0)),
+            "mean_return": float(report.get("total_return_pct", 0.0)) / 100.0,
+            "volatility": 0.0,
+            "max_drawdown_pct": float(report.get("max_drawdown_pct", 0.0)),
+            "profit_factor": float(report.get("profit_factor", 0.0)),
+        }
+
+    return scorer
+
+
+def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> EndpointConfig:
+    mode = str(target_mode).lower().strip()
+    if mode in {"pct_equity", "%_equity"}:
+        return replace(config, mode="pct_equity", backend="legacy", sizing="%_equity")
+    if mode == "dca_ladder":
+        return replace(config, mode="dca_ladder", backend="legacy", sizing="dca_ladder")
+    if mode in {"signal_notional", "single_signal"}:
+        return replace(config, mode="signal_notional", backend=config.backend, sizing="signal_notional")
+    if mode == "portfolio":
+        return replace(config, mode="portfolio", backend="legacy_portfolio")
+    raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
+
+
+def _slice_wf_data_to_index(data, index: pd.DatetimeIndex):
+    if isinstance(data, pd.DataFrame):
+        return data.reindex(index).copy()
+    if isinstance(data, pd.Series):
+        return data.reindex(index).copy()
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, (pd.DataFrame, pd.Series)):
+                out[key] = value.reindex(index).copy()
+            else:
+                out[key] = value
+        return out
+    return data
 
 
 def _normalize_single_data(data, signal, signal_col, datetime_index):

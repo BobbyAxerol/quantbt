@@ -292,7 +292,12 @@ def test_nautilus_endpoint_forwards_use_pyramiding_to_adapter(monkeypatch):
                 closes=closes,
                 symbols=["ETHUSDT-PERP.BINANCE"],
                 initial_capital=10_000.0,
-                metadata={"use_pyramiding": captured["config"].use_pyramiding},
+                metadata={
+                    "instrument_id": captured["config"].instrument_id,
+                    "sizing_mode": captured["config"].sizing_mode,
+                    "trade_notional": captured["config"].trade_notional,
+                    "use_pyramiding": captured["config"].use_pyramiding,
+                },
             )
 
     monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
@@ -318,6 +323,9 @@ def test_nautilus_endpoint_forwards_use_pyramiding_to_adapter(monkeypatch):
     assert captured["config"].sizing_mode == "%_equity"
     assert captured["config"].trade_notional == 0.5
     assert result.metadata["use_pyramiding"] is False
+    assert result.metadata["run_config"]["nautilus"]["sizing_mode"] == "%_equity"
+    assert result.metadata["run_config"]["nautilus"]["trade_notional"] == 0.5
+    assert result.metadata["run_config"]["nautilus"]["use_pyramiding"] is False
 
 
 def test_simulate_can_print_bounded_nautilus_order_logs(monkeypatch, capsys):

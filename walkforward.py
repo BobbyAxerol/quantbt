@@ -16,7 +16,7 @@ import json
 import operator
 import time
 import warnings
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -163,6 +163,11 @@ class WalkForwardConfig:
     flat_eps: float = 0.15
     flat_min_samples: int = 3
     flat_selector: str = "medoid"
+    plateau_quantile: float = 0.25
+    plateau_median_weight: float = 0.25
+    plateau_std_penalty: float = 0.50
+    plateau_size_bonus: float = 0.01
+    scoring_backend: str = "proxy"
     scoring_trading_days: int = 365
     min_trades_per_year: Optional[float] = None
     trade_penalty_factor: Optional[float] = None
@@ -199,8 +204,12 @@ class WalkForwardConfig:
         if self.top_is_k is not None and self.top_is_k <= 0:
             raise ValueError("top_is_k must be > 0 when provided")
         metric = self.candidate_selection_metric.lower().strip()
-        if metric not in {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe"}:
-            raise ValueError("candidate_selection_metric must be robust_decay, mean_oos_sharpe, or mean_is_sharpe")
+        valid_metrics = {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe", "is_plateau_robust"}
+        if metric not in valid_metrics:
+            raise ValueError(
+                "candidate_selection_metric must be robust_decay, mean_oos_sharpe, "
+                "mean_is_sharpe, or is_plateau_robust"
+            )
         object.__setattr__(self, "candidate_selection_metric", metric)
         candidate_decay_lambda = None if self.candidate_decay_lambda is None else float(self.candidate_decay_lambda)
         if candidate_decay_lambda is not None and candidate_decay_lambda < 0.0:
@@ -246,6 +255,18 @@ class WalkForwardConfig:
         if selector not in {"medoid", "centroid"}:
             raise ValueError("flat_selector must be medoid or centroid")
         object.__setattr__(self, "flat_selector", selector)
+        if not 0.0 <= self.plateau_quantile <= 1.0:
+            raise ValueError("plateau_quantile must be in [0, 1]")
+        if self.plateau_median_weight < 0.0:
+            raise ValueError("plateau_median_weight must be >= 0")
+        if self.plateau_std_penalty < 0.0:
+            raise ValueError("plateau_std_penalty must be >= 0")
+        scoring_backend = self.scoring_backend.lower().strip()
+        if scoring_backend not in {"proxy", "endpoint"}:
+            raise ValueError("scoring_backend must be proxy or endpoint")
+        if opt_mode == "mode_2_sbb" and scoring_backend == "endpoint":
+            raise ValueError("mode_2_sbb requires scoring_backend='proxy' because it simulates train return paths")
+        object.__setattr__(self, "scoring_backend", scoring_backend)
         try:
             scoring_days = int(self.scoring_trading_days)
         except (TypeError, ValueError) as exc:
@@ -438,11 +459,15 @@ class WalkForwardEngine:
         self,
         strategy: Any,
         config: Optional[WalkForwardConfig] = None,
+        scorer: Optional[Callable[..., Dict[str, float]]] = None,
     ):
         if strategy is None:
             raise ValueError("WalkForwardEngine requires a strategy callable or strategy class/object")
         self.strategy = strategy
         self.config = config or WalkForwardConfig()
+        self.scorer = scorer
+        if self.config.scoring_backend == "endpoint" and self.scorer is None:
+            raise ValueError("scoring_backend='endpoint' requires a scorer callback")
 
     def run(
         self,
@@ -525,6 +550,11 @@ class WalkForwardEngine:
                 "garch_dist": self.config.garch_dist,
                 "garch_vol_multiplier": self.config.garch_vol_multiplier,
                 "numba_enabled": bool(self.config.use_numba and _NUMBA_AVAILABLE),
+                "plateau_quantile": self.config.plateau_quantile,
+                "plateau_median_weight": self.config.plateau_median_weight,
+                "plateau_std_penalty": self.config.plateau_std_penalty,
+                "plateau_size_bonus": self.config.plateau_size_bonus,
+                "scoring_backend": self.config.scoring_backend,
                 **self.config.metadata,
             },
         )
@@ -642,12 +672,13 @@ class WalkForwardEngine:
                 fold=fold,
                 context="anti-leakage in-sample search",
             )
-            is_metrics = score_strategy_output(
+            is_metrics = self._score_strategy_output(
                 data,
                 is_output,
                 fold.train_index,
-                trading_days=int(self.config.scoring_trading_days),
-                use_numba=bool(self.config.use_numba),
+                fold=fold,
+                params=params,
+                context="anti-leakage in-sample search",
             )
             required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
@@ -718,19 +749,21 @@ class WalkForwardEngine:
                 fold=fold,
                 context="out-of-sample scoring",
             )
-            is_metrics = score_strategy_output(
+            is_metrics = self._score_strategy_output(
                 data,
                 is_output,
                 fold.train_index,
-                trading_days=int(self.config.scoring_trading_days),
-                use_numba=bool(self.config.use_numba),
+                fold=fold,
+                params=params,
+                context="in-sample scoring",
             )
-            oos_metrics = score_strategy_output(
+            oos_metrics = self._score_strategy_output(
                 data,
                 oos_output,
                 fold.test_index,
-                trading_days=int(self.config.scoring_trading_days),
-                use_numba=bool(self.config.use_numba),
+                fold=fold,
+                params=params,
+                context="out-of-sample scoring",
             )
             is_required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
             oos_required_trades = _required_trades_for_index(fold.test_index, self.config.min_trades_per_year)
@@ -819,14 +852,19 @@ class WalkForwardEngine:
                 fold=fold,
                 context="sbb train scoring",
             )
-            is_metrics = score_strategy_output(
+            is_metrics = self._score_strategy_output(
                 data,
                 is_output,
                 fold.train_index,
-                trading_days=int(self.config.scoring_trading_days),
-                use_numba=self.config.use_numba,
+                fold=fold,
+                params=params,
+                context="sbb train scoring",
             )
-            returns = strategy_return_series(data, is_output, fold.train_index).to_numpy(dtype=np.float64)
+            returns = strategy_return_series(
+                data,
+                is_output,
+                fold.train_index,
+            ).to_numpy(dtype=np.float64)
             seed = int(self.config.random_seed) + int(trial_id) * 100_003 + int(fold.fold_id) * 9_176
             boot = synthetic_walkforward_sharpes(
                 returns=returns,
@@ -1002,6 +1040,34 @@ class WalkForwardEngine:
         if not folds:
             raise ValueError("walk-forward split produced no folds")
         return folds
+
+    def _score_strategy_output(
+        self,
+        data,
+        output: StrategyOutput,
+        index: pd.DatetimeIndex,
+        fold: WalkForwardFold,
+        params: Dict[str, Any],
+        context: str,
+    ) -> Dict[str, float]:
+        if self.config.scoring_backend == "endpoint":
+            assert self.scorer is not None
+            return self.scorer(
+                data=data,
+                output=output,
+                index=index,
+                fold=fold,
+                params=params,
+                context=context,
+                trading_days=int(self.config.scoring_trading_days),
+            )
+        return score_strategy_output(
+            data,
+            output,
+            index,
+            trading_days=int(self.config.scoring_trading_days),
+            use_numba=bool(self.config.use_numba),
+        )
 
     def _call_strategy(self, data, params: Dict[str, Any], fold: WalkForwardFold) -> StrategyOutput:
         return self._call_strategy_for_indices(
@@ -1228,7 +1294,7 @@ def strategy_position_frame(output: StrategyOutput, index: pd.DatetimeIndex) -> 
 
 
 def strategy_return_series(data, output: StrategyOutput, index: pd.DatetimeIndex) -> pd.Series:
-    """Return the transparent shifted-position return proxy used by WFO scoring."""
+    """Return the transparent position return proxy used by WFO scoring."""
     idx = validate_datetime(index)
     if len(idx) == 0:
         return pd.Series(dtype=float, index=idx)
@@ -1237,16 +1303,16 @@ def strategy_return_series(data, output: StrategyOutput, index: pd.DatetimeIndex
         symbols = list(output.columns)
         pos = _normalize_frame_output(output, symbols).reindex(idx).fillna(0.0)
         returns = pd.DataFrame({s: close_map[s].reindex(idx).pct_change().fillna(0.0) for s in symbols})
-        strat_returns = (pos.shift(1).fillna(0.0) * returns).mean(axis=1)
+        strat_returns = (pos * returns).mean(axis=1)
     elif isinstance(output, dict):
         symbols = list(output.keys())
         pos = pd.DataFrame({s: _normalize_series_output(output[s]).reindex(idx).fillna(0.0) for s in symbols})
         returns = pd.DataFrame({s: close_map[s].reindex(idx).pct_change().fillna(0.0) for s in symbols})
-        strat_returns = (pos.shift(1).fillna(0.0) * returns).mean(axis=1)
+        strat_returns = (pos * returns).mean(axis=1)
     else:
         series = _normalize_series_output(output).reindex(idx).fillna(0.0)
         close = next(iter(close_map.values())).reindex(idx)
-        strat_returns = series.shift(1).fillna(0.0) * close.pct_change().fillna(0.0)
+        strat_returns = series * close.pct_change().fillna(0.0)
     return strat_returns.fillna(0.0).astype(float)
 
 
@@ -1876,6 +1942,142 @@ def select_flat_minima_record(
     )
 
 
+def select_is_plateau_robust_record(
+    records: Sequence[WalkForwardTrialRecord],
+    param_ranges: Dict[str, Any],
+    config: WalkForwardConfig,
+) -> WalkForwardTrialRecord:
+    """
+    Select robust train-only params from the top IS/search trial plateau.
+
+    The selector first takes the top `top_is_fraction`/`top_is_k` trials by the
+    train-side objective.  Inside that candidate pool it prefers dense parameter
+    regions whose lower-tail and median scores remain strong while penalizing
+    noisy, isolated peaks.  OOS metrics are intentionally not used.
+    """
+    completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
+    if not completed:
+        raise ValueError("is_plateau_robust selection received no completed trials")
+    ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
+    top_n = _candidate_count(len(ranked), config)
+    top = ranked[:top_n]
+    matrix, names = _param_matrix(top, param_ranges)
+    if matrix.shape[0] == 1 or matrix.shape[1] == 0:
+        return _with_selection_metadata(
+            top[0],
+            {
+                "objective_mode": config.optimization_mode,
+                "selector": "fallback_best_train_objective",
+                "selected_by": "is_plateau_robust",
+                "oos_used_for_selection": False,
+                "reason": "insufficient_cluster_points",
+                "top_trials": int(top_n),
+            },
+        )
+
+    labels, cluster_method = _dbscan_cluster_labels(
+        matrix,
+        eps=float(config.flat_eps),
+        min_samples=int(config.flat_min_samples),
+    )
+    cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
+    if not cluster_ids:
+        return _with_selection_metadata(
+            top[0],
+            {
+                "objective_mode": config.optimization_mode,
+                "selector": "fallback_best_train_objective",
+                "selected_by": "is_plateau_robust",
+                "oos_used_for_selection": False,
+                "reason": "no_dense_train_plateau",
+                "top_trials": int(top_n),
+                "eps": float(config.flat_eps),
+                "min_samples": int(config.flat_min_samples),
+                "cluster_method": cluster_method,
+            },
+        )
+
+    best_cluster = None
+    best_key = None
+    best_cluster_stats = None
+    for cluster_id in cluster_ids:
+        member_idx = np.flatnonzero(labels == cluster_id)
+        values = np.array([top[i].objective for i in member_idx], dtype=np.float64)
+        q = float(np.quantile(values, float(config.plateau_quantile)))
+        median = float(np.median(values))
+        std = float(np.std(values, ddof=1)) if len(values) > 1 else 0.0
+        cluster_score = (
+            q
+            + float(config.plateau_median_weight) * median
+            - float(config.plateau_std_penalty) * std
+            + float(config.plateau_size_bonus) * float(np.log1p(len(member_idx)))
+        )
+        key = (cluster_score, q, median, len(member_idx), float(np.max(values)))
+        if best_key is None or key > best_key:
+            best_key = key
+            best_cluster = member_idx
+            best_cluster_stats = {
+                "plateau_score": float(cluster_score),
+                "plateau_quantile_score": q,
+                "plateau_median_score": median,
+                "plateau_std_score": std,
+                "cluster_best_objective": float(np.max(values)),
+            }
+    assert best_cluster is not None and best_cluster_stats is not None
+
+    centroid = np.mean(matrix[best_cluster], axis=0)
+    distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
+    selected_idx = int(best_cluster[int(np.argmin(distances))])
+    medoid = top[selected_idx]
+    centroid_params = _centroid_params(
+        centroid=centroid,
+        names=names,
+        param_ranges=param_ranges,
+        base_params=medoid.params,
+    )
+    selected = medoid
+    requires_evaluation = False
+    if config.flat_selector == "centroid":
+        selected = WalkForwardTrialRecord(
+            trial_id=-1,
+            params=centroid_params,
+            objective=float(best_cluster_stats["plateau_score"]),
+            mean_is_sharpe=float(np.mean([top[i].mean_is_sharpe for i in best_cluster])),
+            mean_oos_sharpe=0.0,
+            mean_decay=0.0,
+            std_decay=0.0,
+            fold_metrics=[],
+        )
+        requires_evaluation = True
+
+    return _with_selection_metadata(
+        selected,
+        {
+            **best_cluster_stats,
+            "objective_mode": config.optimization_mode,
+            "selector": str(config.flat_selector),
+            "selected_by": "is_plateau_robust",
+            "oos_used_for_selection": False,
+            "param_names": names,
+            "selected_trial_id": int(selected.trial_id),
+            "medoid_trial_id": int(medoid.trial_id),
+            "medoid_params": dict(medoid.params),
+            "centroid_params": centroid_params,
+            "centroid_normalized": [float(x) for x in centroid.tolist()],
+            "requires_evaluation": requires_evaluation,
+            "cluster_size": int(len(best_cluster)),
+            "top_trials": int(top_n),
+            "eps": float(config.flat_eps),
+            "min_samples": int(config.flat_min_samples),
+            "plateau_quantile": float(config.plateau_quantile),
+            "plateau_median_weight": float(config.plateau_median_weight),
+            "plateau_std_penalty": float(config.plateau_std_penalty),
+            "plateau_size_bonus": float(config.plateau_size_bonus),
+            "cluster_method": cluster_method,
+        },
+    )
+
+
 def _select_is_candidate_records(
     records: Sequence[WalkForwardTrialRecord],
     param_ranges: Dict[str, Any],
@@ -1887,6 +2089,9 @@ def _select_is_candidate_records(
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
+    if config.candidate_selection_metric == "is_plateau_robust":
+        plateau = select_is_plateau_robust_record(completed, param_ranges, config=config)
+        return [plateau, *top]
     if config.optimization_mode == "mode_3_flat_minima":
         flat = select_flat_minima_record(completed, param_ranges, config=config)
         return [flat, *top]
@@ -1912,6 +2117,28 @@ def _select_oos_candidate_record(
         key = lambda record: record.mean_oos_sharpe
     elif metric == "mean_is_sharpe":
         key = lambda record: record.mean_is_sharpe
+    elif metric == "is_plateau_robust":
+        selected = next(
+            (
+                record
+                for record in records
+                if record.selection_metadata.get("selected_by") == "is_plateau_robust"
+            ),
+            None,
+        )
+        if selected is None:
+            key = lambda record: record.selection_metadata.get("plateau_score", record.mean_is_sharpe)
+            selected = max(records, key=key)
+        return _with_selection_metadata(
+            selected,
+            {
+                **selected.selection_metadata,
+                "selected_by": metric,
+                "candidate_selection_complete": True,
+                "oos_seen_by_optuna": False,
+                "oos_used_for_selection": False,
+            },
+        )
     else:  # pragma: no cover - validated in config
         raise ValueError(f"unsupported candidate_selection_metric: {metric}")
     selected = max(records, key=key)
@@ -2395,6 +2622,11 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "flat_eps": config.flat_eps,
         "flat_min_samples": config.flat_min_samples,
         "flat_selector": config.flat_selector,
+        "plateau_quantile": config.plateau_quantile,
+        "plateau_median_weight": config.plateau_median_weight,
+        "plateau_std_penalty": config.plateau_std_penalty,
+        "plateau_size_bonus": config.plateau_size_bonus,
+        "scoring_backend": config.scoring_backend,
         "scoring_trading_days": config.scoring_trading_days,
         "min_trades_per_year": config.min_trades_per_year,
         "trade_penalty_factor": config.trade_penalty_factor,
