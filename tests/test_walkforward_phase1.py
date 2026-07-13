@@ -914,6 +914,46 @@ def test_train_test_split_can_select_is_plateau_robust_without_oos_selection():
     assert best_meta["oos_used_for_selection"] is False
 
 
+def test_train_test_split_endpoint_scoring_matches_pct_equity_report_on_train_fold():
+    idx = pd.date_range("2021-01-01", "2022-03-31 23:00:00", freq="1h", tz="UTC")
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.01
+
+    def strategy(data, params, train_index, test_index, fold):
+        signal = pd.Series(1.0, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    tts = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="pct_equity",
+        optimization_config={"scoring_backend": "endpoint"},
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    result = tts.backtest(data=data, params={})
+    wf = result.metadata["walk_forward"]
+    fold = result.metadata["walk_forward_result"].folds[0]
+
+    native = QuantBTEndpoint.pct_equity(
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    native.backtest(data=data.reindex(fold.train_index), signal=strategy(data, {}, fold.train_index, fold.train_index, fold))
+    native_report = native.full_report()
+
+    assert wf["scoring_backend"] == "endpoint"
+    assert wf["best_trial"]["fold_metrics"][0]["is_sharpe_raw"] == pytest.approx(native_report["sharpe"])
+    assert wf["best_trial"]["fold_metrics"][0]["is_trade_count"] == pytest.approx(native_report["num_trades"])
+
+
 def test_walkforward_phase4_rejects_non_timestamped_strategy_output():
     idx = _idx()
 
