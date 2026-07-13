@@ -856,6 +856,12 @@ wfo = QuantBTEndpoint.walk_forward(
         "garch_vol_multiplier": 1.0,
         # mode_3_flat_minima: "flat_top_fraction", "flat_eps",
         #                     "flat_min_samples", "flat_selector"
+        # train-only selector for strict train/test split:
+        # "candidate_selection_metric": "is_plateau_robust",
+        # "plateau_quantile": 0.25,
+        # "plateau_median_weight": 0.25,
+        # "plateau_std_penalty": 0.50,
+        # "plateau_size_bonus": 0.01,
         # crypto default annualization: 365; equities often use 252
         "scoring_trading_days": 365,
         # optional under-trading penalty; None disables it
@@ -970,9 +976,11 @@ Important rules:
 - for all optimization modes, Optuna receives only in-sample or synthetic
   in-sample objectives; OOS scoring is delayed until after the top IS candidate
   set is frozen, reducing indirect look-ahead bias;
-- candidate selection is controlled by `top_is_fraction` or `top_is_k`; OOS
-  candidate ranking uses `candidate_selection_metric`, defaulting to
-  `robust_decay`;
+- candidate selection is controlled by `top_is_fraction` or `top_is_k`;
+  `candidate_selection_metric` defaults to `robust_decay`. For strict
+  train/test split validation, use `candidate_selection_metric="is_plateau_robust"`
+  to select final params from the dense train-only plateau; OOS is then used
+  only for final reporting/audit, not for parameter selection;
 - optimization-time scoring uses a transparent return proxy on strategy output;
   final accounting still comes from the stitched QuantBT backtest;
 - optimization Sharpe annualization uses `scoring_trading_days` from

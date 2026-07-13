@@ -417,6 +417,10 @@ class QuantBTEndpoint:
                 flat_eps=float(optimization_config.get("flat_eps", 0.15)),
                 flat_min_samples=int(optimization_config.get("flat_min_samples", 3)),
                 flat_selector=str(optimization_config.get("flat_selector", "medoid")),
+                plateau_quantile=float(optimization_config.get("plateau_quantile", 0.25)),
+                plateau_median_weight=float(optimization_config.get("plateau_median_weight", 0.25)),
+                plateau_std_penalty=float(optimization_config.get("plateau_std_penalty", 0.50)),
+                plateau_size_bonus=float(optimization_config.get("plateau_size_bonus", 0.01)),
                 scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
                 min_trades_per_year=optimization_config.get("min_trades_per_year"),
                 trade_penalty_factor=optimization_config.get("trade_penalty_factor"),
@@ -1019,6 +1023,10 @@ class QuantBTEndpoint:
             "garch_q": wf_result.metadata.get("garch_q"),
             "garch_dist": wf_result.metadata.get("garch_dist"),
             "garch_vol_multiplier": wf_result.metadata.get("garch_vol_multiplier"),
+            "plateau_quantile": wf_result.metadata.get("plateau_quantile"),
+            "plateau_median_weight": wf_result.metadata.get("plateau_median_weight"),
+            "plateau_std_penalty": wf_result.metadata.get("plateau_std_penalty"),
+            "plateau_size_bonus": wf_result.metadata.get("plateau_size_bonus"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         result.metadata["walk_forward_result"] = wf_result
