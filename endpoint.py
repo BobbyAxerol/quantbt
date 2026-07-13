@@ -33,6 +33,7 @@ from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderType, TimeInForce
+from .core.scopes import scoped_result
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
@@ -629,17 +630,17 @@ class QuantBTEndpoint:
         print(format_metrics_report(rpt))
         return rpt
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6)):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
         """
         Plot cumulative return and drawdown for the latest result.
         """
-        return _quick_plot(self._require_result(), theme=theme, figsize=figsize)
+        return _quick_plot(self._require_result(), theme=theme, figsize=figsize, scope=scope)
 
-    def tearsheet(self, theme: str = "dark", benchmark=None):
+    def tearsheet(self, theme: str = "dark", benchmark=None, scope: str = "auto"):
         """
         Render the full QuantBT tearsheet for the latest result.
         """
-        return _tearsheet(self._require_result(), theme=theme, benchmark=benchmark)
+        return _tearsheet(self._require_result(), theme=theme, benchmark=benchmark, scope=scope)
 
     def export_orders(self, path: Union[str, Path]) -> None:
         """
@@ -1152,15 +1153,7 @@ class QuantBTEndpoint:
         return self.result
 
     def _result_for_report_scope(self, scope: str):
-        result = self._require_result()
-        normalized = str(scope or "auto").lower().strip()
-        if normalized == "auto":
-            normalized = "oos" if "walk_forward" in result.metadata else "full"
-        if normalized == "full":
-            return result
-        if normalized in {"test", "oos"}:
-            return _slice_result_to_walk_forward_oos(result, scope=normalized)
-        raise ValueError("scope must be auto, full, test, or oos")
+        return scoped_result(self._require_result(), scope=scope)
 
 
 def _normalize_result_contract(result) -> None:
@@ -1194,71 +1187,6 @@ def _normalize_result_contract(result) -> None:
         metadata["orders_count"] = len(getattr(result, "orders", ()))
     if "fills_count" not in metadata:
         metadata["fills_count"] = len(getattr(result, "fills", ()))
-
-
-def _slice_result_to_walk_forward_oos(result, scope: str):
-    wf_meta = result.metadata.get("walk_forward")
-    if not wf_meta:
-        raise ValueError(f"scope={scope!r} is only available for walk_forward/train_test_split results")
-    fold_table = wf_meta.get("fold_table")
-    if fold_table is None or len(fold_table) == 0:
-        raise ValueError("walk-forward result does not contain a fold_table")
-
-    idx = result.equity.index
-    mask = pd.Series(False, index=idx)
-    for _, row in fold_table.iterrows():
-        start = pd.Timestamp(row["test_start"])
-        end = pd.Timestamp(row["test_end"])
-        mask |= (idx >= start) & (idx <= end)
-    if not bool(mask.any()):
-        raise ValueError("walk-forward OOS/test scope contains no bars in result index")
-
-    sliced_metadata = dict(result.metadata)
-    sliced_wf_meta = dict(wf_meta)
-    sliced_wf_meta["report_scope"] = scope
-    sliced_metadata["walk_forward"] = sliced_wf_meta
-
-    if isinstance(result, BacktestResultV2):
-        return BacktestResultV2(
-            equity=result.equity.loc[mask].copy(),
-            returns=result.returns.loc[mask].copy(),
-            positions=result.positions.loc[mask].copy(),
-            closes=result.closes.loc[mask].copy(),
-            symbols=list(result.symbols),
-            initial_capital=float(result.initial_capital),
-            leverage=float(result.leverage),
-            liquidated=bool(result.liquidated),
-            liquidation_bar=int(result.liquidation_bar),
-            orders=getattr(result, "orders", ()),
-            fills=getattr(result, "fills", ()),
-            trades=getattr(result, "trades", ()),
-            fees=_slice_indexed_like(result.fees, mask),
-            funding=_slice_indexed_like(result.funding, mask),
-            margin=_slice_indexed_like(result.margin, mask),
-            diagnostics=_slice_indexed_like(result.diagnostics, mask),
-            metadata=sliced_metadata,
-        )
-
-    return BacktestResult(
-        equity=result.equity.loc[mask].copy(),
-        returns=result.returns.loc[mask].copy(),
-        positions=result.positions.loc[mask].copy(),
-        closes=result.closes.loc[mask].copy(),
-        symbols=list(result.symbols),
-        initial_capital=float(result.initial_capital),
-        leverage=float(result.leverage),
-        liquidated=bool(result.liquidated),
-        liquidation_bar=int(result.liquidation_bar),
-        metadata=sliced_metadata,
-    )
-
-
-def _slice_indexed_like(obj, mask: pd.Series):
-    if obj is None:
-        return obj
-    if isinstance(obj, (pd.Series, pd.DataFrame)) and obj.index.equals(mask.index):
-        return obj.loc[mask].copy()
-    return obj
 
 
 def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:

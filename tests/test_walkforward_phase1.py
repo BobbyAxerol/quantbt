@@ -151,14 +151,45 @@ def test_train_test_split_metrics_default_to_test_scope():
     )
 
     auto_report = tts.full_report()
+    result_report = tts.result.full_report()
     full_report = tts.full_report(scope="full")
     native_report = native.full_report()
 
     assert auto_report["final_equity"] == pytest.approx(native_report["final_equity"])
     assert auto_report["total_return_pct"] == pytest.approx(native_report["total_return_pct"])
     assert auto_report["cagr_pct"] == pytest.approx(native_report["cagr_pct"])
+    assert result_report["cagr_pct"] == pytest.approx(auto_report["cagr_pct"])
     assert full_report["final_equity"] == pytest.approx(native_report["final_equity"])
     assert full_report["cagr_pct"] < auto_report["cagr_pct"]
+
+
+def test_walkforward_result_quick_plot_accepts_default_oos_scope(monkeypatch):
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        signal = pd.Series(1.0, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    bt = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="pct_equity",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, params={})
+
+    import matplotlib.pyplot as plt
+
+    monkeypatch.setattr(plt, "show", lambda: None)
+    bt.quick_plot()
+    result.quick_plot()
 
 
 @pytest.mark.parametrize(
