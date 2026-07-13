@@ -178,8 +178,8 @@ result = bt.simulate(...)
 rpt = bt.full_report(trading_days=365, scope="auto")
 rpt = bt.show_metrics(trading_days=365, scope="auto")
 
-bt.quick_plot(theme="dark", figsize=(14, 6))
-bt.tearsheet(theme="dark")
+bt.quick_plot(theme="dark", figsize=(14, 6), scope="auto")
+bt.tearsheet(theme="dark", scope="auto")
 
 bt.latest_orders
 bt.fills
@@ -193,11 +193,11 @@ bt.export_fills("fills.csv")
 `show_metrics()` prints a stable legacy-style text report and returns the same
 dictionary as `full_report()`:
 
-`scope="auto"` reports the natural tested window. Normal endpoints use the full
-result; `walk_forward()` and `train_test_split()` report OOS/test bars only so
-CAGR, Sharpe, Sortino, and Calmar are annualized on the period actually traded.
-Pass `scope="full"` to audit the complete stitched timeline with flat train
-bars included.
+`scope="auto"` reports the natural tested window for endpoint and result helper
+methods. Normal endpoints use the full result; `walk_forward()` and
+`train_test_split()` report/plot OOS-test bars only so CAGR, Sharpe, Sortino,
+and Calmar are annualized on the period actually traded. Pass `scope="full"` to
+audit the complete stitched timeline with flat train bars included.
 
 ```text
   Initial Capital   $        20,000
@@ -221,9 +221,9 @@ bars included.
 The latest result object also exposes the same convenience methods:
 
 ```python
-result.full_report()
-result.show_metrics()
-result.quick_plot()
+result.full_report(scope="auto")
+result.show_metrics(scope="auto")
+result.quick_plot(scope="auto")
 result.tearsheet()
 ```
 
