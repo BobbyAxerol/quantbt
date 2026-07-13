@@ -175,8 +175,8 @@ All time indexes are normalized to UTC and aligned to the run index.
 result = bt.backtest(...)
 result = bt.simulate(...)
 
-rpt = bt.full_report(trading_days=365)
-rpt = bt.show_metrics(trading_days=365)
+rpt = bt.full_report(trading_days=365, scope="auto")
+rpt = bt.show_metrics(trading_days=365, scope="auto")
 
 bt.quick_plot(theme="dark", figsize=(14, 6))
 bt.tearsheet(theme="dark")
@@ -192,6 +192,12 @@ bt.export_fills("fills.csv")
 
 `show_metrics()` prints a stable legacy-style text report and returns the same
 dictionary as `full_report()`:
+
+`scope="auto"` reports the natural tested window. Normal endpoints use the full
+result; `walk_forward()` and `train_test_split()` report OOS/test bars only so
+CAGR, Sharpe, Sortino, and Calmar are annualized on the period actually traded.
+Pass `scope="full"` to audit the complete stitched timeline with flat train
+bars included.
 
 ```text
   Initial Capital   $        20,000

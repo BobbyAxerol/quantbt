@@ -116,6 +116,51 @@ def test_train_test_split_endpoint_runs_declared_fixed_params():
     assert result.positions["Position_BTC"].loc["2022-01-01"] > 0.0
 
 
+def test_train_test_split_metrics_default_to_test_scope():
+    idx = _idx()
+    data = _bars(idx)
+    data["close"] = 100.0 + pd.Series(range(len(idx)), index=idx) * 0.1
+
+    def strategy(data, params, train_index, test_index, fold):
+        signal = pd.Series(1.0, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    tts = QuantBTEndpoint.train_test_split(
+        strategy_class=strategy,
+        test_start="2022-01-01",
+        target_mode="pct_equity",
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    tts.backtest(data=data, params={})
+
+    native = QuantBTEndpoint.pct_equity(
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=0.5,
+        fee=0.0,
+        use_funding=False,
+    )
+    native.backtest(
+        data=data.loc["2022-01-01":],
+        signal=strategy(data, {}, None, data.loc["2022-01-01":].index, None),
+    )
+
+    auto_report = tts.full_report()
+    full_report = tts.full_report(scope="full")
+    native_report = native.full_report()
+
+    assert auto_report["final_equity"] == pytest.approx(native_report["final_equity"])
+    assert auto_report["total_return_pct"] == pytest.approx(native_report["total_return_pct"])
+    assert auto_report["cagr_pct"] == pytest.approx(native_report["cagr_pct"])
+    assert full_report["final_equity"] == pytest.approx(native_report["final_equity"])
+    assert full_report["cagr_pct"] < auto_report["cagr_pct"]
+
+
 @pytest.mark.parametrize(
     "optimization_mode,optimization_config",
     [
