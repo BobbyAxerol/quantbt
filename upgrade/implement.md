@@ -543,6 +543,72 @@ Branch note:
   `dev` rather than from this feature branch unless the upgrade explicitly
   depends on the Nautilus structured-order changes.
 
+## Phase 5.3 - Native Arbitrage And Portfolio Engine Depth
+
+Purpose:
+
+Harden the native arbitrage / portfolio domain layer before adding deeper
+Nautilus execution simulation. Native engines must first be trusted as the
+transparent research/accounting source of truth.
+
+### Phase 5.3A - Native Arbitrage Domain Audit And Golden Invariants
+
+Scope:
+
+- Add reusable audit helpers for arbitrage results:
+  - package PnL residual vs equity delta;
+  - leg PnL sum vs package PnL;
+  - leg fee sum vs result fee series;
+  - target-unit symbols and final flattening;
+  - rejection-report presence and package execution policy visibility.
+- Add native event vs native vectorized comparison helper:
+  - equity max diff;
+  - position max diff;
+  - package target-unit max diff;
+  - package PnL residual max diff;
+  - pass/fail status with tolerances.
+- Add mock domain tests for representative executable specs:
+  - basis;
+  - calendar spread;
+  - funding arbitrage;
+  - index basket package.
+- Keep endpoint behavior unchanged.
+
+Acceptance:
+
+- Audit helpers pass on known-good native event/vectorized mock arbitrage runs.
+- Audit helpers fail loudly on intentionally corrupted package PnL residuals.
+- Existing arbitrage endpoints and Nautilus package validation remain unchanged.
+- Full internal tests pass excluding real-data scripts.
+
+### Phase 5.3B - Portfolio And Real-Strategy Stabilization
+
+Scope:
+
+- Audit `PortfolioBacktestEngine` modes:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`.
+- Add portfolio diagnostics for:
+  - target-unit matrix vs accepted positions;
+  - gross/net exposure;
+  - margin usage;
+  - per-symbol fee/funding contribution;
+  - liquidation / rejection visibility.
+- Run realistic mock and real-strategy validation for:
+  - basis/stat-arb;
+  - basket/pair;
+  - multi-symbol portfolio.
+- Promote support matrix statuses only after parity/audit evidence is present.
+
+Non-goals for 5.3:
+
+- Deep Nautilus queue/latency/order-book modeling.
+- Exchange-native portfolio-margin replication.
+- New schema-only arbitrage engines for cross-exchange, triangular, or options
+  vol arbitrage.
+
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
 Purpose:
