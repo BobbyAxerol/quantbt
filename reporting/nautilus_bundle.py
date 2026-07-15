@@ -335,14 +335,20 @@ def _metrics_summary(result: BacktestResultV2, trade_log: pd.DataFrame, metadata
     final_equity = float(equity.iloc[-1]) if not equity.empty else float("nan")
     total_return_pct = (final_equity / float(result.initial_capital) - 1.0) * 100.0 if result.initial_capital else float("nan")
     drawdown = result.drawdown if len(result.equity) else pd.Series(dtype=float)
+    orders_report = _report_frame(metadata.get("orders_report", metadata.get("order_report")))
+    status_counts = _order_status_counts(orders_report)
     return {
         "initial_capital": float(result.initial_capital),
         "final_equity": final_equity,
         "total_return_pct": float(total_return_pct),
         "max_drawdown_pct": float(drawdown.max() * 100.0) if not drawdown.empty else 0.0,
+        "input_mode": metadata.get("input_mode"),
+        "order_count_input": _safe_int(metadata.get("order_count_input")),
         "orders_count": int(metadata.get("orders_count", 0) or 0),
         "fills_count": int(metadata.get("fills_count", 0) or 0),
         "positions_count": int(metadata.get("positions_count", 0) or 0),
+        "cancelled_count": status_counts["cancelled"],
+        "rejected_count": status_counts["rejected"],
         "trade_log_count": int(len(trade_log)),
         "liquidated": bool(result.liquidated),
     }
@@ -360,6 +366,7 @@ def _run_manifest(
     positions_report: pd.DataFrame,
 ) -> Dict[str, Any]:
     idx = result.equity.index
+    status_counts = _order_status_counts(orders_report)
     return {
         "strategy_id": strategy_id,
         "run_id": run_id,
@@ -374,6 +381,8 @@ def _run_manifest(
         "bar_count": int(len(idx)),
         "signal_count": metadata.get("signal_count"),
         "signal_changes": metadata.get("signal_changes"),
+        "input_mode": metadata.get("input_mode"),
+        "order_count_input": _safe_int(metadata.get("order_count_input")),
         "initial_capital": float(result.initial_capital),
         "leverage": float(result.leverage),
         "alloc_per_trade": metadata.get("trade_notional", metadata.get("alloc_per_trade")),
@@ -383,6 +392,8 @@ def _run_manifest(
         "orders_count": int(metadata.get("orders_count", len(orders_report)) or 0),
         "fills_count": int(metadata.get("fills_count", len(fills_report)) or 0),
         "positions_count": int(metadata.get("positions_count", len(positions_report)) or 0),
+        "cancelled_count": status_counts["cancelled"],
+        "rejected_count": status_counts["rejected"],
         "account_report_rows": int(len(account_report)),
         "account_final_equity": _safe_float(metadata.get("account_final_equity")),
         "reconstructed_final_equity": _safe_float(metadata.get("reconstructed_final_equity")),
@@ -482,6 +493,25 @@ def _report_frame(value: Any) -> pd.DataFrame:
         return pd.DataFrame(value).copy()
     except Exception:
         return pd.DataFrame()
+
+
+def _order_status_counts(orders_report: pd.DataFrame) -> Dict[str, int]:
+    if orders_report.empty or "status" not in orders_report:
+        return {"cancelled": 0, "rejected": 0}
+    status = orders_report["status"].astype(str).str.upper()
+    return {
+        "cancelled": int(status.isin({"CANCELED", "CANCELLED"}).sum()),
+        "rejected": int(status.eq("REJECTED").sum()),
+    }
+
+
+def _safe_int(value: Any) -> Optional[int]:
+    try:
+        if value is None or pd.isna(value):
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _write_frame(frame: pd.DataFrame, path: Path) -> None:

@@ -5,6 +5,13 @@ from .types        import BacktestResult
 from .results      import BacktestResultV2
 from .orders       import BasketIntent, Fill, OrderIntent, Trade
 from .basket       import FrozenBasketPlan, build_frozen_basket_orders
+from .structured_orders import (
+    BracketOrderSpec,
+    DcaGridSpec,
+    StructuredOrderPlan,
+    build_bracket_order_plan,
+    build_dca_grid_order_plan,
+)
 from .arbitrage    import (
     ArbExecutionPolicy,
     ArbitrageLeg,
@@ -78,6 +85,7 @@ __all__ = [
     "_engine_portfolio",
     "BacktestResult",
     "BacktestResultV2",
+    "BracketOrderSpec",
     "AccountConfig",
     "ArbExecutionPolicy",
     "ArbitrageLeg",
@@ -97,6 +105,7 @@ __all__ = [
     "CostModel",
     "CostModelKind",
     "CrossExchangeArbSpec",
+    "DcaGridSpec",
     "ExecutionConfig",
     "FeeModel",
     "Fill",
@@ -130,10 +139,13 @@ __all__ = [
     "SpreadFormula",
     "SpreadFormulaKind",
     "StatArbPairSpec",
+    "StructuredOrderPlan",
     "TimeInForce",
     "Trade",
     "TriangularArbSpec",
     "build_arbitrage_order_plan",
+    "build_bracket_order_plan",
+    "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
     "validate_datetime",
