@@ -121,6 +121,10 @@ It can also replay explicit single-symbol `OrderIntent` orders through
 stop-market, and stop-limit order factory routes where Nautilus supports the
 instrument/order combination.
 
+For validation work, `build_native_nautilus_parity_report(native, nautilus)`
+creates an audit table comparing requested order quantities, fill prices, fees,
+positions, equity, and diffs between native event replay and Nautilus replay.
+
 Supported Binance perpetual validation instruments:
 
 `BTCUSDT-PERP.BINANCE`, `ETHUSDT-PERP.BINANCE`, `BNBUSDT-PERP.BINANCE`,
@@ -328,6 +332,7 @@ Example console output:
 - [Walk-forward methodology](docs/walkforward_methodology_vi.md)
 - [DCA/grid ladder example](examples/dca_grid_ladder.py)
 - [Nautilus validation example](examples/nautilus_validation.py)
+- [Nautilus explicit order example](examples/nautilus_explicit_orders.py)
 
 ## Development
 

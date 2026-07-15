@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from quantbt import AccountConfig, BacktestEngineV2
+from quantbt import AccountConfig, BacktestEngineV2, BacktestResultV2, build_native_nautilus_parity_report
 from quantbt.adapters.nautilus import (
     NautilusBackendConfig,
     NautilusBacktestEngine,
@@ -16,7 +16,7 @@ from quantbt.adapters.nautilus import (
     timeframe_to_nautilus,
 )
 from quantbt.adapters.nautilus._dependency import require_nautilus
-from quantbt.core.orders import OrderIntent
+from quantbt.core.orders import Fill, OrderIntent
 from quantbt.core.schema import OrderSide, OrderType, TimeInForce
 
 
@@ -250,6 +250,147 @@ def test_nautilus_package_order_table_preserves_explicit_order_fields():
     assert table.loc[0, "order_id"] == "client-1"
     assert table.loc[0, "tag"] == "bracket-entry"
     assert table.loc[0, "arb_id"] == "ARB-1"
+
+
+def test_native_nautilus_parity_report_compares_fills_and_equity():
+    idx = pd.date_range("2024-01-01", periods=3, freq="1h", tz="UTC")
+    native = BacktestResultV2(
+        equity=pd.Series([10_000.0, 10_010.0, 10_020.0], index=idx),
+        returns=pd.Series([0.0, 0.001, 0.001], index=idx),
+        positions=pd.DataFrame({"Position_ETHUSDT-PERP.BINANCE": [0.0, 0.1, 0.1]}, index=idx),
+        closes=pd.DataFrame({"Close_ETHUSDT-PERP.BINANCE": [100.0, 101.0, 102.0]}, index=idx),
+        symbols=["ETHUSDT-PERP.BINANCE"],
+        initial_capital=10_000.0,
+        orders=[
+            OrderIntent(
+                timestamp=idx[1],
+                symbol="ETHUSDT-PERP.BINANCE",
+                side=OrderSide.BUY,
+                order_type=OrderType.MARKET,
+                qty=0.1,
+                tif=TimeInForce.IOC,
+            )
+        ],
+        fills=[
+            Fill(
+                timestamp=idx[1],
+                symbol="ETHUSDT-PERP.BINANCE",
+                side=OrderSide.BUY,
+                qty=0.1,
+                price=101.0,
+                fee=0.01,
+            )
+        ],
+    )
+    nautilus = BacktestResultV2(
+        equity=pd.Series([10_000.0, 10_009.5, 10_019.5], index=idx),
+        returns=pd.Series([0.0, 0.00095, 0.001], index=idx),
+        positions=pd.DataFrame({"Position_ETHUSDT-PERP.BINANCE": [0.0, 0.1, 0.1]}, index=idx),
+        closes=pd.DataFrame({"Close_ETHUSDT-PERP.BINANCE": [100.0, 101.0, 102.0]}, index=idx),
+        symbols=["ETHUSDT-PERP.BINANCE"],
+        initial_capital=10_000.0,
+        metadata={
+            "package_order_map": pd.DataFrame(
+                {
+                    "timestamp": [idx[1]],
+                    "symbol": ["ETHUSDT-PERP.BINANCE"],
+                    "instrument_id": ["ETHUSDT-PERP.BINANCE"],
+                    "side": ["buy"],
+                    "qty": [0.1],
+                    "price": [None],
+                }
+            ),
+            "orders_report": pd.DataFrame(
+                {
+                    "instrument_id": ["ETHUSDT-PERP.BINANCE"],
+                    "side": ["BUY"],
+                    "quantity": [0.1],
+                    "filled_qty": [0.1],
+                    "avg_px": [101.0],
+                    "commissions": ["0.012 USDT"],
+                    "status": ["FILLED"],
+                    "ts_last": [idx[1]],
+                }
+            ),
+        },
+    )
+
+    report = build_native_nautilus_parity_report(native, nautilus)
+
+    assert len(report) == 1
+    assert report.loc[0, "symbol"] == "ETHUSDT-PERP.BINANCE"
+    assert report.loc[0, "requested_qty"] == 0.1
+    assert report.loc[0, "native_fill_price"] == 101.0
+    assert report.loc[0, "nautilus_fill_price"] == 101.0
+    assert report.loc[0, "fill_price_diff"] == 0.0
+    assert report.loc[0, "native_fee"] == 0.01
+    assert report.loc[0, "nautilus_fee"] == 0.012
+    assert report.loc[0, "equity_diff"] == -0.5
+
+
+def test_native_vs_nautilus_explicit_market_replay_parity_smoke():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=8, freq="1h", tz="UTC")
+    close = pd.Series([100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0], index=idx)
+    df = pd.DataFrame(
+        {
+            "open": close,
+            "high": close + 1.0,
+            "low": close - 1.0,
+            "close": close,
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    orders = [
+        OrderIntent(
+            timestamp=idx[1],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            qty=0.1,
+            tif=TimeInForce.IOC,
+            tag="entry",
+        ),
+        OrderIntent(
+            timestamp=idx[5],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.SELL,
+            order_type=OrderType.MARKET,
+            qty=0.1,
+            tif=TimeInForce.IOC,
+            reduce_only=True,
+            tag="exit",
+        ),
+    ]
+
+    common = dict(data=df, orders=orders, symbols=["ETHUSDT-PERP.BINANCE"], account=AccountConfig(initial_capital=10_000.0), use_funding=False)
+    native = BacktestEngineV2(backend="native_event", fee_rate=0.0, **common).result
+    nautilus = BacktestEngineV2(
+        backend="nautilus",
+        nautilus_config=NautilusBackendConfig(
+            instrument_id="ETHUSDT-PERP.BINANCE",
+            timeframe="1h",
+            starting_balance=10_000.0,
+            bypass_risk=True,
+        ),
+        **common,
+    ).result
+
+    report = build_native_nautilus_parity_report(native, nautilus)
+
+    assert len(report) == 2
+    assert report["side"].str.lower().tolist() == ["buy", "sell"]
+    assert report["native_fill_price"].tolist() == [101.0, 105.0]
+    assert report["nautilus_fill_price"].tolist() == [101.0, 105.0]
+    assert report["fill_price_diff"].abs().max() == 0.0
+    assert nautilus.metadata["input_mode"] == "explicit_orders"
+    assert nautilus.metadata["orders_count"] == 2
+    assert nautilus.metadata["fills_count"] == 2
 
 
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():

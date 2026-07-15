@@ -78,6 +78,18 @@ Report bundle:
   crypto; override it for stocks/futures if needed.
 - `fill_log_mode` supports `fills_only`, `order_events`, and `bars_debug`; all
   modes are bounded by `fill_log_limit`.
+- Explicit-order runs add `input_mode`, `order_count_input`,
+  `cancelled_count`, and `rejected_count` to `run_manifest.json` and
+  `metrics_summary.json`.
+
+Parity audit:
+
+- `build_native_nautilus_parity_report(native_result, nautilus_result)` builds
+  an order/fill/equity comparison table for explicit-order runs.
+- The table includes requested quantity/price, fill price, fee, position after
+  fill, equity and diffs.
+- Use this report to make native-vs-Nautilus differences visible during
+  validation instead of relying only on final equity.
 
 Not yet in the Nautilus adapter:
 

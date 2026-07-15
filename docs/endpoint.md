@@ -508,6 +508,40 @@ route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
 reports. DCA/grid and multi-leg package generation remain separate higher-level
 adapters.
 
+Native-vs-Nautilus parity audit:
+
+```python
+from quantbt import QuantBTEndpoint, build_native_nautilus_parity_report
+
+native_bt = QuantBTEndpoint.orders(backend="native_event", initial_capital=100_000)
+nautilus_bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+    ),
+)
+
+native = native_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+nautilus = nautilus_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+
+parity = build_native_nautilus_parity_report(native, nautilus)
+```
+
+The parity table includes requested quantity/price, native and Nautilus fill
+prices, fees, positions, equity, and diffs. It is designed as an audit artifact;
+known intentional differences should be documented rather than hidden.
+
 ## Basket / Pair
 
 Use this for pair trades or frozen hedge-ratio baskets. The basket signal is a
