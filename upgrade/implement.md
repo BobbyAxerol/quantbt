@@ -471,7 +471,8 @@ Acceptance tests:
 Non-goals for 5.2:
 
 - Full DCA/grid Nautilus validation.
-- Full basket/multi-symbol Nautilus validation.
+- Full advanced basket/multi-symbol Nautilus validation with all-or-none
+  package semantics and portfolio-margin replication.
 - Full OCO/bracket engine.
 - Exchange-specific latency/queue-position modeling.
 - Replacing native event engine as the fast research path.
@@ -486,13 +487,22 @@ Current status:
     tables where Nautilus supports them.
 - Phase 5.2B implemented:
   - `build_native_nautilus_parity_report(...)`;
+  - `summarize_native_nautilus_parity_report(...)`;
   - explicit-order fields in report bundle manifest/summary;
   - example `examples/nautilus_explicit_orders.py`;
   - docs updated for endpoint and Nautilus backend usage.
+- Phase 5.2D implemented at experimental package-validation level:
+  - `QuantBTEndpoint.basket(backend="nautilus", ...)`;
+  - `QuantBTEndpoint.portfolio(backend="nautilus", ...)`;
+  - basket/pair signals compile to frozen multi-leg `OrderIntent` packages;
+  - portfolio position matrices compile to per-symbol market delta packages;
+  - package metadata exposes target units, input mode, order count and engine.
 - Tested:
   - native event explicit order route remains unchanged;
   - Nautilus explicit order route works for market and GTC limit replay;
   - native-vs-Nautilus market replay parity smoke;
+  - Nautilus basket package smoke;
+  - Nautilus portfolio matrix package smoke;
   - report bundle explicit-order manifest fields;
   - full internal tests excluding real-data scripts.
 

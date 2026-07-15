@@ -99,6 +99,8 @@ Current executable routes:
 | Explicit orders | supported | `QuantBTEndpoint.orders(backend="nautilus", ...)` | single-symbol `OrderIntent` replay |
 | Parity audit | supported | `build_native_nautilus_parity_report(...)` | native-vs-Nautilus order/fill/equity comparison |
 | Arbitrage packages | experimental | `QuantBTEndpoint.arbitrage(..., backend="nautilus")` | selected basis/stat-arb package validation |
+| Basket/pair packages | experimental | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
+| Multi-symbol portfolio packages | experimental | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
 
 Planned routes:
 
@@ -106,8 +108,6 @@ Planned routes:
 |---|---|---|
 | DCA/grid validation | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
 | Bracket/OCO | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
-| Basket/pair | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
-| Multi-symbol portfolio | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
 
 Anything marked `planned` should not be called by production notebooks yet.
 Those endpoint names are reserved so the public contract can be added without
@@ -573,10 +573,27 @@ The parity table includes requested quantity/price, native and Nautilus fill
 prices, fees, positions, equity, and diffs. It is designed as an audit artifact;
 known intentional differences should be documented rather than hidden.
 
+`summarize_native_nautilus_parity_report(parity)` returns a compact pass/fail
+summary with max absolute fill-price, fee, position, and equity differences.
+
 ## Basket / Pair
 
 Use this for pair trades or frozen hedge-ratio baskets. The basket signal is a
 scalar series; the engine expands it to per-leg orders using `BasketSpec`.
+
+Nautilus basket validation is available as an experimental package-order route:
+
+```python
+result = QuantBTEndpoint.basket(
+    basket=basket,
+    backend="nautilus",
+    initial_capital=100_000,
+).simulate(data=data_dict, signal=basket_signal)
+```
+
+The route compiles `BasketSpec` into explicit per-leg market `OrderIntent`
+packages, preserving `basket_id`, target units, and package metadata for audit.
+Native basket remains the faster research path.
 
 ```python
 from quantbt import BasketLegSpec, BasketSpec, QuantBTEndpoint
@@ -820,8 +837,29 @@ result = bt.backtest(
 
 Routing:
 
-- backend: `legacy_portfolio`;
+- backend: `legacy_portfolio` by default;
 - engine: `PortfolioBacktestEngine`.
+
+Experimental Nautilus portfolio validation:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    backend="nautilus",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTCUSDT-PERP.BINANCE": 50_000, "ETHUSDT-PERP.BINANCE": 50_000},
+    initial_capital=1_000_000,
+).simulate(
+    positions=positions_df,
+    data=data_dict,
+    symbols=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+)
+```
+
+This route compiles position-matrix transitions into per-symbol market delta
+orders and replays them in one Nautilus venue/account. Phase 5.2D supports
+pre-scalable modes (`signal_notional`, `notional`, `unit`). `%_equity` and
+`dca_ladder` portfolio validation should stay on native/legacy routes until
+their account-dependent package compiler is implemented.
 
 ## Nautilus Validation
 

@@ -186,6 +186,67 @@ def test_endpoint_basket_simulation():
     assert "basket_target_units" in result.metadata
 
 
+def test_endpoint_basket_can_route_to_nautilus_package_orders(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_order_packages(self, data, orders, symbols, params=None):
+            captured["data"] = data
+            captured["orders"] = tuple(orders)
+            captured["symbols"] = list(symbols)
+            captured["params"] = dict(params or {})
+            idx = next(iter(data.values())).index
+            return BacktestResultV2(
+                equity=pd.Series(10_000.0, index=idx),
+                returns=pd.Series(0.0, index=idx),
+                positions=pd.DataFrame({f"Position_{symbol}": 0.0 for symbol in symbols}, index=idx),
+                closes=pd.DataFrame({f"Close_{symbol}": data[symbol]["close"] for symbol in symbols}, index=idx),
+                symbols=list(symbols),
+                initial_capital=10_000.0,
+                metadata={"backend": "nautilus", "engine": "nautilus_package_orders", **captured["params"]},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    btc = "BTCUSDT-PERP.BINANCE"
+    eth = "ETHUSDT-PERP.BINANCE"
+    signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=df.index)
+    data = {btc: df, eth: df.assign(close=df["close"] * 2.0)}
+    basket = BasketSpec(
+        basket_id="PAIR-NAUTILUS",
+        legs=(BasketLegSpec(symbol=btc, ratio=1.0), BasketLegSpec(symbol=eth, ratio=-0.5)),
+        gross_notional=1_000.0,
+    )
+
+    endpoint = QuantBTEndpoint.basket(
+        basket=basket,
+        backend="nautilus",
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(instrument_id=btc, timeframe="1d"),
+    )
+    result = endpoint.simulate(data=data, signal=signal)
+
+    assert captured["config"].starting_balance == 10_000.0
+    assert captured["config"].sizing_mode == "notional"
+    assert captured["symbols"] == [btc, eth]
+    assert len(captured["orders"]) == 4
+    assert captured["orders"][0].symbol == btc
+    assert captured["orders"][1].symbol == eth
+    assert captured["params"]["input_mode"] == "basket_package"
+    assert captured["params"]["basket_id"] == "PAIR-NAUTILUS"
+    assert captured["params"]["order_count_input"] == 4
+    assert "basket_target_units" in result.metadata
+    assert result.metadata["engine"] == "nautilus_basket_package"
+
+
 def test_endpoint_portfolio_accepts_positions_dataframe_and_data_dict():
     df = _bars()
     positions = pd.DataFrame(
@@ -208,6 +269,67 @@ def test_endpoint_portfolio_accepts_positions_dataframe_and_data_dict():
 
     assert result.metadata["backend"] == "legacy_portfolio"
     assert "Position_BTC" in result.positions.columns
+
+
+def test_endpoint_portfolio_can_route_to_nautilus_package_orders(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_order_packages(self, data, orders, symbols, params=None):
+            captured["data"] = data
+            captured["orders"] = tuple(orders)
+            captured["symbols"] = list(symbols)
+            captured["params"] = dict(params or {})
+            idx = next(iter(data.values())).index
+            return BacktestResultV2(
+                equity=pd.Series(10_000.0, index=idx),
+                returns=pd.Series(0.0, index=idx),
+                positions=pd.DataFrame({f"Position_{symbol}": 0.0 for symbol in symbols}, index=idx),
+                closes=pd.DataFrame({f"Close_{symbol}": data[symbol]["close"] for symbol in symbols}, index=idx),
+                symbols=list(symbols),
+                initial_capital=10_000.0,
+                metadata={"backend": "nautilus", "engine": "nautilus_package_orders", **captured["params"]},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    btc = "BTCUSDT-PERP.BINANCE"
+    eth = "ETHUSDT-PERP.BINANCE"
+    data = {btc: df, eth: df.assign(close=df["close"] * 2.0)}
+    positions = pd.DataFrame(
+        {
+            btc: [0.0, 1.0, 1.0, 0.0, 0.0],
+            eth: [0.0, -1.0, -1.0, 0.0, 0.0],
+        },
+        index=df.index,
+    )
+
+    endpoint = QuantBTEndpoint.portfolio(
+        backend="nautilus",
+        initial_capital=10_000.0,
+        use_funding=False,
+        hedge_type="signal_notional",
+        alloc_per_trade={btc: 1_000.0, eth: 500.0},
+        nautilus_config=NautilusBackendConfig(instrument_id=btc, timeframe="1d"),
+    )
+    result = endpoint.simulate(data=data, positions=positions, symbols=[btc, eth])
+
+    assert captured["config"].starting_balance == 10_000.0
+    assert captured["symbols"] == [btc, eth]
+    assert len(captured["orders"]) == 4
+    assert captured["orders"][0].symbol == btc
+    assert captured["orders"][1].symbol == eth
+    assert captured["params"]["input_mode"] == "portfolio_matrix"
+    assert captured["params"]["order_count_input"] == 4
+    assert "portfolio_target_units" in result.metadata
+    assert result.metadata["engine"] == "nautilus_portfolio_matrix"
 
 
 def test_endpoint_dca_ladder_requires_high_low_and_runs():
@@ -337,8 +459,8 @@ def test_endpoint_nautilus_support_matrix_declares_supported_and_planned_routes(
     assert matrix["parity_audit"]["status"] == "supported"
     assert matrix["dca_grid"]["status"] == "planned"
     assert matrix["bracket_oco"]["status"] == "planned"
-    assert matrix["basket_pair"]["status"] == "planned"
-    assert matrix["multi_symbol_portfolio"]["status"] == "planned"
+    assert matrix["basket_pair"]["status"] == "experimental"
+    assert matrix["multi_symbol_portfolio"]["status"] == "experimental"
     assert matrix["arbitrage_package_orders"]["status"] == "experimental"
 
 

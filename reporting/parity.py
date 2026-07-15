@@ -35,6 +35,43 @@ PARITY_COLUMNS = [
 ]
 
 
+def summarize_native_nautilus_parity_report(
+    parity_report: pd.DataFrame,
+    fill_price_tolerance: float = 1e-9,
+    fee_tolerance: float = 1e-9,
+    position_tolerance: float = 1e-9,
+    equity_tolerance: float = 1e-6,
+) -> Dict[str, Any]:
+    """Return compact institutional audit diagnostics for a parity table."""
+    frame = parity_report.copy()
+    summary = {
+        "rows": int(len(frame)),
+        "native_filled_rows": int(frame["native_fill_price"].notna().sum()) if "native_fill_price" in frame else 0,
+        "nautilus_filled_rows": int(frame["nautilus_fill_price"].notna().sum()) if "nautilus_fill_price" in frame else 0,
+        "max_abs_fill_price_diff": _max_abs(frame, "fill_price_diff"),
+        "max_abs_fee_diff": _max_abs(frame, "fee_diff"),
+        "max_abs_position_diff": _max_abs(frame, "position_diff"),
+        "max_abs_equity_diff": _max_abs(frame, "equity_diff"),
+        "fill_price_tolerance": float(fill_price_tolerance),
+        "fee_tolerance": float(fee_tolerance),
+        "position_tolerance": float(position_tolerance),
+        "equity_tolerance": float(equity_tolerance),
+    }
+    summary["passed"] = bool(
+        summary["max_abs_fill_price_diff"] <= fill_price_tolerance
+        and summary["max_abs_fee_diff"] <= fee_tolerance
+        and summary["max_abs_position_diff"] <= position_tolerance
+        and summary["max_abs_equity_diff"] <= equity_tolerance
+    )
+    if summary["passed"]:
+        summary["status"] = "pass"
+    elif summary["max_abs_fill_price_diff"] > fill_price_tolerance or summary["max_abs_position_diff"] > position_tolerance:
+        summary["status"] = "execution_diff"
+    else:
+        summary["status"] = "accounting_diff"
+    return summary
+
+
 def build_native_nautilus_parity_report(
     native_result: BacktestResultV2,
     nautilus_result: BacktestResultV2,
@@ -203,6 +240,13 @@ def _report_frame(value: Any) -> pd.DataFrame:
         return pd.DataFrame(value).copy()
     except Exception:
         return pd.DataFrame()
+
+
+def _max_abs(frame: pd.DataFrame, column: str) -> float:
+    if column not in frame:
+        return 0.0
+    series = pd.to_numeric(frame[column], errors="coerce").abs().dropna()
+    return float(series.max()) if not series.empty else 0.0
 
 
 def _timestamp_column(frame: pd.DataFrame) -> pd.Series:
