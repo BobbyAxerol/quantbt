@@ -100,6 +100,9 @@ Parity audit:
   pass/fail diagnostics for stakeholder review.
 - `build_nautilus_depth_parity_summary(result)` summarizes optional preflight
   depth diagnostics versus the submitted Nautilus package counts.
+- `build_nautilus_depth_execution_report(result)` returns row-level depth
+  fill-price / quantity versus Nautilus fill-price / quantity comparison for
+  package workflows.
 - The table includes requested quantity/price, fill price, fee, position after
   fill, equity and diffs.
 - Use this report to make native-vs-Nautilus differences visible during

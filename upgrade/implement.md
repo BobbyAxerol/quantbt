@@ -789,9 +789,18 @@ Status:
   - structured DCA all-or-none reject before Nautilus;
   - bracket/OCO preflight filtering and sibling cancellation before Nautilus;
   - basket package all-or-none metadata annotation and depth reports.
+- Added debt-domain validation tests for:
+  - DCA/grid lifecycle state: base fill, safety fill, untouched safety reject,
+    reduce-only TP cap to filled ladder quantity, OCO SL cancellation;
+  - queue/depth behavior: explicit `depth_model="ohlcv_volume_cap"` and
+    volume participation minus queue-ahead sizing;
+  - package fill-price / quantity parity artifact pass and intentional failure.
+- Added `build_nautilus_depth_execution_report(result)` for row-level
+  depth-preflight vs Nautilus package fill-price/quantity comparison.
 - Validation:
   - `test_phase5_4_endpoint_depth.py` and `test_phase5_4_nautilus_depth.py`
     pass;
+  - `test_phase5_4_debt_domain_validation.py` passes;
   - endpoint/Nautilus targeted regression passes;
   - full internal tests pass excluding real-data scripts;
   - `test_real.py` and `test_real_endpoints.py` execute successfully as
@@ -802,10 +811,11 @@ Remaining debt:
 - Dynamic DCA/grid is still preflight-mediated, not a full Nautilus in-strategy
   state machine with progressive order activation.
 - Queue/latency/depth is deterministic OHLCV-level approximation, not true L2
-  order-book simulation.
-- Portfolio/arbitrage package parity is currently count/status-oriented;
-  deeper fill-price/equity diff artifacts need real package runs and saved
-  stakeholder bundles.
+  order-book simulation. This is now explicitly visible as
+  `depth_model="ohlcv_volume_cap"` in metadata and covered by tests.
+- Portfolio/arbitrage package parity now has row-level fill-price/quantity
+  artifacts, but real package runs and saved stakeholder bundles are still
+  required before calling it production-certified.
 
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
