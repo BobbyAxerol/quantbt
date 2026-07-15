@@ -170,6 +170,7 @@ from .viz import quick_plot, tearsheet, apply_theme
 from .reporting import (
     build_arbitrage_domain_audit,
     build_native_nautilus_parity_report,
+    build_nautilus_depth_execution_report,
     build_nautilus_depth_parity_summary,
     build_portfolio_domain_audit,
     compare_native_arbitrage_results,
@@ -199,6 +200,7 @@ __all__ = [
     "format_metrics_report",
     "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
+    "build_nautilus_depth_execution_report",
     "build_nautilus_depth_parity_summary",
     "build_portfolio_domain_audit",
     "compare_native_arbitrage_results",

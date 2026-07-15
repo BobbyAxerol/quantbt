@@ -33,6 +33,7 @@ class NautilusExecutionDepthConfig:
     max_participation_rate: Optional[float] = None
     queue_ahead_qty: float = 0.0
     latency_bars: int = 0
+    depth_model: str = "ohlcv_volume_cap"
     activate_oco_after_entry_fill: bool = True
     cancel_oco_sibling_on_first_exit_fill: bool = True
     cap_reduce_only_to_position: bool = True
@@ -147,6 +148,7 @@ def simulate_nautilus_order_package_depth(
         "latency_bars": int(cfg.latency_bars),
         "allow_partial_fills": bool(cfg.allow_partial_fills),
         "all_or_none_packages": bool(cfg.all_or_none_packages),
+        "depth_model": str(cfg.depth_model),
         **cfg.metadata,
     }
     return PackageDepthPreflightResult(
