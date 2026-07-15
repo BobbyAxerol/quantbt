@@ -57,6 +57,25 @@ rule is simple: keep hot loops near C/C++-style runtime with Numba first, profil
 before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
 fixed safely in the Python/Numba stack.
 
+Latest Phase 7 standard benchmark on this workspace:
+
+| Route | Workload | Runtime | Throughput | Peak Memory | Threshold |
+|---|---:|---:|---:|---:|---|
+| `native_vectorized` | 25,000 bars x 20 symbols | 3.874s | 129,050 bar-symbols/s | 180.85 MB | needs profiling |
+| `native_event` | 25,000 explicit orders | 5.039s | 4,962 orders/s | 133.99 MB | needs profiling |
+| `portfolio_legacy` | 25,000 bars x 20 symbols | 1.183s | 422,499 bar-symbols/s | 206.54 MB | pass |
+| `nautilus` | optional validation route | skipped | - | - | run with `--include-nautilus` |
+
+Ecosystem positioning:
+
+| Tool | Core strength | Runtime model | QuantBT role beside it |
+|---|---|---|---|
+| QuantBT | transparent research, WFO, portfolio, arbitrage, validation endpoints | Python API with NumPy/Numba hot paths | primary alpha research and auditable simulation layer |
+| LEAN / QuantConnect | large institutional C# platform and live/research ecosystem | C# engine | external benchmark for platform breadth, but heavier adapter work for custom notebooks |
+| NautilusTrader | high-fidelity event-driven execution and accounting | Rust-backed trading stack | optional third-party trustee for execution/account validation |
+| vectorbt | very fast vectorized research | NumPy/Numba vectorization | closest research-speed peer; QuantBT adds domain-specific accounting and validation routes |
+| Backtrader | classic Python event-driven strategy simulation | Python event loop | useful reference style; QuantBT focuses on faster vectorized/event hybrid workflows |
+
 ## Engine Stack
 
 | Layer | Backend | Best use case |
