@@ -420,6 +420,7 @@ orders = [
 ]
 
 bt = QuantBTEndpoint.orders(
+    backend="native_event",
     initial_capital=100_000,
     leverage=5,
     fee_rate=0.0002,
@@ -463,8 +464,49 @@ Execution rules:
 
 Routing:
 
-- backend: `native_event`;
+- backend: `native_event` by default;
 - engine: `BacktestEngineV2`.
+
+Optional Nautilus explicit-order replay:
+
+```python
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(
+    data=df,
+    orders=[
+        OrderIntent(
+            timestamp=df.index[10],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.BUY,
+            order_type=OrderType.LIMIT,
+            qty=0.5,
+            price=1800.0,
+            tif=TimeInForce.GTC,
+            tag="entry-limit",
+        )
+    ],
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+```
+
+Phase 5.2A Nautilus order replay supports single-symbol market, limit,
+stop-market, and stop-limit order factory mapping when Nautilus exposes the
+route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
+reports. DCA/grid and multi-leg package generation remain separate higher-level
+adapters.
 
 ## Basket / Pair
 

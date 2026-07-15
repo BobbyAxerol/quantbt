@@ -187,8 +187,6 @@ class NautilusBacktestEngine:
             raise ValueError(f"missing Nautilus data for symbols: {missing}")
 
         frames = {symbol: ensure_utc_ohlcv(data[symbol]) for symbol in symbol_list}
-        package_order_map = build_nautilus_package_order_table(orders)
-
         engine = nt.BacktestEngine(
             config=nt.BacktestEngineConfig(
                 trader_id=nt.TraderId(self.config.trader_id),
@@ -201,6 +199,8 @@ class NautilusBacktestEngine:
         )
 
         instruments = {symbol: make_binance_perpetual(symbol, nt) for symbol in symbol_list}
+        instrument_ids = {symbol: str(instrument.id) for symbol, instrument in instruments.items()}
+        package_order_map = build_nautilus_package_order_table(orders, instrument_ids=instrument_ids)
         engine.add_venue(
             venue=nt.BINANCE_VENUE,
             oms_type=nt.OmsType.NETTING,
@@ -228,7 +228,7 @@ class NautilusBacktestEngine:
                 strategy_id=self.config.strategy_id,
                 instrument_ids=[str(instruments[symbol].id) for symbol in symbol_list],
                 bar_types=bar_types,
-                package_orders=_orders_payload(orders),
+                package_orders=_orders_payload(orders, instrument_ids=instrument_ids),
                 close_positions_on_stop=self.config.close_positions_on_stop,
             )
         )
@@ -256,8 +256,13 @@ class NautilusBacktestEngine:
                 metadata={
                     "backend": "nautilus",
                     "engine": "nautilus_package_orders",
+                    "input_mode": "order_packages",
+                    "instrument_id": instrument_symbols[0] if len(instrument_symbols) == 1 else None,
                     "instrument_ids": instrument_symbols,
                     "bar_types": bar_types,
+                    "sizing_mode": self.config.sizing_mode,
+                    "trade_notional": self.config.trade_notional,
+                    "use_pyramiding": self.config.use_pyramiding,
                     "package_order_map": package_order_map,
                     "package_orders_count": int(len(package_order_map)),
                     "close_positions_on_stop": self.config.close_positions_on_stop,
@@ -438,14 +443,51 @@ class NautilusBacktestEngine:
                     if instrument is None:
                         continue
                     side = nt.OrderSide.BUY if item["side"] == "buy" else nt.OrderSide.SELL
-                    order = self.order_factory.market(
-                        instrument_id=instrument_id,
-                        order_side=side,
-                        quantity=instrument.make_qty(Decimal(str(item["qty"]))),
-                        time_in_force=nt.TimeInForce.IOC,
-                    )
+                    order = self._make_order(item, instrument_id, instrument, side)
                     self.submit_order(order)
                 self.submitted_timestamps.add(ts_event)
+
+            def _make_order(self, item, instrument_id, instrument, side):
+                quantity = instrument.make_qty(Decimal(str(item["qty"])))
+                tif = self._time_in_force(item.get("tif", "gtc"))
+                order_type = str(item.get("order_type", "market")).lower().strip()
+                kwargs = {
+                    "instrument_id": instrument_id,
+                    "order_side": side,
+                    "quantity": quantity,
+                    "time_in_force": tif,
+                    "reduce_only": bool(item.get("reduce_only", False)),
+                    "tags": [item["tag"]] if item.get("tag") else None,
+                }
+                if order_type == "market":
+                    return self.order_factory.market(**kwargs)
+                if order_type == "limit":
+                    return self.order_factory.limit(
+                        price=instrument.make_price(Decimal(str(item["price"]))),
+                        **kwargs,
+                    )
+                if order_type == "stop_market":
+                    return self.order_factory.stop_market(
+                        trigger_price=instrument.make_price(Decimal(str(item["trigger_price"]))),
+                        **kwargs,
+                    )
+                if order_type == "stop_limit":
+                    return self.order_factory.stop_limit(
+                        price=instrument.make_price(Decimal(str(item["price"]))),
+                        trigger_price=instrument.make_price(Decimal(str(item["trigger_price"]))),
+                        **kwargs,
+                    )
+                raise NotImplementedError(f"unsupported Nautilus explicit order_type={order_type!r}")
+
+            @staticmethod
+            def _time_in_force(value):
+                key = str(value).upper().strip()
+                if key in {"GOOD_TIL_CANCEL", "GOOD_TILL_CANCEL"}:
+                    key = "GTC"
+                try:
+                    return getattr(nt.TimeInForce, key)
+                except AttributeError as exc:
+                    raise NotImplementedError(f"unsupported Nautilus time_in_force={value!r}") from exc
 
             def on_stop(self):
                 for instrument_id in self.instrument_ids:
@@ -456,7 +498,10 @@ class NautilusBacktestEngine:
         return QuantBTPackageStrategy, QuantBTPackageConfig
 
 
-def build_nautilus_package_order_table(orders: Sequence[OrderIntent]) -> pd.DataFrame:
+def build_nautilus_package_order_table(
+    orders: Sequence[OrderIntent],
+    instrument_ids: Optional[Dict[str, str]] = None,
+) -> pd.DataFrame:
     rows = []
     for idx, order in enumerate(orders):
         timestamp = pd.Timestamp(order.timestamp)
@@ -464,15 +509,21 @@ def build_nautilus_package_order_table(orders: Sequence[OrderIntent]) -> pd.Data
             timestamp = timestamp.tz_localize("UTC")
         else:
             timestamp = timestamp.tz_convert("UTC")
+        instrument_id = (instrument_ids or {}).get(order.symbol, order.symbol)
         rows.append(
             {
                 "package_order_index": idx,
                 "timestamp": timestamp,
-                "instrument_id": order.symbol,
+                "symbol": order.symbol,
+                "instrument_id": instrument_id,
                 "side": order.side.value if isinstance(order.side, OrderSide) else str(order.side),
                 "qty": float(order.qty),
                 "order_type": getattr(order.order_type, "value", str(order.order_type)),
+                "price": order.price,
+                "trigger_price": order.trigger_price,
                 "tif": getattr(order.tif, "value", str(order.tif)),
+                "reduce_only": bool(order.reduce_only),
+                "order_id": order.order_id,
                 "tag": order.tag,
                 "arb_id": order.metadata.get("arb_id"),
                 "arb_type": order.metadata.get("arb_type"),
@@ -484,7 +535,10 @@ def build_nautilus_package_order_table(orders: Sequence[OrderIntent]) -> pd.Data
     return pd.DataFrame(rows)
 
 
-def _orders_payload(orders: Sequence[OrderIntent]) -> Dict[int, List[Dict]]:
+def _orders_payload(
+    orders: Sequence[OrderIntent],
+    instrument_ids: Optional[Dict[str, str]] = None,
+) -> Dict[int, List[Dict]]:
     payload: Dict[int, List[Dict]] = {}
     for order in orders:
         timestamp = pd.Timestamp(order.timestamp)
@@ -494,9 +548,16 @@ def _orders_payload(orders: Sequence[OrderIntent]) -> Dict[int, List[Dict]]:
             timestamp = timestamp.tz_convert("UTC")
         side = order.side.value if isinstance(order.side, OrderSide) else str(order.side)
         item = {
-            "instrument_id": order.symbol,
+            "symbol": order.symbol,
+            "instrument_id": (instrument_ids or {}).get(order.symbol, order.symbol),
             "side": side,
             "qty": float(order.qty),
+            "order_type": getattr(order.order_type, "value", str(order.order_type)),
+            "price": order.price,
+            "trigger_price": order.trigger_price,
+            "tif": getattr(order.tif, "value", str(order.tif)),
+            "reduce_only": bool(order.reduce_only),
+            "order_id": order.order_id,
             "tag": order.tag,
         }
         payload.setdefault(int(timestamp.value), []).append(item)
