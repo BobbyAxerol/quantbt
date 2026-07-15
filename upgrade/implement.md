@@ -519,6 +519,30 @@ Current status:
   - report bundle explicit-order manifest fields;
   - full internal tests excluding real-data scripts.
 
+Future directions / do not treat as completed:
+
+- Nautilus adapter depth:
+  - dynamic in-Nautilus DCA/grid state management;
+  - exchange-native OCO/bracket order-list semantics beyond current
+    package-strategy sibling cancellation;
+  - exchange queue priority, latency, partial-fill and order-book simulation;
+  - all-or-none basket package semantics;
+  - deeper portfolio-margin replication beyond diagnostics.
+- Arbitrage and portfolio engine depth:
+  - continue native ArbitrageBacktestEngine validation and Nautilus adapter
+    compatibility;
+  - expand multi-leg package testing on realistic basis/stat-arb/basket data;
+  - promote experimental basket/portfolio Nautilus package routes only after
+    real-strategy parity audits.
+
+Branch note:
+
+- `feat/nautilus-explicit-orders` should stay unmerged until manual notebook
+  validation is complete.
+- New unrelated upgrades, especially WalkForwardEngine work, should branch from
+  `dev` rather than from this feature branch unless the upgrade explicitly
+  depends on the Nautilus structured-order changes.
+
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
 Purpose:
