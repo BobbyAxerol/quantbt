@@ -626,6 +626,11 @@ Implemented:
   - `equal_weight` active-notional equalization;
   - margin-gate rejection visibility;
   - intentional corrupted PnL report failure.
+- Added an executable institutional simulation matrix for:
+  - multi-symbol portfolio accounting and exposure audit;
+  - native explicit limit/market order fill prices and flattening;
+  - Nautilus bracket/OCO package fill plus sibling cancellation;
+  - basis arbitrage native event vs native vectorized parity and audit.
 - Vectorized the heaviest diagnostics assembly paths:
   - per-symbol PnL report construction avoids per-bar Python row appends;
   - rebalance mismatch report uses masked stack extraction.
@@ -635,6 +640,7 @@ Implemented:
 Validation:
 
 - `quantbt/tests/test_phase5_3_portfolio_audit.py` passes.
+- `quantbt/tests/test_phase5_3_institutional_simulations.py` passes.
 - Full internal test suite passes excluding real-data scripts.
 - Real scripts `test_real.py` and `test_real_endpoints.py` execute successfully
   as scripts; they do not expose pytest test functions.
