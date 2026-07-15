@@ -320,6 +320,32 @@ class MultiSymbolPortfolio:
         self._pnl_per_sym    = {
             s: pd.Series(sym_arr[:, j], index=idx) for j, s in enumerate(self.symbols)
         }
+        target_units_report = pd.DataFrame(
+            {s: target_m[:, j] for j, s in enumerate(self.symbols)}, index=idx
+        )
+        accepted_units_report = pd.DataFrame(
+            {s: pos_arr[:, j] for j, s in enumerate(self.symbols)}, index=idx
+        )
+        close_report = pd.DataFrame(
+            {s: closes_m[:, j] for j, s in enumerate(self.symbols)}, index=idx
+        )
+        symbol_pnl_report = self._build_symbol_pnl_report(
+            accepted_units=accepted_units_report,
+            closes=close_report,
+            funding_rates=pd.DataFrame({s: funding_m[:, j] for j, s in enumerate(self.symbols)}, index=idx),
+            is_funding_bar=pd.Series(is_fund, index=idx),
+        )
+        exposure_report = self._build_exposure_report(
+            accepted_units=accepted_units_report,
+            target_units=target_units_report,
+            closes=close_report,
+            equity=equity_s,
+        )
+        rebalance_report = self._build_rebalance_report(
+            target_units=target_units_report,
+            accepted_units=accepted_units_report,
+            closes=close_report,
+        )
 
         self._result = BacktestResult(
             equity          = equity_s,
@@ -338,9 +364,145 @@ class MultiSymbolPortfolio:
                 "engine":               "numba_portfolio",
                 "initial_buying_power": self.initial_capital * float(np.mean(list(self.lev.values()))),
                 "funding_rate_unit":    "per_event",
+                "target_units_report":  target_units_report,
+                "accepted_units_report": accepted_units_report,
+                "target_notional_report": target_units_report.mul(close_report, axis=0).mul(pd.Series(self.cs), axis=1),
+                "accepted_notional_report": accepted_units_report.mul(close_report, axis=0).mul(pd.Series(self.cs), axis=1),
+                "exposure_report":      exposure_report,
+                "symbol_pnl_report":    symbol_pnl_report,
+                "rebalance_report":     rebalance_report,
+                "fee_series":           pd.Series(fee_arr, index=idx, name="fee"),
+                "turnover_series":      pd.Series(turn_arr, index=idx, name="turnover"),
+                "fee_total":            float(np.sum(fee_arr)),
+                "turnover_total":       float(np.sum(turn_arr)),
             },
         )
         return self._result
+
+    def _build_symbol_pnl_report(
+        self,
+        accepted_units: pd.DataFrame,
+        closes: pd.DataFrame,
+        funding_rates: pd.DataFrame,
+        is_funding_bar: pd.Series,
+    ) -> pd.DataFrame:
+        frames = []
+        funding_mask = is_funding_bar.astype(bool) & bool(self.use_funding)
+        for s in self.symbols:
+            units = accepted_units[s].astype(float)
+            close = closes[s].astype(float)
+            prev_units = units.shift(1).fillna(0.0)
+            prev_close = close.shift(1).fillna(close)
+            delta = units.diff().fillna(units)
+            cs = float(self.cs[s])
+            mark_pnl = prev_units * (close - prev_close) * cs
+            funding_cost = prev_units * close * cs * funding_rates[s].astype(float)
+            funding_cost = funding_cost.where(funding_mask, 0.0)
+            fee = delta.abs() * close * cs * float(self.fee_rate)
+            total_pnl = mark_pnl - funding_cost - fee
+            frame = pd.DataFrame(
+                {
+                    "timestamp": self._idx,
+                    "symbol": s,
+                    "position_units": units.to_numpy(dtype=float),
+                    "close": close.to_numpy(dtype=float),
+                    "mark_pnl": mark_pnl.to_numpy(dtype=float),
+                    "funding_cost": funding_cost.to_numpy(dtype=float),
+                    "funding_pnl": (-funding_cost).to_numpy(dtype=float),
+                    "fee": fee.to_numpy(dtype=float),
+                    "fee_pnl": (-fee).to_numpy(dtype=float),
+                    "total_pnl": total_pnl.to_numpy(dtype=float),
+                }
+            )
+            frames.append(frame)
+        if not frames:
+            return pd.DataFrame(
+                columns=[
+                    "timestamp",
+                    "symbol",
+                    "position_units",
+                    "close",
+                    "mark_pnl",
+                    "funding_cost",
+                    "funding_pnl",
+                    "fee",
+                    "fee_pnl",
+                    "total_pnl",
+                ]
+            )
+        return pd.concat(frames, ignore_index=True, copy=False)
+
+    def _build_exposure_report(
+        self,
+        accepted_units: pd.DataFrame,
+        target_units: pd.DataFrame,
+        closes: pd.DataFrame,
+        equity: pd.Series,
+    ) -> pd.DataFrame:
+        cs = pd.Series({s: float(self.cs[s]) for s in self.symbols})
+        lev = pd.Series({s: float(self.lev[s]) for s in self.symbols})
+        accepted_notional = accepted_units.mul(closes, axis=0).mul(cs, axis=1)
+        target_notional = target_units.mul(closes, axis=0).mul(cs, axis=1)
+        abs_accepted = accepted_notional.abs()
+        initial_margin = abs_accepted.div(lev, axis=1).sum(axis=1)
+        maintenance_margin = abs_accepted.sum(axis=1) * float(self.maintenance_ratio)
+        out = pd.DataFrame(
+            {
+                "long_notional": accepted_notional.clip(lower=0.0).sum(axis=1),
+                "short_notional": accepted_notional.clip(upper=0.0).abs().sum(axis=1),
+                "gross_notional": abs_accepted.sum(axis=1),
+                "net_notional": accepted_notional.sum(axis=1),
+                "target_gross_notional": target_notional.abs().sum(axis=1),
+                "initial_margin": initial_margin,
+                "maintenance_margin": maintenance_margin,
+                "equity": equity,
+                "available_equity_after_im": equity - initial_margin,
+                "buying_power": equity * float(np.mean(list(self.lev.values()))),
+            },
+            index=self._idx,
+        )
+        out["gross_leverage"] = out["gross_notional"] / out["equity"].replace(0.0, np.nan)
+        out["net_exposure_pct"] = out["net_notional"] / out["equity"].replace(0.0, np.nan)
+        return out.fillna(0.0)
+
+    def _build_rebalance_report(
+        self,
+        target_units: pd.DataFrame,
+        accepted_units: pd.DataFrame,
+        closes: pd.DataFrame,
+    ) -> pd.DataFrame:
+        diff = target_units - accepted_units
+        cs = pd.Series({s: float(self.cs[s]) for s in self.symbols})
+        mask = diff.abs() > 1e-10
+        if not mask.to_numpy().any():
+            return pd.DataFrame(
+                columns=[
+                    "timestamp",
+                    "symbol",
+                    "target_units",
+                    "accepted_units",
+                    "unit_diff",
+                    "notional_diff",
+                    "reason",
+                ]
+            )
+        notional_diff = diff.mul(closes, axis=0).mul(cs, axis=1)
+        stacked = diff.where(mask).stack(future_stack=True).dropna()
+        index = stacked.index
+        target_stacked = target_units.stack(future_stack=True)
+        accepted_stacked = accepted_units.stack(future_stack=True)
+        notional_stacked = notional_diff.stack(future_stack=True)
+        return pd.DataFrame(
+            {
+                "timestamp": index.get_level_values(0),
+                "symbol": index.get_level_values(1),
+                "target_units": target_stacked.reindex(index).to_numpy(dtype=float),
+                "accepted_units": accepted_stacked.reindex(index).to_numpy(dtype=float),
+                "unit_diff": stacked.to_numpy(dtype=float),
+                "notional_diff": notional_stacked.reindex(index).to_numpy(dtype=float),
+                "reason": "margin_or_portfolio_gate",
+            }
+        )
 
     @property
     def result(self) -> BacktestResult:
