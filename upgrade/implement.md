@@ -602,6 +602,55 @@ Scope:
   - multi-symbol portfolio.
 - Promote support matrix statuses only after parity/audit evidence is present.
 
+Implemented:
+
+- Added portfolio-level diagnostic reports to `MultiSymbolPortfolio` metadata:
+  - target units;
+  - accepted units;
+  - target notional;
+  - accepted notional;
+  - exposure / margin usage;
+  - per-symbol mark/funding/fee PnL attribution;
+  - rebalance rejection / mismatch report;
+  - fee and turnover series / totals.
+- Added `build_portfolio_domain_audit(result)`:
+  - accepted-position PnL vs equity delta reconciliation;
+  - per-symbol fee vs portfolio fee-series reconciliation;
+  - accepted notional vs units × close × contract-size reconciliation;
+  - long/short/gross/net exposure identity checks;
+  - rebalance mismatch count and notional visibility.
+- Added domain tests for:
+  - `longshort` accounting reconciliation;
+  - `market_neutral` long/short notional balancing;
+  - `directional` dominant-leg selection;
+  - `equal_weight` active-notional equalization;
+  - margin-gate rejection visibility;
+  - intentional corrupted PnL report failure.
+- Vectorized the heaviest diagnostics assembly paths:
+  - per-symbol PnL report construction avoids per-bar Python row appends;
+  - rebalance mismatch report uses masked stack extraction.
+- Exported the portfolio audit helper through `quantbt.reporting` and the
+  public `quantbt` namespace.
+
+Validation:
+
+- `quantbt/tests/test_phase5_3_portfolio_audit.py` passes.
+- Full internal test suite passes excluding real-data scripts.
+- Real scripts `test_real.py` and `test_real_endpoints.py` execute successfully
+  as scripts; they do not expose pytest test functions.
+
+Remaining debt before promoting portfolio support beyond native research use:
+
+- Run real multi-symbol portfolio notebooks / service strategies and archive
+  audit bundles for representative basket, pair, and multi-symbol alpha cases.
+- Add Nautilus parity/audit for portfolio package replay once deeper
+  multi-symbol Nautilus validation is scheduled.
+- Add exchange-native portfolio-margin replication only if a venue-specific
+  production requirement appears; current logic remains transparent cross-margin
+  buying-power gating, not Binance portfolio-margin clone.
+- Add explicit liquidation attribution rows if liquidated portfolio audit needs
+  strict per-symbol reconciliation through the liquidation bar.
+
 Non-goals for 5.3:
 
 - Deep Nautilus queue/latency/order-book modeling.
