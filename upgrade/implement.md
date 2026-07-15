@@ -645,6 +645,24 @@ Validation:
 - Real scripts `test_real.py` and `test_real_endpoints.py` execute successfully
   as scripts; they do not expose pytest test functions.
 
+Current conclusion:
+
+- Phase 5.3 native portfolio / arbitrage audit layer is usable for controlled
+  research validation:
+  - mock multi-symbol portfolio, explicit order, Nautilus bracket/OCO, and
+    basis-arbitrage simulations now pass deterministic domain checks;
+  - native portfolio accounting exposes enough diagnostics to explain accepted
+    positions, rejected target deltas, fees, notional exposure, and margin usage;
+  - native arbitrage event/vectorized parity is covered by audit helpers and
+    mock package tests.
+- Do **not** mark this as final production certification for all strategy
+  families yet:
+  - real multi-symbol alpha notebooks still need archived audit bundles;
+  - Nautilus portfolio/arbitrage parity is still experimental for package
+    workflows;
+  - exchange queue, partial-fill, portfolio-margin, and order-book depth are
+    intentionally out of scope for 5.3.
+
 Remaining debt before promoting portfolio support beyond native research use:
 
 - Run real multi-symbol portfolio notebooks / service strategies and archive
