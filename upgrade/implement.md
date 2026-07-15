@@ -1369,6 +1369,32 @@ Acceptance:
 - User can choose correct backend from docs.
 - Each major strategy type has a minimal runnable example.
 
+Status:
+
+- Added `docs/README.md` as the documentation map.
+- README now points users to the correct doc by task:
+  - endpoint contract;
+  - backend selection;
+  - vectorized vs event-driven;
+  - margin/leverage;
+  - order fill policies;
+  - Nautilus validation;
+  - pair/basket;
+  - walk-forward methodology;
+  - examples index.
+- Added `examples/README.md` as the runnable example map.
+- Added minimal examples for:
+  - single explicit order;
+  - DCA/grid ladder;
+  - multi-symbol portfolio;
+  - pair/basket package;
+  - basis arbitrage;
+  - walk-forward train/test split;
+  - Nautilus validation;
+  - Nautilus explicit order parity.
+- Polished pair/basket guide to match current package preflight and Nautilus
+  validation status.
+
 ---
 
 ## Backend Selection Guide
