@@ -496,6 +496,109 @@ Current status:
   - report bundle explicit-order manifest fields;
   - full internal tests excluding real-data scripts.
 
+### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
+
+Purpose:
+
+Upgrade single-symbol explicit replay into structured order workflows while
+still keeping the strategy/research layer outside Nautilus.
+
+Scope:
+
+- DCA/grid validation through generated explicit order packages:
+  - base market order;
+  - safety limit orders;
+  - take-profit / stop-loss exits;
+  - high/low touch behavior delegated to Nautilus bar execution;
+  - same-bar ambiguity documented as a policy.
+- OCO/bracket order support:
+  - entry order + stop-loss + take-profit group;
+  - explicit group id / parent tag;
+  - cancel sibling exit when one leg fills;
+  - preserve tags in Nautilus reports.
+- Stop-loss / take-profit package workflow:
+  - deterministic generation from `OrderIntent`/package spec;
+  - no hidden alpha logic inside Nautilus strategy;
+  - all generated orders available in `package_order_map`.
+
+Endpoint targets:
+
+```python
+QuantBTEndpoint.nautilus_dca_grid(...)
+QuantBTEndpoint.nautilus_bracket_orders(...)
+QuantBTEndpoint.orders(backend="nautilus", orders=[...])
+```
+
+The first two endpoint names are planned public convenience routes. They should
+compile into explicit `OrderIntent` packages, then reuse the already-supported
+Nautilus explicit-order replay path.
+
+Acceptance tests:
+
+- DCA base order submits at the expected timestamp.
+- Safety limit fills only when bar high/low touches the grid price.
+- TP/SL exit closes the position and prevents double-close.
+- OCO/bracket sibling cancellation is visible in report metadata.
+- Native DCA/grid golden scenario and Nautilus validation agree on order
+  direction, intended trigger price, fill count, and position lifecycle where
+  the same bar policy is unambiguous.
+
+Non-goals:
+
+- Exchange queue priority.
+- Tick-level latency modeling.
+- Hidden strategy generation inside Nautilus.
+
+### Phase 5.2D - Nautilus Multi-Leg, Portfolio, And Institutional Audit
+
+Purpose:
+
+Promote Nautilus validation from single-symbol order replay into multi-leg and
+portfolio execution trustee workflows.
+
+Scope:
+
+- Basket/pair validation:
+  - convert `BasketSpec` / pair signals into multi-leg explicit order packages;
+  - frozen hedge-ratio entry;
+  - exact-unit exit;
+  - package id, leg id, and execution policy in metadata;
+  - support best-effort first, then all-or-none when domain tests are ready.
+- Multi-symbol portfolio validation:
+  - convert position matrix transitions into per-symbol target delta orders;
+  - run multiple instruments in one Nautilus venue/account;
+  - reconcile cross-symbol equity, netting, margin, fees, and funding;
+  - expose per-symbol order/fill/position reports.
+- Institutional parity audit:
+  - compare native vs Nautilus at transition/order/fill/equity level;
+  - summarize max fill-price diff, fee diff, position diff, equity diff;
+  - classify differences as expected policy differences or regression risks;
+  - produce CSV/JSON audit artifacts suitable for stakeholder review.
+
+Endpoint targets:
+
+```python
+QuantBTEndpoint.basket(backend="nautilus", ...)
+QuantBTEndpoint.portfolio(backend="nautilus", ...)
+QuantBTEndpoint.arbitrage(..., backend="nautilus")
+build_native_nautilus_parity_report(...)
+```
+
+Acceptance tests:
+
+- Pair basket opens all intended legs and closes exact units.
+- Multi-symbol portfolio transition generates expected per-symbol orders.
+- Nautilus reports preserve package id / leg id / symbol ids.
+- Parity report catches intentionally injected fill-price and fee differences.
+- Existing single-symbol, native event, and report bundle endpoints remain
+  unchanged.
+
+Non-goals:
+
+- Cross-exchange latency arb.
+- Options Greeks / vol surface execution.
+- Full portfolio-margin replication beyond diagnostics.
+
 ---
 
 ## Phase 5.1 - Nautilus Trustee Report Bundle

@@ -327,6 +327,21 @@ def test_endpoint_arbitrage_support_matrix_exposes_supported_and_schema_only_spe
     assert matrix["OptionsVolArbSpec"]["backends"] == "none"
 
 
+def test_endpoint_nautilus_support_matrix_declares_supported_and_planned_routes():
+    matrix = QuantBTEndpoint.nautilus_support_matrix()
+
+    assert matrix["signal_series"]["status"] == "supported"
+    assert matrix["explicit_orders"]["endpoint"] == "QuantBTEndpoint.orders(backend='nautilus', ...)"
+    assert matrix["explicit_orders"]["status"] == "supported"
+    assert matrix["explicit_orders"]["order_types"] == "market, limit, stop_market, stop_limit"
+    assert matrix["parity_audit"]["status"] == "supported"
+    assert matrix["dca_grid"]["status"] == "planned"
+    assert matrix["bracket_oco"]["status"] == "planned"
+    assert matrix["basket_pair"]["status"] == "planned"
+    assert matrix["multi_symbol_portfolio"]["status"] == "planned"
+    assert matrix["arbitrage_package_orders"]["status"] == "experimental"
+
+
 def test_nautilus_endpoint_accepts_legacy_hedge_type_alias():
     endpoint = QuantBTEndpoint.nautilus_validation(
         hedge_type="%_equity",

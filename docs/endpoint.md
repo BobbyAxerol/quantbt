@@ -82,6 +82,37 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
 
+## Nautilus Support Matrix
+
+Services can inspect current Nautilus adapter coverage before constructing a
+run:
+
+```python
+matrix = QuantBTEndpoint.nautilus_support_matrix()
+```
+
+Current executable routes:
+
+| Route | Status | Endpoint | Scope |
+|---|---|---|---|
+| Signal series | supported | `QuantBTEndpoint.nautilus_validation(...)` | single-symbol target signal replay |
+| Explicit orders | supported | `QuantBTEndpoint.orders(backend="nautilus", ...)` | single-symbol `OrderIntent` replay |
+| Parity audit | supported | `build_native_nautilus_parity_report(...)` | native-vs-Nautilus order/fill/equity comparison |
+| Arbitrage packages | experimental | `QuantBTEndpoint.arbitrage(..., backend="nautilus")` | selected basis/stat-arb package validation |
+
+Planned routes:
+
+| Route | Planned endpoint | Notes |
+|---|---|---|
+| DCA/grid validation | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
+| Bracket/OCO | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
+| Basket/pair | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
+| Multi-symbol portfolio | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
+
+Anything marked `planned` should not be called by production notebooks yet.
+Those endpoint names are reserved so the public contract can be added without
+changing existing workflows.
+
 ## Shared Configuration
 
 All factories accept the common account and execution fields below.

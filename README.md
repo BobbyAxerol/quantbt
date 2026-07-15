@@ -124,6 +124,8 @@ instrument/order combination.
 For validation work, `build_native_nautilus_parity_report(native, nautilus)`
 creates an audit table comparing requested order quantities, fill prices, fees,
 positions, equity, and diffs between native event replay and Nautilus replay.
+Use `QuantBTEndpoint.nautilus_support_matrix()` to inspect which Nautilus routes
+are supported, experimental, or planned before wiring a service.
 
 Supported Binance perpetual validation instruments:
 
