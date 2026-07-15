@@ -215,6 +215,43 @@ class BacktestEngineV2:
         trade_notional = self.alloc_per_trade if not isinstance(self.alloc_per_trade, dict) else next(
             iter(self.alloc_per_trade.values())
         )
+        if self.orders:
+            idx, closes, highs, lows, symbols = self._market_data()
+            data = _frames_for_nautilus(
+                data=self.data,
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                symbols=symbols,
+            )
+            config = self.nautilus_config
+            updates = {
+                "starting_balance": self.account.initial_capital,
+                "trade_notional": 0.0,
+                "sizing_mode": "notional",
+            }
+            if symbol_override:
+                updates["instrument_id"] = symbol_override
+            if config is None:
+                config = NautilusBackendConfig(
+                    instrument_id=symbol_override or symbols[0],
+                    starting_balance=self.account.initial_capital,
+                    trade_notional=0.0,
+                    sizing_mode="notional",
+                )
+            else:
+                config = replace(config, **updates)
+            return NautilusBacktestEngine(config).run_order_packages(
+                data=data,
+                orders=self.orders,
+                symbols=symbols,
+                params={
+                    "input_mode": "explicit_orders",
+                    "order_count_input": int(len(self.orders)),
+                },
+            )
+
         data = _single_frame(self.data)
         if data is None:
             idx, closes, highs, lows, symbols = self._market_data()
@@ -457,6 +494,69 @@ def _extract_frame_ohlc(
     high = pd.Series(frame["high"].to_numpy(), index=idx, name="high") if "high" in frame.columns else close
     low = pd.Series(frame["low"].to_numpy(), index=idx, name="low") if "low" in frame.columns else close
     return idx, close, high, low
+
+
+def _frames_for_nautilus(
+    data: Optional[Union[pd.DataFrame, Dict[str, Union[pd.DataFrame, pd.Series]]]],
+    datetime_index: pd.DatetimeIndex,
+    closes: SeriesMap,
+    highs: SeriesMap,
+    lows: SeriesMap,
+    symbols: List[str],
+) -> Dict[str, pd.DataFrame]:
+    if isinstance(data, pd.DataFrame):
+        if len(symbols) != 1:
+            raise ValueError("single DataFrame Nautilus order replay requires one symbol")
+        return {symbols[0]: _extract_frame_ohlcv(data, datetime_index)}
+    if isinstance(data, dict):
+        frames = {}
+        for symbol in symbols:
+            value = data[symbol]
+            if isinstance(value, pd.DataFrame):
+                frames[symbol] = _extract_frame_ohlcv(value, datetime_index)
+            else:
+                close = pd.Series(value.to_numpy(), index=datetime_index, name="close")
+                frames[symbol] = _frame_from_ohlc(close, close, close)
+        return frames
+    return {symbol: _frame_from_ohlc(closes[symbol], highs[symbol], lows[symbol]) for symbol in symbols}
+
+
+def _extract_frame_ohlcv(data: pd.DataFrame, datetime_index: pd.DatetimeIndex) -> pd.DataFrame:
+    frame = data.copy()
+    frame = frame.rename(
+        columns={
+            "Datetime": "timestamp",
+            "Date": "timestamp",
+            "Timestamp": "timestamp",
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+            "Volume": "volume",
+        }
+    )
+    frame.index = datetime_index
+    if "close" not in frame.columns:
+        raise ValueError("data frame must contain close/Close")
+    for col in ("open", "high", "low"):
+        if col not in frame.columns:
+            frame[col] = frame["close"]
+    if "volume" not in frame.columns:
+        frame["volume"] = 0.0
+    return frame[["open", "high", "low", "close", "volume"]].copy()
+
+
+def _frame_from_ohlc(close: pd.Series, high: pd.Series, low: pd.Series) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "open": close,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": 0.0,
+        },
+        index=close.index,
+    )
 
 
 def _as_series_map(value: Union[pd.Series, SeriesMap], symbols: List[str]) -> SeriesMap:

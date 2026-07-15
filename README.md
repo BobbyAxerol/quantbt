@@ -25,6 +25,7 @@ audit how a result was produced.
 - Native event-driven engines for market/limit orders, fills, baskets, and
   arbitrage package execution.
 - Optional NautilusTrader adapter for independent event-driven validation.
+- Nautilus explicit order replay for single-symbol `OrderIntent` validation.
 - Explicit margin, leverage, fees, slippage, funding, and liquidation handling.
 - Stable audit artifacts: metrics, plots, raw reports, trade logs, config JSON,
   run manifest, and optional QuantStats HTML.
@@ -114,6 +115,11 @@ The Nautilus adapter can validate single-symbol signal strategies with:
 - `notional`
 - `unit`
 - `%_equity`
+
+It can also replay explicit single-symbol `OrderIntent` orders through
+`QuantBTEndpoint.orders(backend="nautilus", ...)` for market, limit,
+stop-market, and stop-limit order factory routes where Nautilus supports the
+instrument/order combination.
 
 Supported Binance perpetual validation instruments:
 

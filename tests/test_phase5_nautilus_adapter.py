@@ -7,6 +7,7 @@ from quantbt import AccountConfig, BacktestEngineV2
 from quantbt.adapters.nautilus import (
     NautilusBackendConfig,
     NautilusBacktestEngine,
+    build_nautilus_package_order_table,
     ensure_utc_ohlcv,
     make_binance_perpetual,
     normalize_binance_perp_symbol,
@@ -15,6 +16,8 @@ from quantbt.adapters.nautilus import (
     timeframe_to_nautilus,
 )
 from quantbt.adapters.nautilus._dependency import require_nautilus
+from quantbt.core.orders import OrderIntent
+from quantbt.core.schema import OrderSide, OrderType, TimeInForce
 
 
 def test_nautilus_timeframe_mapping_is_explicit():
@@ -144,9 +147,109 @@ def test_nautilus_backend_supports_single_symbol_sizing_modes(hedge_type, alloc_
     assert engine.result.equity.iloc[-1] > 0.0
 
 
+def test_nautilus_backend_replays_explicit_market_and_limit_orders():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=8, freq="1h", tz="UTC")
+    df = pd.DataFrame(
+        {
+            "open": [100.0] * len(idx),
+            "high": [101.0] * len(idx),
+            "low": [99.0, 99.0, 94.0, 94.0, 99.0, 99.0, 99.0, 99.0],
+            "close": [100.0] * len(idx),
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    orders = [
+        OrderIntent(
+            timestamp=idx[1],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.BUY,
+            order_type=OrderType.LIMIT,
+            qty=0.1,
+            price=95.0,
+            tif=TimeInForce.GTC,
+            tag="limit-entry",
+        ),
+        OrderIntent(
+            timestamp=idx[5],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.SELL,
+            order_type=OrderType.MARKET,
+            qty=0.1,
+            tif=TimeInForce.IOC,
+            reduce_only=True,
+            tag="market-exit",
+        ),
+    ]
+
+    engine = BacktestEngineV2(
+        data=df,
+        orders=orders,
+        symbols=["ETHUSDT-PERP.BINANCE"],
+        backend="nautilus",
+        account=AccountConfig(initial_capital=10_000.0),
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            instrument_id="ETHUSDT-PERP.BINANCE",
+            timeframe="1h",
+            starting_balance=10_000.0,
+            bypass_risk=True,
+        ),
+    )
+
+    report = engine.result.metadata["orders_report"]
+    assert engine.result.metadata["input_mode"] == "explicit_orders"
+    assert engine.result.metadata["order_count_input"] == 2
+    assert engine.result.metadata["orders_count"] == 2
+    assert engine.result.metadata["fills_count"] == 2
+    assert list(report["type"]) == ["LIMIT", "MARKET"]
+    assert float(report.iloc[0]["avg_px"]) == 95.0
+    assert report.iloc[0]["time_in_force"] == "GTC"
+    assert report.iloc[0]["status"] == "FILLED"
+    assert report.iloc[1]["is_reduce_only"] in (True, "True", "true")
+
+
 def test_nautilus_config_rejects_dca_ladder_until_event_ladder_is_supported():
     with pytest.raises(NotImplementedError):
         NautilusBackendConfig(sizing_mode="dca_ladder")
+
+
+def test_nautilus_package_order_table_preserves_explicit_order_fields():
+    order = OrderIntent(
+        timestamp=pd.Timestamp("2024-01-01", tz="UTC"),
+        symbol="ETHUSDT",
+        side=OrderSide.BUY,
+        order_type=OrderType.STOP_LIMIT,
+        qty=0.5,
+        price=99.5,
+        trigger_price=100.0,
+        tif=TimeInForce.GTC,
+        reduce_only=True,
+        order_id="client-1",
+        tag="bracket-entry",
+        metadata={"arb_id": "ARB-1"},
+    )
+
+    table = build_nautilus_package_order_table(
+        [order],
+        instrument_ids={"ETHUSDT": "ETHUSDT-PERP.BINANCE"},
+    )
+
+    assert table.loc[0, "symbol"] == "ETHUSDT"
+    assert table.loc[0, "instrument_id"] == "ETHUSDT-PERP.BINANCE"
+    assert table.loc[0, "order_type"] == "stop_limit"
+    assert table.loc[0, "price"] == 99.5
+    assert table.loc[0, "trigger_price"] == 100.0
+    assert table.loc[0, "tif"] == "gtc"
+    assert bool(table.loc[0, "reduce_only"]) is True
+    assert table.loc[0, "order_id"] == "client-1"
+    assert table.loc[0, "tag"] == "bracket-entry"
+    assert table.loc[0, "arb_id"] == "ARB-1"
 
 
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():

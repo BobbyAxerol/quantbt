@@ -206,15 +206,15 @@ class QuantBTEndpoint:
         return cls(_config_from_kwargs(mode="dca_ladder", sizing="dca_ladder", backend="legacy", **kwargs))
 
     @classmethod
-    def orders(cls, **kwargs) -> "QuantBTEndpoint":
+    def orders(cls, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
         """
         Create an explicit order simulation endpoint.
 
         Use `simulate(data=df, orders=[OrderIntent(...), ...])`. Orders are run
-        through the native event backend with market/limit fill lifecycle, TIF
+        through the selected event backend with market/limit fill lifecycle, TIF
         handling, fees, margin checks, and fills in `result.fills`.
         """
-        return cls(_config_from_kwargs(mode="orders", backend="native_event", **kwargs))
+        return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
 
     @classmethod
     def basket(cls, basket: Optional[BasketSpec] = None, **kwargs) -> "QuantBTEndpoint":
@@ -760,10 +760,11 @@ class QuantBTEndpoint:
         if not orders:
             raise ValueError("orders endpoint requires orders=[OrderIntent(...), ...]")
         frame, idx, _ = _normalize_single_data(data=data, signal=pd.Series(0.0, index=_infer_index(data, datetime_index)), signal_col=None, datetime_index=datetime_index)
+        backend = _resolve_backend(self.config)
         self.engine = BacktestEngineV2(
             data=frame,
             symbols=list(symbols or self.config.symbols or ["asset"]),
-            backend="native_event",
+            backend=backend,
             orders=orders,
             account=self.config.account,
             execution=self.config.execution,

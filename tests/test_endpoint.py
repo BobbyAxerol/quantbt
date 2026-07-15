@@ -96,6 +96,76 @@ def test_endpoint_orders_simulation():
     assert result.fills[0].price == 99.0
 
 
+def test_endpoint_orders_can_route_to_nautilus_adapter(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_order_packages(self, data, orders, symbols, params=None):
+            captured["data"] = data
+            captured["orders"] = tuple(orders)
+            captured["symbols"] = list(symbols)
+            captured["params"] = dict(params or {})
+            idx = next(iter(data.values())).index
+            equity = pd.Series(10_000.0, index=idx)
+            return BacktestResultV2(
+                equity=equity,
+                returns=equity.pct_change().fillna(0.0),
+                positions=pd.DataFrame({"Position_ETHUSDT-PERP.BINANCE": 0.0}, index=idx),
+                closes=pd.DataFrame({"Close_ETHUSDT-PERP.BINANCE": data["ETHUSDT-PERP.BINANCE"]["close"]}, index=idx),
+                symbols=["ETHUSDT-PERP.BINANCE"],
+                initial_capital=10_000.0,
+                metadata={
+                    "backend": "nautilus",
+                    "engine": "nautilus_package_orders",
+                    "input_mode": captured["params"].get("input_mode"),
+                    "order_count_input": captured["params"].get("order_count_input"),
+                },
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    order = OrderIntent(
+        timestamp=df.index[1],
+        symbol="ETHUSDT-PERP.BINANCE",
+        side=OrderSide.BUY,
+        order_type=OrderType.LIMIT,
+        qty=0.25,
+        price=99.0,
+        tif=TimeInForce.GTC,
+        reduce_only=False,
+        tag="entry-limit",
+    )
+
+    endpoint = QuantBTEndpoint.orders(
+        backend="nautilus",
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            instrument_id="ETHUSDT-PERP.BINANCE",
+            timeframe="1d",
+            starting_balance=99_999.0,
+        ),
+    )
+    result = endpoint.simulate(data=df, orders=[order], symbols=["ETHUSDT-PERP.BINANCE"])
+
+    assert captured["config"].starting_balance == 10_000.0
+    assert captured["config"].trade_notional == 0.0
+    assert captured["config"].sizing_mode == "notional"
+    assert captured["symbols"] == ["ETHUSDT-PERP.BINANCE"]
+    assert captured["orders"] == (order,)
+    assert list(captured["data"]["ETHUSDT-PERP.BINANCE"].columns) == ["open", "high", "low", "close", "volume"]
+    assert captured["params"] == {"input_mode": "explicit_orders", "order_count_input": 1}
+    assert result.metadata["input_mode"] == "explicit_orders"
+    assert result.metadata["order_count_input"] == 1
+
+
 def test_endpoint_basket_simulation():
     df = _bars()
     signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=df.index)

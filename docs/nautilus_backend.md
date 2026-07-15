@@ -51,8 +51,13 @@ Scope:
 - sizing modes: `signal_notional`, `notional`, `unit`, and `%_equity`;
 - endpoint/engine-level `use_pyramiding`, where `False` snaps raw signals to
   direction only and `True` preserves fractional signal scale;
+- explicit single-symbol `OrderIntent` replay through
+  `QuantBTEndpoint.orders(backend="nautilus", ...)`;
+- explicit order types mapped to Nautilus order factory: market, limit,
+  stop-market, and stop-limit where the Nautilus route is available;
+- explicit order fields preserved where supported: TIF, reduce-only, and tags;
 - external OHLCV bars through Nautilus `BarDataWrangler`;
-- market delta orders to target signal notional;
+- market delta orders to target signal notional for signal-series validation;
 - account, orders, fills, and positions reports converted to
   `BacktestResultV2`.
 
@@ -77,11 +82,11 @@ Report bundle:
 Not yet in the Nautilus adapter:
 
 - DCA/grid ladder limit simulation;
-- explicit order replay;
 - pair/basket trading;
 - multi-symbol portfolio validation.
 
-Those workflows should use native QuantBT backends today.
+DCA/grid, pair/basket, and portfolio workflows should use native QuantBT
+backends today until their Nautilus order-package adapters are promoted.
 
 Why optional:
 
