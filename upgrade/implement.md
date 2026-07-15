@@ -765,6 +765,48 @@ Non-goals for Phase 5.4:
 - Portfolio-margin exact clone of any venue.
 - Replacing native vectorized/event backends for optimizer workloads.
 
+Status:
+
+- Implemented optional endpoint wiring for `nautilus_depth_config`:
+  - `QuantBTEndpoint.nautilus_dca_grid(...)`;
+  - `QuantBTEndpoint.nautilus_bracket_orders(...)`;
+  - `QuantBTEndpoint.basket(backend="nautilus", ...)`;
+  - `QuantBTEndpoint.portfolio(backend="nautilus", ...)`;
+  - `QuantBTEndpoint.arbitrage(..., backend="nautilus")`.
+- Existing endpoints remain unchanged when `nautilus_depth_config=None`.
+- Added preflight metadata to Nautilus package results:
+  - `nautilus_depth_enabled`;
+  - `nautilus_depth_order_report`;
+  - `nautilus_depth_package_report`;
+  - `nautilus_depth_metadata`;
+  - `order_count_before_depth`;
+  - `order_count_after_depth`.
+- Added empty flat result path for packages fully rejected by preflight before
+  Nautilus submission.
+- Added `build_nautilus_depth_parity_summary(result)` for package-level
+  preflight-vs-Nautilus count audit.
+- Added endpoint integration tests for:
+  - structured DCA all-or-none reject before Nautilus;
+  - bracket/OCO preflight filtering and sibling cancellation before Nautilus;
+  - basket package all-or-none metadata annotation and depth reports.
+- Validation:
+  - `test_phase5_4_endpoint_depth.py` and `test_phase5_4_nautilus_depth.py`
+    pass;
+  - endpoint/Nautilus targeted regression passes;
+  - full internal tests pass excluding real-data scripts;
+  - `test_real.py` and `test_real_endpoints.py` execute successfully as
+    scripts.
+
+Remaining debt:
+
+- Dynamic DCA/grid is still preflight-mediated, not a full Nautilus in-strategy
+  state machine with progressive order activation.
+- Queue/latency/depth is deterministic OHLCV-level approximation, not true L2
+  order-book simulation.
+- Portfolio/arbitrage package parity is currently count/status-oriented;
+  deeper fill-price/equity diff artifacts need real package runs and saved
+  stakeholder bundles.
+
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
 Purpose:

@@ -35,6 +35,50 @@ PARITY_COLUMNS = [
 ]
 
 
+def build_nautilus_depth_parity_summary(result: BacktestResultV2) -> Dict[str, Any]:
+    """
+    Summarize preflight-vs-Nautilus package execution counts.
+
+    This helper is for Phase 5.4 package workflows where an optional
+    execution-depth preflight may reject, cancel, or partially adjust orders
+    before accepted orders are submitted to Nautilus.
+    """
+    metadata = result.metadata or {}
+    depth_order_report = _report_frame(metadata.get("nautilus_depth_order_report"))
+    depth_package_report = _report_frame(metadata.get("nautilus_depth_package_report"))
+    package_order_map = _report_frame(metadata.get("package_order_map"))
+    orders_report = _report_frame(metadata.get("orders_report", metadata.get("order_report")))
+    fills_report = _report_frame(metadata.get("fills_report"))
+    depth_enabled = bool(metadata.get("nautilus_depth_enabled", False))
+    accepted = int(metadata.get("order_count_after_depth", len(package_order_map)))
+    before = int(metadata.get("order_count_before_depth", accepted))
+    nautilus_orders = int(metadata.get("orders_count", len(orders_report)))
+    nautilus_fills = int(metadata.get("fills_count", len(fills_report)))
+    rejected = _status_count(depth_order_report, "rejected")
+    partial = _status_count(depth_order_report, "partial")
+    canceled = _status_count(depth_order_report, "canceled")
+    submitted_matches = nautilus_orders == accepted or (accepted == 0 and nautilus_orders == 0)
+    summary = {
+        "status": "pass" if submitted_matches else "execution_count_diff",
+        "passed": bool(submitted_matches),
+        "depth_enabled": depth_enabled,
+        "input_orders": before,
+        "accepted_after_depth": accepted,
+        "nautilus_orders": nautilus_orders,
+        "nautilus_fills": nautilus_fills,
+        "depth_rejected": rejected,
+        "depth_partial": partial,
+        "depth_canceled": canceled,
+        "package_rows": int(len(depth_package_report)),
+        "engine": metadata.get("engine"),
+        "input_mode": metadata.get("input_mode"),
+    }
+    if not depth_enabled:
+        summary["status"] = "not_enabled"
+        summary["passed"] = False
+    return summary
+
+
 def summarize_native_nautilus_parity_report(
     parity_report: pd.DataFrame,
     fill_price_tolerance: float = 1e-9,
@@ -240,6 +284,12 @@ def _report_frame(value: Any) -> pd.DataFrame:
         return pd.DataFrame(value).copy()
     except Exception:
         return pd.DataFrame()
+
+
+def _status_count(frame: pd.DataFrame, status: str) -> int:
+    if frame.empty or "status" not in frame:
+        return 0
+    return int(frame["status"].astype(str).str.lower().eq(status).sum())
 
 
 def _max_abs(frame: pd.DataFrame, column: str) -> float:
