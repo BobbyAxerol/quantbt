@@ -32,6 +32,31 @@ audit how a result was produced.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection.
 
+## Performance Philosophy
+
+QuantBT is built for research loops where speed matters as much as accounting
+clarity. The public API stays Pythonic, but the heavy computation path is pushed
+toward NumPy/Numba kernels so large signal matrices, parameter sweeps,
+walk-forward runs, and multi-symbol portfolios can run close to native compiled
+performance without forcing researchers into a C++ or C# codebase.
+
+The intent is not to be a black-box replacement for mature execution engines.
+LEAN/QuantConnect brings a large C# institutional platform, NautilusTrader
+brings a Rust-backed event-driven trading stack, vectorbt is excellent for
+vectorized research, and Backtrader remains a widely used Python event-driven
+framework. QuantBT sits between those worlds: fast native-vectorized and
+Numba-accelerated research paths for iteration, native event simulation for
+transparent order accounting, and optional Nautilus validation when a run needs
+third-party execution evidence.
+
+Benchmarks are versioned under `benchmarks/` rather than hidden in marketing
+claims. Phase 7 currently measures bars x symbols, order count, event count,
+warmup/compile time, runtime, memory, throughput, and threshold pass/fail across
+native vectorized, native event, portfolio, and optional Nautilus routes. The
+rule is simple: keep hot loops near C/C++-style runtime with Numba first, profile
+before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
+fixed safely in the Python/Numba stack.
+
 ## Engine Stack
 
 | Layer | Backend | Best use case |
