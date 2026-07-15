@@ -51,8 +51,23 @@ Scope:
 - sizing modes: `signal_notional`, `notional`, `unit`, and `%_equity`;
 - endpoint/engine-level `use_pyramiding`, where `False` snaps raw signals to
   direction only and `True` preserves fractional signal scale;
+- explicit single-symbol `OrderIntent` replay through
+  `QuantBTEndpoint.orders(backend="nautilus", ...)`;
+- explicit order types mapped to Nautilus order factory: market, limit,
+  stop-market, and stop-limit where the Nautilus route is available;
+- explicit order fields preserved where supported: TIF, reduce-only, and tags;
+- experimental DCA/grid structured package validation through
+  `QuantBTEndpoint.nautilus_dca_grid(...)`;
+- experimental bracket/OCO validation through
+  `QuantBTEndpoint.nautilus_bracket_orders(...)`, with sibling cancellation
+  when a TP/SL exit fills;
+- experimental basket/pair package validation through
+  `QuantBTEndpoint.basket(backend="nautilus", ...)`;
+- experimental multi-symbol portfolio matrix validation through
+  `QuantBTEndpoint.portfolio(backend="nautilus", ...)` for pre-scalable modes
+  (`signal_notional`, `notional`, `unit`);
 - external OHLCV bars through Nautilus `BarDataWrangler`;
-- market delta orders to target signal notional;
+- market delta orders to target signal notional for signal-series validation;
 - account, orders, fills, and positions reports converted to
   `BacktestResultV2`.
 
@@ -73,15 +88,33 @@ Report bundle:
   crypto; override it for stocks/futures if needed.
 - `fill_log_mode` supports `fills_only`, `order_events`, and `bars_debug`; all
   modes are bounded by `fill_log_limit`.
+- Explicit-order runs add `input_mode`, `order_count_input`,
+  `cancelled_count`, and `rejected_count` to `run_manifest.json` and
+  `metrics_summary.json`.
+
+Parity audit:
+
+- `build_native_nautilus_parity_report(native_result, nautilus_result)` builds
+  an order/fill/equity comparison table for explicit-order runs.
+- `summarize_native_nautilus_parity_report(...)` returns compact max-diff and
+  pass/fail diagnostics for stakeholder review.
+- The table includes requested quantity/price, fill price, fee, position after
+  fill, equity and diffs.
+- Use this report to make native-vs-Nautilus differences visible during
+  validation instead of relying only on final equity.
 
 Not yet in the Nautilus adapter:
 
-- DCA/grid ladder limit simulation;
-- explicit order replay;
-- pair/basket trading;
-- multi-symbol portfolio validation.
+- full dynamic DCA ladder state management inside Nautilus;
+- exchange-native contingent order-list semantics beyond current package
+  strategy cancellation;
+- all-or-none basket package semantics;
+- portfolio-margin replication beyond diagnostics.
 
-Those workflows should use native QuantBT backends today.
+DCA/grid, OCO/bracket, basket, and portfolio Nautilus routes are experimental
+validation paths, not the fast research path. Broad research and optimization
+should still use native QuantBT engines first, then Nautilus for trustee
+execution validation.
 
 Why optional:
 
