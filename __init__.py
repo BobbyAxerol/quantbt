@@ -80,6 +80,13 @@ from .core.types import BacktestResult
 from .core.results import BacktestResultV2
 from .core.orders import BasketIntent, Fill, OrderIntent, Trade
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
+from .core.structured_orders import (
+    BracketOrderSpec,
+    DcaGridSpec,
+    StructuredOrderPlan,
+    build_bracket_order_plan,
+    build_dca_grid_order_plan,
+)
 from .core.arbitrage import (
     ArbExecutionPolicy,
     ArbitrageLeg,
@@ -154,7 +161,11 @@ from .metrics import (
 )
 
 from .viz import quick_plot, tearsheet, apply_theme
-from .reporting import export_nautilus_report_bundle
+from .reporting import (
+    build_native_nautilus_parity_report,
+    export_nautilus_report_bundle,
+    summarize_native_nautilus_parity_report,
+)
 
 __version__ = "0.1.0"
 __author__  = "quantbt"
@@ -174,7 +185,9 @@ __all__ = [
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "build_native_nautilus_parity_report",
     "export_nautilus_report_bundle",
+    "summarize_native_nautilus_parity_report",
     "WalkForwardConfig",
     "WalkForwardEngine",
     "WalkForwardFold",
@@ -199,6 +212,7 @@ __all__ = [
     "walkforward_support_matrix",
     "BacktestResult",
     "BacktestResultV2",
+    "BracketOrderSpec",
     "AccountConfig",
     "ArbExecutionPolicy",
     "ArbitrageLeg",
@@ -218,6 +232,7 @@ __all__ = [
     "CostModel",
     "CostModelKind",
     "CrossExchangeArbSpec",
+    "DcaGridSpec",
     "ExecutionConfig",
     "FeeModel",
     "Fill",
@@ -251,10 +266,13 @@ __all__ = [
     "SpreadFormula",
     "SpreadFormulaKind",
     "StatArbPairSpec",
+    "StructuredOrderPlan",
     "TimeInForce",
     "Trade",
     "TriangularArbSpec",
     "build_arbitrage_order_plan",
+    "build_bracket_order_plan",
+    "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
     # metrics
