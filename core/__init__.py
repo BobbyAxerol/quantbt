@@ -5,6 +5,11 @@ from .types        import BacktestResult
 from .results      import BacktestResultV2
 from .orders       import BasketIntent, Fill, OrderIntent, Trade
 from .basket       import FrozenBasketPlan, build_frozen_basket_orders
+from .execution_depth import (
+    NautilusExecutionDepthConfig,
+    PackageDepthPreflightResult,
+    simulate_nautilus_order_package_depth,
+)
 from .structured_orders import (
     BracketOrderSpec,
     DcaGridSpec,
@@ -122,12 +127,14 @@ __all__ = [
     "MarginMode",
     "MarginModel",
     "MarginModelKind",
+    "NautilusExecutionDepthConfig",
     "OmsMode",
     "OrderIntent",
     "OrderSide",
     "OrderType",
     "OptionsVolArbSpec",
     "PackageExecutionKind",
+    "PackageDepthPreflightResult",
     "PackageRejection",
     "SameBarPolicy",
     "SignalModel",
@@ -148,6 +155,7 @@ __all__ = [
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
+    "simulate_nautilus_order_package_depth",
     "validate_datetime",
     "align_series",
     "prepare_funding",

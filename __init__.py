@@ -81,6 +81,11 @@ from .core.types import BacktestResult
 from .core.results import BacktestResultV2
 from .core.orders import BasketIntent, Fill, OrderIntent, Trade
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
+from .core.execution_depth import (
+    NautilusExecutionDepthConfig,
+    PackageDepthPreflightResult,
+    simulate_nautilus_order_package_depth,
+)
 from .core.structured_orders import (
     BracketOrderSpec,
     DcaGridSpec,
@@ -186,6 +191,8 @@ __all__ = [
     "NativeEventConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
+    "NautilusExecutionDepthConfig",
+    "PackageDepthPreflightResult",
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
@@ -283,6 +290,7 @@ __all__ = [
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
+    "simulate_nautilus_order_package_depth",
     # metrics
     "full_report",
     "sharpe",
