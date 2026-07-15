@@ -126,6 +126,10 @@ creates an audit table comparing requested order quantities, fill prices, fees,
 positions, equity, and diffs between native event replay and Nautilus replay.
 Use `QuantBTEndpoint.nautilus_support_matrix()` to inspect which Nautilus routes
 are supported, experimental, or planned before wiring a service.
+Experimental Nautilus package validation is available for
+`QuantBTEndpoint.basket(backend="nautilus", ...)` and
+`QuantBTEndpoint.portfolio(backend="nautilus", ...)` by compiling strategy
+state into explicit order packages.
 
 Supported Binance perpetual validation instruments:
 

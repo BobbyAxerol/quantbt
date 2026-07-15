@@ -56,6 +56,11 @@ Scope:
 - explicit order types mapped to Nautilus order factory: market, limit,
   stop-market, and stop-limit where the Nautilus route is available;
 - explicit order fields preserved where supported: TIF, reduce-only, and tags;
+- experimental basket/pair package validation through
+  `QuantBTEndpoint.basket(backend="nautilus", ...)`;
+- experimental multi-symbol portfolio matrix validation through
+  `QuantBTEndpoint.portfolio(backend="nautilus", ...)` for pre-scalable modes
+  (`signal_notional`, `notional`, `unit`);
 - external OHLCV bars through Nautilus `BarDataWrangler`;
 - market delta orders to target signal notional for signal-series validation;
 - account, orders, fills, and positions reports converted to
@@ -86,6 +91,8 @@ Parity audit:
 
 - `build_native_nautilus_parity_report(native_result, nautilus_result)` builds
   an order/fill/equity comparison table for explicit-order runs.
+- `summarize_native_nautilus_parity_report(...)` returns compact max-diff and
+  pass/fail diagnostics for stakeholder review.
 - The table includes requested quantity/price, fill price, fee, position after
   fill, equity and diffs.
 - Use this report to make native-vs-Nautilus differences visible during
@@ -94,11 +101,13 @@ Parity audit:
 Not yet in the Nautilus adapter:
 
 - DCA/grid ladder limit simulation;
-- pair/basket trading;
-- multi-symbol portfolio validation.
+- OCO/bracket order groups;
+- all-or-none basket package semantics;
+- portfolio-margin replication beyond diagnostics.
 
-DCA/grid, pair/basket, and portfolio workflows should use native QuantBT
-backends today until their Nautilus order-package adapters are promoted.
+DCA/grid and OCO/bracket workflows should use native QuantBT backends today
+until their Nautilus order-package adapters are promoted. Basket and portfolio
+Nautilus routes are experimental validation paths, not the fast research path.
 
 Why optional:
 

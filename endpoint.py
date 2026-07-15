@@ -32,10 +32,11 @@ from .core.arbitrage import (
 from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
-from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderType, TimeInForce
+from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
+from .sizing.modes import compute_target_units
 from .viz import quick_plot as _quick_plot
 from .viz import tearsheet as _tearsheet
 from .walkforward import WalkForwardConfig, WalkForwardEngine
@@ -217,7 +218,7 @@ class QuantBTEndpoint:
         return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
 
     @classmethod
-    def basket(cls, basket: Optional[BasketSpec] = None, **kwargs) -> "QuantBTEndpoint":
+    def basket(cls, basket: Optional[BasketSpec] = None, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
         """
         Create a basket/pair endpoint.
 
@@ -225,7 +226,7 @@ class QuantBTEndpoint:
         `BasketSpec` either here or to `simulate(..., basket=...)`, then pass a
         scalar entry/exit signal and per-symbol price data.
         """
-        return cls(_config_from_kwargs(mode="basket", backend="native_event", basket=basket, **kwargs))
+        return cls(_config_from_kwargs(mode="basket", backend=backend, basket=basket, **kwargs))
 
     @classmethod
     def arbitrage(cls, arb_type: str, spec, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
@@ -367,18 +368,18 @@ class QuantBTEndpoint:
                 "notes": "Phase 5.2C; sibling cancellation must be visible in reports",
             },
             "basket_pair": {
-                "status": "planned",
+                "status": "experimental",
                 "endpoint": "QuantBTEndpoint.basket(backend='nautilus', ...)",
                 "scope": "multi-leg frozen hedge-ratio packages",
                 "order_types": "per-leg explicit market/limit orders",
-                "notes": "Phase 5.2D; native basket remains the production route today",
+                "notes": "Phase 5.2D; compiles BasketSpec signals into Nautilus package orders",
             },
             "multi_symbol_portfolio": {
-                "status": "planned",
+                "status": "experimental",
                 "endpoint": "QuantBTEndpoint.portfolio(backend='nautilus', ...)",
                 "scope": "position-matrix transitions across one Nautilus venue/account",
                 "order_types": "per-symbol target delta orders",
-                "notes": "Phase 5.2D; requires cross-symbol accounting reconciliation",
+                "notes": "Phase 5.2D; supports pre-scalable signal_notional/notional/unit modes",
             },
             "arbitrage_package_orders": {
                 "status": "experimental",
@@ -392,12 +393,12 @@ class QuantBTEndpoint:
                 "endpoint": "build_native_nautilus_parity_report(native, nautilus)",
                 "scope": "native-vs-Nautilus order/fill/equity comparison",
                 "order_types": "reporting helper",
-                "notes": "basic row-level audit exists; institutional summary artifacts planned in Phase 5.2D",
+                "notes": "row-level audit exists; summary artifacts live in report bundle and tests",
             },
         }
 
     @classmethod
-    def portfolio(cls, portfolio_mode: str = "longshort", **kwargs) -> "QuantBTEndpoint":
+    def portfolio(cls, portfolio_mode: str = "longshort", backend: str = "legacy_portfolio", **kwargs) -> "QuantBTEndpoint":
         """
         Create a multi-symbol portfolio endpoint.
 
@@ -405,7 +406,7 @@ class QuantBTEndpoint:
         `positions_df.columns` are symbols and `data_dict[symbol]` is an OHLCV
         DataFrame. The endpoint wraps `PortfolioBacktestEngine`.
         """
-        return cls(_config_from_kwargs(mode="portfolio", backend="legacy_portfolio", portfolio_mode=portfolio_mode, **kwargs))
+        return cls(_config_from_kwargs(mode="portfolio", backend=backend, portfolio_mode=portfolio_mode, **kwargs))
 
     @classmethod
     def nautilus_validation(cls, **kwargs) -> "QuantBTEndpoint":
@@ -861,6 +862,34 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols,
         )
+        backend = _resolve_backend(self.config)
+        if backend == "nautilus":
+            plan = build_frozen_basket_orders(
+                datetime_index=idx,
+                basket=spec,
+                signal=sig,
+                closes=close_map,
+                order_type=OrderType.MARKET,
+                tif=TimeInForce.IOC,
+            )
+            result = self._run_nautilus_package_orders(
+                data=_frames_from_symbol_maps(close_map, high_map, low_map, symbol_list),
+                orders=plan.orders,
+                symbols=symbol_list,
+                params={
+                    "input_mode": "basket_package",
+                    "basket_id": spec.basket_id,
+                    "basket_plan": plan,
+                    "basket_target_units": plan.target_units,
+                    "basket_execution_policy": spec.execution_policy.value,
+                    "package_target_units": plan.target_units,
+                    "order_count_input": len(plan.orders),
+                },
+            )
+            result.metadata["engine"] = "nautilus_basket_package"
+            self._store_result(result)
+            return self.result
+
         self.engine = BacktestEngineV2(
             backend="native_event",
             basket=spec,
@@ -1206,6 +1235,34 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols or list(pos_map.keys()),
         )
+        backend = _resolve_backend(self.config)
+        if backend == "nautilus":
+            symbol_list = list(symbols or pos_map.keys())
+            orders, target_units = _build_portfolio_orders_for_nautilus(
+                datetime_index=idx,
+                positions=pos_map,
+                closes=close_map,
+                alloc_per_trade=self.config.alloc_per_trade,
+                hedge_type=self.config.sizing if self.config.sizing else "signal_notional",
+                use_pyramiding=self.config.use_pyramiding,
+                symbols=symbol_list,
+            )
+            result = self._run_nautilus_package_orders(
+                data=_frames_from_symbol_maps(close_map, high_map, low_map, symbol_list),
+                orders=orders,
+                symbols=symbol_list,
+                params={
+                    "input_mode": "portfolio_matrix",
+                    "portfolio_mode": self.config.portfolio_mode,
+                    "portfolio_target_units": target_units,
+                    "package_target_units": target_units,
+                    "order_count_input": len(orders),
+                },
+            )
+            result.metadata["engine"] = "nautilus_portfolio_matrix"
+            self._store_result(result)
+            return self.result
+
         self.engine = PortfolioBacktestEngine(
             positions=pos_map,
             closes=close_map,
@@ -1227,6 +1284,33 @@ class QuantBTEndpoint:
         )
         self._store_result(self.engine.result)
         return self.result
+
+    def _run_nautilus_package_orders(self, data, orders, symbols, params):
+        from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine
+
+        config = self.config.nautilus_config
+        if config is None:
+            config = NautilusBackendConfig(
+                instrument_id=symbols[0],
+                timeframe=str(self.config.metadata.get("timeframe", "1h")),
+                starting_balance=self.config.account.initial_capital,
+                trade_notional=0.0,
+                sizing_mode="notional",
+            )
+        else:
+            config = replace(
+                config,
+                starting_balance=self.config.account.initial_capital,
+                trade_notional=0.0,
+                sizing_mode="notional",
+            )
+        self.engine = NautilusBacktestEngine(config)
+        return self.engine.run_order_packages(
+            data=data,
+            orders=orders,
+            symbols=symbols,
+            params=params,
+        )
 
     def _store_result(self, result):
         _normalize_result_contract(result)
@@ -1686,6 +1770,69 @@ def _positions_to_map(positions) -> Dict[str, pd.Series]:
     if isinstance(positions, pd.DataFrame):
         return {str(col): positions[col] for col in positions.columns}
     return dict(positions)
+
+
+def _build_portfolio_orders_for_nautilus(
+    datetime_index,
+    positions: Dict[str, pd.Series],
+    closes: Dict[str, pd.Series],
+    alloc_per_trade,
+    hedge_type: str,
+    use_pyramiding: bool,
+    symbols,
+) -> tuple[tuple[OrderIntent, ...], pd.DataFrame]:
+    ht = str(hedge_type).lower().strip()
+    if ht in {"%_equity", "pct_equity", "dca_ladder", "dca"}:
+        raise NotImplementedError(
+            "Nautilus portfolio validation currently supports pre-scalable modes "
+            "('signal_notional', 'notional', 'unit'). Use native portfolio for "
+            f"hedge_type={hedge_type!r}."
+        )
+    idx = _ensure_utc_index(datetime_index)
+    alloc = _alloc_map(alloc_per_trade, symbols)
+    orders = []
+    target_cols = {}
+    for symbol in symbols:
+        signal = _align_series(positions[symbol], idx)
+        close = _align_series(closes[symbol], idx)
+        target = compute_target_units(
+            hedge_type=hedge_type,
+            signal=signal,
+            close=close,
+            alloc=alloc[symbol],
+            use_pyramiding=use_pyramiding,
+        ).fillna(0.0)
+        target_cols[symbol] = target
+        prev = 0.0
+        for ts, value in target.items():
+            current = float(value)
+            delta = current - prev
+            if abs(delta) > 1e-12:
+                orders.append(
+                    OrderIntent(
+                        timestamp=ts,
+                        symbol=symbol,
+                        side=OrderSide.BUY if delta > 0.0 else OrderSide.SELL,
+                        order_type=OrderType.MARKET,
+                        qty=abs(delta),
+                        tif=TimeInForce.IOC,
+                        tag=f"portfolio:{ht}",
+                        metadata={
+                            "portfolio_mode": "matrix",
+                            "target_units": current,
+                            "previous_units": prev,
+                        },
+                    )
+                )
+            prev = current
+    out = pd.DataFrame({symbol: target_cols[symbol] for symbol in symbols}, index=idx)
+    return tuple(sorted(orders, key=lambda order: pd.Timestamp(order.timestamp).value)), out
+
+
+def _alloc_map(value, symbols) -> Dict[str, float]:
+    if isinstance(value, dict):
+        return {symbol: float(value.get(symbol, 100_000.0)) for symbol in symbols}
+    return {symbol: float(value) for symbol in symbols}
 
 
 def _print_order_logs(result, mode: str = "fills_only", limit: int = 500) -> None:

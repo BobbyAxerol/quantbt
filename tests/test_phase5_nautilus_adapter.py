@@ -3,7 +3,16 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from quantbt import AccountConfig, BacktestEngineV2, BacktestResultV2, build_native_nautilus_parity_report
+from quantbt import (
+    AccountConfig,
+    BacktestEngineV2,
+    BacktestResultV2,
+    BasketLegSpec,
+    BasketSpec,
+    QuantBTEndpoint,
+    build_native_nautilus_parity_report,
+    summarize_native_nautilus_parity_report,
+)
 from quantbt.adapters.nautilus import (
     NautilusBackendConfig,
     NautilusBacktestEngine,
@@ -326,6 +335,14 @@ def test_native_nautilus_parity_report_compares_fills_and_equity():
     assert report.loc[0, "native_fee"] == 0.01
     assert report.loc[0, "nautilus_fee"] == 0.012
     assert report.loc[0, "equity_diff"] == -0.5
+    summary = summarize_native_nautilus_parity_report(report, fee_tolerance=0.01, equity_tolerance=1.0)
+    assert summary["rows"] == 1
+    assert summary["native_filled_rows"] == 1
+    assert summary["nautilus_filled_rows"] == 1
+    assert summary["max_abs_fill_price_diff"] == 0.0
+    assert summary["max_abs_fee_diff"] == pytest.approx(0.002)
+    assert summary["max_abs_equity_diff"] == 0.5
+    assert summary["passed"] is True
 
 
 def test_native_vs_nautilus_explicit_market_replay_parity_smoke():
@@ -391,6 +408,72 @@ def test_native_vs_nautilus_explicit_market_replay_parity_smoke():
     assert nautilus.metadata["input_mode"] == "explicit_orders"
     assert nautilus.metadata["orders_count"] == 2
     assert nautilus.metadata["fills_count"] == 2
+
+
+def test_nautilus_endpoint_basket_and_portfolio_package_smoke():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=8, freq="1h", tz="UTC")
+    base_close = pd.Series([100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0], index=idx)
+    hedge_close = pd.Series([200.0, 199.0, 198.0, 197.0, 196.0, 195.0, 194.0, 193.0], index=idx)
+
+    def frame(close):
+        return pd.DataFrame(
+            {
+                "open": close,
+                "high": close + 1.0,
+                "low": close - 1.0,
+                "close": close,
+                "volume": 1_000.0,
+            },
+            index=idx,
+        )
+
+    btc = "BTCUSDT-PERP.BINANCE"
+    eth = "ETHUSDT-PERP.BINANCE"
+    data = {btc: frame(base_close), eth: frame(hedge_close)}
+    signal = pd.Series([0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0], index=idx)
+    basket = BasketSpec(
+        basket_id="PAIR-SMOKE",
+        legs=(BasketLegSpec(symbol=btc, ratio=1.0), BasketLegSpec(symbol=eth, ratio=-0.5)),
+        gross_notional=1_000.0,
+    )
+
+    basket_result = QuantBTEndpoint.basket(
+        basket=basket,
+        backend="nautilus",
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(instrument_id=btc, timeframe="1h", bypass_risk=True),
+    ).simulate(data=data, signal=signal)
+
+    positions = pd.DataFrame(
+        {
+            btc: [0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            eth: [0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        },
+        index=idx,
+    )
+    portfolio_result = QuantBTEndpoint.portfolio(
+        backend="nautilus",
+        initial_capital=10_000.0,
+        use_funding=False,
+        hedge_type="signal_notional",
+        alloc_per_trade={btc: 1_000.0, eth: 500.0},
+        nautilus_config=NautilusBackendConfig(instrument_id=btc, timeframe="1h", bypass_risk=True),
+    ).simulate(data=data, positions=positions, symbols=[btc, eth])
+
+    assert basket_result.metadata["engine"] == "nautilus_basket_package"
+    assert basket_result.metadata["orders_count"] == 4
+    assert basket_result.metadata["fills_count"] == 4
+    assert basket_result.metadata["input_mode"] == "basket_package"
+    assert portfolio_result.metadata["engine"] == "nautilus_portfolio_matrix"
+    assert portfolio_result.metadata["orders_count"] == 4
+    assert portfolio_result.metadata["fills_count"] == 4
+    assert portfolio_result.metadata["input_mode"] == "portfolio_matrix"
 
 
 def test_ensure_utc_ohlcv_normalizes_common_market_data_shape():
