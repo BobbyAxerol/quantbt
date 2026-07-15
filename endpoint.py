@@ -30,6 +30,10 @@ from .core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from .core.basket import build_frozen_basket_orders
+from .core.execution_depth import (
+    NautilusExecutionDepthConfig,
+    simulate_nautilus_order_package_depth,
+)
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
@@ -110,6 +114,9 @@ class EndpointConfig:
         Extra DCA ladder parameters forwarded to legacy `BacktestEngine`.
     nautilus_config:
         Optional `NautilusBackendConfig` instance for Nautilus validation runs.
+    nautilus_depth_config:
+        Optional `NautilusExecutionDepthConfig` for package-order preflight.
+        Existing endpoints are unchanged when this is omitted.
     strategy_class:
         Optional strategy callable/class for `walk_forward` mode. The strategy
         must return a Series, DataFrame, or `{symbol: Series}` OOS output.
@@ -140,6 +147,7 @@ class EndpointConfig:
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
+    nautilus_depth_config: Optional[NautilusExecutionDepthConfig] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
     walkforward_target_mode: str = "signal_notional"
@@ -1396,6 +1404,29 @@ class QuantBTEndpoint:
     def _run_nautilus_package_orders(self, data, orders, symbols, params):
         from .adapters.nautilus import NautilusBackendConfig, NautilusBacktestEngine
 
+        run_params = dict(params or {})
+        run_orders = _annotate_orders_for_depth(orders, run_params)
+        depth_result = None
+        if self.config.nautilus_depth_config is not None:
+            depth_result = simulate_nautilus_order_package_depth(
+                orders=run_orders,
+                data=data,
+                config=self.config.nautilus_depth_config,
+            )
+            run_orders = depth_result.orders
+            run_params.update(
+                {
+                    "nautilus_depth_enabled": True,
+                    "nautilus_depth_order_report": depth_result.order_report,
+                    "nautilus_depth_package_report": depth_result.package_report,
+                    "nautilus_depth_metadata": depth_result.metadata,
+                    "order_count_before_depth": len(orders),
+                    "order_count_after_depth": len(run_orders),
+                }
+            )
+        else:
+            run_params.setdefault("nautilus_depth_enabled", False)
+
         config = self.config.nautilus_config
         if config is None:
             config = NautilusBackendConfig(
@@ -1413,11 +1444,26 @@ class QuantBTEndpoint:
                 sizing_mode="notional",
             )
         self.engine = NautilusBacktestEngine(config)
+        if not run_orders:
+            return _empty_nautilus_preflight_result(
+                data=data,
+                symbols=symbols,
+                account=self.config.account,
+                metadata={
+                    "backend": "nautilus",
+                    "engine": "nautilus_package_orders_preflight_rejected",
+                    "input_mode": run_params.get("input_mode", "order_packages"),
+                    "orders_count": 0,
+                    "fills_count": 0,
+                    "positions_count": 0,
+                    **run_params,
+                },
+            )
         return self.engine.run_order_packages(
             data=data,
-            orders=orders,
+            orders=run_orders,
             symbols=symbols,
-            params=params,
+            params=run_params,
         )
 
     def _store_result(self, result):
@@ -1838,6 +1884,50 @@ def _frames_from_symbol_maps(close_map, high_map, low_map, symbols) -> FrameMap:
             index=close.index,
         )
     return frames
+
+
+def _empty_nautilus_preflight_result(data, symbols, account: AccountConfig, metadata: Dict) -> BacktestResultV2:
+    symbol_list = list(symbols)
+    if not symbol_list:
+        raise ValueError("symbols are required for empty Nautilus preflight result")
+    first = data[symbol_list[0]]
+    idx = _ensure_utc_index(first.index)
+    equity = pd.Series(float(account.initial_capital), index=idx, name="equity")
+    returns = pd.Series(0.0, index=idx, name="returns")
+    positions = pd.DataFrame({f"Position_{symbol}": 0.0 for symbol in symbol_list}, index=idx)
+    closes = {}
+    for symbol in symbol_list:
+        frame = data[symbol]
+        close = frame["close"] if "close" in frame else frame["Close"]
+        close = close.copy()
+        close.index = _ensure_utc_index(close.index)
+        closes[f"Close_{symbol}"] = close.reindex(idx).ffill().bfill().astype(float)
+    return BacktestResultV2(
+        equity=equity,
+        returns=returns,
+        positions=positions,
+        closes=pd.DataFrame(closes, index=idx),
+        symbols=symbol_list,
+        initial_capital=float(account.initial_capital),
+        leverage=float(account.leverage),
+        metadata=dict(metadata),
+    )
+
+
+def _annotate_orders_for_depth(orders: Sequence[OrderIntent], params: Dict) -> tuple[OrderIntent, ...]:
+    package_type = params.get("package_type") or params.get("input_mode")
+    package_id = params.get("package_id") or params.get("basket_id") or params.get("arb_id")
+    if package_type is None and package_id is None:
+        return tuple(orders)
+    out = []
+    for order in orders:
+        metadata = dict(order.metadata)
+        if package_type is not None:
+            metadata.setdefault("package_type", str(package_type))
+        if package_id is not None:
+            metadata.setdefault("package_id", str(package_id))
+        out.append(replace(order, metadata=metadata))
+    return tuple(out)
 
 
 def _standardize_frame(data, datetime_index=None) -> pd.DataFrame:

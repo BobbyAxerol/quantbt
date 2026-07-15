@@ -98,6 +98,8 @@ Parity audit:
   an order/fill/equity comparison table for explicit-order runs.
 - `summarize_native_nautilus_parity_report(...)` returns compact max-diff and
   pass/fail diagnostics for stakeholder review.
+- `build_nautilus_depth_parity_summary(result)` summarizes optional preflight
+  depth diagnostics versus the submitted Nautilus package counts.
 - The table includes requested quantity/price, fill price, fee, position after
   fill, equity and diffs.
 - Use this report to make native-vs-Nautilus differences visible during
