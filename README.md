@@ -373,17 +373,30 @@ Example console output:
 
 ## Documentation
 
-- [Endpoint contract](docs/endpoint.md)
-- [Backend selection](docs/backend_selection.md)
-- [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md)
-- [Margin and leverage](docs/margin_leverage.md)
-- [Order fill policies](docs/order_fill_policies.md)
-- [Nautilus backend](docs/nautilus_backend.md)
-- [Pair and basket guide](docs/pair_basket_guide.md)
-- [Walk-forward methodology](docs/walkforward_methodology_vi.md)
-- [DCA/grid ladder example](examples/dca_grid_ladder.py)
-- [Nautilus validation example](examples/nautilus_validation.py)
-- [Nautilus explicit order example](examples/nautilus_explicit_orders.py)
+Start with the [documentation map](docs/README.md) if you are deciding which
+backend, endpoint, or strategy route to use.
+
+| Need | Read |
+|---|---|
+| Public API contract for notebooks/services | [Endpoint contract](docs/endpoint.md) |
+| Backend choice by strategy type | [Backend selection](docs/backend_selection.md) |
+| Speed vs execution-fidelity tradeoff | [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md) |
+| Leverage, buying power, margin, liquidation | [Margin and leverage](docs/margin_leverage.md) |
+| Market/limit/stop fill behavior | [Order fill policies](docs/order_fill_policies.md) |
+| Nautilus validation and report bundles | [Nautilus backend](docs/nautilus_backend.md) |
+| Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
+| Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
+| Runnable smoke templates | [Examples index](examples/README.md) |
+
+Key examples:
+
+- [DCA/grid ladder](examples/dca_grid_ladder.py)
+- [Multi-symbol portfolio](examples/multi_symbol_portfolio.py)
+- [Pair/basket event package](examples/pair_basket_event.py)
+- [Basis arbitrage](examples/arbitrage_basis.py)
+- [Walk-forward train/test split](examples/walk_forward_train_test.py)
+- [Nautilus validation](examples/nautilus_validation.py)
+- [Nautilus explicit orders](examples/nautilus_explicit_orders.py)
 
 ## Development
 
