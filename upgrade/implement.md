@@ -1307,6 +1307,48 @@ Acceptance:
 - Benchmark report saved in repo.
 - Performance thresholds documented.
 
+Status:
+
+- Implemented `benchmarks/run_phase7.py` stdlib CLI.
+- Profiles:
+  - `smoke`;
+  - `standard`;
+  - `large`.
+- Backends measured:
+  - `native_vectorized`;
+  - `native_event`;
+  - `portfolio_legacy`;
+  - optional `nautilus` with `--include-nautilus`.
+- Captures:
+  - bars x symbols;
+  - generated signal transitions;
+  - explicit order count;
+  - event count;
+  - warmup / first-run time;
+  - repeated runtime;
+  - `tracemalloc` peak memory;
+  - RSS delta where available;
+  - throughput and threshold pass/fail.
+- Added `benchmarks/phase7_thresholds.json`.
+- Added committed benchmark summary at `benchmarks/phase7_report.md`.
+- Latest local run:
+  - smoke profile passes native thresholds;
+  - standard profile: `portfolio_legacy` passes, while `native_vectorized` and
+    `native_event` exceed current threshold guardrails on this machine.
+
+Conclusion:
+
+- Do not jump to Cython/C++ yet.
+- Next optimization step should be profiling full-facade overhead vs pure Numba
+  kernel runtime:
+  - data normalization;
+  - pandas-to-ndarray conversion;
+  - order array construction;
+  - result/report construction;
+  - actual kernel loops.
+- Cython/C++ escalation requires repeated threshold misses after profiling
+  identifies a hot loop Numba cannot address.
+
 ---
 
 ## Phase 8 - Documentation And Examples

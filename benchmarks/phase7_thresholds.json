@@ -15,6 +15,12 @@
     "standard_max_seconds_per_100k_orders": 1.25,
     "large_max_seconds_per_100k_orders": 0.9
   },
+  "portfolio_legacy": {
+    "smoke_max_runtime_seconds": 0.5,
+    "standard_max_seconds_per_million_bar_symbols": 2.5,
+    "large_max_seconds_per_million_bar_symbols": 2.0,
+    "purpose": "multi-symbol portfolio matrix diagnostics and attribution"
+  },
   "nautilus": {
     "smoke_max_runtime_seconds": 5.0,
     "standard_max_seconds_per_100k_bars": 8.0,

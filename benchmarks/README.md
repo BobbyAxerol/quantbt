@@ -16,3 +16,13 @@ Profiles:
 
 The runner writes both JSON and Markdown into `benchmarks/out/` by default.
 Nautilus is optional and skipped unless `--include-nautilus` is passed.
+
+Backends currently measured:
+
+- `native_vectorized`
+- `native_event`
+- `portfolio_legacy`
+- optional `nautilus`
+
+The committed summary lives in `benchmarks/phase7_report.md`. Local JSON/MD
+outputs under `benchmarks/out/` are git-ignored by design.
