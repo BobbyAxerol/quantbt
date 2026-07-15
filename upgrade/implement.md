@@ -325,6 +325,159 @@ Planned Nautilus upgrades, not implemented yet:
 
 ---
 
+## Phase 5.2 - Nautilus Explicit Order Replay
+
+Purpose:
+
+Promote Nautilus from signal-target validation into an execution trustee backend
+that can replay explicit QuantBT `OrderIntent` objects. This is the foundation
+for DCA/grid validation, SL/TP/OCO workflows, order-package arbitrage, and later
+multi-leg portfolio validation.
+
+Branch:
+
+```text
+feat/nautilus-explicit-orders
+```
+
+Design scope:
+
+- Keep alpha/signal generation outside Nautilus.
+- QuantBT creates normalized `OrderIntent` objects.
+- Nautilus receives those explicit orders and simulates order lifecycle,
+  execution, fills, positions, account reports, and venue semantics.
+- The first implementation is deliberately single-symbol Binance USDT perpetual
+  replay; multi-symbol and basket package replay come after the single-symbol
+  path is trustworthy.
+
+Common order families to support over time:
+
+- Basic orders:
+  - market;
+  - limit;
+  - stop-market;
+  - stop-limit.
+- Common venue controls:
+  - GTC;
+  - IOC;
+  - FOK where supported;
+  - post-only later if Nautilus route is clean;
+  - reduce-only;
+  - client tags/order ids.
+- Conditional structures:
+  - stop loss;
+  - take profit;
+  - trailing stop later;
+  - OCO / bracket groups once base order replay is stable.
+- Package orders:
+  - DCA/grid safety-order packages;
+  - pair/basket package orders;
+  - arbitrage multi-leg package orders with atomic/best-effort policies.
+
+### Phase 5.2A - Single-Symbol Explicit Order Adapter
+
+Deliverables:
+
+- Add a Nautilus explicit-order route that accepts QuantBT `OrderIntent`
+  sequences.
+- Public endpoint route:
+
+```python
+QuantBTEndpoint.orders(backend="nautilus", ...)
+bt.simulate(data=df, orders=[OrderIntent(...), ...])
+```
+
+- Convert supported QuantBT fields:
+  - timestamp;
+  - symbol;
+  - side;
+  - order type;
+  - quantity;
+  - price / trigger price;
+  - TIF;
+  - reduce-only;
+  - tag / client order id where Nautilus exposes it cleanly.
+- Return `BacktestResultV2` with:
+  - raw `account_report`;
+  - raw `orders_report`;
+  - raw `fills_report`;
+  - raw `positions_report`;
+  - reconstructed equity/positions;
+  - metadata declaring `input_mode="explicit_orders"`.
+
+Initial support matrix:
+
+| QuantBT order | Phase 5.2A target |
+|---|---|
+| `MARKET` | supported |
+| `LIMIT` | supported |
+| `STOP_MARKET` | supported if Nautilus factory route is stable |
+| `STOP_LIMIT` | map only if factory route is stable, otherwise explicit `NotImplementedError` |
+| `GTC` | supported |
+| `IOC` | supported if Nautilus route is stable |
+| `FOK` | explicit support or documented reject |
+| `reduce_only` | pass through if supported, otherwise documented metadata warning |
+
+Acceptance tests:
+
+- Market buy then market sell produces expected Nautilus reports.
+- Buy limit fills only when the bar range touches the limit.
+- Sell limit fills only when the bar range touches the limit.
+- GTC order can wait across bars before filling.
+- Unsupported order types fail clearly instead of silently degrading.
+- Missing Nautilus dependency still raises a clear optional-install error.
+- Existing signal-based `nautilus_validation(...)` remains unchanged.
+
+### Phase 5.2B - Parity And Audit Hardening
+
+Deliverables:
+
+- Native-event vs Nautilus parity helper/report:
+  - timestamp;
+  - symbol;
+  - side;
+  - requested quantity;
+  - requested price;
+  - fill price;
+  - fee;
+  - position after fill;
+  - native equity;
+  - Nautilus equity;
+  - diff.
+- Extend `export_nautilus_report_bundle(...)` manifest for explicit-order runs:
+  - `input_mode`;
+  - `order_count_input`;
+  - `orders_count`;
+  - `fills_count`;
+  - `cancelled/rejected count` when available.
+- Add example:
+
+```text
+examples/nautilus_explicit_orders.py
+```
+
+- Update docs:
+  - `docs/endpoint.md`;
+  - `docs/nautilus_backend.md`;
+  - README if the route is user-facing enough.
+
+Acceptance tests:
+
+- Simple native-event and Nautilus market replay agree in direction, order
+  count, fill count and broad equity accounting.
+- Report bundle works for explicit orders.
+- Known intentional differences are documented instead of hidden.
+
+Non-goals for 5.2:
+
+- Full DCA/grid Nautilus validation.
+- Full basket/multi-symbol Nautilus validation.
+- Full OCO/bracket engine.
+- Exchange-specific latency/queue-position modeling.
+- Replacing native event engine as the fast research path.
+
+---
+
 ## Phase 5.1 - Nautilus Trustee Report Bundle
 
 Purpose:
