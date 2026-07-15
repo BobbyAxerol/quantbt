@@ -682,6 +682,89 @@ Non-goals for 5.3:
 - New schema-only arbitrage engines for cross-exchange, triangular, or options
   vol arbitrage.
 
+## Phase 5.4 - Nautilus Adapter Depth
+
+Purpose:
+
+Move Nautilus validation from simple package replay toward institutional
+execution semantics without breaking existing endpoint behavior.
+
+This work must stay opt-in and auditable. Existing signal, explicit-order,
+DCA/grid, bracket/OCO, basket, portfolio, and arbitrage endpoints must continue
+to behave as they do today unless a new depth policy is explicitly passed.
+
+### Phase 5.4A - Execution-Depth Preflight And Package Semantics
+
+Scope:
+
+- Add a deterministic preflight layer for `OrderIntent` packages before deeper
+  Nautilus execution:
+  - high/low touch checks for limit/stop orders;
+  - latency-bar shifting;
+  - simple queue-ahead and volume participation cap;
+  - optional partial-fill simulation;
+  - reduce-only capping to current simulated position;
+  - exchange-like OCO sibling cancellation after the first exit fill;
+  - all-or-none package rejection for basket/arbitrage package groups.
+- Keep the layer dependency-free from Nautilus so it can be tested quickly and
+  reused by native audits.
+- Export the config/result helpers publicly, but do not enable them by default
+  in existing endpoints.
+
+Acceptance:
+
+- Mock package tests prove:
+  - all-or-none basket rejects every leg when one leg cannot fill;
+  - best-effort package can keep valid fills;
+  - partial-fill quantity respects volume participation and queue-ahead;
+  - reduce-only exit cannot over-close the simulated position;
+  - OCO sibling is canceled after TP/SL fill;
+  - latency shifts effective execution bars.
+- Full internal tests pass.
+
+Status:
+
+- Implemented `NautilusExecutionDepthConfig`,
+  `PackageDepthPreflightResult`, and
+  `simulate_nautilus_order_package_depth(...)`.
+- Added deterministic domain tests for all acceptance bullets above.
+- Documented opt-in usage in `docs/nautilus_backend.md` and
+  `docs/endpoint.md`.
+- Existing endpoints are unchanged by default.
+- Validation:
+  - `test_phase5_4_nautilus_depth.py` passes;
+  - targeted endpoint/Nautilus regression passes;
+  - full internal tests pass excluding real-data scripts;
+  - `test_real.py` and `test_real_endpoints.py` execute successfully as
+    scripts.
+
+### Phase 5.4B - Deep Nautilus Adapter Integration And Parity Artifacts
+
+Scope:
+
+- Wire Phase 5.4A preflight into Nautilus package endpoints as an optional
+  parameter / config path:
+  - reject all-or-none package groups before Nautilus submission;
+  - annotate package reports with preflight accepted/rejected/canceled/partial
+    diagnostics;
+  - preserve raw Nautilus reports separately from preflight diagnostics.
+- Upgrade dynamic DCA/grid validation:
+  - activate safety/exit orders from package state rather than submitting every
+    possible order blindly at package start;
+  - cap reduce-only TP/SL exits to filled ladder quantity;
+  - document same-bar ambiguity policy.
+- Upgrade parity artifacts:
+  - portfolio package native-vs-Nautilus order/fill/equity comparison;
+  - arbitrage package native-vs-Nautilus comparison;
+  - known policy-difference classifier.
+
+Non-goals for Phase 5.4:
+
+- True order-book queue modeling from tick-level L2 data.
+- Cross-exchange latency arbitrage.
+- Portfolio-margin exact clone of any venue.
+- Replacing native vectorized/event backends for optimizer workloads.
+
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
 Purpose:
