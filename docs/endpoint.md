@@ -98,20 +98,14 @@ Current executable routes:
 | Signal series | supported | `QuantBTEndpoint.nautilus_validation(...)` | single-symbol target signal replay |
 | Explicit orders | supported | `QuantBTEndpoint.orders(backend="nautilus", ...)` | single-symbol `OrderIntent` replay |
 | Parity audit | supported | `build_native_nautilus_parity_report(...)` | native-vs-Nautilus order/fill/equity comparison |
+| DCA/grid validation | experimental | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
+| Bracket/OCO | experimental | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
 | Arbitrage packages | experimental | `QuantBTEndpoint.arbitrage(..., backend="nautilus")` | selected basis/stat-arb package validation |
 | Basket/pair packages | experimental | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
 | Multi-symbol portfolio packages | experimental | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
 
-Planned routes:
-
-| Route | Planned endpoint | Notes |
-|---|---|---|
-| DCA/grid validation | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
-| Bracket/OCO | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
-
-Anything marked `planned` should not be called by production notebooks yet.
-Those endpoint names are reserved so the public contract can be added without
-changing existing workflows.
+Experimental Nautilus routes are intended for controlled validation and audit,
+not broad optimizer sweeps.
 
 ## Shared Configuration
 
@@ -430,6 +424,49 @@ Routing:
 - engine: `BacktestEngine`;
 - sizing: `dca_ladder`.
 
+Optional Nautilus structured DCA/grid validation:
+
+```python
+from quantbt import DcaGridSpec, OrderSide, QuantBTEndpoint
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+symbol = "ETHUSDT-PERP.BINANCE"
+
+bt = QuantBTEndpoint.nautilus_dca_grid(
+    spec=DcaGridSpec(
+        symbol=symbol,
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],  # often next bar for bar-based contingent exits
+        side=OrderSide.BUY,
+        base_notional=1_000,
+        safety_notional=500,
+        safety_order_count=2,
+        step_pct=0.01,
+        step_scale=1.2,
+        volume_scale=1.5,
+        take_profit_pct=0.01,
+        stop_loss_pct=0.05,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id=symbol,
+        timeframe="1h",
+        starting_balance=20_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+This route compiles a deterministic package into explicit orders. Nautilus
+handles bar high/low touch behavior, order lifecycle, fills and sibling
+cancellation. TP/SL exits are reduce-only and sized to the maximum planned
+ladder quantity for conservative validation.
+
 ## Explicit Orders
 
 Use this when the strategy already produces orders instead of target positions.
@@ -536,8 +573,36 @@ result = bt.simulate(
 Phase 5.2A Nautilus order replay supports single-symbol market, limit,
 stop-market, and stop-limit order factory mapping when Nautilus exposes the
 route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
-reports. DCA/grid and multi-leg package generation remain separate higher-level
-adapters.
+reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
+higher-level adapters that compile into this explicit-order replay path.
+
+Structured bracket/OCO validation:
+
+```python
+from quantbt import BracketOrderSpec, OrderSide, QuantBTEndpoint
+
+bt = QuantBTEndpoint.nautilus_bracket_orders(
+    spec=BracketOrderSpec(
+        symbol="ETHUSDT-PERP.BINANCE",
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],
+        side=OrderSide.BUY,
+        qty=0.25,
+        take_profit_price=2_100,
+        stop_loss_price=1_950,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+Bracket/OCO exits preserve `oco_group_id`, `parent_tag`, `leg_role` and tags in
+the package map. When an exit fills, the Nautilus package strategy cancels the
+sibling exit order.
 
 Native-vs-Nautilus parity audit:
 

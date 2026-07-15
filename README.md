@@ -126,10 +126,9 @@ creates an audit table comparing requested order quantities, fill prices, fees,
 positions, equity, and diffs between native event replay and Nautilus replay.
 Use `QuantBTEndpoint.nautilus_support_matrix()` to inspect which Nautilus routes
 are supported, experimental, or planned before wiring a service.
-Experimental Nautilus package validation is available for
-`QuantBTEndpoint.basket(backend="nautilus", ...)` and
-`QuantBTEndpoint.portfolio(backend="nautilus", ...)` by compiling strategy
-state into explicit order packages.
+Experimental Nautilus package validation is available for DCA/grid,
+bracket/OCO, basket, and portfolio workflows by compiling strategy state into
+explicit order packages.
 
 Supported Binance perpetual validation instruments:
 
@@ -208,6 +207,8 @@ QuantBTEndpoint.pct_equity(...)          # legacy % equity sizing
 QuantBTEndpoint.signal_notional(...)     # fixed units between signal changes
 QuantBTEndpoint.dca_ladder(...)          # DCA/grid structural levels
 QuantBTEndpoint.orders(...)              # explicit OrderIntent simulation
+QuantBTEndpoint.nautilus_dca_grid(...)   # Nautilus DCA/grid package validation
+QuantBTEndpoint.nautilus_bracket_orders(...) # Nautilus bracket/OCO validation
 QuantBTEndpoint.basket(...)              # pair/basket event simulation
 QuantBTEndpoint.arbitrage(...)           # arbitrage spec execution
 QuantBTEndpoint.portfolio(...)           # multi-symbol portfolio matrix
