@@ -470,10 +470,11 @@ Acceptance tests:
 
 Non-goals for 5.2:
 
-- Full DCA/grid Nautilus validation.
+- Dynamic in-Nautilus alpha/state generation for DCA/grid.
 - Full advanced basket/multi-symbol Nautilus validation with all-or-none
   package semantics and portfolio-margin replication.
-- Full OCO/bracket engine.
+- Exchange-native contingent order-list semantics beyond package-strategy OCO
+  sibling cancellation.
 - Exchange-specific latency/queue-position modeling.
 - Replacing native event engine as the fast research path.
 
@@ -491,6 +492,16 @@ Current status:
   - explicit-order fields in report bundle manifest/summary;
   - example `examples/nautilus_explicit_orders.py`;
   - docs updated for endpoint and Nautilus backend usage.
+- Phase 5.2C implemented at experimental structured-package level:
+  - `DcaGridSpec`, `BracketOrderSpec`, and `StructuredOrderPlan`;
+  - `QuantBTEndpoint.nautilus_dca_grid(...)`;
+  - `QuantBTEndpoint.nautilus_bracket_orders(...)`;
+  - DCA base market orders, safety GTC limits, and optional reduce-only TP/SL
+    exits compile into explicit `OrderIntent` packages;
+  - bracket/OCO entry plus TP/SL exits compile into explicit `OrderIntent`
+    packages;
+  - Nautilus package strategy cancels sibling TP/SL exit orders after the first
+    exit fill and exposes `oco_cancellations` in metadata.
 - Phase 5.2D implemented at experimental package-validation level:
   - `QuantBTEndpoint.basket(backend="nautilus", ...)`;
   - `QuantBTEndpoint.portfolio(backend="nautilus", ...)`;
@@ -501,6 +512,8 @@ Current status:
   - native event explicit order route remains unchanged;
   - Nautilus explicit order route works for market and GTC limit replay;
   - native-vs-Nautilus market replay parity smoke;
+  - Nautilus DCA/grid structured package smoke;
+  - Nautilus bracket/OCO sibling cancellation smoke;
   - Nautilus basket package smoke;
   - Nautilus portfolio matrix package smoke;
   - report bundle explicit-order manifest fields;
@@ -539,9 +552,9 @@ QuantBTEndpoint.nautilus_bracket_orders(...)
 QuantBTEndpoint.orders(backend="nautilus", orders=[...])
 ```
 
-The first two endpoint names are planned public convenience routes. They should
-compile into explicit `OrderIntent` packages, then reuse the already-supported
-Nautilus explicit-order replay path.
+The first two endpoint names are now experimental public convenience routes.
+They compile into explicit `OrderIntent` packages, then reuse the
+already-supported Nautilus explicit-order replay path.
 
 Acceptance tests:
 

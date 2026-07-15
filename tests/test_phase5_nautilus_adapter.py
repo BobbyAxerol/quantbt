@@ -9,6 +9,8 @@ from quantbt import (
     BacktestResultV2,
     BasketLegSpec,
     BasketSpec,
+    BracketOrderSpec,
+    DcaGridSpec,
     QuantBTEndpoint,
     build_native_nautilus_parity_report,
     summarize_native_nautilus_parity_report,
@@ -221,6 +223,105 @@ def test_nautilus_backend_replays_explicit_market_and_limit_orders():
     assert report.iloc[0]["time_in_force"] == "GTC"
     assert report.iloc[0]["status"] == "FILLED"
     assert report.iloc[1]["is_reduce_only"] in (True, "True", "true")
+
+
+def test_nautilus_bracket_endpoint_fills_tp_and_cancels_stop_sibling():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=8, freq="1h", tz="UTC")
+    df = pd.DataFrame(
+        {
+            "open": [100.0] * len(idx),
+            "high": [101.0, 101.0, 101.0, 111.0, 112.0, 100.0, 100.0, 100.0],
+            "low": [99.0, 99.0, 99.0, 98.0, 98.0, 98.0, 98.0, 98.0],
+            "close": [100.0, 100.0, 100.0, 110.0, 111.0, 100.0, 100.0, 100.0],
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    symbol = "ETHUSDT-PERP.BINANCE"
+
+    result = QuantBTEndpoint.nautilus_bracket_orders(
+        spec=BracketOrderSpec(
+            symbol=symbol,
+            entry_timestamp=idx[1],
+            exit_timestamp=idx[2],
+            side=OrderSide.BUY,
+            qty=0.1,
+            take_profit_price=110.0,
+            stop_loss_price=95.0,
+        ),
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            instrument_id=symbol,
+            timeframe="1h",
+            starting_balance=10_000.0,
+            bypass_risk=True,
+        ),
+    ).simulate(data=df)
+
+    assert result.metadata["input_mode"] == "bracket_oco"
+    assert result.metadata["orders_count"] == 3
+    assert result.metadata["fills_count"] == 2
+    assert result.metadata["oco_cancellations"]
+    assert result.metadata["package_order_map"]["leg_role"].tolist() == ["entry", "take_profit", "stop_loss"]
+
+
+def test_nautilus_dca_grid_endpoint_fills_safety_tp_and_cancels_sl_sibling():
+    try:
+        require_nautilus()
+    except ImportError:
+        pytest.skip("nautilus_trader not installed")
+
+    idx = pd.date_range("2024-01-01", periods=8, freq="1h", tz="UTC")
+    df = pd.DataFrame(
+        {
+            "open": [100.0] * len(idx),
+            "high": [101.0, 101.0, 101.0, 103.0, 110.0, 110.0, 100.0, 100.0],
+            "low": [99.0, 99.0, 98.0, 98.0, 98.0, 98.0, 98.0, 98.0],
+            "close": [100.0, 100.0, 99.0, 100.0, 108.0, 109.0, 100.0, 100.0],
+            "volume": 1_000.0,
+        },
+        index=idx,
+    )
+    symbol = "ETHUSDT-PERP.BINANCE"
+
+    result = QuantBTEndpoint.nautilus_dca_grid(
+        spec=DcaGridSpec(
+            symbol=symbol,
+            entry_timestamp=idx[1],
+            exit_timestamp=idx[2],
+            side=OrderSide.BUY,
+            base_notional=1_000.0,
+            safety_notional=500.0,
+            safety_order_count=1,
+            step_pct=0.01,
+            take_profit_pct=0.02,
+            stop_loss_pct=0.05,
+        ),
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(
+            instrument_id=symbol,
+            timeframe="1h",
+            starting_balance=10_000.0,
+            bypass_risk=True,
+        ),
+    ).simulate(data=df)
+
+    package_map = result.metadata["package_order_map"]
+
+    assert result.metadata["input_mode"] == "dca_grid"
+    assert result.metadata["orders_count"] == 4
+    assert result.metadata["fills_count"] == 3
+    assert result.metadata["oco_cancellations"]
+    assert package_map.loc[1, "leg_role"] == "safety"
+    assert float(package_map.loc[1, "price"]) == 99.0
+    assert package_map.loc[2, "leg_role"] == "take_profit"
 
 
 def test_nautilus_config_rejects_dca_ladder_until_event_ladder_is_supported():

@@ -6,6 +6,8 @@ from quantbt import (
     AccountConfig,
     BasketLegSpec,
     BasketSpec,
+    BracketOrderSpec,
+    DcaGridSpec,
     BacktestResultV2,
     format_metrics_report,
     OrderIntent,
@@ -13,6 +15,8 @@ from quantbt import (
     OrderType,
     QuantBTEndpoint,
     TimeInForce,
+    build_bracket_order_plan,
+    build_dca_grid_order_plan,
 )
 
 
@@ -164,6 +168,163 @@ def test_endpoint_orders_can_route_to_nautilus_adapter(monkeypatch):
     assert captured["params"] == {"input_mode": "explicit_orders", "order_count_input": 1}
     assert result.metadata["input_mode"] == "explicit_orders"
     assert result.metadata["order_count_input"] == 1
+
+
+def test_structured_dca_grid_compiler_uses_legacy_grid_spacing():
+    df = _bars()
+    spec = DcaGridSpec(
+        symbol="ETHUSDT-PERP.BINANCE",
+        entry_timestamp=df.index[1],
+        side=OrderSide.BUY,
+        base_notional=1_000.0,
+        safety_notional=500.0,
+        safety_order_count=2,
+        step_pct=0.01,
+        step_scale=2.0,
+        volume_scale=1.5,
+        take_profit_pct=0.01,
+        stop_loss_pct=0.05,
+    )
+
+    plan = build_dca_grid_order_plan(spec, close=df["close"])
+
+    assert plan.package_type == "dca_grid"
+    assert len(plan.orders) == 5
+    assert plan.orders[0].order_type is OrderType.MARKET
+    assert plan.orders[1].order_type is OrderType.LIMIT
+    assert plan.orders[1].price == 99.0
+    assert plan.orders[2].price == 97.0
+    assert plan.orders[-2].reduce_only is True
+    assert plan.orders[-1].order_type is OrderType.STOP_MARKET
+    assert plan.order_table["oco_group_id"].dropna().nunique() == 1
+
+
+def test_structured_bracket_compiler_builds_oco_reduce_only_exits():
+    df = _bars()
+    spec = BracketOrderSpec(
+        symbol="ETHUSDT-PERP.BINANCE",
+        entry_timestamp=df.index[1],
+        exit_timestamp=df.index[2],
+        side=OrderSide.BUY,
+        qty=0.25,
+        take_profit_price=110.0,
+        stop_loss_price=95.0,
+    )
+
+    plan = build_bracket_order_plan(spec)
+
+    assert plan.package_type == "bracket_oco"
+    assert [order.metadata["leg_role"] for order in plan.orders] == ["entry", "take_profit", "stop_loss"]
+    assert plan.orders[1].side is OrderSide.SELL
+    assert plan.orders[1].reduce_only is True
+    assert plan.orders[2].trigger_price == 95.0
+    assert plan.order_table["oco_group_id"].dropna().nunique() == 1
+
+
+def test_endpoint_nautilus_dca_grid_routes_structured_package(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_order_packages(self, data, orders, symbols, params=None):
+            captured["orders"] = tuple(orders)
+            captured["symbols"] = list(symbols)
+            captured["params"] = dict(params or {})
+            idx = next(iter(data.values())).index
+            return BacktestResultV2(
+                equity=pd.Series(10_000.0, index=idx),
+                returns=pd.Series(0.0, index=idx),
+                positions=pd.DataFrame({f"Position_{symbols[0]}": 0.0}, index=idx),
+                closes=pd.DataFrame({f"Close_{symbols[0]}": data[symbols[0]]["close"]}, index=idx),
+                symbols=list(symbols),
+                initial_capital=10_000.0,
+                metadata={"backend": "nautilus", "engine": "nautilus_package_orders", **captured["params"]},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    symbol = "ETHUSDT-PERP.BINANCE"
+    endpoint = QuantBTEndpoint.nautilus_dca_grid(
+        symbol=symbol,
+        entry_timestamp=df.index[1],
+        side=OrderSide.BUY,
+        base_notional=1_000.0,
+        safety_notional=500.0,
+        safety_order_count=1,
+        step_pct=0.01,
+        take_profit_pct=0.02,
+        stop_loss_pct=0.05,
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(instrument_id=symbol, timeframe="1d"),
+    )
+    result = endpoint.simulate(data=df)
+
+    assert captured["config"].starting_balance == 10_000.0
+    assert captured["symbols"] == [symbol]
+    assert len(captured["orders"]) == 4
+    assert captured["orders"][1].price == 99.0
+    assert captured["orders"][-1].metadata["leg_role"] == "stop_loss"
+    assert captured["params"]["input_mode"] == "dca_grid"
+    assert captured["params"]["package_type"] == "dca_grid"
+    assert result.metadata["engine"] == "nautilus_dca_grid"
+
+
+def test_endpoint_nautilus_bracket_routes_structured_package(monkeypatch):
+    from quantbt.adapters.nautilus import NautilusBackendConfig
+    import quantbt.adapters.nautilus as nautilus_module
+
+    captured = {}
+
+    class FakeNautilusBacktestEngine:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def run_order_packages(self, data, orders, symbols, params=None):
+            captured["orders"] = tuple(orders)
+            captured["symbols"] = list(symbols)
+            captured["params"] = dict(params or {})
+            idx = next(iter(data.values())).index
+            return BacktestResultV2(
+                equity=pd.Series(10_000.0, index=idx),
+                returns=pd.Series(0.0, index=idx),
+                positions=pd.DataFrame({f"Position_{symbols[0]}": 0.0}, index=idx),
+                closes=pd.DataFrame({f"Close_{symbols[0]}": data[symbols[0]]["close"]}, index=idx),
+                symbols=list(symbols),
+                initial_capital=10_000.0,
+                metadata={"backend": "nautilus", "engine": "nautilus_package_orders", **captured["params"]},
+            )
+
+    monkeypatch.setattr(nautilus_module, "NautilusBacktestEngine", FakeNautilusBacktestEngine)
+
+    df = _bars()
+    symbol = "ETHUSDT-PERP.BINANCE"
+    endpoint = QuantBTEndpoint.nautilus_bracket_orders(
+        symbol=symbol,
+        entry_timestamp=df.index[1],
+        exit_timestamp=df.index[2],
+        side=OrderSide.BUY,
+        qty=0.25,
+        take_profit_price=110.0,
+        stop_loss_price=95.0,
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_config=NautilusBackendConfig(instrument_id=symbol, timeframe="1d"),
+    )
+    result = endpoint.simulate(data=df)
+
+    assert captured["symbols"] == [symbol]
+    assert len(captured["orders"]) == 3
+    assert captured["orders"][1].metadata["oco_group_id"] == captured["orders"][2].metadata["oco_group_id"]
+    assert captured["orders"][1].reduce_only is True
+    assert captured["params"]["input_mode"] == "bracket_oco"
+    assert result.metadata["engine"] == "nautilus_bracket_oco"
 
 
 def test_endpoint_basket_simulation():
@@ -457,8 +618,8 @@ def test_endpoint_nautilus_support_matrix_declares_supported_and_planned_routes(
     assert matrix["explicit_orders"]["status"] == "supported"
     assert matrix["explicit_orders"]["order_types"] == "market, limit, stop_market, stop_limit"
     assert matrix["parity_audit"]["status"] == "supported"
-    assert matrix["dca_grid"]["status"] == "planned"
-    assert matrix["bracket_oco"]["status"] == "planned"
+    assert matrix["dca_grid"]["status"] == "experimental"
+    assert matrix["bracket_oco"]["status"] == "experimental"
     assert matrix["basket_pair"]["status"] == "experimental"
     assert matrix["multi_symbol_portfolio"]["status"] == "experimental"
     assert matrix["arbitrage_package_orders"]["status"] == "experimental"

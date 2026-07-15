@@ -33,6 +33,12 @@ from .core.basket import build_frozen_basket_orders
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
+from .core.structured_orders import (
+    BracketOrderSpec,
+    DcaGridSpec,
+    build_bracket_order_plan,
+    build_dca_grid_order_plan,
+)
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
@@ -95,6 +101,9 @@ class EndpointConfig:
     arbitrage_spec:
         Optional arbitrage spec stored at construction time for the future
         ArbitrageBacktestEngine.
+    structured_order_spec:
+        Optional DCA/grid or bracket/OCO package spec compiled into explicit
+        orders for Nautilus structured-order validation.
     symbols:
         Optional symbol list. Single-symbol endpoints use the first symbol.
     dca_kwargs:
@@ -127,6 +136,7 @@ class EndpointConfig:
     asset_type: str = "crypto"
     basket: Optional[BasketSpec] = None
     arbitrage_spec: object = None
+    structured_order_spec: object = None
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -216,6 +226,49 @@ class QuantBTEndpoint:
         handling, fees, margin checks, and fills in `result.fills`.
         """
         return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
+
+    @classmethod
+    def nautilus_dca_grid(cls, spec: Optional[DcaGridSpec] = None, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a Nautilus DCA/grid structured-order validation endpoint.
+
+        The endpoint compiles a `DcaGridSpec` into explicit orders:
+        base market entry, safety limit orders, and optional reduce-only
+        TP/SL exits. The resulting orders are replayed by Nautilus through the
+        same package-order adapter as `orders(backend="nautilus")`.
+        """
+        if spec is None:
+            spec = DcaGridSpec(**_pop_dataclass_kwargs(kwargs, DcaGridSpec))
+        return cls(
+            _config_from_kwargs(
+                mode="nautilus_dca_grid",
+                backend="nautilus",
+                structured_order_spec=spec,
+                symbols=[spec.symbol],
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def nautilus_bracket_orders(cls, spec: Optional[BracketOrderSpec] = None, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a Nautilus bracket/OCO structured-order validation endpoint.
+
+        The endpoint compiles a `BracketOrderSpec` into entry plus linked
+        reduce-only take-profit and/or stop-loss exits. OCO group metadata is
+        preserved and Nautilus cancels sibling exit orders on first exit fill.
+        """
+        if spec is None:
+            spec = BracketOrderSpec(**_pop_dataclass_kwargs(kwargs, BracketOrderSpec))
+        return cls(
+            _config_from_kwargs(
+                mode="nautilus_bracket_orders",
+                backend="nautilus",
+                structured_order_spec=spec,
+                symbols=[spec.symbol],
+                **kwargs,
+            )
+        )
 
     @classmethod
     def basket(cls, basket: Optional[BasketSpec] = None, backend: str = "native_event", **kwargs) -> "QuantBTEndpoint":
@@ -354,18 +407,18 @@ class QuantBTEndpoint:
                 "notes": "preserves TIF, reduce_only, tags, price and trigger_price where Nautilus supports them",
             },
             "dca_grid": {
-                "status": "planned",
+                "status": "experimental",
                 "endpoint": "QuantBTEndpoint.nautilus_dca_grid(...)",
                 "scope": "base order, safety limit orders, TP/SL package",
                 "order_types": "market, limit, bracket/OCO exits",
-                "notes": "Phase 5.2C; should compile to explicit OrderIntent packages",
+                "notes": "Phase 5.2C; compiles to explicit OrderIntent packages for Nautilus validation",
             },
             "bracket_oco": {
-                "status": "planned",
+                "status": "experimental",
                 "endpoint": "QuantBTEndpoint.nautilus_bracket_orders(...)",
                 "scope": "entry plus linked stop-loss/take-profit exits",
                 "order_types": "bracket/OCO package",
-                "notes": "Phase 5.2C; sibling cancellation must be visible in reports",
+                "notes": "Phase 5.2C; sibling cancellation is handled by the Nautilus package strategy",
             },
             "basket_pair": {
                 "status": "experimental",
@@ -635,6 +688,8 @@ class QuantBTEndpoint:
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
         if mode == "orders":
             return self._run_orders(data=data, orders=orders, datetime_index=datetime_index, symbols=symbols)
+        if mode in ("nautilus_dca_grid", "nautilus_bracket_orders"):
+            return self._run_structured_orders(data=data, datetime_index=datetime_index, symbols=symbols)
         if mode == "basket":
             return self._run_basket(
                 data=data,
@@ -845,6 +900,39 @@ class QuantBTEndpoint:
             contract_size=self.config.contract_size,
         )
         self._store_result(self.engine.result)
+        return self.result
+
+    def _run_structured_orders(self, data, datetime_index, symbols):
+        spec = self.config.structured_order_spec
+        if spec is None:
+            raise ValueError(f"{self.config.mode} endpoint requires a structured order spec")
+        frame = _standardize_frame(data, datetime_index=datetime_index)
+        symbol_list = list(symbols or self.config.symbols or [spec.symbol])
+        if spec.symbol not in symbol_list:
+            symbol_list = [spec.symbol]
+        if isinstance(spec, DcaGridSpec):
+            plan = build_dca_grid_order_plan(spec, close=frame["close"])
+        elif isinstance(spec, BracketOrderSpec):
+            plan = build_bracket_order_plan(spec)
+        else:
+            raise TypeError(f"unsupported structured_order_spec={type(spec).__name__}")
+
+        result = self._run_nautilus_package_orders(
+            data={spec.symbol: frame},
+            orders=plan.orders,
+            symbols=[spec.symbol],
+            params={
+                "input_mode": plan.package_type,
+                "structured_order_plan": plan,
+                "structured_order_table": plan.order_table,
+                "package_id": plan.package_id,
+                "package_type": plan.package_type,
+                "package_metadata": plan.metadata,
+                "order_count_input": len(plan.orders),
+            },
+        )
+        result.metadata["engine"] = f"nautilus_{plan.package_type}"
+        self._store_result(result)
         return self.result
 
     def _run_basket(self, data, signal, signal_col, basket, closes, highs, lows, datetime_index, symbols):
@@ -1432,6 +1520,7 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
             "funding_rate": _jsonable(config.funding_rate),
         },
         "dca_kwargs": _jsonable(config.dca_kwargs),
+        "structured_order_spec": _jsonable(config.structured_order_spec),
         "symbols": _jsonable(config.symbols),
         "metadata": _jsonable(config.metadata),
     }
@@ -1578,6 +1667,17 @@ def _config_from_kwargs(**kwargs) -> EndpointConfig:
             dca_kwargs[key] = kwargs.pop(key)
 
     return EndpointConfig(account=account, execution=execution, dca_kwargs=dca_kwargs, **kwargs)
+
+
+def _pop_dataclass_kwargs(kwargs: Dict, dataclass_type) -> Dict:
+    fields = getattr(dataclass_type, "__dataclass_fields__", {})
+    out = {}
+    for key in list(fields):
+        if key == "metadata":
+            continue
+        if key in kwargs:
+            out[key] = kwargs.pop(key)
+    return out
 
 
 def _resolve_backend(config: EndpointConfig) -> str:

@@ -45,7 +45,10 @@ class NautilusBackendConfig:
             raise ValueError("trade_notional must be >= 0")
         sizing = self.sizing_mode.lower().strip()
         if sizing in ("dca_ladder", "dca"):
-            raise NotImplementedError("Nautilus DCA/grid validation is not implemented yet")
+            raise NotImplementedError(
+                "Use QuantBTEndpoint.nautilus_dca_grid(...) for DCA/grid structured-order validation; "
+                "NautilusBackendConfig.sizing_mode is only for signal-series sizing."
+            )
         if sizing not in {"signal_notional", "signal", "notional", "unit", "%_equity", "pct_equity"}:
             raise ValueError("sizing_mode must be one of signal_notional, notional, unit, or %_equity")
         if "-" not in self.strategy_id:
@@ -265,6 +268,8 @@ class NautilusBacktestEngine:
                     "use_pyramiding": self.config.use_pyramiding,
                     "package_order_map": package_order_map,
                     "package_orders_count": int(len(package_order_map)),
+                    "oco_cancellation_policy": "cancel_sibling_on_first_exit_fill",
+                    "oco_cancellations": list(getattr(strategy, "canceled_siblings", [])),
                     "close_positions_on_stop": self.config.close_positions_on_stop,
                     **self.config.metadata,
                     **(params or {}),
@@ -419,6 +424,10 @@ class NautilusBacktestEngine:
                 self.package_orders = config.package_orders
                 self.submitted_timestamps = set()
                 self.instruments = {}
+                self.order_groups = {}
+                self.client_to_group = {}
+                self.client_to_role = {}
+                self.canceled_siblings = []
 
             def on_start(self):
                 for instrument_id in self.instrument_ids:
@@ -444,8 +453,45 @@ class NautilusBacktestEngine:
                         continue
                     side = nt.OrderSide.BUY if item["side"] == "buy" else nt.OrderSide.SELL
                     order = self._make_order(item, instrument_id, instrument, side)
+                    self._register_group_order(item, order)
                     self.submit_order(order)
                 self.submitted_timestamps.add(ts_event)
+
+            def _register_group_order(self, item, order):
+                group_id = item.get("oco_group_id")
+                role = item.get("leg_role")
+                if not group_id:
+                    return
+                client_order_id = str(order.client_order_id)
+                self.order_groups.setdefault(group_id, {})[client_order_id] = order
+                self.client_to_group[client_order_id] = group_id
+                self.client_to_role[client_order_id] = role
+
+            def on_order_filled(self, event):
+                client_order_id = str(event.client_order_id)
+                role = self.client_to_role.get(client_order_id)
+                if role not in {"take_profit", "stop_loss"}:
+                    return
+                group_id = self.client_to_group.get(client_order_id)
+                if not group_id:
+                    return
+                for sibling_id, sibling_order in list(self.order_groups.get(group_id, {}).items()):
+                    if sibling_id == client_order_id:
+                        continue
+                    sibling_role = self.client_to_role.get(sibling_id)
+                    if sibling_role not in {"take_profit", "stop_loss"}:
+                        continue
+                    try:
+                        self.cancel_order(sibling_order)
+                        self.canceled_siblings.append(
+                            {
+                                "oco_group_id": group_id,
+                                "filled_client_order_id": client_order_id,
+                                "canceled_client_order_id": sibling_id,
+                            }
+                        )
+                    except Exception:
+                        continue
 
             def _make_order(self, item, instrument_id, instrument, side):
                 quantity = instrument.make_qty(Decimal(str(item["qty"])))
@@ -528,6 +574,13 @@ def build_nautilus_package_order_table(
                 "arb_id": order.metadata.get("arb_id"),
                 "arb_type": order.metadata.get("arb_type"),
                 "package_policy": order.metadata.get("package_policy"),
+                "package_id": order.metadata.get("package_id"),
+                "package_type": order.metadata.get("package_type"),
+                "structured_type": order.metadata.get("structured_type"),
+                "leg_role": order.metadata.get("leg_role"),
+                "oco_group_id": order.metadata.get("oco_group_id"),
+                "parent_tag": order.metadata.get("parent_tag"),
+                "ladder_level": order.metadata.get("ladder_level"),
                 "target_units": order.metadata.get("target_units"),
                 "previous_units": order.metadata.get("previous_units"),
             }
@@ -559,6 +612,12 @@ def _orders_payload(
             "reduce_only": bool(order.reduce_only),
             "order_id": order.order_id,
             "tag": order.tag,
+            "package_id": order.metadata.get("package_id"),
+            "package_type": order.metadata.get("package_type"),
+            "structured_type": order.metadata.get("structured_type"),
+            "leg_role": order.metadata.get("leg_role"),
+            "oco_group_id": order.metadata.get("oco_group_id"),
+            "parent_tag": order.metadata.get("parent_tag"),
         }
         payload.setdefault(int(timestamp.value), []).append(item)
     return payload
