@@ -82,6 +82,31 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
 
+## Nautilus Support Matrix
+
+Services can inspect current Nautilus adapter coverage before constructing a
+run:
+
+```python
+matrix = QuantBTEndpoint.nautilus_support_matrix()
+```
+
+Current executable routes:
+
+| Route | Status | Endpoint | Scope |
+|---|---|---|---|
+| Signal series | supported | `QuantBTEndpoint.nautilus_validation(...)` | single-symbol target signal replay |
+| Explicit orders | supported | `QuantBTEndpoint.orders(backend="nautilus", ...)` | single-symbol `OrderIntent` replay |
+| Parity audit | supported | `build_native_nautilus_parity_report(...)` | native-vs-Nautilus order/fill/equity comparison |
+| DCA/grid validation | experimental | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
+| Bracket/OCO | experimental | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
+| Arbitrage packages | experimental | `QuantBTEndpoint.arbitrage(..., backend="nautilus")` | selected basis/stat-arb package validation |
+| Basket/pair packages | experimental | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
+| Multi-symbol portfolio packages | experimental | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
+
+Experimental Nautilus routes are intended for controlled validation and audit,
+not broad optimizer sweeps.
+
 ## Shared Configuration
 
 All factories accept the common account and execution fields below.
@@ -399,6 +424,49 @@ Routing:
 - engine: `BacktestEngine`;
 - sizing: `dca_ladder`.
 
+Optional Nautilus structured DCA/grid validation:
+
+```python
+from quantbt import DcaGridSpec, OrderSide, QuantBTEndpoint
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+symbol = "ETHUSDT-PERP.BINANCE"
+
+bt = QuantBTEndpoint.nautilus_dca_grid(
+    spec=DcaGridSpec(
+        symbol=symbol,
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],  # often next bar for bar-based contingent exits
+        side=OrderSide.BUY,
+        base_notional=1_000,
+        safety_notional=500,
+        safety_order_count=2,
+        step_pct=0.01,
+        step_scale=1.2,
+        volume_scale=1.5,
+        take_profit_pct=0.01,
+        stop_loss_pct=0.05,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id=symbol,
+        timeframe="1h",
+        starting_balance=20_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+This route compiles a deterministic package into explicit orders. Nautilus
+handles bar high/low touch behavior, order lifecycle, fills and sibling
+cancellation. TP/SL exits are reduce-only and sized to the maximum planned
+ladder quantity for conservative validation.
+
 ## Explicit Orders
 
 Use this when the strategy already produces orders instead of target positions.
@@ -420,6 +488,7 @@ orders = [
 ]
 
 bt = QuantBTEndpoint.orders(
+    backend="native_event",
     initial_capital=100_000,
     leverage=5,
     fee_rate=0.0002,
@@ -463,13 +532,133 @@ Execution rules:
 
 Routing:
 
-- backend: `native_event`;
+- backend: `native_event` by default;
 - engine: `BacktestEngineV2`.
+
+Optional Nautilus explicit-order replay:
+
+```python
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(
+    data=df,
+    orders=[
+        OrderIntent(
+            timestamp=df.index[10],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.BUY,
+            order_type=OrderType.LIMIT,
+            qty=0.5,
+            price=1800.0,
+            tif=TimeInForce.GTC,
+            tag="entry-limit",
+        )
+    ],
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+```
+
+Phase 5.2A Nautilus order replay supports single-symbol market, limit,
+stop-market, and stop-limit order factory mapping when Nautilus exposes the
+route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
+reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
+higher-level adapters that compile into this explicit-order replay path.
+
+Structured bracket/OCO validation:
+
+```python
+from quantbt import BracketOrderSpec, OrderSide, QuantBTEndpoint
+
+bt = QuantBTEndpoint.nautilus_bracket_orders(
+    spec=BracketOrderSpec(
+        symbol="ETHUSDT-PERP.BINANCE",
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],
+        side=OrderSide.BUY,
+        qty=0.25,
+        take_profit_price=2_100,
+        stop_loss_price=1_950,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+Bracket/OCO exits preserve `oco_group_id`, `parent_tag`, `leg_role` and tags in
+the package map. When an exit fills, the Nautilus package strategy cancels the
+sibling exit order.
+
+Native-vs-Nautilus parity audit:
+
+```python
+from quantbt import QuantBTEndpoint, build_native_nautilus_parity_report
+
+native_bt = QuantBTEndpoint.orders(backend="native_event", initial_capital=100_000)
+nautilus_bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+    ),
+)
+
+native = native_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+nautilus = nautilus_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+
+parity = build_native_nautilus_parity_report(native, nautilus)
+```
+
+The parity table includes requested quantity/price, native and Nautilus fill
+prices, fees, positions, equity, and diffs. It is designed as an audit artifact;
+known intentional differences should be documented rather than hidden.
+
+`summarize_native_nautilus_parity_report(parity)` returns a compact pass/fail
+summary with max absolute fill-price, fee, position, and equity differences.
 
 ## Basket / Pair
 
 Use this for pair trades or frozen hedge-ratio baskets. The basket signal is a
 scalar series; the engine expands it to per-leg orders using `BasketSpec`.
+
+Nautilus basket validation is available as an experimental package-order route:
+
+```python
+result = QuantBTEndpoint.basket(
+    basket=basket,
+    backend="nautilus",
+    initial_capital=100_000,
+).simulate(data=data_dict, signal=basket_signal)
+```
+
+The route compiles `BasketSpec` into explicit per-leg market `OrderIntent`
+packages, preserving `basket_id`, target units, and package metadata for audit.
+Native basket remains the faster research path.
 
 ```python
 from quantbt import BasketLegSpec, BasketSpec, QuantBTEndpoint
@@ -713,8 +902,29 @@ result = bt.backtest(
 
 Routing:
 
-- backend: `legacy_portfolio`;
+- backend: `legacy_portfolio` by default;
 - engine: `PortfolioBacktestEngine`.
+
+Experimental Nautilus portfolio validation:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    backend="nautilus",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTCUSDT-PERP.BINANCE": 50_000, "ETHUSDT-PERP.BINANCE": 50_000},
+    initial_capital=1_000_000,
+).simulate(
+    positions=positions_df,
+    data=data_dict,
+    symbols=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+)
+```
+
+This route compiles position-matrix transitions into per-symbol market delta
+orders and replays them in one Nautilus venue/account. Phase 5.2D supports
+pre-scalable modes (`signal_notional`, `notional`, `unit`). `%_equity` and
+`dca_ladder` portfolio validation should stay on native/legacy routes until
+their account-dependent package compiler is implemented.
 
 ## Nautilus Validation
 
