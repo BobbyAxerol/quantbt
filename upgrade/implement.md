@@ -476,6 +476,26 @@ Non-goals for 5.2:
 - Exchange-specific latency/queue-position modeling.
 - Replacing native event engine as the fast research path.
 
+Current status:
+
+- Phase 5.2A implemented on `feat/nautilus-explicit-orders`:
+  - `QuantBTEndpoint.orders(backend="nautilus", ...)`;
+  - explicit single-symbol `OrderIntent` replay through Nautilus;
+  - market, limit, stop-market, and stop-limit order factory mapping;
+  - TIF, reduce-only, tags, trigger/limit prices preserved in payload/report
+    tables where Nautilus supports them.
+- Phase 5.2B implemented:
+  - `build_native_nautilus_parity_report(...)`;
+  - explicit-order fields in report bundle manifest/summary;
+  - example `examples/nautilus_explicit_orders.py`;
+  - docs updated for endpoint and Nautilus backend usage.
+- Tested:
+  - native event explicit order route remains unchanged;
+  - Nautilus explicit order route works for market and GTC limit replay;
+  - native-vs-Nautilus market replay parity smoke;
+  - report bundle explicit-order manifest fields;
+  - full internal tests excluding real-data scripts.
+
 ---
 
 ## Phase 5.1 - Nautilus Trustee Report Bundle

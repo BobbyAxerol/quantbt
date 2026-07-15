@@ -154,7 +154,7 @@ from .metrics import (
 )
 
 from .viz import quick_plot, tearsheet, apply_theme
-from .reporting import export_nautilus_report_bundle
+from .reporting import build_native_nautilus_parity_report, export_nautilus_report_bundle
 
 __version__ = "0.1.0"
 __author__  = "quantbt"
@@ -174,6 +174,7 @@ __all__ = [
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "build_native_nautilus_parity_report",
     "export_nautilus_report_bundle",
     "WalkForwardConfig",
     "WalkForwardEngine",
