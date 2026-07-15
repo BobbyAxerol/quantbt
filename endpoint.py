@@ -500,8 +500,9 @@ class QuantBTEndpoint:
         signal/position output indexed by timestamp. The stitched OOS output is
         then routed into an existing QuantBT backtest path, so boundary trades
         are charged by the normal engine instead of averaging fold equities.
-        Supported optimization modes are `mode_1_decay`, `mode_2_sbb`, and
-        `mode_3_flat_minima`. Fixed-parameter runs can leave
+        Supported optimization modes are `mode_1_decay`, `mode_2_sbb`,
+        `mode_3_flat_minima`, and `mode_4_is_only_robust`.
+        Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
         optimization_config = dict(optimization_config or {})
@@ -527,7 +528,12 @@ class QuantBTEndpoint:
                 decay_gamma=float(optimization_config.get("decay_gamma", 0.5)),
                 top_is_fraction=float(optimization_config.get("top_is_fraction", 0.10)),
                 top_is_k=optimization_config.get("top_is_k"),
-                candidate_selection_metric=str(optimization_config.get("candidate_selection_metric", "robust_decay")),
+                candidate_selection_metric=str(
+                    optimization_config.get(
+                        "candidate_selection_metric",
+                        "is_only_robust" if str(optimization_mode).lower().strip() == "mode_4_is_only_robust" else "robust_decay",
+                    )
+                ),
                 candidate_decay_lambda=optimization_config.get("candidate_decay_lambda"),
                 candidate_decay_gamma=optimization_config.get("candidate_decay_gamma"),
                 sbb_samples=int(optimization_config.get("sbb_samples", 256)),
@@ -551,6 +557,13 @@ class QuantBTEndpoint:
                 plateau_median_weight=float(optimization_config.get("plateau_median_weight", 0.25)),
                 plateau_std_penalty=float(optimization_config.get("plateau_std_penalty", 0.50)),
                 plateau_size_bonus=float(optimization_config.get("plateau_size_bonus", 0.01)),
+                is_subperiods=int(optimization_config.get("is_subperiods", 6)),
+                q25_weight=float(optimization_config.get("q25_weight", 0.30)),
+                dispersion_penalty=float(optimization_config.get("dispersion_penalty", 0.50)),
+                temporal_weight=float(optimization_config.get("temporal_weight", 0.65)),
+                plateau_weight=float(optimization_config.get("plateau_weight", 0.35)),
+                use_bootstrap_penalty=bool(optimization_config.get("use_bootstrap_penalty", False)),
+                use_complexity_penalty=bool(optimization_config.get("use_complexity_penalty", False)),
                 scoring_backend=scoring_backend,
                 scoring_trading_days=int(optimization_config.get("scoring_trading_days", 365)),
                 min_trades_per_year=optimization_config.get("min_trades_per_year"),
@@ -595,8 +608,8 @@ class QuantBTEndpoint:
         segment before `test_start`, emits OOS output on the holdout segment,
         then the stitched holdout signal is routed into the selected QuantBT
         target mode. `optimization_mode` accepts the same values as
-        walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`, and
-        `mode_3_flat_minima`.
+        walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`,
+        `mode_3_flat_minima`, and `mode_4_is_only_robust`.
         """
         return cls.walk_forward(
             strategy_class=strategy_class,
@@ -1223,6 +1236,13 @@ class QuantBTEndpoint:
             "plateau_median_weight": wf_result.metadata.get("plateau_median_weight"),
             "plateau_std_penalty": wf_result.metadata.get("plateau_std_penalty"),
             "plateau_size_bonus": wf_result.metadata.get("plateau_size_bonus"),
+            "is_subperiods": wf_result.metadata.get("is_subperiods"),
+            "q25_weight": wf_result.metadata.get("q25_weight"),
+            "dispersion_penalty": wf_result.metadata.get("dispersion_penalty"),
+            "temporal_weight": wf_result.metadata.get("temporal_weight"),
+            "plateau_weight": wf_result.metadata.get("plateau_weight"),
+            "use_bootstrap_penalty": wf_result.metadata.get("use_bootstrap_penalty"),
+            "use_complexity_penalty": wf_result.metadata.get("use_complexity_penalty"),
             "scoring_backend": wf_result.metadata.get("scoring_backend"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
