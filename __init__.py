@@ -163,7 +163,9 @@ from .metrics import (
 
 from .viz import quick_plot, tearsheet, apply_theme
 from .reporting import (
+    build_arbitrage_domain_audit,
     build_native_nautilus_parity_report,
+    compare_native_arbitrage_results,
     export_nautilus_report_bundle,
     summarize_native_nautilus_parity_report,
 )
@@ -186,7 +188,9 @@ __all__ = [
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
+    "compare_native_arbitrage_results",
     "export_nautilus_report_bundle",
     "summarize_native_nautilus_parity_report",
     "WalkForwardConfig",
