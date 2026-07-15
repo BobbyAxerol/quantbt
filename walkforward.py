@@ -167,6 +167,13 @@ class WalkForwardConfig:
     plateau_median_weight: float = 0.25
     plateau_std_penalty: float = 0.50
     plateau_size_bonus: float = 0.01
+    is_subperiods: int = 6
+    q25_weight: float = 0.30
+    dispersion_penalty: float = 0.50
+    temporal_weight: float = 0.65
+    plateau_weight: float = 0.35
+    use_bootstrap_penalty: bool = False
+    use_complexity_penalty: bool = False
     scoring_backend: str = "proxy"
     scoring_trading_days: int = 365
     min_trades_per_year: Optional[float] = None
@@ -190,9 +197,10 @@ class WalkForwardConfig:
         if self.min_train_bars <= 0 or self.min_test_bars <= 0:
             raise ValueError("min_train_bars and min_test_bars must be > 0")
         opt_mode = self.optimization_mode.lower().strip()
-        if opt_mode not in {"none", "mode_1_decay", "mode_2_sbb", "mode_3_flat_minima"}:
+        if opt_mode not in {"none", "mode_1_decay", "mode_2_sbb", "mode_3_flat_minima", "mode_4_is_only_robust"}:
             raise NotImplementedError(
-                "optimization_mode must be one of: none, mode_1_decay, mode_2_sbb, mode_3_flat_minima"
+                "optimization_mode must be one of: none, mode_1_decay, mode_2_sbb, mode_3_flat_minima, "
+                "mode_4_is_only_robust"
             )
         object.__setattr__(self, "optimization_mode", opt_mode)
         if self.optuna_trials < 0:
@@ -204,13 +212,17 @@ class WalkForwardConfig:
         if self.top_is_k is not None and self.top_is_k <= 0:
             raise ValueError("top_is_k must be > 0 when provided")
         metric = self.candidate_selection_metric.lower().strip()
-        valid_metrics = {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe", "is_plateau_robust"}
+        if opt_mode == "mode_4_is_only_robust" and metric == "robust_decay":
+            metric = "is_only_robust"
+        valid_metrics = {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe", "is_plateau_robust", "is_only_robust"}
         if metric not in valid_metrics:
             raise ValueError(
                 "candidate_selection_metric must be robust_decay, mean_oos_sharpe, "
-                "mean_is_sharpe, or is_plateau_robust"
+                "mean_is_sharpe, is_plateau_robust, or is_only_robust"
             )
         object.__setattr__(self, "candidate_selection_metric", metric)
+        if opt_mode == "mode_4_is_only_robust" and metric != "is_only_robust":
+            raise ValueError("mode_4_is_only_robust requires candidate_selection_metric='is_only_robust'")
         candidate_decay_lambda = None if self.candidate_decay_lambda is None else float(self.candidate_decay_lambda)
         if candidate_decay_lambda is not None and candidate_decay_lambda < 0.0:
             raise ValueError("candidate_decay_lambda must be >= 0 when provided")
@@ -261,6 +273,14 @@ class WalkForwardConfig:
             raise ValueError("plateau_median_weight must be >= 0")
         if self.plateau_std_penalty < 0.0:
             raise ValueError("plateau_std_penalty must be >= 0")
+        if self.is_subperiods <= 0:
+            raise ValueError("is_subperiods must be > 0")
+        if self.q25_weight < 0.0:
+            raise ValueError("q25_weight must be >= 0")
+        if self.dispersion_penalty < 0.0:
+            raise ValueError("dispersion_penalty must be >= 0")
+        if self.temporal_weight < 0.0 or self.plateau_weight < 0.0:
+            raise ValueError("temporal_weight and plateau_weight must be >= 0")
         scoring_backend = self.scoring_backend.lower().strip()
         if scoring_backend not in {"proxy", "endpoint"}:
             raise ValueError("scoring_backend must be proxy or endpoint")
@@ -486,7 +506,7 @@ class WalkForwardEngine:
             chosen_params = dict(params)
             selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
-        elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima"} and self.config.optuna_trials > 0:
+        elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima", "mode_4_is_only_robust"} and self.config.optuna_trials > 0:
             selected_record, trial_records, candidate_records = self.optimize_params(
                 data=data_for_strategy,
                 folds=folds,
@@ -554,6 +574,13 @@ class WalkForwardEngine:
                 "plateau_median_weight": self.config.plateau_median_weight,
                 "plateau_std_penalty": self.config.plateau_std_penalty,
                 "plateau_size_bonus": self.config.plateau_size_bonus,
+                "is_subperiods": self.config.is_subperiods,
+                "q25_weight": self.config.q25_weight,
+                "dispersion_penalty": self.config.dispersion_penalty,
+                "temporal_weight": self.config.temporal_weight,
+                "plateau_weight": self.config.plateau_weight,
+                "use_bootstrap_penalty": self.config.use_bootstrap_penalty,
+                "use_complexity_penalty": self.config.use_complexity_penalty,
                 "scoring_backend": self.config.scoring_backend,
                 **self.config.metadata,
             },
@@ -684,6 +711,13 @@ class WalkForwardEngine:
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
             is_sharpe = is_metrics["sharpe"] - penalty
+            shard_stats = self._score_is_subperiods(
+                data=data,
+                is_output=is_output,
+                train_index=fold.train_index,
+                fold=fold,
+                params=params,
+            )
             is_scores.append(is_sharpe)
             fold_metrics.append(
                 {
@@ -699,10 +733,19 @@ class WalkForwardEngine:
                     "is_required_trades": required_trades,
                     "is_trade_penalty": penalty,
                     "oos_evaluated": False,
+                    **shard_stats,
                 }
             )
 
         mean_is = float(np.mean(is_scores)) if is_scores else 0.0
+        shard_values = _collect_subperiod_sharpes(fold_metrics)
+        temporal_stats = _temporal_robustness_stats(
+            shard_values,
+            q25_weight=float(self.config.q25_weight),
+            dispersion_penalty=float(self.config.dispersion_penalty),
+            fallback=mean_is,
+        )
+        temporal_stats["is_subperiod_count"] = temporal_stats["temporal_count"]
         return WalkForwardTrialRecord(
             trial_id=int(trial_id),
             params=dict(params),
@@ -716,8 +759,60 @@ class WalkForwardEngine:
                 "stage": "is_search",
                 "objective_mode": self.config.optimization_mode,
                 "oos_seen_by_optuna": False,
+                **temporal_stats,
             },
         )
+
+    def _score_is_subperiods(
+        self,
+        data,
+        is_output: StrategyOutput,
+        train_index: pd.DatetimeIndex,
+        fold: WalkForwardFold,
+        params: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if self.config.optimization_mode != "mode_4_is_only_robust":
+            return {}
+        shards = _split_index_into_subperiods(train_index, int(self.config.is_subperiods))
+        scores = []
+        raw_scores = []
+        trade_counts = []
+        factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+        for shard_id, shard_index in enumerate(shards):
+            if len(shard_index) < 2:
+                continue
+            shard_output = _slice_output_to_test(is_output, shard_index)
+            metrics = self._score_strategy_output(
+                data,
+                shard_output,
+                shard_index,
+                fold=fold,
+                params=params,
+                context=f"is-only robustness subperiod {shard_id}",
+            )
+            required = _required_trades_for_index(shard_index, self.config.min_trades_per_year)
+            penalty = trade_frequency_penalty(metrics["trade_count"], required, factor)
+            raw = float(metrics["sharpe"])
+            score = raw - penalty
+            raw_scores.append(raw)
+            scores.append(float(score))
+            trade_counts.append(float(metrics["trade_count"]))
+        stats = _temporal_robustness_stats(
+            scores,
+            q25_weight=float(self.config.q25_weight),
+            dispersion_penalty=float(self.config.dispersion_penalty),
+            fallback=0.0,
+        )
+        return {
+            "is_subperiod_sharpes": [float(x) for x in scores],
+            "is_subperiod_sharpes_raw": [float(x) for x in raw_scores],
+            "is_subperiod_trade_counts": [float(x) for x in trade_counts],
+            "is_subperiod_count": int(len(scores)),
+            "is_subperiod_median": stats["temporal_median"],
+            "is_subperiod_q25": stats["temporal_q25"],
+            "is_subperiod_mad": stats["temporal_mad"],
+            "is_temporal_score": stats["temporal_score"],
+        }
 
     def evaluate_params(
         self,
@@ -2078,6 +2173,189 @@ def select_is_plateau_robust_record(
     )
 
 
+def select_is_only_robust_record(
+    records: Sequence[WalkForwardTrialRecord],
+    param_ranges: Dict[str, Any],
+    config: WalkForwardConfig,
+) -> WalkForwardTrialRecord:
+    """
+    Select strict train-only robust params from IS temporal stability + plateau.
+
+    This selector is designed for `mode_4_is_only_robust`.  It never reads OOS
+    metrics.  It combines two IS-only robustness signals:
+
+    * temporal robustness across train subperiod shards;
+    * plateau robustness across dense top-trial parameter regions.
+    """
+    completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
+    if not completed:
+        raise ValueError("is_only_robust selection received no completed trials")
+    ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
+    top_n = _candidate_count(len(ranked), config)
+    top = ranked[:top_n]
+    matrix, names = _param_matrix(top, param_ranges)
+    if matrix.shape[0] == 1 or matrix.shape[1] == 0:
+        selected = _best_temporal_record(top)
+        return _with_selection_metadata(
+            selected,
+            {
+                **selected.selection_metadata,
+                "objective_mode": config.optimization_mode,
+                "selector": "fallback_best_is_temporal",
+                "selected_by": "is_only_robust",
+                "oos_used_for_selection": False,
+                "reason": "insufficient_cluster_points",
+                "top_trials": int(top_n),
+                "candidate_selection_complete": True,
+            },
+        )
+
+    labels, cluster_method = _dbscan_cluster_labels(
+        matrix,
+        eps=float(config.flat_eps),
+        min_samples=int(config.flat_min_samples),
+    )
+    cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
+    if not cluster_ids:
+        selected = _best_temporal_record(top)
+        return _with_selection_metadata(
+            selected,
+            {
+                **selected.selection_metadata,
+                "objective_mode": config.optimization_mode,
+                "selector": "fallback_best_is_temporal",
+                "selected_by": "is_only_robust",
+                "oos_used_for_selection": False,
+                "reason": "no_dense_train_plateau",
+                "top_trials": int(top_n),
+                "eps": float(config.flat_eps),
+                "min_samples": int(config.flat_min_samples),
+                "cluster_method": cluster_method,
+                "candidate_selection_complete": True,
+            },
+        )
+
+    best_cluster = None
+    best_key = None
+    best_cluster_stats = None
+    for cluster_id in cluster_ids:
+        member_idx = np.flatnonzero(labels == cluster_id)
+        objective_values = np.array([top[i].objective for i in member_idx], dtype=np.float64)
+        temporal_values = np.array(
+            [float(top[i].selection_metadata.get("temporal_score", top[i].mean_is_sharpe)) for i in member_idx],
+            dtype=np.float64,
+        )
+        q = float(np.quantile(objective_values, float(config.plateau_quantile)))
+        median = float(np.median(objective_values))
+        std = float(np.std(objective_values, ddof=1)) if len(objective_values) > 1 else 0.0
+        plateau_score = (
+            q
+            + float(config.plateau_median_weight) * median
+            - float(config.plateau_std_penalty) * std
+            + float(config.plateau_size_bonus) * float(np.log1p(len(member_idx)))
+        )
+        temporal_stats = _temporal_robustness_stats(
+            temporal_values,
+            q25_weight=float(config.q25_weight),
+            dispersion_penalty=float(config.dispersion_penalty),
+            fallback=float(np.mean(temporal_values)) if len(temporal_values) else 0.0,
+        )
+        bootstrap_penalty = 0.0
+        complexity_penalty = 0.0
+        final_score = (
+            float(config.temporal_weight) * float(temporal_stats["temporal_score"])
+            + float(config.plateau_weight) * float(plateau_score)
+            - bootstrap_penalty
+            - complexity_penalty
+        )
+        key = (
+            final_score,
+            float(temporal_stats["temporal_q25"]),
+            float(temporal_stats["temporal_median"]),
+            plateau_score,
+            len(member_idx),
+            float(np.max(objective_values)),
+        )
+        if best_key is None or key > best_key:
+            best_key = key
+            best_cluster = member_idx
+            best_cluster_stats = {
+                "is_only_robust_score": float(final_score),
+                "temporal_score": float(temporal_stats["temporal_score"]),
+                "temporal_median": float(temporal_stats["temporal_median"]),
+                "temporal_q25": float(temporal_stats["temporal_q25"]),
+                "temporal_mad": float(temporal_stats["temporal_mad"]),
+                "plateau_score": float(plateau_score),
+                "plateau_quantile_score": q,
+                "plateau_median_score": median,
+                "plateau_std_score": std,
+                "cluster_best_objective": float(np.max(objective_values)),
+                "bootstrap_penalty": bootstrap_penalty,
+                "complexity_penalty": complexity_penalty,
+            }
+    assert best_cluster is not None and best_cluster_stats is not None
+
+    centroid = np.mean(matrix[best_cluster], axis=0)
+    distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
+    selected_idx = int(best_cluster[int(np.argmin(distances))])
+    medoid = top[selected_idx]
+    centroid_params = _centroid_params(
+        centroid=centroid,
+        names=names,
+        param_ranges=param_ranges,
+        base_params=medoid.params,
+    )
+    selected = medoid
+    requires_evaluation = False
+    if config.flat_selector == "centroid":
+        selected = WalkForwardTrialRecord(
+            trial_id=-1,
+            params=centroid_params,
+            objective=float(best_cluster_stats["is_only_robust_score"]),
+            mean_is_sharpe=float(np.mean([top[i].mean_is_sharpe for i in best_cluster])),
+            mean_oos_sharpe=0.0,
+            mean_decay=0.0,
+            std_decay=0.0,
+            fold_metrics=[],
+        )
+        requires_evaluation = True
+
+    return _with_selection_metadata(
+        selected,
+        {
+            **selected.selection_metadata,
+            **best_cluster_stats,
+            "objective_mode": config.optimization_mode,
+            "selector": str(config.flat_selector),
+            "selected_by": "is_only_robust",
+            "oos_used_for_selection": False,
+            "param_names": names,
+            "selected_trial_id": int(selected.trial_id),
+            "medoid_trial_id": int(medoid.trial_id),
+            "medoid_params": dict(medoid.params),
+            "centroid_params": centroid_params,
+            "centroid_normalized": [float(x) for x in centroid.tolist()],
+            "requires_evaluation": requires_evaluation,
+            "cluster_size": int(len(best_cluster)),
+            "top_trials": int(top_n),
+            "eps": float(config.flat_eps),
+            "min_samples": int(config.flat_min_samples),
+            "plateau_quantile": float(config.plateau_quantile),
+            "plateau_median_weight": float(config.plateau_median_weight),
+            "plateau_std_penalty": float(config.plateau_std_penalty),
+            "plateau_size_bonus": float(config.plateau_size_bonus),
+            "is_subperiods": int(config.is_subperiods),
+            "q25_weight": float(config.q25_weight),
+            "dispersion_penalty": float(config.dispersion_penalty),
+            "temporal_weight": float(config.temporal_weight),
+            "plateau_weight": float(config.plateau_weight),
+            "use_bootstrap_penalty": bool(config.use_bootstrap_penalty),
+            "use_complexity_penalty": bool(config.use_complexity_penalty),
+            "cluster_method": cluster_method,
+        },
+    )
+
+
 def _select_is_candidate_records(
     records: Sequence[WalkForwardTrialRecord],
     param_ranges: Dict[str, Any],
@@ -2089,6 +2367,9 @@ def _select_is_candidate_records(
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
+    if config.candidate_selection_metric == "is_only_robust" or config.optimization_mode == "mode_4_is_only_robust":
+        robust = select_is_only_robust_record(completed, param_ranges, config=config)
+        return [robust, *top]
     if config.candidate_selection_metric == "is_plateau_robust":
         plateau = select_is_plateau_robust_record(completed, param_ranges, config=config)
         return [plateau, *top]
@@ -2104,6 +2385,68 @@ def _candidate_count(n_records: int, config: WalkForwardConfig) -> int:
     if config.top_is_k is not None:
         return max(1, min(n_records, int(config.top_is_k)))
     return max(1, min(n_records, int(np.ceil(n_records * float(config.top_is_fraction)))))
+
+
+def _best_temporal_record(records: Sequence[WalkForwardTrialRecord]) -> WalkForwardTrialRecord:
+    return max(
+        records,
+        key=lambda record: (
+            float(record.selection_metadata.get("temporal_score", record.mean_is_sharpe)),
+            float(record.selection_metadata.get("temporal_q25", record.mean_is_sharpe)),
+            float(record.objective),
+        ),
+    )
+
+
+def _split_index_into_subperiods(index: pd.DatetimeIndex, n_parts: int) -> List[pd.DatetimeIndex]:
+    idx = validate_datetime(index)
+    if len(idx) == 0:
+        return []
+    n = max(1, min(int(n_parts), len(idx)))
+    return [pd.DatetimeIndex(part) for part in np.array_split(idx, n) if len(part) > 0]
+
+
+def _collect_subperiod_sharpes(fold_metrics: Sequence[Dict[str, Any]]) -> List[float]:
+    values: List[float] = []
+    for metrics in fold_metrics:
+        for value in metrics.get("is_subperiod_sharpes", []) or []:
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            if np.isfinite(numeric):
+                values.append(numeric)
+    return values
+
+
+def _temporal_robustness_stats(
+    values,
+    q25_weight: float,
+    dispersion_penalty: float,
+    fallback: float,
+) -> Dict[str, float]:
+    arr = np.asarray(list(values), dtype=np.float64)
+    arr = arr[np.isfinite(arr)]
+    if arr.size == 0:
+        fallback_value = float(fallback)
+        return {
+            "temporal_score": fallback_value,
+            "temporal_median": fallback_value,
+            "temporal_q25": fallback_value,
+            "temporal_mad": 0.0,
+            "temporal_count": 0.0,
+        }
+    median = float(np.median(arr))
+    q25 = float(np.quantile(arr, 0.25))
+    mad = float(np.median(np.abs(arr - median)))
+    score = median + float(q25_weight) * q25 - float(dispersion_penalty) * mad
+    return {
+        "temporal_score": float(score),
+        "temporal_median": median,
+        "temporal_q25": q25,
+        "temporal_mad": mad,
+        "temporal_count": float(arr.size),
+    }
 
 
 def _select_oos_candidate_record(
@@ -2128,6 +2471,28 @@ def _select_oos_candidate_record(
         )
         if selected is None:
             key = lambda record: record.selection_metadata.get("plateau_score", record.mean_is_sharpe)
+            selected = max(records, key=key)
+        return _with_selection_metadata(
+            selected,
+            {
+                **selected.selection_metadata,
+                "selected_by": metric,
+                "candidate_selection_complete": True,
+                "oos_seen_by_optuna": False,
+                "oos_used_for_selection": False,
+            },
+        )
+    elif metric == "is_only_robust":
+        selected = next(
+            (
+                record
+                for record in records
+                if record.selection_metadata.get("selected_by") == "is_only_robust"
+            ),
+            None,
+        )
+        if selected is None:
+            key = lambda record: record.selection_metadata.get("is_only_robust_score", record.selection_metadata.get("temporal_score", record.mean_is_sharpe))
             selected = max(records, key=key)
         return _with_selection_metadata(
             selected,
@@ -2533,6 +2898,18 @@ def _trial_to_dict(record: WalkForwardTrialRecord, include_fold_metrics: bool = 
         out["fold_metrics"] = record.fold_metrics
     if record.selection_metadata:
         out["selection_metadata"] = record.selection_metadata
+        for key in (
+            "temporal_score",
+            "temporal_median",
+            "temporal_q25",
+            "temporal_mad",
+            "temporal_count",
+            "is_subperiod_count",
+            "is_only_robust_score",
+            "plateau_score",
+        ):
+            if key in record.selection_metadata:
+                out[key] = record.selection_metadata[key]
     return out
 
 
@@ -2626,6 +3003,13 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "plateau_median_weight": config.plateau_median_weight,
         "plateau_std_penalty": config.plateau_std_penalty,
         "plateau_size_bonus": config.plateau_size_bonus,
+        "is_subperiods": config.is_subperiods,
+        "q25_weight": config.q25_weight,
+        "dispersion_penalty": config.dispersion_penalty,
+        "temporal_weight": config.temporal_weight,
+        "plateau_weight": config.plateau_weight,
+        "use_bootstrap_penalty": config.use_bootstrap_penalty,
+        "use_complexity_penalty": config.use_complexity_penalty,
         "scoring_backend": config.scoring_backend,
         "scoring_trading_days": config.scoring_trading_days,
         "min_trades_per_year": config.min_trades_per_year,

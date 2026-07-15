@@ -65,6 +65,8 @@ def _synthetic_result():
             "orders_count": 3,
             "fills_count": 3,
             "positions_count": 1,
+            "input_mode": "explicit_orders",
+            "order_count_input": 3,
             "account_final_equity": 10_300.0,
             "reconstructed_final_equity": 10_300.0,
             "account_reconstructed_diff": 0.0,
@@ -151,6 +153,10 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
     assert manifest["orders_count"] == 3
     assert manifest["fills_count"] == 3
     assert manifest["positions_count"] == 1
+    assert manifest["input_mode"] == "explicit_orders"
+    assert manifest["order_count_input"] == 3
+    assert manifest["cancelled_count"] == 0
+    assert manifest["rejected_count"] == 0
     assert manifest["account_reconstructed_diff"] == 0
 
     config = json.loads((report_dir / "config.json").read_text(encoding="utf-8"))
@@ -170,6 +176,32 @@ def test_export_nautilus_report_bundle_creates_audit_files(tmp_path, monkeypatch
     assert len(fill_log) == 2
     assert "FILL BUY" in fill_log[0]
     assert "BTCUSDT-PERP.BINANCE" in fill_log[0]
+
+
+def test_report_bundle_manifest_counts_explicit_order_cancels_and_rejects(tmp_path):
+    result = _synthetic_result()
+    orders = result.metadata["orders_report"].copy()
+    orders.loc[0, "status"] = "CANCELED"
+    orders.loc[1, "status"] = "REJECTED"
+    result.metadata["orders_report"] = orders
+    result.metadata["order_count_input"] = 3
+    result.metadata["input_mode"] = "explicit_orders"
+
+    report_dir = export_nautilus_report_bundle(
+        result=result,
+        output_dir=tmp_path,
+        strategy_id="explicit-status",
+        make_quantstats=False,
+    )
+
+    manifest = json.loads((report_dir / "run_manifest.json").read_text(encoding="utf-8"))
+    summary = json.loads((report_dir / "metrics_summary.json").read_text(encoding="utf-8"))
+    assert manifest["input_mode"] == "explicit_orders"
+    assert manifest["order_count_input"] == 3
+    assert manifest["cancelled_count"] == 1
+    assert manifest["rejected_count"] == 1
+    assert summary["cancelled_count"] == 1
+    assert summary["rejected_count"] == 1
 
 
 def test_config_json_has_single_effective_fee_and_execution_view(tmp_path):

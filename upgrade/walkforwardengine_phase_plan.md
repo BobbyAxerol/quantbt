@@ -403,3 +403,79 @@ Implemented Phase B convention:
 - Short frequencies should be paired with realistic `min_train_bars` and
   `min_test_bars` so the optimizer does not score statistically meaningless
   folds.
+
+---
+
+## 7. Implemented Mode 4 - IS-Only Robust Plateau Selection
+
+Mục tiêu:
+
+- Thêm một mode tối ưu hóa **anti-leakage 100%** cho WalkForwardEngine.
+- Không dùng OOS để chọn tham số.
+- OOS chỉ được chạy sau khi bộ tham số đã được chọn xong để báo cáo và audit.
+
+Public API:
+
+```python
+optimization_mode="mode_4_is_only_robust"
+optimization_config={
+    "candidate_selection_metric": "is_only_robust",
+    "top_is_fraction": 0.10,
+    "is_subperiods": 6,
+    "q25_weight": 0.30,
+    "dispersion_penalty": 0.50,
+    "temporal_weight": 0.65,
+    "plateau_weight": 0.35,
+    "flat_eps": 0.12,
+    "flat_min_samples": 5,
+    "flat_selector": "medoid",
+}
+```
+
+Methodology:
+
+1. Optuna optimize trên IS objective.
+2. Lấy top X% hoặc top K trial theo IS objective.
+3. Chia từng train fold thành `is_subperiods` shard.
+4. Tính Sharpe cho từng shard trong IS, có áp dụng trade-frequency penalty nếu
+   được bật.
+5. Tính temporal robustness:
+
+```text
+temporal = median(shard_sharpe)
+         + q25_weight * q25(shard_sharpe)
+         - dispersion_penalty * MAD(shard_sharpe)
+```
+
+6. Gom cụm top trial trong parameter space bằng DBSCAN/fallback numpy như
+   plateau selector hiện tại.
+7. Tính plateau score bằng lower-tail/median/std/cluster-size logic sẵn có.
+8. Chọn cụm robust nhất:
+
+```text
+final = temporal_weight * temporal_score
+      + plateau_weight * plateau_score
+      - optional_bootstrap_penalty
+      - optional_complexity_penalty
+```
+
+9. Chọn `medoid` hoặc snapped `centroid` trong cụm.
+10. Chỉ sau bước 9 mới evaluate OOS để báo cáo.
+
+Domain note:
+
+- Mode 4 không “biết trước” decay thật ngoài OOS. Nó chỉ dùng các proxy
+  robustness hợp lệ trên IS: temporal stability và plateau stability.
+- `q25` được cộng như lower-tail reward: nếu q25 âm hoặc thấp, score tự giảm;
+  nếu q25 cao ổn định, candidate được thưởng.
+- `MAD` là penalty cho độ phân tán shard Sharpe.
+- Metadata phải luôn ghi `oos_used_for_selection=False`.
+
+Test coverage:
+
+- Unit test selector chọn cụm temporal plateau thay vì isolated IS spike.
+- Endpoint smoke test chạy `QuantBTEndpoint.walk_forward(...)` với
+  `mode_4_is_only_robust`.
+- Test kiểm tra `best_trial.selection_metadata` có
+  `selected_by="is_only_robust"`, `oos_seen_by_optuna=False`, và
+  `oos_used_for_selection=False`.

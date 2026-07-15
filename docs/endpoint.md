@@ -82,6 +82,31 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
 
+## Nautilus Support Matrix
+
+Services can inspect current Nautilus adapter coverage before constructing a
+run:
+
+```python
+matrix = QuantBTEndpoint.nautilus_support_matrix()
+```
+
+Current executable routes:
+
+| Route | Status | Endpoint | Scope |
+|---|---|---|---|
+| Signal series | supported | `QuantBTEndpoint.nautilus_validation(...)` | single-symbol target signal replay |
+| Explicit orders | supported | `QuantBTEndpoint.orders(backend="nautilus", ...)` | single-symbol `OrderIntent` replay |
+| Parity audit | supported | `build_native_nautilus_parity_report(...)` | native-vs-Nautilus order/fill/equity comparison |
+| DCA/grid validation | experimental | `QuantBTEndpoint.nautilus_dca_grid(...)` | base order, safety limits, TP/SL package compiled to explicit orders |
+| Bracket/OCO | experimental | `QuantBTEndpoint.nautilus_bracket_orders(...)` | entry plus linked stop-loss/take-profit exits |
+| Arbitrage packages | experimental | `QuantBTEndpoint.arbitrage(..., backend="nautilus")` | selected basis/stat-arb package validation |
+| Basket/pair packages | experimental | `QuantBTEndpoint.basket(backend="nautilus", ...)` | frozen hedge-ratio multi-leg packages |
+| Multi-symbol portfolio packages | experimental | `QuantBTEndpoint.portfolio(backend="nautilus", ...)` | position matrix transitions in one Nautilus venue/account |
+
+Experimental Nautilus routes are intended for controlled validation and audit,
+not broad optimizer sweeps.
+
 ## Shared Configuration
 
 All factories accept the common account and execution fields below.
@@ -399,6 +424,49 @@ Routing:
 - engine: `BacktestEngine`;
 - sizing: `dca_ladder`.
 
+Optional Nautilus structured DCA/grid validation:
+
+```python
+from quantbt import DcaGridSpec, OrderSide, QuantBTEndpoint
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+symbol = "ETHUSDT-PERP.BINANCE"
+
+bt = QuantBTEndpoint.nautilus_dca_grid(
+    spec=DcaGridSpec(
+        symbol=symbol,
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],  # often next bar for bar-based contingent exits
+        side=OrderSide.BUY,
+        base_notional=1_000,
+        safety_notional=500,
+        safety_order_count=2,
+        step_pct=0.01,
+        step_scale=1.2,
+        volume_scale=1.5,
+        take_profit_pct=0.01,
+        stop_loss_pct=0.05,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id=symbol,
+        timeframe="1h",
+        starting_balance=20_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+This route compiles a deterministic package into explicit orders. Nautilus
+handles bar high/low touch behavior, order lifecycle, fills and sibling
+cancellation. TP/SL exits are reduce-only and sized to the maximum planned
+ladder quantity for conservative validation.
+
 ## Explicit Orders
 
 Use this when the strategy already produces orders instead of target positions.
@@ -420,6 +488,7 @@ orders = [
 ]
 
 bt = QuantBTEndpoint.orders(
+    backend="native_event",
     initial_capital=100_000,
     leverage=5,
     fee_rate=0.0002,
@@ -463,13 +532,133 @@ Execution rules:
 
 Routing:
 
-- backend: `native_event`;
+- backend: `native_event` by default;
 - engine: `BacktestEngineV2`.
+
+Optional Nautilus explicit-order replay:
+
+```python
+from quantbt.adapters.nautilus import NautilusBackendConfig
+
+bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    use_funding=False,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+        bypass_risk=True,
+    ),
+)
+
+result = bt.simulate(
+    data=df,
+    orders=[
+        OrderIntent(
+            timestamp=df.index[10],
+            symbol="ETHUSDT-PERP.BINANCE",
+            side=OrderSide.BUY,
+            order_type=OrderType.LIMIT,
+            qty=0.5,
+            price=1800.0,
+            tif=TimeInForce.GTC,
+            tag="entry-limit",
+        )
+    ],
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+```
+
+Phase 5.2A Nautilus order replay supports single-symbol market, limit,
+stop-market, and stop-limit order factory mapping when Nautilus exposes the
+route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
+reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
+higher-level adapters that compile into this explicit-order replay path.
+
+Structured bracket/OCO validation:
+
+```python
+from quantbt import BracketOrderSpec, OrderSide, QuantBTEndpoint
+
+bt = QuantBTEndpoint.nautilus_bracket_orders(
+    spec=BracketOrderSpec(
+        symbol="ETHUSDT-PERP.BINANCE",
+        entry_timestamp=df.index[10],
+        exit_timestamp=df.index[11],
+        side=OrderSide.BUY,
+        qty=0.25,
+        take_profit_price=2_100,
+        stop_loss_price=1_950,
+    ),
+    initial_capital=20_000,
+    use_funding=False,
+)
+
+result = bt.simulate(data=df)
+result.metadata["package_order_map"]
+result.metadata["oco_cancellations"]
+```
+
+Bracket/OCO exits preserve `oco_group_id`, `parent_tag`, `leg_role` and tags in
+the package map. When an exit fills, the Nautilus package strategy cancels the
+sibling exit order.
+
+Native-vs-Nautilus parity audit:
+
+```python
+from quantbt import QuantBTEndpoint, build_native_nautilus_parity_report
+
+native_bt = QuantBTEndpoint.orders(backend="native_event", initial_capital=100_000)
+nautilus_bt = QuantBTEndpoint.orders(
+    backend="nautilus",
+    initial_capital=100_000,
+    nautilus_config=NautilusBackendConfig(
+        instrument_id="ETHUSDT-PERP.BINANCE",
+        timeframe="1h",
+        starting_balance=100_000,
+    ),
+)
+
+native = native_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+nautilus = nautilus_bt.simulate(
+    data=df,
+    orders=orders,
+    symbols=["ETHUSDT-PERP.BINANCE"],
+)
+
+parity = build_native_nautilus_parity_report(native, nautilus)
+```
+
+The parity table includes requested quantity/price, native and Nautilus fill
+prices, fees, positions, equity, and diffs. It is designed as an audit artifact;
+known intentional differences should be documented rather than hidden.
+
+`summarize_native_nautilus_parity_report(parity)` returns a compact pass/fail
+summary with max absolute fill-price, fee, position, and equity differences.
 
 ## Basket / Pair
 
 Use this for pair trades or frozen hedge-ratio baskets. The basket signal is a
 scalar series; the engine expands it to per-leg orders using `BasketSpec`.
+
+Nautilus basket validation is available as an experimental package-order route:
+
+```python
+result = QuantBTEndpoint.basket(
+    basket=basket,
+    backend="nautilus",
+    initial_capital=100_000,
+).simulate(data=data_dict, signal=basket_signal)
+```
+
+The route compiles `BasketSpec` into explicit per-leg market `OrderIntent`
+packages, preserving `basket_id`, target units, and package metadata for audit.
+Native basket remains the faster research path.
 
 ```python
 from quantbt import BasketLegSpec, BasketSpec, QuantBTEndpoint
@@ -713,8 +902,29 @@ result = bt.backtest(
 
 Routing:
 
-- backend: `legacy_portfolio`;
+- backend: `legacy_portfolio` by default;
 - engine: `PortfolioBacktestEngine`.
+
+Experimental Nautilus portfolio validation:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    backend="nautilus",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTCUSDT-PERP.BINANCE": 50_000, "ETHUSDT-PERP.BINANCE": 50_000},
+    initial_capital=1_000_000,
+).simulate(
+    positions=positions_df,
+    data=data_dict,
+    symbols=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+)
+```
+
+This route compiles position-matrix transitions into per-symbol market delta
+orders and replays them in one Nautilus venue/account. Phase 5.2D supports
+pre-scalable modes (`signal_notional`, `notional`, `unit`). `%_equity` and
+`dca_ladder` portfolio validation should stay on native/legacy routes until
+their account-dependent package compiler is implemented.
 
 ## Nautilus Validation
 
@@ -867,6 +1077,13 @@ wfo = QuantBTEndpoint.walk_forward(
         # "plateau_median_weight": 0.25,
         # "plateau_std_penalty": 0.50,
         # "plateau_size_bonus": 0.01,
+        # mode_4_is_only_robust:
+        # "candidate_selection_metric": "is_only_robust",
+        # "is_subperiods": 6,
+        # "q25_weight": 0.30,
+        # "dispersion_penalty": 0.50,
+        # "temporal_weight": 0.65,
+        # "plateau_weight": 0.35,
         # crypto default annualization: 365; equities often use 252
         "scoring_trading_days": 365,
         # optional under-trading penalty; None disables it
@@ -903,7 +1120,7 @@ tts = QuantBTEndpoint.train_test_split(
     strategy_class=strategy,
     test_start="2024-01-01",
     target_mode="pct_equity",
-    optimization_mode="mode_2_sbb",  # none | mode_1_decay | mode_2_sbb | mode_3_flat_minima
+    optimization_mode="mode_2_sbb",  # none | mode_1_decay | mode_2_sbb | mode_3_flat_minima | mode_4_is_only_robust
     optimization_config={
         "sbb_samples": 256,
         "sbb_block_length": 24,
@@ -976,8 +1193,8 @@ Important rules:
 - `split_frequency` supports `single`, `yearly`, `semi_yearly`, `quarterly`,
   `monthly`, and `weekly`; `single` is used by
   `QuantBTEndpoint.train_test_split(...)` for one holdout fold;
-- optimization modes are `mode_1_decay`, `mode_2_sbb`, and
-  `mode_3_flat_minima`;
+- optimization modes are `mode_1_decay`, `mode_2_sbb`,
+  `mode_3_flat_minima`, and `mode_4_is_only_robust`;
 - for all optimization modes, Optuna receives only in-sample or synthetic
   in-sample objectives; OOS scoring is delayed until after the top IS candidate
   set is frozen, reducing indirect look-ahead bias;
@@ -1009,6 +1226,11 @@ Important rules:
 - `mode_3_flat_minima` runs Optuna trials, clusters the top trial region, and
   selects the medoid or snapped centroid of the densest stable cluster instead
   of a sharp isolated peak;
+- `mode_4_is_only_robust` is strict train-only selection. It optimizes IS,
+  splits each IS fold into subperiod shards, scores temporal robustness from
+  shard Sharpe stability, combines that with the existing plateau cluster
+  score, and selects the medoid/centroid before any OOS scoring. OOS is only
+  used afterward for reporting and final stitched validation;
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 
@@ -1101,6 +1323,63 @@ Mode 3 flat-minima selector:
 5. select `flat_selector="medoid"` or `flat_selector="centroid"`;
 6. if centroid is selected, snap it back to the declared param grid and
    include it in the frozen OOS candidate set.
+```
+
+Mode 4 IS-only robust selector:
+
+```text
+1. Optuna objective = IS score only.
+2. Freeze top candidates with top_is_fraction or top_is_k.
+3. Split each train fold into is_subperiods shards.
+4. For each candidate, compute shard Sharpe values on IS only.
+5. Temporal score:
+   temporal = median(shard_sharpe)
+            + q25_weight * q25(shard_sharpe)
+            - dispersion_penalty * MAD(shard_sharpe)
+6. Cluster top candidates in parameter space using flat_eps/flat_min_samples.
+7. Plateau score reuses the existing plateau lower-tail/median/std logic.
+8. Final train-only score:
+   final = temporal_weight * temporal
+         + plateau_weight * plateau_score
+         - optional_bootstrap_penalty
+         - optional_complexity_penalty
+9. Select flat_selector="medoid" or "centroid"; then evaluate OOS only for
+   reporting/audit.
+```
+
+Example:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    target_mode="pct_equity",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_config={
+        "top_is_fraction": 0.10,
+        "is_subperiods": 6,
+        "q25_weight": 0.30,
+        "dispersion_penalty": 0.50,
+        "temporal_weight": 0.65,
+        "plateau_weight": 0.35,
+        "flat_eps": 0.12,
+        "flat_min_samples": 5,
+        "flat_selector": "medoid",
+        "scoring_backend": "endpoint",
+        "scoring_trading_days": 365,
+        "min_trades_per_year": 100,
+        "trade_penalty_factor": 0.5,
+        "use_numba": True,
+    },
+    optuna_trials=600,
+    optuna_early_stopping=250,
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee=0.0005,
+)
 ```
 
 Optional trade-frequency penalty:

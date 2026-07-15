@@ -25,6 +25,7 @@ audit how a result was produced.
 - Native event-driven engines for market/limit orders, fills, baskets, and
   arbitrage package execution.
 - Optional NautilusTrader adapter for independent event-driven validation.
+- Nautilus explicit order replay for single-symbol `OrderIntent` validation.
 - Explicit margin, leverage, fees, slippage, funding, and liquidation handling.
 - Stable audit artifacts: metrics, plots, raw reports, trade logs, config JSON,
   run manifest, and optional QuantStats HTML.
@@ -115,6 +116,20 @@ The Nautilus adapter can validate single-symbol signal strategies with:
 - `unit`
 - `%_equity`
 
+It can also replay explicit single-symbol `OrderIntent` orders through
+`QuantBTEndpoint.orders(backend="nautilus", ...)` for market, limit,
+stop-market, and stop-limit order factory routes where Nautilus supports the
+instrument/order combination.
+
+For validation work, `build_native_nautilus_parity_report(native, nautilus)`
+creates an audit table comparing requested order quantities, fill prices, fees,
+positions, equity, and diffs between native event replay and Nautilus replay.
+Use `QuantBTEndpoint.nautilus_support_matrix()` to inspect which Nautilus routes
+are supported, experimental, or planned before wiring a service.
+Experimental Nautilus package validation is available for DCA/grid,
+bracket/OCO, basket, and portfolio workflows by compiling strategy state into
+explicit order packages.
+
 Supported Binance perpetual validation instruments:
 
 `BTCUSDT-PERP.BINANCE`, `ETHUSDT-PERP.BINANCE`, `BNBUSDT-PERP.BINANCE`,
@@ -192,6 +207,8 @@ QuantBTEndpoint.pct_equity(...)          # legacy % equity sizing
 QuantBTEndpoint.signal_notional(...)     # fixed units between signal changes
 QuantBTEndpoint.dca_ladder(...)          # DCA/grid structural levels
 QuantBTEndpoint.orders(...)              # explicit OrderIntent simulation
+QuantBTEndpoint.nautilus_dca_grid(...)   # Nautilus DCA/grid package validation
+QuantBTEndpoint.nautilus_bracket_orders(...) # Nautilus bracket/OCO validation
 QuantBTEndpoint.basket(...)              # pair/basket event simulation
 QuantBTEndpoint.arbitrage(...)           # arbitrage spec execution
 QuantBTEndpoint.portfolio(...)           # multi-symbol portfolio matrix
@@ -322,6 +339,7 @@ Example console output:
 - [Walk-forward methodology](docs/walkforward_methodology_vi.md)
 - [DCA/grid ladder example](examples/dca_grid_ladder.py)
 - [Nautilus validation example](examples/nautilus_validation.py)
+- [Nautilus explicit order example](examples/nautilus_explicit_orders.py)
 
 ## Development
 
