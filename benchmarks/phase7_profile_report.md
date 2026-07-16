@@ -71,18 +71,20 @@ facade/cache work still shows a pure kernel hotspot.
 
 ## After Phase 9
 
-Phase 9 moved `signal_notional` target sizing to an ndarray/Numba path and
-added a native event order compiler. The updated standard profile is recorded
-in `benchmarks/phase9_optimization_report.md`.
+Phase 9 moved `signal_notional` target sizing to an ndarray/Numba path, added a
+native event order compiler, and added prepared market arrays for the event
+path. The updated standard profile is recorded in
+`benchmarks/phase9_optimization_report.md`.
 
 Key changes:
 
 - `native_vectorized` target sizing dropped from 0.249551s / 53.6% to
   0.004104s / 1.3%.
 - `native_event` order-array construction dropped from 0.477603s / 69.7% to
-  0.172629s / 38.9%.
-- The standard benchmark `native_vectorized` route now passes threshold on this
-  machine.
-- The standard benchmark `native_event` route improves but still fails
-  threshold, so the next pass should target aligned market-array caching and
-  repeated event-run preparation overhead.
+  0.103095s / 28.8%.
+- The standard runtime benchmark `native_vectorized` route now passes threshold
+  on this machine.
+- The standard runtime benchmark `native_event` route improves materially but
+  still fails the strict order-count threshold, so the next pass should expose
+  prepared market arrays and compiled order reuse through higher-level
+  optimizer/WFO loops.

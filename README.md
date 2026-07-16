@@ -57,13 +57,14 @@ rule is simple: keep hot loops near C/C++-style runtime with Numba first, profil
 before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
 fixed safely in the Python/Numba stack.
 
-Latest Phase 7 standard benchmark after Phase 9 optimization on this workspace:
+Latest Phase 7 standard runtime benchmark after Phase 9C optimization on this
+workspace:
 
 | Route | Workload | Runtime | Throughput | Peak Memory | Threshold |
 |---|---:|---:|---:|---:|---|
-| `native_vectorized` | 25,000 bars x 20 symbols | 0.587s | 851,760 bar-symbols/s | 145.30 MB | pass |
-| `native_event` | 25,000 explicit orders | 3.633s | 6,881 orders/s | 133.90 MB | needs another optimization pass |
-| `portfolio_legacy` | 25,000 bars x 20 symbols | 2.039s | 245,183 bar-symbols/s | 206.54 MB | noisy run; not Phase 9 target |
+| `native_vectorized` | 25,000 bars x 20 symbols | 0.307s | 1,628,713 bar-symbols/s | measured separately | pass |
+| `native_event` | 25,000 explicit orders | 0.793s | 31,510 orders/s | measured separately | needs another optimization pass |
+| `portfolio_legacy` | 25,000 bars x 20 symbols | 0.688s | 726,738 bar-symbols/s | measured separately | pass |
 | `nautilus` | optional validation route | skipped | - | - | run with `--include-nautilus` |
 
 See `benchmarks/phase9_optimization_report.md` for the parity report and

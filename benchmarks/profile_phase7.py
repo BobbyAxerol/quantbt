@@ -202,7 +202,7 @@ def profile_native_event(profile: BenchmarkProfile) -> BackendProfile:
     from quantbt import AccountConfig, ExecutionConfig
     from quantbt.core.event import _engine_event_v1
     from quantbt.core.order_compiler import compile_order_intents
-    from quantbt.core.preprocessor import align_series, build_arrays, prepare_funding, validate_datetime
+    from quantbt.core.preprocessor import align_series, build_market_arrays, prepare_funding, validate_datetime
     from quantbt.core.results import BacktestResultV2
 
     idx, frames = _make_market_frames(profile.bars, profile.symbols)
@@ -219,24 +219,22 @@ def profile_native_event(profile: BenchmarkProfile) -> BackendProfile:
         close_dict = align_series(closes, symbols, local_idx)
         high_dict = align_series(highs, symbols, local_idx, fallback=close_dict)
         low_dict = align_series(lows, symbols, local_idx, fallback=close_dict)
-        zero_signals = {symbol: pd.Series(0.0, index=local_idx) for symbol in symbols}
         funding_dict = prepare_funding(0.0, symbols, local_idx)
-        return local_idx, close_dict, high_dict, low_dict, zero_signals, funding_dict
+        return local_idx, close_dict, high_dict, low_dict, funding_dict
 
-    idx_n, close_dict, high_dict, low_dict, zero_signals, funding_dict = normalize()
+    idx_n, close_dict, high_dict, low_dict, funding_dict = normalize()
 
     def pack_arrays():
-        return build_arrays(
+        return build_market_arrays(
             symbols=symbols,
             idx=idx_n,
             closes_dict=close_dict,
             highs_dict=high_dict,
             lows_dict=low_dict,
-            signals_dict=zero_signals,
             funding_dict=funding_dict,
         )
 
-    closes_m, highs_m, lows_m, _, funding_m, is_funding = pack_arrays()
+    market_arrays = pack_arrays()
     symbol_to_col = {symbol: j for j, symbol in enumerate(symbols)}
 
     def build_order_arrays():
@@ -259,11 +257,11 @@ def profile_native_event(profile: BenchmarkProfile) -> BackendProfile:
             order_qty=order_arrays.order_qty,
             order_price=order_arrays.order_price,
             order_tif=order_arrays.order_tif,
-            highs=highs_m,
-            lows=lows_m,
-            closes=closes_m,
-            funding_rates=funding_m,
-            is_funding_bar=is_funding,
+            highs=market_arrays.highs,
+            lows=market_arrays.lows,
+            closes=market_arrays.closes,
+            funding_rates=market_arrays.funding,
+            is_funding_bar=market_arrays.is_funding_bar,
             init_capital=account.initial_capital,
             leverages=leverages,
             maint_ratio=account.maintenance_ratio,
@@ -312,7 +310,7 @@ def profile_native_event(profile: BenchmarkProfile) -> BackendProfile:
             equity=equity,
             returns=equity.pct_change().fillna(0.0),
             positions=pd.DataFrame({f"Position_{s}": pos_arr[:, j] for j, s in enumerate(symbols)}, index=idx_n),
-            closes=pd.DataFrame({f"Close_{s}": closes_m[:, j] for j, s in enumerate(symbols)}, index=idx_n),
+            closes=pd.DataFrame({f"Close_{s}": market_arrays.closes[:, j] for j, s in enumerate(symbols)}, index=idx_n),
             symbols=symbols,
             initial_capital=account.initial_capital,
             leverage=account.leverage,

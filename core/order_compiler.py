@@ -23,11 +23,14 @@ from .event import (
     TIF_IOC,
 )
 from .orders import OrderIntent
+from .preprocessor import MarketDataSignature, market_data_signature
 from .schema import OrderSide, OrderType, TimeInForce
 
 
 @dataclass(frozen=True)
 class CompiledOrderArrays:
+    index_signature: MarketDataSignature
+    symbols: Tuple[str, ...]
     sorted_orders: Tuple[Tuple[int, OrderIntent], ...]
     order_ptr: np.ndarray
     order_symbol: np.ndarray
@@ -103,6 +106,8 @@ def compile_order_intents(
 
     sorted_orders = tuple((int(orig_idx), orders[int(orig_idx)]) for orig_idx in original_index)
     return CompiledOrderArrays(
+        index_signature=market_data_signature(idx, list(symbol_to_col.keys())),
+        symbols=tuple(symbol_to_col.keys()),
         sorted_orders=sorted_orders,
         order_ptr=order_ptr,
         order_symbol=order_symbol,

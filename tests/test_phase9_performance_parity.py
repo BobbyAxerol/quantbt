@@ -5,6 +5,8 @@ import pandas as pd
 
 from quantbt import AccountConfig, BacktestEngineV2, OrderIntent, OrderSide, OrderType, TimeInForce
 from quantbt.core.order_compiler import compile_order_intents
+from quantbt.core.preprocessor import align_series, build_market_arrays, prepare_funding, validate_datetime
+from quantbt.backends import NativeEventBackend, NativeEventConfig
 from quantbt.sizing.fast import scale_signal_notional_matrix
 from quantbt.sizing.modes import compute_target_units
 
@@ -153,3 +155,83 @@ def test_order_compiler_matches_legacy_python_construction_and_result():
     report = result.metadata["order_report"].sort_values("original_index")
     assert len(result.fills) == int((report["status"] == 1).sum())
     assert report["original_index"].tolist() == [0, 1, 2, 3]
+
+
+def test_prepared_market_arrays_and_compiled_orders_reuse_match_normal_event_run():
+    idx, data, _ = _market()
+    orders = _orders(idx)
+    symbols = ["A", "B"]
+    closes = {symbol: data[symbol]["close"] for symbol in symbols}
+    highs = {symbol: data[symbol]["high"] for symbol in symbols}
+    lows = {symbol: data[symbol]["low"] for symbol in symbols}
+    backend = NativeEventBackend(NativeEventConfig(account=AccountConfig(initial_capital=100_000.0, leverage=5.0), use_funding=False))
+
+    normal = backend.run_orders(
+        datetime_index=idx,
+        orders=orders,
+        closes=closes,
+        highs=highs,
+        lows=lows,
+        symbols=symbols,
+    )
+
+    idx_n = validate_datetime(idx)
+    close_dict = align_series(closes, symbols, idx_n)
+    high_dict = align_series(highs, symbols, idx_n, fallback=close_dict)
+    low_dict = align_series(lows, symbols, idx_n, fallback=close_dict)
+    funding_dict = prepare_funding(0.0, symbols, idx_n)
+    market_arrays = build_market_arrays(symbols, idx_n, close_dict, high_dict, low_dict, funding_dict)
+    compiled = compile_order_intents(idx_n, orders, {"A": 0, "B": 1})
+
+    reused = backend.run_orders(
+        datetime_index=idx,
+        orders=orders,
+        closes=closes,
+        highs=highs,
+        lows=lows,
+        symbols=symbols,
+        market_arrays=market_arrays,
+        compiled_orders=compiled,
+    )
+
+    np.testing.assert_allclose(reused.equity.to_numpy(), normal.equity.to_numpy(), rtol=0.0, atol=1e-10)
+    np.testing.assert_allclose(reused.positions.to_numpy(), normal.positions.to_numpy(), rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(
+        reused.metadata["order_report"].to_numpy(dtype=float),
+        normal.metadata["order_report"].to_numpy(dtype=float),
+        rtol=0.0,
+        atol=1e-12,
+    )
+    assert len(reused.fills) == len(normal.fills)
+
+
+def test_prepared_market_arrays_reject_stale_signature():
+    idx, data, _ = _market()
+    orders = _orders(idx)
+    symbols = ["A", "B"]
+    closes = {symbol: data[symbol]["close"] for symbol in symbols}
+    highs = {symbol: data[symbol]["high"] for symbol in symbols}
+    lows = {symbol: data[symbol]["low"] for symbol in symbols}
+    idx_n = validate_datetime(idx)
+    close_dict = align_series(closes, symbols, idx_n)
+    high_dict = align_series(highs, symbols, idx_n, fallback=close_dict)
+    low_dict = align_series(lows, symbols, idx_n, fallback=close_dict)
+    funding_dict = prepare_funding(0.0, symbols, idx_n)
+    market_arrays = build_market_arrays(symbols, idx_n, close_dict, high_dict, low_dict, funding_dict)
+    backend = NativeEventBackend(NativeEventConfig(account=AccountConfig(initial_capital=100_000.0, leverage=5.0), use_funding=False))
+
+    stale_idx = idx_n[:-1]
+    try:
+        backend.run_orders(
+            datetime_index=stale_idx,
+            orders=orders,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            symbols=symbols,
+            market_arrays=market_arrays,
+        )
+    except ValueError as exc:
+        assert "prepared market arrays" in str(exc)
+    else:
+        raise AssertionError("stale prepared market arrays were accepted")
