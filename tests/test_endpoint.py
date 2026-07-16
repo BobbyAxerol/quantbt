@@ -58,9 +58,9 @@ def test_endpoint_signal_notional_vectorized_and_event_match():
     df = _bars()
     signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0], index=df.index)
     common = dict(
-        initial_capital=10_000.0,
+        initial_capital=100_000.0,
         leverage=10.0,
-        alloc_per_trade=1_000.0,
+        alloc_per_trade=100.0,
         fee_rate=0.0,
         use_funding=False,
     )
@@ -429,6 +429,33 @@ def test_endpoint_portfolio_accepts_positions_dataframe_and_data_dict():
     result = endpoint.backtest(data=data, positions=positions)
 
     assert result.metadata["backend"] == "legacy_portfolio"
+    assert "Position_BTC" in result.positions.columns
+
+
+def test_endpoint_portfolio_can_route_to_native_portfolio_backend():
+    df = _bars()
+    positions = pd.DataFrame(
+        {
+            "BTC": [0.0, 1.0, 1.0, 0.0, 0.0],
+            "ETH": [0.0, -1.0, -1.0, 0.0, 0.0],
+        },
+        index=df.index,
+    )
+    data = {"BTC": df, "ETH": df.assign(close=df["close"] * 0.1)}
+
+    endpoint = QuantBTEndpoint.portfolio(
+        portfolio_mode="market_neutral",
+        backend="native_portfolio",
+        hedge_type="signal_notional",
+        initial_capital=100_000.0,
+        leverage=10.0,
+        alloc_per_trade=100.0,
+        use_funding=False,
+    )
+    result = endpoint.backtest(data=data, positions=positions)
+
+    assert result.metadata["backend"] == "native_portfolio"
+    assert result.metadata["portfolio_contract_report"]["passed"] is True
     assert "Position_BTC" in result.positions.columns
 
 

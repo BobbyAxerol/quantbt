@@ -75,7 +75,14 @@ from .walkforward import (
     walkforward_support_matrix,
 )
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
-from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .backends   import (
+    NativeEventBackend,
+    NativeEventConfig,
+    NativePortfolioBackend,
+    NativePortfolioConfig,
+    NativeVectorizedBackend,
+    NativeVectorizedConfig,
+)
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2
@@ -205,6 +212,8 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativePortfolioBackend",
+    "NativePortfolioConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
     "NautilusExecutionDepthConfig",

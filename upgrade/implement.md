@@ -1718,7 +1718,7 @@ Status:
   - `portfolio_capability_matrix()`;
   - `validate_portfolio_result_contract(...)`.
 - Exported the domain contract through `quantbt`.
-- Added `tests/test_phase10_portfolio_engine_spec.py`.
+- Added `tests/test_phase11_portfolio_engine_spec.py`.
 - Phase 11A tests pass.
 
 ### Phase 11B - NativePortfolioEngine Core
@@ -1749,6 +1749,36 @@ Acceptance:
 - New sizing modes have direct mathematical tests, not just smoke tests.
 - Existing endpoints remain unchanged unless `backend="native_portfolio"` is
   explicitly requested.
+
+Status:
+
+- Implemented `backends/native_portfolio.py`:
+  - explicit `NativePortfolioBackend`;
+  - `NativePortfolioConfig`;
+  - array-first market/signal packing;
+  - NumPy portfolio-mode transforms;
+  - `_engine_portfolio` kernel execution for exact legacy parity;
+  - V2 result construction with exposure, symbol PnL, margin, turnover, fee,
+    target/accepted units, and contract validation reports.
+- Wired `PortfolioBacktestEngine(backend="native_portfolio")`.
+- Default backend remains `legacy_portfolio`.
+- Added `tests/test_phase11_native_portfolio_backend.py`.
+- Phase 11B supports legacy-compatible sizing modes:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`.
+- Roadmap sizing modes such as `%_equity`, `target_weight`, `target_notional`,
+  `target_units`, `gross_exposure`, `net_exposure`, and `dca_ladder` remain
+  explicit Phase 11C+ work and raise instead of silently approximating behavior.
+- Added Phase 7 benchmark route `native_portfolio`.
+- Standard benchmark after Phase 11B:
+  - `portfolio_legacy`: 0.675597s, 1.351193 sec/million bar-symbols, pass;
+  - `native_portfolio`: 0.819805s, 1.639610 sec/million bar-symbols, pass.
+- Interpretation: native portfolio is not intended to beat legacy in Phase 11B;
+  it pays extra report/contract validation overhead to become an auditable
+  backend. Speed optimization comes after Phase 11C validates all new sizing
+  modes and real strategies.
 
 ### Phase 11C - Institutional Validation And Default Readiness
 

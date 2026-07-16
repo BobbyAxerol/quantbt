@@ -25,6 +25,7 @@ Backends currently measured:
 - `native_event`
 - `native_event_prepared`
 - `portfolio_legacy`
+- `native_portfolio`
 - optional `nautilus`
 
 The committed summary lives in `benchmarks/phase7_report.md`. Local JSON/MD

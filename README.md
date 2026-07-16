@@ -57,15 +57,16 @@ rule is simple: keep hot loops near C/C++-style runtime with Numba first, profil
 before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
 fixed safely in the Python/Numba stack.
 
-Latest Phase 7 standard runtime benchmark after Phase 10A optimization on this
+Latest Phase 7 standard runtime benchmark after Phase 11B portfolio work on this
 workspace:
 
 | Route | Workload | Runtime | Throughput | Peak Memory | Threshold |
 |---|---:|---:|---:|---:|---|
-| `native_vectorized` | 25,000 bars x 20 symbols | 0.283s | 1,767,132 bar-symbols/s | measured separately | pass |
-| `native_event` | 25,000 explicit orders, cold preparation | 0.879s | 28,428 orders/s | measured separately | cold path remains a profiling target |
-| `native_event_prepared` | 25,000 explicit orders, prepared replay | 0.346s | 72,178 orders/s | measured separately | pass |
-| `portfolio_legacy` | 25,000 bars x 20 symbols | 0.693s | 721,791 bar-symbols/s | measured separately | pass |
+| `native_vectorized` | 25,000 bars x 20 symbols | 0.303s | 1,648,920 bar-symbols/s | measured separately | pass |
+| `native_event` | 25,000 explicit orders, cold preparation | 0.892s | 28,036 orders/s | measured separately | cold path remains a profiling target |
+| `native_event_prepared` | 25,000 explicit orders, prepared replay | 0.384s | 65,082 orders/s | measured separately | near threshold; WFO reuse path |
+| `portfolio_legacy` | 25,000 bars x 20 symbols | 0.676s | 740,087 bar-symbols/s | measured separately | pass |
+| `native_portfolio` | 25,000 bars x 20 symbols | 0.820s | 609,901 bar-symbols/s | measured separately | pass; auditable parity route |
 | `nautilus` | optional validation route | skipped | - | - | run with `--include-nautilus` |
 
 See `benchmarks/phase9_optimization_report.md` for the parity report,

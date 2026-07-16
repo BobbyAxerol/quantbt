@@ -104,6 +104,7 @@ def run_all(profile: BenchmarkProfile, include_nautilus: bool = False, trace_mem
         run_native_event(profile, trace_memory=trace_memory),
         run_native_event_prepared(profile, trace_memory=trace_memory),
         run_portfolio_legacy(profile, trace_memory=trace_memory),
+        run_native_portfolio(profile, trace_memory=trace_memory),
     ]
     if include_nautilus:
         records.append(run_nautilus(profile, trace_memory=trace_memory))
@@ -264,6 +265,45 @@ def run_portfolio_legacy(profile: BenchmarkProfile, trace_memory: bool = True) -
         )
     except Exception as exc:
         return _failed("portfolio_legacy", profile, exc)
+
+
+def run_native_portfolio(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
+    try:
+        from quantbt import AccountConfig, PortfolioBacktestEngine
+
+        idx, frames = _make_market_frames(profile.bars, profile.symbols)
+        positions = _make_portfolio_positions(idx, profile.symbols)
+        closes = {symbol: frame["close"] for symbol, frame in frames.items()}
+        transitions = _count_signal_transitions(positions.values())
+
+        def workload():
+            engine = PortfolioBacktestEngine(
+                positions=positions,
+                closes=closes,
+                highs=closes,
+                lows=closes,
+                datetime_index=idx,
+                mode="longshort",
+                backend="native_portfolio",
+                account=AccountConfig(initial_capital=1_000_000.0, leverage=10.0),
+                fee_rate=0.0,
+                alloc_per_trade=10_000.0,
+                hedge_type="signal_notional",
+                use_funding=False,
+            )
+            return engine.result.equity.iloc[-1]
+
+        return _measure(
+            backend="native_portfolio",
+            profile=profile,
+            workload=workload,
+            order_count=transitions,
+            event_count=profile.bars * profile.symbols,
+            signal_transitions=transitions,
+            trace_memory=trace_memory,
+        )
+    except Exception as exc:
+        return _failed("native_portfolio", profile, exc)
 
 
 def run_nautilus(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
@@ -584,7 +624,7 @@ def _attach_threshold(record: BenchmarkRecord) -> BenchmarkRecord:
         metric = "runtime_seconds"
         value = record.runtime_seconds
         limit = float(backend_thresholds["smoke_max_runtime_seconds"])
-    elif record.backend in {"native_vectorized", "portfolio_legacy"}:
+    elif record.backend in {"native_vectorized", "portfolio_legacy", "native_portfolio"}:
         key = f"{record.profile}_max_seconds_per_million_bar_symbols"
         if key in backend_thresholds and record.bar_symbols > 0:
             metric = "seconds_per_million_bar_symbols"
