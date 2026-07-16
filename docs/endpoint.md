@@ -975,10 +975,16 @@ result = QuantBTEndpoint.portfolio(
 ```
 
 This route compiles position-matrix transitions into per-symbol market delta
-orders and replays them in one Nautilus venue/account. Phase 5.2D supports
-pre-scalable modes (`signal_notional`, `notional`, `unit`). `%_equity` and
-`dca_ladder` portfolio validation should stay on native/legacy routes until
-their account-dependent package compiler is implemented.
+orders and replays them in one Nautilus venue/account. Phase 11D compiles
+Nautilus orders from the native portfolio `target_units_report`, so portfolio
+mode transforms such as `market_neutral`, `directional`, and `equal_weight` are
+included before validation. The run attaches
+`result.metadata["portfolio_nautilus_validation_report"]`.
+
+Supported sizing modes follow `native_portfolio`: `signal_notional`, `signal`,
+`notional`, `unit`, `target_units`, `target_notional`, and `fixed_notional`.
+Equity-dependent sizing modes and `dca_ladder` remain native-only until their
+execution-specific compilers are implemented.
 
 ## Nautilus Validation
 

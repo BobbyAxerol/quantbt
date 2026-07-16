@@ -127,10 +127,33 @@ tested, and documented.
 
 ## Phase 11D - Nautilus Validation
 
-Nautilus should validate representative portfolio packages as a third-party
-event-driven trustee.  The native portfolio engine remains the optimizer and
-research hot path; Nautilus validates execution/accounting behavior for selected
-runs.
+Implemented for portfolio package validation. Nautilus validates representative
+portfolio packages as a third-party event-driven trustee. The native portfolio
+engine remains the optimizer and research hot path; Nautilus validates
+execution/accounting behavior for selected runs.
+
+The endpoint route:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    backend="nautilus",
+    portfolio_mode="market_neutral",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTCUSDT-PERP.BINANCE": 50_000, "ETHUSDT-PERP.BINANCE": 50_000},
+    initial_capital=1_000_000,
+).simulate(
+    positions=positions_df,
+    data=data_dict,
+    symbols=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+)
+
+validation = result.metadata["portfolio_nautilus_validation_report"]
+```
+
+Important implementation rule: Nautilus package orders are compiled from the
+native portfolio `target_units_report`, not directly from raw signals. This
+means `market_neutral`, `directional`, and `equal_weight` transforms are applied
+before the third-party validation run.
 
 Validation targets:
 
@@ -140,3 +163,12 @@ Validation targets:
 - gross/net exposure path;
 - final equity;
 - drawdown and account timeline.
+
+Public helpers:
+
+```python
+from quantbt import (
+    build_portfolio_nautilus_position_report,
+    build_portfolio_nautilus_validation_report,
+)
+```
