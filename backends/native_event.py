@@ -39,6 +39,7 @@ from ..core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
+from ..core.order_compiler import compile_order_intents
 from ..core.orders import Fill, OrderIntent
 from ..core.preprocessor import align_series, build_arrays, make_funding_mask, prepare_funding, validate_datetime
 from ..core.results import BacktestResultV2
@@ -113,34 +114,8 @@ class NativeEventBackend:
             funding_dict=funding_dict,
         )
 
-        sorted_orders = sorted(enumerate(orders), key=lambda item: self._bar_index(idx, item[1].timestamp))
-        n_orders = len(sorted_orders)
-        order_bar = np.zeros(n_orders, dtype=np.int64)
-        order_symbol = np.zeros(n_orders, dtype=np.int64)
-        order_side = np.zeros(n_orders, dtype=np.int64)
-        order_type = np.zeros(n_orders, dtype=np.int64)
-        order_qty = np.zeros(n_orders, dtype=np.float64)
-        order_price = np.zeros(n_orders, dtype=np.float64)
-        order_tif = np.zeros(n_orders, dtype=np.int64)
-        original_index = np.zeros(n_orders, dtype=np.int64)
-
-        for k, (orig_idx, order) in enumerate(sorted_orders):
-            if order.symbol not in symbol_to_col:
-                raise ValueError(f"order symbol {order.symbol!r} is not in symbols")
-            order_bar[k] = self._bar_index(idx, order.timestamp)
-            order_symbol[k] = symbol_to_col[order.symbol]
-            order_side[k] = self._side_code(order.side)
-            order_type[k] = self._order_type_code(order.order_type)
-            order_qty[k] = float(order.qty)
-            order_price[k] = 0.0 if order.price is None else float(order.price)
-            order_tif[k] = self._tif_code(order.tif)
-            original_index[k] = orig_idx
-
-        order_ptr = np.zeros(len(idx) + 1, dtype=np.int64)
-        for bar in order_bar:
-            order_ptr[bar + 1] += 1
-        for i in range(1, len(order_ptr)):
-            order_ptr[i] += order_ptr[i - 1]
+        compiled_orders = compile_order_intents(idx=idx, orders=orders, symbol_to_col=symbol_to_col)
+        n_orders = compiled_orders.n_orders
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         leverages = self._per_symbol_array(
@@ -177,13 +152,13 @@ class NativeEventBackend:
             n_bars=len(idx),
             n_syms=len(symbol_list),
             n_orders=n_orders,
-            order_ptr=order_ptr,
-            order_symbol=order_symbol,
-            order_side=order_side,
-            order_type=order_type,
-            order_qty=order_qty,
-            order_price=order_price,
-            order_tif=order_tif,
+            order_ptr=compiled_orders.order_ptr,
+            order_symbol=compiled_orders.order_symbol,
+            order_side=compiled_orders.order_side,
+            order_type=compiled_orders.order_type,
+            order_qty=compiled_orders.order_qty,
+            order_price=compiled_orders.order_price,
+            order_tif=compiled_orders.order_tif,
             highs=highs_m,
             lows=lows_m,
             closes=closes_m,
@@ -198,7 +173,7 @@ class NativeEventBackend:
             use_funding=bool(self.config.use_funding),
         )
 
-        fills = self._build_fills(sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee)
+        fills = self._build_fills(compiled_orders.sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee)
         equity = pd.Series(equity_arr, index=idx, name="equity")
         positions = pd.DataFrame(
             {f"Position_{s}": pos_arr[:, j] for j, s in enumerate(symbol_list)},
@@ -219,7 +194,7 @@ class NativeEventBackend:
         )
         order_report = pd.DataFrame(
             {
-                "original_index": original_index,
+                "original_index": compiled_orders.original_index,
                 "status": order_status,
                 "reject_code": reject_code,
                 "fill_bar": fill_bar,

@@ -31,3 +31,11 @@ outputs under `benchmarks/out/` are git-ignored by design.
 When a backend misses a runtime threshold, run `profile_phase7.py` before
 considering Cython/C++. The committed profiling summary lives in
 `benchmarks/phase7_profile_report.md`.
+
+Phase 9 optimization follow-up:
+
+- `benchmarks/compare_phase9_parity.py` checks that optimized sizing/order
+  compilation does not change target units, equity, positions, order reports,
+  or fills.
+- `benchmarks/phase9_optimization_report.md` records the first post-profiling
+  optimization pass and remaining bottlenecks.
