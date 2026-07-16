@@ -35,6 +35,121 @@ PARITY_COLUMNS = [
 ]
 
 
+DEPTH_EXECUTION_COLUMNS = [
+    "row",
+    "timestamp",
+    "symbol",
+    "side",
+    "depth_status",
+    "depth_filled_qty",
+    "nautilus_filled_qty",
+    "filled_qty_diff",
+    "depth_fill_price",
+    "nautilus_fill_price",
+    "fill_price_diff",
+]
+
+
+def build_nautilus_depth_execution_report(result: BacktestResultV2) -> pd.DataFrame:
+    """
+    Compare depth-preflight filled rows with Nautilus package fills.
+
+    Rows are sequence-aligned because package orders are submitted to Nautilus
+    after deterministic preflight filtering. This is the package-level analogue
+    of the explicit-order parity table.
+    """
+    metadata = result.metadata or {}
+    depth = _report_frame(metadata.get("nautilus_depth_order_report"))
+    if depth.empty:
+        return pd.DataFrame(columns=DEPTH_EXECUTION_COLUMNS)
+    depth = depth[depth["status"].astype(str).str.lower().isin({"filled", "partial"})].reset_index(drop=True)
+    fills = _fills_from_result(result)
+    row_count = max(len(depth), len(fills))
+    rows: List[Dict[str, Any]] = []
+    for row in range(row_count):
+        depth_row = _row(depth, row)
+        fill_row = _row(fills, row)
+        depth_qty = _safe_float(_get(depth_row, "filled_qty"))
+        fill_qty = _safe_float(_get(fill_row, "qty"))
+        depth_price = _safe_float(_get(depth_row, "fill_price"))
+        fill_price = _safe_float(_get(fill_row, "price"))
+        rows.append(
+            {
+                "row": row,
+                "timestamp": _first_non_null(_get(fill_row, "timestamp"), _get(depth_row, "effective_timestamp"), _get(depth_row, "timestamp")),
+                "symbol": _first_non_null(_get(fill_row, "symbol"), _get(depth_row, "symbol")),
+                "side": _first_non_null(_get(fill_row, "side"), _get(depth_row, "side")),
+                "depth_status": _get(depth_row, "status"),
+                "depth_filled_qty": depth_qty,
+                "nautilus_filled_qty": fill_qty,
+                "filled_qty_diff": _diff(depth_qty, fill_qty),
+                "depth_fill_price": depth_price,
+                "nautilus_fill_price": fill_price,
+                "fill_price_diff": _diff(depth_price, fill_price),
+            }
+        )
+    return pd.DataFrame(rows, columns=DEPTH_EXECUTION_COLUMNS)
+
+
+def build_nautilus_depth_parity_summary(
+    result: BacktestResultV2,
+    fill_price_tolerance: float = 1e-9,
+    qty_tolerance: float = 1e-9,
+) -> Dict[str, Any]:
+    """
+    Summarize preflight-vs-Nautilus package execution counts.
+
+    This helper is for Phase 5.4 package workflows where an optional
+    execution-depth preflight may reject, cancel, or partially adjust orders
+    before accepted orders are submitted to Nautilus.
+    """
+    metadata = result.metadata or {}
+    depth_order_report = _report_frame(metadata.get("nautilus_depth_order_report"))
+    depth_package_report = _report_frame(metadata.get("nautilus_depth_package_report"))
+    package_order_map = _report_frame(metadata.get("package_order_map"))
+    orders_report = _report_frame(metadata.get("orders_report", metadata.get("order_report")))
+    fills_report = _report_frame(metadata.get("fills_report"))
+    depth_enabled = bool(metadata.get("nautilus_depth_enabled", False))
+    accepted = int(metadata.get("order_count_after_depth", len(package_order_map)))
+    before = int(metadata.get("order_count_before_depth", accepted))
+    nautilus_orders = int(metadata.get("orders_count", len(orders_report)))
+    nautilus_fills = int(metadata.get("fills_count", len(fills_report)))
+    rejected = _status_count(depth_order_report, "rejected")
+    partial = _status_count(depth_order_report, "partial")
+    canceled = _status_count(depth_order_report, "canceled")
+    submitted_matches = nautilus_orders == accepted or (accepted == 0 and nautilus_orders == 0)
+    execution_report = build_nautilus_depth_execution_report(result)
+    max_fill_price_diff = _max_abs(execution_report, "fill_price_diff")
+    max_qty_diff = _max_abs(execution_report, "filled_qty_diff")
+    execution_matches = max_fill_price_diff <= float(fill_price_tolerance) and max_qty_diff <= float(qty_tolerance)
+    summary = {
+        "status": "pass" if submitted_matches and execution_matches else "execution_diff",
+        "passed": bool(submitted_matches and execution_matches),
+        "depth_enabled": depth_enabled,
+        "input_orders": before,
+        "accepted_after_depth": accepted,
+        "nautilus_orders": nautilus_orders,
+        "nautilus_fills": nautilus_fills,
+        "depth_rejected": rejected,
+        "depth_partial": partial,
+        "depth_canceled": canceled,
+        "package_rows": int(len(depth_package_report)),
+        "execution_rows": int(len(execution_report)),
+        "max_abs_fill_price_diff": float(max_fill_price_diff),
+        "max_abs_filled_qty_diff": float(max_qty_diff),
+        "fill_price_tolerance": float(fill_price_tolerance),
+        "qty_tolerance": float(qty_tolerance),
+        "engine": metadata.get("engine"),
+        "input_mode": metadata.get("input_mode"),
+    }
+    if not submitted_matches:
+        summary["status"] = "execution_count_diff"
+    if not depth_enabled:
+        summary["status"] = "not_enabled"
+        summary["passed"] = False
+    return summary
+
+
 def summarize_native_nautilus_parity_report(
     parity_report: pd.DataFrame,
     fill_price_tolerance: float = 1e-9,
@@ -240,6 +355,12 @@ def _report_frame(value: Any) -> pd.DataFrame:
         return pd.DataFrame(value).copy()
     except Exception:
         return pd.DataFrame()
+
+
+def _status_count(frame: pd.DataFrame, status: str) -> int:
+    if frame.empty or "status" not in frame:
+        return 0
+    return int(frame["status"].astype(str).str.lower().eq(status).sum())
 
 
 def _max_abs(frame: pd.DataFrame, column: str) -> float:

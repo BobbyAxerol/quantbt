@@ -55,6 +55,12 @@ class BenchmarkRecord:
     runtime_max_seconds: Optional[float]
     peak_memory_mb: Optional[float]
     rss_delta_mb: Optional[float]
+    throughput_bar_symbols_per_second: Optional[float] = None
+    throughput_orders_per_second: Optional[float] = None
+    threshold_metric: Optional[str] = None
+    threshold_value: Optional[float] = None
+    threshold_limit: Optional[float] = None
+    threshold_passed: Optional[bool] = None
     error: Optional[str] = None
 
 
@@ -95,6 +101,7 @@ def run_all(profile: BenchmarkProfile, include_nautilus: bool = False) -> List[B
     records = [
         run_native_vectorized(profile),
         run_native_event(profile),
+        run_portfolio_legacy(profile),
     ]
     if include_nautilus:
         records.append(run_nautilus(profile))
@@ -164,6 +171,42 @@ def run_native_event(profile: BenchmarkProfile) -> BenchmarkRecord:
         )
     except Exception as exc:
         return _failed("native_event", profile, exc)
+
+
+def run_portfolio_legacy(profile: BenchmarkProfile) -> BenchmarkRecord:
+    try:
+        from quantbt import AccountConfig, PortfolioBacktestEngine
+
+        idx, frames = _make_market_frames(profile.bars, profile.symbols)
+        positions = _make_portfolio_positions(idx, profile.symbols)
+        closes = {symbol: frame["close"] for symbol, frame in frames.items()}
+        transitions = _count_signal_transitions(positions.values())
+
+        def workload():
+            engine = PortfolioBacktestEngine(
+                positions=positions,
+                closes=closes,
+                highs=closes,
+                lows=closes,
+                datetime_index=idx,
+                mode="longshort",
+                account=AccountConfig(initial_capital=1_000_000.0, leverage=10.0),
+                fee_rate=0.0,
+                alloc_per_trade=10_000.0,
+                use_funding=False,
+            )
+            return engine.result.equity.iloc[-1]
+
+        return _measure(
+            backend="portfolio_legacy",
+            profile=profile,
+            workload=workload,
+            order_count=transitions,
+            event_count=profile.bars * profile.symbols,
+            signal_transitions=transitions,
+        )
+    except Exception as exc:
+        return _failed("portfolio_legacy", profile, exc)
 
 
 def run_nautilus(profile: BenchmarkProfile) -> BenchmarkRecord:
@@ -237,7 +280,8 @@ def _measure(
     tracemalloc.stop()
     rss_after = _rss_mb()
 
-    return BenchmarkRecord(
+    runtime = statistics.mean(runtimes)
+    record = BenchmarkRecord(
         backend=backend,
         profile=profile.name,
         status="passed",
@@ -248,12 +292,15 @@ def _measure(
         event_count=event_count,
         signal_transitions=signal_transitions,
         warmup_seconds=warmup_seconds,
-        runtime_seconds=statistics.mean(runtimes),
+        runtime_seconds=runtime,
         runtime_min_seconds=min(runtimes),
         runtime_max_seconds=max(runtimes),
         peak_memory_mb=peak / (1024 * 1024),
         rss_delta_mb=max(0.0, rss_after - rss_before),
+        throughput_bar_symbols_per_second=(profile.bars * profile.symbols / runtime) if runtime > 0.0 else None,
+        throughput_orders_per_second=(order_count / runtime) if runtime > 0.0 and order_count > 0 else None,
     )
+    return _attach_threshold(record)
 
 
 def _make_market_frames(bars: int, symbols: int):
@@ -288,6 +335,20 @@ def _make_signals(idx, symbols: int):
     for j in range(symbols):
         raw = np.where(((grid // (25 + j % 5)) + j) % 4 == 0, 1.0, 0.0)
         out[f"SYM{j:03d}"] = pd.Series(raw, index=idx)
+    return out
+
+
+def _make_portfolio_positions(idx, symbols: int):
+    import numpy as np
+    import pandas as pd
+
+    out = {}
+    n = len(idx)
+    grid = np.arange(n)
+    for j in range(symbols):
+        active = np.where(((grid // (40 + j % 7)) + j) % 5 == 0, 1.0, 0.0)
+        sign = 1.0 if j % 2 == 0 else -1.0
+        out[f"SYM{j:03d}"] = pd.Series(active * sign, index=idx)
     return out
 
 
@@ -335,6 +396,7 @@ def write_outputs(
     payload = {
         "profile": asdict(profile),
         "records": [asdict(record) for record in records],
+        "thresholds": _load_thresholds(),
     }
     json_out.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     md_out.write_text(_markdown_report(records, profile), encoding="utf-8")
@@ -346,12 +408,16 @@ def _markdown_report(records: List[BenchmarkRecord], profile: BenchmarkProfile) 
         "",
         f"Profile: `{profile.name}`",
         "",
-        "| backend | status | bars | symbols | orders | events | warmup s | runtime s | peak MB | note |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+        "| backend | status | bars | symbols | orders | events | warmup s | runtime s | peak MB | throughput | threshold | note |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
     for record in records:
+        threshold = "-"
+        if record.threshold_metric is not None:
+            verdict = "pass" if record.threshold_passed else "fail"
+            threshold = f"{record.threshold_metric}={_fmt(record.threshold_value)} <= {_fmt(record.threshold_limit)} ({verdict})"
         lines.append(
-            "| {backend} | {status} | {bars} | {symbols} | {orders} | {events} | {warmup} | {runtime} | {peak} | {note} |".format(
+            "| {backend} | {status} | {bars} | {symbols} | {orders} | {events} | {warmup} | {runtime} | {peak} | {throughput} | {threshold} | {note} |".format(
                 backend=record.backend,
                 status=record.status,
                 bars=record.bars,
@@ -361,6 +427,8 @@ def _markdown_report(records: List[BenchmarkRecord], profile: BenchmarkProfile) 
                 warmup=_fmt(record.warmup_seconds),
                 runtime=_fmt(record.runtime_seconds),
                 peak=_fmt(record.peak_memory_mb),
+                throughput=_fmt(record.throughput_bar_symbols_per_second),
+                threshold=threshold,
                 note=record.error or "",
             )
         )
@@ -433,6 +501,53 @@ def _skipped(backend: str, profile: BenchmarkProfile, reason: str) -> BenchmarkR
         rss_delta_mb=None,
         error=reason,
     )
+
+
+def _load_thresholds() -> Dict:
+    path = PACKAGE_DIR / "benchmarks" / "phase7_thresholds.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _attach_threshold(record: BenchmarkRecord) -> BenchmarkRecord:
+    thresholds = _load_thresholds()
+    backend_thresholds = thresholds.get(record.backend, {})
+    if record.runtime_seconds is None:
+        return record
+
+    metric = None
+    value = None
+    limit = None
+    if record.profile == "smoke" and "smoke_max_runtime_seconds" in backend_thresholds:
+        metric = "runtime_seconds"
+        value = record.runtime_seconds
+        limit = float(backend_thresholds["smoke_max_runtime_seconds"])
+    elif record.backend in {"native_vectorized", "portfolio_legacy"}:
+        key = f"{record.profile}_max_seconds_per_million_bar_symbols"
+        if key in backend_thresholds and record.bar_symbols > 0:
+            metric = "seconds_per_million_bar_symbols"
+            value = record.runtime_seconds / (record.bar_symbols / 1_000_000.0)
+            limit = float(backend_thresholds[key])
+    elif record.backend == "native_event":
+        key = f"{record.profile}_max_seconds_per_100k_orders"
+        if key in backend_thresholds and record.order_count > 0:
+            metric = "seconds_per_100k_orders"
+            value = record.runtime_seconds / (record.order_count / 100_000.0)
+            limit = float(backend_thresholds[key])
+    elif record.backend == "nautilus":
+        key = f"{record.profile}_max_seconds_per_100k_bars"
+        if key in backend_thresholds and record.bars > 0:
+            metric = "seconds_per_100k_bars"
+            value = record.runtime_seconds / (record.bars / 100_000.0)
+            limit = float(backend_thresholds[key])
+
+    record.threshold_metric = metric
+    record.threshold_value = value
+    record.threshold_limit = limit
+    record.threshold_passed = None if value is None or limit is None else bool(value <= limit)
+    return record
 
 
 if __name__ == "__main__":

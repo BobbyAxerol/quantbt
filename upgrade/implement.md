@@ -543,6 +543,280 @@ Branch note:
   `dev` rather than from this feature branch unless the upgrade explicitly
   depends on the Nautilus structured-order changes.
 
+## Phase 5.3 - Native Arbitrage And Portfolio Engine Depth
+
+Purpose:
+
+Harden the native arbitrage / portfolio domain layer before adding deeper
+Nautilus execution simulation. Native engines must first be trusted as the
+transparent research/accounting source of truth.
+
+### Phase 5.3A - Native Arbitrage Domain Audit And Golden Invariants
+
+Scope:
+
+- Add reusable audit helpers for arbitrage results:
+  - package PnL residual vs equity delta;
+  - leg PnL sum vs package PnL;
+  - leg fee sum vs result fee series;
+  - target-unit symbols and final flattening;
+  - rejection-report presence and package execution policy visibility.
+- Add native event vs native vectorized comparison helper:
+  - equity max diff;
+  - position max diff;
+  - package target-unit max diff;
+  - package PnL residual max diff;
+  - pass/fail status with tolerances.
+- Add mock domain tests for representative executable specs:
+  - basis;
+  - calendar spread;
+  - funding arbitrage;
+  - index basket package.
+- Keep endpoint behavior unchanged.
+
+Acceptance:
+
+- Audit helpers pass on known-good native event/vectorized mock arbitrage runs.
+- Audit helpers fail loudly on intentionally corrupted package PnL residuals.
+- Existing arbitrage endpoints and Nautilus package validation remain unchanged.
+- Full internal tests pass excluding real-data scripts.
+
+### Phase 5.3B - Portfolio And Real-Strategy Stabilization
+
+Scope:
+
+- Audit `PortfolioBacktestEngine` modes:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`.
+- Add portfolio diagnostics for:
+  - target-unit matrix vs accepted positions;
+  - gross/net exposure;
+  - margin usage;
+  - per-symbol fee/funding contribution;
+  - liquidation / rejection visibility.
+- Run realistic mock and real-strategy validation for:
+  - basis/stat-arb;
+  - basket/pair;
+  - multi-symbol portfolio.
+- Promote support matrix statuses only after parity/audit evidence is present.
+
+Implemented:
+
+- Added portfolio-level diagnostic reports to `MultiSymbolPortfolio` metadata:
+  - target units;
+  - accepted units;
+  - target notional;
+  - accepted notional;
+  - exposure / margin usage;
+  - per-symbol mark/funding/fee PnL attribution;
+  - rebalance rejection / mismatch report;
+  - fee and turnover series / totals.
+- Added `build_portfolio_domain_audit(result)`:
+  - accepted-position PnL vs equity delta reconciliation;
+  - per-symbol fee vs portfolio fee-series reconciliation;
+  - accepted notional vs units × close × contract-size reconciliation;
+  - long/short/gross/net exposure identity checks;
+  - rebalance mismatch count and notional visibility.
+- Added domain tests for:
+  - `longshort` accounting reconciliation;
+  - `market_neutral` long/short notional balancing;
+  - `directional` dominant-leg selection;
+  - `equal_weight` active-notional equalization;
+  - margin-gate rejection visibility;
+  - intentional corrupted PnL report failure.
+- Added an executable institutional simulation matrix for:
+  - multi-symbol portfolio accounting and exposure audit;
+  - native explicit limit/market order fill prices and flattening;
+  - Nautilus bracket/OCO package fill plus sibling cancellation;
+  - basis arbitrage native event vs native vectorized parity and audit.
+- Vectorized the heaviest diagnostics assembly paths:
+  - per-symbol PnL report construction avoids per-bar Python row appends;
+  - rebalance mismatch report uses masked stack extraction.
+- Exported the portfolio audit helper through `quantbt.reporting` and the
+  public `quantbt` namespace.
+
+Validation:
+
+- `quantbt/tests/test_phase5_3_portfolio_audit.py` passes.
+- `quantbt/tests/test_phase5_3_institutional_simulations.py` passes.
+- Full internal test suite passes excluding real-data scripts.
+- Real scripts `test_real.py` and `test_real_endpoints.py` execute successfully
+  as scripts; they do not expose pytest test functions.
+
+Current conclusion:
+
+- Phase 5.3 native portfolio / arbitrage audit layer is usable for controlled
+  research validation:
+  - mock multi-symbol portfolio, explicit order, Nautilus bracket/OCO, and
+    basis-arbitrage simulations now pass deterministic domain checks;
+  - native portfolio accounting exposes enough diagnostics to explain accepted
+    positions, rejected target deltas, fees, notional exposure, and margin usage;
+  - native arbitrage event/vectorized parity is covered by audit helpers and
+    mock package tests.
+- Do **not** mark this as final production certification for all strategy
+  families yet:
+  - real multi-symbol alpha notebooks still need archived audit bundles;
+  - Nautilus portfolio/arbitrage parity is still experimental for package
+    workflows;
+  - exchange queue, partial-fill, portfolio-margin, and order-book depth are
+    intentionally out of scope for 5.3.
+
+Remaining debt before promoting portfolio support beyond native research use:
+
+- Run real multi-symbol portfolio notebooks / service strategies and archive
+  audit bundles for representative basket, pair, and multi-symbol alpha cases.
+- Add Nautilus parity/audit for portfolio package replay once deeper
+  multi-symbol Nautilus validation is scheduled.
+- Add exchange-native portfolio-margin replication only if a venue-specific
+  production requirement appears; current logic remains transparent cross-margin
+  buying-power gating, not Binance portfolio-margin clone.
+- Add explicit liquidation attribution rows if liquidated portfolio audit needs
+  strict per-symbol reconciliation through the liquidation bar.
+
+Non-goals for 5.3:
+
+- Deep Nautilus queue/latency/order-book modeling.
+- Exchange-native portfolio-margin replication.
+- New schema-only arbitrage engines for cross-exchange, triangular, or options
+  vol arbitrage.
+
+## Phase 5.4 - Nautilus Adapter Depth
+
+Purpose:
+
+Move Nautilus validation from simple package replay toward institutional
+execution semantics without breaking existing endpoint behavior.
+
+This work must stay opt-in and auditable. Existing signal, explicit-order,
+DCA/grid, bracket/OCO, basket, portfolio, and arbitrage endpoints must continue
+to behave as they do today unless a new depth policy is explicitly passed.
+
+### Phase 5.4A - Execution-Depth Preflight And Package Semantics
+
+Scope:
+
+- Add a deterministic preflight layer for `OrderIntent` packages before deeper
+  Nautilus execution:
+  - high/low touch checks for limit/stop orders;
+  - latency-bar shifting;
+  - simple queue-ahead and volume participation cap;
+  - optional partial-fill simulation;
+  - reduce-only capping to current simulated position;
+  - exchange-like OCO sibling cancellation after the first exit fill;
+  - all-or-none package rejection for basket/arbitrage package groups.
+- Keep the layer dependency-free from Nautilus so it can be tested quickly and
+  reused by native audits.
+- Export the config/result helpers publicly, but do not enable them by default
+  in existing endpoints.
+
+Acceptance:
+
+- Mock package tests prove:
+  - all-or-none basket rejects every leg when one leg cannot fill;
+  - best-effort package can keep valid fills;
+  - partial-fill quantity respects volume participation and queue-ahead;
+  - reduce-only exit cannot over-close the simulated position;
+  - OCO sibling is canceled after TP/SL fill;
+  - latency shifts effective execution bars.
+- Full internal tests pass.
+
+Status:
+
+- Implemented `NautilusExecutionDepthConfig`,
+  `PackageDepthPreflightResult`, and
+  `simulate_nautilus_order_package_depth(...)`.
+- Added deterministic domain tests for all acceptance bullets above.
+- Documented opt-in usage in `docs/nautilus_backend.md` and
+  `docs/endpoint.md`.
+- Existing endpoints are unchanged by default.
+- Validation:
+  - `test_phase5_4_nautilus_depth.py` passes;
+  - targeted endpoint/Nautilus regression passes;
+  - full internal tests pass excluding real-data scripts;
+  - `test_real.py` and `test_real_endpoints.py` execute successfully as
+    scripts.
+
+### Phase 5.4B - Deep Nautilus Adapter Integration And Parity Artifacts
+
+Scope:
+
+- Wire Phase 5.4A preflight into Nautilus package endpoints as an optional
+  parameter / config path:
+  - reject all-or-none package groups before Nautilus submission;
+  - annotate package reports with preflight accepted/rejected/canceled/partial
+    diagnostics;
+  - preserve raw Nautilus reports separately from preflight diagnostics.
+- Upgrade dynamic DCA/grid validation:
+  - activate safety/exit orders from package state rather than submitting every
+    possible order blindly at package start;
+  - cap reduce-only TP/SL exits to filled ladder quantity;
+  - document same-bar ambiguity policy.
+- Upgrade parity artifacts:
+  - portfolio package native-vs-Nautilus order/fill/equity comparison;
+  - arbitrage package native-vs-Nautilus comparison;
+  - known policy-difference classifier.
+
+Non-goals for Phase 5.4:
+
+- True order-book queue modeling from tick-level L2 data.
+- Cross-exchange latency arbitrage.
+- Portfolio-margin exact clone of any venue.
+- Replacing native vectorized/event backends for optimizer workloads.
+
+Status:
+
+- Implemented optional endpoint wiring for `nautilus_depth_config`:
+  - `QuantBTEndpoint.nautilus_dca_grid(...)`;
+  - `QuantBTEndpoint.nautilus_bracket_orders(...)`;
+  - `QuantBTEndpoint.basket(backend="nautilus", ...)`;
+  - `QuantBTEndpoint.portfolio(backend="nautilus", ...)`;
+  - `QuantBTEndpoint.arbitrage(..., backend="nautilus")`.
+- Existing endpoints remain unchanged when `nautilus_depth_config=None`.
+- Added preflight metadata to Nautilus package results:
+  - `nautilus_depth_enabled`;
+  - `nautilus_depth_order_report`;
+  - `nautilus_depth_package_report`;
+  - `nautilus_depth_metadata`;
+  - `order_count_before_depth`;
+  - `order_count_after_depth`.
+- Added empty flat result path for packages fully rejected by preflight before
+  Nautilus submission.
+- Added `build_nautilus_depth_parity_summary(result)` for package-level
+  preflight-vs-Nautilus count audit.
+- Added endpoint integration tests for:
+  - structured DCA all-or-none reject before Nautilus;
+  - bracket/OCO preflight filtering and sibling cancellation before Nautilus;
+  - basket package all-or-none metadata annotation and depth reports.
+- Added debt-domain validation tests for:
+  - DCA/grid lifecycle state: base fill, safety fill, untouched safety reject,
+    reduce-only TP cap to filled ladder quantity, OCO SL cancellation;
+  - queue/depth behavior: explicit `depth_model="ohlcv_volume_cap"` and
+    volume participation minus queue-ahead sizing;
+  - package fill-price / quantity parity artifact pass and intentional failure.
+- Added `build_nautilus_depth_execution_report(result)` for row-level
+  depth-preflight vs Nautilus package fill-price/quantity comparison.
+- Validation:
+  - `test_phase5_4_endpoint_depth.py` and `test_phase5_4_nautilus_depth.py`
+    pass;
+  - `test_phase5_4_debt_domain_validation.py` passes;
+  - endpoint/Nautilus targeted regression passes;
+  - full internal tests pass excluding real-data scripts;
+  - `test_real.py` and `test_real_endpoints.py` execute successfully as
+    scripts.
+
+Remaining debt:
+
+- Dynamic DCA/grid is still preflight-mediated, not a full Nautilus in-strategy
+  state machine with progressive order activation.
+- Queue/latency/depth is deterministic OHLCV-level approximation, not true L2
+  order-book simulation. This is now explicitly visible as
+  `depth_model="ohlcv_volume_cap"` in metadata and covered by tests.
+- Portfolio/arbitrage package parity now has row-level fill-price/quantity
+  artifacts, but real package runs and saved stakeholder bundles are still
+  required before calling it production-certified.
+
 ### Phase 5.2C - Nautilus Structured Orders And Strategy Packages
 
 Purpose:
@@ -1033,6 +1307,48 @@ Acceptance:
 - Benchmark report saved in repo.
 - Performance thresholds documented.
 
+Status:
+
+- Implemented `benchmarks/run_phase7.py` stdlib CLI.
+- Profiles:
+  - `smoke`;
+  - `standard`;
+  - `large`.
+- Backends measured:
+  - `native_vectorized`;
+  - `native_event`;
+  - `portfolio_legacy`;
+  - optional `nautilus` with `--include-nautilus`.
+- Captures:
+  - bars x symbols;
+  - generated signal transitions;
+  - explicit order count;
+  - event count;
+  - warmup / first-run time;
+  - repeated runtime;
+  - `tracemalloc` peak memory;
+  - RSS delta where available;
+  - throughput and threshold pass/fail.
+- Added `benchmarks/phase7_thresholds.json`.
+- Added committed benchmark summary at `benchmarks/phase7_report.md`.
+- Latest local run:
+  - smoke profile passes native thresholds;
+  - standard profile: `portfolio_legacy` passes, while `native_vectorized` and
+    `native_event` exceed current threshold guardrails on this machine.
+
+Conclusion:
+
+- Do not jump to Cython/C++ yet.
+- Next optimization step should be profiling full-facade overhead vs pure Numba
+  kernel runtime:
+  - data normalization;
+  - pandas-to-ndarray conversion;
+  - order array construction;
+  - result/report construction;
+  - actual kernel loops.
+- Cython/C++ escalation requires repeated threshold misses after profiling
+  identifies a hot loop Numba cannot address.
+
 ---
 
 ## Phase 8 - Documentation And Examples
@@ -1052,6 +1368,32 @@ Acceptance:
 
 - User can choose correct backend from docs.
 - Each major strategy type has a minimal runnable example.
+
+Status:
+
+- Added `docs/README.md` as the documentation map.
+- README now points users to the correct doc by task:
+  - endpoint contract;
+  - backend selection;
+  - vectorized vs event-driven;
+  - margin/leverage;
+  - order fill policies;
+  - Nautilus validation;
+  - pair/basket;
+  - walk-forward methodology;
+  - examples index.
+- Added `examples/README.md` as the runnable example map.
+- Added minimal examples for:
+  - single explicit order;
+  - DCA/grid ladder;
+  - multi-symbol portfolio;
+  - pair/basket package;
+  - basis arbitrage;
+  - walk-forward train/test split;
+  - Nautilus validation;
+  - Nautilus explicit order parity.
+- Polished pair/basket guide to match current package preflight and Nautilus
+  validation status.
 
 ---
 

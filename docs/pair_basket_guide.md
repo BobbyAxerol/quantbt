@@ -44,6 +44,12 @@ Behavior:
 - exit closes the exact frozen units;
 - basket plan diagnostics are stored in `result.metadata["basket_plan"]`.
 
-Current all-or-none behavior is represented in schema and metadata. The current
-native event kernel executes generated leg orders best-effort; strict atomic
-all-or-none matching is a later engine enhancement.
+Current package behavior:
+
+- native routes generate deterministic leg orders from a frozen basket plan;
+- package metadata records `basket_id`, target units, and component orders;
+- all-or-none package preflight is available for Nautilus package validation
+  routes where the package is compiled into explicit orders;
+- full exchange-native queue/depth semantics remain experimental and should be
+  validated with representative Nautilus runs before being presented as
+  production parity.

@@ -32,6 +32,50 @@ audit how a result was produced.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection.
 
+## Performance Philosophy
+
+QuantBT is built for research loops where speed matters as much as accounting
+clarity. The public API stays Pythonic, but the heavy computation path is pushed
+toward NumPy/Numba kernels so large signal matrices, parameter sweeps,
+walk-forward runs, and multi-symbol portfolios can run close to native compiled
+performance without forcing researchers into a C++ or C# codebase.
+
+The intent is not to be a black-box replacement for mature execution engines.
+LEAN/QuantConnect brings a large C# institutional platform, NautilusTrader
+brings a Rust-backed event-driven trading stack, vectorbt is excellent for
+vectorized research, and Backtrader remains a widely used Python event-driven
+framework. QuantBT sits between those worlds: fast native-vectorized and
+Numba-accelerated research paths for iteration, native event simulation for
+transparent order accounting, and optional Nautilus validation when a run needs
+third-party execution evidence.
+
+Benchmarks are versioned under `benchmarks/` rather than hidden in marketing
+claims. Phase 7 currently measures bars x symbols, order count, event count,
+warmup/compile time, runtime, memory, throughput, and threshold pass/fail across
+native vectorized, native event, portfolio, and optional Nautilus routes. The
+rule is simple: keep hot loops near C/C++-style runtime with Numba first, profile
+before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
+fixed safely in the Python/Numba stack.
+
+Latest Phase 7 standard benchmark on this workspace:
+
+| Route | Workload | Runtime | Throughput | Peak Memory | Threshold |
+|---|---:|---:|---:|---:|---|
+| `native_vectorized` | 25,000 bars x 20 symbols | 3.874s | 129,050 bar-symbols/s | 180.85 MB | needs profiling |
+| `native_event` | 25,000 explicit orders | 5.039s | 4,962 orders/s | 133.99 MB | needs profiling |
+| `portfolio_legacy` | 25,000 bars x 20 symbols | 1.183s | 422,499 bar-symbols/s | 206.54 MB | pass |
+| `nautilus` | optional validation route | skipped | - | - | run with `--include-nautilus` |
+
+Ecosystem positioning:
+
+| Tool | Core strength | Runtime model | QuantBT role beside it |
+|---|---|---|---|
+| QuantBT | transparent research, WFO, portfolio, arbitrage, validation endpoints | Python API with NumPy/Numba hot paths | primary alpha research and auditable simulation layer |
+| LEAN / QuantConnect | large institutional C# platform and live/research ecosystem | C# engine | external benchmark for platform breadth, but heavier adapter work for custom notebooks |
+| NautilusTrader | high-fidelity event-driven execution and accounting | Rust-backed trading stack | optional third-party trustee for execution/account validation |
+| vectorbt | very fast vectorized research | NumPy/Numba vectorization | closest research-speed peer; QuantBT adds domain-specific accounting and validation routes |
+| Backtrader | classic Python event-driven strategy simulation | Python event loop | useful reference style; QuantBT focuses on faster vectorized/event hybrid workflows |
+
 ## Engine Stack
 
 | Layer | Backend | Best use case |
@@ -329,17 +373,30 @@ Example console output:
 
 ## Documentation
 
-- [Endpoint contract](docs/endpoint.md)
-- [Backend selection](docs/backend_selection.md)
-- [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md)
-- [Margin and leverage](docs/margin_leverage.md)
-- [Order fill policies](docs/order_fill_policies.md)
-- [Nautilus backend](docs/nautilus_backend.md)
-- [Pair and basket guide](docs/pair_basket_guide.md)
-- [Walk-forward methodology](docs/walkforward_methodology_vi.md)
-- [DCA/grid ladder example](examples/dca_grid_ladder.py)
-- [Nautilus validation example](examples/nautilus_validation.py)
-- [Nautilus explicit order example](examples/nautilus_explicit_orders.py)
+Start with the [documentation map](docs/README.md) if you are deciding which
+backend, endpoint, or strategy route to use.
+
+| Need | Read |
+|---|---|
+| Public API contract for notebooks/services | [Endpoint contract](docs/endpoint.md) |
+| Backend choice by strategy type | [Backend selection](docs/backend_selection.md) |
+| Speed vs execution-fidelity tradeoff | [Vectorized vs event-driven](docs/vectorized_vs_event_driven.md) |
+| Leverage, buying power, margin, liquidation | [Margin and leverage](docs/margin_leverage.md) |
+| Market/limit/stop fill behavior | [Order fill policies](docs/order_fill_policies.md) |
+| Nautilus validation and report bundles | [Nautilus backend](docs/nautilus_backend.md) |
+| Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
+| Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
+| Runnable smoke templates | [Examples index](examples/README.md) |
+
+Key examples:
+
+- [DCA/grid ladder](examples/dca_grid_ladder.py)
+- [Multi-symbol portfolio](examples/multi_symbol_portfolio.py)
+- [Pair/basket event package](examples/pair_basket_event.py)
+- [Basis arbitrage](examples/arbitrage_basis.py)
+- [Walk-forward train/test split](examples/walk_forward_train_test.py)
+- [Nautilus validation](examples/nautilus_validation.py)
+- [Nautilus explicit orders](examples/nautilus_explicit_orders.py)
 
 ## Development
 

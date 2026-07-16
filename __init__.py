@@ -81,6 +81,11 @@ from .core.types import BacktestResult
 from .core.results import BacktestResultV2
 from .core.orders import BasketIntent, Fill, OrderIntent, Trade
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
+from .core.execution_depth import (
+    NautilusExecutionDepthConfig,
+    PackageDepthPreflightResult,
+    simulate_nautilus_order_package_depth,
+)
 from .core.structured_orders import (
     BracketOrderSpec,
     DcaGridSpec,
@@ -163,7 +168,12 @@ from .metrics import (
 
 from .viz import quick_plot, tearsheet, apply_theme
 from .reporting import (
+    build_arbitrage_domain_audit,
     build_native_nautilus_parity_report,
+    build_nautilus_depth_execution_report,
+    build_nautilus_depth_parity_summary,
+    build_portfolio_domain_audit,
+    compare_native_arbitrage_results,
     export_nautilus_report_bundle,
     summarize_native_nautilus_parity_report,
 )
@@ -183,10 +193,17 @@ __all__ = [
     "NativeEventConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
+    "NautilusExecutionDepthConfig",
+    "PackageDepthPreflightResult",
     "PortfolioBacktestEngine",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
+    "build_nautilus_depth_execution_report",
+    "build_nautilus_depth_parity_summary",
+    "build_portfolio_domain_audit",
+    "compare_native_arbitrage_results",
     "export_nautilus_report_bundle",
     "summarize_native_nautilus_parity_report",
     "WalkForwardConfig",
@@ -277,6 +294,7 @@ __all__ = [
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
+    "simulate_nautilus_order_package_depth",
     # metrics
     "full_report",
     "sharpe",

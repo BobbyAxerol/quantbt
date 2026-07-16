@@ -98,17 +98,59 @@ Parity audit:
   an order/fill/equity comparison table for explicit-order runs.
 - `summarize_native_nautilus_parity_report(...)` returns compact max-diff and
   pass/fail diagnostics for stakeholder review.
+- `build_nautilus_depth_parity_summary(result)` summarizes optional preflight
+  depth diagnostics versus the submitted Nautilus package counts.
+- `build_nautilus_depth_execution_report(result)` returns row-level depth
+  fill-price / quantity versus Nautilus fill-price / quantity comparison for
+  package workflows.
 - The table includes requested quantity/price, fill price, fee, position after
   fill, equity and diffs.
 - Use this report to make native-vs-Nautilus differences visible during
   validation instead of relying only on final equity.
 
+Execution-depth preflight:
+
+- `simulate_nautilus_order_package_depth(...)` is an opt-in deterministic
+  preflight layer for package orders before deeper Nautilus simulation.
+- It does not replace Nautilus. It validates package-level assumptions that are
+  easy to inspect quickly:
+  - high/low touch eligibility for limit and stop orders;
+  - latency-bar shifting;
+  - queue-ahead and volume participation caps;
+  - optional partial fills;
+  - reduce-only caps to current simulated position;
+  - OCO sibling cancellation after the first TP/SL exit fill;
+  - all-or-none package rejection for basket/arbitrage groups.
+- Existing endpoints do not enable this policy by default.
+
+```python
+from quantbt import NautilusExecutionDepthConfig, simulate_nautilus_order_package_depth
+
+preflight = simulate_nautilus_order_package_depth(
+    orders=plan.orders,
+    data={"BTCUSDT-PERP.BINANCE": df_btc, "ETHUSDT-PERP.BINANCE": df_eth},
+    config=NautilusExecutionDepthConfig(
+        all_or_none_packages=True,
+        allow_partial_fills=True,
+        max_participation_rate=0.05,
+        queue_ahead_qty=10.0,
+        latency_bars=1,
+    ),
+)
+
+preflight.order_report
+preflight.package_report
+preflight.orders  # accepted / adjusted orders
+```
+
 Not yet in the Nautilus adapter:
 
 - full dynamic DCA ladder state management inside Nautilus;
 - exchange-native contingent order-list semantics beyond current package
-  strategy cancellation;
-- all-or-none basket package semantics;
+  strategy cancellation; preflight can audit OCO assumptions, but Phase 5.4B
+  still needs deeper Nautilus strategy integration;
+- endpoint-wired all-or-none basket package semantics; preflight can already
+  reject all legs deterministically before submission;
 - portfolio-margin replication beyond diagnostics.
 
 DCA/grid, OCO/bracket, basket, and portfolio Nautilus routes are experimental

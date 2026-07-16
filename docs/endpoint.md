@@ -576,6 +576,36 @@ route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
 reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
 higher-level adapters that compile into this explicit-order replay path.
 
+Package execution-depth preflight:
+
+```python
+from quantbt import NautilusExecutionDepthConfig, simulate_nautilus_order_package_depth
+
+preflight = simulate_nautilus_order_package_depth(
+    orders=plan.orders,
+    data={
+        "BTCUSDT-PERP.BINANCE": btc_ohlcv,
+        "ETHUSDT-PERP.BINANCE": eth_ohlcv,
+    },
+    config=NautilusExecutionDepthConfig(
+        all_or_none_packages=True,
+        allow_partial_fills=True,
+        max_participation_rate=0.05,
+        queue_ahead_qty=10.0,
+        latency_bars=1,
+    ),
+)
+
+accepted_orders = preflight.orders
+order_audit = preflight.order_report
+package_audit = preflight.package_report
+```
+
+This helper is opt-in and does not change default endpoint behavior. It checks
+high/low touch eligibility, latency bars, queue-ahead, volume participation,
+reduce-only capping, OCO sibling cancellation, and all-or-none package
+rejection before accepted orders are submitted through Nautilus routes.
+
 Structured bracket/OCO validation:
 
 ```python
