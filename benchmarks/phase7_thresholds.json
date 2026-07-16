@@ -15,6 +15,12 @@
     "standard_max_seconds_per_100k_orders": 1.25,
     "large_max_seconds_per_100k_orders": 0.9
   },
+  "native_event_prepared": {
+    "smoke_max_runtime_seconds": 0.2,
+    "standard_max_seconds_per_100k_orders": 1.5,
+    "large_max_seconds_per_100k_orders": 1.1,
+    "purpose": "higher-level WFO/service replay with validated prepared market arrays and compiled orders"
+  },
   "portfolio_legacy": {
     "smoke_max_runtime_seconds": 0.5,
     "standard_max_seconds_per_million_bar_symbols": 2.5,

@@ -23,6 +23,7 @@ Backends currently measured:
 
 - `native_vectorized`
 - `native_event`
+- `native_event_prepared`
 - `portfolio_legacy`
 - optional `nautilus`
 
@@ -40,6 +41,9 @@ Phase 9 optimization follow-up:
   or fills.
 - `benchmarks/phase9_optimization_report.md` records the first post-profiling
   optimization pass and remaining bottlenecks.
+- `native_event_prepared` measures the WFO/service pattern where market arrays
+  and compiled order arrays are prepared once and replayed through the same
+  event/accounting kernel.
 - `--no-tracemalloc` is available when comparing runtime separately from memory
   instrumentation overhead. Use the default traced mode when peak memory is the
   metric under review.
