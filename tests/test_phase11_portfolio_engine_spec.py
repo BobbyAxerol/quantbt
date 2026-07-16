@@ -9,6 +9,7 @@ from quantbt import (
     LEGACY_PORTFOLIO_MODES,
     LEGACY_PORTFOLIO_SIZING_MODES,
     NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES,
+    NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
     PortfolioBacktestEngine,
     PortfolioDomainSpec,
     portfolio_capability_matrix,
@@ -70,10 +71,14 @@ def test_phase11_portfolio_capability_matrix_declares_legacy_and_roadmap_modes()
     assert set(matrix["mode"]) == LEGACY_PORTFOLIO_MODES
     assert set(matrix["sizing_mode"]) == NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
     legacy = matrix[matrix["legacy_supported"]]
+    native_supported = matrix[matrix["native_supported"]]
     assert set(legacy["sizing_mode"]) == LEGACY_PORTFOLIO_SIZING_MODES
+    assert set(native_supported["sizing_mode"]) == NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
     assert "target_weight" in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
     assert "target_units" in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
+    assert "target_units" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
     assert "%_equity" in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
+    assert "%_equity" not in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
 
 
 def test_phase11_portfolio_domain_spec_normalizes_aliases_and_rejects_unknowns():

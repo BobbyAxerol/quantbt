@@ -55,6 +55,12 @@ LEGACY_PORTFOLIO_SIZING_MODES: Set[str] = {
     PortfolioSizingMode.UNIT.value,
 }
 NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES: Set[str] = {mode.value for mode in PortfolioSizingMode}
+NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES: Set[str] = {
+    *LEGACY_PORTFOLIO_SIZING_MODES,
+    PortfolioSizingMode.TARGET_NOTIONAL.value,
+    PortfolioSizingMode.TARGET_UNITS.value,
+    PortfolioSizingMode.FIXED_NOTIONAL.value,
+}
 
 
 @dataclass(frozen=True)
@@ -158,6 +164,7 @@ def portfolio_capability_matrix() -> pd.DataFrame:
                     "mode": mode,
                     "sizing_mode": sizing,
                     "legacy_supported": sizing in LEGACY_PORTFOLIO_SIZING_MODES,
+                    "native_supported": sizing in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
                     "native_roadmap": True,
                     "nautilus_validation_phase": "phase_4",
                 }
