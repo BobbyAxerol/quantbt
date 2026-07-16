@@ -18,12 +18,21 @@ The goal is simple: make alpha research fast enough for iteration, strict
 enough for institutional-style review, and readable enough that stakeholders can
 audit how a result was produced.
 
+Current portfolio status: `native_portfolio` is the default multi-symbol
+backend. It supports long/short, market-neutral, directional, equal-weight,
+risk-parity, and beta-neutral portfolio modes, with live-equity sizing and
+target exposure contracts. The legacy portfolio route remains available for
+historical reproduction.
+
 ## Why QuantBT
 
 - One public API for notebooks, services, portfolio research, and validation.
 - Native vectorized engines for fast sweeps and large parameter grids.
 - Native event-driven engines for market/limit orders, fills, baskets, and
   arbitrage package execution.
+- Native portfolio engine with target weights, target notionals, target units,
+  gross/net exposure, risk parity, beta neutrality, margin reports, and
+  per-symbol attribution.
 - Optional NautilusTrader adapter for independent event-driven validation.
 - Nautilus explicit order replay for single-symbol `OrderIntent` validation.
 - Explicit margin, leverage, fees, slippage, funding, and liquidation handling.
@@ -57,20 +66,26 @@ rule is simple: keep hot loops near C/C++-style runtime with Numba first, profil
 before optimizing, and only consider Cython/C++ when a proven hotspot cannot be
 fixed safely in the Python/Numba stack.
 
-Latest Phase 7 standard runtime benchmark after Phase 11C portfolio work on this
-workspace:
+Latest Phase 7 standard runtime benchmark after the Phase 11E native portfolio
+default switch on this workspace:
 
 | Route | Workload | Runtime | Throughput | Peak Memory | Threshold |
 |---|---:|---:|---:|---:|---|
-| `native_vectorized` | 25,000 bars x 20 symbols | 0.276s | 1,814,495 bar-symbols/s | measured separately | pass |
-| `native_event` | 25,000 explicit orders, cold preparation | 0.803s | 31,129 orders/s | measured separately | cold path remains a profiling target |
-| `native_event_prepared` | 25,000 explicit orders, prepared replay | 0.314s | 79,727 orders/s | measured separately | pass; WFO reuse path |
-| `portfolio_legacy` | 25,000 bars x 20 symbols | 0.636s | 785,629 bar-symbols/s | measured separately | pass |
-| `native_portfolio` | 25,000 bars x 20 symbols | 0.777s | 643,741 bar-symbols/s | measured separately | pass; auditable route |
+| `native_vectorized` | 25,000 bars x 20 symbols | 0.463s | 1,079,402 bar-symbols/s | 145.3 MB | pass |
+| `native_event` | 25,000 explicit orders, cold preparation | 3.041s | 164,442 events/s | 99.4 MB | threshold miss; profiling target |
+| `native_event_prepared` | 25,000 explicit orders, prepared replay | 1.621s | 308,545 events/s | 30.4 MB | threshold miss; faster reuse path |
+| `portfolio_legacy` | 25,000 bars x 20 symbols | 1.669s | 299,575 bar-symbols/s | 236.3 MB | threshold miss |
+| `native_portfolio` | 25,000 bars x 20 symbols | 1.750s | 285,724 bar-symbols/s | 236.1 MB | default; full audit/report route |
 | `nautilus` | optional validation route | skipped | - | - | run with `--include-nautilus` |
 
-See `benchmarks/phase9_optimization_report.md` for the parity report,
-prepared-replay notes, and post-profiling optimization history.
+The portfolio numbers measure the full facade with diagnostics, exposure
+reports, per-symbol attribution, contract validation, and equity-aware sizing.
+They are intentionally treated as correctness-first default routes; pure kernel
+and reporting-layer profiling remains the next speed follow-up before any
+Cython/C++ work. See `benchmarks/phase9_optimization_report.md`,
+`benchmarks/phase7_profile_report.md`, and
+`benchmarks/portfolio_real_parity_report.md` for parity and optimization
+history.
 
 Ecosystem positioning:
 
@@ -88,7 +103,8 @@ Ecosystem positioning:
 |---|---|---|
 | Fast research | `native_vectorized` | broad sweeps, signal research, WFO scoring |
 | Order simulation | `native_event` | explicit orders, fills, baskets, pair trades |
-| Legacy compatibility | `legacy`, `legacy_portfolio` | existing `%_equity`, DCA ladder, portfolio workflows |
+| Native portfolio | `native_portfolio` | default multi-symbol portfolio matrix with risk/exposure reports |
+| Legacy compatibility | `legacy`, `legacy_portfolio` | historical reproduction and single-symbol legacy routes |
 | Third-party validation | `nautilus` | smaller high-fidelity event-driven checks |
 
 Use the native engines for research velocity. Use Nautilus when the result needs
