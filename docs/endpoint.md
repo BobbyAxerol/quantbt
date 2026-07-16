@@ -933,7 +933,29 @@ result = bt.backtest(
 Routing:
 
 - backend: `legacy_portfolio` by default;
+- backend: `native_portfolio` for the Phase 11B explicit native route;
 - engine: `PortfolioBacktestEngine`.
+
+Native portfolio route:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    portfolio_mode="market_neutral",
+    backend="native_portfolio",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTC": 50_000, "ETH": 50_000},
+    initial_capital=1_000_000,
+    leverage=3,
+).backtest(
+    positions=positions_df,
+    data=data_dict,
+)
+```
+
+Phase 11B native portfolio is parity-focused and supports
+`signal_notional`, `signal`, `notional`, and `unit`. Roadmap sizing modes such
+as `%_equity`, `target_weight`, `target_notional`, `target_units`,
+`gross_exposure`, `net_exposure`, and `dca_ladder` remain explicit future work.
 
 Experimental Nautilus portfolio validation:
 

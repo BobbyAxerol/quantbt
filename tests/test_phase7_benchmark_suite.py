@@ -34,6 +34,7 @@ def test_phase7_threshold_file_is_valid_json():
     assert thresholds["native_event"]["standard_max_seconds_per_100k_orders"] > 0
     assert thresholds["native_event_prepared"]["standard_max_seconds_per_100k_orders"] > 0
     assert thresholds["portfolio_legacy"]["standard_max_seconds_per_million_bar_symbols"] > 0
+    assert thresholds["native_portfolio"]["standard_max_seconds_per_million_bar_symbols"] > 0
 
 
 def test_phase7_profile_markdown_includes_stage_breakdown():

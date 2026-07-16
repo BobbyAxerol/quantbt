@@ -66,7 +66,8 @@ columns, exposure identities, and mode-specific invariants.
 
 ## Phase 11B - Native Core
 
-The native engine should be a separate backend, requested explicitly:
+Implemented as an explicit backend:
+
 
 ```python
 QuantBTEndpoint.portfolio(backend="native_portfolio", ...)
@@ -75,16 +76,19 @@ QuantBTEndpoint.portfolio(backend="native_portfolio", ...)
 The default should remain `legacy_portfolio` until golden parity and real alpha
 validation are complete.
 
-The core must be array-first:
+Current Phase 11B behavior:
 
-- signal/position matrix to target exposure;
-- target exposure to target units;
-- target units to trade deltas;
-- fees, slippage, funding;
-- per-symbol PnL;
-- gross/net exposure;
-- margin and liquidation;
-- attribution reports.
+- array-first market and signal packing;
+- NumPy portfolio-mode transforms;
+- `_engine_portfolio` kernel execution for exact legacy parity;
+- V2 result reports for target units, accepted units, exposure, margin,
+  per-symbol PnL, fees, funding, turnover, and contract validation;
+- explicit support for `signal_notional`, `signal`, `notional`, and `unit`.
+
+Roadmap sizing modes such as `%_equity`, `target_weight`, `target_notional`,
+`target_units`, `gross_exposure`, `net_exposure`, and `dca_ladder` remain
+unsupported in Phase 11B. They should raise clearly until Phase 11C+ adds direct
+mathematical tests.
 
 ## Phase 11C - Institutional Validation
 

@@ -27,6 +27,12 @@
     "large_max_seconds_per_million_bar_symbols": 2.0,
     "purpose": "multi-symbol portfolio matrix diagnostics and attribution"
   },
+  "native_portfolio": {
+    "smoke_max_runtime_seconds": 0.5,
+    "standard_max_seconds_per_million_bar_symbols": 2.5,
+    "large_max_seconds_per_million_bar_symbols": 2.0,
+    "purpose": "explicit Phase 11B native portfolio route with legacy parity"
+  },
   "nautilus": {
     "smoke_max_runtime_seconds": 5.0,
     "standard_max_seconds_per_100k_bars": 8.0,

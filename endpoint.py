@@ -1351,7 +1351,7 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols or list(pos_map.keys()),
         )
-        backend = _resolve_backend(self.config)
+        backend = "legacy_portfolio" if self.config.backend.lower().strip() == "auto" else _resolve_backend(self.config)
         if backend == "nautilus":
             symbol_list = list(symbols or pos_map.keys())
             orders, target_units = _build_portfolio_orders_for_nautilus(
@@ -1386,6 +1386,7 @@ class QuantBTEndpoint:
             lows=low_map,
             datetime_index=idx,
             mode=self.config.portfolio_mode,
+            backend=backend,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.fee,
@@ -1751,7 +1752,7 @@ def _resolve_backend(config: EndpointConfig) -> str:
     if backend != "auto":
         if backend == "legacy_portfolio":
             return backend
-        if backend not in {"legacy", "native_vectorized", "native_event", "nautilus"}:
+        if backend not in {"legacy", "native_vectorized", "native_event", "native_portfolio", "nautilus"}:
             raise ValueError(f"unsupported backend={config.backend!r}")
         return backend
     mode = config.mode.lower().strip()
@@ -1760,6 +1761,8 @@ def _resolve_backend(config: EndpointConfig) -> str:
         return "legacy"
     if mode == "nautilus_validation":
         return "nautilus"
+    if mode == "portfolio":
+        return "legacy_portfolio"
     if mode in ("orders", "basket", "arbitrage"):
         return "native_event"
     return "native_vectorized"
