@@ -1654,6 +1654,171 @@ Recommended next portfolio phase:
 
 ---
 
+## Phase 11 - Portfolio Engine V3 Institutional Upgrade
+
+Goal:
+
+Build a fund-grade portfolio engine that is mathematically explicit,
+domain-correct, fast, and auditable.  `legacy_portfolio` remains the
+compatibility oracle until the native engine has passed golden parity and real
+strategy validation.
+
+### Phase 11A - Domain Spec, Capability Matrix, And Golden Parity
+
+Scope:
+
+- Define a portfolio domain contract independent of `MultiSymbolPortfolio`.
+- Freeze the behavior of existing modes before writing the new engine:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`.
+- Declare current legacy sizing support:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`.
+- Declare native portfolio roadmap sizing support:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`;
+  - `%_equity`;
+  - `target_weight`;
+  - `target_notional`;
+  - `target_units`;
+  - `fixed_notional`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `dca_ladder`.
+- Add contract validation on completed portfolio results:
+  - accounting audit must pass;
+  - metadata mode/sizing must match spec;
+  - target/accepted unit reports must exist;
+  - symbol PnL must reconcile to equity;
+  - exposure identities must reconcile;
+  - margin columns must exist;
+  - mode-specific invariants must hold.
+
+Mode-specific invariants:
+
+- `market_neutral`: active bars must have balanced long and short notional.
+- `directional`: at most one symbol can be active per bar after directional
+  selection.
+- `equal_weight`: active symbols must carry equal absolute notional.
+- `longshort`: raw signed target matrix is preserved except for margin gates.
+
+Status:
+
+- Implemented `core/portfolio.py`:
+  - `PortfolioDomainSpec`;
+  - `PortfolioMode`;
+  - `PortfolioSizingMode`;
+  - `PortfolioRebalancePolicy`;
+  - `portfolio_capability_matrix()`;
+  - `validate_portfolio_result_contract(...)`.
+- Exported the domain contract through `quantbt`.
+- Added `tests/test_phase10_portfolio_engine_spec.py`.
+- Phase 11A tests pass.
+
+### Phase 11B - NativePortfolioEngine Core
+
+Scope:
+
+- Add `backend="native_portfolio"` without changing the default endpoint.
+- Keep `legacy_portfolio` as the oracle.
+- Implement array-first core:
+  - input alignment to ndarray once;
+  - signal/position matrix -> target exposure;
+  - target exposure -> target units;
+  - target units -> trade deltas;
+  - fees/slippage/funding;
+  - per-symbol PnL;
+  - gross/net exposure;
+  - initial margin / maintenance margin;
+  - liquidation scan;
+  - attribution reports.
+- Use NumPy/Numba in hot paths only after behavior is locked.
+- No mutable global cache. Prepared arrays must be explicit and signature
+  guarded.
+
+Acceptance:
+
+- Native result matches legacy for all Phase 11A legacy-compatible modes and
+  sizing modes within documented tolerances.
+- New sizing modes have direct mathematical tests, not just smoke tests.
+- Existing endpoints remain unchanged unless `backend="native_portfolio"` is
+  explicitly requested.
+
+### Phase 11C - Institutional Validation And Default Readiness
+
+Scope:
+
+- Run mock-domain tests:
+  - flat;
+  - long-only;
+  - short-only;
+  - long/short;
+  - market-neutral rebalance;
+  - equal-weight rebalance;
+  - price drift without signal change;
+  - missing data;
+  - fee/funding;
+  - leverage and buying power;
+  - margin rejection;
+  - liquidation.
+- Run real-strategy smoke/parity notebooks where available.
+- Benchmark:
+  - bars x symbols;
+  - rebalance count;
+  - memory;
+  - compile time vs runtime;
+  - legacy vs native speed.
+- Document migration rules from `legacy_portfolio` to `native_portfolio`.
+
+Acceptance:
+
+- No endpoint default change until real alpha parity is reviewed.
+- If native improves legacy behavior intentionally, the improvement must be
+  named and tested.
+
+### Phase 11D - Nautilus Portfolio Validation
+
+Scope:
+
+- Use Nautilus as third-party event-driven execution trustee for portfolio
+  packages.
+- Compile native portfolio rebalance deltas into explicit order packages.
+- Validate:
+  - order count;
+  - fill count;
+  - fill price policy;
+  - fee convention;
+  - gross/net exposure path;
+  - final equity;
+  - drawdown and account timeline.
+- Cover:
+  - single-symbol portfolio subset;
+  - multi-symbol longshort;
+  - market-neutral package;
+  - basket-like target units;
+  - all-or-none package semantics where possible.
+
+Non-goals:
+
+- Exact venue-specific portfolio margin clone unless a production venue
+  requires it.
+- L2 queue/depth perfect simulation inside portfolio V3. That belongs to the
+  Nautilus/depth roadmap.
+
+Acceptance:
+
+- Native-vs-Nautilus validation bundle is generated for representative
+  portfolio scenarios.
+- Nautilus remains validation/oracle backend, not the optimizer hot path.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:
