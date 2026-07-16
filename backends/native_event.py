@@ -39,9 +39,16 @@ from ..core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
-from ..core.order_compiler import compile_order_intents
+from ..core.order_compiler import CompiledOrderArrays, compile_order_intents
 from ..core.orders import Fill, OrderIntent
-from ..core.preprocessor import align_series, build_arrays, make_funding_mask, prepare_funding, validate_datetime
+from ..core.preprocessor import (
+    PreparedMarketArrays,
+    align_series,
+    build_market_arrays,
+    make_funding_mask,
+    prepare_funding,
+    validate_datetime,
+)
 from ..core.results import BacktestResultV2
 from ..core.schema import (
     AccountConfig,
@@ -94,27 +101,36 @@ class NativeEventBackend:
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
         symbols: Optional[List[str]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        compiled_orders: Optional[CompiledOrderArrays] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
         symbol_to_col = {s: j for j, s in enumerate(symbol_list)}
 
-        close_dict = align_series(closes, symbol_list, idx)
-        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
-        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-        zero_signals = {s: pd.Series(0.0, index=idx) for s in symbol_list}
-        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-        closes_m, highs_m, lows_m, _, funding_m, is_funding = build_arrays(
-            symbols=symbol_list,
-            idx=idx,
-            closes_dict=close_dict,
-            highs_dict=high_dict,
-            lows_dict=low_dict,
-            signals_dict=zero_signals,
-            funding_dict=funding_dict,
-        )
+        if market_arrays is None:
+            close_dict = align_series(closes, symbol_list, idx)
+            high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+            low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+            funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+            market_arrays = build_market_arrays(
+                symbols=symbol_list,
+                idx=idx,
+                closes_dict=close_dict,
+                highs_dict=high_dict,
+                lows_dict=low_dict,
+                funding_dict=funding_dict,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
 
-        compiled_orders = compile_order_intents(idx=idx, orders=orders, symbol_to_col=symbol_to_col)
+        if compiled_orders is None:
+            compiled_orders = compile_order_intents(idx=idx, orders=orders, symbol_to_col=symbol_to_col)
+        elif (
+            compiled_orders.index_signature != market_arrays.signature
+            or compiled_orders.symbols != tuple(symbol_list)
+        ):
+            raise ValueError("compiled orders do not match prepared market arrays")
         n_orders = compiled_orders.n_orders
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
@@ -159,11 +175,11 @@ class NativeEventBackend:
             order_qty=compiled_orders.order_qty,
             order_price=compiled_orders.order_price,
             order_tif=compiled_orders.order_tif,
-            highs=highs_m,
-            lows=lows_m,
-            closes=closes_m,
-            funding_rates=funding_m,
-            is_funding_bar=is_funding,
+            highs=market_arrays.highs,
+            lows=market_arrays.lows,
+            closes=market_arrays.closes,
+            funding_rates=market_arrays.funding,
+            is_funding_bar=market_arrays.is_funding_bar,
             init_capital=self.config.account.initial_capital,
             leverages=leverages,
             maint_ratio=self.config.account.maintenance_ratio,
@@ -180,7 +196,7 @@ class NativeEventBackend:
             index=idx,
         )
         close_df = pd.DataFrame(
-            {f"Close_{s}": closes_m[:, j] for j, s in enumerate(symbol_list)},
+            {f"Close_{s}": market_arrays.closes[:, j] for j, s in enumerate(symbol_list)},
             index=idx,
         )
 
@@ -811,6 +827,12 @@ class NativeEventBackend:
         if isinstance(value, dict):
             return np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
         return np.full(len(symbols), float(value), dtype=np.float64)
+
+    @staticmethod
+    def _market_signature(idx: pd.DatetimeIndex, symbols: List[str]):
+        from ..core.preprocessor import market_data_signature
+
+        return market_data_signature(idx, symbols)
 
     @staticmethod
     def _fee_rate_metadata(fee_rates: np.ndarray, symbols: List[str]):

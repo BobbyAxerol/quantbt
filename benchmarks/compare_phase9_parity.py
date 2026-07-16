@@ -20,7 +20,9 @@ if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
 from quantbt import AccountConfig, BacktestEngineV2, OrderIntent, OrderSide, OrderType, TimeInForce
+from quantbt.backends import NativeEventBackend, NativeEventConfig
 from quantbt.core.order_compiler import compile_order_intents
+from quantbt.core.preprocessor import align_series, build_market_arrays, prepare_funding, validate_datetime
 from quantbt.sizing.fast import scale_signal_notional_matrix
 from quantbt.sizing.modes import compute_target_units
 
@@ -48,6 +50,7 @@ def run_parity() -> Dict:
     vectorized_diff = _vectorized_result_diff(data, signals, alloc)
     order_diff = _order_array_diff(idx)
     event_diff = _event_result_diff(data, idx)
+    prepared_diff = _prepared_event_reuse_diff(data, idx)
 
     report = {
         "target_unit_max_abs_diff": target_diff,
@@ -58,6 +61,9 @@ def run_parity() -> Dict:
         "event_order_report_max_abs_diff": event_diff["order_report"],
         "event_fill_count_diff": event_diff["fill_count"],
         "event_fill_price_max_abs_diff": event_diff["fill_price"],
+        "prepared_event_equity_max_abs_diff": prepared_diff["equity"],
+        "prepared_event_order_report_max_abs_diff": prepared_diff["order_report"],
+        "prepared_event_fill_count_diff": prepared_diff["fill_count"],
     }
     report["passed"] = all(
         [
@@ -69,6 +75,9 @@ def run_parity() -> Dict:
             report["event_order_report_max_abs_diff"] <= 1e-12,
             report["event_fill_count_diff"] == 0,
             report["event_fill_price_max_abs_diff"] <= 1e-12,
+            report["prepared_event_equity_max_abs_diff"] <= 1e-10,
+            report["prepared_event_order_report_max_abs_diff"] <= 1e-12,
+            report["prepared_event_fill_count_diff"] == 0,
         ]
     )
     return report
@@ -190,6 +199,47 @@ def _event_result_diff(data, idx):
         "order_report": float(np.max(np.abs(report.to_numpy(dtype=float) - rerun_report.to_numpy(dtype=float)))),
         "fill_count": int(len(result.fills) - len(rerun.fills)),
         "fill_price": fill_price_diff,
+    }
+
+
+def _prepared_event_reuse_diff(data, idx):
+    symbols = ["A", "B"]
+    orders = _orders(idx)
+    closes = {symbol: data[symbol]["close"] for symbol in symbols}
+    highs = {symbol: data[symbol]["high"] for symbol in symbols}
+    lows = {symbol: data[symbol]["low"] for symbol in symbols}
+    backend = NativeEventBackend(
+        NativeEventConfig(account=AccountConfig(initial_capital=100_000.0, leverage=5.0), use_funding=False)
+    )
+    normal = backend.run_orders(idx, orders, closes, highs=highs, lows=lows, symbols=symbols)
+    idx_n = validate_datetime(idx)
+    close_dict = align_series(closes, symbols, idx_n)
+    high_dict = align_series(highs, symbols, idx_n, fallback=close_dict)
+    low_dict = align_series(lows, symbols, idx_n, fallback=close_dict)
+    funding_dict = prepare_funding(0.0, symbols, idx_n)
+    market_arrays = build_market_arrays(symbols, idx_n, close_dict, high_dict, low_dict, funding_dict)
+    compiled = compile_order_intents(idx_n, orders, {"A": 0, "B": 1})
+    reused = backend.run_orders(
+        idx,
+        orders,
+        closes,
+        highs=highs,
+        lows=lows,
+        symbols=symbols,
+        market_arrays=market_arrays,
+        compiled_orders=compiled,
+    )
+    return {
+        "equity": float(np.max(np.abs(normal.equity.to_numpy() - reused.equity.to_numpy()))),
+        "order_report": float(
+            np.max(
+                np.abs(
+                    normal.metadata["order_report"].to_numpy(dtype=float)
+                    - reused.metadata["order_report"].to_numpy(dtype=float)
+                )
+            )
+        ),
+        "fill_count": int(len(normal.fills) - len(reused.fills)),
     }
 
 

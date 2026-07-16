@@ -1545,6 +1545,11 @@ Status:
   - `_engine_event_v1` is unchanged.
 - Phase 9C implemented:
   - added `benchmarks/compare_phase9_parity.py`;
+  - added `PreparedMarketArrays` and explicit market-data signatures;
+  - native event accepts optional prepared market arrays and compiled orders
+    with signature validation;
+  - `run_phase7.py` supports `--no-tracemalloc` to separate runtime from memory
+    tracing;
   - committed parity report at `benchmarks/phase9_parity_report.md`;
   - committed optimization report at `benchmarks/phase9_optimization_report.md`.
 - Parity result:
@@ -1552,16 +1557,17 @@ Status:
   - vectorized equity/position diff: 0.0;
   - order-array diff: 0.0;
   - event equity/order_report/fill diff: 0.0.
-- Standard benchmark after Phase 9:
-  - `native_vectorized` runtime 0.587020s and passes threshold;
-  - `native_event` runtime 3.633349s and improves but still fails threshold;
-  - `portfolio_legacy` was not modified and showed noisy threshold failure on
-    this run.
+  - prepared event reuse equity/order_report/fill diff: 0.0.
+- Standard runtime benchmark after Phase 9C:
+  - `native_vectorized` runtime 0.306991s and passes threshold;
+  - `native_event` runtime 0.793388s and improves but still fails the strict
+    order-count threshold;
+  - `portfolio_legacy` runtime 0.688006s and passes threshold.
 - Remaining safe optimization targets:
-  - prepared market-array cache;
-  - optional compiled-order reuse for repeated event runs;
-  - no-tracemalloc runtime benchmark mode;
-  - event zero-signal/funding allocation reduction.
+  - expose prepared market arrays through higher-level optimizer/WFO loops;
+  - reuse compiled-order arrays across repeated event runs when order packages
+    are unchanged;
+  - reduce remaining pandas normalization overhead.
 
 ---
 

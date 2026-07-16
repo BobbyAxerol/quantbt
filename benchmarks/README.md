@@ -6,6 +6,7 @@ backends.
 ```bash
 python3 benchmarks/run_phase7.py --profile smoke
 python3 benchmarks/run_phase7.py --profile standard --repeats 5
+python3 benchmarks/run_phase7.py --profile standard --repeats 5 --no-tracemalloc
 python3 benchmarks/profile_phase7.py --profile standard --repeats 3
 ```
 
@@ -39,3 +40,6 @@ Phase 9 optimization follow-up:
   or fills.
 - `benchmarks/phase9_optimization_report.md` records the first post-profiling
   optimization pass and remaining bottlenecks.
+- `--no-tracemalloc` is available when comparing runtime separately from memory
+  instrumentation overhead. Use the default traced mode when peak memory is the
+  metric under review.
