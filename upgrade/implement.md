@@ -291,37 +291,30 @@ Current status:
   positions from fills plus OHLCV close, while preserving raw account reports for
   audit.
 
-Planned Nautilus upgrades, not implemented yet:
+Completed in later Nautilus phases:
 
-- **Explicit order replay**
-  - Convert `OrderIntent` into Nautilus market/limit/stop orders.
-  - Preserve TIF, reduce-only, order tags, and reject/cancel diagnostics.
-  - Compare native event order reports vs Nautilus order/fill reports.
-- **DCA/grid ladder validation**
-  - Convert structural ladder levels into Nautilus limit safety orders.
-  - Model base order, safety order activation, take-profit, same-bar ambiguity,
-    and high/low trigger behavior explicitly.
-  - Add parity tests against native DCA golden cases.
-- **Pair/basket validation**
-  - Convert `BasketSpec` / `BasketIntent` into multi-leg Nautilus orders.
-  - Support frozen hedge-ratio entry, exact-unit exit, all-or-none or
-    best-effort execution policy.
-  - Add spread/accounting diagnostics per leg and per basket.
-- **Multi-symbol portfolio validation**
-  - Run multiple instruments in one Nautilus venue/account.
-  - Convert position matrix signals into per-symbol target orders.
-  - Reconcile cross-symbol margin, netting, funding, fees, and equity reports.
-- **Institutional parity audit**
-  - Add a reusable native-vs-Nautilus comparison report:
-    - transition timestamp;
-    - target quantity;
-    - fill price;
-    - fee;
-    - position;
-    - reconstructed equity;
-    - account report equity;
-    - native equity diff.
-  - Promote any known intentional differences into documented test fixtures.
+- Explicit order replay is implemented in Phase 5.2A/5.2B:
+  - `OrderIntent` market/limit/stop routes;
+  - TIF/reduce-only/tag preservation where Nautilus exposes it;
+  - native-vs-Nautilus parity helper/report.
+- DCA/grid and bracket/OCO package validation are implemented at experimental
+  structured-package level in Phase 5.2C and depth-preflight level in Phase 5.4.
+- Pair/basket and multi-symbol portfolio Nautilus package validation are
+  implemented at experimental level in Phase 5.2D/5.4.
+- Institutional parity artifacts exist for explicit orders and depth-preflight
+  package diagnostics.
+
+Remaining Nautilus debt:
+
+- Dynamic in-Nautilus DCA/grid state machine, not just generated/preflighted
+  package orders.
+- Exchange-native OCO/bracket order-list semantics beyond package-strategy
+  sibling cancellation.
+- True queue priority, latency, partial-fill, and L2 order-book simulation.
+- Deeper real-strategy portfolio/arbitrage parity bundles before production
+  certification.
+- Venue-specific portfolio-margin replication only if a production requirement
+  appears.
 
 ---
 
@@ -334,11 +327,14 @@ that can replay explicit QuantBT `OrderIntent` objects. This is the foundation
 for DCA/grid validation, SL/TP/OCO workflows, order-package arbitrage, and later
 multi-leg portfolio validation.
 
-Branch:
+Historical branch:
 
 ```text
 feat/nautilus-explicit-orders
 ```
+
+This branch has since been merged into `dev`; keep the section as design
+history, not current branch guidance.
 
 Design scope:
 
@@ -480,7 +476,8 @@ Non-goals for 5.2:
 
 Current status:
 
-- Phase 5.2A implemented on `feat/nautilus-explicit-orders`:
+- Phase 5.2A implemented from the historical `feat/nautilus-explicit-orders`
+  work:
   - `QuantBTEndpoint.orders(backend="nautilus", ...)`;
   - explicit single-symbol `OrderIntent` replay through Nautilus;
   - market, limit, stop-market, and stop-limit order factory mapping;
@@ -537,11 +534,11 @@ Future directions / do not treat as completed:
 
 Branch note:
 
-- `feat/nautilus-explicit-orders` should stay unmerged until manual notebook
-  validation is complete.
-- New unrelated upgrades, especially WalkForwardEngine work, should branch from
-  `dev` rather than from this feature branch unless the upgrade explicitly
-  depends on the Nautilus structured-order changes.
+- The `feat/nautilus-explicit-orders` work has been merged into `dev`.
+- New unrelated upgrades should branch from or be committed on `dev` according
+  to the current task scope.
+- Do not resurrect old feature-branch assumptions when reading the Phase 5.2
+  design notes.
 
 ## Phase 5.3 - Native Arbitrage And Portfolio Engine Depth
 
@@ -1242,6 +1239,29 @@ Acceptance:
 - No new strategy execution abstraction is introduced.
 - Nautilus remains the event-driven third-party execution/accounting backend.
 
+Status:
+
+- Implemented `export_nautilus_report_bundle(...)` in the public reporting
+  namespace.
+- Export bundle supports:
+  - `equity_curve.csv`;
+  - `returns.csv`;
+  - raw account/order/fill/position CSV reports where present;
+  - normalized `trade_log.csv`;
+  - bounded `fill_log.txt`;
+  - `metrics_summary.json`;
+  - `run_manifest.json`;
+  - clean `config.json`;
+  - optional `quantstats_daily.html`.
+- Config/export behavior now records applied account, leverage, sizing, fee,
+  slippage, funding, instrument, and timeframe fields without confusing
+  duplicate fee/sizing keys.
+- QuantStats policy supports daily resampling and configurable
+  `quantstats_periods_per_year`, with crypto default 365.
+- Fill/order logs are opt-in and bounded through endpoint/report parameters.
+- This phase remains a reporting/evidence layer only; it does not add alpha
+  logic inside Nautilus and does not alter native engine accounting.
+
 ---
 
 ## Phase 6 - Public API And Migration
@@ -1339,15 +1359,28 @@ Status:
 Conclusion:
 
 - Do not jump to Cython/C++ yet.
-- Next optimization step should be profiling full-facade overhead vs pure Numba
-  kernel runtime:
-  - data normalization;
-  - pandas-to-ndarray conversion;
-  - order array construction;
-  - result/report construction;
-  - actual kernel loops.
-- Cython/C++ escalation requires repeated threshold misses after profiling
-  identifies a hot loop Numba cannot address.
+- Profiling follow-up implemented:
+  - `benchmarks/profile_phase7.py`;
+  - committed summary at `benchmarks/phase7_profile_report.md`;
+  - local JSON/Markdown artifacts under `benchmarks/out/`.
+- Standard profile decomposition:
+  - `native_vectorized`:
+    - target sizing is the largest bucket;
+    - data normalization and pandas-to-ndarray packing are secondary;
+    - pure `_engine_units_v2` Numba kernel is about 1.3% of measured backend
+      layer runtime.
+  - `native_event`:
+    - order-array construction is the largest bucket;
+    - data normalization and market ndarray packing are secondary;
+    - pure `_engine_event_v1` Numba kernel is about 1.3% of measured backend
+      layer runtime.
+- Optimization priority:
+  - cache aligned market arrays for repeated optimizer/WFO runs;
+  - move `signal_notional` sizing to ndarray/Numba or reusable array caches;
+  - pre-map/order-cache explicit order arrays when orders are unchanged;
+  - separate runtime thresholds from `tracemalloc` memory instrumentation.
+- Cython/C++ escalation is **not justified** yet because the pure kernels are
+  not the bottleneck.
 
 ---
 

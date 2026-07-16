@@ -6,6 +6,7 @@ backends.
 ```bash
 python3 benchmarks/run_phase7.py --profile smoke
 python3 benchmarks/run_phase7.py --profile standard --repeats 5
+python3 benchmarks/profile_phase7.py --profile standard --repeats 3
 ```
 
 Profiles:
@@ -26,3 +27,7 @@ Backends currently measured:
 
 The committed summary lives in `benchmarks/phase7_report.md`. Local JSON/MD
 outputs under `benchmarks/out/` are git-ignored by design.
+
+When a backend misses a runtime threshold, run `profile_phase7.py` before
+considering Cython/C++. The committed profiling summary lives in
+`benchmarks/phase7_profile_report.md`.
