@@ -36,14 +36,9 @@ from quantbt import (  # noqa: E402
 LEGACY_PARITY_MODES = ("longshort", "market_neutral", "directional", "equal_weight")
 LEGACY_PARITY_SIZING = ("signal_notional", "signal", "notional", "unit")
 NATIVE_ONLY_SIZING = ("target_units", "target_notional", "fixed_notional")
-UNSUPPORTED_NATIVE_SIZING = (
-    "%_equity",
-    "pct_equity",
-    "target_weight",
-    "gross_exposure",
-    "net_exposure",
-    "dca_ladder",
-)
+NATIVE_EQUITY_SIZING = ("%_equity", "target_weight", "gross_exposure", "net_exposure")
+NATIVE_ONLY_MODES = ("risk_parity", "beta_neutral")
+UNSUPPORTED_NATIVE_SIZING = ("dca_ladder",)
 
 
 def load_market_data(
@@ -160,8 +155,13 @@ def run_suite(
         "target_units": positions,
         "target_notional": {symbol: series * alloc[symbol] for symbol, series in positions.items()},
         "fixed_notional": positions,
+        "%_equity": positions,
+        "target_weight": positions,
+        "gross_exposure": positions,
+        "net_exposure": {symbol: series.abs() for symbol, series in positions.items()},
     }
-    for sizing in NATIVE_ONLY_SIZING:
+    for sizing in (*NATIVE_ONLY_SIZING, *NATIVE_EQUITY_SIZING):
+        case_alloc = 1.0 if sizing in {"gross_exposure", "net_exposure"} else 0.5 if sizing == "%_equity" else alloc
         result = _run_portfolio(
             native_only_positions[sizing],
             closes,
@@ -172,7 +172,7 @@ def run_suite(
             backend="native_portfolio",
             hedge_type=sizing,
             account=account,
-            alloc_per_trade=alloc,
+            alloc_per_trade=case_alloc,
             fee_rate=fee_rate,
         )
         contract = validate_portfolio_result_contract(
@@ -185,6 +185,39 @@ def run_suite(
             {
                 "mode": "longshort",
                 "sizing_mode": sizing,
+                "final_equity": float(result.equity.iloc[-1]),
+                "max_gross_leverage": _safe_max(result.metadata["exposure_report"]["gross_leverage"]),
+                "fee_total": float(result.metadata["fee_total"]),
+                "turnover_total": float(result.metadata["turnover_total"]),
+                "contract_passed": bool(contract["passed"]),
+                "passed": bool(contract["passed"]),
+            }
+        )
+
+    for mode in NATIVE_ONLY_MODES:
+        result = _run_portfolio(
+            positions,
+            closes,
+            highs,
+            lows,
+            idx,
+            mode=mode,
+            backend="native_portfolio",
+            hedge_type="gross_exposure",
+            account=account,
+            alloc_per_trade=1.0,
+            fee_rate=fee_rate,
+        )
+        contract = validate_portfolio_result_contract(
+            result,
+            PortfolioDomainSpec(mode=mode, sizing_mode="gross_exposure"),
+            tolerance=tolerance,
+            raise_on_fail=False,
+        )
+        native_only_records.append(
+            {
+                "mode": mode,
+                "sizing_mode": "gross_exposure",
                 "final_equity": float(result.equity.iloc[-1]),
                 "max_gross_leverage": _safe_max(result.metadata["exposure_report"]["gross_leverage"]),
                 "fee_total": float(result.metadata["fee_total"]),
@@ -209,7 +242,7 @@ def run_suite(
         "initial_capital": float(initial_capital),
         "leverage": float(leverage),
         "fee_rate_round_trip": float(fee_rate),
-        "native_supported_modes": list(LEGACY_PARITY_MODES),
+        "native_supported_modes": list((*LEGACY_PARITY_MODES, *NATIVE_ONLY_MODES)),
         "native_supported_sizing_modes": sorted(NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES),
         "legacy_compatible_sizing_modes": sorted(LEGACY_PORTFOLIO_SIZING_MODES),
         "native_unsupported_sizing_modes": list(UNSUPPORTED_NATIVE_SIZING),
@@ -310,7 +343,7 @@ def _run_portfolio(
         backend=backend,
         account=account,
         fee_rate=fee_rate,
-        alloc_per_trade=dict(alloc_per_trade),
+        alloc_per_trade=dict(alloc_per_trade) if isinstance(alloc_per_trade, Mapping) else float(alloc_per_trade),
         contract_size=1.0,
         hedge_type=hedge_type,
         asset_type="crypto",

@@ -15,15 +15,21 @@
     "longshort",
     "market_neutral",
     "directional",
-    "equal_weight"
+    "equal_weight",
+    "risk_parity",
+    "beta_neutral"
   ],
   "native_supported_sizing_modes": [
+    "%_equity",
     "fixed_notional",
+    "gross_exposure",
+    "net_exposure",
     "notional",
     "signal",
     "signal_notional",
     "target_notional",
     "target_units",
+    "target_weight",
     "unit"
   ],
   "legacy_compatible_sizing_modes": [
@@ -33,11 +39,6 @@
     "unit"
   ],
   "native_unsupported_sizing_modes": [
-    "%_equity",
-    "pct_equity",
-    "target_weight",
-    "gross_exposure",
-    "net_exposure",
     "dca_ladder"
   ],
   "parity_records": [
@@ -280,39 +281,69 @@
       "turnover_total": 28053245.268579192,
       "contract_passed": true,
       "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "%_equity",
+      "final_equity": 220319.7339349668,
+      "max_gross_leverage": 2.377274407742148,
+      "fee_total": 52213.968934384946,
+      "turnover_total": 248101583.45405817,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "target_weight",
+      "final_equity": 190919.09906491183,
+      "max_gross_leverage": 4.759124345296473,
+      "fee_total": 101695.47406036386,
+      "turnover_total": 482749117.6135695,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 237508.95103968613,
+      "max_gross_leverage": 1.0004025389013835,
+      "fee_total": 22274.562173833678,
+      "turnover_total": 105900122.25394614,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "net_exposure",
+      "final_equity": 134066.98116949084,
+      "max_gross_leverage": 1.000200040008002,
+      "fee_total": 17003.080363050176,
+      "turnover_total": 85015401.81525087,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "risk_parity",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 234694.22280207596,
+      "max_gross_leverage": 1.0004022866033728,
+      "fee_total": 22221.381095212433,
+      "turnover_total": 105661774.70162633,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "beta_neutral",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 234996.5913951752,
+      "max_gross_leverage": 1.0004024187471532,
+      "fee_total": 22243.220140142766,
+      "turnover_total": 105747039.30515036,
+      "contract_passed": true,
+      "passed": true
     }
   ],
   "unsupported_records": [
-    {
-      "sizing_mode": "%_equity",
-      "rejected": true,
-      "error": "NotImplementedError",
-      "message": "native_portfolio does not yet support equity-dependent sizing mode '%_equity'"
-    },
-    {
-      "sizing_mode": "pct_equity",
-      "rejected": true,
-      "error": "NotImplementedError",
-      "message": "native_portfolio does not yet support equity-dependent sizing mode 'pct_equity'"
-    },
-    {
-      "sizing_mode": "target_weight",
-      "rejected": true,
-      "error": "NotImplementedError",
-      "message": "native_portfolio does not yet support equity-dependent sizing mode 'target_weight'"
-    },
-    {
-      "sizing_mode": "gross_exposure",
-      "rejected": true,
-      "error": "NotImplementedError",
-      "message": "native_portfolio does not yet support equity-dependent sizing mode 'gross_exposure'"
-    },
-    {
-      "sizing_mode": "net_exposure",
-      "rejected": true,
-      "error": "NotImplementedError",
-      "message": "native_portfolio does not yet support equity-dependent sizing mode 'net_exposure'"
-    },
     {
       "sizing_mode": "dca_ladder",
       "rejected": true,
@@ -323,9 +354,9 @@
   "summary": {
     "legacy_parity_cases": 16,
     "legacy_parity_passed": true,
-    "native_only_cases": 3,
+    "native_only_cases": 9,
     "native_only_passed": true,
-    "unsupported_cases": 6,
+    "unsupported_cases": 1,
     "unsupported_rejected": true,
     "max_abs_equity_diff": 0.0,
     "max_abs_position_diff": 0.0,

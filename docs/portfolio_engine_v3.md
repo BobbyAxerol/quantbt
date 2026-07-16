@@ -21,12 +21,14 @@ from quantbt import (
 )
 ```
 
-Current legacy modes:
+Current native portfolio modes:
 
 - `longshort`
 - `market_neutral`
 - `directional`
 - `equal_weight`
+- `risk_parity`
+- `beta_neutral`
 
 Current legacy-compatible sizing modes:
 
@@ -73,8 +75,8 @@ Implemented as an explicit backend:
 QuantBTEndpoint.portfolio(backend="native_portfolio", ...)
 ```
 
-The default should remain `legacy_portfolio` until golden parity and real alpha
-validation are complete.
+The default is now `native_portfolio`. Use `backend="legacy_portfolio"` when a
+run must reproduce historical legacy behavior.
 
 Current Phase 11C behavior:
 
@@ -88,15 +90,18 @@ Current Phase 11C behavior:
   - `signal`;
   - `notional`;
   - `unit`;
+  - `%_equity`;
+  - `target_weight`;
   - `target_units`;
   - `target_notional`;
-  - `fixed_notional`.
+  - `fixed_notional`;
+  - `gross_exposure`;
+  - `net_exposure`.
 
-Equity-dependent sizing modes such as `%_equity`, `target_weight`,
-`gross_exposure`, and `net_exposure` remain unsupported until an equity-aware
-portfolio kernel is added. `dca_ladder` remains on the DCA/grid engine because
-it requires intrabar high/low grid-trigger semantics, not simple target-matrix
-sizing.
+Equity-dependent sizing modes use the native equity-aware portfolio kernel and
+size from live equity at the execution bar. `dca_ladder` remains on the
+DCA/grid engine because it requires intrabar high/low grid-trigger semantics,
+not simple target-matrix sizing.
 
 ## Phase 11C - Institutional Validation
 
@@ -115,6 +120,8 @@ Covered mock scenarios:
 - long/short;
 - market-neutral rebalance;
 - equal-weight rebalance;
+- inverse-volatility risk-parity allocation;
+- beta-neutral allocation;
 - price drift without signal change;
 - missing data;
 - fee and funding reconciliation;
@@ -124,6 +131,16 @@ Covered mock scenarios:
 
 Any intentional difference from legacy behavior must be explicitly named,
 tested, and documented.
+
+Default-readiness status:
+
+- `QuantBTEndpoint.portfolio(...)` defaults to `native_portfolio`;
+- `PortfolioBacktestEngine(...)` defaults to `native_portfolio`;
+- `backend="legacy_portfolio"` remains available;
+- deterministic parity audit lives in
+  `benchmarks/portfolio_real_parity_report.md`;
+- `dca_ladder` is intentionally rejected by native portfolio and remains on the
+  DCA/grid endpoint.
 
 ## Phase 11D - Nautilus Validation
 

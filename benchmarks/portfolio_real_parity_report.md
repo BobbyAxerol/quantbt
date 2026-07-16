@@ -9,7 +9,7 @@ Symbols: `BTC, ETH, SOL, BNB`
 
 - Legacy-compatible parity cases: `16`
 - Legacy parity passed: `True`
-- Native-only domain cases: `3`
+- Native-only domain cases: `9`
 - Native-only contract passed: `True`
 - Unsupported sizing rejected: `True`
 - Max abs equity diff: `0`
@@ -19,9 +19,9 @@ Symbols: `BTC, ETH, SOL, BNB`
 
 ## Supported Surface
 
-- Modes: `longshort, market_neutral, directional, equal_weight`
-- Sizing: `fixed_notional, notional, signal, signal_notional, target_notional, target_units, unit`
-- Explicitly rejected: `%_equity, pct_equity, target_weight, gross_exposure, net_exposure, dca_ladder`
+- Modes: `longshort, market_neutral, directional, equal_weight, risk_parity, beta_neutral`
+- Sizing: `%_equity, fixed_notional, gross_exposure, net_exposure, notional, signal, signal_notional, target_notional, target_units, target_weight, unit`
+- Explicitly rejected: `dca_ladder`
 
 ## Legacy-Compatible Parity
 
@@ -51,3 +51,9 @@ Symbols: `BTC, ETH, SOL, BNB`
 | longshort | target_units | 249189.008288 | 0.317687 | 5774.331160 | 27321505.467896 | True |
 | longshort | target_notional | 246079.118378 | 0.266752 | 5898.121478 | 28053245.268579 | True |
 | longshort | fixed_notional | 246079.118378 | 0.266752 | 5898.121478 | 28053245.268579 | True |
+| longshort | %_equity | 220319.733935 | 2.377274 | 52213.968934 | 248101583.454058 | True |
+| longshort | target_weight | 190919.099065 | 4.759124 | 101695.474060 | 482749117.613569 | True |
+| longshort | gross_exposure | 237508.951040 | 1.000403 | 22274.562174 | 105900122.253946 | True |
+| longshort | net_exposure | 134066.981169 | 1.000200 | 17003.080363 | 85015401.815251 | True |
+| risk_parity | gross_exposure | 234694.222802 | 1.000402 | 22221.381095 | 105661774.701626 | True |
+| beta_neutral | gross_exposure | 234996.591395 | 1.000402 | 22243.220140 | 105747039.305150 | True |

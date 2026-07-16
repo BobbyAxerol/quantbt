@@ -333,7 +333,7 @@ class PortfolioBacktestEngine:
         closes: Dict[str, pd.Series],
         datetime_index: Union[pd.DatetimeIndex, pd.Series],
         mode: str = "longshort",
-        backend: str = "legacy_portfolio",
+        backend: str = "native_portfolio",
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: Optional[float] = None,
@@ -379,6 +379,11 @@ class PortfolioBacktestEngine:
 
     def run(self) -> BacktestResultV2:
         if self.backend in {"legacy", "legacy_portfolio", "portfolio"}:
+            legacy_kwargs = {
+                key: value
+                for key, value in self.kwargs.items()
+                if key not in {"use_pyramiding", "betas", "risk_lookback"}
+            }
             self.portfolio = MultiSymbolPortfolio(
                 positions=self.positions,
                 closes=self.closes,
@@ -396,7 +401,7 @@ class PortfolioBacktestEngine:
                 maintenance_ratio=self.maintenance_ratio,
                 highs=self.highs,
                 lows=self.lows,
-                **self.kwargs,
+                **legacy_kwargs,
             )
             self.result = BacktestResultV2.from_legacy(self.portfolio.result)
             self.result.metadata["backend"] = "legacy_portfolio"
@@ -451,6 +456,9 @@ class PortfolioBacktestEngine:
                 leverage=self.leverage,
                 maintenance_ratio=self.maintenance_ratio,
                 asset_type=self.asset_type,
+                use_pyramiding=bool(self.kwargs.get("use_pyramiding", True)),
+                betas=self.kwargs.get("betas"),
+                risk_lookback=int(self.kwargs.get("risk_lookback", 60)),
             )
             return self.result
 

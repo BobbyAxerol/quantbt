@@ -78,7 +78,10 @@ def test_phase11_portfolio_capability_matrix_declares_legacy_and_roadmap_modes()
     assert "target_units" in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
     assert "target_units" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
     assert "%_equity" in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES
-    assert "%_equity" not in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
+    assert "%_equity" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
+    assert "target_weight" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
+    assert "gross_exposure" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
+    assert "net_exposure" in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES
 
 
 def test_phase11_portfolio_domain_spec_normalizes_aliases_and_rejects_unknowns():

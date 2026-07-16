@@ -759,3 +759,312 @@ def _engine_portfolio(
         equity_curve[i] = equity
 
     return equity_curve, pos_out, sym_pnl, fee_arr, turn_arr, liq_flag, liq_idx
+
+
+@njit(cache=True)
+def _engine_portfolio_equity_sizing(
+    n_bars: int,
+    n_syms: int,
+    highs: np.ndarray,
+    lows: np.ndarray,
+    closes: np.ndarray,
+    raw_signals: np.ndarray,
+    funding_rates: np.ndarray,
+    is_funding_bar: np.ndarray,
+    init_capital: float,
+    leverages: np.ndarray,
+    maint_ratio: float,
+    fee_rate: float,
+    contract_sizes: np.ndarray,
+    use_funding: bool,
+    allocs: np.ndarray,
+    sizing_mode_id: int,
+    portfolio_mode_id: int,
+    use_pyramiding: bool,
+    exposure_scalar: float,
+    beta: np.ndarray,
+    inv_vol: np.ndarray,
+):
+    """
+    Portfolio kernel for sizing modes which depend on live equity.
+
+    sizing_mode_id:
+      0 = %_equity, signal * alloc[s] * equity
+      1 = target_weight, signal * equity
+      2 = gross_exposure, normalized signed signal with target gross equity * scalar
+      3 = net_exposure, normalized signed signal with target net equity * scalar
+
+    portfolio_mode_id:
+      0 = longshort, 1 = market_neutral, 2 = directional, 3 = equal_weight,
+      4 = risk_parity, 5 = beta_neutral.
+    """
+    equity_curve = np.zeros(n_bars, dtype=np.float64)
+    target_out = np.zeros((n_bars, n_syms), dtype=np.float64)
+    pos_out = np.zeros((n_bars, n_syms), dtype=np.float64)
+    sym_pnl = np.zeros((n_bars, n_syms), dtype=np.float64)
+    fee_arr = np.zeros(n_bars, dtype=np.float64)
+    turn_arr = np.zeros(n_bars, dtype=np.float64)
+
+    current_pos = np.zeros(n_syms, dtype=np.float64)
+    current_pnl = np.zeros(n_syms, dtype=np.float64)
+    target_notional = np.zeros(n_syms, dtype=np.float64)
+    target_units = np.zeros(n_syms, dtype=np.float64)
+    equity = init_capital
+    liq_flag = False
+    liq_idx = -1
+    equity_curve[0] = equity
+
+    for i in range(1, n_bars):
+        if liq_flag:
+            equity_curve[i] = 0.0
+            for s in range(n_syms):
+                pos_out[i, s] = 0.0
+                sym_pnl[i, s] = current_pnl[s]
+            continue
+
+        for s in range(n_syms):
+            p = current_pos[s]
+            if p != 0.0:
+                pnl = p * (closes[i, s] - closes[i - 1, s]) * contract_sizes[s]
+                equity += pnl
+                current_pnl[s] += pnl
+
+        worst_equity = equity
+        worst_mm = 0.0
+        for s in range(n_syms):
+            p = current_pos[s]
+            if p == 0.0:
+                continue
+            worst_p = lows[i, s] if p > 0.0 else highs[i, s]
+            worst_equity += p * (worst_p - closes[i, s]) * contract_sizes[s]
+            worst_mm += abs(p) * worst_p * contract_sizes[s] * maint_ratio
+
+        if worst_mm > 0.0 and worst_equity <= worst_mm:
+            liq_flag = True
+            liq_idx = i
+            equity = 0.0
+            for s in range(n_syms):
+                current_pos[s] = 0.0
+                pos_out[i, s] = 0.0
+                sym_pnl[i, s] = current_pnl[s]
+            equity_curve[i] = 0.0
+            continue
+
+        if is_funding_bar[i] and use_funding:
+            for s in range(n_syms):
+                p = current_pos[s]
+                if p != 0.0:
+                    fc = p * closes[i, s] * contract_sizes[s] * funding_rates[i, s]
+                    equity -= fc
+                    current_pnl[s] -= fc
+
+        close_mm = 0.0
+        for s in range(n_syms):
+            p = current_pos[s]
+            if p != 0.0:
+                close_mm += abs(p) * closes[i, s] * contract_sizes[s] * maint_ratio
+
+        if close_mm > 0.0 and equity <= close_mm:
+            liq_flag = True
+            liq_idx = i
+            equity = 0.0
+            for s in range(n_syms):
+                current_pos[s] = 0.0
+                pos_out[i, s] = 0.0
+                sym_pnl[i, s] = current_pnl[s]
+            equity_curve[i] = 0.0
+            continue
+
+        sum_abs_sig = 0.0
+        sum_sig = 0.0
+        for s in range(n_syms):
+            sig = raw_signals[i, s]
+            if not use_pyramiding:
+                if sig > 0.0:
+                    sig = 1.0
+                elif sig < 0.0:
+                    sig = -1.0
+                else:
+                    sig = 0.0
+            sum_abs_sig += abs(sig)
+            sum_sig += sig
+            target_notional[s] = sig
+
+        for s in range(n_syms):
+            sig = target_notional[s]
+            if sizing_mode_id == 0:
+                target_notional[s] = sig * allocs[s] * equity
+            elif sizing_mode_id == 1:
+                target_notional[s] = sig * equity
+            elif sizing_mode_id == 2:
+                if sum_abs_sig > 0.0:
+                    target_notional[s] = sig / sum_abs_sig * equity * exposure_scalar
+                else:
+                    target_notional[s] = 0.0
+            else:
+                if abs(sum_sig) > 1e-12:
+                    target_notional[s] = sig / sum_sig * equity * exposure_scalar
+                else:
+                    target_notional[s] = 0.0
+
+        _apply_portfolio_notional_mode(i, n_syms, portfolio_mode_id, target_notional, beta, inv_vol)
+
+        for s in range(n_syms):
+            denom = closes[i, s] * contract_sizes[s]
+            if denom != 0.0:
+                target_units[s] = target_notional[s] / denom
+            else:
+                target_units[s] = 0.0
+            target_out[i, s] = target_units[s]
+
+        cur_im = 0.0
+        target_im = 0.0
+        fee_est = 0.0
+        for s in range(n_syms):
+            c = closes[i, s]
+            cs = contract_sizes[s]
+            lev = leverages[s]
+            cur_im += abs(current_pos[s]) * c * cs / lev
+            target_im += abs(target_units[s]) * c * cs / lev
+            delta = target_units[s] - current_pos[s]
+            if abs(delta) > 1e-12:
+                fee_est += abs(delta) * c * cs * fee_rate
+
+        can_rebalance = True
+        if target_im > cur_im and (target_im - cur_im) + fee_est > equity - cur_im:
+            can_rebalance = False
+
+        if can_rebalance:
+            for s in range(n_syms):
+                c = closes[i, s]
+                cs = contract_sizes[s]
+                delta = target_units[s] - current_pos[s]
+                if abs(delta) > 1e-12:
+                    tv = abs(delta) * c * cs
+                    fee = tv * fee_rate
+                    equity -= fee
+                    current_pnl[s] -= fee
+                    fee_arr[i] += fee
+                    old_notional = abs(current_pos[s]) * c * cs
+                    new_notional = abs(target_units[s]) * c * cs
+                    turn_arr[i] += abs(new_notional - old_notional)
+                    current_pos[s] = target_units[s]
+
+        close_mm = 0.0
+        for s in range(n_syms):
+            p = current_pos[s]
+            if p != 0.0:
+                close_mm += abs(p) * closes[i, s] * contract_sizes[s] * maint_ratio
+
+        if close_mm > 0.0 and equity <= close_mm:
+            liq_flag = True
+            liq_idx = i
+            equity = 0.0
+            for s in range(n_syms):
+                current_pos[s] = 0.0
+                pos_out[i, s] = 0.0
+                sym_pnl[i, s] = current_pnl[s]
+            equity_curve[i] = 0.0
+            continue
+
+        for s in range(n_syms):
+            pos_out[i, s] = current_pos[s]
+            sym_pnl[i, s] = current_pnl[s]
+        equity_curve[i] = equity
+
+    return equity_curve, target_out, pos_out, sym_pnl, fee_arr, turn_arr, liq_flag, liq_idx
+
+
+@njit(cache=True)
+def _apply_portfolio_notional_mode(
+    i: int,
+    n_syms: int,
+    mode_id: int,
+    target_notional: np.ndarray,
+    beta: np.ndarray,
+    inv_vol: np.ndarray,
+):
+    if mode_id == 1:
+        long_sum = 0.0
+        short_sum = 0.0
+        for s in range(n_syms):
+            v = target_notional[s]
+            if v > 0.0:
+                long_sum += v
+            elif v < 0.0:
+                short_sum += -v
+        if long_sum == 0.0 or short_sum == 0.0:
+            for s in range(n_syms):
+                target_notional[s] = 0.0
+            return
+        target = (long_sum + short_sum) / 2.0
+        long_scale = target / long_sum
+        short_scale = target / short_sum
+        for s in range(n_syms):
+            if target_notional[s] > 0.0:
+                target_notional[s] *= long_scale
+            elif target_notional[s] < 0.0:
+                target_notional[s] *= short_scale
+    elif mode_id == 2:
+        max_abs = 0.0
+        dominant = -1
+        for s in range(n_syms):
+            v = abs(target_notional[s])
+            if v > max_abs:
+                max_abs = v
+                dominant = s
+        for s in range(n_syms):
+            if s != dominant:
+                target_notional[s] = 0.0
+    elif mode_id == 3:
+        active = 0
+        gross = 0.0
+        for s in range(n_syms):
+            if target_notional[s] != 0.0:
+                active += 1
+                gross += abs(target_notional[s])
+        if active == 0:
+            return
+        target_abs = gross / active
+        for s in range(n_syms):
+            if target_notional[s] > 0.0:
+                target_notional[s] = target_abs
+            elif target_notional[s] < 0.0:
+                target_notional[s] = -target_abs
+    elif mode_id == 4:
+        gross = 0.0
+        inv_sum = 0.0
+        for s in range(n_syms):
+            if target_notional[s] != 0.0:
+                gross += abs(target_notional[s])
+                inv_sum += inv_vol[i, s]
+        if gross == 0.0 or inv_sum == 0.0:
+            return
+        for s in range(n_syms):
+            if target_notional[s] > 0.0:
+                target_notional[s] = gross * inv_vol[i, s] / inv_sum
+            elif target_notional[s] < 0.0:
+                target_notional[s] = -gross * inv_vol[i, s] / inv_sum
+    elif mode_id == 5:
+        long_beta = 0.0
+        short_beta = 0.0
+        for s in range(n_syms):
+            b = beta[s]
+            v = target_notional[s] * b
+            if v > 0.0:
+                long_beta += v
+            elif v < 0.0:
+                short_beta += -v
+        if long_beta == 0.0 or short_beta == 0.0:
+            for s in range(n_syms):
+                target_notional[s] = 0.0
+            return
+        target_beta = (long_beta + short_beta) / 2.0
+        long_scale = target_beta / long_beta
+        short_scale = target_beta / short_beta
+        for s in range(n_syms):
+            v = target_notional[s] * beta[s]
+            if v > 0.0:
+                target_notional[s] *= long_scale
+            elif v < 0.0:
+                target_notional[s] *= short_scale

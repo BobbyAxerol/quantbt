@@ -1615,14 +1615,15 @@ Usage guidance:
 
 ### Phase 10B - Native Portfolio Engine Direction
 
-Decision:
+Historical decision before Phase 11E:
 
-- `legacy_portfolio` should remain the default compatibility route for current
-  notebooks and services.
+- `legacy_portfolio` remained the default compatibility route while the native
+  portfolio engine was still under construction.
 - We do **not** have to reuse it forever.
 - A new `NativePortfolioEngine` is the right long-term direction, but it must be
   delivered as a separate domain phase with golden tests before becoming the
-  default.
+  default. Phase 11E completed this default switch for supported portfolio
+  modes/sizing.
 
 Why not replace immediately:
 
@@ -1909,6 +1910,64 @@ Remaining Phase 11D validation work:
   settings.
 - Add all-or-none basket package parity once venue/package semantics are needed
   for production portfolio workflows.
+
+### Phase 11E - Native Portfolio Default And Full Surface Completion
+
+Scope:
+
+- Complete native portfolio support for the previously missing fund-grade
+  sizing/mode surface:
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `risk_parity`;
+  - `beta_neutral`.
+- Keep `dca_ladder` out of portfolio native sizing because it requires intrabar
+  high/low trigger-price fills and belongs to the DCA/grid engine.
+- Switch portfolio defaults only after parity and domain tests pass.
+
+Status:
+
+- Added native equity-aware portfolio kernel:
+  - `%_equity`: `signal * alloc_per_trade * live_equity`;
+  - `target_weight`: `signal * live_equity`;
+  - `gross_exposure`: signed signal normalized to
+    `live_equity * alloc_per_trade` gross exposure;
+  - `net_exposure`: signed signal normalized to
+    `live_equity * alloc_per_trade` net exposure.
+- Added native-only portfolio modes:
+  - `risk_parity`: inverse rolling volatility allocation from close returns,
+    controlled by `risk_lookback` (default `60`);
+  - `beta_neutral`: beta-weighted neutralization using optional
+    `betas={symbol: beta}`, default `1.0`.
+- Changed defaults:
+  - `QuantBTEndpoint.portfolio(...)` defaults to `backend="native_portfolio"`;
+  - `PortfolioBacktestEngine(...)` defaults to `backend="native_portfolio"`;
+  - `backend="legacy_portfolio"` remains available for reproduction.
+- Added `tests/test_phase11_native_portfolio_full_surface.py`.
+- Updated `benchmarks/run_portfolio_real_parity.py` and
+  `benchmarks/portfolio_real_parity_report.md`.
+
+Validation:
+
+- Legacy-compatible parity:
+  - 16/16 cases pass;
+  - max equity diff = 0;
+  - max position diff = 0;
+  - max target units diff = 0;
+  - max accepted notional diff = 0.
+- Native-only domain checks:
+  - `target_units`;
+  - `target_notional`;
+  - `fixed_notional`;
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `risk_parity`;
+  - `beta_neutral`.
+- `dca_ladder` is explicitly rejected for native portfolio.
 
 ---
 

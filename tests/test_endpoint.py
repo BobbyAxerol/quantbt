@@ -428,7 +428,7 @@ def test_endpoint_portfolio_accepts_positions_dataframe_and_data_dict():
     )
     result = endpoint.backtest(data=data, positions=positions)
 
-    assert result.metadata["backend"] == "legacy_portfolio"
+    assert result.metadata["backend"] == "native_portfolio"
     assert "Position_BTC" in result.positions.columns
 
 

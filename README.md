@@ -118,9 +118,14 @@ account reports.
 
 ### Portfolio And Basket
 
-- Multi-symbol portfolio endpoint over position matrices.
-- Portfolio modes: `longshort`, `market_neutral`, `directional`, and
-  `equal_weight`.
+- Multi-symbol portfolio endpoint over position matrices. The default backend
+  is `native_portfolio`; use `backend="legacy_portfolio"` only for historical
+  reproduction.
+- Portfolio modes: `longshort`, `market_neutral`, `directional`,
+  `equal_weight`, `risk_parity`, and `beta_neutral`.
+- Portfolio sizing: `signal_notional`, `%_equity`, `target_weight`,
+  `target_notional`, `target_units`, `fixed_notional`, `gross_exposure`, and
+  `net_exposure`.
 - Basket and pair-trading endpoint with frozen hedge-ratio units.
 - Native event engine support for package-style component orders.
 
@@ -266,6 +271,9 @@ QuantBTEndpoint.walk_forward(...)        # walk-forward OOS stitching
 QuantBTEndpoint.train_test_split(...)    # single holdout split
 QuantBTEndpoint.nautilus_validation(...) # optional Nautilus validation
 ```
+
+The native portfolio parity audit is stored at
+`benchmarks/portfolio_real_parity_report.md`.
 
 ## Nautilus Example
 

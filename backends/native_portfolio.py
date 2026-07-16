@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Sequence, Union
 import numpy as np
 import pandas as pd
 
-from ..core.engine import _engine_portfolio
+from ..core.engine import _engine_portfolio, _engine_portfolio_equity_sizing
 from ..core.portfolio import (
     NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
     PortfolioDomainSpec,
@@ -76,6 +76,8 @@ class NativePortfolioBackend:
         symbols: Optional[Sequence[str]] = None,
         use_pyramiding: bool = True,
         asset_type: str = "crypto",
+        betas: Optional[Union[float, Dict[str, float]]] = None,
+        risk_lookback: int = 60,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(positions.keys())
@@ -106,48 +108,89 @@ class NativePortfolioBackend:
         alloc_arr = self._per_symbol_array(alloc_per_trade, symbol_list, default=100_000.0)
         maint_ratio = self.config.account.maintenance_ratio if maintenance_ratio is None else float(maintenance_ratio)
 
-        target_units = self._scale_target_units(
-            sizing_mode=sizing_mode,
-            raw_signals=raw_signals,
-            closes=market.closes,
-            idx=idx,
-            symbols=symbol_list,
-            close_dict=close_dict,
-            alloc_arr=alloc_arr,
-            contract_sizes=cs_arr,
-            use_pyramiding=use_pyramiding,
-        )
-        target_units = self._apply_mode(
-            mode=portfolio_mode,
-            target_units=target_units,
-            closes=market.closes,
-            contract_sizes=cs_arr,
-        )
+        beta_arr = self._per_symbol_array(betas, symbol_list, default=1.0)
+        risk_vol = self._risk_volatility_matrix(market.closes, lookback=int(risk_lookback))
+        inv_vol = np.divide(1.0, risk_vol, out=np.ones_like(risk_vol), where=risk_vol > 0.0)
+        equity_aware = sizing_mode in {"%_equity", "target_weight", "gross_exposure", "net_exposure"}
 
-        (
-            equity_arr,
-            pos_arr,
-            sym_pnl_arr,
-            fee_arr,
-            turnover_arr,
-            liq_flag,
-            liq_idx,
-        ) = _engine_portfolio(
-            n_bars=len(idx),
-            n_syms=len(symbol_list),
-            highs=market.highs,
-            lows=market.lows,
-            closes=market.closes,
-            target_pos=target_units,
-            funding_rates=market.funding,
-            is_funding_bar=market.is_funding_bar,
-            init_capital=self.config.account.initial_capital,
-            leverages=lev_arr,
-            maint_ratio=maint_ratio,
-            fee_rate=float(self.config.fee_rate),
-            contract_sizes=cs_arr,
-            use_funding=bool(self.config.use_funding),
-        )
+        if equity_aware:
+            (
+                equity_arr,
+                target_units,
+                pos_arr,
+                sym_pnl_arr,
+                fee_arr,
+                turnover_arr,
+                liq_flag,
+                liq_idx,
+            ) = _engine_portfolio_equity_sizing(
+                n_bars=len(idx),
+                n_syms=len(symbol_list),
+                highs=market.highs,
+                lows=market.lows,
+                closes=market.closes,
+                raw_signals=raw_signals,
+                funding_rates=market.funding,
+                is_funding_bar=market.is_funding_bar,
+                init_capital=self.config.account.initial_capital,
+                leverages=lev_arr,
+                maint_ratio=maint_ratio,
+                fee_rate=float(self.config.fee_rate),
+                contract_sizes=cs_arr,
+                use_funding=bool(self.config.use_funding),
+                allocs=alloc_arr,
+                sizing_mode_id=self._sizing_mode_id(sizing_mode),
+                portfolio_mode_id=self._portfolio_mode_id(portfolio_mode),
+                use_pyramiding=bool(use_pyramiding),
+                exposure_scalar=float(np.mean(alloc_arr)) if len(alloc_arr) else 1.0,
+                beta=beta_arr,
+                inv_vol=inv_vol,
+            )
+        else:
+            target_units = self._scale_target_units(
+                sizing_mode=sizing_mode,
+                raw_signals=raw_signals,
+                closes=market.closes,
+                idx=idx,
+                symbols=symbol_list,
+                close_dict=close_dict,
+                alloc_arr=alloc_arr,
+                contract_sizes=cs_arr,
+                use_pyramiding=use_pyramiding,
+            )
+            target_units = self._apply_mode(
+                mode=portfolio_mode,
+                target_units=target_units,
+                closes=market.closes,
+                contract_sizes=cs_arr,
+                betas=beta_arr,
+                risk_vol=risk_vol,
+            )
+
+            (
+                equity_arr,
+                pos_arr,
+                sym_pnl_arr,
+                fee_arr,
+                turnover_arr,
+                liq_flag,
+                liq_idx,
+            ) = _engine_portfolio(
+                n_bars=len(idx),
+                n_syms=len(symbol_list),
+                highs=market.highs,
+                lows=market.lows,
+                closes=market.closes,
+                target_pos=target_units,
+                funding_rates=market.funding,
+                is_funding_bar=market.is_funding_bar,
+                init_capital=self.config.account.initial_capital,
+                leverages=lev_arr,
+                maint_ratio=maint_ratio,
+                fee_rate=float(self.config.fee_rate),
+                contract_sizes=cs_arr,
+                use_funding=bool(self.config.use_funding),
+            )
 
         result = self._build_result(
             idx=idx,
@@ -163,6 +206,8 @@ class NativePortfolioBackend:
             turnover_arr=turnover_arr,
             contract_sizes=cs_arr,
             leverages=lev_arr,
+            betas=beta_arr,
+            risk_vol=risk_vol,
             mode=portfolio_mode,
             hedge_type=sizing_mode,
             asset_type=asset_type,
@@ -227,6 +272,8 @@ class NativePortfolioBackend:
         target_units: np.ndarray,
         closes: np.ndarray,
         contract_sizes: np.ndarray,
+        betas: np.ndarray,
+        risk_vol: np.ndarray,
     ) -> np.ndarray:
         out = np.array(target_units, dtype=np.float64, copy=True, order="C")
         notional = out * closes * contract_sizes.reshape(1, -1)
@@ -259,6 +306,26 @@ class NativePortfolioBackend:
                 out=np.zeros_like(out),
                 where=denom != 0.0,
             )
+        elif mode == "risk_parity":
+            gross = np.abs(notional).sum(axis=1)
+            inv_vol = np.divide(1.0, risk_vol, out=np.ones_like(risk_vol), where=risk_vol > 0.0)
+            active_inv = np.where(notional != 0.0, inv_vol, 0.0)
+            denom_inv = active_inv.sum(axis=1)
+            target_abs = np.divide(gross.reshape(-1, 1) * active_inv, denom_inv.reshape(-1, 1), out=np.zeros_like(out), where=denom_inv.reshape(-1, 1) != 0.0)
+            denom = closes * contract_sizes.reshape(1, -1)
+            out = np.sign(notional) * np.divide(target_abs, denom, out=np.zeros_like(out), where=denom != 0.0)
+        elif mode == "beta_neutral":
+            beta_notional = notional * betas.reshape(1, -1)
+            long_beta = np.where(beta_notional > 0.0, beta_notional, 0.0).sum(axis=1)
+            short_beta = np.where(beta_notional < 0.0, -beta_notional, 0.0).sum(axis=1)
+            target = (long_beta + short_beta) / 2.0
+            long_scale = np.divide(target, long_beta, out=np.zeros_like(target), where=long_beta != 0.0)
+            short_scale = np.divide(target, short_beta, out=np.zeros_like(target), where=short_beta != 0.0)
+            out = np.where(
+                beta_notional > 0.0,
+                out * long_scale.reshape(-1, 1),
+                np.where(beta_notional < 0.0, out * short_scale.reshape(-1, 1), 0.0),
+            )
 
         return np.ascontiguousarray(out, dtype=np.float64)
 
@@ -278,6 +345,8 @@ class NativePortfolioBackend:
         turnover_arr: np.ndarray,
         contract_sizes: np.ndarray,
         leverages: np.ndarray,
+        betas: np.ndarray,
+        risk_vol: np.ndarray,
         mode: str,
         hedge_type: str,
         asset_type: str,
@@ -291,9 +360,11 @@ class NativePortfolioBackend:
         accepted_units_report = pd.DataFrame({s: pos_arr[:, j] for j, s in enumerate(symbol_list)}, index=idx)
         cs = pd.Series({s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)})
         lev = pd.Series({s: float(leverages[j]) for j, s in enumerate(symbol_list)})
+        beta_s = pd.Series({s: float(betas[j]) for j, s in enumerate(symbol_list)})
         target_notional = target_units_report.mul(close_report, axis=0).mul(cs, axis=1)
         accepted_notional = accepted_units_report.mul(close_report, axis=0).mul(cs, axis=1)
         funding_rates = pd.DataFrame({s: funding_m[:, j] for j, s in enumerate(symbol_list)}, index=idx)
+        risk_vol_report = pd.DataFrame({s: risk_vol[:, j] for j, s in enumerate(symbol_list)}, index=idx)
 
         exposure_report = self._build_exposure_report(
             accepted_notional=accepted_notional,
@@ -301,7 +372,10 @@ class NativePortfolioBackend:
             equity=equity,
             leverages=lev,
             maintenance_ratio=maintenance_ratio,
+            betas=beta_s,
         )
+        risk_contribution_report = accepted_notional.abs().mul(risk_vol_report, axis=0)
+        exposure_report.attrs["risk_contribution_report"] = risk_contribution_report
         symbol_pnl_report = self._build_symbol_pnl_report(
             idx=idx,
             symbols=symbol_list,
@@ -361,6 +435,9 @@ class NativePortfolioBackend:
                 "target_notional_report": target_notional,
                 "accepted_notional_report": accepted_notional,
                 "exposure_report": exposure_report,
+                "risk_volatility_report": risk_vol_report,
+                "risk_contribution_report": risk_contribution_report,
+                "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
                 "symbol_pnl_report": symbol_pnl_report,
                 "kernel_symbol_pnl": pd.DataFrame({s: sym_pnl_arr[:, j] for j, s in enumerate(symbol_list)}, index=idx),
                 "rebalance_report": rebalance_report,
@@ -436,17 +513,22 @@ class NativePortfolioBackend:
         equity: pd.Series,
         leverages: pd.Series,
         maintenance_ratio: float,
+        betas: pd.Series,
     ) -> pd.DataFrame:
         abs_accepted = accepted_notional.abs()
         initial_margin = abs_accepted.div(leverages, axis=1).sum(axis=1)
         maintenance_margin = abs_accepted.sum(axis=1) * float(maintenance_ratio)
+        beta_exposure = accepted_notional.mul(betas, axis=1).sum(axis=1)
+        target_beta_exposure = target_notional.mul(betas, axis=1).sum(axis=1)
         out = pd.DataFrame(
             {
                 "long_notional": accepted_notional.clip(lower=0.0).sum(axis=1),
                 "short_notional": accepted_notional.clip(upper=0.0).abs().sum(axis=1),
                 "gross_notional": abs_accepted.sum(axis=1),
                 "net_notional": accepted_notional.sum(axis=1),
+                "beta_exposure_notional": beta_exposure,
                 "target_gross_notional": target_notional.abs().sum(axis=1),
+                "target_beta_exposure_notional": target_beta_exposure,
                 "initial_margin": initial_margin,
                 "maintenance_margin": maintenance_margin,
                 "equity": equity,
@@ -495,3 +577,30 @@ class NativePortfolioBackend:
         if isinstance(value, dict):
             return np.array([float(value.get(symbol, default)) for symbol in symbols], dtype=np.float64)
         return np.full(len(symbols), float(value), dtype=np.float64)
+
+    @staticmethod
+    def _risk_volatility_matrix(closes: np.ndarray, lookback: int) -> np.ndarray:
+        frame = pd.DataFrame(closes)
+        returns = np.log(frame).diff()
+        vol = returns.rolling(max(2, int(lookback)), min_periods=2).std().bfill().ffill().fillna(1.0)
+        arr = vol.to_numpy(dtype=np.float64)
+        arr[~np.isfinite(arr)] = 1.0
+        arr[arr <= 0.0] = 1.0
+        return np.ascontiguousarray(arr, dtype=np.float64)
+
+    @staticmethod
+    def _sizing_mode_id(sizing_mode: str) -> int:
+        mapping = {"%_equity": 0, "target_weight": 1, "gross_exposure": 2, "net_exposure": 3}
+        return mapping[sizing_mode]
+
+    @staticmethod
+    def _portfolio_mode_id(mode: str) -> int:
+        mapping = {
+            "longshort": 0,
+            "market_neutral": 1,
+            "directional": 2,
+            "equal_weight": 3,
+            "risk_parity": 4,
+            "beta_neutral": 5,
+        }
+        return mapping[mode]
