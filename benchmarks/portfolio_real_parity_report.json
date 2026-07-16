@@ -1,0 +1,366 @@
+{
+  "status": "pass",
+  "data_source": "deterministic_mock_real",
+  "bars": 2000,
+  "symbols": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "BNB"
+  ],
+  "initial_capital": 250000.0,
+  "leverage": 5.0,
+  "fee_rate_round_trip": 0.0004,
+  "native_supported_modes": [
+    "longshort",
+    "market_neutral",
+    "directional",
+    "equal_weight",
+    "risk_parity",
+    "beta_neutral"
+  ],
+  "native_supported_sizing_modes": [
+    "%_equity",
+    "fixed_notional",
+    "gross_exposure",
+    "net_exposure",
+    "notional",
+    "signal",
+    "signal_notional",
+    "target_notional",
+    "target_units",
+    "target_weight",
+    "unit"
+  ],
+  "legacy_compatible_sizing_modes": [
+    "notional",
+    "signal",
+    "signal_notional",
+    "unit"
+  ],
+  "native_unsupported_sizing_modes": [
+    "dca_ladder"
+  ],
+  "parity_records": [
+    {
+      "mode": "longshort",
+      "sizing_mode": "signal_notional",
+      "legacy_final_equity": 246117.31783274264,
+      "native_final_equity": 246117.31783274264,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "signal",
+      "legacy_final_equity": 246117.31783274264,
+      "native_final_equity": 246117.31783274264,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "notional",
+      "legacy_final_equity": 246079.11837835083,
+      "native_final_equity": 246079.11837835083,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "unit",
+      "legacy_final_equity": 246978.08556091134,
+      "native_final_equity": 246978.08556091134,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "market_neutral",
+      "sizing_mode": "signal_notional",
+      "legacy_final_equity": 246206.51303830216,
+      "native_final_equity": 246206.51303830216,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "market_neutral",
+      "sizing_mode": "signal",
+      "legacy_final_equity": 246206.51303830216,
+      "native_final_equity": 246206.51303830216,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "market_neutral",
+      "sizing_mode": "notional",
+      "legacy_final_equity": 246211.69664330326,
+      "native_final_equity": 246211.69664330326,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "market_neutral",
+      "sizing_mode": "unit",
+      "legacy_final_equity": 247369.13484206592,
+      "native_final_equity": 247369.13484206592,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "directional",
+      "sizing_mode": "signal_notional",
+      "legacy_final_equity": 254281.41272228674,
+      "native_final_equity": 254281.41272228674,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "directional",
+      "sizing_mode": "signal",
+      "legacy_final_equity": 254281.41272228674,
+      "native_final_equity": 254281.41272228674,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "directional",
+      "sizing_mode": "notional",
+      "legacy_final_equity": 254338.92144898913,
+      "native_final_equity": 254338.92144898913,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "directional",
+      "sizing_mode": "unit",
+      "legacy_final_equity": 253223.07415702456,
+      "native_final_equity": 253223.07415702456,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "equal_weight",
+      "sizing_mode": "signal_notional",
+      "legacy_final_equity": 245494.84603722172,
+      "native_final_equity": 245494.84603722172,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "equal_weight",
+      "sizing_mode": "signal",
+      "legacy_final_equity": 245494.84603722172,
+      "native_final_equity": 245494.84603722172,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "equal_weight",
+      "sizing_mode": "notional",
+      "legacy_final_equity": 245487.5218934524,
+      "native_final_equity": 245487.5218934524,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "equal_weight",
+      "sizing_mode": "unit",
+      "legacy_final_equity": 246640.97855439738,
+      "native_final_equity": 246640.97855439738,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_units_diff": 0.0,
+      "max_abs_accepted_units_diff": 0.0,
+      "max_abs_accepted_notional_diff": 0.0,
+      "contract_passed": true,
+      "passed": true
+    }
+  ],
+  "native_only_records": [
+    {
+      "mode": "longshort",
+      "sizing_mode": "target_units",
+      "final_equity": 249189.0082880651,
+      "max_gross_leverage": 0.317686784520297,
+      "fee_total": 5774.3311601379455,
+      "turnover_total": 27321505.467895642,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "target_notional",
+      "final_equity": 246079.11837835077,
+      "max_gross_leverage": 0.26675180673723076,
+      "fee_total": 5898.121477615312,
+      "turnover_total": 28053245.268579192,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "fixed_notional",
+      "final_equity": 246079.11837835077,
+      "max_gross_leverage": 0.26675180673723076,
+      "fee_total": 5898.121477615312,
+      "turnover_total": 28053245.268579192,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "%_equity",
+      "final_equity": 220319.7339349668,
+      "max_gross_leverage": 2.377274407742148,
+      "fee_total": 52213.968934384946,
+      "turnover_total": 248101583.45405817,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "target_weight",
+      "final_equity": 190919.09906491183,
+      "max_gross_leverage": 4.759124345296473,
+      "fee_total": 101695.47406036386,
+      "turnover_total": 482749117.6135695,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 237508.95103968613,
+      "max_gross_leverage": 1.0004025389013835,
+      "fee_total": 22274.562173833678,
+      "turnover_total": 105900122.25394614,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "longshort",
+      "sizing_mode": "net_exposure",
+      "final_equity": 134066.98116949084,
+      "max_gross_leverage": 1.000200040008002,
+      "fee_total": 17003.080363050176,
+      "turnover_total": 85015401.81525087,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "risk_parity",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 234694.22280207596,
+      "max_gross_leverage": 1.0004022866033728,
+      "fee_total": 22221.381095212433,
+      "turnover_total": 105661774.70162633,
+      "contract_passed": true,
+      "passed": true
+    },
+    {
+      "mode": "beta_neutral",
+      "sizing_mode": "gross_exposure",
+      "final_equity": 234996.5913951752,
+      "max_gross_leverage": 1.0004024187471532,
+      "fee_total": 22243.220140142766,
+      "turnover_total": 105747039.30515036,
+      "contract_passed": true,
+      "passed": true
+    }
+  ],
+  "unsupported_records": [
+    {
+      "sizing_mode": "dca_ladder",
+      "rejected": true,
+      "error": "NotImplementedError",
+      "message": "native_portfolio does not yet support equity-dependent sizing mode 'dca_ladder'"
+    }
+  ],
+  "summary": {
+    "legacy_parity_cases": 16,
+    "legacy_parity_passed": true,
+    "native_only_cases": 9,
+    "native_only_passed": true,
+    "unsupported_cases": 1,
+    "unsupported_rejected": true,
+    "max_abs_equity_diff": 0.0,
+    "max_abs_position_diff": 0.0,
+    "max_abs_target_units_diff": 0.0,
+    "max_abs_accepted_notional_diff": 0.0
+  }
+}

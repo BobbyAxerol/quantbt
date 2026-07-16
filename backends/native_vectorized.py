@@ -37,6 +37,7 @@ from ..core.basket import build_frozen_basket_orders
 from ..core.orders import OrderIntent
 from ..core.preprocessor import make_funding_mask
 from ..core.schema import OrderSide
+from ..sizing.fast import scale_signal_notional_matrix
 from ..sizing.modes import compute_target_units
 
 
@@ -101,6 +102,34 @@ class NativeVectorizedBackend:
             funding_dict=funding_dict,
         )
 
+        return self._run_target_arrays(
+            idx=idx,
+            symbol_list=symbol_list,
+            closes_m=closes_m,
+            highs_m=highs_m,
+            lows_m=lows_m,
+            target_m=target_m,
+            funding_m=funding_m,
+            is_funding=is_funding,
+            contract_size=contract_size,
+            leverage=leverage,
+            fee_rate=fee_rate,
+        )
+
+    def _run_target_arrays(
+        self,
+        idx: pd.DatetimeIndex,
+        symbol_list: List[str],
+        closes_m: np.ndarray,
+        highs_m: np.ndarray,
+        lows_m: np.ndarray,
+        target_m: np.ndarray,
+        funding_m: np.ndarray,
+        is_funding: np.ndarray,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+    ) -> BacktestResultV2:
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
@@ -227,6 +256,39 @@ class NativeVectorizedBackend:
         pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
         close_dict = align_series(closes, symbol_list, idx)
         alloc = self._per_symbol_mapping(alloc_per_trade, symbol_list, default=100_000.0)
+
+        if ht in ("signal_notional", "signal"):
+            high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+            low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+            funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+            closes_m, highs_m, lows_m, signals_m, funding_m, is_funding = build_arrays(
+                symbols=symbol_list,
+                idx=idx,
+                closes_dict=close_dict,
+                highs_dict=high_dict,
+                lows_dict=low_dict,
+                signals_dict=pos_dict,
+                funding_dict=funding_dict,
+            )
+            allocs = np.array([alloc[s] for s in symbol_list], dtype=np.float64)
+            target_m = scale_signal_notional_matrix(
+                signals=signals_m,
+                closes=closes_m,
+                allocs=allocs,
+                use_pyramiding=use_pyramiding,
+            )
+            return self._run_target_arrays(
+                idx=idx,
+                symbol_list=symbol_list,
+                closes_m=closes_m,
+                highs_m=highs_m,
+                lows_m=lows_m,
+                target_m=target_m,
+                funding_m=funding_m,
+                is_funding=is_funding,
+                contract_size=contract_size,
+                leverage=leverage,
+            )
 
         target_units = {
             s: compute_target_units(

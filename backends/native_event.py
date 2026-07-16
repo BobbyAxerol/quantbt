@@ -39,8 +39,16 @@ from ..core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
+from ..core.order_compiler import CompiledOrderArrays, compile_order_intents
 from ..core.orders import Fill, OrderIntent
-from ..core.preprocessor import align_series, build_arrays, make_funding_mask, prepare_funding, validate_datetime
+from ..core.preprocessor import (
+    PreparedMarketArrays,
+    align_series,
+    build_market_arrays,
+    make_funding_mask,
+    prepare_funding,
+    validate_datetime,
+)
 from ..core.results import BacktestResultV2
 from ..core.schema import (
     AccountConfig,
@@ -81,6 +89,57 @@ class NativeEventBackend:
     def __init__(self, config: NativeEventConfig):
         self.config = config
 
+    def prepare_market_arrays(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        symbols: Optional[Sequence[str]] = None,
+    ) -> PreparedMarketArrays:
+        """
+        Normalize OHLC/funding inputs into immutable ndarray-backed market arrays.
+
+        This helper is intended for higher-level optimizers and WFO loops that
+        replay many order packages over the same market tape. The returned
+        object carries a datetime/symbol signature and `run_orders` rejects it
+        if reused against a different index or symbol layout.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        close_dict = align_series(closes, symbol_list, idx)
+        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+        return build_market_arrays(
+            symbols=symbol_list,
+            idx=idx,
+            closes_dict=close_dict,
+            highs_dict=high_dict,
+            lows_dict=low_dict,
+            funding_dict=funding_dict,
+        )
+
+    @staticmethod
+    def compile_orders(
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        orders: Sequence[OrderIntent],
+        symbols: Optional[Sequence[str]] = None,
+    ) -> CompiledOrderArrays:
+        """
+        Compile explicit `OrderIntent` objects into contiguous kernel arrays.
+
+        Use this when the same order package is replayed against the same
+        market tape. If `symbols` is omitted it is inferred from first
+        occurrence in the order sequence, which is convenient for standalone
+        simulations; passing the exact market symbol order is safer for
+        multi-symbol portfolio and arbitrage packages.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(dict.fromkeys(order.symbol for order in orders))
+        return compile_order_intents(idx=idx, orders=orders, symbol_to_col={s: j for j, s in enumerate(symbol_list)})
+
     def run_orders(
         self,
         datetime_index: Union[pd.DatetimeIndex, pd.Series],
@@ -93,54 +152,32 @@ class NativeEventBackend:
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
         symbols: Optional[List[str]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        compiled_orders: Optional[CompiledOrderArrays] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
-        symbol_to_col = {s: j for j, s in enumerate(symbol_list)}
 
-        close_dict = align_series(closes, symbol_list, idx)
-        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
-        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-        zero_signals = {s: pd.Series(0.0, index=idx) for s in symbol_list}
-        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-        closes_m, highs_m, lows_m, _, funding_m, is_funding = build_arrays(
-            symbols=symbol_list,
-            idx=idx,
-            closes_dict=close_dict,
-            highs_dict=high_dict,
-            lows_dict=low_dict,
-            signals_dict=zero_signals,
-            funding_dict=funding_dict,
-        )
+        if market_arrays is None:
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
 
-        sorted_orders = sorted(enumerate(orders), key=lambda item: self._bar_index(idx, item[1].timestamp))
-        n_orders = len(sorted_orders)
-        order_bar = np.zeros(n_orders, dtype=np.int64)
-        order_symbol = np.zeros(n_orders, dtype=np.int64)
-        order_side = np.zeros(n_orders, dtype=np.int64)
-        order_type = np.zeros(n_orders, dtype=np.int64)
-        order_qty = np.zeros(n_orders, dtype=np.float64)
-        order_price = np.zeros(n_orders, dtype=np.float64)
-        order_tif = np.zeros(n_orders, dtype=np.int64)
-        original_index = np.zeros(n_orders, dtype=np.int64)
-
-        for k, (orig_idx, order) in enumerate(sorted_orders):
-            if order.symbol not in symbol_to_col:
-                raise ValueError(f"order symbol {order.symbol!r} is not in symbols")
-            order_bar[k] = self._bar_index(idx, order.timestamp)
-            order_symbol[k] = symbol_to_col[order.symbol]
-            order_side[k] = self._side_code(order.side)
-            order_type[k] = self._order_type_code(order.order_type)
-            order_qty[k] = float(order.qty)
-            order_price[k] = 0.0 if order.price is None else float(order.price)
-            order_tif[k] = self._tif_code(order.tif)
-            original_index[k] = orig_idx
-
-        order_ptr = np.zeros(len(idx) + 1, dtype=np.int64)
-        for bar in order_bar:
-            order_ptr[bar + 1] += 1
-        for i in range(1, len(order_ptr)):
-            order_ptr[i] += order_ptr[i - 1]
+        if compiled_orders is None:
+            compiled_orders = self.compile_orders(datetime_index=idx, orders=orders, symbols=symbol_list)
+        elif (
+            compiled_orders.index_signature != market_arrays.signature
+            or compiled_orders.symbols != tuple(symbol_list)
+        ):
+            raise ValueError("compiled orders do not match prepared market arrays")
+        n_orders = compiled_orders.n_orders
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         leverages = self._per_symbol_array(
@@ -177,18 +214,18 @@ class NativeEventBackend:
             n_bars=len(idx),
             n_syms=len(symbol_list),
             n_orders=n_orders,
-            order_ptr=order_ptr,
-            order_symbol=order_symbol,
-            order_side=order_side,
-            order_type=order_type,
-            order_qty=order_qty,
-            order_price=order_price,
-            order_tif=order_tif,
-            highs=highs_m,
-            lows=lows_m,
-            closes=closes_m,
-            funding_rates=funding_m,
-            is_funding_bar=is_funding,
+            order_ptr=compiled_orders.order_ptr,
+            order_symbol=compiled_orders.order_symbol,
+            order_side=compiled_orders.order_side,
+            order_type=compiled_orders.order_type,
+            order_qty=compiled_orders.order_qty,
+            order_price=compiled_orders.order_price,
+            order_tif=compiled_orders.order_tif,
+            highs=market_arrays.highs,
+            lows=market_arrays.lows,
+            closes=market_arrays.closes,
+            funding_rates=market_arrays.funding,
+            is_funding_bar=market_arrays.is_funding_bar,
             init_capital=self.config.account.initial_capital,
             leverages=leverages,
             maint_ratio=self.config.account.maintenance_ratio,
@@ -198,14 +235,14 @@ class NativeEventBackend:
             use_funding=bool(self.config.use_funding),
         )
 
-        fills = self._build_fills(sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee)
+        fills = self._build_fills(compiled_orders.sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee)
         equity = pd.Series(equity_arr, index=idx, name="equity")
         positions = pd.DataFrame(
             {f"Position_{s}": pos_arr[:, j] for j, s in enumerate(symbol_list)},
             index=idx,
         )
         close_df = pd.DataFrame(
-            {f"Close_{s}": closes_m[:, j] for j, s in enumerate(symbol_list)},
+            {f"Close_{s}": market_arrays.closes[:, j] for j, s in enumerate(symbol_list)},
             index=idx,
         )
 
@@ -219,7 +256,7 @@ class NativeEventBackend:
         )
         order_report = pd.DataFrame(
             {
-                "original_index": original_index,
+                "original_index": compiled_orders.original_index,
                 "status": order_status,
                 "reject_code": reject_code,
                 "fill_bar": fill_bar,
@@ -838,6 +875,12 @@ class NativeEventBackend:
         return np.full(len(symbols), float(value), dtype=np.float64)
 
     @staticmethod
+    def _market_signature(idx: pd.DatetimeIndex, symbols: List[str]):
+        from ..core.preprocessor import market_data_signature
+
+        return market_data_signature(idx, symbols)
+
+    @staticmethod
     def _fee_rate_metadata(fee_rates: np.ndarray, symbols: List[str]):
         if len(fee_rates) == 0:
             return 0.0
@@ -1090,10 +1133,10 @@ class NativeEventBackend:
     @staticmethod
     def _build_fills(sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee) -> List[Fill]:
         fills: List[Fill] = []
-        for sorted_idx, (_, order) in enumerate(sorted_orders):
+        filled_indices = np.flatnonzero(fill_bar >= 0)
+        for sorted_idx in filled_indices:
+            order = sorted_orders[int(sorted_idx)][1]
             bar = int(fill_bar[sorted_idx])
-            if bar < 0:
-                continue
             fills.append(
                 Fill(
                     timestamp=idx[bar],

@@ -60,7 +60,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
 | `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | single train/test holdout using the same WFO optimization modes |
-| `QuantBTEndpoint.portfolio()` | `portfolio` | `legacy_portfolio` | multi-symbol position matrix portfolio backtest |
+| `QuantBTEndpoint.portfolio()` | `portfolio` | `native_portfolio` | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
 
 Manual construction is also supported:
@@ -932,8 +932,51 @@ result = bt.backtest(
 
 Routing:
 
-- backend: `legacy_portfolio` by default;
+- backend: `native_portfolio` by default;
+- backend: `legacy_portfolio` for historical compatibility/reproduction;
 - engine: `PortfolioBacktestEngine`.
+
+Native portfolio route:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    portfolio_mode="market_neutral",
+    backend="native_portfolio",
+    hedge_type="signal_notional",
+    alloc_per_trade={"BTC": 50_000, "ETH": 50_000},
+    initial_capital=1_000_000,
+    leverage=3,
+).backtest(
+    positions=positions_df,
+    data=data_dict,
+)
+```
+
+Native portfolio supports modes `longshort`, `market_neutral`, `directional`,
+`equal_weight`, `risk_parity`, and `beta_neutral`.
+
+Supported sizing modes are `signal_notional`, `signal`, `notional`, `unit`,
+`%_equity`, `target_weight`, `target_units`, `target_notional`,
+`fixed_notional`, `gross_exposure`, and `net_exposure`.
+
+Sizing semantics:
+
+- `%_equity`: signal times `alloc_per_trade` fraction of live equity;
+- `target_weight`: signal is direct portfolio weight per symbol;
+- `gross_exposure`: raw signed signal is normalized to target gross exposure
+  `equity * alloc_per_trade`;
+- `net_exposure`: raw signed signal is normalized to target net exposure
+  `equity * alloc_per_trade`;
+- `target_notional`: input matrix is signed notional;
+- `target_units`: input matrix is explicit contracts/units.
+
+`risk_parity` uses inverse rolling volatility from close returns
+(`risk_lookback`, default `60`). `beta_neutral` uses optional
+`betas={symbol: beta}`; if omitted, beta defaults to `1.0`, making it a basic
+dollar-neutral beta constraint.
+
+`dca_ladder` remains on the DCA/grid engine because it requires intrabar
+grid-trigger fills.
 
 Experimental Nautilus portfolio validation:
 
@@ -951,10 +994,16 @@ result = QuantBTEndpoint.portfolio(
 ```
 
 This route compiles position-matrix transitions into per-symbol market delta
-orders and replays them in one Nautilus venue/account. Phase 5.2D supports
-pre-scalable modes (`signal_notional`, `notional`, `unit`). `%_equity` and
-`dca_ladder` portfolio validation should stay on native/legacy routes until
-their account-dependent package compiler is implemented.
+orders and replays them in one Nautilus venue/account. Phase 11D compiles
+Nautilus orders from the native portfolio `target_units_report`, so portfolio
+mode transforms such as `market_neutral`, `directional`, and `equal_weight` are
+included before validation. The run attaches
+`result.metadata["portfolio_nautilus_validation_report"]`.
+
+Supported sizing modes follow `native_portfolio`: `signal_notional`, `signal`,
+`notional`, `unit`, `%_equity`, `target_weight`, `target_units`,
+`target_notional`, `fixed_notional`, `gross_exposure`, and `net_exposure`.
+`dca_ladder` remains on the DCA/grid endpoint.
 
 ## Nautilus Validation
 

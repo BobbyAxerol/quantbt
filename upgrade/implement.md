@@ -291,37 +291,30 @@ Current status:
   positions from fills plus OHLCV close, while preserving raw account reports for
   audit.
 
-Planned Nautilus upgrades, not implemented yet:
+Completed in later Nautilus phases:
 
-- **Explicit order replay**
-  - Convert `OrderIntent` into Nautilus market/limit/stop orders.
-  - Preserve TIF, reduce-only, order tags, and reject/cancel diagnostics.
-  - Compare native event order reports vs Nautilus order/fill reports.
-- **DCA/grid ladder validation**
-  - Convert structural ladder levels into Nautilus limit safety orders.
-  - Model base order, safety order activation, take-profit, same-bar ambiguity,
-    and high/low trigger behavior explicitly.
-  - Add parity tests against native DCA golden cases.
-- **Pair/basket validation**
-  - Convert `BasketSpec` / `BasketIntent` into multi-leg Nautilus orders.
-  - Support frozen hedge-ratio entry, exact-unit exit, all-or-none or
-    best-effort execution policy.
-  - Add spread/accounting diagnostics per leg and per basket.
-- **Multi-symbol portfolio validation**
-  - Run multiple instruments in one Nautilus venue/account.
-  - Convert position matrix signals into per-symbol target orders.
-  - Reconcile cross-symbol margin, netting, funding, fees, and equity reports.
-- **Institutional parity audit**
-  - Add a reusable native-vs-Nautilus comparison report:
-    - transition timestamp;
-    - target quantity;
-    - fill price;
-    - fee;
-    - position;
-    - reconstructed equity;
-    - account report equity;
-    - native equity diff.
-  - Promote any known intentional differences into documented test fixtures.
+- Explicit order replay is implemented in Phase 5.2A/5.2B:
+  - `OrderIntent` market/limit/stop routes;
+  - TIF/reduce-only/tag preservation where Nautilus exposes it;
+  - native-vs-Nautilus parity helper/report.
+- DCA/grid and bracket/OCO package validation are implemented at experimental
+  structured-package level in Phase 5.2C and depth-preflight level in Phase 5.4.
+- Pair/basket and multi-symbol portfolio Nautilus package validation are
+  implemented at experimental level in Phase 5.2D/5.4.
+- Institutional parity artifacts exist for explicit orders and depth-preflight
+  package diagnostics.
+
+Remaining Nautilus debt:
+
+- Dynamic in-Nautilus DCA/grid state machine, not just generated/preflighted
+  package orders.
+- Exchange-native OCO/bracket order-list semantics beyond package-strategy
+  sibling cancellation.
+- True queue priority, latency, partial-fill, and L2 order-book simulation.
+- Deeper real-strategy portfolio/arbitrage parity bundles before production
+  certification.
+- Venue-specific portfolio-margin replication only if a production requirement
+  appears.
 
 ---
 
@@ -334,11 +327,14 @@ that can replay explicit QuantBT `OrderIntent` objects. This is the foundation
 for DCA/grid validation, SL/TP/OCO workflows, order-package arbitrage, and later
 multi-leg portfolio validation.
 
-Branch:
+Historical branch:
 
 ```text
 feat/nautilus-explicit-orders
 ```
+
+This branch has since been merged into `dev`; keep the section as design
+history, not current branch guidance.
 
 Design scope:
 
@@ -480,7 +476,8 @@ Non-goals for 5.2:
 
 Current status:
 
-- Phase 5.2A implemented on `feat/nautilus-explicit-orders`:
+- Phase 5.2A implemented from the historical `feat/nautilus-explicit-orders`
+  work:
   - `QuantBTEndpoint.orders(backend="nautilus", ...)`;
   - explicit single-symbol `OrderIntent` replay through Nautilus;
   - market, limit, stop-market, and stop-limit order factory mapping;
@@ -537,11 +534,11 @@ Future directions / do not treat as completed:
 
 Branch note:
 
-- `feat/nautilus-explicit-orders` should stay unmerged until manual notebook
-  validation is complete.
-- New unrelated upgrades, especially WalkForwardEngine work, should branch from
-  `dev` rather than from this feature branch unless the upgrade explicitly
-  depends on the Nautilus structured-order changes.
+- The `feat/nautilus-explicit-orders` work has been merged into `dev`.
+- New unrelated upgrades should branch from or be committed on `dev` according
+  to the current task scope.
+- Do not resurrect old feature-branch assumptions when reading the Phase 5.2
+  design notes.
 
 ## Phase 5.3 - Native Arbitrage And Portfolio Engine Depth
 
@@ -1242,6 +1239,29 @@ Acceptance:
 - No new strategy execution abstraction is introduced.
 - Nautilus remains the event-driven third-party execution/accounting backend.
 
+Status:
+
+- Implemented `export_nautilus_report_bundle(...)` in the public reporting
+  namespace.
+- Export bundle supports:
+  - `equity_curve.csv`;
+  - `returns.csv`;
+  - raw account/order/fill/position CSV reports where present;
+  - normalized `trade_log.csv`;
+  - bounded `fill_log.txt`;
+  - `metrics_summary.json`;
+  - `run_manifest.json`;
+  - clean `config.json`;
+  - optional `quantstats_daily.html`.
+- Config/export behavior now records applied account, leverage, sizing, fee,
+  slippage, funding, instrument, and timeframe fields without confusing
+  duplicate fee/sizing keys.
+- QuantStats policy supports daily resampling and configurable
+  `quantstats_periods_per_year`, with crypto default 365.
+- Fill/order logs are opt-in and bounded through endpoint/report parameters.
+- This phase remains a reporting/evidence layer only; it does not add alpha
+  logic inside Nautilus and does not alter native engine accounting.
+
 ---
 
 ## Phase 6 - Public API And Migration
@@ -1339,15 +1359,28 @@ Status:
 Conclusion:
 
 - Do not jump to Cython/C++ yet.
-- Next optimization step should be profiling full-facade overhead vs pure Numba
-  kernel runtime:
-  - data normalization;
-  - pandas-to-ndarray conversion;
-  - order array construction;
-  - result/report construction;
-  - actual kernel loops.
-- Cython/C++ escalation requires repeated threshold misses after profiling
-  identifies a hot loop Numba cannot address.
+- Profiling follow-up implemented:
+  - `benchmarks/profile_phase7.py`;
+  - committed summary at `benchmarks/phase7_profile_report.md`;
+  - local JSON/Markdown artifacts under `benchmarks/out/`.
+- Standard profile decomposition:
+  - `native_vectorized`:
+    - target sizing is the largest bucket;
+    - data normalization and pandas-to-ndarray packing are secondary;
+    - pure `_engine_units_v2` Numba kernel is about 1.3% of measured backend
+      layer runtime.
+  - `native_event`:
+    - order-array construction is the largest bucket;
+    - data normalization and market ndarray packing are secondary;
+    - pure `_engine_event_v1` Numba kernel is about 1.3% of measured backend
+      layer runtime.
+- Optimization priority:
+  - cache aligned market arrays for repeated optimizer/WFO runs;
+  - move `signal_notional` sizing to ndarray/Numba or reusable array caches;
+  - pre-map/order-cache explicit order arrays when orders are unchanged;
+  - separate runtime thresholds from `tracemalloc` memory instrumentation.
+- Cython/C++ escalation is **not justified** yet because the pure kernels are
+  not the bottleneck.
 
 ---
 
@@ -1394,6 +1427,547 @@ Status:
   - Nautilus explicit order parity.
 - Polished pair/basket guide to match current package preflight and Nautilus
   validation status.
+
+---
+
+## Phase 9 - Safe Performance Optimization After Profiling
+
+Purpose:
+
+Optimize the measured Phase 7 bottlenecks without changing domain logic,
+accounting, fill policy, or public endpoint behavior.
+
+Profiling evidence:
+
+- `native_vectorized` bottleneck:
+  - target sizing for `signal_notional`;
+  - data normalization / pandas packing.
+- `native_event` bottleneck:
+  - `OrderIntent` -> kernel order-array construction.
+- Pure Numba simulation kernels are not the bottleneck yet.
+
+### Phase 9A - Fast `signal_notional` Target Sizing
+
+Scope:
+
+- Add ndarray/Numba sizing path for `signal_notional`.
+- Keep existing Series-based `compute_target_units(...)` public behavior.
+- Use the fast path only inside native vectorized backend when the mode is
+  exactly `signal_notional` / `signal`.
+- Preserve `use_pyramiding=False` semantics by snapping signal to sign.
+
+Domain invariant:
+
+```text
+On signal transition: units = signal * alloc / close_at_transition
+Between transitions: units are frozen
+Flat signal: units = 0
+```
+
+Acceptance:
+
+- Fast target-unit matrix equals legacy Series sizing for:
+  - long/flat;
+  - short/flat;
+  - fractional pyramiding;
+  - `use_pyramiding=False`;
+  - multiple symbols with per-symbol alloc.
+- Full `BacktestEngineV2(native_vectorized)` equity/positions are unchanged
+  before vs after fast path.
+
+### Phase 9B - Native Event Order Array Compiler
+
+Scope:
+
+- Add an internal order compiler that converts `OrderIntent` sequences into
+  contiguous kernel arrays.
+- Replace repeated per-order timestamp conversion with vectorized nanosecond
+  `searchsorted`.
+- Preserve original order index, stable ordering, enum mapping, TIF mapping,
+  and unsupported-order behavior.
+- Do not change `_engine_event_v1`.
+
+Domain invariant:
+
+```text
+Same input orders + same bars -> same order_report, fills, positions, equity
+```
+
+Acceptance:
+
+- Compiled arrays equal the previous Python construction for market and limit
+  orders.
+- Full `BacktestEngineV2(native_event)` equity, fills, and order_report are
+  unchanged.
+- Invalid symbols, timestamps after data, unsupported order types, and TIF
+  behavior still fail the same way.
+
+### Cache Safety Rules
+
+- No process-wide mutable result cache.
+- Numba function cache is allowed only for pure ndarray kernels.
+- Any reusable prepared arrays must be local to an engine/run or keyed by a
+  clear signature:
+  - length;
+  - first/last timestamp;
+  - dtype;
+  - shape;
+  - symbols tuple;
+  - optional content hash for safe/debug mode.
+- Never cache by mutable pandas object identity alone.
+- Mutating input data between runs must not reuse stale arrays.
+
+### Phase 9C - Parity Script
+
+Add a script that runs legacy-vs-fast comparison on deterministic mock data:
+
+- target-unit max diff;
+- vectorized equity max diff;
+- vectorized position max diff;
+- order-array max diff;
+- event order_report diff;
+- event equity max diff;
+- event fill count and fill-price diff.
+
+The script must print and write a small JSON/Markdown report so future agents
+can verify that speed changes did not alter strategy meaning.
+
+Status:
+
+- Phase 9A implemented:
+  - added `sizing/fast.py`;
+  - native vectorized `signal_notional` uses ndarray/Numba target sizing;
+  - public Series sizing APIs remain unchanged.
+- Phase 9B implemented:
+  - added `core/order_compiler.py`;
+  - native event backend uses compiled order arrays with vectorized timestamp
+    mapping;
+  - `_engine_event_v1` is unchanged.
+- Phase 9C implemented:
+  - added `benchmarks/compare_phase9_parity.py`;
+  - added `PreparedMarketArrays` and explicit market-data signatures;
+  - native event accepts optional prepared market arrays and compiled orders
+    with signature validation;
+  - `run_phase7.py` supports `--no-tracemalloc` to separate runtime from memory
+    tracing;
+  - committed parity report at `benchmarks/phase9_parity_report.md`;
+  - committed optimization report at `benchmarks/phase9_optimization_report.md`.
+- Parity result:
+  - target units diff: 0.0;
+  - vectorized equity/position diff: 0.0;
+  - order-array diff: 0.0;
+  - event equity/order_report/fill diff: 0.0.
+  - prepared event reuse equity/order_report/fill diff: 0.0.
+- Standard runtime benchmark after Phase 9C:
+  - `native_vectorized` runtime 0.306991s and passes threshold;
+  - `native_event` runtime 0.793388s and improves but still fails the strict
+    order-count threshold;
+  - `portfolio_legacy` runtime 0.688006s and passes threshold.
+- Remaining safe optimization targets:
+  - reduce remaining pandas normalization overhead.
+
+---
+
+## Phase 10 - Native Event Prepared Replay And Portfolio Engine Direction
+
+Purpose:
+
+- Convert Phase 9 prepared arrays from an internal optimization into a clear
+  higher-level replay pattern for WFO/service loops.
+- Clarify that `legacy_portfolio` is a compatibility baseline, not the final
+  portfolio architecture.
+
+### Phase 10A - Native Event Prepared Replay
+
+Scope:
+
+- Expose `NativeEventBackend.prepare_market_arrays(...)`.
+- Expose `NativeEventBackend.compile_orders(...)`.
+- Add `native_event_prepared` to the Phase 7 benchmark suite.
+- Keep `_engine_event_v1` unchanged.
+- Keep normal `BacktestEngineV2(native_event)` behavior unchanged.
+
+Domain invariant:
+
+```text
+Same market tape + same explicit orders -> same equity, positions, fills,
+and order_report whether arrays are prepared internally or supplied by caller.
+```
+
+Status:
+
+- Implemented helper preparation APIs with datetime/symbol signature guards.
+- Added parity tests for helper-prepared arrays and compiled orders.
+- Added `native_event_prepared` benchmark route.
+- Latest standard benchmark:
+  - `native_event` cold path: 0.879406s, still fails strict cold threshold;
+  - `native_event_prepared`: 0.346367s, 72k+ orders/s, passes prepared replay
+    threshold;
+  - parity tests remain exact.
+
+Usage guidance:
+
+- Use cold `native_event` for one-off explicit-order simulation.
+- Use prepared replay when a WFO/optimizer/service replays many order packages
+  over the same market tape.
+- Do not use mutable global caches. Prepared arrays must be passed explicitly
+  and validated by signature.
+
+### Phase 10B - Native Portfolio Engine Direction
+
+Historical decision before Phase 11E:
+
+- `legacy_portfolio` remained the default compatibility route while the native
+  portfolio engine was still under construction.
+- We do **not** have to reuse it forever.
+- A new `NativePortfolioEngine` is the right long-term direction, but it must be
+  delivered as a separate domain phase with golden tests before becoming the
+  default. Phase 11E completed this default switch for supported portfolio
+  modes/sizing.
+
+Why not replace immediately:
+
+- Current `MultiSymbolPortfolio` carries established behavior for:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`;
+  - Binance-style netting options;
+  - portfolio-level diagnostics;
+  - funding, margin, and liquidation reporting expected by existing alpha
+    notebooks.
+- Rewriting this path without a golden parity suite risks changing strategy
+  meaning silently.
+
+Recommended next portfolio phase:
+
+- Build `NativePortfolioEngine` as array-first, explicit-schema code.
+- Keep `legacy_portfolio` as the oracle during development.
+- Golden tests must cover:
+  - per-symbol target units;
+  - portfolio gross/net exposure;
+  - rebalance timing;
+  - no bar-by-bar unwanted resizing when strategy expects frozen units;
+  - fees, funding, leverage, margin, liquidation;
+  - all current portfolio modes;
+  - real alpha parity reports.
+- Only switch endpoint defaults after parity is understood and documented.
+
+---
+
+## Phase 11 - Portfolio Engine V3 Institutional Upgrade
+
+Goal:
+
+Build a fund-grade portfolio engine that is mathematically explicit,
+domain-correct, fast, and auditable.  `legacy_portfolio` remains the
+compatibility oracle until the native engine has passed golden parity and real
+strategy validation.
+
+### Phase 11A - Domain Spec, Capability Matrix, And Golden Parity
+
+Scope:
+
+- Define a portfolio domain contract independent of `MultiSymbolPortfolio`.
+- Freeze the behavior of existing modes before writing the new engine:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`.
+- Declare current legacy sizing support:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`.
+- Declare native portfolio roadmap sizing support:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`;
+  - `%_equity`;
+  - `target_weight`;
+  - `target_notional`;
+  - `target_units`;
+  - `fixed_notional`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `dca_ladder`.
+- Add contract validation on completed portfolio results:
+  - accounting audit must pass;
+  - metadata mode/sizing must match spec;
+  - target/accepted unit reports must exist;
+  - symbol PnL must reconcile to equity;
+  - exposure identities must reconcile;
+  - margin columns must exist;
+  - mode-specific invariants must hold.
+
+Mode-specific invariants:
+
+- `market_neutral`: active bars must have balanced long and short notional.
+- `directional`: at most one symbol can be active per bar after directional
+  selection.
+- `equal_weight`: active symbols must carry equal absolute notional.
+- `longshort`: raw signed target matrix is preserved except for margin gates.
+
+Status:
+
+- Implemented `core/portfolio.py`:
+  - `PortfolioDomainSpec`;
+  - `PortfolioMode`;
+  - `PortfolioSizingMode`;
+  - `PortfolioRebalancePolicy`;
+  - `portfolio_capability_matrix()`;
+  - `validate_portfolio_result_contract(...)`.
+- Exported the domain contract through `quantbt`.
+- Added `tests/test_phase11_portfolio_engine_spec.py`.
+- Phase 11A tests pass.
+
+### Phase 11B - NativePortfolioEngine Core
+
+Scope:
+
+- Add `backend="native_portfolio"` without changing the default endpoint.
+- Keep `legacy_portfolio` as the oracle.
+- Implement array-first core:
+  - input alignment to ndarray once;
+  - signal/position matrix -> target exposure;
+  - target exposure -> target units;
+  - target units -> trade deltas;
+  - fees/slippage/funding;
+  - per-symbol PnL;
+  - gross/net exposure;
+  - initial margin / maintenance margin;
+  - liquidation scan;
+  - attribution reports.
+- Use NumPy/Numba in hot paths only after behavior is locked.
+- No mutable global cache. Prepared arrays must be explicit and signature
+  guarded.
+
+Acceptance:
+
+- Native result matches legacy for all Phase 11A legacy-compatible modes and
+  sizing modes within documented tolerances.
+- New sizing modes have direct mathematical tests, not just smoke tests.
+- Existing endpoints remain unchanged unless `backend="native_portfolio"` is
+  explicitly requested.
+
+Status:
+
+- Implemented `backends/native_portfolio.py`:
+  - explicit `NativePortfolioBackend`;
+  - `NativePortfolioConfig`;
+  - array-first market/signal packing;
+  - NumPy portfolio-mode transforms;
+  - `_engine_portfolio` kernel execution for exact legacy parity;
+  - V2 result construction with exposure, symbol PnL, margin, turnover, fee,
+    target/accepted units, and contract validation reports.
+- Wired `PortfolioBacktestEngine(backend="native_portfolio")`.
+- Default backend remains `legacy_portfolio`.
+- Added `tests/test_phase11_native_portfolio_backend.py`.
+- Phase 11B supports legacy-compatible sizing modes:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`.
+- Roadmap sizing modes such as `%_equity`, `target_weight`, `target_notional`,
+  `target_units`, `gross_exposure`, `net_exposure`, and `dca_ladder` remain
+  explicit Phase 11C+ work and raise instead of silently approximating behavior.
+- Added Phase 7 benchmark route `native_portfolio`.
+- Standard benchmark after Phase 11B:
+  - `portfolio_legacy`: 0.675597s, 1.351193 sec/million bar-symbols, pass;
+  - `native_portfolio`: 0.819805s, 1.639610 sec/million bar-symbols, pass.
+- Interpretation: native portfolio is not intended to beat legacy in Phase 11B;
+  it pays extra report/contract validation overhead to become an auditable
+  backend. Speed optimization comes after Phase 11C validates all new sizing
+  modes and real strategies.
+
+### Phase 11C - Institutional Validation And Default Readiness
+
+Scope:
+
+- Run mock-domain tests:
+  - flat;
+  - long-only;
+  - short-only;
+  - long/short;
+  - market-neutral rebalance;
+  - equal-weight rebalance;
+  - price drift without signal change;
+  - missing data;
+  - fee/funding;
+  - leverage and buying power;
+  - margin rejection;
+  - liquidation.
+- Run real-strategy smoke/parity notebooks where available.
+- Benchmark:
+  - bars x symbols;
+  - rebalance count;
+  - memory;
+  - compile time vs runtime;
+  - legacy vs native speed.
+- Document migration rules from `legacy_portfolio` to `native_portfolio`.
+
+Acceptance:
+
+- No endpoint default change until real alpha parity is reviewed.
+- If native improves legacy behavior intentionally, the improvement must be
+  named and tested.
+
+Status:
+
+- Implemented additional exact native portfolio sizing modes:
+  - `target_units`: input matrix is explicit target contracts/units;
+  - `target_notional`: input matrix is signed notional and respects
+    `contract_size`;
+  - `fixed_notional`: signal multiplied by `alloc_per_trade`, then converted to
+    units with `close * contract_size`.
+- Kept equity-dependent sizing modes unsupported until an equity-aware
+  portfolio kernel exists:
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`.
+- Kept `dca_ladder` out of portfolio target-matrix sizing because it requires
+  intrabar high/low trigger-price fills.
+- Added `NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES` and `native_supported` to
+  `portfolio_capability_matrix()`.
+- Fixed native portfolio symbol PnL fee allocation so force-flat liquidation
+  does not create a fake trade fee when the kernel did not charge one.
+- Added `tests/test_phase11_portfolio_institutional_scenarios.py` covering:
+  - flat book;
+  - long-only;
+  - short-only;
+  - long/short;
+  - missing data;
+  - fee/funding reconciliation;
+  - leverage buying-power gate;
+  - margin rejection;
+  - liquidation audit.
+- Added formula tests for `target_units`, `target_notional`, and
+  `fixed_notional`.
+- Standard benchmark after Phase 11C:
+  - `portfolio_legacy`: 0.636433s, 1.272866 sec/million bar-symbols, pass;
+  - `native_portfolio`: 0.776710s, 1.553421 sec/million bar-symbols, pass.
+
+### Phase 11D - Nautilus Portfolio Validation
+
+Scope:
+
+- Use Nautilus as third-party event-driven execution trustee for portfolio
+  packages.
+- Compile native portfolio rebalance deltas into explicit order packages.
+- Validate:
+  - order count;
+  - fill count;
+  - fill price policy;
+  - fee convention;
+  - gross/net exposure path;
+  - final equity;
+  - drawdown and account timeline.
+- Cover:
+  - single-symbol portfolio subset;
+  - multi-symbol longshort;
+  - market-neutral package;
+  - basket-like target units;
+  - all-or-none package semantics where possible.
+
+Non-goals:
+
+- Exact venue-specific portfolio margin clone unless a production venue
+  requires it.
+- L2 queue/depth perfect simulation inside portfolio V3. That belongs to the
+  Nautilus/depth roadmap.
+
+Acceptance:
+
+- Native-vs-Nautilus validation bundle is generated for representative
+  portfolio scenarios.
+- Nautilus remains validation/oracle backend, not the optimizer hot path.
+
+Status:
+
+- Implemented `reporting/portfolio_nautilus.py`:
+  - `build_portfolio_nautilus_position_report(...)`;
+  - `build_portfolio_nautilus_validation_report(...)`.
+- Exported helpers through `quantbt.reporting` and top-level `quantbt`.
+- Updated `QuantBTEndpoint.portfolio(backend="nautilus", ...)`:
+  - first runs `backend="native_portfolio"` as the native reference;
+  - compiles Nautilus package orders from native `target_units_report`;
+  - applies portfolio transforms (`market_neutral`, `directional`,
+    `equal_weight`) before Nautilus validation;
+  - attaches `portfolio_nautilus_validation_report` to result metadata.
+- Added Phase 11D validation tests:
+  - matching native-vs-Nautilus package summary passes;
+  - position mismatch is detected;
+  - endpoint Nautilus portfolio route submits market-neutral transformed target
+    units, not raw signals.
+
+Remaining Phase 11D validation work:
+
+- Run real Nautilus portfolio packages with installed `nautilus-trader` and
+  archive report bundles.
+- Add deeper fill-price/equity tolerance profiles for exchange-like fee/slippage
+  settings.
+- Add all-or-none basket package parity once venue/package semantics are needed
+  for production portfolio workflows.
+
+### Phase 11E - Native Portfolio Default And Full Surface Completion
+
+Scope:
+
+- Complete native portfolio support for the previously missing fund-grade
+  sizing/mode surface:
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `risk_parity`;
+  - `beta_neutral`.
+- Keep `dca_ladder` out of portfolio native sizing because it requires intrabar
+  high/low trigger-price fills and belongs to the DCA/grid engine.
+- Switch portfolio defaults only after parity and domain tests pass.
+
+Status:
+
+- Added native equity-aware portfolio kernel:
+  - `%_equity`: `signal * alloc_per_trade * live_equity`;
+  - `target_weight`: `signal * live_equity`;
+  - `gross_exposure`: signed signal normalized to
+    `live_equity * alloc_per_trade` gross exposure;
+  - `net_exposure`: signed signal normalized to
+    `live_equity * alloc_per_trade` net exposure.
+- Added native-only portfolio modes:
+  - `risk_parity`: inverse rolling volatility allocation from close returns,
+    controlled by `risk_lookback` (default `60`);
+  - `beta_neutral`: beta-weighted neutralization using optional
+    `betas={symbol: beta}`, default `1.0`.
+- Changed defaults:
+  - `QuantBTEndpoint.portfolio(...)` defaults to `backend="native_portfolio"`;
+  - `PortfolioBacktestEngine(...)` defaults to `backend="native_portfolio"`;
+  - `backend="legacy_portfolio"` remains available for reproduction.
+- Added `tests/test_phase11_native_portfolio_full_surface.py`.
+- Updated `benchmarks/run_portfolio_real_parity.py` and
+  `benchmarks/portfolio_real_parity_report.md`.
+
+Validation:
+
+- Legacy-compatible parity:
+  - 16/16 cases pass;
+  - max equity diff = 0;
+  - max position diff = 0;
+  - max target units diff = 0;
+  - max accepted notional diff = 0.
+- Native-only domain checks:
+  - `target_units`;
+  - `target_notional`;
+  - `fixed_notional`;
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`;
+  - `risk_parity`;
+  - `beta_neutral`.
+- `dca_ladder` is explicitly rejected for native portfolio.
 
 ---
 

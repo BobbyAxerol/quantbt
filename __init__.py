@@ -75,7 +75,14 @@ from .walkforward import (
     walkforward_support_matrix,
 )
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
-from .backends   import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .backends   import (
+    NativeEventBackend,
+    NativeEventConfig,
+    NativePortfolioBackend,
+    NativePortfolioConfig,
+    NativeVectorizedBackend,
+    NativeVectorizedConfig,
+)
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2
@@ -149,6 +156,21 @@ from .core.schema import (
     SignalSpec,
     TimeInForce,
 )
+from .core.portfolio import (
+    LEGACY_PORTFOLIO_MODES,
+    LEGACY_PORTFOLIO_SIZING_MODES,
+    NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES,
+    NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
+    PortfolioDomainSpec,
+    PortfolioMode,
+    PortfolioRebalancePolicy,
+    PortfolioSizingMode,
+    normalize_portfolio_mode,
+    normalize_portfolio_sizing_mode,
+    normalize_rebalance_policy,
+    portfolio_capability_matrix,
+    validate_portfolio_result_contract,
+)
 
 from .metrics import (
     full_report,
@@ -173,6 +195,8 @@ from .reporting import (
     build_nautilus_depth_execution_report,
     build_nautilus_depth_parity_summary,
     build_portfolio_domain_audit,
+    build_portfolio_nautilus_position_report,
+    build_portfolio_nautilus_validation_report,
     compare_native_arbitrage_results,
     export_nautilus_report_bundle,
     summarize_native_nautilus_parity_report,
@@ -191,18 +215,30 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativePortfolioBackend",
+    "NativePortfolioConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
     "NautilusExecutionDepthConfig",
     "PackageDepthPreflightResult",
     "PortfolioBacktestEngine",
+    "PortfolioDomainSpec",
+    "PortfolioMode",
+    "PortfolioRebalancePolicy",
+    "PortfolioSizingMode",
     "QuantBTEndpoint",
     "format_metrics_report",
+    "LEGACY_PORTFOLIO_MODES",
+    "LEGACY_PORTFOLIO_SIZING_MODES",
+    "NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES",
+    "NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES",
     "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
     "build_nautilus_depth_execution_report",
     "build_nautilus_depth_parity_summary",
     "build_portfolio_domain_audit",
+    "build_portfolio_nautilus_position_report",
+    "build_portfolio_nautilus_validation_report",
     "compare_native_arbitrage_results",
     "export_nautilus_report_bundle",
     "summarize_native_nautilus_parity_report",
@@ -293,8 +329,13 @@ __all__ = [
     "build_bracket_order_plan",
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
+    "normalize_portfolio_mode",
+    "normalize_portfolio_sizing_mode",
+    "normalize_rebalance_policy",
+    "portfolio_capability_matrix",
     "round_down_to_step",
     "simulate_nautilus_order_package_depth",
+    "validate_portfolio_result_contract",
     # metrics
     "full_report",
     "sharpe",

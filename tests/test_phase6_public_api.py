@@ -122,7 +122,7 @@ def test_event_driven_backtest_engine_can_adapt_signals_to_market_orders():
     assert engine.result.positions["Position_BTC"].iloc[3] == 0.0
 
 
-def test_portfolio_backtest_engine_wraps_legacy_portfolio_as_v2_result():
+def test_portfolio_backtest_engine_defaults_to_native_portfolio_and_keeps_legacy_route():
     df = _bars()
     positions = {
         "BTC": pd.Series([0.0, 1.0, 1.0, 0.0], index=df.index),
@@ -140,8 +140,20 @@ def test_portfolio_backtest_engine_wraps_legacy_portfolio_as_v2_result():
     )
 
     assert isinstance(engine.result, BacktestResultV2)
-    assert engine.result.metadata["backend"] == "legacy_portfolio"
+    assert engine.result.metadata["backend"] == "native_portfolio"
     assert "Position_BTC" in engine.result.positions.columns
+
+    legacy = PortfolioBacktestEngine(
+        positions=positions,
+        closes=closes,
+        datetime_index=df.index,
+        mode="market_neutral",
+        backend="legacy_portfolio",
+        account=AccountConfig(initial_capital=10_000.0, leverage=10.0),
+        use_funding=False,
+    )
+    assert isinstance(legacy.result, BacktestResultV2)
+    assert legacy.result.metadata["backend"] == "legacy_portfolio"
 
 
 def test_backtest_engine_v2_rejects_unknown_backend():

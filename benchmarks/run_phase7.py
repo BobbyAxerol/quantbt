@@ -76,6 +76,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--profile", choices=sorted(PROFILES), default="smoke")
     parser.add_argument("--repeats", type=int, default=None)
     parser.add_argument("--include-nautilus", action="store_true")
+    parser.add_argument("--no-tracemalloc", action="store_true", help="Measure runtime without Python allocation tracing.")
     parser.add_argument("--json-out", type=Path, default=PACKAGE_DIR / "benchmarks" / "out" / "phase7_results.json")
     parser.add_argument("--md-out", type=Path, default=PACKAGE_DIR / "benchmarks" / "out" / "phase7_results.md")
     args = parser.parse_args(argv)
@@ -90,27 +91,29 @@ def main(argv: Optional[List[str]] = None) -> int:
             repeats=max(1, args.repeats),
         )
 
-    records = run_all(profile=profile, include_nautilus=args.include_nautilus)
+    records = run_all(profile=profile, include_nautilus=args.include_nautilus, trace_memory=not args.no_tracemalloc)
     write_outputs(records=records, profile=profile, json_out=args.json_out, md_out=args.md_out)
     for record in records:
         print(_record_line(record))
     return 0 if all(r.status in {"passed", "skipped"} for r in records) else 1
 
 
-def run_all(profile: BenchmarkProfile, include_nautilus: bool = False) -> List[BenchmarkRecord]:
+def run_all(profile: BenchmarkProfile, include_nautilus: bool = False, trace_memory: bool = True) -> List[BenchmarkRecord]:
     records = [
-        run_native_vectorized(profile),
-        run_native_event(profile),
-        run_portfolio_legacy(profile),
+        run_native_vectorized(profile, trace_memory=trace_memory),
+        run_native_event(profile, trace_memory=trace_memory),
+        run_native_event_prepared(profile, trace_memory=trace_memory),
+        run_portfolio_legacy(profile, trace_memory=trace_memory),
+        run_native_portfolio(profile, trace_memory=trace_memory),
     ]
     if include_nautilus:
-        records.append(run_nautilus(profile))
+        records.append(run_nautilus(profile, trace_memory=trace_memory))
     else:
         records.append(_skipped("nautilus", profile, "pass --include-nautilus to run optional backend"))
     return records
 
 
-def run_native_vectorized(profile: BenchmarkProfile) -> BenchmarkRecord:
+def run_native_vectorized(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
     try:
         import pandas as pd
 
@@ -139,12 +142,13 @@ def run_native_vectorized(profile: BenchmarkProfile) -> BenchmarkRecord:
             order_count=transitions,
             event_count=profile.bars * profile.symbols,
             signal_transitions=transitions,
+            trace_memory=trace_memory,
         )
     except Exception as exc:
         return _failed("native_vectorized", profile, exc)
 
 
-def run_native_event(profile: BenchmarkProfile) -> BenchmarkRecord:
+def run_native_event(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
     try:
         from quantbt import AccountConfig, BacktestEngineV2
 
@@ -168,12 +172,65 @@ def run_native_event(profile: BenchmarkProfile) -> BenchmarkRecord:
             order_count=len(orders),
             event_count=profile.bars + len(orders),
             signal_transitions=0,
+            trace_memory=trace_memory,
         )
     except Exception as exc:
         return _failed("native_event", profile, exc)
 
 
-def run_portfolio_legacy(profile: BenchmarkProfile) -> BenchmarkRecord:
+def run_native_event_prepared(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
+    try:
+        from quantbt import AccountConfig
+        from quantbt.backends import NativeEventBackend, NativeEventConfig
+
+        idx, frames = _make_market_frames(profile.bars, profile.symbols)
+        orders = _make_orders(idx, profile.order_count, profile.symbols)
+        symbols = list(frames.keys())
+        closes = {symbol: frame["close"] for symbol, frame in frames.items()}
+        highs = {symbol: frame["high"] for symbol, frame in frames.items()}
+        lows = {symbol: frame["low"] for symbol, frame in frames.items()}
+        backend = NativeEventBackend(
+            NativeEventConfig(
+                account=AccountConfig(initial_capital=1_000_000.0, leverage=10.0),
+                use_funding=False,
+            )
+        )
+        market_arrays = backend.prepare_market_arrays(
+            datetime_index=idx,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            symbols=symbols,
+        )
+        compiled_orders = backend.compile_orders(datetime_index=idx, orders=orders, symbols=symbols)
+
+        def workload():
+            result = backend.run_orders(
+                datetime_index=idx,
+                orders=orders,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                symbols=symbols,
+                market_arrays=market_arrays,
+                compiled_orders=compiled_orders,
+            )
+            return result.equity.iloc[-1]
+
+        return _measure(
+            backend="native_event_prepared",
+            profile=profile,
+            workload=workload,
+            order_count=len(orders),
+            event_count=profile.bars + len(orders),
+            signal_transitions=0,
+            trace_memory=trace_memory,
+        )
+    except Exception as exc:
+        return _failed("native_event_prepared", profile, exc)
+
+
+def run_portfolio_legacy(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
     try:
         from quantbt import AccountConfig, PortfolioBacktestEngine
 
@@ -204,12 +261,52 @@ def run_portfolio_legacy(profile: BenchmarkProfile) -> BenchmarkRecord:
             order_count=transitions,
             event_count=profile.bars * profile.symbols,
             signal_transitions=transitions,
+            trace_memory=trace_memory,
         )
     except Exception as exc:
         return _failed("portfolio_legacy", profile, exc)
 
 
-def run_nautilus(profile: BenchmarkProfile) -> BenchmarkRecord:
+def run_native_portfolio(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
+    try:
+        from quantbt import AccountConfig, PortfolioBacktestEngine
+
+        idx, frames = _make_market_frames(profile.bars, profile.symbols)
+        positions = _make_portfolio_positions(idx, profile.symbols)
+        closes = {symbol: frame["close"] for symbol, frame in frames.items()}
+        transitions = _count_signal_transitions(positions.values())
+
+        def workload():
+            engine = PortfolioBacktestEngine(
+                positions=positions,
+                closes=closes,
+                highs=closes,
+                lows=closes,
+                datetime_index=idx,
+                mode="longshort",
+                backend="native_portfolio",
+                account=AccountConfig(initial_capital=1_000_000.0, leverage=10.0),
+                fee_rate=0.0,
+                alloc_per_trade=10_000.0,
+                hedge_type="signal_notional",
+                use_funding=False,
+            )
+            return engine.result.equity.iloc[-1]
+
+        return _measure(
+            backend="native_portfolio",
+            profile=profile,
+            workload=workload,
+            order_count=transitions,
+            event_count=profile.bars * profile.symbols,
+            signal_transitions=transitions,
+            trace_memory=trace_memory,
+        )
+    except Exception as exc:
+        return _failed("native_portfolio", profile, exc)
+
+
+def run_nautilus(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
     try:
         from quantbt import AccountConfig, BacktestEngineV2
         from quantbt.adapters.nautilus import NautilusBacktestEngine
@@ -246,6 +343,7 @@ def run_nautilus(profile: BenchmarkProfile) -> BenchmarkRecord:
             order_count=transitions,
             event_count=len(idx),
             signal_transitions=transitions,
+            trace_memory=trace_memory,
         )
     except ImportError as exc:
         return _skipped("nautilus", profile, str(exc))
@@ -260,24 +358,26 @@ def _measure(
     order_count: int,
     event_count: int,
     signal_transitions: int,
+    trace_memory: bool = True,
 ) -> BenchmarkRecord:
     gc.collect()
     rss_before = _rss_mb()
-    tracemalloc.start()
+    if trace_memory:
+        tracemalloc.start()
     warmup_start = time.perf_counter()
     workload()
     warmup_seconds = time.perf_counter() - warmup_start
-    current, peak = tracemalloc.get_traced_memory()
-    del current
 
     runtimes: List[float] = []
     for _ in range(profile.repeats):
         start = time.perf_counter()
         workload()
         runtimes.append(time.perf_counter() - start)
-    current, peak = tracemalloc.get_traced_memory()
-    del current
-    tracemalloc.stop()
+    peak = 0
+    if trace_memory:
+        current, peak = tracemalloc.get_traced_memory()
+        del current
+        tracemalloc.stop()
     rss_after = _rss_mb()
 
     runtime = statistics.mean(runtimes)
@@ -295,7 +395,7 @@ def _measure(
         runtime_seconds=runtime,
         runtime_min_seconds=min(runtimes),
         runtime_max_seconds=max(runtimes),
-        peak_memory_mb=peak / (1024 * 1024),
+        peak_memory_mb=(peak / (1024 * 1024)) if trace_memory else None,
         rss_delta_mb=max(0.0, rss_after - rss_before),
         throughput_bar_symbols_per_second=(profile.bars * profile.symbols / runtime) if runtime > 0.0 else None,
         throughput_orders_per_second=(order_count / runtime) if runtime > 0.0 and order_count > 0 else None,
@@ -524,13 +624,13 @@ def _attach_threshold(record: BenchmarkRecord) -> BenchmarkRecord:
         metric = "runtime_seconds"
         value = record.runtime_seconds
         limit = float(backend_thresholds["smoke_max_runtime_seconds"])
-    elif record.backend in {"native_vectorized", "portfolio_legacy"}:
+    elif record.backend in {"native_vectorized", "portfolio_legacy", "native_portfolio"}:
         key = f"{record.profile}_max_seconds_per_million_bar_symbols"
         if key in backend_thresholds and record.bar_symbols > 0:
             metric = "seconds_per_million_bar_symbols"
             value = record.runtime_seconds / (record.bar_symbols / 1_000_000.0)
             limit = float(backend_thresholds[key])
-    elif record.backend == "native_event":
+    elif record.backend in {"native_event", "native_event_prepared"}:
         key = f"{record.profile}_max_seconds_per_100k_orders"
         if key in backend_thresholds and record.order_count > 0:
             metric = "seconds_per_100k_orders"

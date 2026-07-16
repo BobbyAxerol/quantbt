@@ -13,7 +13,14 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 
-from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .backends import (
+    NativeEventBackend,
+    NativeEventConfig,
+    NativePortfolioBackend,
+    NativePortfolioConfig,
+    NativeVectorizedBackend,
+    NativeVectorizedConfig,
+)
 from .core.orders import OrderIntent
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2
@@ -326,7 +333,7 @@ class PortfolioBacktestEngine:
         closes: Dict[str, pd.Series],
         datetime_index: Union[pd.DatetimeIndex, pd.Series],
         mode: str = "longshort",
-        backend: str = "legacy_portfolio",
+        backend: str = "native_portfolio",
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: Optional[float] = None,
@@ -372,6 +379,11 @@ class PortfolioBacktestEngine:
 
     def run(self) -> BacktestResultV2:
         if self.backend in {"legacy", "legacy_portfolio", "portfolio"}:
+            legacy_kwargs = {
+                key: value
+                for key, value in self.kwargs.items()
+                if key not in {"use_pyramiding", "betas", "risk_lookback"}
+            }
             self.portfolio = MultiSymbolPortfolio(
                 positions=self.positions,
                 closes=self.closes,
@@ -389,7 +401,7 @@ class PortfolioBacktestEngine:
                 maintenance_ratio=self.maintenance_ratio,
                 highs=self.highs,
                 lows=self.lows,
-                **self.kwargs,
+                **legacy_kwargs,
             )
             self.result = BacktestResultV2.from_legacy(self.portfolio.result)
             self.result.metadata["backend"] = "legacy_portfolio"
@@ -415,7 +427,42 @@ class PortfolioBacktestEngine:
             self.result = engine.result
             return self.result
 
-        raise ValueError("PortfolioBacktestEngine backend must be legacy_portfolio or native_vectorized")
+        if self.backend == "native_portfolio":
+            asset_type = self.asset_type.lower()
+            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
+            # Preserve the legacy public convention: portfolio fee_rate is
+            # round-trip at the facade and one-way inside the backend.
+            fee_oneway = (self.fee_rate if self.fee_rate is not None else default_fee) / 2.0
+            default_contract = 1.0 if asset_type == "crypto" else 100.0
+            backend = NativePortfolioBackend(
+                NativePortfolioConfig(
+                    account=self.account,
+                    execution=self.execution,
+                    fee_rate=fee_oneway,
+                    use_funding=bool(self.use_funding),
+                )
+            )
+            self.result = backend.run_signals(
+                positions=self.positions,
+                closes=self.closes,
+                highs=self.highs,
+                lows=self.lows,
+                datetime_index=self.datetime_index,
+                mode=self.mode,
+                alloc_per_trade=self.alloc_per_trade,
+                contract_size=self.contract_size if self.contract_size is not None else default_contract,
+                hedge_type=self.hedge_type,
+                funding_rate=self.funding_rate if self.funding_rate is not None else 0.0001,
+                leverage=self.leverage,
+                maintenance_ratio=self.maintenance_ratio,
+                asset_type=self.asset_type,
+                use_pyramiding=bool(self.kwargs.get("use_pyramiding", True)),
+                betas=self.kwargs.get("betas"),
+                risk_lookback=int(self.kwargs.get("risk_lookback", 60)),
+            )
+            return self.result
+
+        raise ValueError("PortfolioBacktestEngine backend must be legacy_portfolio, native_vectorized, or native_portfolio")
 
 
 def _market_data(

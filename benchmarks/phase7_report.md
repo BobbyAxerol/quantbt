@@ -78,6 +78,13 @@ Only if profiling shows a hot loop that Numba cannot optimize should Cython/C++
 be considered. The current evidence points first to measuring facade/conversion
 overhead and separating pure-kernel benchmarks from full endpoint benchmarks.
 
+Follow-up profiling is now captured in
+`benchmarks/phase7_profile_report.md`. The standard profile shows pure Numba
+kernels at about 1.3% of measured backend-layer runtime for both
+`native_vectorized` and `native_event`, so the first optimization targets are
+target sizing, pandas alignment/packing, order-array construction, and benchmark
+instrumentation separation.
+
 ## Backend Guidance
 
 - `native_vectorized`: still the intended optimizer/research fast path, but
@@ -93,7 +100,7 @@ Thresholds live in `benchmarks/phase7_thresholds.json`.
 
 Decision rule:
 
-- Stay with Numba while profiling is incomplete.
+- Stay with Numba while pure-kernel time is not the measured bottleneck.
 - Do not change public API for speed.
 - Move only proven hot loops to Cython/C++.
 - Keep benchmark JSON/Markdown artifacts for commit-to-commit comparison.

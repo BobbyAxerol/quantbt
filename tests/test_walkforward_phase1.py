@@ -364,7 +364,7 @@ def test_walkforward_endpoint_routes_dataframe_output_to_portfolio():
     )
     result = bt.backtest(data=data, params={"window": 10})
 
-    assert result.metadata["backend"] == "legacy_portfolio"
+    assert result.metadata["backend"] == "native_portfolio"
     assert result.metadata["walk_forward"]["target_mode"] == "portfolio"
     assert "Position_BTC" in result.positions.columns
     assert "Position_ETH" in result.positions.columns
