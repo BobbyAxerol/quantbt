@@ -23,6 +23,8 @@ class PortfolioMode(str, Enum):
     MARKET_NEUTRAL = "market_neutral"
     DIRECTIONAL = "directional"
     EQUAL_WEIGHT = "equal_weight"
+    RISK_PARITY = "risk_parity"
+    BETA_NEUTRAL = "beta_neutral"
 
 
 class PortfolioSizingMode(str, Enum):
@@ -48,6 +50,12 @@ class PortfolioRebalancePolicy(str, Enum):
 
 
 LEGACY_PORTFOLIO_MODES: Set[str] = {mode.value for mode in PortfolioMode}
+LEGACY_COMPATIBLE_PORTFOLIO_MODES: Set[str] = {
+    PortfolioMode.LONGSHORT.value,
+    PortfolioMode.MARKET_NEUTRAL.value,
+    PortfolioMode.DIRECTIONAL.value,
+    PortfolioMode.EQUAL_WEIGHT.value,
+}
 LEGACY_PORTFOLIO_SIZING_MODES: Set[str] = {
     PortfolioSizingMode.SIGNAL_NOTIONAL.value,
     PortfolioSizingMode.SIGNAL.value,
@@ -57,9 +65,13 @@ LEGACY_PORTFOLIO_SIZING_MODES: Set[str] = {
 NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES: Set[str] = {mode.value for mode in PortfolioSizingMode}
 NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES: Set[str] = {
     *LEGACY_PORTFOLIO_SIZING_MODES,
+    PortfolioSizingMode.PCT_EQUITY.value,
+    PortfolioSizingMode.TARGET_WEIGHT.value,
     PortfolioSizingMode.TARGET_NOTIONAL.value,
     PortfolioSizingMode.TARGET_UNITS.value,
     PortfolioSizingMode.FIXED_NOTIONAL.value,
+    PortfolioSizingMode.GROSS_EXPOSURE.value,
+    PortfolioSizingMode.NET_EXPOSURE.value,
 }
 
 
@@ -102,7 +114,7 @@ class PortfolioDomainSpec:
 
     @property
     def legacy_compatible(self) -> bool:
-        return self.mode in LEGACY_PORTFOLIO_MODES and self.sizing_mode in LEGACY_PORTFOLIO_SIZING_MODES
+        return self.mode in LEGACY_COMPATIBLE_PORTFOLIO_MODES and self.sizing_mode in LEGACY_PORTFOLIO_SIZING_MODES
 
     @property
     def native_planned(self) -> bool:
@@ -117,6 +129,12 @@ def normalize_portfolio_mode(mode: str) -> str:
         "dollar_neutral": PortfolioMode.MARKET_NEUTRAL.value,
         "marketneutral": PortfolioMode.MARKET_NEUTRAL.value,
         "equal": PortfolioMode.EQUAL_WEIGHT.value,
+        "equalweight": PortfolioMode.EQUAL_WEIGHT.value,
+        "riskparity": PortfolioMode.RISK_PARITY.value,
+        "inverse_vol": PortfolioMode.RISK_PARITY.value,
+        "inverse_volatility": PortfolioMode.RISK_PARITY.value,
+        "betaneutral": PortfolioMode.BETA_NEUTRAL.value,
+        "beta_neutral_basic": PortfolioMode.BETA_NEUTRAL.value,
     }
     value = aliases.get(value, value)
     if value not in LEGACY_PORTFOLIO_MODES:
@@ -134,6 +152,14 @@ def normalize_portfolio_sizing_mode(mode: str) -> str:
         "units": PortfolioSizingMode.TARGET_UNITS.value,
         "target_unit": PortfolioSizingMode.TARGET_UNITS.value,
         "dollar": PortfolioSizingMode.NOTIONAL.value,
+        "portfolio_target_weight": PortfolioSizingMode.TARGET_WEIGHT.value,
+        "portfolio_target_notional": PortfolioSizingMode.TARGET_NOTIONAL.value,
+        "portfolio_target_units": PortfolioSizingMode.TARGET_UNITS.value,
+        "target_weights": PortfolioSizingMode.TARGET_WEIGHT.value,
+        "target_notionals": PortfolioSizingMode.TARGET_NOTIONAL.value,
+        "target_unit": PortfolioSizingMode.TARGET_UNITS.value,
+        "gross": PortfolioSizingMode.GROSS_EXPOSURE.value,
+        "net": PortfolioSizingMode.NET_EXPOSURE.value,
     }
     value = aliases.get(value, value)
     if value not in NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES:
@@ -163,7 +189,8 @@ def portfolio_capability_matrix() -> pd.DataFrame:
                 {
                     "mode": mode,
                     "sizing_mode": sizing,
-                    "legacy_supported": sizing in LEGACY_PORTFOLIO_SIZING_MODES,
+                    "legacy_supported": mode in LEGACY_COMPATIBLE_PORTFOLIO_MODES
+                    and sizing in LEGACY_PORTFOLIO_SIZING_MODES,
                     "native_supported": sizing in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
                     "native_roadmap": True,
                     "nautilus_validation_phase": "phase_4",
@@ -234,6 +261,8 @@ def _mode_specific_checks(mode: str, exposure: pd.DataFrame, accepted_notional: 
             "market_neutral_balanced": mode != PortfolioMode.MARKET_NEUTRAL.value,
             "directional_single_active": mode != PortfolioMode.DIRECTIONAL.value,
             "equal_weight_balanced": mode != PortfolioMode.EQUAL_WEIGHT.value,
+            "risk_parity_balanced": mode != PortfolioMode.RISK_PARITY.value,
+            "beta_neutral_balanced": mode != PortfolioMode.BETA_NEUTRAL.value,
         }
 
     if mode == PortfolioMode.MARKET_NEUTRAL.value:
@@ -243,6 +272,8 @@ def _mode_specific_checks(mode: str, exposure: pd.DataFrame, accepted_notional: 
             "market_neutral_balanced": residual.empty or bool(residual.max() <= tolerance),
             "directional_single_active": True,
             "equal_weight_balanced": True,
+            "risk_parity_balanced": True,
+            "beta_neutral_balanced": True,
         }
 
     if mode == PortfolioMode.DIRECTIONAL.value:
@@ -255,6 +286,8 @@ def _mode_specific_checks(mode: str, exposure: pd.DataFrame, accepted_notional: 
             "market_neutral_balanced": True,
             "directional_single_active": single_active,
             "equal_weight_balanced": True,
+            "risk_parity_balanced": True,
+            "beta_neutral_balanced": True,
         }
 
     if mode == PortfolioMode.EQUAL_WEIGHT.value:
@@ -263,12 +296,41 @@ def _mode_specific_checks(mode: str, exposure: pd.DataFrame, accepted_notional: 
             "market_neutral_balanced": True,
             "directional_single_active": True,
             "equal_weight_balanced": balanced,
+            "risk_parity_balanced": True,
+            "beta_neutral_balanced": True,
+        }
+
+    if mode == PortfolioMode.RISK_PARITY.value:
+        risk_ok = _risk_parity_balanced(_frame_from_exposure_attr(exposure, "risk_contribution_report"), tolerance)
+        return {
+            "market_neutral_balanced": True,
+            "directional_single_active": True,
+            "equal_weight_balanced": True,
+            "risk_parity_balanced": risk_ok,
+            "beta_neutral_balanced": True,
+        }
+
+    if mode == PortfolioMode.BETA_NEUTRAL.value:
+        if "beta_exposure_notional" in exposure:
+            active = exposure["gross_notional"].abs() > tolerance
+            beta_abs = exposure.loc[active, "beta_exposure_notional"].abs()
+            beta_ok = beta_abs.empty or bool(beta_abs.max() <= tolerance)
+        else:
+            beta_ok = False
+        return {
+            "market_neutral_balanced": True,
+            "directional_single_active": True,
+            "equal_weight_balanced": True,
+            "risk_parity_balanced": True,
+            "beta_neutral_balanced": beta_ok,
         }
 
     return {
         "market_neutral_balanced": True,
         "directional_single_active": True,
         "equal_weight_balanced": True,
+        "risk_parity_balanced": True,
+        "beta_neutral_balanced": True,
     }
 
 
@@ -311,3 +373,20 @@ def _max_abs_column(frame: pd.DataFrame, column: str) -> float:
 
 def _frame(value) -> pd.DataFrame:
     return value if isinstance(value, pd.DataFrame) else pd.DataFrame()
+
+
+def _frame_from_exposure_attr(exposure: pd.DataFrame, attr_name: str) -> pd.DataFrame:
+    value = exposure.attrs.get(attr_name) if isinstance(exposure, pd.DataFrame) else None
+    return value if isinstance(value, pd.DataFrame) else pd.DataFrame()
+
+
+def _risk_parity_balanced(risk_contribution: pd.DataFrame, tolerance: float) -> bool:
+    if risk_contribution.empty:
+        return False
+    for _, row in risk_contribution.iterrows():
+        active = row[row > tolerance]
+        if len(active) <= 1:
+            continue
+        if float(active.max() - active.min()) > max(tolerance, 1e-6):
+            return False
+    return True

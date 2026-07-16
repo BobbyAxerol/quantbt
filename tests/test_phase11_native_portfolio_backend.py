@@ -94,7 +94,7 @@ def test_phase11b_native_portfolio_matches_legacy_for_supported_modes(mode, hedg
 
 def test_phase11b_native_portfolio_rejects_unimplemented_roadmap_sizing_modes():
     with pytest.raises(NotImplementedError):
-        _run("longshort", "native_portfolio", "target_weight")
+        _run("longshort", "native_portfolio", "dca_ladder")
 
 
 def test_phase11c_native_portfolio_target_units_are_explicit_contracts():

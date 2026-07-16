@@ -141,6 +141,8 @@ class EndpointConfig:
     contract_size: Union[float, Dict[str, float]] = 1.0
     slippage: float = 0.0001
     portfolio_mode: str = "longshort"
+    betas: Union[float, Dict[str, float], None] = None
+    risk_lookback: int = 60
     asset_type: str = "crypto"
     basket: Optional[BasketSpec] = None
     arbitrage_spec: object = None
@@ -460,7 +462,7 @@ class QuantBTEndpoint:
         }
 
     @classmethod
-    def portfolio(cls, portfolio_mode: str = "longshort", backend: str = "legacy_portfolio", **kwargs) -> "QuantBTEndpoint":
+    def portfolio(cls, portfolio_mode: str = "longshort", backend: str = "native_portfolio", **kwargs) -> "QuantBTEndpoint":
         """
         Create a multi-symbol portfolio endpoint.
 
@@ -1352,7 +1354,14 @@ class QuantBTEndpoint:
             datetime_index=datetime_index,
             symbols=symbols or list(pos_map.keys()),
         )
-        backend = "legacy_portfolio" if self.config.backend.lower().strip() == "auto" else _resolve_backend(self.config)
+        if (
+            self.config.mode.lower().strip() == "walk_forward"
+            and self.config.walkforward_target_mode.lower().strip() == "portfolio"
+            and self.config.backend.lower().strip() not in {"legacy_portfolio", "nautilus"}
+        ):
+            backend = "native_portfolio"
+        else:
+            backend = _resolve_backend(self.config)
         if backend == "nautilus":
             symbol_list = list(symbols or pos_map.keys())
             native_reference = PortfolioBacktestEngine(
@@ -1374,6 +1383,9 @@ class QuantBTEndpoint:
                 funding_rate=self.config.funding_rate,
                 leverage=self.config.account.leverage,
                 maintenance_ratio=self.config.account.maintenance_ratio,
+                use_pyramiding=self.config.use_pyramiding,
+                betas=self.config.betas,
+                risk_lookback=self.config.risk_lookback,
             ).result
             target_units = native_reference.metadata["target_units_report"].reindex(columns=symbol_list)
             orders = _build_portfolio_orders_from_target_units_for_nautilus(
@@ -1423,6 +1435,9 @@ class QuantBTEndpoint:
             funding_rate=self.config.funding_rate,
             leverage=self.config.account.leverage,
             maintenance_ratio=self.config.account.maintenance_ratio,
+            use_pyramiding=self.config.use_pyramiding,
+            betas=self.config.betas,
+            risk_lookback=self.config.risk_lookback,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1782,12 +1797,12 @@ def _resolve_backend(config: EndpointConfig) -> str:
         return backend
     mode = config.mode.lower().strip()
     sizing = config.sizing.lower().strip()
+    if mode == "portfolio":
+        return "native_portfolio"
     if mode in ("pct_equity", "dca_ladder") or sizing in ("%_equity", "pct_equity", "dca_ladder", "dca"):
         return "legacy"
     if mode == "nautilus_validation":
         return "nautilus"
-    if mode == "portfolio":
-        return "legacy_portfolio"
     if mode in ("orders", "basket", "arbitrage"):
         return "native_event"
     return "native_vectorized"
@@ -1843,7 +1858,7 @@ def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> End
     if mode in {"signal_notional", "single_signal"}:
         return replace(config, mode="signal_notional", backend=config.backend, sizing="signal_notional")
     if mode == "portfolio":
-        return replace(config, mode="portfolio", backend="legacy_portfolio")
+        return replace(config, mode="portfolio", backend="native_portfolio")
     raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
 
 
