@@ -1812,6 +1812,42 @@ Acceptance:
 - If native improves legacy behavior intentionally, the improvement must be
   named and tested.
 
+Status:
+
+- Implemented additional exact native portfolio sizing modes:
+  - `target_units`: input matrix is explicit target contracts/units;
+  - `target_notional`: input matrix is signed notional and respects
+    `contract_size`;
+  - `fixed_notional`: signal multiplied by `alloc_per_trade`, then converted to
+    units with `close * contract_size`.
+- Kept equity-dependent sizing modes unsupported until an equity-aware
+  portfolio kernel exists:
+  - `%_equity`;
+  - `target_weight`;
+  - `gross_exposure`;
+  - `net_exposure`.
+- Kept `dca_ladder` out of portfolio target-matrix sizing because it requires
+  intrabar high/low trigger-price fills.
+- Added `NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES` and `native_supported` to
+  `portfolio_capability_matrix()`.
+- Fixed native portfolio symbol PnL fee allocation so force-flat liquidation
+  does not create a fake trade fee when the kernel did not charge one.
+- Added `tests/test_phase11_portfolio_institutional_scenarios.py` covering:
+  - flat book;
+  - long-only;
+  - short-only;
+  - long/short;
+  - missing data;
+  - fee/funding reconciliation;
+  - leverage buying-power gate;
+  - margin rejection;
+  - liquidation audit.
+- Added formula tests for `target_units`, `target_notional`, and
+  `fixed_notional`.
+- Standard benchmark after Phase 11C:
+  - `portfolio_legacy`: 0.636433s, 1.272866 sec/million bar-symbols, pass;
+  - `native_portfolio`: 0.776710s, 1.553421 sec/million bar-symbols, pass.
+
 ### Phase 11D - Nautilus Portfolio Validation
 
 Scope:

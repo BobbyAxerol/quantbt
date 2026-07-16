@@ -97,6 +97,61 @@ def test_phase11b_native_portfolio_rejects_unimplemented_roadmap_sizing_modes():
         _run("longshort", "native_portfolio", "target_weight")
 
 
+def test_phase11c_native_portfolio_target_units_are_explicit_contracts():
+    result = _run("longshort", "native_portfolio", "target_units")
+    target = result.metadata["target_units_report"]
+
+    np.testing.assert_allclose(target["BTC"].iloc[1], 1.0)
+    np.testing.assert_allclose(target["ETH"].iloc[1], -1.0)
+    assert result.metadata["portfolio_contract_report"]["passed"] is True
+
+
+def test_phase11c_native_portfolio_target_notional_respects_contract_size():
+    idx = _idx()
+    positions = {
+        "BTC": pd.Series([0.0, 1_000.0, 1_000.0, 0.0, 0.0, 0.0], index=idx),
+        "ETH": pd.Series([0.0, -500.0, -500.0, 0.0, 0.0, 0.0], index=idx),
+        "SOL": pd.Series(0.0, index=idx),
+    }
+    closes = {
+        "BTC": pd.Series([100.0, 100.0, 110.0, 100.0, 100.0, 100.0], index=idx),
+        "ETH": pd.Series([50.0, 50.0, 50.0, 50.0, 50.0, 50.0], index=idx),
+        "SOL": pd.Series([20.0, 20.0, 20.0, 20.0, 20.0, 20.0], index=idx),
+    }
+    result = PortfolioBacktestEngine(
+        positions=positions,
+        closes=closes,
+        highs=closes,
+        lows=closes,
+        datetime_index=idx,
+        mode="longshort",
+        backend="native_portfolio",
+        account=AccountConfig(initial_capital=100_000.0, leverage=10.0),
+        fee_rate=0.0,
+        alloc_per_trade=1_000.0,
+        contract_size={"BTC": 2.0, "ETH": 5.0, "SOL": 1.0},
+        hedge_type="target_notional",
+        asset_type="crypto",
+        use_funding=False,
+    ).result
+    target = result.metadata["target_units_report"]
+
+    np.testing.assert_allclose(target["BTC"].iloc[1], 1_000.0 / (100.0 * 2.0))
+    np.testing.assert_allclose(target["BTC"].iloc[2], 1_000.0 / (110.0 * 2.0))
+    np.testing.assert_allclose(target["ETH"].iloc[1], -500.0 / (50.0 * 5.0))
+    assert result.metadata["portfolio_contract_report"]["passed"] is True
+
+
+def test_phase11c_native_portfolio_fixed_notional_uses_signal_times_alloc():
+    result = _run("longshort", "native_portfolio", "fixed_notional")
+    target = result.metadata["target_units_report"]
+
+    np.testing.assert_allclose(target["BTC"].iloc[1], 1_000.0 / 100.0)
+    np.testing.assert_allclose(target["BTC"].iloc[2], 1_000.0 / 110.0)
+    np.testing.assert_allclose(target["ETH"].iloc[1], -1_500.0 / 50.0)
+    assert result.metadata["portfolio_contract_report"]["passed"] is True
+
+
 def test_phase11b_native_portfolio_preserves_margin_rejection_behavior():
     legacy = _run("longshort", "legacy_portfolio", "signal_notional", initial_capital=100.0)
     native = _run("longshort", "native_portfolio", "signal_notional", initial_capital=100.0)

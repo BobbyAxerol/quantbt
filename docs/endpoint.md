@@ -952,10 +952,12 @@ result = QuantBTEndpoint.portfolio(
 )
 ```
 
-Phase 11B native portfolio is parity-focused and supports
-`signal_notional`, `signal`, `notional`, and `unit`. Roadmap sizing modes such
-as `%_equity`, `target_weight`, `target_notional`, `target_units`,
-`gross_exposure`, `net_exposure`, and `dca_ladder` remain explicit future work.
+Phase 11C native portfolio supports `signal_notional`, `signal`, `notional`,
+`unit`, `target_units`, `target_notional`, and `fixed_notional`.
+Equity-dependent sizing modes such as `%_equity`, `target_weight`,
+`gross_exposure`, and `net_exposure` remain explicit future work until the
+portfolio kernel sizes from live equity. `dca_ladder` remains on the DCA/grid
+engine because it requires intrabar grid-trigger fills.
 
 Experimental Nautilus portfolio validation:
 

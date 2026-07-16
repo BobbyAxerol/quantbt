@@ -76,29 +76,51 @@ QuantBTEndpoint.portfolio(backend="native_portfolio", ...)
 The default should remain `legacy_portfolio` until golden parity and real alpha
 validation are complete.
 
-Current Phase 11B behavior:
+Current Phase 11C behavior:
 
 - array-first market and signal packing;
 - NumPy portfolio-mode transforms;
 - `_engine_portfolio` kernel execution for exact legacy parity;
 - V2 result reports for target units, accepted units, exposure, margin,
   per-symbol PnL, fees, funding, turnover, and contract validation;
-- explicit support for `signal_notional`, `signal`, `notional`, and `unit`.
+- explicit support for:
+  - `signal_notional`;
+  - `signal`;
+  - `notional`;
+  - `unit`;
+  - `target_units`;
+  - `target_notional`;
+  - `fixed_notional`.
 
-Roadmap sizing modes such as `%_equity`, `target_weight`, `target_notional`,
-`target_units`, `gross_exposure`, `net_exposure`, and `dca_ladder` remain
-unsupported in Phase 11B. They should raise clearly until Phase 11C+ adds direct
-mathematical tests.
+Equity-dependent sizing modes such as `%_equity`, `target_weight`,
+`gross_exposure`, and `net_exposure` remain unsupported until an equity-aware
+portfolio kernel is added. `dca_ladder` remains on the DCA/grid engine because
+it requires intrabar high/low grid-trigger semantics, not simple target-matrix
+sizing.
 
 ## Phase 11C - Institutional Validation
 
-Before changing defaults, the native engine must pass:
+Phase 11C adds mock-domain institutional validation:
 
 - mock scenario tests;
 - legacy parity tests;
-- real-strategy smoke tests;
 - benchmark runs;
 - migration documentation.
+
+Covered mock scenarios:
+
+- flat book;
+- long-only;
+- short-only;
+- long/short;
+- market-neutral rebalance;
+- equal-weight rebalance;
+- price drift without signal change;
+- missing data;
+- fee and funding reconciliation;
+- leverage and buying-power gate;
+- margin rejection;
+- liquidation audit without fake force-flat fees.
 
 Any intentional difference from legacy behavior must be explicitly named,
 tested, and documented.

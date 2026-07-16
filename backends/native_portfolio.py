@@ -20,7 +20,7 @@ import pandas as pd
 
 from ..core.engine import _engine_portfolio
 from ..core.portfolio import (
-    LEGACY_PORTFOLIO_SIZING_MODES,
+    NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
     PortfolioDomainSpec,
     normalize_portfolio_mode,
     normalize_portfolio_sizing_mode,
@@ -84,9 +84,9 @@ class NativePortfolioBackend:
 
         portfolio_mode = normalize_portfolio_mode(mode)
         sizing_mode = normalize_portfolio_sizing_mode(hedge_type)
-        if sizing_mode not in LEGACY_PORTFOLIO_SIZING_MODES:
+        if sizing_mode not in NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES:
             raise NotImplementedError(
-                f"native_portfolio Phase 11B supports legacy-compatible sizing modes only; got {hedge_type!r}"
+                f"native_portfolio does not yet support equity-dependent sizing mode {hedge_type!r}"
             )
 
         close_dict = align_series(closes, symbol_list, idx)
@@ -114,6 +114,7 @@ class NativePortfolioBackend:
             symbols=symbol_list,
             close_dict=close_dict,
             alloc_arr=alloc_arr,
+            contract_sizes=cs_arr,
             use_pyramiding=use_pyramiding,
         )
         target_units = self._apply_mode(
@@ -183,10 +184,29 @@ class NativePortfolioBackend:
         symbols: List[str],
         close_dict: Dict[str, pd.Series],
         alloc_arr: np.ndarray,
+        contract_sizes: np.ndarray,
         use_pyramiding: bool,
     ) -> np.ndarray:
         if sizing_mode in ("signal_notional", "signal"):
             return scale_signal_notional_matrix(raw_signals, closes, alloc_arr, use_pyramiding=use_pyramiding)
+
+        if sizing_mode == "target_units":
+            return np.ascontiguousarray(raw_signals, dtype=np.float64)
+
+        denom = closes * contract_sizes.reshape(1, -1)
+        if sizing_mode == "target_notional":
+            return np.ascontiguousarray(
+                np.divide(raw_signals, denom, out=np.zeros_like(raw_signals, dtype=np.float64), where=denom != 0.0),
+                dtype=np.float64,
+            )
+
+        if sizing_mode == "fixed_notional":
+            sig = raw_signals if use_pyramiding else np.sign(raw_signals)
+            notionals = sig * alloc_arr.reshape(1, -1)
+            return np.ascontiguousarray(
+                np.divide(notionals, denom, out=np.zeros_like(raw_signals, dtype=np.float64), where=denom != 0.0),
+                dtype=np.float64,
+            )
 
         out = np.zeros_like(raw_signals, dtype=np.float64)
         for j, symbol in enumerate(symbols):
@@ -291,6 +311,7 @@ class NativePortfolioBackend:
             is_funding_bar=pd.Series(is_funding_bar, index=idx),
             contract_sizes=cs,
             fee_rate=float(self.config.fee_rate),
+            fee_arr=fee_arr,
         )
         rebalance_report = self._build_rebalance_report(
             target_units=target_units_report,
@@ -363,20 +384,31 @@ class NativePortfolioBackend:
         is_funding_bar: pd.Series,
         contract_sizes: pd.Series,
         fee_rate: float,
+        fee_arr: np.ndarray,
     ) -> pd.DataFrame:
         frames = []
         funding_mask = is_funding_bar.astype(bool)
+        raw_trade_notional = {}
+        total_trade_notional = pd.Series(0.0, index=idx)
+        for symbol in symbols:
+            units = accepted_units[symbol].astype(float)
+            close = closes[symbol].astype(float)
+            cs = float(contract_sizes[symbol])
+            trade_notional = units.diff().fillna(units).abs() * close * cs
+            raw_trade_notional[symbol] = trade_notional
+            total_trade_notional = total_trade_notional.add(trade_notional, fill_value=0.0)
+        fee_series = pd.Series(fee_arr, index=idx, dtype=float)
         for symbol in symbols:
             units = accepted_units[symbol].astype(float)
             close = closes[symbol].astype(float)
             prev_units = units.shift(1).fillna(0.0)
             prev_close = close.shift(1).fillna(close)
-            delta = units.diff().fillna(units)
             cs = float(contract_sizes[symbol])
             mark_pnl = prev_units * (close - prev_close) * cs
             funding_cost = prev_units * close * cs * funding_rates[symbol].astype(float)
             funding_cost = funding_cost.where(funding_mask, 0.0)
-            fee = delta.abs() * close * cs * float(fee_rate)
+            share = raw_trade_notional[symbol].divide(total_trade_notional.replace(0.0, np.nan)).fillna(0.0)
+            fee = fee_series * share
             total_pnl = mark_pnl - funding_cost - fee
             frames.append(
                 pd.DataFrame(
