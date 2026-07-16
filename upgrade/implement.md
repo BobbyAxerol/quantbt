@@ -1430,6 +1430,141 @@ Status:
 
 ---
 
+## Phase 9 - Safe Performance Optimization After Profiling
+
+Purpose:
+
+Optimize the measured Phase 7 bottlenecks without changing domain logic,
+accounting, fill policy, or public endpoint behavior.
+
+Profiling evidence:
+
+- `native_vectorized` bottleneck:
+  - target sizing for `signal_notional`;
+  - data normalization / pandas packing.
+- `native_event` bottleneck:
+  - `OrderIntent` -> kernel order-array construction.
+- Pure Numba simulation kernels are not the bottleneck yet.
+
+### Phase 9A - Fast `signal_notional` Target Sizing
+
+Scope:
+
+- Add ndarray/Numba sizing path for `signal_notional`.
+- Keep existing Series-based `compute_target_units(...)` public behavior.
+- Use the fast path only inside native vectorized backend when the mode is
+  exactly `signal_notional` / `signal`.
+- Preserve `use_pyramiding=False` semantics by snapping signal to sign.
+
+Domain invariant:
+
+```text
+On signal transition: units = signal * alloc / close_at_transition
+Between transitions: units are frozen
+Flat signal: units = 0
+```
+
+Acceptance:
+
+- Fast target-unit matrix equals legacy Series sizing for:
+  - long/flat;
+  - short/flat;
+  - fractional pyramiding;
+  - `use_pyramiding=False`;
+  - multiple symbols with per-symbol alloc.
+- Full `BacktestEngineV2(native_vectorized)` equity/positions are unchanged
+  before vs after fast path.
+
+### Phase 9B - Native Event Order Array Compiler
+
+Scope:
+
+- Add an internal order compiler that converts `OrderIntent` sequences into
+  contiguous kernel arrays.
+- Replace repeated per-order timestamp conversion with vectorized nanosecond
+  `searchsorted`.
+- Preserve original order index, stable ordering, enum mapping, TIF mapping,
+  and unsupported-order behavior.
+- Do not change `_engine_event_v1`.
+
+Domain invariant:
+
+```text
+Same input orders + same bars -> same order_report, fills, positions, equity
+```
+
+Acceptance:
+
+- Compiled arrays equal the previous Python construction for market and limit
+  orders.
+- Full `BacktestEngineV2(native_event)` equity, fills, and order_report are
+  unchanged.
+- Invalid symbols, timestamps after data, unsupported order types, and TIF
+  behavior still fail the same way.
+
+### Cache Safety Rules
+
+- No process-wide mutable result cache.
+- Numba function cache is allowed only for pure ndarray kernels.
+- Any reusable prepared arrays must be local to an engine/run or keyed by a
+  clear signature:
+  - length;
+  - first/last timestamp;
+  - dtype;
+  - shape;
+  - symbols tuple;
+  - optional content hash for safe/debug mode.
+- Never cache by mutable pandas object identity alone.
+- Mutating input data between runs must not reuse stale arrays.
+
+### Phase 9C - Parity Script
+
+Add a script that runs legacy-vs-fast comparison on deterministic mock data:
+
+- target-unit max diff;
+- vectorized equity max diff;
+- vectorized position max diff;
+- order-array max diff;
+- event order_report diff;
+- event equity max diff;
+- event fill count and fill-price diff.
+
+The script must print and write a small JSON/Markdown report so future agents
+can verify that speed changes did not alter strategy meaning.
+
+Status:
+
+- Phase 9A implemented:
+  - added `sizing/fast.py`;
+  - native vectorized `signal_notional` uses ndarray/Numba target sizing;
+  - public Series sizing APIs remain unchanged.
+- Phase 9B implemented:
+  - added `core/order_compiler.py`;
+  - native event backend uses compiled order arrays with vectorized timestamp
+    mapping;
+  - `_engine_event_v1` is unchanged.
+- Phase 9C implemented:
+  - added `benchmarks/compare_phase9_parity.py`;
+  - committed parity report at `benchmarks/phase9_parity_report.md`;
+  - committed optimization report at `benchmarks/phase9_optimization_report.md`.
+- Parity result:
+  - target units diff: 0.0;
+  - vectorized equity/position diff: 0.0;
+  - order-array diff: 0.0;
+  - event equity/order_report/fill diff: 0.0.
+- Standard benchmark after Phase 9:
+  - `native_vectorized` runtime 0.587020s and passes threshold;
+  - `native_event` runtime 3.633349s and improves but still fails threshold;
+  - `portfolio_legacy` was not modified and showed noisy threshold failure on
+    this run.
+- Remaining safe optimization targets:
+  - prepared market-array cache;
+  - optional compiled-order reuse for repeated event runs;
+  - no-tracemalloc runtime benchmark mode;
+  - event zero-signal/funding allocation reduction.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:

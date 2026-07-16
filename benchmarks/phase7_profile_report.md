@@ -1,6 +1,7 @@
 # Phase 7 Profiling Follow-Up
 
-Status: standard profile decomposed into backend timing buckets.
+Status: standard profile decomposed into backend timing buckets before and
+after Phase 9 optimization.
 
 Generated on the current research environment with:
 
@@ -13,7 +14,7 @@ The profiler intentionally measures the core backend layers without
 measurement distortion. It is a diagnostic complement to
 `benchmarks/run_phase7.py`, not a replacement for the full benchmark harness.
 
-## Standard Profile Breakdown
+## Original Standard Profile Breakdown
 
 Profile: 25,000 bars, 20 symbols, 25,000 explicit orders, 2 repeats.
 
@@ -67,3 +68,21 @@ work and benchmark instrumentation overhead, not by the simulation kernels.
 
 Stay with Python/Numba. Do not start Cython/C++ until profiling after the
 facade/cache work still shows a pure kernel hotspot.
+
+## After Phase 9
+
+Phase 9 moved `signal_notional` target sizing to an ndarray/Numba path and
+added a native event order compiler. The updated standard profile is recorded
+in `benchmarks/phase9_optimization_report.md`.
+
+Key changes:
+
+- `native_vectorized` target sizing dropped from 0.249551s / 53.6% to
+  0.004104s / 1.3%.
+- `native_event` order-array construction dropped from 0.477603s / 69.7% to
+  0.172629s / 38.9%.
+- The standard benchmark `native_vectorized` route now passes threshold on this
+  machine.
+- The standard benchmark `native_event` route improves but still fails
+  threshold, so the next pass should target aligned market-array caching and
+  repeated event-run preparation overhead.
