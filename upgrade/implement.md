@@ -1883,6 +1883,33 @@ Acceptance:
   portfolio scenarios.
 - Nautilus remains validation/oracle backend, not the optimizer hot path.
 
+Status:
+
+- Implemented `reporting/portfolio_nautilus.py`:
+  - `build_portfolio_nautilus_position_report(...)`;
+  - `build_portfolio_nautilus_validation_report(...)`.
+- Exported helpers through `quantbt.reporting` and top-level `quantbt`.
+- Updated `QuantBTEndpoint.portfolio(backend="nautilus", ...)`:
+  - first runs `backend="native_portfolio"` as the native reference;
+  - compiles Nautilus package orders from native `target_units_report`;
+  - applies portfolio transforms (`market_neutral`, `directional`,
+    `equal_weight`) before Nautilus validation;
+  - attaches `portfolio_nautilus_validation_report` to result metadata.
+- Added Phase 11D validation tests:
+  - matching native-vs-Nautilus package summary passes;
+  - position mismatch is detected;
+  - endpoint Nautilus portfolio route submits market-neutral transformed target
+    units, not raw signals.
+
+Remaining Phase 11D validation work:
+
+- Run real Nautilus portfolio packages with installed `nautilus-trader` and
+  archive report bundles.
+- Add deeper fill-price/equity tolerance profiles for exchange-like fee/slippage
+  settings.
+- Add all-or-none basket package parity once venue/package semantics are needed
+  for production portfolio workflows.
+
 ---
 
 ## Backend Selection Guide

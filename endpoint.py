@@ -46,6 +46,7 @@ from .core.structured_orders import (
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
+from .reporting import build_portfolio_nautilus_validation_report
 from .sizing.modes import compute_target_units
 from .viz import quick_plot as _quick_plot
 from .viz import tearsheet as _tearsheet
@@ -1354,14 +1355,31 @@ class QuantBTEndpoint:
         backend = "legacy_portfolio" if self.config.backend.lower().strip() == "auto" else _resolve_backend(self.config)
         if backend == "nautilus":
             symbol_list = list(symbols or pos_map.keys())
-            orders, target_units = _build_portfolio_orders_for_nautilus(
-                datetime_index=idx,
+            native_reference = PortfolioBacktestEngine(
                 positions=pos_map,
                 closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                datetime_index=idx,
+                mode=self.config.portfolio_mode,
+                backend="native_portfolio",
+                account=self.config.account,
+                execution=self.config.execution,
+                fee_rate=self.config.fee,
                 alloc_per_trade=self.config.alloc_per_trade,
+                contract_size=self.config.contract_size,
                 hedge_type=self.config.sizing if self.config.sizing else "signal_notional",
-                use_pyramiding=self.config.use_pyramiding,
+                asset_type=self.config.asset_type,
+                use_funding=self.config.use_funding,
+                funding_rate=self.config.funding_rate,
+                leverage=self.config.account.leverage,
+                maintenance_ratio=self.config.account.maintenance_ratio,
+            ).result
+            target_units = native_reference.metadata["target_units_report"].reindex(columns=symbol_list)
+            orders = _build_portfolio_orders_from_target_units_for_nautilus(
+                target_units=target_units,
                 symbols=symbol_list,
+                tag=f"portfolio:{self.config.sizing if self.config.sizing else 'signal_notional'}",
             )
             result = self._run_nautilus_package_orders(
                 data=_frames_from_symbol_maps(close_map, high_map, low_map, symbol_list),
@@ -1376,6 +1394,13 @@ class QuantBTEndpoint:
                 },
             )
             result.metadata["engine"] = "nautilus_portfolio_matrix"
+            result.metadata["native_portfolio_reference_final_equity"] = float(native_reference.equity.iloc[-1])
+            result.metadata["portfolio_nautilus_validation_report"] = build_portfolio_nautilus_validation_report(
+                native_reference,
+                result,
+                equity_tolerance=float(self.config.metadata.get("portfolio_nautilus_equity_tolerance", 1e-6)),
+                position_tolerance=float(self.config.metadata.get("portfolio_nautilus_position_tolerance", 1e-6)),
+            )
             self._store_result(result)
             return self.result
 
@@ -2040,6 +2065,43 @@ def _build_portfolio_orders_for_nautilus(
             prev = current
     out = pd.DataFrame({symbol: target_cols[symbol] for symbol in symbols}, index=idx)
     return tuple(sorted(orders, key=lambda order: pd.Timestamp(order.timestamp).value)), out
+
+
+def _build_portfolio_orders_from_target_units_for_nautilus(
+    target_units: pd.DataFrame,
+    symbols,
+    tag: str,
+) -> tuple[OrderIntent, ...]:
+    idx = _ensure_utc_index(target_units.index)
+    target = target_units.copy()
+    target.index = idx
+    orders = []
+    for symbol in symbols:
+        if symbol not in target:
+            raise ValueError(f"target_units missing symbol {symbol!r}")
+        prev = 0.0
+        for ts, value in target[symbol].fillna(0.0).items():
+            current = float(value)
+            delta = current - prev
+            if abs(delta) > 1e-12:
+                orders.append(
+                    OrderIntent(
+                        timestamp=ts,
+                        symbol=symbol,
+                        side=OrderSide.BUY if delta > 0.0 else OrderSide.SELL,
+                        order_type=OrderType.MARKET,
+                        qty=abs(delta),
+                        tif=TimeInForce.IOC,
+                        tag=tag,
+                        metadata={
+                            "portfolio_mode": "matrix",
+                            "target_units": current,
+                            "previous_units": prev,
+                        },
+                    )
+                )
+            prev = current
+    return tuple(sorted(orders, key=lambda order: (pd.Timestamp(order.timestamp).value, str(order.symbol))))
 
 
 def _alloc_map(value, symbols) -> Dict[str, float]:
