@@ -89,6 +89,57 @@ class NativeEventBackend:
     def __init__(self, config: NativeEventConfig):
         self.config = config
 
+    def prepare_market_arrays(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        symbols: Optional[Sequence[str]] = None,
+    ) -> PreparedMarketArrays:
+        """
+        Normalize OHLC/funding inputs into immutable ndarray-backed market arrays.
+
+        This helper is intended for higher-level optimizers and WFO loops that
+        replay many order packages over the same market tape. The returned
+        object carries a datetime/symbol signature and `run_orders` rejects it
+        if reused against a different index or symbol layout.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        close_dict = align_series(closes, symbol_list, idx)
+        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+        return build_market_arrays(
+            symbols=symbol_list,
+            idx=idx,
+            closes_dict=close_dict,
+            highs_dict=high_dict,
+            lows_dict=low_dict,
+            funding_dict=funding_dict,
+        )
+
+    @staticmethod
+    def compile_orders(
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        orders: Sequence[OrderIntent],
+        symbols: Optional[Sequence[str]] = None,
+    ) -> CompiledOrderArrays:
+        """
+        Compile explicit `OrderIntent` objects into contiguous kernel arrays.
+
+        Use this when the same order package is replayed against the same
+        market tape. If `symbols` is omitted it is inferred from first
+        occurrence in the order sequence, which is convenient for standalone
+        simulations; passing the exact market symbol order is safer for
+        multi-symbol portfolio and arbitrage packages.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(dict.fromkeys(order.symbol for order in orders))
+        return compile_order_intents(idx=idx, orders=orders, symbol_to_col={s: j for j, s in enumerate(symbol_list)})
+
     def run_orders(
         self,
         datetime_index: Union[pd.DatetimeIndex, pd.Series],
@@ -106,26 +157,21 @@ class NativeEventBackend:
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
-        symbol_to_col = {s: j for j, s in enumerate(symbol_list)}
 
         if market_arrays is None:
-            close_dict = align_series(closes, symbol_list, idx)
-            high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
-            low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-            funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-            market_arrays = build_market_arrays(
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
                 symbols=symbol_list,
-                idx=idx,
-                closes_dict=close_dict,
-                highs_dict=high_dict,
-                lows_dict=low_dict,
-                funding_dict=funding_dict,
             )
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
 
         if compiled_orders is None:
-            compiled_orders = compile_order_intents(idx=idx, orders=orders, symbol_to_col=symbol_to_col)
+            compiled_orders = self.compile_orders(datetime_index=idx, orders=orders, symbols=symbol_list)
         elif (
             compiled_orders.index_signature != market_arrays.signature
             or compiled_orders.symbols != tuple(symbol_list)
@@ -1087,10 +1133,10 @@ class NativeEventBackend:
     @staticmethod
     def _build_fills(sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee) -> List[Fill]:
         fills: List[Fill] = []
-        for sorted_idx, (_, order) in enumerate(sorted_orders):
+        filled_indices = np.flatnonzero(fill_bar >= 0)
+        for sorted_idx in filled_indices:
+            order = sorted_orders[int(sorted_idx)][1]
             bar = int(fill_bar[sorted_idx])
-            if bar < 0:
-                continue
             fills.append(
                 Fill(
                     timestamp=idx[bar],

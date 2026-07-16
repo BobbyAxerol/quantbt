@@ -205,6 +205,40 @@ def test_prepared_market_arrays_and_compiled_orders_reuse_match_normal_event_run
     assert len(reused.fills) == len(normal.fills)
 
 
+def test_native_event_backend_prepare_helpers_match_manual_preparation():
+    idx, data, _ = _market()
+    orders = _orders(idx)
+    symbols = ["A", "B"]
+    closes = {symbol: data[symbol]["close"] for symbol in symbols}
+    highs = {symbol: data[symbol]["high"] for symbol in symbols}
+    lows = {symbol: data[symbol]["low"] for symbol in symbols}
+    backend = NativeEventBackend(NativeEventConfig(account=AccountConfig(initial_capital=100_000.0, leverage=5.0), use_funding=False))
+
+    helper_market = backend.prepare_market_arrays(idx, closes, highs=highs, lows=lows, symbols=symbols)
+    helper_orders = backend.compile_orders(idx, orders, symbols=symbols)
+
+    idx_n = validate_datetime(idx)
+    close_dict = align_series(closes, symbols, idx_n)
+    high_dict = align_series(highs, symbols, idx_n, fallback=close_dict)
+    low_dict = align_series(lows, symbols, idx_n, fallback=close_dict)
+    funding_dict = prepare_funding(0.0, symbols, idx_n)
+    manual_market = build_market_arrays(symbols, idx_n, close_dict, high_dict, low_dict, funding_dict)
+    manual_orders = compile_order_intents(idx_n, orders, {"A": 0, "B": 1})
+
+    np.testing.assert_allclose(helper_market.closes, manual_market.closes, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(helper_market.highs, manual_market.highs, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(helper_market.lows, manual_market.lows, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(helper_market.funding, manual_market.funding, rtol=0.0, atol=0.0)
+    assert helper_market.signature == manual_market.signature
+    np.testing.assert_array_equal(helper_orders.order_ptr, manual_orders.order_ptr)
+    np.testing.assert_array_equal(helper_orders.order_symbol, manual_orders.order_symbol)
+    np.testing.assert_array_equal(helper_orders.order_side, manual_orders.order_side)
+    np.testing.assert_array_equal(helper_orders.order_type, manual_orders.order_type)
+    np.testing.assert_allclose(helper_orders.order_qty, manual_orders.order_qty, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(helper_orders.order_price, manual_orders.order_price, rtol=0.0, atol=0.0)
+    np.testing.assert_array_equal(helper_orders.original_index, manual_orders.original_index)
+
+
 def test_prepared_market_arrays_reject_stale_signature():
     idx, data, _ = _market()
     orders = _orders(idx)

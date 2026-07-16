@@ -102,6 +102,7 @@ def run_all(profile: BenchmarkProfile, include_nautilus: bool = False, trace_mem
     records = [
         run_native_vectorized(profile, trace_memory=trace_memory),
         run_native_event(profile, trace_memory=trace_memory),
+        run_native_event_prepared(profile, trace_memory=trace_memory),
         run_portfolio_legacy(profile, trace_memory=trace_memory),
     ]
     if include_nautilus:
@@ -174,6 +175,58 @@ def run_native_event(profile: BenchmarkProfile, trace_memory: bool = True) -> Be
         )
     except Exception as exc:
         return _failed("native_event", profile, exc)
+
+
+def run_native_event_prepared(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
+    try:
+        from quantbt import AccountConfig
+        from quantbt.backends import NativeEventBackend, NativeEventConfig
+
+        idx, frames = _make_market_frames(profile.bars, profile.symbols)
+        orders = _make_orders(idx, profile.order_count, profile.symbols)
+        symbols = list(frames.keys())
+        closes = {symbol: frame["close"] for symbol, frame in frames.items()}
+        highs = {symbol: frame["high"] for symbol, frame in frames.items()}
+        lows = {symbol: frame["low"] for symbol, frame in frames.items()}
+        backend = NativeEventBackend(
+            NativeEventConfig(
+                account=AccountConfig(initial_capital=1_000_000.0, leverage=10.0),
+                use_funding=False,
+            )
+        )
+        market_arrays = backend.prepare_market_arrays(
+            datetime_index=idx,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            symbols=symbols,
+        )
+        compiled_orders = backend.compile_orders(datetime_index=idx, orders=orders, symbols=symbols)
+
+        def workload():
+            result = backend.run_orders(
+                datetime_index=idx,
+                orders=orders,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                symbols=symbols,
+                market_arrays=market_arrays,
+                compiled_orders=compiled_orders,
+            )
+            return result.equity.iloc[-1]
+
+        return _measure(
+            backend="native_event_prepared",
+            profile=profile,
+            workload=workload,
+            order_count=len(orders),
+            event_count=profile.bars + len(orders),
+            signal_transitions=0,
+            trace_memory=trace_memory,
+        )
+    except Exception as exc:
+        return _failed("native_event_prepared", profile, exc)
 
 
 def run_portfolio_legacy(profile: BenchmarkProfile, trace_memory: bool = True) -> BenchmarkRecord:
@@ -537,7 +590,7 @@ def _attach_threshold(record: BenchmarkRecord) -> BenchmarkRecord:
             metric = "seconds_per_million_bar_symbols"
             value = record.runtime_seconds / (record.bar_symbols / 1_000_000.0)
             limit = float(backend_thresholds[key])
-    elif record.backend == "native_event":
+    elif record.backend in {"native_event", "native_event_prepared"}:
         key = f"{record.profile}_max_seconds_per_100k_orders"
         if key in backend_thresholds and record.order_count > 0:
             metric = "seconds_per_100k_orders"

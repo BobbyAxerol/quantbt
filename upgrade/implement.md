@@ -1564,10 +1564,93 @@ Status:
     order-count threshold;
   - `portfolio_legacy` runtime 0.688006s and passes threshold.
 - Remaining safe optimization targets:
-  - expose prepared market arrays through higher-level optimizer/WFO loops;
-  - reuse compiled-order arrays across repeated event runs when order packages
-    are unchanged;
   - reduce remaining pandas normalization overhead.
+
+---
+
+## Phase 10 - Native Event Prepared Replay And Portfolio Engine Direction
+
+Purpose:
+
+- Convert Phase 9 prepared arrays from an internal optimization into a clear
+  higher-level replay pattern for WFO/service loops.
+- Clarify that `legacy_portfolio` is a compatibility baseline, not the final
+  portfolio architecture.
+
+### Phase 10A - Native Event Prepared Replay
+
+Scope:
+
+- Expose `NativeEventBackend.prepare_market_arrays(...)`.
+- Expose `NativeEventBackend.compile_orders(...)`.
+- Add `native_event_prepared` to the Phase 7 benchmark suite.
+- Keep `_engine_event_v1` unchanged.
+- Keep normal `BacktestEngineV2(native_event)` behavior unchanged.
+
+Domain invariant:
+
+```text
+Same market tape + same explicit orders -> same equity, positions, fills,
+and order_report whether arrays are prepared internally or supplied by caller.
+```
+
+Status:
+
+- Implemented helper preparation APIs with datetime/symbol signature guards.
+- Added parity tests for helper-prepared arrays and compiled orders.
+- Added `native_event_prepared` benchmark route.
+- Latest standard benchmark:
+  - `native_event` cold path: 0.879406s, still fails strict cold threshold;
+  - `native_event_prepared`: 0.346367s, 72k+ orders/s, passes prepared replay
+    threshold;
+  - parity tests remain exact.
+
+Usage guidance:
+
+- Use cold `native_event` for one-off explicit-order simulation.
+- Use prepared replay when a WFO/optimizer/service replays many order packages
+  over the same market tape.
+- Do not use mutable global caches. Prepared arrays must be passed explicitly
+  and validated by signature.
+
+### Phase 10B - Native Portfolio Engine Direction
+
+Decision:
+
+- `legacy_portfolio` should remain the default compatibility route for current
+  notebooks and services.
+- We do **not** have to reuse it forever.
+- A new `NativePortfolioEngine` is the right long-term direction, but it must be
+  delivered as a separate domain phase with golden tests before becoming the
+  default.
+
+Why not replace immediately:
+
+- Current `MultiSymbolPortfolio` carries established behavior for:
+  - `longshort`;
+  - `market_neutral`;
+  - `directional`;
+  - `equal_weight`;
+  - Binance-style netting options;
+  - portfolio-level diagnostics;
+  - funding, margin, and liquidation reporting expected by existing alpha
+    notebooks.
+- Rewriting this path without a golden parity suite risks changing strategy
+  meaning silently.
+
+Recommended next portfolio phase:
+
+- Build `NativePortfolioEngine` as array-first, explicit-schema code.
+- Keep `legacy_portfolio` as the oracle during development.
+- Golden tests must cover:
+  - per-symbol target units;
+  - portfolio gross/net exposure;
+  - rebalance timing;
+  - no bar-by-bar unwanted resizing when strategy expects frozen units;
+  - fees, funding, leverage, margin, liquidation;
+  - all current portfolio modes;
+  - real alpha parity reports.
+- Only switch endpoint defaults after parity is understood and documented.
 
 ---
 

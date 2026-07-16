@@ -1,6 +1,7 @@
 # Phase 9 Optimization Report
 
-Status: Phase 9A, Phase 9B, and Phase 9C implemented with parity checks.
+Status: Phase 9A, Phase 9B, Phase 9C, and the Phase 10A prepared native-event
+replay follow-up are implemented with parity checks.
 
 Commands:
 
@@ -63,19 +64,32 @@ MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 quantbt/b
 | `native_event` | 0.793388s | still fail: 3.173550 sec/100k orders > 1.25 |
 | `portfolio_legacy` | 0.688006s | pass: 1.376012 sec/million bar-symbols <= 2.5 |
 
+## Standard Runtime Benchmark After Phase 10A
+
+Phase 10A adds a higher-level prepared replay path for WFO/service loops:
+market arrays and explicit order arrays are prepared once, validated by
+datetime/symbol signatures, then replayed through the unchanged event kernel.
+
+| backend | runtime | threshold result |
+| --- | ---: | --- |
+| `native_vectorized` | 0.282944s | pass: 0.565889 sec/million bar-symbols <= 1.5 |
+| `native_event` | 0.879406s | still fail: 3.517623 sec/100k orders > 1.25 |
+| `native_event_prepared` | 0.346367s | pass: 1.385470 sec/100k orders <= 1.5 |
+| `portfolio_legacy` | 0.692722s | pass: 1.385443 sec/million bar-symbols <= 2.5 |
+
 ## Interpretation
 
 Phase 9A fixed the measured `native_vectorized` target-sizing bottleneck and
 brings the standard benchmark back under threshold on this machine.
 
 Phase 9B/9C materially improved native event order-array construction and
-market-array preparation, but the event route still needs another pass for the
-strict order-count threshold. The next safe targets are:
+market-array preparation. Phase 10A exposes that optimization to higher-level
+optimizer/WFO loops as `native_event_prepared`, which passes its prepared-replay
+guardrail on this machine. The cold event route still intentionally fails the
+strict order-count threshold because it includes full pandas normalization and
+order compilation every run. The remaining safe targets are:
 
-- expose prepared market arrays through higher-level optimizer/WFO loops;
-- reuse compiled order arrays across repeated event runs when orders are
-  unchanged;
-- reduce remaining pandas normalization overhead;
+- reduce remaining cold-path pandas normalization overhead;
 - revisit the event threshold after separating workload types.
 
 Cython/C++ remains unjustified: pure Numba kernel time is still small compared
