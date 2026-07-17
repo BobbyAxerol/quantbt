@@ -26,12 +26,19 @@ from ..core.portfolio import (
     normalize_portfolio_sizing_mode,
     validate_portfolio_result_contract,
 )
-from ..core.preprocessor import align_series, build_market_arrays, build_signal_matrix, prepare_funding, validate_datetime
+from ..core.preprocessor import (
+    PreparedMarketArrays,
+    align_series,
+    build_market_arrays,
+    build_signal_matrix,
+    market_data_signature,
+    prepare_funding,
+    validate_datetime,
+)
 from ..core.results import BacktestResultV2
 from ..core.schema import AccountConfig
 from ..core.schema import ExecutionConfig
 from ..sizing.fast import scale_signal_notional_matrix
-from ..sizing.modes import compute_target_units
 
 
 @dataclass(frozen=True)
@@ -60,7 +67,7 @@ class NativePortfolioBackend:
 
     def run_signals(
         self,
-        positions: Dict[str, pd.Series],
+        positions: Optional[Dict[str, pd.Series]],
         closes: Dict[str, pd.Series],
         datetime_index: Union[pd.DatetimeIndex, pd.Series],
         *,
@@ -78,11 +85,18 @@ class NativePortfolioBackend:
         asset_type: str = "crypto",
         betas: Optional[Union[float, Dict[str, float]]] = None,
         risk_lookback: int = 60,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        raw_signal_matrix: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
-        symbol_list = list(symbols) if symbols is not None else list(positions.keys())
-        if set(symbol_list) != set(positions.keys()) or set(symbol_list) != set(closes.keys()):
-            raise ValueError("symbols, positions, and closes must contain the same keys")
+        if positions is None and raw_signal_matrix is None:
+            raise ValueError("positions or raw_signal_matrix is required")
+        position_keys = set(positions.keys()) if positions is not None else set()
+        symbol_list = list(symbols) if symbols is not None else list(positions.keys() if positions is not None else closes.keys())
+        if positions is not None and set(symbol_list) != position_keys:
+            raise ValueError("symbols and positions must contain the same keys")
+        if market_arrays is None and set(symbol_list) != set(closes.keys()):
+            raise ValueError("symbols and closes must contain the same keys")
 
         portfolio_mode = normalize_portfolio_mode(mode)
         sizing_mode = normalize_portfolio_sizing_mode(hedge_type)
@@ -91,13 +105,27 @@ class NativePortfolioBackend:
                 f"native_portfolio does not yet support equity-dependent sizing mode {hedge_type!r}"
             )
 
-        close_dict = align_series(closes, symbol_list, idx)
-        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
-        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-        pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
-        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-        market = build_market_arrays(symbol_list, idx, close_dict, high_dict, low_dict, funding_dict)
-        raw_signals = build_signal_matrix(symbol_list, idx, pos_dict)
+        if market_arrays is None:
+            market = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != market_data_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
+        else:
+            market = market_arrays
+
+        if raw_signal_matrix is None:
+            pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
+            raw_signals = build_signal_matrix(symbol_list, idx, pos_dict)
+        else:
+            raw_signals = np.ascontiguousarray(raw_signal_matrix, dtype=np.float64)
+            if raw_signals.shape != market.closes.shape:
+                raise ValueError("raw_signal_matrix shape does not match prepared market arrays")
 
         cs_arr = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         lev_arr = self._per_symbol_array(
@@ -151,9 +179,6 @@ class NativePortfolioBackend:
                 sizing_mode=sizing_mode,
                 raw_signals=raw_signals,
                 closes=market.closes,
-                idx=idx,
-                symbols=symbol_list,
-                close_dict=close_dict,
                 alloc_arr=alloc_arr,
                 contract_sizes=cs_arr,
                 use_pyramiding=use_pyramiding,
@@ -219,15 +244,52 @@ class NativePortfolioBackend:
         result.metadata["portfolio_contract_report"] = validate_portfolio_result_contract(result, spec, tolerance=1e-8)
         return result
 
+    def prepare_market_arrays(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, Dict[str, float], pd.Series, None] = 0.0,
+        symbols: Optional[Sequence[str]] = None,
+    ) -> PreparedMarketArrays:
+        """
+        Normalize portfolio market data once for WFO/service loops.
+
+        The returned object is immutable ndarray-backed market state with a
+        datetime/symbol signature. `run_signals` rejects stale reuse against a
+        different index or symbol order, avoiding identity-cache bugs.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        close_dict = align_series(closes, symbol_list, idx)
+        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+        return build_market_arrays(symbol_list, idx, close_dict, high_dict, low_dict, funding_dict)
+
+    @staticmethod
+    def prepare_signal_matrix(
+        positions: Dict[str, pd.Series],
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        symbols: Sequence[str],
+    ) -> np.ndarray:
+        """
+        Normalize a portfolio signal matrix once when replaying prepared data.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols)
+        if set(symbol_list) != set(positions.keys()):
+            raise ValueError("symbols and positions must contain the same keys")
+        pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
+        return build_signal_matrix(symbol_list, idx, pos_dict)
+
     @staticmethod
     def _scale_target_units(
         *,
         sizing_mode: str,
         raw_signals: np.ndarray,
         closes: np.ndarray,
-        idx: pd.DatetimeIndex,
-        symbols: List[str],
-        close_dict: Dict[str, pd.Series],
         alloc_arr: np.ndarray,
         contract_sizes: np.ndarray,
         use_pyramiding: bool,
@@ -235,10 +297,29 @@ class NativePortfolioBackend:
         if sizing_mode in ("signal_notional", "signal"):
             return scale_signal_notional_matrix(raw_signals, closes, alloc_arr, use_pyramiding=use_pyramiding)
 
+        sig = raw_signals if use_pyramiding else np.sign(raw_signals)
+        denom = closes * contract_sizes.reshape(1, -1)
+
+        if sizing_mode == "notional":
+            notionals = sig * alloc_arr.reshape(1, -1)
+            return np.ascontiguousarray(
+                np.divide(notionals, denom, out=np.zeros_like(raw_signals, dtype=np.float64), where=denom != 0.0),
+                dtype=np.float64,
+            )
+
+        if sizing_mode == "unit":
+            first_denom = denom[0:1, :]
+            scale = np.divide(
+                alloc_arr.reshape(1, -1),
+                first_denom,
+                out=np.zeros((1, raw_signals.shape[1]), dtype=np.float64),
+                where=first_denom != 0.0,
+            )
+            return np.ascontiguousarray(sig * scale, dtype=np.float64)
+
         if sizing_mode == "target_units":
             return np.ascontiguousarray(raw_signals, dtype=np.float64)
 
-        denom = closes * contract_sizes.reshape(1, -1)
         if sizing_mode == "target_notional":
             return np.ascontiguousarray(
                 np.divide(raw_signals, denom, out=np.zeros_like(raw_signals, dtype=np.float64), where=denom != 0.0),
@@ -246,24 +327,13 @@ class NativePortfolioBackend:
             )
 
         if sizing_mode == "fixed_notional":
-            sig = raw_signals if use_pyramiding else np.sign(raw_signals)
             notionals = sig * alloc_arr.reshape(1, -1)
             return np.ascontiguousarray(
                 np.divide(notionals, denom, out=np.zeros_like(raw_signals, dtype=np.float64), where=denom != 0.0),
                 dtype=np.float64,
             )
 
-        out = np.zeros_like(raw_signals, dtype=np.float64)
-        for j, symbol in enumerate(symbols):
-            signal = pd.Series(raw_signals[:, j], index=idx)
-            out[:, j] = compute_target_units(
-                hedge_type=sizing_mode,
-                signal=signal,
-                close=close_dict[symbol],
-                alloc=float(alloc_arr[j]),
-                use_pyramiding=use_pyramiding,
-            ).to_numpy(dtype=np.float64)
-        return np.ascontiguousarray(out, dtype=np.float64)
+        raise NotImplementedError(f"native_portfolio sizing mode {sizing_mode!r} is not vectorized")
 
     @staticmethod
     def _apply_mode(
@@ -355,36 +425,38 @@ class NativePortfolioBackend:
         liquidation_bar: int,
     ) -> BacktestResultV2:
         equity = pd.Series(equity_arr, index=idx, name="equity")
-        close_report = pd.DataFrame({s: closes_m[:, j] for j, s in enumerate(symbol_list)}, index=idx)
-        target_units_report = pd.DataFrame({s: target_m[:, j] for j, s in enumerate(symbol_list)}, index=idx)
-        accepted_units_report = pd.DataFrame({s: pos_arr[:, j] for j, s in enumerate(symbol_list)}, index=idx)
+        close_report = pd.DataFrame(closes_m, index=idx, columns=symbol_list, copy=False)
+        target_units_report = pd.DataFrame(target_m, index=idx, columns=symbol_list, copy=False)
+        accepted_units_report = pd.DataFrame(pos_arr, index=idx, columns=symbol_list, copy=False)
         cs = pd.Series({s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)})
         lev = pd.Series({s: float(leverages[j]) for j, s in enumerate(symbol_list)})
         beta_s = pd.Series({s: float(betas[j]) for j, s in enumerate(symbol_list)})
-        target_notional = target_units_report.mul(close_report, axis=0).mul(cs, axis=1)
-        accepted_notional = accepted_units_report.mul(close_report, axis=0).mul(cs, axis=1)
-        funding_rates = pd.DataFrame({s: funding_m[:, j] for j, s in enumerate(symbol_list)}, index=idx)
-        risk_vol_report = pd.DataFrame({s: risk_vol[:, j] for j, s in enumerate(symbol_list)}, index=idx)
+        cs_row = contract_sizes.reshape(1, -1)
+        target_notional_arr = target_m * closes_m * cs_row
+        accepted_notional_arr = pos_arr * closes_m * cs_row
+        target_notional = pd.DataFrame(target_notional_arr, index=idx, columns=symbol_list, copy=False)
+        accepted_notional = pd.DataFrame(accepted_notional_arr, index=idx, columns=symbol_list, copy=False)
+        funding_rates = pd.DataFrame(funding_m, index=idx, columns=symbol_list, copy=False)
+        risk_vol_report = pd.DataFrame(risk_vol, index=idx, columns=symbol_list, copy=False)
 
         exposure_report = self._build_exposure_report(
-            accepted_notional=accepted_notional,
-            target_notional=target_notional,
+            accepted_notional_arr=accepted_notional_arr,
+            target_notional_arr=target_notional_arr,
             equity=equity,
-            leverages=lev,
+            leverages=leverages,
             maintenance_ratio=maintenance_ratio,
-            betas=beta_s,
+            betas=betas,
         )
-        risk_contribution_report = accepted_notional.abs().mul(risk_vol_report, axis=0)
+        risk_contribution_report = pd.DataFrame(np.abs(accepted_notional_arr) * risk_vol, index=idx, columns=symbol_list, copy=False)
         exposure_report.attrs["risk_contribution_report"] = risk_contribution_report
         symbol_pnl_report = self._build_symbol_pnl_report(
             idx=idx,
             symbols=symbol_list,
-            accepted_units=accepted_units_report,
-            closes=close_report,
-            funding_rates=funding_rates,
-            is_funding_bar=pd.Series(is_funding_bar, index=idx),
-            contract_sizes=cs,
-            fee_rate=float(self.config.fee_rate),
+            accepted_units_arr=pos_arr,
+            closes_arr=closes_m,
+            funding_rates_arr=funding_m,
+            is_funding_bar=is_funding_bar,
+            contract_sizes=contract_sizes,
             fee_arr=fee_arr,
         )
         rebalance_report = self._build_rebalance_report(
@@ -394,8 +466,8 @@ class NativePortfolioBackend:
             contract_sizes=cs,
         )
 
-        positions = pd.DataFrame({f"Position_{s}": pos_arr[:, j] for j, s in enumerate(symbol_list)}, index=idx)
-        closes = pd.DataFrame({f"Close_{s}": closes_m[:, j] for j, s in enumerate(symbol_list)}, index=idx)
+        positions = pd.DataFrame(pos_arr, index=idx, columns=[f"Position_{s}" for s in symbol_list], copy=False)
+        closes = pd.DataFrame(closes_m, index=idx, columns=[f"Close_{s}" for s in symbol_list], copy=False)
         fees = pd.Series(fee_arr, index=idx, name="fees")
         turnover = pd.Series(turnover_arr, index=idx, name="turnover")
         funding_cost = symbol_pnl_report.groupby("timestamp", sort=False)["funding_cost"].sum().reindex(idx, fill_value=0.0)
@@ -439,7 +511,7 @@ class NativePortfolioBackend:
                 "risk_contribution_report": risk_contribution_report,
                 "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
                 "symbol_pnl_report": symbol_pnl_report,
-                "kernel_symbol_pnl": pd.DataFrame({s: sym_pnl_arr[:, j] for j, s in enumerate(symbol_list)}, index=idx),
+                "kernel_symbol_pnl": pd.DataFrame(sym_pnl_arr, index=idx, columns=symbol_list, copy=False),
                 "rebalance_report": rebalance_report,
                 "fee_series": fees,
                 "turnover_series": turnover,
@@ -455,85 +527,83 @@ class NativePortfolioBackend:
         *,
         idx: pd.DatetimeIndex,
         symbols: List[str],
-        accepted_units: pd.DataFrame,
-        closes: pd.DataFrame,
-        funding_rates: pd.DataFrame,
-        is_funding_bar: pd.Series,
-        contract_sizes: pd.Series,
-        fee_rate: float,
+        accepted_units_arr: np.ndarray,
+        closes_arr: np.ndarray,
+        funding_rates_arr: np.ndarray,
+        is_funding_bar: np.ndarray,
+        contract_sizes: np.ndarray,
         fee_arr: np.ndarray,
     ) -> pd.DataFrame:
-        frames = []
-        funding_mask = is_funding_bar.astype(bool)
-        raw_trade_notional = {}
-        total_trade_notional = pd.Series(0.0, index=idx)
-        for symbol in symbols:
-            units = accepted_units[symbol].astype(float)
-            close = closes[symbol].astype(float)
-            cs = float(contract_sizes[symbol])
-            trade_notional = units.diff().fillna(units).abs() * close * cs
-            raw_trade_notional[symbol] = trade_notional
-            total_trade_notional = total_trade_notional.add(trade_notional, fill_value=0.0)
-        fee_series = pd.Series(fee_arr, index=idx, dtype=float)
-        for symbol in symbols:
-            units = accepted_units[symbol].astype(float)
-            close = closes[symbol].astype(float)
-            prev_units = units.shift(1).fillna(0.0)
-            prev_close = close.shift(1).fillna(close)
-            cs = float(contract_sizes[symbol])
-            mark_pnl = prev_units * (close - prev_close) * cs
-            funding_cost = prev_units * close * cs * funding_rates[symbol].astype(float)
-            funding_cost = funding_cost.where(funding_mask, 0.0)
-            share = raw_trade_notional[symbol].divide(total_trade_notional.replace(0.0, np.nan)).fillna(0.0)
-            fee = fee_series * share
-            total_pnl = mark_pnl - funding_cost - fee
-            frames.append(
-                pd.DataFrame(
-                    {
-                        "timestamp": idx,
-                        "symbol": symbol,
-                        "position_units": units.to_numpy(dtype=float),
-                        "close": close.to_numpy(dtype=float),
-                        "mark_pnl": mark_pnl.to_numpy(dtype=float),
-                        "funding_cost": funding_cost.to_numpy(dtype=float),
-                        "funding_pnl": (-funding_cost).to_numpy(dtype=float),
-                        "fee": fee.to_numpy(dtype=float),
-                        "fee_pnl": (-fee).to_numpy(dtype=float),
-                        "total_pnl": total_pnl.to_numpy(dtype=float),
-                    }
-                )
-            )
-        return pd.concat(frames, ignore_index=True, copy=False) if frames else pd.DataFrame()
+        n_bars, n_syms = accepted_units_arr.shape
+        if n_bars == 0 or n_syms == 0:
+            return pd.DataFrame()
+        prev_units = np.vstack([np.zeros((1, n_syms), dtype=np.float64), accepted_units_arr[:-1]])
+        prev_close = np.vstack([closes_arr[0:1], closes_arr[:-1]])
+        cs = contract_sizes.reshape(1, -1)
+        mark_pnl = prev_units * (closes_arr - prev_close) * cs
+        funding_cost = prev_units * closes_arr * cs * funding_rates_arr
+        funding_cost = np.where(is_funding_bar.reshape(-1, 1).astype(bool), funding_cost, 0.0)
+        trade_delta = np.abs(accepted_units_arr - prev_units)
+        trade_notional = trade_delta * closes_arr * cs
+        total_trade_notional = trade_notional.sum(axis=1, keepdims=True)
+        share = np.divide(
+            trade_notional,
+            total_trade_notional,
+            out=np.zeros_like(trade_notional),
+            where=total_trade_notional != 0.0,
+        )
+        fee = fee_arr.reshape(-1, 1) * share
+        total_pnl = mark_pnl - funding_cost - fee
+
+        return pd.DataFrame(
+            {
+                "timestamp": np.tile(np.asarray(idx, dtype=object), n_syms),
+                "symbol": np.repeat(np.asarray(symbols, dtype=object), n_bars),
+                "position_units": accepted_units_arr.T.reshape(-1),
+                "close": closes_arr.T.reshape(-1),
+                "mark_pnl": mark_pnl.T.reshape(-1),
+                "funding_cost": funding_cost.T.reshape(-1),
+                "funding_pnl": (-funding_cost).T.reshape(-1),
+                "fee": fee.T.reshape(-1),
+                "fee_pnl": (-fee).T.reshape(-1),
+                "total_pnl": total_pnl.T.reshape(-1),
+            }
+        )
 
     @staticmethod
     def _build_exposure_report(
         *,
-        accepted_notional: pd.DataFrame,
-        target_notional: pd.DataFrame,
+        accepted_notional_arr: np.ndarray,
+        target_notional_arr: np.ndarray,
         equity: pd.Series,
-        leverages: pd.Series,
+        leverages: np.ndarray,
         maintenance_ratio: float,
-        betas: pd.Series,
+        betas: np.ndarray,
     ) -> pd.DataFrame:
-        abs_accepted = accepted_notional.abs()
-        initial_margin = abs_accepted.div(leverages, axis=1).sum(axis=1)
-        maintenance_margin = abs_accepted.sum(axis=1) * float(maintenance_ratio)
-        beta_exposure = accepted_notional.mul(betas, axis=1).sum(axis=1)
-        target_beta_exposure = target_notional.mul(betas, axis=1).sum(axis=1)
+        abs_accepted = np.abs(accepted_notional_arr)
+        equity_arr = equity.to_numpy(dtype=np.float64)
+        gross = abs_accepted.sum(axis=1)
+        net = accepted_notional_arr.sum(axis=1)
+        initial_margin = (abs_accepted / leverages.reshape(1, -1)).sum(axis=1)
+        maintenance_margin = gross * float(maintenance_ratio)
+        beta_exposure = (accepted_notional_arr * betas.reshape(1, -1)).sum(axis=1)
+        target_gross = np.abs(target_notional_arr).sum(axis=1)
+        target_beta_exposure = (target_notional_arr * betas.reshape(1, -1)).sum(axis=1)
+        mean_leverage = float(np.mean(leverages))
         out = pd.DataFrame(
             {
-                "long_notional": accepted_notional.clip(lower=0.0).sum(axis=1),
-                "short_notional": accepted_notional.clip(upper=0.0).abs().sum(axis=1),
-                "gross_notional": abs_accepted.sum(axis=1),
-                "net_notional": accepted_notional.sum(axis=1),
+                "long_notional": np.where(accepted_notional_arr > 0.0, accepted_notional_arr, 0.0).sum(axis=1),
+                "short_notional": np.where(accepted_notional_arr < 0.0, -accepted_notional_arr, 0.0).sum(axis=1),
+                "gross_notional": gross,
+                "net_notional": net,
                 "beta_exposure_notional": beta_exposure,
-                "target_gross_notional": target_notional.abs().sum(axis=1),
+                "target_gross_notional": target_gross,
                 "target_beta_exposure_notional": target_beta_exposure,
                 "initial_margin": initial_margin,
                 "maintenance_margin": maintenance_margin,
-                "equity": equity,
-                "available_equity_after_im": equity - initial_margin,
-                "buying_power": equity * float(np.mean(leverages.to_numpy(dtype=float))),
+                "equity": equity_arr,
+                "available_equity_after_im": equity_arr - initial_margin,
+                "buying_power": equity_arr * mean_leverage,
             },
             index=equity.index,
         )

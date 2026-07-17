@@ -7,11 +7,13 @@ Status: **pass**
 - Bars: `2000`
 - Symbols: `6`
 - Repeats: `3`
-- Full facade seconds: `0.131040`
-- Array preparation seconds: `0.013697`
-- Pure Numba kernel seconds: `0.000275`
-- Report construction residual seconds: `0.117067`
-- Pure kernel share: `0.21%`
+- Full facade seconds: `0.081440`
+- Prepared reuse facade seconds: `0.073796`
+- Prepared reuse speedup: `1.104x`
+- Array preparation seconds: `0.010897`
+- Pure Numba kernel seconds: `0.000212`
+- Report construction residual seconds: `0.070331`
+- Pure kernel share: `0.26%`
 
 ## Nautilus Portfolio
 

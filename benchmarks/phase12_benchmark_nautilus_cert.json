@@ -7,13 +7,15 @@
     "bar_symbols": 12000,
     "repeats": 3,
     "stages": {
-      "full_facade_seconds": 0.13103967035810152,
-      "array_preparation_seconds": 0.01369715373342236,
-      "pure_numba_kernel_seconds": 0.0002753000395993392,
-      "report_construction_estimate_seconds": 0.11706721658507982,
-      "array_preparation_share_pct": 10.452677190038074,
-      "pure_kernel_share_pct": 0.21008908130416307,
-      "report_construction_share_pct": 89.33723372865776
+      "full_facade_seconds": 0.08143977168947458,
+      "prepared_reuse_facade_seconds": 0.07379568073277672,
+      "array_preparation_seconds": 0.010897138544047872,
+      "pure_numba_kernel_seconds": 0.00021187355741858482,
+      "report_construction_estimate_seconds": 0.07033075958800812,
+      "prepared_reuse_speedup": 1.1035845307041487,
+      "array_preparation_share_pct": 13.380610379898986,
+      "pure_kernel_share_pct": 0.26015981261151755,
+      "report_construction_share_pct": 86.35922980748948
     },
     "notes": "Prepared-array cache targets WFO/service loops. Pure Numba kernel remains separated from pandas normalization and report construction."
   },

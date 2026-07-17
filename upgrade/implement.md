@@ -2050,12 +2050,27 @@ Validation artifacts:
 - `benchmarks/phase12_benchmark_nautilus_cert.md`
 - `tests/test_phase12_benchmark_nautilus_cert.py`
 
-Latest certification summary:
+Latest certification and optimization summary:
 
 - Native portfolio benchmark separates full facade, array preparation, pure
   Numba kernel, and report-construction residual.
+- `NativePortfolioBackend.prepare_market_arrays(...)` and
+  `prepare_signal_matrix(...)` now provide explicit prepared-cache APIs for
+  WFO/service loops. Reuse is guarded by datetime/symbol signatures, not pandas
+  object identity.
+- `NativePortfolioBackend.run_signals(...)` accepts `market_arrays` and
+  `raw_signal_matrix` so repeated portfolio runs can skip pandas market
+  normalization while preserving the same accounting kernel.
+- Native portfolio `notional` and `unit` sizing now use ndarray vector paths
+  instead of per-symbol pandas sizing dispatch. Legacy parity tests still pass.
+- Native portfolio report construction was tightened by building common
+  DataFrames directly from ndarray blocks and by generating `symbol_pnl_report`
+  in one vectorized construction rather than per-symbol concat.
 - Pure Numba kernel share remains about 0.2% in the current Phase 12B profile;
   Cython/C++ is not justified until cached preparation/reporting are optimized.
+- Current benchmark artifact reports prepared-cache reuse speedup for the small
+  Phase 12B profile. Larger WFO/service loops should benefit more because the
+  same market arrays are reused across many strategy parameter trials.
 - Real Nautilus portfolio package replay ran and passed the tolerance profile:
   equity tolerance `1.0`, position tolerance `0.005` for venue lot-size
   rounding.
@@ -2064,10 +2079,10 @@ Latest certification summary:
 
 Remaining debt:
 
-- Add cached prepared-array APIs for WFO/service loops instead of repeatedly
-  normalizing pandas inputs.
-- Optimize native portfolio report construction, which is the measured largest
-  residual bucket in this profile.
+- Thread prepared portfolio market arrays through higher-level WFO endpoint
+  loops where the market tape is invariant across parameter trials.
+- Continue optimizing native portfolio report construction, which remains the
+  measured largest residual bucket after the first vectorized report pass.
 - Replace OHLCV queue/depth approximation with true L2/order-book simulation
   only when a production venue data feed is available.
 
