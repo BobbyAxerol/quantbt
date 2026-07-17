@@ -122,6 +122,8 @@ account reports.
   controls.
 - `use_pyramiding=False` snaps signals to `-1/0/1`; `True` preserves fractional
   scales such as `1.4`.
+- For crypto, `contract_size` is a notional/PnL multiplier. Exchange fractional
+  lots are governed by `qty_step`/`lot_size`/`min_qty`/`min_notional`.
 
 ### DCA And Grid
 
@@ -324,6 +326,14 @@ result = bt.simulate(
 )
 
 result.show_metrics()
+
+diag = bt.nautilus_pct_equity_diagnostic(
+    data=df,
+    signal_col="pos_weight",
+    native_fee_round_trip=0.0005,
+    native_use_funding=False,
+    native_slippage=0.0002,
+)
 
 report_dir = export_nautilus_report_bundle(
     result=result,

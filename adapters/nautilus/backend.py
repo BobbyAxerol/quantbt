@@ -156,6 +156,7 @@ class NautilusBacktestEngine:
                     "trade_notional": self.config.trade_notional,
                     "use_pyramiding": self.config.use_pyramiding,
                     "close_positions_on_stop": self.config.close_positions_on_stop,
+                    **self._instrument_constraint_metadata(instrument),
                     **self.config.metadata,
                     **(params or {}),
                 },
@@ -283,6 +284,21 @@ class NautilusBacktestEngine:
         if not self.config.use_test_instrument:
             raise NotImplementedError("custom Nautilus instruments are not wired yet")
         return make_binance_perpetual(self.config.instrument_id, nt)
+
+    @staticmethod
+    def _instrument_constraint_metadata(instrument) -> Dict:
+        size_increment = getattr(instrument, "size_increment", None)
+        min_quantity = getattr(instrument, "min_quantity", None)
+        min_notional = getattr(instrument, "min_notional", None)
+        price_increment = getattr(instrument, "price_increment", None)
+        return {
+            "qty_step": None if size_increment is None else str(size_increment),
+            "lot_size": None if size_increment is None else str(size_increment),
+            "min_qty": None if min_quantity is None else str(min_quantity),
+            "min_notional": None if min_notional is None else str(min_notional),
+            "price_increment": None if price_increment is None else str(price_increment),
+            "quantity_constraint_note": "lot_size/qty_step controls fractional crypto order acceptance; contract_size remains multiplier",
+        }
 
     @staticmethod
     def _align_signal(signal: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
