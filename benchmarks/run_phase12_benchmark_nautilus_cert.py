@@ -41,6 +41,7 @@ from quantbt import (  # noqa: E402
     TimeInForce,
     simulate_nautilus_order_package_depth,
 )
+from quantbt.backends import NativePortfolioBackend, NativePortfolioConfig  # noqa: E402
 from quantbt.core.engine import _engine_portfolio  # noqa: E402
 from quantbt.core.preprocessor import align_series, build_market_arrays, build_signal_matrix, prepare_funding, validate_datetime  # noqa: E402
 from quantbt.sizing.fast import scale_signal_notional_matrix  # noqa: E402
@@ -83,6 +84,8 @@ def make_markdown(report: Dict) -> str:
         f"- Symbols: `{bench['symbols']}`",
         f"- Repeats: `{bench['repeats']}`",
         f"- Full facade seconds: `{bench['stages']['full_facade_seconds']:.6f}`",
+        f"- Prepared reuse facade seconds: `{bench['stages']['prepared_reuse_facade_seconds']:.6f}`",
+        f"- Prepared reuse speedup: `{bench['stages']['prepared_reuse_speedup']:.3f}x`",
         f"- Array preparation seconds: `{bench['stages']['array_preparation_seconds']:.6f}`",
         f"- Pure Numba kernel seconds: `{bench['stages']['pure_numba_kernel_seconds']:.6f}`",
         f"- Report construction residual seconds: `{bench['stages']['report_construction_estimate_seconds']:.6f}`",
@@ -117,6 +120,7 @@ def _benchmark_native_portfolio(rows: int, symbols: int, repeats: int) -> Dict:
     account = AccountConfig(initial_capital=250_000.0, leverage=5.0, maintenance_ratio=0.005)
     alloc = 10_000.0
     fee_rate = 0.0002
+    fee_oneway = fee_rate / 2.0
 
     def full_facade():
         return PortfolioBacktestEngine(
@@ -134,13 +138,47 @@ def _benchmark_native_portfolio(rows: int, symbols: int, repeats: int) -> Dict:
             use_funding=False,
         ).result
 
-    prepared = _prepare_portfolio_arrays(idx, positions, closes, highs, lows, account, alloc, fee_rate)
+    backend = NativePortfolioBackend(NativePortfolioConfig(account=account, fee_rate=fee_oneway, use_funding=False))
+    symbol_list = list(positions.keys())
+    prepared_market = backend.prepare_market_arrays(
+        datetime_index=idx,
+        closes=closes,
+        highs=highs,
+        lows=lows,
+        funding_rate=0.0,
+        symbols=symbol_list,
+    )
+    prepared_signals = backend.prepare_signal_matrix(positions, idx, symbol_list)
+
+    def prepared_reuse():
+        return backend.run_signals(
+            positions=None,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            datetime_index=idx,
+            mode="longshort",
+            alloc_per_trade=alloc,
+            contract_size=1.0,
+            hedge_type="signal_notional",
+            funding_rate=0.0,
+            leverage=account.leverage,
+            maintenance_ratio=account.maintenance_ratio,
+            symbols=symbol_list,
+            use_pyramiding=True,
+            market_arrays=prepared_market,
+            raw_signal_matrix=prepared_signals,
+        )
+
+    prepared = _prepare_portfolio_arrays(idx, positions, closes, highs, lows, account, alloc, fee_oneway)
     _kernel_portfolio(prepared)
     full_facade()
+    prepared_reuse()
 
-    prep_seconds = _timeit(lambda: _prepare_portfolio_arrays(idx, positions, closes, highs, lows, account, alloc, fee_rate), repeats)
+    prep_seconds = _timeit(lambda: _prepare_portfolio_arrays(idx, positions, closes, highs, lows, account, alloc, fee_oneway), repeats)
     kernel_seconds = _timeit(lambda: _kernel_portfolio(prepared), repeats)
     full_seconds = _timeit(full_facade, repeats)
+    prepared_reuse_seconds = _timeit(prepared_reuse, repeats)
     report_seconds = max(0.0, full_seconds - prep_seconds - kernel_seconds)
     status = "pass" if full_seconds > 0.0 and kernel_seconds > 0.0 else "fail"
     return {
@@ -151,9 +189,11 @@ def _benchmark_native_portfolio(rows: int, symbols: int, repeats: int) -> Dict:
         "repeats": int(repeats),
         "stages": {
             "full_facade_seconds": float(full_seconds),
+            "prepared_reuse_facade_seconds": float(prepared_reuse_seconds),
             "array_preparation_seconds": float(prep_seconds),
             "pure_numba_kernel_seconds": float(kernel_seconds),
             "report_construction_estimate_seconds": float(report_seconds),
+            "prepared_reuse_speedup": float(full_seconds / prepared_reuse_seconds) if prepared_reuse_seconds > 0.0 else 0.0,
             "array_preparation_share_pct": float(prep_seconds / full_seconds * 100.0) if full_seconds > 0.0 else 0.0,
             "pure_kernel_share_pct": float(kernel_seconds / full_seconds * 100.0) if full_seconds > 0.0 else 0.0,
             "report_construction_share_pct": float(report_seconds / full_seconds * 100.0) if full_seconds > 0.0 else 0.0,
