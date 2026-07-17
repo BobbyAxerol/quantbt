@@ -24,7 +24,7 @@ from .backends import (
 from .core.orders import OrderIntent
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2
-from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
+from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .portfolio import MultiSymbolPortfolio
 from .sizing.modes import compute_target_units
 
@@ -70,6 +70,12 @@ class BacktestEngineV2:
         signal: Optional[pd.Series] = None,
         hedge_ratios: Optional[SeriesMap] = None,
         nautilus_config=None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
         auto_run: bool = True,
     ):
         self.backend = backend.lower().strip()
@@ -100,6 +106,12 @@ class BacktestEngineV2:
         self.signal = signal
         self.hedge_ratios = hedge_ratios
         self.nautilus_config = nautilus_config
+        self.instruments = instruments
+        self.qty_step = qty_step
+        self.lot_size = lot_size
+        self.slot_size = slot_size
+        self.min_qty = min_qty
+        self.min_notional = min_notional
         self.result: Optional[BacktestResultV2] = None
 
         if auto_run:
@@ -137,6 +149,12 @@ class BacktestEngineV2:
                 contract_size=self.contract_size,
                 leverage=self.leverage,
                 symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
             )
 
         raw_positions = self.positions if self.positions is not None else self.signals
@@ -156,6 +174,12 @@ class BacktestEngineV2:
             hedge_type=self.hedge_type,
             use_pyramiding=self.use_pyramiding,
             symbols=symbols,
+            instruments=self.instruments,
+            qty_step=self.qty_step,
+            lot_size=self.lot_size,
+            slot_size=self.slot_size,
+            min_qty=self.min_qty,
+            min_notional=self.min_notional,
         )
 
     def _run_native_event(self) -> BacktestResultV2:
@@ -185,6 +209,12 @@ class BacktestEngineV2:
                 contract_size=self.contract_size,
                 leverage=self.leverage,
                 symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
             )
 
         orders = self.orders
@@ -213,6 +243,12 @@ class BacktestEngineV2:
             contract_size=self.contract_size,
             leverage=self.leverage,
             symbols=symbols,
+            instruments=self.instruments,
+            qty_step=self.qty_step,
+            lot_size=self.lot_size,
+            slot_size=self.slot_size,
+            min_qty=self.min_qty,
+            min_notional=self.min_notional,
         )
 
     def _run_nautilus(self) -> BacktestResultV2:
@@ -347,6 +383,12 @@ class PortfolioBacktestEngine:
         maintenance_ratio: Optional[float] = None,
         highs: Optional[Dict[str, pd.Series]] = None,
         lows: Optional[Dict[str, pd.Series]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
         auto_run: bool = True,
         **kwargs,
     ):
@@ -370,6 +412,12 @@ class PortfolioBacktestEngine:
         )
         self.highs = highs
         self.lows = lows
+        self.instruments = instruments
+        self.qty_step = qty_step
+        self.lot_size = lot_size
+        self.slot_size = slot_size
+        self.min_qty = min_qty
+        self.min_notional = min_notional
         self.kwargs = kwargs
         self.portfolio: Optional[MultiSymbolPortfolio] = None
         self.result: Optional[BacktestResultV2] = None
@@ -423,6 +471,12 @@ class PortfolioBacktestEngine:
                 hedge_type=self.hedge_type,
                 contract_size=self.contract_size or 1.0,
                 leverage=self.leverage,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
             )
             self.result = engine.result
             return self.result
@@ -459,6 +513,12 @@ class PortfolioBacktestEngine:
                 use_pyramiding=bool(self.kwargs.get("use_pyramiding", True)),
                 betas=self.kwargs.get("betas"),
                 risk_lookback=int(self.kwargs.get("risk_lookback", 60)),
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
             )
             return self.result
 

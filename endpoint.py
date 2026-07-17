@@ -36,7 +36,7 @@ from .core.execution_depth import (
 )
 from .core.orders import OrderIntent
 from .core.results import BacktestResultV2
-from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, OrderSide, OrderType, TimeInForce
+from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
     DcaGridSpec,
@@ -139,6 +139,12 @@ class EndpointConfig:
     use_funding: bool = True
     funding_rate: Union[float, pd.Series, Dict] = 0.0
     contract_size: Union[float, Dict[str, float]] = 1.0
+    instruments: Optional[Union[Dict[str, InstrumentSpec], Sequence[InstrumentSpec]]] = None
+    qty_step: Optional[Union[float, Dict[str, float]]] = None
+    lot_size: Optional[Union[float, Dict[str, float]]] = None
+    slot_size: Optional[Union[float, Dict[str, float]]] = None
+    min_qty: Optional[Union[float, Dict[str, float]]] = None
+    min_notional: Optional[Union[float, Dict[str, float]]] = None
     slippage: float = 0.0001
     portfolio_mode: str = "longshort"
     betas: Union[float, Dict[str, float], None] = None
@@ -918,6 +924,12 @@ class QuantBTEndpoint:
                 hedge_type=self.config.sizing,
                 slippage=self.config.slippage,
                 symbols=None,
+                instruments=self.config.instruments,
+                qty_step=self.config.qty_step,
+                lot_size=self.config.lot_size,
+                slot_size=self.config.slot_size,
+                min_qty=self.config.min_qty,
+                min_notional=self.config.min_notional,
                 **self.config.dca_kwargs,
             )
             self._store_result(self.engine.result)
@@ -938,6 +950,12 @@ class QuantBTEndpoint:
             use_pyramiding=self.config.use_pyramiding,
             contract_size=self.config.contract_size,
             nautilus_config=self.config.nautilus_config,
+            instruments=self.config.instruments,
+            qty_step=self.config.qty_step,
+            lot_size=self.config.lot_size,
+            slot_size=self.config.slot_size,
+            min_qty=self.config.min_qty,
+            min_notional=self.config.min_notional,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -958,6 +976,12 @@ class QuantBTEndpoint:
             use_funding=self.config.use_funding,
             funding_rate=self.config.funding_rate,
             contract_size=self.config.contract_size,
+            instruments=self.config.instruments,
+            qty_step=self.config.qty_step,
+            lot_size=self.config.lot_size,
+            slot_size=self.config.slot_size,
+            min_qty=self.config.min_qty,
+            min_notional=self.config.min_notional,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1474,6 +1498,12 @@ class QuantBTEndpoint:
             use_pyramiding=self.config.use_pyramiding,
             betas=self.config.betas,
             risk_lookback=self.config.risk_lookback,
+            instruments=self.config.instruments,
+            qty_step=self.config.qty_step,
+            lot_size=self.config.lot_size,
+            slot_size=self.config.slot_size,
+            min_qty=self.config.min_qty,
+            min_notional=self.config.min_notional,
         )
         self._store_result(self.engine.result)
         return self.result

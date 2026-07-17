@@ -123,7 +123,10 @@ account reports.
 - `use_pyramiding=False` snaps signals to `-1/0/1`; `True` preserves fractional
   scales such as `1.4`.
 - For crypto, `contract_size` is a notional/PnL multiplier. Exchange fractional
-  lots are governed by `qty_step`/`lot_size`/`min_qty`/`min_notional`.
+  lots are governed by shared venue constraints:
+  `qty_step`/`lot_size`/`slot_size`/`min_qty`/`min_notional`, applied across
+  native legacy, native vectorized, native event/order, native portfolio, and
+  Nautilus validation routes.
 
 ### DCA And Grid
 

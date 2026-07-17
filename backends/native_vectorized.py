@@ -13,8 +13,9 @@ import numpy as np
 import pandas as pd
 
 from ..core.preprocessor import align_series, build_arrays, prepare_funding, validate_datetime
+from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
 from ..core.results import BacktestResultV2
-from ..core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig
+from ..core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec
 from ..core.vectorized import _engine_units_v2
 from ..core.arbitrage import (
     ArbitrageSpec,
@@ -80,6 +81,12 @@ class NativeVectorizedBackend:
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
         symbols: Optional[List[str]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(target_units.keys())
@@ -114,6 +121,12 @@ class NativeVectorizedBackend:
             contract_size=contract_size,
             leverage=leverage,
             fee_rate=fee_rate,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
         )
 
     def _run_target_arrays(
@@ -129,8 +142,24 @@ class NativeVectorizedBackend:
         contract_size: Union[float, Dict[str, float]] = 1.0,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        constraints = build_quantity_constraints(
+            symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
@@ -222,6 +251,7 @@ class NativeVectorizedBackend:
                 "slippage_bps": self.config.execution.slippage_bps,
                 "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
                 "liquidation_reason": int(liq_reason),
+                "quantity_constraints": constraints.as_dict(),
             },
         )
 
@@ -239,6 +269,12 @@ class NativeVectorizedBackend:
         hedge_type: str = "signal_notional",
         use_pyramiding: bool = True,
         symbols: Optional[List[str]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         """
         Scale raw position signals into target units, then run the V2 kernel.
@@ -288,6 +324,12 @@ class NativeVectorizedBackend:
                 is_funding=is_funding,
                 contract_size=contract_size,
                 leverage=leverage,
+                instruments=instruments,
+                qty_step=qty_step,
+                lot_size=lot_size,
+                slot_size=slot_size,
+                min_qty=min_qty,
+                min_notional=min_notional,
             )
 
         target_units = {
@@ -311,6 +353,12 @@ class NativeVectorizedBackend:
             contract_size=contract_size,
             leverage=leverage,
             symbols=symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
         )
 
     def run_basis_arbitrage(

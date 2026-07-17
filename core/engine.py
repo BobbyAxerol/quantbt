@@ -25,6 +25,25 @@ from numba import njit
 
 
 @njit(cache=True)
+def _quantize_signed_qty(qty: float, price: float, contract_size: float, qty_step: float, min_qty: float, min_notional: float) -> float:
+    if qty == 0.0:
+        return 0.0
+    sign = 1.0
+    if qty < 0.0:
+        sign = -1.0
+    q = abs(qty)
+    if qty_step > 0.0:
+        q = np.floor((q / qty_step) + 1e-12) * qty_step
+    if q <= 0.0:
+        return 0.0
+    if min_qty > 0.0 and q + 1e-12 < min_qty:
+        return 0.0
+    if min_notional > 0.0 and q * price * contract_size + 1e-12 < min_notional:
+        return 0.0
+    return sign * q
+
+
+@njit(cache=True)
 def _engine_units(
     n_bars:          int,
     n_syms:          int,
@@ -159,6 +178,9 @@ def _engine_pct_equity(
     contract_sizes:  np.ndarray,
     slippage:        float,
     alloc_pct:       np.ndarray,   # (n_syms,) fraction of equity, in (0, 1]
+    qty_steps:       np.ndarray,
+    min_qtys:        np.ndarray,
+    min_notionals:   np.ndarray,
 ):
     """
     Target units = equity × alloc_pct[s] × weight[i,s] / (close[i,s] × cs[s])
@@ -243,6 +265,9 @@ def _engine_pct_equity(
                 continue
 
             target = (equity * alloc_pct[s] * signals[i, s]) / denom
+            target = _quantize_signed_qty(
+                target, closes[i, s], contract_sizes[s], qty_steps[s], min_qtys[s], min_notionals[s]
+            )
 
             if abs(target - current_pos[s]) < 1e-12:
                 continue
@@ -318,6 +343,9 @@ def _engine_dca_ladder(
     max_safety_orders:   int,
     take_profit_pct:     np.ndarray,
     allow_same_bar_exit: bool,
+    qty_steps:           np.ndarray,
+    min_qtys:            np.ndarray,
+    min_notionals:       np.ndarray,
 ):
     """
     DCA ladder execution model.
@@ -473,6 +501,9 @@ def _engine_dca_ladder(
             if current_lvl[s] == 0:
                 delta = desired_side * base_notional[s] / c
                 exec_p = c * (1.0 + market_slippage if delta > 0.0 else 1.0 - market_slippage)
+                delta = _quantize_signed_qty(delta, exec_p, cs, qty_steps[s], min_qtys[s], min_notionals[s])
+                if delta == 0.0:
+                    continue
 
                 cur_im = 0.0
                 for k in range(n_syms):
@@ -524,6 +555,9 @@ def _engine_dca_ladder(
                 notional *= mult
 
                 delta = current_side[s] * notional / trigger
+                delta = _quantize_signed_qty(delta, trigger, cs, qty_steps[s], min_qtys[s], min_notionals[s])
+                if delta == 0.0:
+                    break
 
                 cur_im = 0.0
                 for k in range(n_syms):
@@ -784,6 +818,9 @@ def _engine_portfolio_equity_sizing(
     exposure_scalar: float,
     beta: np.ndarray,
     inv_vol: np.ndarray,
+    qty_steps: np.ndarray,
+    min_qtys: np.ndarray,
+    min_notionals: np.ndarray,
 ):
     """
     Portfolio kernel for sizing modes which depend on live equity.
@@ -915,6 +952,9 @@ def _engine_portfolio_equity_sizing(
                 target_units[s] = target_notional[s] / denom
             else:
                 target_units[s] = 0.0
+            target_units[s] = _quantize_signed_qty(
+                target_units[s], closes[i, s], contract_sizes[s], qty_steps[s], min_qtys[s], min_notionals[s]
+            )
             target_out[i, s] = target_units[s]
 
         cur_im = 0.0

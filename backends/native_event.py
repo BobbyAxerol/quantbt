@@ -21,6 +21,7 @@ from ..core.event import (
     TIF_IOC,
     _engine_event_v1,
 )
+from ..core.constraints import build_quantity_constraints, quantize_signed_quantity
 from ..core.arbitrage import (
     ArbitrageSpec,
     ArbitragePlan,
@@ -59,6 +60,7 @@ from ..core.schema import (
     OrderSide,
     OrderType,
     TimeInForce,
+    InstrumentSpec,
 )
 
 
@@ -154,6 +156,12 @@ class NativeEventBackend:
         symbols: Optional[List[str]] = None,
         market_arrays: Optional[PreparedMarketArrays] = None,
         compiled_orders: Optional[CompiledOrderArrays] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
@@ -170,16 +178,38 @@ class NativeEventBackend:
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
 
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        constraints = build_quantity_constraints(
+            symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        effective_orders, quantity_preflight = self._apply_order_quantity_constraints(
+            idx=idx,
+            orders=orders,
+            closes=market_arrays.closes,
+            symbol_list=symbol_list,
+            contract_sizes=contract_sizes,
+            constraints=constraints,
+        )
+        if quantity_preflight["changed_count"] or quantity_preflight["dropped_count"]:
+            compiled_orders = None
+            orders = tuple(effective_orders)
+        else:
+            effective_orders = tuple(orders)
+
         if compiled_orders is None:
-            compiled_orders = self.compile_orders(datetime_index=idx, orders=orders, symbols=symbol_list)
+            compiled_orders = self.compile_orders(datetime_index=idx, orders=effective_orders, symbols=symbol_list)
         elif (
             compiled_orders.index_signature != market_arrays.signature
             or compiled_orders.symbols != tuple(symbol_list)
         ):
             raise ValueError("compiled orders do not match prepared market arrays")
         n_orders = compiled_orders.n_orders
-
-        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
@@ -294,10 +324,76 @@ class NativeEventBackend:
                 "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
                 "slippage_bps": self.config.execution.slippage_bps,
                 "order_report": order_report,
+                "quantity_constraints": constraints.as_dict(),
+                "quantity_preflight": quantity_preflight,
                 "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
                 "liquidation_reason": int(liq_reason),
             },
         )
+
+    @staticmethod
+    def _apply_order_quantity_constraints(
+        *,
+        idx: pd.DatetimeIndex,
+        orders: Sequence[OrderIntent],
+        closes: np.ndarray,
+        symbol_list: List[str],
+        contract_sizes: np.ndarray,
+        constraints,
+    ) -> tuple[tuple[OrderIntent, ...], Dict]:
+        if not constraints.enabled:
+            return tuple(orders), {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
+        sym_to_col = {symbol: j for j, symbol in enumerate(symbol_list)}
+        changed = 0
+        dropped = []
+        out: list[OrderIntent] = []
+        idx_ns = idx.view("int64")
+        for order_idx, order in enumerate(orders):
+            col = sym_to_col[order.symbol]
+            ts = pd.Timestamp(order.timestamp)
+            if ts.tz is None:
+                ts = ts.tz_localize("UTC")
+            else:
+                ts = ts.tz_convert("UTC")
+            bar = int(np.searchsorted(idx_ns, ts.value, side="left"))
+            if bar >= len(idx):
+                bar = len(idx) - 1
+            price = float(order.price) if order.price is not None else float(closes[bar, col])
+            signed = order.signed_qty
+            q = abs(
+                quantize_signed_quantity(
+                    signed,
+                    price,
+                    float(contract_sizes[col]),
+                    float(constraints.qty_step[col]),
+                    float(constraints.min_qty[col]),
+                    float(constraints.min_notional[col]),
+                )
+            )
+            if q <= 0.0:
+                dropped.append({"original_index": order_idx, "symbol": order.symbol, "requested_qty": float(order.qty)})
+                continue
+            if abs(q - float(order.qty)) > 1e-12:
+                changed += 1
+                out.append(
+                    OrderIntent(
+                        timestamp=order.timestamp,
+                        symbol=order.symbol,
+                        side=order.side,
+                        order_type=order.order_type,
+                        qty=q,
+                        price=order.price,
+                        trigger_price=order.trigger_price,
+                        tif=order.tif,
+                        reduce_only=order.reduce_only,
+                        order_id=order.order_id,
+                        tag=order.tag,
+                        metadata={**order.metadata, "requested_qty": float(order.qty), "quantity_quantized": True},
+                    )
+                )
+            else:
+                out.append(order)
+        return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
 
     def run_basket(
         self,
@@ -314,6 +410,12 @@ class NativeEventBackend:
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
         rebalance_threshold: Optional[float] = None,
         symbols: Optional[List[str]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         """
         Build frozen basket orders from a scalar signal and execute them.
@@ -343,6 +445,12 @@ class NativeEventBackend:
             leverage=leverage,
             fee_rate=fee_rate,
             symbols=symbols,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
         )
         result.metadata["basket_plan"] = plan
         result.metadata["basket_target_units"] = plan.target_units
