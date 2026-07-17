@@ -5,7 +5,7 @@ import json
 
 import pandas as pd
 
-from quantbt import BacktestResultV2, export_nautilus_report_bundle
+from quantbt import BacktestResultV2, build_nautilus_pct_equity_diagnostic, export_nautilus_report_bundle
 from quantbt.reporting.nautilus_bundle import (
     build_nautilus_trade_log,
     format_nautilus_event_log,
@@ -227,6 +227,35 @@ def test_config_json_has_single_effective_fee_and_execution_view(tmp_path):
     assert config["effective_fees"]["custom_fee_rate_applied_to_nautilus"] is False
     assert config["effective_execution"]["requested_slippage_rate"] == 0.0002
     assert config["effective_execution"]["custom_slippage_applied_to_nautilus"] is False
+    assert config["effective_sizing"]["contract_size_note"].startswith("contract_size is a multiplier")
+    assert config["effective_sizing"]["quantity_constraints"]["note"].startswith("Use qty_step")
+
+
+def test_pct_equity_nautilus_diagnostic_flags_non_apples_to_apples_settings():
+    result = _synthetic_result()
+    idx = result.equity.index
+    data = pd.DataFrame({"close": result.closes["Close_BTCUSDT-PERP.BINANCE"]}, index=idx)
+    signal = pd.Series([0.0, 1.0, 1.0, 0.0, 0.0, -1.0, -1.0, 0.0], index=idx)
+
+    report = build_nautilus_pct_equity_diagnostic(
+        result,
+        data=data,
+        signal=signal,
+        native_fee_round_trip=0.0005,
+        native_use_funding=True,
+        native_slippage=0.0002,
+    )
+
+    assert report["status"] == "diff"
+    assert report["checks"]["fee_convention_matches_native"] is False
+    assert report["checks"]["custom_fee_rate_applied_to_nautilus"] is False
+    assert report["checks"]["funding_matches_native"] is False
+    assert report["checks"]["slippage_matches_native"] is False
+    assert report["signal"]["effective_transition_count"] == 4
+    assert report["orders"]["orders_count"] == 3
+    assert report["orders"]["missing_order_events_vs_transitions"] == 1
+    assert report["instrument_constraints"]["qty_step"] == "0.001"
+    assert "contract_size is a multiplier" in report["instrument_constraints"]["contract_size_note"]
 
 
 def test_export_nautilus_report_bundle_handles_empty_raw_reports(tmp_path):

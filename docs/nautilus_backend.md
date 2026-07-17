@@ -51,6 +51,15 @@ Scope:
 - sizing modes: `signal_notional`, `notional`, `unit`, and `%_equity`;
 - endpoint/engine-level `use_pyramiding`, where `False` snaps raw signals to
   direction only and `True` preserves fractional signal scale;
+- `%_equity` signal-series validation currently uses Nautilus instrument
+  maker/taker fees and bar market execution. Endpoint `fee_rate` and
+  `slippage` are preserved in metadata/report bundles, but custom fee/slippage
+  are not injected into Nautilus' signal adapter yet. Funding/carry is also not
+  applied in the current Nautilus signal-series path.
+- Binance-style fractional crypto constraints are represented by
+  `qty_step`/`lot_size`/`min_qty`/`min_notional`. `contract_size` remains a
+  notional/PnL multiplier; it should not be changed to `0.001` just to allow
+  fractional crypto lots.
 - explicit single-symbol `OrderIntent` replay through
   `QuantBTEndpoint.orders(backend="nautilus", ...)`;
 - explicit order types mapped to Nautilus order factory: market, limit,
@@ -91,6 +100,22 @@ Report bundle:
 - Explicit-order runs add `input_mode`, `order_count_input`,
   `cancelled_count`, and `rejected_count` to `run_manifest.json` and
   `metrics_summary.json`.
+
+`%_equity` diagnostic:
+
+```python
+diag = bt.nautilus_pct_equity_diagnostic(
+    data=df_result,
+    signal_col="pos_weight",
+    native_fee_round_trip=0.0005,
+    native_use_funding=True,
+    native_slippage=0.0002,
+)
+```
+
+The diagnostic reports signal transitions vs Nautilus orders/fills, fee
+convention differences, unsupported custom slippage/funding, and lot-size
+constraints.
 
 Parity audit:
 

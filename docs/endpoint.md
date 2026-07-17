@@ -1067,6 +1067,16 @@ Requirements:
 - `use_pyramiding` is controlled at the endpoint level and forwarded into the
   Nautilus strategy adapter. `False` snaps raw signals to `-1/0/1`; `True`
   preserves fractional scales such as `1.4` in `%_equity` sizing;
+- `%_equity` native-vs-Nautilus comparisons must align semantics before
+  interpreting performance differences. Native legacy `fee=` is round-trip and
+  is halved internally, while Nautilus `fee_rate=` is currently metadata for
+  reporting and the signal adapter uses the Nautilus instrument fee model.
+  Custom endpoint slippage and funding are also not applied by the current
+  Nautilus signal-series adapter.
+- for crypto fractional trading, use venue quantity constraints
+  `qty_step`/`lot_size`/`min_qty`/`min_notional`. `contract_size` is a PnL and
+  notional multiplier, not the Binance lot size. Do not set
+  `contract_size=0.001` just to allow fractional ETH/BTC orders.
 - DCA/grid, explicit order replay, pair trading, and multi-symbol portfolio
   validation remain on native QuantBT backends until their Nautilus event
   adapters are added;
@@ -1086,6 +1096,26 @@ Requirements:
   `annotations` and do not override execution metadata. QuantStats uses daily
   equity returns by default with
   `quantstats_periods_per_year=365` for crypto.
+
+Diagnostic helper for `%_equity` comparisons:
+
+```python
+diag = bt.nautilus_pct_equity_diagnostic(
+    data=df_result,
+    signal_col="pos_weight",
+    native_fee_round_trip=0.0005,
+    native_use_funding=True,
+    native_slippage=0.0002,
+)
+
+display(diag["checks"])
+display(diag["signal"]["transition_report"].head())
+```
+
+Use this before comparing `QuantBTEndpoint.pct_equity(...)` with
+`QuantBTEndpoint.nautilus_validation(hedge_type="%_equity", ...)`; it reports
+signal transition count, Nautilus order/fill count, fee/slippage/funding
+semantic differences, and Binance quantity-step constraints.
 
 Nautilus metadata:
 

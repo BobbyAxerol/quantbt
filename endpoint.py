@@ -859,6 +859,42 @@ class QuantBTEndpoint:
         """Return latest fills report, or an empty DataFrame."""
         return self._require_result().metadata.get("fills_report", pd.DataFrame())
 
+    def nautilus_pct_equity_diagnostic(
+        self,
+        *,
+        data,
+        signal=None,
+        signal_col: Optional[str] = None,
+        native_fee_round_trip: Optional[float] = None,
+        native_fee_one_way: Optional[float] = None,
+        native_use_funding: Optional[bool] = None,
+        native_slippage: Optional[float] = None,
+    ) -> Dict:
+        """
+        Diagnose why a Nautilus `%_equity` validation run differs from native.
+
+        This helper reports signal transition count, Nautilus order/fill count,
+        fee/slippage/funding semantic differences, and exchange lot-size
+        constraints. It is diagnostic-only and does not mutate the result.
+        """
+        from .reporting import build_nautilus_pct_equity_diagnostic
+
+        frame, _, sig = _normalize_single_data(
+            data=data,
+            signal=signal,
+            signal_col=signal_col,
+            datetime_index=None,
+        )
+        return build_nautilus_pct_equity_diagnostic(
+            self._require_result(),
+            data=frame,
+            signal=sig,
+            native_fee_round_trip=native_fee_round_trip,
+            native_fee_one_way=native_fee_one_way,
+            native_use_funding=native_use_funding,
+            native_slippage=native_slippage,
+        )
+
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
         frame, idx, sig = _normalize_single_data(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index)
         backend = _resolve_backend(self.config)
