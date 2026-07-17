@@ -1,0 +1,235 @@
+{
+  "status": "pass",
+  "rows": 300,
+  "symbol": "ETHUSDT-PERP.BINANCE",
+  "scenarios": [
+    {
+      "name": "aligned_fee_no_funding_no_slippage",
+      "note": "Native one-way fee approximates ETH taker fee; custom Nautilus fee_rate is not applied.",
+      "native": {
+        "final_equity": 20219.18903580209,
+        "total_return_pct": 1.0959451790104502,
+        "num_trades": 7
+      },
+      "nautilus": {
+        "final_equity": 20219.237180320004,
+        "total_return_pct": 1.09618590160002,
+        "num_trades": 7
+      },
+      "final_equity_diff": 0.04814451791389729,
+      "diagnostic": {
+        "status": "diff",
+        "checks": {
+          "sizing_mode_is_pct_equity": true,
+          "orders_not_more_than_signal_transitions": true,
+          "fills_not_more_than_orders": true,
+          "fee_convention_matches_native": true,
+          "custom_fee_rate_applied_to_nautilus": false,
+          "funding_matches_native": true,
+          "slippage_matches_native": true,
+          "custom_slippage_applied_to_nautilus": false,
+          "has_lot_size_constraints": true
+        },
+        "signal": {
+          "rows": 300,
+          "raw_transition_count": 6,
+          "effective_transition_count": 6,
+          "use_pyramiding": false,
+          "signal_index_matches_data_index": true,
+          "transition_report_head": [
+            {
+              "timestamp": "2024-01-01T10:00:00+00:00",
+              "raw_signal": 1.0,
+              "effective_signal": 1.0,
+              "close": 2068.3791793982627
+            },
+            {
+              "timestamp": "2024-01-04T08:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 1981.0965643123966
+            },
+            {
+              "timestamp": "2024-01-05T14:00:00+00:00",
+              "raw_signal": -1.0,
+              "effective_signal": -1.0,
+              "close": 2074.124871437053
+            },
+            {
+              "timestamp": "2024-01-08T02:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 2145.0084364453314
+            },
+            {
+              "timestamp": "2024-01-09T18:00:00+00:00",
+              "raw_signal": 1.0,
+              "effective_signal": 1.0,
+              "close": 2087.01814134276
+            },
+            {
+              "timestamp": "2024-01-11T20:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 2303.985396693068
+            }
+          ]
+        },
+        "orders": {
+          "orders_count": 6,
+          "fills_count": 6,
+          "positions_count": 3,
+          "missing_order_events_vs_transitions": 0
+        },
+        "execution_semantics": {
+          "requested_fee_rate": 0.0004,
+          "expected_native_one_way_fee_rate": 0.0004,
+          "custom_fee_rate_applied_to_nautilus": false,
+          "requested_slippage": 0.0,
+          "native_slippage": 0.0,
+          "custom_slippage_applied_to_nautilus": false,
+          "native_use_funding": false,
+          "nautilus_signal_funding_supported": false,
+          "adapter_fill_model": "NautilusTrader bar market execution with instrument maker/taker fee model"
+        },
+        "instrument_constraints": {
+          "instrument_id": "ETHUSDT-PERP.BINANCE",
+          "qty_step": "0.001",
+          "lot_size": "0.001",
+          "min_qty": "0.001",
+          "min_notional": "10.00000000 USDT",
+          "contract_size_note": "contract_size is a multiplier; lot_size/qty_step controls fractional crypto order acceptance",
+          "price_increment": "0.01",
+          "quantity_precision": 3
+        },
+        "lot_size_risk": {
+          "status": "risk",
+          "potential_small_delta_count": 3,
+          "qty_step": 0.001,
+          "min_qty": 0.001,
+          "min_transition_approx_qty": 0.0,
+          "note": "Approximation uses initial capital only; live equity and current position can create smaller deltas later."
+        },
+        "recommendations": [
+          "Current Nautilus signal adapter uses Nautilus instrument maker/taker fees, not endpoint custom fee_rate."
+        ]
+      }
+    },
+    {
+      "name": "user_like_mismatch",
+      "note": "Matches the observed notebook-style mismatch: fee convention, funding, and slippage differ.",
+      "native": {
+        "final_equity": 20209.303087300526,
+        "total_return_pct": 1.046515436502632,
+        "num_trades": 7
+      },
+      "nautilus": {
+        "final_equity": 20219.237180320004,
+        "total_return_pct": 1.09618590160002,
+        "num_trades": 7
+      },
+      "final_equity_diff": 9.934093019477586,
+      "diagnostic": {
+        "status": "diff",
+        "checks": {
+          "sizing_mode_is_pct_equity": true,
+          "orders_not_more_than_signal_transitions": true,
+          "fills_not_more_than_orders": true,
+          "fee_convention_matches_native": false,
+          "custom_fee_rate_applied_to_nautilus": false,
+          "funding_matches_native": false,
+          "slippage_matches_native": false,
+          "custom_slippage_applied_to_nautilus": false,
+          "has_lot_size_constraints": true
+        },
+        "signal": {
+          "rows": 300,
+          "raw_transition_count": 6,
+          "effective_transition_count": 6,
+          "use_pyramiding": false,
+          "signal_index_matches_data_index": true,
+          "transition_report_head": [
+            {
+              "timestamp": "2024-01-01T10:00:00+00:00",
+              "raw_signal": 1.0,
+              "effective_signal": 1.0,
+              "close": 2068.3791793982627
+            },
+            {
+              "timestamp": "2024-01-04T08:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 1981.0965643123966
+            },
+            {
+              "timestamp": "2024-01-05T14:00:00+00:00",
+              "raw_signal": -1.0,
+              "effective_signal": -1.0,
+              "close": 2074.124871437053
+            },
+            {
+              "timestamp": "2024-01-08T02:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 2145.0084364453314
+            },
+            {
+              "timestamp": "2024-01-09T18:00:00+00:00",
+              "raw_signal": 1.0,
+              "effective_signal": 1.0,
+              "close": 2087.01814134276
+            },
+            {
+              "timestamp": "2024-01-11T20:00:00+00:00",
+              "raw_signal": 0.0,
+              "effective_signal": 0.0,
+              "close": 2303.985396693068
+            }
+          ]
+        },
+        "orders": {
+          "orders_count": 6,
+          "fills_count": 6,
+          "positions_count": 3,
+          "missing_order_events_vs_transitions": 0
+        },
+        "execution_semantics": {
+          "requested_fee_rate": 0.0005,
+          "expected_native_one_way_fee_rate": 0.00025,
+          "custom_fee_rate_applied_to_nautilus": false,
+          "requested_slippage": 0.0002,
+          "native_slippage": 0.0002,
+          "custom_slippage_applied_to_nautilus": false,
+          "native_use_funding": true,
+          "nautilus_signal_funding_supported": false,
+          "adapter_fill_model": "NautilusTrader bar market execution with instrument maker/taker fee model"
+        },
+        "instrument_constraints": {
+          "instrument_id": "ETHUSDT-PERP.BINANCE",
+          "qty_step": "0.001",
+          "lot_size": "0.001",
+          "min_qty": "0.001",
+          "min_notional": "10.00000000 USDT",
+          "contract_size_note": "contract_size is a multiplier; lot_size/qty_step controls fractional crypto order acceptance",
+          "price_increment": "0.01",
+          "quantity_precision": 3
+        },
+        "lot_size_risk": {
+          "status": "risk",
+          "potential_small_delta_count": 3,
+          "qty_step": 0.001,
+          "min_qty": 0.001,
+          "min_transition_approx_qty": 0.0,
+          "note": "Approximation uses initial capital only; live equity and current position can create smaller deltas later."
+        },
+        "recommendations": [
+          "Align fee convention: legacy `fee` is round-trip; Nautilus `fee_rate` is metadata one-way today.",
+          "Current Nautilus signal adapter uses Nautilus instrument maker/taker fees, not endpoint custom fee_rate.",
+          "Disable native funding for apples-to-apples, or implement Nautilus funding/carry adapter.",
+          "Disable native slippage for apples-to-apples, or implement Nautilus slippage model."
+        ]
+      }
+    }
+  ],
+  "conclusion": "When fee/funding/slippage semantics are aligned as closely as the current adapters allow, the synthetic final-equity gap is only `0.048145` USD and order/fill counts match. The user-like setup intentionally differs: legacy `fee` is round-trip, Nautilus `fee_rate` is metadata today, native funding/slippage are applied while Nautilus signal validation does not apply custom funding/slippage. That scenario shows a larger synthetic gap of `9.934093` USD. Large real-alpha gaps should be audited with the diagnostic helper first; if transition counts match, the next production task is implementing custom fee/slippage/funding in the Nautilus signal adapter."
+}
