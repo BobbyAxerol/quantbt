@@ -450,6 +450,15 @@ def _config_payload_from_result(result: BacktestResultV2, metadata: Dict[str, An
             "alloc_per_trade": metadata.get("alloc_per_trade", sizing.get("alloc_per_trade")),
             "use_pyramiding": metadata.get("use_pyramiding", sizing.get("use_pyramiding")),
             "contract_size": sizing.get("contract_size"),
+            "contract_size_note": "contract_size is a multiplier for notional/PnL, not the exchange lot size",
+            "quantity_constraints": {
+                "qty_step": metadata.get("qty_step"),
+                "lot_size": metadata.get("lot_size", metadata.get("qty_step")),
+                "min_qty": metadata.get("min_qty"),
+                "min_notional": metadata.get("min_notional"),
+                "price_increment": metadata.get("price_increment"),
+                "note": "Use qty_step/lot_size/min_qty/min_notional for Binance-style fractional order constraints.",
+            },
         },
         "effective_fees": {
             "requested_fee_rate": requested_fee_rate,
