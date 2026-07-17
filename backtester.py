@@ -62,6 +62,8 @@ from .core.preprocessor import (
     prepare_funding,
     build_arrays,
 )
+from .core.constraints import build_quantity_constraints, quantize_target_units_matrix
+from .core.schema import InstrumentSpec
 from .sizing.modes     import compute_target_units
 from .metrics.performance import full_report
 from .viz.plots        import quick_plot, tearsheet as _tearsheet
@@ -107,6 +109,12 @@ class BacktestEngine:
         dca_max_safety_orders: int = 5,
         dca_take_profit_pct: Union[float, Dict[str, float]] = 0.0,
         dca_allow_same_bar_exit: bool = False,
+        instruments:        Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step:           Optional[Union[float, Dict[str, float]]] = None,
+        lot_size:           Optional[Union[float, Dict[str, float]]] = None,
+        slot_size:          Optional[Union[float, Dict[str, float]]] = None,
+        min_qty:            Optional[Union[float, Dict[str, float]]] = None,
+        min_notional:       Optional[Union[float, Dict[str, float]]] = None,
         # kept for backward compat, not used internally
         run_portfolio:      bool  = True,
         use_binance_netting: bool = True,
@@ -168,6 +176,16 @@ class BacktestEngine:
 
         if np.any(self._contract_sizes <= 0.0):
             raise ValueError("contract_size must be > 0")
+
+        self._quantity_constraints = build_quantity_constraints(
+            self.symbols,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
 
         # ── funding rates ─────────────────────────────────────────────────
         fr_input = funding_rate if use_funding_rate else 0.0
@@ -248,6 +266,7 @@ class BacktestEngine:
         )
 
         cs = self._contract_sizes
+        qc = self._quantity_constraints
 
         if self._is_dca_ladder:
             equity_arr, pos_arr, level_arr, liq_flag, liq_idx = _engine_dca_ladder(
@@ -273,6 +292,9 @@ class BacktestEngine:
                 max_safety_orders   = self.dca_max_safety_orders,
                 take_profit_pct     = self._dca_take_profit_pct,
                 allow_same_bar_exit = self.dca_allow_same_bar_exit,
+                qty_steps           = qc.qty_step,
+                min_qtys            = qc.min_qty,
+                min_notionals       = qc.min_notional,
             )
             result_positions = pos_arr
         elif self._hedge_type_norm in ("%_equity", "pct_equity"):
@@ -298,9 +320,13 @@ class BacktestEngine:
                 contract_sizes = cs,
                 slippage       = self.slippage,
                 alloc_pct      = alloc_pct,
+                qty_steps      = qc.qty_step,
+                min_qtys       = qc.min_qty,
+                min_notionals  = qc.min_notional,
             )
             result_positions = signals
         else:
+            signals = quantize_target_units_matrix(signals, closes, cs, qc)
             equity_arr, liq_flag, liq_idx = _engine_units(
                 n_bars         = self.n_bars,
                 n_syms         = self.n_syms,
@@ -348,6 +374,7 @@ class BacktestEngine:
                 "fee_oneway":        self.fee_oneway,
                 "slippage":          self.slippage,
                 "maintenance_ratio": self.maintenance_ratio,
+                "quantity_constraints": self._quantity_constraints.as_dict(),
                 "dca_actual_level": (
                     pd.DataFrame(
                         {f"Level_{s}": level_arr[:, i] for i, s in enumerate(self.symbols)},

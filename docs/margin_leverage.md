@@ -55,3 +55,25 @@ Intrabar liquidation uses high/low worst-case prices:
 - if `High` and `Low` are not provided, close is used as fallback.
 
 For robust crypto intraday backtests, always pass `High` and `Low`.
+
+## Quantity Constraints
+
+Crypto fractional trading is controlled by exchange quantity filters, not by
+`contract_size`.
+
+Use:
+
+```python
+QuantBTEndpoint.signal_notional(
+    contract_size=1.0,   # PnL/notional multiplier for linear USDT contracts
+    qty_step=0.001,      # venue lot increment
+    min_qty=0.001,
+    min_notional=10.0,
+)
+```
+
+`qty_step`, `lot_size`, and the compatibility alias `slot_size` describe the
+same venue quantity increment. QuantBT rounds target/order quantity down before
+execution and zeroes orders below `min_qty` or `min_notional`. The same shared
+constraint layer is used by legacy single-symbol, native vectorized, native
+event/orders, native portfolio, and Nautilus validation routes.

@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from ..core.engine import _engine_portfolio, _engine_portfolio_equity_sizing
+from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
 from ..core.portfolio import (
     NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
     PortfolioDomainSpec,
@@ -37,7 +38,7 @@ from ..core.preprocessor import (
 )
 from ..core.results import BacktestResultV2
 from ..core.schema import AccountConfig
-from ..core.schema import ExecutionConfig
+from ..core.schema import ExecutionConfig, InstrumentSpec
 from ..sizing.fast import scale_signal_notional_matrix
 
 
@@ -87,6 +88,12 @@ class NativePortfolioBackend:
         risk_lookback: int = 60,
         market_arrays: Optional[PreparedMarketArrays] = None,
         raw_signal_matrix: Optional[np.ndarray] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         if positions is None and raw_signal_matrix is None:
@@ -128,6 +135,15 @@ class NativePortfolioBackend:
                 raise ValueError("raw_signal_matrix shape does not match prepared market arrays")
 
         cs_arr = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        constraints = build_quantity_constraints(
+            symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
         lev_arr = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
@@ -173,6 +189,9 @@ class NativePortfolioBackend:
                 exposure_scalar=float(np.mean(alloc_arr)) if len(alloc_arr) else 1.0,
                 beta=beta_arr,
                 inv_vol=inv_vol,
+                qty_steps=constraints.qty_step,
+                min_qtys=constraints.min_qty,
+                min_notionals=constraints.min_notional,
             )
         else:
             target_units = self._scale_target_units(
@@ -191,6 +210,7 @@ class NativePortfolioBackend:
                 betas=beta_arr,
                 risk_vol=risk_vol,
             )
+            target_units = quantize_target_units_matrix(target_units, market.closes, cs_arr, constraints)
 
             (
                 equity_arr,
@@ -239,6 +259,7 @@ class NativePortfolioBackend:
             maintenance_ratio=maint_ratio,
             liquidated=bool(liq_flag),
             liquidation_bar=int(liq_idx),
+            quantity_constraints=constraints.as_dict(),
         )
         spec = PortfolioDomainSpec(mode=portfolio_mode, sizing_mode=sizing_mode)
         result.metadata["portfolio_contract_report"] = validate_portfolio_result_contract(result, spec, tolerance=1e-8)
@@ -423,6 +444,7 @@ class NativePortfolioBackend:
         maintenance_ratio: float,
         liquidated: bool,
         liquidation_bar: int,
+        quantity_constraints: Dict[str, Dict[str, float]],
     ) -> BacktestResultV2:
         equity = pd.Series(equity_arr, index=idx, name="equity")
         close_report = pd.DataFrame(closes_m, index=idx, columns=symbol_list, copy=False)
@@ -519,6 +541,7 @@ class NativePortfolioBackend:
                 "turnover_total": float(np.sum(turnover_arr)),
                 "fee_rate_oneway": float(self.config.fee_rate),
                 "contract_size": {s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)},
+                "quantity_constraints": quantity_constraints,
             },
         )
 

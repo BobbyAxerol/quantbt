@@ -137,6 +137,7 @@ from .core.arbitrage import (
     build_arbitrage_order_plan,
     round_down_to_step,
 )
+from .core.constraints import QuantityConstraints, build_quantity_constraints, quantize_signed_quantity
 from .core.schema import (
     AccountConfig,
     AssetType,
@@ -310,6 +311,7 @@ __all__ = [
     "OrderIntent",
     "OrderSide",
     "OrderType",
+    "QuantityConstraints",
     "OptionsVolArbSpec",
     "PackageExecutionKind",
     "PackageRejection",
@@ -329,12 +331,14 @@ __all__ = [
     "TriangularArbSpec",
     "build_arbitrage_order_plan",
     "build_bracket_order_plan",
+    "build_quantity_constraints",
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "normalize_portfolio_mode",
     "normalize_portfolio_sizing_mode",
     "normalize_rebalance_policy",
     "portfolio_capability_matrix",
+    "quantize_signed_quantity",
     "round_down_to_step",
     "simulate_nautilus_order_package_depth",
     "validate_portfolio_result_contract",
