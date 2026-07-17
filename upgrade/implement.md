@@ -1971,6 +1971,132 @@ Validation:
 
 ---
 
+## Phase 12 - Production Certification, Benchmark Follow-Up, And Real Validation
+
+Goal:
+
+Close the remaining production-certification gaps across arbitrage, benchmark
+optimization evidence, and Nautilus portfolio validation. This phase is split
+into two implementation phases only.
+
+### Phase 12A - Arbitrage Production Certification
+
+Status: completed in `benchmarks/run_phase12_arbitrage_cert.py`.
+
+Validation artifacts:
+
+- `benchmarks/phase12_arbitrage_cert.json`
+- `benchmarks/phase12_arbitrage_cert.md`
+- `tests/test_phase12_arbitrage_certification.py`
+
+Latest certification summary:
+
+- Native basis perp/quarterly event vs vectorized parity: pass.
+- Basis package domain audit: pass.
+- Stat-arb pair accounting parity: pass for equity/positions/target units.
+- Index basket package smoke: pass.
+- Cross-exchange, triangular, and options-vol guardrails: pass as explicit
+  specialized-engine `NotImplemented` paths.
+- Nautilus package smoke: pass with supported Binance test instruments. This
+  validates adapter package replay, not a real quarterly venue model.
+
+Remaining debt:
+
+- Stat-arb pair should eventually emit the same `package_pnl_report` residual
+  artifact as basis/index-basket routes.
+- Real exchange quarterly/perpetual basis parity requires a Nautilus instrument
+  provider or adapter extension for delivery futures.
+- Cross-exchange, triangular, and options-vol arbitrage remain schema-safe,
+  specialized-engine future work.
+
+Scope:
+
+- Use `/root/bobby/pool_alpha/Arbops/binance_basis_arb` only as a read-only
+  reference alpha.
+- Copy a local sandbox into
+  `.local_arbitrage_sandboxes/binance_basis_arb/` and keep it git-ignored.
+- Do not commit the copied alpha source, data, ML artifacts, or private reports.
+- Add realistic basis/stat-arb/basket package simulations for QuantBT:
+  - perp vs quarterly basis with unit-equal sizing;
+  - funding on the perpetual leg and zero funding on the quarterly leg;
+  - synthetic spread convergence and adverse divergence;
+  - basket/index package smoke;
+  - native event vs native vectorized parity;
+  - optional Nautilus package parity when `nautilus-trader` is installed.
+- Keep cross-exchange, triangular, and options-vol arbitrage schema-safe but
+  non-executable unless specialized engines are explicitly implemented.
+
+Acceptance:
+
+- A production-certification script writes JSON/Markdown artifacts:
+  - native event/vectorized final equity diff;
+  - max equity diff;
+  - fill/order count;
+  - funding/fee totals;
+  - audit pass/fail;
+  - schema-only spec rejection status.
+- Tests cover realistic package behavior without depending on private Arbops
+  internals.
+- Optional Nautilus execution is skipped cleanly when the dependency or venue
+  support is unavailable.
+
+### Phase 12B - Benchmark Follow-Up And Nautilus Portfolio Certification
+
+Status: completed in `benchmarks/run_phase12_benchmark_nautilus_cert.py`.
+
+Validation artifacts:
+
+- `benchmarks/phase12_benchmark_nautilus_cert.json`
+- `benchmarks/phase12_benchmark_nautilus_cert.md`
+- `tests/test_phase12_benchmark_nautilus_cert.py`
+
+Latest certification summary:
+
+- Native portfolio benchmark separates full facade, array preparation, pure
+  Numba kernel, and report-construction residual.
+- Pure Numba kernel share remains about 0.2% in the current Phase 12B profile;
+  Cython/C++ is not justified until cached preparation/reporting are optimized.
+- Real Nautilus portfolio package replay ran and passed the tolerance profile:
+  equity tolerance `1.0`, position tolerance `0.005` for venue lot-size
+  rounding.
+- All-or-none basket package preflight parity passes using the current
+  OHLCV-volume-cap depth model.
+
+Remaining debt:
+
+- Add cached prepared-array APIs for WFO/service loops instead of repeatedly
+  normalizing pandas inputs.
+- Optimize native portfolio report construction, which is the measured largest
+  residual bucket in this profile.
+- Replace OHLCV queue/depth approximation with true L2/order-book simulation
+  only when a production venue data feed is available.
+
+Scope:
+
+- Add a benchmark follow-up script that separates:
+  - pure Numba kernel runtime;
+  - pandas/data normalization;
+  - report construction;
+  - full facade runtime.
+- Use this to decide whether speed debt is in Numba kernels or Python/reporting
+  layers before considering Cython/C++.
+- Add real/representative Nautilus portfolio package validation:
+  - native portfolio reference;
+  - Nautilus package replay;
+  - fill-price/equity tolerance profile;
+  - all-or-none basket/package preflight parity;
+  - saved JSON/Markdown summary.
+
+Acceptance:
+
+- Benchmark report explains remaining optimization targets and whether Cython/C++
+  is justified.
+- Nautilus portfolio certification report exists and skips gracefully when
+  Nautilus is unavailable.
+- Existing endpoint defaults and public API remain stable.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:
