@@ -1,0 +1,50 @@
+{
+  "status": "pass",
+  "benchmark_followup": {
+    "status": "pass",
+    "rows": 2000,
+    "symbols": 6,
+    "bar_symbols": 12000,
+    "repeats": 3,
+    "stages": {
+      "full_facade_seconds": 0.13103967035810152,
+      "array_preparation_seconds": 0.01369715373342236,
+      "pure_numba_kernel_seconds": 0.0002753000395993392,
+      "report_construction_estimate_seconds": 0.11706721658507982,
+      "array_preparation_share_pct": 10.452677190038074,
+      "pure_kernel_share_pct": 0.21008908130416307,
+      "report_construction_share_pct": 89.33723372865776
+    },
+    "notes": "Prepared-array cache targets WFO/service loops. Pure Numba kernel remains separated from pandas normalization and report construction."
+  },
+  "all_or_none_basket": {
+    "status": "pass",
+    "input_orders": 2,
+    "accepted_orders": 0,
+    "rejected_orders": 2,
+    "package_status": [
+      "rejected"
+    ],
+    "depth_model": "ohlcv_volume_cap"
+  },
+  "nautilus_portfolio": {
+    "status": "pass",
+    "validation_status": "pass",
+    "checks": {
+      "input_mode_is_portfolio_matrix": true,
+      "target_units_match": true,
+      "order_count_matches_target_transitions": true,
+      "fills_do_not_exceed_orders": true,
+      "positions_within_tolerance": true,
+      "final_equity_within_tolerance": true
+    },
+    "equity_tolerance": 1.0,
+    "position_tolerance": 0.005,
+    "expected_order_count": 14,
+    "nautilus_orders": 14,
+    "nautilus_fills": 14,
+    "final_equity_diff": 0.00784839857078623,
+    "max_abs_position_diff": 0.004
+  },
+  "cython_cpp_recommendation": "Cython/C++ is not justified yet; optimize cached array preparation and report construction first."
+}
