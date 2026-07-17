@@ -189,3 +189,59 @@ from quantbt import (
     build_portfolio_nautilus_validation_report,
 )
 ```
+
+## Phase 12B - Prepared Cache And Report Optimization
+
+The native portfolio backend now exposes prepared-array APIs for services and
+WFO loops that replay many parameter sets over the same market tape.
+
+```python
+from quantbt.backends import NativePortfolioBackend, NativePortfolioConfig
+from quantbt import AccountConfig
+
+backend = NativePortfolioBackend(
+    NativePortfolioConfig(
+        account=AccountConfig(initial_capital=250_000, leverage=5),
+        fee_rate=0.0002,
+        use_funding=False,
+    )
+)
+
+market = backend.prepare_market_arrays(
+    datetime_index=idx,
+    closes=closes,
+    highs=highs,
+    lows=lows,
+    funding_rate=0.0,
+    symbols=symbols,
+)
+
+signals = backend.prepare_signal_matrix(positions, idx, symbols)
+
+result = backend.run_signals(
+    positions=None,
+    closes=closes,
+    datetime_index=idx,
+    symbols=symbols,
+    mode="longshort",
+    hedge_type="signal_notional",
+    alloc_per_trade=10_000,
+    market_arrays=market,
+    raw_signal_matrix=signals,
+)
+```
+
+Safety rule: prepared arrays are validated by datetime/symbol signature before
+execution. A stale index, different symbol order, or wrong signal shape raises
+instead of silently reusing incompatible cache.
+
+Optimization scope completed:
+
+- `notional` and `unit` sizing use ndarray vector paths;
+- market normalization can be reused through `PreparedMarketArrays`;
+- symbol PnL report construction is vectorized into one DataFrame build;
+- pure kernel benchmark and full facade benchmark are reported separately.
+
+Remaining optimization target: report construction is still the largest
+measured residual bucket, so Cython/C++ is not justified before further
+Python/reporting cleanup.

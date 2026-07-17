@@ -1,0 +1,154 @@
+{
+  "status": "pass",
+  "sandbox_path": "/root/bobby/pool_alpha/quantbt/.local_arbitrage_sandboxes/binance_basis_arb",
+  "basis": {
+    "event_final_equity": 91362.95065353338,
+    "vectorized_final_equity": 91362.95065353338,
+    "order_count": 828,
+    "fill_count": 828,
+    "fee_total": 3429.5969336746557,
+    "funding_total": 17.731103806709445,
+    "audit": {
+      "status": "pass",
+      "passed": true,
+      "tolerance": 1e-09,
+      "engine": "event_v1_basis_arbitrage",
+      "backend": "native_event",
+      "arb_id": "PHASE12_BTC_PERP_QUARTERLY",
+      "arb_type": "basis",
+      "missing_reports": [],
+      "checks": {
+        "has_required_reports": true,
+        "package_pnl_residual_ok": true,
+        "leg_pnl_reconciles_to_package": true,
+        "fees_reconcile": true,
+        "target_symbols_match": true,
+        "final_target_flat": true,
+        "final_position_flat": true
+      },
+      "max_abs_package_pnl_residual": 2.6261659513693303e-11,
+      "max_abs_leg_vs_package_pnl_diff": 0.0,
+      "max_abs_fee_residual": 4.547473508864641e-13,
+      "final_gross_target_units": 0.0,
+      "final_gross_position_units": 8.881784197001252e-16,
+      "target_symbols": [
+        "perpetual",
+        "quarterly"
+      ],
+      "result_symbols": [
+        "perpetual",
+        "quarterly"
+      ],
+      "order_count": 828,
+      "fill_count": 828,
+      "rejection_count": 0
+    },
+    "parity": {
+      "status": "pass",
+      "passed": true,
+      "tolerance": 1e-09,
+      "event_engine": "event_v1_basis_arbitrage",
+      "vectorized_engine": "units_v2_basis_arbitrage",
+      "checks": {
+        "equity_matches": true,
+        "positions_match": true,
+        "target_units_match": true,
+        "package_residuals_ok": true
+      },
+      "max_abs_equity_diff": 1.4551915228366852e-11,
+      "max_abs_position_diff": 4.440892098500626e-16,
+      "max_abs_target_unit_diff": 0.0,
+      "max_abs_package_residual": 2.6261659513693303e-11
+    }
+  },
+  "stat_pair": {
+    "event_final_equity": 98806.77550546748,
+    "vectorized_final_equity": 98806.77550546748,
+    "accounting_parity_passed": true,
+    "parity": {
+      "status": "fail",
+      "passed": false,
+      "tolerance": 1e-09,
+      "event_engine": "event_v1_stat_arb_pair",
+      "vectorized_engine": "units_v2_stat_arb_pair",
+      "checks": {
+        "equity_matches": true,
+        "positions_match": true,
+        "target_units_match": true,
+        "package_residuals_ok": false
+      },
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_unit_diff": 0.0,
+      "max_abs_package_residual": null
+    }
+  },
+  "index_basket": {
+    "status": "pass",
+    "passed": true,
+    "parity": {
+      "status": "pass",
+      "passed": true,
+      "tolerance": 1e-09,
+      "event_engine": "event_v1_index_basket",
+      "vectorized_engine": "units_v2_index_basket",
+      "checks": {
+        "equity_matches": true,
+        "positions_match": true,
+        "target_units_match": true,
+        "package_residuals_ok": true
+      },
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
+      "max_abs_target_unit_diff": 0.0,
+      "max_abs_package_residual": 1.1126211063583469e-11
+    }
+  },
+  "schema_only": {
+    "status": "pass",
+    "passed": true,
+    "probes": {
+      "cross_exchange": {
+        "native_event": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "CrossExchangeArbSpec requires a specialized Phase G+ engine"
+        },
+        "native_vectorized": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "CrossExchangeArbSpec requires a specialized Phase G+ engine"
+        }
+      },
+      "triangular": {
+        "native_event": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "TriangularArbSpec requires a specialized Phase G+ engine"
+        },
+        "native_vectorized": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "TriangularArbSpec requires a specialized Phase G+ engine"
+        }
+      },
+      "options_vol": {
+        "native_event": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "OptionsVolArbSpec requires a specialized Phase G+ engine"
+        },
+        "native_vectorized": {
+          "rejected": true,
+          "error": "NotImplementedError",
+          "message": "OptionsVolArbSpec requires a specialized Phase G+ engine"
+        }
+      }
+    }
+  },
+  "nautilus": {
+    "status": "pass",
+    "orders": 828,
+    "fills": 828
+  }
+}
