@@ -28,6 +28,59 @@ def _equity_daily(result: BacktestResult) -> pd.Series:
     return result.daily_equity
 
 
+def _finite_returns(series: pd.Series) -> pd.Series:
+    r = pd.to_numeric(series, errors="coerce").replace([np.inf, -np.inf], np.nan).dropna()
+    return r.astype(float)
+
+
+def _returns_for_stats(result: BacktestResult) -> pd.Series:
+    """
+    Return sample used by distribution metrics.
+
+    Daily returns are preferred for stable multi-day reports.  Very short
+    intraday/scoped runs can collapse to one daily equity point, producing an
+    empty daily return sample; in that case we fall back to bar returns so
+    Sharpe, Omega, PF, and avg win/loss do not become artificial 0/inf values.
+    """
+    daily = _finite_returns(_daily(result))
+    if len(daily) > 0:
+        return daily
+    bar = _finite_returns(result.returns)
+    if len(bar) > 0:
+        return bar
+    return _finite_returns(result.equity.pct_change().fillna(0.0))
+
+
+def _annualization_periods(result: BacktestResult, trading_days: int) -> float:
+    daily = _finite_returns(_daily(result))
+    if len(daily) > 0:
+        return float(trading_days)
+    idx = result.equity.index
+    if len(idx) >= 2 and isinstance(idx, pd.DatetimeIndex):
+        deltas = idx.to_series().diff().dropna().dt.total_seconds()
+        deltas = deltas[deltas > 0.0]
+        if len(deltas) > 0:
+            median_seconds = float(deltas.median())
+            if median_seconds > 0.0:
+                return float(365.25 * 24 * 60 * 60 / median_seconds)
+    return float(trading_days)
+
+
+def _elapsed_years(result: BacktestResult, trading_days: int) -> float:
+    eq = result.equity.dropna()
+    if len(eq) < 2:
+        return 0.0
+    idx = eq.index
+    if isinstance(idx, pd.DatetimeIndex):
+        elapsed_days = (idx[-1] - idx[0]).total_seconds() / 86_400.0
+        if elapsed_days > 0.0:
+            return elapsed_days / 365.25
+    daily = _equity_daily(result)
+    if len(daily) >= 2:
+        return len(daily) / float(trading_days)
+    return len(eq) / float(trading_days)
+
+
 # ── return metrics ───────────────────────────────────────────────────────────
 
 def total_return(result: BacktestResult) -> float:
@@ -38,24 +91,40 @@ def total_return(result: BacktestResult) -> float:
 
 def cagr(result: BacktestResult, trading_days: int = 365) -> float:
     """Compound annual growth rate."""
-    eq    = _equity_daily(result)
-    years = len(eq) / trading_days
+    eq = result.equity.dropna()
+    if len(eq) >= 2 and isinstance(eq.index, pd.DatetimeIndex):
+        elapsed_days = (eq.index[-1] - eq.index[0]).total_seconds() / 86_400.0
+        if 0.0 < elapsed_days < 1.0:
+            return total_return(result)
+    years = _elapsed_years(result, trading_days)
     if years <= 0:
         return 0.0
-    return (eq.iloc[-1] / eq.iloc[0]) ** (1.0 / years) - 1.0
+    growth = eq.iloc[-1] / eq.iloc[0]
+    if growth <= 0.0:
+        return -1.0
+    annual_log = np.log(growth) / years
+    if annual_log > 50.0:
+        return float(np.expm1(50.0))
+    if annual_log < -50.0:
+        return float(np.expm1(-50.0))
+    return float(np.expm1(annual_log))
 
 
 def sharpe(result: BacktestResult, trading_days: int = 365, risk_free: float = 0.0) -> float:
-    r  = _daily(result) - risk_free / trading_days
+    periods = _annualization_periods(result, trading_days)
+    r  = _returns_for_stats(result) - risk_free / periods
     sd = r.std(ddof=1)
-    return (r.mean() / sd) * np.sqrt(trading_days) if sd > 0 else 0.0
+    return (r.mean() / sd) * np.sqrt(periods) if sd > 0 else 0.0
 
 
 def sortino(result: BacktestResult, trading_days: int = 365, mar: float = 0.0) -> float:
-    r  = _daily(result)
+    periods = _annualization_periods(result, trading_days)
+    r  = _returns_for_stats(result)
     d  = r[r < mar] - mar
     dd = np.sqrt((d ** 2).mean()) if len(d) > 0 else 0.0
-    return (r.mean() / dd) * np.sqrt(trading_days) if dd > 0 else 0.0
+    if dd == 0.0 and r.mean() > mar:
+        return np.inf
+    return (r.mean() / dd) * np.sqrt(periods) if dd > 0 else 0.0
 
 
 def calmar(result: BacktestResult, trading_days: int = 365) -> float:
@@ -66,7 +135,7 @@ def calmar(result: BacktestResult, trading_days: int = 365) -> float:
 
 def omega(result: BacktestResult, threshold: float = 0.0) -> float:
     """Omega ratio (Keating & Shadwick)."""
-    r    = _daily(result)
+    r    = _returns_for_stats(result)
     gain = (r[r > threshold] - threshold).sum()
     loss = (threshold - r[r < threshold]).sum()
     return gain / loss if loss > 0 else np.inf
@@ -153,7 +222,7 @@ def number_of_trades(result: BacktestResult) -> int:
 
 
 def profit_factor(result: BacktestResult) -> float:
-    r     = _daily(result)
+    r     = _returns_for_stats(result)
     gains = r[r > 0].sum()
     loss  = abs(r[r < 0].sum())
     return gains / loss if loss > 0 else np.inf
@@ -161,7 +230,7 @@ def profit_factor(result: BacktestResult) -> float:
 
 def avg_win_loss(result: BacktestResult) -> Tuple[float, float]:
     """(avg_win_pct, avg_loss_pct) in percent."""
-    r = _daily(result)
+    r = _returns_for_stats(result)
     w = r[r > 0].mean() * 100 if (r > 0).any() else 0.0
     l = r[r < 0].mean() * 100 if (r < 0).any() else 0.0
     return float(w), float(l)
@@ -212,22 +281,22 @@ def full_report(result: BacktestResult, trading_days: int = 365) -> Dict:
     return {
         "initial_capital":      result.initial_capital,
         "final_equity":         float(result.equity.iloc[-1]),
-        "total_return_pct":     total_return(result) * 100,
-        "cagr_pct":             cagr(result, trading_days) * 100,
-        "sharpe":               sharpe(result, trading_days),
-        "sortino":              sortino(result, trading_days),
-        "calmar":               calmar(result, trading_days),
-        "omega":                omega(result),
-        "max_drawdown_pct":     max_drawdown_pct(result),
-        "avg_drawdown_pct":     avg_drawdown(result) * 100,
+        "total_return_pct":     float(total_return(result) * 100),
+        "cagr_pct":             float(cagr(result, trading_days) * 100),
+        "sharpe":               float(sharpe(result, trading_days)),
+        "sortino":              float(sortino(result, trading_days)),
+        "calmar":               float(calmar(result, trading_days)),
+        "omega":                float(omega(result)),
+        "max_drawdown_pct":     float(max_drawdown_pct(result)),
+        "avg_drawdown_pct":     float(avg_drawdown(result) * 100),
         "max_dd_duration_days": md,
         "avg_dd_duration_days": ad,
-        "profit_factor":        profit_factor(result),
-        "long_hitrate_pct":     lh,
-        "short_hitrate_pct":    sh,
-        "avg_win_pct":          aw,
-        "avg_loss_pct":         al,
-        "expectancy_pct":       expectancy(result),
-        "num_trades":           number_of_trades(result),
+        "profit_factor":        float(profit_factor(result)),
+        "long_hitrate_pct":     float(lh),
+        "short_hitrate_pct":    float(sh),
+        "avg_win_pct":          float(aw),
+        "avg_loss_pct":         float(al),
+        "expectancy_pct":       float(expectancy(result)),
+        "num_trades":           int(number_of_trades(result)),
         "liquidated":           result.liquidated,
     }

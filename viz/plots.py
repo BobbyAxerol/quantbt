@@ -65,8 +65,13 @@ def quick_plot(
     c = apply_theme(theme)
 
     eq  = result.daily_equity
+    if len(eq) < 2:
+        eq = result.equity.dropna()
     ret = (eq / eq.iloc[0] - 1) * 100
     dd  = rolling_drawdown(result) * 100      # already daily
+    if len(dd) < 2:
+        peak = eq.cummax()
+        dd = (peak - eq) / peak.replace(0, np.nan) * 100
 
     rpt = full_report(result)
 
