@@ -123,7 +123,10 @@ bt = QuantBTEndpoint.signal_notional(
     slippage=0.0001,               # legacy fraction
     use_funding=False,
     funding_rate=0.0001,
-    contract_size=1.0,
+    contract_size=1.0,             # PnL/notional multiplier, not lot size
+    qty_step=0.001,                # exchange quantity increment
+    min_qty=0.001,
+    min_notional=10.0,
     use_pyramiding=True,
 )
 ```
@@ -137,6 +140,12 @@ Important conventions:
 - V2 `fee_rate` is one-way;
 - legacy `slippage` is a decimal fraction, e.g. `0.0001` for 1 bp;
 - V2 `slippage_bps` is basis points, e.g. `1.0` for 1 bp.
+- exchange quantity constraints are shared across native legacy, native
+  vectorized, native event/order, native portfolio, and Nautilus validation
+  routes. Use `qty_step` or `lot_size` for the venue step, `slot_size` as a
+  compatibility alias, and `min_qty`/`min_notional` for exchange minima.
+  QuantBT rounds target/order quantity down conservatively. `contract_size`
+  remains the contract multiplier.
 
 ## Data Contract
 
@@ -1073,10 +1082,11 @@ Requirements:
   reporting and the signal adapter uses the Nautilus instrument fee model.
   Custom endpoint slippage and funding are also not applied by the current
   Nautilus signal-series adapter.
-- for crypto fractional trading, use venue quantity constraints
-  `qty_step`/`lot_size`/`min_qty`/`min_notional`. `contract_size` is a PnL and
-  notional multiplier, not the Binance lot size. Do not set
-  `contract_size=0.001` just to allow fractional ETH/BTC orders.
+- for crypto fractional trading, use the same shared venue quantity constraints
+  as native backends: `qty_step`/`lot_size`/`slot_size`/`min_qty`/
+  `min_notional`. `contract_size` is a PnL and notional multiplier, not the
+  Binance lot size. Do not set `contract_size=0.001` just to allow fractional
+  ETH/BTC orders.
 - DCA/grid, explicit order replay, pair trading, and multi-symbol portfolio
   validation remain on native QuantBT backends until their Nautilus event
   adapters are added;
