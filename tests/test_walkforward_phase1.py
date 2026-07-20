@@ -18,6 +18,7 @@ from quantbt import (
     WalkForwardTrialRecord,
     benchmark_walkforward_kernels,
     score_strategy_output,
+    select_full_sample_robust_record,
     select_is_only_robust_record,
     select_is_plateau_robust_record,
     select_flat_minima_record,
@@ -996,6 +997,125 @@ def test_walkforward_mode4_is_only_robust_runs_without_oos_selection():
     assert "temporal_score" in best_meta
     assert "is_subperiod_count" in trial_table.columns
     assert trial_table["is_subperiod_count"].max() >= 1
+
+
+def test_mode5_full_robust_selector_marks_full_sample_calibration():
+    records = [
+        WalkForwardTrialRecord(
+            0,
+            {"x": 95},
+            12.0,
+            12.0,
+            0.0,
+            0.0,
+            0.0,
+            [],
+            selection_metadata={"temporal_score": 1.0, "temporal_q25": -0.5, "temporal_median": 3.0},
+        ),
+        WalkForwardTrialRecord(
+            1,
+            {"x": 20},
+            9.2,
+            9.2,
+            0.0,
+            0.0,
+            0.0,
+            [],
+            selection_metadata={"temporal_score": 7.0, "temporal_q25": 6.0, "temporal_median": 7.0},
+        ),
+        WalkForwardTrialRecord(
+            2,
+            {"x": 21},
+            9.1,
+            9.1,
+            0.0,
+            0.0,
+            0.0,
+            [],
+            selection_metadata={"temporal_score": 7.1, "temporal_q25": 6.1, "temporal_median": 7.1},
+        ),
+        WalkForwardTrialRecord(
+            3,
+            {"x": 22},
+            9.0,
+            9.0,
+            0.0,
+            0.0,
+            0.0,
+            [],
+            selection_metadata={"temporal_score": 7.2, "temporal_q25": 6.2, "temporal_median": 7.2},
+        ),
+    ]
+    cfg = WalkForwardConfig(
+        optimization_mode="mode_5_full_robust",
+        candidate_selection_metric="full_robust",
+        top_is_fraction=1.0,
+        flat_eps=0.04,
+        flat_min_samples=2,
+        is_subperiods=4,
+        temporal_weight=0.70,
+        plateau_weight=0.30,
+    )
+
+    selected = select_full_sample_robust_record(records, {"x": (0, 100, 1)}, config=cfg)
+
+    assert selected.params["x"] in {20, 21, 22}
+    assert selected.selection_metadata["selected_by"] == "full_robust"
+    assert selected.selection_metadata["oos_used_for_selection"] is False
+    assert selected.selection_metadata["full_sample_used_for_selection"] is True
+    assert selected.selection_metadata["validation_claim"] == "none_full_sample_calibration"
+
+
+def test_walkforward_mode5_full_robust_uses_whole_history_without_oos_claim():
+    idx = _idx()
+    data = _bars(idx)
+    trend = pd.Series(np.linspace(100.0, 130.0, len(idx)), index=idx)
+    data["close"] = trend
+
+    def strategy(data, params, train_index, test_index, fold):
+        assert train_index.equals(test_index)
+        assert train_index.equals(data.index)
+        side = 1.0 if int(params["go_long"]) == 1 else -1.0
+        signal = pd.Series(side, index=test_index)
+        signal.iloc[0] = 0.0
+        return signal
+
+    bt = QuantBTEndpoint.walk_forward(
+        strategy_class=strategy,
+        target_mode="signal_notional",
+        optimization_mode="mode_5_full_robust",
+        optimization_config={
+            "top_is_fraction": 1.0,
+            "flat_eps": 1.0,
+            "flat_min_samples": 1,
+            "is_subperiods": 3,
+            "candidate_selection_metric": "full_robust",
+            "scoring_backend": "proxy",
+            "use_numba": True,
+        },
+        optuna_trials=4,
+        random_seed=11,
+        initial_capital=20_000.0,
+        leverage=5.0,
+        alloc_per_trade=1_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+    )
+    result = bt.backtest(data=data, symbols=["BTC"], param_ranges={"go_long": (0, 1, 1)})
+    wf = result.metadata["walk_forward"]
+    best_meta = wf["best_trial"]["selection_metadata"]
+
+    assert wf["optimization_mode"] == "mode_5_full_robust"
+    assert wf["candidate_selection_metric"] == "full_robust"
+    assert wf["validation_claim"] == "none_full_sample_calibration"
+    assert wf["full_sample_used_for_selection"] is True
+    assert wf["oos_used_for_selection"] is False
+    assert wf["fold_table"].loc[0, "train_start"] == idx[0]
+    assert wf["fold_table"].loc[0, "test_start"] == idx[0]
+    assert best_meta["selected_by"] == "full_robust"
+    assert best_meta["oos_seen_by_optuna"] is False
+    assert best_meta["full_sample_used_for_selection"] is True
+    assert "is_subperiod_count" in wf["trial_table"].columns
 
 
 def test_train_test_split_can_select_is_plateau_robust_without_oos_selection():

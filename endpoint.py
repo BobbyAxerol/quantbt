@@ -518,7 +518,8 @@ class QuantBTEndpoint:
         then routed into an existing QuantBT backtest path, so boundary trades
         are charged by the normal engine instead of averaging fold equities.
         Supported optimization modes are `mode_1_decay`, `mode_2_sbb`,
-        `mode_3_flat_minima`, and `mode_4_is_only_robust`.
+        `mode_3_flat_minima`, `mode_4_is_only_robust`, and
+        `mode_5_full_robust`.
         Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
@@ -548,7 +549,15 @@ class QuantBTEndpoint:
                 candidate_selection_metric=str(
                     optimization_config.get(
                         "candidate_selection_metric",
-                        "is_only_robust" if str(optimization_mode).lower().strip() == "mode_4_is_only_robust" else "robust_decay",
+                        (
+                            "is_only_robust"
+                            if str(optimization_mode).lower().strip() == "mode_4_is_only_robust"
+                            else (
+                                "full_robust"
+                                if str(optimization_mode).lower().strip() == "mode_5_full_robust"
+                                else "robust_decay"
+                            )
+                        ),
                     )
                 ),
                 candidate_decay_lambda=optimization_config.get("candidate_decay_lambda"),
@@ -626,7 +635,8 @@ class QuantBTEndpoint:
         then the stitched holdout signal is routed into the selected QuantBT
         target mode. `optimization_mode` accepts the same values as
         walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`,
-        `mode_3_flat_minima`, and `mode_4_is_only_robust`.
+        `mode_3_flat_minima`, `mode_4_is_only_robust`, and
+        `mode_5_full_robust`.
         """
         return cls.walk_forward(
             strategy_class=strategy_class,
@@ -1283,6 +1293,9 @@ class QuantBTEndpoint:
             "candidate_table": wf_result.candidate_table,
             "best_trial": wf_result.best_trial,
             "optimization_mode": wf_result.metadata.get("optimization_mode"),
+            "validation_claim": wf_result.metadata.get("validation_claim"),
+            "full_sample_used_for_selection": wf_result.metadata.get("full_sample_used_for_selection"),
+            "oos_used_for_selection": wf_result.metadata.get("oos_used_for_selection"),
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
             "random_seed": wf_result.metadata.get("random_seed"),
