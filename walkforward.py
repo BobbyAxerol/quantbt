@@ -197,10 +197,17 @@ class WalkForwardConfig:
         if self.min_train_bars <= 0 or self.min_test_bars <= 0:
             raise ValueError("min_train_bars and min_test_bars must be > 0")
         opt_mode = self.optimization_mode.lower().strip()
-        if opt_mode not in {"none", "mode_1_decay", "mode_2_sbb", "mode_3_flat_minima", "mode_4_is_only_robust"}:
+        if opt_mode not in {
+            "none",
+            "mode_1_decay",
+            "mode_2_sbb",
+            "mode_3_flat_minima",
+            "mode_4_is_only_robust",
+            "mode_5_full_robust",
+        }:
             raise NotImplementedError(
                 "optimization_mode must be one of: none, mode_1_decay, mode_2_sbb, mode_3_flat_minima, "
-                "mode_4_is_only_robust"
+                "mode_4_is_only_robust, mode_5_full_robust"
             )
         object.__setattr__(self, "optimization_mode", opt_mode)
         if self.optuna_trials < 0:
@@ -214,15 +221,38 @@ class WalkForwardConfig:
         metric = self.candidate_selection_metric.lower().strip()
         if opt_mode == "mode_4_is_only_robust" and metric == "robust_decay":
             metric = "is_only_robust"
-        valid_metrics = {"robust_decay", "mean_oos_sharpe", "mean_is_sharpe", "is_plateau_robust", "is_only_robust"}
+        if opt_mode == "mode_5_full_robust" and metric == "robust_decay":
+            metric = "full_robust"
+        valid_metrics = {
+            "robust_decay",
+            "mean_oos_sharpe",
+            "mean_is_sharpe",
+            "is_plateau_robust",
+            "is_only_robust",
+            "full_robust",
+            "full_plateau_robust",
+            "full_temporal_robust",
+            "full_best",
+        }
         if metric not in valid_metrics:
             raise ValueError(
                 "candidate_selection_metric must be robust_decay, mean_oos_sharpe, "
-                "mean_is_sharpe, is_plateau_robust, or is_only_robust"
+                "mean_is_sharpe, is_plateau_robust, is_only_robust, full_robust, "
+                "full_plateau_robust, full_temporal_robust, or full_best"
             )
         object.__setattr__(self, "candidate_selection_metric", metric)
         if opt_mode == "mode_4_is_only_robust" and metric != "is_only_robust":
             raise ValueError("mode_4_is_only_robust requires candidate_selection_metric='is_only_robust'")
+        if opt_mode == "mode_5_full_robust" and metric not in {
+            "full_robust",
+            "full_plateau_robust",
+            "full_temporal_robust",
+            "full_best",
+        }:
+            raise ValueError(
+                "mode_5_full_robust requires candidate_selection_metric to be one of: "
+                "full_robust, full_plateau_robust, full_temporal_robust, full_best"
+            )
         candidate_decay_lambda = None if self.candidate_decay_lambda is None else float(self.candidate_decay_lambda)
         if candidate_decay_lambda is not None and candidate_decay_lambda < 0.0:
             raise ValueError("candidate_decay_lambda must be >= 0 when provided")
@@ -506,7 +536,13 @@ class WalkForwardEngine:
             chosen_params = dict(params)
             selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
             trial_records.append(selected_record)
-        elif self.config.optimization_mode in {"mode_1_decay", "mode_2_sbb", "mode_3_flat_minima", "mode_4_is_only_robust"} and self.config.optuna_trials > 0:
+        elif self.config.optimization_mode in {
+            "mode_1_decay",
+            "mode_2_sbb",
+            "mode_3_flat_minima",
+            "mode_4_is_only_robust",
+            "mode_5_full_robust",
+        } and self.config.optuna_trials > 0:
             selected_record, trial_records, candidate_records = self.optimize_params(
                 data=data_for_strategy,
                 folds=folds,
@@ -546,6 +582,25 @@ class WalkForwardEngine:
                 "window_mode": self.config.window_mode,
                 "target_mode": self.config.target_mode,
                 "optimization_mode": self.config.optimization_mode,
+                "validation_claim": (
+                    "none_full_sample_calibration"
+                    if self.config.optimization_mode == "mode_5_full_robust"
+                    else "walk_forward_oos"
+                ),
+                "full_sample_used_for_selection": self.config.optimization_mode == "mode_5_full_robust",
+                "oos_used_for_selection": self.config.optimization_mode not in {
+                    "mode_2_sbb",
+                    "mode_4_is_only_robust",
+                    "mode_5_full_robust",
+                }
+                and self.config.candidate_selection_metric not in {
+                    "is_plateau_robust",
+                    "is_only_robust",
+                    "full_robust",
+                    "full_plateau_robust",
+                    "full_temporal_robust",
+                    "full_best",
+                },
                 "n_folds": len(folds),
                 "n_trials": len(trial_records),
                 "n_candidates": len(candidate_records),
@@ -648,6 +703,24 @@ class WalkForwardEngine:
             show_progress_bar=False,
         )
         candidates = _select_is_candidate_records(records, param_ranges, self.config)
+        if self.config.optimization_mode == "mode_5_full_robust":
+            if not candidates:
+                raise ValueError("full-sample robust optimization produced no candidates")
+            selected = _with_selection_metadata(
+                candidates[0],
+                {
+                    **candidates[0].selection_metadata,
+                    "stage": "full_sample_candidate_selection",
+                    "candidate_selection_complete": True,
+                    "oos_seen_by_optuna": False,
+                    "oos_used_for_selection": False,
+                    "full_sample_used_for_selection": True,
+                    "validation_claim": "none_full_sample_calibration",
+                    "intended_use": "production_calibration",
+                },
+            )
+            records.extend(candidates)
+            return selected, records, list(candidates)
         candidate_records = []
         seen_candidate_params = set()
         for candidate_id, candidate in enumerate(candidates):
@@ -771,7 +844,7 @@ class WalkForwardEngine:
         fold: WalkForwardFold,
         params: Dict[str, Any],
     ) -> Dict[str, Any]:
-        if self.config.optimization_mode != "mode_4_is_only_robust":
+        if self.config.optimization_mode not in {"mode_4_is_only_robust", "mode_5_full_robust"}:
             return {}
         shards = _split_index_into_subperiods(train_index, int(self.config.is_subperiods))
         scores = []
@@ -1069,6 +1142,21 @@ class WalkForwardEngine:
         idx = validate_datetime(idx)
         if len(idx) == 0:
             raise ValueError("walk-forward datetime index is empty")
+
+        if self.config.optimization_mode == "mode_5_full_robust":
+            if len(idx) < self.config.min_train_bars:
+                raise ValueError("full-sample robust calibration produced too few bars")
+            return [
+                WalkForwardFold(
+                    fold_id=0,
+                    train_start=idx[0],
+                    train_end=idx[-1],
+                    test_start=idx[0],
+                    test_end=idx[-1],
+                    train_index=idx,
+                    test_index=idx,
+                )
+            ]
 
         first_oos = _first_oos_timestamp(self.config.split_mode)
         if first_oos <= idx[0]:
@@ -2356,6 +2444,79 @@ def select_is_only_robust_record(
     )
 
 
+def select_full_sample_robust_record(
+    records: Sequence[WalkForwardTrialRecord],
+    param_ranges: Dict[str, Any],
+    config: WalkForwardConfig,
+) -> WalkForwardTrialRecord:
+    """
+    Select params for full-sample robust calibration.
+
+    This is not an OOS validation selector.  The whole supplied history is
+    treated as one calibration sample, then top trials are filtered by temporal
+    subperiod robustness and parameter-surface plateau robustness.
+    """
+    metric = config.candidate_selection_metric
+    completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
+    if not completed:
+        raise ValueError("full-sample robust selection received no completed trials")
+    ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
+
+    if metric == "full_best":
+        return _with_selection_metadata(
+            ranked[0],
+            {
+                **ranked[0].selection_metadata,
+                "objective_mode": config.optimization_mode,
+                "selected_by": "full_best",
+                "selector": "best_full_sample_objective",
+                "oos_used_for_selection": False,
+                "full_sample_used_for_selection": True,
+                "validation_claim": "none_full_sample_calibration",
+                "candidate_selection_complete": True,
+            },
+        )
+
+    if metric == "full_temporal_robust":
+        top_n = _candidate_count(len(ranked), config)
+        top = ranked[:top_n]
+        selected = _best_temporal_record(top)
+        return _with_selection_metadata(
+            selected,
+            {
+                **selected.selection_metadata,
+                "objective_mode": config.optimization_mode,
+                "selected_by": "full_temporal_robust",
+                "selector": "best_full_sample_temporal_score",
+                "oos_used_for_selection": False,
+                "full_sample_used_for_selection": True,
+                "validation_claim": "none_full_sample_calibration",
+                "top_trials": int(top_n),
+                "candidate_selection_complete": True,
+            },
+        )
+
+    if metric == "full_plateau_robust":
+        selected = select_is_plateau_robust_record(completed, param_ranges, config=config)
+        selected_by = "full_plateau_robust"
+    else:
+        selected = select_is_only_robust_record(completed, param_ranges, config=config)
+        selected_by = "full_robust"
+
+    return _with_selection_metadata(
+        selected,
+        {
+            **selected.selection_metadata,
+            "objective_mode": config.optimization_mode,
+            "selected_by": selected_by,
+            "oos_used_for_selection": False,
+            "full_sample_used_for_selection": True,
+            "validation_claim": "none_full_sample_calibration",
+            "candidate_selection_complete": True,
+        },
+    )
+
+
 def _select_is_candidate_records(
     records: Sequence[WalkForwardTrialRecord],
     param_ranges: Dict[str, Any],
@@ -2367,6 +2528,9 @@ def _select_is_candidate_records(
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
+    if config.optimization_mode == "mode_5_full_robust":
+        full = select_full_sample_robust_record(completed, param_ranges, config=config)
+        return [full, *top]
     if config.candidate_selection_metric == "is_only_robust" or config.optimization_mode == "mode_4_is_only_robust":
         robust = select_is_only_robust_record(completed, param_ranges, config=config)
         return [robust, *top]
