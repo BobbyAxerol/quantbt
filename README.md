@@ -39,7 +39,8 @@ historical reproduction.
 - Stable audit artifacts: metrics, plots, raw reports, trade logs, config JSON,
   run manifest, and optional QuantStats HTML.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
-  into parameter selection.
+  into parameter selection, plus full-sample robust calibration for final
+  production parameter discovery.
 
 ## Performance Philosophy
 
@@ -178,9 +179,14 @@ service creates a run.
   - `mode_1_decay`
   - `mode_2_sbb`
   - `mode_3_flat_minima`
+  - `mode_4_is_only_robust`
+  - `mode_5_full_robust`
 - Endpoint-backed scoring for supported single-symbol modes, so objective
   metrics match the actual QuantBT backtest route.
-- Train-only robust candidate selection such as `is_plateau_robust`.
+- Train-only robust candidate selection such as `is_plateau_robust` and
+  `is_only_robust`.
+- Full-sample robust calibration selectors: `full_robust`,
+  `full_plateau_robust`, `full_temporal_robust`, and `full_best`.
 - Optional trade-count penalty to avoid overfit low-trade Sharpe traps.
 
 ### Nautilus Validation Reports

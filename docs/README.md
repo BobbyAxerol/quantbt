@@ -26,7 +26,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Portfolio matrix | `QuantBTEndpoint.portfolio(...)` | Multi-symbol positions with portfolio-level accounting |
 | Pair/basket | `QuantBTEndpoint.basket(...)` | Frozen hedge-ratio units and package diagnostics |
 | Arbitrage | `QuantBTEndpoint.arbitrage(...)` | Domain specs for basis, stat-arb, funding, carry, and index-basket routes |
-| Walk-forward optimization | `QuantBTEndpoint.walk_forward(...)` | Folded OOS stitching and anti-leakage candidate selection |
+| Walk-forward optimization | `QuantBTEndpoint.walk_forward(...)` | Folded OOS stitching, anti-leakage candidate selection, and full-sample robust calibration |
 | Single holdout train/test | `QuantBTEndpoint.train_test_split(...)` | One train period and one test period using the WFO scoring stack |
 | Third-party validation | `QuantBTEndpoint.nautilus_validation(...)` or `backend="nautilus"` | Independent event-driven accounting reports |
 

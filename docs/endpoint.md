@@ -1203,6 +1203,9 @@ wfo = QuantBTEndpoint.walk_forward(
         # "dispersion_penalty": 0.50,
         # "temporal_weight": 0.65,
         # "plateau_weight": 0.35,
+        # mode_5_full_robust:
+        # "candidate_selection_metric": "full_robust",
+        # alternatives: full_plateau_robust | full_temporal_robust | full_best
         # crypto default annualization: 365; equities often use 252
         "scoring_trading_days": 365,
         # optional under-trading penalty; None disables it
@@ -1313,7 +1316,8 @@ Important rules:
   `monthly`, and `weekly`; `single` is used by
   `QuantBTEndpoint.train_test_split(...)` for one holdout fold;
 - optimization modes are `mode_1_decay`, `mode_2_sbb`,
-  `mode_3_flat_minima`, and `mode_4_is_only_robust`;
+  `mode_3_flat_minima`, `mode_4_is_only_robust`, and
+  `mode_5_full_robust`;
 - for all optimization modes, Optuna receives only in-sample or synthetic
   in-sample objectives; OOS scoring is delayed until after the top IS candidate
   set is frozen, reducing indirect look-ahead bias;
@@ -1350,6 +1354,17 @@ Important rules:
   shard Sharpe stability, combines that with the existing plateau cluster
   score, and selects the medoid/centroid before any OOS scoring. OOS is only
   used afterward for reporting and final stitched validation;
+- `mode_5_full_robust` is full-sample robust calibration, not WFO/OOS
+  validation. QuantBT treats the whole supplied history as one calibration
+  fold, uses Optuna plus robust selection across the full sample, and labels
+  metadata with `validation_claim="none_full_sample_calibration"`. Use this
+  after a strategy already passed separate validation, when the goal is to
+  choose one production parameter set that survived all available regimes.
+  Supported selectors are:
+  `full_robust` (default temporal plus plateau),
+  `full_plateau_robust` (dense parameter plateau only),
+  `full_temporal_robust` (best subperiod stability among top trials), and
+  `full_best` (best full-sample objective, highest overfit risk);
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 
@@ -1499,6 +1514,37 @@ wfo = QuantBTEndpoint.walk_forward(
     alloc_per_trade=0.5,
     fee=0.0005,
 )
+```
+
+Full-sample robust calibration example:
+
+```python
+cal = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    target_mode="pct_equity",
+    optimization_mode="mode_5_full_robust",
+    optimization_config={
+        "candidate_selection_metric": "full_robust",
+        "top_is_fraction": 0.10,
+        "is_subperiods": 8,
+        "flat_eps": 0.12,
+        "flat_min_samples": 5,
+        "temporal_weight": 0.65,
+        "plateau_weight": 0.35,
+        "scoring_backend": "endpoint",
+        "scoring_trading_days": 365,
+        "min_trades_per_year": 100,
+        "trade_penalty_factor": 0.5,
+    },
+    optuna_trials=600,
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee=0.0005,
+)
+result = cal.backtest(data=df, param_ranges=param_ranges)
+production_params = result.metadata["walk_forward"]["best_trial"]["params"]
 ```
 
 Optional trade-frequency penalty:
