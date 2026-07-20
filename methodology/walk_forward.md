@@ -177,6 +177,54 @@ Dụng ý của mode 1 là không thưởng params chỉ thắng IS. Một param
 được hiệu năng khi sang OOS, và decay không được quá bất ổn giữa các fold. Mode
 này phù hợp khi user chấp nhận dùng OOS như validation stage.
 
+### 9.1. Dụng Ý Chuẩn Quỹ Của Mode 1
+
+Mode 1 phản ánh bài toán rất thực tế trong quỹ: một alpha có thể đẹp trên train
+nhưng mất edge ngay khi sang giai đoạn kế tiếp. Vì vậy objective không chỉ hỏi
+OOS Sharpe cao hay không, mà còn hỏi:
+
+- IS có đang quá đẹp so với OOS không?
+- decay có ổn định giữa nhiều fold không?
+- một fold thắng lớn có đang che giấu nhiều fold yếu không?
+
+Trong research nghiêm túc, `S_IS - S_OOS` là tín hiệu quan trọng. Nếu decay luôn
+dương và lớn, strategy có thể đang overfit. Nếu decay lúc rất âm, lúc rất dương,
+params có thể quá nhạy regime.
+
+### 9.2. Selection Choices Trong Mode 1
+
+Mode 1 thường dùng `candidate_selection_metric="robust_decay"`. Đây là lựa chọn
+khớp nhất với objective vì nó chọn candidate theo OOS performance sau khi phạt
+decay.
+
+Các lựa chọn phụ:
+
+- `mean_oos_sharpe`: aggressive hơn, ưu tiên OOS cao.
+- `mean_is_sharpe`: chủ yếu dùng diagnostic, dễ overfit nếu dùng làm selector.
+- `is_plateau_robust`: dùng khi muốn chọn vùng IS/search ổn định trước khi nhìn
+  OOS candidate.
+
+Nếu mục tiêu là báo cáo validation, `robust_decay` hợp lý hơn `mean_oos_sharpe`
+vì nó không bị một vài OOS fold đẹp làm lệch quyết định.
+
+### 9.3. Tham Số Cần Tune Cẩn Thận
+
+`decay_lambda` càng cao thì càng phạt params có decay biến động. `decay_gamma`
+càng cao thì càng phạt params có IS đẹp hơn OOS quá nhiều.
+
+Nếu alpha có bản chất regime-following và decay tự nhiên thay đổi mạnh, đặt hai
+tham số này quá cao có thể làm selector quá conservative. Nếu alpha có nhiều
+params và search space rộng, nên tăng penalty để giảm data snooping.
+
+Một cấu hình cân bằng thường bắt đầu từ:
+
+```text
+decay_lambda = 0.5
+decay_gamma  = 0.5
+```
+
+Sau đó điều chỉnh theo số fold, độ dài OOS và mức noisy của strategy.
+
 ---
 
 ## 10. Mode 2: `mode_2_sbb`
@@ -220,6 +268,53 @@ volatility clustering nếu có dependency `arch`.
 Dụng ý chuẩn quỹ là kiểm tra path dependency, giữ autocorrelation cục bộ, và
 stress alpha mà không mở OOS thật cho optimizer.
 
+### 10.1. Dụng Ý Chuẩn Quỹ Của Mode 2
+
+Mode 2 phục vụ câu hỏi khác mode 1: nếu ta giữ nguyên alpha nhưng thị trường đi
+theo một đường giá hơi khác, params còn sống không?
+
+Backtest lịch sử chỉ là một path đã xảy ra. Trong thực tế, cùng distribution có
+thể sinh ra nhiều path khác nhau. Stationary Block Bootstrap cố giữ cụm return
+liền kề để không phá autocorrelation ngắn hạn, đồng thời tạo nhiều biến thể
+khác của train path.
+
+Điều này đặc biệt quan trọng với:
+
+- scalping;
+- mean reversion;
+- grid/DCA;
+- basis hoặc spread strategy;
+- alpha có stop-loss/take-profit nhạy path.
+
+### 10.2. Simulation Choices
+
+`stationary` là lựa chọn mặc định. Nó nhanh, ổn định, và ít giả định.
+
+`regime` phù hợp khi user muốn stress theo volatility bucket. Ví dụ một alpha
+chỉ sống trong low-vol regime thì cần xem high-vol synthetic path có làm Sharpe
+sụp không.
+
+`stress` phù hợp để kiểm tra nhanh khi volatility tăng 1.5x hoặc 2x.
+
+`garch` phù hợp khi cần mô phỏng volatility clustering có cấu trúc hơn, nhưng
+chậm hơn và phụ thuộc data đủ dài. Không nên dùng GARCH chỉ vì nghe “xịn”; nếu
+train sample quá ngắn, fitted volatility process có thể không đáng tin.
+
+### 10.3. Tham Số Ảnh Hưởng Objective
+
+`sbb_samples` càng cao thì distribution Sharpe synthetic càng ổn định nhưng
+runtime tăng.
+
+`sbb_block_length` quá ngắn sẽ phá cấu trúc path; quá dài sẽ tạo quá ít biến thể.
+
+`sbb_std_penalty` cao làm selector tránh params có Sharpe synthetic phân tán
+mạnh.
+
+`sbb_decay_lambda` cao làm selector tránh params có IS Sharpe cao nhưng synthetic
+Sharpe giảm mạnh.
+
+Mode 2 không nên được đọc như OOS proof. Nó là train-only robustness stress.
+
 ---
 
 ## 11. Mode 3: `mode_3_flat_minima`
@@ -251,6 +346,47 @@ Tham số chính:
 đã khai báo và có thể cần evaluate lại. Nếu không có cluster, QuantBT fallback
 về best trial; đây là tín hiệu param surface có thể quá sắc hoặc rời rạc.
 
+### 11.1. Dụng Ý Chuẩn Quỹ Của Mode 3
+
+Mode 3 dựa trên một quan sát rất quan trọng: một tham số tốt thật sự thường có
+hàng xóm cũng tương đối tốt. Nếu chỉ một điểm duy nhất trong param space thắng
+lớn, còn xung quanh thua mạnh, đó thường là dấu hiệu overfit.
+
+Trong ngôn ngữ optimization, ta muốn vùng phẳng:
+
+$$
+\left\lvert J(\theta)-J(\theta+\epsilon)\right\rvert
+\text{ nhỏ với } \epsilon \text{ nhỏ}
+$$
+
+QuantBT không cần tính gradient phức tạp. Nó dùng top trials, normalize param
+space, rồi tìm cụm dày. Đây là cách thực dụng, minh bạch và dễ audit.
+
+### 11.2. Medoid Và Centroid
+
+`flat_selector="medoid"` chọn trial thật nằm gần trung tâm cụm. Đây là lựa chọn
+an toàn nhất vì params đó đã được evaluate.
+
+`flat_selector="centroid"` lấy trung tâm cụm rồi snap về grid. Lựa chọn này có
+thể tốt hơn nếu cluster bị lệch bởi noise, nhưng cần evaluate lại vì centroid
+có thể là params chưa từng chạy.
+
+Với production research, `medoid` thường là default tốt hơn. `centroid` phù hợp
+khi param grid dày và chi phí evaluate lại thấp.
+
+### 11.3. Tham Số DBSCAN-Style
+
+`flat_eps` là bán kính để xem các params có gần nhau không. Nếu quá nhỏ, mọi
+điểm thành noise. Nếu quá lớn, nhiều vùng khác nhau bị gộp sai.
+
+`flat_min_samples` là số điểm tối thiểu để cụm có ý nghĩa. Với ít trial, giá trị
+này nên nhỏ; với nhiều trial, có thể tăng để tránh cluster giả.
+
+`flat_top_fraction` quyết định top region. Nếu quá thấp, cụm thiếu điểm; nếu quá
+cao, đưa cả params trung bình vào cluster.
+
+Mode 3 không thay thế OOS validation. Nó kiểm tra hình học của param surface.
+
 ---
 
 ## 12. Plateau Robustness
@@ -277,6 +413,23 @@ Tham số:
 Ý nghĩa: lower-tail tốt cho thấy cụm không mong manh; median tốt cho thấy cụm
 không chỉ có một điểm thắng; std thấp cho thấy cụm ổn định; cluster lớn cho thấy
 vùng tham số có độ dày.
+
+Plateau score là phần QuantBT dùng để biến trực giác “vùng phẳng tốt hơn điểm
+đơn lẻ” thành công thức. `plateau_quantile` nhìn lower-tail của cluster. Nếu
+lower-tail tốt, nghĩa là ngay cả những member yếu trong cụm vẫn không quá tệ.
+
+`plateau_median_weight` thưởng median của cụm, tránh cụm có một vài outlier đẹp.
+`plateau_std_penalty` phạt cụm phân tán. `plateau_size_bonus` thưởng nhẹ cho cụm
+dày bằng log-size để không làm size áp đảo chất lượng.
+
+Vì dùng log-size, phần thưởng cụm lớn tăng chậm:
+
+$$
+\log(1+\lvert C\rvert)
+$$
+
+Điều này có ý nghĩa domain: cụm lớn là tốt, nhưng cụm lớn mà score thấp không
+nên thắng cụm nhỏ hơn nhưng robust hơn.
 
 ---
 
@@ -331,6 +484,67 @@ Hiện tại bootstrap/complexity penalty mặc định không phạt thêm. Mod
 params để giao dịch OOS fold kế tiếp. OOS chỉ được dùng sau selection để report
 và stitch validation, nên đây là mode phù hợp nhất khi cần anti-leakage nghiêm.
 
+### 13.1. Dụng Ý Chuẩn Quỹ Của Mode 4
+
+Mode 4 được thiết kế cho trường hợp user muốn selection tuyệt đối không nhìn
+OOS. Đây là khác biệt quan trọng so với mode 1. Trong mode 4, OOS đóng vai trò
+report/validation sau khi params đã bị freeze.
+
+Nó trả lời câu hỏi:
+
+```text
+Chỉ nhìn train, có thể chọn params nào robust nhất để đi vào giai đoạn kế tiếp?
+```
+
+Đây là tư duy gần hơn với cách vận hành thật: tại thời điểm live, ta không biết
+OOS tương lai. Ta chỉ có thể chọn params dựa trên train history và robustness
+test bên trong train.
+
+### 13.2. Temporal Robustness
+
+Mode 4 chia IS thành nhiều shard để tránh params chỉ thắng một giai đoạn. Nếu
+Sharpe chỉ cao ở một shard nhưng thấp ở các shard khác, median và Q25 sẽ yếu,
+MAD có thể cao.
+
+Temporal score dùng:
+
+- median để đo hiệu năng trung tâm;
+- Q25 để nhìn downside của subperiods;
+- MAD để phạt dispersion robust hơn standard deviation.
+
+MAD được dùng vì nó ít nhạy outlier hơn:
+
+$$
+\operatorname{MAD}(S)=\operatorname{median}\left(\left\lvert S_i-\operatorname{median}(S)\right\rvert\right)
+$$
+
+### 13.3. Selection Choices Trong Mode 4
+
+Mode 4 bắt buộc `candidate_selection_metric="is_only_robust"`.
+
+Selector này kết hợp:
+
+- top IS candidates;
+- temporal robustness;
+- plateau robustness;
+- medoid hoặc centroid.
+
+Nếu không có cluster đủ tốt, selector fallback về best temporal record. Fallback
+này không phải lỗi, nhưng là tín hiệu rằng param surface chưa đủ dày để kết luận
+plateau mạnh.
+
+### 13.4. Khi Nào Dùng Mode 4
+
+Dùng mode 4 khi:
+
+- muốn anti-leakage nghiêm;
+- strategy có nhiều tham số;
+- OOS data ít và không muốn optimizer học OOS;
+- mục tiêu là chọn params cho kỳ tiếp theo.
+
+Không nên kỳ vọng mode 4 luôn chọn params có IS cao nhất. Nó cố tình đánh đổi
+một phần IS score để lấy stability.
+
 ---
 
 ## 14. Mode 5: `mode_5_full_robust`
@@ -359,6 +573,49 @@ Selector:
 Dụng ý của mode 5 là chọn một bộ params production sau khi alpha đã qua
 validation độc lập. Nó ép params sống qua toàn bộ lịch sử đã biết và nhiều
 regime, nhưng không được dùng như bằng chứng OOS.
+
+### 14.1. Dụng Ý Chuẩn Quỹ Của Mode 5
+
+Mode 5 dành cho production calibration sau khi alpha đã qua validation bằng cách
+khác. Nó không trả lời “alpha có generalize không?”. Nó trả lời:
+
+```text
+Sau khi đã tin alpha, nếu phải chọn một params để deploy,
+params nào robust nhất trên toàn bộ lịch sử đã biết?
+```
+
+Nhiều workflow quỹ có bước tương tự: validate model bằng holdout/WFO trước, sau
+đó refit hoặc recalibrate trên toàn bộ data trước deployment. Điểm quan trọng là
+không được trộn lẫn calibration result với validation proof.
+
+### 14.2. Selector Con Trong Mode 5
+
+`full_robust` là default vì nó kết hợp temporal stability và plateau stability.
+
+`full_plateau_robust` phù hợp khi user tin rằng độ phẳng param surface quan
+trọng hơn subperiod Sharpe.
+
+`full_temporal_robust` phù hợp khi regime stability là ưu tiên số một.
+
+`full_best` chỉ nên dùng để benchmark upper bound, không nên dùng làm production
+selector nếu search space lớn.
+
+### 14.3. Cách Đọc Metadata Mode 5
+
+Mode 5 luôn phải được đọc cùng:
+
+```text
+validation_claim = "none_full_sample_calibration"
+```
+
+và:
+
+```text
+full_sample_used_for_selection = True
+```
+
+Nếu report dùng mode 5, cần nói rõ đây là calibration. Không nên trình bày nó
+như OOS performance.
 
 ---
 
