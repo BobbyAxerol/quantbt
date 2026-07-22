@@ -5,19 +5,21 @@ Sandbox path: `/root/bobby/pool_alpha/quantbt/.local_arbitrage_sandboxes/binance
 
 ## Basis Perp-Quarterly
 
-- Event final equity: `91362.950654`
-- Vectorized final equity: `91362.950654`
-- Max equity diff: `1.4551915228366852e-11`
+- Event final equity: `99636.159754`
+- Vectorized final equity: `99636.159754`
+- Max equity diff: `0.0`
 - Audit status: `pass`
-- Orders: `828`
-- Fills: `828`
-- Fees: `3429.596934`
-- Funding: `17.731104`
+- Orders: `88`
+- Fills: `88`
+- Fees: `352.776946`
+- Funding: `9.156364`
 
 ## Other Certification Checks
 
 - Stat pair accounting parity: `True`
-- Stat pair package-residual report: `False`
+- Stat pair audit status: `pass`
+- Stat pair package-residual report: `True`
+- Stat pair max package residual: `1.8891554987021664e-11`
 - Index basket package smoke: `pass`
 - Schema-only guardrails: `pass`
-- Nautilus package parity: `pass`
+- Nautilus package parity: `skipped`

@@ -2296,6 +2296,50 @@ Acceptance:
 - Optional Nautilus smoke skips or passes cleanly depending on installed
   dependency and instrument support.
 
+Status:
+
+- Added native-event `StatArbPairSpec` package reporting to match the
+  vectorized/package-style arbitrage surface:
+  - `leg_pnl_report`;
+  - `package_pnl_report`;
+  - `spread_report`;
+  - diagnostics `package_pnl` and `package_pnl_residual`.
+- Tightened native-vectorized stat-arb reporting with the same detailed package
+  columns:
+  - `price_pnl`;
+  - `fill_pnl`;
+  - `fees`;
+  - `funding_pnl`;
+  - `leg_pnl`;
+  - `hedge_pnl`;
+  - `spread_pnl`;
+  - `package_pnl`;
+  - `equity_delta`;
+  - `pnl_residual`.
+- Stat-arb funding now follows the same arbitrage package policy as
+  basis/funding/carry routes: only legs with `funding_enabled=True` receive
+  funding rates.
+- Schema-only arbitrage specs now reject with actionable messages pointing to
+  `QuantBTEndpoint.arbitrage_support_matrix()`.
+- Added Phase 13C regression coverage in
+  `tests/test_phase13_arbitrage_certification_cleanup.py`:
+  - dynamic hedge-ratio stat-arb package PnL reconciliation;
+  - event vs vectorized stat-arb package report parity;
+  - funding-enabled leg filtering;
+  - schema-only spec guardrails.
+- Upgraded the arbitrage certification runner and artifacts:
+  - `benchmarks/run_phase12_arbitrage_cert.py`;
+  - `benchmarks/phase12_arbitrage_cert.json`;
+  - `benchmarks/phase12_arbitrage_cert.md`.
+- Latest certification smoke with `--rows 240`:
+  - status: `pass`;
+  - basis event/vectorized parity: `pass`;
+  - stat-pair audit: `pass`;
+  - stat-pair max package residual: `1.8891554987021664e-11`;
+  - index-basket smoke: `pass`;
+  - schema-only guardrails: `pass`;
+  - Nautilus package parity: `skipped` unless explicitly requested.
+
 ### Explicit Non-Goals For Phase 13
 
 - Dynamic in-Nautilus DCA/grid state machine.
