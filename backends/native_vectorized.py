@@ -466,6 +466,7 @@ class NativeVectorizedBackend:
         )
         contract_sizes = self._contract_size_for_spec(spec, contract_size)
         fee_rates = self._fee_rate_for_spec(spec)
+        stat_funding = self._funding_for_spec(spec, funding_rate)
         arb_plan = self._apply_atomic_package_margin_policy(
             idx=idx,
             plan=ArbitragePlan(
@@ -490,17 +491,17 @@ class NativeVectorizedBackend:
             closes=close_dict,
             highs=highs,
             lows=lows,
-            funding_rate=funding_rate,
+            funding_rate=stat_funding,
             contract_size=contract_sizes,
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
         )
-        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbols, idx)
+        funding_dict = prepare_funding(stat_funding if self.config.use_funding else 0.0, symbols, idx)
         leg_pnl_report = self._leg_pnl_report(
             idx=idx,
             symbols=symbols,
-            roles={leg.symbol: leg.role for leg in spec.legs},
+            roles=self._stat_arb_roles(spec),
             result=result,
             closes=close_dict,
             funding=funding_dict,
@@ -520,6 +521,7 @@ class NativeVectorizedBackend:
                 "basket_plan": plan,
                 "basket_target_units": arb_plan.target_units,
                 "beta_drift_report": self._stat_arb_beta_drift_report(idx, spec, arb_plan, rebalance_threshold),
+                "spread_report": self._stat_arb_spread_report(idx, spec, close_dict, arb_plan),
                 "leg_pnl_report": leg_pnl_report,
                 "package_pnl_report": package_report,
                 "rebalance_threshold": rebalance_threshold,
@@ -544,7 +546,11 @@ class NativeVectorizedBackend:
     ) -> BacktestResultV2:
         unsupported = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
         if isinstance(spec, unsupported):
-            raise NotImplementedError(f"{type(spec).__name__} requires a specialized Phase G+ engine")
+            raise NotImplementedError(
+                f"{type(spec).__name__} is schema-validated but requires a specialized arbitrage engine; "
+                "do not route it through generic package execution. "
+                "Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
+            )
         supported = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
         if not isinstance(spec, supported):
             raise TypeError("run_package_arbitrage requires a Phase G package-style arbitrage spec")
@@ -860,6 +866,43 @@ class NativeVectorizedBackend:
         return {leg.symbol: funding_rate if leg.symbol in funding_symbols else 0.0 for leg in spec.legs}
 
     @staticmethod
+    def _stat_arb_roles(spec: StatArbPairSpec) -> Dict[str, str]:
+        symbols = [leg.symbol for leg in spec.legs]
+        roles = {leg.symbol: str(leg.role or "leg") for leg in spec.legs}
+        if len(symbols) >= 2 and len(set(roles.values())) == 1:
+            roles[symbols[0]] = "leg"
+            roles[symbols[1]] = "hedge"
+        return roles
+
+    @staticmethod
+    def _stat_arb_spread_report(
+        idx: pd.DatetimeIndex,
+        spec: StatArbPairSpec,
+        closes: Dict[str, pd.Series],
+        plan,
+    ) -> pd.DataFrame:
+        symbols = [leg.symbol for leg in spec.legs]
+        leg_symbol = symbols[0]
+        hedge_symbol = symbols[1] if len(symbols) > 1 else symbols[0]
+        leg_close = closes[leg_symbol].astype(float)
+        hedge_close = closes[hedge_symbol].astype(float)
+        ref_ratio = plan.entry_ratios[leg_symbol].replace(0.0, np.nan).astype(float)
+        hedge_ratio = (plan.entry_ratios[hedge_symbol].astype(float) / ref_ratio).fillna(0.0)
+        spread = leg_close + hedge_ratio * hedge_close
+        return pd.DataFrame(
+            {
+                "leg_symbol": leg_symbol,
+                "hedge_symbol": hedge_symbol,
+                "leg_close": leg_close,
+                "hedge_close": hedge_close,
+                "hedge_ratio_to_leg": hedge_ratio,
+                "spread": spread,
+                "abs_spread": spread.abs(),
+            },
+            index=idx,
+        )
+
+    @staticmethod
     def _stat_arb_basket_from_spec(spec: StatArbPairSpec) -> BasketSpec:
         if spec.sizing_policy.kind is not SizingPolicyKind.TARGET_GROSS_NOTIONAL:
             raise NotImplementedError("Phase E StatArbPairSpec requires target_gross_notional sizing")
@@ -929,9 +972,30 @@ class NativeVectorizedBackend:
 
     @staticmethod
     def _package_pnl_report(idx: pd.DatetimeIndex, result: BacktestResultV2, leg_pnl_report: pd.DataFrame) -> pd.DataFrame:
-        package_pnl = leg_pnl_report.groupby("timestamp", sort=False)["total_pnl"].sum().reindex(idx, fill_value=0.0)
+        grouped = leg_pnl_report.groupby("timestamp", sort=False)
+        package_pnl = grouped["total_pnl"].sum().reindex(idx, fill_value=0.0)
+        price_pnl = grouped["price_pnl"].sum().reindex(idx, fill_value=0.0)
+        fill_pnl = grouped["fill_pnl"].sum().reindex(idx, fill_value=0.0)
+        fees = grouped["fee"].sum().reindex(idx, fill_value=0.0)
+        funding_pnl = grouped["funding_pnl"].sum().reindex(idx, fill_value=0.0)
+        role_pnl = leg_pnl_report.pivot_table(
+            index="timestamp",
+            columns="role",
+            values="total_pnl",
+            aggfunc="sum",
+            fill_value=0.0,
+        ).reindex(idx, fill_value=0.0)
+        leg_pnl = role_pnl["leg"] if "leg" in role_pnl else pd.Series(0.0, index=idx)
+        hedge_pnl = role_pnl["hedge"] if "hedge" in role_pnl else pd.Series(0.0, index=idx)
         report = pd.DataFrame(
             {
+                "price_pnl": price_pnl,
+                "fill_pnl": fill_pnl,
+                "fees": fees,
+                "funding_pnl": funding_pnl,
+                "leg_pnl": leg_pnl,
+                "hedge_pnl": hedge_pnl,
+                "spread_pnl": leg_pnl + hedge_pnl,
                 "package_pnl": package_pnl,
                 "equity_delta": result.equity.diff().fillna(0.0),
             },

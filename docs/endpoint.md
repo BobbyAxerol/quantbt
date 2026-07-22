@@ -797,6 +797,7 @@ result = bt.backtest(
 bt.show_metrics()
 result.metadata["package_target_units"]
 result.metadata["leg_pnl_report"]
+result.metadata["package_pnl_report"]
 result.metadata["beta_drift_report"]
 ```
 
@@ -805,7 +806,7 @@ Supported executable specs:
 | Spec | Native event | Native vectorized | Nautilus | Notes |
 |---|---:|---:|---:|---|
 | `BasisArbitrageSpec` | yes | yes | package validation | linear USDM-style legs only today |
-| `StatArbPairSpec` | yes | yes | package validation | frozen hedge-ratio pair; dynamic `hedge_ratios` supported |
+| `StatArbPairSpec` | yes | yes | package validation | frozen or rebalance-threshold hedge-ratio pair; dynamic `hedge_ratios` supported |
 | `CalendarSpreadSpec` | yes | yes | no | package-style futures spread |
 | `FundingArbitrageSpec` | yes | yes | no | funding-enabled leg required |
 | `SpotPerpCashCarrySpec` | yes | yes | no | spot plus funding-enabled derivative |
@@ -843,6 +844,19 @@ Package execution policy:
 - `PackageExecutionKind.BEST_EFFORT`: legs are preflighted sequentially. Legs
   with enough margin can open, rejected legs are recorded as
   `insufficient_margin_best_effort`, and only actual open legs are later closed.
+
+Stat-arb reporting:
+
+- `leg_pnl_report`: row-level per-symbol PnL with `role`, `price_pnl`,
+  `fill_pnl`, `fee`, `funding_pnl`, `total_pnl`, and `cumulative_pnl`;
+- `package_pnl_report`: timestamp-level reconciliation with `leg_pnl`,
+  `hedge_pnl`, `spread_pnl`, `fees`, `funding_pnl`, `package_pnl`,
+  `equity_delta`, and `pnl_residual`;
+- `spread_report`: pair spread/residual computed from the frozen or current
+  hedge ratio used by the package planner;
+- `beta_drift_report`: hedge-ratio drift diagnostics and threshold breaches;
+- funding is charged only to legs marked `funding_enabled=True`, matching the
+  rest of the arbitrage package routes.
 
 Current hard guards:
 

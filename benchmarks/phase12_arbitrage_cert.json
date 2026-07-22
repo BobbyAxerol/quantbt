@@ -2,12 +2,12 @@
   "status": "pass",
   "sandbox_path": "/root/bobby/pool_alpha/quantbt/.local_arbitrage_sandboxes/binance_basis_arb",
   "basis": {
-    "event_final_equity": 91362.95065353338,
-    "vectorized_final_equity": 91362.95065353338,
-    "order_count": 828,
-    "fill_count": 828,
-    "fee_total": 3429.5969336746557,
-    "funding_total": 17.731103806709445,
+    "event_final_equity": 99636.15975414228,
+    "vectorized_final_equity": 99636.15975414228,
+    "order_count": 88,
+    "fill_count": 88,
+    "fee_total": 352.77694586750954,
+    "funding_total": 9.156364234095296,
     "audit": {
       "status": "pass",
       "passed": true,
@@ -26,11 +26,11 @@
         "final_target_flat": true,
         "final_position_flat": true
       },
-      "max_abs_package_pnl_residual": 2.6261659513693303e-11,
+      "max_abs_package_pnl_residual": 1.7973178501051734e-11,
       "max_abs_leg_vs_package_pnl_diff": 0.0,
-      "max_abs_fee_residual": 4.547473508864641e-13,
+      "max_abs_fee_residual": 0.0,
       "final_gross_target_units": 0.0,
-      "final_gross_position_units": 8.881784197001252e-16,
+      "final_gross_position_units": 0.0,
       "target_symbols": [
         "perpetual",
         "quarterly"
@@ -39,8 +39,8 @@
         "perpetual",
         "quarterly"
       ],
-      "order_count": 828,
-      "fill_count": 828,
+      "order_count": 88,
+      "fill_count": 88,
       "rejection_count": 0
     },
     "parity": {
@@ -55,19 +55,54 @@
         "target_units_match": true,
         "package_residuals_ok": true
       },
-      "max_abs_equity_diff": 1.4551915228366852e-11,
-      "max_abs_position_diff": 4.440892098500626e-16,
+      "max_abs_equity_diff": 0.0,
+      "max_abs_position_diff": 0.0,
       "max_abs_target_unit_diff": 0.0,
-      "max_abs_package_residual": 2.6261659513693303e-11
+      "max_abs_package_residual": 1.7973178501051734e-11
     }
   },
   "stat_pair": {
-    "event_final_equity": 98806.77550546748,
-    "vectorized_final_equity": 98806.77550546748,
+    "event_final_equity": 99727.5575962874,
+    "vectorized_final_equity": 99727.5575962874,
     "accounting_parity_passed": true,
+    "audit": {
+      "status": "pass",
+      "passed": true,
+      "tolerance": 1e-09,
+      "engine": "event_v1_stat_arb_pair",
+      "backend": "native_event",
+      "arb_id": "PHASE12_STAT_PAIR",
+      "arb_type": "stat_arb_pair",
+      "missing_reports": [],
+      "checks": {
+        "has_required_reports": true,
+        "package_pnl_residual_ok": true,
+        "leg_pnl_reconciles_to_package": true,
+        "fees_reconcile": true,
+        "target_symbols_match": true,
+        "final_target_flat": true,
+        "final_position_flat": true
+      },
+      "max_abs_package_pnl_residual": 1.8891554987021664e-11,
+      "max_abs_leg_vs_package_pnl_diff": 0.0,
+      "max_abs_fee_residual": 7.105427357601002e-15,
+      "final_gross_target_units": 0.0,
+      "final_gross_position_units": 0.0,
+      "target_symbols": [
+        "asset_a",
+        "asset_b"
+      ],
+      "result_symbols": [
+        "asset_a",
+        "asset_b"
+      ],
+      "order_count": 20,
+      "fill_count": 20,
+      "rejection_count": 0
+    },
     "parity": {
-      "status": "fail",
-      "passed": false,
+      "status": "pass",
+      "passed": true,
       "tolerance": 1e-09,
       "event_engine": "event_v1_stat_arb_pair",
       "vectorized_engine": "units_v2_stat_arb_pair",
@@ -75,13 +110,26 @@
         "equity_matches": true,
         "positions_match": true,
         "target_units_match": true,
-        "package_residuals_ok": false
+        "package_residuals_ok": true
       },
       "max_abs_equity_diff": 0.0,
       "max_abs_position_diff": 0.0,
       "max_abs_target_unit_diff": 0.0,
-      "max_abs_package_residual": null
-    }
+      "max_abs_package_residual": 1.8891554987021664e-11
+    },
+    "package_report_columns": [
+      "price_pnl",
+      "fill_pnl",
+      "fees",
+      "funding_pnl",
+      "leg_pnl",
+      "hedge_pnl",
+      "spread_pnl",
+      "package_pnl",
+      "equity_delta",
+      "pnl_residual"
+    ],
+    "max_package_residual": 1.8891554987021664e-11
   },
   "index_basket": {
     "status": "pass",
@@ -101,7 +149,7 @@
       "max_abs_equity_diff": 0.0,
       "max_abs_position_diff": 0.0,
       "max_abs_target_unit_diff": 0.0,
-      "max_abs_package_residual": 1.1126211063583469e-11
+      "max_abs_package_residual": 1.3033130130679638e-11
     }
   },
   "schema_only": {
@@ -112,43 +160,42 @@
         "native_event": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "CrossExchangeArbSpec requires a specialized Phase G+ engine"
+          "message": "CrossExchangeArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         },
         "native_vectorized": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "CrossExchangeArbSpec requires a specialized Phase G+ engine"
+          "message": "CrossExchangeArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         }
       },
       "triangular": {
         "native_event": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "TriangularArbSpec requires a specialized Phase G+ engine"
+          "message": "TriangularArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         },
         "native_vectorized": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "TriangularArbSpec requires a specialized Phase G+ engine"
+          "message": "TriangularArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         }
       },
       "options_vol": {
         "native_event": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "OptionsVolArbSpec requires a specialized Phase G+ engine"
+          "message": "OptionsVolArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         },
         "native_vectorized": {
           "rejected": true,
           "error": "NotImplementedError",
-          "message": "OptionsVolArbSpec requires a specialized Phase G+ engine"
+          "message": "OptionsVolArbSpec is schema-validated but requires a specialized arbitrage engine; do not route it through generic package execution. Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
         }
       }
     }
   },
   "nautilus": {
-    "status": "pass",
-    "orders": 828,
-    "fills": 828
+    "status": "skipped",
+    "reason": "run with --include-nautilus"
   }
 }

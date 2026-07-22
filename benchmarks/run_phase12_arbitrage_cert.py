@@ -141,6 +141,7 @@ def run_certification(rows: int = 900, include_nautilus: bool = False) -> Dict:
     stat_idx, stat_signal, stat_closes, stat_highs, stat_lows, stat_funding = _stat_market(rows=rows)
     stat_event = event.run_stat_arb_pair_arbitrage(stat_idx, stat_spec(), stat_signal, stat_closes, highs=stat_highs, lows=stat_lows, funding_rate=stat_funding)
     stat_vector = vector.run_stat_arb_pair_arbitrage(stat_idx, stat_spec(), stat_signal, stat_closes, highs=stat_highs, lows=stat_lows, funding_rate=stat_funding)
+    stat_audit = build_arbitrage_domain_audit(stat_event, raise_on_fail=False)
     stat_parity = compare_native_arbitrage_results(stat_event, stat_vector, raise_on_fail=False)
 
     basket_report = _index_basket_smoke(event, vector, rows)
@@ -163,7 +164,10 @@ def run_certification(rows: int = 900, include_nautilus: bool = False) -> Dict:
             "event_final_equity": float(stat_event.equity.iloc[-1]),
             "vectorized_final_equity": float(stat_vector.equity.iloc[-1]),
             "accounting_parity_passed": _accounting_parity_passed(stat_parity),
+            "audit": stat_audit,
             "parity": stat_parity,
+            "package_report_columns": list(stat_event.metadata["package_pnl_report"].columns),
+            "max_package_residual": float(stat_event.metadata["package_pnl_report"]["pnl_residual"].abs().max()),
         },
         "index_basket": basket_report,
         "schema_only": schema_report,
@@ -193,7 +197,9 @@ def make_markdown(report: Dict) -> str:
         "## Other Certification Checks",
         "",
         f"- Stat pair accounting parity: `{report['stat_pair']['accounting_parity_passed']}`",
+        f"- Stat pair audit status: `{report['stat_pair']['audit']['status']}`",
         f"- Stat pair package-residual report: `{report['stat_pair']['parity']['checks'].get('package_residuals_ok')}`",
+        f"- Stat pair max package residual: `{report['stat_pair']['max_package_residual']}`",
         f"- Index basket package smoke: `{report['index_basket']['status']}`",
         f"- Schema-only guardrails: `{report['schema_only']['status']}`",
         f"- Nautilus package parity: `{report['nautilus']['status']}`",
@@ -360,6 +366,7 @@ def _accounting_parity_passed(parity: Dict) -> bool:
         checks.get("equity_matches")
         and checks.get("positions_match")
         and checks.get("target_units_match")
+        and checks.get("package_residuals_ok")
     )
 
 
