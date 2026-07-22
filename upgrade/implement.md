@@ -2112,6 +2112,245 @@ Acceptance:
 
 ---
 
+## Phase 13 - WFO Cache, Portfolio Report, And Arbitrage Certification Cleanup
+
+Goal:
+
+Close the remaining non-Nautilus-depth technical debt before starting another
+large high-fidelity Nautilus phase. This phase intentionally avoids true L2
+queue simulation, dynamic in-Nautilus DCA/grid state machines, exchange-native
+OCO lists, and venue-specific portfolio-margin cloning.
+
+### Phase 13A - WFO Prepared Market Cache Integration
+
+Purpose:
+
+Use the prepared market-array APIs added in Phase 9/10/12 inside higher-level
+walk-forward / service loops. When Optuna/WFO evaluates many parameter trials
+over the same market tape, QuantBT should not repeatedly normalize pandas data
+and pack identical close/high/low arrays.
+
+Scope:
+
+- Audit `_run_walk_forward`, endpoint scoring, native event, and native
+  portfolio scoring paths.
+- Add a run-local prepared context for one `.backtest(...)` call:
+  - prepare market arrays once for invariant `data`, `symbols`, and
+    `datetime_index`;
+  - pass prepared arrays into endpoint scoring when the backend supports it;
+  - validate reuse by datetime/symbol signature, never by mutable pandas object
+    identity alone.
+- Reuse `NativeEventBackend.prepare_market_arrays(...)` when event/order scoring
+  is used.
+- Reuse `NativePortfolioBackend.prepare_market_arrays(...)` when portfolio WFO
+  scoring is used.
+- Reuse `NativePortfolioBackend.prepare_signal_matrix(...)` only when a signal
+  matrix is truly invariant; normally only market arrays are invariant across
+  trials.
+- Keep all caches local to the WFO run. No process-wide mutable result cache.
+- Preserve accounting, fill policy, sizing, fees, funding, margin, and
+  liquidation semantics exactly.
+
+Acceptance:
+
+- WFO endpoint scoring with and without prepared market arrays produces identical
+  metrics and final backtest outputs.
+- Portfolio WFO/native portfolio scoring can reuse market arrays across trials
+  without stale-data risk.
+- Signature mismatch rejects reuse with a clear error.
+- Benchmark/mock WFO report shows prepared-cache reuse, parity, and timing so
+  future optimization work can separate cache benefit from report/Optuna
+  overhead.
+- Existing endpoint behavior remains unchanged when prepared arrays are not
+  applicable.
+
+Status:
+
+- Implemented run-local WFO prepared scoring cache for
+  `target_mode="portfolio"` with endpoint scoring and `native_portfolio`.
+- Added `optimization_config["use_prepared_scoring_cache"]`, default `True`,
+  stored in `WalkForwardConfig.metadata` for debug/parity runs.
+- Cache is scoped to one WFO `.backtest(...)` call and keyed by symbol tuple,
+  index length, first timestamp, and last timestamp. Backend signature checks
+  still guard prepared reuse.
+- Existing non-portfolio endpoint scoring keeps the previous fallback path.
+- Added `prepared_scoring_cache` metadata to `result.metadata["walk_forward"]`.
+- Added deterministic parity test proving cached and uncached portfolio WFO
+  endpoint scoring select the same params, objective, and final equity.
+- Added `benchmarks/run_phase13_wfo_cache.py` plus committed JSON/Markdown
+  artifacts:
+  - `benchmarks/phase13_wfo_cache.json`;
+  - `benchmarks/phase13_wfo_cache.md`.
+- Current mock report is a parity/reuse guard, not a universal speed claim:
+  cache hits occur, but full WFO runtime on the small fixture is still dominated
+  by Optuna/report construction. This reinforces Phase 13B as the next
+  optimization target.
+
+### Phase 13B - Native Portfolio Report Construction Optimization
+
+Purpose:
+
+Reduce the measured residual report-construction cost after the native portfolio
+kernel without changing portfolio domain logic.
+
+Scope:
+
+- Profile and optimize construction of:
+  - equity/returns series;
+  - position matrix;
+  - exposure matrix;
+  - target-units and accepted-notional reports;
+  - symbol PnL reports;
+  - diagnostics metadata.
+- Prefer ndarray block construction over per-symbol pandas concat.
+- Keep default reports backward-compatible for existing notebooks.
+- Add optional report-level controls only if they do not break current endpoint
+  behavior.
+
+Acceptance:
+
+- Native portfolio equity, positions, exposure, target units, accepted notional,
+  and symbol PnL totals match pre-optimization output exactly or within documented
+  floating tolerance.
+- Tests cover multi-symbol mock data, missing data, `%_equity`, `target_weight`,
+  `gross_exposure`, `risk_parity`, and `beta_neutral`.
+- Benchmark report separates kernel runtime from report construction.
+
+Status:
+
+- Optimized native portfolio report construction without changing kernel or
+  accounting semantics:
+  - funding series now uses ndarray calculations instead of grouping the long
+    symbol PnL report;
+  - diagnostics rejected-rebalance flags use ndarray diffs directly;
+  - returns are built from ndarray equity changes instead of pandas pct-change;
+  - exposure report computes leverage/exposure columns array-first;
+  - rebalance report uses `np.nonzero` over target-vs-accepted unit diffs
+    instead of repeated pandas stack/reindex operations.
+- Strengthened prepared-vs-normal native portfolio parity tests for:
+  - target units;
+  - accepted units;
+  - target notional;
+  - accepted notional;
+  - exposure report;
+  - funding series;
+  - rebalance report.
+- Added old-formula report parity regression in
+  `tests/test_phase13_portfolio_report_parity.py`, comparing the optimized
+  report surface against the previous pandas formulas for:
+  - returns;
+  - funding;
+  - rejected-rebalance diagnostics;
+  - exposure report;
+  - rebalance report.
+- Re-ran targeted portfolio/report tests and the full internal regression suite
+  before Phase 13C; no production report formulas changed after the parity lock.
+- Added Phase 13B benchmark artifacts:
+  - `benchmarks/run_phase13_portfolio_report.py`;
+  - `benchmarks/phase13_portfolio_report.json`;
+  - `benchmarks/phase13_portfolio_report.md`.
+- Latest benchmark on the standard Phase 13B fixture:
+  - full facade: `0.058681s`;
+  - prepared reuse: `0.047904s`;
+  - pure Numba kernel: `0.000200s`;
+  - report construction residual: `0.047671s`;
+  - prepared reuse speedup: `1.225x`.
+- Conclusion: report construction improved, but remains the dominant residual
+  bucket. Cython/C++ is still not justified because pure Numba kernel share is
+  only about `0.34%`; further gains should come from optional/lazy heavy reports
+  or more compact report-level controls.
+
+### Phase 13C - Arbitrage Production Certification Cleanup
+
+Purpose:
+
+Move native arbitrage from controlled research usability toward clearer
+production-certification artifacts without pretending unsupported arbitrage
+families are complete.
+
+Scope:
+
+- Add `package_pnl_report` / residual artifact for `StatArbPairSpec`, matching
+  the basis/index-basket reporting style:
+  - leg PnL;
+  - hedge PnL;
+  - spread/residual PnL;
+  - fees;
+  - funding where relevant.
+- Preserve native event/vectorized parity for basis, stat-arb, and index-basket
+  packages.
+- Keep real perp/quarterly Nautilus parity explicitly dependent on a delivery
+  futures instrument provider or adapter extension.
+- Keep `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec`
+  schema-safe with actionable `NotImplemented` messages until specialized
+  engines are built.
+
+Acceptance:
+
+- Stat-arb package PnL reconciles:
+  - leg PnL + fees + funding = package PnL;
+  - residual/spread PnL sign is correct;
+  - dynamic hedge ratios do not break accounting.
+- Event vs vectorized parity remains within tolerance.
+- Schema-only specs reject clearly.
+- Optional Nautilus smoke skips or passes cleanly depending on installed
+  dependency and instrument support.
+
+Status:
+
+- Added native-event `StatArbPairSpec` package reporting to match the
+  vectorized/package-style arbitrage surface:
+  - `leg_pnl_report`;
+  - `package_pnl_report`;
+  - `spread_report`;
+  - diagnostics `package_pnl` and `package_pnl_residual`.
+- Tightened native-vectorized stat-arb reporting with the same detailed package
+  columns:
+  - `price_pnl`;
+  - `fill_pnl`;
+  - `fees`;
+  - `funding_pnl`;
+  - `leg_pnl`;
+  - `hedge_pnl`;
+  - `spread_pnl`;
+  - `package_pnl`;
+  - `equity_delta`;
+  - `pnl_residual`.
+- Stat-arb funding now follows the same arbitrage package policy as
+  basis/funding/carry routes: only legs with `funding_enabled=True` receive
+  funding rates.
+- Schema-only arbitrage specs now reject with actionable messages pointing to
+  `QuantBTEndpoint.arbitrage_support_matrix()`.
+- Added Phase 13C regression coverage in
+  `tests/test_phase13_arbitrage_certification_cleanup.py`:
+  - dynamic hedge-ratio stat-arb package PnL reconciliation;
+  - event vs vectorized stat-arb package report parity;
+  - funding-enabled leg filtering;
+  - schema-only spec guardrails.
+- Upgraded the arbitrage certification runner and artifacts:
+  - `benchmarks/run_phase12_arbitrage_cert.py`;
+  - `benchmarks/phase12_arbitrage_cert.json`;
+  - `benchmarks/phase12_arbitrage_cert.md`.
+- Latest certification smoke with `--rows 240`:
+  - status: `pass`;
+  - basis event/vectorized parity: `pass`;
+  - stat-pair audit: `pass`;
+  - stat-pair max package residual: `1.8891554987021664e-11`;
+  - index-basket smoke: `pass`;
+  - schema-only guardrails: `pass`;
+  - Nautilus package parity: `skipped` unless explicitly requested.
+
+### Explicit Non-Goals For Phase 13
+
+- Dynamic in-Nautilus DCA/grid state machine.
+- True L2 order-book queue/latency simulation.
+- Exchange-native OCO order-list semantics.
+- Venue-specific portfolio-margin clone.
+
+Those belong to a later dedicated Nautilus Depth phase.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:

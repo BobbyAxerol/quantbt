@@ -486,6 +486,7 @@ class NativeEventBackend:
         close_dict = align_series(closes, symbols, idx)
         contract_sizes = self._contract_size_for_spec(spec, contract_size)
         fee_rates = self._fee_rate_for_spec(spec)
+        stat_funding = self._funding_for_spec(spec, funding_rate)
         rebalance_threshold = spec.hedge_policy.rebalance_threshold
         if not spec.hedge_policy.freeze_on_entry and rebalance_threshold is None:
             rebalance_threshold = 0.0
@@ -523,18 +524,34 @@ class NativeEventBackend:
             closes=close_dict,
             highs=highs,
             lows=lows,
-            funding_rate=funding_rate,
+            funding_rate=stat_funding,
             contract_size=contract_sizes,
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
         )
+        funding_dict = prepare_funding(stat_funding if self.config.use_funding else 0.0, symbols, idx)
+        roles = self._stat_arb_roles(spec)
+        leg_pnl_report = self._leg_pnl_report(
+            idx=idx,
+            symbols=symbols,
+            roles=roles,
+            result=result,
+            closes=close_dict,
+            funding=funding_dict,
+            contract_sizes=contract_sizes,
+        )
+        package_report = self._package_pnl_report(idx, result, leg_pnl_report)
         beta_drift_report = self._stat_arb_beta_drift_report(
             idx=idx,
             spec=spec,
             plan=arb_plan,
             rebalance_threshold=rebalance_threshold,
         )
+        diagnostics = result.diagnostics.copy()
+        diagnostics["package_pnl"] = package_report["package_pnl"]
+        diagnostics["package_pnl_residual"] = package_report["pnl_residual"]
+        result.diagnostics = diagnostics
         result.metadata.update(
             {
                 "backend": "native_event",
@@ -547,6 +564,9 @@ class NativeEventBackend:
                 "basket_plan": plan,
                 "basket_target_units": arb_plan.target_units,
                 "beta_drift_report": beta_drift_report,
+                "spread_report": self._stat_arb_spread_report(idx, spec, close_dict, arb_plan),
+                "leg_pnl_report": leg_pnl_report,
+                "package_pnl_report": package_report,
                 "rebalance_threshold": rebalance_threshold,
                 "fee_rate_oneway": fee_rates,
                 "contract_size": contract_sizes,
@@ -671,7 +691,11 @@ class NativeEventBackend:
         """
         unsupported = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
         if isinstance(spec, unsupported):
-            raise NotImplementedError(f"{type(spec).__name__} requires a specialized Phase G+ engine")
+            raise NotImplementedError(
+                f"{type(spec).__name__} is schema-validated but requires a specialized arbitrage engine; "
+                "do not route it through generic package execution. "
+                "Use QuantBTEndpoint.arbitrage_support_matrix() to inspect supported routes."
+            )
         supported = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
         if not isinstance(spec, supported):
             raise TypeError("run_package_arbitrage requires a Phase G package-style arbitrage spec")
@@ -1049,6 +1073,15 @@ class NativeEventBackend:
         )
 
     @staticmethod
+    def _stat_arb_roles(spec: StatArbPairSpec) -> Dict[str, str]:
+        symbols = [leg.symbol for leg in spec.legs]
+        roles = {leg.symbol: str(leg.role or "leg") for leg in spec.legs}
+        if len(symbols) >= 2 and len(set(roles.values())) == 1:
+            roles[symbols[0]] = "leg"
+            roles[symbols[1]] = "hedge"
+        return roles
+
+    @staticmethod
     def _stat_arb_beta_drift_report(
         idx: pd.DatetimeIndex,
         spec: StatArbPairSpec,
@@ -1094,6 +1127,129 @@ class NativeEventBackend:
                     }
                 )
         return pd.DataFrame(rows)
+
+    @staticmethod
+    def _stat_arb_spread_report(
+        idx: pd.DatetimeIndex,
+        spec: StatArbPairSpec,
+        closes: Dict[str, pd.Series],
+        plan,
+    ) -> pd.DataFrame:
+        symbols = [leg.symbol for leg in spec.legs]
+        leg_symbol = symbols[0]
+        hedge_symbol = symbols[1] if len(symbols) > 1 else symbols[0]
+        leg_close = closes[leg_symbol].astype(float)
+        hedge_close = closes[hedge_symbol].astype(float)
+        ref_ratio = plan.entry_ratios[leg_symbol].replace(0.0, np.nan).astype(float)
+        hedge_ratio = (plan.entry_ratios[hedge_symbol].astype(float) / ref_ratio).fillna(0.0)
+        spread = leg_close + hedge_ratio * hedge_close
+        return pd.DataFrame(
+            {
+                "leg_symbol": leg_symbol,
+                "hedge_symbol": hedge_symbol,
+                "leg_close": leg_close,
+                "hedge_close": hedge_close,
+                "hedge_ratio_to_leg": hedge_ratio,
+                "spread": spread,
+                "abs_spread": spread.abs(),
+            },
+            index=idx,
+        )
+
+    def _leg_pnl_report(
+        self,
+        idx: pd.DatetimeIndex,
+        symbols: List[str],
+        roles: Dict[str, str],
+        result: BacktestResultV2,
+        closes: Dict[str, pd.Series],
+        funding: Dict[str, pd.Series],
+        contract_sizes: Dict[str, float],
+    ) -> pd.DataFrame:
+        fill_rows = {}
+        for fill in result.fills:
+            ts = pd.Timestamp(fill.timestamp)
+            if ts.tz is None:
+                ts = ts.tz_localize("UTC")
+            else:
+                ts = ts.tz_convert("UTC")
+            key = (ts, fill.symbol)
+            fee, fill_pnl = fill_rows.get(key, (0.0, 0.0))
+            close_price = float(closes[fill.symbol].loc[ts])
+            cs = float(contract_sizes[fill.symbol])
+            fill_pnl += fill.signed_qty * (close_price - float(fill.price)) * cs
+            fee += float(fill.fee)
+            fill_rows[key] = (fee, fill_pnl)
+
+        funding_mask = make_funding_mask(idx)
+        cumulative = {symbol: 0.0 for symbol in symbols}
+        rows = []
+        for i, ts in enumerate(idx):
+            for symbol in symbols:
+                cs = float(contract_sizes[symbol])
+                close_price = float(closes[symbol].iloc[i])
+                prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
+                units = float(result.positions[f"Position_{symbol}"].iloc[i])
+                price_pnl = 0.0
+                if i > 0:
+                    price_pnl = prev_units * (close_price - float(closes[symbol].iloc[i - 1])) * cs
+                funding_cost = 0.0
+                if self.config.use_funding and funding_mask[i]:
+                    funding_cost = prev_units * close_price * cs * float(funding[symbol].iloc[i])
+                fee, fill_pnl = fill_rows.get((ts, symbol), (0.0, 0.0))
+                total_pnl = price_pnl + fill_pnl - fee - funding_cost
+                cumulative[symbol] += total_pnl
+                rows.append(
+                    {
+                        "timestamp": ts,
+                        "symbol": symbol,
+                        "role": roles.get(symbol, "leg"),
+                        "units": units,
+                        "close": close_price,
+                        "notional": abs(units) * close_price * cs,
+                        "price_pnl": price_pnl,
+                        "fill_pnl": fill_pnl,
+                        "fee": fee,
+                        "funding_pnl": -funding_cost,
+                        "total_pnl": total_pnl,
+                        "cumulative_pnl": cumulative[symbol],
+                    }
+                )
+        return pd.DataFrame(rows)
+
+    @staticmethod
+    def _package_pnl_report(idx: pd.DatetimeIndex, result: BacktestResultV2, leg_pnl_report: pd.DataFrame) -> pd.DataFrame:
+        grouped = leg_pnl_report.groupby("timestamp", sort=False)
+        package_pnl = grouped["total_pnl"].sum().reindex(idx, fill_value=0.0)
+        price_pnl = grouped["price_pnl"].sum().reindex(idx, fill_value=0.0)
+        fill_pnl = grouped["fill_pnl"].sum().reindex(idx, fill_value=0.0)
+        fees = grouped["fee"].sum().reindex(idx, fill_value=0.0)
+        funding_pnl = grouped["funding_pnl"].sum().reindex(idx, fill_value=0.0)
+        role_pnl = leg_pnl_report.pivot_table(
+            index="timestamp",
+            columns="role",
+            values="total_pnl",
+            aggfunc="sum",
+            fill_value=0.0,
+        ).reindex(idx, fill_value=0.0)
+        leg_pnl = role_pnl["leg"] if "leg" in role_pnl else pd.Series(0.0, index=idx)
+        hedge_pnl = role_pnl["hedge"] if "hedge" in role_pnl else pd.Series(0.0, index=idx)
+        report = pd.DataFrame(
+            {
+                "price_pnl": price_pnl,
+                "fill_pnl": fill_pnl,
+                "fees": fees,
+                "funding_pnl": funding_pnl,
+                "leg_pnl": leg_pnl,
+                "hedge_pnl": hedge_pnl,
+                "spread_pnl": leg_pnl + hedge_pnl,
+                "package_pnl": package_pnl,
+                "equity_delta": result.equity.diff().fillna(0.0),
+            },
+            index=idx,
+        )
+        report["pnl_residual"] = report["equity_delta"] - report["package_pnl"]
+        return report
 
     def _basis_leg_pnl_report(
         self,

@@ -10,6 +10,8 @@ def test_phase12_arbitrage_certification_smoke():
     assert report["basis"]["audit"]["passed"] is True
     assert report["basis"]["parity"]["passed"] is True
     assert report["stat_pair"]["accounting_parity_passed"] is True
+    assert report["stat_pair"]["audit"]["passed"] is True
+    assert report["stat_pair"]["max_package_residual"] < 1e-9
     assert report["index_basket"]["passed"] is True
     assert report["schema_only"]["passed"] is True
     assert report["nautilus"]["status"] == "skipped"

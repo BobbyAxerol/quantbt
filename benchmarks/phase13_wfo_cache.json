@@ -1,0 +1,25 @@
+{
+  "cache_metadata": {
+    "available": true,
+    "backend": "native_portfolio",
+    "enabled": true,
+    "fallback_runs": 0,
+    "market_cache_entries": 2,
+    "market_cache_hits": 8,
+    "market_cache_misses": 2,
+    "prepared_runs": 10,
+    "target_mode": "portfolio"
+  },
+  "cached_seconds": 0.9311932160053402,
+  "final_equity_diff": 0.0,
+  "objective_diff": 0.0,
+  "params_match": true,
+  "rows": 720,
+  "selected_params": {
+    "scale": 1.5
+  },
+  "speedup": 0.8895758405827113,
+  "status": "pass",
+  "trials": 12,
+  "uncached_seconds": 0.8283669878728688
+}
