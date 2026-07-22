@@ -1,0 +1,16 @@
+{
+  "array_preparation_seconds": 0.010810222321500381,
+  "cython_cpp_recommendation": "Cython/C++ is not justified yet; optimize cached array preparation and report construction first.",
+  "full_facade_seconds": 0.05868112171689669,
+  "notes": "Phase 13B keeps accounting unchanged and optimizes report construction with ndarray-first calculations for funding, diagnostics, exposure, and rebalance reports.",
+  "prepared_reuse_facade_seconds": 0.04790363173621396,
+  "prepared_reuse_speedup": 1.224982732833912,
+  "pure_kernel_share_pct": 0.34121019806869696,
+  "pure_numba_kernel_seconds": 0.00020022597163915634,
+  "repeats": 3,
+  "report_construction_estimate_seconds": 0.04767067342375715,
+  "report_construction_share_pct": 81.2368135253809,
+  "rows": 2000,
+  "status": "pass",
+  "symbols": 6
+}

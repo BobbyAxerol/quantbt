@@ -464,7 +464,8 @@ class NativePortfolioBackend:
         exposure_report = self._build_exposure_report(
             accepted_notional_arr=accepted_notional_arr,
             target_notional_arr=target_notional_arr,
-            equity=equity,
+            equity_arr=equity_arr,
+            idx=idx,
             leverages=leverages,
             maintenance_ratio=maintenance_ratio,
             betas=betas,
@@ -482,29 +483,41 @@ class NativePortfolioBackend:
             fee_arr=fee_arr,
         )
         rebalance_report = self._build_rebalance_report(
-            target_units=target_units_report,
-            accepted_units=accepted_units_report,
-            closes=close_report,
-            contract_sizes=cs,
+            idx=idx,
+            symbols=symbol_list,
+            target_units_arr=target_m,
+            accepted_units_arr=pos_arr,
+            closes_arr=closes_m,
+            contract_sizes=contract_sizes,
         )
 
         positions = pd.DataFrame(pos_arr, index=idx, columns=[f"Position_{s}" for s in symbol_list], copy=False)
         closes = pd.DataFrame(closes_m, index=idx, columns=[f"Close_{s}" for s in symbol_list], copy=False)
         fees = pd.Series(fee_arr, index=idx, name="fees")
         turnover = pd.Series(turnover_arr, index=idx, name="turnover")
-        funding_cost = symbol_pnl_report.groupby("timestamp", sort=False)["funding_cost"].sum().reindex(idx, fill_value=0.0)
+        prev_units = np.vstack([np.zeros((1, len(symbol_list)), dtype=np.float64), pos_arr[:-1]])
+        funding_cost_arr = prev_units * closes_m * cs_row * funding_m
+        funding_cost_arr = np.where(is_funding_bar.reshape(-1, 1).astype(bool), funding_cost_arr, 0.0).sum(axis=1)
         margin = exposure_report[["initial_margin", "maintenance_margin"]].copy()
         diagnostics = pd.DataFrame(
             {
-                "turnover": turnover,
-                "rejected_rebalances": (target_units_report - accepted_units_report).abs().sum(axis=1) > 1e-10,
+                "turnover": turnover_arr,
+                "rejected_rebalances": np.abs(target_m - pos_arr).sum(axis=1) > 1e-10,
             },
             index=idx,
         )
+        returns_arr = np.zeros_like(equity_arr, dtype=np.float64)
+        if len(equity_arr) > 1:
+            returns_arr[1:] = np.divide(
+                equity_arr[1:] - equity_arr[:-1],
+                equity_arr[:-1],
+                out=np.zeros(len(equity_arr) - 1, dtype=np.float64),
+                where=equity_arr[:-1] != 0.0,
+            )
 
         return BacktestResultV2(
             equity=equity,
-            returns=equity.pct_change().fillna(0.0),
+            returns=pd.Series(returns_arr, index=idx, name="returns"),
             positions=positions,
             closes=closes,
             symbols=symbol_list,
@@ -513,7 +526,7 @@ class NativePortfolioBackend:
             liquidated=liquidated,
             liquidation_bar=liquidation_bar,
             fees=fees,
-            funding=pd.Series(funding_cost.to_numpy(dtype=float), index=idx, name="funding"),
+            funding=pd.Series(funding_cost_arr, index=idx, name="funding"),
             margin=margin,
             diagnostics=diagnostics,
             metadata={
@@ -598,13 +611,13 @@ class NativePortfolioBackend:
         *,
         accepted_notional_arr: np.ndarray,
         target_notional_arr: np.ndarray,
-        equity: pd.Series,
+        equity_arr: np.ndarray,
+        idx: pd.DatetimeIndex,
         leverages: np.ndarray,
         maintenance_ratio: float,
         betas: np.ndarray,
     ) -> pd.DataFrame:
         abs_accepted = np.abs(accepted_notional_arr)
-        equity_arr = equity.to_numpy(dtype=np.float64)
         gross = abs_accepted.sum(axis=1)
         net = accepted_notional_arr.sum(axis=1)
         initial_margin = (abs_accepted / leverages.reshape(1, -1)).sum(axis=1)
@@ -613,7 +626,9 @@ class NativePortfolioBackend:
         target_gross = np.abs(target_notional_arr).sum(axis=1)
         target_beta_exposure = (target_notional_arr * betas.reshape(1, -1)).sum(axis=1)
         mean_leverage = float(np.mean(leverages))
-        out = pd.DataFrame(
+        gross_leverage = np.divide(gross, equity_arr, out=np.zeros_like(gross), where=equity_arr != 0.0)
+        net_exposure_pct = np.divide(net, equity_arr, out=np.zeros_like(net), where=equity_arr != 0.0)
+        return pd.DataFrame(
             {
                 "long_notional": np.where(accepted_notional_arr > 0.0, accepted_notional_arr, 0.0).sum(axis=1),
                 "short_notional": np.where(accepted_notional_arr < 0.0, -accepted_notional_arr, 0.0).sum(axis=1),
@@ -627,38 +642,39 @@ class NativePortfolioBackend:
                 "equity": equity_arr,
                 "available_equity_after_im": equity_arr - initial_margin,
                 "buying_power": equity_arr * mean_leverage,
+                "gross_leverage": gross_leverage,
+                "net_exposure_pct": net_exposure_pct,
             },
-            index=equity.index,
+            index=idx,
         )
-        out["gross_leverage"] = out["gross_notional"] / out["equity"].replace(0.0, np.nan)
-        out["net_exposure_pct"] = out["net_notional"] / out["equity"].replace(0.0, np.nan)
-        return out.fillna(0.0)
 
     @staticmethod
     def _build_rebalance_report(
         *,
-        target_units: pd.DataFrame,
-        accepted_units: pd.DataFrame,
-        closes: pd.DataFrame,
-        contract_sizes: pd.Series,
+        idx: pd.DatetimeIndex,
+        symbols: List[str],
+        target_units_arr: np.ndarray,
+        accepted_units_arr: np.ndarray,
+        closes_arr: np.ndarray,
+        contract_sizes: np.ndarray,
     ) -> pd.DataFrame:
-        diff = target_units - accepted_units
-        mask = diff.abs() > 1e-10
-        if not mask.to_numpy().any():
+        diff = target_units_arr - accepted_units_arr
+        row_idx, col_idx = np.nonzero(np.abs(diff) > 1e-10)
+        if len(row_idx) == 0:
             return pd.DataFrame(
                 columns=["timestamp", "symbol", "target_units", "accepted_units", "unit_diff", "notional_diff", "reason"]
             )
-        notional_diff = diff.mul(closes, axis=0).mul(contract_sizes, axis=1)
-        stacked = diff.where(mask).stack(future_stack=True).dropna()
-        index = stacked.index
+        unit_diff = diff[row_idx, col_idx]
+        notional_diff = unit_diff * closes_arr[row_idx, col_idx] * contract_sizes[col_idx]
+        symbol_arr = np.asarray(symbols, dtype=object)
         return pd.DataFrame(
             {
-                "timestamp": index.get_level_values(0),
-                "symbol": index.get_level_values(1),
-                "target_units": target_units.stack(future_stack=True).reindex(index).to_numpy(dtype=float),
-                "accepted_units": accepted_units.stack(future_stack=True).reindex(index).to_numpy(dtype=float),
-                "unit_diff": stacked.to_numpy(dtype=float),
-                "notional_diff": notional_diff.stack(future_stack=True).reindex(index).to_numpy(dtype=float),
+                "timestamp": idx.take(row_idx),
+                "symbol": symbol_arr[col_idx],
+                "target_units": target_units_arr[row_idx, col_idx],
+                "accepted_units": accepted_units_arr[row_idx, col_idx],
+                "unit_diff": unit_diff,
+                "notional_diff": notional_diff,
                 "reason": "margin_or_portfolio_gate",
             }
         )
