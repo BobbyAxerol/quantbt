@@ -2216,6 +2216,40 @@ Acceptance:
   `gross_exposure`, `risk_parity`, and `beta_neutral`.
 - Benchmark report separates kernel runtime from report construction.
 
+Status:
+
+- Optimized native portfolio report construction without changing kernel or
+  accounting semantics:
+  - funding series now uses ndarray calculations instead of grouping the long
+    symbol PnL report;
+  - diagnostics rejected-rebalance flags use ndarray diffs directly;
+  - returns are built from ndarray equity changes instead of pandas pct-change;
+  - exposure report computes leverage/exposure columns array-first;
+  - rebalance report uses `np.nonzero` over target-vs-accepted unit diffs
+    instead of repeated pandas stack/reindex operations.
+- Strengthened prepared-vs-normal native portfolio parity tests for:
+  - target units;
+  - accepted units;
+  - target notional;
+  - accepted notional;
+  - exposure report;
+  - funding series;
+  - rebalance report.
+- Added Phase 13B benchmark artifacts:
+  - `benchmarks/run_phase13_portfolio_report.py`;
+  - `benchmarks/phase13_portfolio_report.json`;
+  - `benchmarks/phase13_portfolio_report.md`.
+- Latest benchmark on the standard Phase 13B fixture:
+  - full facade: `0.058681s`;
+  - prepared reuse: `0.047904s`;
+  - pure Numba kernel: `0.000200s`;
+  - report construction residual: `0.047671s`;
+  - prepared reuse speedup: `1.225x`.
+- Conclusion: report construction improved, but remains the dominant residual
+  bucket. Cython/C++ is still not justified because pure Numba kernel share is
+  only about `0.34%`; further gains should come from optional/lazy heavy reports
+  or more compact report-level controls.
+
 ### Phase 13C - Arbitrage Production Certification Cleanup
 
 Purpose:

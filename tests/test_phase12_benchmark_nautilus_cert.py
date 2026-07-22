@@ -78,6 +78,23 @@ def test_phase12_native_portfolio_prepared_reuse_matches_normal_run():
         rtol=0.0,
         atol=1e-12,
     )
+    for key in (
+        "target_units_report",
+        "accepted_units_report",
+        "target_notional_report",
+        "accepted_notional_report",
+        "exposure_report",
+    ):
+        np.testing.assert_allclose(
+            reused.metadata[key].to_numpy(dtype=float),
+            normal.metadata[key].to_numpy(dtype=float),
+            rtol=0.0,
+            atol=1e-10,
+        )
+    np.testing.assert_allclose(reused.funding.to_numpy(), normal.funding.to_numpy(), rtol=0.0, atol=1e-12)
+    assert reused.metadata["rebalance_report"].reset_index(drop=True).equals(
+        normal.metadata["rebalance_report"].reset_index(drop=True)
+    )
 
 
 def test_phase12_native_portfolio_prepared_reuse_rejects_stale_signature():
