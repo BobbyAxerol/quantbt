@@ -2235,6 +2235,16 @@ Status:
   - exposure report;
   - funding series;
   - rebalance report.
+- Added old-formula report parity regression in
+  `tests/test_phase13_portfolio_report_parity.py`, comparing the optimized
+  report surface against the previous pandas formulas for:
+  - returns;
+  - funding;
+  - rejected-rebalance diagnostics;
+  - exposure report;
+  - rebalance report.
+- Re-ran targeted portfolio/report tests and the full internal regression suite
+  before Phase 13C; no production report formulas changed after the parity lock.
 - Added Phase 13B benchmark artifacts:
   - `benchmarks/run_phase13_portfolio_report.py`;
   - `benchmarks/phase13_portfolio_report.json`;
