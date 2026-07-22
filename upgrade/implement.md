@@ -2112,6 +2112,157 @@ Acceptance:
 
 ---
 
+## Phase 13 - WFO Cache, Portfolio Report, And Arbitrage Certification Cleanup
+
+Goal:
+
+Close the remaining non-Nautilus-depth technical debt before starting another
+large high-fidelity Nautilus phase. This phase intentionally avoids true L2
+queue simulation, dynamic in-Nautilus DCA/grid state machines, exchange-native
+OCO lists, and venue-specific portfolio-margin cloning.
+
+### Phase 13A - WFO Prepared Market Cache Integration
+
+Purpose:
+
+Use the prepared market-array APIs added in Phase 9/10/12 inside higher-level
+walk-forward / service loops. When Optuna/WFO evaluates many parameter trials
+over the same market tape, QuantBT should not repeatedly normalize pandas data
+and pack identical close/high/low arrays.
+
+Scope:
+
+- Audit `_run_walk_forward`, endpoint scoring, native event, and native
+  portfolio scoring paths.
+- Add a run-local prepared context for one `.backtest(...)` call:
+  - prepare market arrays once for invariant `data`, `symbols`, and
+    `datetime_index`;
+  - pass prepared arrays into endpoint scoring when the backend supports it;
+  - validate reuse by datetime/symbol signature, never by mutable pandas object
+    identity alone.
+- Reuse `NativeEventBackend.prepare_market_arrays(...)` when event/order scoring
+  is used.
+- Reuse `NativePortfolioBackend.prepare_market_arrays(...)` when portfolio WFO
+  scoring is used.
+- Reuse `NativePortfolioBackend.prepare_signal_matrix(...)` only when a signal
+  matrix is truly invariant; normally only market arrays are invariant across
+  trials.
+- Keep all caches local to the WFO run. No process-wide mutable result cache.
+- Preserve accounting, fill policy, sizing, fees, funding, margin, and
+  liquidation semantics exactly.
+
+Acceptance:
+
+- WFO endpoint scoring with and without prepared market arrays produces identical
+  metrics and final backtest outputs.
+- Portfolio WFO/native portfolio scoring can reuse market arrays across trials
+  without stale-data risk.
+- Signature mismatch rejects reuse with a clear error.
+- Benchmark/mock WFO report shows prepared-cache reuse, parity, and timing so
+  future optimization work can separate cache benefit from report/Optuna
+  overhead.
+- Existing endpoint behavior remains unchanged when prepared arrays are not
+  applicable.
+
+Status:
+
+- Implemented run-local WFO prepared scoring cache for
+  `target_mode="portfolio"` with endpoint scoring and `native_portfolio`.
+- Added `optimization_config["use_prepared_scoring_cache"]`, default `True`,
+  stored in `WalkForwardConfig.metadata` for debug/parity runs.
+- Cache is scoped to one WFO `.backtest(...)` call and keyed by symbol tuple,
+  index length, first timestamp, and last timestamp. Backend signature checks
+  still guard prepared reuse.
+- Existing non-portfolio endpoint scoring keeps the previous fallback path.
+- Added `prepared_scoring_cache` metadata to `result.metadata["walk_forward"]`.
+- Added deterministic parity test proving cached and uncached portfolio WFO
+  endpoint scoring select the same params, objective, and final equity.
+- Added `benchmarks/run_phase13_wfo_cache.py` plus committed JSON/Markdown
+  artifacts:
+  - `benchmarks/phase13_wfo_cache.json`;
+  - `benchmarks/phase13_wfo_cache.md`.
+- Current mock report is a parity/reuse guard, not a universal speed claim:
+  cache hits occur, but full WFO runtime on the small fixture is still dominated
+  by Optuna/report construction. This reinforces Phase 13B as the next
+  optimization target.
+
+### Phase 13B - Native Portfolio Report Construction Optimization
+
+Purpose:
+
+Reduce the measured residual report-construction cost after the native portfolio
+kernel without changing portfolio domain logic.
+
+Scope:
+
+- Profile and optimize construction of:
+  - equity/returns series;
+  - position matrix;
+  - exposure matrix;
+  - target-units and accepted-notional reports;
+  - symbol PnL reports;
+  - diagnostics metadata.
+- Prefer ndarray block construction over per-symbol pandas concat.
+- Keep default reports backward-compatible for existing notebooks.
+- Add optional report-level controls only if they do not break current endpoint
+  behavior.
+
+Acceptance:
+
+- Native portfolio equity, positions, exposure, target units, accepted notional,
+  and symbol PnL totals match pre-optimization output exactly or within documented
+  floating tolerance.
+- Tests cover multi-symbol mock data, missing data, `%_equity`, `target_weight`,
+  `gross_exposure`, `risk_parity`, and `beta_neutral`.
+- Benchmark report separates kernel runtime from report construction.
+
+### Phase 13C - Arbitrage Production Certification Cleanup
+
+Purpose:
+
+Move native arbitrage from controlled research usability toward clearer
+production-certification artifacts without pretending unsupported arbitrage
+families are complete.
+
+Scope:
+
+- Add `package_pnl_report` / residual artifact for `StatArbPairSpec`, matching
+  the basis/index-basket reporting style:
+  - leg PnL;
+  - hedge PnL;
+  - spread/residual PnL;
+  - fees;
+  - funding where relevant.
+- Preserve native event/vectorized parity for basis, stat-arb, and index-basket
+  packages.
+- Keep real perp/quarterly Nautilus parity explicitly dependent on a delivery
+  futures instrument provider or adapter extension.
+- Keep `CrossExchangeArbSpec`, `TriangularArbSpec`, and `OptionsVolArbSpec`
+  schema-safe with actionable `NotImplemented` messages until specialized
+  engines are built.
+
+Acceptance:
+
+- Stat-arb package PnL reconciles:
+  - leg PnL + fees + funding = package PnL;
+  - residual/spread PnL sign is correct;
+  - dynamic hedge ratios do not break accounting.
+- Event vs vectorized parity remains within tolerance.
+- Schema-only specs reject clearly.
+- Optional Nautilus smoke skips or passes cleanly depending on installed
+  dependency and instrument support.
+
+### Explicit Non-Goals For Phase 13
+
+- Dynamic in-Nautilus DCA/grid state machine.
+- True L2 order-book queue/latency simulation.
+- Exchange-native OCO order-list semantics.
+- Venue-specific portfolio-margin clone.
+
+Those belong to a later dedicated Nautilus Depth phase.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:

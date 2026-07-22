@@ -1197,6 +1197,60 @@ def test_train_test_split_endpoint_scoring_matches_pct_equity_report_on_train_fo
     assert wf["best_trial"]["fold_metrics"][0]["is_trade_count"] == pytest.approx(native_report["num_trades"])
 
 
+def test_walkforward_portfolio_endpoint_scoring_reuses_prepared_market_arrays_without_metric_drift():
+    idx = pd.date_range("2021-01-01", "2022-03-31", freq="1D", tz="UTC")
+    data = {
+        "BTC": _bars(idx, 100.0),
+        "ETH": _bars(idx, 50.0),
+    }
+    data["BTC"]["close"] = 100.0 + np.sin(np.linspace(0.0, 8.0, len(idx))) * 2.0
+    data["ETH"]["close"] = 50.0 + np.cos(np.linspace(0.0, 8.0, len(idx))) * 1.5
+
+    def strategy(data, params, train_index, test_index, fold):
+        scale = float(params["scale"])
+        return pd.DataFrame({"BTC": scale, "ETH": -scale}, index=test_index)
+
+    def run(use_cache: bool):
+        endpoint = QuantBTEndpoint.train_test_split(
+            strategy_class=strategy,
+            test_start="2022-01-01",
+            target_mode="portfolio",
+            portfolio_mode="longshort",
+            optimization_mode="mode_1_decay",
+            optimization_config={
+                "scoring_backend": "endpoint",
+                "use_prepared_scoring_cache": use_cache,
+            },
+            optuna_trials=8,
+            random_seed=123,
+            initial_capital=100_000.0,
+            leverage=5.0,
+            alloc_per_trade=1_000.0,
+            fee=0.0,
+            use_funding=False,
+        )
+        return endpoint.backtest(data=data, param_ranges={"scale": (0.5, 1.5, 0.1)})
+
+    cached = run(True)
+    uncached = run(False)
+    cached_wf = cached.metadata["walk_forward"]
+    uncached_wf = uncached.metadata["walk_forward"]
+    cache_meta = cached_wf["prepared_scoring_cache"]
+    uncached_meta = uncached_wf["prepared_scoring_cache"]
+
+    assert cached.equity.iloc[-1] == pytest.approx(uncached.equity.iloc[-1])
+    assert cached_wf["params"] == uncached_wf["params"]
+    assert cached_wf["best_trial"]["objective"] == pytest.approx(uncached_wf["best_trial"]["objective"])
+    assert cache_meta["available"] is True
+    assert cache_meta["enabled"] is True
+    assert cache_meta["prepared_runs"] > 0
+    assert cache_meta["market_cache_hits"] > 0
+    assert cache_meta["market_cache_misses"] > 0
+    assert uncached_meta["enabled"] is False
+    assert uncached_meta["prepared_runs"] == 0
+    assert uncached_meta["fallback_runs"] > 0
+
+
 def test_walkforward_phase4_rejects_non_timestamped_strategy_output():
     idx = _idx()
 

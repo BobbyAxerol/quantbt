@@ -16,7 +16,14 @@ from typing import Dict, Optional, Sequence, Union
 import pandas as pd
 
 from .backtester import BacktestEngine
-from .backends import NativeEventBackend, NativeEventConfig, NativeVectorizedBackend, NativeVectorizedConfig
+from .backends import (
+    NativeEventBackend,
+    NativeEventConfig,
+    NativePortfolioBackend,
+    NativePortfolioConfig,
+    NativeVectorizedBackend,
+    NativeVectorizedConfig,
+)
 from .core.arbitrage import (
     BasisArbitrageSpec,
     CalendarSpreadSpec,
@@ -531,6 +538,8 @@ class QuantBTEndpoint:
                 _default_walkforward_scoring_backend(target_mode=target_mode, optimization_mode=optimization_mode),
             )
         )
+        wf_metadata = dict(optimization_config.get("metadata", {}) or {})
+        wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
         if wf_config is None:
             wf_config = WalkForwardConfig(
                 split_mode=split_mode,
@@ -595,6 +604,7 @@ class QuantBTEndpoint:
                 min_trades_per_year=optimization_config.get("min_trades_per_year"),
                 trade_penalty_factor=optimization_config.get("trade_penalty_factor"),
                 use_numba=bool(optimization_config.get("use_numba", True)),
+                metadata=wf_metadata,
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
@@ -1216,7 +1226,21 @@ class QuantBTEndpoint:
             raise ValueError("walk_forward endpoint requires strategy_class")
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
         target_mode = self.config.walkforward_target_mode.lower().strip()
-        scorer = _make_walkforward_endpoint_scorer(self.config, target_mode=target_mode, symbols=symbols) if wf_config.scoring_backend == "endpoint" else None
+        scorer = (
+            _make_walkforward_endpoint_scorer(
+                self.config,
+                target_mode=target_mode,
+                symbols=symbols,
+                wf_config=wf_config,
+                market_data=data,
+                market_closes=closes,
+                market_highs=highs,
+                market_lows=lows,
+                market_datetime_index=datetime_index,
+            )
+            if wf_config.scoring_backend == "endpoint"
+            else None
+        )
         engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config, scorer=scorer)
         wf_result = engine.run(
             data=data if data is not None else closes,
@@ -1330,6 +1354,8 @@ class QuantBTEndpoint:
             "scoring_backend": wf_result.metadata.get("scoring_backend"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
+        if scorer is not None and hasattr(scorer, "prepared_cache_metadata"):
+            result.metadata["walk_forward"]["prepared_scoring_cache"] = scorer.prepared_cache_metadata()
         result.metadata["walk_forward_result"] = wf_result
         self.engine = engine
         self.result = result
@@ -1897,23 +1923,87 @@ def _default_walkforward_scoring_backend(target_mode: str, optimization_mode: st
     return "proxy"
 
 
-def _make_walkforward_endpoint_scorer(config: EndpointConfig, target_mode: str, symbols=None):
-    score_config = _walkforward_scoring_config(config, target_mode)
-    symbol_list = list(symbols or config.symbols or ["DEFAULT"])
+def _make_walkforward_endpoint_scorer(
+    config: EndpointConfig,
+    target_mode: str,
+    symbols=None,
+    wf_config: Optional[WalkForwardConfig] = None,
+    market_data=None,
+    market_closes=None,
+    market_highs=None,
+    market_lows=None,
+    market_datetime_index=None,
+):
+    return _WalkForwardEndpointScorer(
+        config=config,
+        target_mode=target_mode,
+        symbols=symbols,
+        wf_config=wf_config,
+        market_data=market_data,
+        market_closes=market_closes,
+        market_highs=market_highs,
+        market_lows=market_lows,
+        market_datetime_index=market_datetime_index,
+    )
 
-    def scorer(data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
-        temp = QuantBTEndpoint(score_config)
-        sliced_data = _slice_wf_data_to_index(data, index)
+
+class _WalkForwardEndpointScorer:
+    """
+    Endpoint-backed WFO scorer with run-local prepared market array reuse.
+
+    The cache is intentionally scoped to one scorer instance, which is created
+    for one `QuantBTEndpoint.backtest(...)` call. It never caches by pandas
+    object identity and every prepared reuse is validated by backend signatures.
+    """
+
+    def __init__(
+        self,
+        config: EndpointConfig,
+        target_mode: str,
+        symbols=None,
+        wf_config: Optional[WalkForwardConfig] = None,
+        market_data=None,
+        market_closes=None,
+        market_highs=None,
+        market_lows=None,
+        market_datetime_index=None,
+    ):
+        self.config = config
+        self.target_mode = str(target_mode).lower().strip()
+        self.score_config = _walkforward_scoring_config(config, self.target_mode)
+        self.symbols = None if symbols is None and config.symbols is None else list(symbols or config.symbols or [])
+        self.wf_config = wf_config
+        self.market_data = market_data
+        self.market_closes = market_closes
+        self.market_highs = market_highs
+        self.market_lows = market_lows
+        self.market_datetime_index = market_datetime_index
+        self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
+        self._portfolio_backend = None
+        self._portfolio_market_maps = {}
+        self._portfolio_market_cache = {}
+        self._stats = {
+            "enabled": bool(self.use_prepared_cache),
+            "target_mode": self.target_mode,
+            "backend": self.score_config.backend,
+            "market_cache_hits": 0,
+            "market_cache_misses": 0,
+            "market_cache_entries": 0,
+            "prepared_runs": 0,
+            "fallback_runs": 0,
+        }
+
+    def __call__(self, data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
         try:
-            if score_config.mode == "portfolio":
-                result = temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
+            if self._can_score_portfolio_prepared(output):
+                result = self._score_portfolio_prepared(output=output, index=index)
             else:
-                result = temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
+                result = self._score_fallback(data=data, output=output, index=index)
             report = result.full_report(trading_days=trading_days, scope="full")
         except Exception as exc:
             raise RuntimeError(
                 "walk-forward endpoint scoring failed during "
-                f"{context} for fold_id={fold.fold_id}; target_mode={target_mode!r}; params={params}"
+                f"{context} for fold_id={fold.fold_id}; target_mode={self.target_mode!r}; params={params}"
             ) from exc
         return {
             "sharpe": float(report.get("sharpe", 0.0)),
@@ -1925,7 +2015,124 @@ def _make_walkforward_endpoint_scorer(config: EndpointConfig, target_mode: str, 
             "profit_factor": float(report.get("profit_factor", 0.0)),
         }
 
-    return scorer
+    def prepared_cache_metadata(self) -> Dict[str, object]:
+        meta = dict(self._stats)
+        meta["market_cache_entries"] = len(self._portfolio_market_cache)
+        meta["available"] = self.target_mode == "portfolio" and self.score_config.backend == "native_portfolio"
+        return meta
+
+    def _can_score_portfolio_prepared(self, output) -> bool:
+        return (
+            self.use_prepared_cache
+            and self.score_config.mode == "portfolio"
+            and self.score_config.backend == "native_portfolio"
+            and isinstance(output, (pd.DataFrame, dict))
+        )
+
+    def _score_fallback(self, data, output, index):
+        self._stats["fallback_runs"] += 1
+        temp = QuantBTEndpoint(self.score_config)
+        sliced_data = _slice_wf_data_to_index(data, index)
+        symbol_list = self._symbol_list(output)
+        if self.score_config.mode == "portfolio":
+            return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
+        return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
+
+    def _score_portfolio_prepared(self, output, index):
+        idx = _ensure_utc_index(index)
+        symbol_list = self._symbol_list(output)
+        close_map, high_map, low_map = self._portfolio_maps(symbol_list)
+        backend = self._portfolio_backend_instance()
+        cache_key = self._market_cache_key(idx, symbol_list)
+        market = self._portfolio_market_cache.get(cache_key)
+        if market is None:
+            market = backend.prepare_market_arrays(
+                datetime_index=idx,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=self.score_config.funding_rate,
+                symbols=symbol_list,
+            )
+            self._portfolio_market_cache[cache_key] = market
+            self._stats["market_cache_misses"] += 1
+        else:
+            self._stats["market_cache_hits"] += 1
+
+        pos_map = _positions_to_map(output)
+        raw_signals = NativePortfolioBackend.prepare_signal_matrix(pos_map, idx, symbol_list)
+        self._stats["prepared_runs"] += 1
+        return backend.run_signals(
+            positions=None,
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            datetime_index=idx,
+            mode=self.score_config.portfolio_mode,
+            alloc_per_trade=self.score_config.alloc_per_trade,
+            contract_size=self.score_config.contract_size,
+            hedge_type=self.score_config.sizing if self.score_config.sizing else "notional",
+            funding_rate=self.score_config.funding_rate,
+            leverage=self.score_config.account.leverage,
+            maintenance_ratio=self.score_config.account.maintenance_ratio,
+            asset_type=self.score_config.asset_type,
+            use_pyramiding=self.score_config.use_pyramiding,
+            betas=self.score_config.betas,
+            risk_lookback=self.score_config.risk_lookback,
+            market_arrays=market,
+            raw_signal_matrix=raw_signals,
+            instruments=self.score_config.instruments,
+            qty_step=self.score_config.qty_step,
+            lot_size=self.score_config.lot_size,
+            slot_size=self.score_config.slot_size,
+            min_qty=self.score_config.min_qty,
+            min_notional=self.score_config.min_notional,
+        )
+
+    def _portfolio_backend_instance(self) -> NativePortfolioBackend:
+        if self._portfolio_backend is None:
+            asset_type = self.score_config.asset_type.lower()
+            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
+            fee_oneway = (self.score_config.fee if self.score_config.fee is not None else default_fee) / 2.0
+            self._portfolio_backend = NativePortfolioBackend(
+                NativePortfolioConfig(
+                    account=self.score_config.account,
+                    execution=self.score_config.execution,
+                    fee_rate=fee_oneway,
+                    use_funding=bool(self.score_config.use_funding),
+                )
+            )
+        return self._portfolio_backend
+
+    def _portfolio_maps(self, symbol_list):
+        key = tuple(symbol_list)
+        if key not in self._portfolio_market_maps:
+            close_map, high_map, low_map, _idx, _symbols = _normalize_symbol_data(
+                data=self.market_data,
+                closes=self.market_closes,
+                highs=self.market_highs,
+                lows=self.market_lows,
+                datetime_index=self.market_datetime_index,
+                symbols=symbol_list,
+            )
+            self._portfolio_market_maps[key] = (close_map, high_map, low_map)
+        return self._portfolio_market_maps[key]
+
+    def _symbol_list(self, output) -> list:
+        if self.symbols:
+            return list(self.symbols)
+        if isinstance(output, pd.DataFrame):
+            return list(output.columns)
+        if isinstance(output, dict):
+            return list(output.keys())
+        return ["DEFAULT"]
+
+    @staticmethod
+    def _market_cache_key(index: pd.DatetimeIndex, symbols: Sequence[str]):
+        idx = _ensure_utc_index(index)
+        first = None if len(idx) == 0 else int(idx.asi8[0])
+        last = None if len(idx) == 0 else int(idx.asi8[-1])
+        return (tuple(symbols), int(len(idx)), first, last)
 
 
 def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> EndpointConfig:
