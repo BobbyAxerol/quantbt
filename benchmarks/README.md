@@ -67,6 +67,10 @@ Options Phase 10:
 ```bash
 python3 benchmarks/run_options_engine.py --snapshots 96 --contracts 48 --packages 96 --repeats 3
 python3 benchmarks/gamma_scalping_backtestsample.py --snapshots 90 --seed 42
+python3 benchmarks/gamma_scalping_backtestsample.py \
+  --real-options-csv /root/bobby/pool_alpha/alphas_storage/option_based/options_full_history.csv.gz \
+  --underlying-source spot \
+  --hedge-timeframe 1h
 ```
 
 - `options_phase10_baseline.*` records prepared-tape and compiled-package cache
@@ -77,5 +81,9 @@ python3 benchmarks/gamma_scalping_backtestsample.py --snapshots 90 --seed 42
   smoke sample. It keeps the original research helpers, then runs the public
   `QuantBTEndpoint.options(...)` path with prepared-cache parity and a separate
   delta-hedge path report.
+- The real-data mode converts legacy Binance options CSV history into QuantBT's
+  canonical option-chain schema, selects an ATM call/put pair with entry/exit
+  quotes, and loads BTCUSDT spot or USD-M perpetual candles from `_get_data` for
+  hedge-path accounting.
 - Cython/C++ should only be considered after a larger profile shows pure
   kernels, not pandas/tape/report facade work, dominating runtime.
