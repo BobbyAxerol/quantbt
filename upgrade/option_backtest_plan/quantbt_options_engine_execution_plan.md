@@ -659,6 +659,72 @@ Acceptance:
 - Scenario PM report states `venue_exact=false`.
 - Liquidation audit explains breach, orders, fees and final state.
 
+Status: completed.
+
+Implemented:
+
+- Added `options/hedging.py`:
+  - `OptionHedgePolicyType`;
+  - `OptionHedgeConfig`;
+  - `HedgeDecision`;
+  - `HedgePathResult`;
+  - `compute_net_option_delta(...)`;
+  - `hedge_decision(...)`;
+  - `run_delta_hedge_path(...)`.
+- Implemented hedge policies:
+  - fixed threshold;
+  - hysteresis band;
+  - time-based;
+  - realized-vol scaled band.
+- Locked hedge accounting order:
+  - hedge PnL for `price[t-1] -> price[t]` uses hedge quantity held at `t-1`;
+  - rebalance is evaluated only after current option delta is recomputed.
+- Added `options/margin.py`:
+  - `OptionMarginModel`;
+  - `OptionMarginConfig`;
+  - `OptionMarginRequirement`;
+  - `ExternalOptionMarginValidator`;
+  - `OptionLiquidationAudit`;
+  - `calculate_option_margin(...)`;
+  - `liquidate_option_positions(...)`.
+- Implemented margin models:
+  - long-premium-only;
+  - standard venue approximation;
+  - scenario PM approximation with `venue_exact=false`;
+  - no-margin research;
+  - external validator interface.
+- Implemented liquidation audit:
+  - maintenance breach check;
+  - adverse bid/ask liquidation;
+  - fee reporting;
+  - final cash and final positions.
+- Exported Phase 6 APIs from `quantbt.options` and top-level `quantbt`.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+  - result: `71 passed`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.OptionHedgeConfig; assert quantbt.OptionMarginConfig; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase6_import_smoke=pass')"`
+  - result: `phase6_import_smoke=pass`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `357 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 6:
+
+- Hedge models are deterministic policy primitives, not a full integrated option
+  backtest loop yet. Backend wiring is Phase 7.
+- Whalley-Wilmott is intentionally not implemented.
+- Standard and scenario margin are approximations. Scenario PM explicitly
+  reports `venue_exact=false`.
+- External venue margin validator is an interface only; no venue adapter is
+  implemented in Phase 6.
+- Liquidation sequence closes all option positions with adverse BBO prices; it
+  is not an exchange liquidation engine, queue model, or partial liquidation
+  optimizer.
+- Underlying hedge instrument execution and fees are not yet integrated with
+  option package execution.
+
 ## Phase 7 - Backend, Engine, Endpoint, Result
 
 Files:

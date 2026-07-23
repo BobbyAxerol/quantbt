@@ -34,6 +34,15 @@ from .greeks import (
     linear_black76_greeks,
     scale_greeks_to_reporting_currency,
 )
+from .hedging import (
+    HedgeDecision,
+    HedgePathResult,
+    OptionHedgeConfig,
+    OptionHedgePolicyType,
+    compute_net_option_delta,
+    hedge_decision,
+    run_delta_hedge_path,
+)
 from .iv import IVStatus, ImpliedVolResult, implied_vol_black76, implied_vol_inverse_black76_base
 from .ledger import OptionLedger, OptionPosition
 from .lifecycle import (
@@ -41,6 +50,15 @@ from .lifecycle import (
     OptionSettlementResult,
     option_expiry_payoff_per_unit,
     settle_option_expiry,
+)
+from .margin import (
+    ExternalOptionMarginValidator,
+    OptionLiquidationAudit,
+    OptionMarginConfig,
+    OptionMarginModel,
+    OptionMarginRequirement,
+    calculate_option_margin,
+    liquidate_option_positions,
 )
 from .packages import (
     OptionPackageExecutionPolicy,
@@ -83,17 +101,26 @@ from .tape import YEAR_NS, OptionTapeSignature, PreparedOptionTape, prepare_opti
 __all__ = [
     "CANONICAL_OPTION_CHAIN_COLUMNS",
     "ExerciseStyle",
+    "ExternalOptionMarginValidator",
+    "HedgeDecision",
+    "HedgePathResult",
     "InstrumentRegistrySignature",
     "OptionDecisionFillPolicy",
     "OptionDepthFidelity",
     "OptionExecutionConfig",
     "OptionFeeResult",
     "OptionFeeSchedule",
+    "OptionHedgeConfig",
+    "OptionHedgePolicyType",
     "OptionInstrumentRegistry",
     "OptionInstrumentSpec",
     "OptionKind",
     "OptionGreeks",
     "OptionLimitFidelity",
+    "OptionLiquidationAudit",
+    "OptionMarginConfig",
+    "OptionMarginModel",
+    "OptionMarginRequirement",
     "OptionPackageExecutionPolicy",
     "OptionPackageExecutionResult",
     "OptionPackageIntent",
@@ -118,6 +145,7 @@ __all__ = [
     "black76_parity_value",
     "black76_price",
     "calculate_option_fee",
+    "calculate_option_margin",
     "compile_option_package_orders",
     "deribit_inverse_option_convention",
     "deribit_inverse_fee_schedule",
@@ -135,9 +163,13 @@ __all__ = [
     "ImpliedVolResult",
     "linear_black76_greeks",
     "available_option_rows",
+    "compute_net_option_delta",
     "execute_option_package",
+    "hedge_decision",
+    "liquidate_option_positions",
     "option_expiry_payoff_per_unit",
     "prepare_option_tape",
+    "run_delta_hedge_path",
     "scale_greeks_to_reporting_currency",
     "select_atm_option",
     "select_target_delta_option",
