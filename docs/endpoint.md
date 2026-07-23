@@ -1844,6 +1844,35 @@ QuantBTEndpoint.arbitrage_support_matrix()["OptionsVolArbSpec"]
 `OptionsVolArbSpec` is routed to the specialized option route only. It should
 not be executed through generic arbitrage package backends.
 
+### Option Strategy Templates
+
+Phase 8 adds package builders under `quantbt.options.templates` and re-exports
+them from top-level `quantbt`:
+
+```python
+from quantbt import long_call, vertical, butterfly, calendar
+
+pkg = vertical(
+    timestamp_ns,
+    long_option_id="BTC-C100",
+    short_option_id="BTC-C110",
+    quantity=1.0,
+)
+```
+
+Supported V1 builders:
+
+- `long_call`, `short_call`, `long_put`, `short_put`;
+- `straddle`, `strangle`;
+- `vertical`, `butterfly`, `condor`, `calendar`;
+- `covered_call`, `collar`, `risk_reversal`.
+
+The builders only emit `OptionPackageIntent`. They do not compute payoff, PnL,
+margin, or Greeks. Covered-call and collar templates include an explicit
+underlying leg for domain clarity; the Phase 7 native option endpoint executes
+option-chain legs only, so mixed underlying+option execution remains a later
+adapter/engine fidelity item.
+
 ## Common Errors
 
 `single-symbol endpoint requires data DataFrame`

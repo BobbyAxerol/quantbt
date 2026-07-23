@@ -97,6 +97,21 @@ from .selectors import (
 )
 from .surface import SurfaceDiagnostics, TotalVarianceSurface
 from .tape import YEAR_NS, OptionTapeSignature, PreparedOptionTape, prepare_option_tape
+from .templates import (
+    butterfly,
+    calendar,
+    collar,
+    condor,
+    covered_call,
+    long_call,
+    long_put,
+    risk_reversal,
+    short_call,
+    short_put,
+    straddle,
+    strangle,
+    vertical,
+)
 
 __all__ = [
     "CANONICAL_OPTION_CHAIN_COLUMNS",
@@ -176,5 +191,18 @@ __all__ = [
     "select_target_dte_option",
     "select_target_moneyness_option",
     "settle_option_expiry",
+    "butterfly",
+    "calendar",
+    "collar",
+    "condor",
+    "covered_call",
+    "long_call",
+    "long_put",
+    "risk_reversal",
+    "short_call",
+    "short_put",
+    "straddle",
+    "strangle",
+    "vertical",
     "validate_option_chain_frame",
 ]

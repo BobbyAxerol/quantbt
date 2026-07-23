@@ -831,6 +831,51 @@ Acceptance:
 - Golden payoff tests pass for all V1 structures.
 - Templates only emit package intents; they do not compute PnL manually.
 
+Status: completed.
+
+Implementation notes:
+
+- Added `options/templates/` with V1 package builders:
+  - long/short call;
+  - long/short put;
+  - straddle;
+  - strangle;
+  - vertical;
+  - butterfly;
+  - condor;
+  - calendar;
+  - covered call;
+  - collar;
+  - risk reversal.
+- Builders emit `OptionPackageIntent` and `OptionPackageLeg` only.
+- Added golden expiry payoff tests for every V1 structure using a linear USD
+  registry and intrinsic payoff assertions.
+- Added mock examples under `examples/options/`:
+  - Deribit inverse long straddle / gamma-scalping skeleton;
+  - linear call vertical;
+  - covered call package construction;
+  - call calendar spread.
+- Exported template builders from `quantbt.options` and top-level `quantbt`.
+
+Validation:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options examples/options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+- Runnable examples:
+  - `examples/options/linear_spread.py`
+  - `examples/options/calendar_spread.py`
+  - `examples/options/covered_call.py`
+  - `examples/options/deribit_inverse_gamma_scalping.py`
+
+Technical debt after Phase 8:
+
+- Covered call and collar templates correctly emit an underlying leg, but
+  Phase 7 native option endpoint still executes option-chain legs only.
+  Mixed underlying+option execution is a later adapter/engine fidelity item.
+- Payoff tests validate terminal intrinsic shapes, not venue margin or hedging.
+- Strategy templates are simple package builders; research signal generation
+  and option selection still belong to the strategy/research layer.
+
 ## Phase 9 - Nautilus Validation
 
 Files:
