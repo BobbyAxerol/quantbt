@@ -40,6 +40,9 @@ historical reproduction.
   run manifest, and optional QuantStats HTML.
 - Nautilus certification bundles with parity CSVs, tolerance profiles, known
   differences, and explicit skip/pass status for optional trustee workflows.
+- Nautilus package-depth preflight with OHLCV volume caps and synthetic-book
+  stress tests for spread, queue, participation, partial-fill, and package
+  rejection assumptions.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection, plus full-sample robust calibration for final
   production parameter discovery.
@@ -228,6 +231,12 @@ are supported, experimental, or planned before wiring a service.
 Experimental Nautilus package validation is available for DCA/grid,
 bracket/OCO, basket, and portfolio workflows by compiling strategy state into
 explicit order packages.
+
+Package-depth validation is opt-in. `depth_model="ohlcv_volume_cap"` is the
+default Level-1 preflight, `depth_model="synthetic_book"` creates deterministic
+Level-2 stress books from spread/depth assumptions, and future
+`depth_model="l2_replay"` is intentionally gated until real venue snapshots,
+incremental updates, and trade prints are provided.
 
 Supported Binance perpetual validation instruments:
 

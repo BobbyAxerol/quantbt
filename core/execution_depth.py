@@ -18,6 +18,9 @@ from .orders import OrderIntent
 from .schema import OrderSide, OrderType
 
 
+SUPPORTED_DEPTH_MODELS = ("ohlcv_volume_cap", "synthetic_book", "l2_replay")
+
+
 @dataclass(frozen=True)
 class NautilusExecutionDepthConfig:
     """
@@ -34,18 +37,38 @@ class NautilusExecutionDepthConfig:
     queue_ahead_qty: float = 0.0
     latency_bars: int = 0
     depth_model: str = "ohlcv_volume_cap"
+    synthetic_spread_bps: float = 2.0
+    synthetic_level_spacing_bps: Optional[float] = None
+    synthetic_levels: int = 5
+    synthetic_base_depth_qty: Optional[float] = None
+    synthetic_base_depth_notional: Optional[float] = None
+    synthetic_depth_slope: float = 0.0
     activate_oco_after_entry_fill: bool = True
     cancel_oco_sibling_on_first_exit_fill: bool = True
     cap_reduce_only_to_position: bool = True
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.depth_model not in SUPPORTED_DEPTH_MODELS:
+            raise ValueError(f"depth_model must be one of {SUPPORTED_DEPTH_MODELS}")
         if self.max_participation_rate is not None and not 0.0 <= self.max_participation_rate <= 1.0:
             raise ValueError("max_participation_rate must be in [0, 1]")
         if self.queue_ahead_qty < 0.0:
             raise ValueError("queue_ahead_qty must be >= 0")
         if self.latency_bars < 0:
             raise ValueError("latency_bars must be >= 0")
+        if self.synthetic_spread_bps < 0.0:
+            raise ValueError("synthetic_spread_bps must be >= 0")
+        if self.synthetic_level_spacing_bps is not None and self.synthetic_level_spacing_bps < 0.0:
+            raise ValueError("synthetic_level_spacing_bps must be >= 0")
+        if self.synthetic_levels <= 0:
+            raise ValueError("synthetic_levels must be > 0")
+        if self.synthetic_base_depth_qty is not None and self.synthetic_base_depth_qty <= 0.0:
+            raise ValueError("synthetic_base_depth_qty must be > 0")
+        if self.synthetic_base_depth_notional is not None and self.synthetic_base_depth_notional <= 0.0:
+            raise ValueError("synthetic_base_depth_notional must be > 0")
+        if self.synthetic_depth_slope < -1.0:
+            raise ValueError("synthetic_depth_slope must be >= -1")
 
 
 @dataclass(frozen=True)
@@ -54,6 +77,17 @@ class PackageDepthPreflightResult:
     order_report: pd.DataFrame
     package_report: pd.DataFrame
     metadata: Dict = field(default_factory=dict)
+
+
+def l2_replay_available(provider: object = None) -> bool:
+    """
+    Return whether a real L2 replay provider is configured.
+
+    QuantBT intentionally does not synthesize Level-3 venue claims. A provider
+    must expose venue snapshots, incremental book updates, and trade prints.
+    """
+    required = ("snapshots", "updates", "trades")
+    return provider is not None and all(hasattr(provider, name) for name in required)
 
 
 def simulate_nautilus_order_package_depth(
@@ -70,6 +104,11 @@ def simulate_nautilus_order_package_depth(
     reduce-only caps, OCO sibling cancellation, and all-or-none package reject.
     """
     cfg = config or NautilusExecutionDepthConfig()
+    if cfg.depth_model == "l2_replay":
+        raise NotImplementedError(
+            "depth_model='l2_replay' requires real venue L2 snapshots, incremental updates, "
+            "trade prints, and a provider adapter. Use depth_model='synthetic_book' for deterministic stress tests."
+        )
     if not orders:
         return PackageDepthPreflightResult(
             orders=tuple(),
@@ -149,6 +188,7 @@ def simulate_nautilus_order_package_depth(
         "allow_partial_fills": bool(cfg.allow_partial_fills),
         "all_or_none_packages": bool(cfg.all_or_none_packages),
         "depth_model": str(cfg.depth_model),
+        "supported_depth_models": SUPPORTED_DEPTH_MODELS,
         **cfg.metadata,
     }
     return PackageDepthPreflightResult(
@@ -187,6 +227,16 @@ class _EvaluatedOrder:
     accepted_order: Optional[OrderIntent]
 
 
+@dataclass(frozen=True)
+class _DepthFill:
+    fillable: bool
+    fill_price: float
+    reason: str
+    available_qty: float
+    levels_consumed: int = 0
+    participation_cap_qty: float = np.nan
+
+
 _ORDER_REPORT_COLUMNS = [
     "timestamp",
     "effective_timestamp",
@@ -204,6 +254,13 @@ _ORDER_REPORT_COLUMNS = [
     "oco_group_id",
     "latency_bars",
     "available_qty",
+    "depth_model",
+    "levels_consumed",
+    "spread_bps",
+    "queue_ahead_qty",
+    "participation_cap_qty",
+    "requested_notional",
+    "filled_notional",
 ]
 
 _PACKAGE_REPORT_COLUMNS = ["package_id", "package_type", "timestamp", "orders", "status", "reason"]
@@ -235,11 +292,11 @@ def _evaluate_order(
         return _EvaluatedOrder(row=row, accepted_order=None)
 
     bar = frame.loc[ts]
-    fillable, fill_price, reason = _fillability(order, bar)
-    if not fillable:
-        return _reject(base, reason)
+    depth_fill = _evaluate_depth_fill(order, bar, cfg)
+    if not depth_fill.fillable:
+        return _reject(base, depth_fill.reason)
 
-    available = _available_qty(order, bar, cfg)
+    available = depth_fill.available_qty
     requested = float(order.qty)
     reduce_only_capped = False
     if order.reduce_only and cfg.cap_reduce_only_to_position:
@@ -263,6 +320,7 @@ def _evaluate_order(
             "depth_original_qty": requested,
             "depth_effective_timestamp": ts,
             "depth_status": status,
+            "depth_model": cfg.depth_model,
         }
         accepted_order = replace(order, timestamp=ts, qty=float(filled_qty), metadata=metadata)
 
@@ -276,10 +334,14 @@ def _evaluate_order(
     row = {
         **base,
         "filled_qty": float(filled_qty),
-        "fill_price": float(fill_price),
+        "fill_price": float(depth_fill.fill_price),
         "status": status,
         "reject_reason": "",
         "available_qty": float(available),
+        "levels_consumed": int(depth_fill.levels_consumed),
+        "participation_cap_qty": float(depth_fill.participation_cap_qty),
+        "requested_notional": float(requested * depth_fill.fill_price),
+        "filled_notional": float(filled_qty * depth_fill.fill_price),
     }
     return _EvaluatedOrder(row=row, accepted_order=accepted_order)
 
@@ -316,12 +378,126 @@ def _fillability(order: OrderIntent, bar: pd.Series) -> tuple[bool, float, str]:
     return False, np.nan, "unsupported_order_type"
 
 
+def _evaluate_depth_fill(order: OrderIntent, bar: pd.Series, cfg: NautilusExecutionDepthConfig) -> _DepthFill:
+    if cfg.depth_model == "synthetic_book":
+        return _synthetic_book_fill(order, bar, cfg)
+
+    fillable, fill_price, reason = _fillability(order, bar)
+    if not fillable:
+        return _DepthFill(False, fill_price, reason, 0.0)
+    available = _available_qty(order, bar, cfg)
+    participation_cap = _participation_cap_qty(bar, cfg)
+    return _DepthFill(
+        fillable=True,
+        fill_price=float(fill_price),
+        reason="",
+        available_qty=float(available),
+        levels_consumed=1,
+        participation_cap_qty=participation_cap,
+    )
+
+
+def _synthetic_book_fill(order: OrderIntent, bar: pd.Series, cfg: NautilusExecutionDepthConfig) -> _DepthFill:
+    eligible, executable_price, reason = _fillability(order, bar)
+    if not eligible:
+        return _DepthFill(False, executable_price, reason, 0.0)
+
+    close = float(bar["close"])
+    if not np.isfinite(close) or close <= 0.0:
+        return _DepthFill(False, np.nan, "invalid_close_for_synthetic_book", 0.0)
+
+    levels = _synthetic_book_levels(order, close, cfg)
+    if order.order_type in (OrderType.LIMIT, OrderType.STOP_LIMIT):
+        limit_price = float(order.price)
+        if order.side is OrderSide.BUY:
+            levels = tuple((price, qty) for price, qty in levels if price <= limit_price)
+        else:
+            levels = tuple((price, qty) for price, qty in levels if price >= limit_price)
+
+    participation_cap = _participation_cap_qty(bar, cfg)
+    requested = float(order.qty)
+    target_qty = min(requested, participation_cap) if np.isfinite(participation_cap) else requested
+    if target_qty <= 0.0:
+        return _DepthFill(True, executable_price, "", 0.0, participation_cap_qty=participation_cap)
+
+    remaining_queue = float(cfg.queue_ahead_qty)
+    remaining = target_qty
+    filled = 0.0
+    notional = 0.0
+    consumed = 0
+    for price, level_qty in levels:
+        qty_after_queue = float(level_qty)
+        if remaining_queue > 0.0:
+            queue_take = min(qty_after_queue, remaining_queue)
+            qty_after_queue -= queue_take
+            remaining_queue -= queue_take
+        if qty_after_queue <= 0.0:
+            consumed += 1
+            continue
+        take = min(remaining, qty_after_queue)
+        if take <= 0.0:
+            break
+        filled += take
+        notional += take * float(price)
+        remaining -= take
+        consumed += 1
+        if remaining <= 1e-15:
+            break
+
+    if filled <= 0.0:
+        return _DepthFill(True, executable_price, "", 0.0, levels_consumed=consumed, participation_cap_qty=participation_cap)
+    return _DepthFill(
+        fillable=True,
+        fill_price=float(notional / filled),
+        reason="",
+        available_qty=float(filled),
+        levels_consumed=int(consumed),
+        participation_cap_qty=participation_cap,
+    )
+
+
+def _synthetic_book_levels(
+    order: OrderIntent,
+    reference_price: float,
+    cfg: NautilusExecutionDepthConfig,
+) -> Tuple[Tuple[float, float], ...]:
+    half_spread = reference_price * float(cfg.synthetic_spread_bps) / 20_000.0
+    spacing_bps = cfg.synthetic_level_spacing_bps
+    if spacing_bps is None:
+        spacing_bps = max(float(cfg.synthetic_spread_bps), 1.0)
+    spacing = reference_price * float(spacing_bps) / 10_000.0
+
+    if cfg.synthetic_base_depth_qty is not None:
+        base_qty = float(cfg.synthetic_base_depth_qty)
+    elif cfg.synthetic_base_depth_notional is not None:
+        base_qty = float(cfg.synthetic_base_depth_notional) / reference_price
+    else:
+        base_qty = float(order.qty)
+
+    out: list[Tuple[float, float]] = []
+    for level in range(int(cfg.synthetic_levels)):
+        if order.side is OrderSide.BUY:
+            price = reference_price + half_spread + level * spacing
+        else:
+            price = reference_price - half_spread - level * spacing
+        qty_multiplier = max(0.0, 1.0 + float(cfg.synthetic_depth_slope) * level)
+        out.append((float(price), float(base_qty * qty_multiplier)))
+    return tuple(out)
+
+
 def _available_qty(order: OrderIntent, bar: pd.Series, cfg: NautilusExecutionDepthConfig) -> float:
     if cfg.max_participation_rate is None:
         return float(order.qty)
     volume = float(bar.get("volume", 0.0))
     capacity = max(0.0, volume * float(cfg.max_participation_rate) - float(cfg.queue_ahead_qty))
     return min(float(order.qty), capacity)
+
+
+def _participation_cap_qty(bar: pd.Series, cfg: NautilusExecutionDepthConfig) -> float:
+    if cfg.max_participation_rate is None:
+        return np.nan
+    volume = float(bar.get("volume", 0.0))
+    return max(0.0, volume * float(cfg.max_participation_rate))
 
 
 def _effective_timestamp(
@@ -381,6 +557,13 @@ def _base_row(order: OrderIntent, effective_timestamp: Optional[pd.Timestamp], c
         "oco_group_id": order.metadata.get("oco_group_id"),
         "latency_bars": int(cfg.latency_bars),
         "available_qty": np.nan,
+        "depth_model": str(cfg.depth_model),
+        "levels_consumed": 0,
+        "spread_bps": float(cfg.synthetic_spread_bps) if cfg.depth_model == "synthetic_book" else np.nan,
+        "queue_ahead_qty": float(cfg.queue_ahead_qty),
+        "participation_cap_qty": np.nan,
+        "requested_notional": np.nan,
+        "filled_notional": 0.0,
     }
 
 

@@ -2688,6 +2688,11 @@ Safety notes:
 
 ### Phase 15B - Nautilus Depth, Synthetic Book, And Specialized Arbitrage Plan
 
+Status: completed for Level-2 synthetic depth stress and documentation
+guardrails. Real venue L2 replay, exchange-native OCO lists, in-strategy
+dynamic DCA state machines, and specialized cross-exchange / triangular /
+options-vol engines remain future production work.
+
 Purpose:
 
 Define and implement the next depth layer carefully, without claiming exchange
@@ -2718,9 +2723,13 @@ Nautilus depth scope:
   - map to exchange-native order-list semantics if Nautilus route is stable;
   - otherwise keep package-strategy cancellation and document the difference.
 - Depth model abstraction:
-  - `OHLCVDepthModel`;
-  - `SyntheticBookDepthModel`;
-  - `L2ReplayDepthModel` future adapter.
+  - `OHLCVDepthModel` maps to `depth_model="ohlcv_volume_cap"` and remains the
+    default;
+  - `SyntheticBookDepthModel` maps to `depth_model="synthetic_book"` and now
+    supports deterministic spread, level spacing, level depth, depth slope,
+    participation cap, queue-ahead, partial-fill, and limit-price filtering;
+  - `L2ReplayDepthModel` maps to `depth_model="l2_replay"` and intentionally
+    refuses to run without real venue depth provider data.
 
 Specialized arbitrage scope:
 
@@ -2742,10 +2751,27 @@ Specialized arbitrage scope:
 Acceptance:
 
 - Synthetic-book tests prove depth model invariants without requiring private
-  venue data.
-- Real L2 tests skip clearly when no L2 provider is configured.
+  venue data: `tests/test_phase15b_synthetic_depth.py`.
+- Endpoint package routing accepts the synthetic depth config:
+  `tests/test_phase5_4_endpoint_depth.py::test_phase15b_endpoint_depth_accepts_synthetic_book_model`.
+- Real L2 tests skip clearly when no L2 provider is configured via
+  `l2_replay_available(...)`.
 - Schema-only arbitrage specs remain rejected until their specialized engine has
   accounting audit, parity tests, and docs.
+
+Latest local artifacts:
+
+- `benchmarks/phase15b_synthetic_depth.json`;
+- `benchmarks/phase15b_synthetic_depth.md`;
+- `benchmarks/run_phase15b_synthetic_depth.py`.
+
+Safety notes:
+
+- Phase 15B does not change default endpoint behavior because
+  `depth_model="ohlcv_volume_cap"` remains the default.
+- Synthetic depth is an execution stress model, not an exchange L2 replay.
+- `l2_replay` raises explicitly until venue snapshots, incremental updates,
+  trade prints, and timestamp/latency assumptions are provided.
 
 ---
 
