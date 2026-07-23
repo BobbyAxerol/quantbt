@@ -644,6 +644,22 @@ deterministic Level-2 execution stress, and reserve `l2_replay` for future real
 venue book replay. `l2_replay` intentionally refuses to run without a provider
 containing snapshots, incremental book updates, and trade prints.
 
+Depth helper surface:
+
+```python
+from quantbt import SUPPORTED_DEPTH_MODELS, l2_replay_available
+
+SUPPORTED_DEPTH_MODELS
+# ("ohlcv_volume_cap", "synthetic_book", "l2_replay")
+
+if l2_replay_available(provider):
+    ...
+```
+
+`l2_replay_available(...)` is a guardrail helper. It only returns true when a
+provider exposes `snapshots`, `updates`, and `trades`; otherwise services should
+use `ohlcv_volume_cap` or `synthetic_book` and label reports accordingly.
+
 Structured bracket/OCO validation:
 
 ```python
