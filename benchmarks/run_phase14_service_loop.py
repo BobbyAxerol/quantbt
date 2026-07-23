@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 14B real WFO and service-loop benchmark.
+Phase 14C real WFO and service-loop benchmark.
 
 This runner measures the remaining higher-level performance debt without
 changing engine semantics.  It is intentionally a benchmark/certification
@@ -86,7 +86,7 @@ def run_benchmark(
     portfolio_wfo = _portfolio_wfo_benchmark(rows=rows, trials=trials, repeats=repeats)
     event_replay = _native_event_replay_benchmark(rows=rows, symbols=symbols, order_count=order_count, repeats=repeats)
     arbitrage_sweep = _arbitrage_package_sweep(rows=rows, repeats=repeats)
-    report_cost = _report_heavy_vs_light(rows=rows, symbols=symbols, repeats=repeats)
+    report_cost = _report_level_benchmark(rows=rows, symbols=symbols, repeats=repeats)
 
     parity = {
         "single_symbol_wfo": single_wfo["parity_passed"],
@@ -130,7 +130,7 @@ def run_benchmark(
 def make_markdown(report: Dict) -> str:
     loops = report["service_loops"]
     lines = [
-        "# Phase 14B Real WFO And Service-Loop Benchmark",
+        "# Phase 14C Prepared Cache And Report-Level Benchmark",
         "",
         f"Status: **{report['status']}**",
         "",
@@ -152,7 +152,7 @@ def make_markdown(report: Dict) -> str:
         ("portfolio_wfo", "portfolio WFO"),
         ("native_event_replay", "native-event replay"),
         ("arbitrage_package_sweep", "arbitrage sweep"),
-        ("report_heavy_vs_light", "report heavy vs light"),
+        ("report_heavy_vs_light", "portfolio report levels"),
     ):
         item = loops[key]
         lines.append(
@@ -232,14 +232,16 @@ def _single_symbol_wfo_benchmark(*, rows: int, trials: int, repeats: int) -> Dic
     _quiet_optuna()
     data = _single_frame(rows)
 
-    def run_once():
+    def run_once(use_cache: bool):
         endpoint = QuantBTEndpoint.train_test_split(
             strategy_class=_single_wfo_strategy,
             test_start=data.index[max(20, len(data) // 2)],
-            target_mode="pct_equity",
+            target_mode="signal_notional",
+            backend="native_vectorized",
             optimization_mode="mode_5_full_robust",
             optimization_config={
                 "scoring_backend": "endpoint",
+                "use_prepared_scoring_cache": bool(use_cache),
                 "candidate_selection_metric": "full_plateau_robust",
                 "top_is_fraction": 0.3,
                 "scoring_trading_days": 365,
@@ -249,28 +251,31 @@ def _single_symbol_wfo_benchmark(*, rows: int, trials: int, repeats: int) -> Dic
             random_seed=42,
             initial_capital=20_000.0,
             leverage=3.0,
-            alloc_per_trade=0.35,
-            fee=0.0002,
+            alloc_per_trade=5_000.0,
+            fee_rate=0.0001,
             use_funding=False,
             use_pyramiding=False,
         )
         return endpoint.backtest(data=data, param_ranges={"threshold": (0.2, 1.2, 0.1)})
 
-    first = run_once()
-    seconds = _timeit(run_once, repeats)
-    peak_memory_mb = _peak_memory_mb(run_once)
-    rpt_start = time.perf_counter()
-    full_report = first.full_report(scope="full")
-    report_seconds = time.perf_counter() - rpt_start
+    cached = run_once(True)
+    uncached = run_once(False)
+    cached_seconds = _timeit(lambda: run_once(True), repeats)
+    uncached_seconds = _timeit(lambda: run_once(False), repeats)
+    peak_memory_mb = _peak_memory_mb(lambda: run_once(True))
+    equity_diff = float(abs(cached.equity.iloc[-1] - uncached.equity.iloc[-1]))
+    objective_diff = float(abs(cached.metadata["walk_forward"]["best_trial"]["objective"] - uncached.metadata["walk_forward"]["best_trial"]["objective"]))
     return {
-        "full_seconds": float(seconds),
-        "prepared_seconds": float(report_seconds),
-        "speedup": float(seconds / report_seconds) if report_seconds > 0.0 else 0.0,
-        "parity_passed": bool(np.isfinite(first.equity.iloc[-1]) and full_report["num_trades"] >= 0),
+        "full_seconds": float(uncached_seconds),
+        "prepared_seconds": float(cached_seconds),
+        "speedup": float(uncached_seconds / cached_seconds) if cached_seconds > 0.0 else 0.0,
+        "parity_passed": bool(equity_diff <= 1e-9 and objective_diff <= 1e-12),
         "peak_memory_mb": peak_memory_mb,
-        "final_equity": float(first.equity.iloc[-1]),
-        "best_params": first.metadata["walk_forward"].get("params", {}),
-        "notes": "prepared column reports metric/export cost only; single-symbol WFO cache is Phase 14C work",
+        "final_equity_diff": equity_diff,
+        "objective_diff": objective_diff,
+        "cache_metadata": cached.metadata["walk_forward"].get("prepared_scoring_cache", {}),
+        "best_params": cached.metadata["walk_forward"].get("params", {}),
+        "notes": "compares uncached vs prepared single-symbol native-vectorized WFO endpoint scoring",
     }
 
 
@@ -401,34 +406,87 @@ def _arbitrage_package_sweep(*, rows: int, repeats: int) -> Dict:
     vector = NativeVectorizedBackend(NativeVectorizedConfig(account=account, fee_rate=0.0001, use_funding=True))
     funding = {"PERP": pd.Series(0.00005, index=idx), "QUARTERLY": 0.0}
 
+    market = event.prepare_market_arrays(idx, closes=closes, highs=closes, lows=closes, funding_rate=funding, symbols=list(closes))
+
     def run_event():
         return event.run_basis_arbitrage(idx, spec, signal, closes, funding_rate=funding)
+
+    def run_event_prepared():
+        return event.run_basis_arbitrage(idx, spec, signal, closes, funding_rate=funding, market_arrays=market)
 
     def run_vector():
         return vector.run_basis_arbitrage(idx, spec, signal, closes, funding_rate=funding)
 
     event_result = run_event()
+    prepared_result = run_event_prepared()
     vector_result = run_vector()
     audit = build_arbitrage_domain_audit(event_result)
     parity = compare_native_arbitrage_results(event_result, vector_result)
     event_seconds = _timeit(run_event, repeats)
-    vector_seconds = _timeit(run_vector, repeats)
-    peak_memory_mb = _peak_memory_mb(run_event)
+    prepared_seconds = _timeit(run_event_prepared, repeats)
+    peak_memory_mb = _peak_memory_mb(run_event_prepared)
+    prepared_equity_diff = float(np.max(np.abs(event_result.equity.to_numpy() - prepared_result.equity.to_numpy())))
     return {
         "full_seconds": float(event_seconds),
-        "prepared_seconds": float(vector_seconds),
-        "speedup": float(event_seconds / vector_seconds) if vector_seconds > 0.0 else 0.0,
-        "parity_passed": bool(audit["passed"] and parity["passed"]),
+        "prepared_seconds": float(prepared_seconds),
+        "speedup": float(event_seconds / prepared_seconds) if prepared_seconds > 0.0 else 0.0,
+        "parity_passed": bool(audit["passed"] and parity["passed"] and prepared_equity_diff <= 1e-10),
         "peak_memory_mb": peak_memory_mb,
         "audit_status": audit["status"],
         "parity_status": parity["status"],
         "max_equity_diff": parity["max_abs_equity_diff"],
+        "prepared_equity_diff": prepared_equity_diff,
         "max_package_residual": parity["max_abs_package_residual"],
-        "notes": "event seconds vs vectorized seconds for the same package accounting",
+        "notes": "compares native-event arbitrage package cold vs prepared market-array replay; vectorized parity remains audited",
     }
 
 
-def _report_heavy_vs_light(*, rows: int, symbols: int, repeats: int) -> Dict:
+def _report_level_benchmark(*, rows: int, symbols: int, repeats: int) -> Dict:
+    def make_endpoint(report_level: str):
+        return QuantBTEndpoint.portfolio(
+            portfolio_mode="market_neutral",
+            backend="native_portfolio",
+            initial_capital=100_000.0,
+            leverage=4.0,
+            alloc_per_trade=1_000.0,
+            fee_rate=0.0,
+            use_funding=False,
+            report_level=report_level,
+        )
+
+    full_endpoint = make_endpoint("full")
+    minimal_endpoint = make_endpoint("minimal")
+    data = _portfolio_data(rows, max(2, symbols))
+    positions = _portfolio_positions(next(iter(data.values())).index, max(2, symbols))
+
+    def run_full():
+        return make_endpoint("full").backtest(data=data, positions=positions)
+
+    def run_minimal():
+        return make_endpoint("minimal").backtest(data=data, positions=positions)
+
+    full_result = full_endpoint.backtest(data=data, positions=positions)
+    minimal_result = minimal_endpoint.backtest(data=data, positions=positions)
+    full_seconds = _timeit(run_full, repeats)
+    minimal_seconds = _timeit(run_minimal, repeats)
+    peak_memory_mb = _peak_memory_mb(run_full)
+    equity_diff = float(np.max(np.abs(full_result.equity.to_numpy() - minimal_result.equity.to_numpy())))
+    position_diff = float(np.max(np.abs(full_result.positions.to_numpy() - minimal_result.positions.to_numpy())))
+    return {
+        "full_seconds": float(full_seconds),
+        "light_seconds": float(minimal_seconds),
+        "speedup": float(full_seconds / minimal_seconds) if minimal_seconds > 0.0 else 0.0,
+        "parity_passed": bool(equity_diff <= 1e-10 and position_diff <= 1e-12),
+        "peak_memory_mb": peak_memory_mb,
+        "equity_diff": equity_diff,
+        "position_diff": position_diff,
+        "full_reports": sorted(k for k in full_result.metadata if k.endswith("_report")),
+        "minimal_reports_omitted": tuple(minimal_result.metadata.get("reports_omitted", ())),
+        "notes": "compares native-portfolio report_level='full' vs 'minimal' construction with core accounting parity",
+    }
+
+
+def _legacy_report_heavy_vs_light(*, rows: int, symbols: int, repeats: int) -> Dict:
     endpoint = QuantBTEndpoint.portfolio(
         portfolio_mode="market_neutral",
         backend="native_portfolio",
@@ -465,7 +523,7 @@ def _report_heavy_vs_light(*, rows: int, symbols: int, repeats: int) -> Dict:
         "parity_passed": bool(abs(light_summary["final_equity"] - heavy_report["final_equity"]) <= 1e-9),
         "peak_memory_mb": peak_memory_mb,
         "final_equity": light_summary["final_equity"],
-        "notes": "measures metrics/report export cost; lazy report controls are Phase 14C work",
+        "notes": "legacy measurement of metrics/report export cost",
     }
 
 
@@ -555,7 +613,7 @@ def _next_targets(vectorized_profile, event_profile, portfolio_profile: Dict) ->
         "native_portfolio: `report_construction_estimate` ({:.1f}%)".format(
             float(p["report_construction_share_pct"])
         ),
-        "Phase 14C should prioritize prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy reports.",
+        "Next step should be real workload profiling before considering Cython/C++; Phase 14C moved the main cache/report controls into opt-in APIs.",
     ]
 
 
@@ -567,8 +625,9 @@ def _cython_cpp_recommendation(pure_kernel_share_pct: float) -> str:
         )
     return (
         "Cython/C++ is not justified yet. The measured bottleneck remains in "
-        "facade/report/preparation layers, so Phase 14C should optimize cache "
-        "threading and optional/lazy heavy reports first."
+        "facade/report/preparation layers. Phase 14C added opt-in cache "
+        "threading and report-level controls; larger real service-loop profiles "
+        "should come before any Cython/C++ decision."
     )
 
 

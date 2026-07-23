@@ -1,4 +1,4 @@
-# Phase 14B Real WFO And Service-Loop Benchmark
+# Phase 14C Prepared Cache And Report-Level Benchmark
 
 Status: **pass**
 
@@ -14,29 +14,29 @@ Status: **pass**
 
 | workload | cold/full seconds | prepared/light seconds | speedup | peak MB | parity | notes |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| single-symbol WFO | `0.948989` | `0.025587` | `37.088x` | `0.300` | `True` | prepared column reports metric/export cost only; single-symbol WFO cache is Phase 14C work |
-| portfolio WFO | `0.448197` | `0.402629` | `1.113x` | `0.770` | `True` | compares uncached vs prepared portfolio WFO endpoint scoring |
-| native-event replay | `0.009390` | `0.003640` | `2.580x` | `0.181` | `True` | prepared replay reuses market arrays and compiled order arrays |
-| arbitrage sweep | `0.066270` | `0.072306` | `0.917x` | `0.949` | `True` | event seconds vs vectorized seconds for the same package accounting |
-| report heavy vs light | `0.029557` | `0.000101` | `292.075x` | `0.030` | `True` | measures metrics/report export cost; lazy report controls are Phase 14C work |
+| single-symbol WFO | `1.007189` | `0.883450` | `1.140x` | `0.427` | `True` | compares uncached vs prepared single-symbol native-vectorized WFO endpoint scoring |
+| portfolio WFO | `0.439526` | `0.325665` | `1.350x` | `0.778` | `True` | compares uncached vs prepared portfolio WFO endpoint scoring |
+| native-event replay | `0.009587` | `0.004569` | `2.098x` | `0.180` | `True` | prepared replay reuses market arrays and compiled order arrays |
+| arbitrage sweep | `0.074623` | `0.066327` | `1.125x` | `0.949` | `True` | compares native-event arbitrage package cold vs prepared market-array replay; vectorized parity remains audited |
+| portfolio report levels | `0.041000` | `0.023349` | `1.756x` | `0.916` | `True` | compares native-portfolio report_level='full' vs 'minimal' construction with core accounting parity |
 
 ## Stage Decomposition
 
 | backend | stage | seconds | share |
 | --- | --- | ---: | ---: |
-| `native_vectorized` | `data_normalization` | `0.003683` | `54.04%` |
-| `native_vectorized` | `pandas_to_ndarray` | `0.001808` | `26.53%` |
+| `native_vectorized` | `data_normalization` | `0.003493` | `51.87%` |
+| `native_vectorized` | `pandas_to_ndarray` | `0.001979` | `29.39%` |
 | `native_vectorized` | `target_sizing` | `0.000008` | `0.11%` |
-| `native_vectorized` | `pure_numba_kernel` | `0.000032` | `0.47%` |
-| `native_vectorized` | `result_report_construction` | `0.001285` | `18.85%` |
-| `native_event` | `data_normalization` | `0.002709` | `38.32%` |
-| `native_event` | `pandas_to_ndarray` | `0.001721` | `24.34%` |
-| `native_event` | `order_array_construction` | `0.000872` | `12.33%` |
-| `native_event` | `pure_numba_kernel` | `0.000055` | `0.78%` |
-| `native_event` | `result_report_construction` | `0.001713` | `24.23%` |
-| `native_portfolio` | `array_preparation` | `0.005511` | `20.29%` |
-| `native_portfolio` | `pure_numba_kernel` | `0.000044` | `0.16%` |
-| `native_portfolio` | `report_construction_estimate` | `0.021610` | `79.55%` |
+| `native_vectorized` | `pure_numba_kernel` | `0.000031` | `0.46%` |
+| `native_vectorized` | `result_report_construction` | `0.001223` | `18.16%` |
+| `native_event` | `data_normalization` | `0.002687` | `39.88%` |
+| `native_event` | `pandas_to_ndarray` | `0.001580` | `23.45%` |
+| `native_event` | `order_array_construction` | `0.000745` | `11.06%` |
+| `native_event` | `pure_numba_kernel` | `0.000058` | `0.86%` |
+| `native_event` | `result_report_construction` | `0.001668` | `24.75%` |
+| `native_portfolio` | `array_preparation` | `0.005382` | `21.03%` |
+| `native_portfolio` | `pure_numba_kernel` | `0.000047` | `0.18%` |
+| `native_portfolio` | `report_construction_estimate` | `0.020163` | `78.79%` |
 
 ## Parity Guards
 
@@ -48,13 +48,13 @@ Status: **pass**
 
 ## Next Optimization Targets
 
-- native_vectorized: `data_normalization` (54.0%)
-- native_event: `data_normalization` (38.3%)
-- native_portfolio: `report_construction_estimate` (79.6%)
-- Phase 14C should prioritize prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy reports.
+- native_vectorized: `data_normalization` (51.9%)
+- native_event: `data_normalization` (39.9%)
+- native_portfolio: `report_construction_estimate` (78.8%)
+- Next step should be real workload profiling before considering Cython/C++; Phase 14C moved the main cache/report controls into opt-in APIs.
 
 ## Cython/C++ Decision
 
-Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers, so Phase 14C should optimize cache threading and optional/lazy heavy reports first.
+Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers. Phase 14C added opt-in cache threading and report-level controls; larger real service-loop profiles should come before any Cython/C++ decision.
 
 This report is a measurement artifact. It must not be used to justify changing accounting, fill policy, margin, or report semantics.

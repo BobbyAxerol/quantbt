@@ -1001,6 +1001,33 @@ dollar-neutral beta constraint.
 `dca_ladder` remains on the DCA/grid engine because it requires intrabar
 grid-trigger fills.
 
+Native portfolio report levels:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    portfolio_mode="longshort",
+    backend="native_portfolio",
+    report_level="full",      # full | standard | minimal
+).backtest(
+    positions=positions_df,
+    data=data_dict,
+)
+```
+
+- `full`: default and backward compatible. Keeps all stakeholder/audit tables,
+  including target/accepted notional, exposure, symbol PnL, risk reports, kernel
+  symbol PnL, and rebalance report.
+- `standard`: keeps core audit tables such as target/accepted notional,
+  exposure, funding-rate report, and symbol PnL, but omits selected expansion
+  tables.
+- `minimal`: keeps accounting-critical result surfaces only: equity, returns,
+  positions, closes, fees, funding, margin, diagnostics, target/accepted units,
+  totals, and config metadata. Use it inside optimizers or service loops, then
+  rerun the chosen portfolio with `report_level="full"` for final audit.
+
+Core accounting is identical across report levels; only metadata artifact
+construction changes.
+
 Experimental Nautilus portfolio validation:
 
 ```python
@@ -1206,6 +1233,8 @@ wfo = QuantBTEndpoint.walk_forward(
         # train-only selector for strict train/test split:
         # "candidate_selection_metric": "is_plateau_robust",
         # "scoring_backend": "endpoint",   # endpoint | proxy
+        # "use_prepared_scoring_cache": True,
+        # "prepared_scoring_report_level": "minimal",
         # "plateau_quantile": 0.25,
         # "plateau_median_weight": 0.25,
         # "plateau_std_penalty": 0.50,
@@ -1248,6 +1277,20 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
+
+Prepared endpoint scoring:
+
+- `optimization_config["use_prepared_scoring_cache"]` defaults to `True`.
+- Supported prepared scoring routes currently include single-symbol
+  `target_mode="signal_notional"` with `backend="native_vectorized"` and
+  portfolio `target_mode="portfolio"` with `backend="native_portfolio"`.
+- The cache is run-local to one `.backtest(...)` call and is guarded by
+  datetime/symbol signatures. It avoids repeated pandas OHLC/funding packing
+  during Optuna/WFO scoring.
+- `prepared_scoring_report_level` defaults to `"minimal"` for portfolio scoring
+  so trial objective calculation does not build heavy stakeholder reports for
+  every candidate. Final stitched backtests still use the endpoint
+  `report_level`, which defaults to `"full"`.
 
 Single train/test holdout:
 

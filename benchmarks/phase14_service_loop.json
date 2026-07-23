@@ -1,5 +1,5 @@
 {
-  "cython_cpp_recommendation": "Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers, so Phase 14C should optimize cache threading and optional/lazy heavy reports first.",
+  "cython_cpp_recommendation": "Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers. Phase 14C added opt-in cache threading and report-level controls; larger real service-loop profiles should come before any Cython/C++ decision.",
   "decomposition": {
     "native_event": {
       "backend": "native_event",
@@ -10,51 +10,51 @@
         {
           "backend": "native_event",
           "notes": "validate_datetime + align OHLC/funding",
-          "percent_of_profile": 38.31575011941418,
+          "percent_of_profile": 39.877008194125814,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.002708784071728587,
+          "seconds": 0.002686557942070067,
           "stage": "data_normalization"
         },
         {
           "backend": "native_event",
           "notes": "build contiguous market arrays",
-          "percent_of_profile": 24.342221625972368,
+          "percent_of_profile": 23.447176395706094,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0017209064681082964,
+          "seconds": 0.001579662086442113,
           "stage": "pandas_to_ndarray"
         },
         {
           "backend": "native_event",
           "notes": "compile orders with vectorized timestamp mapping",
-          "percent_of_profile": 12.330953821065313,
+          "percent_of_profile": 11.059133161521158,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0008717535529285669,
+          "seconds": 0.000745065975934267,
           "stage": "order_array_construction"
         },
         {
           "backend": "native_event",
           "notes": "compiled _engine_event_v1 only",
-          "percent_of_profile": 0.7834413518401837,
+          "percent_of_profile": 0.863562245453643,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 5.538645200431347e-05,
+          "seconds": 5.817913915961981e-05,
           "stage": "pure_numba_kernel"
         },
         {
           "backend": "native_event",
           "notes": "order report + Series/DataFrame/BacktestResultV2",
-          "percent_of_profile": 24.227633081707953,
+          "percent_of_profile": 24.753120003193292,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0017128054751083255,
+          "seconds": 0.00166764494497329,
           "stage": "result_report_construction"
         }
       ],
       "symbols": 4,
-      "total_seconds": 0.007069636019878089
+      "total_seconds": 0.006737110088579357
     },
     "native_portfolio": {
       "bar_symbols": 1440,
@@ -62,15 +62,15 @@
       "repeats": 2,
       "rows": 360,
       "stages": {
-        "array_preparation_seconds": 0.005511046969331801,
-        "array_preparation_share_pct": 20.287164779043213,
-        "full_facade_seconds": 0.027165190549567342,
-        "prepared_reuse_facade_seconds": 0.02011526538990438,
-        "prepared_reuse_speedup": 1.3504763682213827,
-        "pure_kernel_share_pct": 0.16227020670185,
-        "pure_numba_kernel_seconds": 4.408101085573435e-05,
-        "report_construction_estimate_seconds": 0.021610062569379807,
-        "report_construction_share_pct": 79.55056501425494
+        "array_preparation_seconds": 0.005381554015912116,
+        "array_preparation_share_pct": 21.028710470172022,
+        "full_facade_seconds": 0.025591459940187633,
+        "prepared_reuse_facade_seconds": 0.022129982942715287,
+        "prepared_reuse_speedup": 1.1564157101445842,
+        "pure_kernel_share_pct": 0.18371145782621087,
+        "pure_numba_kernel_seconds": 4.701444413512945e-05,
+        "report_construction_estimate_seconds": 0.020162891480140388,
+        "report_construction_share_pct": 78.78757807200176
       },
       "status": "pass",
       "symbols": 4
@@ -84,59 +84,59 @@
         {
           "backend": "native_vectorized",
           "notes": "validate_datetime + align OHLC/signals/funding",
-          "percent_of_profile": 54.04174170431701,
+          "percent_of_profile": 51.87375795375464,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0036831673933193088,
+          "seconds": 0.0034934490686282516,
           "stage": "data_normalization"
         },
         {
           "backend": "native_vectorized",
           "notes": "build contiguous market/signal arrays",
-          "percent_of_profile": 26.52544727768939,
+          "percent_of_profile": 29.391058397561075,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0018078185385093093,
+          "seconds": 0.001979346969164908,
           "stage": "pandas_to_ndarray"
         },
         {
           "backend": "native_vectorized",
           "notes": "compute fast signal_notional target-unit matrix",
-          "percent_of_profile": 0.11365479578895471,
+          "percent_of_profile": 0.1114105607254627,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 7.746042683720589e-06,
+          "seconds": 7.502967491745949e-06,
           "stage": "target_sizing"
         },
         {
           "backend": "native_vectorized",
           "notes": "compiled _engine_units_v2 only",
-          "percent_of_profile": 0.4714544001340258,
+          "percent_of_profile": 0.4642198890789888,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 3.2131560146808624e-05,
+          "seconds": 3.1262985430657864e-05,
           "stage": "pure_numba_kernel"
         },
         {
           "backend": "native_vectorized",
           "notes": "Series/DataFrame/BacktestResultV2 construction",
-          "percent_of_profile": 18.847701822070615,
+          "percent_of_profile": 18.15955319887983,
           "profile": "phase14b",
           "repeats": 2,
-          "seconds": 0.0012845485471189022,
+          "seconds": 0.0012229589046910405,
           "stage": "result_report_construction"
         }
       ],
       "symbols": 4,
-      "total_seconds": 0.0068154120817780495
+      "total_seconds": 0.006734520895406604
     }
   },
   "folds": 1,
   "next_optimization_targets": [
-    "native_vectorized: `data_normalization` (54.0%)",
-    "native_event: `data_normalization` (38.3%)",
-    "native_portfolio: `report_construction_estimate` (79.6%)",
-    "Phase 14C should prioritize prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy reports."
+    "native_vectorized: `data_normalization` (51.9%)",
+    "native_event: `data_normalization` (39.9%)",
+    "native_portfolio: `report_construction_estimate` (78.8%)",
+    "Next step should be real workload profiling before considering Cython/C++; Phase 14C moved the main cache/report controls into opt-in APIs."
   ],
   "order_count": 120,
   "parity": {
@@ -151,26 +151,27 @@
   "service_loops": {
     "arbitrage_package_sweep": {
       "audit_status": "pass",
-      "full_seconds": 0.06627011485397816,
+      "full_seconds": 0.07462308299727738,
       "max_equity_diff": 0.0,
       "max_package_residual": 1.2736478538499796e-11,
-      "notes": "event seconds vs vectorized seconds for the same package accounting",
+      "notes": "compares native-event arbitrage package cold vs prepared market-array replay; vectorized parity remains audited",
       "parity_passed": true,
       "parity_status": "pass",
-      "peak_memory_mb": 0.9490671157836914,
-      "prepared_seconds": 0.07230646989773959,
-      "speedup": 0.9165170827410267
+      "peak_memory_mb": 0.9488792419433594,
+      "prepared_equity_diff": 0.0,
+      "prepared_seconds": 0.06632716755848378,
+      "speedup": 1.1250756777979205
     },
     "native_event_replay": {
-      "cold_seconds": 0.009390108636580408,
+      "cold_seconds": 0.009586586616933346,
       "equity_diff": 0.0,
       "notes": "prepared replay reuses market arrays and compiled order arrays",
       "orders": 120,
       "parity_passed": true,
-      "peak_memory_mb": 0.1809682846069336,
+      "peak_memory_mb": 0.17985248565673828,
       "positions_diff": 0.0,
-      "prepared_seconds": 0.0036398370284587145,
-      "speedup": 2.579815679427999
+      "prepared_seconds": 0.004569042124785483,
+      "speedup": 2.0981611364293205
     },
     "portfolio_wfo": {
       "cache_metadata": {
@@ -182,37 +183,80 @@
         "market_cache_hits": 6,
         "market_cache_misses": 2,
         "prepared_runs": 8,
+        "prepared_scoring_report_level": "minimal",
         "target_mode": "portfolio"
       },
       "final_equity_diff": 0.0,
-      "full_seconds": 0.44819721940439194,
+      "full_seconds": 0.4395257671130821,
       "notes": "compares uncached vs prepared portfolio WFO endpoint scoring",
       "objective_diff": 0.0,
       "parity_passed": true,
-      "peak_memory_mb": 0.770207405090332,
-      "prepared_seconds": 0.4026290359906852,
-      "speedup": 1.1131765951791934
+      "peak_memory_mb": 0.7784252166748047,
+      "prepared_seconds": 0.32566470850724727,
+      "speedup": 1.3496266424683871
     },
     "report_heavy_vs_light": {
-      "final_equity": 99994.04081526285,
-      "full_seconds": 0.029556826455518603,
-      "light_seconds": 0.00010119599755853415,
-      "notes": "measures metrics/report export cost; lazy report controls are Phase 14C work",
+      "equity_diff": 0.0,
+      "full_reports": [
+        "accepted_notional_report",
+        "accepted_units_report",
+        "exposure_report",
+        "fills_report",
+        "funding_rates_report",
+        "order_report",
+        "orders_report",
+        "portfolio_contract_report",
+        "positions_report",
+        "rebalance_report",
+        "risk_contribution_report",
+        "risk_volatility_report",
+        "symbol_pnl_report",
+        "target_notional_report",
+        "target_units_report"
+      ],
+      "full_seconds": 0.04100000998005271,
+      "light_seconds": 0.023349451483227313,
+      "minimal_reports_omitted": [
+        "target_notional_report",
+        "accepted_notional_report",
+        "exposure_report",
+        "funding_rates_report",
+        "risk_volatility_report",
+        "risk_contribution_report",
+        "symbol_pnl_report",
+        "kernel_symbol_pnl",
+        "rebalance_report"
+      ],
+      "notes": "compares native-portfolio report_level='full' vs 'minimal' construction with core accounting parity",
       "parity_passed": true,
-      "peak_memory_mb": 0.029865264892578125,
-      "speedup": 292.07505403978297
+      "peak_memory_mb": 0.9158792495727539,
+      "position_diff": 0.0,
+      "speedup": 1.7559303270787487
     },
     "single_symbol_wfo": {
       "best_params": {
         "threshold": 0.6000000000000001
       },
-      "final_equity": 20913.88933319221,
-      "full_seconds": 0.9489891404518858,
-      "notes": "prepared column reports metric/export cost only; single-symbol WFO cache is Phase 14C work",
+      "cache_metadata": {
+        "available": true,
+        "backend": "native_vectorized",
+        "enabled": true,
+        "fallback_runs": 0,
+        "market_cache_entries": 7,
+        "market_cache_hits": 21,
+        "market_cache_misses": 7,
+        "prepared_runs": 28,
+        "prepared_scoring_report_level": "minimal",
+        "target_mode": "signal_notional"
+      },
+      "final_equity_diff": 0.0,
+      "full_seconds": 1.0071885475190356,
+      "notes": "compares uncached vs prepared single-symbol native-vectorized WFO endpoint scoring",
+      "objective_diff": 0.0,
       "parity_passed": true,
-      "peak_memory_mb": 0.29954051971435547,
-      "prepared_seconds": 0.02558732288889587,
-      "speedup": 37.08825438958753
+      "peak_memory_mb": 0.426666259765625,
+      "prepared_seconds": 0.8834504844853655,
+      "speedup": 1.1400622504675528
     }
   },
   "status": "pass",
