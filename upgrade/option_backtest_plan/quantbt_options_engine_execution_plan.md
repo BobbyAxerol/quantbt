@@ -765,6 +765,38 @@ Acceptance:
 - Result supports `.show_metrics()`, `.full_report()`, and report bundle paths
   where current `BacktestResultV2` supports them.
 
+Status: completed.
+
+Implementation notes:
+
+- Added `NativeOptionConfig` and `NativeOptionBackend` in
+  `backends/native_option.py`.
+- Added `OptionBacktestEngine` facade in `engines.py`.
+- Added `OptionBacktestResult` in `core/results.py`, compatible with
+  `BacktestResultV2` and exposing option audit artifacts.
+- Added `QuantBTEndpoint.options(...)` plus `options_support_matrix()`.
+- Routed `OptionsVolArbSpec` away from generic arbitrage execution and toward
+  the specialized option endpoint.
+- Added option report helpers in `metrics/options_analytics.py`.
+- Added endpoint/result contract tests covering mock chain execution,
+  settlement events, support matrix, full report compatibility, and artifact
+  availability.
+
+Validation:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.NativeOptionConfig; assert quantbt.OptionBacktestResult; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase7_import_smoke=pass')"`
+
+Technical debt after Phase 7:
+
+- Margin remains an explicit native approximation unless an external venue
+  validator is provided in later phases.
+- Nautilus option validation is still Phase 9, not claimed complete here.
+- Strategy templates and golden payoff structures are Phase 8.
+- Venue-exact exchange combo behavior and L2 order-book queue priority remain
+  later fidelity work.
+
 ## Phase 8 - Strategy Templates And Golden Payoff Tests
 
 Files:

@@ -1747,6 +1747,103 @@ Rules for services:
 - use `native_vectorized` for broad sweeps and `native_event` or `nautilus` for
   fill-level validation.
 
+## Options Endpoint
+
+`QuantBTEndpoint.options(...)` is the Phase 7 public route for native option
+research. It is intentionally separate from `native_event` and generic
+arbitrage because options require quote-side execution, premium-currency
+cashflows, expiry/settlement, Greeks, and option margin.
+
+Minimal call:
+
+```python
+from quantbt import (
+    OptionPackageIntent,
+    OptionPackageLeg,
+    OrderSide,
+    QuantBTEndpoint,
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=20_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 20_000},
+    conversion_rates={"BTC": 100_000},
+    fee_rate=0.0001,
+)
+
+package = OptionPackageIntent(
+    timestamp_ns=int(chain["timestamp_ns"].min()),
+    package_id="long-call",
+    legs=(
+        OptionPackageLeg(
+            instrument_id="BTC-01FEB26-100000-C.DERIBIT",
+            side=OrderSide.BUY,
+            ratio=1.0,
+        ),
+    ),
+    quantity=1.0,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=[package],
+)
+
+bt.show_metrics()
+fills = result.fills_report
+greeks = result.greeks_report
+margin = result.margin_report
+manifest = result.run_manifest
+```
+
+Required data:
+
+- `chain`: canonical long-form option chain with `timestamp_ns`,
+  `instrument_id`, venue/static fields, bid/ask/mark prices, bid/ask size,
+  index/forward price, IV and Greeks columns where available.
+- `instruments`: `OptionInstrumentRegistry`, list, or mapping of
+  `OptionInstrumentSpec`.
+- `packages`: optional sequence of `OptionPackageIntent`. Strategy/template
+  code owns signal generation and package construction; the backend owns
+  execution, ledger, margin, settlement, and reports.
+
+Useful config:
+
+- `reporting_currency`: reporting/account currency, default `USD`.
+- `initial_balances`: multi-currency starting balances. If omitted, QuantBT
+  starts with `initial_capital` in the reporting currency.
+- `conversion_rates`: required whenever premium/settlement currency differs
+  from reporting currency, for example inverse BTC options reported in USD.
+- `fee_schedule`: optional venue-like `OptionFeeSchedule`; otherwise the
+  endpoint fee rate is applied as a simple execution fee.
+- `option_execution`: optional `OptionExecutionConfig` for quote age, partial
+  fill, limit fidelity, and depth fidelity settings.
+- `option_margin`: optional `OptionMarginConfig`. Current margin is an explicit
+  approximation unless an external validator is provided in later phases.
+- `settlement_events`: optional expiry settlement events passed to
+  `backtest(...)`.
+
+Returned result:
+
+- `OptionBacktestResult`, compatible with `BacktestResultV2`.
+- Standard helpers: `.show_metrics()`, `.full_report()`, `.quick_plot()`,
+  `.tearsheet()`.
+- Option audit tables: `fills_report`, `packages_report`, `cash_report`,
+  `marks_report`, `greeks_report`, `settlements_report`, `margin_report`,
+  `attribution_report`, and `run_manifest`.
+
+Support discovery:
+
+```python
+QuantBTEndpoint.options_support_matrix()
+QuantBTEndpoint.arbitrage_support_matrix()["OptionsVolArbSpec"]
+```
+
+`OptionsVolArbSpec` is routed to the specialized option route only. It should
+not be executed through generic arbitrage package backends.
+
 ## Common Errors
 
 `single-symbol endpoint requires data DataFrame`

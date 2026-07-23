@@ -118,3 +118,35 @@ class BacktestResultV2:
             liquidation_bar=int(self.liquidation_bar),
             metadata=dict(self.metadata),
         )
+
+
+@dataclass
+class OptionBacktestResult(BacktestResultV2):
+    """
+    Backtest result contract for native option simulations.
+
+    It intentionally remains a `BacktestResultV2` so existing report helpers
+    keep working, while exposing option-domain audit tables explicitly.
+    """
+
+    fills_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    packages_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    cash_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    marks_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    greeks_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    settlements_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    margin_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    attribution_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    run_manifest: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.metadata.setdefault("fills_report", self.fills_report)
+        self.metadata.setdefault("packages_report", self.packages_report)
+        self.metadata.setdefault("cash_report", self.cash_report)
+        self.metadata.setdefault("marks_report", self.marks_report)
+        self.metadata.setdefault("greeks_report", self.greeks_report)
+        self.metadata.setdefault("settlements_report", self.settlements_report)
+        self.metadata.setdefault("margin_report", self.margin_report)
+        self.metadata.setdefault("attribution_report", self.attribution_report)
+        self.metadata.setdefault("run_manifest", self.run_manifest)
