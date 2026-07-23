@@ -127,8 +127,8 @@ Files:
 - `options/schema.py`
 - `options/conventions.py`
 - `options/data.py`
-- `tests/options/test_schema.py`
-- `tests/options/test_conventions.py`
+- `tests/options/test_phase1_schema_conventions.py`
+- `tests/options/test_phase1_data.py`
 
 Tasks:
 
@@ -155,6 +155,50 @@ Acceptance:
 - Strike, multiplier, expiry, quantity step, venue and underlying fields are
   validated.
 - Current non-option schemas remain compatible.
+
+Status: completed.
+
+Implemented:
+
+- Added `AssetType.OPTION` without changing existing asset enum values.
+- Added the bounded `quantbt.options` namespace for option schema,
+  conventions, registry signatures, and canonical long-form chain validation.
+- Added public top-level exports for Phase 1 option schema helpers.
+- Added dependency-free Deribit inverse, Deribit linear USDC, and Binance
+  European option convention descriptors.
+- Added tests for additive imports, inverse-vs-linear convention validation,
+  registry signatures, canonical chain normalization, quote guards, expiry
+  guards, and duplicate snapshot rejection.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options core/schema.py __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options/test_phase1_schema_conventions.py tests/options/test_phase1_data.py`
+  - result: `12 passed`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase1_import_smoke=pass')"`
+  - result: `phase1_import_smoke=pass`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `298 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 1:
+
+- `OptionInstrumentSpec.multiplier` is currently required to equal the generic
+  `InstrumentSpec.contract_size`. This is intentional for Phase 1 parity, but
+  a later phase should decide whether option reporting uses one canonical
+  multiplier field or keeps both with clearer aliases.
+- `OptionInstrumentSpec.qty_step` is an option-domain alias for the generic
+  `InstrumentSpec.lot_size`; both are normalized and must match when both are
+  provided. Later execution docs should make one wording canonical for users.
+- The canonical chain validator currently rejects zero bid/ask quotes. This is
+  conservative for executable research input; later tape work may support
+  one-sided or zero-bid quotes with explicit quote-status fields.
+- Venue conventions are static versioned descriptors. Historical fee, margin,
+  settlement, and instrument-specific schedule snapshots still need venue data
+  or Nautilus parity samples in later phases.
+- Binance option convention support is metadata-safe only. It does not claim
+  exact venue margin or settlement behavior yet.
+- No pricing, IV, Greeks, execution, ledger, expiry, endpoint, or Nautilus
+  adapter behavior is implemented in Phase 1 by design.
 
 ## Phase 2 - Pricing, IV, Greeks
 

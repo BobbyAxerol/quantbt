@@ -2844,6 +2844,89 @@ Safety notes:
 
 ---
 
+## Phase 17 - Options Backtest Engine
+
+Planning source:
+
+- `upgrade/option_backtest_plan/quantbt_options_engine_verified_design.md`
+- `upgrade/option_backtest_plan/quantbt_options_engine_execution_plan.md`
+
+Branch:
+
+- Requested branch `dev/option-engine` is not valid while branch `dev` exists,
+  because Git cannot store both `refs/heads/dev` and
+  `refs/heads/dev/option-engine`.
+- Active implementation branch: `feat/option-engine`.
+
+Goal:
+
+Add an institutional-grade options backtest stack while keeping existing
+QuantBT behavior stable:
+
+- option instrument conventions first;
+- ledger-based PnL and expiry accounting;
+- ragged option tape, not dense fixed-universe matrices;
+- bid/ask execution;
+- no lookahead in selector/tape usage;
+- optional Nautilus validation, never an import-time dependency.
+
+### Phase 17.0 - Baseline Protection
+
+Status: completed.
+
+Artifacts:
+
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.json`;
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.md`.
+
+Latest result:
+
+- full non-real regression: `286 passed, 1 skipped, 3 warnings`.
+- `import quantbt` did not import `nautilus_trader`.
+- existing endpoint support matrices were snapshotted.
+
+### Phase 17.1 - Domain Schema And Conventions
+
+Status: completed.
+
+Implemented:
+
+- Added `AssetType.OPTION`.
+- Added `quantbt.options` bounded context:
+  - schema;
+  - venue conventions;
+  - canonical option-chain data validation.
+- Added option enums, `OptionInstrumentSpec`, instrument registry signatures,
+  and versioned Deribit/Binance convention descriptors.
+- Exported Phase 1 schema helpers from top-level `quantbt`.
+- Added tests for additive import behavior, inverse/linear convention guards,
+  registry signatures, option chain normalization, quote guards, expiry guards,
+  and duplicate snapshot rejection.
+
+Latest tests:
+
+- Phase 1 option tests: `12 passed`.
+- import smoke: `phase1_import_smoke=pass`.
+- full non-real regression: `298 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.1:
+
+- `OptionInstrumentSpec.multiplier` currently mirrors
+  `InstrumentSpec.contract_size`; later phases should choose one canonical
+  reporting multiplier or keep both with stronger docs.
+- `OptionInstrumentSpec.qty_step` mirrors `InstrumentSpec.lot_size`; later
+  endpoint docs should settle on one user-facing term for quantity increment.
+- One-sided or zero-bid option quotes are not accepted yet; Phase 3 may add
+  explicit quote-status support.
+- Venue convention descriptors do not yet include historical venue fee/margin
+  schedule snapshots.
+- Binance option convention is metadata-safe only, not exact venue margin
+  certification.
+- Pricing, IV, Greeks, tape compilation, package execution, ledger, expiry,
+  endpoint, and Nautilus validation remain future phases by design.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:

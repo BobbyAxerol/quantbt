@@ -20,6 +20,7 @@ class AssetType(str, Enum):
     STOCK = "stock"
     FUTURE = "future"
     FX = "fx"
+    OPTION = "option"
 
 
 class MarginMode(str, Enum):
