@@ -615,6 +615,35 @@ high/low touch eligibility, latency bars, queue-ahead, volume participation,
 reduce-only capping, OCO sibling cancellation, and all-or-none package
 rejection before accepted orders are submitted through Nautilus routes.
 
+Synthetic book depth stress:
+
+```python
+from quantbt import NautilusExecutionDepthConfig, simulate_nautilus_order_package_depth
+
+preflight = simulate_nautilus_order_package_depth(
+    orders=plan.orders,
+    data={"BTCUSDT-PERP.BINANCE": df},
+    config=NautilusExecutionDepthConfig(
+        depth_model="synthetic_book",
+        allow_partial_fills=True,
+        max_participation_rate=0.05,
+        queue_ahead_qty=0.25,
+        synthetic_spread_bps=2.0,
+        synthetic_level_spacing_bps=2.0,
+        synthetic_levels=8,
+        synthetic_base_depth_notional=50_000,
+        synthetic_depth_slope=0.05,
+    ),
+)
+
+preflight.order_report
+```
+
+Use `ohlcv_volume_cap` for fast Level-1 package checks, `synthetic_book` for
+deterministic Level-2 execution stress, and reserve `l2_replay` for future real
+venue book replay. `l2_replay` intentionally refuses to run without a provider
+containing snapshots, incremental book updates, and trade prints.
+
 Structured bracket/OCO validation:
 
 ```python

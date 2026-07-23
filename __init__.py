@@ -92,6 +92,8 @@ from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
     NautilusExecutionDepthConfig,
     PackageDepthPreflightResult,
+    SUPPORTED_DEPTH_MODELS,
+    l2_replay_available,
     simulate_nautilus_order_package_depth,
 )
 from .core.structured_orders import (
@@ -349,6 +351,8 @@ __all__ = [
     "portfolio_capability_matrix",
     "quantize_signed_quantity",
     "round_down_to_step",
+    "SUPPORTED_DEPTH_MODELS",
+    "l2_replay_available",
     "simulate_nautilus_order_package_depth",
     "validate_portfolio_result_contract",
     # metrics

@@ -8,6 +8,8 @@ from .basket       import FrozenBasketPlan, build_frozen_basket_orders
 from .execution_depth import (
     NautilusExecutionDepthConfig,
     PackageDepthPreflightResult,
+    SUPPORTED_DEPTH_MODELS,
+    l2_replay_available,
     simulate_nautilus_order_package_depth,
 )
 from .structured_orders import (
@@ -155,6 +157,8 @@ __all__ = [
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
     "round_down_to_step",
+    "SUPPORTED_DEPTH_MODELS",
+    "l2_replay_available",
     "simulate_nautilus_order_package_depth",
     "validate_datetime",
     "align_series",

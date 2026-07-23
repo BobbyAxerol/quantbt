@@ -176,6 +176,16 @@ Execution-depth preflight:
   - OCO sibling cancellation after the first TP/SL exit fill;
   - all-or-none package rejection for basket/arbitrage groups.
 - Existing endpoints do not enable this policy by default.
+- Phase 15B adds explicit depth tiers:
+  - `depth_model="ohlcv_volume_cap"` is the default Level-1 model. It uses
+    OHLCV touch/volume assumptions and preserves all legacy behavior.
+  - `depth_model="synthetic_book"` is a Level-2 stress model. It builds a
+    deterministic book from spread, level spacing, level depth, slope,
+    participation and queue-ahead assumptions. It is useful for conservative
+    execution stress tests, but it is not venue L2 replay.
+  - `depth_model="l2_replay"` is provider-gated and raises until real snapshots,
+    incremental updates and trade prints are wired. Only this future route can
+    make true order-book / queue-priority claims.
 
 ```python
 from quantbt import NautilusExecutionDepthConfig, simulate_nautilus_order_package_depth
@@ -197,15 +207,57 @@ preflight.package_report
 preflight.orders  # accepted / adjusted orders
 ```
 
+Synthetic book stress:
+
+```python
+preflight = simulate_nautilus_order_package_depth(
+    orders=plan.orders,
+    data={"BTCUSDT-PERP.BINANCE": df_btc},
+    config=NautilusExecutionDepthConfig(
+        depth_model="synthetic_book",
+        allow_partial_fills=True,
+        max_participation_rate=0.05,
+        queue_ahead_qty=0.25,
+        synthetic_spread_bps=2.0,
+        synthetic_level_spacing_bps=2.0,
+        synthetic_levels=10,
+        synthetic_base_depth_notional=25_000,
+        synthetic_depth_slope=0.10,
+    ),
+)
+
+preflight.order_report[
+    [
+        "status",
+        "filled_qty",
+        "fill_price",
+        "levels_consumed",
+        "requested_notional",
+        "filled_notional",
+    ]
+]
+```
+
+Interpretation:
+
+- market buys consume synthetic ask levels and market sells consume synthetic
+  bid levels;
+- limit and stop-limit orders still need high/low touch first, then consume
+  only synthetic levels that respect the limit price;
+- `max_participation_rate` caps execution by bar volume;
+- `queue_ahead_qty` removes available quantity before the strategy gets filled;
+- `allow_partial_fills=False` rejects orders that cannot be fully filled.
+
 Not yet in the Nautilus adapter:
 
-- full dynamic DCA ladder state management inside Nautilus;
-- exchange-native contingent order-list semantics beyond current package
-  strategy cancellation; preflight can audit OCO assumptions, but Phase 5.4B
-  still needs deeper Nautilus strategy integration;
-- endpoint-wired all-or-none basket package semantics; preflight can already
-  reject all legs deterministically before submission;
-- portfolio-margin replication beyond diagnostics.
+- full dynamic DCA ladder state management inside Nautilus is still future
+  work; current package routes are preflight-mediated;
+- exchange-native contingent order-list semantics are still represented by
+  deterministic package cancellation unless Nautilus exposes stable native
+  order-list routes for the target venue;
+- real L2 replay requires external venue depth data and a provider adapter;
+- portfolio-margin replication beyond diagnostics remains venue-specific
+  future work.
 
 DCA/grid, OCO/bracket, basket, and portfolio Nautilus routes are experimental
 validation paths, not the fast research path. Broad research and optimization
