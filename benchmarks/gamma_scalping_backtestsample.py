@@ -431,6 +431,323 @@ def run_quantbt_gamma_scalping_sample(*, snapshots: int = 90, seed: int = 42) ->
     return report
 
 
+def run_real_binance_gamma_scalping_sample(
+    *,
+    options_csv: Path,
+    underlying_source: str = "spot",
+    hedge_timeframe: str = "1h",
+) -> dict:
+    """
+    Run the gamma-scalping sample on a real Binance options snapshot CSV.
+
+    The CSV is converted into QuantBT's canonical option-chain schema. BTCUSDT
+    spot/perp candles are loaded from `_get_data` for the hedge path; if that
+    loader is unavailable for the requested range, the snapshot `spot_BTCUSDT`
+    column is used as a transparent fallback.
+    """
+    raw = pd.read_csv(options_csv, compression="gzip")
+    chain, registry = canonicalize_binance_options_history(raw)
+    packages, selected = build_real_atm_straddle_packages(chain)
+    cache = OptionPreparedRunCache.from_chain(chain, registry)
+
+    bt = QuantBTEndpoint.options(
+        initial_capital=100_000.0,
+        reporting_currency="USD",
+        initial_balances={"USD": 100_000.0},
+        fee_rate=0.0002,
+        metadata={
+            "sample": "real_binance_gamma_scalping",
+            "source_file": str(options_csv),
+            "underlying_source": underlying_source,
+            "hedge_timeframe": hedge_timeframe,
+        },
+    )
+    uncached = bt.backtest(chain=chain, instruments=registry, packages=packages)
+    cached = bt.backtest(chain=chain, instruments=registry, packages=packages, prepared_cache=cache)
+    final_equity_diff = float(abs(uncached.equity.iloc[-1] - cached.equity.iloc[-1]))
+    fills_equal = bool(uncached.fills_report.equals(cached.fills_report))
+    if final_equity_diff > 1e-9 or not fills_equal:
+        raise RuntimeError("real Binance options prepared-cache parity failed")
+
+    timestamps = sorted(chain["timestamp_ns"].unique())
+    hedge_prices, hedge_price_source = load_underlying_prices_for_chain(
+        chain,
+        source=underlying_source,
+        timeframe=hedge_timeframe,
+    )
+    net_deltas = selected_straddle_delta_path(chain, selected)
+    hedge = run_delta_hedge_path(
+        timestamps_ns=timestamps,
+        underlying_prices=hedge_prices.reindex(timestamps).ffill().bfill().to_numpy(dtype=float),
+        net_option_deltas=net_deltas.reindex(timestamps).fillna(0.0).to_numpy(dtype=float),
+        config=OptionHedgeConfig(policy=OptionHedgePolicyType.FIXED_THRESHOLD, threshold=0.05),
+    )
+
+    report = {
+        "status": "pass",
+        "sample": "real_binance_gamma_scalping",
+        "source_file": str(options_csv),
+        "snapshots": int(chain["timestamp_ns"].nunique()),
+        "chain_rows": int(len(chain)),
+        "contracts": int(len(registry.instruments)),
+        "packages": int(len(packages)),
+        "fills": int(len(cached.fills_report)),
+        "selected": selected,
+        "initial_equity": float(cached.equity.iloc[0]),
+        "final_equity": float(cached.equity.iloc[-1]),
+        "option_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0]),
+        "hedge_pnl": float(hedge.hedge_pnl),
+        "combined_option_plus_hedge_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0] + hedge.hedge_pnl),
+        "hedge_rebalances": int(hedge.hedge_report["should_rebalance"].sum()),
+        "hedge_price_source": hedge_price_source,
+        "prepared_cache_used": bool(cached.metadata.get("prepared_cache_used")),
+        "package_cache_size": int(cached.metadata.get("package_cache_size", 0)),
+        "parity": {
+            "final_equity_abs_diff": final_equity_diff,
+            "fills_equal": fills_equal,
+        },
+        "run_manifest": cached.run_manifest,
+    }
+    return report
+
+
+def canonicalize_binance_options_history(raw: pd.DataFrame) -> tuple[pd.DataFrame, OptionInstrumentRegistry]:
+    """Convert the legacy Binance option snapshot CSV into QuantBT canonical schema."""
+    required = {
+        "snapshot_time",
+        "symbol",
+        "spot_BTCUSDT",
+        "markPrice",
+        "bidPrice",
+        "askPrice",
+        "bidIV",
+        "askIV",
+        "markIV",
+        "delta",
+        "theta",
+        "gamma",
+        "vega",
+        "volume",
+        "strikePrice",
+    }
+    missing = sorted(required.difference(raw.columns))
+    if missing:
+        raise ValueError(f"real options CSV missing required columns: {missing}")
+
+    df = raw.copy()
+    df["snapshot_time"] = pd.to_datetime(df["snapshot_time"], utc=True, errors="coerce")
+    df = df.dropna(subset=["snapshot_time", "symbol"])
+    parsed = df["symbol"].astype(str).str.extract(r"^(?P<underlying>[A-Z]+)-(?P<expiry>\d{6})-(?P<strike>\d+(?:\.\d+)?)-(?P<kind>[CP])$")
+    df = df.join(parsed)
+    df = df.dropna(subset=["underlying", "expiry", "strike", "kind"])
+    df["timestamp_ns"] = df["snapshot_time"].astype("int64")
+    df["expiry_ns"] = df["expiry"].map(_binance_expiry_to_ns).astype("int64")
+    df["strike"] = pd.to_numeric(df["strike"], errors="coerce")
+
+    numeric_pairs = {
+        "bidPrice": "bid_price",
+        "askPrice": "ask_price",
+        "markPrice": "mark_price",
+        "spot_BTCUSDT": "index_price",
+        "exercisePrice": "forward_price",
+        "bidIV": "bid_iv",
+        "askIV": "ask_iv",
+        "markIV": "mark_iv",
+        "delta": "delta",
+        "gamma": "gamma",
+        "vega": "vega",
+        "theta": "theta",
+        "volume": "volume",
+    }
+    for source, target in numeric_pairs.items():
+        df[target] = pd.to_numeric(df[source], errors="coerce")
+    df["forward_price"] = df["forward_price"].fillna(df["index_price"])
+    if "lastPrice" in df:
+        df["last_price"] = pd.to_numeric(df["lastPrice"], errors="coerce").fillna(df["mark_price"])
+    else:
+        df["last_price"] = df["mark_price"]
+    df["bid_size"] = pd.to_numeric(df.get("lastQty", 1.0), errors="coerce").fillna(1.0).clip(lower=1.0)
+    df["ask_size"] = df["bid_size"]
+    df["open_interest"] = 1.0
+    if "amount" in df:
+        df["open_interest"] = pd.to_numeric(df["amount"], errors="coerce").fillna(1.0).clip(lower=1.0)
+
+    df = df[(df["bid_price"] > 0.0) & (df["ask_price"] > 0.0)]
+    df = df[df["ask_price"] >= df["bid_price"]]
+    df = df[df["expiry_ns"] > df["timestamp_ns"]]
+    df = df.dropna(subset=["strike", "index_price", "forward_price", "mark_price"])
+    df = df.sort_values(["timestamp_ns", "symbol"]).reset_index(drop=True)
+    df["sequence_id"] = df.groupby("timestamp_ns").cumcount().astype("int64")
+    df["source_latency_ns"] = 1_000_000
+    df["option_kind"] = np.where(df["kind"] == "C", "call", "put")
+    df["instrument_id"] = df["symbol"].astype(str) + ".BINANCE"
+    df["underlying_id"] = df["underlying"].astype(str) + "USDT.BINANCE"
+    df["venue"] = "BINANCE"
+    df["quote_currency"] = "USD"
+    df["settlement_currency"] = "USD"
+
+    canonical = df[
+        [
+            "timestamp_ns",
+            "instrument_id",
+            "venue",
+            "underlying_id",
+            "expiry_ns",
+            "strike",
+            "option_kind",
+            "bid_price",
+            "bid_size",
+            "ask_price",
+            "ask_size",
+            "mark_price",
+            "last_price",
+            "index_price",
+            "forward_price",
+            "mark_iv",
+            "bid_iv",
+            "ask_iv",
+            "delta",
+            "gamma",
+            "vega",
+            "theta",
+            "open_interest",
+            "volume",
+            "quote_currency",
+            "settlement_currency",
+            "sequence_id",
+            "source_latency_ns",
+        ]
+    ].copy()
+
+    specs = []
+    static = canonical.drop_duplicates("instrument_id").sort_values("instrument_id")
+    for row in static.itertuples(index=False):
+        specs.append(
+            OptionInstrumentSpec(
+                symbol=row.instrument_id,
+                venue="binance",
+                underlying_id=row.underlying_id,
+                underlying_index_id="BTCUSDT-INDEX.BINANCE",
+                option_kind=OptionKind.CALL if row.option_kind == "call" else OptionKind.PUT,
+                exercise_style=ExerciseStyle.EUROPEAN,
+                premium_convention=PremiumConvention.LINEAR_QUOTE,
+                settlement_style=SettlementStyle.CASH,
+                strike=float(row.strike),
+                expiry_ns=int(row.expiry_ns),
+                settlement_currency="USD",
+                premium_currency="USD",
+                quote_currency="USD",
+                multiplier=1.0,
+                contract_size=1.0,
+                qty_step=0.001,
+                tick_size=0.01,
+                convention_version="binance_options_history_csv_v1",
+            )
+        )
+    return canonical, OptionInstrumentRegistry.from_iterable(specs)
+
+
+def build_real_atm_straddle_packages(chain: pd.DataFrame) -> tuple[list[OptionPackageIntent], dict]:
+    """Select a real ATM call/put pair available at entry and exit."""
+    timestamps = sorted(chain["timestamp_ns"].unique())
+    entry_ts = int(timestamps[0])
+    exit_ts = int(timestamps[-1])
+    entry = chain[chain["timestamp_ns"] == entry_ts].copy()
+    exit_symbols = set(chain.loc[chain["timestamp_ns"] == exit_ts, "instrument_id"])
+    entry = entry[entry["instrument_id"].isin(exit_symbols)]
+    pair_counts = entry.groupby(["expiry_ns", "strike"])["option_kind"].agg(lambda values: set(values))
+    valid_pairs = [key for key, kinds in pair_counts.items() if kinds == {"call", "put"}]
+    if not valid_pairs:
+        raise ValueError("no entry ATM straddle pair survives until final snapshot")
+    spot = float(entry["index_price"].median())
+    expiry_ns, strike = min(valid_pairs, key=lambda key: (abs(float(key[1]) - spot), int(key[0])))
+    selected_rows = entry[(entry["expiry_ns"] == expiry_ns) & (entry["strike"] == strike)]
+    call_id = str(selected_rows.loc[selected_rows["option_kind"] == "call", "instrument_id"].iloc[0])
+    put_id = str(selected_rows.loc[selected_rows["option_kind"] == "put", "instrument_id"].iloc[0])
+    selected = {
+        "entry_timestamp_ns": entry_ts,
+        "exit_timestamp_ns": exit_ts,
+        "entry_time": str(pd.Timestamp(entry_ts, tz="UTC")),
+        "exit_time": str(pd.Timestamp(exit_ts, tz="UTC")),
+        "spot": spot,
+        "strike": float(strike),
+        "expiry": str(pd.Timestamp(int(expiry_ns), tz="UTC")),
+        "call_id": call_id,
+        "put_id": put_id,
+    }
+    packages = [
+        OptionPackageIntent(
+            timestamp_ns=entry_ts,
+            package_id="real-gamma-open-long-straddle",
+            legs=(
+                OptionPackageLeg(call_id, OrderSide.BUY, 1.0, role="long_call"),
+                OptionPackageLeg(put_id, OrderSide.BUY, 1.0, role="long_put"),
+            ),
+            quantity=1.0,
+            tag="real_gamma_scalping_entry",
+            metadata={"strategy": "gamma_scalping", "action": "open", **selected},
+        ),
+        OptionPackageIntent(
+            timestamp_ns=exit_ts,
+            package_id="real-gamma-close-long-straddle",
+            legs=(
+                OptionPackageLeg(call_id, OrderSide.SELL, 1.0, role="close_call"),
+                OptionPackageLeg(put_id, OrderSide.SELL, 1.0, role="close_put"),
+            ),
+            quantity=1.0,
+            tag="real_gamma_scalping_exit",
+            metadata={"strategy": "gamma_scalping", "action": "close", **selected},
+        ),
+    ]
+    return packages, selected
+
+
+def selected_straddle_delta_path(chain: pd.DataFrame, selected: dict) -> pd.Series:
+    active = chain[chain["instrument_id"].isin([selected["call_id"], selected["put_id"]])]
+    delta = active.groupby("timestamp_ns")["delta"].sum().sort_index()
+    delta.loc[int(selected["exit_timestamp_ns"])] = 0.0
+    return delta.sort_index()
+
+
+def load_underlying_prices_for_chain(chain: pd.DataFrame, *, source: str, timeframe: str) -> tuple[pd.Series, str]:
+    timestamps = sorted(chain["timestamp_ns"].unique())
+    start = pd.Timestamp(int(timestamps[0]), tz="UTC").tz_localize(None)
+    end = pd.Timestamp(int(timestamps[-1]), tz="UTC").tz_localize(None)
+    dataset = "binance_spot_1m" if source == "spot" else "crypto_1m"
+    try:
+        get_data_path = Path("/root/bobby/pool_alpha/alphas_storage/_get_data")
+        if str(get_data_path) not in sys.path:
+            sys.path.insert(0, str(get_data_path))
+        from data_loader import load_data  # type: ignore
+
+        ohlcv = load_data(
+            dataset,
+            symbols="BTCUSDT",
+            start_date=str(start),
+            end_date=str(end),
+            timeframe=timeframe,
+            check_val=False,
+        )
+        if not ohlcv.empty:
+            out = ohlcv.copy()
+            out["timestamp_ns"] = pd.to_datetime(out["time"], utc=True).astype("int64")
+            series = out.set_index("timestamp_ns")["close"].sort_index()
+            return series, dataset
+    except Exception as exc:
+        fallback = chain.groupby("timestamp_ns")["index_price"].first().sort_index()
+        return fallback, f"option_chain_index_price_fallback:{exc}"
+    fallback = chain.groupby("timestamp_ns")["index_price"].first().sort_index()
+    return fallback, "option_chain_index_price_fallback:no_loader_rows"
+
+
+def _binance_expiry_to_ns(value: str) -> int:
+    text = str(value)
+    year = 2000 + int(text[:2])
+    month = int(text[2:4])
+    day = int(text[4:6])
+    return int(pd.Timestamp(year=year, month=month, day=day, hour=8, tz="UTC").value)
+
+
 def _linear_option_spec(symbol: str, strike: float, kind: OptionKind, expiry_ns: int) -> OptionInstrumentSpec:
     return OptionInstrumentSpec(
         symbol=symbol,
@@ -458,10 +775,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run a QuantBT options gamma-scalping smoke sample.")
     parser.add_argument("--snapshots", type=int, default=90)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--real-options-csv", type=Path, default=None)
+    parser.add_argument("--underlying-source", choices=("spot", "perp"), default="spot")
+    parser.add_argument("--hedge-timeframe", default="1h")
     parser.add_argument("--output-json", type=Path, default=None)
     args = parser.parse_args()
 
-    report = run_quantbt_gamma_scalping_sample(snapshots=args.snapshots, seed=args.seed)
+    if args.real_options_csv is not None:
+        report = run_real_binance_gamma_scalping_sample(
+            options_csv=args.real_options_csv,
+            underlying_source=args.underlying_source,
+            hedge_timeframe=args.hedge_timeframe,
+        )
+    else:
+        report = run_quantbt_gamma_scalping_sample(snapshots=args.snapshots, seed=args.seed)
     payload = json.dumps(report, indent=2, default=str)
     if args.output_json is not None:
         args.output_json.write_text(payload + "\n", encoding="utf-8")
