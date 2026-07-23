@@ -12,6 +12,7 @@ from .conventions import (
     deribit_inverse_option_convention,
     deribit_linear_usdc_option_convention,
 )
+from .cache import OptionPreparedRunCache, option_package_cache_key
 from .data import CANONICAL_OPTION_CHAIN_COLUMNS, validate_option_chain_frame
 from .execution import (
     OptionDepthFidelity,
@@ -148,6 +149,7 @@ __all__ = [
     "OptionSettlementResult",
     "OptionTapeSignature",
     "OptionPosition",
+    "OptionPreparedRunCache",
     "PremiumConvention",
     "PreparedOptionTape",
     "SettlementStyle",
@@ -183,6 +185,7 @@ __all__ = [
     "hedge_decision",
     "liquidate_option_positions",
     "option_expiry_payoff_per_unit",
+    "option_package_cache_key",
     "prepare_option_tape",
     "run_delta_hedge_path",
     "scale_greeks_to_reporting_currency",

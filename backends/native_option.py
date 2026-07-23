@@ -9,6 +9,7 @@ venue-specific gaps stay explicit in reports and metadata.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import hashlib
 from typing import Dict, Iterable, Mapping, Optional, Sequence
 
 import numpy as np
@@ -16,6 +17,7 @@ import pandas as pd
 
 from ..core.results import OptionBacktestResult
 from ..core.schema import AccountConfig, ExecutionConfig
+from ..options.cache import OptionPreparedRunCache
 from ..options.execution import OptionExecutionConfig, execute_option_package
 from ..options.fees import OptionFeeResult, OptionFeeSchedule, calculate_option_fee
 from ..options.ledger import OptionLedger
@@ -39,6 +41,7 @@ class NativeOptionConfig:
     settle_expired: bool = False
     max_spread_bps: Optional[float] = None
     max_source_latency_ns: Optional[int] = None
+    random_seed: Optional[int] = 42
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -68,17 +71,22 @@ class NativeOptionBackend:
         instruments: OptionInstrumentRegistry | Sequence[OptionInstrumentSpec] | Mapping[str, OptionInstrumentSpec],
         packages: Sequence[OptionPackageIntent] = (),
         prepared_tape: Optional[PreparedOptionTape] = None,
+        prepared_cache: Optional[OptionPreparedRunCache] = None,
         settlement_events: Optional[Sequence[OptionSettlementEvent | Mapping]] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
         reporting_currency: Optional[str] = None,
     ) -> OptionBacktestResult:
         registry = _normalize_registry(instruments)
-        tape = prepared_tape or prepare_option_tape(
-            chain,
-            registry,
-            max_spread_bps=self.config.max_spread_bps,
-            max_source_latency_ns=self.config.max_source_latency_ns,
-        )
+        if prepared_cache is not None:
+            prepared_cache.validate(registry)
+            tape = prepared_cache.tape
+        else:
+            tape = prepared_tape or prepare_option_tape(
+                chain,
+                registry,
+                max_spread_bps=self.config.max_spread_bps,
+                max_source_latency_ns=self.config.max_source_latency_ns,
+            )
         tape.validate_compatible(registry_signature=registry.signature)
         rates = {**self.config.conversion_rates, **(conversion_rates or {})}
         report_ccy = str(reporting_currency or self.config.reporting_currency).upper()
@@ -100,6 +108,7 @@ class NativeOptionBackend:
                 tape,
                 config=self.config.option_execution,
                 positions={symbol: position.qty for symbol, position in ledger.positions.items()},
+                compiled_orders=prepared_cache.compile_package(package) if prepared_cache is not None else None,
             )
             order_reports.append(pkg_result.order_report)
             package_reports.append(pkg_result.package_report)
@@ -178,6 +187,14 @@ class NativeOptionBackend:
                 "settlement_count": len(settlements),
                 "venue_exact_margin": bool(margin.venue_exact),
                 "reporting_currency": report_ccy,
+                "prepared_cache_used": prepared_cache is not None,
+                "package_cache_size": 0 if prepared_cache is None else prepared_cache.package_cache_size,
+                "fee_schedule_id": "execution_fee_rate"
+                if self.config.fee_schedule is None
+                else self.config.fee_schedule.schedule_id,
+                "limit_fidelity": self.config.option_execution.limit_fidelity.value,
+                "depth_fidelity": self.config.option_execution.depth_fidelity.value,
+                "random_seed": self.config.random_seed,
                 **self.config.metadata,
             },
         )
@@ -313,6 +330,25 @@ def _build_result(
         "initial_capital": float(account.initial_capital),
         "final_equity": float(equity.iloc[-1]),
         "reporting_currency": report_ccy,
+        "data_hash": _chain_data_hash(marks_report),
+        "registry_signature_hash": _stable_hash(repr(registry.signature.signature)),
+        "convention_versions": sorted(
+            {instrument.convention_version for instrument in registry.instruments if instrument.convention_version}
+        ),
+        "fee_schedule": metadata.get("fee_schedule_id", "execution_fee_rate"),
+        "margin_model": str(getattr(margin.model, "value", margin.model)),
+        "pricing_model": "observed_chain_bid_ask_mark",
+        "deterministic_replay": True,
+        "random_seed": metadata.get("random_seed"),
+        "fidelity_manifest": {
+            "tape": "prepared_csr_option_chain",
+            "execution": "top_of_book_bbo",
+            "limit_fidelity": metadata.get("limit_fidelity"),
+            "depth_fidelity": metadata.get("depth_fidelity"),
+            "margin": str(getattr(margin.model, "value", margin.model)),
+            "venue_exact_margin": bool(margin.venue_exact),
+            "prepared_cache_used": bool(metadata.get("prepared_cache_used", False)),
+        },
         "option_reports": [
             "fills_report",
             "packages_report",
@@ -376,6 +412,17 @@ def _build_result(
 def _concat(frames: Iterable[pd.DataFrame]) -> pd.DataFrame:
     items = [frame for frame in frames if frame is not None and not frame.empty]
     return pd.concat(items, ignore_index=True) if items else pd.DataFrame()
+
+
+def _chain_data_hash(frame: pd.DataFrame) -> str:
+    if frame.empty:
+        return "0"
+    hashed = pd.util.hash_pandas_object(frame.sort_index(axis=1), index=False).to_numpy(dtype="uint64")
+    return str(int(hashed.sum(dtype="uint64")))
+
+
+def _stable_hash(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
 
 
 def _cash_report(snapshots: Sequence[Dict], index: pd.DatetimeIndex) -> pd.DataFrame:

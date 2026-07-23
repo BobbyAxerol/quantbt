@@ -1013,6 +1013,52 @@ Acceptance:
 - Cython/C++ is only considered after Numba/profile evidence shows pure kernel
   bottlenecks.
 
+Status: completed.
+
+Implementation notes:
+
+- Added explicit prepared option cache:
+  - `OptionPreparedRunCache`;
+  - `option_package_cache_key`;
+  - signature-checked prepared tape reuse;
+  - deterministic compiled package order cache.
+- Added optional `prepared_cache` threading through:
+  - `NativeOptionBackend.run(...)`;
+  - `OptionBacktestEngine`;
+  - `QuantBTEndpoint.options(...).backtest(...)`.
+- Added `compiled_orders` override to `execute_option_package(...)` while
+  preserving the old compile-on-call default.
+- Extended option run manifest with:
+  - data hash;
+  - registry signature hash;
+  - convention versions;
+  - fee schedule;
+  - margin model;
+  - pricing model;
+  - deterministic replay seed;
+  - fidelity manifest.
+- Added `benchmarks/run_options_engine.py`.
+- Added committed benchmark baseline:
+  - `benchmarks/options_phase10_baseline.json`;
+  - `benchmarks/options_phase10_baseline.md`.
+- Added deterministic fuzz/invalid-data tests in
+  `tests/options/test_fuzz_invalid_data.py`.
+
+Validation:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_options_engine.py --snapshots 48 --contracts 24 --packages 48 --repeats 2 --output-json benchmarks/options_phase10_baseline.json --output-md benchmarks/options_phase10_baseline.md`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+
+Technical debt after Phase 10:
+
+- Benchmark is a deterministic mock-chain baseline, not a venue production
+  latency/profile certification.
+- Hedges are counted in the benchmark schema but set to zero because mixed
+  underlying option hedging remains future engine work.
+- Cython/C++ is not recommended yet; current Phase 10 evidence supports cache
+  reuse and facade profiling first.
+
 ## V1 Completion Criteria
 
 V1 can be called usable only when:

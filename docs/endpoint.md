@@ -1824,6 +1824,23 @@ Useful config:
   approximation unless an external validator is provided in later phases.
 - `settlement_events`: optional expiry settlement events passed to
   `backtest(...)`.
+- `prepared_cache`: optional `OptionPreparedRunCache` passed to `backtest(...)`
+  when replaying many package sets over the same option chain.
+
+Prepared cache pattern:
+
+```python
+from quantbt import OptionPreparedRunCache
+
+cache = OptionPreparedRunCache.from_chain(chain, option_registry)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=packages,
+    prepared_cache=cache,
+)
+```
 
 Returned result:
 

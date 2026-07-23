@@ -61,3 +61,16 @@ python3 benchmarks/run_phase16_performance_debt.py --rows 1440 --symbols 6 --rep
 - `phase16_performance_debt.*` compares normal endpoint replays with
   `endpoint.prepare_service_context(...)` and records the current Cython/C++
   decision.
+
+Options Phase 10:
+
+```bash
+python3 benchmarks/run_options_engine.py --snapshots 96 --contracts 48 --packages 96 --repeats 3
+```
+
+- `options_phase10_baseline.*` records prepared-tape and compiled-package cache
+  parity for the native option backend.
+- The benchmark reports snapshots, contracts, quotes, packages, fills, hedges,
+  memory, uncached runtime, cached runtime, and run-manifest hashes.
+- Cython/C++ should only be considered after a larger profile shows pure
+  kernels, not pandas/tape/report facade work, dominating runtime.
