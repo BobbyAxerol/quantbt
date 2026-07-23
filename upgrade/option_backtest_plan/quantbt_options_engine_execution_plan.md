@@ -247,6 +247,59 @@ Acceptance:
 - Finite-difference Greeks match analytic Greeks within tolerance.
 - No `fastmath=True` in IV/no-arb critical paths.
 
+Status: completed.
+
+Implemented:
+
+- Added scalar deterministic pricing primitives in `options/pricing.py`.
+- Added linear Black-76 call/put price, intrinsic value, and put-call parity
+  helpers.
+- Added inverse forward-based pricing in base settlement currency, with inverse
+  intrinsic and base-currency parity helpers.
+- Added `OptionGreeks` and Greek helpers in `options/greeks.py`:
+  - linear quote-currency Greeks;
+  - inverse native base-currency Greeks;
+  - inverse quote-reporting Greeks;
+  - explicit static currency scaling helper.
+- Added `IVStatus`, `ImpliedVolResult`, and deterministic bisection IV solvers
+  in `options/iv.py`.
+- Added `TotalVarianceSurface` and `SurfaceDiagnostics` in
+  `options/surface.py`:
+  - total variance from same-timestamp snapshots;
+  - strike-then-expiry interpolation;
+  - calendar total variance diagnostic;
+  - placeholder flag for butterfly convexity.
+- Exported Phase 2 primitives from `quantbt.options` and top-level `quantbt`.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+  - result: `31 passed`
+- `rg -n "fastmath" options tests/options`
+  - result: no matches
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.black76_price(100,100,1,0.2,'call') > 0; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase2_import_smoke=pass')"`
+  - result: `phase2_import_smoke=pass`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `317 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 2:
+
+- Pricing and Greeks are scalar deterministic primitives. Phase 3/4 hot paths
+  may add vectorized or Numba kernels after tape/execution shapes are stable.
+- Inverse pricing uses the Phase 2 forward convention: quote-currency
+  Black-76 price divided by forward. Venue-exact Deribit/Binance settlement,
+  fees, and margin still require later parity data.
+- Theta holds forward and discount fixed. Full curve/rate theta attribution is
+  intentionally deferred.
+- Surface diagnostics are intentionally minimal. Butterfly convexity and full
+  arbitrage-free surface fitting are placeholders, not production-certified
+  surface construction.
+- IV uses bracketed bisection for determinism and auditability. Faster Newton
+  or hybrid solvers can be added later only with parity locks.
+- No option tape, selector, execution, ledger, endpoint, expiry, or Nautilus
+  adapter behavior is implemented in Phase 2 by design.
+
 ## Phase 3 - Data Tape And Selectors
 
 Files:

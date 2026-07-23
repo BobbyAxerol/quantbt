@@ -13,6 +13,24 @@ from .conventions import (
     deribit_linear_usdc_option_convention,
 )
 from .data import CANONICAL_OPTION_CHAIN_COLUMNS, validate_option_chain_frame
+from .greeks import (
+    OptionGreeks,
+    inverse_black76_greeks_base,
+    inverse_black76_greeks_quote,
+    linear_black76_greeks,
+    scale_greeks_to_reporting_currency,
+)
+from .iv import IVStatus, ImpliedVolResult, implied_vol_black76, implied_vol_inverse_black76_base
+from .pricing import (
+    black76_intrinsic,
+    black76_parity_residual,
+    black76_parity_value,
+    black76_price,
+    inverse_black76_intrinsic_base,
+    inverse_black76_parity_residual_base,
+    inverse_black76_parity_value_base,
+    inverse_black76_price_base,
+)
 from .schema import (
     ExerciseStyle,
     InstrumentRegistrySignature,
@@ -23,6 +41,7 @@ from .schema import (
     PremiumConvention,
     SettlementStyle,
 )
+from .surface import SurfaceDiagnostics, TotalVarianceSurface
 
 __all__ = [
     "CANONICAL_OPTION_CHAIN_COLUMNS",
@@ -32,11 +51,30 @@ __all__ = [
     "OptionInstrumentRegistry",
     "OptionInstrumentSpec",
     "OptionKind",
+    "OptionGreeks",
     "OptionVenueConvention",
     "PremiumConvention",
     "SettlementStyle",
+    "SurfaceDiagnostics",
+    "TotalVarianceSurface",
     "binance_european_options_convention",
+    "black76_intrinsic",
+    "black76_parity_residual",
+    "black76_parity_value",
+    "black76_price",
     "deribit_inverse_option_convention",
     "deribit_linear_usdc_option_convention",
+    "implied_vol_black76",
+    "implied_vol_inverse_black76_base",
+    "inverse_black76_greeks_base",
+    "inverse_black76_greeks_quote",
+    "inverse_black76_intrinsic_base",
+    "inverse_black76_parity_residual_base",
+    "inverse_black76_parity_value_base",
+    "inverse_black76_price_base",
+    "IVStatus",
+    "ImpliedVolResult",
+    "linear_black76_greeks",
+    "scale_greeks_to_reporting_currency",
     "validate_option_chain_frame",
 ]
