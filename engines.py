@@ -27,6 +27,7 @@ from .core.orders import OrderIntent
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
+from .options.cache import OptionPreparedRunCache
 from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .portfolio import MultiSymbolPortfolio
@@ -383,6 +384,7 @@ class OptionBacktestEngine:
         config: Optional[NativeOptionConfig] = None,
         settlement_events: Optional[Sequence] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
+        prepared_cache: Optional[OptionPreparedRunCache] = None,
         auto_run: bool = True,
     ):
         self.chain = chain
@@ -391,6 +393,7 @@ class OptionBacktestEngine:
         self.config = config or NativeOptionConfig()
         self.settlement_events = tuple(settlement_events or ())
         self.conversion_rates = conversion_rates
+        self.prepared_cache = prepared_cache
         self.backend = NativeOptionBackend(self.config)
         self.result: Optional[OptionBacktestResult] = None
 
@@ -408,6 +411,7 @@ class OptionBacktestEngine:
             packages=self.packages,
             settlement_events=self.settlement_events,
             conversion_rates=self.conversion_rates,
+            prepared_cache=self.prepared_cache,
         )
         return self.result
 

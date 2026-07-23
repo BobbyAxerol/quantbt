@@ -129,11 +129,12 @@ def execute_option_package(
     *,
     config: Optional[OptionExecutionConfig] = None,
     positions: Optional[Dict[str, float]] = None,
+    compiled_orders: Optional[Tuple[OrderIntent, ...]] = None,
 ) -> OptionPackageExecutionResult:
     """Execute one option package against the latest observable tape snapshot."""
     cfg = config or OptionExecutionConfig()
     state = _ExecutionState(cash=float(cfg.initial_cash), positions=dict(positions or {}))
-    orders = compile_option_package_orders(package)
+    orders = tuple(compiled_orders) if compiled_orders is not None else compile_option_package_orders(package)
     policy = package.execution_policy
     if policy is OptionPackageExecutionPolicy.ATOMIC_ALL_OR_NONE:
         return _execute_atomic_all_or_none(package, orders, tape, cfg, state)

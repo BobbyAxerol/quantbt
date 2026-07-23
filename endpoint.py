@@ -60,6 +60,7 @@ from .sizing.modes import compute_target_units
 from .options.execution import OptionExecutionConfig
 from .options.fees import OptionFeeSchedule
 from .options.margin import OptionMarginConfig
+from .options.cache import OptionPreparedRunCache
 from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .viz import quick_plot as _quick_plot
@@ -831,6 +832,7 @@ class QuantBTEndpoint:
         packages: Optional[Sequence[OptionPackageIntent]] = None,
         settlement_events: Optional[Sequence] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
+        prepared_cache: Optional[OptionPreparedRunCache] = None,
     ):
         """
         Run the configured backtest and store the result.
@@ -866,6 +868,7 @@ class QuantBTEndpoint:
                 packages=packages,
                 settlement_events=settlement_events,
                 conversion_rates=conversion_rates,
+                prepared_cache=prepared_cache,
             )
         if mode == "walk_forward":
             return self._run_walk_forward(
@@ -1081,7 +1084,7 @@ class QuantBTEndpoint:
             native_slippage=native_slippage,
         )
 
-    def _run_options(self, chain, instruments, packages, settlement_events, conversion_rates):
+    def _run_options(self, chain, instruments, packages, settlement_events, conversion_rates, prepared_cache):
         if chain is None:
             raise ValueError("options endpoint requires chain=option_chain_dataframe or data=option_chain_dataframe")
         if instruments is None:
@@ -1104,6 +1107,7 @@ class QuantBTEndpoint:
             config=config,
             settlement_events=settlement_events or (),
             conversion_rates=conversion_rates,
+            prepared_cache=prepared_cache,
         )
         self._store_result(self.engine.result)
         return self.result
