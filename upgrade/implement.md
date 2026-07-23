@@ -2925,6 +2925,54 @@ Technical debt after Phase 17.1:
 - Pricing, IV, Greeks, tape compilation, package execution, ledger, expiry,
   endpoint, and Nautilus validation remain future phases by design.
 
+### Phase 17.2 - Pricing, IV, Greeks
+
+Status: completed.
+
+Implemented:
+
+- Added deterministic scalar option analytics primitives:
+  - linear Black-76 call/put pricing;
+  - linear intrinsic and put-call parity;
+  - inverse base-currency forward pricing;
+  - inverse intrinsic and base-currency parity;
+  - linear quote Greeks;
+  - inverse native base Greeks;
+  - inverse quote-reporting Greeks;
+  - static reporting-currency Greek scaling;
+  - bisection IV solvers with explicit status enum;
+  - minimal total variance surface and diagnostics.
+- Exported Phase 2 analytics helpers from top-level `quantbt`.
+- Added tests for:
+  - linear parity;
+  - inverse parity;
+  - IV recovery;
+  - invalid IV status;
+  - finite-difference delta/gamma/vega;
+  - no-future-timestamp surface calibration;
+  - basic calendar total variance diagnostics.
+
+Latest tests:
+
+- options tests: `31 passed`.
+- fastmath scan: no matches in `options` or `tests/options`.
+- import smoke: `phase2_import_smoke=pass`.
+- full non-real regression: `317 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.2:
+
+- Pricing/Greeks are scalar primitives; vectorized or Numba kernels should be
+  added only after Phase 3/4 tape and execution array shapes are stable.
+- Inverse pricing uses the Phase 2 forward convention: linear quote price
+  divided by forward. Venue-exact Deribit/Binance option accounting needs later
+  sample parity.
+- Theta assumes fixed forward and discount.
+- Surface diagnostics are minimal; butterfly convexity and full no-arb fitting
+  are not production-certified yet.
+- IV uses deterministic bisection for auditability; faster solvers are deferred.
+- Options still have no tape compiler, selector, execution engine, ledger,
+  expiry lifecycle, endpoint route, or Nautilus validation.
+
 ---
 
 ## Backend Selection Guide
