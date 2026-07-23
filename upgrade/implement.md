@@ -3072,6 +3072,61 @@ Technical debt after Phase 17.4:
 - Options still have no endpoint route, full ledger, expiry lifecycle, or
   Nautilus adapter.
 
+### Phase 17.5 - Multi-Currency Ledger, Fees, Lifecycle
+
+Status: completed.
+
+Implemented:
+
+- Added `OptionFeeSchedule`, `OptionFeeResult`, and deterministic per-leg fee
+  calculation.
+- Added Deribit-like fee schedules:
+  - inverse base-currency capped fee;
+  - linear USDC capped fee.
+- Added `OptionLedger` and `OptionPosition`:
+  - multi-currency cash;
+  - position quantity;
+  - average entry;
+  - realized PnL;
+  - fees;
+  - settlement cashflows;
+  - margin-locked bucket;
+  - event audit rows;
+  - reporting-currency equity identity.
+- Added lifecycle helpers:
+  - `option_expiry_payoff_per_unit(...)`;
+  - `settle_option_expiry(...)`;
+  - `OptionSettlementRepresentation`;
+  - `OptionSettlementResult`.
+- Locked Phase 5 accounting rules:
+  - long pays premium;
+  - short receives premium;
+  - fee is recorded separately;
+  - round trip with no price move equals spread plus fees;
+  - inverse BTC premium reconciles to USD reporting equity via conversion rate;
+  - OTM expiry closes at zero payoff;
+  - ITM linear payoff settles in quote/settlement currency;
+  - ITM inverse payoff settles in base currency;
+  - settlement closes exactly once.
+- Exported Phase 5 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `63 passed`.
+- import smoke: `phase5_import_smoke=pass`.
+- full non-real regression: `349 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.5:
+
+- Ledger is not wired into a full option backend or endpoint yet.
+- Margin models and liquidation sequencing remain Phase 6.
+- Fee schedules are deterministic Deribit-like approximations, not venue-exact
+  certified schedules.
+- `future_then_cash` is currently an audit representation with equivalent
+  economic cashflow.
+- Quanto lifecycle payoff is not implemented.
+- Reporting conversion uses caller-supplied rates only.
+
 ---
 
 ## Backend Selection Guide
