@@ -1073,6 +1073,28 @@ result = QuantBTEndpoint.portfolio(
 Core accounting is identical across report levels; only metadata artifact
 construction changes.
 
+Prepared service context for repeated portfolio replays:
+
+```python
+endpoint = QuantBTEndpoint.portfolio(
+    portfolio_mode="market_neutral",
+    backend="native_portfolio",
+    hedge_type="signal_notional",
+    report_level="minimal",
+)
+
+ctx = endpoint.prepare_service_context(data=data_dict, symbols=["BTC", "ETH"])
+
+for positions in candidate_position_matrices:
+    result = ctx.backtest(positions=positions)
+```
+
+This opt-in helper normalizes and packs the market tape once, then reuses
+validated prepared arrays for repeated service/WFO-style runs. It does not alter
+normal `.backtest(...)` behavior. Use it when the OHLC/funding tape is fixed
+and many candidate position matrices are replayed. Rerun the selected candidate
+with `report_level="full"` for stakeholder audit artifacts.
+
 Experimental Nautilus portfolio validation:
 
 ```python
@@ -1322,6 +1344,33 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
+
+Prepared service context for repeated single-symbol runs:
+
+```python
+endpoint = QuantBTEndpoint.signal_notional(
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+ctx = endpoint.prepare_service_context(data=df, symbols=["BTC"])
+
+for signal in candidate_signals:
+    result = ctx.backtest(signal=signal)
+```
+
+Supported prepared-context routes are intentionally narrow:
+
+- `QuantBTEndpoint.signal_notional(..., backend="native_vectorized")`;
+- `QuantBTEndpoint.portfolio(..., backend="native_portfolio")`.
+
+Unsupported legacy/event/Nautilus modes raise `NotImplementedError` and should
+continue using normal `.backtest(...)` or existing backend prepared APIs. The
+context is caller-owned, run-local, and signature-validated by the backend; it
+does not use a mutable global cache.
 
 Prepared endpoint scoring:
 

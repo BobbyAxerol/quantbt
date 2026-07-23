@@ -1,0 +1,97 @@
+{
+  "phase": "16",
+  "status": "pass",
+  "rows": 1440,
+  "symbols": 6,
+  "replays": 8,
+  "repeats": 2,
+  "service_context": {
+    "single_signal_notional": {
+      "normal_seconds": 0.0710998319555074,
+      "prepared_seconds": 0.03904086700640619,
+      "speedup": 1.8211642672751267,
+      "peak_memory_mb": 1.227433204650879,
+      "parity_passed": true,
+      "final_equity_max_abs_diff": 0.0,
+      "position_max_abs_diff": 0.0,
+      "context_metadata": {
+        "mode": "single_signal_notional",
+        "symbols": [
+          "BTC"
+        ],
+        "bars": 1440,
+        "runs": 32,
+        "market_signature": "MarketDataSignature(length=1440, first_timestamp_ns=1609459200000000000, last_timestamp_ns=1614639600000000000, symbols=('BTC',), shape=(1440, 1))"
+      }
+    },
+    "native_portfolio": {
+      "normal_seconds": 0.31147499312646687,
+      "prepared_seconds": 0.06948263105005026,
+      "speedup": 4.48277488084904,
+      "peak_memory_mb": 2.6346397399902344,
+      "parity_passed": true,
+      "final_equity_max_abs_diff": 0.0,
+      "margin_max_abs_diff": 0.0,
+      "context_metadata": {
+        "mode": "portfolio",
+        "symbols": [
+          "S00",
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05"
+        ],
+        "bars": 1440,
+        "runs": 32,
+        "market_signature": "MarketDataSignature(length=1440, first_timestamp_ns=1609459200000000000, last_timestamp_ns=1614639600000000000, symbols=('S00', 'S01', 'S02', 'S03', 'S04', 'S05'), shape=(1440, 6))"
+      }
+    }
+  },
+  "report_construction": {
+    "full_seconds": 0.07545623905025423,
+    "minimal_seconds": 0.03936349297873676,
+    "speedup": 1.9169091292536953,
+    "parity_passed": true,
+    "equity_max_abs_diff": 0.0,
+    "positions_max_abs_diff": 0.0
+  },
+  "large_wfo_service_loop": {
+    "status": "pass",
+    "rows": 1440,
+    "symbols": 6,
+    "trials": 8,
+    "order_count": 360,
+    "parity": {
+      "single_symbol_wfo": true,
+      "portfolio_wfo": true,
+      "native_event_replay": true,
+      "arbitrage_package_sweep": true,
+      "report_heavy_vs_light": true
+    },
+    "cython_cpp_recommendation": "Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers. Phase 14C added opt-in cache threading and report-level controls; larger real service-loop profiles should come before any Cython/C++ decision.",
+    "next_optimization_targets": [
+      "native_vectorized: `data_normalization` (55.3%)",
+      "native_event: `data_normalization` (40.3%)",
+      "native_portfolio: `report_construction_estimate` (76.4%)",
+      "Next step should be real workload profiling before considering Cython/C++; Phase 14C moved the main cache/report controls into opt-in APIs."
+    ]
+  },
+  "parity": {
+    "single_service_context": true,
+    "portfolio_service_context": true,
+    "portfolio_report_levels": true,
+    "large_wfo_service_loop": true
+  },
+  "cython_cpp_recommendation": "not justified yet; facade/report overhead remains the larger measured bucket",
+  "closed_debt": [
+    "facade-level repeated pandas market normalization can now be avoided with endpoint.prepare_service_context(...)",
+    "report construction has an explicit full/minimal benchmark and parity guard",
+    "larger WFO/service-loop benchmark is archived before any Cython/C++ decision"
+  ],
+  "remaining_notes": [
+    "normal endpoint.backtest(...) remains backward-compatible and still normalizes defensively per call",
+    "prepared service context is opt-in and currently covers native_vectorized signal_notional plus native_portfolio",
+    "Cython/C++ should wait until pure kernels, not pandas/report facades, dominate measured runtime"
+  ]
+}

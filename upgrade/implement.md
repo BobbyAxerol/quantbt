@@ -2773,6 +2773,75 @@ Safety notes:
 - `l2_replay` raises explicitly until venue snapshots, incremental updates,
   trade prints, and timestamp/latency assumptions are provided.
 
+## Phase 16 - Performance Debt Closure
+
+Goal:
+
+Close the remaining non-Cython performance debt that was still open after
+Phase 13/14:
+
+- repeated pandas normalization in facade/service loops;
+- native portfolio report-construction residual cost;
+- larger WFO/service-loop benchmark before any Cython/C++ decision.
+
+Scope:
+
+- Add an opt-in prepared service context on the public endpoint:
+  `endpoint.prepare_service_context(...)`.
+- Support only routes with existing prepared-array parity locks:
+  - `QuantBTEndpoint.signal_notional(..., backend="native_vectorized")`;
+  - `QuantBTEndpoint.portfolio(..., backend="native_portfolio")`.
+- Keep normal `.backtest(...)` unchanged and defensive.
+- Reuse copied prepared market arrays and backend signature validation.
+- Convert repeated signal/position inputs to raw ndarray matrices when index and
+  columns already match, with safe pandas alignment fallback otherwise.
+- Add a larger benchmark artifact that compares:
+  - repeated normal endpoint replays;
+  - prepared service-context replays;
+  - full vs minimal native portfolio reports;
+  - larger Phase 14 WFO/service-loop profile.
+
+Acceptance:
+
+- Prepared service context has identical core accounting versus normal endpoint:
+  equity, returns, positions, fees, funding, margin.
+- Unsupported legacy/event/Nautilus routes raise clearly instead of silently
+  changing semantics.
+- Benchmark artifact records speed, parity, memory, and Cython/C++ decision.
+- Cython/C++ remains deferred unless pure kernels become the measured bottleneck.
+
+Status:
+
+- Implemented `QuantBTPreparedContext` and
+  `QuantBTEndpoint.prepare_service_context(...)`.
+- Exported `QuantBTPreparedContext` through top-level `quantbt`.
+- Added tests in `tests/test_phase16_prepared_service_context.py`:
+  - single-symbol `signal_notional` prepared context parity;
+  - native portfolio prepared context core-accounting parity;
+  - unsupported legacy `%_equity` rejection.
+- Added benchmark runner and artifacts:
+  - `benchmarks/run_phase16_performance_debt.py`;
+  - `benchmarks/phase16_performance_debt.json`;
+  - `benchmarks/phase16_performance_debt.md`.
+- Latest Phase 16 benchmark status: `pass`.
+- Latest measured prepared-context speedups:
+  - single-symbol signal-notional service replays: `1.821x`;
+  - native portfolio service replays: `4.483x`;
+  - native portfolio full vs minimal report construction: `1.917x`.
+- Larger WFO/service-loop parity remains `pass`.
+- Current Cython/C++ decision: not justified yet; measured bottlenecks remain
+  facade/report/preparation layers rather than pure Numba kernels.
+
+Safety notes:
+
+- This phase does not alter margin, sizing, fill, funding, liquidation, or PnL
+  kernels.
+- Prepared service contexts are caller-owned and run-local; there is no mutable
+  global cache.
+- If OHLC/funding data changes, rebuild the context.
+- For final stakeholder reports, rerun the selected signal/portfolio with
+  normal `.backtest(...)` or `report_level="full"`.
+
 ---
 
 ## Backend Selection Guide
