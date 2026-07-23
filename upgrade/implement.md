@@ -3127,6 +3127,51 @@ Technical debt after Phase 17.5:
 - Quanto lifecycle payoff is not implemented.
 - Reporting conversion uses caller-supplied rates only.
 
+### Phase 17.6 - Hedging And Margin
+
+Status: completed.
+
+Implemented:
+
+- Added option hedge-policy primitives:
+  - fixed threshold;
+  - hysteresis band;
+  - time-based;
+  - realized-vol scaled band.
+- Added hedge path accounting where hedge PnL for the prior price move uses the
+  previous hedge position before current-bar rebalance.
+- Added option margin primitives:
+  - long-premium-only;
+  - standard venue approximation;
+  - scenario PM approximation;
+  - no-margin research;
+  - external validator interface.
+- Added liquidation audit:
+  - maintenance breach check;
+  - adverse bid/ask liquidation;
+  - fee report;
+  - final cash;
+  - final positions.
+- Exported Phase 6 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `71 passed`.
+- import smoke: `phase6_import_smoke=pass`.
+- full non-real regression: `357 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.6:
+
+- Hedge/margin are primitives, not a full option backend loop yet.
+- Whalley-Wilmott remains intentionally excluded.
+- Standard/scenario PM models are approximations; scenario PM reports
+  `venue_exact=false`.
+- External margin validator has an interface only.
+- Liquidation closes all positions with adverse BBO prices, not exchange-native
+  queue/partial liquidation logic.
+- Underlying hedge instrument execution and Nautilus option validation remain
+  future work.
+
 ---
 
 ## Backend Selection Guide
