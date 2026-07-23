@@ -921,6 +921,60 @@ Acceptance:
 - Native and Nautilus differences are component-labelled, not hidden in one
   final-equity tolerance.
 
+Status: completed at experimental constructor-pinned validation level.
+
+Implementation notes:
+
+- Added `adapters/nautilus/options.py`:
+  - `NautilusOptionValidationConfig`;
+  - `NautilusOptionValidationResult`;
+  - `inspect_nautilus_option_support`;
+  - `make_nautilus_option_instrument`;
+  - `build_nautilus_option_quote_table`;
+  - `validate_option_packages_with_nautilus`.
+- Exported Phase 9 helpers from `quantbt.adapters.nautilus`.
+- Pinned and inspected Nautilus `1.230.0` option constructor docs before
+  constructing option instruments.
+- Mapped QuantBT option specs to Nautilus `CryptoOption` / `OptionContract`
+  where constructor compatibility is available.
+- Built QuoteTick-equivalent BBO reports with explicit matching semantics:
+  market buy at ask, market sell at bid, limit crossed by BBO only.
+- Added component-labelled parity reports for:
+  - quantity;
+  - fill timestamp;
+  - fill price;
+  - fee;
+  - settlement;
+  - realized cashflow;
+  - final equity.
+- Added tests for:
+  - missing Nautilus skip behavior;
+  - constructor mapping;
+  - one linear option round trip;
+  - inverse option constructor validation;
+  - two-leg spread plus settlement;
+  - option plus underlying hedge labelled as future mixed-instrument replay;
+  - support matrix exposure.
+
+Validation:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.QuantBTEndpoint.options_support_matrix()['nautilus_options']['status'] == 'experimental'; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase9_import_smoke=pass')"`
+
+Technical debt after Phase 9:
+
+- Phase 9 does not claim full Nautilus option backtest-engine replay. It pins
+  constructors and quote semantics, then labels parity against native option
+  accounting.
+- Nautilus QuoteTick ingestion and option engine account reports remain future
+  work.
+- `CryptoOptionSpread` / `OptionSpread` constructors are inspected but package
+  validation still uses component option legs, not exchange-native spread
+  instruments.
+- Mixed underlying/perpetual + option package execution is labelled as future
+  work until a multi-instrument option/underlying replay path is implemented.
+
 ## Phase 10 - Performance And Production Hardening
 
 Files:

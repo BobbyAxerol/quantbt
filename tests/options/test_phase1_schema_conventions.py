@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 
 import pandas as pd
@@ -26,7 +27,12 @@ def _expiry_ns() -> int:
 
 def test_phase1_import_quantbt_does_not_import_nautilus():
     assert quantbt.OptionInstrumentSpec is OptionInstrumentSpec
-    assert not any(name.startswith("nautilus_trader") for name in sys.modules)
+    code = (
+        "import sys, quantbt; "
+        "assert quantbt.OptionInstrumentSpec; "
+        "assert not any(name.startswith('nautilus_trader') for name in sys.modules)"
+    )
+    subprocess.run([sys.executable, "-c", code], check=True)
 
 
 def test_phase1_option_asset_type_is_additive_to_core_schema():

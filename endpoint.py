@@ -544,10 +544,10 @@ class QuantBTEndpoint:
                 "notes": "not executable through generic arbitrage package route",
             },
             "nautilus_options": {
-                "status": "future",
+                "status": "experimental",
                 "backend": "nautilus",
-                "route": "Phase 9",
-                "notes": "Nautilus option instrument mapping remains optional future validation",
+                "route": "quantbt.adapters.nautilus.options.validate_option_packages_with_nautilus",
+                "notes": "Phase 9 pins Nautilus option constructors and BBO quote semantics; full Nautilus option engine replay remains future",
             },
         }
 
