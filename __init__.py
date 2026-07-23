@@ -92,6 +92,8 @@ from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
     NautilusExecutionDepthConfig,
     PackageDepthPreflightResult,
+    SUPPORTED_DEPTH_MODELS,
+    l2_replay_available,
     simulate_nautilus_order_package_depth,
 )
 from .core.structured_orders import (
@@ -194,6 +196,7 @@ from .viz import quick_plot, tearsheet, apply_theme
 from .reporting import (
     build_arbitrage_domain_audit,
     build_native_nautilus_parity_report,
+    build_nautilus_certification_profile,
     build_nautilus_depth_execution_report,
     build_nautilus_depth_parity_summary,
     build_nautilus_pct_equity_diagnostic,
@@ -202,7 +205,9 @@ from .reporting import (
     build_portfolio_nautilus_validation_report,
     compare_native_arbitrage_results,
     export_nautilus_report_bundle,
+    NautilusToleranceProfile,
     summarize_native_nautilus_parity_report,
+    write_nautilus_certification_artifacts,
 )
 
 __version__ = "0.1.0"
@@ -237,6 +242,7 @@ __all__ = [
     "NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES",
     "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
+    "build_nautilus_certification_profile",
     "build_nautilus_depth_execution_report",
     "build_nautilus_depth_parity_summary",
     "build_nautilus_pct_equity_diagnostic",
@@ -245,7 +251,9 @@ __all__ = [
     "build_portfolio_nautilus_validation_report",
     "compare_native_arbitrage_results",
     "export_nautilus_report_bundle",
+    "NautilusToleranceProfile",
     "summarize_native_nautilus_parity_report",
+    "write_nautilus_certification_artifacts",
     "WalkForwardConfig",
     "WalkForwardEngine",
     "WalkForwardFold",
@@ -343,6 +351,8 @@ __all__ = [
     "portfolio_capability_matrix",
     "quantize_signed_quantity",
     "round_down_to_step",
+    "SUPPORTED_DEPTH_MODELS",
+    "l2_replay_available",
     "simulate_nautilus_order_package_depth",
     "validate_portfolio_result_contract",
     # metrics

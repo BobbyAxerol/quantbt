@@ -1,0 +1,38 @@
+{
+  "phase": "15B",
+  "status": "pass",
+  "l2_replay_available": false,
+  "cases": [
+    {
+      "case": "synthetic_market_vwap",
+      "depth_model": "synthetic_book",
+      "status": "filled",
+      "filled_qty": 2.0,
+      "fill_price": 100.1,
+      "levels_consumed": 2,
+      "accepted_orders": 1,
+      "rejected_orders": 0
+    },
+    {
+      "case": "synthetic_partial_queue",
+      "depth_model": "synthetic_book",
+      "status": "partial",
+      "filled_qty": 1.5,
+      "fill_price": 100.02333333333333,
+      "levels_consumed": 2,
+      "accepted_orders": 1,
+      "rejected_orders": 0
+    },
+    {
+      "case": "ohlcv_all_or_none_baseline",
+      "depth_model": "ohlcv_volume_cap",
+      "status": "filled",
+      "filled_qty": 1.0,
+      "fill_price": 100.0,
+      "levels_consumed": 1,
+      "accepted_orders": 1,
+      "rejected_orders": 0
+    }
+  ],
+  "claim_scope": "Level-2 synthetic stress only; not venue L2 replay."
+}

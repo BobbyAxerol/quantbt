@@ -167,3 +167,41 @@ def test_phase5_4_endpoint_depth_annotates_basket_package_reports(monkeypatch):
     assert result.metadata["order_count_after_depth"] == 4
     assert result.metadata["nautilus_depth_package_report"]["status"].tolist() == ["accepted", "accepted"]
     assert all(order.metadata["package_type"] == "basket_package" for order in captured["orders"])
+
+
+def test_phase15b_endpoint_depth_accepts_synthetic_book_model(monkeypatch):
+    captured = _install_fake_nautilus(monkeypatch)
+    df = _df()
+    idx = df.index
+
+    endpoint = QuantBTEndpoint.nautilus_bracket_orders(
+        spec=BracketOrderSpec(
+            symbol="ETHUSDT-PERP.BINANCE",
+            entry_timestamp=idx[1],
+            exit_timestamp=idx[3],
+            side=OrderSide.BUY,
+            qty=1.5,
+            take_profit_price=110.0,
+            stop_loss_price=95.0,
+        ),
+        initial_capital=10_000.0,
+        use_funding=False,
+        nautilus_depth_config=NautilusExecutionDepthConfig(
+            depth_model="synthetic_book",
+            allow_partial_fills=True,
+            synthetic_base_depth_qty=1.0,
+            synthetic_levels=2,
+        ),
+    )
+
+    result = endpoint.simulate(data=df)
+
+    assert captured["runs"] == 1
+    assert result.metadata["nautilus_depth_enabled"] is True
+    assert result.metadata["nautilus_depth_metadata"]["depth_model"] == "synthetic_book"
+    assert result.metadata["nautilus_depth_order_report"]["depth_model"].tolist() == [
+        "synthetic_book",
+        "synthetic_book",
+        "synthetic_book",
+    ]
+    assert result.metadata["nautilus_depth_order_report"].iloc[0]["levels_consumed"] >= 1

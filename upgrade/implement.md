@@ -2636,7 +2636,62 @@ Acceptance:
 - Injected mismatch tests prove parity reports catch fill-price/equity/quantity
   differences.
 
+Status:
+
+- Implemented `reporting/nautilus_certification.py`:
+  - `NautilusToleranceProfile`;
+  - `build_nautilus_certification_profile(...)`;
+  - `write_nautilus_certification_artifacts(...)`.
+- Added public exports through `quantbt.reporting` and top-level `quantbt`.
+- Implemented `benchmarks/run_phase15a_nautilus_certification.py`.
+- Supported certification workflow matrix:
+  - `pct_equity_signal`;
+  - `explicit_orders`;
+  - `basket_package`;
+  - `portfolio_package`;
+  - `basis_arbitrage_package`.
+- Successful workflows export the normal Nautilus bundle plus:
+  - `native_vs_nautilus_parity.csv`;
+  - `tolerance_profile.json`;
+  - `known_differences.md`;
+  - `certification_summary.json`.
+- Default runner behavior is dependency-safe:
+  - without `--include-nautilus`, all workflows are marked `skipped`;
+  - with `--include-nautilus`, missing `nautilus-trader` or unsupported
+    instrument routes skip cleanly instead of pretending to pass.
+- Added `tests/test_phase15a_nautilus_certification.py`:
+  - clean skip behavior;
+  - markdown readability;
+  - identical synthetic results pass tolerance;
+  - injected fill-price, fee, equity, and quantity mismatches fail tolerance.
+- Updated documentation:
+  - `docs/nautilus_backend.md`;
+  - `README.md`.
+
+Latest local artifact:
+
+- `benchmarks/phase15a_nautilus_certification.json`;
+- `benchmarks/phase15a_nautilus_certification.md`.
+
+Current local run status without optional Nautilus execution:
+
+- status: `pass`;
+- workflows skipped: `5`;
+- failed workflows: `0`.
+
+Safety notes:
+
+- Phase 15A is an evidence/reporting layer. It does not change native or
+  Nautilus execution, sizing, fee, margin, liquidation, or funding logic.
+- A skipped workflow is not a pass claim. It only records that optional
+  dependency/instrument execution was not requested or available.
+
 ### Phase 15B - Nautilus Depth, Synthetic Book, And Specialized Arbitrage Plan
+
+Status: completed for Level-2 synthetic depth stress and documentation
+guardrails. Real venue L2 replay, exchange-native OCO lists, in-strategy
+dynamic DCA state machines, and specialized cross-exchange / triangular /
+options-vol engines remain future production work.
 
 Purpose:
 
@@ -2668,9 +2723,13 @@ Nautilus depth scope:
   - map to exchange-native order-list semantics if Nautilus route is stable;
   - otherwise keep package-strategy cancellation and document the difference.
 - Depth model abstraction:
-  - `OHLCVDepthModel`;
-  - `SyntheticBookDepthModel`;
-  - `L2ReplayDepthModel` future adapter.
+  - `OHLCVDepthModel` maps to `depth_model="ohlcv_volume_cap"` and remains the
+    default;
+  - `SyntheticBookDepthModel` maps to `depth_model="synthetic_book"` and now
+    supports deterministic spread, level spacing, level depth, depth slope,
+    participation cap, queue-ahead, partial-fill, and limit-price filtering;
+  - `L2ReplayDepthModel` maps to `depth_model="l2_replay"` and intentionally
+    refuses to run without real venue depth provider data.
 
 Specialized arbitrage scope:
 
@@ -2692,10 +2751,27 @@ Specialized arbitrage scope:
 Acceptance:
 
 - Synthetic-book tests prove depth model invariants without requiring private
-  venue data.
-- Real L2 tests skip clearly when no L2 provider is configured.
+  venue data: `tests/test_phase15b_synthetic_depth.py`.
+- Endpoint package routing accepts the synthetic depth config:
+  `tests/test_phase5_4_endpoint_depth.py::test_phase15b_endpoint_depth_accepts_synthetic_book_model`.
+- Real L2 tests skip clearly when no L2 provider is configured via
+  `l2_replay_available(...)`.
 - Schema-only arbitrage specs remain rejected until their specialized engine has
   accounting audit, parity tests, and docs.
+
+Latest local artifacts:
+
+- `benchmarks/phase15b_synthetic_depth.json`;
+- `benchmarks/phase15b_synthetic_depth.md`;
+- `benchmarks/run_phase15b_synthetic_depth.py`.
+
+Safety notes:
+
+- Phase 15B does not change default endpoint behavior because
+  `depth_model="ohlcv_volume_cap"` remains the default.
+- Synthetic depth is an execution stress model, not an exchange L2 replay.
+- `l2_replay` raises explicitly until venue snapshots, incremental updates,
+  trade prints, and timestamp/latency assumptions are provided.
 
 ---
 

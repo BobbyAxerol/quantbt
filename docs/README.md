@@ -13,7 +13,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand market/limit/stop fill behavior | [Order fill policies](order_fill_policies.md) |
 | Build pair trades or baskets | [Pair and basket guide](pair_basket_guide.md) |
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
-| Use Nautilus as third-party execution validation | [Nautilus backend](nautilus_backend.md) |
+| Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 
 ## Strategy Route Map
