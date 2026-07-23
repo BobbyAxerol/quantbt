@@ -2636,6 +2636,56 @@ Acceptance:
 - Injected mismatch tests prove parity reports catch fill-price/equity/quantity
   differences.
 
+Status:
+
+- Implemented `reporting/nautilus_certification.py`:
+  - `NautilusToleranceProfile`;
+  - `build_nautilus_certification_profile(...)`;
+  - `write_nautilus_certification_artifacts(...)`.
+- Added public exports through `quantbt.reporting` and top-level `quantbt`.
+- Implemented `benchmarks/run_phase15a_nautilus_certification.py`.
+- Supported certification workflow matrix:
+  - `pct_equity_signal`;
+  - `explicit_orders`;
+  - `basket_package`;
+  - `portfolio_package`;
+  - `basis_arbitrage_package`.
+- Successful workflows export the normal Nautilus bundle plus:
+  - `native_vs_nautilus_parity.csv`;
+  - `tolerance_profile.json`;
+  - `known_differences.md`;
+  - `certification_summary.json`.
+- Default runner behavior is dependency-safe:
+  - without `--include-nautilus`, all workflows are marked `skipped`;
+  - with `--include-nautilus`, missing `nautilus-trader` or unsupported
+    instrument routes skip cleanly instead of pretending to pass.
+- Added `tests/test_phase15a_nautilus_certification.py`:
+  - clean skip behavior;
+  - markdown readability;
+  - identical synthetic results pass tolerance;
+  - injected fill-price, fee, equity, and quantity mismatches fail tolerance.
+- Updated documentation:
+  - `docs/nautilus_backend.md`;
+  - `README.md`.
+
+Latest local artifact:
+
+- `benchmarks/phase15a_nautilus_certification.json`;
+- `benchmarks/phase15a_nautilus_certification.md`.
+
+Current local run status without optional Nautilus execution:
+
+- status: `pass`;
+- workflows skipped: `5`;
+- failed workflows: `0`.
+
+Safety notes:
+
+- Phase 15A is an evidence/reporting layer. It does not change native or
+  Nautilus execution, sizing, fee, margin, liquidation, or funding logic.
+- A skipped workflow is not a pass claim. It only records that optional
+  dependency/instrument execution was not requested or available.
+
 ### Phase 15B - Nautilus Depth, Synthetic Book, And Specialized Arbitrage Plan
 
 Purpose:

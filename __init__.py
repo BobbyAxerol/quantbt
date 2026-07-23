@@ -194,6 +194,7 @@ from .viz import quick_plot, tearsheet, apply_theme
 from .reporting import (
     build_arbitrage_domain_audit,
     build_native_nautilus_parity_report,
+    build_nautilus_certification_profile,
     build_nautilus_depth_execution_report,
     build_nautilus_depth_parity_summary,
     build_nautilus_pct_equity_diagnostic,
@@ -202,7 +203,9 @@ from .reporting import (
     build_portfolio_nautilus_validation_report,
     compare_native_arbitrage_results,
     export_nautilus_report_bundle,
+    NautilusToleranceProfile,
     summarize_native_nautilus_parity_report,
+    write_nautilus_certification_artifacts,
 )
 
 __version__ = "0.1.0"
@@ -237,6 +240,7 @@ __all__ = [
     "NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES",
     "build_arbitrage_domain_audit",
     "build_native_nautilus_parity_report",
+    "build_nautilus_certification_profile",
     "build_nautilus_depth_execution_report",
     "build_nautilus_depth_parity_summary",
     "build_nautilus_pct_equity_diagnostic",
@@ -245,7 +249,9 @@ __all__ = [
     "build_portfolio_nautilus_validation_report",
     "compare_native_arbitrage_results",
     "export_nautilus_report_bundle",
+    "NautilusToleranceProfile",
     "summarize_native_nautilus_parity_report",
+    "write_nautilus_certification_artifacts",
     "WalkForwardConfig",
     "WalkForwardEngine",
     "WalkForwardFold",

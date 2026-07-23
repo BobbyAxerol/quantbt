@@ -38,6 +38,8 @@ historical reproduction.
 - Explicit margin, leverage, fees, slippage, funding, and liquidation handling.
 - Stable audit artifacts: metrics, plots, raw reports, trade logs, config JSON,
   run manifest, and optional QuantStats HTML.
+- Nautilus certification bundles with parity CSVs, tolerance profiles, known
+  differences, and explicit skip/pass status for optional trustee workflows.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection, plus full-sample robust calibration for final
   production parameter discovery.
@@ -87,6 +89,21 @@ Cython/C++ work. See `benchmarks/phase9_optimization_report.md`,
 `benchmarks/phase7_profile_report.md`, and
 `benchmarks/portfolio_real_parity_report.md` for parity and optimization
 history.
+
+Latest Phase 14C service-loop optimization benchmark:
+
+| Workload | Cold / full route | Prepared / minimal route | Speedup | Parity |
+|---|---:|---:|---:|---|
+| Single-symbol WFO | 1.007s | 0.883s | 1.14x | pass |
+| Portfolio WFO | 0.440s | 0.326s | 1.35x | pass |
+| Native-event order replay | 0.0096s | 0.0046s | 2.10x | pass |
+| Arbitrage package replay | 0.0746s | 0.0663s | 1.13x | pass |
+| Native portfolio reports | 0.0410s full | 0.0233s minimal | 1.76x | pass |
+
+Phase 14C added run-local prepared market-array reuse for WFO/service loops and
+`report_level="full" | "standard" | "minimal"` for native portfolio reports.
+The default remains `full`; lighter report levels are opt-in for optimizers and
+services, and parity tests lock core accounting equality before any speed claim.
 
 Ecosystem positioning:
 
