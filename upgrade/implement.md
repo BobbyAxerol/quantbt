@@ -2085,11 +2085,11 @@ Debt ledger after Phase 13:
   `backend="native_portfolio"`.
 - Completed by Phase 13B: native portfolio report construction has been
   optimized and parity-locked against the previous pandas formulas.
-- Remaining: extend prepared-array reuse to other higher-level repeated loops
-  such as single-symbol WFO, native-event order-package replay, and arbitrage
-  package sweeps.
-- Remaining: add optional/lazy heavy report controls for service/WFO loops while
-  keeping full reports as the default stakeholder/audit surface.
+- Completed by Phase 14C: prepared-array reuse now covers single-symbol
+  `signal_notional` WFO scoring, native-event order-package replay, and
+  supported arbitrage package replays.
+- Completed by Phase 14C: native portfolio has opt-in `report_level` controls
+  while `full` remains the default stakeholder/audit surface.
 - Remaining: pandas normalization overhead still exists in facade layers.
 - Remaining: true L2/order-book replay requires venue depth data. Until then,
   QuantBT can only provide OHLCV approximation and synthetic-book simulation for
@@ -2389,8 +2389,8 @@ Scope:
   - WFO prepared portfolio arrays completed by Phase 13A;
   - native portfolio report optimization completed by Phase 13B.
 - Preserve remaining debt with sharper wording:
-  - prepared cache is still expandable beyond portfolio WFO;
-  - report construction can still support optional/lazy heavy reports;
+  - prepared cache beyond portfolio WFO was completed later in Phase 14C;
+  - optional report levels were completed later in Phase 14C;
   - facade-level pandas normalization remains measurable;
   - true L2 replay needs venue order-book data.
 - Add a certification matrix covering current production/readiness state by
@@ -2404,7 +2404,7 @@ Certification matrix after Phase 13:
 |---|---|---|---|
 | Single-symbol native vectorized | supported | research/production usable for target-position backtests | real-strategy regression bundles as needed |
 | Single-symbol native event | supported | research/production usable for explicit order OHLC backtests | deeper stop/conditional edge cases when needed |
-| Native portfolio | default for supported modes | production-ready for supported sizing/modes with parity tests | optional/lazy reports and more real alpha bundles |
+| Native portfolio | default for supported modes | production-ready for supported sizing/modes with parity tests | more real alpha bundles and full-report presentation polish |
 | Native arbitrage basis/stat/calendar/funding/carry/index | supported | controlled research usable with audit artifacts | more real data packages and venue-specific cases |
 | Cross-exchange arbitrage | schema-only | not executable | specialized multi-venue engine |
 | Triangular arbitrage | schema-only | not executable | sequenced path engine |
@@ -2541,8 +2541,54 @@ Acceptance:
   - liquidation;
   - package PnL where applicable.
 - Signature mismatch rejects prepared reuse clearly.
-- Mutating source data between runs cannot reuse stale arrays.
+- Prepared arrays are explicit copied snapshots; source data mutation requires
+  rebuilding the prepared object, while stale index/symbol layouts are rejected.
 - Existing endpoint calls remain backward compatible because `full` is default.
+
+Status:
+
+- Implemented `NativeVectorizedBackend.prepare_market_arrays(...)` and optional
+  prepared-market replay for `run_signals(..., hedge_type="signal_notional")`.
+- Extended WFO endpoint scoring cache beyond portfolio:
+  - single-symbol `target_mode="signal_notional"` with `backend="native_vectorized"`;
+  - portfolio `target_mode="portfolio"` with `backend="native_portfolio"` remains
+    supported;
+  - cache metadata is attached at
+    `result.metadata["walk_forward"]["prepared_scoring_cache"]`.
+- Added `prepared_scoring_report_level`, default `minimal`, so portfolio WFO
+  objective scoring avoids heavy stakeholder reports per trial while the final
+  stitched backtest still uses endpoint `report_level` default `full`.
+- Added `report_level` to native portfolio:
+  - `full`: default, unchanged audit surface;
+  - `standard`: keeps exposure, accepted/target notional, funding rates, and
+    symbol PnL but omits selected expansions;
+  - `minimal`: keeps accounting-critical result surfaces for optimizer/service
+    loops and marks contract validation as skipped.
+- Extended native-event package routes to accept caller-owned prepared market
+  arrays for basket, basis arbitrage, stat-arb pair, and generic supported
+  package arbitrage replay.
+- Updated Phase 14 benchmark artifact to measure:
+  - single-symbol WFO cached vs uncached;
+  - portfolio WFO cached vs uncached;
+  - native-event explicit-order prepared replay;
+  - arbitrage package cold vs prepared event replay;
+  - native-portfolio `full` vs `minimal` report construction.
+- Added regression coverage:
+  - `tests/test_phase14c_prepared_report_levels.py`;
+  - updated `tests/test_phase14_service_loop_benchmark.py`.
+- Documentation updated:
+  - `docs/endpoint.md`;
+  - `docs/portfolio_engine_v3.md`.
+
+Safety notes:
+
+- Existing endpoint behavior is unchanged unless `report_level` or prepared
+  APIs are explicitly used.
+- Prepared arrays are copied snapshots with datetime/symbol signature guards,
+  not mutable global caches. If OHLC/funding values are changed intentionally,
+  rebuild the prepared arrays before replaying.
+- Phase 14C does not implement true L2/order-book simulation and does not alter
+  margin, fill, sizing, funding, or PnL kernels.
 
 ## Phase 15 - Nautilus Certification And Depth
 

@@ -48,10 +48,12 @@ class NativePortfolioConfig:
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     fee_rate: float = 0.0
     use_funding: bool = True
+    report_level: str = "full"
 
     def __post_init__(self) -> None:
         if float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        object.__setattr__(self, "report_level", _normalize_report_level(self.report_level))
 
 
 class NativePortfolioBackend:
@@ -94,6 +96,7 @@ class NativePortfolioBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        report_level: Optional[str] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         if positions is None and raw_signal_matrix is None:
@@ -260,9 +263,18 @@ class NativePortfolioBackend:
             liquidated=bool(liq_flag),
             liquidation_bar=int(liq_idx),
             quantity_constraints=constraints.as_dict(),
+            report_level=self.config.report_level if report_level is None else report_level,
         )
         spec = PortfolioDomainSpec(mode=portfolio_mode, sizing_mode=sizing_mode)
-        result.metadata["portfolio_contract_report"] = validate_portfolio_result_contract(result, spec, tolerance=1e-8)
+        if result.metadata.get("report_level") == "minimal":
+            result.metadata["portfolio_contract_report"] = {
+                "status": "skipped",
+                "passed": None,
+                "reason": "report_level='minimal' omits heavy audit reports; rerun with report_level='full' for contract validation",
+                "spec": {"mode": portfolio_mode, "sizing_mode": sizing_mode},
+            }
+        else:
+            result.metadata["portfolio_contract_report"] = validate_portfolio_result_contract(result, spec, tolerance=1e-8)
         return result
 
     def prepare_market_arrays(
@@ -445,7 +457,9 @@ class NativePortfolioBackend:
         liquidated: bool,
         liquidation_bar: int,
         quantity_constraints: Dict[str, Dict[str, float]],
+        report_level: str,
     ) -> BacktestResultV2:
+        level = _normalize_report_level(report_level)
         equity = pd.Series(equity_arr, index=idx, name="equity")
         close_report = pd.DataFrame(closes_m, index=idx, columns=symbol_list, copy=False)
         target_units_report = pd.DataFrame(target_m, index=idx, columns=symbol_list, copy=False)
@@ -458,38 +472,6 @@ class NativePortfolioBackend:
         accepted_notional_arr = pos_arr * closes_m * cs_row
         target_notional = pd.DataFrame(target_notional_arr, index=idx, columns=symbol_list, copy=False)
         accepted_notional = pd.DataFrame(accepted_notional_arr, index=idx, columns=symbol_list, copy=False)
-        funding_rates = pd.DataFrame(funding_m, index=idx, columns=symbol_list, copy=False)
-        risk_vol_report = pd.DataFrame(risk_vol, index=idx, columns=symbol_list, copy=False)
-
-        exposure_report = self._build_exposure_report(
-            accepted_notional_arr=accepted_notional_arr,
-            target_notional_arr=target_notional_arr,
-            equity_arr=equity_arr,
-            idx=idx,
-            leverages=leverages,
-            maintenance_ratio=maintenance_ratio,
-            betas=betas,
-        )
-        risk_contribution_report = pd.DataFrame(np.abs(accepted_notional_arr) * risk_vol, index=idx, columns=symbol_list, copy=False)
-        exposure_report.attrs["risk_contribution_report"] = risk_contribution_report
-        symbol_pnl_report = self._build_symbol_pnl_report(
-            idx=idx,
-            symbols=symbol_list,
-            accepted_units_arr=pos_arr,
-            closes_arr=closes_m,
-            funding_rates_arr=funding_m,
-            is_funding_bar=is_funding_bar,
-            contract_sizes=contract_sizes,
-            fee_arr=fee_arr,
-        )
-        rebalance_report = self._build_rebalance_report(
-            idx=idx,
-            symbols=symbol_list,
-            target_units_arr=target_m,
-            accepted_units_arr=pos_arr,
-            closes_arr=closes_m,
-            contract_sizes=contract_sizes,
-        )
 
         positions = pd.DataFrame(pos_arr, index=idx, columns=[f"Position_{s}" for s in symbol_list], copy=False)
         closes = pd.DataFrame(closes_m, index=idx, columns=[f"Close_{s}" for s in symbol_list], copy=False)
@@ -498,7 +480,14 @@ class NativePortfolioBackend:
         prev_units = np.vstack([np.zeros((1, len(symbol_list)), dtype=np.float64), pos_arr[:-1]])
         funding_cost_arr = prev_units * closes_m * cs_row * funding_m
         funding_cost_arr = np.where(is_funding_bar.reshape(-1, 1).astype(bool), funding_cost_arr, 0.0).sum(axis=1)
-        margin = exposure_report[["initial_margin", "maintenance_margin"]].copy()
+        abs_accepted = np.abs(accepted_notional_arr)
+        margin = pd.DataFrame(
+            {
+                "initial_margin": (abs_accepted / leverages.reshape(1, -1)).sum(axis=1),
+                "maintenance_margin": abs_accepted.sum(axis=1) * float(maintenance_ratio),
+            },
+            index=idx,
+        )
         diagnostics = pd.DataFrame(
             {
                 "turnover": turnover_arr,
@@ -515,6 +504,95 @@ class NativePortfolioBackend:
                 where=equity_arr[:-1] != 0.0,
             )
 
+        metadata = {
+            "backend": "native_portfolio",
+            "mode": mode,
+            "asset_type": asset_type,
+            "hedge_type": hedge_type,
+            "engine": "native_portfolio_v1",
+            "report_level": level,
+            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            "funding_rate_unit": "per_event",
+            "target_units_report": target_units_report,
+            "accepted_units_report": accepted_units_report,
+            "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
+            "fee_series": fees,
+            "turnover_series": turnover,
+            "fee_total": float(np.sum(fee_arr)),
+            "turnover_total": float(np.sum(turnover_arr)),
+            "fee_rate_oneway": float(self.config.fee_rate),
+            "contract_size": {s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)},
+            "quantity_constraints": quantity_constraints,
+        }
+        omitted = []
+        if level in {"full", "standard"}:
+            funding_rates = pd.DataFrame(funding_m, index=idx, columns=symbol_list, copy=False)
+            exposure_report = self._build_exposure_report(
+                accepted_notional_arr=accepted_notional_arr,
+                target_notional_arr=target_notional_arr,
+                equity_arr=equity_arr,
+                idx=idx,
+                leverages=leverages,
+                maintenance_ratio=maintenance_ratio,
+                betas=betas,
+            )
+            symbol_pnl_report = self._build_symbol_pnl_report(
+                idx=idx,
+                symbols=symbol_list,
+                accepted_units_arr=pos_arr,
+                closes_arr=closes_m,
+                funding_rates_arr=funding_m,
+                is_funding_bar=is_funding_bar,
+                contract_sizes=contract_sizes,
+                fee_arr=fee_arr,
+            )
+            metadata.update(
+                {
+                    "target_notional_report": target_notional,
+                    "accepted_notional_report": accepted_notional,
+                    "exposure_report": exposure_report,
+                    "funding_rates_report": funding_rates,
+                    "symbol_pnl_report": symbol_pnl_report,
+                }
+            )
+            if level == "full":
+                risk_vol_report = pd.DataFrame(risk_vol, index=idx, columns=symbol_list, copy=False)
+                risk_contribution_report = pd.DataFrame(np.abs(accepted_notional_arr) * risk_vol, index=idx, columns=symbol_list, copy=False)
+                exposure_report.attrs["risk_contribution_report"] = risk_contribution_report
+                rebalance_report = self._build_rebalance_report(
+                    idx=idx,
+                    symbols=symbol_list,
+                    target_units_arr=target_m,
+                    accepted_units_arr=pos_arr,
+                    closes_arr=closes_m,
+                    contract_sizes=contract_sizes,
+                )
+                metadata.update(
+                    {
+                        "risk_volatility_report": risk_vol_report,
+                        "risk_contribution_report": risk_contribution_report,
+                        "kernel_symbol_pnl": pd.DataFrame(sym_pnl_arr, index=idx, columns=symbol_list, copy=False),
+                        "rebalance_report": rebalance_report,
+                    }
+                )
+            else:
+                omitted.extend(["risk_volatility_report", "risk_contribution_report", "kernel_symbol_pnl", "rebalance_report"])
+        else:
+            omitted.extend(
+                [
+                    "target_notional_report",
+                    "accepted_notional_report",
+                    "exposure_report",
+                    "funding_rates_report",
+                    "risk_volatility_report",
+                    "risk_contribution_report",
+                    "symbol_pnl_report",
+                    "kernel_symbol_pnl",
+                    "rebalance_report",
+                ]
+            )
+        metadata["reports_omitted"] = tuple(omitted)
+
         return BacktestResultV2(
             equity=equity,
             returns=pd.Series(returns_arr, index=idx, name="returns"),
@@ -529,33 +607,7 @@ class NativePortfolioBackend:
             funding=pd.Series(funding_cost_arr, index=idx, name="funding"),
             margin=margin,
             diagnostics=diagnostics,
-            metadata={
-                "backend": "native_portfolio",
-                "mode": mode,
-                "asset_type": asset_type,
-                "hedge_type": hedge_type,
-                "engine": "native_portfolio_v1",
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
-                "funding_rate_unit": "per_event",
-                "target_units_report": target_units_report,
-                "accepted_units_report": accepted_units_report,
-                "target_notional_report": target_notional,
-                "accepted_notional_report": accepted_notional,
-                "exposure_report": exposure_report,
-                "risk_volatility_report": risk_vol_report,
-                "risk_contribution_report": risk_contribution_report,
-                "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
-                "symbol_pnl_report": symbol_pnl_report,
-                "kernel_symbol_pnl": pd.DataFrame(sym_pnl_arr, index=idx, columns=symbol_list, copy=False),
-                "rebalance_report": rebalance_report,
-                "fee_series": fees,
-                "turnover_series": turnover,
-                "fee_total": float(np.sum(fee_arr)),
-                "turnover_total": float(np.sum(turnover_arr)),
-                "fee_rate_oneway": float(self.config.fee_rate),
-                "contract_size": {s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)},
-                "quantity_constraints": quantity_constraints,
-            },
+            metadata=metadata,
         )
 
     @staticmethod
@@ -713,3 +765,20 @@ class NativePortfolioBackend:
             "beta_neutral": 5,
         }
         return mapping[mode]
+
+
+def _normalize_report_level(report_level: str) -> str:
+    level = str(report_level or "full").lower().strip()
+    aliases = {
+        "audit": "full",
+        "complete": "full",
+        "default": "full",
+        "lite": "standard",
+        "light": "minimal",
+        "optimizer": "minimal",
+        "scoring": "minimal",
+    }
+    level = aliases.get(level, level)
+    if level not in {"full", "standard", "minimal"}:
+        raise ValueError("report_level must be one of 'full', 'standard', or 'minimal'")
+    return level

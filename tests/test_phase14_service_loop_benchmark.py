@@ -25,7 +25,7 @@ def test_phase14_service_loop_markdown_is_stakeholder_readable():
     report = run_benchmark(rows=96, symbols=2, trials=2, order_count=16, repeats=1)
     markdown = make_markdown(report)
 
-    assert "Phase 14B Real WFO And Service-Loop Benchmark" in markdown
+    assert "Phase 14C Prepared Cache And Report-Level Benchmark" in markdown
     assert "Service Loop Timings" in markdown
     assert "Stage Decomposition" in markdown
     assert "Parity Guards" in markdown

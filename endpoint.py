@@ -125,6 +125,10 @@ class EndpointConfig:
     nautilus_depth_config:
         Optional `NautilusExecutionDepthConfig` for package-order preflight.
         Existing endpoints are unchanged when this is omitted.
+    report_level:
+        Native portfolio artifact policy. `full` preserves all audit reports;
+        `standard` keeps core audit tables; `minimal` keeps accounting outputs
+        for optimizer/service loops. Existing calls default to `full`.
     strategy_class:
         Optional strategy callable/class for `walk_forward` mode. The strategy
         must return a Series, DataFrame, or `{symbol: Series}` OOS output.
@@ -164,6 +168,7 @@ class EndpointConfig:
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
     nautilus_depth_config: Optional[NautilusExecutionDepthConfig] = None
+    report_level: str = "full"
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
     walkforward_target_mode: str = "signal_notional"
@@ -1485,6 +1490,7 @@ class QuantBTEndpoint:
                 use_pyramiding=self.config.use_pyramiding,
                 betas=self.config.betas,
                 risk_lookback=self.config.risk_lookback,
+                report_level=self.config.report_level,
             ).result
             target_units = native_reference.metadata["target_units_report"].reindex(columns=symbol_list)
             orders = _build_portfolio_orders_from_target_units_for_nautilus(
@@ -1543,6 +1549,7 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1735,6 +1742,7 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
         "structured_order_spec": _jsonable(config.structured_order_spec),
         "symbols": _jsonable(config.symbols),
         "metadata": _jsonable(config.metadata),
+        "report_level": config.report_level,
     }
     if config.nautilus_config is not None:
         payload["nautilus"] = _jsonable(
@@ -1979,6 +1987,12 @@ class _WalkForwardEndpointScorer:
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
+        self.prepared_scoring_report_level = str(
+            (wf_config.metadata if wf_config is not None else {}).get("prepared_scoring_report_level", "minimal")
+        )
+        self._single_backend = None
+        self._single_market_maps = {}
+        self._single_market_cache = {}
         self._portfolio_backend = None
         self._portfolio_market_maps = {}
         self._portfolio_market_cache = {}
@@ -1995,7 +2009,9 @@ class _WalkForwardEndpointScorer:
 
     def __call__(self, data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
         try:
-            if self._can_score_portfolio_prepared(output):
+            if self._can_score_single_vectorized_prepared(output):
+                result = self._score_single_vectorized_prepared(output=output, index=index)
+            elif self._can_score_portfolio_prepared(output):
                 result = self._score_portfolio_prepared(output=output, index=index)
             else:
                 result = self._score_fallback(data=data, output=output, index=index)
@@ -2017,9 +2033,26 @@ class _WalkForwardEndpointScorer:
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)
-        meta["market_cache_entries"] = len(self._portfolio_market_cache)
-        meta["available"] = self.target_mode == "portfolio" and self.score_config.backend == "native_portfolio"
+        meta["market_cache_entries"] = len(self._portfolio_market_cache) + len(self._single_market_cache)
+        meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
+        meta["available"] = (
+            self._prepared_single_available()
+            or (self.target_mode == "portfolio" and self.score_config.backend == "native_portfolio")
+        )
         return meta
+
+    def _prepared_single_available(self) -> bool:
+        return (
+            self.score_config.mode == "signal_notional"
+            and _resolve_backend(self.score_config) == "native_vectorized"
+        )
+
+    def _can_score_single_vectorized_prepared(self, output) -> bool:
+        return (
+            self.use_prepared_cache
+            and self._prepared_single_available()
+            and isinstance(output, pd.Series)
+        )
 
     def _can_score_portfolio_prepared(self, output) -> bool:
         return (
@@ -2037,6 +2070,50 @@ class _WalkForwardEndpointScorer:
         if self.score_config.mode == "portfolio":
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
+
+    def _score_single_vectorized_prepared(self, output: pd.Series, index):
+        idx = _ensure_utc_index(index)
+        symbol_list = self._symbol_list(output)
+        close_map, high_map, low_map = self._single_maps(symbol_list)
+        backend = self._single_backend_instance()
+        cache_key = self._market_cache_key(idx, symbol_list)
+        market = self._single_market_cache.get(cache_key)
+        if market is None:
+            market = backend.prepare_market_arrays(
+                datetime_index=idx,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=self.score_config.funding_rate,
+                symbols=symbol_list,
+            )
+            self._single_market_cache[cache_key] = market
+            self._stats["market_cache_misses"] += 1
+        else:
+            self._stats["market_cache_hits"] += 1
+
+        self._stats["prepared_runs"] += 1
+        return backend.run_signals(
+            positions={symbol_list[0]: output},
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            datetime_index=idx,
+            funding_rate=self.score_config.funding_rate,
+            contract_size=self.score_config.contract_size,
+            leverage=self.score_config.account.leverage,
+            alloc_per_trade=self.score_config.alloc_per_trade,
+            hedge_type=self.score_config.sizing,
+            use_pyramiding=self.score_config.use_pyramiding,
+            symbols=symbol_list,
+            market_arrays=market,
+            instruments=self.score_config.instruments,
+            qty_step=self.score_config.qty_step,
+            lot_size=self.score_config.lot_size,
+            slot_size=self.score_config.slot_size,
+            min_qty=self.score_config.min_qty,
+            min_notional=self.score_config.min_notional,
+        )
 
     def _score_portfolio_prepared(self, output, index):
         idx = _ensure_utc_index(index)
@@ -2087,7 +2164,20 @@ class _WalkForwardEndpointScorer:
             slot_size=self.score_config.slot_size,
             min_qty=self.score_config.min_qty,
             min_notional=self.score_config.min_notional,
+            report_level=self.prepared_scoring_report_level,
         )
+
+    def _single_backend_instance(self) -> NativeVectorizedBackend:
+        if self._single_backend is None:
+            self._single_backend = NativeVectorizedBackend(
+                NativeVectorizedConfig(
+                    account=self.score_config.account,
+                    execution=self.score_config.execution,
+                    fee_rate=self.score_config.v2_fee_rate,
+                    use_funding=bool(self.score_config.use_funding),
+                )
+            )
+        return self._single_backend
 
     def _portfolio_backend_instance(self) -> NativePortfolioBackend:
         if self._portfolio_backend is None:
@@ -2100,9 +2190,31 @@ class _WalkForwardEndpointScorer:
                     execution=self.score_config.execution,
                     fee_rate=fee_oneway,
                     use_funding=bool(self.score_config.use_funding),
+                    report_level=self.prepared_scoring_report_level,
                 )
             )
         return self._portfolio_backend
+
+    def _single_maps(self, symbol_list):
+        key = tuple(symbol_list)
+        if key not in self._single_market_maps:
+            if self.market_closes is not None or isinstance(self.market_data, dict):
+                close_map, high_map, low_map, _idx, _symbols = _normalize_symbol_data(
+                    data=self.market_data,
+                    closes=self.market_closes,
+                    highs=self.market_highs,
+                    lows=self.market_lows,
+                    datetime_index=self.market_datetime_index,
+                    symbols=symbol_list,
+                )
+            else:
+                frame = _standardize_frame(self.market_data, datetime_index=self.market_datetime_index)
+                symbol = symbol_list[0]
+                close_map = {symbol: frame["close"]}
+                high_map = {symbol: frame.get("high", frame["close"])}
+                low_map = {symbol: frame.get("low", frame["close"])}
+            self._single_market_maps[key] = (close_map, high_map, low_map)
+        return self._single_market_maps[key]
 
     def _portfolio_maps(self, symbol_list):
         key = tuple(symbol_list)
