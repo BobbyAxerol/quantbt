@@ -2973,6 +2973,54 @@ Technical debt after Phase 17.2:
 - Options still have no tape compiler, selector, execution engine, ledger,
   expiry lifecycle, endpoint route, or Nautilus validation.
 
+### Phase 17.3 - Data Tape And Selectors
+
+Status: completed.
+
+Implemented:
+
+- Added a ragged/CSR option tape:
+  - `PreparedOptionTape`;
+  - `OptionTapeSignature`;
+  - `prepare_option_tape(...)`;
+  - snapshot timestamps;
+  - row pointers;
+  - per-row instrument codes and market fields.
+- Added no-lookahead option selectors:
+  - ATM;
+  - target delta;
+  - target DTE;
+  - target moneyness;
+  - available rows with liquidity/spread/OI filters.
+- Added registry, convention, and timestamp signature validation.
+- Added guards for:
+  - unknown/unlisted instruments;
+  - registry static-field mismatch;
+  - crossed quotes;
+  - stale source latency;
+  - stale decision-time quote age;
+  - expired contracts at decision time.
+- Exported Phase 3 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `43 passed`.
+- import smoke: `phase3_import_smoke=pass`.
+- dense/fastmath scan: no dense matrix construction and no `fastmath`.
+- full non-real regression: `329 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.3:
+
+- Selector scans are Python/NumPy. Numba kernels should wait until option
+  execution/package shapes are stable.
+- Delta/IV selectors use observable chain columns only. Model-derived fallback
+  selection must be explicit in later phases.
+- Stale checks are snapshot-level guards, not L2/order-book replay.
+- Tie-break policies are first-minimum after canonical sort; richer secondary
+  policies are future work.
+- Options still have no package compiler, execution engine, ledger, expiry
+  lifecycle, endpoint route, or Nautilus validation.
+
 ---
 
 ## Backend Selection Guide

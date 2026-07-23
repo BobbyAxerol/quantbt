@@ -41,7 +41,17 @@ from .schema import (
     PremiumConvention,
     SettlementStyle,
 )
+from .selectors import (
+    OptionSelection,
+    OptionSelectionFilters,
+    available_option_rows,
+    select_atm_option,
+    select_target_delta_option,
+    select_target_dte_option,
+    select_target_moneyness_option,
+)
 from .surface import SurfaceDiagnostics, TotalVarianceSurface
+from .tape import YEAR_NS, OptionTapeSignature, PreparedOptionTape, prepare_option_tape
 
 __all__ = [
     "CANONICAL_OPTION_CHAIN_COLUMNS",
@@ -53,10 +63,15 @@ __all__ = [
     "OptionKind",
     "OptionGreeks",
     "OptionVenueConvention",
+    "OptionSelection",
+    "OptionSelectionFilters",
+    "OptionTapeSignature",
     "PremiumConvention",
+    "PreparedOptionTape",
     "SettlementStyle",
     "SurfaceDiagnostics",
     "TotalVarianceSurface",
+    "YEAR_NS",
     "binance_european_options_convention",
     "black76_intrinsic",
     "black76_parity_residual",
@@ -75,6 +90,12 @@ __all__ = [
     "IVStatus",
     "ImpliedVolResult",
     "linear_black76_greeks",
+    "available_option_rows",
+    "prepare_option_tape",
     "scale_greeks_to_reporting_currency",
+    "select_atm_option",
+    "select_target_delta_option",
+    "select_target_dte_option",
+    "select_target_moneyness_option",
     "validate_option_chain_frame",
 ]
