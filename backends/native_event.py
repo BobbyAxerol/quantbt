@@ -416,6 +416,7 @@ class NativeEventBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
     ) -> BacktestResultV2:
         """
         Build frozen basket orders from a scalar signal and execute them.
@@ -445,6 +446,7 @@ class NativeEventBackend:
             leverage=leverage,
             fee_rate=fee_rate,
             symbols=symbols,
+            market_arrays=market_arrays,
             instruments=instruments,
             qty_step=qty_step,
             lot_size=lot_size,
@@ -469,6 +471,7 @@ class NativeEventBackend:
         funding_rate: Union[float, pd.Series, Dict] = 0.0,
         contract_size: Optional[Union[float, Dict[str, float]]] = None,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
     ) -> BacktestResultV2:
         """
         Execute a Phase D stat-arb pair through the frozen basket planner.
@@ -529,6 +532,7 @@ class NativeEventBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            market_arrays=market_arrays,
         )
         funding_dict = prepare_funding(stat_funding if self.config.use_funding else 0.0, symbols, idx)
         roles = self._stat_arb_roles(spec)
@@ -586,6 +590,7 @@ class NativeEventBackend:
         contract_size: Optional[Union[float, Dict[str, float]]] = None,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         hedge_ratios: Optional[Dict[str, pd.Series]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
     ) -> BacktestResultV2:
         """
         Execute a minimal native-event USDM linear basis arbitrage backtest.
@@ -624,6 +629,7 @@ class NativeEventBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            market_arrays=market_arrays,
         )
 
         funding_dict = prepare_funding(basis_funding if self.config.use_funding else 0.0, symbols, idx)
@@ -680,6 +686,7 @@ class NativeEventBackend:
         contract_size: Optional[Union[float, Dict[str, float]]] = None,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         hedge_ratios: Optional[Dict[str, pd.Series]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
     ) -> BacktestResultV2:
         """
         Execute Phase G package-style advanced arbitrage specs.
@@ -725,6 +732,7 @@ class NativeEventBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            market_arrays=market_arrays,
         )
 
         funding_dict = prepare_funding(package_funding if self.config.use_funding else 0.0, symbols, idx)

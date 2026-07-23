@@ -235,13 +235,62 @@ Safety rule: prepared arrays are validated by datetime/symbol signature before
 execution. A stale index, different symbol order, or wrong signal shape raises
 instead of silently reusing incompatible cache.
 
+Prepared arrays are copied market snapshots, not mutable global caches. If the
+underlying OHLC/funding values change, rebuild `market = backend.prepare_market_arrays(...)`.
+The signature guard protects layout compatibility; it intentionally does not
+hide data mutation behind object-identity cache magic.
+
+## Phase 14C - Report Levels
+
+Native portfolio now supports opt-in report artifact controls:
+
+```python
+result = QuantBTEndpoint.portfolio(
+    backend="native_portfolio",
+    portfolio_mode="market_neutral",
+    report_level="minimal",  # full | standard | minimal
+).backtest(
+    positions=positions_df,
+    data=data_dict,
+)
+```
+
+Use `report_level="full"` for final research artifacts and stakeholder review.
+This is the default and keeps the complete audit surface:
+
+- target and accepted units;
+- target and accepted notional;
+- exposure and margin reports;
+- risk volatility and risk contribution;
+- symbol PnL and kernel symbol PnL;
+- rebalance rejection report;
+- portfolio contract validation.
+
+Use `report_level="standard"` for lighter service reports that still need
+portfolio contract validation and leg-level PnL explainability. It keeps
+target/accepted notional, exposure, funding rates, and symbol PnL, but omits
+selected expansion tables.
+
+Use `report_level="minimal"` only for optimizer/service loops where the
+objective needs accounting outputs but not full audit artifacts. It preserves
+equity, returns, positions, closes, fees, funding, margin, diagnostics,
+target/accepted units, totals, config metadata, and quantity constraints.
+Contract validation is marked as skipped because the heavy reports it needs are
+intentionally omitted.
+
+Parity contract: core accounting must be identical across `full`, `standard`,
+and `minimal`. Tests lock equality for equity, returns, positions, fees,
+funding, margin, and diagnostics before any report-level speed claim is used.
+
 Optimization scope completed:
 
 - `notional` and `unit` sizing use ndarray vector paths;
 - market normalization can be reused through `PreparedMarketArrays`;
 - symbol PnL report construction is vectorized into one DataFrame build;
 - pure kernel benchmark and full facade benchmark are reported separately.
+- WFO endpoint scoring can reuse prepared market arrays for portfolio scoring
+  and for single-symbol `signal_notional` native-vectorized scoring.
 
-Remaining optimization target: report construction is still the largest
-measured residual bucket, so Cython/C++ is not justified before further
-Python/reporting cleanup.
+Remaining optimization target: report construction is still a residual bucket
+for full stakeholder artifacts, so Cython/C++ is not justified before larger
+real service-loop profiling.

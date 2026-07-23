@@ -2000,14 +2000,15 @@ Latest certification summary:
 - Nautilus package smoke: pass with supported Binance test instruments. This
   validates adapter package replay, not a real quarterly venue model.
 
-Remaining debt:
+Debt ledger after Phase 13:
 
-- Stat-arb pair should eventually emit the same `package_pnl_report` residual
-  artifact as basis/index-basket routes.
-- Real exchange quarterly/perpetual basis parity requires a Nautilus instrument
-  provider or adapter extension for delivery futures.
-- Cross-exchange, triangular, and options-vol arbitrage remain schema-safe,
-  specialized-engine future work.
+- Completed by Phase 13C: `StatArbPairSpec` now emits `leg_pnl_report`,
+  `package_pnl_report`, `spread_report`, and residual accounting artifacts
+  matching the basis/index-basket report style.
+- Remaining: real exchange quarterly/perpetual basis parity requires a Nautilus
+  instrument provider or adapter extension for delivery futures.
+- Remaining: cross-exchange, triangular, and options-vol arbitrage remain
+  schema-safe specialized-engine future work.
 
 Scope:
 
@@ -2077,14 +2078,22 @@ Latest certification and optimization summary:
 - All-or-none basket package preflight parity passes using the current
   OHLCV-volume-cap depth model.
 
-Remaining debt:
+Debt ledger after Phase 13:
 
-- Thread prepared portfolio market arrays through higher-level WFO endpoint
-  loops where the market tape is invariant across parameter trials.
-- Continue optimizing native portfolio report construction, which remains the
-  measured largest residual bucket after the first vectorized report pass.
-- Replace OHLCV queue/depth approximation with true L2/order-book simulation
-  only when a production venue data feed is available.
+- Completed by Phase 13A: prepared portfolio market arrays are threaded through
+  the higher-level WFO endpoint scoring loop for `target_mode="portfolio"` and
+  `backend="native_portfolio"`.
+- Completed by Phase 13B: native portfolio report construction has been
+  optimized and parity-locked against the previous pandas formulas.
+- Completed by Phase 14C: prepared-array reuse now covers single-symbol
+  `signal_notional` WFO scoring, native-event order-package replay, and
+  supported arbitrage package replays.
+- Completed by Phase 14C: native portfolio has opt-in `report_level` controls
+  while `full` remains the default stakeholder/audit surface.
+- Remaining: pandas normalization overhead still exists in facade layers.
+- Remaining: true L2/order-book replay requires venue depth data. Until then,
+  QuantBT can only provide OHLCV approximation and synthetic-book simulation for
+  domain testing, not production L2 accuracy claims.
 
 Scope:
 
@@ -2348,6 +2357,345 @@ Status:
 - Venue-specific portfolio-margin clone.
 
 Those belong to a later dedicated Nautilus Depth phase.
+
+---
+
+## Phase 14 - Performance Debt And Plan Hygiene
+
+Goal:
+
+Close the remaining performance/accounting bookkeeping debt without weakening
+the current priority order:
+
+```text
+domain correctness > accounting transparency > report quality > speed
+```
+
+Do not move to Cython/C++ in this phase. The current profiling evidence still
+shows Python/report construction and data normalization as the larger buckets,
+while pure Numba kernels remain a small share of full facade runtime.
+
+### Phase 14A - Plan Hygiene, Debt Ledger, And Certification Matrix
+
+Purpose:
+
+Make `upgrade/implement.md` accurate after Phase 13 so future agents do not
+mistake historical debt for unfinished current scope.
+
+Scope:
+
+- Mark stale Phase 12 debt as completed where Phase 13 already closed it:
+  - stat-arb `package_pnl_report` completed by Phase 13C;
+  - WFO prepared portfolio arrays completed by Phase 13A;
+  - native portfolio report optimization completed by Phase 13B.
+- Preserve remaining debt with sharper wording:
+  - prepared cache beyond portfolio WFO was completed later in Phase 14C;
+  - optional report levels were completed later in Phase 14C;
+  - facade-level pandas normalization remains measurable;
+  - true L2 replay needs venue order-book data.
+- Add a certification matrix covering current production/readiness state by
+  backend and strategy family.
+- Add the 5-phase roadmap for the next implementation wave.
+- Do not modify engine behavior in this phase.
+
+Certification matrix after Phase 13:
+
+| Area | Current status | Certification level | Remaining gate |
+|---|---|---|---|
+| Single-symbol native vectorized | supported | research/production usable for target-position backtests | real-strategy regression bundles as needed |
+| Single-symbol native event | supported | research/production usable for explicit order OHLC backtests | deeper stop/conditional edge cases when needed |
+| Native portfolio | default for supported modes | production-ready for supported sizing/modes with parity tests | more real alpha bundles and full-report presentation polish |
+| Native arbitrage basis/stat/calendar/funding/carry/index | supported | controlled research usable with audit artifacts | more real data packages and venue-specific cases |
+| Cross-exchange arbitrage | schema-only | not executable | specialized multi-venue engine |
+| Triangular arbitrage | schema-only | not executable | sequenced path engine |
+| Options vol arbitrage | schema-only | not executable | option/Greeks/IV engine |
+| Nautilus signal validation | supported | trustee validation for supported single-symbol instruments | tolerance bundles per venue profile |
+| Nautilus explicit orders | supported | trustee validation for explicit order replay | real report bundles |
+| Nautilus DCA/grid/bracket | experimental structured package | validation/stress-test usable | in-strategy state machine and native OCO semantics |
+| Nautilus basket/portfolio/arbitrage packages | experimental validation | smoke/parity artifact usable | real package bundles and deeper tolerance profiles |
+| OHLCV depth preflight | supported opt-in | deterministic stress model | not a true L2 claim |
+| Synthetic book simulation | planned Phase 15B | domain-test model only | not production-certified without real L2 data |
+| Real L2 replay | future | requires venue data | order-book snapshots/incremental updates/trades/latency |
+
+Status:
+
+- Phase 14A completed as documentation/plan hygiene only.
+- Stale Phase 12 debt entries have been updated into explicit completed vs
+  remaining debt ledgers.
+- The certification matrix above is now the source of truth for what is
+  supported, experimental, schema-only, and future.
+- No production code or engine behavior changed in Phase 14A.
+
+### Phase 14B - Real WFO And Service-Loop Benchmark
+
+Purpose:
+
+Measure the real remaining performance bottlenecks before any further
+optimization. This benchmark must reflect how QuantBT is used in notebooks,
+services, WFO, Optuna sweeps, explicit order replays, portfolio runs, and
+arbitrage package loops.
+
+Scope:
+
+- Add a benchmark script and committed JSON/Markdown report for:
+  - single-symbol WFO;
+  - native-event explicit-order replay loops;
+  - native-portfolio WFO;
+  - arbitrage package sweeps;
+  - report-heavy vs report-light execution.
+- Decompose runtime into:
+  - pandas normalization;
+  - ndarray packing;
+  - strategy callback / signal generation;
+  - target sizing;
+  - order-array construction;
+  - pure Numba kernel;
+  - result/report construction;
+  - metrics/report export.
+- Track:
+  - bars;
+  - symbols;
+  - folds;
+  - trials;
+  - order count;
+  - event count;
+  - memory;
+  - compile/warmup vs repeated runtime.
+
+Acceptance:
+
+- Benchmark output separates pure kernel runtime from facade/report runtime.
+- Benchmark includes parity guards proving benchmark variants do not alter core
+  equity, positions, fees, funding, margin, liquidation, or package PnL.
+- Report explicitly states whether Cython/C++ is justified. Default expectation
+  remains "not yet" unless pure kernels become the bottleneck.
+
+Status:
+
+- Implemented `benchmarks/run_phase14_service_loop.py`.
+- Added committed benchmark artifacts:
+  - `benchmarks/phase14_service_loop.json`;
+  - `benchmarks/phase14_service_loop.md`.
+- Added regression coverage in `tests/test_phase14_service_loop_benchmark.py`.
+- Current benchmark command:
+
+```bash
+python benchmarks/run_phase14_service_loop.py \
+  --rows 360 \
+  --symbols 4 \
+  --trials 4 \
+  --order-count 120 \
+  --repeats 2
+```
+
+- Latest benchmark status: `pass`.
+- Parity guards all pass:
+  - single-symbol WFO;
+  - portfolio WFO cached vs uncached;
+  - native-event cold vs prepared replay;
+  - arbitrage package event vs vectorized sweep;
+  - heavy metrics report vs light core summary.
+- Latest measured bottlenecks:
+  - native vectorized: `data_normalization` at about `54.04%`;
+  - native event: `data_normalization` at about `38.32%`;
+  - native portfolio: `report_construction_estimate` at about `79.55%`;
+  - pure Numba kernel share remains below `1%` across the measured native
+    vectorized/event/portfolio paths.
+- Service-loop report now includes `tracemalloc` peak-memory measurements per
+  workload so runtime and allocation pressure can be interpreted together.
+- Conclusion: Cython/C++ is not justified yet. Phase 14C should prioritize
+  prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy
+  heavy reports while preserving full report defaults.
+
+### Phase 14C - Prepared Cache And Lazy Heavy Reports
+
+Purpose:
+
+Reduce repeated Python/pandas overhead in service and WFO loops while keeping
+full stakeholder-grade reporting available and unchanged by default.
+
+Scope:
+
+- Extend prepared-array reuse beyond portfolio WFO:
+  - single-symbol WFO endpoint scoring where market tape is invariant;
+  - native-event explicit-order package loops;
+  - arbitrage package repeated runs.
+- Add optional report controls without changing defaults:
+  - `report_level="full"` keeps current behavior;
+  - `report_level="standard"` keeps key audit metrics but avoids selected heavy
+    expansions;
+  - `report_level="minimal"` keeps equity/returns/positions/core diagnostics for
+    optimizer/service loops.
+- Prepared caches must remain run-local or explicitly caller-owned, with
+  datetime/symbol signatures and no mutable global result cache.
+
+Acceptance:
+
+- Full/standard/minimal report levels have identical core accounting:
+  - equity;
+  - returns;
+  - positions;
+  - fees;
+  - funding;
+  - margin;
+  - liquidation;
+  - package PnL where applicable.
+- Signature mismatch rejects prepared reuse clearly.
+- Prepared arrays are explicit copied snapshots; source data mutation requires
+  rebuilding the prepared object, while stale index/symbol layouts are rejected.
+- Existing endpoint calls remain backward compatible because `full` is default.
+
+Status:
+
+- Implemented `NativeVectorizedBackend.prepare_market_arrays(...)` and optional
+  prepared-market replay for `run_signals(..., hedge_type="signal_notional")`.
+- Extended WFO endpoint scoring cache beyond portfolio:
+  - single-symbol `target_mode="signal_notional"` with `backend="native_vectorized"`;
+  - portfolio `target_mode="portfolio"` with `backend="native_portfolio"` remains
+    supported;
+  - cache metadata is attached at
+    `result.metadata["walk_forward"]["prepared_scoring_cache"]`.
+- Added `prepared_scoring_report_level`, default `minimal`, so portfolio WFO
+  objective scoring avoids heavy stakeholder reports per trial while the final
+  stitched backtest still uses endpoint `report_level` default `full`.
+- Added `report_level` to native portfolio:
+  - `full`: default, unchanged audit surface;
+  - `standard`: keeps exposure, accepted/target notional, funding rates, and
+    symbol PnL but omits selected expansions;
+  - `minimal`: keeps accounting-critical result surfaces for optimizer/service
+    loops and marks contract validation as skipped.
+- Extended native-event package routes to accept caller-owned prepared market
+  arrays for basket, basis arbitrage, stat-arb pair, and generic supported
+  package arbitrage replay.
+- Updated Phase 14 benchmark artifact to measure:
+  - single-symbol WFO cached vs uncached;
+  - portfolio WFO cached vs uncached;
+  - native-event explicit-order prepared replay;
+  - arbitrage package cold vs prepared event replay;
+  - native-portfolio `full` vs `minimal` report construction.
+- Added regression coverage:
+  - `tests/test_phase14c_prepared_report_levels.py`;
+  - updated `tests/test_phase14_service_loop_benchmark.py`.
+- Documentation updated:
+  - `docs/endpoint.md`;
+  - `docs/portfolio_engine_v3.md`.
+
+Safety notes:
+
+- Existing endpoint behavior is unchanged unless `report_level` or prepared
+  APIs are explicitly used.
+- Prepared arrays are copied snapshots with datetime/symbol signature guards,
+  not mutable global caches. If OHLC/funding values are changed intentionally,
+  rebuild the prepared arrays before replaying.
+- Phase 14C does not implement true L2/order-book simulation and does not alter
+  margin, fill, sizing, funding, or PnL kernels.
+
+## Phase 15 - Nautilus Certification And Depth
+
+Goal:
+
+Promote Nautilus from a strong validation backend into a cleaner institutional
+evidence layer, while being honest about what can and cannot be claimed without
+real venue data.
+
+### Phase 15A - Nautilus Real Certification Bundles
+
+Purpose:
+
+Produce stakeholder-ready Nautilus report bundles for representative real or
+realistic workflows.
+
+Scope:
+
+- Run and archive report bundles for:
+  - single-symbol `%_equity`;
+  - explicit orders;
+  - basket package;
+  - portfolio package;
+  - basis/stat-arb package where supported instruments exist.
+- Export:
+  - config;
+  - account timeline;
+  - orders;
+  - fills;
+  - positions;
+  - native-vs-Nautilus parity;
+  - tolerance profile;
+  - known differences.
+- Add tolerance profiles for:
+  - fill price;
+  - fee;
+  - slippage;
+  - equity;
+  - quantity rounding.
+
+Acceptance:
+
+- Skips cleanly if `nautilus-trader` or required instrument support is missing.
+- Passes and writes JSON/Markdown/CSV bundles when dependencies are available.
+- Injected mismatch tests prove parity reports catch fill-price/equity/quantity
+  differences.
+
+### Phase 15B - Nautilus Depth, Synthetic Book, And Specialized Arbitrage Plan
+
+Purpose:
+
+Define and implement the next depth layer carefully, without claiming exchange
+fidelity beyond the available data.
+
+L2 / book simulation levels:
+
+- Level 1: OHLCV approximation. Already available via depth preflight:
+  volume cap, queue-ahead approximation, latency-bar shifting, partial-fill
+  approximation, and deterministic package rejection.
+- Level 2: synthetic order-book simulation. This can be implemented without
+  real L2 data by generating a book from assumptions such as spread, depth
+  slope, volatility, volume participation, and queue-ahead. It is useful for
+  domain tests and conservative stress scenarios, but must not be described as
+  venue-realistic execution.
+- Level 3: real L2 replay. This requires venue order-book snapshots, incremental
+  depth updates, trade prints, timestamps, and latency assumptions. Only this
+  level can support true queue-priority and order-book execution claims.
+
+Nautilus depth scope:
+
+- Dynamic DCA/grid state machine inside Nautilus strategy:
+  - submit base;
+  - activate safety orders only after base fill;
+  - update TP/SL quantity as ladder fills;
+  - prevent blind submission of all future orders.
+- OCO/bracket semantics:
+  - map to exchange-native order-list semantics if Nautilus route is stable;
+  - otherwise keep package-strategy cancellation and document the difference.
+- Depth model abstraction:
+  - `OHLCVDepthModel`;
+  - `SyntheticBookDepthModel`;
+  - `L2ReplayDepthModel` future adapter.
+
+Specialized arbitrage scope:
+
+- Keep supported native arbitrage routes as-is:
+  - basis;
+  - stat-arb pair;
+  - calendar spread;
+  - funding arbitrage;
+  - spot-perp cash carry;
+  - index basket.
+- Add explicit future engine plans:
+  - `CrossExchangeArbEngine`: multi-venue account, latency, transfer/borrow
+    constraints, venue-specific fees and settlement.
+  - `TriangularArbEngine`: sequenced path execution, path slippage, partial-fill
+    propagation, and inventory drift.
+  - `OptionsVolArbEngine`: option instruments, IV surface, Greeks, expiry,
+    assignment/exercise, and delta hedge behavior.
+
+Acceptance:
+
+- Synthetic-book tests prove depth model invariants without requiring private
+  venue data.
+- Real L2 tests skip clearly when no L2 provider is configured.
+- Schema-only arbitrage specs remain rejected until their specialized engine has
+  accounting audit, parity tests, and docs.
 
 ---
 

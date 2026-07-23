@@ -389,6 +389,7 @@ class PortfolioBacktestEngine:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        report_level: str = "full",
         auto_run: bool = True,
         **kwargs,
     ):
@@ -418,6 +419,7 @@ class PortfolioBacktestEngine:
         self.slot_size = slot_size
         self.min_qty = min_qty
         self.min_notional = min_notional
+        self.report_level = report_level
         self.kwargs = kwargs
         self.portfolio: Optional[MultiSymbolPortfolio] = None
         self.result: Optional[BacktestResultV2] = None
@@ -494,6 +496,7 @@ class PortfolioBacktestEngine:
                     execution=self.execution,
                     fee_rate=fee_oneway,
                     use_funding=bool(self.use_funding),
+                    report_level=self.report_level,
                 )
             )
             self.result = backend.run_signals(
@@ -519,6 +522,7 @@ class PortfolioBacktestEngine:
                 slot_size=self.slot_size,
                 min_qty=self.min_qty,
                 min_notional=self.min_notional,
+                report_level=self.report_level,
             )
             return self.result
 

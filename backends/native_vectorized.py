@@ -12,7 +12,16 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from ..core.preprocessor import align_series, build_arrays, prepare_funding, validate_datetime
+from ..core.preprocessor import (
+    PreparedMarketArrays,
+    align_series,
+    build_arrays,
+    build_market_arrays,
+    build_signal_matrix,
+    market_data_signature,
+    prepare_funding,
+    validate_datetime,
+)
 from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
 from ..core.results import BacktestResultV2
 from ..core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec
@@ -68,6 +77,38 @@ class NativeVectorizedBackend:
 
     def __init__(self, config: NativeVectorizedConfig):
         self.config = config
+
+    def prepare_market_arrays(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        symbols: Optional[List[str]] = None,
+    ) -> PreparedMarketArrays:
+        """
+        Normalize single-symbol or multi-symbol market data once for repeated
+        signal-notional scoring loops.
+
+        The prepared object is a copied ndarray snapshot plus an explicit
+        datetime/symbol signature. `run_signals` rejects it when reused against
+        a different index or symbol layout.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = symbols or list(closes.keys())
+        close_dict = align_series(closes, symbol_list, idx)
+        high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+        low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+        funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+        return build_market_arrays(
+            symbols=symbol_list,
+            idx=idx,
+            closes_dict=close_dict,
+            highs_dict=high_dict,
+            lows_dict=low_dict,
+            funding_dict=funding_dict,
+        )
 
     def run_target_units(
         self,
@@ -148,6 +189,8 @@ class NativeVectorizedBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        raw_signal_matrix: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -275,6 +318,8 @@ class NativeVectorizedBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        raw_signal_matrix: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         """
         Scale raw position signals into target units, then run the V2 kernel.
@@ -289,23 +334,38 @@ class NativeVectorizedBackend:
 
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(positions.keys())
-        pos_dict = align_series(positions, symbol_list, idx, fill_val=0.0)
-        close_dict = align_series(closes, symbol_list, idx)
+        pos_dict = None if raw_signal_matrix is not None else align_series(positions, symbol_list, idx, fill_val=0.0)
+        close_dict = None if market_arrays is not None else align_series(closes, symbol_list, idx)
         alloc = self._per_symbol_mapping(alloc_per_trade, symbol_list, default=100_000.0)
 
         if ht in ("signal_notional", "signal"):
-            high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
-            low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-            funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-            closes_m, highs_m, lows_m, signals_m, funding_m, is_funding = build_arrays(
-                symbols=symbol_list,
-                idx=idx,
-                closes_dict=close_dict,
-                highs_dict=high_dict,
-                lows_dict=low_dict,
-                signals_dict=pos_dict,
-                funding_dict=funding_dict,
-            )
+            if market_arrays is None:
+                high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
+                low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
+                funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
+                closes_m, highs_m, lows_m, signals_m, funding_m, is_funding = build_arrays(
+                    symbols=symbol_list,
+                    idx=idx,
+                    closes_dict=close_dict,
+                    highs_dict=high_dict,
+                    lows_dict=low_dict,
+                    signals_dict=pos_dict,
+                    funding_dict=funding_dict,
+                )
+            else:
+                if market_arrays.signature != market_data_signature(idx, symbol_list):
+                    raise ValueError("prepared market arrays do not match datetime_index/symbols")
+                closes_m = market_arrays.closes
+                highs_m = market_arrays.highs
+                lows_m = market_arrays.lows
+                funding_m = market_arrays.funding
+                is_funding = market_arrays.is_funding_bar
+                if raw_signal_matrix is None:
+                    signals_m = build_signal_matrix(symbol_list, idx, pos_dict)
+                else:
+                    signals_m = np.ascontiguousarray(raw_signal_matrix, dtype=np.float64)
+                    if signals_m.shape != closes_m.shape:
+                        raise ValueError("raw_signal_matrix shape does not match prepared market arrays")
             allocs = np.array([alloc[s] for s in symbol_list], dtype=np.float64)
             target_m = scale_signal_notional_matrix(
                 signals=signals_m,
@@ -332,6 +392,16 @@ class NativeVectorizedBackend:
                 min_notional=min_notional,
             )
 
+        if close_dict is None:
+            close_dict = {
+                symbol: pd.Series(market_arrays.closes[:, j], index=idx, name=symbol)
+                for j, symbol in enumerate(symbol_list)
+            }
+        if pos_dict is None:
+            pos_dict = {
+                symbol: pd.Series(raw_signal_matrix[:, j], index=idx, name=symbol)
+                for j, symbol in enumerate(symbol_list)
+            }
         target_units = {
             s: compute_target_units(
                 hedge_type=hedge_type,
