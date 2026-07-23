@@ -20,6 +20,13 @@ from .execution import (
     OptionPackageExecutionResult,
     execute_option_package,
 )
+from .fees import (
+    OptionFeeResult,
+    OptionFeeSchedule,
+    calculate_option_fee,
+    deribit_inverse_fee_schedule,
+    deribit_linear_usdc_fee_schedule,
+)
 from .greeks import (
     OptionGreeks,
     inverse_black76_greeks_base,
@@ -28,6 +35,13 @@ from .greeks import (
     scale_greeks_to_reporting_currency,
 )
 from .iv import IVStatus, ImpliedVolResult, implied_vol_black76, implied_vol_inverse_black76_base
+from .ledger import OptionLedger, OptionPosition
+from .lifecycle import (
+    OptionSettlementRepresentation,
+    OptionSettlementResult,
+    option_expiry_payoff_per_unit,
+    settle_option_expiry,
+)
 from .packages import (
     OptionPackageExecutionPolicy,
     OptionPackageIntent,
@@ -73,6 +87,8 @@ __all__ = [
     "OptionDecisionFillPolicy",
     "OptionDepthFidelity",
     "OptionExecutionConfig",
+    "OptionFeeResult",
+    "OptionFeeSchedule",
     "OptionInstrumentRegistry",
     "OptionInstrumentSpec",
     "OptionKind",
@@ -82,10 +98,14 @@ __all__ = [
     "OptionPackageExecutionResult",
     "OptionPackageIntent",
     "OptionPackageLeg",
+    "OptionLedger",
     "OptionVenueConvention",
     "OptionSelection",
     "OptionSelectionFilters",
+    "OptionSettlementRepresentation",
+    "OptionSettlementResult",
     "OptionTapeSignature",
+    "OptionPosition",
     "PremiumConvention",
     "PreparedOptionTape",
     "SettlementStyle",
@@ -97,9 +117,12 @@ __all__ = [
     "black76_parity_residual",
     "black76_parity_value",
     "black76_price",
+    "calculate_option_fee",
     "compile_option_package_orders",
     "deribit_inverse_option_convention",
+    "deribit_inverse_fee_schedule",
     "deribit_linear_usdc_option_convention",
+    "deribit_linear_usdc_fee_schedule",
     "implied_vol_black76",
     "implied_vol_inverse_black76_base",
     "inverse_black76_greeks_base",
@@ -113,11 +136,13 @@ __all__ = [
     "linear_black76_greeks",
     "available_option_rows",
     "execute_option_package",
+    "option_expiry_payoff_per_unit",
     "prepare_option_tape",
     "scale_greeks_to_reporting_currency",
     "select_atm_option",
     "select_target_delta_option",
     "select_target_dte_option",
     "select_target_moneyness_option",
+    "settle_option_expiry",
     "validate_option_chain_frame",
 ]

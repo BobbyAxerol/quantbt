@@ -560,6 +560,69 @@ Acceptance:
 - Settlement closes exactly once.
 - Fees are in correct currency and converted only for reporting.
 
+Status: completed.
+
+Implemented:
+
+- Added `options/fees.py`:
+  - `OptionFeeSchedule`;
+  - `OptionFeeResult`;
+  - `deribit_inverse_fee_schedule(...)`;
+  - `deribit_linear_usdc_fee_schedule(...)`;
+  - `calculate_option_fee(...)`.
+- Added deterministic per-leg capped fee logic:
+  - inverse base-currency fee cap;
+  - linear USDC reference-notional fee cap;
+  - no package-level fee cap.
+- Added `options/ledger.py`:
+  - `OptionLedger`;
+  - `OptionPosition`;
+  - multi-currency cash balances;
+  - position quantity and average entry;
+  - realized PnL;
+  - fee ledger;
+  - settlement cashflow ledger;
+  - margin-locked bucket;
+  - event audit rows;
+  - reporting-currency equity identity.
+- Added `options/lifecycle.py`:
+  - `OptionSettlementRepresentation`;
+  - `OptionSettlementResult`;
+  - `option_expiry_payoff_per_unit(...)`;
+  - `settle_option_expiry(...)`.
+- Implemented lifecycle cases:
+  - OTM expiry;
+  - ITM linear cash payoff;
+  - ITM inverse base-currency payoff;
+  - Deribit-style linear `economic_cash`;
+  - Deribit-style linear `future_then_cash` representation;
+  - settlement exactly-once guard.
+- Exported Phase 5 APIs from `quantbt.options` and top-level `quantbt`.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+  - result: `63 passed`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.OptionLedger; assert quantbt.settle_option_expiry; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase5_import_smoke=pass')"`
+  - result: `phase5_import_smoke=pass`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `349 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 5:
+
+- Ledger is an accounting primitive, not yet wired into a full option backend or
+  endpoint.
+- Margin locked is present as an auditable bucket, but real margin models and
+  liquidation sequencing are Phase 6.
+- Fee schedules are Deribit-like deterministic approximations. Venue-exact
+  schedules still need versioned venue data and Nautilus/sample parity.
+- `future_then_cash` is represented as an audit label with equivalent economic
+  cashflow. A later venue adapter may split this into delivery and cash rows.
+- Quanto options remain unsupported for lifecycle payoff.
+- Reporting conversion is explicit via caller-supplied conversion rates; no FX
+  or index feed is implicitly fetched.
+
 ## Phase 6 - Hedging And Margin
 
 Files:
