@@ -47,7 +47,7 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
-from .endpoint import EndpointConfig, QuantBTEndpoint, format_metrics_report
+from .endpoint import EndpointConfig, QuantBTEndpoint, QuantBTPreparedContext, format_metrics_report
 from .walkforward import (
     DuplicatePruner,
     EarlyStoppingCallback,
@@ -235,6 +235,7 @@ __all__ = [
     "PortfolioRebalancePolicy",
     "PortfolioSizingMode",
     "QuantBTEndpoint",
+    "QuantBTPreparedContext",
     "format_metrics_report",
     "LEGACY_PORTFOLIO_MODES",
     "LEGACY_PORTFOLIO_SIZING_MODES",

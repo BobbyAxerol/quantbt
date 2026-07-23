@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
+import numpy as np
 import pandas as pd
 
 from .backtester import BacktestEngine
@@ -201,6 +202,34 @@ class QuantBTEndpoint:
         self.config = config or _config_from_kwargs(**kwargs)
         self.result: Optional[Union[BacktestResult, BacktestResultV2]] = None
         self.engine = None
+
+    def prepare_service_context(
+        self,
+        *,
+        data=None,
+        closes=None,
+        highs=None,
+        lows=None,
+        datetime_index=None,
+        symbols=None,
+    ) -> "QuantBTPreparedContext":
+        """
+        Normalize market data once for repeated service/WFO-style replays.
+
+        This is an opt-in performance helper. It does not change normal
+        `backtest(...)` behavior and only supports routes whose prepared-array
+        parity is locked by tests: single-symbol `signal_notional` with
+        `native_vectorized`, and `portfolio` with `native_portfolio`.
+        """
+        return QuantBTPreparedContext.from_endpoint(
+            self,
+            data=data,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            datetime_index=datetime_index,
+            symbols=symbols,
+        )
 
     @classmethod
     def pct_equity(cls, **kwargs) -> "QuantBTEndpoint":
@@ -1955,6 +1984,219 @@ def _make_walkforward_endpoint_scorer(
     )
 
 
+@dataclass
+class QuantBTPreparedContext:
+    """
+    Run-local prepared market context for repeated endpoint replays.
+
+    The context stores copied prepared market arrays and validates datetime /
+    symbol signatures inside the backend on every replay. It is intentionally
+    caller-owned and never a mutable global cache.
+    """
+
+    endpoint: QuantBTEndpoint
+    mode: str
+    idx: pd.DatetimeIndex
+    symbols: list
+    close_map: SeriesMap
+    high_map: SeriesMap
+    low_map: SeriesMap
+    market_arrays: object
+    backend: object
+    frame: Optional[pd.DataFrame] = None
+    runs: int = 0
+
+    @classmethod
+    def from_endpoint(
+        cls,
+        endpoint: QuantBTEndpoint,
+        *,
+        data=None,
+        closes=None,
+        highs=None,
+        lows=None,
+        datetime_index=None,
+        symbols=None,
+    ) -> "QuantBTPreparedContext":
+        config = endpoint.config
+        backend_name = _resolve_backend(config)
+        mode = config.mode.lower().strip()
+        sizing = config.sizing.lower().strip()
+
+        if mode in {"single_signal", "signal_notional"} and backend_name == "native_vectorized" and sizing in {"signal_notional", "signal"}:
+            frame = _standardize_frame(data, datetime_index=datetime_index)
+            symbol_list = list(symbols or config.symbols or ["DEFAULT"])
+            if len(symbol_list) != 1:
+                raise ValueError("single-symbol prepared context requires exactly one symbol")
+            symbol = symbol_list[0]
+            close_map = {symbol: frame["close"]}
+            high_map = {symbol: frame.get("high", frame["close"])}
+            low_map = {symbol: frame.get("low", frame["close"])}
+            backend = NativeVectorizedBackend(
+                NativeVectorizedConfig(
+                    account=config.account,
+                    execution=config.execution,
+                    fee_rate=config.v2_fee_rate,
+                    use_funding=bool(config.use_funding),
+                )
+            )
+            market = backend.prepare_market_arrays(
+                datetime_index=frame.index,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=config.funding_rate,
+                symbols=symbol_list,
+            )
+            return cls(
+                endpoint=endpoint,
+                mode="single_signal_notional",
+                idx=frame.index,
+                symbols=symbol_list,
+                close_map=close_map,
+                high_map=high_map,
+                low_map=low_map,
+                market_arrays=market,
+                backend=backend,
+                frame=frame,
+            )
+
+        if mode == "portfolio" and backend_name == "native_portfolio":
+            close_map, high_map, low_map, idx, symbol_list = _normalize_symbol_data(
+                data=data,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbols or config.symbols,
+            )
+            asset_type = config.asset_type.lower()
+            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
+            fee_oneway = (config.fee if config.fee is not None else default_fee) / 2.0
+            backend = NativePortfolioBackend(
+                NativePortfolioConfig(
+                    account=config.account,
+                    execution=config.execution,
+                    fee_rate=fee_oneway,
+                    use_funding=bool(config.use_funding),
+                    report_level=config.report_level,
+                )
+            )
+            market = backend.prepare_market_arrays(
+                datetime_index=idx,
+                closes=close_map,
+                highs=high_map,
+                lows=low_map,
+                funding_rate=config.funding_rate,
+                symbols=symbol_list,
+            )
+            return cls(
+                endpoint=endpoint,
+                mode="portfolio",
+                idx=idx,
+                symbols=list(symbol_list),
+                close_map=close_map,
+                high_map=high_map,
+                low_map=low_map,
+                market_arrays=market,
+                backend=backend,
+            )
+
+        raise NotImplementedError(
+            "prepared service context currently supports native_vectorized signal_notional "
+            "and native_portfolio only; use normal backtest(...) for this endpoint"
+        )
+
+    @property
+    def metadata(self) -> Dict[str, object]:
+        return {
+            "mode": self.mode,
+            "symbols": tuple(self.symbols),
+            "bars": int(len(self.idx)),
+            "runs": int(self.runs),
+            "market_signature": self.market_arrays.signature,
+        }
+
+    def backtest(self, *, signal=None, signal_col: Optional[str] = None, positions=None):
+        """Replay a new signal or position matrix on the prepared market tape."""
+        if self.mode == "single_signal_notional":
+            result = self._run_single(signal=signal, signal_col=signal_col)
+        elif self.mode == "portfolio":
+            result = self._run_portfolio(positions=positions)
+        else:  # pragma: no cover - guarded by constructor
+            raise NotImplementedError(f"unsupported prepared context mode={self.mode!r}")
+        self.runs += 1
+        result.metadata.setdefault("prepared_service_context", self.metadata)
+        self.endpoint._store_result(result)
+        return result
+
+    simulate = backtest
+
+    def _run_single(self, *, signal=None, signal_col: Optional[str] = None):
+        config = self.endpoint.config
+        if signal is None:
+            signal = _signal_from_data(self.frame, signal_col)
+        if signal is None:
+            raise ValueError("prepared single-symbol context requires signal or signal_col")
+        raw = _series_to_raw_matrix(signal, self.idx)
+        symbol = self.symbols[0]
+        return self.backend.run_signals(
+            datetime_index=self.idx,
+            positions={symbol: pd.Series(0.0, index=self.idx)},
+            closes=self.close_map,
+            highs=self.high_map,
+            lows=self.low_map,
+            funding_rate=config.funding_rate,
+            contract_size=config.contract_size,
+            leverage=config.account.leverage,
+            alloc_per_trade=config.alloc_per_trade,
+            hedge_type=config.sizing,
+            use_pyramiding=config.use_pyramiding,
+            symbols=self.symbols,
+            market_arrays=self.market_arrays,
+            raw_signal_matrix=raw,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+        )
+
+    def _run_portfolio(self, *, positions=None):
+        if positions is None:
+            raise ValueError("prepared portfolio context requires positions")
+        config = self.endpoint.config
+        raw = _positions_to_raw_matrix(positions, self.idx, self.symbols)
+        return self.backend.run_signals(
+            positions=None,
+            closes=self.close_map,
+            highs=self.high_map,
+            lows=self.low_map,
+            datetime_index=self.idx,
+            mode=config.portfolio_mode,
+            alloc_per_trade=config.alloc_per_trade,
+            contract_size=config.contract_size,
+            hedge_type=config.sizing if config.sizing else "notional",
+            funding_rate=config.funding_rate,
+            leverage=config.account.leverage,
+            maintenance_ratio=config.account.maintenance_ratio,
+            asset_type=config.asset_type,
+            use_pyramiding=config.use_pyramiding,
+            betas=config.betas,
+            risk_lookback=config.risk_lookback,
+            market_arrays=self.market_arrays,
+            raw_signal_matrix=raw,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+            report_level=config.report_level,
+        )
+
+
 class _WalkForwardEndpointScorer:
     """
     Endpoint-backed WFO scorer with run-local prepared market array reuse.
@@ -2421,6 +2663,52 @@ def _positions_to_map(positions) -> Dict[str, pd.Series]:
     if isinstance(positions, pd.DataFrame):
         return {str(col): positions[col] for col in positions.columns}
     return dict(positions)
+
+
+def _series_to_raw_matrix(signal, idx: pd.DatetimeIndex) -> np.ndarray:
+    if isinstance(signal, pd.Series):
+        ser = signal
+    else:
+        ser = pd.Series(signal, index=idx)
+    if _series_index_matches(ser, idx):
+        values = ser.to_numpy(dtype=np.float64, copy=True)
+    else:
+        values = _align_series(ser, idx).fillna(0.0).to_numpy(dtype=np.float64, copy=True)
+    return np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
+
+
+def _positions_to_raw_matrix(positions, idx: pd.DatetimeIndex, symbols: Sequence[str]) -> np.ndarray:
+    symbol_list = list(symbols)
+    if isinstance(positions, pd.DataFrame) and all(symbol in positions.columns for symbol in symbol_list):
+        frame = positions.loc[:, symbol_list]
+        if _frame_index_matches(frame, idx):
+            return np.ascontiguousarray(frame.to_numpy(dtype=np.float64, copy=True), dtype=np.float64)
+    elif isinstance(positions, dict):
+        exact = True
+        cols = []
+        for symbol in symbol_list:
+            series = positions.get(symbol)
+            if not isinstance(series, pd.Series) or not _series_index_matches(series, idx):
+                exact = False
+                break
+            cols.append(series.to_numpy(dtype=np.float64, copy=True))
+        if exact:
+            return np.ascontiguousarray(np.column_stack(cols), dtype=np.float64)
+
+    pos_map = _positions_to_map(positions)
+    return NativePortfolioBackend.prepare_signal_matrix(pos_map, idx, symbol_list)
+
+
+def _series_index_matches(series: pd.Series, idx: pd.DatetimeIndex) -> bool:
+    if not isinstance(series.index, pd.DatetimeIndex) or len(series.index) != len(idx):
+        return False
+    return bool(np.array_equal(_ensure_utc_index(series.index).asi8, idx.asi8))
+
+
+def _frame_index_matches(frame: pd.DataFrame, idx: pd.DatetimeIndex) -> bool:
+    if not isinstance(frame.index, pd.DatetimeIndex) or len(frame.index) != len(idx):
+        return False
+    return bool(np.array_equal(_ensure_utc_index(frame.index).asi8, idx.asi8))
 
 
 def _build_portfolio_orders_for_nautilus(

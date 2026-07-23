@@ -48,3 +48,16 @@ Phase 9 optimization follow-up:
 - `--no-tracemalloc` is available when comparing runtime separately from memory
   instrumentation overhead. Use the default traced mode when peak memory is the
   metric under review.
+
+Phase 14/16 service-loop follow-up:
+
+```bash
+python3 benchmarks/run_phase14_service_loop.py --rows 1440 --symbols 6 --trials 8 --repeats 2
+python3 benchmarks/run_phase16_performance_debt.py --rows 1440 --symbols 6 --replays 8 --repeats 2
+```
+
+- `phase14_service_loop.*` decomposes WFO, native-event, arbitrage and report
+  workload costs.
+- `phase16_performance_debt.*` compares normal endpoint replays with
+  `endpoint.prepare_service_context(...)` and records the current Cython/C++
+  decision.

@@ -30,6 +30,8 @@ historical reproduction.
 - Native vectorized engines for fast sweeps and large parameter grids.
 - Native event-driven engines for market/limit orders, fills, baskets, and
   arbitrage package execution.
+- Prepared service contexts for repeated signal/portfolio replays on the same
+  market tape without re-normalizing pandas data each run.
 - Native portfolio engine with target weights, target notionals, target units,
   gross/net exposure, risk parity, beta neutrality, margin reports, and
   per-symbol attribution.
@@ -107,6 +109,20 @@ Phase 14C added run-local prepared market-array reuse for WFO/service loops and
 `report_level="full" | "standard" | "minimal"` for native portfolio reports.
 The default remains `full`; lighter report levels are opt-in for optimizers and
 services, and parity tests lock core accounting equality before any speed claim.
+
+Latest Phase 16 service-context closure benchmark:
+
+| Workload | Normal endpoint | Prepared context | Speedup | Parity |
+|---|---:|---:|---:|---|
+| Single-symbol signal_notional replays | 0.0711s | 0.0390s | 1.82x | pass |
+| Native portfolio replays | 0.3115s | 0.0695s | 4.48x | pass |
+| Native portfolio reports | 0.0755s full | 0.0394s minimal | 1.92x | pass |
+
+Phase 16 adds `endpoint.prepare_service_context(...)`, an opt-in helper for
+services that replay many signals or position matrices against one fixed market
+tape. Normal `.backtest(...)` remains defensive and backward-compatible.
+Cython/C++ remains deferred because the larger benchmark still points to
+facade/report overhead rather than pure Numba kernels.
 
 Ecosystem positioning:
 
