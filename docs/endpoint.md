@@ -1808,6 +1808,13 @@ Required data:
 - `packages`: optional sequence of `OptionPackageIntent`. Strategy/template
   code owns signal generation and package construction; the backend owns
   execution, ledger, margin, settlement, and reports.
+- `strategy_run`: optional `OptionStrategyRun` produced by an adapter such as
+  `build_gamma_scalping_strategy_run(...)`. When supplied, the endpoint reads
+  `strategy_run.packages`, stores `selected_contracts`, and carries strategy
+  metadata into the run manifest.
+- `underlying`: optional underlying price tape as `Series` or `DataFrame`
+  (`timestamp_ns`/`time` plus `close` or `price`). Required for first-class
+  delta-hedged option results.
 
 Useful config:
 
@@ -1826,6 +1833,11 @@ Useful config:
   `backtest(...)`.
 - `prepared_cache`: optional `OptionPreparedRunCache` passed to `backtest(...)`
   when replaying many package sets over the same option chain.
+- `hedge_policy`: optional `OptionHedgeConfig`. If omitted, the endpoint uses
+  `strategy_run.hedge_policy` when available.
+- `net_option_delta`: optional externally supplied net-delta series. If omitted
+  during a hedged run, QuantBT computes the path from executed option positions
+  and observable chain Greeks.
 
 Prepared cache pattern:
 
@@ -1842,6 +1854,59 @@ result = bt.backtest(
 )
 ```
 
+Gamma-scalping adapter pattern:
+
+```python
+from quantbt import (
+    GammaScalpingConfig,
+    OptionHedgeConfig,
+    OptionHedgePolicyType,
+    QuantBTEndpoint,
+    build_gamma_scalping_strategy_run,
+)
+
+strategy_run = build_gamma_scalping_strategy_run(
+    chain,
+    option_registry,
+    GammaScalpingConfig(
+        side="long",
+        quantity=1.0,
+        min_dte_days=10,
+        max_dte_days=21,
+        roll_dte_days=2,
+        max_spread_bps=2_000,
+        hedge_policy=OptionHedgeConfig(
+            policy=OptionHedgePolicyType.FIXED_THRESHOLD,
+            threshold=0.05,
+        ),
+    ),
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=100_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 100_000},
+    fee_rate=0.0002,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    strategy_run=strategy_run,
+    underlying=btc_spot_or_perp,
+)
+
+combined_equity = result.equity
+option_only_equity = result.option_equity
+hedge_log = result.hedge_report
+selected = result.metadata["selected_contracts"]
+```
+
+For delta-hedged runs, `result.equity` is the combined option-plus-hedge
+equity curve. The option-only curve remains available as `result.option_equity`.
+QuantBT adds a pre-trade row at `first_timestamp - 1ns` so metrics begin from
+the declared initial capital before the first option fill.
+
 Returned result:
 
 - `OptionBacktestResult`, compatible with `BacktestResultV2`.
@@ -1849,7 +1914,8 @@ Returned result:
   `.tearsheet()`.
 - Option audit tables: `fills_report`, `packages_report`, `cash_report`,
   `marks_report`, `greeks_report`, `settlements_report`, `margin_report`,
-  `attribution_report`, and `run_manifest`.
+  `attribution_report`, `hedge_report`, `option_equity`, `combined_equity`,
+  `combined_returns`, and `run_manifest`.
 
 Support discovery:
 

@@ -15,6 +15,7 @@ if str(PROJECT_DIR) not in sys.path:
 
 from quantbt import (  # noqa: E402
     ExerciseStyle,
+    GammaScalpingConfig,
     OptionHedgeConfig,
     OptionHedgePolicyType,
     OptionInstrumentRegistry,
@@ -27,7 +28,7 @@ from quantbt import (  # noqa: E402
     PremiumConvention,
     QuantBTEndpoint,
     SettlementStyle,
-    run_delta_hedge_path,
+    build_gamma_scalping_strategy_run,
 )
 
 def filter_atm_options(df: pd.DataFrame, iv_rank_threshold: float = 101.0,  # Tạm set cao để bypass IV rank check
@@ -373,8 +374,17 @@ def build_synthetic_gamma_scalping_case(
 
 def run_quantbt_gamma_scalping_sample(*, snapshots: int = 90, seed: int = 42) -> dict:
     """Run the synthetic gamma-scalping sample through the public options endpoint."""
-    chain, registry, packages = build_synthetic_gamma_scalping_case(snapshots=snapshots, seed=seed)
+    chain, registry, _ = build_synthetic_gamma_scalping_case(snapshots=snapshots, seed=seed)
+    strategy_run = build_gamma_scalping_strategy_run(
+        chain,
+        registry,
+        GammaScalpingConfig(
+            hedge_policy=OptionHedgeConfig(policy=OptionHedgePolicyType.FIXED_THRESHOLD, threshold=0.05),
+        ),
+    )
     cache = OptionPreparedRunCache.from_chain(chain, registry)
+    underlying = chain.groupby("timestamp_ns", sort=True)["index_price"].first()
+    underlying.index = pd.to_datetime(underlying.index, utc=True).tz_convert(None)
     bt = QuantBTEndpoint.options(
         initial_capital=100_000.0,
         reporting_currency="USD",
@@ -382,25 +392,8 @@ def run_quantbt_gamma_scalping_sample(*, snapshots: int = 90, seed: int = 42) ->
         fee_rate=0.0002,
         metadata={"sample": "gamma_scalping_backtestsample", "seed": seed},
     )
-    uncached = bt.backtest(chain=chain, instruments=registry, packages=packages)
-    cached = bt.backtest(chain=chain, instruments=registry, packages=packages, prepared_cache=cache)
-
-    spots = (
-        chain.sort_values(["timestamp_ns", "instrument_id"])
-        .groupby("timestamp_ns", sort=True)["index_price"]
-        .first()
-    )
-    deltas = (
-        chain.assign(weighted_delta=chain["delta"])
-        .groupby("timestamp_ns", sort=True)["weighted_delta"]
-        .sum()
-    )
-    hedge = run_delta_hedge_path(
-        timestamps_ns=[int(ts) for ts in spots.index],
-        underlying_prices=spots.to_numpy(dtype=float),
-        net_option_deltas=deltas.to_numpy(dtype=float),
-        config=OptionHedgeConfig(policy=OptionHedgePolicyType.FIXED_THRESHOLD, threshold=0.05),
-    )
+    uncached = bt.backtest(chain=chain, instruments=registry, strategy_run=strategy_run, underlying=underlying)
+    cached = bt.backtest(chain=chain, instruments=registry, strategy_run=strategy_run, underlying=underlying, prepared_cache=cache)
 
     final_equity_diff = float(abs(uncached.equity.iloc[-1] - cached.equity.iloc[-1]))
     fills_equal = bool(uncached.fills_report.equals(cached.fills_report))
@@ -412,14 +405,15 @@ def run_quantbt_gamma_scalping_sample(*, snapshots: int = 90, seed: int = 42) ->
         "sample": "gamma_scalping_backtestsample",
         "snapshots": int(snapshots),
         "chain_rows": int(len(chain)),
-        "packages": int(len(packages)),
+        "packages": int(len(strategy_run.packages)),
         "fills": int(len(cached.fills_report)),
         "initial_equity": float(cached.equity.iloc[0]),
         "final_equity": float(cached.equity.iloc[-1]),
-        "option_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0]),
-        "hedge_pnl": float(hedge.hedge_pnl),
-        "combined_option_plus_hedge_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0] + hedge.hedge_pnl),
-        "hedge_rebalances": int(hedge.hedge_report["should_rebalance"].sum()),
+        "option_pnl": float(cached.option_equity.iloc[-1] - cached.option_equity.iloc[0]),
+        "hedge_pnl": float(cached.hedge_report["cumulative_hedge_pnl"].iloc[-1]),
+        "combined_option_plus_hedge_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0]),
+        "hedge_rebalances": int(cached.hedge_report["should_rebalance"].sum()),
+        "selected_contracts": cached.metadata["selected_contracts"].to_dict("records"),
         "prepared_cache_used": bool(cached.metadata.get("prepared_cache_used")),
         "package_cache_size": int(cached.metadata.get("package_cache_size", 0)),
         "parity": {
@@ -447,8 +441,23 @@ def run_real_binance_gamma_scalping_sample(
     """
     raw = pd.read_csv(options_csv, compression="gzip")
     chain, registry = canonicalize_binance_options_history(raw)
-    packages, selected = build_real_atm_straddle_packages(chain)
+    strategy_run = build_gamma_scalping_strategy_run(
+        chain,
+        registry,
+        GammaScalpingConfig(
+            min_dte_days=10.0,
+            max_dte_days=21.0,
+            max_spread_bps=2_000.0,
+            hedge_policy=OptionHedgeConfig(policy=OptionHedgePolicyType.FIXED_THRESHOLD, threshold=0.05),
+            metadata={"source": "real_binance_csv"},
+        ),
+    )
     cache = OptionPreparedRunCache.from_chain(chain, registry)
+    hedge_prices, hedge_price_source = load_underlying_prices_for_chain(
+        chain,
+        source=underlying_source,
+        timeframe=hedge_timeframe,
+    )
 
     bt = QuantBTEndpoint.options(
         initial_capital=100_000.0,
@@ -462,26 +471,20 @@ def run_real_binance_gamma_scalping_sample(
             "hedge_timeframe": hedge_timeframe,
         },
     )
-    uncached = bt.backtest(chain=chain, instruments=registry, packages=packages)
-    cached = bt.backtest(chain=chain, instruments=registry, packages=packages, prepared_cache=cache)
+    uncached = bt.backtest(chain=chain, instruments=registry, strategy_run=strategy_run, underlying=hedge_prices)
+    cached = bt.backtest(
+        chain=chain,
+        instruments=registry,
+        strategy_run=strategy_run,
+        underlying=hedge_prices,
+        prepared_cache=cache,
+    )
     final_equity_diff = float(abs(uncached.equity.iloc[-1] - cached.equity.iloc[-1]))
     fills_equal = bool(uncached.fills_report.equals(cached.fills_report))
     if final_equity_diff > 1e-9 or not fills_equal:
         raise RuntimeError("real Binance options prepared-cache parity failed")
 
-    timestamps = sorted(chain["timestamp_ns"].unique())
-    hedge_prices, hedge_price_source = load_underlying_prices_for_chain(
-        chain,
-        source=underlying_source,
-        timeframe=hedge_timeframe,
-    )
-    net_deltas = selected_straddle_delta_path(chain, selected)
-    hedge = run_delta_hedge_path(
-        timestamps_ns=timestamps,
-        underlying_prices=hedge_prices.reindex(timestamps).ffill().bfill().to_numpy(dtype=float),
-        net_option_deltas=net_deltas.reindex(timestamps).fillna(0.0).to_numpy(dtype=float),
-        config=OptionHedgeConfig(policy=OptionHedgePolicyType.FIXED_THRESHOLD, threshold=0.05),
-    )
+    selected_contracts = cached.metadata["selected_contracts"].to_dict("records")
 
     report = {
         "status": "pass",
@@ -490,15 +493,15 @@ def run_real_binance_gamma_scalping_sample(
         "snapshots": int(chain["timestamp_ns"].nunique()),
         "chain_rows": int(len(chain)),
         "contracts": int(len(registry.instruments)),
-        "packages": int(len(packages)),
+        "packages": int(len(strategy_run.packages)),
         "fills": int(len(cached.fills_report)),
-        "selected": selected,
+        "selected": selected_contracts,
         "initial_equity": float(cached.equity.iloc[0]),
         "final_equity": float(cached.equity.iloc[-1]),
-        "option_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0]),
-        "hedge_pnl": float(hedge.hedge_pnl),
-        "combined_option_plus_hedge_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0] + hedge.hedge_pnl),
-        "hedge_rebalances": int(hedge.hedge_report["should_rebalance"].sum()),
+        "option_pnl": float(cached.option_equity.iloc[-1] - cached.option_equity.iloc[0]),
+        "hedge_pnl": float(cached.hedge_report["cumulative_hedge_pnl"].iloc[-1]),
+        "combined_option_plus_hedge_pnl": float(cached.equity.iloc[-1] - cached.equity.iloc[0]),
+        "hedge_rebalances": int(cached.hedge_report["should_rebalance"].sum()),
         "hedge_price_source": hedge_price_source,
         "prepared_cache_used": bool(cached.metadata.get("prepared_cache_used")),
         "package_cache_size": int(cached.metadata.get("package_cache_size", 0)),

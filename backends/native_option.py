@@ -20,6 +20,7 @@ from ..core.schema import AccountConfig, ExecutionConfig
 from ..options.cache import OptionPreparedRunCache
 from ..options.execution import OptionExecutionConfig, execute_option_package
 from ..options.fees import OptionFeeResult, OptionFeeSchedule, calculate_option_fee
+from ..options.hedging import OptionHedgeConfig, run_delta_hedge_path
 from ..options.ledger import OptionLedger
 from ..options.lifecycle import OptionSettlementRepresentation, settle_option_expiry
 from ..options.margin import OptionMarginConfig, OptionMarginRequirement, calculate_option_margin
@@ -72,6 +73,9 @@ class NativeOptionBackend:
         packages: Sequence[OptionPackageIntent] = (),
         prepared_tape: Optional[PreparedOptionTape] = None,
         prepared_cache: Optional[OptionPreparedRunCache] = None,
+        underlying: Optional[pd.DataFrame | pd.Series] = None,
+        hedge_policy: Optional[OptionHedgeConfig] = None,
+        net_option_delta: Optional[pd.Series] = None,
         settlement_events: Optional[Sequence[OptionSettlementEvent | Mapping]] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
         reporting_currency: Optional[str] = None,
@@ -165,7 +169,7 @@ class NativeOptionBackend:
         )
         snapshots.append(_snapshot_state(tape, final_snapshot_idx, ledger, instrument_map, rates, report_ccy, "final"))
 
-        return _build_result(
+        result = _build_result(
             tape=tape,
             registry=registry,
             ledger=ledger,
@@ -198,6 +202,18 @@ class NativeOptionBackend:
                 **self.config.metadata,
             },
         )
+        if hedge_policy is not None:
+            result = _attach_delta_hedge_contract(
+                result,
+                tape=tape,
+                registry=registry,
+                underlying=underlying,
+                hedge_policy=hedge_policy,
+                net_option_delta=net_option_delta,
+                account=self.config.account,
+                report_ccy=report_ccy,
+            )
+        return result
 
 
 def _normalize_registry(
@@ -423,6 +439,249 @@ def _chain_data_hash(frame: pd.DataFrame) -> str:
 
 def _stable_hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
+
+
+def _attach_delta_hedge_contract(
+    result: OptionBacktestResult,
+    *,
+    tape: PreparedOptionTape,
+    registry: OptionInstrumentRegistry,
+    underlying: Optional[pd.DataFrame | pd.Series],
+    hedge_policy: OptionHedgeConfig,
+    net_option_delta: Optional[pd.Series],
+    account: AccountConfig,
+    report_ccy: str,
+) -> OptionBacktestResult:
+    path_timestamps = np.concatenate((np.array([int(tape.timestamp_ns[0]) - 1], dtype=np.int64), tape.timestamp_ns.astype(np.int64)))
+    index = _datetime_index_from_ns(path_timestamps)
+    option_equity, positions, closes, fees = _linear_quote_option_path(
+        result,
+        tape,
+        registry,
+        account,
+        report_ccy,
+        index,
+        path_timestamps,
+    )
+    deltas = _normalize_net_delta(net_option_delta, result.greeks_report, positions, registry, index)
+    prices, underlying_source = _normalize_underlying_prices(underlying, tape, index)
+
+    hedge = run_delta_hedge_path(
+        timestamps_ns=list(path_timestamps),
+        underlying_prices=prices.to_numpy(dtype=np.float64),
+        net_option_deltas=deltas.to_numpy(dtype=np.float64),
+        config=hedge_policy,
+    )
+    hedge_report = hedge.hedge_report.copy()
+    hedge_report.index = index
+    cumulative_hedge = pd.Series(
+        hedge_report["cumulative_hedge_pnl"].to_numpy(dtype=np.float64),
+        index=index,
+        name="hedge_pnl",
+    )
+    combined = (option_equity + cumulative_hedge).rename("equity")
+    combined_returns = combined.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    result.option_equity = option_equity
+    result.hedge_report = hedge_report
+    result.combined_equity = combined
+    result.combined_returns = combined_returns
+    result.equity = combined
+    result.returns = combined_returns
+    result.positions = positions
+    result.closes = closes
+    result.fees = fees
+    result.metadata["option_equity"] = option_equity
+    result.metadata["hedge_report"] = hedge_report
+    result.metadata["combined_equity"] = combined
+    result.metadata["combined_returns"] = combined_returns
+    result.metadata["delta_hedge_contract"] = {
+        "enabled": True,
+        "underlying_source": underlying_source,
+        "policy": hedge_policy.policy.value,
+        "target_delta": float(hedge_policy.target_delta),
+        "final_hedge_qty": float(hedge.final_hedge_qty),
+        "hedge_pnl": float(hedge.hedge_pnl),
+        "hedge_rebalances": int(hedge_report["should_rebalance"].sum()) if not hedge_report.empty else 0,
+        "option_path_method": result.metadata.get("option_path_method", "linear_quote_replay"),
+    }
+    result.run_manifest["delta_hedge"] = result.metadata["delta_hedge_contract"]
+    result.run_manifest["final_equity"] = float(combined.iloc[-1])
+    result.metadata["run_manifest"] = result.run_manifest
+    return result
+
+
+def _linear_quote_option_path(
+    result: OptionBacktestResult,
+    tape: PreparedOptionTape,
+    registry: OptionInstrumentRegistry,
+    account: AccountConfig,
+    report_ccy: str,
+    index: pd.DatetimeIndex,
+    path_timestamps: np.ndarray,
+) -> tuple[pd.Series, pd.DataFrame, pd.DataFrame, pd.Series]:
+    symbols = list(registry.symbols)
+    linear_quote_exact = all(
+        instrument.premium_currency.upper() == report_ccy and instrument.settlement_currency.upper() == report_ccy
+        for instrument in registry.instruments
+    )
+    if not linear_quote_exact:
+        option_equity = result.equity.reindex(index).ffill().bfill().rename("option_equity")
+        positions = result.positions.reindex(index).ffill().fillna(0.0)
+        closes = result.closes.reindex(index).ffill().bfill()
+        fees = result.fees.reindex(index).fillna(0.0)
+        result.metadata["option_path_method"] = "event_equity_reindexed_non_quote_currency"
+        return option_equity, positions, closes, fees
+
+    cash = float(account.initial_capital)
+    pos = {symbol: 0.0 for symbol in symbols}
+    fills = result.fills_report.sort_values("timestamp") if not result.fills_report.empty else pd.DataFrame()
+    fill_idx = 0
+    equity_rows = []
+    position_rows = []
+    close_rows = []
+    fee_values = []
+    mark_by_ts_symbol = _mark_lookup(tape)
+
+    for ts, dt in zip(path_timestamps, index):
+        snap_idx = max(0, int(np.searchsorted(tape.timestamp_ns, int(ts), side="right") - 1))
+        fee_at_ts = 0.0
+        while not fills.empty and fill_idx < len(fills) and int(fills.iloc[fill_idx]["timestamp"]) <= int(ts):
+            row = fills.iloc[fill_idx]
+            qty = float(row["qty"])
+            price = float(row["price"])
+            fee = float(row.get("applied_fee", row.get("execution_fee", 0.0)))
+            symbol = str(row["symbol"])
+            side = str(row["side"]).lower()
+            if side == "buy":
+                cash -= qty * price + fee
+                pos[symbol] = pos.get(symbol, 0.0) + qty
+            else:
+                cash += qty * price - fee
+                pos[symbol] = pos.get(symbol, 0.0) - qty
+            fee_at_ts += fee
+            fill_idx += 1
+        mark_ts = int(tape.timestamp_ns[snap_idx])
+        marks = {symbol: mark_by_ts_symbol.get((mark_ts, symbol), np.nan) for symbol in symbols}
+        marked_value = sum(pos.get(symbol, 0.0) * marks[symbol] for symbol in symbols if np.isfinite(marks[symbol]))
+        equity_rows.append(cash + marked_value)
+        position_rows.append({f"Position_{symbol}": pos.get(symbol, 0.0) for symbol in symbols})
+        close_rows.append({f"Close_{symbol}": marks[symbol] for symbol in symbols})
+        fee_values.append(fee_at_ts)
+
+    option_equity = pd.Series(equity_rows, index=index, name="option_equity")
+    positions = pd.DataFrame(position_rows, index=index).fillna(0.0)
+    closes = pd.DataFrame(close_rows, index=index).ffill().bfill()
+    fees = pd.Series(fee_values, index=index, name="fees")
+    result.metadata["option_path_method"] = "linear_quote_replay"
+    return option_equity, positions, closes, fees
+
+
+def _normalize_net_delta(
+    net_option_delta: Optional[pd.Series],
+    greeks_report: pd.DataFrame,
+    positions: pd.DataFrame,
+    registry: OptionInstrumentRegistry,
+    index: pd.DatetimeIndex,
+) -> pd.Series:
+    if net_option_delta is not None:
+        series = _coerce_series_index(net_option_delta, "net_option_delta")
+        return series.reindex(index).ffill().bfill().fillna(0.0).rename("net_option_delta")
+    if greeks_report.empty:
+        return pd.Series(0.0, index=index, name="net_option_delta")
+    greeks = greeks_report.copy()
+    greeks["datetime"] = pd.to_datetime(greeks["timestamp_ns"], utc=True).dt.tz_convert(None)
+    delta = greeks.pivot_table(index="datetime", columns="instrument_id", values="delta", aggfunc="last").reindex(index).ffill()
+    total = pd.Series(0.0, index=index, name="net_option_delta")
+    instruments = registry.by_symbol
+    for symbol in registry.symbols:
+        pos_col = f"Position_{symbol}"
+        if pos_col not in positions or symbol not in delta:
+            continue
+        multiplier = float(instruments[symbol].multiplier)
+        contribution = pd.Series(
+            positions[pos_col].to_numpy(dtype=np.float64) * delta[symbol].fillna(0.0).to_numpy(dtype=np.float64) * multiplier,
+            index=index,
+        )
+        total = total.add(contribution, fill_value=0.0)
+    return total.fillna(0.0).rename("net_option_delta")
+
+
+def _normalize_underlying_prices(
+    underlying: Optional[pd.DataFrame | pd.Series],
+    tape: PreparedOptionTape,
+    index: pd.DatetimeIndex,
+) -> tuple[pd.Series, str]:
+    if underlying is None:
+        tape_index = _datetime_index_from_ns(tape.timestamp_ns.astype(np.int64))
+        base = pd.Series(
+            [_snapshot_underlying_price(tape, i) for i in range(tape.snapshot_count)],
+            index=tape_index,
+            name="underlying_price",
+        )
+        return _align_price_series(base, index), "option_chain_index_price"
+    if isinstance(underlying, pd.Series):
+        series = _coerce_series_index(underlying, "underlying_price")
+        return _align_price_series(series, index), "underlying_series"
+    if not isinstance(underlying, pd.DataFrame):
+        raise TypeError("underlying must be a pandas Series or DataFrame")
+    frame = underlying.copy()
+    if "timestamp_ns" in frame.columns:
+        idx = pd.to_datetime(frame["timestamp_ns"].astype("int64"), utc=True).dt.tz_convert(None)
+    elif "time" in frame.columns:
+        idx = pd.to_datetime(frame["time"], utc=True, errors="coerce").dt.tz_convert(None)
+    elif isinstance(frame.index, pd.DatetimeIndex):
+        idx = pd.DatetimeIndex(pd.to_datetime(frame.index, utc=True)).tz_convert(None)
+    else:
+        raise ValueError("underlying DataFrame requires timestamp_ns, time, or DatetimeIndex")
+    column = "close" if "close" in frame.columns else ("price" if "price" in frame.columns else None)
+    if column is None:
+        raise ValueError("underlying DataFrame requires close or price column")
+    series = pd.Series(pd.to_numeric(frame[column], errors="raise").to_numpy(dtype=np.float64), index=idx, name="underlying_price")
+    return _align_price_series(series, index), f"underlying_dataframe:{column}"
+
+
+def _align_price_series(series: pd.Series, index: pd.DatetimeIndex) -> pd.Series:
+    out = series.sort_index()
+    out = out[~out.index.duplicated(keep="last")]
+    out = out.reindex(index).ffill().bfill()
+    if out.isna().any() or bool((out <= 0.0).any()):
+        raise ValueError("underlying prices must align to option tape and be finite > 0")
+    return out.rename("underlying_price")
+
+
+def _coerce_series_index(series: pd.Series, name: str) -> pd.Series:
+    out = series.copy()
+    if not isinstance(out.index, pd.DatetimeIndex):
+        out.index = pd.to_datetime(out.index, utc=True)
+    else:
+        out.index = pd.DatetimeIndex(pd.to_datetime(out.index, utc=True))
+    out.index = out.index.tz_convert(None)
+    out = pd.to_numeric(out, errors="raise").astype("float64")
+    out.name = name
+    return out
+
+
+def _datetime_index_from_ns(timestamps_ns: np.ndarray) -> pd.DatetimeIndex:
+    return pd.DatetimeIndex(pd.to_datetime(timestamps_ns, utc=True)).tz_convert(None)
+
+
+def _mark_lookup(tape: PreparedOptionTape) -> Dict[tuple[int, str], float]:
+    out: Dict[tuple[int, str], float] = {}
+    for snap_idx, ts in enumerate(tape.timestamp_ns):
+        slc = tape.snapshot_slice(snap_idx)
+        for idx in range(slc.start, slc.stop):
+            out[(int(ts), tape.instrument_id[idx])] = float(tape.mark_price[idx])
+    return out
+
+
+def _snapshot_underlying_price(tape: PreparedOptionTape, snapshot_idx: int) -> float:
+    rows = tape.snapshot_slice(snapshot_idx)
+    for idx in range(rows.start, rows.stop):
+        price = tape.index_price[idx] if np.isfinite(tape.index_price[idx]) else tape.forward_price[idx]
+        if np.isfinite(price) and price > 0.0:
+            return float(price)
+    raise ValueError("option tape snapshot has no finite underlying/index price")
 
 
 def _cash_report(snapshots: Sequence[Dict], index: pd.DatetimeIndex) -> pd.DataFrame:
