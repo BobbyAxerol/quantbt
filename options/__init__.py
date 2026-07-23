@@ -98,6 +98,7 @@ from .selectors import (
 )
 from .surface import SurfaceDiagnostics, TotalVarianceSurface
 from .tape import YEAR_NS, OptionTapeSignature, PreparedOptionTape, prepare_option_tape
+from .strategy import GammaScalpingConfig, OptionStrategyRun, build_gamma_scalping_strategy_run
 from .templates import (
     butterfly,
     calendar,
@@ -120,6 +121,7 @@ __all__ = [
     "ExternalOptionMarginValidator",
     "HedgeDecision",
     "HedgePathResult",
+    "GammaScalpingConfig",
     "InstrumentRegistrySignature",
     "OptionDecisionFillPolicy",
     "OptionDepthFidelity",
@@ -147,6 +149,7 @@ __all__ = [
     "OptionSelectionFilters",
     "OptionSettlementRepresentation",
     "OptionSettlementResult",
+    "OptionStrategyRun",
     "OptionTapeSignature",
     "OptionPosition",
     "OptionPreparedRunCache",
@@ -161,6 +164,7 @@ __all__ = [
     "black76_parity_residual",
     "black76_parity_value",
     "black76_price",
+    "build_gamma_scalping_strategy_run",
     "calculate_option_fee",
     "calculate_option_margin",
     "compile_option_package_orders",

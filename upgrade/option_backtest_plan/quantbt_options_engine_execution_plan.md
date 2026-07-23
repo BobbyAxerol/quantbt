@@ -1059,6 +1059,97 @@ Technical debt after Phase 10:
 - Cython/C++ is not recommended yet; current Phase 10 evidence supports cache
   reuse and facade profiling first.
 
+## Phase 11 - Options Strategy Adapter And Delta-Hedged Contract
+
+Files:
+
+- `options/strategy.py`
+- `core/results.py`
+- `backends/native_option.py`
+- `engines.py`
+- `endpoint.py`
+- `tests/options/test_strategy_adapter_contract.py`
+- `benchmarks/gamma_scalping_backtestsample.py`
+- `docs/endpoint.md`
+
+Tasks:
+
+- Add a strategy-layer output contract:
+  - `OptionStrategyRun`;
+  - `packages`;
+  - optional `hedge_policy`;
+  - `selected_contracts`;
+  - metadata.
+- Add a gamma-scalping adapter:
+  - `GammaScalpingConfig`;
+  - `build_gamma_scalping_strategy_run(...)`;
+  - snapshot-local ATM straddle selection;
+  - DTE, spread, bid/ask size, volume and OI filters;
+  - open/roll/close package generation.
+- Extend `QuantBTEndpoint.options(...).backtest(...)` with optional:
+  - `strategy_run`;
+  - `underlying`;
+  - `hedge_policy`;
+  - `net_option_delta`.
+- Extend `OptionBacktestResult` with first-class delta-hedged artifacts:
+  - `option_equity`;
+  - `hedge_report`;
+  - `combined_equity`;
+  - `combined_returns`.
+- If a hedge policy is supplied, make `result.equity` represent the combined
+  option-plus-hedge equity curve while preserving option-only equity separately.
+- Add a pre-trade row at `first_timestamp - 1ns` for hedged option runs so the
+  reporting curve starts at declared initial capital before the first fill.
+- Update the gamma scalping benchmark to use the public endpoint contract:
+  `strategy_run + underlying`, not manual package/hedge plumbing.
+
+Acceptance:
+
+- Existing unhedged `QuantBTEndpoint.options(...)` calls remain compatible.
+- Gamma adapter emits packages without inspecting future snapshots for
+  selection.
+- Hedged runs expose combined equity and option-only equity separately.
+- Hedge PnL uses previous hedge quantity for the prior underlying move.
+- Real Binance options CSV smoke runs through the same public endpoint contract.
+
+Status: completed.
+
+Implemented:
+
+- Added `OptionStrategyRun`, `GammaScalpingConfig`, and
+  `build_gamma_scalping_strategy_run(...)`.
+- Added endpoint and engine threading for `strategy_run`, `underlying`,
+  `hedge_policy`, and `net_option_delta`.
+- Added delta-hedged result artifacts to `OptionBacktestResult`.
+- Added a linear quote-currency option equity replay path for full tape MTM.
+- Added combined option-plus-hedge equity when a hedge policy is present.
+- Updated `benchmarks/gamma_scalping_backtestsample.py` to run synthetic and
+  real Binance gamma-scalping samples through `QuantBTEndpoint.options(...)`.
+- Documented the gamma-scalping endpoint pattern in `docs/endpoint.md`.
+
+Validation:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options/test_strategy_adapter_contract.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/gamma_scalping_backtestsample.py --snapshots 90 --seed 42`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha:/root/bobby/pool_alpha/alphas_storage/_get_data poetry run python benchmarks/gamma_scalping_backtestsample.py --real-options-csv /root/bobby/pool_alpha/alphas_storage/option_based/options_full_history.csv.gz --underlying-source spot --hedge-timeframe 1h`
+
+Technical debt after Phase 11:
+
+- Delta hedge execution is an accounting path, not yet an order-book/venue
+  execution path for the underlying hedge leg.
+- Linear quote-currency option path is exact for USD/USDC-style premium and
+  settlement. Inverse and quanto hedged combined-equity paths should use the
+  multi-currency ledger path or venue-specific conversion audit before being
+  called production-certified.
+- The gamma adapter is a V1 ATM straddle adapter. More strategy adapters are
+  still needed for calendar vol, skew, vertical, dispersion, and option-vol-arb
+  workflows.
+- If a near-expiry contract disappears from the historical chain before a close
+  or settlement event, strategy config should use stricter DTE/liquidity
+  filters or provide settlement events. Venue-exact expiry/auto-exercise
+  package generation remains a later enhancement.
+
 ## V1 Completion Criteria
 
 V1 can be called usable only when:
@@ -1093,7 +1184,7 @@ V1 can be called usable only when:
 - Cross-venue volatility arbitrage production semantics before collateral,
   transfer, latency and borrow constraints are implemented.
 
-## Immediate Next Step
+## Historical Start Note
 
 Start with Phase 0, then Phase 1. Do not jump to pricing or endpoint wiring
 before schema/convention tests pass. The first code commit should be small:

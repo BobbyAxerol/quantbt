@@ -79,11 +79,12 @@ python3 benchmarks/gamma_scalping_backtestsample.py \
   memory, uncached runtime, cached runtime, and run-manifest hashes.
 - `gamma_scalping_backtestsample.py` is a runnable long-straddle gamma-scalping
   smoke sample. It keeps the original research helpers, then runs the public
-  `QuantBTEndpoint.options(...)` path with prepared-cache parity and a separate
-  delta-hedge path report.
+  `QuantBTEndpoint.options(...)` path through
+  `build_gamma_scalping_strategy_run(...)`, `strategy_run`, `underlying`, and
+  prepared-cache parity.
 - The real-data mode converts legacy Binance options CSV history into QuantBT's
   canonical option-chain schema, selects an ATM call/put pair with entry/exit
   quotes, and loads BTCUSDT spot or USD-M perpetual candles from `_get_data` for
-  hedge-path accounting.
+  first-class delta-hedged combined-equity accounting.
 - Cython/C++ should only be considered after a larger profile shows pure
   kernels, not pandas/tape/report facade work, dominating runtime.

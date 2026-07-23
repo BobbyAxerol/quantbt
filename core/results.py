@@ -137,6 +137,10 @@ class OptionBacktestResult(BacktestResultV2):
     settlements_report: pd.DataFrame = field(default_factory=pd.DataFrame)
     margin_report: pd.DataFrame = field(default_factory=pd.DataFrame)
     attribution_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    hedge_report: pd.DataFrame = field(default_factory=pd.DataFrame)
+    option_equity: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
+    combined_equity: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
+    combined_returns: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
     run_manifest: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -149,4 +153,8 @@ class OptionBacktestResult(BacktestResultV2):
         self.metadata.setdefault("settlements_report", self.settlements_report)
         self.metadata.setdefault("margin_report", self.margin_report)
         self.metadata.setdefault("attribution_report", self.attribution_report)
+        self.metadata.setdefault("hedge_report", self.hedge_report)
+        self.metadata.setdefault("option_equity", self.option_equity)
+        self.metadata.setdefault("combined_equity", self.combined_equity)
+        self.metadata.setdefault("combined_returns", self.combined_returns)
         self.metadata.setdefault("run_manifest", self.run_manifest)

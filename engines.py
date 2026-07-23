@@ -28,8 +28,10 @@ from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .options.cache import OptionPreparedRunCache
+from .options.hedging import OptionHedgeConfig
 from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
+from .options.strategy import OptionStrategyRun
 from .portfolio import MultiSymbolPortfolio
 from .sizing.modes import compute_target_units
 
@@ -381,6 +383,10 @@ class OptionBacktestEngine:
         chain: Optional[pd.DataFrame] = None,
         instruments: Optional[OptionInstrumentRegistry | Sequence[OptionInstrumentSpec] | Dict[str, OptionInstrumentSpec]] = None,
         packages: Sequence[OptionPackageIntent] = (),
+        strategy_run: Optional[OptionStrategyRun] = None,
+        underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
+        hedge_policy: Optional[OptionHedgeConfig] = None,
+        net_option_delta: Optional[pd.Series] = None,
         config: Optional[NativeOptionConfig] = None,
         settlement_events: Optional[Sequence] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
@@ -389,7 +395,11 @@ class OptionBacktestEngine:
     ):
         self.chain = chain
         self.instruments = instruments
-        self.packages = tuple(packages or ())
+        self.strategy_run = strategy_run
+        self.packages = tuple(packages or (strategy_run.packages if strategy_run is not None else ()))
+        self.underlying = underlying
+        self.hedge_policy = hedge_policy or (strategy_run.hedge_policy if strategy_run is not None else None)
+        self.net_option_delta = net_option_delta
         self.config = config or NativeOptionConfig()
         self.settlement_events = tuple(settlement_events or ())
         self.conversion_rates = conversion_rates
@@ -412,7 +422,15 @@ class OptionBacktestEngine:
             settlement_events=self.settlement_events,
             conversion_rates=self.conversion_rates,
             prepared_cache=self.prepared_cache,
+            underlying=self.underlying,
+            hedge_policy=self.hedge_policy,
+            net_option_delta=self.net_option_delta,
         )
+        if self.strategy_run is not None:
+            self.result.metadata["strategy_run"] = self.strategy_run.metadata
+            self.result.metadata["selected_contracts"] = self.strategy_run.selected_contracts
+            self.result.run_manifest["strategy_run"] = self.strategy_run.metadata
+            self.result.metadata["run_manifest"] = self.result.run_manifest
         return self.result
 
 
