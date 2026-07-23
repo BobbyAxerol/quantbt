@@ -101,6 +101,35 @@ Report bundle:
   `cancelled_count`, and `rejected_count` to `run_manifest.json` and
   `metrics_summary.json`.
 
+Certification bundles:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  quantbt/benchmarks/run_phase15a_nautilus_certification.py \
+  --include-nautilus \
+  --rows 96
+```
+
+Phase 15A exports representative stakeholder bundles for:
+
+- single-symbol `%_equity` signal validation;
+- explicit `OrderIntent` replay;
+- basket package replay;
+- portfolio matrix package replay;
+- basis-arbitrage package replay when the required instrument route is
+  available.
+
+Each successful workflow writes the normal Nautilus report bundle plus:
+
+- `native_vs_nautilus_parity.csv`;
+- `tolerance_profile.json`;
+- `known_differences.md`;
+- `certification_summary.json`.
+
+If `nautilus-trader` or a required instrument route is missing, the runner
+marks the workflow as `skipped`. A skipped row is not a pass claim; it is an
+honest dependency/instrument availability statement.
+
 `%_equity` diagnostic:
 
 ```python

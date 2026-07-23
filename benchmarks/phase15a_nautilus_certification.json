@@ -1,0 +1,41 @@
+{
+  "diff_workflows": 0,
+  "failed_workflows": 0,
+  "include_nautilus": false,
+  "output_dir": "/root/bobby/pool_alpha/quantbt/benchmarks/phase15a_nautilus_bundles",
+  "passed_workflows": 0,
+  "skipped_workflows": 5,
+  "status": "pass",
+  "workflows": [
+    {
+      "bundle_dir": null,
+      "reason": "run with --include-nautilus",
+      "status": "skipped",
+      "workflow": "pct_equity_signal"
+    },
+    {
+      "bundle_dir": null,
+      "reason": "run with --include-nautilus",
+      "status": "skipped",
+      "workflow": "explicit_orders"
+    },
+    {
+      "bundle_dir": null,
+      "reason": "run with --include-nautilus",
+      "status": "skipped",
+      "workflow": "basket_package"
+    },
+    {
+      "bundle_dir": null,
+      "reason": "run with --include-nautilus",
+      "status": "skipped",
+      "workflow": "portfolio_package"
+    },
+    {
+      "bundle_dir": null,
+      "reason": "run with --include-nautilus",
+      "status": "skipped",
+      "workflow": "basis_arbitrage_package"
+    }
+  ]
+}
