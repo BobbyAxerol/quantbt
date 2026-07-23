@@ -96,6 +96,11 @@ Support matrix target:
 
 Purpose: lock current QuantBT behavior before adding options.
 
+Status: completed. See:
+
+- `phase0_baseline_snapshot.json`
+- `phase0_baseline_snapshot.md`
+
 Tasks:
 
 - Confirm branch is `feat/option-engine`.
