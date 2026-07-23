@@ -2470,6 +2470,43 @@ Acceptance:
 - Report explicitly states whether Cython/C++ is justified. Default expectation
   remains "not yet" unless pure kernels become the bottleneck.
 
+Status:
+
+- Implemented `benchmarks/run_phase14_service_loop.py`.
+- Added committed benchmark artifacts:
+  - `benchmarks/phase14_service_loop.json`;
+  - `benchmarks/phase14_service_loop.md`.
+- Added regression coverage in `tests/test_phase14_service_loop_benchmark.py`.
+- Current benchmark command:
+
+```bash
+python benchmarks/run_phase14_service_loop.py \
+  --rows 360 \
+  --symbols 4 \
+  --trials 4 \
+  --order-count 120 \
+  --repeats 2
+```
+
+- Latest benchmark status: `pass`.
+- Parity guards all pass:
+  - single-symbol WFO;
+  - portfolio WFO cached vs uncached;
+  - native-event cold vs prepared replay;
+  - arbitrage package event vs vectorized sweep;
+  - heavy metrics report vs light core summary.
+- Latest measured bottlenecks:
+  - native vectorized: `data_normalization` at about `54.04%`;
+  - native event: `data_normalization` at about `38.32%`;
+  - native portfolio: `report_construction_estimate` at about `79.55%`;
+  - pure Numba kernel share remains below `1%` across the measured native
+    vectorized/event/portfolio paths.
+- Service-loop report now includes `tracemalloc` peak-memory measurements per
+  workload so runtime and allocation pressure can be interpreted together.
+- Conclusion: Cython/C++ is not justified yet. Phase 14C should prioritize
+  prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy
+  heavy reports while preserving full report defaults.
+
 ### Phase 14C - Prepared Cache And Lazy Heavy Reports
 
 Purpose:

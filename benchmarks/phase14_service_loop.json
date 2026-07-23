@@ -1,0 +1,221 @@
+{
+  "cython_cpp_recommendation": "Cython/C++ is not justified yet. The measured bottleneck remains in facade/report/preparation layers, so Phase 14C should optimize cache threading and optional/lazy heavy reports first.",
+  "decomposition": {
+    "native_event": {
+      "backend": "native_event",
+      "bars": 360,
+      "orders": 120,
+      "profile": "phase14b",
+      "stages": [
+        {
+          "backend": "native_event",
+          "notes": "validate_datetime + align OHLC/funding",
+          "percent_of_profile": 38.31575011941418,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.002708784071728587,
+          "stage": "data_normalization"
+        },
+        {
+          "backend": "native_event",
+          "notes": "build contiguous market arrays",
+          "percent_of_profile": 24.342221625972368,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0017209064681082964,
+          "stage": "pandas_to_ndarray"
+        },
+        {
+          "backend": "native_event",
+          "notes": "compile orders with vectorized timestamp mapping",
+          "percent_of_profile": 12.330953821065313,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0008717535529285669,
+          "stage": "order_array_construction"
+        },
+        {
+          "backend": "native_event",
+          "notes": "compiled _engine_event_v1 only",
+          "percent_of_profile": 0.7834413518401837,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 5.538645200431347e-05,
+          "stage": "pure_numba_kernel"
+        },
+        {
+          "backend": "native_event",
+          "notes": "order report + Series/DataFrame/BacktestResultV2",
+          "percent_of_profile": 24.227633081707953,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0017128054751083255,
+          "stage": "result_report_construction"
+        }
+      ],
+      "symbols": 4,
+      "total_seconds": 0.007069636019878089
+    },
+    "native_portfolio": {
+      "bar_symbols": 1440,
+      "notes": "Prepared-array cache targets WFO/service loops. Pure Numba kernel remains separated from pandas normalization and report construction.",
+      "repeats": 2,
+      "rows": 360,
+      "stages": {
+        "array_preparation_seconds": 0.005511046969331801,
+        "array_preparation_share_pct": 20.287164779043213,
+        "full_facade_seconds": 0.027165190549567342,
+        "prepared_reuse_facade_seconds": 0.02011526538990438,
+        "prepared_reuse_speedup": 1.3504763682213827,
+        "pure_kernel_share_pct": 0.16227020670185,
+        "pure_numba_kernel_seconds": 4.408101085573435e-05,
+        "report_construction_estimate_seconds": 0.021610062569379807,
+        "report_construction_share_pct": 79.55056501425494
+      },
+      "status": "pass",
+      "symbols": 4
+    },
+    "native_vectorized": {
+      "backend": "native_vectorized",
+      "bars": 360,
+      "orders": 120,
+      "profile": "phase14b",
+      "stages": [
+        {
+          "backend": "native_vectorized",
+          "notes": "validate_datetime + align OHLC/signals/funding",
+          "percent_of_profile": 54.04174170431701,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0036831673933193088,
+          "stage": "data_normalization"
+        },
+        {
+          "backend": "native_vectorized",
+          "notes": "build contiguous market/signal arrays",
+          "percent_of_profile": 26.52544727768939,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0018078185385093093,
+          "stage": "pandas_to_ndarray"
+        },
+        {
+          "backend": "native_vectorized",
+          "notes": "compute fast signal_notional target-unit matrix",
+          "percent_of_profile": 0.11365479578895471,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 7.746042683720589e-06,
+          "stage": "target_sizing"
+        },
+        {
+          "backend": "native_vectorized",
+          "notes": "compiled _engine_units_v2 only",
+          "percent_of_profile": 0.4714544001340258,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 3.2131560146808624e-05,
+          "stage": "pure_numba_kernel"
+        },
+        {
+          "backend": "native_vectorized",
+          "notes": "Series/DataFrame/BacktestResultV2 construction",
+          "percent_of_profile": 18.847701822070615,
+          "profile": "phase14b",
+          "repeats": 2,
+          "seconds": 0.0012845485471189022,
+          "stage": "result_report_construction"
+        }
+      ],
+      "symbols": 4,
+      "total_seconds": 0.0068154120817780495
+    }
+  },
+  "folds": 1,
+  "next_optimization_targets": [
+    "native_vectorized: `data_normalization` (54.0%)",
+    "native_event: `data_normalization` (38.3%)",
+    "native_portfolio: `report_construction_estimate` (79.6%)",
+    "Phase 14C should prioritize prepared-array reuse in single-symbol/event/arbitrage loops and optional lazy reports."
+  ],
+  "order_count": 120,
+  "parity": {
+    "arbitrage_package_sweep": true,
+    "native_event_replay": true,
+    "portfolio_wfo": true,
+    "report_heavy_vs_light": true,
+    "single_symbol_wfo": true
+  },
+  "repeats": 2,
+  "rows": 360,
+  "service_loops": {
+    "arbitrage_package_sweep": {
+      "audit_status": "pass",
+      "full_seconds": 0.06627011485397816,
+      "max_equity_diff": 0.0,
+      "max_package_residual": 1.2736478538499796e-11,
+      "notes": "event seconds vs vectorized seconds for the same package accounting",
+      "parity_passed": true,
+      "parity_status": "pass",
+      "peak_memory_mb": 0.9490671157836914,
+      "prepared_seconds": 0.07230646989773959,
+      "speedup": 0.9165170827410267
+    },
+    "native_event_replay": {
+      "cold_seconds": 0.009390108636580408,
+      "equity_diff": 0.0,
+      "notes": "prepared replay reuses market arrays and compiled order arrays",
+      "orders": 120,
+      "parity_passed": true,
+      "peak_memory_mb": 0.1809682846069336,
+      "positions_diff": 0.0,
+      "prepared_seconds": 0.0036398370284587145,
+      "speedup": 2.579815679427999
+    },
+    "portfolio_wfo": {
+      "cache_metadata": {
+        "available": true,
+        "backend": "native_portfolio",
+        "enabled": true,
+        "fallback_runs": 0,
+        "market_cache_entries": 2,
+        "market_cache_hits": 6,
+        "market_cache_misses": 2,
+        "prepared_runs": 8,
+        "target_mode": "portfolio"
+      },
+      "final_equity_diff": 0.0,
+      "full_seconds": 0.44819721940439194,
+      "notes": "compares uncached vs prepared portfolio WFO endpoint scoring",
+      "objective_diff": 0.0,
+      "parity_passed": true,
+      "peak_memory_mb": 0.770207405090332,
+      "prepared_seconds": 0.4026290359906852,
+      "speedup": 1.1131765951791934
+    },
+    "report_heavy_vs_light": {
+      "final_equity": 99994.04081526285,
+      "full_seconds": 0.029556826455518603,
+      "light_seconds": 0.00010119599755853415,
+      "notes": "measures metrics/report export cost; lazy report controls are Phase 14C work",
+      "parity_passed": true,
+      "peak_memory_mb": 0.029865264892578125,
+      "speedup": 292.07505403978297
+    },
+    "single_symbol_wfo": {
+      "best_params": {
+        "threshold": 0.6000000000000001
+      },
+      "final_equity": 20913.88933319221,
+      "full_seconds": 0.9489891404518858,
+      "notes": "prepared column reports metric/export cost only; single-symbol WFO cache is Phase 14C work",
+      "parity_passed": true,
+      "peak_memory_mb": 0.29954051971435547,
+      "prepared_seconds": 0.02558732288889587,
+      "speedup": 37.08825438958753
+    }
+  },
+  "status": "pass",
+  "symbols": 4,
+  "trials": 4
+}
