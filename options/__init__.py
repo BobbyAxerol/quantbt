@@ -13,6 +13,13 @@ from .conventions import (
     deribit_linear_usdc_option_convention,
 )
 from .data import CANONICAL_OPTION_CHAIN_COLUMNS, validate_option_chain_frame
+from .execution import (
+    OptionDepthFidelity,
+    OptionExecutionConfig,
+    OptionLimitFidelity,
+    OptionPackageExecutionResult,
+    execute_option_package,
+)
 from .greeks import (
     OptionGreeks,
     inverse_black76_greeks_base,
@@ -21,6 +28,12 @@ from .greeks import (
     scale_greeks_to_reporting_currency,
 )
 from .iv import IVStatus, ImpliedVolResult, implied_vol_black76, implied_vol_inverse_black76_base
+from .packages import (
+    OptionPackageExecutionPolicy,
+    OptionPackageIntent,
+    OptionPackageLeg,
+    compile_option_package_orders,
+)
 from .pricing import (
     black76_intrinsic,
     black76_parity_residual,
@@ -58,10 +71,17 @@ __all__ = [
     "ExerciseStyle",
     "InstrumentRegistrySignature",
     "OptionDecisionFillPolicy",
+    "OptionDepthFidelity",
+    "OptionExecutionConfig",
     "OptionInstrumentRegistry",
     "OptionInstrumentSpec",
     "OptionKind",
     "OptionGreeks",
+    "OptionLimitFidelity",
+    "OptionPackageExecutionPolicy",
+    "OptionPackageExecutionResult",
+    "OptionPackageIntent",
+    "OptionPackageLeg",
     "OptionVenueConvention",
     "OptionSelection",
     "OptionSelectionFilters",
@@ -77,6 +97,7 @@ __all__ = [
     "black76_parity_residual",
     "black76_parity_value",
     "black76_price",
+    "compile_option_package_orders",
     "deribit_inverse_option_convention",
     "deribit_linear_usdc_option_convention",
     "implied_vol_black76",
@@ -91,6 +112,7 @@ __all__ = [
     "ImpliedVolResult",
     "linear_black76_greeks",
     "available_option_rows",
+    "execute_option_package",
     "prepare_option_tape",
     "scale_greeks_to_reporting_currency",
     "select_atm_option",

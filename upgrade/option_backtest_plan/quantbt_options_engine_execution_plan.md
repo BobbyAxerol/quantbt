@@ -439,6 +439,83 @@ Acceptance:
 - Package metadata states whether atomicity is simulated, exchange combo, or
   block-trade style.
 
+Status: completed.
+
+Implemented:
+
+- Added `options/packages.py`:
+  - `OptionPackageLeg`;
+  - `OptionPackageIntent`;
+  - `OptionPackageExecutionPolicy`;
+  - `compile_option_package_orders(...)`.
+- Enforced package-leg domain rules:
+  - `side` owns direction;
+  - `ratio` must be positive;
+  - Phase 4 supports market and limit option package legs only;
+  - limit legs require positive `limit_price`.
+- Compiled package legs into existing `OrderIntent` leaves with package
+  metadata:
+  - package id;
+  - leg index;
+  - leg ratio;
+  - leg role;
+  - execution policy;
+  - simulated atomicity label;
+  - `exchange_combo=False`;
+  - `block_trade_style=False`.
+- Added `options/execution.py`:
+  - `OptionExecutionConfig`;
+  - `OptionLimitFidelity`;
+  - `OptionDepthFidelity`;
+  - `OptionPackageExecutionResult`;
+  - `execute_option_package(...)`.
+- Implemented snapshot-level option fill behavior:
+  - market buy fills at ask;
+  - market sell fills at bid;
+  - limit `CROSS_ONLY`;
+  - limit `MAKER_TOUCH` as explicit simulated maker fidelity;
+  - top-of-book size guard;
+  - FOK full-fill/reject;
+  - IOC partial with residual-risk report;
+  - GTC open/partial behavior where feasible;
+  - package debit/credit guard.
+- Implemented package policies:
+  - `ATOMIC_ALL_OR_NONE`;
+  - `BEST_EFFORT`;
+  - `SEQUENTIAL`;
+  - `HEDGE_AFTER_PRIMARY`;
+  - `REBALANCE_ONLY`.
+- Added Phase 4 tests for package validation, order compilation, AON rollback,
+  market bid/ask fills, IOC partials, debit guards, limit fidelity modes,
+  primary-then-hedge, and rebalance-to-target behavior.
+- Exported Phase 4 package and execution APIs from `quantbt.options` and
+  top-level `quantbt`.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+  - result: `54 passed`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.execute_option_package; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase4_import_smoke=pass')"`
+  - result: `phase4_import_smoke=pass`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `340 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 4:
+
+- Execution is snapshot/top-of-book only. It is not L2 replay, queue priority,
+  or venue-native combo matching.
+- Margin report is intentionally a Phase 4 placeholder. Real multi-currency
+  ledger, fees by currency, margin, settlement, expiry, and lifecycle are Phase
+  5+ work.
+- Stop orders and conditional lifecycle orders are rejected in Phase 4; they
+  should be added only after lifecycle semantics are implemented.
+- `MAKER_TOUCH` is an explicit approximation. It should not be described as
+  exchange-native maker queue simulation.
+- Package debit/credit guard works on simulated fills in package premium units;
+  full portfolio/multi-currency conversion is deferred.
+- No endpoint route or Nautilus validation is implemented in Phase 4 by design.
+
 ## Phase 5 - Multi-Currency Ledger, Fees, Lifecycle
 
 Files:

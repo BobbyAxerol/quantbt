@@ -3021,6 +3021,57 @@ Technical debt after Phase 17.3:
 - Options still have no package compiler, execution engine, ledger, expiry
   lifecycle, endpoint route, or Nautilus validation.
 
+### Phase 17.4 - Package Compiler And Options Execution
+
+Status: completed.
+
+Implemented:
+
+- Added option package domain objects:
+  - `OptionPackageLeg`;
+  - `OptionPackageIntent`;
+  - `OptionPackageExecutionPolicy`.
+- Added `compile_option_package_orders(...)` to compile option package legs into
+  existing QuantBT `OrderIntent` leaves with package metadata.
+- Added snapshot-level option package execution:
+  - `OptionExecutionConfig`;
+  - `OptionLimitFidelity`;
+  - `OptionDepthFidelity`;
+  - `OptionPackageExecutionResult`;
+  - `execute_option_package(...)`.
+- Supported policies:
+  - `ATOMIC_ALL_OR_NONE`;
+  - `BEST_EFFORT`;
+  - `SEQUENTIAL`;
+  - `HEDGE_AFTER_PRIMARY`;
+  - `REBALANCE_ONLY`.
+- Locked Phase 4 fill rules:
+  - market buy at ask;
+  - market sell at bid;
+  - no mark/mid default execution;
+  - FOK/IOC/GTC behavior where feasible on top-of-book snapshots;
+  - package debit/credit guard;
+  - explicit simulated atomicity/fidelity labels.
+- Exported Phase 4 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `54 passed`.
+- import smoke: `phase4_import_smoke=pass`.
+- full non-real regression: `340 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.4:
+
+- Execution remains snapshot/top-of-book, not L2 replay or venue-native combo
+  matching.
+- `MAKER_TOUCH` is an explicit approximation, not real maker queue priority.
+- Margin report is a placeholder until the multi-currency ledger phase.
+- Stop/conditional option lifecycle is rejected until lifecycle semantics exist.
+- Package debit/credit guard works in package premium units; full currency
+  conversion is deferred.
+- Options still have no endpoint route, full ledger, expiry lifecycle, or
+  Nautilus adapter.
+
 ---
 
 ## Backend Selection Guide
