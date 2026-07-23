@@ -337,6 +337,70 @@ Acceptance:
 - Delta/IV selection uses only observable snapshot values.
 - Prepared tape rejects stale registry/convention/timestamp mismatch.
 
+Status: completed.
+
+Implemented:
+
+- Added `options/tape.py`:
+  - `PreparedOptionTape`;
+  - `OptionTapeSignature`;
+  - `prepare_option_tape(...)`;
+  - CSR-style `timestamp_ns` and `row_ptr`;
+  - per-row instrument codes, bid/ask/size, mark, forward/index, IV, Greeks,
+    OI, volume, and source latency arrays;
+  - registry static-field checks;
+  - stale source-latency guard;
+  - registry, convention, and timestamp compatibility checks.
+- Added `options/selectors.py`:
+  - `OptionSelectionFilters`;
+  - `OptionSelection`;
+  - `available_option_rows(...)`;
+  - `select_atm_option(...)`;
+  - `select_target_delta_option(...)`;
+  - `select_target_dte_option(...)`;
+  - `select_target_moneyness_option(...)`.
+- Added Phase 3 tests:
+  - CSR tape shape and signatures;
+  - unknown/unlisted instrument rejection;
+  - registry strike/kind mismatch rejection;
+  - crossed quote and stale source latency rejection;
+  - ATM, target-delta, target-DTE, and moneyness selectors;
+  - liquidity/spread/OI filters;
+  - no-lookahead snapshot selection;
+  - stale decision-time quote age rejection;
+  - expired contract filtering at decision time.
+- Exported Phase 3 tape and selector APIs from `quantbt.options` and top-level
+  `quantbt`.
+
+Latest local tests:
+
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -m compileall options __init__.py`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/options`
+  - result: `43 passed`
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python -c "import sys, quantbt; assert quantbt.prepare_option_tape; assert not any(n.startswith('nautilus_trader') for n in sys.modules); print('phase3_import_smoke=pass')"`
+  - result: `phase3_import_smoke=pass`
+- `rg -n "pivot|unstack|N_bars|dense|fastmath" options tests/options`
+  - result: no dense matrix construction or `fastmath`; only documentation/test
+    wording contains `dense`.
+- `MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`
+  - result: `329 passed, 1 skipped, 3 warnings`
+
+Technical debt after Phase 3:
+
+- Tape and selectors are array-first but still Python/NumPy scalar scans at the
+  selector layer. Numba kernels should wait until Phase 4 execution package
+  shapes are stable.
+- Delta/IV selectors trust observable chain columns. Later phases should add
+  optional fallback to Phase 2 model Greeks/IV only when explicitly requested
+  and tagged as model-derived.
+- Source latency and quote age guards are deterministic snapshot guards, not
+  real venue L2 replay or queue priority.
+- Selector tie-breaks currently use first minimum after canonical sort. If
+  strategies need deterministic secondary rules such as max OI or tightest
+  spread, add explicit selector policies.
+- No option package compiler, execution, ledger, expiry lifecycle, endpoint, or
+  Nautilus validation is implemented in Phase 3 by design.
+
 ## Phase 4 - Package Compiler And Options Execution
 
 Files:
