@@ -20,6 +20,7 @@ from .backtester import BacktestEngine
 from .backends import (
     NativeEventBackend,
     NativeEventConfig,
+    NativeOptionConfig,
     NativePortfolioBackend,
     NativePortfolioConfig,
     NativeVectorizedBackend,
@@ -43,7 +44,7 @@ from .core.execution_depth import (
     simulate_nautilus_order_package_depth,
 )
 from .core.orders import OrderIntent
-from .core.results import BacktestResultV2
+from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -52,10 +53,15 @@ from .core.structured_orders import (
     build_dca_grid_order_plan,
 )
 from .core.types import BacktestResult
-from .engines import BacktestEngineV2, PortfolioBacktestEngine
+from .engines import BacktestEngineV2, OptionBacktestEngine, PortfolioBacktestEngine
 from .metrics import full_report as _full_report
 from .reporting import build_portfolio_nautilus_validation_report
 from .sizing.modes import compute_target_units
+from .options.execution import OptionExecutionConfig
+from .options.fees import OptionFeeSchedule
+from .options.margin import OptionMarginConfig
+from .options.packages import OptionPackageIntent
+from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .viz import quick_plot as _quick_plot
 from .viz import tearsheet as _tearsheet
 from .walkforward import WalkForwardConfig, WalkForwardEngine
@@ -75,7 +81,8 @@ class EndpointConfig:
     mode:
         Strategy integration mode. Supported values are `single_signal`,
         `pct_equity`, `signal_notional`, `dca_ladder`, `orders`, `basket`,
-        `portfolio`, `arbitrage`, `walk_forward`, and `nautilus_validation`.
+        `portfolio`, `arbitrage`, `options`, `walk_forward`, and
+        `nautilus_validation`.
     backend:
         Engine selector. Use `auto` for domain-safe defaults, or explicitly set
         `legacy`, `native_vectorized`, `native_event`, or `nautilus`.
@@ -130,6 +137,8 @@ class EndpointConfig:
         Native portfolio artifact policy. `full` preserves all audit reports;
         `standard` keeps core audit tables; `minimal` keeps accounting outputs
         for optimizer/service loops. Existing calls default to `full`.
+    option_config:
+        Optional `NativeOptionConfig` for native option simulations.
     strategy_class:
         Optional strategy callable/class for `walk_forward` mode. The strategy
         must return a Series, DataFrame, or `{symbol: Series}` OOS output.
@@ -169,6 +178,7 @@ class EndpointConfig:
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
     nautilus_depth_config: Optional[NautilusExecutionDepthConfig] = None
+    option_config: object = None
     report_level: str = "full"
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
@@ -284,6 +294,61 @@ class QuantBTEndpoint:
         handling, fees, margin checks, and fills in `result.fills`.
         """
         return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
+
+    @classmethod
+    def options(
+        cls,
+        backend: str = "native_option",
+        *,
+        option_config: Optional[NativeOptionConfig] = None,
+        option_execution: Optional[OptionExecutionConfig] = None,
+        option_margin: Optional[OptionMarginConfig] = None,
+        fee_schedule: Optional[OptionFeeSchedule] = None,
+        reporting_currency: str = "USD",
+        initial_balances: Optional[Dict[str, float]] = None,
+        conversion_rates: Optional[Dict[str, float]] = None,
+        settle_expired: bool = False,
+        max_spread_bps: Optional[float] = None,
+        max_source_latency_ns: Optional[int] = None,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create a native option simulation endpoint.
+
+        Strategy/template code supplies canonical option-chain rows,
+        `OptionInstrumentSpec` definitions, and `OptionPackageIntent` packages
+        to `backtest(...)` or `simulate(...)`. The endpoint routes packages
+        through snapshot-level option execution, applies fills to the
+        multi-currency option ledger, calculates margin, and returns an
+        `OptionBacktestResult` with fills/packages/cash/marks/Greeks/settlement
+        artifacts.
+
+        Required `backtest()` inputs:
+        `chain`, `instruments`, and optional `packages`.
+        """
+        if backend.lower().strip() != "native_option":
+            raise ValueError("options endpoint currently supports backend='native_option' only")
+        metadata = dict(kwargs.pop("metadata", {}))
+        metadata.setdefault("mode_family", "options")
+        endpoint_config = _config_from_kwargs(mode="options", backend=backend, metadata=metadata, **kwargs)
+        if option_config is None:
+            option_config = NativeOptionConfig(
+                account=endpoint_config.account,
+                execution=endpoint_config.execution,
+                option_execution=option_execution
+                or OptionExecutionConfig(fee_rate=endpoint_config.v2_fee_rate, metadata={"source": "QuantBTEndpoint.options"}),
+                margin=option_margin or OptionMarginConfig(),
+                fee_schedule=fee_schedule,
+                reporting_currency=reporting_currency,
+                initial_balances=initial_balances,
+                conversion_rates=dict(conversion_rates or {}),
+                settle_expired=settle_expired,
+                max_spread_bps=max_spread_bps,
+                max_source_latency_ns=max_source_latency_ns,
+                metadata=metadata,
+            )
+        endpoint_config = replace(endpoint_config, option_config=option_config)
+        return cls(endpoint_config)
 
     @classmethod
     def nautilus_dca_grid(cls, spec: Optional[DcaGridSpec] = None, **kwargs) -> "QuantBTEndpoint":
@@ -431,10 +496,58 @@ class QuantBTEndpoint:
                 "sizing": "not executable yet",
             },
             "OptionsVolArbSpec": {
-                "status": "schema_only",
-                "backends": "none",
-                "route": "needs option/greeks engine",
-                "sizing": "not executable yet",
+                "status": "specialized_route",
+                "backends": "native_option",
+                "route": "QuantBTEndpoint.options(...) with OptionPackageIntent and Greeks reports",
+                "sizing": "option package quantities; Greeks-aware risk belongs to option route",
+            },
+        }
+
+    @staticmethod
+    def options_support_matrix() -> Dict[str, Dict[str, str]]:
+        """
+        Return the native option endpoint support matrix.
+
+        `supported` means the Phase 7 endpoint can execute the workflow through
+        current native option components. `future` means the public schema is
+        intentionally reserved but should wait for later phases.
+        """
+        return {
+            "canonical_chain_tape": {
+                "status": "supported",
+                "backend": "native_option",
+                "route": "prepare_option_tape",
+                "notes": "long-form option chain with bid/ask/mark/IV/Greeks columns",
+            },
+            "option_packages": {
+                "status": "supported",
+                "backend": "native_option",
+                "route": "execute_option_package -> OptionLedger",
+                "notes": "atomic_all_or_none, best_effort, sequential, hedge_after_primary, rebalance_only",
+            },
+            "multi_currency_ledger": {
+                "status": "supported",
+                "backend": "native_option",
+                "route": "OptionLedger",
+                "notes": "premium cash, fees, realized PnL, settlement cashflow and marked equity",
+            },
+            "margin": {
+                "status": "supported_approx",
+                "backend": "native_option",
+                "route": "calculate_option_margin",
+                "notes": "venue-exact margin requires external validator or later Nautilus/venue adapter",
+            },
+            "OptionsVolArbSpec": {
+                "status": "specialized_route",
+                "backend": "native_option",
+                "route": "strategy/template emits option packages; endpoint returns Greeks and attribution reports",
+                "notes": "not executable through generic arbitrage package route",
+            },
+            "nautilus_options": {
+                "status": "future",
+                "backend": "nautilus",
+                "route": "Phase 9",
+                "notes": "Nautilus option instrument mapping remains optional future validation",
             },
         }
 
@@ -713,6 +826,11 @@ class QuantBTEndpoint:
         symbols: Optional[Sequence[str]] = None,
         params: Optional[Dict] = None,
         param_ranges: Optional[Dict] = None,
+        chain: Optional[pd.DataFrame] = None,
+        instruments: Optional[Union[OptionInstrumentRegistry, Sequence[OptionInstrumentSpec], Dict[str, OptionInstrumentSpec]]] = None,
+        packages: Optional[Sequence[OptionPackageIntent]] = None,
+        settlement_events: Optional[Sequence] = None,
+        conversion_rates: Optional[Dict[str, float]] = None,
     ):
         """
         Run the configured backtest and store the result.
@@ -741,6 +859,14 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if mode == "options":
+            return self._run_options(
+                chain=chain if chain is not None else data,
+                instruments=instruments,
+                packages=packages,
+                settlement_events=settlement_events,
+                conversion_rates=conversion_rates,
+            )
         if mode == "walk_forward":
             return self._run_walk_forward(
                 data=data,
@@ -955,6 +1081,33 @@ class QuantBTEndpoint:
             native_slippage=native_slippage,
         )
 
+    def _run_options(self, chain, instruments, packages, settlement_events, conversion_rates):
+        if chain is None:
+            raise ValueError("options endpoint requires chain=option_chain_dataframe or data=option_chain_dataframe")
+        if instruments is None:
+            instruments = self.config.instruments
+        if instruments is None:
+            raise ValueError("options endpoint requires instruments=OptionInstrumentRegistry/list/mapping")
+        config = self.config.option_config
+        if config is None:
+            config = NativeOptionConfig(
+                account=self.config.account,
+                execution=self.config.execution,
+                option_execution=OptionExecutionConfig(fee_rate=self.config.v2_fee_rate),
+                margin=OptionMarginConfig(),
+                metadata=dict(self.config.metadata),
+            )
+        self.engine = OptionBacktestEngine(
+            chain=chain,
+            instruments=instruments,
+            packages=packages or (),
+            config=config,
+            settlement_events=settlement_events or (),
+            conversion_rates=conversion_rates,
+        )
+        self._store_result(self.engine.result)
+        return self.result
+
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
         frame, idx, sig = _normalize_single_data(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index)
         backend = _resolve_backend(self.config)
@@ -1142,6 +1295,11 @@ class QuantBTEndpoint:
         phase_g_package_specs = (CalendarSpreadSpec, FundingArbitrageSpec, SpotPerpCashCarrySpec, IndexBasketArbSpec)
         schema_only_specs = (CrossExchangeArbSpec, TriangularArbSpec, OptionsVolArbSpec)
         if isinstance(spec, schema_only_specs):
+            if isinstance(spec, OptionsVolArbSpec):
+                raise NotImplementedError(
+                    "OptionsVolArbSpec must route through QuantBTEndpoint.options(...), not generic arbitrage execution. "
+                    "The option route preserves package fills, multi-currency ledger, Greeks, settlement, and margin reports."
+                )
             raise NotImplementedError(
                 f"{type(spec).__name__} is schema-validated but requires a specialized arbitrage engine; "
                 "do not route it through generic package execution"
@@ -1934,13 +2092,15 @@ def _resolve_backend(config: EndpointConfig) -> str:
     if backend != "auto":
         if backend == "legacy_portfolio":
             return backend
-        if backend not in {"legacy", "native_vectorized", "native_event", "native_portfolio", "nautilus"}:
+        if backend not in {"legacy", "native_vectorized", "native_event", "native_portfolio", "native_option", "nautilus"}:
             raise ValueError(f"unsupported backend={config.backend!r}")
         return backend
     mode = config.mode.lower().strip()
     sizing = config.sizing.lower().strip()
     if mode == "portfolio":
         return "native_portfolio"
+    if mode == "options":
+        return "native_option"
     if mode in ("pct_equity", "dca_ladder") or sizing in ("%_equity", "pct_equity", "dca_ladder", "dca"):
         return "legacy"
     if mode == "nautilus_validation":

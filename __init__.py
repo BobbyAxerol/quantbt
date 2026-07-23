@@ -75,18 +75,21 @@ from .walkforward import (
     validate_walkforward_strategy_output,
     walkforward_support_matrix,
 )
-from .engines import BacktestEngineV2, EventDrivenBacktestEngine, PortfolioBacktestEngine
+from .engines import BacktestEngineV2, EventDrivenBacktestEngine, OptionBacktestEngine, PortfolioBacktestEngine
 from .backends   import (
     NativeEventBackend,
     NativeEventConfig,
+    NativeOptionBackend,
+    NativeOptionConfig,
     NativePortfolioBackend,
     NativePortfolioConfig,
     NativeVectorizedBackend,
     NativeVectorizedConfig,
+    OptionSettlementEvent,
 )
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
-from .core.results import BacktestResultV2
+from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.orders import BasketIntent, Fill, OrderIntent, Trade
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
@@ -270,6 +273,9 @@ from .metrics import (
     profit_factor,
     rolling_sharpe,
     rolling_drawdown,
+    option_attribution_report,
+    option_report_bundle,
+    option_run_manifest,
 )
 
 from .viz import quick_plot, tearsheet, apply_theme
@@ -303,10 +309,15 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativeOptionBackend",
+    "NativeOptionConfig",
     "NativePortfolioBackend",
     "NativePortfolioConfig",
     "NativeVectorizedBackend",
     "NativeVectorizedConfig",
+    "OptionBacktestEngine",
+    "OptionBacktestResult",
+    "OptionSettlementEvent",
     "NautilusExecutionDepthConfig",
     "PackageDepthPreflightResult",
     "PortfolioBacktestEngine",
@@ -395,6 +406,9 @@ __all__ = [
     "select_target_moneyness_option",
     "settle_option_expiry",
     "validate_option_chain_frame",
+    "option_attribution_report",
+    "option_report_bundle",
+    "option_run_manifest",
     "LEGACY_PORTFOLIO_MODES",
     "LEGACY_PORTFOLIO_SIZING_MODES",
     "NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES",
