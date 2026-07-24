@@ -641,7 +641,8 @@ def test_endpoint_arbitrage_support_matrix_exposes_supported_and_schema_only_spe
     assert matrix["StatArbPairSpec"]["status"] == "supported"
     assert "native_vectorized" in matrix["BasisArbitrageSpec"]["backends"]
     assert matrix["TriangularArbSpec"]["status"] == "schema_only"
-    assert matrix["OptionsVolArbSpec"]["backends"] == "none"
+    assert matrix["OptionsVolArbSpec"]["backends"] == "native_option"
+    assert matrix["OptionsVolArbSpec"]["status"] == "specialized_route"
 
 
 def test_endpoint_nautilus_support_matrix_declares_supported_and_planned_routes():
