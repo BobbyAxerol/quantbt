@@ -1,0 +1,215 @@
+"""
+QuantBT options domain package.
+
+Phase 1 exposes schema, convention, and canonical chain-data validation only.
+Pricing, execution, ledger, margin, endpoint wiring, and Nautilus validation are
+added in later phases.
+"""
+
+from .conventions import (
+    OptionVenueConvention,
+    binance_european_options_convention,
+    deribit_inverse_option_convention,
+    deribit_linear_usdc_option_convention,
+)
+from .cache import OptionPreparedRunCache, option_package_cache_key
+from .data import CANONICAL_OPTION_CHAIN_COLUMNS, validate_option_chain_frame
+from .execution import (
+    OptionDepthFidelity,
+    OptionExecutionConfig,
+    OptionLimitFidelity,
+    OptionPackageExecutionResult,
+    execute_option_package,
+)
+from .fees import (
+    OptionFeeResult,
+    OptionFeeSchedule,
+    calculate_option_fee,
+    deribit_inverse_fee_schedule,
+    deribit_linear_usdc_fee_schedule,
+)
+from .greeks import (
+    OptionGreeks,
+    inverse_black76_greeks_base,
+    inverse_black76_greeks_quote,
+    linear_black76_greeks,
+    scale_greeks_to_reporting_currency,
+)
+from .hedging import (
+    HedgeDecision,
+    HedgePathResult,
+    OptionHedgeConfig,
+    OptionHedgePolicyType,
+    compute_net_option_delta,
+    hedge_decision,
+    run_delta_hedge_path,
+)
+from .iv import IVStatus, ImpliedVolResult, implied_vol_black76, implied_vol_inverse_black76_base
+from .ledger import OptionLedger, OptionPosition
+from .lifecycle import (
+    OptionSettlementRepresentation,
+    OptionSettlementResult,
+    option_expiry_payoff_per_unit,
+    settle_option_expiry,
+)
+from .margin import (
+    ExternalOptionMarginValidator,
+    OptionLiquidationAudit,
+    OptionMarginConfig,
+    OptionMarginModel,
+    OptionMarginRequirement,
+    calculate_option_margin,
+    liquidate_option_positions,
+)
+from .packages import (
+    OptionPackageExecutionPolicy,
+    OptionPackageIntent,
+    OptionPackageLeg,
+    compile_option_package_orders,
+)
+from .pricing import (
+    black76_intrinsic,
+    black76_parity_residual,
+    black76_parity_value,
+    black76_price,
+    inverse_black76_intrinsic_base,
+    inverse_black76_parity_residual_base,
+    inverse_black76_parity_value_base,
+    inverse_black76_price_base,
+)
+from .schema import (
+    ExerciseStyle,
+    InstrumentRegistrySignature,
+    OptionDecisionFillPolicy,
+    OptionInstrumentRegistry,
+    OptionInstrumentSpec,
+    OptionKind,
+    PremiumConvention,
+    SettlementStyle,
+)
+from .selectors import (
+    OptionSelection,
+    OptionSelectionFilters,
+    available_option_rows,
+    select_atm_option,
+    select_target_delta_option,
+    select_target_dte_option,
+    select_target_moneyness_option,
+)
+from .surface import SurfaceDiagnostics, TotalVarianceSurface
+from .tape import YEAR_NS, OptionTapeSignature, PreparedOptionTape, prepare_option_tape
+from .strategy import GammaScalpingConfig, OptionStrategyRun, build_gamma_scalping_strategy_run
+from .templates import (
+    butterfly,
+    calendar,
+    collar,
+    condor,
+    covered_call,
+    long_call,
+    long_put,
+    risk_reversal,
+    short_call,
+    short_put,
+    straddle,
+    strangle,
+    vertical,
+)
+
+__all__ = [
+    "CANONICAL_OPTION_CHAIN_COLUMNS",
+    "ExerciseStyle",
+    "ExternalOptionMarginValidator",
+    "HedgeDecision",
+    "HedgePathResult",
+    "GammaScalpingConfig",
+    "InstrumentRegistrySignature",
+    "OptionDecisionFillPolicy",
+    "OptionDepthFidelity",
+    "OptionExecutionConfig",
+    "OptionFeeResult",
+    "OptionFeeSchedule",
+    "OptionHedgeConfig",
+    "OptionHedgePolicyType",
+    "OptionInstrumentRegistry",
+    "OptionInstrumentSpec",
+    "OptionKind",
+    "OptionGreeks",
+    "OptionLimitFidelity",
+    "OptionLiquidationAudit",
+    "OptionMarginConfig",
+    "OptionMarginModel",
+    "OptionMarginRequirement",
+    "OptionPackageExecutionPolicy",
+    "OptionPackageExecutionResult",
+    "OptionPackageIntent",
+    "OptionPackageLeg",
+    "OptionLedger",
+    "OptionVenueConvention",
+    "OptionSelection",
+    "OptionSelectionFilters",
+    "OptionSettlementRepresentation",
+    "OptionSettlementResult",
+    "OptionStrategyRun",
+    "OptionTapeSignature",
+    "OptionPosition",
+    "OptionPreparedRunCache",
+    "PremiumConvention",
+    "PreparedOptionTape",
+    "SettlementStyle",
+    "SurfaceDiagnostics",
+    "TotalVarianceSurface",
+    "YEAR_NS",
+    "binance_european_options_convention",
+    "black76_intrinsic",
+    "black76_parity_residual",
+    "black76_parity_value",
+    "black76_price",
+    "build_gamma_scalping_strategy_run",
+    "calculate_option_fee",
+    "calculate_option_margin",
+    "compile_option_package_orders",
+    "deribit_inverse_option_convention",
+    "deribit_inverse_fee_schedule",
+    "deribit_linear_usdc_option_convention",
+    "deribit_linear_usdc_fee_schedule",
+    "implied_vol_black76",
+    "implied_vol_inverse_black76_base",
+    "inverse_black76_greeks_base",
+    "inverse_black76_greeks_quote",
+    "inverse_black76_intrinsic_base",
+    "inverse_black76_parity_residual_base",
+    "inverse_black76_parity_value_base",
+    "inverse_black76_price_base",
+    "IVStatus",
+    "ImpliedVolResult",
+    "linear_black76_greeks",
+    "available_option_rows",
+    "compute_net_option_delta",
+    "execute_option_package",
+    "hedge_decision",
+    "liquidate_option_positions",
+    "option_expiry_payoff_per_unit",
+    "option_package_cache_key",
+    "prepare_option_tape",
+    "run_delta_hedge_path",
+    "scale_greeks_to_reporting_currency",
+    "select_atm_option",
+    "select_target_delta_option",
+    "select_target_dte_option",
+    "select_target_moneyness_option",
+    "settle_option_expiry",
+    "butterfly",
+    "calendar",
+    "collar",
+    "condor",
+    "covered_call",
+    "long_call",
+    "long_put",
+    "risk_reversal",
+    "short_call",
+    "short_put",
+    "straddle",
+    "strangle",
+    "vertical",
+    "validate_option_chain_frame",
+]

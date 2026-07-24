@@ -1,0 +1,84 @@
+{
+  "phase": "options_phase0_baseline_protection",
+  "branch": "feat/option-engine",
+  "base_commit_before_phase0_artifact": "726e92d",
+  "date_utc": "2026-07-23",
+  "status": "pass",
+  "git_worktree_clean_before_phase0": true,
+  "import_snapshot": {
+    "python": "3.12.13",
+    "quantbt_import": true,
+    "has_nautilus_imported_after_import_quantbt": false
+  },
+  "regression": {
+    "command": "MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py",
+    "passed": 286,
+    "skipped": 1,
+    "warnings": 3,
+    "status": "pass"
+  },
+  "support_matrix_snapshot": {
+    "OptionsVolArbSpec": {
+      "status": "schema_only",
+      "backends": "none",
+      "route": "needs option/greeks engine",
+      "sizing": "not executable yet"
+    },
+    "arbitrage_supported_specs": [
+      "BasisArbitrageSpec",
+      "StatArbPairSpec",
+      "CalendarSpreadSpec",
+      "FundingArbitrageSpec",
+      "SpotPerpCashCarrySpec",
+      "IndexBasketArbSpec"
+    ],
+    "arbitrage_schema_only_specs": [
+      "CrossExchangeArbSpec",
+      "TriangularArbSpec",
+      "OptionsVolArbSpec"
+    ],
+    "nautilus_supported_routes": [
+      "signal_series",
+      "explicit_orders",
+      "parity_audit"
+    ],
+    "nautilus_experimental_routes": [
+      "dca_grid",
+      "bracket_oco",
+      "basket_pair",
+      "multi_symbol_portfolio",
+      "arbitrage_package_orders"
+    ]
+  },
+  "benchmark_snapshot": {
+    "command": "MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_phase16_performance_debt.py --rows 720 --symbols 4 --replays 4 --repeats 1 --skip-large-wfo --output-json /tmp/options_phase0_benchmark.json --output-md /tmp/options_phase0_benchmark.md",
+    "status": "pass",
+    "rows": 720,
+    "symbols": 4,
+    "replays": 4,
+    "single_signal_notional": {
+      "normal_seconds": 0.03123383386991918,
+      "prepared_seconds": 0.016127109993249178,
+      "speedup": 1.9367285200506283,
+      "parity_passed": true
+    },
+    "native_portfolio": {
+      "normal_seconds": 0.0903144299518317,
+      "prepared_seconds": 0.02591125899925828,
+      "speedup": 3.4855284320386355,
+      "parity_passed": true
+    },
+    "portfolio_report_construction": {
+      "full_seconds": 0.042830555932596326,
+      "minimal_seconds": 0.022004221100360155,
+      "speedup": 1.9464699857926484,
+      "parity_passed": true
+    }
+  },
+  "phase0_acceptance": {
+    "existing_tests_pass": true,
+    "no_public_endpoint_regression_observed": true,
+    "no_import_time_nautilus_dependency": true,
+    "options_engine_code_added": false
+  }
+}

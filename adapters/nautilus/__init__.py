@@ -14,6 +14,14 @@ from .instruments import (
     timeframe_to_nautilus,
 )
 from .reports import result_from_nautilus_reports
+from .options import (
+    NautilusOptionValidationConfig,
+    NautilusOptionValidationResult,
+    build_nautilus_option_quote_table,
+    inspect_nautilus_option_support,
+    make_nautilus_option_instrument,
+    validate_option_packages_with_nautilus,
+)
 
 __all__ = [
     "NautilusBackendConfig",
@@ -23,6 +31,12 @@ __all__ = [
     "make_binance_perpetual",
     "normalize_binance_perp_symbol",
     "result_from_nautilus_reports",
+    "NautilusOptionValidationConfig",
+    "NautilusOptionValidationResult",
+    "build_nautilus_option_quote_table",
+    "inspect_nautilus_option_support",
+    "make_nautilus_option_instrument",
     "supported_binance_perpetuals",
     "timeframe_to_nautilus",
+    "validate_option_packages_with_nautilus",
 ]

@@ -2844,6 +2844,336 @@ Safety notes:
 
 ---
 
+## Phase 17 - Options Backtest Engine
+
+Planning source:
+
+- `upgrade/option_backtest_plan/quantbt_options_engine_verified_design.md`
+- `upgrade/option_backtest_plan/quantbt_options_engine_execution_plan.md`
+
+Branch:
+
+- Requested branch `dev/option-engine` is not valid while branch `dev` exists,
+  because Git cannot store both `refs/heads/dev` and
+  `refs/heads/dev/option-engine`.
+- Active implementation branch: `feat/option-engine`.
+
+Goal:
+
+Add an institutional-grade options backtest stack while keeping existing
+QuantBT behavior stable:
+
+- option instrument conventions first;
+- ledger-based PnL and expiry accounting;
+- ragged option tape, not dense fixed-universe matrices;
+- bid/ask execution;
+- no lookahead in selector/tape usage;
+- optional Nautilus validation, never an import-time dependency.
+
+### Phase 17.0 - Baseline Protection
+
+Status: completed.
+
+Artifacts:
+
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.json`;
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.md`.
+
+Latest result:
+
+- full non-real regression: `286 passed, 1 skipped, 3 warnings`.
+- `import quantbt` did not import `nautilus_trader`.
+- existing endpoint support matrices were snapshotted.
+
+### Phase 17.1 - Domain Schema And Conventions
+
+Status: completed.
+
+Implemented:
+
+- Added `AssetType.OPTION`.
+- Added `quantbt.options` bounded context:
+  - schema;
+  - venue conventions;
+  - canonical option-chain data validation.
+- Added option enums, `OptionInstrumentSpec`, instrument registry signatures,
+  and versioned Deribit/Binance convention descriptors.
+- Exported Phase 1 schema helpers from top-level `quantbt`.
+- Added tests for additive import behavior, inverse/linear convention guards,
+  registry signatures, option chain normalization, quote guards, expiry guards,
+  and duplicate snapshot rejection.
+
+Latest tests:
+
+- Phase 1 option tests: `12 passed`.
+- import smoke: `phase1_import_smoke=pass`.
+- full non-real regression: `298 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.1:
+
+- `OptionInstrumentSpec.multiplier` currently mirrors
+  `InstrumentSpec.contract_size`; later phases should choose one canonical
+  reporting multiplier or keep both with stronger docs.
+- `OptionInstrumentSpec.qty_step` mirrors `InstrumentSpec.lot_size`; later
+  endpoint docs should settle on one user-facing term for quantity increment.
+- One-sided or zero-bid option quotes are not accepted yet; Phase 3 may add
+  explicit quote-status support.
+- Venue convention descriptors do not yet include historical venue fee/margin
+  schedule snapshots.
+- Binance option convention is metadata-safe only, not exact venue margin
+  certification.
+- Pricing, IV, Greeks, tape compilation, package execution, ledger, expiry,
+  endpoint, and Nautilus validation remain future phases by design.
+
+### Phase 17.2 - Pricing, IV, Greeks
+
+Status: completed.
+
+Implemented:
+
+- Added deterministic scalar option analytics primitives:
+  - linear Black-76 call/put pricing;
+  - linear intrinsic and put-call parity;
+  - inverse base-currency forward pricing;
+  - inverse intrinsic and base-currency parity;
+  - linear quote Greeks;
+  - inverse native base Greeks;
+  - inverse quote-reporting Greeks;
+  - static reporting-currency Greek scaling;
+  - bisection IV solvers with explicit status enum;
+  - minimal total variance surface and diagnostics.
+- Exported Phase 2 analytics helpers from top-level `quantbt`.
+- Added tests for:
+  - linear parity;
+  - inverse parity;
+  - IV recovery;
+  - invalid IV status;
+  - finite-difference delta/gamma/vega;
+  - no-future-timestamp surface calibration;
+  - basic calendar total variance diagnostics.
+
+Latest tests:
+
+- options tests: `31 passed`.
+- fastmath scan: no matches in `options` or `tests/options`.
+- import smoke: `phase2_import_smoke=pass`.
+- full non-real regression: `317 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.2:
+
+- Pricing/Greeks are scalar primitives; vectorized or Numba kernels should be
+  added only after Phase 3/4 tape and execution array shapes are stable.
+- Inverse pricing uses the Phase 2 forward convention: linear quote price
+  divided by forward. Venue-exact Deribit/Binance option accounting needs later
+  sample parity.
+- Theta assumes fixed forward and discount.
+- Surface diagnostics are minimal; butterfly convexity and full no-arb fitting
+  are not production-certified yet.
+- IV uses deterministic bisection for auditability; faster solvers are deferred.
+- Options still have no tape compiler, selector, execution engine, ledger,
+  expiry lifecycle, endpoint route, or Nautilus validation.
+
+### Phase 17.3 - Data Tape And Selectors
+
+Status: completed.
+
+Implemented:
+
+- Added a ragged/CSR option tape:
+  - `PreparedOptionTape`;
+  - `OptionTapeSignature`;
+  - `prepare_option_tape(...)`;
+  - snapshot timestamps;
+  - row pointers;
+  - per-row instrument codes and market fields.
+- Added no-lookahead option selectors:
+  - ATM;
+  - target delta;
+  - target DTE;
+  - target moneyness;
+  - available rows with liquidity/spread/OI filters.
+- Added registry, convention, and timestamp signature validation.
+- Added guards for:
+  - unknown/unlisted instruments;
+  - registry static-field mismatch;
+  - crossed quotes;
+  - stale source latency;
+  - stale decision-time quote age;
+  - expired contracts at decision time.
+- Exported Phase 3 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `43 passed`.
+- import smoke: `phase3_import_smoke=pass`.
+- dense/fastmath scan: no dense matrix construction and no `fastmath`.
+- full non-real regression: `329 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.3:
+
+- Selector scans are Python/NumPy. Numba kernels should wait until option
+  execution/package shapes are stable.
+- Delta/IV selectors use observable chain columns only. Model-derived fallback
+  selection must be explicit in later phases.
+- Stale checks are snapshot-level guards, not L2/order-book replay.
+- Tie-break policies are first-minimum after canonical sort; richer secondary
+  policies are future work.
+- Options still have no package compiler, execution engine, ledger, expiry
+  lifecycle, endpoint route, or Nautilus validation.
+
+### Phase 17.4 - Package Compiler And Options Execution
+
+Status: completed.
+
+Implemented:
+
+- Added option package domain objects:
+  - `OptionPackageLeg`;
+  - `OptionPackageIntent`;
+  - `OptionPackageExecutionPolicy`.
+- Added `compile_option_package_orders(...)` to compile option package legs into
+  existing QuantBT `OrderIntent` leaves with package metadata.
+- Added snapshot-level option package execution:
+  - `OptionExecutionConfig`;
+  - `OptionLimitFidelity`;
+  - `OptionDepthFidelity`;
+  - `OptionPackageExecutionResult`;
+  - `execute_option_package(...)`.
+- Supported policies:
+  - `ATOMIC_ALL_OR_NONE`;
+  - `BEST_EFFORT`;
+  - `SEQUENTIAL`;
+  - `HEDGE_AFTER_PRIMARY`;
+  - `REBALANCE_ONLY`.
+- Locked Phase 4 fill rules:
+  - market buy at ask;
+  - market sell at bid;
+  - no mark/mid default execution;
+  - FOK/IOC/GTC behavior where feasible on top-of-book snapshots;
+  - package debit/credit guard;
+  - explicit simulated atomicity/fidelity labels.
+- Exported Phase 4 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `54 passed`.
+- import smoke: `phase4_import_smoke=pass`.
+- full non-real regression: `340 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.4:
+
+- Execution remains snapshot/top-of-book, not L2 replay or venue-native combo
+  matching.
+- `MAKER_TOUCH` is an explicit approximation, not real maker queue priority.
+- Margin report is a placeholder until the multi-currency ledger phase.
+- Stop/conditional option lifecycle is rejected until lifecycle semantics exist.
+- Package debit/credit guard works in package premium units; full currency
+  conversion is deferred.
+- Options still have no endpoint route, full ledger, expiry lifecycle, or
+  Nautilus adapter.
+
+### Phase 17.5 - Multi-Currency Ledger, Fees, Lifecycle
+
+Status: completed.
+
+Implemented:
+
+- Added `OptionFeeSchedule`, `OptionFeeResult`, and deterministic per-leg fee
+  calculation.
+- Added Deribit-like fee schedules:
+  - inverse base-currency capped fee;
+  - linear USDC capped fee.
+- Added `OptionLedger` and `OptionPosition`:
+  - multi-currency cash;
+  - position quantity;
+  - average entry;
+  - realized PnL;
+  - fees;
+  - settlement cashflows;
+  - margin-locked bucket;
+  - event audit rows;
+  - reporting-currency equity identity.
+- Added lifecycle helpers:
+  - `option_expiry_payoff_per_unit(...)`;
+  - `settle_option_expiry(...)`;
+  - `OptionSettlementRepresentation`;
+  - `OptionSettlementResult`.
+- Locked Phase 5 accounting rules:
+  - long pays premium;
+  - short receives premium;
+  - fee is recorded separately;
+  - round trip with no price move equals spread plus fees;
+  - inverse BTC premium reconciles to USD reporting equity via conversion rate;
+  - OTM expiry closes at zero payoff;
+  - ITM linear payoff settles in quote/settlement currency;
+  - ITM inverse payoff settles in base currency;
+  - settlement closes exactly once.
+- Exported Phase 5 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `63 passed`.
+- import smoke: `phase5_import_smoke=pass`.
+- full non-real regression: `349 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.5:
+
+- Ledger is not wired into a full option backend or endpoint yet.
+- Margin models and liquidation sequencing remain Phase 6.
+- Fee schedules are deterministic Deribit-like approximations, not venue-exact
+  certified schedules.
+- `future_then_cash` is currently an audit representation with equivalent
+  economic cashflow.
+- Quanto lifecycle payoff is not implemented.
+- Reporting conversion uses caller-supplied rates only.
+
+### Phase 17.6 - Hedging And Margin
+
+Status: completed.
+
+Implemented:
+
+- Added option hedge-policy primitives:
+  - fixed threshold;
+  - hysteresis band;
+  - time-based;
+  - realized-vol scaled band.
+- Added hedge path accounting where hedge PnL for the prior price move uses the
+  previous hedge position before current-bar rebalance.
+- Added option margin primitives:
+  - long-premium-only;
+  - standard venue approximation;
+  - scenario PM approximation;
+  - no-margin research;
+  - external validator interface.
+- Added liquidation audit:
+  - maintenance breach check;
+  - adverse bid/ask liquidation;
+  - fee report;
+  - final cash;
+  - final positions.
+- Exported Phase 6 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `71 passed`.
+- import smoke: `phase6_import_smoke=pass`.
+- full non-real regression: `357 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.6:
+
+- Hedge/margin are primitives, not a full option backend loop yet.
+- Whalley-Wilmott remains intentionally excluded.
+- Standard/scenario PM models are approximations; scenario PM reports
+  `venue_exact=false`.
+- External margin validator has an interface only.
+- Liquidation closes all positions with adverse BBO prices, not exchange-native
+  queue/partial liquidation logic.
+- Underlying hedge instrument execution and Nautilus option validation remain
+  future work.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:

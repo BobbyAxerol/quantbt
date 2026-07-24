@@ -18,6 +18,7 @@ from .performance import (
     rolling_sharpe,
     rolling_drawdown,
 )
+from .options_analytics import option_attribution_report, option_report_bundle, option_run_manifest
 
 __all__ = [
     "full_report",
@@ -38,4 +39,7 @@ __all__ = [
     "expectancy",
     "rolling_sharpe",
     "rolling_drawdown",
+    "option_attribution_report",
+    "option_report_bundle",
+    "option_run_manifest",
 ]

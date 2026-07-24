@@ -61,3 +61,30 @@ python3 benchmarks/run_phase16_performance_debt.py --rows 1440 --symbols 6 --rep
 - `phase16_performance_debt.*` compares normal endpoint replays with
   `endpoint.prepare_service_context(...)` and records the current Cython/C++
   decision.
+
+Options Phase 10:
+
+```bash
+python3 benchmarks/run_options_engine.py --snapshots 96 --contracts 48 --packages 96 --repeats 3
+python3 benchmarks/gamma_scalping_backtestsample.py --snapshots 90 --seed 42
+python3 benchmarks/gamma_scalping_backtestsample.py \
+  --real-options-csv /root/bobby/pool_alpha/alphas_storage/option_based/options_full_history.csv.gz \
+  --underlying-source spot \
+  --hedge-timeframe 1h
+```
+
+- `options_phase10_baseline.*` records prepared-tape and compiled-package cache
+  parity for the native option backend.
+- The benchmark reports snapshots, contracts, quotes, packages, fills, hedges,
+  memory, uncached runtime, cached runtime, and run-manifest hashes.
+- `gamma_scalping_backtestsample.py` is a runnable long-straddle gamma-scalping
+  smoke sample. It keeps the original research helpers, then runs the public
+  `QuantBTEndpoint.options(...)` path through
+  `build_gamma_scalping_strategy_run(...)`, `strategy_run`, `underlying`, and
+  prepared-cache parity.
+- The real-data mode converts legacy Binance options CSV history into QuantBT's
+  canonical option-chain schema, selects an ATM call/put pair with entry/exit
+  quotes, and loads BTCUSDT spot or USD-M perpetual candles from `_get_data` for
+  first-class delta-hedged combined-equity accounting.
+- Cython/C++ should only be considered after a larger profile shows pure
+  kernels, not pandas/tape/report facade work, dominating runtime.

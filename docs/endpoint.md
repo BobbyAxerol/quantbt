@@ -1747,6 +1747,215 @@ Rules for services:
 - use `native_vectorized` for broad sweeps and `native_event` or `nautilus` for
   fill-level validation.
 
+## Options Endpoint
+
+`QuantBTEndpoint.options(...)` is the Phase 7 public route for native option
+research. It is intentionally separate from `native_event` and generic
+arbitrage because options require quote-side execution, premium-currency
+cashflows, expiry/settlement, Greeks, and option margin.
+
+Minimal call:
+
+```python
+from quantbt import (
+    OptionPackageIntent,
+    OptionPackageLeg,
+    OrderSide,
+    QuantBTEndpoint,
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=20_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 20_000},
+    conversion_rates={"BTC": 100_000},
+    fee_rate=0.0001,
+)
+
+package = OptionPackageIntent(
+    timestamp_ns=int(chain["timestamp_ns"].min()),
+    package_id="long-call",
+    legs=(
+        OptionPackageLeg(
+            instrument_id="BTC-01FEB26-100000-C.DERIBIT",
+            side=OrderSide.BUY,
+            ratio=1.0,
+        ),
+    ),
+    quantity=1.0,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=[package],
+)
+
+bt.show_metrics()
+fills = result.fills_report
+greeks = result.greeks_report
+margin = result.margin_report
+manifest = result.run_manifest
+```
+
+Required data:
+
+- `chain`: canonical long-form option chain with `timestamp_ns`,
+  `instrument_id`, venue/static fields, bid/ask/mark prices, bid/ask size,
+  index/forward price, IV and Greeks columns where available.
+- `instruments`: `OptionInstrumentRegistry`, list, or mapping of
+  `OptionInstrumentSpec`.
+- `packages`: optional sequence of `OptionPackageIntent`. Strategy/template
+  code owns signal generation and package construction; the backend owns
+  execution, ledger, margin, settlement, and reports.
+- `strategy_run`: optional `OptionStrategyRun` produced by an adapter such as
+  `build_gamma_scalping_strategy_run(...)`. When supplied, the endpoint reads
+  `strategy_run.packages`, stores `selected_contracts`, and carries strategy
+  metadata into the run manifest.
+- `underlying`: optional underlying price tape as `Series` or `DataFrame`
+  (`timestamp_ns`/`time` plus `close` or `price`). Required for first-class
+  delta-hedged option results.
+
+Useful config:
+
+- `reporting_currency`: reporting/account currency, default `USD`.
+- `initial_balances`: multi-currency starting balances. If omitted, QuantBT
+  starts with `initial_capital` in the reporting currency.
+- `conversion_rates`: required whenever premium/settlement currency differs
+  from reporting currency, for example inverse BTC options reported in USD.
+- `fee_schedule`: optional venue-like `OptionFeeSchedule`; otherwise the
+  endpoint fee rate is applied as a simple execution fee.
+- `option_execution`: optional `OptionExecutionConfig` for quote age, partial
+  fill, limit fidelity, and depth fidelity settings.
+- `option_margin`: optional `OptionMarginConfig`. Current margin is an explicit
+  approximation unless an external validator is provided in later phases.
+- `settlement_events`: optional expiry settlement events passed to
+  `backtest(...)`.
+- `prepared_cache`: optional `OptionPreparedRunCache` passed to `backtest(...)`
+  when replaying many package sets over the same option chain.
+- `hedge_policy`: optional `OptionHedgeConfig`. If omitted, the endpoint uses
+  `strategy_run.hedge_policy` when available.
+- `net_option_delta`: optional externally supplied net-delta series. If omitted
+  during a hedged run, QuantBT computes the path from executed option positions
+  and observable chain Greeks.
+
+Prepared cache pattern:
+
+```python
+from quantbt import OptionPreparedRunCache
+
+cache = OptionPreparedRunCache.from_chain(chain, option_registry)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=packages,
+    prepared_cache=cache,
+)
+```
+
+Gamma-scalping adapter pattern:
+
+```python
+from quantbt import (
+    GammaScalpingConfig,
+    OptionHedgeConfig,
+    OptionHedgePolicyType,
+    QuantBTEndpoint,
+    build_gamma_scalping_strategy_run,
+)
+
+strategy_run = build_gamma_scalping_strategy_run(
+    chain,
+    option_registry,
+    GammaScalpingConfig(
+        side="long",
+        quantity=1.0,
+        min_dte_days=10,
+        max_dte_days=21,
+        roll_dte_days=2,
+        max_spread_bps=2_000,
+        hedge_policy=OptionHedgeConfig(
+            policy=OptionHedgePolicyType.FIXED_THRESHOLD,
+            threshold=0.05,
+        ),
+    ),
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=100_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 100_000},
+    fee_rate=0.0002,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    strategy_run=strategy_run,
+    underlying=btc_spot_or_perp,
+)
+
+combined_equity = result.equity
+option_only_equity = result.option_equity
+hedge_log = result.hedge_report
+selected = result.metadata["selected_contracts"]
+```
+
+For delta-hedged runs, `result.equity` is the combined option-plus-hedge
+equity curve. The option-only curve remains available as `result.option_equity`.
+QuantBT adds a pre-trade row at `first_timestamp - 1ns` so metrics begin from
+the declared initial capital before the first option fill.
+
+Returned result:
+
+- `OptionBacktestResult`, compatible with `BacktestResultV2`.
+- Standard helpers: `.show_metrics()`, `.full_report()`, `.quick_plot()`,
+  `.tearsheet()`.
+- Option audit tables: `fills_report`, `packages_report`, `cash_report`,
+  `marks_report`, `greeks_report`, `settlements_report`, `margin_report`,
+  `attribution_report`, `hedge_report`, `option_equity`, `combined_equity`,
+  `combined_returns`, and `run_manifest`.
+
+Support discovery:
+
+```python
+QuantBTEndpoint.options_support_matrix()
+QuantBTEndpoint.arbitrage_support_matrix()["OptionsVolArbSpec"]
+```
+
+`OptionsVolArbSpec` is routed to the specialized option route only. It should
+not be executed through generic arbitrage package backends.
+
+### Option Strategy Templates
+
+Phase 8 adds package builders under `quantbt.options.templates` and re-exports
+them from top-level `quantbt`:
+
+```python
+from quantbt import long_call, vertical, butterfly, calendar
+
+pkg = vertical(
+    timestamp_ns,
+    long_option_id="BTC-C100",
+    short_option_id="BTC-C110",
+    quantity=1.0,
+)
+```
+
+Supported V1 builders:
+
+- `long_call`, `short_call`, `long_put`, `short_put`;
+- `straddle`, `strangle`;
+- `vertical`, `butterfly`, `condor`, `calendar`;
+- `covered_call`, `collar`, `risk_reversal`.
+
+The builders only emit `OptionPackageIntent`. They do not compute payoff, PnL,
+margin, or Greeks. Covered-call and collar templates include an explicit
+underlying leg for domain clarity; the Phase 7 native option endpoint executes
+option-chain legs only, so mixed underlying+option execution remains a later
+adapter/engine fidelity item.
+
 ## Common Errors
 
 `single-symbol endpoint requires data DataFrame`

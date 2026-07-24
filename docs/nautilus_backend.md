@@ -248,6 +248,57 @@ Interpretation:
 - `queue_ahead_qty` removes available quantity before the strategy gets filled;
 - `allow_partial_fills=False` rejects orders that cannot be fully filled.
 
+## Options Validation
+
+Phase 9 adds an optional options validation helper:
+
+```python
+from quantbt.adapters.nautilus.options import (
+    inspect_nautilus_option_support,
+    validate_option_packages_with_nautilus,
+)
+
+support = inspect_nautilus_option_support()
+
+validation = validate_option_packages_with_nautilus(
+    chain=option_chain,
+    instruments=option_registry,
+    packages=[package],
+    conversion_rates={"BTC": 100_000},
+)
+
+validation.support_report
+validation.instrument_report
+validation.quote_report
+validation.component_parity_report
+validation.native_result.fills_report
+```
+
+Current Phase 9 validation level:
+
+- pins installed Nautilus version and option constructor availability;
+- maps QuantBT `OptionInstrumentSpec` to Nautilus `CryptoOption` or
+  `OptionContract` where constructor compatibility is available;
+- builds a QuoteTick-equivalent table from option BBO rows;
+- validates quote-driven semantics:
+  - market buy at ask;
+  - market sell at bid;
+  - limit fill only when the BBO crosses the limit policy;
+- labels component parity for quantity, fill timestamp, fill price, fee,
+  settlement, realized cashflow and final equity.
+
+Important interpretation:
+
+- `validation_level="constructor_pinned_quote_surrogate"` means Nautilus
+  option constructors and BBO matching semantics are pinned, while the final
+  accounting run still uses the native QuantBT option backend.
+- This is not yet a full Nautilus option backtest-engine replay.
+- Reports intentionally do not collapse differences into one final-equity
+  tolerance. Components are labelled separately so venue/constructor/execution
+  gaps stay visible.
+- Missing Nautilus or incompatible constructors return a skipped validation
+  result with an explicit reason.
+
 Not yet in the Nautilus adapter:
 
 - full dynamic DCA ladder state management inside Nautilus is still future
@@ -258,6 +309,9 @@ Not yet in the Nautilus adapter:
 - real L2 replay requires external venue depth data and a provider adapter;
 - portfolio-margin replication beyond diagnostics remains venue-specific
   future work.
+- full Nautilus option engine replay with quote ticks, option instruments,
+  spread instruments, account reports and venue-exact settlement is future
+  work beyond the Phase 9 constructor-pinned validation helper.
 
 DCA/grid, OCO/bracket, basket, and portfolio Nautilus routes are experimental
 validation paths, not the fast research path. Broad research and optimization
