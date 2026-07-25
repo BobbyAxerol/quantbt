@@ -557,9 +557,30 @@ commands = [
 ]
 ```
 
-Phase 30A compiles `OrderCommand` tapes for the upcoming native-event v2
-lifecycle engine. Existing endpoint execution remains on `OrderIntent` v1 until
-the v2 route is explicitly enabled.
+Phase 30B executes `OrderCommand` tapes through
+`NativeEventBackend.run_order_commands(...)`. Existing endpoint execution
+remains on `OrderIntent` v1 until the v2 route is explicitly promoted.
+
+```python
+from quantbt import AccountConfig, NativeEventBackend, NativeEventConfig
+
+backend = NativeEventBackend(
+    NativeEventConfig(account=AccountConfig(initial_capital=100_000, leverage=5))
+)
+
+result = backend.run_order_commands(
+    datetime_index=df.index,
+    commands=commands,
+    closes={"ETHUSDT": df["close"]},
+    highs={"ETHUSDT": df["high"]},
+    lows={"ETHUSDT": df["low"]},
+    symbols=["ETHUSDT"],
+)
+
+result.metadata["command_report"]
+result.metadata["order_events"]
+result.metadata["active_orders"]
+```
 
 Execution rules:
 

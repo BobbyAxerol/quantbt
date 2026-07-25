@@ -3282,7 +3282,7 @@ Technical debt after Phase 30A:
 
 ### Phase 30B - Native Event Lifecycle Kernel V2
 
-Status: planned.
+Status: completed.
 
 Plan:
 
@@ -3312,6 +3312,52 @@ Exit criteria:
   rejection.
 - v1 compatibility tests still pass.
 - v2 metadata makes lifecycle behavior transparent enough for Nautilus parity.
+
+Implemented:
+
+- Added `_engine_event_v2(...)` as an opt-in Numba lifecycle kernel.
+- Added active-order registry arrays and dense ID lookup.
+- Implemented deterministic lifecycle commands:
+  - place;
+  - cancel;
+  - replace;
+  - amend;
+  - cancel-all.
+- Implemented order-state behavior:
+  - parent-child activation;
+  - OCO sibling cancellation;
+  - reduce-only no-op cancellation and quantity clipping;
+  - stop-market trigger fills;
+  - stop-limit trigger plus limit-touch fills;
+  - GTD expiry before matching;
+  - IOC/FOK cancellation when not touched;
+  - margin rejection using the same account model as v1.
+- Added `NativeEventBackend.run_order_commands(...)`.
+- Added lifecycle audit metadata:
+  - `command_report`;
+  - `order_report`;
+  - `order_events`;
+  - `active_orders`;
+  - `id_values`;
+  - quantity preflight.
+- Preserved `run_orders(...)` on event v1 for existing endpoint parity.
+
+Latest tests:
+
+- Phase 30A/30B lifecycle tests: `13 passed`.
+- Native-event v1 parity/performance tests: `11 passed`.
+- Simple market/limit v1-v2 parity test: passed inside Phase 30B suite.
+- Full non-real regression: `408 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 30B:
+
+- Endpoint route still defaults to v1 `OrderIntent`; Phase 30C will expose
+  lifecycle v2 through endpoint/backends more ergonomically.
+- Structured DCA/grid, bracket, basket, and arbitrage packages are not yet
+  automatically compiled into `OrderCommand` tapes.
+- Partial fills, queue priority, latency, and L2 depth remain outside this
+  kernel; current v2 behavior is deterministic OHLC lifecycle simulation.
+- Nautilus parity for command tapes remains Phase 30C.
 
 ### Phase 30C - Endpoint, Nautilus Adapter, And Structured Package Parity
 
