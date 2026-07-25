@@ -24,8 +24,8 @@ Phase 30 adds `OrderCommand` as the lifecycle-v2 contract. `OrderIntent`
 remains the stable immediate-place shorthand used by existing endpoints.
 `OrderCommand` can express place/cancel/replace/amend/cancel-all, parent-child
 activation, OCO groups, stop trigger fields, reduce-only flags, and GTD expiry.
-Phase 30A only compiles this command tape; full lifecycle matching is wired in
-the later native-event v2 kernel.
+Use `NativeEventBackend.run_order_commands(...)` for the opt-in v2 lifecycle
+route.
 
 Rules:
 
@@ -42,8 +42,23 @@ Rules:
 Current limitation:
 
 - partial fills are not yet modeled; fills are full-size or rejected/canceled.
-- the v1 kernel executes market and limit orders; stop and linked lifecycle
-  commands require the opt-in v2 lifecycle route once Phase 30B/30C is complete.
+- the v1 endpoint route executes market and limit orders;
+- stop and linked lifecycle commands require the opt-in v2 lifecycle backend
+  route until endpoint wiring is promoted.
+
+Lifecycle-v2 rules:
+
+- place activates an order immediately unless a parent activation policy is set;
+- cancel cancels a pending active or waiting order by `target_order_id`;
+- replace cancels the target slot and creates a new executable slot;
+- amend updates working quantity, limit price, or trigger price;
+- GTD expiry cancels active orders before the expiry bar is matched;
+- reduce-only exits are clipped to the current opposite position and canceled
+  as no-op when no opposite position exists;
+- OCO siblings sharing `oco_group_id` are canceled after the first sibling fill;
+- stop-market orders trigger from high/low and fill at trigger price plus
+  slippage;
+- stop-limit orders require both trigger touch and limit touch in the bar.
 
 ## DCA Ladder
 

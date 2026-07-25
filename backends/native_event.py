@@ -20,6 +20,7 @@ from ..core.event import (
     TIF_GTD,
     TIF_IOC,
     _engine_event_v1,
+    _engine_event_v2,
 )
 from ..core.constraints import build_quantity_constraints, quantize_signed_quantity
 from ..core.arbitrage import (
@@ -46,7 +47,7 @@ from ..core.order_compiler import (
     compile_order_commands,
     compile_order_intents,
 )
-from ..core.orders import Fill, OrderCommand, OrderIntent
+from ..core.orders import Fill, OrderAction, OrderCommand, OrderIntent
 from ..core.preprocessor import (
     PreparedMarketArrays,
     align_series,
@@ -67,6 +68,19 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
+
+
+def _event_type_name(event_type: int) -> str:
+    return {
+        0: "place",
+        1: "cancel",
+        2: "replace",
+        3: "amend",
+        4: "fill",
+        5: "expire",
+        6: "activate",
+        7: "reject",
+    }.get(int(event_type), "unknown")
 
 
 @dataclass(frozen=True)
@@ -169,6 +183,257 @@ class NativeEventBackend:
             idx=idx,
             commands=commands,
             symbol_to_col={s: j for j, s in enumerate(symbol_list)},
+        )
+
+    def run_order_commands(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        commands: Sequence[OrderCommand],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        symbols: Optional[List[str]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        compiled_commands: Optional[CompiledOrderCommandArrays] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
+    ) -> BacktestResultV2:
+        """
+        Execute Phase 30B lifecycle `OrderCommand` tapes through event v2.
+
+        This is intentionally opt-in. Existing `run_orders(OrderIntent...)`
+        remains routed to event v1 until endpoint parity is promoted in a later
+        phase.
+        """
+        idx = validate_datetime(datetime_index)
+        if symbols is None:
+            symbol_list = list(closes.keys())
+        else:
+            symbol_list = list(symbols)
+
+        if market_arrays is None:
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
+
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        constraints = build_quantity_constraints(
+            symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        effective_commands, quantity_preflight = self._apply_command_quantity_constraints(
+            idx=idx,
+            commands=commands,
+            closes=market_arrays.closes,
+            symbol_list=symbol_list,
+            contract_sizes=contract_sizes,
+            constraints=constraints,
+        )
+        if quantity_preflight["changed_count"] or quantity_preflight["dropped_count"]:
+            compiled_commands = None
+            commands = tuple(effective_commands)
+        else:
+            effective_commands = tuple(commands)
+
+        if compiled_commands is None:
+            compiled_commands = self.compile_order_commands(
+                datetime_index=idx,
+                commands=effective_commands,
+                symbols=symbol_list,
+            )
+        elif (
+            compiled_commands.index_signature != market_arrays.signature
+            or compiled_commands.symbols != tuple(symbol_list)
+        ):
+            raise ValueError("compiled commands do not match prepared market arrays")
+
+        leverages = self._per_symbol_array(
+            self.config.account.leverage if leverage is None else leverage,
+            symbol_list,
+            default=self.config.account.leverage,
+        )
+        fee_rates = self._per_symbol_array(
+            self.config.fee_rate if fee_rate is None else fee_rate,
+            symbol_list,
+            default=0.0,
+        )
+
+        (
+            equity_arr,
+            pos_arr,
+            fee_arr,
+            turnover_arr,
+            funding_arr,
+            init_margin_arr,
+            maint_margin_arr,
+            rejected_bar,
+            canceled_bar,
+            command_status,
+            reject_code,
+            fill_bar,
+            fill_qty,
+            fill_price,
+            fill_fee,
+            active,
+            waiting_parent,
+            working_qty,
+            working_price,
+            working_trigger,
+            event_count,
+            event_bar,
+            event_command,
+            event_type,
+            event_status,
+            event_related_command,
+            liq_flag,
+            liq_idx,
+            liq_reason,
+        ) = _engine_event_v2(
+            n_bars=len(idx),
+            n_syms=len(symbol_list),
+            n_commands=compiled_commands.n_commands,
+            n_ids=len(compiled_commands.id_values),
+            command_ptr=compiled_commands.command_ptr,
+            command_action=compiled_commands.command_action,
+            command_symbol=compiled_commands.command_symbol,
+            command_side=compiled_commands.command_side,
+            command_type=compiled_commands.command_type,
+            command_qty=compiled_commands.command_qty,
+            command_price=compiled_commands.command_price,
+            command_trigger_price=compiled_commands.command_trigger_price,
+            command_tif=compiled_commands.command_tif,
+            command_reduce_only=compiled_commands.command_reduce_only,
+            command_order_id=compiled_commands.command_order_id,
+            command_target_order_id=compiled_commands.command_target_order_id,
+            command_parent_order_id=compiled_commands.command_parent_order_id,
+            command_group_id=compiled_commands.command_group_id,
+            command_oco_group_id=compiled_commands.command_oco_group_id,
+            command_activation=compiled_commands.command_activation,
+            command_expires_bar=compiled_commands.command_expires_bar,
+            highs=market_arrays.highs,
+            lows=market_arrays.lows,
+            closes=market_arrays.closes,
+            funding_rates=market_arrays.funding,
+            is_funding_bar=market_arrays.is_funding_bar,
+            init_capital=self.config.account.initial_capital,
+            leverages=leverages,
+            maint_ratio=self.config.account.maintenance_ratio,
+            fee_rates=fee_rates,
+            contract_sizes=contract_sizes,
+            slippage=self.config.execution.slippage_rate,
+            use_funding=bool(self.config.use_funding),
+        )
+
+        fills = self._build_fills(
+            compiled_commands.sorted_commands,
+            idx,
+            fill_bar,
+            fill_qty,
+            fill_price,
+            fill_fee,
+        )
+        equity = pd.Series(equity_arr, index=idx, name="equity")
+        positions = pd.DataFrame(
+            {f"Position_{s}": pos_arr[:, j] for j, s in enumerate(symbol_list)},
+            index=idx,
+        )
+        close_df = pd.DataFrame(
+            {f"Close_{s}": market_arrays.closes[:, j] for j, s in enumerate(symbol_list)},
+            index=idx,
+        )
+        diagnostics = pd.DataFrame(
+            {
+                "turnover": turnover_arr,
+                "rejected_orders": rejected_bar,
+                "canceled_orders": canceled_bar,
+            },
+            index=idx,
+        )
+        command_report = self._build_command_report(
+            compiled_commands,
+            command_status,
+            reject_code,
+            fill_bar,
+            fill_qty,
+            fill_price,
+            fill_fee,
+            active,
+            waiting_parent,
+            working_qty,
+            working_price,
+            working_trigger,
+        )
+        order_events = self._build_order_events(
+            idx=idx,
+            compiled_commands=compiled_commands,
+            event_count=int(event_count),
+            event_bar=event_bar,
+            event_command=event_command,
+            event_type=event_type,
+            event_status=event_status,
+            event_related_command=event_related_command,
+        )
+        active_orders = command_report[
+            (command_report["active"] == True) | (command_report["waiting_parent"] == True)  # noqa: E712
+        ].copy()
+
+        return BacktestResultV2(
+            equity=equity,
+            returns=equity.pct_change().fillna(0.0),
+            positions=positions,
+            closes=close_df,
+            symbols=symbol_list,
+            initial_capital=self.config.account.initial_capital,
+            leverage=float(np.mean(leverages)),
+            liquidated=bool(liq_flag),
+            liquidation_bar=int(liq_idx),
+            orders=self._commands_to_order_intents(compiled_commands.sorted_commands),
+            fills=tuple(fills),
+            fees=pd.Series(fee_arr, index=idx, name="fees"),
+            funding=pd.Series(funding_arr, index=idx, name="funding"),
+            margin=pd.DataFrame(
+                {
+                    "initial_margin": init_margin_arr,
+                    "maintenance_margin": maint_margin_arr,
+                },
+                index=idx,
+            ),
+            diagnostics=diagnostics,
+            metadata={
+                "backend": "native_event",
+                "engine": "event_v2_lifecycle",
+                "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
+                "slippage_bps": self.config.execution.slippage_bps,
+                "order_report": command_report,
+                "command_report": command_report,
+                "order_events": order_events,
+                "active_orders": active_orders,
+                "id_values": compiled_commands.id_values,
+                "quantity_constraints": constraints.as_dict(),
+                "quantity_preflight": quantity_preflight,
+                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+                "liquidation_reason": int(liq_reason),
+            },
         )
 
     def run_orders(
@@ -423,6 +688,211 @@ class NativeEventBackend:
             else:
                 out.append(order)
         return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
+
+    @staticmethod
+    def _apply_command_quantity_constraints(
+        *,
+        idx: pd.DatetimeIndex,
+        commands: Sequence[OrderCommand],
+        closes: np.ndarray,
+        symbol_list: List[str],
+        contract_sizes: np.ndarray,
+        constraints,
+    ) -> tuple[tuple[OrderCommand, ...], Dict]:
+        if not constraints.enabled:
+            return tuple(commands), {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
+        sym_to_col = {symbol: j for j, symbol in enumerate(symbol_list)}
+        changed = 0
+        dropped = []
+        out: list[OrderCommand] = []
+        idx_ns = idx.view("int64")
+        for command_idx, command in enumerate(commands):
+            if command.action not in (OrderAction.PLACE, OrderAction.REPLACE) or command.symbol is None:
+                out.append(command)
+                continue
+            if command.symbol not in sym_to_col:
+                raise ValueError(f"command symbol {command.symbol!r} is not in symbols")
+            col = sym_to_col[command.symbol]
+            ts = pd.Timestamp(command.timestamp)
+            if ts.tz is None:
+                ts = ts.tz_localize("UTC")
+            else:
+                ts = ts.tz_convert("UTC")
+            bar = int(np.searchsorted(idx_ns, ts.value, side="left"))
+            if bar >= len(idx):
+                bar = len(idx) - 1
+            price = float(command.price) if command.price is not None else float(closes[bar, col])
+            signed = command.signed_qty
+            q = abs(
+                quantize_signed_quantity(
+                    signed,
+                    price,
+                    float(contract_sizes[col]),
+                    float(constraints.qty_step[col]),
+                    float(constraints.min_qty[col]),
+                    float(constraints.min_notional[col]),
+                )
+            )
+            if q <= 0.0:
+                dropped.append(
+                    {
+                        "original_index": command_idx,
+                        "symbol": command.symbol,
+                        "requested_qty": None if command.qty is None else float(command.qty),
+                    }
+                )
+                continue
+            if command.qty is not None and abs(q - float(command.qty)) > 1e-12:
+                changed += 1
+                out.append(
+                    OrderCommand(
+                        timestamp=command.timestamp,
+                        action=command.action,
+                        symbol=command.symbol,
+                        side=command.side,
+                        order_type=command.order_type,
+                        qty=q,
+                        price=command.price,
+                        trigger_price=command.trigger_price,
+                        tif=command.tif,
+                        reduce_only=command.reduce_only,
+                        order_id=command.order_id,
+                        target_order_id=command.target_order_id,
+                        parent_order_id=command.parent_order_id,
+                        group_id=command.group_id,
+                        oco_group_id=command.oco_group_id,
+                        activation_policy=command.activation_policy,
+                        expires_at=command.expires_at,
+                        tag=command.tag,
+                        metadata={
+                            **command.metadata,
+                            "requested_qty": float(command.qty),
+                            "quantity_quantized": True,
+                        },
+                    )
+                )
+            else:
+                out.append(command)
+        return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
+
+    @staticmethod
+    def _build_command_report(
+        compiled_commands: CompiledOrderCommandArrays,
+        command_status: np.ndarray,
+        reject_code: np.ndarray,
+        fill_bar: np.ndarray,
+        fill_qty: np.ndarray,
+        fill_price: np.ndarray,
+        fill_fee: np.ndarray,
+        active: np.ndarray,
+        waiting_parent: np.ndarray,
+        working_qty: np.ndarray,
+        working_price: np.ndarray,
+        working_trigger: np.ndarray,
+    ) -> pd.DataFrame:
+        rows = []
+        for sorted_idx, (original_idx, command) in enumerate(compiled_commands.sorted_commands):
+            rows.append(
+                {
+                    "original_index": int(original_idx),
+                    "sorted_index": int(sorted_idx),
+                    "timestamp": command.timestamp,
+                    "action": command.action.value,
+                    "symbol": command.symbol,
+                    "side": None if command.side is None else command.side.value,
+                    "order_type": None if command.order_type is None else command.order_type.value,
+                    "order_id": command.order_id,
+                    "target_order_id": command.target_order_id,
+                    "parent_order_id": command.parent_order_id,
+                    "group_id": command.group_id,
+                    "oco_group_id": command.oco_group_id,
+                    "activation_policy": command.activation_policy.value,
+                    "status": int(command_status[sorted_idx]),
+                    "reject_code": int(reject_code[sorted_idx]),
+                    "fill_bar": int(fill_bar[sorted_idx]),
+                    "fill_qty": float(fill_qty[sorted_idx]),
+                    "fill_price": float(fill_price[sorted_idx]),
+                    "fill_fee": float(fill_fee[sorted_idx]),
+                    "active": bool(active[sorted_idx]),
+                    "waiting_parent": bool(waiting_parent[sorted_idx]),
+                    "working_qty": float(working_qty[sorted_idx]),
+                    "working_price": float(working_price[sorted_idx]),
+                    "working_trigger_price": float(working_trigger[sorted_idx]),
+                    "reduce_only": bool(command.reduce_only),
+                    "tag": command.tag,
+                }
+            )
+        if not rows:
+            return pd.DataFrame()
+        return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)
+
+    @staticmethod
+    def _build_order_events(
+        *,
+        idx: pd.DatetimeIndex,
+        compiled_commands: CompiledOrderCommandArrays,
+        event_count: int,
+        event_bar: np.ndarray,
+        event_command: np.ndarray,
+        event_type: np.ndarray,
+        event_status: np.ndarray,
+        event_related_command: np.ndarray,
+    ) -> pd.DataFrame:
+        rows = []
+        for n in range(event_count):
+            command_idx = int(event_command[n])
+            related_idx = int(event_related_command[n])
+            original_idx = -1
+            related_original_idx = -1
+            command = None
+            if 0 <= command_idx < len(compiled_commands.sorted_commands):
+                original_idx = int(compiled_commands.sorted_commands[command_idx][0])
+                command = compiled_commands.sorted_commands[command_idx][1]
+            if 0 <= related_idx < len(compiled_commands.sorted_commands):
+                related_original_idx = int(compiled_commands.sorted_commands[related_idx][0])
+            bar = int(event_bar[n])
+            rows.append(
+                {
+                    "timestamp": idx[bar] if 0 <= bar < len(idx) else pd.NaT,
+                    "bar": bar,
+                    "sorted_index": command_idx,
+                    "original_index": original_idx,
+                    "event_type": int(event_type[n]),
+                    "event_name": _event_type_name(int(event_type[n])),
+                    "status": int(event_status[n]),
+                    "related_sorted_index": related_idx,
+                    "related_original_index": related_original_idx,
+                    "order_id": None if command is None else command.order_id,
+                    "target_order_id": None if command is None else command.target_order_id,
+                    "oco_group_id": None if command is None else command.oco_group_id,
+                }
+            )
+        return pd.DataFrame(rows)
+
+    @staticmethod
+    def _commands_to_order_intents(sorted_commands) -> tuple[OrderIntent, ...]:
+        orders: list[OrderIntent] = []
+        for _, command in sorted_commands:
+            if command.action in (OrderAction.PLACE, OrderAction.REPLACE):
+                if command.symbol is None or command.side is None or command.order_type is None or command.qty is None:
+                    continue
+                orders.append(
+                    OrderIntent(
+                        timestamp=command.timestamp,
+                        symbol=command.symbol,
+                        side=command.side,
+                        order_type=command.order_type,
+                        qty=float(command.qty),
+                        price=command.price,
+                        trigger_price=command.trigger_price,
+                        tif=command.tif,
+                        reduce_only=command.reduce_only,
+                        order_id=command.order_id,
+                        tag=command.tag,
+                        metadata=dict(command.metadata),
+                    )
+                )
+        return tuple(orders)
 
     def run_basket(
         self,
