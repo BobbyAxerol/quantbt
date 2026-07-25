@@ -521,16 +521,45 @@ Input requirement:
 - `orders`: list of `OrderIntent`;
 - `symbols`: should contain the symbols used by the orders.
 
-Order fields:
+`OrderIntent` fields:
 
 - `timestamp`: bar timestamp;
 - `symbol`: instrument name;
 - `side`: `OrderSide.BUY` or `OrderSide.SELL`;
-- `order_type`: `MARKET`, `LIMIT`, `STOP_MARKET`, or `STOP_LIMIT`;
+- `order_type`: `MARKET` or `LIMIT` on the current native-event v1 route;
 - `qty`: positive quantity;
 - `price`: required for limit orders;
-- `trigger_price`: required for stop orders;
 - `tif`: `GTC`, `IOC`, `FOK`, or `GTD`.
+
+Lifecycle-v2 contract:
+
+```python
+from quantbt import OrderAction, OrderCommand
+
+commands = [
+    OrderCommand(
+        timestamp=df.index[10],
+        action=OrderAction.PLACE,
+        symbol="ETHUSDT",
+        side=OrderSide.BUY,
+        order_type=OrderType.STOP_LIMIT,
+        qty=3.0,
+        price=1795.0,
+        trigger_price=1800.0,
+        order_id="entry-stop-limit",
+        oco_group_id="eth-grid-1",
+    ),
+    OrderCommand(
+        timestamp=df.index[12],
+        action=OrderAction.CANCEL,
+        target_order_id="entry-stop-limit",
+    ),
+]
+```
+
+Phase 30A compiles `OrderCommand` tapes for the upcoming native-event v2
+lifecycle engine. Existing endpoint execution remains on `OrderIntent` v1 until
+the v2 route is explicitly enabled.
 
 Execution rules:
 

@@ -20,6 +20,13 @@ Sizing modes:
 `NativeEventBackend` and `BacktestEngineV2(backend="native_event")` consume
 explicit `OrderIntent` records.
 
+Phase 30 adds `OrderCommand` as the lifecycle-v2 contract. `OrderIntent`
+remains the stable immediate-place shorthand used by existing endpoints.
+`OrderCommand` can express place/cancel/replace/amend/cancel-all, parent-child
+activation, OCO groups, stop trigger fields, reduce-only flags, and GTD expiry.
+Phase 30A only compiles this command tape; full lifecycle matching is wired in
+the later native-event v2 kernel.
+
 Rules:
 
 - market orders fill at current close;
@@ -35,6 +42,8 @@ Rules:
 Current limitation:
 
 - partial fills are not yet modeled; fills are full-size or rejected/canceled.
+- the v1 kernel executes market and limit orders; stop and linked lifecycle
+  commands require the opt-in v2 lifecycle route once Phase 30B/30C is complete.
 
 ## DCA Ladder
 

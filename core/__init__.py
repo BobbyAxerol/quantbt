@@ -3,7 +3,7 @@ from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
 from .results      import BacktestResultV2
-from .orders       import BasketIntent, Fill, OrderIntent, Trade
+from .orders       import BasketIntent, Fill, OrderAction, OrderActivationPolicy, OrderCommand, OrderIntent, Trade
 from .basket       import FrozenBasketPlan, build_frozen_basket_orders
 from .execution_depth import (
     NautilusExecutionDepthConfig,
@@ -131,6 +131,9 @@ __all__ = [
     "MarginModelKind",
     "NautilusExecutionDepthConfig",
     "OmsMode",
+    "OrderAction",
+    "OrderActivationPolicy",
+    "OrderCommand",
     "OrderIntent",
     "OrderSide",
     "OrderType",

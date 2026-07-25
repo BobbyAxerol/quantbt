@@ -40,8 +40,13 @@ from ..core.arbitrage import (
     build_arbitrage_order_plan,
 )
 from ..core.basket import build_frozen_basket_orders
-from ..core.order_compiler import CompiledOrderArrays, compile_order_intents
-from ..core.orders import Fill, OrderIntent
+from ..core.order_compiler import (
+    CompiledOrderArrays,
+    CompiledOrderCommandArrays,
+    compile_order_commands,
+    compile_order_intents,
+)
+from ..core.orders import Fill, OrderCommand, OrderIntent
 from ..core.preprocessor import (
     PreparedMarketArrays,
     align_series,
@@ -141,6 +146,30 @@ class NativeEventBackend:
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(dict.fromkeys(order.symbol for order in orders))
         return compile_order_intents(idx=idx, orders=orders, symbol_to_col={s: j for j, s in enumerate(symbol_list)})
+
+    @staticmethod
+    def compile_order_commands(
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        commands: Sequence[OrderCommand],
+        symbols: Optional[Sequence[str]] = None,
+    ) -> CompiledOrderCommandArrays:
+        """
+        Compile lifecycle commands for the native-event v2 contract.
+
+        Phase 30A exposes this helper for adapters and strategy services. It
+        does not route commands into the v1 matching kernel; the v2 lifecycle
+        kernel is a later phase.
+        """
+        idx = validate_datetime(datetime_index)
+        if symbols is None:
+            symbol_list = list(dict.fromkeys(command.symbol for command in commands if command.symbol is not None))
+        else:
+            symbol_list = list(symbols)
+        return compile_order_commands(
+            idx=idx,
+            commands=commands,
+            symbol_to_col={s: j for j, s in enumerate(symbol_list)},
+        )
 
     def run_orders(
         self,
