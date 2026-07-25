@@ -90,7 +90,7 @@ from .backends   import (
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2, OptionBacktestResult
-from .core.orders import BasketIntent, Fill, OrderIntent, Trade
+from .core.orders import BasketIntent, Fill, OrderAction, OrderActivationPolicy, OrderCommand, OrderIntent, Trade
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
     NautilusExecutionDepthConfig,
@@ -528,6 +528,9 @@ __all__ = [
     "MarginModel",
     "MarginModelKind",
     "OmsMode",
+    "OrderAction",
+    "OrderActivationPolicy",
+    "OrderCommand",
     "OrderIntent",
     "OrderSide",
     "OrderType",

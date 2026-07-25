@@ -3174,6 +3174,170 @@ Technical debt after Phase 17.6:
 
 ---
 
+## Phase 30 - Native Event Lifecycle Upgrade
+
+Status: active on branch `feat/30-native-event-lifecycle`.
+
+Urgent goal:
+
+- Upgrade `native_event` from a static market/limit replay kernel into a
+  deterministic OHLC order-lifecycle engine.
+- Preserve strategy separation: alpha/research code still emits signals or
+  order commands; the backend owns order state, fills, PnL, fees, margin,
+  liquidation, and audit reports.
+- Keep old endpoint behavior stable while adding a v2 lifecycle path.
+
+Scope:
+
+- `quantbt.core.orders`;
+- `quantbt.core.order_compiler`;
+- `quantbt.core.event`;
+- `quantbt.backends.native_event`;
+- `quantbt.adapters.nautilus`;
+- endpoint/docs/tests only where needed to expose the new contract.
+
+Non-goals for Phase 30:
+
+- Do not move alpha/feature logic into the backend.
+- Do not silently change `OrderIntent` v1 market/limit replay semantics.
+- Do not claim exchange-native OCO/L2 queue behavior until parity tests exist.
+
+### Phase 30A - Command Contract And Compiler V2
+
+Status: completed.
+
+Plan:
+
+- Add canonical lifecycle command objects:
+  - `OrderAction.PLACE`;
+  - `OrderAction.CANCEL`;
+  - `OrderAction.REPLACE`;
+  - `OrderAction.AMEND`;
+  - `OrderAction.CANCEL_ALL`.
+- Keep `OrderIntent` as the backwards-compatible shorthand for immediate
+  `PLACE`.
+- Add lifecycle fields required by v2:
+  - `order_id`;
+  - `target_order_id`;
+  - `parent_order_id`;
+  - `group_id`;
+  - `oco_group_id`;
+  - `activation_policy`;
+  - `expires_at`;
+  - `reduce_only`;
+  - `trigger_price`.
+- Add `compile_order_commands(...)` to pack lifecycle commands into contiguous
+  NumPy arrays without running execution logic.
+- Preserve `compile_order_intents(...)` and `_engine_event_v1` unchanged for
+  old endpoint parity.
+- Add focused tests for validation, stable sorting, ID mapping, stop fields,
+  reduce-only flags, parent/OCO metadata, and backend helper exposure.
+
+Exit criteria:
+
+- New command contract imports from `quantbt`.
+- Compiler v2 supports market, limit, stop-market, stop-limit command payloads.
+- Old native-event market/limit tests still pass unchanged.
+- No endpoint default behavior changes.
+
+Implemented:
+
+- Added `OrderAction`, `OrderActivationPolicy`, and `OrderCommand`.
+- Preserved `OrderIntent` as the compatibility shorthand for immediate place
+  commands.
+- Added `order_intents_to_commands(...)` and `compile_order_commands(...)`.
+- Added `CompiledOrderCommandArrays` with packed fields for:
+  - action;
+  - symbol;
+  - side;
+  - order type;
+  - quantity;
+  - limit price;
+  - trigger price;
+  - TIF;
+  - reduce-only;
+  - order/target/parent/group/OCO IDs;
+  - activation policy;
+  - expiry bar;
+  - original command index.
+- Exposed `NativeEventBackend.compile_order_commands(...)`.
+- Exported the new command contract from `quantbt` and `quantbt.core`.
+- Documented the distinction between v1 `OrderIntent` execution and v2 command
+  tape compilation.
+
+Latest tests:
+
+- Phase 30A command contract tests: `4 passed`.
+- Native-event v1 parity/performance tests: `11 passed`.
+- Full non-real regression: `399 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 30A:
+
+- `OrderCommand` tapes are compiled but not yet executed by a lifecycle kernel.
+- Stop-market/stop-limit payloads are packed for v2, while v1 still executes
+  only market/limit orders.
+- OCO, parent-child activation, cancel/replace/amend, GTD expiry, and
+  reduce-only clipping are contract-ready but require Phase 30B execution
+  tests before production use.
+
+### Phase 30B - Native Event Lifecycle Kernel V2
+
+Status: planned.
+
+Plan:
+
+- Add an active-order registry in a v2 Numba kernel.
+- Implement deterministic lifecycle transitions:
+  - place;
+  - cancel;
+  - replace;
+  - amend;
+  - cancel-all;
+  - GTD expiry;
+  - reduce-only clipping;
+  - stop-market and stop-limit trigger activation;
+  - OCO sibling cancellation;
+  - parent-child activation on first/full fill.
+- Emit lifecycle audit artifacts:
+  - order event log;
+  - final active-order snapshot;
+  - status/reject/cancel/fill report;
+  - engine version metadata.
+- Keep v1 as compatibility route until v2 parity is explicitly accepted.
+
+Exit criteria:
+
+- Domain tests cover bracket/OCO, DCA/grid entry/exit, cancel/replace/amend,
+  reduce-only, stop triggers, GTD expiry, parent-child activation, and margin
+  rejection.
+- v1 compatibility tests still pass.
+- v2 metadata makes lifecycle behavior transparent enough for Nautilus parity.
+
+### Phase 30C - Endpoint, Nautilus Adapter, And Structured Package Parity
+
+Status: planned.
+
+Plan:
+
+- Expose an opt-in native-event v2 route through endpoint/backends without
+  breaking existing calls.
+- Compile structured bracket, DCA/grid, basket, and arbitrage packages into
+  lifecycle commands where order state matters.
+- Align Nautilus adapter inputs around the same canonical command contract.
+- Add parity tests between:
+  - native-event v2 and old v1 for simple market/limit cases;
+  - native-event v2 and Nautilus for single-symbol explicit order packages;
+  - structured package preflight and lifecycle execution reports.
+
+Exit criteria:
+
+- Endpoint docs show how to pass `OrderIntent` vs `OrderCommand`.
+- Legacy endpoints remain stable.
+- Package-level reports include fills, cancels, rejects, and linked-order
+  status for stakeholder audit.
+
+---
+
 ## Backend Selection Guide
 
 Use `native_vectorized` when:
