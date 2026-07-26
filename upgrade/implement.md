@@ -3684,6 +3684,38 @@ Final Phase 30E conclusion:
   - async broker runtime;
   - portfolio-margin venue clones.
 
+Technical debt after Phase 30E:
+
+- Add dedicated event-specific human loggers for:
+  - native event v1;
+  - native event v2 lifecycle;
+  - reactive native-event strategy runner;
+  - Nautilus validation adapter.
+- Current `simulate(show_order_logs=True)` is a bounded generic helper and is
+  useful for quick fill/order visibility, but it is not a full execution trace.
+- Future logger should support bounded output modes such as:
+  - `fills_only`;
+  - `order_events`;
+  - `bar_state`;
+  - `margin_debug`;
+  - `full_execution_trace`.
+- Expected per-line fields:
+  - timestamp/bar;
+  - order id / command id / event type;
+  - symbol, side, order type, qty, fill price;
+  - intended price, trigger price, realized slippage;
+  - fee, turnover;
+  - realized/unrealized PnL when available;
+  - equity before/after;
+  - initial margin, maintenance margin, free/available equity;
+  - reject/cancel/expire reason;
+  - active/waiting order count.
+- This should be implemented as a reporting layer over existing artifacts
+  (`fills`, `command_report`, `order_events`, `diagnostics`, `margin`) instead
+  of changing matching/accounting kernels.
+- Priority is lower than core kernel/domain upgrades, portfolio/arbitrage
+  engine depth, and Nautilus execution parity.
+
 ## 1. Mục tiêu
 
 Bổ sung một **reactive lifecycle runner** lên `native_event v2` hiện tại để strategy có thể:
@@ -4384,3 +4416,228 @@ result = endpoint.simulate(
 ```
 
 Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `grid_combine` thành một unified alpha mà không cần bất kỳ fill simulator nào bên trong strategy.
+
+---
+
+## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
+
+Status: planning, awaiting approval.
+
+Source design document:
+
+- [`upgrade/quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md`](./quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md)
+
+Why this is tracked as Phase 31 here:
+
+- The source document is named "Phase 17" because it describes the conceptual
+  execution-correctness upgrade.
+- `upgrade/implement.md` already uses Phase 17 for the Options Backtest Engine
+  history, so the implementation roadmap is tracked as Phase 31 to avoid
+  confusing future agents.
+
+Branch recommendation:
+
+- Do not continue this large upgrade on `feat/30-native-event-lifecycle`.
+- First finish/push/merge the Phase 30 native-event lifecycle branch into
+  `dev` if accepted.
+- Then create a clean branch from updated `dev`, recommended:
+
+```bash
+git switch dev
+git pull --ff-only origin dev
+git switch -c feat/31-execution-correctness-intrabar
+```
+
+Reason:
+
+- This upgrade changes execution contracts, market tape validation, vectorized
+  semantics, endpoint routing, fill replay, and benchmark/certification docs.
+- Keeping it separate from Phase 30 avoids coupling reactive native-event
+  lifecycle work with a broader vectorized/intrabar correctness migration.
+
+Implementation should be compressed from the source document's Phase 17A-J into
+four practical phases:
+
+### Phase 31A - Semantic Freeze, P0 Safety, And Contract Manifest
+
+Scope:
+
+- Preserve existing close-target behavior but label it explicitly as
+  `close_target_v2`.
+- Add mandatory result metadata:
+  - `engine_id`;
+  - `backend_alias`;
+  - `execution_contract`;
+  - `signal_phase`;
+  - `fill_phase`;
+  - `intrabar_exit_model`;
+  - `kernel_version`;
+  - `data_signature` when available.
+- Add P0 safety checks without changing intentional close-target PnL:
+  - no silent fake funding fallback;
+  - no unsupported execution config silently passing through;
+  - no high/low fallback when intrabar liquidation is required;
+  - explicit first-bar target policy;
+  - open/volume plumbing for routes that need it.
+- Add warnings/errors for likely intrabar misuse on close-target endpoints,
+  especially columns such as `exit_price`, `exit_type`, `stop_loss`,
+  `take_profit`, `trailing`.
+
+Tests:
+
+- Golden close-target parity before/after.
+- Metadata contract tests.
+- Strict unsupported-config tests.
+- Funding missing-symbol tests.
+- High/low missing under liquidation tests.
+
+Acceptance:
+
+- Existing valid close-target alpha results remain reproducible.
+- Silent execution ambiguity becomes explicit metadata, warning, or error.
+- No intrabar engine implementation yet.
+
+### Phase 31B - Strict Prepared Market Tape And Python Intrabar Oracle
+
+Scope:
+
+- Add execution contract schema and registry:
+  - `close_target_v2`;
+  - `next_open_v1`;
+  - `intrabar_bracket_v1`;
+  - `fill_replay_v1`;
+  - `event_lifecycle_v2`.
+- Add strict `PreparedMarketTape` with validation certificate:
+  - monotonic timestamps;
+  - duplicate rejection;
+  - finite OHLCV;
+  - OHLC invariant;
+  - explicit funding policy;
+  - no ffill/bfill OHLC in strict mode.
+- Add Python reference oracle for single-symbol linear intrabar execution:
+  - signal at close;
+  - entry at next open;
+  - gap-aware SL;
+  - TP limit policy;
+  - same-bar ambiguity;
+  - trailing update effective next bar;
+  - technical exit;
+  - reversal as two fee/slippage legs;
+  - close-on-last-bar policy.
+
+Tests:
+
+- Golden scenario matrix from the source document.
+- No-lookahead timeline tests.
+- Same-bar SL/TP ambiguity tests.
+- Gap stop tests.
+- Long/short symmetry tests.
+- Strict tape validation tests.
+
+Acceptance:
+
+- Oracle is readable and becomes the internal truth model.
+- Prepared and non-prepared market inputs produce identical canonical arrays.
+- No Numba intrabar kernel is promoted until oracle tests are stable.
+
+### Phase 31C - Numba Fast Intrabar Kernel, Audit Ledger, And Fill Replay
+
+Scope:
+
+- Add fast Numba intrabar kernels:
+  - `next_open_v1`;
+  - `intrabar_bracket_v1` fixed SL/TP;
+  - trailing-enabled variant when safe;
+  - compact event flags.
+- Add `report_level`:
+  - `minimal` for optimizer/WFO;
+  - `standard` for normal endpoint reports;
+  - `audit` for sparse fills/trades.
+- Implement two-pass audit ledger:
+  - pass 1 computes accounting and exact fill count;
+  - pass 2 writes sparse fill/trade arrays only in audit mode;
+  - minimal/audit core equity parity must hold.
+- Add `fill_replay_v1` migration backend for old alphas that already emit
+  explicit fills.
+
+Tests:
+
+- Python oracle vs Numba parity.
+- Minimal vs audit parity.
+- Fill replay accounting identity.
+- Reversal two-leg fee/turnover tests.
+- Liquidation/funding tests.
+- Endpoint compatibility tests.
+
+Benchmarks:
+
+- Kernel-only warm JIT ratios versus `close_target_v2`.
+- Prepared endpoint ratios.
+- Native-event comparison for single-position bracket cases.
+- Memory profile for minimal vs audit.
+
+Acceptance:
+
+- Intrabar kernel is materially faster than native-event for single-position
+  bracket workloads.
+- No Python objects are created in hot loops.
+- Audit mode is deterministic and preserves exact fill sequence.
+
+### Phase 31D - Certification, Alpha Audit Tooling, And Docs
+
+Scope:
+
+- Add alpha inventory scanner and registry template.
+- Classify alphas into:
+  - pure close target;
+  - next-open only;
+  - intrabar bracket;
+  - fill replay migration;
+  - event lifecycle/grid/DCA;
+  - deferred cross-margin intrabar.
+- Add certification levels:
+  - Level 0 legacy;
+  - Level 1 accounting replay;
+  - Level 2 engine-causal;
+  - Level 3 cross-backend;
+  - Level 4 external validation.
+- Add native-event parity scenarios for known intrabar cases.
+- Add docs:
+  - execution contracts;
+  - fast intrabar endpoint;
+  - fill replay migration;
+  - alpha certification guide;
+  - benchmark report.
+
+Tests:
+
+- Scanner smoke tests.
+- Migration report fixtures.
+- Native intrabar vs native-event known-case parity.
+- Public endpoint examples.
+
+Acceptance:
+
+- No old intrabar alpha is silently treated as production-certified.
+- Users know which backend to use for each strategy type.
+- Production claim requires at least Level 2, and execution-sensitive alphas
+  should target Level 3 or Level 4.
+
+Design assessment:
+
+- The direction is correct and materially more institutional than the current
+  "one backend name fits all" model.
+- It reaches fund-grade methodology once Phase 31A-B are in place because
+  semantics, data validation, causality, and oracle truth are explicit.
+- It reaches practical production-grade for single-symbol SL/TP/trailing
+  intrabar research after Phase 31C parity and benchmark gates pass.
+- It should not claim full institutional execution across venues until Phase
+  31D plus lower-timeframe/Nautilus parity artifacts exist.
+
+Explicit non-goals for Phase 31:
+
+- No tick/L2 queue simulation.
+- No exact shared cross-margin intrabar path claim from OHLC-only data.
+- No generic multi-order grid engine inside the intrabar kernel.
+- No options Greeks/portfolio option execution in this kernel.
+- No Cython/C++ until prepared tape, lazy result, and Numba kernels are profiled.
