@@ -92,6 +92,7 @@ class OrderCommand:
     expires_at: Optional[object] = None
     tag: Optional[str] = None
     metadata: Dict = field(default_factory=dict)
+    tag_prefix: Optional[str] = None
 
     def __post_init__(self) -> None:
         action = _normalize_order_action(self.action)

@@ -1,0 +1,16 @@
+{
+  "bars": 25000,
+  "context_builder": "incremental_session_v1",
+  "emitted_commands": 10438,
+  "equity_max_abs_diff": 0.0,
+  "fills": 10438,
+  "final_equity": 100054.45104239478,
+  "incremental_compile_replays": 0,
+  "levels": 20,
+  "phase": "30E",
+  "position_max_abs_diff": 0.0,
+  "reactive_seconds": 3.5069370451383293,
+  "reseed_every": 50,
+  "static_replay_seconds": 1.655977286864072,
+  "total_seconds": 5.162914332002401
+}
