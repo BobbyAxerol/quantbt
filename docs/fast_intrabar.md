@@ -15,7 +15,7 @@ bt = QuantBTEndpoint.intrabar_bracket(
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0002,      # one-way
-    slippage=0.0001,
+    slippage_bps=1.0,
     use_funding=False,
     close_on_last_bar=True,
     report_level="audit",
@@ -29,7 +29,8 @@ result = bt.backtest(
         "stop_value": "sl_pct",
         "take_profit_value": "tp_pct",
         "trailing_value": "trail_pct",
-        "technical_exit": "exit_now",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
     },
 )
 
@@ -70,12 +71,30 @@ Optional intent columns:
 stop_value
 take_profit_value
 trailing_value
-technical_exit
+exit_long
+exit_short
 ```
 
 `level_mode="percent_distance"` is the default. Under this mode `0.02` means a
 2 percent distance from entry price. `price_distance` and `absolute_price` are
 available when the strategy emits price distances or absolute levels.
+
+Legacy `technical_exit` is still accepted for compatibility and maps to both
+long and short exits. New alphas should emit `exit_long` and `exit_short`, so an
+exit signal cannot accidentally close the wrong side.
+
+Sizing options:
+
+```text
+units
+fixed_notional
+pct_equity
+risk_per_trade
+```
+
+After sizing, the same shared quantity constraints used by the event and
+portfolio backends are applied: `qty_step`/`lot_size`/`slot_size`, `min_qty`,
+and `min_notional`.
 
 ## Execution Semantics
 
@@ -116,13 +135,26 @@ ref = QuantBTEndpoint.intrabar_bracket_reference(
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0002,
-    slippage=0.0001,
+    slippage_bps=1.0,
 )
 ref_result = ref.backtest(data=df, signal_col="entry_signal")
 ```
 
 Use the reference route to inspect behavior when migrating an alpha. Use the
 Numba route for real sweeps after parity tests pass.
+
+## Prepared Runner
+
+```python
+runner = bt.prepare_intrabar(data=df, symbols=["ETHUSDT"])
+result = runner.run(intent, report_level="minimal")
+audit = runner.run(intent, report_level="audit")
+```
+
+The prepared runner caches strict OHLCV arrays, timestamps, funding arrays,
+quantity constraints, validation certificate, data signature, and frozen profile
+metadata. Use this in WFO/Optuna loops where market tape is fixed and only the
+intent changes.
 
 ## Fill Replay
 

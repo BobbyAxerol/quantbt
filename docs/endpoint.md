@@ -416,7 +416,7 @@ bt = QuantBTEndpoint.intrabar_bracket(
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0002,     # one-way fee
-    slippage=0.0001,     # decimal fraction, applied to market fills
+    slippage_bps=1.0,    # source of truth for intrabar slippage
     use_funding=False,
     close_on_last_bar=True,
     report_level="standard",
@@ -430,7 +430,8 @@ result = bt.backtest(
         "stop_value": "sl_pct",
         "take_profit_value": "tp_pct",
         "trailing_value": "trail_pct",
-        "technical_exit": "exit_now",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
     },
 )
 
@@ -447,7 +448,11 @@ Input contract:
 - `signal` or `signal_col`: compact signed entry size, where the sign is side
   and absolute value is quantity;
 - optional `intent_cols`: map strategy column names into `stop_value`,
-  `take_profit_value`, `trailing_value`, and `technical_exit`;
+  `take_profit_value`, `trailing_value`, `exit_long`, and `exit_short`;
+- legacy `technical_exit` is still accepted and maps to both long/short exits,
+  but new alphas should use side-specific exits;
+- intrabar slippage uses `slippage_bps`; legacy `slippage` is converted with a
+  deprecation warning, and passing both raises;
 - default `level_mode="percent_distance"` interprets `0.05` as 5 percent from
   fill price. Use `level_mode="price_distance"` or `"absolute_price"` when
   supplying distance/level values in price units.
@@ -483,7 +488,7 @@ ref = QuantBTEndpoint.intrabar_bracket_reference(
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0002,
-    slippage=0.0001,
+    slippage_bps=1.0,
     use_funding=False,
 )
 
@@ -494,6 +499,29 @@ ref_result = ref.backtest(
     intent_cols={"stop_value": "sl_pct", "take_profit_value": "tp_pct"},
 )
 ```
+
+Prepared runner for optimizers:
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=False,
+    report_level="minimal",
+)
+
+runner = bt.prepare_intrabar(data=df, symbols=["ETHUSDT"])
+intent = alpha.generate(runner.market, params)
+result = runner.run(intent, report_level="minimal")
+audit = runner.run(intent, report_level="audit")
+```
+
+Funding for intrabar routes is event-causal. Use `use_funding=False` when no
+funding is part of the test, pass an aligned funding Series with non-zero values
+only on funding bars, or pass `funding_event_timestamps` plus
+`funding_event_rates` to `backtest(...)` / `prepare_intrabar(...)`.
 
 ## Fill Replay
 

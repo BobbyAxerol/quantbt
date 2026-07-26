@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from .execution_contract import ExecutionContract, IntrabarSameBarPolicy, TakeProfitGapPolicy
+from .constraints import quantize_signed_quantity
 from .market_tape import PreparedMarketTape
 from .schema import AccountConfig
 
@@ -25,6 +26,13 @@ class IntrabarLevelMode(str, Enum):
     ABSOLUTE_PRICE = "absolute_price"
     PRICE_DISTANCE = "price_distance"
     PERCENT_DISTANCE = "percent_distance"
+
+
+class IntrabarSizingMode(str, Enum):
+    UNITS = "units"
+    FIXED_NOTIONAL = "fixed_notional"
+    PCT_EQUITY = "pct_equity"
+    RISK_PER_TRADE = "risk_per_trade"
 
 
 class IntrabarFillReason(str, Enum):
@@ -60,13 +68,15 @@ class IntrabarIntentTape:
     take_profit_value: Optional[np.ndarray] = None
     trailing_value: Optional[np.ndarray] = None
     technical_exit: Optional[np.ndarray] = None
+    exit_long: Optional[np.ndarray] = None
+    exit_short: Optional[np.ndarray] = None
     level_mode: IntrabarLevelMode = IntrabarLevelMode.PERCENT_DISTANCE
 
     def __post_init__(self) -> None:
         n = len(self.entry_side)
         if len(self.entry_size) != n:
             raise ValueError("entry_size must have the same length as entry_side")
-        for name in ("stop_value", "take_profit_value", "trailing_value", "technical_exit"):
+        for name in ("stop_value", "take_profit_value", "trailing_value", "technical_exit", "exit_long", "exit_short"):
             value = getattr(self, name)
             if value is not None and len(value) != n:
                 raise ValueError(f"{name} must have the same length as entry_side")
@@ -81,15 +91,20 @@ class IntrabarIntentTape:
         take_profit_value: Optional[Sequence] = None,
         trailing_value: Optional[Sequence] = None,
         technical_exit: Optional[Sequence] = None,
+        exit_long: Optional[Sequence] = None,
+        exit_short: Optional[Sequence] = None,
         level_mode: IntrabarLevelMode = IntrabarLevelMode.PERCENT_DISTANCE,
     ) -> "IntrabarIntentTape":
+        legacy_exit = None if technical_exit is None else np.ascontiguousarray(technical_exit, dtype=np.bool_)
         return cls(
             entry_side=np.ascontiguousarray(entry_side, dtype=np.int8),
             entry_size=np.ascontiguousarray(entry_size, dtype=np.float64),
             stop_value=_optional_float_array(stop_value),
             take_profit_value=_optional_float_array(take_profit_value),
             trailing_value=_optional_float_array(trailing_value),
-            technical_exit=None if technical_exit is None else np.ascontiguousarray(technical_exit, dtype=np.bool_),
+            technical_exit=legacy_exit,
+            exit_long=legacy_exit if exit_long is None and legacy_exit is not None else _optional_bool_array(exit_long),
+            exit_short=legacy_exit if exit_short is None and legacy_exit is not None else _optional_bool_array(exit_short),
             level_mode=level_mode,
         )
 
@@ -133,6 +148,13 @@ def run_intrabar_reference(
     fee_rate: float = 0.0,
     slippage_rate: float = 0.0,
     contract_size: float = 1.0,
+    sizing_mode: IntrabarSizingMode | str = IntrabarSizingMode.UNITS,
+    fixed_notional: float = 0.0,
+    equity_fraction: float = 0.0,
+    risk_fraction: float = 0.0,
+    qty_step: float = 0.0,
+    min_qty: float = 0.0,
+    min_notional: float = 0.0,
 ) -> IntrabarReferenceResult:
     """
     Execute a single-symbol intrabar bracket tape with causal next-open timing.
@@ -150,6 +172,8 @@ def run_intrabar_reference(
     contract = contract or ExecutionContract.intrabar_bracket()
     if contract.engine_id != "intrabar_bracket_v1":
         raise ValueError("run_intrabar_reference requires intrabar_bracket_v1 contract")
+    _validate_intrabar_contract_supported(contract)
+    sizing_code = IntrabarSizingMode(sizing_mode)
 
     idx = pd.DatetimeIndex(pd.to_datetime(tape.timestamps_ns, utc=True))
     opens = tape.opens[:, 0]
@@ -221,7 +245,10 @@ def run_intrabar_reference(
 
         pending_side = int(intent.entry_side[t - 1])
         pending_size = float(intent.entry_size[t - 1])
-        pending_exit = bool(intent.technical_exit[t - 1]) if intent.technical_exit is not None else False
+        pending_exit = _pending_exit(intent, t - 1, position)
+        exit_same_side_conflict = bool(
+            pending_exit and pending_side != 0 and position != 0.0 and np.sign(position) == pending_side
+        )
 
         if position != 0.0 and (pending_exit or (pending_side != 0 and np.sign(position) != pending_side)):
             reason = IntrabarFillReason.REVERSAL_EXIT if pending_side != 0 and np.sign(position) != pending_side else IntrabarFillReason.TECHNICAL_EXIT
@@ -245,7 +272,41 @@ def run_intrabar_reference(
         if pending_side != 0 and pending_size > 0.0 and position == 0.0:
             side = 1 if pending_side > 0 else -1
             price = _market_price(open_ref, side, slippage_rate)
-            qty = float(pending_size)
+            if exit_same_side_conflict:
+                qty = 0.0
+            else:
+                qty = _compile_entry_quantity(
+                    size_weight=float(pending_size),
+                    fill_price=price,
+                    equity=equity,
+                    contract_size=contract_size,
+                    sizing_mode=sizing_code,
+                    fixed_notional=fixed_notional,
+                    equity_fraction=equity_fraction,
+                    risk_fraction=risk_fraction,
+                    stop_value=None if intent.stop_value is None else float(intent.stop_value[t - 1]),
+                    level_mode=intent.level_mode,
+                    side=side,
+                )
+                qty = abs(
+                    quantize_signed_quantity(
+                        qty,
+                        price,
+                        contract_size=contract_size,
+                        qty_step=qty_step,
+                        min_qty=min_qty,
+                        min_notional=min_notional,
+                    )
+                )
+            if qty <= 0.0:
+                flags_arr[t] |= int(IntrabarEventFlag.REJECTED)
+                rejected_count += 1
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
             if not _has_initial_margin(equity, qty, price, contract_size, account.leverage, account.margin_buffer):
                 flags_arr[t] |= int(IntrabarEventFlag.REJECTED)
                 rejected_count += 1
@@ -327,7 +388,7 @@ def run_intrabar_reference(
                 active_tp = np.nan
             else:
                 equity += position * (close_ref - last_ref) * contract_size
-                active_stop = _update_trailing(intent, t - 1, position, close_ref, active_stop)
+                active_stop = _update_trailing(intent, t, position, close_ref, active_stop)
 
         if liquidated:
             equity_arr[t] = 0.0
@@ -389,6 +450,12 @@ def run_intrabar_reference(
             "liquidated": bool(liquidated),
             "liquidation_bar": int(liquidation_bar),
             "oracle": True,
+            "sizing_mode": sizing_code.value,
+            "quantity_constraints": {
+                "qty_step": float(qty_step),
+                "min_qty": float(min_qty),
+                "min_notional": float(min_notional),
+            },
         },
     )
 
@@ -397,6 +464,12 @@ def _optional_float_array(value) -> Optional[np.ndarray]:
     if value is None:
         return None
     return np.ascontiguousarray(value, dtype=np.float64)
+
+
+def _optional_bool_array(value) -> Optional[np.ndarray]:
+    if value is None:
+        return None
+    return np.ascontiguousarray(value, dtype=np.bool_)
 
 
 def _fill(bar, seq, ts, side, qty, price, fee, reason) -> IntrabarFill:
@@ -530,3 +603,76 @@ def _update_trailing(intent: IntrabarIntentTape, signal_bar: int, position: floa
     if not np.isfinite(current_stop):
         return candidate
     return max(current_stop, candidate) if side > 0 else min(current_stop, candidate)
+
+
+def _pending_exit(intent: IntrabarIntentTape, signal_bar: int, position: float) -> bool:
+    if position > 0.0 and intent.exit_long is not None:
+        return bool(intent.exit_long[signal_bar])
+    if position < 0.0 and intent.exit_short is not None:
+        return bool(intent.exit_short[signal_bar])
+    if intent.technical_exit is not None:
+        return bool(intent.technical_exit[signal_bar])
+    return False
+
+
+def _compile_entry_quantity(
+    *,
+    size_weight: float,
+    fill_price: float,
+    equity: float,
+    contract_size: float,
+    sizing_mode: IntrabarSizingMode,
+    fixed_notional: float,
+    equity_fraction: float,
+    risk_fraction: float,
+    stop_value: Optional[float],
+    level_mode: IntrabarLevelMode,
+    side: int,
+) -> float:
+    weight = abs(float(size_weight))
+    if sizing_mode is IntrabarSizingMode.UNITS:
+        return weight
+    if sizing_mode is IntrabarSizingMode.FIXED_NOTIONAL:
+        notional = float(fixed_notional) * weight
+        return notional / (fill_price * contract_size) if fill_price > 0.0 and contract_size > 0.0 else 0.0
+    if sizing_mode is IntrabarSizingMode.PCT_EQUITY:
+        notional = float(equity) * float(equity_fraction) * weight
+        return notional / (fill_price * contract_size) if fill_price > 0.0 and contract_size > 0.0 else 0.0
+    if sizing_mode is IntrabarSizingMode.RISK_PER_TRADE:
+        if stop_value is None or not np.isfinite(stop_value) or stop_value <= 0.0:
+            return 0.0
+        stop_price = _level_price(fill_price, side, float(stop_value), level_mode, is_stop=True)
+        stop_distance = abs(fill_price - stop_price)
+        risk_budget = float(equity) * float(risk_fraction) * weight
+        return risk_budget / (stop_distance * contract_size) if stop_distance > 0.0 and contract_size > 0.0 else 0.0
+    raise NotImplementedError(f"unsupported intrabar sizing_mode={sizing_mode!r}")
+
+
+def _validate_intrabar_contract_supported(contract: ExecutionContract) -> None:
+    from .execution_contract import (
+        AmbiguityPolicy,
+        FillPhase,
+        FundingPhase,
+        LiquidationPriority,
+        MarketFillPolicy,
+        SignalPhase,
+        StopGapPolicy,
+        TrailingUpdatePhase,
+    )
+
+    if contract.signal_phase is not SignalPhase.BAR_CLOSE:
+        raise NotImplementedError("intrabar_bracket_v1 supports signal_phase=bar_close only")
+    if contract.entry_fill_phase is not FillPhase.NEXT_OPEN:
+        raise NotImplementedError("intrabar_bracket_v1 supports entry_fill_phase=next_open only")
+    if contract.market_fill_policy is not MarketFillPolicy.NEXT_OPEN:
+        raise NotImplementedError("intrabar_bracket_v1 supports market_fill_policy=next_open only")
+    if contract.stop_gap_policy is not StopGapPolicy.OPEN_WORSE_THAN_TRIGGER:
+        raise NotImplementedError("intrabar_bracket_v1 supports stop_gap_policy=open_worse_than_trigger only")
+    if contract.trailing_update_phase is not TrailingUpdatePhase.NEXT_BAR:
+        raise NotImplementedError("intrabar_bracket_v1 supports trailing_update_phase=next_bar only")
+    if contract.funding_phase is not FundingPhase.POSITION_AT_EVENT:
+        raise NotImplementedError("intrabar_bracket_v1 supports funding_phase=position_at_event only")
+    if contract.liquidation_priority is not LiquidationPriority.LIQUIDATION_FIRST_AT_GAP:
+        raise NotImplementedError("intrabar_bracket_v1 supports liquidation_priority=liquidation_first_at_gap only")
+    if contract.ambiguity_policy not in {AmbiguityPolicy.FLAG_AND_CONSERVATIVE, AmbiguityPolicy.REJECT}:
+        raise NotImplementedError("intrabar_bracket_v1 supports ambiguity_policy flag_and_conservative or reject only")

@@ -1,0 +1,264 @@
+from dataclasses import replace
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from quantbt import (
+    AccountConfig,
+    ExecutionContract,
+    ExecutionConfig,
+    FillPhase,
+    FillReplayTape,
+    IntrabarFillReason,
+    IntrabarIntentTape,
+    IntrabarSizingMode,
+    QuantBTEndpoint,
+    StopGapPolicy,
+    prepare_market_tape,
+    run_fill_replay_kernel,
+    run_intrabar_kernel,
+    run_intrabar_reference,
+)
+
+
+def _frame(rows, *, tz="UTC"):
+    idx = pd.date_range("2024-01-01", periods=len(rows), freq="1h", tz=tz)
+    return pd.DataFrame(rows, index=idx)
+
+
+def test_phase31e_intrabar_uses_slippage_bps_as_source_of_truth():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0, "entry": 1.0},
+            {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "entry": 0.0},
+        ]
+    )
+    bt = QuantBTEndpoint.intrabar_bracket(
+        initial_capital=10_000.0,
+        execution=ExecutionConfig(slippage_bps=10.0),
+        fee_rate=0.0,
+        use_funding=False,
+        close_on_last_bar=False,
+        report_level="audit",
+    )
+
+    bt.backtest(data=df, signal_col="entry", symbols=["BTC"])
+
+    assert bt.fills_report.iloc[0]["price"] == pytest.approx(100.1)
+    assert bt.result.metadata["run_config"]["execution"]["slippage_bps"] == 10.0
+
+
+def test_phase31e_legacy_slippage_conflict_raises():
+    with pytest.raises(ValueError, match="either slippage_bps or legacy slippage"):
+        QuantBTEndpoint.intrabar_bracket(slippage=0.0001, slippage_bps=1.0)
+
+
+def test_phase31e_scalar_funding_rejected_unless_zero_policy_or_disabled():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+        ]
+    )
+    with pytest.raises(ValueError, match="strict funding"):
+        prepare_market_tape(data=df, symbols=["BTC"], funding_rate=0.0001, use_funding=True)
+
+    tape = prepare_market_tape(data=df, symbols=["BTC"], funding_rate=0.0, use_funding=True, missing_funding_policy="zero")
+    assert not tape.funding_event_mask.any()
+
+
+def test_phase31e_funding_event_applies_when_timestamp_crossed():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+        ]
+    )
+    tape = prepare_market_tape(
+        data=df,
+        symbols=["BTC"],
+        use_funding=True,
+        funding_event_timestamps=[pd.Timestamp("2024-01-01 00:30", tz="UTC")],
+        funding_event_rates=[0.001],
+    )
+
+    assert tape.funding_event_mask.tolist() == [False, True, False]
+    assert tape.funding_rates[1, 0] == pytest.approx(0.001)
+
+
+def test_phase31e_dynamic_trailing_uses_value_at_t_not_t_minus_1():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 111.0, "low": 99.0, "close": 110.0},
+            {"open": 110.0, "high": 111.0, "low": 100.0, "close": 108.0},
+        ]
+    )
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    intent = IntrabarIntentTape.from_arrays(
+        entry_side=[1, 0, 0],
+        entry_size=[1.0, 0.0, 0.0],
+        trailing_value=[0.20, 0.05, 0.05],
+    )
+
+    result = run_intrabar_reference(tape=tape, intent=intent, account=AccountConfig(initial_capital=10_000.0))
+
+    assert result.fills[1].reason is IntrabarFillReason.STOP_LOSS
+    assert result.fills[1].price == pytest.approx(104.5)
+
+
+def test_phase31e_fixed_notional_pct_equity_risk_sizing_and_qty_filters():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 102.0, "low": 98.0, "close": 101.0},
+        ]
+    )
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    intent = IntrabarIntentTape.from_arrays(entry_side=[1, 0], entry_size=[1.0, 0.0], stop_value=[0.05, np.nan])
+    account = AccountConfig(initial_capital=10_000.0, leverage=10.0)
+
+    fixed = run_intrabar_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        sizing_mode=IntrabarSizingMode.FIXED_NOTIONAL,
+        fixed_notional=1_000.0,
+        qty_step=0.25,
+        report_level="audit",
+    )
+    assert fixed.fills[0].qty == pytest.approx(10.0)
+
+    pct = run_intrabar_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        sizing_mode=IntrabarSizingMode.PCT_EQUITY,
+        equity_fraction=0.10,
+        qty_step=0.25,
+        report_level="audit",
+    )
+    assert pct.fills[0].qty == pytest.approx(10.0)
+
+    risk = run_intrabar_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        sizing_mode=IntrabarSizingMode.RISK_PER_TRADE,
+        risk_fraction=0.01,
+        qty_step=0.5,
+        report_level="audit",
+    )
+    assert risk.fills[0].qty == pytest.approx(20.0)
+
+    rejected = run_intrabar_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        sizing_mode=IntrabarSizingMode.FIXED_NOTIONAL,
+        fixed_notional=1.0,
+        min_notional=5.0,
+        report_level="audit",
+    )
+    assert rejected.rejected_count == 1
+    assert rejected.fill_count == 0
+
+
+def test_phase31e_exit_long_short_are_side_specific_and_same_side_entry_is_exit_only():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 102.0, "low": 99.0, "close": 101.0},
+            {"open": 101.0, "high": 102.0, "low": 100.0, "close": 101.0},
+        ]
+    )
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    intent = IntrabarIntentTape.from_arrays(
+        entry_side=[1, 1, 0],
+        entry_size=[1.0, 1.0, 0.0],
+        exit_long=[False, True, False],
+        exit_short=[True, False, False],
+    )
+
+    result = run_intrabar_kernel(
+        tape=tape,
+        intent=intent,
+        account=AccountConfig(initial_capital=10_000.0),
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        report_level="audit",
+    )
+
+    assert [fill.reason for fill in result.fills] == [IntrabarFillReason.ENTRY, IntrabarFillReason.TECHNICAL_EXIT]
+    assert result.position.iloc[-1] == 0.0
+
+
+def test_phase31e_strict_timezone_rejects_naive_and_localizes_source_timezone():
+    naive = pd.DataFrame(
+        [{"open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0}],
+        index=pd.date_range("2024-01-01", periods=1, freq="1h"),
+    )
+    with pytest.raises(ValueError, match="timezone-naive"):
+        prepare_market_tape(data=naive, symbols=["BTC"], use_funding=False)
+
+    tape = prepare_market_tape(data=naive, symbols=["BTC"], use_funding=False, source_timezone="Asia/Ho_Chi_Minh")
+    ts = pd.Timestamp(tape.timestamps_ns[0], tz="UTC")
+    assert ts == pd.Timestamp("2023-12-31 17:00", tz="UTC")
+
+
+def test_phase31e_unsupported_contract_field_raises():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0},
+        ]
+    )
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    intent = IntrabarIntentTape.from_arrays(entry_side=[1, 0], entry_size=[1.0, 0.0])
+    bad = replace(ExecutionContract.intrabar_bracket(), entry_fill_phase=FillPhase.SAME_CLOSE)
+
+    with pytest.raises(NotImplementedError, match="entry_fill_phase"):
+        run_intrabar_kernel(tape=tape, intent=intent, account=AccountConfig(initial_capital=10_000.0), contract=bad)
+
+
+def test_phase31e_fill_replay_certification_is_granular():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0},
+            {"open": 100.0, "high": 103.0, "low": 99.0, "close": 102.0},
+        ]
+    )
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    fills = FillReplayTape.from_frame(pd.DataFrame([{"bar_index": 1, "side": 1, "qty": 1.0, "price": 100.0, "fee": 0.0}]))
+
+    result = run_fill_replay_kernel(tape=tape, fill_tape=fills, account=AccountConfig(initial_capital=10_000.0))
+
+    assert result.metadata["price_accounting_certified"] is True
+    assert result.metadata["fee_accounting_certified"] is True
+    assert result.metadata["funding_certified"] is False
+    assert result.metadata["margin_certified"] is False
+    assert result.metadata["execution_generation_certified"] is False
+
+
+def test_phase31f_prepared_intrabar_runner_matches_normal_endpoint_and_freezes_profile():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0, "entry": 1.0, "sl": 0.05},
+            {"open": 100.0, "high": 101.0, "low": 94.0, "close": 98.0, "entry": 0.0, "sl": np.nan},
+            {"open": 98.0, "high": 99.0, "low": 97.0, "close": 98.0, "entry": 0.0, "sl": np.nan},
+        ]
+    )
+    bt = QuantBTEndpoint.intrabar_bracket(initial_capital=10_000.0, fee_rate=0.0, use_funding=False, report_level="audit")
+    normal = bt.backtest(data=df, signal_col="entry", symbols=["BTC"], intent_cols={"stop_value": "sl"})
+    runner = bt.prepare_intrabar(data=df, symbols=["BTC"])
+    intent = IntrabarIntentTape.from_arrays(entry_side=df["entry"].to_numpy(), entry_size=np.abs(df["entry"].to_numpy()), stop_value=df["sl"].to_numpy())
+    prepared = runner.run(intent, report_level="audit")
+
+    np.testing.assert_allclose(prepared.equity.to_numpy(), normal.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    assert prepared.metadata["prepared_runner"] is True
+    assert prepared.metadata["profile_metadata"]["data_signature"] == normal.metadata["data_signature"]

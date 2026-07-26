@@ -39,7 +39,7 @@ def test_phase31b_prepare_market_tape_strict_certificate_and_immutable_arrays():
         ]
     )
 
-    tape = prepare_market_tape(data=df, symbols=["BTC"], funding_rate=0.0)
+    tape = prepare_market_tape(data=df, symbols=["BTC"], funding_rate=0.0, use_funding=False)
 
     assert tape.symbols == ("BTC",)
     assert tape.validation_certificate.row_count == 2
@@ -79,8 +79,9 @@ def test_phase31b_prepare_market_tape_funding_dict_requires_symbols():
             {"open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0},
         ]
     )
+    funding = pd.Series(0.0, index=df.index)
     with pytest.raises(KeyError, match="ETH"):
-        prepare_market_tape(data={"BTC": df, "ETH": df}, funding_rate={"BTC": 0.0})
+        prepare_market_tape(data={"BTC": df, "ETH": df}, funding_rate={"BTC": funding})
 
 
 def test_phase31b_intrabar_oracle_conservative_same_bar_stop_tp_conflict():
@@ -176,7 +177,7 @@ def test_phase31b_endpoint_runs_intrabar_reference_with_compact_intent_cols():
     bt = QuantBTEndpoint.intrabar_bracket_reference(
         initial_capital=10_000.0,
         fee_rate=0.0,
-        slippage=0.0,
+        slippage_bps=0.0,
         use_funding=False,
     )
 
