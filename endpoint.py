@@ -43,7 +43,7 @@ from .core.execution_depth import (
     NautilusExecutionDepthConfig,
     simulate_nautilus_order_package_depth,
 )
-from .core.orders import OrderIntent
+from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
@@ -177,6 +177,7 @@ class EndpointConfig:
     basket: Optional[BasketSpec] = None
     arbitrage_spec: object = None
     structured_order_spec: object = None
+    event_engine_version: str = "v1"
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -299,6 +300,25 @@ class QuantBTEndpoint:
         return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
 
     @classmethod
+    def native_event_lifecycle(cls, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create an explicit native-event v2 lifecycle endpoint.
+
+        Use `simulate(..., order_commands=[OrderCommand(...), ...])` for
+        cancel/replace/amend/OCO/parent/stop/GTD lifecycle simulations. Passing
+        legacy `orders=[OrderIntent(...)]` is also accepted and converted to
+        immediate PLACE commands.
+        """
+        return cls(
+            _config_from_kwargs(
+                mode="orders",
+                backend="native_event",
+                event_engine_version="v2",
+                **kwargs,
+            )
+        )
+
+    @classmethod
     def options(
         cls,
         backend: str = "native_option",
@@ -390,6 +410,49 @@ class QuantBTEndpoint:
             _config_from_kwargs(
                 mode="nautilus_bracket_orders",
                 backend="nautilus",
+                structured_order_spec=spec,
+                symbols=[spec.symbol],
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def native_event_dca_grid(cls, spec: Optional[DcaGridSpec] = None, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a native-event v2 DCA/grid lifecycle endpoint.
+
+        The structured package is compiled into `OrderCommand` records so base,
+        safety orders, reduce-only exits, and OCO metadata are audited in
+        `command_report` and `order_events`.
+        """
+        if spec is None:
+            spec = DcaGridSpec(**_pop_dataclass_kwargs(kwargs, DcaGridSpec))
+        return cls(
+            _config_from_kwargs(
+                mode="native_event_dca_grid",
+                backend="native_event",
+                event_engine_version="v2",
+                structured_order_spec=spec,
+                symbols=[spec.symbol],
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def native_event_bracket_orders(cls, spec: Optional[BracketOrderSpec] = None, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a native-event v2 bracket/OCO lifecycle endpoint.
+
+        Entry, take-profit, and stop-loss legs are linked through parent/OCO
+        command fields and simulated by the deterministic OHLC lifecycle kernel.
+        """
+        if spec is None:
+            spec = BracketOrderSpec(**_pop_dataclass_kwargs(kwargs, BracketOrderSpec))
+        return cls(
+            _config_from_kwargs(
+                mode="native_event_bracket_orders",
+                backend="native_event",
+                event_engine_version="v2",
                 structured_order_spec=spec,
                 symbols=[spec.symbol],
                 **kwargs,
@@ -579,6 +642,13 @@ class QuantBTEndpoint:
                 "scope": "single-symbol OrderIntent replay",
                 "order_types": "market, limit, stop_market, stop_limit",
                 "notes": "preserves TIF, reduce_only, tags, price and trigger_price where Nautilus supports them",
+            },
+            "lifecycle_commands": {
+                "status": "supported_native_event_adapter_aligned",
+                "endpoint": "QuantBTEndpoint.native_event_lifecycle(...) or QuantBTEndpoint.orders(event_engine_version='v2', ...)",
+                "scope": "native-event v2 command lifecycle; Nautilus package adapter accepts executable PLACE/REPLACE payloads",
+                "order_types": "market, limit, stop_market, stop_limit plus cancel/replace/amend/cancel_all in native-event v2",
+                "notes": "Nautilus command path is payload-aligned, not exchange-native cancel/amend parity yet",
             },
             "dca_grid": {
                 "status": "experimental",
@@ -820,6 +890,7 @@ class QuantBTEndpoint:
         signal_col: Optional[str] = None,
         positions: Optional[Union[pd.DataFrame, SeriesMap]] = None,
         orders: Optional[Sequence[OrderIntent]] = None,
+        order_commands: Optional[Sequence[OrderCommand]] = None,
         basket: Optional[BasketSpec] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -910,8 +981,14 @@ class QuantBTEndpoint:
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
         if mode == "orders":
-            return self._run_orders(data=data, orders=orders, datetime_index=datetime_index, symbols=symbols)
-        if mode in ("nautilus_dca_grid", "nautilus_bracket_orders"):
+            return self._run_orders(
+                data=data,
+                orders=orders,
+                order_commands=order_commands,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        if mode in ("nautilus_dca_grid", "nautilus_bracket_orders", "native_event_dca_grid", "native_event_bracket_orders"):
             return self._run_structured_orders(data=data, datetime_index=datetime_index, symbols=symbols)
         if mode == "basket":
             return self._run_basket(
@@ -1197,16 +1274,21 @@ class QuantBTEndpoint:
         self._store_result(self.engine.result)
         return self.result
 
-    def _run_orders(self, data, orders, datetime_index, symbols):
-        if not orders:
-            raise ValueError("orders endpoint requires orders=[OrderIntent(...), ...]")
+    def _run_orders(self, data, orders, order_commands, datetime_index, symbols):
+        if not orders and not order_commands:
+            raise ValueError("orders endpoint requires orders=[OrderIntent(...)] or order_commands=[OrderCommand(...)]")
         frame, idx, _ = _normalize_single_data(data=data, signal=pd.Series(0.0, index=_infer_index(data, datetime_index)), signal_col=None, datetime_index=datetime_index)
         backend = _resolve_backend(self.config)
+        event_version = str(self.config.event_engine_version).lower().strip()
+        if order_commands is not None:
+            event_version = "v2"
         self.engine = BacktestEngineV2(
             data=frame,
             symbols=list(symbols or self.config.symbols or ["asset"]),
             backend=backend,
             orders=orders,
+            order_commands=order_commands,
+            event_engine_version=event_version,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -1238,21 +1320,56 @@ class QuantBTEndpoint:
         else:
             raise TypeError(f"unsupported structured_order_spec={type(spec).__name__}")
 
-        result = self._run_nautilus_package_orders(
-            data={spec.symbol: frame},
-            orders=plan.orders,
-            symbols=[spec.symbol],
-            params={
-                "input_mode": plan.package_type,
-                "structured_order_plan": plan,
-                "structured_order_table": plan.order_table,
-                "package_id": plan.package_id,
-                "package_type": plan.package_type,
-                "package_metadata": plan.metadata,
-                "order_count_input": len(plan.orders),
-            },
-        )
-        result.metadata["engine"] = f"nautilus_{plan.package_type}"
+        params = {
+            "input_mode": plan.package_type,
+            "structured_order_plan": plan,
+            "structured_order_table": plan.order_table,
+            "package_id": plan.package_id,
+            "package_type": plan.package_type,
+            "package_metadata": plan.metadata,
+            "order_count_input": len(plan.orders),
+        }
+        backend = _resolve_backend(self.config)
+        if backend == "native_event":
+            commands = order_intents_to_lifecycle_commands(plan.orders)
+            self.engine = BacktestEngineV2(
+                data=frame,
+                symbols=[spec.symbol],
+                backend="native_event",
+                order_commands=commands,
+                event_engine_version="v2",
+                account=self.config.account,
+                execution=self.config.execution,
+                fee_rate=self.config.v2_fee_rate,
+                use_funding=self.config.use_funding,
+                funding_rate=self.config.funding_rate,
+                contract_size=self.config.contract_size,
+                instruments=self.config.instruments,
+                qty_step=self.config.qty_step,
+                lot_size=self.config.lot_size,
+                slot_size=self.config.slot_size,
+                min_qty=self.config.min_qty,
+                min_notional=self.config.min_notional,
+            )
+            result = self.engine.result
+            result.metadata.update(
+                {
+                    **params,
+                    "engine": f"event_v2_{plan.package_type}",
+                    "lifecycle_command_count": len(commands),
+                    "lifecycle_commands": commands,
+                }
+            )
+        elif backend == "nautilus":
+            result = self._run_nautilus_package_orders(
+                data={spec.symbol: frame},
+                orders=plan.orders,
+                symbols=[spec.symbol],
+                params=params,
+            )
+            result.metadata["engine"] = f"nautilus_{plan.package_type}"
+        else:
+            raise ValueError(f"structured order endpoints require backend='native_event' or 'nautilus', got {backend!r}")
         self._store_result(result)
         return self.result
 
