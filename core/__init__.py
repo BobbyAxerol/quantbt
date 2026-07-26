@@ -3,7 +3,16 @@ from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
 from .results      import BacktestResultV2
-from .orders       import BasketIntent, Fill, OrderIntent, Trade
+from .orders       import (
+    BasketIntent,
+    Fill,
+    OrderAction,
+    OrderActivationPolicy,
+    OrderCommand,
+    OrderIntent,
+    Trade,
+    order_intents_to_lifecycle_commands,
+)
 from .basket       import FrozenBasketPlan, build_frozen_basket_orders
 from .execution_depth import (
     NautilusExecutionDepthConfig,
@@ -131,6 +140,9 @@ __all__ = [
     "MarginModelKind",
     "NautilusExecutionDepthConfig",
     "OmsMode",
+    "OrderAction",
+    "OrderActivationPolicy",
+    "OrderCommand",
     "OrderIntent",
     "OrderSide",
     "OrderType",
@@ -156,6 +168,7 @@ __all__ = [
     "build_bracket_order_plan",
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
+    "order_intents_to_lifecycle_commands",
     "round_down_to_step",
     "SUPPORTED_DEPTH_MODELS",
     "l2_replay_available",

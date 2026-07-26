@@ -521,16 +521,84 @@ Input requirement:
 - `orders`: list of `OrderIntent`;
 - `symbols`: should contain the symbols used by the orders.
 
-Order fields:
+`OrderIntent` fields:
 
 - `timestamp`: bar timestamp;
 - `symbol`: instrument name;
 - `side`: `OrderSide.BUY` or `OrderSide.SELL`;
-- `order_type`: `MARKET`, `LIMIT`, `STOP_MARKET`, or `STOP_LIMIT`;
+- `order_type`: `MARKET` or `LIMIT` on the current native-event v1 route;
 - `qty`: positive quantity;
 - `price`: required for limit orders;
-- `trigger_price`: required for stop orders;
 - `tif`: `GTC`, `IOC`, `FOK`, or `GTD`.
+
+Lifecycle-v2 contract:
+
+```python
+from quantbt import OrderAction, OrderCommand
+
+commands = [
+    OrderCommand(
+        timestamp=df.index[10],
+        action=OrderAction.PLACE,
+        symbol="ETHUSDT",
+        side=OrderSide.BUY,
+        order_type=OrderType.STOP_LIMIT,
+        qty=3.0,
+        price=1795.0,
+        trigger_price=1800.0,
+        order_id="entry-stop-limit",
+        oco_group_id="eth-grid-1",
+    ),
+    OrderCommand(
+        timestamp=df.index[12],
+        action=OrderAction.CANCEL,
+        target_order_id="entry-stop-limit",
+    ),
+]
+```
+
+Phase 30C exposes this through `QuantBTEndpoint.native_event_lifecycle(...)`
+and through `QuantBTEndpoint.orders(..., event_engine_version="v2")`. Existing
+`QuantBTEndpoint.orders(...)` calls still default to the v1 `OrderIntent`
+route.
+
+```python
+from quantbt import AccountConfig, NativeEventBackend, NativeEventConfig
+
+backend = NativeEventBackend(
+    NativeEventConfig(account=AccountConfig(initial_capital=100_000, leverage=5))
+)
+
+result = backend.run_order_commands(
+    datetime_index=df.index,
+    commands=commands,
+    closes={"ETHUSDT": df["close"]},
+    highs={"ETHUSDT": df["high"]},
+    lows={"ETHUSDT": df["low"]},
+    symbols=["ETHUSDT"],
+)
+
+result.metadata["command_report"]
+result.metadata["order_events"]
+result.metadata["active_orders"]
+```
+
+Endpoint equivalent:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = bt.simulate(
+    data=df,
+    order_commands=commands,
+    symbols=["ETHUSDT"],
+)
+```
 
 Execution rules:
 
@@ -584,6 +652,30 @@ stop-market, and stop-limit order factory mapping when Nautilus exposes the
 route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
 reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
 higher-level adapters that compile into this explicit-order replay path.
+
+Lifecycle commands with Nautilus:
+
+- `QuantBTEndpoint.orders(backend="nautilus")` accepts `order_commands`;
+- executable `PLACE` and `REPLACE` commands are converted to Nautilus package
+  `OrderIntent` payloads;
+- native lifecycle-only actions such as `CANCEL` and `AMEND` remain audited by
+  native-event v2 and are not exchange-native Nautilus command objects yet.
+
+Native structured lifecycle endpoints:
+
+```python
+bt = QuantBTEndpoint.native_event_bracket_orders(
+    spec=bracket_spec,
+    initial_capital=100_000,
+    leverage=5,
+)
+result = bt.simulate(data=df)
+result.metadata["command_report"]
+result.metadata["order_events"]
+
+grid_bt = QuantBTEndpoint.native_event_dca_grid(spec=dca_grid_spec)
+grid_result = grid_bt.simulate(data=df)
+```
 
 Package execution-depth preflight:
 

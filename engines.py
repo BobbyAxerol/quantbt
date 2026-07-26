@@ -23,7 +23,7 @@ from .backends import (
     NativeVectorizedBackend,
     NativeVectorizedConfig,
 )
-from .core.orders import OrderIntent
+from .core.orders import OrderAction, OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
@@ -65,6 +65,8 @@ class BacktestEngineV2:
         positions: Optional[Union[pd.Series, SeriesMap]] = None,
         target_units: Optional[Union[pd.Series, SeriesMap]] = None,
         orders: Optional[Sequence[OrderIntent]] = None,
+        order_commands: Optional[Sequence[OrderCommand]] = None,
+        event_engine_version: str = "v1",
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -101,6 +103,8 @@ class BacktestEngineV2:
         self.positions = positions
         self.target_units = target_units
         self.orders = tuple(orders or ())
+        self.order_commands = tuple(order_commands or ())
+        self.event_engine_version = str(event_engine_version).lower().strip()
         self.datetime_index = datetime_index
         self.closes = closes
         self.highs = highs
@@ -224,6 +228,44 @@ class BacktestEngineV2:
                 min_notional=self.min_notional,
             )
 
+        if self.order_commands or self.event_engine_version in {"v2", "event_v2", "lifecycle", "lifecycle_v2"}:
+            commands = self.order_commands
+            if not commands and self.orders:
+                commands = order_intents_to_lifecycle_commands(self.orders)
+            if not commands:
+                raw_positions = self.positions if self.positions is not None else self.signals
+                if raw_positions is None:
+                    raise ValueError("native_event v2 requires order_commands, orders, signals, positions, or a basket")
+                generated_orders = tuple(
+                    _build_market_rebalance_orders(
+                        datetime_index=idx,
+                        positions=_as_series_map(raw_positions, symbols),
+                        closes=closes,
+                        alloc_per_trade=self.alloc_per_trade,
+                        hedge_type=self.hedge_type,
+                        use_pyramiding=self.use_pyramiding,
+                        symbols=symbols,
+                    )
+                )
+                commands = order_intents_to_lifecycle_commands(generated_orders)
+            return backend.run_order_commands(
+                datetime_index=idx,
+                commands=commands,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=self.funding_rate,
+                contract_size=self.contract_size,
+                leverage=self.leverage,
+                symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
+            )
+
         orders = self.orders
         if not orders:
             raw_positions = self.positions if self.positions is not None else self.signals
@@ -265,8 +307,13 @@ class BacktestEngineV2:
         trade_notional = self.alloc_per_trade if not isinstance(self.alloc_per_trade, dict) else next(
             iter(self.alloc_per_trade.values())
         )
-        if self.orders:
+        if self.orders or self.order_commands:
             idx, closes, highs, lows, symbols = self._market_data()
+            package_orders = self.orders
+            input_mode = "explicit_orders"
+            if self.order_commands:
+                package_orders = _commands_to_package_order_intents(self.order_commands)
+                input_mode = "lifecycle_commands"
             data = _frames_for_nautilus(
                 data=self.data,
                 datetime_index=idx,
@@ -292,14 +339,17 @@ class BacktestEngineV2:
                 )
             else:
                 config = replace(config, **updates)
+            package_params = {
+                "input_mode": input_mode,
+                "order_count_input": int(len(package_orders)),
+            }
+            if self.order_commands:
+                package_params["command_count_input"] = int(len(self.order_commands))
             return NautilusBacktestEngine(config).run_order_packages(
                 data=data,
-                orders=self.orders,
+                orders=package_orders,
                 symbols=symbols,
-                params={
-                    "input_mode": "explicit_orders",
-                    "order_count_input": int(len(self.orders)),
-                },
+                params=package_params,
             )
 
         data = _single_frame(self.data)
@@ -817,6 +867,41 @@ def _per_symbol_mapping(value, symbols: List[str], default: float) -> Dict[str, 
     if isinstance(value, dict):
         return {s: float(value.get(s, default)) for s in symbols}
     return {s: float(value) for s in symbols}
+
+
+def _commands_to_package_order_intents(commands: Sequence[OrderCommand]) -> Tuple[OrderIntent, ...]:
+    orders: List[OrderIntent] = []
+    for command in commands:
+        if command.action not in (OrderAction.PLACE, OrderAction.REPLACE):
+            continue
+        if command.symbol is None or command.side is None or command.order_type is None or command.qty is None:
+            continue
+        metadata = {
+            **dict(command.metadata),
+            "command_action": command.action.value,
+            "target_order_id": command.target_order_id,
+            "parent_order_id": command.parent_order_id,
+            "group_id": command.group_id,
+            "oco_group_id": command.oco_group_id,
+            "activation_policy": command.activation_policy.value,
+        }
+        orders.append(
+            OrderIntent(
+                timestamp=command.timestamp,
+                symbol=command.symbol,
+                side=command.side,
+                order_type=command.order_type,
+                qty=float(command.qty),
+                price=command.price,
+                trigger_price=command.trigger_price,
+                tif=command.tif,
+                reduce_only=command.reduce_only,
+                order_id=command.order_id,
+                tag=command.tag,
+                metadata=metadata,
+            )
+        )
+    return tuple(orders)
 
 
 def _first_signal(value: Optional[Union[pd.Series, SeriesMap]]) -> Optional[pd.Series]:
