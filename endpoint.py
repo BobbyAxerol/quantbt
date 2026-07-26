@@ -178,6 +178,7 @@ class EndpointConfig:
     arbitrage_spec: object = None
     structured_order_spec: object = None
     event_engine_version: str = "v1"
+    reactive_execution_mode: str = "fast"
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -312,6 +313,24 @@ class QuantBTEndpoint:
         return cls(
             _config_from_kwargs(
                 mode="orders",
+                backend="native_event",
+                event_engine_version="v2",
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def native_event_strategy(cls, **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a reactive native-event v2 strategy endpoint.
+
+        Use `simulate(data=df, strategy=obj)` where `obj` optionally implements
+        `initialize(context)`, `on_bar_close(context)`, and `finalize(context)`.
+        Commands emitted by callbacks become effective from the next bar.
+        """
+        return cls(
+            _config_from_kwargs(
+                mode="native_event_strategy",
                 backend="native_event",
                 event_engine_version="v2",
                 **kwargs,
@@ -650,6 +669,13 @@ class QuantBTEndpoint:
                 "order_types": "market, limit, stop_market, stop_limit plus cancel/replace/amend/cancel_all in native-event v2",
                 "notes": "Nautilus command path is payload-aligned, not exchange-native cancel/amend parity yet",
             },
+            "reactive_strategy": {
+                "status": "supported_native_event_mvp",
+                "endpoint": "QuantBTEndpoint.native_event_strategy(...)",
+                "scope": "on_bar_close strategy callbacks emitting next-bar OrderCommand objects",
+                "order_types": "native-event v2 lifecycle commands",
+                "notes": "Phase 30D replay-backed MVP with captured command tape and static replay parity; incremental session is Phase 30E",
+            },
             "dca_grid": {
                 "status": "experimental",
                 "endpoint": "QuantBTEndpoint.nautilus_dca_grid(...)",
@@ -891,6 +917,7 @@ class QuantBTEndpoint:
         positions: Optional[Union[pd.DataFrame, SeriesMap]] = None,
         orders: Optional[Sequence[OrderIntent]] = None,
         order_commands: Optional[Sequence[OrderCommand]] = None,
+        strategy=None,
         basket: Optional[BasketSpec] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -985,6 +1012,13 @@ class QuantBTEndpoint:
                 data=data,
                 orders=orders,
                 order_commands=order_commands,
+                datetime_index=datetime_index,
+                symbols=symbols,
+            )
+        if mode == "native_event_strategy":
+            return self._run_native_event_strategy(
+                data=data,
+                strategy=strategy,
                 datetime_index=datetime_index,
                 symbols=symbols,
             )
@@ -1289,6 +1323,39 @@ class QuantBTEndpoint:
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
+            account=self.config.account,
+            execution=self.config.execution,
+            fee_rate=self.config.v2_fee_rate,
+            use_funding=self.config.use_funding,
+            funding_rate=self.config.funding_rate,
+            contract_size=self.config.contract_size,
+            instruments=self.config.instruments,
+            qty_step=self.config.qty_step,
+            lot_size=self.config.lot_size,
+            slot_size=self.config.slot_size,
+            min_qty=self.config.min_qty,
+            min_notional=self.config.min_notional,
+        )
+        self._store_result(self.engine.result)
+        return self.result
+
+    def _run_native_event_strategy(self, data, strategy, datetime_index, symbols):
+        if strategy is None:
+            raise ValueError("native_event_strategy endpoint requires strategy=...")
+        frame, idx, _ = _normalize_single_data(
+            data=data,
+            signal=pd.Series(0.0, index=_infer_index(data, datetime_index)),
+            signal_col=None,
+            datetime_index=datetime_index,
+        )
+        symbol_list = list(symbols or self.config.symbols or ["asset"])
+        self.engine = BacktestEngineV2(
+            data=frame,
+            symbols=symbol_list,
+            backend="native_event",
+            strategy=strategy,
+            event_engine_version="v2",
+            reactive_execution_mode=self.config.reactive_execution_mode,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,

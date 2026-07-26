@@ -667,7 +667,20 @@ def _engine_event_v2(
                         (active[target] == 1 or waiting_parent[target] == 1)
                         and command_status[target] == ORDER_STATUS_PENDING
                     ):
-                        if command_symbol[k] < 0 or command_symbol[k] == command_symbol[target]:
+                        if (
+                            (command_symbol[k] < 0 or command_symbol[k] == command_symbol[target])
+                            and (command_side[k] == 0 or command_side[k] == command_side[target])
+                            and (command_type[k] < 0 or command_type[k] == command_type[target])
+                            and (
+                                command_parent_order_id[k] < 0
+                                or command_parent_order_id[k] == command_parent_order_id[target]
+                            )
+                            and (command_group_id[k] < 0 or command_group_id[k] == command_group_id[target])
+                            and (
+                                command_oco_group_id[k] < 0
+                                or command_oco_group_id[k] == command_oco_group_id[target]
+                            )
+                        ):
                             active[target] = 0
                             waiting_parent[target] = 0
                             command_status[target] = ORDER_STATUS_CANCELED

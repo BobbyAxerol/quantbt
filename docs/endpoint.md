@@ -677,6 +677,88 @@ grid_bt = QuantBTEndpoint.native_event_dca_grid(spec=dca_grid_spec)
 grid_result = grid_bt.simulate(data=df)
 ```
 
+Reactive native-event strategy:
+
+```python
+from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
+
+class DynamicGridStrategy:
+    def initialize(self, context):
+        return []
+
+    def on_bar_close(self, context):
+        # Context is post-bar and read-only. Fills, positions and active orders
+        # come from QuantBT, not from strategy-side fill simulation.
+        if context.bar_index == 0:
+            qty = context.size_order("ETHUSDT", notional=1_000, price=context.close[0] * 0.99)
+            return [
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol="ETHUSDT",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.LIMIT,
+                    qty=qty,
+                    price=context.close[0] * 0.99,
+                    tif=TimeInForce.GTC,
+                    order_id="grid-c1-l1",
+                    metadata={"campaign_id": "c1", "level_id": "l1"},
+                )
+            ]
+        return []
+
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    reactive_execution_mode="fast",
+)
+
+result = bt.simulate(
+    data=df,
+    strategy=DynamicGridStrategy(),
+    symbols=["ETHUSDT"],
+)
+
+tape = result.metadata["emitted_command_tape"]
+replay = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+).simulate(data=df, order_commands=tape, symbols=["ETHUSDT"])
+```
+
+Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
+retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
+strategy just observed. Phase 30E uses an incremental callback session for
+speed, then replays the emitted command tape once through the certified
+event-v2 lifecycle kernel for final accounting, fills, margin, liquidation and
+reports.
+
+Reactive metadata:
+
+```python
+result.metadata["reactive_context_builder"]       # "incremental_session_v1"
+result.metadata["reactive_incremental_compile_replays"]  # 0
+result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
+```
+
+Scoped cancel-all:
+
+```python
+OrderCommand(
+    timestamp=context.timestamp,
+    action=OrderAction.CANCEL_ALL,
+    symbol="ETHUSDT",
+    tag_prefix="GRID-C12",
+)
+```
+
+Static lifecycle replay supports scoped `CANCEL_ALL` by symbol, side,
+order type, parent order id, group id and OCO group id. Reactive strategies can
+also scope by exact tag, tag prefix, campaign id, cycle id and level id; the
+runner expands those string scopes into target `CANCEL` commands before final
+kernel replay.
+
 Package execution-depth preflight:
 
 ```python
