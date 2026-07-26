@@ -663,7 +663,10 @@ def _engine_event_v2(
                     )
             elif action == COMMAND_ACTION_CANCEL_ALL:
                 for target in range(n_commands):
-                    if active[target] == 1 and command_status[target] == ORDER_STATUS_PENDING:
+                    if (
+                        (active[target] == 1 or waiting_parent[target] == 1)
+                        and command_status[target] == ORDER_STATUS_PENDING
+                    ):
                         if command_symbol[k] < 0 or command_symbol[k] == command_symbol[target]:
                             active[target] = 0
                             waiting_parent[target] = 0

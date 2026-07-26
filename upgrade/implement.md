@@ -3344,10 +3344,27 @@ Implemented:
 
 Latest tests:
 
-- Phase 30A/30B lifecycle tests: `13 passed`.
+- Phase 30A/30B lifecycle tests: `18 passed`.
 - Native-event v1 parity/performance tests: `11 passed`.
 - Simple market/limit v1-v2 parity test: passed inside Phase 30B suite.
-- Full non-real regression: `408 passed, 1 skipped, 3 warnings`.
+- Full non-real regression: `413 passed, 1 skipped, 3 warnings`.
+
+Additional locked domain cases:
+
+- cancel prevents later GTC fill;
+- replace cancels old slot and fills replacement;
+- amend updates working limit before matching;
+- stop-market trigger fill;
+- stop-limit trigger plus limit-touch fill;
+- cancel-all cancels active and parent-waiting orders;
+- parent-child bracket activation with OCO sibling cancel;
+- reduce-only no-op cancel without opposite position;
+- reduce-only clipping to existing position size;
+- margin rejection above buying power;
+- DCA/grid-style base plus safety limit fills at grid prices;
+- GTD expiry before later touch;
+- unfilled GTC active snapshot;
+- v1-v2 market/limit parity.
 
 Technical debt after Phase 30B:
 
