@@ -44,6 +44,13 @@ from .core.execution_depth import (
     NautilusExecutionDepthConfig,
     simulate_nautilus_order_package_depth,
 )
+from .core.execution_contract import ExecutionContract
+from .core.intrabar_reference import (
+    IntrabarIntentTape,
+    IntrabarLevelMode,
+    run_intrabar_reference,
+)
+from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
@@ -276,6 +283,43 @@ class QuantBTEndpoint:
         you want generated market rebalance orders and fill records.
         """
         return cls(_config_from_kwargs(mode="signal_notional", sizing="signal_notional", backend=backend, **kwargs))
+
+    @classmethod
+    def intrabar_bracket_reference(
+        cls,
+        *,
+        level_mode: Union[str, IntrabarLevelMode] = IntrabarLevelMode.PERCENT_DISTANCE,
+        close_on_last_bar: bool = True,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create the Phase 31B readable intrabar reference endpoint.
+
+        This endpoint is the causal Python oracle for `intrabar_bracket_v1`.
+        Strategy output can stay compact: pass a signed `signal`/`signal_col`
+        where positive means long entry size, negative means short entry size,
+        and zero means no new entry. Optional stop, take-profit, trailing, and
+        technical-exit arrays are supplied through `intent_cols` at run time.
+
+        It is intentionally not the future Numba production kernel. Use it to
+        verify SL/TP/trailing/reversal semantics and audit fill timing before
+        promoting an alpha to the fast intrabar backend.
+        """
+        metadata = dict(kwargs.pop("metadata", {}))
+        mode_value = level_mode.value if hasattr(level_mode, "value") else str(level_mode)
+        metadata.setdefault("intrabar_level_mode", mode_value)
+        metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
+        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
+        metadata.setdefault("execution_contract", contract.to_metadata())
+        return cls(
+            _config_from_kwargs(
+                mode="intrabar_bracket_reference",
+                backend="intrabar_reference",
+                sizing="intrabar_intent",
+                metadata=metadata,
+                **kwargs,
+            )
+        )
 
     @classmethod
     def dca_ladder(cls, **kwargs) -> "QuantBTEndpoint":
@@ -932,6 +976,8 @@ class QuantBTEndpoint:
         instruments: Optional[Union[OptionInstrumentRegistry, Sequence[OptionInstrumentSpec], Dict[str, OptionInstrumentSpec]]] = None,
         packages: Optional[Sequence[OptionPackageIntent]] = None,
         strategy_run: Optional[OptionStrategyRun] = None,
+        intent: Optional[IntrabarIntentTape] = None,
+        intent_cols: Optional[Dict[str, str]] = None,
         underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
         hedge_policy: Optional[OptionHedgeConfig] = None,
         net_option_delta: Optional[pd.Series] = None,
@@ -1005,6 +1051,16 @@ class QuantBTEndpoint:
                 hedge_ratios=hedge_ratios,
                 datetime_index=datetime_index,
                 symbols=symbols,
+            )
+        if mode == "intrabar_bracket_reference":
+            return self._run_intrabar_bracket_reference(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                intent=intent,
+                intent_cols=intent_cols,
             )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
@@ -1248,6 +1304,85 @@ class QuantBTEndpoint:
             prepared_cache=prepared_cache,
         )
         self._store_result(self.engine.result)
+        return self.result
+
+    def _run_intrabar_bracket_reference(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols):
+        symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        if len(symbol_list) != 1:
+            raise ValueError("intrabar_bracket_reference currently supports exactly one symbol")
+        symbol = symbol_list[0]
+        tape = prepare_market_tape(
+            data=data,
+            datetime_index=datetime_index,
+            symbols=symbol_list,
+            funding_rate=self.config.funding_rate,
+            use_funding=self.config.use_funding,
+            validation_mode="strict",
+        )
+        lookup_frame = None if isinstance(data, PreparedMarketTape) else _strict_lookup_frame(data, datetime_index)
+        if intent is None:
+            level_mode = IntrabarLevelMode(str(self.config.metadata.get("intrabar_level_mode", IntrabarLevelMode.PERCENT_DISTANCE.value)))
+            intent = _intrabar_intent_from_endpoint_input(
+                frame=lookup_frame,
+                index=pd.DatetimeIndex(pd.to_datetime(tape.timestamps_ns, utc=True)),
+                signal=signal,
+                signal_col=signal_col,
+                intent_cols=intent_cols or {},
+                level_mode=level_mode,
+            )
+        contract_meta = dict(self.config.metadata.get("execution_contract") or {})
+        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
+        oracle = run_intrabar_reference(
+            tape=tape,
+            intent=intent,
+            account=self.config.account,
+            contract=contract,
+            fee_rate=self.config.v2_fee_rate,
+            slippage_rate=float(self.config.slippage),
+            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+        )
+        idx = oracle.equity.index
+        returns = oracle.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        diagnostics = pd.DataFrame(
+            {
+                "average_entry": oracle.average_entry,
+                "active_stop": oracle.active_stop,
+                "active_take_profit": oracle.active_take_profit,
+                "event_flags": oracle.event_flags,
+                "fees": oracle.fees,
+                "funding": oracle.funding,
+            },
+            index=idx,
+        )
+        metadata = {
+            **oracle.metadata,
+            "backend": "intrabar_reference",
+            "backend_alias": "intrabar_bracket_reference",
+            "engine_id": "intrabar_reference_v1",
+            "input_mode": "intrabar_intent",
+            "symbol": symbol,
+            "validation_certificate": asdict(tape.validation_certificate),
+            "strict_market_tape": True,
+            "phase": "31B_python_reference_oracle",
+            "fills_report": _intrabar_fills_to_frame(oracle.fills),
+            "positions_report": pd.DataFrame({f"Position_{symbol}": oracle.position}, index=idx),
+        }
+        result = BacktestResultV2(
+            equity=oracle.equity,
+            returns=returns,
+            positions=pd.DataFrame({f"Position_{symbol}": oracle.position.to_numpy(dtype=float)}, index=idx),
+            closes=pd.DataFrame({f"Close_{symbol}": tape.closes[:, 0]}, index=idx),
+            symbols=[symbol],
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            fills=oracle.fills,
+            fees=oracle.fees,
+            funding=oracle.funding,
+            diagnostics=diagnostics,
+            metadata=metadata,
+        )
+        self.engine = oracle
+        self._store_result(result)
         return self.result
 
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
@@ -2899,6 +3034,127 @@ def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> End
     if mode == "portfolio":
         return replace(config, mode="portfolio", backend="native_portfolio")
     raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
+
+
+def _strict_lookup_frame(data, datetime_index=None) -> pd.DataFrame:
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("intrabar endpoint requires a DataFrame when intent is not supplied explicitly")
+    frame = data.copy().rename(
+        columns={
+            "Datetime": "timestamp",
+            "Date": "timestamp",
+            "Timestamp": "timestamp",
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+            "Volume": "volume",
+        }
+    )
+    if datetime_index is not None:
+        frame.index = pd.DatetimeIndex(pd.to_datetime(datetime_index, errors="raise", utc=True))
+    elif "timestamp" in frame.columns:
+        frame = frame.set_index(pd.to_datetime(frame["timestamp"], errors="raise", utc=True))
+    else:
+        frame.index = pd.DatetimeIndex(pd.to_datetime(frame.index, errors="raise", utc=True))
+    return frame
+
+
+def _intrabar_intent_from_endpoint_input(
+    *,
+    frame: Optional[pd.DataFrame],
+    index: pd.DatetimeIndex,
+    signal,
+    signal_col: Optional[str],
+    intent_cols: Dict[str, str],
+    level_mode: IntrabarLevelMode,
+) -> IntrabarIntentTape:
+    signed_signal = None
+    if signal is not None:
+        signed_signal = _strict_series_values(signal, index, name="signal")
+    elif signal_col is not None:
+        signed_signal = _strict_frame_col_values(frame, index, signal_col, dtype=float)
+    elif "entry_signal" in intent_cols:
+        signed_signal = _strict_frame_col_values(frame, index, intent_cols["entry_signal"], dtype=float)
+    elif "signal" in intent_cols:
+        signed_signal = _strict_frame_col_values(frame, index, intent_cols["signal"], dtype=float)
+
+    if "entry_side" in intent_cols:
+        entry_side = np.sign(_strict_frame_col_values(frame, index, intent_cols["entry_side"], dtype=float)).astype(np.int8)
+    elif signed_signal is not None:
+        entry_side = np.sign(signed_signal).astype(np.int8)
+    else:
+        raise ValueError("intrabar endpoint requires signal/signal_col or intent_cols['entry_side']")
+
+    if "entry_size" in intent_cols:
+        entry_size = np.abs(_strict_frame_col_values(frame, index, intent_cols["entry_size"], dtype=float))
+    elif signed_signal is not None:
+        entry_size = np.abs(signed_signal)
+    else:
+        raise ValueError("intrabar endpoint requires intent_cols['entry_size'] when no signed signal is supplied")
+
+    return IntrabarIntentTape.from_arrays(
+        entry_side=entry_side,
+        entry_size=entry_size,
+        stop_value=_optional_intent_col(frame, index, intent_cols, "stop_value"),
+        take_profit_value=_optional_intent_col(frame, index, intent_cols, "take_profit_value"),
+        trailing_value=_optional_intent_col(frame, index, intent_cols, "trailing_value"),
+        technical_exit=_optional_intent_col(frame, index, intent_cols, "technical_exit", dtype=bool),
+        level_mode=level_mode,
+    )
+
+
+def _strict_series_values(series, index: pd.DatetimeIndex, *, name: str) -> np.ndarray:
+    if not isinstance(series, pd.Series):
+        series = pd.Series(series, index=index)
+    s = series.copy()
+    s.index = pd.DatetimeIndex(pd.to_datetime(s.index, errors="raise", utc=True))
+    if not s.index.equals(index):
+        raise ValueError(f"{name} index must exactly match the strict market tape index")
+    return pd.to_numeric(s, errors="raise").to_numpy(dtype=np.float64)
+
+
+def _strict_frame_col_values(frame: Optional[pd.DataFrame], index: pd.DatetimeIndex, col: str, *, dtype=float) -> np.ndarray:
+    if frame is None:
+        raise ValueError(f"intent column {col!r} requires DataFrame data")
+    if col not in frame.columns:
+        raise ValueError(f"intent column {col!r} not found in data")
+    if not pd.DatetimeIndex(frame.index).equals(index):
+        raise ValueError(f"intent column {col!r} index must exactly match the strict market tape index")
+    if dtype is bool:
+        return frame[col].fillna(False).astype(bool).to_numpy(dtype=np.bool_)
+    return pd.to_numeric(frame[col], errors="raise").to_numpy(dtype=np.float64)
+
+
+def _optional_intent_col(frame: Optional[pd.DataFrame], index: pd.DatetimeIndex, cols: Dict[str, str], key: str, *, dtype=float):
+    col = cols.get(key)
+    if col is None:
+        return None
+    return _strict_frame_col_values(frame, index, col, dtype=dtype)
+
+
+def _scalar_for_symbol(value, symbol: str, default: float = 1.0) -> float:
+    if isinstance(value, dict):
+        return float(value.get(symbol, default))
+    return float(default if value is None else value)
+
+
+def _intrabar_fills_to_frame(fills) -> pd.DataFrame:
+    rows = []
+    for fill in fills:
+        rows.append(
+            {
+                "bar_index": int(fill.bar_index),
+                "sequence": int(fill.sequence),
+                "timestamp": pd.Timestamp(fill.timestamp),
+                "side": int(fill.side),
+                "qty": float(fill.qty),
+                "price": float(fill.price),
+                "fee": float(fill.fee),
+                "reason": fill.reason.value if hasattr(fill.reason, "value") else str(fill.reason),
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def _slice_wf_data_to_index(data, index: pd.DatetimeIndex):

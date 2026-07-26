@@ -4421,7 +4421,8 @@ Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `g
 
 ## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
 
-Status: active. Phase 31A completed on `feat/31-execution-correctness-intrabar`.
+Status: active. Phase 31A completed; Phase 31B implemented on
+`feat/31-execution-correctness-intrabar`.
 
 Source design document:
 
@@ -4583,6 +4584,51 @@ Acceptance:
 - Oracle is readable and becomes the internal truth model.
 - Prepared and non-prepared market inputs produce identical canonical arrays.
 - No Numba intrabar kernel is promoted until oracle tests are stable.
+
+Implementation notes after Phase 31B:
+
+- Added `core/execution_contract.py` with the execution contract registry:
+  `close_target_v2`, `next_open_v1`, `intrabar_bracket_v1`,
+  `fill_replay_v1`, and `event_lifecycle_v2`.
+- Added `core/market_tape.py` with strict immutable `PreparedMarketTape` and
+  `MarketValidationCertificate`.
+  - It rejects unsorted or duplicate timestamps.
+  - It rejects missing OHLC, NaN/inf, invalid OHLC invariants, non-positive
+    prices, and negative volume.
+  - It does not sort, deduplicate, forward-fill, back-fill, or synthesize
+    high/low from close.
+  - Funding dicts must explicitly cover every symbol.
+- Added `core/intrabar_reference.py` as the readable single-symbol truth model
+  for `intrabar_bracket_v1`.
+  - Signal at close becomes executable at next open.
+  - Stops are gap-aware.
+  - Take-profit is limit-conservative by default.
+  - Same-bar SL/TP ambiguity is flagged and conservatively resolved.
+  - Trailing updates are effective from the next bar, not the same bar.
+  - Reversal pays two explicit legs: exit old position and enter new position.
+  - Optional final close is controlled by the execution contract.
+- Added public exports from `quantbt` and `quantbt.core`.
+- Added `QuantBTEndpoint.intrabar_bracket_reference(...)`.
+  - The endpoint accepts a compact signed `signal` / `signal_col` where sign is
+    side and absolute value is entry quantity.
+  - Optional SL/TP/trailing/technical-exit columns are mapped through
+    `intent_cols` instead of requiring a wide fixed strategy schema.
+  - The endpoint returns `BacktestResultV2`, normalized `fills_report`,
+    diagnostics, validation certificate, and normal `show_metrics()` /
+    `full_report()` compatibility.
+
+Validation after Phase 31B:
+
+- `tests/test_phase31b_market_tape_intrabar_oracle.py`: strict tape,
+  execution-contract registry, funding dict strictness, same-bar ambiguity,
+  next-bar trailing, reversal double-fee accounting, and public endpoint smoke.
+
+Remaining for Phase 31C:
+
+- Promote the oracle semantics into a Numba fast intrabar kernel.
+- Add sparse audit ledger / second-pass fill replay.
+- Add parity tests between oracle, native event, and the new Numba kernel.
+- Add benchmark gates for `minimal`, `standard`, and `audit` report levels.
 
 ### Phase 31C - Numba Fast Intrabar Kernel, Audit Ledger, And Fill Replay
 
