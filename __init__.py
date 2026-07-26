@@ -90,7 +90,16 @@ from .backends   import (
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
 from .core.results import BacktestResultV2, OptionBacktestResult
-from .core.orders import BasketIntent, Fill, OrderAction, OrderActivationPolicy, OrderCommand, OrderIntent, Trade
+from .core.orders import (
+    BasketIntent,
+    Fill,
+    OrderAction,
+    OrderActivationPolicy,
+    OrderCommand,
+    OrderIntent,
+    Trade,
+    order_intents_to_lifecycle_commands,
+)
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
     NautilusExecutionDepthConfig,
@@ -557,6 +566,7 @@ __all__ = [
     "build_quantity_constraints",
     "build_dca_grid_order_plan",
     "build_frozen_basket_orders",
+    "order_intents_to_lifecycle_commands",
     "normalize_portfolio_mode",
     "normalize_portfolio_sizing_mode",
     "normalize_rebalance_policy",

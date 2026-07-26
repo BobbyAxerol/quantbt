@@ -557,9 +557,10 @@ commands = [
 ]
 ```
 
-Phase 30B executes `OrderCommand` tapes through
-`NativeEventBackend.run_order_commands(...)`. Existing endpoint execution
-remains on `OrderIntent` v1 until the v2 route is explicitly promoted.
+Phase 30C exposes this through `QuantBTEndpoint.native_event_lifecycle(...)`
+and through `QuantBTEndpoint.orders(..., event_engine_version="v2")`. Existing
+`QuantBTEndpoint.orders(...)` calls still default to the v1 `OrderIntent`
+route.
 
 ```python
 from quantbt import AccountConfig, NativeEventBackend, NativeEventConfig
@@ -580,6 +581,23 @@ result = backend.run_order_commands(
 result.metadata["command_report"]
 result.metadata["order_events"]
 result.metadata["active_orders"]
+```
+
+Endpoint equivalent:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = bt.simulate(
+    data=df,
+    order_commands=commands,
+    symbols=["ETHUSDT"],
+)
 ```
 
 Execution rules:
@@ -634,6 +652,30 @@ stop-market, and stop-limit order factory mapping when Nautilus exposes the
 route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
 reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
 higher-level adapters that compile into this explicit-order replay path.
+
+Lifecycle commands with Nautilus:
+
+- `QuantBTEndpoint.orders(backend="nautilus")` accepts `order_commands`;
+- executable `PLACE` and `REPLACE` commands are converted to Nautilus package
+  `OrderIntent` payloads;
+- native lifecycle-only actions such as `CANCEL` and `AMEND` remain audited by
+  native-event v2 and are not exchange-native Nautilus command objects yet.
+
+Native structured lifecycle endpoints:
+
+```python
+bt = QuantBTEndpoint.native_event_bracket_orders(
+    spec=bracket_spec,
+    initial_capital=100_000,
+    leverage=5,
+)
+result = bt.simulate(data=df)
+result.metadata["command_report"]
+result.metadata["order_events"]
+
+grid_bt = QuantBTEndpoint.native_event_dca_grid(spec=dca_grid_spec)
+grid_result = grid_bt.simulate(data=df)
+```
 
 Package execution-depth preflight:
 

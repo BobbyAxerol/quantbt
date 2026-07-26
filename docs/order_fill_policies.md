@@ -24,8 +24,8 @@ Phase 30 adds `OrderCommand` as the lifecycle-v2 contract. `OrderIntent`
 remains the stable immediate-place shorthand used by existing endpoints.
 `OrderCommand` can express place/cancel/replace/amend/cancel-all, parent-child
 activation, OCO groups, stop trigger fields, reduce-only flags, and GTD expiry.
-Use `NativeEventBackend.run_order_commands(...)` for the opt-in v2 lifecycle
-route.
+Use `NativeEventBackend.run_order_commands(...)` or
+`QuantBTEndpoint.native_event_lifecycle(...)` for the opt-in v2 lifecycle route.
 
 Rules:
 
@@ -42,9 +42,8 @@ Rules:
 Current limitation:
 
 - partial fills are not yet modeled; fills are full-size or rejected/canceled.
-- the v1 endpoint route executes market and limit orders;
-- stop and linked lifecycle commands require the opt-in v2 lifecycle backend
-  route until endpoint wiring is promoted.
+- the default endpoint route executes v1 market and limit orders;
+- stop and linked lifecycle commands require the opt-in v2 lifecycle route.
 
 Lifecycle-v2 rules:
 
