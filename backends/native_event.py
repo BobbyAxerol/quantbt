@@ -6,15 +6,45 @@ Native event-driven backend using a Numba matching kernel.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
 
 from ..core.event import (
+    ACTIVATION_IMMEDIATE,
+    ACTIVATION_ON_PARENT_FIRST_FILL,
+    ACTIVATION_ON_PARENT_FULL_FILL,
+    COMMAND_ACTION_AMEND,
+    COMMAND_ACTION_CANCEL,
+    COMMAND_ACTION_CANCEL_ALL,
+    COMMAND_ACTION_PLACE,
+    COMMAND_ACTION_REPLACE,
+    LIQ_AFTER_FUNDING,
+    LIQ_AFTER_ORDER,
+    LIQ_INTRABAR,
+    LIQ_NONE,
+    ORDER_EVENT_ACTIVATE,
+    ORDER_EVENT_AMEND,
+    ORDER_EVENT_CANCEL,
+    ORDER_EVENT_EXPIRE,
+    ORDER_EVENT_FILL,
+    ORDER_EVENT_PLACE,
+    ORDER_EVENT_REJECT,
+    ORDER_STATUS_CANCELED,
+    ORDER_STATUS_FILLED,
+    ORDER_STATUS_PENDING,
+    ORDER_STATUS_REJECTED,
     ORDER_TYPE_LIMIT,
     ORDER_TYPE_MARKET,
+    ORDER_TYPE_STOP_LIMIT,
+    ORDER_TYPE_STOP_MARKET,
+    REJECT_INSUFFICIENT_MARGIN,
+    REJECT_REDUCE_ONLY_NO_POSITION,
+    REJECT_UNKNOWN_ORDER,
+    SIDE_BUY,
+    SIDE_SELL,
     TIF_FOK,
     TIF_GTC,
     TIF_GTD,
@@ -47,7 +77,7 @@ from ..core.order_compiler import (
     compile_order_commands,
     compile_order_intents,
 )
-from ..core.orders import Fill, OrderAction, OrderCommand, OrderIntent
+from ..core.orders import Fill, OrderAction, OrderActivationPolicy, OrderCommand, OrderIntent
 from ..core.preprocessor import (
     PreparedMarketArrays,
     align_series,
@@ -57,6 +87,13 @@ from ..core.preprocessor import (
     validate_datetime,
 )
 from ..core.results import BacktestResultV2
+from ..core.reactive import (
+    NativeActiveOrderSnapshot,
+    NativeEventStrategyError,
+    NativeFillEvent,
+    NativeOrderEvent,
+    NativeStrategyContext,
+)
 from ..core.schema import (
     AccountConfig,
     BasketLegSpec,
@@ -96,6 +133,520 @@ class NativeEventConfig:
                 raise ValueError("fee_rate must be >= 0")
         elif float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+
+
+@dataclass
+class _ReactiveOrderState:
+    command: OrderCommand
+    command_index: int
+    symbol_col: int
+    status: int = ORDER_STATUS_PENDING
+    active: bool = False
+    waiting_parent: bool = False
+    working_qty: float = 0.0
+    working_price: float = 0.0
+    working_trigger: float = 0.0
+    reject_code: int = 0
+
+
+class _NativeEventReactiveSession:
+    """
+    Lightweight per-bar state used only to feed reactive strategy callbacks.
+
+    Final accounting still replays the emitted command tape through the Numba
+    v2 kernel once. Keeping this session Python-level avoids repeated compile
+    and report construction while preserving a single final source of truth.
+    """
+
+    def __init__(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbols: List[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        initial_capital: float,
+        maintenance_ratio: float,
+        slippage: float,
+        use_funding: bool,
+    ) -> None:
+        self.idx = idx
+        self.symbols = symbols
+        self.symbol_to_col = {symbol: j for j, symbol in enumerate(symbols)}
+        self.market_arrays = market_arrays
+        self.opens_arr = opens_arr
+        self.volumes_arr = volumes_arr
+        self.constraints = constraints
+        self.contract_sizes = contract_sizes
+        self.leverages = leverages
+        self.fee_rates = fee_rates
+        self.initial_capital = float(initial_capital)
+        self.maintenance_ratio = float(maintenance_ratio)
+        self.slippage = float(slippage)
+        self.use_funding = bool(use_funding)
+
+        self.current_pos = np.zeros(len(symbols), dtype=np.float64)
+        self.equity = float(initial_capital)
+        self.liquidated = False
+        self.liquidation_bar = -1
+        self.liquidation_reason = LIQ_NONE
+        self.command_seq = 0
+        self.orders: List[_ReactiveOrderState] = []
+        self.pending: List[_ReactiveOrderState] = []
+        self.id_to_order: Dict[str, _ReactiveOrderState] = {}
+        self.scheduled: Dict[int, List[OrderCommand]] = {}
+        self.fills_by_bar: Dict[int, List[NativeFillEvent]] = {}
+        self.events_by_bar: Dict[int, List[NativeOrderEvent]] = {}
+        self.processed_bar = -1
+        self.last_initial_margin = 0.0
+        self.last_maintenance_margin = 0.0
+
+    def schedule(self, bar: int, commands: Sequence[OrderCommand]) -> None:
+        if not commands or bar >= len(self.idx):
+            return
+        self.scheduled.setdefault(int(bar), []).extend(commands)
+
+    def process_bar(self, bar: int) -> None:
+        if bar <= self.processed_bar:
+            return
+        for i in range(self.processed_bar + 1, int(bar) + 1):
+            self._process_single_bar(i)
+            self.processed_bar = i
+
+    def context(self, bar: int) -> NativeStrategyContext:
+        self.process_bar(bar)
+        init_margin, maint_margin = self._close_margin(bar)
+        self.last_initial_margin = init_margin
+        self.last_maintenance_margin = maint_margin
+        positions = {symbol: float(self.current_pos[j]) for j, symbol in enumerate(self.symbols)}
+        size_helper = NativeEventBackend._reactive_size_helper(
+            symbols=self.symbols,
+            constraints=self.constraints,
+            contract_sizes=self.contract_sizes,
+        )
+        return NativeStrategyContext(
+            bar_index=int(bar),
+            timestamp=self.idx[int(bar)],
+            open=np.ascontiguousarray(self.opens_arr[int(bar)].copy()),
+            high=np.ascontiguousarray(self.market_arrays.highs[int(bar)].copy()),
+            low=np.ascontiguousarray(self.market_arrays.lows[int(bar)].copy()),
+            close=np.ascontiguousarray(self.market_arrays.closes[int(bar)].copy()),
+            volume=np.ascontiguousarray(self.volumes_arr[int(bar)].copy()),
+            equity=float(self.equity),
+            available_equity=float(self.equity - init_margin),
+            initial_margin=float(init_margin),
+            maintenance_margin=float(maint_margin),
+            positions=positions,
+            fills_this_bar=tuple(self.fills_by_bar.get(int(bar), ())),
+            order_events_this_bar=tuple(self.events_by_bar.get(int(bar), ())),
+            active_orders=tuple(self._active_snapshots()),
+            liquidated=bool(self.liquidated),
+            symbols=tuple(self.symbols),
+            size_order=size_helper,
+        )
+
+    def _process_single_bar(self, bar: int) -> None:
+        if self.liquidated:
+            return
+        if bar > 0:
+            for s in range(len(self.symbols)):
+                p = self.current_pos[s]
+                if p != 0.0:
+                    self.equity += (
+                        p
+                        * (self.market_arrays.closes[bar, s] - self.market_arrays.closes[bar - 1, s])
+                        * self.contract_sizes[s]
+                    )
+        if bar > 0 and self._liquidated_intrabar(bar):
+            self._liquidate(bar, LIQ_INTRABAR)
+            return
+        if bar > 0 and self.use_funding and self.market_arrays.is_funding_bar[bar]:
+            funding_cost = 0.0
+            for s in range(len(self.symbols)):
+                p = self.current_pos[s]
+                if p != 0.0:
+                    funding_cost += (
+                        p
+                        * self.market_arrays.closes[bar, s]
+                        * self.contract_sizes[s]
+                        * self.market_arrays.funding[bar, s]
+                    )
+            self.equity -= funding_cost
+        if bar > 0:
+            _, close_mm = self._close_margin(bar)
+            if close_mm > 0.0 and self.equity <= close_mm:
+                self._liquidate(bar, LIQ_AFTER_FUNDING)
+                return
+
+        self._expire_orders(bar)
+        for command in self.scheduled.get(bar, ()):
+            self._apply_command(bar, command)
+        self._match_orders(bar)
+        self._compact_pending()
+        _, close_mm = self._close_margin(bar)
+        if close_mm > 0.0 and self.equity <= close_mm:
+            self._liquidate(bar, LIQ_AFTER_ORDER)
+
+    def _apply_command(self, bar: int, command: OrderCommand) -> None:
+        action = command.action
+        if action is OrderAction.PLACE:
+            self._place_order(bar, command, "place")
+        elif action is OrderAction.REPLACE:
+            target = self._lookup_pending(command.target_order_id)
+            if target is None:
+                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+            else:
+                self._cancel_state(bar, target, "replace", ORDER_STATUS_CANCELED, command)
+                self._place_order(bar, command, "replace")
+                if command.target_order_id:
+                    self.id_to_order[command.target_order_id] = self.orders[-1]
+        elif action is OrderAction.CANCEL:
+            target = self._lookup_pending(command.target_order_id)
+            if target is None:
+                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+            else:
+                self._cancel_state(bar, target, "cancel", ORDER_STATUS_FILLED, command)
+        elif action is OrderAction.AMEND:
+            target = self._lookup_pending(command.target_order_id)
+            if target is None:
+                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+            else:
+                if command.qty is not None and command.qty > 0.0:
+                    target.working_qty = float(command.qty)
+                if command.price is not None and command.price > 0.0:
+                    target.working_price = float(command.price)
+                if command.trigger_price is not None and command.trigger_price > 0.0:
+                    target.working_trigger = float(command.trigger_price)
+                self._event(bar, command, "amend", ORDER_STATUS_FILLED, target_order_id=command.target_order_id)
+        elif action is OrderAction.CANCEL_ALL:
+            for target in tuple(self.pending):
+                if self._is_pending(target) and self._cancel_all_matches(command, target.command):
+                    self._cancel_state(bar, target, "cancel", ORDER_STATUS_CANCELED, command)
+            self._event(bar, command, "cancel", ORDER_STATUS_FILLED)
+        else:
+            self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+
+    def _place_order(self, bar: int, command: OrderCommand, event_name: str) -> None:
+        if command.symbol is None or command.symbol not in self.symbol_to_col:
+            self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+            return
+        state = _ReactiveOrderState(
+            command=command,
+            command_index=self.command_seq,
+            symbol_col=self.symbol_to_col[command.symbol],
+            active=command.activation_policy is OrderActivationPolicy.IMMEDIATE,
+            waiting_parent=command.activation_policy is not OrderActivationPolicy.IMMEDIATE,
+            working_qty=0.0 if command.qty is None else float(command.qty),
+            working_price=0.0 if command.price is None else float(command.price),
+            working_trigger=0.0 if command.trigger_price is None else float(command.trigger_price),
+        )
+        self.command_seq += 1
+        self.orders.append(state)
+        self.pending.append(state)
+        if command.order_id:
+            self.id_to_order[command.order_id] = state
+        self._event(bar, command, event_name, ORDER_STATUS_PENDING)
+
+    def _match_orders(self, bar: int) -> None:
+        for state in tuple(self.pending):
+            if not state.active or state.status != ORDER_STATUS_PENDING:
+                continue
+            command = state.command
+            if command.side is None or command.order_type is None:
+                continue
+            touched, exec_price = self._touched_price(
+                command.order_type,
+                command.side,
+                state.working_price,
+                state.working_trigger,
+                self.market_arrays.highs[bar, state.symbol_col],
+                self.market_arrays.lows[bar, state.symbol_col],
+                self.market_arrays.closes[bar, state.symbol_col],
+            )
+            if not touched:
+                if command.tif in (TimeInForce.GTC, TimeInForce.GTD):
+                    continue
+                self._cancel_state(bar, state, "cancel", ORDER_STATUS_CANCELED, command)
+                continue
+
+            qty = float(state.working_qty)
+            side_sign = command.side.sign
+            if command.reduce_only:
+                current = self.current_pos[state.symbol_col]
+                if current == 0.0 or (current > 0.0 and side_sign > 0) or (current < 0.0 and side_sign < 0):
+                    state.reject_code = REJECT_REDUCE_ONLY_NO_POSITION
+                    self._cancel_state(bar, state, "cancel", ORDER_STATUS_CANCELED, command)
+                    continue
+                qty = min(qty, abs(current))
+
+            delta = qty * side_sign
+            cs = float(self.contract_sizes[state.symbol_col])
+            close = float(self.market_arrays.closes[bar, state.symbol_col])
+            trade_notional = abs(delta) * float(exec_price) * cs
+            fee_cost = trade_notional * float(self.fee_rates[state.symbol_col])
+            required, cur_im = self._margin_required(bar, state.symbol_col, delta, float(exec_price), fee_cost)
+            if required > self.equity - cur_im:
+                state.status = ORDER_STATUS_REJECTED
+                state.active = False
+                state.waiting_parent = False
+                state.reject_code = REJECT_INSUFFICIENT_MARGIN
+                self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+                continue
+
+            self.equity += delta * (close - float(exec_price)) * cs - fee_cost
+            self.current_pos[state.symbol_col] += delta
+            state.status = ORDER_STATUS_FILLED
+            state.active = False
+            state.waiting_parent = False
+            fill = NativeFillEvent(
+                timestamp=self.idx[bar],
+                symbol=command.symbol or self.symbols[state.symbol_col],
+                side=command.side,
+                qty=float(qty),
+                price=float(exec_price),
+                fee=float(fee_cost),
+                order_id=command.order_id,
+                tag=command.tag,
+                campaign_id=command.metadata.get("campaign_id"),
+                cycle_id=command.metadata.get("cycle_id"),
+                level_id=command.metadata.get("level_id"),
+                parent_order_id=command.parent_order_id,
+                oco_group_id=command.oco_group_id,
+                metadata=dict(command.metadata),
+            )
+            self.fills_by_bar.setdefault(bar, []).append(fill)
+            self._event(bar, command, "fill", ORDER_STATUS_FILLED)
+            self._activate_children(bar, state)
+            self._cancel_oco_siblings(bar, state)
+
+    def _activate_children(self, bar: int, parent: _ReactiveOrderState) -> None:
+        parent_id = parent.command.order_id
+        if not parent_id:
+            return
+        for child in tuple(self.pending):
+            if child.waiting_parent and child.command.parent_order_id == parent_id:
+                if child.command.activation_policy in (
+                    OrderActivationPolicy.ON_PARENT_FIRST_FILL,
+                    OrderActivationPolicy.ON_PARENT_FULL_FILL,
+                ):
+                    child.waiting_parent = False
+                    child.active = True
+                    self._event(bar, child.command, "activate", ORDER_STATUS_PENDING, related_order_id=parent_id)
+
+    def _cancel_oco_siblings(self, bar: int, filled: _ReactiveOrderState) -> None:
+        group = filled.command.oco_group_id
+        if not group:
+            return
+        for sibling in tuple(self.pending):
+            if sibling is filled:
+                continue
+            if self._is_pending(sibling) and sibling.command.oco_group_id == group:
+                self._cancel_state(bar, sibling, "cancel", ORDER_STATUS_CANCELED, filled.command)
+
+    def _expire_orders(self, bar: int) -> None:
+        ts = self.idx[bar]
+        for state in tuple(self.pending):
+            if not self._is_pending(state) or state.command.expires_at is None:
+                continue
+            exp = pd.Timestamp(state.command.expires_at)
+            if exp.tz is None:
+                exp = exp.tz_localize("UTC")
+            else:
+                exp = exp.tz_convert("UTC")
+            if ts.value >= exp.value:
+                self._cancel_state(bar, state, "expire", ORDER_STATUS_CANCELED, state.command)
+
+    def _cancel_state(
+        self,
+        bar: int,
+        state: _ReactiveOrderState,
+        event_name: str,
+        event_status: int,
+        command: OrderCommand,
+    ) -> None:
+        state.active = False
+        state.waiting_parent = False
+        state.status = ORDER_STATUS_CANCELED
+        self._event(
+            bar,
+            command,
+            event_name,
+            event_status,
+            target_order_id=state.command.order_id,
+            related_order_id=state.command.order_id,
+        )
+
+    def _event(
+        self,
+        bar: int,
+        command: OrderCommand,
+        event_name: str,
+        status: int,
+        *,
+        target_order_id: Optional[str] = None,
+        related_order_id: Optional[str] = None,
+    ) -> None:
+        self.events_by_bar.setdefault(bar, []).append(
+            NativeOrderEvent(
+                timestamp=self.idx[bar],
+                bar=int(bar),
+                event_name=event_name,
+                status=int(status),
+                order_id=command.order_id,
+                target_order_id=target_order_id or command.target_order_id,
+                parent_order_id=command.parent_order_id,
+                oco_group_id=command.oco_group_id,
+                tag=command.tag,
+                campaign_id=command.metadata.get("campaign_id"),
+                cycle_id=command.metadata.get("cycle_id"),
+                level_id=command.metadata.get("level_id"),
+                original_index=-1,
+                related_original_index=-1,
+            )
+        )
+
+    def _lookup_pending(self, order_id: Optional[str]) -> Optional[_ReactiveOrderState]:
+        if not order_id:
+            return None
+        state = self.id_to_order.get(order_id)
+        if state is None or not self._is_pending(state):
+            return None
+        return state
+
+    @staticmethod
+    def _is_pending(state: _ReactiveOrderState) -> bool:
+        return state.status == ORDER_STATUS_PENDING and (state.active or state.waiting_parent)
+
+    def _active_snapshots(self) -> List[NativeActiveOrderSnapshot]:
+        out: List[NativeActiveOrderSnapshot] = []
+        for state in self.pending:
+            if not self._is_pending(state):
+                continue
+            command = state.command
+            out.append(
+                NativeActiveOrderSnapshot(
+                    order_id=command.order_id,
+                    symbol=command.symbol,
+                    side=None if command.side is None else command.side.value,
+                    order_type=None if command.order_type is None else command.order_type.value,
+                    status=int(state.status),
+                    remaining_qty=float(state.working_qty),
+                    price=float(state.working_price),
+                    trigger_price=float(state.working_trigger),
+                    reduce_only=bool(command.reduce_only),
+                    parent_order_id=command.parent_order_id,
+                    group_id=command.group_id,
+                    oco_group_id=command.oco_group_id,
+                    tag=command.tag,
+                    campaign_id=command.metadata.get("campaign_id"),
+                    cycle_id=command.metadata.get("cycle_id"),
+                    level_id=command.metadata.get("level_id"),
+                )
+            )
+        return out
+
+    def _close_margin(self, bar: int) -> tuple[float, float]:
+        init_margin = 0.0
+        maint_margin = 0.0
+        for s in range(len(self.symbols)):
+            p = self.current_pos[s]
+            if p != 0.0:
+                notional = abs(p) * self.market_arrays.closes[bar, s] * self.contract_sizes[s]
+                init_margin += notional / self.leverages[s]
+                maint_margin += notional * self.maintenance_ratio
+        return float(init_margin), float(maint_margin)
+
+    def _margin_required(self, bar: int, sym: int, delta: float, exec_price: float, fee_cost: float) -> tuple[float, float]:
+        cur_im, _ = self._close_margin(bar)
+        close = float(self.market_arrays.closes[bar, sym])
+        old_im = abs(self.current_pos[sym]) * close * self.contract_sizes[sym] / self.leverages[sym]
+        new_im = abs(self.current_pos[sym] + delta) * exec_price * self.contract_sizes[sym] / self.leverages[sym]
+        required = float(fee_cost)
+        margin_delta = new_im - old_im
+        if margin_delta > 0.0:
+            required += margin_delta
+        return float(required), float(cur_im)
+
+    def _liquidated_intrabar(self, bar: int) -> bool:
+        worst_equity = self.equity
+        worst_mm = 0.0
+        for s in range(len(self.symbols)):
+            p = self.current_pos[s]
+            if p == 0.0:
+                continue
+            worst_price = self.market_arrays.lows[bar, s] if p > 0.0 else self.market_arrays.highs[bar, s]
+            worst_equity += p * (worst_price - self.market_arrays.closes[bar, s]) * self.contract_sizes[s]
+            worst_mm += abs(p) * worst_price * self.contract_sizes[s] * self.maintenance_ratio
+        return worst_mm > 0.0 and worst_equity <= worst_mm
+
+    def _liquidate(self, bar: int, reason: int) -> None:
+        self.liquidated = True
+        self.liquidation_bar = int(bar)
+        self.liquidation_reason = int(reason)
+        self.equity = 0.0
+        self.current_pos[:] = 0.0
+
+    def _touched_price(
+        self,
+        order_type: OrderType,
+        side: OrderSide,
+        price: float,
+        trigger_price: float,
+        high: float,
+        low: float,
+        close: float,
+    ) -> tuple[bool, float]:
+        if order_type is OrderType.MARKET:
+            return True, float(close * (1.0 + self.slippage if side is OrderSide.BUY else 1.0 - self.slippage))
+        if order_type is OrderType.LIMIT:
+            if side is OrderSide.BUY and low <= price:
+                return True, float(price)
+            if side is OrderSide.SELL and high >= price:
+                return True, float(price)
+        if order_type is OrderType.STOP_MARKET:
+            if side is OrderSide.BUY and high >= trigger_price:
+                return True, float(trigger_price * (1.0 + self.slippage))
+            if side is OrderSide.SELL and low <= trigger_price:
+                return True, float(trigger_price * (1.0 - self.slippage))
+        if order_type is OrderType.STOP_LIMIT:
+            if side is OrderSide.BUY and high >= trigger_price and low <= price:
+                return True, float(price)
+            if side is OrderSide.SELL and low <= trigger_price and high >= price:
+                return True, float(price)
+        return False, float(close)
+
+    @staticmethod
+    def _cancel_all_matches(cancel_command: OrderCommand, target: OrderCommand) -> bool:
+        if cancel_command.symbol is not None and cancel_command.symbol != target.symbol:
+            return False
+        if cancel_command.side is not None and cancel_command.side is not target.side:
+            return False
+        if cancel_command.order_type is not None and cancel_command.order_type is not target.order_type:
+            return False
+        if cancel_command.parent_order_id is not None and cancel_command.parent_order_id != target.parent_order_id:
+            return False
+        if cancel_command.group_id is not None and cancel_command.group_id != target.group_id:
+            return False
+        if cancel_command.oco_group_id is not None and cancel_command.oco_group_id != target.oco_group_id:
+            return False
+        if cancel_command.tag is not None and cancel_command.tag != target.tag:
+            return False
+        if cancel_command.tag_prefix is not None and not (target.tag or "").startswith(cancel_command.tag_prefix):
+            return False
+        for key in ("campaign_id", "cycle_id", "level_id"):
+            if key in cancel_command.metadata and cancel_command.metadata.get(key) != target.metadata.get(key):
+                return False
+        return True
+
+    def _compact_pending(self) -> None:
+        if not self.pending:
+            return
+        self.pending = [state for state in self.pending if self._is_pending(state)]
 
 
 class NativeEventBackend:
@@ -393,9 +944,12 @@ class NativeEventBackend:
             event_status=event_status,
             event_related_command=event_related_command,
         )
-        active_orders = command_report[
-            (command_report["active"] == True) | (command_report["waiting_parent"] == True)  # noqa: E712
-        ].copy()
+        if command_report.empty:
+            active_orders = pd.DataFrame()
+        else:
+            active_orders = command_report[
+                (command_report["active"] == True) | (command_report["waiting_parent"] == True)  # noqa: E712
+            ].copy()
 
         return BacktestResultV2(
             equity=equity,
@@ -435,6 +989,201 @@ class NativeEventBackend:
                 "liquidation_reason": int(liq_reason),
             },
         )
+
+    def run_strategy(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        strategy,
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        opens: Optional[Dict[str, pd.Series]] = None,
+        volumes: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        symbols: Optional[List[str]] = None,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        execution_mode: str = "fast",
+        command_effective_phase: str = "next_bar",
+    ) -> BacktestResultV2:
+        """
+        Run a reactive strategy against native-event v2 lifecycle semantics.
+
+        Strategy callbacks observe post-bar engine state and may emit commands
+        for the next bar. The emitted tape is replayed once at the end through
+        `run_order_commands`, making the final result reproducible by static
+        lifecycle replay.
+        """
+        if strategy is None:
+            raise ValueError("run_strategy requires a strategy object")
+        if str(command_effective_phase).lower().strip() != "next_bar":
+            raise NotImplementedError("reactive native-event MVP supports command_effective_phase='next_bar' only")
+        execution_mode = str(execution_mode).lower().strip()
+        if execution_mode not in {"fast", "audit"}:
+            raise ValueError("execution_mode must be 'fast' or 'audit'")
+
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        market_arrays = self.prepare_market_arrays(
+            datetime_index=idx,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            funding_rate=funding_rate,
+            symbols=symbol_list,
+        )
+        open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
+        volume_dict = align_series(volumes, symbol_list, idx, fallback={s: pd.Series(0.0, index=idx) for s in symbol_list})
+        opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        volumes_arr = np.ascontiguousarray(np.column_stack([volume_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        constraints = build_quantity_constraints(
+            symbol_list,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        leverages = self._per_symbol_array(
+            self.config.account.leverage if leverage is None else leverage,
+            symbol_list,
+            default=self.config.account.leverage,
+        )
+        fee_rates = self._per_symbol_array(
+            self.config.fee_rate if fee_rate is None else fee_rate,
+            symbol_list,
+            default=0.0,
+        )
+        session = _NativeEventReactiveSession(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            initial_capital=self.config.account.initial_capital,
+            maintenance_ratio=self.config.account.maintenance_ratio,
+            slippage=self.config.execution.slippage_rate,
+            use_funding=bool(self.config.use_funding),
+        )
+
+        emitted: list[OrderCommand] = []
+        emitted_order_ids: set[str] = set()
+        callback_count = 0
+        ignored_commands_after_end = 0
+        initial_context = session.context(0)
+        last_context = initial_context
+
+        initial_commands = self._expand_scoped_cancel_all_commands(
+            self._call_strategy_callback(strategy, "initialize", initial_context),
+            initial_context,
+        )
+        scheduled, ignored = self._retime_reactive_commands(
+            commands=initial_commands,
+            effective_bar=1,
+            idx=idx,
+            emitted_order_ids=emitted_order_ids,
+        )
+        emitted.extend(scheduled)
+        session.schedule(1, scheduled)
+        ignored_commands_after_end += ignored
+
+        for bar in range(len(idx)):
+            context = session.context(bar)
+            last_context = context
+            callback_count += 1
+            if context.liquidated:
+                break
+            commands = self._expand_scoped_cancel_all_commands(
+                self._call_strategy_callback(strategy, "on_bar_close", context),
+                context,
+            )
+            scheduled, ignored = self._retime_reactive_commands(
+                commands=commands,
+                effective_bar=bar + 1,
+                idx=idx,
+                emitted_order_ids=emitted_order_ids,
+            )
+            emitted.extend(scheduled)
+            session.schedule(bar + 1, scheduled)
+            ignored_commands_after_end += ignored
+
+        if last_context is not None and not last_context.liquidated:
+            final_commands = self._expand_scoped_cancel_all_commands(
+                self._call_strategy_callback(strategy, "finalize", last_context),
+                last_context,
+            )
+            scheduled, ignored = self._retime_reactive_commands(
+                commands=final_commands,
+                effective_bar=len(idx),
+                idx=idx,
+                emitted_order_ids=emitted_order_ids,
+            )
+            emitted.extend(scheduled)
+            ignored_commands_after_end += ignored
+
+        final_result = self.run_order_commands(
+            datetime_index=idx,
+            commands=tuple(emitted),
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            funding_rate=funding_rate,
+            contract_size=contract_size,
+            leverage=leverage,
+            fee_rate=fee_rate,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        final_result.metadata.update(
+            {
+                "engine": "event_v2_reactive_incremental",
+                "reactive_execution_mode": execution_mode,
+                "command_effective_phase": "next_bar",
+                "emitted_command_tape": tuple(emitted),
+                "emitted_command_count": len(emitted),
+                "ignored_commands_after_end": int(ignored_commands_after_end),
+                "strategy_callback_count": int(callback_count),
+                "static_replay_available": True,
+                "reactive_context_builder": "incremental_session_v1",
+                "reactive_incremental_compile_replays": 0,
+                "reactive_session_liquidated": bool(session.liquidated),
+                "reactive_session_liquidation_bar": int(session.liquidation_bar),
+            }
+        )
+        if execution_mode == "audit":
+            replay_last_pos = {
+                symbol: float(final_result.positions[f"Position_{symbol}"].iloc[-1])
+                for symbol in symbol_list
+            }
+            session_last_pos = {symbol: float(last_context.positions[symbol]) for symbol in symbol_list}
+            final_result.metadata["reactive_audit"] = {
+                "final_equity_diff": float(abs(float(final_result.equity.iloc[-1]) - float(last_context.equity))),
+                "final_position_diff": {
+                    symbol: float(abs(replay_last_pos.get(symbol, 0.0) - session_last_pos.get(symbol, 0.0)))
+                    for symbol in symbol_list
+                },
+            }
+        return final_result
 
     def run_orders(
         self,
@@ -764,6 +1513,7 @@ class NativeEventBackend:
                         activation_policy=command.activation_policy,
                         expires_at=command.expires_at,
                         tag=command.tag,
+                        tag_prefix=command.tag_prefix,
                         metadata={
                             **command.metadata,
                             "requested_qty": float(command.qty),
@@ -774,6 +1524,318 @@ class NativeEventBackend:
             else:
                 out.append(command)
         return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
+
+    def _reactive_replay(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        commands: Sequence[OrderCommand],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]],
+        lows: Optional[Dict[str, pd.Series]],
+        funding_rate,
+        contract_size,
+        leverage,
+        fee_rate,
+        symbols: List[str],
+        market_arrays: Optional[PreparedMarketArrays],
+        instruments,
+        qty_step,
+        lot_size,
+        slot_size,
+        min_qty,
+        min_notional,
+    ) -> BacktestResultV2:
+        return self.run_order_commands(
+            datetime_index=idx,
+            commands=tuple(commands),
+            closes={symbol: closes[symbol].reindex(idx).ffill().bfill() for symbol in symbols},
+            highs=None if highs is None else {symbol: highs[symbol].reindex(idx).ffill().bfill() for symbol in symbols},
+            lows=None if lows is None else {symbol: lows[symbol].reindex(idx).ffill().bfill() for symbol in symbols},
+            funding_rate=funding_rate,
+            contract_size=contract_size,
+            leverage=leverage,
+            fee_rate=fee_rate,
+            symbols=symbols,
+            market_arrays=market_arrays,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+
+    def _reactive_context_from_result(
+        self,
+        *,
+        bar_index: int,
+        idx: pd.DatetimeIndex,
+        symbols: List[str],
+        result: BacktestResultV2,
+        opens_arr: np.ndarray,
+        highs_arr: np.ndarray,
+        lows_arr: np.ndarray,
+        closes_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+    ) -> NativeStrategyContext:
+        local_bar = min(int(bar_index), len(result.equity) - 1)
+        ts = idx[int(bar_index)]
+        margin_row = result.margin.iloc[local_bar] if not result.margin.empty else None
+        init_margin = 0.0 if margin_row is None else float(margin_row.get("initial_margin", 0.0))
+        maint_margin = 0.0 if margin_row is None else float(margin_row.get("maintenance_margin", 0.0))
+        equity = float(result.equity.iloc[local_bar])
+        position_row = result.positions.iloc[local_bar]
+        positions = {
+            symbol: float(position_row.get(f"Position_{symbol}", 0.0))
+            for symbol in symbols
+        }
+        fills_this_bar = tuple(
+            self._fill_to_native_event(fill)
+            for fill in result.fills
+            if pd.Timestamp(fill.timestamp).value == ts.value
+        )
+        events_this_bar = self._native_order_events_for_bar(result.metadata.get("order_events"), int(bar_index))
+        active_orders = self._native_active_snapshots(result.metadata.get("active_orders"))
+        size_helper = self._reactive_size_helper(
+            symbols=symbols,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+        )
+        return NativeStrategyContext(
+            bar_index=int(bar_index),
+            timestamp=ts,
+            open=np.ascontiguousarray(opens_arr[int(bar_index)].copy()),
+            high=np.ascontiguousarray(highs_arr[int(bar_index)].copy()),
+            low=np.ascontiguousarray(lows_arr[int(bar_index)].copy()),
+            close=np.ascontiguousarray(closes_arr[int(bar_index)].copy()),
+            volume=np.ascontiguousarray(volumes_arr[int(bar_index)].copy()),
+            equity=equity,
+            available_equity=equity - init_margin,
+            initial_margin=init_margin,
+            maintenance_margin=maint_margin,
+            positions=positions,
+            fills_this_bar=fills_this_bar,
+            order_events_this_bar=events_this_bar,
+            active_orders=active_orders,
+            liquidated=bool(result.liquidated),
+            symbols=tuple(symbols),
+            size_order=size_helper,
+        )
+
+    @staticmethod
+    def _expand_scoped_cancel_all_commands(
+        commands: Sequence[OrderCommand],
+        context: NativeStrategyContext,
+    ) -> tuple[OrderCommand, ...]:
+        """
+        Make string-scoped cancel-all replayable by the Numba command kernel.
+
+        Kernel v2 can scope CANCEL_ALL by numeric fields such as symbol, side,
+        order type, parent id, group id, and OCO id. Tag/prefix/campaign scopes
+        are expanded here into explicit target CANCEL commands using the active
+        snapshot visible to the strategy at the close of the current bar.
+        """
+        if commands is None:
+            return ()
+        out: list[OrderCommand] = []
+        for command in tuple(commands):
+            if not isinstance(command, OrderCommand):
+                raise TypeError("reactive strategy callbacks must return OrderCommand objects")
+            if command.action is not OrderAction.CANCEL_ALL or not NativeEventBackend._has_string_cancel_scope(command):
+                out.append(command)
+                continue
+            for snapshot in context.active_orders:
+                if snapshot.order_id is None:
+                    continue
+                if not NativeEventBackend._cancel_all_snapshot_matches(command, snapshot):
+                    continue
+                out.append(
+                    OrderCommand(
+                        timestamp=command.timestamp,
+                        action=OrderAction.CANCEL,
+                        target_order_id=snapshot.order_id,
+                        tag=command.tag,
+                        metadata={
+                            **dict(command.metadata),
+                            "expanded_from_cancel_all": True,
+                            "cancel_scope_tag_prefix": command.tag_prefix,
+                            "cancel_scope_tag": command.tag,
+                        },
+                    )
+                )
+        return tuple(out)
+
+    @staticmethod
+    def _has_string_cancel_scope(command: OrderCommand) -> bool:
+        if command.tag is not None or command.tag_prefix is not None:
+            return True
+        return any(key in command.metadata for key in ("campaign_id", "cycle_id", "level_id"))
+
+    @staticmethod
+    def _cancel_all_snapshot_matches(command: OrderCommand, snapshot: NativeActiveOrderSnapshot) -> bool:
+        if command.symbol is not None and command.symbol != snapshot.symbol:
+            return False
+        if command.side is not None and command.side.value != snapshot.side:
+            return False
+        if command.order_type is not None and command.order_type.value != snapshot.order_type:
+            return False
+        if command.parent_order_id is not None and command.parent_order_id != snapshot.parent_order_id:
+            return False
+        if command.group_id is not None and command.group_id != snapshot.group_id:
+            return False
+        if command.oco_group_id is not None and command.oco_group_id != snapshot.oco_group_id:
+            return False
+        if command.tag is not None and command.tag != snapshot.tag:
+            return False
+        if command.tag_prefix is not None and not (snapshot.tag or "").startswith(command.tag_prefix):
+            return False
+        for key, attr in (("campaign_id", "campaign_id"), ("cycle_id", "cycle_id"), ("level_id", "level_id")):
+            if key in command.metadata and command.metadata.get(key) != getattr(snapshot, attr):
+                return False
+        return True
+
+    @staticmethod
+    def _retime_reactive_commands(
+        *,
+        commands: Sequence[OrderCommand],
+        effective_bar: int,
+        idx: pd.DatetimeIndex,
+        emitted_order_ids: set[str],
+    ) -> tuple[tuple[OrderCommand, ...], int]:
+        if commands is None:
+            return (), 0
+        if effective_bar >= len(idx):
+            return (), len(tuple(commands))
+        out: list[OrderCommand] = []
+        ignored = 0
+        effective_ts = idx[int(effective_bar)]
+        for seq, command in enumerate(tuple(commands)):
+            if not isinstance(command, OrderCommand):
+                raise TypeError("reactive strategy callbacks must return OrderCommand objects")
+            order_id = command.order_id
+            if command.action in (OrderAction.PLACE, OrderAction.REPLACE):
+                if order_id is None:
+                    order_id = command.tag or f"reactive-{effective_bar}-{seq}"
+                if order_id in emitted_order_ids:
+                    raise ValueError(f"duplicate reactive order_id={order_id!r}")
+                emitted_order_ids.add(order_id)
+            out.append(replace(command, timestamp=effective_ts, order_id=order_id))
+        return tuple(out), ignored
+
+    @staticmethod
+    def _call_strategy_callback(strategy, callback: str, context: NativeStrategyContext) -> tuple[OrderCommand, ...]:
+        fn = getattr(strategy, callback, None)
+        if fn is None:
+            return ()
+        try:
+            commands = fn(context)
+        except Exception as exc:
+            raise NativeEventStrategyError(callback, context.bar_index, context.timestamp, exc) from exc
+        if commands is None:
+            return ()
+        return tuple(commands)
+
+    @staticmethod
+    def _fill_to_native_event(fill: Fill) -> NativeFillEvent:
+        metadata = dict(fill.metadata or {})
+        return NativeFillEvent(
+            timestamp=pd.Timestamp(fill.timestamp),
+            symbol=fill.symbol,
+            side=fill.side,
+            qty=float(fill.qty),
+            price=float(fill.price),
+            fee=float(fill.fee),
+            order_id=fill.order_id,
+            tag=metadata.get("tag"),
+            campaign_id=metadata.get("campaign_id"),
+            cycle_id=metadata.get("cycle_id"),
+            level_id=metadata.get("level_id"),
+            parent_order_id=metadata.get("parent_order_id"),
+            oco_group_id=metadata.get("oco_group_id"),
+            metadata=metadata,
+        )
+
+    @staticmethod
+    def _native_order_events_for_bar(events, bar: int) -> tuple[NativeOrderEvent, ...]:
+        if events is None or len(events) == 0:
+            return ()
+        frame = events[events["bar"] == int(bar)]
+        out = []
+        for row in frame.to_dict("records"):
+            out.append(
+                NativeOrderEvent(
+                    timestamp=pd.Timestamp(row["timestamp"]),
+                    bar=int(row["bar"]),
+                    event_name=str(row["event_name"]),
+                    status=int(row["status"]),
+                    order_id=row.get("order_id"),
+                    target_order_id=row.get("target_order_id"),
+                    parent_order_id=row.get("parent_order_id"),
+                    oco_group_id=row.get("oco_group_id"),
+                    tag=row.get("tag"),
+                    campaign_id=row.get("campaign_id"),
+                    cycle_id=row.get("cycle_id"),
+                    level_id=row.get("level_id"),
+                    original_index=int(row.get("original_index", -1)),
+                    related_original_index=int(row.get("related_original_index", -1)),
+                )
+            )
+        return tuple(out)
+
+    @staticmethod
+    def _native_active_snapshots(active_orders) -> tuple[NativeActiveOrderSnapshot, ...]:
+        if active_orders is None or len(active_orders) == 0:
+            return ()
+        out = []
+        for row in active_orders.to_dict("records"):
+            out.append(
+                NativeActiveOrderSnapshot(
+                    order_id=row.get("order_id"),
+                    symbol=row.get("symbol"),
+                    side=row.get("side"),
+                    order_type=row.get("order_type"),
+                    status=int(row.get("status", 0)),
+                    remaining_qty=float(row.get("working_qty", 0.0)),
+                    price=float(row.get("working_price", 0.0)),
+                    trigger_price=float(row.get("working_trigger_price", 0.0)),
+                    reduce_only=bool(row.get("reduce_only", False)),
+                    parent_order_id=row.get("parent_order_id"),
+                    group_id=row.get("group_id"),
+                    oco_group_id=row.get("oco_group_id"),
+                    tag=row.get("tag"),
+                    campaign_id=row.get("campaign_id"),
+                    cycle_id=row.get("cycle_id"),
+                    level_id=row.get("level_id"),
+                )
+            )
+        return tuple(out)
+
+    @staticmethod
+    def _reactive_size_helper(symbols: List[str], constraints, contract_sizes: np.ndarray):
+        symbol_to_col = {symbol: j for j, symbol in enumerate(symbols)}
+
+        def size_order(symbol: str, notional: float, price: float, side: OrderSide = OrderSide.BUY) -> float:
+            if symbol not in symbol_to_col:
+                raise ValueError(f"unknown symbol={symbol!r}")
+            if price <= 0.0:
+                raise ValueError("price must be > 0")
+            col = symbol_to_col[symbol]
+            signed_qty = (float(notional) / (float(price) * float(contract_sizes[col]))) * side.sign
+            return abs(
+                quantize_signed_quantity(
+                    signed_qty,
+                    float(price),
+                    float(contract_sizes[col]),
+                    float(constraints.qty_step[col]),
+                    float(constraints.min_qty[col]),
+                    float(constraints.min_notional[col]),
+                )
+            )
+
+        return size_order
 
     @staticmethod
     def _build_command_report(
@@ -806,6 +1868,9 @@ class NativeEventBackend:
                     "parent_order_id": command.parent_order_id,
                     "group_id": command.group_id,
                     "oco_group_id": command.oco_group_id,
+                    "campaign_id": command.metadata.get("campaign_id"),
+                    "cycle_id": command.metadata.get("cycle_id"),
+                    "level_id": command.metadata.get("level_id"),
                     "activation_policy": command.activation_policy.value,
                     "status": int(command_status[sorted_idx]),
                     "reject_code": int(reject_code[sorted_idx]),
@@ -820,6 +1885,7 @@ class NativeEventBackend:
                     "working_trigger_price": float(working_trigger[sorted_idx]),
                     "reduce_only": bool(command.reduce_only),
                     "tag": command.tag,
+                    "tag_prefix": command.tag_prefix,
                 }
             )
         if not rows:
@@ -864,7 +1930,12 @@ class NativeEventBackend:
                     "related_original_index": related_original_idx,
                     "order_id": None if command is None else command.order_id,
                     "target_order_id": None if command is None else command.target_order_id,
+                    "parent_order_id": None if command is None else command.parent_order_id,
                     "oco_group_id": None if command is None else command.oco_group_id,
+                    "tag": None if command is None else command.tag,
+                    "campaign_id": None if command is None else command.metadata.get("campaign_id"),
+                    "cycle_id": None if command is None else command.metadata.get("cycle_id"),
+                    "level_id": None if command is None else command.metadata.get("level_id"),
                 }
             )
         return pd.DataFrame(rows)
@@ -1908,6 +2979,13 @@ class NativeEventBackend:
         for sorted_idx in filled_indices:
             order = sorted_orders[int(sorted_idx)][1]
             bar = int(fill_bar[sorted_idx])
+            metadata = dict(getattr(order, "metadata", {}) or {})
+            if getattr(order, "tag", None) is not None:
+                metadata.setdefault("tag", order.tag)
+            if getattr(order, "parent_order_id", None) is not None:
+                metadata.setdefault("parent_order_id", order.parent_order_id)
+            if getattr(order, "oco_group_id", None) is not None:
+                metadata.setdefault("oco_group_id", order.oco_group_id)
             fills.append(
                 Fill(
                     timestamp=idx[bar],
@@ -1922,7 +3000,7 @@ class NativeEventBackend:
                         else LiquiditySide.MAKER
                     ),
                     order_id=order.order_id,
-                    metadata={"source": "native_event"},
+                    metadata={**metadata, "source": "native_event"},
                 )
             )
         return fills

@@ -3490,3 +3490,897 @@ For every phase:
 6. Do not include unrelated dirty files.
 
 Main branch is protected by local pre-commit hook.
+
+
+## Aditional update to awesome-native event command reactive
+### Feature Request: Reactive Native-Event Strategy Runner
+
+### Phase 30D - Reactive Runner MVP
+
+Status: completed.
+
+Goal:
+
+- Add a safe opt-in reactive strategy runner above native-event v2.
+- Preserve the static command-tape route and all Phase 30A-C behavior.
+- Let strategy callbacks observe engine-generated fills, events, positions,
+  equity, margin, and active orders after each bar.
+- Enforce causal timing: commands emitted after close `t` become effective from
+  bar `t+1`.
+- Capture the emitted command tape and prove that static replay of this tape
+  has 100% accounting parity with the reactive run.
+
+Implementation scope:
+
+- Add read-only reactive records:
+  - `NativeStrategyContext`;
+  - `NativeFillEvent`;
+  - `NativeOrderEvent`;
+  - `NativeActiveOrderSnapshot`;
+  - `NativeEventStrategyError`.
+- Add `NativeEventBackend.run_strategy(...)`.
+- Add endpoint route:
+  - `QuantBTEndpoint.native_event_strategy(...)`;
+  - `simulate(..., strategy=...)`.
+- Add `context.size_order(...)` using the same quantity constraints as the
+  backend.
+- Preserve metadata round-trip for `campaign_id`, `cycle_id`, `level_id`,
+  `order_id`, `tag`, `parent_order_id`, and `oco_group_id`.
+
+MVP note:
+
+- Phase 30D may use a replay-backed context builder that calls the already
+  certified event-v2 command engine. This keeps lifecycle semantics identical
+  and makes parity exact. Phase 30E is reserved for the true incremental
+  session with preallocated buffers and large workload benchmarks.
+
+Acceptance tests:
+
+- `on_bar_close` is called exactly once after each bar.
+- Commands emitted at close `t` cannot fill inside bar `t`.
+- Commands become active/fillable from `t+1`.
+- Context fills/positions match final result state.
+- Rejected commands are visible in the next callback.
+- Liquidation prevents further command ingestion.
+- Captured `emitted_command_tape` static replay matches equity, positions,
+  fills, and command report.
+
+Implemented:
+
+- Added read-only reactive records:
+  - `NativeStrategyContext`;
+  - `NativeFillEvent`;
+  - `NativeOrderEvent`;
+  - `NativeActiveOrderSnapshot`;
+  - `NativeEventStrategyError`;
+  - `NativeEventStrategyProtocol`.
+- Added `NativeEventBackend.run_strategy(...)`.
+- Added endpoint route:
+  - `QuantBTEndpoint.native_event_strategy(...)`;
+  - `simulate(..., strategy=...)`.
+- Added `context.size_order(...)` using backend quantity constraints.
+- Added metadata round-trip into command report, order events, fills, and
+  reactive context for:
+  - `campaign_id`;
+  - `cycle_id`;
+  - `level_id`;
+  - `order_id`;
+  - `tag`;
+  - `parent_order_id`;
+  - `oco_group_id`.
+- Added captured command tape:
+  - `result.metadata["emitted_command_tape"]`;
+  - `emitted_command_count`;
+  - `strategy_callback_count`;
+  - `reactive_context_builder`.
+- Added clear callback failure errors with bar index and timestamp.
+
+Latest tests:
+
+- Phase 30D reactive runner tests: `6 passed`.
+- Phase 30A/30B/30C/30D lifecycle suites: `29 passed`.
+- Endpoint/Nautilus compatibility subsets: `50 passed`.
+- Full non-real regression: `424 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 30D:
+
+- The MVP context builder is replay-backed through the certified event-v2
+  command engine. It preserves exact semantics and replay parity, but it is not
+  the final high-throughput incremental session.
+- Scoped `CANCEL_ALL` filters and large dynamic-grid benchmarks remain Phase
+  30E.
+- Nautilus exchange-native cancel/amend parity remains future work.
+
+### Phase 30E - Incremental Reactive Session And Dynamic Grid Certification
+
+Status: completed.
+
+Goal:
+
+- Replace the Phase 30D replay-backed context builder with an incremental
+  session that appends per-bar commands without recompiling command history.
+- Add scoped `CANCEL_ALL` filters:
+  - symbol;
+  - side;
+  - order type;
+  - tag;
+  - tag prefix;
+  - parent order id;
+  - OCO group id;
+  - campaign/group ids.
+- Add dynamic grid fixture and benchmark:
+  - 25,000 bars;
+  - 15-30 active grid orders;
+  - 1-5 commands per bar;
+  - static tape vs reactive FAST vs reactive AUDIT;
+  - full accounting parity between FAST and AUDIT.
+
+Non-goals retained:
+
+- No tick matching.
+- No L2 book/queue priority.
+- No exchange-native Nautilus cancel/amend parity.
+- No async/live broker runtime.
+
+Implementation notes:
+
+- `NativeEventBackend.run_strategy(...)` now uses an incremental reactive
+  session for callback context instead of replaying/recompiling command history
+  on every bar.
+- Final accounting, fills, positions, fees, margin, liquidation, and reports
+  still come from one static `event_v2` replay of the emitted command tape.
+- `reactive_execution_mode="fast"` and `"audit"` keep the same public API.
+  Audit mode stores `reactive_audit` final equity/position diffs.
+- Reactive strategy metadata now reports:
+  - `reactive_context_builder="incremental_session_v1"`;
+  - `reactive_incremental_compile_replays=0`;
+  - `emitted_command_tape`;
+  - `emitted_command_count`.
+- Kernel `CANCEL_ALL` now supports scoped numeric filters:
+  - symbol;
+  - side;
+  - order type;
+  - parent order id;
+  - group id;
+  - OCO group id.
+- Reactive string-scoped `CANCEL_ALL` supports:
+  - exact tag;
+  - tag prefix;
+  - campaign id;
+  - cycle id;
+  - level id.
+  These commands are expanded into explicit target `CANCEL` commands before
+  final static replay so final accounting remains replayable by the Numba
+  kernel.
+- Active-order snapshots now include `group_id`.
+- Core path optimization:
+  - incremental session tracks only active/waiting pending orders;
+  - filled/canceled/rejected historical orders are no longer scanned every bar;
+  - pandas/report construction is kept out of the callback loop.
+
+Validation:
+
+- Phase 30A/30B/30C/30D/30E lifecycle suites: `33 passed`.
+- Full quantbt unit regression: pending for final phase closeout.
+- 25,000-bar dynamic grid benchmark:
+  - 20 active grid levels;
+  - 10,438 emitted commands;
+  - 10,438 fills;
+  - reactive context runtime: `3.5069s`;
+  - final static replay runtime: `1.6560s`;
+  - total runtime: `5.1629s`;
+  - max equity diff vs static replay: `0.0`;
+  - max position diff vs static replay: `0.0`.
+
+Final Phase 30E conclusion:
+
+- The urgent native-event lifecycle stack is now usable for dynamic DCA/grid,
+  recurring order management, reactive re-arm, scoped cancellation, and audit
+  replay workflows on OHLC bars.
+- The trusted accounting source remains the Numba event-v2 kernel.
+- Remaining future work is intentionally outside Phase 30:
+  - tick/L2 book simulation;
+  - exchange-native Nautilus cancel/amend/OCO order-list parity;
+  - async broker runtime;
+  - portfolio-margin venue clones.
+
+## 1. Mục tiêu
+
+Bổ sung một **reactive lifecycle runner** lên `native_event v2` hiện tại để strategy có thể:
+
+1. Nhận trạng thái execution thực tế sau mỗi bar.
+2. Đọc fills, position và active orders do QuantBT tạo.
+3. Phát `OrderCommand[]` cho bar tiếp theo.
+4. Không phải tự kiểm tra `high/low` hoặc tự mô phỏng fill trong strategy.
+
+Đây không phải full exchange OMS và không thay đổi matching/accounting kernel hiện tại.
+
+Mục tiêu chính là hỗ trợ đúng domain cho:
+
+* Dynamic grid.
+* Recurring DCA.
+* Re-arm order sau khi exit.
+* Cancel/amend level theo indicator mới.
+* Regime switch.
+* Parent-child nhiều chu kỳ.
+* Stateful scale-in/scale-out strategies.
+
+---
+
+## 2. Vấn đề hiện tại
+
+`native_event v2` đã hỗ trợ:
+
+```text
+PLACE
+CANCEL
+REPLACE
+AMEND
+CANCEL_ALL
+MARKET / LIMIT / STOP
+parent-child
+OCO
+reduce-only
+GTD
+```
+
+Nhưng public backend hiện vẫn chạy theo mô hình:
+
+```python
+run_order_commands(
+    commands: Sequence[OrderCommand],
+    market_arrays=...,
+)
+```
+
+Tức là toàn bộ command tape phải được tạo trước simulation.
+
+Mô hình này không đủ cho recurring dynamic grid:
+
+```text
+entry fill
+→ strategy cần biết fill thực tế
+→ tạo exit cho đúng filled quantity
+→ exit fill
+→ re-arm entry
+→ amend grid theo level mới
+```
+
+Strategy không thể biết trước các event này nếu không tự mô phỏng fills, dẫn đến duplicate execution logic và nguy cơ sai parity.
+
+---
+
+## 3. Public API đề xuất
+
+### Phương án chính
+
+```python
+endpoint = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    slippage_bps=1.0,
+    report_level="minimal",
+)
+
+result = endpoint.simulate(
+    data=df,
+    strategy=DynamicGridStrategy(params),
+    symbols=["ETHUSDT"],
+)
+```
+
+Hoặc giữ endpoint hiện tại:
+
+```python
+endpoint = QuantBTEndpoint.native_event_lifecycle(...)
+
+result = endpoint.simulate_strategy(
+    data=df,
+    strategy=DynamicGridStrategy(params),
+)
+```
+
+Không thay đổi API hiện có:
+
+```python
+simulate(order_commands=[...])
+```
+
+Static command tape và reactive strategy runner phải cùng dùng một kernel lifecycle.
+
+---
+
+## 4. Strategy protocol
+
+```python
+class NativeEventStrategyProtocol:
+    def initialize(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+
+    def on_bar_close(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+
+    def finalize(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+```
+
+MVP chỉ cần:
+
+```text
+initialize
+on_bar_close
+finalize
+```
+
+Chưa cần tick callback, order-book callback hoặc intrabar strategy callback.
+
+---
+
+## 5. Read-only strategy context
+
+```python
+@dataclass(frozen=True)
+class NativeStrategyContext:
+    bar_index: int
+    timestamp: pd.Timestamp
+
+    open: np.ndarray
+    high: np.ndarray
+    low: np.ndarray
+    close: np.ndarray
+    volume: np.ndarray
+
+    equity: float
+    available_equity: float
+    initial_margin: float
+    maintenance_margin: float
+
+    positions: Mapping[str, float]
+
+    fills_this_bar: Sequence[FillEvent]
+    order_events_this_bar: Sequence[OrderEvent]
+    active_orders: Sequence[ActiveOrderSnapshot]
+
+    liquidated: bool
+```
+
+`active_orders` cần chứa tối thiểu:
+
+```text
+order_id
+symbol
+side
+order_type
+status
+remaining_qty
+price
+trigger_price
+reduce_only
+parent_order_id
+oco_group_id
+tag
+```
+
+Context chỉ đọc. Strategy không được sửa trực tiếp engine state.
+
+---
+
+## 6. Timeline causal bắt buộc
+
+Tại bar `t`:
+
+```text
+1. Activate commands đã được submit từ trước.
+2. Xử lý trigger và fills bằng OHLC[t].
+3. Áp dụng fee, funding, margin và liquidation.
+4. Cập nhật positions/equity.
+5. Emit fill/order events của bar t.
+6. Gọi strategy.on_bar_close(context_t).
+7. Commands trả về chỉ active từ bar t+1.
+```
+
+Default phải là:
+
+```python
+command_effective_phase = "next_bar"
+```
+
+Như vậy strategy dùng indicator tại close `t` nhưng không thể retroactively đặt order trong high/low của chính bar `t`.
+
+Không cho callback sửa kết quả bar đã xử lý.
+
+---
+
+## 7. Không mô phỏng fill trong strategy
+
+Strategy chỉ được:
+
+```text
+tính indicator
+xác định regime
+xác định desired grid levels
+PLACE / CANCEL / AMEND orders
+quản lý campaign_id và level_id
+phản ứng với fill events thật
+```
+
+QuantBT tiếp tục là nguồn duy nhất cho:
+
+```text
+limit touch
+fill price
+slippage
+fee
+position
+average entry
+margin
+funding
+liquidation
+reduce-only clipping
+OCO
+parent activation
+order status
+```
+
+---
+
+## 8. Dynamic command ingestion
+
+Kernel/session cần cho phép append commands sau mỗi bar mà không compile lại toàn bộ lịch sử.
+
+Đề xuất internal structure:
+
+```text
+prepared market arrays
+active-order registry
+per-bar command buffer
+preallocated command/event arrays
+free-slot stack
+```
+
+API nội bộ:
+
+```python
+session.submit_commands(
+    commands,
+    effective_bar=current_bar + 1,
+)
+```
+
+Không nối lại toàn bộ `Sequence[OrderCommand]` rồi chạy lại simulation từ đầu.
+
+---
+
+## 9. Scoped `CANCEL_ALL`
+
+Dynamic grid cần hủy đúng campaign hoặc đúng side, không được luôn hủy toàn bộ account.
+
+Mở rộng `CANCEL_ALL` với filter tùy chọn:
+
+```python
+OrderCommand(
+    action=OrderAction.CANCEL_ALL,
+    symbol="ETHUSDT",
+    side=OrderSide.BUY,
+    tag_prefix="GRID-C12-LONG-ENTRY",
+)
+```
+
+Các scope cần thiết:
+
+```text
+symbol
+side
+order_type
+tag
+tag_prefix
+parent_order_id
+oco_group_id
+```
+
+Nếu chưa muốn đưa string filter vào Numba, compiler map tag/campaign/group thành integer code.
+
+---
+
+## 10. Metadata round-trip
+
+Các trường sau phải được giữ xuyên suốt:
+
+```text
+order command
+→ active order
+→ order event
+→ fill
+→ result reports
+```
+
+Fields:
+
+```text
+order_id
+tag
+campaign_id
+cycle_id
+level_id
+parent_order_id
+oco_group_id
+```
+
+Có thể lưu các domain ID dưới dạng integer code trong kernel và decode khi tạo pandas reports.
+
+Điều này cần thiết để strategy biết:
+
+```text
+fill này thuộc level nào
+exit nào vừa đóng
+entry nào cần re-arm
+campaign nào cần cancel
+```
+
+---
+
+## 11. Quantity semantics
+
+MVP tiếp tục dùng `qty`, nhưng nên thêm shared sizing helper ngoài strategy:
+
+```python
+qty = context.size_order(
+    symbol="ETHUSDT",
+    notional=cash_per_entry,
+    price=limit_price,
+)
+```
+
+Helper phải dùng cùng venue constraints với backend:
+
+```text
+contract_size
+qty_step
+lot_size
+min_qty
+min_notional
+```
+
+Strategy không nên tự lặp lại rounding logic.
+
+Không nhất thiết phải thêm `notional` vào kernel command trong phase này.
+
+---
+
+## 12. Performance
+
+### Hai mode
+
+```python
+execution_mode="fast"
+execution_mode="audit"
+```
+
+`fast`:
+
+* Reuse prepared market arrays.
+* Chỉ tạo context tối thiểu.
+* Không dựng DataFrame trong bar loop.
+* Fills/events dùng lightweight views hoặc arrays.
+* Không lưu full active-order snapshots mỗi bar.
+* `report_level="minimal"`.
+* Dùng cho Optuna và WFO.
+
+`audit`:
+
+* Full `order_events`.
+* Full active-order diagnostics.
+* Command tape export.
+* Dùng cho candidate cuối.
+
+### Không gọi pandas trong hot loop
+
+Alpha indicators nên được tính trước thành NumPy arrays:
+
+```python
+strategy.prepare(data) -> PreparedStrategyArrays
+```
+
+`on_bar_close()` chỉ đọc array tại `bar_index`.
+
+### Không copy toàn bộ registry
+
+Context chỉ expose:
+
+```text
+position vector
+fills/events vừa phát sinh
+active-order view cần thiết
+```
+
+Không copy tất cả historical events mỗi bar.
+
+### Benchmark bắt buộc
+
+Thêm benchmark:
+
+```text
+25,000 bars
+15–30 concurrent grid orders
+1–5 commands/bar
+multiple fill/re-arm cycles
+```
+
+So sánh:
+
+```text
+static command tape
+reactive FAST
+reactive AUDIT
+```
+
+Reactive FAST không nên chậm hơn Python event loop ngây thơ và phải đủ dùng cho Optuna trên dữ liệu 1h.
+
+---
+
+## 13. Determinism
+
+Cùng:
+
+```text
+market data
+strategy parameters
+initial state
+random seed
+```
+
+phải tạo chính xác cùng:
+
+```text
+command tape
+fills
+positions
+equity
+reports
+```
+
+Command ordering:
+
+```text
+bar_index
+callback_sequence
+command_sequence
+```
+
+Commands strategy trả về phải giữ nguyên stable list order.
+
+---
+
+## 14. Failure handling
+
+Nếu strategy callback raise exception:
+
+```text
+stop simulation
+return bar_index/timestamp gây lỗi
+không trả partial metrics như một backtest hợp lệ
+```
+
+Nếu command bị reject:
+
+* Event phải xuất hiện trong `order_events`.
+* Strategy nhận event đó ở callback tiếp theo.
+* Không tự động retry trừ khi strategy yêu cầu.
+
+Nếu liquidation xảy ra:
+
+* Cancel toàn bộ active orders.
+* Context đánh dấu `liquidated=True`.
+* Không tiếp tục submit order mới mặc định.
+
+---
+
+## 15. Captured command tape
+
+Reactive runner phải lưu toàn bộ commands mà strategy đã phát:
+
+```python
+result.metadata["emitted_command_tape"]
+```
+
+Hoặc:
+
+```python
+result.command_tape
+```
+
+Dùng cho:
+
+* Audit.
+* Reproduction.
+* Replay static.
+* So sánh strategy-state với engine-state.
+* Nautilus validation.
+
+Một reactive run phải có thể replay bằng:
+
+```python
+endpoint.simulate(
+    data=df,
+    order_commands=result.command_tape,
+)
+```
+
+và cho kết quả native-event giống hệt.
+
+Đây là acceptance criterion quan trọng nhất.
+
+---
+
+## 16. Nautilus validation follow-up
+
+Support matrix hiện ghi native lifecycle đã hỗ trợ đầy đủ phía native, nhưng Nautilus command path mới payload-aligned; cancel/amend chưa có exchange-native parity đầy đủ.
+
+Sau MVP reactive runner, bổ sung adapter:
+
+```python
+replay_lifecycle_tape_with_nautilus(
+    data,
+    command_tape,
+)
+```
+
+Mapping:
+
+```text
+PLACE   → submit_order
+CANCEL  → cancel_order
+REPLACE → cancel + submit hoặc modify đúng Nautilus API
+AMEND   → modify_order
+```
+
+Validation report:
+
+```text
+order lifecycle status
+fill count
+fill qty
+position by bar
+fees
+realized PnL
+final equity
+```
+
+Nautilus không cần nằm trong optimization loop; chỉ validate candidate cuối.
+
+---
+
+## 17. Acceptance tests bắt buộc
+
+### Core runner
+
+1. Callback được gọi đúng một lần sau mỗi bar.
+2. Command sinh tại close `t` không thể fill trong bar `t`.
+3. Command bắt đầu active tại `t+1`.
+4. Position/fills trong context khớp result cuối.
+5. Rejected command được trả về callback.
+6. Liquidation khóa strategy đúng cách.
+7. Static replay của captured command tape cho parity 100%.
+
+### Dynamic grid fixture
+
+1. Place 3 buy limits.
+2. Một entry fill.
+3. Chỉ child exit của đúng level được tạo.
+4. Exit fill ở bar sau.
+5. Entry level được re-arm.
+6. Grid level thay đổi thì pending order được amend.
+7. Regime switch cancel đúng pending side.
+8. Reduce-only market command đóng inventory.
+9. Không tồn tại stale hoặc duplicate order.
+10. Không có same-bar entry/exit nếu strategy không chủ động yêu cầu.
+
+### Performance
+
+* Prepared market arrays được reuse.
+* Không compile lại toàn bộ command history mỗi bar.
+* FAST và AUDIT có accounting parity.
+* Memory không tăng tuyến tính theo `bars × active_orders snapshots`.
+
+---
+
+## 18. Non-goals
+
+Không cần bổ sung:
+
+```text
+tick matching
+L2 order book
+queue position
+exchange latency
+market impact model
+distributed event bus
+live broker connectivity
+async strategy runtime
+full exchange OMS
+```
+
+Runner chỉ là cầu nối reactive giữa:
+
+```text
+strategy state
+↔ native-event lifecycle kernel
+```
+
+---
+
+## 19. Những phần cần hoàn thành trước khi viết lại grid alpha
+
+### Blocker bắt buộc
+
+* Reactive `on_bar_close` runner.
+* Context có positions, fills và active orders.
+* Commands effective từ next bar.
+* Scoped `CANCEL_ALL`.
+* Metadata/tag/level ID round-trip.
+* Captured command tape.
+* Static replay parity test.
+
+### Nên có ngay
+
+* Shared notional-to-qty sizing helper.
+* `report_level="minimal"` cho Optuna.
+* Prepared strategy/market arrays.
+* Dynamic grid integration fixture.
+* Clear error khi duplicate `order_id`.
+
+### Có thể làm sau alpha MVP
+
+* Nautilus exchange-native cancel/amend adapter.
+* Partial fills.
+* Volume-capped fills.
+* Intrabar callback.
+* Same-close callback phase.
+* Numba-compiled strategy callback protocol.
+
+---
+
+## 20. Deliverable cuối
+
+Sau nâng cấp, grid alpha phải được viết theo dạng:
+
+```python
+class DynamicGridStrategy:
+    def prepare(self, data, params):
+        # Tính trước MA, ATR, regime và grid levels.
+        ...
+
+    def on_bar_close(self, context):
+        # Đọc fills/active orders thật.
+        # Sinh PLACE/CANCEL/AMEND cho bar tiếp theo.
+        # Không kiểm tra high/low để tự quyết định fill.
+        return commands
+```
+
+Backtest:
+
+```python
+endpoint = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    report_level="minimal",
+)
+
+result = endpoint.simulate(
+    data=data_eth,
+    strategy=DynamicGridStrategy(params),
+)
+```
+
+Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `grid_combine` thành một unified alpha mà không cần bất kỳ fill simulator nào bên trong strategy.
