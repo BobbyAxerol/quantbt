@@ -28,6 +28,14 @@ from .structured_orders import (
     build_bracket_order_plan,
     build_dca_grid_order_plan,
 )
+from .reactive import (
+    NativeActiveOrderSnapshot,
+    NativeEventStrategyError,
+    NativeEventStrategyProtocol,
+    NativeFillEvent,
+    NativeOrderEvent,
+    NativeStrategyContext,
+)
 from .arbitrage    import (
     ArbExecutionPolicy,
     ArbitrageLeg,
@@ -139,6 +147,12 @@ __all__ = [
     "MarginModel",
     "MarginModelKind",
     "NautilusExecutionDepthConfig",
+    "NativeActiveOrderSnapshot",
+    "NativeEventStrategyError",
+    "NativeEventStrategyProtocol",
+    "NativeFillEvent",
+    "NativeOrderEvent",
+    "NativeStrategyContext",
     "OmsMode",
     "OrderAction",
     "OrderActivationPolicy",
