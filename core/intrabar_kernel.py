@@ -17,7 +17,7 @@ import pandas as pd
 from numba import njit
 
 from .execution_contract import ExecutionContract, IntrabarSameBarPolicy, TakeProfitGapPolicy
-from .intrabar_reference import IntrabarFill, IntrabarFillReason, IntrabarIntentTape, IntrabarLevelMode
+from .intrabar_reference import IntrabarFill, IntrabarFillReason, IntrabarIntentTape, IntrabarLevelMode, IntrabarSizingMode, _validate_intrabar_contract_supported
 from .market_tape import PreparedMarketTape
 from .schema import AccountConfig
 
@@ -55,6 +55,11 @@ FLAG_AMBIGUOUS = 1 << 6
 FLAG_FUNDING = 1 << 7
 FLAG_LIQUIDATION = 1 << 8
 FLAG_REJECTED = 1 << 9
+
+SIZING_UNITS = 1
+SIZING_FIXED_NOTIONAL = 2
+SIZING_PCT_EQUITY = 3
+SIZING_RISK_PER_TRADE = 4
 
 
 @dataclass(frozen=True)
@@ -134,6 +139,13 @@ def run_intrabar_kernel(
     fee_rate: float = 0.0,
     slippage_rate: float = 0.0,
     contract_size: float = 1.0,
+    sizing_mode: IntrabarSizingMode | str = IntrabarSizingMode.UNITS,
+    fixed_notional: float = 0.0,
+    equity_fraction: float = 0.0,
+    risk_fraction: float = 0.0,
+    qty_step: float = 0.0,
+    min_qty: float = 0.0,
+    min_notional: float = 0.0,
     report_level: str = "standard",
 ) -> NativeIntrabarKernelResult:
     """
@@ -152,10 +164,29 @@ def run_intrabar_kernel(
     contract = contract or ExecutionContract.intrabar_bracket()
     if contract.engine_id != "intrabar_bracket_v1":
         raise ValueError("run_intrabar_kernel requires intrabar_bracket_v1 contract")
+    _validate_intrabar_contract_supported(contract)
     if contract.same_bar_policy is IntrabarSameBarPolicy.REJECT_AMBIGUOUS:
         raise NotImplementedError("fast intrabar kernel v1 does not support REJECT_AMBIGUOUS; use the reference oracle for debug rejection")
+    sizing_mode_value = IntrabarSizingMode(sizing_mode)
 
-    arrays = _run_intrabar_pass(record_fills=False, fill_capacity=1, tape=tape, intent=intent, account=account, contract=contract, fee_rate=fee_rate, slippage_rate=slippage_rate, contract_size=contract_size)
+    arrays = _run_intrabar_pass(
+        record_fills=False,
+        fill_capacity=1,
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        fee_rate=fee_rate,
+        slippage_rate=slippage_rate,
+        contract_size=contract_size,
+        sizing_mode=sizing_mode_value,
+        fixed_notional=fixed_notional,
+        equity_fraction=equity_fraction,
+        risk_fraction=risk_fraction,
+        qty_step=qty_step,
+        min_qty=min_qty,
+        min_notional=min_notional,
+    )
     (
         equity,
         position,
@@ -184,7 +215,24 @@ def run_intrabar_kernel(
     fills: tuple[IntrabarFill, ...] = ()
     fills_report = pd.DataFrame()
     if level == "audit":
-        audit = _run_intrabar_pass(record_fills=True, fill_capacity=int(fill_count), tape=tape, intent=intent, account=account, contract=contract, fee_rate=fee_rate, slippage_rate=slippage_rate, contract_size=contract_size)
+        audit = _run_intrabar_pass(
+            record_fills=True,
+            fill_capacity=int(fill_count),
+            tape=tape,
+            intent=intent,
+            account=account,
+            contract=contract,
+            fee_rate=fee_rate,
+            slippage_rate=slippage_rate,
+            contract_size=contract_size,
+            sizing_mode=sizing_mode_value,
+            fixed_notional=fixed_notional,
+            equity_fraction=equity_fraction,
+            risk_fraction=risk_fraction,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
         _assert_intrabar_audit_parity(arrays, audit)
         fills = _materialize_intrabar_fills(
             timestamps_ns=tape.timestamps_ns,
@@ -217,6 +265,17 @@ def run_intrabar_kernel(
         "rejected_count": int(rejected_count),
         "liquidated": bool(liquidated),
         "liquidation_bar": int(liquidation_bar),
+        "sizing_mode": sizing_mode_value.value,
+        "sizing": {
+            "fixed_notional": float(fixed_notional),
+            "equity_fraction": float(equity_fraction),
+            "risk_fraction": float(risk_fraction),
+        },
+        "quantity_constraints": {
+            "qty_step": float(qty_step),
+            "min_qty": float(min_qty),
+            "min_notional": float(min_notional),
+        },
     }
     return NativeIntrabarKernelResult(
         equity=pd.Series(equity, index=idx, name="equity"),
@@ -270,7 +329,13 @@ def run_fill_replay_kernel(
         "engine_id": "fill_replay_v1",
         "backend": "native_intrabar",
         "accounting_certified": True,
+        "price_accounting_certified": True,
+        "fee_accounting_certified": True,
+        "funding_certified": False,
+        "margin_certified": False,
+        "liquidation_certified": False,
         "execution_generation_certified": False,
+        "causality_certified": False,
         "data_signature": tape.signature,
         "fill_count": int(len(fill_tape.bar_index)),
     }
@@ -284,11 +349,30 @@ def run_fill_replay_kernel(
     )
 
 
-def _run_intrabar_pass(*, record_fills: bool, fill_capacity: int, tape, intent, account, contract, fee_rate, slippage_rate, contract_size):
+def _run_intrabar_pass(
+    *,
+    record_fills: bool,
+    fill_capacity: int,
+    tape,
+    intent,
+    account,
+    contract,
+    fee_rate,
+    slippage_rate,
+    contract_size,
+    sizing_mode,
+    fixed_notional,
+    equity_fraction,
+    risk_fraction,
+    qty_step,
+    min_qty,
+    min_notional,
+):
     stop_value = _optional_float_array(intent.stop_value, tape.n_bars)
     tp_value = _optional_float_array(intent.take_profit_value, tape.n_bars)
     trailing_value = _optional_float_array(intent.trailing_value, tape.n_bars)
-    technical_exit = _optional_bool_array(intent.technical_exit, tape.n_bars)
+    exit_long = _optional_bool_array(intent.exit_long if intent.exit_long is not None else intent.technical_exit, tape.n_bars)
+    exit_short = _optional_bool_array(intent.exit_short if intent.exit_short is not None else intent.technical_exit, tape.n_bars)
     fill_bar = np.zeros(max(1, int(fill_capacity)), dtype=np.int64)
     fill_seq = np.zeros(max(1, int(fill_capacity)), dtype=np.int16)
     fill_side = np.zeros(max(1, int(fill_capacity)), dtype=np.int8)
@@ -306,7 +390,8 @@ def _run_intrabar_pass(*, record_fills: bool, fill_capacity: int, tape, intent, 
         stop_value,
         tp_value,
         trailing_value,
-        technical_exit,
+        exit_long,
+        exit_short,
         tape.funding_rates[:, 0],
         tape.funding_event_mask,
         float(account.initial_capital),
@@ -316,6 +401,13 @@ def _run_intrabar_pass(*, record_fills: bool, fill_capacity: int, tape, intent, 
         float(contract_size),
         float(fee_rate),
         float(slippage_rate),
+        _sizing_mode_code(sizing_mode),
+        float(fixed_notional),
+        float(equity_fraction),
+        float(risk_fraction),
+        float(qty_step),
+        float(min_qty),
+        float(min_notional),
         _level_mode_code(intent.level_mode),
         _same_bar_policy_code(contract.same_bar_policy),
         _tp_policy_code(contract.take_profit_gap_policy),
@@ -342,7 +434,8 @@ def _engine_intrabar_bracket_v1(
     stop_value,
     tp_value,
     trailing_value,
-    technical_exit,
+    exit_long,
+    exit_short,
     funding_rates,
     funding_mask,
     initial_capital,
@@ -352,6 +445,13 @@ def _engine_intrabar_bracket_v1(
     contract_size,
     fee_rate,
     slippage_rate,
+    sizing_mode,
+    fixed_notional,
+    equity_fraction,
+    risk_fraction,
+    qty_step,
+    min_qty,
+    min_notional,
     level_mode,
     same_bar_policy,
     tp_gap_policy,
@@ -419,7 +519,8 @@ def _engine_intrabar_bracket_v1(
 
         pending_side = entry_side[t - 1]
         pending_size = entry_size[t - 1]
-        pending_exit = technical_exit[t - 1]
+        pending_exit = (position > 0.0 and exit_long[t - 1]) or (position < 0.0 and exit_short[t - 1])
+        exit_same_side_conflict = pending_exit and pending_side != 0 and position != 0.0 and _sign_numba(position) == pending_side
 
         if position != 0.0 and (pending_exit or (pending_side != 0 and _sign_numba(position) != pending_side)):
             reason = FILL_REVERSAL_EXIT if pending_side != 0 and _sign_numba(position) != pending_side else FILL_TECHNICAL_EXIT
@@ -444,7 +545,32 @@ def _engine_intrabar_bracket_v1(
         if pending_side != 0 and pending_size > 0.0 and position == 0.0:
             side = 1 if pending_side > 0 else -1
             price = _market_price_numba(open_ref, side, slippage_rate)
-            qty = pending_size
+            if exit_same_side_conflict:
+                qty = 0.0
+            else:
+                qty = _compile_entry_quantity_numba(
+                    pending_size,
+                    price,
+                    equity,
+                    contract_size,
+                    sizing_mode,
+                    fixed_notional,
+                    equity_fraction,
+                    risk_fraction,
+                    stop_value[t - 1],
+                    level_mode,
+                    side,
+                )
+                qty = abs(_quantize_signed_quantity_numba(qty, price, contract_size, qty_step, min_qty, min_notional))
+            if qty <= 0.0:
+                flags_arr[t] |= FLAG_REJECTED
+                rejected_count += 1
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
             if not _has_initial_margin_numba(equity, qty, price, contract_size, leverage, margin_buffer):
                 flags_arr[t] |= FLAG_REJECTED
                 rejected_count += 1
@@ -518,7 +644,7 @@ def _engine_intrabar_bracket_v1(
                 active_tp = np.nan
             else:
                 equity += position * (close_ref - last_ref) * contract_size
-                active_stop = _update_trailing_numba(trailing_value[t - 1], position, close_ref, active_stop, level_mode)
+                active_stop = _update_trailing_numba(trailing_value[t], position, close_ref, active_stop, level_mode)
 
         if liquidated:
             equity_arr[t] = 0.0
@@ -734,6 +860,45 @@ def _update_trailing_numba(trailing_value, position, close_price, current_stop, 
 
 
 @njit(cache=True, nogil=True)
+def _compile_entry_quantity_numba(size_weight, fill_price, equity, contract_size, sizing_mode, fixed_notional, equity_fraction, risk_fraction, stop_value, level_mode, side):
+    weight = abs(size_weight)
+    if sizing_mode == SIZING_UNITS:
+        return weight
+    if fill_price <= 0.0 or contract_size <= 0.0:
+        return 0.0
+    if sizing_mode == SIZING_FIXED_NOTIONAL:
+        return fixed_notional * weight / (fill_price * contract_size)
+    if sizing_mode == SIZING_PCT_EQUITY:
+        return equity * equity_fraction * weight / (fill_price * contract_size)
+    if sizing_mode == SIZING_RISK_PER_TRADE:
+        if not np.isfinite(stop_value) or stop_value <= 0.0:
+            return 0.0
+        stop_price = _level_price_numba(fill_price, side, stop_value, level_mode, True)
+        stop_distance = abs(fill_price - stop_price)
+        if stop_distance <= 0.0:
+            return 0.0
+        return equity * risk_fraction * weight / (stop_distance * contract_size)
+    return 0.0
+
+
+@njit(cache=True, nogil=True)
+def _quantize_signed_quantity_numba(qty, price, contract_size, qty_step, min_qty, min_notional):
+    if qty == 0.0:
+        return 0.0
+    sign = 1.0 if qty > 0.0 else -1.0
+    abs_q = abs(qty)
+    if qty_step > 0.0:
+        abs_q = np.floor((abs_q / qty_step) + 1e-12) * qty_step
+    if abs_q <= 0.0:
+        return 0.0
+    if min_qty > 0.0 and abs_q + 1e-12 < min_qty:
+        return 0.0
+    if min_notional > 0.0 and abs_q * price * contract_size + 1e-12 < min_notional:
+        return 0.0
+    return sign * abs_q
+
+
+@njit(cache=True, nogil=True)
 def _record_fill_numba(record, count, bar, seq, side, qty, price, fee, reason, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason):
     if record and count < fill_bar.shape[0]:
         fill_bar[count] = bar
@@ -767,6 +932,19 @@ def _level_mode_code(mode) -> int:
     if value == IntrabarLevelMode.PERCENT_DISTANCE.value:
         return LEVEL_PERCENT_DISTANCE
     raise NotImplementedError(f"unsupported intrabar level mode={mode!r}")
+
+
+def _sizing_mode_code(mode) -> int:
+    value = mode.value if hasattr(mode, "value") else str(mode)
+    mapping = {
+        IntrabarSizingMode.UNITS.value: SIZING_UNITS,
+        IntrabarSizingMode.FIXED_NOTIONAL.value: SIZING_FIXED_NOTIONAL,
+        IntrabarSizingMode.PCT_EQUITY.value: SIZING_PCT_EQUITY,
+        IntrabarSizingMode.RISK_PER_TRADE.value: SIZING_RISK_PER_TRADE,
+    }
+    if value not in mapping:
+        raise NotImplementedError(f"unsupported intrabar sizing_mode={mode!r}")
+    return mapping[value]
 
 
 def _same_bar_policy_code(policy) -> int:

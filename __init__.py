@@ -47,7 +47,7 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
-from .endpoint import EndpointConfig, QuantBTEndpoint, QuantBTPreparedContext, format_metrics_report
+from .endpoint import EndpointConfig, PreparedIntrabarRunner, QuantBTEndpoint, QuantBTPreparedContext, format_metrics_report
 from .walkforward import (
     DuplicatePruner,
     EarlyStoppingCallback,
@@ -113,6 +113,7 @@ from .core.intrabar_reference import (
     IntrabarIntentTape,
     IntrabarLevelMode,
     IntrabarReferenceResult,
+    IntrabarSizingMode,
     run_intrabar_reference,
 )
 from .core.intrabar_kernel import (
@@ -599,6 +600,7 @@ __all__ = [
     "IntrabarIntentTape",
     "IntrabarLevelMode",
     "IntrabarReferenceResult",
+    "IntrabarSizingMode",
     "IntrabarSameBarPolicy",
     "LifecycleModel",
     "LifecycleModelKind",
@@ -623,6 +625,7 @@ __all__ = [
     "PackageExecutionKind",
     "PackageRejection",
     "PreparedMarketTape",
+    "PreparedIntrabarRunner",
     "SameBarPolicy",
     "SignalModel",
     "SignalModelKind",

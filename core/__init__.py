@@ -26,6 +26,7 @@ from .intrabar_reference import (
     IntrabarIntentTape,
     IntrabarLevelMode,
     IntrabarReferenceResult,
+    IntrabarSizingMode,
     run_intrabar_reference,
 )
 from .intrabar_kernel import (
@@ -194,6 +195,7 @@ __all__ = [
     "IntrabarIntentTape",
     "IntrabarLevelMode",
     "IntrabarReferenceResult",
+    "IntrabarSizingMode",
     "IntrabarSameBarPolicy",
     "FillReplayTape",
     "LifecycleModel",

@@ -207,13 +207,13 @@ def test_phase31c_fast_endpoint_supports_standard_and_audit_report_levels():
         ]
     )
 
-    standard = QuantBTEndpoint.intrabar_bracket(initial_capital=10_000.0, fee_rate=0.0, slippage=0.0, use_funding=False, report_level="standard")
+    standard = QuantBTEndpoint.intrabar_bracket(initial_capital=10_000.0, fee_rate=0.0, slippage_bps=0.0, use_funding=False, report_level="standard")
     standard_result = standard.backtest(data=df, signal_col="entry", symbols=["BTC"], intent_cols={"stop_value": "sl"})
     assert standard_result.metadata["engine_id"] == "intrabar_bracket_v1"
     assert standard_result.metadata["report_level"] == "standard"
     assert standard.fills_report.empty
 
-    audit = QuantBTEndpoint.intrabar_bracket(initial_capital=10_000.0, fee_rate=0.0, slippage=0.0, use_funding=False, report_level="audit")
+    audit = QuantBTEndpoint.intrabar_bracket(initial_capital=10_000.0, fee_rate=0.0, slippage_bps=0.0, use_funding=False, report_level="audit")
     audit_result = audit.backtest(data=df, signal_col="entry", symbols=["BTC"], intent_cols={"stop_value": "sl"})
     assert audit_result.metadata["report_level"] == "audit"
     assert audit.fills_report["reason"].tolist() == ["entry", "stop_loss"]
