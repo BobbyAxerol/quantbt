@@ -82,6 +82,15 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
 
+`native_vectorized` is explicitly the `close_target_v2` execution contract:
+signals are interpreted as target exposure at the same bar close, with no
+engine-owned intrabar SL/TP/trailing path. Results include contract metadata
+such as `engine_id`, `signal_phase`, `fill_phase`, `intrabar_exit_model`,
+`kernel_version`, and `data_signature`. If a close-target run receives columns
+that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
+`take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
+intrabar semantics instead of silently implying correctness.
+
 ## Nautilus Support Matrix
 
 Services can inspect current Nautilus adapter coverage before constructing a

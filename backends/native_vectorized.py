@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -24,7 +25,15 @@ from ..core.preprocessor import (
 )
 from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
 from ..core.results import BacktestResultV2
-from ..core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec
+from ..core.schema import (
+    AccountConfig,
+    BasketLegSpec,
+    BasketSpec,
+    ExecutionConfig,
+    FillPricePolicy,
+    InstrumentSpec,
+    SameBarPolicy,
+)
 from ..core.vectorized import _engine_units_v2
 from ..core.arbitrage import (
     ArbitrageSpec,
@@ -64,6 +73,22 @@ class NativeVectorizedConfig:
                 raise ValueError("fee_rate must be >= 0")
         elif float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        unsupported = []
+        if self.execution.fill_price_policy is not FillPricePolicy.CLOSE:
+            unsupported.append(f"fill_price_policy={self.execution.fill_price_policy.value!r}")
+        if self.execution.same_bar_policy is not SameBarPolicy.CONSERVATIVE:
+            unsupported.append(f"same_bar_policy={self.execution.same_bar_policy.value!r}")
+        if self.execution.allow_partial_fill:
+            unsupported.append("allow_partial_fill=True")
+        if self.execution.min_order_notional > 0.0:
+            unsupported.append("min_order_notional")
+        if not self.execution.reject_on_insufficient_margin:
+            unsupported.append("reject_on_insufficient_margin=False")
+        if unsupported:
+            raise NotImplementedError(
+                "native_vectorized is the close_target_v2 contract and does not support "
+                + ", ".join(unsupported)
+            )
 
 
 class NativeVectorizedBackend:
@@ -77,6 +102,59 @@ class NativeVectorizedBackend:
 
     def __init__(self, config: NativeVectorizedConfig):
         self.config = config
+
+    @staticmethod
+    def _close_target_metadata(
+        *,
+        symbol_list: List[str],
+        idx: pd.DatetimeIndex,
+        high_low_source: str,
+        first_bar_policy: str,
+    ) -> Dict:
+        signature = market_data_signature(idx, symbol_list)
+        return {
+            "backend": "native_vectorized",
+            "backend_alias": "native_vectorized",
+            "engine": "close_target_v2",
+            "engine_id": "close_target_v2",
+            "kernel_version": "units_v2",
+            "execution_contract": {
+                "engine_id": "close_target_v2",
+                "signal_phase": "bar_close",
+                "fill_phase": "same_close",
+                "intrabar_exit_model": "none",
+                "market_fill_policy": "close",
+                "timeline": "mark close[t-1]->close[t], rebalance target at close[t]",
+                "accounting_certified": True,
+                "execution_generated_by_engine": True,
+            },
+            "signal_phase": "bar_close",
+            "fill_phase": "same_close",
+            "intrabar_exit_model": "none",
+            "first_bar_target_policy": first_bar_policy,
+            "high_low_source": high_low_source,
+            "data_signature": signature,
+        }
+
+    @staticmethod
+    def _high_low_source(highs, lows) -> str:
+        if highs is None and lows is None:
+            return "close_fallback_uncertified_intrabar_risk"
+        if highs is None:
+            return "high_close_fallback_uncertified_intrabar_risk"
+        if lows is None:
+            return "low_close_fallback_uncertified_intrabar_risk"
+        return "provided"
+
+    @staticmethod
+    def _warn_high_low_fallback(high_low_source: str) -> None:
+        if high_low_source != "provided":
+            warnings.warn(
+                "native_vectorized close_target_v2 received missing high/low data and will use close fallback; "
+                "intrabar liquidation/risk is uncertified for this run. Pass explicit highs/lows for certified risk.",
+                RuntimeWarning,
+                stacklevel=3,
+            )
 
     def prepare_market_arrays(
         self,
@@ -98,10 +176,12 @@ class NativeVectorizedBackend:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
         close_dict = align_series(closes, symbol_list, idx)
+        high_low_source = self._high_low_source(highs, lows)
+        self._warn_high_low_fallback(high_low_source)
         high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
         low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
         funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-        return build_market_arrays(
+        market = build_market_arrays(
             symbols=symbol_list,
             idx=idx,
             closes_dict=close_dict,
@@ -109,6 +189,7 @@ class NativeVectorizedBackend:
             lows_dict=low_dict,
             funding_dict=funding_dict,
         )
+        return market
 
     def run_target_units(
         self,
@@ -135,6 +216,8 @@ class NativeVectorizedBackend:
             raise ValueError("symbols, target_units, and closes must contain the same keys")
 
         close_dict = align_series(closes, symbol_list, idx)
+        high_low_source = self._high_low_source(highs, lows)
+        self._warn_high_low_fallback(high_low_source)
         high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
         low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
         target_dict = align_series(target_units, symbol_list, idx, fill_val=0.0)
@@ -168,6 +251,7 @@ class NativeVectorizedBackend:
             slot_size=slot_size,
             min_qty=min_qty,
             min_notional=min_notional,
+            high_low_source=high_low_source,
         )
 
     def _run_target_arrays(
@@ -191,6 +275,7 @@ class NativeVectorizedBackend:
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         market_arrays: Optional[PreparedMarketArrays] = None,
         raw_signal_matrix: Optional[np.ndarray] = None,
+        high_low_source: str = "provided",
     ) -> BacktestResultV2:
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -273,6 +358,22 @@ class NativeVectorizedBackend:
             index=idx,
         )
 
+        metadata = self._close_target_metadata(
+            symbol_list=symbol_list,
+            idx=idx,
+            high_low_source=high_low_source,
+            first_bar_policy="target_units[0]_not_executed; first executable rebalance occurs at bar index 1",
+        )
+        metadata.update(
+            {
+                "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
+                "slippage_bps": self.config.execution.slippage_bps,
+                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+                "liquidation_reason": int(liq_reason),
+                "quantity_constraints": constraints.as_dict(),
+            }
+        )
+
         return BacktestResultV2(
             equity=equity,
             returns=returns,
@@ -287,15 +388,7 @@ class NativeVectorizedBackend:
             funding=funding,
             margin=margin,
             diagnostics=diagnostics,
-            metadata={
-                "backend": "native_vectorized",
-                "engine": "units_v2",
-                "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
-                "slippage_bps": self.config.execution.slippage_bps,
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
-                "liquidation_reason": int(liq_reason),
-                "quantity_constraints": constraints.as_dict(),
-            },
+            metadata=metadata,
         )
 
     def run_signals(
@@ -336,6 +429,9 @@ class NativeVectorizedBackend:
         symbol_list = symbols or list(positions.keys())
         pos_dict = None if raw_signal_matrix is not None else align_series(positions, symbol_list, idx, fill_val=0.0)
         close_dict = None if market_arrays is not None else align_series(closes, symbol_list, idx)
+        high_low_source = "prepared_market_arrays" if market_arrays is not None else self._high_low_source(highs, lows)
+        if market_arrays is None:
+            self._warn_high_low_fallback(high_low_source)
         alloc = self._per_symbol_mapping(alloc_per_trade, symbol_list, default=100_000.0)
 
         if ht in ("signal_notional", "signal"):
@@ -390,6 +486,7 @@ class NativeVectorizedBackend:
                 slot_size=slot_size,
                 min_qty=min_qty,
                 min_notional=min_notional,
+                high_low_source=high_low_source,
             )
 
         if close_dict is None:
