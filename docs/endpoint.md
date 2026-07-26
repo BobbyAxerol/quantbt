@@ -680,7 +680,7 @@ grid_result = grid_bt.simulate(data=df)
 Reactive native-event strategy:
 
 ```python
-from quantbt import OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
+from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
 
 class DynamicGridStrategy:
     def initialize(self, context):
@@ -729,9 +729,35 @@ replay = QuantBTEndpoint.native_event_lifecycle(
 
 Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
 retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
-strategy just observed. Phase 30D uses the certified event-v2 lifecycle engine
-as a replay-backed MVP and stores the full emitted command tape for audit and
-static replay parity.
+strategy just observed. Phase 30E uses an incremental callback session for
+speed, then replays the emitted command tape once through the certified
+event-v2 lifecycle kernel for final accounting, fills, margin, liquidation and
+reports.
+
+Reactive metadata:
+
+```python
+result.metadata["reactive_context_builder"]       # "incremental_session_v1"
+result.metadata["reactive_incremental_compile_replays"]  # 0
+result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
+```
+
+Scoped cancel-all:
+
+```python
+OrderCommand(
+    timestamp=context.timestamp,
+    action=OrderAction.CANCEL_ALL,
+    symbol="ETHUSDT",
+    tag_prefix="GRID-C12",
+)
+```
+
+Static lifecycle replay supports scoped `CANCEL_ALL` by symbol, side,
+order type, parent order id, group id and OCO group id. Reactive strategies can
+also scope by exact tag, tag prefix, campaign id, cycle id and level id; the
+runner expands those string scopes into target `CANCEL` commands before final
+kernel replay.
 
 Package execution-depth preflight:
 

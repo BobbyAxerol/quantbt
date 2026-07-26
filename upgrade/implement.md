@@ -3593,7 +3593,7 @@ Technical debt after Phase 30D:
 
 ### Phase 30E - Incremental Reactive Session And Dynamic Grid Certification
 
-Status: planned.
+Status: completed.
 
 Goal:
 
@@ -3621,6 +3621,68 @@ Non-goals retained:
 - No L2 book/queue priority.
 - No exchange-native Nautilus cancel/amend parity.
 - No async/live broker runtime.
+
+Implementation notes:
+
+- `NativeEventBackend.run_strategy(...)` now uses an incremental reactive
+  session for callback context instead of replaying/recompiling command history
+  on every bar.
+- Final accounting, fills, positions, fees, margin, liquidation, and reports
+  still come from one static `event_v2` replay of the emitted command tape.
+- `reactive_execution_mode="fast"` and `"audit"` keep the same public API.
+  Audit mode stores `reactive_audit` final equity/position diffs.
+- Reactive strategy metadata now reports:
+  - `reactive_context_builder="incremental_session_v1"`;
+  - `reactive_incremental_compile_replays=0`;
+  - `emitted_command_tape`;
+  - `emitted_command_count`.
+- Kernel `CANCEL_ALL` now supports scoped numeric filters:
+  - symbol;
+  - side;
+  - order type;
+  - parent order id;
+  - group id;
+  - OCO group id.
+- Reactive string-scoped `CANCEL_ALL` supports:
+  - exact tag;
+  - tag prefix;
+  - campaign id;
+  - cycle id;
+  - level id.
+  These commands are expanded into explicit target `CANCEL` commands before
+  final static replay so final accounting remains replayable by the Numba
+  kernel.
+- Active-order snapshots now include `group_id`.
+- Core path optimization:
+  - incremental session tracks only active/waiting pending orders;
+  - filled/canceled/rejected historical orders are no longer scanned every bar;
+  - pandas/report construction is kept out of the callback loop.
+
+Validation:
+
+- Phase 30A/30B/30C/30D/30E lifecycle suites: `33 passed`.
+- Full quantbt unit regression: pending for final phase closeout.
+- 25,000-bar dynamic grid benchmark:
+  - 20 active grid levels;
+  - 10,438 emitted commands;
+  - 10,438 fills;
+  - reactive context runtime: `3.5069s`;
+  - final static replay runtime: `1.6560s`;
+  - total runtime: `5.1629s`;
+  - max equity diff vs static replay: `0.0`;
+  - max position diff vs static replay: `0.0`.
+
+Final Phase 30E conclusion:
+
+- The urgent native-event lifecycle stack is now usable for dynamic DCA/grid,
+  recurring order management, reactive re-arm, scoped cancellation, and audit
+  replay workflows on OHLC bars.
+- The trusted accounting source remains the Numba event-v2 kernel.
+- Remaining future work is intentionally outside Phase 30:
+  - tick/L2 book simulation;
+  - exchange-native Nautilus cancel/amend/OCO order-list parity;
+  - async broker runtime;
+  - portfolio-margin venue clones.
 
 ## 1. Mục tiêu
 

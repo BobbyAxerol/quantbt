@@ -65,6 +65,7 @@ class NativeActiveOrderSnapshot:
     trigger_price: float
     reduce_only: bool
     parent_order_id: Optional[str] = None
+    group_id: Optional[str] = None
     oco_group_id: Optional[str] = None
     tag: Optional[str] = None
     campaign_id: Optional[str] = None
