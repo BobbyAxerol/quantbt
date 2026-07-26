@@ -677,6 +677,62 @@ grid_bt = QuantBTEndpoint.native_event_dca_grid(spec=dca_grid_spec)
 grid_result = grid_bt.simulate(data=df)
 ```
 
+Reactive native-event strategy:
+
+```python
+from quantbt import OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
+
+class DynamicGridStrategy:
+    def initialize(self, context):
+        return []
+
+    def on_bar_close(self, context):
+        # Context is post-bar and read-only. Fills, positions and active orders
+        # come from QuantBT, not from strategy-side fill simulation.
+        if context.bar_index == 0:
+            qty = context.size_order("ETHUSDT", notional=1_000, price=context.close[0] * 0.99)
+            return [
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol="ETHUSDT",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.LIMIT,
+                    qty=qty,
+                    price=context.close[0] * 0.99,
+                    tif=TimeInForce.GTC,
+                    order_id="grid-c1-l1",
+                    metadata={"campaign_id": "c1", "level_id": "l1"},
+                )
+            ]
+        return []
+
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    reactive_execution_mode="fast",
+)
+
+result = bt.simulate(
+    data=df,
+    strategy=DynamicGridStrategy(),
+    symbols=["ETHUSDT"],
+)
+
+tape = result.metadata["emitted_command_tape"]
+replay = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+).simulate(data=df, order_commands=tape, symbols=["ETHUSDT"])
+```
+
+Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
+retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
+strategy just observed. Phase 30D uses the certified event-v2 lifecycle engine
+as a replay-backed MVP and stores the full emitted command tape for audit and
+static replay parity.
+
 Package execution-depth preflight:
 
 ```python

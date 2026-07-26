@@ -66,7 +66,9 @@ class BacktestEngineV2:
         target_units: Optional[Union[pd.Series, SeriesMap]] = None,
         orders: Optional[Sequence[OrderIntent]] = None,
         order_commands: Optional[Sequence[OrderCommand]] = None,
+        strategy=None,
         event_engine_version: str = "v1",
+        reactive_execution_mode: str = "fast",
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -104,7 +106,9 @@ class BacktestEngineV2:
         self.target_units = target_units
         self.orders = tuple(orders or ())
         self.order_commands = tuple(order_commands or ())
+        self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
+        self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
         self.datetime_index = datetime_index
         self.closes = closes
         self.highs = highs
@@ -203,6 +207,27 @@ class BacktestEngineV2:
                 use_funding=self.use_funding,
             )
         )
+
+        if self.strategy is not None:
+            return backend.run_strategy(
+                datetime_index=idx,
+                strategy=self.strategy,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=self.funding_rate,
+                contract_size=self.contract_size,
+                leverage=self.leverage,
+                fee_rate=self.fee_rate,
+                symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
+                execution_mode=self.reactive_execution_mode,
+            )
 
         if self.basket is not None:
             basket_signal = self.signal if self.signal is not None else _first_signal(self.signals)

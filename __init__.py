@@ -100,6 +100,14 @@ from .core.orders import (
     Trade,
     order_intents_to_lifecycle_commands,
 )
+from .core.reactive import (
+    NativeActiveOrderSnapshot,
+    NativeEventStrategyError,
+    NativeEventStrategyProtocol,
+    NativeFillEvent,
+    NativeOrderEvent,
+    NativeStrategyContext,
+)
 from .core.basket import FrozenBasketPlan, build_frozen_basket_orders
 from .core.execution_depth import (
     NautilusExecutionDepthConfig,
@@ -336,6 +344,12 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativeActiveOrderSnapshot",
+    "NativeEventStrategyError",
+    "NativeEventStrategyProtocol",
+    "NativeFillEvent",
+    "NativeOrderEvent",
+    "NativeStrategyContext",
     "NativeOptionBackend",
     "NativeOptionConfig",
     "NativePortfolioBackend",
