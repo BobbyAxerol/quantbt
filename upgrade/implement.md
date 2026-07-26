@@ -3684,6 +3684,38 @@ Final Phase 30E conclusion:
   - async broker runtime;
   - portfolio-margin venue clones.
 
+Technical debt after Phase 30E:
+
+- Add dedicated event-specific human loggers for:
+  - native event v1;
+  - native event v2 lifecycle;
+  - reactive native-event strategy runner;
+  - Nautilus validation adapter.
+- Current `simulate(show_order_logs=True)` is a bounded generic helper and is
+  useful for quick fill/order visibility, but it is not a full execution trace.
+- Future logger should support bounded output modes such as:
+  - `fills_only`;
+  - `order_events`;
+  - `bar_state`;
+  - `margin_debug`;
+  - `full_execution_trace`.
+- Expected per-line fields:
+  - timestamp/bar;
+  - order id / command id / event type;
+  - symbol, side, order type, qty, fill price;
+  - intended price, trigger price, realized slippage;
+  - fee, turnover;
+  - realized/unrealized PnL when available;
+  - equity before/after;
+  - initial margin, maintenance margin, free/available equity;
+  - reject/cancel/expire reason;
+  - active/waiting order count.
+- This should be implemented as a reporting layer over existing artifacts
+  (`fills`, `command_report`, `order_events`, `diagnostics`, `margin`) instead
+  of changing matching/accounting kernels.
+- Priority is lower than core kernel/domain upgrades, portfolio/arbitrage
+  engine depth, and Nautilus execution parity.
+
 ## 1. Mục tiêu
 
 Bổ sung một **reactive lifecycle runner** lên `native_event v2` hiện tại để strategy có thể:
