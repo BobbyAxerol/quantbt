@@ -156,7 +156,7 @@ def prepare_market_tape(
         missing_funding_policy=missing_funding_policy,
         source_timezone=source_timezone,
     )
-    signature = _signature(timestamps_ns, symbol_list, opens_m, highs_m, lows_m, closes_m)
+    signature = _signature(timestamps_ns, symbol_list, opens_m, highs_m, lows_m, closes_m, volumes_m, funding_m, funding_mask.astype(np.float64))
     cert = MarketValidationCertificate(
         signature=signature,
         row_count=int(n),
@@ -414,10 +414,10 @@ def _funding_from_events(
     idx_ns = idx.view("int64")
     for k, ts_ns in enumerate(event_ns):
         bar = int(np.searchsorted(idx_ns, ts_ns, side="left"))
-        if bar <= 0 or bar >= len(idx_ns):
-            continue
-        if ts_ns <= idx_ns[bar - 1] or ts_ns > idx_ns[bar]:
-            continue
+        if bar >= len(idx_ns) or idx_ns[bar] != ts_ns:
+            raise ValueError("funding events must align exactly to a market bar timestamp for POSITION_AT_EVENT certification")
+        if bar == 0:
+            raise ValueError("funding event at the first bar cannot be certified because no prior position interval exists")
         for j, symbol in enumerate(symbols):
             rate = float(rates_by_symbol[symbol][k])
             if rate != 0.0:

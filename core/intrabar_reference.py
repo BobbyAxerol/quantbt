@@ -58,6 +58,7 @@ class IntrabarEventFlag(IntFlag):
     FUNDING = 1 << 7
     LIQUIDATION = 1 << 8
     REJECTED = 1 << 9
+    ENTRY_SUPPRESSED = 1 << 10
 
 
 @dataclass(frozen=True)
@@ -155,6 +156,7 @@ def run_intrabar_reference(
     qty_step: float = 0.0,
     min_qty: float = 0.0,
     min_notional: float = 0.0,
+    tick_size: float = 0.0,
 ) -> IntrabarReferenceResult:
     """
     Execute a single-symbol intrabar bracket tape with causal next-open timing.
@@ -223,7 +225,7 @@ def run_intrabar_reference(
 
         if position != 0.0 and _maintenance_breached(equity, position, open_ref, contract_size, account.maintenance_ratio):
             side = -1 if position > 0.0 else 1
-            price = _market_price(open_ref, side, slippage_rate)
+            price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
             fee = abs(position) * price * contract_size * fee_rate
             equity += position * (price - open_ref) * contract_size - fee
             fee_arr[t] += fee
@@ -253,7 +255,7 @@ def run_intrabar_reference(
         if position != 0.0 and (pending_exit or (pending_side != 0 and np.sign(position) != pending_side)):
             reason = IntrabarFillReason.REVERSAL_EXIT if pending_side != 0 and np.sign(position) != pending_side else IntrabarFillReason.TECHNICAL_EXIT
             side = -1 if position > 0.0 else 1
-            price = _market_price(open_ref, side, slippage_rate)
+            price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
             fee = abs(position) * price * contract_size * fee_rate
             equity += position * (price - open_ref) * contract_size - fee
             fee_arr[t] += fee
@@ -271,7 +273,7 @@ def run_intrabar_reference(
 
         if pending_side != 0 and pending_size > 0.0 and position == 0.0:
             side = 1 if pending_side > 0 else -1
-            price = _market_price(open_ref, side, slippage_rate)
+            price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
             if exit_same_side_conflict:
                 qty = 0.0
             else:
@@ -287,6 +289,7 @@ def run_intrabar_reference(
                     stop_value=None if intent.stop_value is None else float(intent.stop_value[t - 1]),
                     level_mode=intent.level_mode,
                     side=side,
+                    tick_size=tick_size,
                 )
                 qty = abs(
                     quantize_signed_quantity(
@@ -298,6 +301,14 @@ def run_intrabar_reference(
                         min_notional=min_notional,
                     )
                 )
+            if exit_same_side_conflict:
+                flags_arr[t] |= int(IntrabarEventFlag.ENTRY_SUPPRESSED)
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
             if qty <= 0.0:
                 flags_arr[t] |= int(IntrabarEventFlag.REJECTED)
                 rejected_count += 1
@@ -322,7 +333,7 @@ def run_intrabar_reference(
             position = qty * side
             avg_entry = price
             last_ref = price
-            active_stop, active_tp = _initial_bracket(intent, t - 1, side, price)
+            active_stop, active_tp = _initial_bracket(intent, t - 1, side, price, tick_size=tick_size)
             reason = IntrabarFillReason.REVERSAL_ENTRY if flags_arr[t] & int(IntrabarEventFlag.REVERSAL) else IntrabarFillReason.ENTRY
             fills.append(_fill(t, seq, idx[t], side, qty, price, fee, reason))
             seq += 1
@@ -339,6 +350,7 @@ def run_intrabar_reference(
                 same_bar_policy=contract.same_bar_policy,
                 take_profit_gap_policy=contract.take_profit_gap_policy,
                 slippage_rate=slippage_rate,
+                tick_size=tick_size,
             )
             if exit_info is not None:
                 exit_side, exit_price, reason, ambiguous = exit_info
@@ -373,7 +385,7 @@ def run_intrabar_reference(
             ):
                 side = -1 if position > 0.0 else 1
                 worst = float(lows[t]) if position > 0.0 else float(highs[t])
-                price = _market_price(worst, side, slippage_rate)
+                price = _market_price(worst, side, slippage_rate, tick_size=tick_size)
                 fee = abs(position) * price * contract_size * fee_rate
                 equity += position * (price - last_ref) * contract_size - fee
                 fee_arr[t] += fee
@@ -388,7 +400,7 @@ def run_intrabar_reference(
                 active_tp = np.nan
             else:
                 equity += position * (close_ref - last_ref) * contract_size
-                active_stop = _update_trailing(intent, t, position, close_ref, active_stop)
+                active_stop = _update_trailing(intent, t, position, close_ref, active_stop, tick_size=tick_size)
 
         if liquidated:
             equity_arr[t] = 0.0
@@ -413,7 +425,7 @@ def run_intrabar_reference(
     if contract.close_on_last_bar and position != 0.0:
         t = n - 1
         side = -1 if position > 0.0 else 1
-        price = _market_price(float(closes[t]), side, slippage_rate)
+        price = _market_price(float(closes[t]), side, slippage_rate, tick_size=tick_size)
         fee = abs(position) * price * contract_size * fee_rate
         equity += position * (price - float(closes[t])) * contract_size - fee
         fee_arr[t] += fee
@@ -450,11 +462,14 @@ def run_intrabar_reference(
             "liquidated": bool(liquidated),
             "liquidation_bar": int(liquidation_bar),
             "oracle": True,
+            "funding_timing_certified": True,
+            "funding_event_alignment": "exact_bar_timestamp",
             "sizing_mode": sizing_code.value,
             "quantity_constraints": {
                 "qty_step": float(qty_step),
                 "min_qty": float(min_qty),
                 "min_notional": float(min_notional),
+                "tick_size": float(tick_size),
             },
         },
     )
@@ -485,8 +500,9 @@ def _fill(bar, seq, ts, side, qty, price, fee, reason) -> IntrabarFill:
     )
 
 
-def _market_price(open_price: float, side: int, slippage_rate: float) -> float:
-    return float(open_price * (1.0 + slippage_rate if side > 0 else 1.0 - slippage_rate))
+def _market_price(open_price: float, side: int, slippage_rate: float, *, tick_size: float = 0.0) -> float:
+    raw = float(open_price * (1.0 + slippage_rate if side > 0 else 1.0 - slippage_rate))
+    return _quantize_price(raw, side, tick_size)
 
 
 def _has_initial_margin(equity: float, qty: float, price: float, contract_size: float, leverage: float, margin_buffer: float) -> bool:
@@ -515,31 +531,31 @@ def _maintenance_breached_at_worst(
     return bool(maintenance > 0.0 and worst_equity <= maintenance)
 
 
-def _initial_bracket(intent: IntrabarIntentTape, signal_bar: int, side: int, fill_price: float) -> tuple[float, float]:
+def _initial_bracket(intent: IntrabarIntentTape, signal_bar: int, side: int, fill_price: float, *, tick_size: float = 0.0) -> tuple[float, float]:
     stop = np.nan
     tp = np.nan
     if intent.stop_value is not None and np.isfinite(intent.stop_value[signal_bar]) and intent.stop_value[signal_bar] > 0.0:
-        stop = _level_price(fill_price, side, float(intent.stop_value[signal_bar]), intent.level_mode, is_stop=True)
+        stop = _level_price(fill_price, side, float(intent.stop_value[signal_bar]), intent.level_mode, is_stop=True, tick_size=tick_size)
     if (
         intent.take_profit_value is not None
         and np.isfinite(intent.take_profit_value[signal_bar])
         and intent.take_profit_value[signal_bar] > 0.0
     ):
-        tp = _level_price(fill_price, side, float(intent.take_profit_value[signal_bar]), intent.level_mode, is_stop=False)
+        tp = _level_price(fill_price, side, float(intent.take_profit_value[signal_bar]), intent.level_mode, is_stop=False, tick_size=tick_size)
     if intent.trailing_value is not None and np.isfinite(intent.trailing_value[signal_bar]) and intent.trailing_value[signal_bar] > 0.0:
-        trailing_stop = _level_price(fill_price, side, float(intent.trailing_value[signal_bar]), intent.level_mode, is_stop=True)
+        trailing_stop = _level_price(fill_price, side, float(intent.trailing_value[signal_bar]), intent.level_mode, is_stop=True, tick_size=tick_size)
         stop = trailing_stop if not np.isfinite(stop) else (max(stop, trailing_stop) if side > 0 else min(stop, trailing_stop))
     return stop, tp
 
 
-def _level_price(price: float, side: int, value: float, mode: IntrabarLevelMode, *, is_stop: bool) -> float:
+def _level_price(price: float, side: int, value: float, mode: IntrabarLevelMode, *, is_stop: bool, tick_size: float = 0.0) -> float:
     direction = -1.0 if (side > 0 and is_stop) or (side < 0 and not is_stop) else 1.0
     if mode is IntrabarLevelMode.ABSOLUTE_PRICE:
-        return float(value)
+        return _quantize_price(float(value), -side, tick_size)
     if mode is IntrabarLevelMode.PRICE_DISTANCE:
-        return float(price + direction * value)
+        return _quantize_price(float(price + direction * value), -side, tick_size)
     if mode is IntrabarLevelMode.PERCENT_DISTANCE:
-        return float(price * (1.0 + direction * value))
+        return _quantize_price(float(price * (1.0 + direction * value)), -side, tick_size)
     raise NotImplementedError(f"unsupported level mode={mode!r}")
 
 
@@ -554,6 +570,7 @@ def _resolve_intrabar_exit(
     same_bar_policy: IntrabarSameBarPolicy,
     take_profit_gap_policy: TakeProfitGapPolicy,
     slippage_rate: float,
+    tick_size: float = 0.0,
 ):
     has_stop = np.isfinite(stop_price) and stop_price > 0.0
     has_tp = np.isfinite(tp_price) and tp_price > 0.0
@@ -581,25 +598,25 @@ def _resolve_intrabar_exit(
     }
     if stop_hit and (not tp_hit or stop_first):
         price = open_price if stop_gap else stop_price
-        price = _market_price(float(price), exit_side, slippage_rate)
+        price = _market_price(float(price), exit_side, slippage_rate, tick_size=tick_size)
         return exit_side, price, IntrabarFillReason.STOP_LOSS, ambiguous
     if tp_hit:
         if tp_gap and take_profit_gap_policy is TakeProfitGapPolicy.OPEN_PRICE_IMPROVEMENT:
             price = open_price
         else:
             price = tp_price
-        return exit_side, float(price), IntrabarFillReason.TAKE_PROFIT, ambiguous
+        return exit_side, _quantize_price(float(price), exit_side, tick_size), IntrabarFillReason.TAKE_PROFIT, ambiguous
     return None
 
 
-def _update_trailing(intent: IntrabarIntentTape, signal_bar: int, position: float, close_price: float, current_stop: float) -> float:
+def _update_trailing(intent: IntrabarIntentTape, signal_bar: int, position: float, close_price: float, current_stop: float, *, tick_size: float = 0.0) -> float:
     if intent.trailing_value is None:
         return current_stop
     value = float(intent.trailing_value[signal_bar])
     if not np.isfinite(value) or value <= 0.0:
         return current_stop
     side = 1 if position > 0.0 else -1
-    candidate = _level_price(close_price, side, value, intent.level_mode, is_stop=True)
+    candidate = _level_price(close_price, side, value, intent.level_mode, is_stop=True, tick_size=tick_size)
     if not np.isfinite(current_stop):
         return candidate
     return max(current_stop, candidate) if side > 0 else min(current_stop, candidate)
@@ -628,6 +645,7 @@ def _compile_entry_quantity(
     stop_value: Optional[float],
     level_mode: IntrabarLevelMode,
     side: int,
+    tick_size: float = 0.0,
 ) -> float:
     weight = abs(float(size_weight))
     if sizing_mode is IntrabarSizingMode.UNITS:
@@ -641,11 +659,20 @@ def _compile_entry_quantity(
     if sizing_mode is IntrabarSizingMode.RISK_PER_TRADE:
         if stop_value is None or not np.isfinite(stop_value) or stop_value <= 0.0:
             return 0.0
-        stop_price = _level_price(fill_price, side, float(stop_value), level_mode, is_stop=True)
+        stop_price = _level_price(fill_price, side, float(stop_value), level_mode, is_stop=True, tick_size=tick_size)
         stop_distance = abs(fill_price - stop_price)
         risk_budget = float(equity) * float(risk_fraction) * weight
         return risk_budget / (stop_distance * contract_size) if stop_distance > 0.0 and contract_size > 0.0 else 0.0
     raise NotImplementedError(f"unsupported intrabar sizing_mode={sizing_mode!r}")
+
+
+def _quantize_price(price: float, side: int, tick_size: float) -> float:
+    tick = float(tick_size)
+    if tick <= 0.0 or not np.isfinite(price):
+        return float(price)
+    if side > 0:
+        return float(np.ceil((float(price) / tick) - 1e-12) * tick)
+    return float(np.floor((float(price) / tick) + 1e-12) * tick)
 
 
 def _validate_intrabar_contract_supported(contract: ExecutionContract) -> None:

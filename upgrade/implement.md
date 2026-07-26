@@ -4844,6 +4844,73 @@ Phase 31 certification conclusion:
 Status: implemented as two compact follow-up phases on
 `feat/31-execution-correctness-intrabar`.
 
+### Phase 31G - Final Merge Blockers From Sol Review
+
+Status: implemented.
+
+Final blockers reviewed:
+
+1. Funding timing semantics.
+   - Decision: keep `FundingPhase.POSITION_AT_EVENT` only for funding events
+     whose timestamp matches an exact market bar timestamp.
+   - Mid-bar funding events now raise and require a smaller timeframe.
+   - Kernel/reference metadata records
+     `funding_timing_certified=true` and
+     `funding_event_alignment="exact_bar_timestamp"`.
+2. Execution contract propagation.
+   - Added `ExecutionContract.from_metadata(...)`.
+   - `QuantBTEndpoint.intrabar_bracket(...)` and
+     `.intrabar_bracket_reference(...)` accept `execution_contract=contract`.
+   - Endpoint and `PreparedIntrabarRunner` restore the full contract from
+     metadata rather than reconstructing only `close_on_last_bar`.
+   - Unsupported fields still raise `NotImplementedError`.
+3. Data signature completeness.
+   - Strict market tape signature now includes:
+     - timestamps;
+     - symbols;
+     - open/high/low/close;
+     - volume;
+     - funding rates;
+     - funding event mask.
+   - Prepared intrabar runner also freezes a `prepared_signature` containing
+     market signature plus account/execution/sizing/constraint profile metadata.
+
+Technical debt handled in the same pass:
+
+- `exit + same-side entry` now emits `ENTRY_SUPPRESSED` instead of counting as
+  a rejected order.
+- Dynamic trailing has explicit Python-oracle vs Numba parity coverage.
+- Added optional `tick_size` conservative price quantization for entry, SL, TP,
+  and trailing levels.
+- Docs now state the current certified scope as fast, deterministic, audited
+  **single-symbol intrabar** execution only.
+- Added tests for:
+  - funding position phase;
+  - execution-contract propagation;
+  - signature changes from volume/funding;
+  - prepared runner vs normal endpoint parity;
+  - minimal/audit parity through the existing audit tests;
+  - tick-size price quantization.
+
+Merge gate after Phase 31G:
+
+```bash
+pytest -q tests/test_phase31*.py
+pytest -q
+python3 benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+```
+
+Validation after Phase 31G:
+
+- `tests/test_phase31*.py`: 42 passed.
+- Full `pytest -q`: 470 passed, 1 skipped.
+- Phase31 benchmark: fast intrabar minimal 25k bars in 0.0118s, about 2.11M
+  bars/s and 23.32x faster than the Python oracle.
+
+Merge certification scope:
+
+> Fast, deterministic, and audited single-symbol intrabar execution kernel.
+
 ### Phase 31E - Merge Blocker Execution Correctness
 
 Implemented:

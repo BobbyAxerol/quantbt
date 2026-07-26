@@ -55,6 +55,7 @@ FLAG_AMBIGUOUS = 1 << 6
 FLAG_FUNDING = 1 << 7
 FLAG_LIQUIDATION = 1 << 8
 FLAG_REJECTED = 1 << 9
+FLAG_ENTRY_SUPPRESSED = 1 << 10
 
 SIZING_UNITS = 1
 SIZING_FIXED_NOTIONAL = 2
@@ -146,6 +147,7 @@ def run_intrabar_kernel(
     qty_step: float = 0.0,
     min_qty: float = 0.0,
     min_notional: float = 0.0,
+    tick_size: float = 0.0,
     report_level: str = "standard",
 ) -> NativeIntrabarKernelResult:
     """
@@ -186,6 +188,7 @@ def run_intrabar_kernel(
         qty_step=qty_step,
         min_qty=min_qty,
         min_notional=min_notional,
+        tick_size=tick_size,
     )
     (
         equity,
@@ -232,6 +235,7 @@ def run_intrabar_kernel(
             qty_step=qty_step,
             min_qty=min_qty,
             min_notional=min_notional,
+            tick_size=tick_size,
         )
         _assert_intrabar_audit_parity(arrays, audit)
         fills = _materialize_intrabar_fills(
@@ -265,6 +269,8 @@ def run_intrabar_kernel(
         "rejected_count": int(rejected_count),
         "liquidated": bool(liquidated),
         "liquidation_bar": int(liquidation_bar),
+        "funding_timing_certified": True,
+        "funding_event_alignment": "exact_bar_timestamp",
         "sizing_mode": sizing_mode_value.value,
         "sizing": {
             "fixed_notional": float(fixed_notional),
@@ -275,6 +281,7 @@ def run_intrabar_kernel(
             "qty_step": float(qty_step),
             "min_qty": float(min_qty),
             "min_notional": float(min_notional),
+            "tick_size": float(tick_size),
         },
     }
     return NativeIntrabarKernelResult(
@@ -367,6 +374,7 @@ def _run_intrabar_pass(
     qty_step,
     min_qty,
     min_notional,
+    tick_size,
 ):
     stop_value = _optional_float_array(intent.stop_value, tape.n_bars)
     tp_value = _optional_float_array(intent.take_profit_value, tape.n_bars)
@@ -408,6 +416,7 @@ def _run_intrabar_pass(
         float(qty_step),
         float(min_qty),
         float(min_notional),
+        float(tick_size),
         _level_mode_code(intent.level_mode),
         _same_bar_policy_code(contract.same_bar_policy),
         _tp_policy_code(contract.take_profit_gap_policy),
@@ -452,6 +461,7 @@ def _engine_intrabar_bracket_v1(
     qty_step,
     min_qty,
     min_notional,
+    tick_size,
     level_mode,
     same_bar_policy,
     tp_gap_policy,
@@ -504,7 +514,7 @@ def _engine_intrabar_bracket_v1(
 
         if position != 0.0 and _maintenance_breached_numba(equity, position, open_ref, contract_size, maintenance_ratio):
             side = -1 if position > 0.0 else 1
-            price = _market_price_numba(open_ref, side, slippage_rate)
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
             qty = abs(position)
             fee = qty * price * contract_size * fee_rate
             equity += position * (price - open_ref) * contract_size - fee
@@ -525,7 +535,7 @@ def _engine_intrabar_bracket_v1(
         if position != 0.0 and (pending_exit or (pending_side != 0 and _sign_numba(position) != pending_side)):
             reason = FILL_REVERSAL_EXIT if pending_side != 0 and _sign_numba(position) != pending_side else FILL_TECHNICAL_EXIT
             side = -1 if position > 0.0 else 1
-            price = _market_price_numba(open_ref, side, slippage_rate)
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
             qty = abs(position)
             fee = qty * price * contract_size * fee_rate
             equity += position * (price - open_ref) * contract_size - fee
@@ -544,7 +554,7 @@ def _engine_intrabar_bracket_v1(
 
         if pending_side != 0 and pending_size > 0.0 and position == 0.0:
             side = 1 if pending_side > 0 else -1
-            price = _market_price_numba(open_ref, side, slippage_rate)
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
             if exit_same_side_conflict:
                 qty = 0.0
             else:
@@ -560,8 +570,17 @@ def _engine_intrabar_bracket_v1(
                     stop_value[t - 1],
                     level_mode,
                     side,
+                    tick_size,
                 )
                 qty = abs(_quantize_signed_quantity_numba(qty, price, contract_size, qty_step, min_qty, min_notional))
+            if exit_same_side_conflict:
+                flags_arr[t] |= FLAG_ENTRY_SUPPRESSED
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
             if qty <= 0.0:
                 flags_arr[t] |= FLAG_REJECTED
                 rejected_count += 1
@@ -586,7 +605,7 @@ def _engine_intrabar_bracket_v1(
             position = qty * side
             avg_entry = price
             last_ref = price
-            active_stop, active_tp = _initial_bracket_numba(stop_value[t - 1], tp_value[t - 1], trailing_value[t - 1], side, price, level_mode)
+            active_stop, active_tp = _initial_bracket_numba(stop_value[t - 1], tp_value[t - 1], trailing_value[t - 1], side, price, level_mode, tick_size)
             reason = FILL_REVERSAL_ENTRY if (flags_arr[t] & FLAG_REVERSAL) != 0 else FILL_ENTRY
             fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, reason, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
             seq += 1
@@ -603,6 +622,7 @@ def _engine_intrabar_bracket_v1(
                 same_bar_policy,
                 tp_gap_policy,
                 slippage_rate,
+                tick_size,
             )
             if exit_reason != 0:
                 if ambiguous:
@@ -628,7 +648,7 @@ def _engine_intrabar_bracket_v1(
             if _maintenance_breached_worst_numba(equity, position, last_ref, highs[t], lows[t], contract_size, maintenance_ratio):
                 side = -1 if position > 0.0 else 1
                 worst = lows[t] if position > 0.0 else highs[t]
-                price = _market_price_numba(worst, side, slippage_rate)
+                price = _market_price_numba(worst, side, slippage_rate, tick_size)
                 qty = abs(position)
                 fee = qty * price * contract_size * fee_rate
                 equity += position * (price - last_ref) * contract_size - fee
@@ -644,7 +664,7 @@ def _engine_intrabar_bracket_v1(
                 active_tp = np.nan
             else:
                 equity += position * (close_ref - last_ref) * contract_size
-                active_stop = _update_trailing_numba(trailing_value[t], position, close_ref, active_stop, level_mode)
+                active_stop = _update_trailing_numba(trailing_value[t], position, close_ref, active_stop, level_mode, tick_size)
 
         if liquidated:
             equity_arr[t] = 0.0
@@ -671,7 +691,7 @@ def _engine_intrabar_bracket_v1(
     if close_on_last_bar and position != 0.0 and not liquidated:
         t = n - 1
         side = -1 if position > 0.0 else 1
-        price = _market_price_numba(closes[t], side, slippage_rate)
+        price = _market_price_numba(closes[t], side, slippage_rate, tick_size)
         qty = abs(position)
         fee = qty * price * contract_size * fee_rate
         equity += position * (price - closes[t]) * contract_size - fee
@@ -750,8 +770,9 @@ def _engine_fill_replay_v1(opens, closes, fill_bar, fill_seq, fill_side, fill_qt
 
 
 @njit(cache=True, nogil=True)
-def _market_price_numba(price, side, slippage_rate):
-    return price * (1.0 + slippage_rate if side > 0 else 1.0 - slippage_rate)
+def _market_price_numba(price, side, slippage_rate, tick_size):
+    raw = price * (1.0 + slippage_rate if side > 0 else 1.0 - slippage_rate)
+    return _quantize_price_numba(raw, side, tick_size)
 
 
 @njit(cache=True, nogil=True)
@@ -784,15 +805,15 @@ def _maintenance_breached_worst_numba(equity, position, reference_price, high, l
 
 
 @njit(cache=True, nogil=True)
-def _initial_bracket_numba(stop_value, tp_value, trailing_value, side, fill_price, level_mode):
+def _initial_bracket_numba(stop_value, tp_value, trailing_value, side, fill_price, level_mode, tick_size):
     stop = np.nan
     tp = np.nan
     if np.isfinite(stop_value) and stop_value > 0.0:
-        stop = _level_price_numba(fill_price, side, stop_value, level_mode, True)
+        stop = _level_price_numba(fill_price, side, stop_value, level_mode, True, tick_size)
     if np.isfinite(tp_value) and tp_value > 0.0:
-        tp = _level_price_numba(fill_price, side, tp_value, level_mode, False)
+        tp = _level_price_numba(fill_price, side, tp_value, level_mode, False, tick_size)
     if np.isfinite(trailing_value) and trailing_value > 0.0:
-        trailing_stop = _level_price_numba(fill_price, side, trailing_value, level_mode, True)
+        trailing_stop = _level_price_numba(fill_price, side, trailing_value, level_mode, True, tick_size)
         if not np.isfinite(stop):
             stop = trailing_stop
         elif side > 0:
@@ -803,17 +824,17 @@ def _initial_bracket_numba(stop_value, tp_value, trailing_value, side, fill_pric
 
 
 @njit(cache=True, nogil=True)
-def _level_price_numba(price, side, value, level_mode, is_stop):
+def _level_price_numba(price, side, value, level_mode, is_stop, tick_size):
     direction = -1.0 if (side > 0 and is_stop) or (side < 0 and not is_stop) else 1.0
     if level_mode == LEVEL_ABSOLUTE_PRICE:
-        return value
+        return _quantize_price_numba(value, -side, tick_size)
     if level_mode == LEVEL_PRICE_DISTANCE:
-        return price + direction * value
-    return price * (1.0 + direction * value)
+        return _quantize_price_numba(price + direction * value, -side, tick_size)
+    return _quantize_price_numba(price * (1.0 + direction * value), -side, tick_size)
 
 
 @njit(cache=True, nogil=True)
-def _resolve_intrabar_exit_numba(side, open_price, high, low, stop_price, tp_price, same_bar_policy, tp_gap_policy, slippage_rate):
+def _resolve_intrabar_exit_numba(side, open_price, high, low, stop_price, tp_price, same_bar_policy, tp_gap_policy, slippage_rate, tick_size):
     has_stop = np.isfinite(stop_price) and stop_price > 0.0
     has_tp = np.isfinite(tp_price) and tp_price > 0.0
     if side > 0:
@@ -841,26 +862,35 @@ def _resolve_intrabar_exit_numba(side, open_price, high, low, stop_price, tp_pri
     )
     if stop_hit and ((not tp_hit) or stop_first):
         price = open_price if stop_gap else stop_price
-        return exit_side, _market_price_numba(price, exit_side, slippage_rate), FILL_STOP_LOSS, ambiguous
+        return exit_side, _market_price_numba(price, exit_side, slippage_rate, tick_size), FILL_STOP_LOSS, ambiguous
     if tp_hit:
         price = open_price if tp_gap and tp_gap_policy == TP_OPEN_PRICE_IMPROVEMENT else tp_price
-        return exit_side, price, FILL_TAKE_PROFIT, ambiguous
+        return exit_side, _quantize_price_numba(price, exit_side, tick_size), FILL_TAKE_PROFIT, ambiguous
     return 0, 0.0, 0, False
 
 
 @njit(cache=True, nogil=True)
-def _update_trailing_numba(trailing_value, position, close_price, current_stop, level_mode):
+def _update_trailing_numba(trailing_value, position, close_price, current_stop, level_mode, tick_size):
     if not np.isfinite(trailing_value) or trailing_value <= 0.0:
         return current_stop
     side = 1 if position > 0.0 else -1
-    candidate = _level_price_numba(close_price, side, trailing_value, level_mode, True)
+    candidate = _level_price_numba(close_price, side, trailing_value, level_mode, True, tick_size)
     if not np.isfinite(current_stop):
         return candidate
     return max(current_stop, candidate) if side > 0 else min(current_stop, candidate)
 
 
 @njit(cache=True, nogil=True)
-def _compile_entry_quantity_numba(size_weight, fill_price, equity, contract_size, sizing_mode, fixed_notional, equity_fraction, risk_fraction, stop_value, level_mode, side):
+def _quantize_price_numba(price, side, tick_size):
+    if tick_size <= 0.0 or not np.isfinite(price):
+        return price
+    if side > 0:
+        return np.ceil((price / tick_size) - 1e-12) * tick_size
+    return np.floor((price / tick_size) + 1e-12) * tick_size
+
+
+@njit(cache=True, nogil=True)
+def _compile_entry_quantity_numba(size_weight, fill_price, equity, contract_size, sizing_mode, fixed_notional, equity_fraction, risk_fraction, stop_value, level_mode, side, tick_size):
     weight = abs(size_weight)
     if sizing_mode == SIZING_UNITS:
         return weight
@@ -873,7 +903,7 @@ def _compile_entry_quantity_numba(size_weight, fill_price, equity, contract_size
     if sizing_mode == SIZING_RISK_PER_TRADE:
         if not np.isfinite(stop_value) or stop_value <= 0.0:
             return 0.0
-        stop_price = _level_price_numba(fill_price, side, stop_value, level_mode, True)
+        stop_price = _level_price_numba(fill_price, side, stop_value, level_mode, True, tick_size)
         stop_distance = abs(fill_price - stop_price)
         if stop_distance <= 0.0:
             return 0.0
