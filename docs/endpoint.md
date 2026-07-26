@@ -54,7 +54,9 @@ bt.metrics      # alias for bt.full_report()
 |---|---|---|---|
 | `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | legacy `%_equity` signal where notional is recomputed from live equity |
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | fast single-symbol signal research with fixed units between signal changes |
+| `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | fast Phase 31C Numba kernel for next-open SL/TP/trailing/reversal semantics |
 | `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | readable Phase 31B oracle for next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
@@ -92,13 +94,14 @@ that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
 `take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
 intrabar semantics instead of silently implying correctness.
 
-`intrabar_bracket_reference` is the Phase 31B Python oracle for
-`intrabar_bracket_v1`. It uses strict market tape validation and is meant for
-domain verification before the future fast Numba intrabar kernel is promoted.
-It models: signal at bar close, entry at next bar open, gap-aware stop-loss,
+`intrabar_bracket` is the Phase 31C fast Numba implementation of
+`intrabar_bracket_v1`; `intrabar_bracket_reference` is the readable Python
+oracle for the same semantics. Both use strict market tape validation. They
+model: signal at bar close, entry at next bar open, gap-aware stop-loss,
 limit-style take-profit, same-bar SL/TP ambiguity, trailing-stop updates that
 only become effective on the next bar, technical exits, reversals as two
-fee/slippage legs, and optional final close.
+fee/slippage legs, initial-margin rejection, simple single-symbol liquidation,
+and optional final close.
 
 ## Nautilus Support Matrix
 
@@ -396,20 +399,22 @@ Routing:
 For plain market rebalance signals, native vectorized and native event should
 match equity closely. Use event mode when fill-level diagnostics matter.
 
-## Intrabar Bracket Reference
+## Intrabar Bracket, Fast And Reference
 
-Use this for Phase 31B execution-certification of alpha logic that depends on
-SL/TP/trailing behavior inside the bar. This endpoint is deliberately a readable
-Python oracle, not the future fast Numba intrabar kernel.
+Use this for execution-certified alpha logic that depends on SL/TP/trailing
+behavior inside the bar. `intrabar_bracket(...)` is the Phase 31C fast Numba
+kernel. `intrabar_bracket_reference(...)` keeps the readable Phase 31B Python
+oracle for debugging and parity checks.
 
 ```python
-bt = QuantBTEndpoint.intrabar_bracket_reference(
+bt = QuantBTEndpoint.intrabar_bracket(
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0002,     # one-way fee
     slippage=0.0001,     # decimal fraction, applied to market fills
     use_funding=False,
     close_on_last_bar=True,
+    report_level="standard",
 )
 
 result = bt.backtest(
@@ -453,7 +458,82 @@ Execution contract:
   bar;
 - reversal pays two legs: close old position and open new position;
 - result metadata contains `validation_certificate`, `data_signature`,
-  `execution_contract`, `fills_report`, and `phase="31B_python_reference_oracle"`.
+  `execution_contract`, `fills_report`, `kernel_version`, and report-level
+  details.
+
+Report levels:
+
+- `minimal`: optimizer/WFO path. Keeps equity, position, fees/funding, counters,
+  and event flags; no fill ledger materialization.
+- `standard`: default notebook/service path. Adds diagnostics such as active
+  stop/TP and margin series; still no fill DataFrame.
+- `audit`: runs a deterministic second pass, allocates sparse fill arrays sized
+  exactly to real `fill_count`, materializes `result.fills` and
+  `bt.fills_report`, and asserts parity against pass 1.
+
+Use the reference endpoint for differential debugging:
+
+```python
+ref = QuantBTEndpoint.intrabar_bracket_reference(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage=0.0001,
+    use_funding=False,
+)
+
+ref_result = ref.backtest(
+    data=df,
+    signal_col="entry_signal",
+    symbols=["ETHUSDT"],
+    intent_cols={"stop_value": "sl_pct", "take_profit_value": "tp_pct"},
+)
+```
+
+## Fill Replay
+
+Use this when an old alpha already emitted explicit fills and QuantBT should
+only validate/account them. This route certifies accounting, not fill
+generation.
+
+```python
+bt = QuantBTEndpoint.fill_replay(
+    initial_capital=20_000,
+    leverage=5,
+    contract_size=1.0,
+)
+
+result = bt.backtest(
+    data=df,
+    symbols=["ETHUSDT"],
+    fill_replay=fills_df,
+)
+```
+
+`fills_df` must be sorted by `bar_index`, then `sequence`, and contain:
+
+```text
+bar_index
+side       # +1 buy, -1 sell
+qty
+price
+```
+
+Optional columns:
+
+```text
+sequence
+fee
+reason
+```
+
+If `fee` is omitted, `fee_rate` is used to compute one-way fees from notional.
+Result metadata declares:
+
+```text
+accounting_certified = true
+execution_generation_certified = false
+```
 
 ## DCA / Grid Ladder
 

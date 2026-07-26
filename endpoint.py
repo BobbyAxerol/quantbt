@@ -50,6 +50,7 @@ from .core.intrabar_reference import (
     IntrabarLevelMode,
     run_intrabar_reference,
 )
+from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import BacktestResultV2, OptionBacktestResult
@@ -316,6 +317,63 @@ class QuantBTEndpoint:
                 mode="intrabar_bracket_reference",
                 backend="intrabar_reference",
                 sizing="intrabar_intent",
+                metadata=metadata,
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def intrabar_bracket(
+        cls,
+        *,
+        level_mode: Union[str, IntrabarLevelMode] = IntrabarLevelMode.PERCENT_DISTANCE,
+        close_on_last_bar: bool = True,
+        report_level: str = "standard",
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """
+        Create the Phase 31C fast Numba intrabar bracket endpoint.
+
+        Use the same compact input contract as
+        `intrabar_bracket_reference(...)`. `report_level="minimal"` is meant
+        for optimizers, `standard` returns diagnostics, and `audit` runs a
+        deterministic second pass to materialize exact sparse fills.
+        """
+        metadata = dict(kwargs.pop("metadata", {}))
+        mode_value = level_mode.value if hasattr(level_mode, "value") else str(level_mode)
+        metadata.setdefault("intrabar_level_mode", mode_value)
+        metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
+        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
+        metadata.setdefault("execution_contract", contract.to_metadata())
+        return cls(
+            _config_from_kwargs(
+                mode="intrabar_bracket",
+                backend="native_intrabar",
+                sizing="intrabar_intent",
+                report_level=report_level,
+                metadata=metadata,
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def fill_replay(cls, *, report_level: str = "audit", **kwargs) -> "QuantBTEndpoint":
+        """
+        Create a fast accounting replay endpoint for explicit fills.
+
+        Use `backtest(data=df, fill_replay=FillReplayTape_or_DataFrame)`. This
+        certifies accounting from supplied fills but does not certify how those
+        fills were generated.
+        """
+        metadata = dict(kwargs.pop("metadata", {}))
+        metadata.setdefault("execution_contract_id", "fill_replay_v1")
+        metadata.setdefault("execution_contract", ExecutionContract.fill_replay().to_metadata())
+        return cls(
+            _config_from_kwargs(
+                mode="fill_replay",
+                backend="native_intrabar",
+                sizing="explicit_fills",
+                report_level=report_level,
                 metadata=metadata,
                 **kwargs,
             )
@@ -978,6 +1036,7 @@ class QuantBTEndpoint:
         strategy_run: Optional[OptionStrategyRun] = None,
         intent: Optional[IntrabarIntentTape] = None,
         intent_cols: Optional[Dict[str, str]] = None,
+        fill_replay: Optional[Union[FillReplayTape, pd.DataFrame]] = None,
         underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
         hedge_policy: Optional[OptionHedgeConfig] = None,
         net_option_delta: Optional[pd.Series] = None,
@@ -1061,6 +1120,23 @@ class QuantBTEndpoint:
                 symbols=symbols,
                 intent=intent,
                 intent_cols=intent_cols,
+            )
+        if mode == "intrabar_bracket":
+            return self._run_intrabar_bracket_fast(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                intent=intent,
+                intent_cols=intent_cols,
+            )
+        if mode == "fill_replay":
+            return self._run_fill_replay(
+                data=data,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                fill_replay=fill_replay,
             )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
@@ -1307,29 +1383,7 @@ class QuantBTEndpoint:
         return self.result
 
     def _run_intrabar_bracket_reference(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols):
-        symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
-        if len(symbol_list) != 1:
-            raise ValueError("intrabar_bracket_reference currently supports exactly one symbol")
-        symbol = symbol_list[0]
-        tape = prepare_market_tape(
-            data=data,
-            datetime_index=datetime_index,
-            symbols=symbol_list,
-            funding_rate=self.config.funding_rate,
-            use_funding=self.config.use_funding,
-            validation_mode="strict",
-        )
-        lookup_frame = None if isinstance(data, PreparedMarketTape) else _strict_lookup_frame(data, datetime_index)
-        if intent is None:
-            level_mode = IntrabarLevelMode(str(self.config.metadata.get("intrabar_level_mode", IntrabarLevelMode.PERCENT_DISTANCE.value)))
-            intent = _intrabar_intent_from_endpoint_input(
-                frame=lookup_frame,
-                index=pd.DatetimeIndex(pd.to_datetime(tape.timestamps_ns, utc=True)),
-                signal=signal,
-                signal_col=signal_col,
-                intent_cols=intent_cols or {},
-                level_mode=level_mode,
-            )
+        tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols)
         contract_meta = dict(self.config.metadata.get("execution_contract") or {})
         contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
         oracle = run_intrabar_reference(
@@ -1384,6 +1438,145 @@ class QuantBTEndpoint:
         self.engine = oracle
         self._store_result(result)
         return self.result
+
+    def _run_intrabar_bracket_fast(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols):
+        tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols)
+        contract_meta = dict(self.config.metadata.get("execution_contract") or {})
+        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
+        kernel = run_intrabar_kernel(
+            tape=tape,
+            intent=intent,
+            account=self.config.account,
+            contract=contract,
+            fee_rate=self.config.v2_fee_rate,
+            slippage_rate=float(self.config.slippage),
+            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+            report_level=self.config.report_level,
+        )
+        idx = kernel.equity.index
+        returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        diagnostics = pd.DataFrame(
+            {
+                "average_entry": kernel.average_entry,
+                "active_stop": kernel.active_stop,
+                "active_take_profit": kernel.active_take_profit,
+                "event_flags": kernel.event_flags,
+                "initial_margin": kernel.initial_margin,
+                "maintenance_margin": kernel.maintenance_margin,
+                "fees": kernel.fees,
+                "funding": kernel.funding,
+            },
+            index=idx,
+        )
+        metadata = {
+            **kernel.metadata,
+            "input_mode": "intrabar_intent",
+            "symbol": symbol,
+            "phase": "31C_numba_intrabar_kernel",
+            "fills_report": kernel.fills_report,
+            "positions_report": pd.DataFrame({f"Position_{symbol}": kernel.position}, index=idx),
+        }
+        result = BacktestResultV2(
+            equity=kernel.equity,
+            returns=returns,
+            positions=pd.DataFrame({f"Position_{symbol}": kernel.position.to_numpy(dtype=float)}, index=idx),
+            closes=pd.DataFrame({f"Close_{symbol}": tape.closes[:, 0]}, index=idx),
+            symbols=[symbol],
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            liquidated=bool(kernel.liquidated),
+            liquidation_bar=int(kernel.liquidation_bar),
+            fills=kernel.fills,
+            fees=kernel.fees,
+            funding=kernel.funding,
+            margin=diagnostics[["initial_margin", "maintenance_margin"]],
+            diagnostics=diagnostics,
+            metadata=metadata,
+        )
+        self.engine = kernel
+        self._store_result(result)
+        return self.result
+
+    def _run_fill_replay(self, data, datetime_index, symbols, fill_replay):
+        if fill_replay is None:
+            raise ValueError("fill_replay endpoint requires fill_replay=FillReplayTape or DataFrame")
+        symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        if len(symbol_list) != 1:
+            raise ValueError("fill_replay currently supports exactly one symbol")
+        symbol = symbol_list[0]
+        tape = prepare_market_tape(
+            data=data,
+            datetime_index=datetime_index,
+            symbols=symbol_list,
+            funding_rate=self.config.funding_rate,
+            use_funding=False,
+            validation_mode="strict",
+        )
+        if isinstance(fill_replay, FillReplayTape):
+            fill_tape = fill_replay
+        elif isinstance(fill_replay, pd.DataFrame):
+            fill_tape = FillReplayTape.from_frame(
+                fill_replay,
+                fee_rate=self.config.v2_fee_rate,
+                contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+            )
+        else:
+            raise TypeError("fill_replay must be a FillReplayTape or pandas DataFrame")
+        replay = run_fill_replay_kernel(
+            tape=tape,
+            fill_tape=fill_tape,
+            account=self.config.account,
+            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+        )
+        idx = replay.equity.index
+        returns = replay.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        metadata = {
+            **replay.metadata,
+            "symbol": symbol,
+            "phase": "31C_fill_replay_kernel",
+            "fills_report": fill_replay.copy() if isinstance(fill_replay, pd.DataFrame) else pd.DataFrame(),
+        }
+        result = BacktestResultV2(
+            equity=replay.equity,
+            returns=returns,
+            positions=pd.DataFrame({f"Position_{symbol}": replay.position.to_numpy(dtype=float)}, index=idx),
+            closes=pd.DataFrame({f"Close_{symbol}": tape.closes[:, 0]}, index=idx),
+            symbols=[symbol],
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            fees=replay.fees,
+            diagnostics=pd.DataFrame({"event_flags": replay.event_flags, "fees": replay.fees}, index=idx),
+            metadata=metadata,
+        )
+        self.engine = replay
+        self._store_result(result)
+        return self.result
+
+    def _prepare_intrabar_run(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols):
+        symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        if len(symbol_list) != 1:
+            raise ValueError(f"{self.config.mode} currently supports exactly one symbol")
+        symbol = symbol_list[0]
+        tape = prepare_market_tape(
+            data=data,
+            datetime_index=datetime_index,
+            symbols=symbol_list,
+            funding_rate=self.config.funding_rate,
+            use_funding=self.config.use_funding,
+            validation_mode="strict",
+        )
+        lookup_frame = None if isinstance(data, PreparedMarketTape) else _strict_lookup_frame(data, datetime_index)
+        if intent is None:
+            level_mode = IntrabarLevelMode(str(self.config.metadata.get("intrabar_level_mode", IntrabarLevelMode.PERCENT_DISTANCE.value)))
+            intent = _intrabar_intent_from_endpoint_input(
+                frame=lookup_frame,
+                index=pd.DatetimeIndex(pd.to_datetime(tape.timestamps_ns, utc=True)),
+                signal=signal,
+                signal_col=signal_col,
+                intent_cols=intent_cols or {},
+                level_mode=level_mode,
+            )
+        return tape, intent, symbol
 
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
         frame, idx, sig = _normalize_single_data(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index)

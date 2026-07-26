@@ -115,6 +115,13 @@ from .core.intrabar_reference import (
     IntrabarReferenceResult,
     run_intrabar_reference,
 )
+from .core.intrabar_kernel import (
+    FillReplayTape,
+    NativeFillReplayResult,
+    NativeIntrabarKernelResult,
+    run_fill_replay_kernel,
+    run_intrabar_kernel,
+)
 from .core.orders import (
     BasketIntent,
     Fill,
@@ -565,6 +572,7 @@ __all__ = [
     "ExecutionContract",
     "FeeModel",
     "Fill",
+    "FillReplayTape",
     "FillPricePolicy",
     "FillPhase",
     "FundingPhase",
@@ -590,6 +598,8 @@ __all__ = [
     "MarginModelKind",
     "MarketFillPolicy",
     "MarketValidationCertificate",
+    "NativeFillReplayResult",
+    "NativeIntrabarKernelResult",
     "OmsMode",
     "OrderAction",
     "OrderActivationPolicy",
@@ -634,6 +644,8 @@ __all__ = [
     "portfolio_capability_matrix",
     "quantize_signed_quantity",
     "round_down_to_step",
+    "run_fill_replay_kernel",
+    "run_intrabar_kernel",
     "run_intrabar_reference",
     "SUPPORTED_DEPTH_MODELS",
     "l2_replay_available",
