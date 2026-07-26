@@ -54,6 +54,7 @@ bt.metrics      # alias for bt.full_report()
 |---|---|---|---|
 | `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | legacy `%_equity` signal where notional is recomputed from live equity |
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | fast single-symbol signal research with fixed units between signal changes |
+| `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | readable Phase 31B oracle for next-open SL/TP/trailing/reversal semantics |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
@@ -90,6 +91,14 @@ such as `engine_id`, `signal_phase`, `fill_phase`, `intrabar_exit_model`,
 that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
 `take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
 intrabar semantics instead of silently implying correctness.
+
+`intrabar_bracket_reference` is the Phase 31B Python oracle for
+`intrabar_bracket_v1`. It uses strict market tape validation and is meant for
+domain verification before the future fast Numba intrabar kernel is promoted.
+It models: signal at bar close, entry at next bar open, gap-aware stop-loss,
+limit-style take-profit, same-bar SL/TP ambiguity, trailing-stop updates that
+only become effective on the next bar, technical exits, reversals as two
+fee/slippage legs, and optional final close.
 
 ## Nautilus Support Matrix
 
@@ -386,6 +395,65 @@ Routing:
 
 For plain market rebalance signals, native vectorized and native event should
 match equity closely. Use event mode when fill-level diagnostics matter.
+
+## Intrabar Bracket Reference
+
+Use this for Phase 31B execution-certification of alpha logic that depends on
+SL/TP/trailing behavior inside the bar. This endpoint is deliberately a readable
+Python oracle, not the future fast Numba intrabar kernel.
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket_reference(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,     # one-way fee
+    slippage=0.0001,     # decimal fraction, applied to market fills
+    use_funding=False,
+    close_on_last_bar=True,
+)
+
+result = bt.backtest(
+    data=df,
+    signal_col="entry_signal",       # signed qty: +1.0 long, -1.0 short, 0 no new entry
+    symbols=["ETHUSDT"],
+    intent_cols={
+        "stop_value": "sl_pct",
+        "take_profit_value": "tp_pct",
+        "trailing_value": "trail_pct",
+        "technical_exit": "exit_now",
+    },
+)
+
+bt.show_metrics()
+fills = bt.fills_report
+```
+
+Input contract:
+
+- `data`: strict single-symbol OHLCV DataFrame with timezone-aware
+  `DatetimeIndex` or timestamp column;
+- required market columns: `open`, `high`, `low`, `close`;
+- no sorting, deduplication, forward-fill, or high/low fallback is performed;
+- `signal` or `signal_col`: compact signed entry size, where the sign is side
+  and absolute value is quantity;
+- optional `intent_cols`: map strategy column names into `stop_value`,
+  `take_profit_value`, `trailing_value`, and `technical_exit`;
+- default `level_mode="percent_distance"` interprets `0.05` as 5 percent from
+  fill price. Use `level_mode="price_distance"` or `"absolute_price"` when
+  supplying distance/level values in price units.
+
+Execution contract:
+
+- signal at close of bar `t`;
+- entry/technical exit/reversal at open of bar `t + 1`;
+- stop gaps fill at the open when the open is worse than trigger;
+- take-profit is limit-conservative by default;
+- same-bar SL/TP conflict is flagged and resolved conservatively;
+- trailing stop is updated after the bar close and only applies from the next
+  bar;
+- reversal pays two legs: close old position and open new position;
+- result metadata contains `validation_certificate`, `data_signature`,
+  `execution_contract`, `fills_report`, and `phase="31B_python_reference_oracle"`.
 
 ## DCA / Grid Ladder
 
