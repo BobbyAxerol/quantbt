@@ -10,11 +10,13 @@ from quantbt import (
     ExecutionConfig,
     FillPhase,
     FillReplayTape,
+    IntrabarEventFlag,
     IntrabarFillReason,
     IntrabarIntentTape,
     IntrabarSizingMode,
     QuantBTEndpoint,
-    StopGapPolicy,
+    IntrabarSameBarPolicy,
+    TakeProfitGapPolicy,
     prepare_market_tape,
     run_fill_replay_kernel,
     run_intrabar_kernel,
@@ -68,7 +70,7 @@ def test_phase31e_scalar_funding_rejected_unless_zero_policy_or_disabled():
     assert not tape.funding_event_mask.any()
 
 
-def test_phase31e_funding_event_applies_when_timestamp_crossed():
+def test_phase31g_funding_event_requires_exact_bar_boundary_and_applies_there():
     df = _frame(
         [
             {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
@@ -76,11 +78,20 @@ def test_phase31e_funding_event_applies_when_timestamp_crossed():
             {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
         ]
     )
+    with pytest.raises(ValueError, match="align exactly"):
+        prepare_market_tape(
+            data=df,
+            symbols=["BTC"],
+            use_funding=True,
+            funding_event_timestamps=[pd.Timestamp("2024-01-01 00:30", tz="UTC")],
+            funding_event_rates=[0.001],
+        )
+
     tape = prepare_market_tape(
         data=df,
         symbols=["BTC"],
         use_funding=True,
-        funding_event_timestamps=[pd.Timestamp("2024-01-01 00:30", tz="UTC")],
+        funding_event_timestamps=[pd.Timestamp("2024-01-01 01:00", tz="UTC")],
         funding_event_rates=[0.001],
     )
 
@@ -104,9 +115,11 @@ def test_phase31e_dynamic_trailing_uses_value_at_t_not_t_minus_1():
     )
 
     result = run_intrabar_reference(tape=tape, intent=intent, account=AccountConfig(initial_capital=10_000.0))
+    kernel = run_intrabar_kernel(tape=tape, intent=intent, account=AccountConfig(initial_capital=10_000.0), report_level="audit")
 
     assert result.fills[1].reason is IntrabarFillReason.STOP_LOSS
     assert result.fills[1].price == pytest.approx(104.5)
+    np.testing.assert_allclose(kernel.equity.to_numpy(), result.equity.to_numpy(), atol=1e-9, rtol=0.0)
 
 
 def test_phase31e_fixed_notional_pct_equity_risk_sizing_and_qty_filters():
@@ -196,6 +209,8 @@ def test_phase31e_exit_long_short_are_side_specific_and_same_side_entry_is_exit_
 
     assert [fill.reason for fill in result.fills] == [IntrabarFillReason.ENTRY, IntrabarFillReason.TECHNICAL_EXIT]
     assert result.position.iloc[-1] == 0.0
+    assert result.rejected_count == 0
+    assert int(result.event_flags.iloc[2]) & int(IntrabarEventFlag.ENTRY_SUPPRESSED)
 
 
 def test_phase31e_strict_timezone_rejects_naive_and_localizes_source_timezone():
@@ -224,6 +239,35 @@ def test_phase31e_unsupported_contract_field_raises():
 
     with pytest.raises(NotImplementedError, match="entry_fill_phase"):
         run_intrabar_kernel(tape=tape, intent=intent, account=AccountConfig(initial_capital=10_000.0), contract=bad)
+
+
+def test_phase31g_endpoint_preserves_full_execution_contract_policies():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0, "entry": 1.0, "tp": 0.05},
+            {"open": 100.0, "high": 106.0, "low": 99.0, "close": 105.0, "entry": 0.0, "tp": np.nan},
+        ]
+    )
+    contract = ExecutionContract.intrabar_bracket(
+        same_bar_policy=IntrabarSameBarPolicy.TP_FIRST,
+        take_profit_gap_policy=TakeProfitGapPolicy.OPEN_PRICE_IMPROVEMENT,
+        close_on_last_bar=False,
+    )
+    bt = QuantBTEndpoint.intrabar_bracket(
+        execution_contract=contract,
+        initial_capital=10_000.0,
+        fee_rate=0.0,
+        slippage_bps=0.0,
+        use_funding=False,
+        report_level="audit",
+    )
+
+    result = bt.backtest(data=df, signal_col="entry", symbols=["BTC"], intent_cols={"take_profit_value": "tp"})
+    restored = ExecutionContract.from_metadata(result.metadata["execution_contract"])
+
+    assert restored.same_bar_policy is IntrabarSameBarPolicy.TP_FIRST
+    assert restored.take_profit_gap_policy is TakeProfitGapPolicy.OPEN_PRICE_IMPROVEMENT
+    assert restored.close_on_last_bar is False
 
 
 def test_phase31e_fill_replay_certification_is_granular():
@@ -262,3 +306,48 @@ def test_phase31f_prepared_intrabar_runner_matches_normal_endpoint_and_freezes_p
     np.testing.assert_allclose(prepared.equity.to_numpy(), normal.equity.to_numpy(), atol=1e-9, rtol=0.0)
     assert prepared.metadata["prepared_runner"] is True
     assert prepared.metadata["profile_metadata"]["data_signature"] == normal.metadata["data_signature"]
+    assert "prepared_signature" in prepared.metadata["profile_metadata"]
+
+
+def test_phase31g_data_signature_changes_with_volume_and_funding():
+    base = _frame(
+        [
+            {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0},
+            {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0},
+        ]
+    )
+    changed_volume = base.copy()
+    changed_volume.iloc[1, changed_volume.columns.get_loc("volume")] = 2.0
+    funding = pd.Series([0.0, 0.001], index=base.index)
+    no_funding = pd.Series([0.0, 0.0], index=base.index)
+
+    sig_base = prepare_market_tape(data=base, symbols=["BTC"], use_funding=False).signature
+    sig_volume = prepare_market_tape(data=changed_volume, symbols=["BTC"], use_funding=False).signature
+    sig_funding = prepare_market_tape(data=base, symbols=["BTC"], use_funding=True, funding_rate=funding).signature
+    sig_no_funding = prepare_market_tape(data=base, symbols=["BTC"], use_funding=True, funding_rate=no_funding).signature
+
+    assert sig_base != sig_volume
+    assert sig_funding != sig_no_funding
+
+
+def test_phase31g_tick_size_quantizes_entry_stop_tp_and_trailing():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0, "entry": 1.0, "sl": 0.051, "trail": 0.033},
+            {"open": 100.03, "high": 102.0, "low": 96.0, "close": 101.07, "entry": 0.0, "sl": np.nan, "trail": 0.033},
+            {"open": 101.0, "high": 102.0, "low": 97.0, "close": 100.0, "entry": 0.0, "sl": np.nan, "trail": 0.033},
+        ]
+    )
+    bt = QuantBTEndpoint.intrabar_bracket(
+        initial_capital=10_000.0,
+        fee_rate=0.0,
+        slippage_bps=0.0,
+        use_funding=False,
+        tick_size=0.05,
+        report_level="audit",
+    )
+    bt.backtest(data=df, signal_col="entry", symbols=["BTC"], intent_cols={"stop_value": "sl", "trailing_value": "trail"})
+
+    assert bt.fills_report.iloc[0]["price"] == pytest.approx(100.05)
+    ticks = bt.fills_report["price"].to_numpy(dtype=float) / 0.05
+    np.testing.assert_allclose(ticks, np.round(ticks), atol=1e-9, rtol=0.0)

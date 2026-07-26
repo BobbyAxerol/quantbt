@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Dict
+from typing import Dict, Mapping
 
 
 class SignalPhase(str, Enum):
@@ -156,6 +156,29 @@ class ExecutionContract:
             if isinstance(value, Enum):
                 payload[key] = value.value
         return payload
+
+    @classmethod
+    def from_metadata(cls, metadata: Mapping | "ExecutionContract") -> "ExecutionContract":
+        if isinstance(metadata, ExecutionContract):
+            return metadata
+        payload = dict(metadata or {})
+        if not payload:
+            raise ValueError("execution contract metadata is empty")
+        return cls(
+            engine_id=str(payload["engine_id"]),
+            signal_phase=SignalPhase(payload["signal_phase"]),
+            entry_fill_phase=FillPhase(payload["entry_fill_phase"]),
+            market_fill_policy=MarketFillPolicy(payload["market_fill_policy"]),
+            stop_gap_policy=StopGapPolicy(payload.get("stop_gap_policy", StopGapPolicy.OPEN_WORSE_THAN_TRIGGER.value)),
+            take_profit_gap_policy=TakeProfitGapPolicy(payload.get("take_profit_gap_policy", TakeProfitGapPolicy.LIMIT_PRICE_CONSERVATIVE.value)),
+            same_bar_policy=IntrabarSameBarPolicy(payload.get("same_bar_policy", IntrabarSameBarPolicy.CONSERVATIVE.value)),
+            trailing_update_phase=TrailingUpdatePhase(payload.get("trailing_update_phase", TrailingUpdatePhase.NONE.value)),
+            funding_phase=FundingPhase(payload.get("funding_phase", FundingPhase.POSITION_AT_EVENT.value)),
+            liquidation_priority=LiquidationPriority(payload.get("liquidation_priority", LiquidationPriority.LIQUIDATION_FIRST_AT_GAP.value)),
+            close_on_last_bar=bool(payload.get("close_on_last_bar", True)),
+            ambiguity_policy=AmbiguityPolicy(payload.get("ambiguity_policy", AmbiguityPolicy.FLAG_AND_CONSERVATIVE.value)),
+            strict_data=bool(payload.get("strict_data", True)),
+        )
 
 
 EXECUTION_CONTRACT_REGISTRY: Dict[str, ExecutionContract] = {

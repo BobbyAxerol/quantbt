@@ -16,6 +16,7 @@ bt = QuantBTEndpoint.intrabar_bracket(
     leverage=5,
     fee_rate=0.0002,      # one-way
     slippage_bps=1.0,
+    tick_size=0.01,
     use_funding=False,
     close_on_last_bar=True,
     report_level="audit",
@@ -94,7 +95,8 @@ risk_per_trade
 
 After sizing, the same shared quantity constraints used by the event and
 portfolio backends are applied: `qty_step`/`lot_size`/`slot_size`, `min_qty`,
-and `min_notional`.
+and `min_notional`. If `tick_size` is provided, entry, stop, take-profit, and
+trailing prices are quantized conservatively to the exchange tick.
 
 ## Execution Semantics
 
@@ -156,6 +158,10 @@ quantity constraints, validation certificate, data signature, and frozen profile
 metadata. Use this in WFO/Optuna loops where market tape is fixed and only the
 intent changes.
 
+Funding events must align exactly to a market bar timestamp for
+`POSITION_AT_EVENT` certification. Mid-bar funding events are rejected rather
+than approximated from the end-of-bar position.
+
 ## Fill Replay
 
 ```python
@@ -182,6 +188,8 @@ is still owned by the alpha or external system that produced the tape.
 - It is not tick or L2 order-book simulation.
 - It is not a multi-symbol cross-margin intrabar engine.
 - It is not the DCA/grid state machine.
+- It does not claim portfolio, arbitrage, grid, DCA, options, or shared
+  cross-margin intrabar correctness.
 - It does not make a look-ahead alpha valid.
 
 For those cases, use native event or Nautilus package validation.

@@ -10,6 +10,8 @@ objects.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass, replace
+import hashlib
+import json
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 import warnings
@@ -364,8 +366,7 @@ class QuantBTEndpoint:
             missing_funding_policy=str(self.config.metadata.get("missing_funding_policy", "raise")),
             source_timezone=self.config.metadata.get("source_timezone"),
         )
-        contract_meta = dict(self.config.metadata.get("execution_contract") or {})
-        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
+        contract = _execution_contract_from_config(self.config)
         symbol = symbol_list[0]
         profile = {
             "mode": self.config.mode,
@@ -377,6 +378,7 @@ class QuantBTEndpoint:
             "intrabar": self._intrabar_execution_kwargs(symbol),
             "data_signature": tape.signature,
         }
+        profile["prepared_signature"] = _prepared_profile_signature(tape.signature, profile)
         return PreparedIntrabarRunner(endpoint=self, tape=tape, symbol=symbol, contract=contract, profile_metadata=profile)
 
     @classmethod
@@ -416,6 +418,7 @@ class QuantBTEndpoint:
         level_mode: Union[str, IntrabarLevelMode] = IntrabarLevelMode.PERCENT_DISTANCE,
         intrabar_sizing_mode: Union[str, IntrabarSizingMode] = IntrabarSizingMode.UNITS,
         close_on_last_bar: bool = True,
+        execution_contract: Optional[ExecutionContract] = None,
         **kwargs,
     ) -> "QuantBTEndpoint":
         """
@@ -436,7 +439,7 @@ class QuantBTEndpoint:
         metadata.setdefault("intrabar_level_mode", mode_value)
         metadata.setdefault("intrabar_sizing_mode", IntrabarSizingMode(intrabar_sizing_mode).value)
         metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
-        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
+        contract = execution_contract or ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
         metadata.setdefault("execution_contract", contract.to_metadata())
         return cls(
             _config_from_kwargs(
@@ -455,6 +458,7 @@ class QuantBTEndpoint:
         level_mode: Union[str, IntrabarLevelMode] = IntrabarLevelMode.PERCENT_DISTANCE,
         intrabar_sizing_mode: Union[str, IntrabarSizingMode] = IntrabarSizingMode.UNITS,
         close_on_last_bar: bool = True,
+        execution_contract: Optional[ExecutionContract] = None,
         report_level: str = "standard",
         **kwargs,
     ) -> "QuantBTEndpoint":
@@ -471,7 +475,7 @@ class QuantBTEndpoint:
         metadata.setdefault("intrabar_level_mode", mode_value)
         metadata.setdefault("intrabar_sizing_mode", IntrabarSizingMode(intrabar_sizing_mode).value)
         metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
-        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
+        contract = execution_contract or ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
         metadata.setdefault("execution_contract", contract.to_metadata())
         return cls(
             _config_from_kwargs(
@@ -1518,8 +1522,7 @@ class QuantBTEndpoint:
 
     def _run_intrabar_bracket_reference(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps=None, funding_event_rates=None):
         tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps, funding_event_rates)
-        contract_meta = dict(self.config.metadata.get("execution_contract") or {})
-        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
+        contract = _execution_contract_from_config(self.config)
         oracle = run_intrabar_reference(
             tape=tape,
             intent=intent,
@@ -1576,8 +1579,7 @@ class QuantBTEndpoint:
 
     def _run_intrabar_bracket_fast(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps=None, funding_event_rates=None):
         tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps, funding_event_rates)
-        contract_meta = dict(self.config.metadata.get("execution_contract") or {})
-        contract = ExecutionContract.intrabar_bracket(close_on_last_bar=bool(contract_meta.get("close_on_last_bar", True)))
+        contract = _execution_contract_from_config(self.config)
         kernel = run_intrabar_kernel(
             tape=tape,
             intent=intent,
@@ -1741,6 +1743,7 @@ class QuantBTEndpoint:
             "qty_step": float(constraints.qty_step[0]),
             "min_qty": float(constraints.min_qty[0]),
             "min_notional": float(constraints.min_notional[0]),
+            "tick_size": _tick_size_for_symbol(self.config.instruments, symbol, self.config.metadata.get("tick_size", 0.0)),
         }
 
     def _run_single(self, data, signal, signal_col, datetime_index, symbols):
@@ -2773,6 +2776,13 @@ def _fmt_int(value) -> str:
 
 def _config_from_kwargs(**kwargs) -> EndpointConfig:
     mode_name = str(kwargs.get("mode", "")).lower().strip()
+    metadata = dict(kwargs.pop("metadata", {}) or {})
+    if "tick_size" in kwargs:
+        metadata.setdefault("tick_size", kwargs.pop("tick_size"))
+    if "source_timezone" in kwargs:
+        metadata.setdefault("source_timezone", kwargs.pop("source_timezone"))
+    if "missing_funding_policy" in kwargs:
+        metadata.setdefault("missing_funding_policy", kwargs.pop("missing_funding_policy"))
     hedge_type_alias = kwargs.pop("hedge_type", None)
     if hedge_type_alias is not None and "sizing" not in kwargs:
         kwargs["sizing"] = hedge_type_alias
@@ -2824,7 +2834,7 @@ def _config_from_kwargs(**kwargs) -> EndpointConfig:
         if key in kwargs:
             dca_kwargs[key] = kwargs.pop(key)
 
-    return EndpointConfig(account=account, execution=execution, dca_kwargs=dca_kwargs, **kwargs)
+    return EndpointConfig(account=account, execution=execution, dca_kwargs=dca_kwargs, metadata=metadata, **kwargs)
 
 
 def _pop_dataclass_kwargs(kwargs: Dict, dataclass_type) -> Dict:
@@ -3444,6 +3454,39 @@ def _endpoint_strict_index(value, *, source_timezone: Optional[str] = None) -> p
             raise ValueError("intrabar endpoint received timezone-naive data; pass metadata={'source_timezone': ...}")
         raw = raw.tz_localize(source_timezone)
     return raw.tz_convert("UTC")
+
+
+def _execution_contract_from_config(config: EndpointConfig) -> ExecutionContract:
+    meta = config.metadata.get("execution_contract")
+    if meta:
+        return ExecutionContract.from_metadata(meta)
+    contract_id = str(config.metadata.get("execution_contract_id", "intrabar_bracket_v1"))
+    if contract_id == "intrabar_bracket_v1":
+        return ExecutionContract.intrabar_bracket()
+    return ExecutionContract.from_metadata({"engine_id": contract_id})
+
+
+def _tick_size_for_symbol(instruments, symbol: str, default: float = 0.0) -> float:
+    if isinstance(default, dict):
+        fallback = float(default.get(symbol, 0.0))
+    else:
+        fallback = float(default or 0.0)
+    if instruments is None:
+        return fallback
+    if isinstance(instruments, dict):
+        inst = instruments.get(symbol)
+        return fallback if inst is None else float(getattr(inst, "tick_size", fallback))
+    for inst in instruments:
+        if getattr(inst, "symbol", None) == symbol:
+            return float(getattr(inst, "tick_size", fallback))
+    return fallback
+
+
+def _prepared_profile_signature(data_signature: str, profile: Dict) -> str:
+    payload = dict(profile)
+    payload["data_signature"] = data_signature
+    raw = json.dumps(_jsonable(payload), sort_keys=True, default=str).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
 
 
 def _intrabar_intent_from_endpoint_input(

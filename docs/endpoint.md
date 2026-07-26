@@ -417,6 +417,7 @@ bt = QuantBTEndpoint.intrabar_bracket(
     leverage=5,
     fee_rate=0.0002,     # one-way fee
     slippage_bps=1.0,    # source of truth for intrabar slippage
+    tick_size=0.01,      # optional conservative price quantization
     use_funding=False,
     close_on_last_bar=True,
     report_level="standard",
@@ -453,6 +454,8 @@ Input contract:
   but new alphas should use side-specific exits;
 - intrabar slippage uses `slippage_bps`; legacy `slippage` is converted with a
   deprecation warning, and passing both raises;
+- `tick_size` is optional and quantizes entry, stop, take-profit, and trailing
+  prices conservatively;
 - default `level_mode="percent_distance"` interprets `0.05` as 5 percent from
   fill price. Use `level_mode="price_distance"` or `"absolute_price"` when
   supplying distance/level values in price units.
@@ -518,10 +521,29 @@ result = runner.run(intent, report_level="minimal")
 audit = runner.run(intent, report_level="audit")
 ```
 
-Funding for intrabar routes is event-causal. Use `use_funding=False` when no
-funding is part of the test, pass an aligned funding Series with non-zero values
-only on funding bars, or pass `funding_event_timestamps` plus
+Funding for intrabar routes is event-causal only when the funding timestamp
+matches an exact market bar timestamp. Mid-bar funding events are rejected and
+require a smaller timeframe. Use `use_funding=False` when no funding is part of
+the test, pass an aligned funding Series with non-zero values only on funding
+bars, or pass exact-boundary `funding_event_timestamps` plus
 `funding_event_rates` to `backtest(...)` / `prepare_intrabar(...)`.
+
+Custom execution contracts can be passed directly and are preserved in
+metadata:
+
+```python
+from quantbt import ExecutionContract, IntrabarSameBarPolicy
+
+contract = ExecutionContract.intrabar_bracket(
+    same_bar_policy=IntrabarSameBarPolicy.TP_FIRST,
+    close_on_last_bar=False,
+)
+
+bt = QuantBTEndpoint.intrabar_bracket(execution_contract=contract)
+```
+
+Unsupported contract fields raise `NotImplementedError`; they are not silently
+reset to defaults.
 
 ## Fill Replay
 
