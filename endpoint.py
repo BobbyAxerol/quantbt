@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -1305,6 +1306,16 @@ class QuantBTEndpoint:
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
         )
+        markers = _intrabar_marker_columns(frame)
+        if backend == "native_vectorized" and markers:
+            warnings.warn(
+                "native_vectorized is close_target_v2 and does not certify intrabar SL/TP/trailing columns "
+                f"{markers}; use a future intrabar/fill-replay/event backend for those semantics.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            self.engine.result.metadata["intrabar_misuse_markers"] = markers
+            self.engine.result.metadata["certification_status"] = "uncertified_intrabar_columns_on_close_target"
         self._store_result(self.engine.result)
         return self.result
 
@@ -2068,6 +2079,20 @@ def _normalize_result_contract(result) -> None:
         metadata["orders_count"] = len(getattr(result, "orders", ()))
     if "fills_count" not in metadata:
         metadata["fills_count"] = len(getattr(result, "fills", ()))
+    engine = str(metadata.get("engine", "unknown"))
+    backend = str(metadata.get("backend", metadata.get("backend_alias", "unknown")))
+    metadata.setdefault("backend_alias", backend)
+    metadata.setdefault("engine_id", engine)
+    metadata.setdefault("kernel_version", engine)
+    metadata.setdefault(
+        "execution_contract",
+        {
+            "engine_id": metadata["engine_id"],
+            "signal_phase": metadata.get("signal_phase", "unspecified"),
+            "fill_phase": metadata.get("fill_phase", "unspecified"),
+            "intrabar_exit_model": metadata.get("intrabar_exit_model", "unspecified"),
+        },
+    )
 
 
 def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
@@ -2904,6 +2929,31 @@ def _normalize_single_data(data, signal, signal_col, datetime_index):
         sig.index = sig.index.tz_localize("UTC") if sig.index.tz is None else sig.index.tz_convert("UTC")
     sig = sig[~sig.index.duplicated(keep="first")].reindex(frame.index, method="ffill").fillna(0.0)
     return frame, frame.index, sig
+
+
+def _intrabar_marker_columns(frame: pd.DataFrame) -> list[str]:
+    markers = {
+        "exit_price",
+        "exit_type",
+        "stop_loss",
+        "stoploss",
+        "sl",
+        "take_profit",
+        "takeprofit",
+        "tp",
+        "trailing",
+        "trailing_stop",
+        "use_sl",
+        "use_tp",
+        "slpercent",
+        "tppercent",
+    }
+    found = []
+    for col in frame.columns:
+        key = str(col).lower()
+        if key in markers or "trailing" in key or "stop_loss" in key or "take_profit" in key:
+            found.append(str(col))
+    return found
 
 
 def _normalize_symbol_data(data, closes, highs, lows, datetime_index, symbols):

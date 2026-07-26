@@ -209,12 +209,20 @@ class BacktestEngineV2:
         )
 
         if self.strategy is not None:
+            opens, volumes = _market_open_volume(
+                data=self.data,
+                datetime_index=idx,
+                closes=closes,
+                symbols=symbols,
+            )
             return backend.run_strategy(
                 datetime_index=idx,
                 strategy=self.strategy,
                 closes=closes,
                 highs=highs,
                 lows=lows,
+                opens=opens,
+                volumes=volumes,
                 funding_rate=self.funding_rate,
                 contract_size=self.contract_size,
                 leverage=self.leverage,
@@ -727,6 +735,40 @@ def _market_data(
         high_map[symbol] = high
         low_map[symbol] = low
     return idx, close_map, high_map, low_map, symbol_list
+
+
+def _market_open_volume(
+    data: Optional[Union[pd.DataFrame, Dict[str, Union[pd.DataFrame, pd.Series]]]],
+    datetime_index: pd.DatetimeIndex,
+    closes: SeriesMap,
+    symbols: List[str],
+) -> Tuple[SeriesMap, SeriesMap]:
+    opens: SeriesMap = {}
+    volumes: SeriesMap = {}
+    if isinstance(data, pd.DataFrame):
+        if len(symbols) != 1:
+            raise ValueError("single DataFrame reactive run requires one symbol")
+        frame = _extract_frame_ohlcv(data, datetime_index)
+        opens[symbols[0]] = frame["open"]
+        volumes[symbols[0]] = frame["volume"]
+        return opens, volumes
+    if isinstance(data, dict):
+        for symbol in symbols:
+            value = data[symbol]
+            if isinstance(value, pd.DataFrame):
+                frame = _extract_frame_ohlcv(value, datetime_index)
+                opens[symbol] = frame["open"]
+                volumes[symbol] = frame["volume"]
+            else:
+                close = closes[symbol]
+                opens[symbol] = close
+                volumes[symbol] = pd.Series(0.0, index=close.index, name="volume")
+        return opens, volumes
+    for symbol in symbols:
+        close = closes[symbol]
+        opens[symbol] = close
+        volumes[symbol] = pd.Series(0.0, index=close.index, name="volume")
+    return opens, volumes
 
 
 def _extract_frame_ohlc(

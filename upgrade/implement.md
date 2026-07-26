@@ -4421,7 +4421,7 @@ Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `g
 
 ## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
 
-Status: planning, awaiting approval.
+Status: active. Phase 31A completed on `feat/31-execution-correctness-intrabar`.
 
 Source design document:
 
@@ -4496,6 +4496,50 @@ Acceptance:
 - Existing valid close-target alpha results remain reproducible.
 - Silent execution ambiguity becomes explicit metadata, warning, or error.
 - No intrabar engine implementation yet.
+
+Implementation notes after Phase 31A:
+
+- `native_vectorized` now declares the close-target execution contract via
+  metadata:
+  - `engine="close_target_v2"`;
+  - `engine_id="close_target_v2"`;
+  - `backend_alias="native_vectorized"`;
+  - `kernel_version="units_v2"`;
+  - `signal_phase="bar_close"`;
+  - `fill_phase="same_close"`;
+  - `intrabar_exit_model="none"`;
+  - `first_bar_target_policy`;
+  - `data_signature`.
+- `NativeVectorizedConfig` fails fast on unsupported execution config for the
+  close-target contract:
+  - non-close fill price policy;
+  - non-conservative same-bar policy;
+  - partial fills;
+  - min order notional;
+  - disabling insufficient-margin rejection.
+- Funding dictionaries no longer synthesize `0.0001` for missing symbols; the
+  caller must pass the symbol explicitly, pass scalar funding, or disable
+  funding.
+- Missing high/low on native-vectorized close-target runs is now marked with
+  `high_low_source="close_fallback_uncertified_intrabar_risk"` and emits a
+  bounded warning. Phase 31B will replace this compatibility fallback with
+  strict prepared-tape certification.
+- Reactive native-event facade now passes `open` and `volume` from the input
+  frame into strategy context.
+- Close-target endpoint warns and marks runs as
+  `uncertified_intrabar_columns_on_close_target` if the input dataframe
+  contains likely intrabar artifacts such as `exit_price`, `stop_loss`,
+  `take_profit`, or `trailing`.
+
+Validation after Phase 31A:
+
+- `tests/test_phase31a_execution_correctness_contract.py`: `6 passed`.
+- Targeted regression:
+  `tests/test_phase2_native_vectorized.py`,
+  `tests/test_endpoint.py`,
+  `tests/test_phase30d_native_event_reactive_runner.py`,
+  `tests/test_phase30e_native_event_incremental_runner.py`,
+  `tests/test_phase9_performance_parity.py`: `42 passed`.
 
 ### Phase 31B - Strict Prepared Market Tape And Python Intrabar Oracle
 
