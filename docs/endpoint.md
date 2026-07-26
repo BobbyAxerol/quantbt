@@ -103,6 +103,11 @@ only become effective on the next bar, technical exits, reversals as two
 fee/slippage legs, initial-margin rejection, simple single-symbol liquidation,
 and optional final close.
 
+For the full contract taxonomy and certification workflow, read
+[`execution_contracts.md`](execution_contracts.md),
+[`fast_intrabar.md`](fast_intrabar.md), and
+[`alpha_certification.md`](alpha_certification.md).
+
 ## Nautilus Support Matrix
 
 Services can inspect current Nautilus adapter coverage before constructing a
@@ -518,6 +523,46 @@ side       # +1 buy, -1 sell
 qty
 price
 ```
+
+This route is Level 1 certification by design: QuantBT certifies accounting from
+the supplied fills, while the alpha or external system remains responsible for
+causal fill generation.
+
+## Alpha Execution Audit
+
+Use the scanner before migrating old alpha directories:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha \
+python3 quantbt/tools/audit_alpha_execution_contracts.py \
+  /root/bobby/pool_alpha/alphas_storage/TA \
+  --json-out /tmp/alpha_contracts.json \
+  --md-out /tmp/alpha_contracts.md
+```
+
+Or from Python:
+
+```python
+from quantbt import (
+    scan_alpha_directory,
+    build_alpha_certification_report,
+    alpha_report_markdown,
+)
+
+items = scan_alpha_directory("/root/bobby/pool_alpha/alphas_storage/TA")
+report = build_alpha_certification_report(items)
+print(alpha_report_markdown(report))
+```
+
+Certification levels:
+
+| Level | Meaning |
+|---:|---|
+| 0 | legacy or unspecified execution contract |
+| 1 | explicit-fill accounting replay |
+| 2 | engine-causal QuantBT execution |
+| 3 | native cross-backend parity |
+| 4 | external validation, usually Nautilus/lower-timeframe route |
 
 Optional columns:
 

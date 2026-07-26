@@ -124,6 +124,23 @@ tape. Normal `.backtest(...)` remains defensive and backward-compatible.
 Cython/C++ remains deferred because the larger benchmark still points to
 facade/report overhead rather than pure Numba kernels.
 
+Latest Phase 31 intrabar execution benchmark:
+
+| Route | Workload | Runtime | Throughput | Ratio | Parity |
+|---|---:|---:|---:|---:|---|
+| `close_target_v2_pure_kernel` | 25,000 bars | 0.0082s | 3,066,338 bars/s | baseline | baseline |
+| `intrabar_bracket_v1_minimal` | 25,000 bars, 2,000 fills | 0.0118s | 2,116,601 bars/s | 1.45x close-target | oracle-checked |
+| `intrabar_bracket_v1_audit` | 25,000 bars, fill ledger | 0.0511s | 489,716 bars/s | 4.32x minimal | pass |
+| `intrabar_reference_python` | 25,000 bars | 0.2259s | 110,665 bars/s | 19.13x slower than minimal | truth model |
+| `fill_replay_v1_kernel` | 25,000 bars, 2,000 fills | 0.0121s | 2,064,903 bars/s | 1.03x minimal | accounting |
+| `native_event_explicit_orders_facade` | 25,000 bars, 2,000 market orders | 0.0837s | 298,512 bars/s | 7.09x minimal | speed reference |
+
+Phase 31 adds execution-contract certification for close-target, fast intrabar
+SL/TP/trailing, and explicit fill replay paths. The fast intrabar kernel is
+about 19x faster than the readable Python oracle on the committed benchmark
+while preserving the oracle semantics through targeted parity tests and audit
+second-pass checks.
+
 Ecosystem positioning:
 
 | Tool | Core strength | Runtime model | QuantBT role beside it |

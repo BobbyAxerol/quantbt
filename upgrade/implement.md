@@ -4421,7 +4421,8 @@ Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `g
 
 ## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
 
-Status: active. Phase 31A, Phase 31B, and Phase 31C implemented on
+Status: complete for the current single-symbol OHLC intrabar scope. Phase 31A,
+Phase 31B, Phase 31C, and Phase 31D implemented on
 `feat/31-execution-correctness-intrabar`.
 
 Source design document:
@@ -4765,3 +4766,73 @@ Explicit non-goals for Phase 31:
 - No generic multi-order grid engine inside the intrabar kernel.
 - No options Greeks/portfolio option execution in this kernel.
 - No Cython/C++ until prepared tape, lazy result, and Numba kernels are profiled.
+
+Implementation notes after Phase 31D:
+
+- Added `core/certification.py`:
+  - `CertificationLevel` with Level 0-4 labels;
+  - `classify_alpha_source(...)` for conservative source classification;
+  - `scan_alpha_directory(...)` for `.py`, `.ipynb`, and `.md` alpha inventory;
+  - `build_alpha_certification_report(...)` and `alpha_report_markdown(...)`;
+  - `certify_result_metadata(...)` to summarize result metadata into a
+    stakeholder-readable certification label.
+- Added `tools/audit_alpha_execution_contracts.py`:
+  - writes JSON and Markdown alpha execution-contract audit reports;
+  - intentionally treats source scanning as a migration hint, not proof of
+    causality or absence of look-ahead bias.
+- Added Phase 31 benchmark harness:
+  - `benchmarks/run_phase31_intrabar.py`;
+  - committed `phase31_intrabar_benchmark.json` and
+    `phase31_intrabar_benchmark.md` after running the standard 25k-bar profile.
+- Added docs:
+  - `docs/execution_contracts.md`;
+  - `docs/fast_intrabar.md`;
+  - `docs/alpha_certification.md`;
+  - endpoint and benchmark documentation links.
+- Public exports now include certification helpers from `quantbt` and
+  `quantbt.core`.
+
+Validation after Phase 31D:
+
+- `tests/test_phase31d_certification.py` covers source classification, metadata
+  certification levels, directory scan/report generation, CLI artifact writes,
+  and benchmark smoke parity.
+- Phase 31A/B/C/D targeted tests pass together with endpoint smoke tests.
+- Full unit regression excluding real-data tests passes.
+- Benchmark standard profile compares:
+  - close-target pure kernel;
+  - fast intrabar minimal;
+  - fast intrabar audit;
+  - Python intrabar oracle;
+  - fill replay kernel;
+  - native-event explicit-order facade.
+
+Phase 31 certification conclusion:
+
+- Completed:
+  - semantic freeze and contract manifest;
+  - strict market tape validation;
+  - close-target misuse metadata;
+  - Python intrabar oracle;
+  - Numba fast intrabar bracket kernel;
+  - audit ledger second pass;
+  - fill replay accounting kernel;
+  - public endpoint routes;
+  - source scanner and certification docs;
+  - reproducible benchmark report.
+- Production readiness:
+  - practical Level 2 for single-symbol linear next-open SL/TP/trailing
+    intrabar research when the alpha emits compact intent columns and benchmark
+    parity passes;
+  - Level 1 for old explicit-fill alphas using `fill_replay`;
+  - Level 3/4 still requires native-event/Nautilus/lower-timeframe parity
+    artifacts for each concrete strategy and venue.
+- Coverage of
+  `quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md` is roughly
+  80 percent of the requested institutional methodology: the core semantic,
+  oracle, kernel, audit, docs, and scanner work is done. Deferred pieces are
+  intentionally outside the current single-symbol OHLC bracket kernel:
+  standalone `next_open_v1` facade, broad native-event/Nautilus parity bundles,
+  lower-timeframe/tick validation, shared cross-margin intrabar semantics,
+  venue-specific liquidation/funding event ordering, and generic DCA/grid
+  state machines.
