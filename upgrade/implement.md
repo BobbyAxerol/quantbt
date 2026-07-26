@@ -3378,7 +3378,7 @@ Technical debt after Phase 30B:
 
 ### Phase 30C - Endpoint, Nautilus Adapter, And Structured Package Parity
 
-Status: planned.
+Status: completed.
 
 Plan:
 
@@ -3398,6 +3398,58 @@ Exit criteria:
 - Legacy endpoints remain stable.
 - Package-level reports include fills, cancels, rejects, and linked-order
   status for stakeholder audit.
+
+Implemented:
+
+- Added endpoint-level lifecycle route:
+  - `QuantBTEndpoint.native_event_lifecycle(...)`;
+  - `QuantBTEndpoint.orders(event_engine_version="v2", ...)`;
+  - `simulate(..., order_commands=[OrderCommand(...), ...])`.
+- Added `BacktestEngineV2` support for:
+  - `order_commands`;
+  - `event_engine_version`;
+  - native-event v2 lifecycle execution;
+  - legacy `OrderIntent` to lifecycle `PLACE` conversion when v2 is requested.
+- Added structured native-event v2 endpoints:
+  - `QuantBTEndpoint.native_event_dca_grid(...)`;
+  - `QuantBTEndpoint.native_event_bracket_orders(...)`.
+- Added canonical metadata converter:
+  - `order_intents_to_lifecycle_commands(...)`;
+  - lifts parent/OCO/package metadata into explicit command fields;
+  - limits OCO linkage to reduce-only/exit legs so base/safety orders are not
+    accidentally canceled.
+- Aligned Nautilus adapter payloads:
+  - `QuantBTEndpoint.orders(backend="nautilus")` accepts `order_commands`;
+  - executable `PLACE` and `REPLACE` commands are converted into Nautilus
+    package `OrderIntent` payloads;
+  - legacy Nautilus `orders=[OrderIntent(...)]` params remain unchanged.
+- Updated endpoint/order-fill docs and Nautilus support matrix.
+
+Latest tests:
+
+- Phase 30A/30B/30C lifecycle suites: `23 passed`.
+- Endpoint/Nautilus compatibility subsets: `50 passed`.
+- Native-event v1 parity/performance subset: `11 passed`.
+- Full non-real regression: `418 passed, 1 skipped, 3 warnings`.
+
+Final Phase 30 conclusion:
+
+- Native-event v2 is usable for deterministic OHLC lifecycle research and
+  package audit through opt-in endpoint/backend routes.
+- Existing v1 `OrderIntent` endpoint behavior remains stable and default.
+- Structured DCA/grid and bracket/OCO packages can now run through native-event
+  v2 with command reports and event logs.
+- Nautilus adapter is command-payload aligned for executable package orders,
+  but exchange-native cancel/amend command parity remains future work.
+
+Remaining out-of-scope debt:
+
+- Partial fills, queue priority, latency, and L2 depth are still handled by
+  separate depth/preflight approximations, not the v2 OHLC kernel.
+- Nautilus parity for true cancel/replace/amend lifecycle requires a dedicated
+  Nautilus strategy upgrade and real Nautilus package runs.
+- Portfolio/arbitrage package command conversion can be deepened later where
+  linked lifecycle state materially changes the strategy behavior.
 
 ---
 

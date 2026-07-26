@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence, Tuple
 
 from .schema import LiquiditySide, OrderSide, OrderType, TimeInForce
 
@@ -258,3 +258,61 @@ def _normalize_activation_policy(policy: OrderActivationPolicy | str) -> OrderAc
     if isinstance(policy, OrderActivationPolicy):
         return policy
     return OrderActivationPolicy(str(policy))
+
+
+def order_intents_to_lifecycle_commands(
+    orders: Sequence[OrderIntent],
+    *,
+    linked_metadata: bool = True,
+) -> Tuple[OrderCommand, ...]:
+    """
+    Convert `OrderIntent` records into lifecycle-v2 `OrderCommand` records.
+
+    Structured package builders already carry parent/OCO information in
+    metadata. This helper lifts those fields into the explicit command contract
+    while preserving all old order intent fields for compatibility.
+    """
+    commands = []
+    tag_to_id = {}
+    for idx, order in enumerate(orders):
+        order_id = order.order_id or order.tag or f"order-{idx}"
+        tag_to_id[order.tag] = order_id
+
+    for idx, order in enumerate(orders):
+        metadata = dict(order.metadata)
+        order_id = order.order_id or order.tag or f"order-{idx}"
+        parent_id = None
+        oco_group_id = None
+        activation = OrderActivationPolicy.IMMEDIATE
+        group_id = None
+        if linked_metadata:
+            group_id = metadata.get("group_id") or metadata.get("package_id") or metadata.get("arb_id")
+            leg_role = str(metadata.get("leg_role", "")).lower().strip()
+            if order.reduce_only or leg_role in {"take_profit", "stop_loss", "exit"}:
+                oco_group_id = metadata.get("oco_group_id")
+            parent_ref = metadata.get("parent_order_id") or metadata.get("parent_tag")
+            if parent_ref is not None:
+                parent_id = tag_to_id.get(parent_ref, str(parent_ref))
+                activation = OrderActivationPolicy.ON_PARENT_FIRST_FILL
+        commands.append(
+            OrderCommand(
+                timestamp=order.timestamp,
+                action=OrderAction.PLACE,
+                symbol=order.symbol,
+                side=order.side,
+                order_type=order.order_type,
+                qty=float(order.qty),
+                price=order.price,
+                trigger_price=order.trigger_price,
+                tif=order.tif,
+                reduce_only=order.reduce_only,
+                order_id=order_id,
+                parent_order_id=parent_id,
+                group_id=None if group_id is None else str(group_id),
+                oco_group_id=None if oco_group_id is None else str(oco_group_id),
+                activation_policy=activation,
+                tag=order.tag,
+                metadata=metadata,
+            )
+        )
+    return tuple(commands)
