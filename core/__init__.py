@@ -28,6 +28,13 @@ from .intrabar_reference import (
     IntrabarReferenceResult,
     run_intrabar_reference,
 )
+from .intrabar_kernel import (
+    FillReplayTape,
+    NativeFillReplayResult,
+    NativeIntrabarKernelResult,
+    run_fill_replay_kernel,
+    run_intrabar_kernel,
+)
 from .orders       import (
     BasketIntent,
     Fill,
@@ -177,6 +184,7 @@ __all__ = [
     "IntrabarLevelMode",
     "IntrabarReferenceResult",
     "IntrabarSameBarPolicy",
+    "FillReplayTape",
     "LifecycleModel",
     "LifecycleModelKind",
     "LiquiditySide",
@@ -187,6 +195,8 @@ __all__ = [
     "MarketFillPolicy",
     "MarketValidationCertificate",
     "NautilusExecutionDepthConfig",
+    "NativeFillReplayResult",
+    "NativeIntrabarKernelResult",
     "NativeActiveOrderSnapshot",
     "NativeEventStrategyError",
     "NativeEventStrategyProtocol",
@@ -232,6 +242,8 @@ __all__ = [
     "prepare_market_tape",
     "round_down_to_step",
     "run_intrabar_reference",
+    "run_intrabar_kernel",
+    "run_fill_replay_kernel",
     "SUPPORTED_DEPTH_MODELS",
     "l2_replay_available",
     "simulate_nautilus_order_package_depth",

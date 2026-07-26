@@ -34,6 +34,7 @@ class IntrabarFillReason(str, Enum):
     REVERSAL_ENTRY = "reversal_entry"
     STOP_LOSS = "stop_loss"
     TAKE_PROFIT = "take_profit"
+    LIQUIDATION = "liquidation"
     FINAL_CLOSE = "final_close"
 
 
@@ -47,6 +48,8 @@ class IntrabarEventFlag(IntFlag):
     REVERSAL = 1 << 5
     AMBIGUOUS = 1 << 6
     FUNDING = 1 << 7
+    LIQUIDATION = 1 << 8
+    REJECTED = 1 << 9
 
 
 @dataclass(frozen=True)
@@ -115,6 +118,9 @@ class IntrabarReferenceResult:
     event_flags: pd.Series
     fills: tuple[IntrabarFill, ...]
     ambiguity_count: int
+    rejected_count: int = 0
+    liquidated: bool = False
+    liquidation_bar: int = -1
     metadata: Dict = field(default_factory=dict)
 
 
@@ -170,14 +176,48 @@ def run_intrabar_reference(
     active_tp = np.nan
     fills: list[IntrabarFill] = []
     ambiguity_count = 0
+    rejected_count = 0
+    liquidated = False
+    liquidation_bar = -1
 
     equity_arr[0] = equity
     for t in range(1, n):
+        if liquidated:
+            equity_arr[t] = 0.0
+            pos_arr[t] = 0.0
+            avg_arr[t] = 0.0
+            stop_arr[t] = 0.0
+            tp_arr[t] = 0.0
+            continue
+
         seq = 0
         open_ref = float(opens[t])
         close_ref = float(closes[t])
+        last_ref = open_ref
         if position != 0.0:
             equity += position * (open_ref - float(closes[t - 1])) * contract_size
+
+        if position != 0.0 and _maintenance_breached(equity, position, open_ref, contract_size, account.maintenance_ratio):
+            side = -1 if position > 0.0 else 1
+            price = _market_price(open_ref, side, slippage_rate)
+            fee = abs(position) * price * contract_size * fee_rate
+            equity += position * (price - open_ref) * contract_size - fee
+            fee_arr[t] += fee
+            fills.append(_fill(t, seq, idx[t], side, abs(position), price, fee, IntrabarFillReason.LIQUIDATION))
+            flags_arr[t] |= int(IntrabarEventFlag.EXIT_FILLED | IntrabarEventFlag.LIQUIDATION)
+            liquidated = True
+            liquidation_bar = t
+            equity = 0.0
+            position = 0.0
+            avg_entry = 0.0
+            active_stop = np.nan
+            active_tp = np.nan
+            equity_arr[t] = 0.0
+            pos_arr[t] = 0.0
+            avg_arr[t] = 0.0
+            stop_arr[t] = 0.0
+            tp_arr[t] = 0.0
+            continue
 
         pending_side = int(intent.entry_side[t - 1])
         pending_size = float(intent.entry_size[t - 1])
@@ -206,11 +246,21 @@ def run_intrabar_reference(
             side = 1 if pending_side > 0 else -1
             price = _market_price(open_ref, side, slippage_rate)
             qty = float(pending_size)
+            if not _has_initial_margin(equity, qty, price, contract_size, account.leverage, account.margin_buffer):
+                flags_arr[t] |= int(IntrabarEventFlag.REJECTED)
+                rejected_count += 1
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
             fee = qty * price * contract_size * fee_rate
             equity -= fee
             fee_arr[t] += fee
             position = qty * side
             avg_entry = price
+            last_ref = price
             active_stop, active_tp = _initial_bracket(intent, t - 1, side, price)
             reason = IntrabarFillReason.REVERSAL_ENTRY if flags_arr[t] & int(IntrabarEventFlag.REVERSAL) else IntrabarFillReason.ENTRY
             fills.append(_fill(t, seq, idx[t], side, qty, price, fee, reason))
@@ -236,7 +286,7 @@ def run_intrabar_reference(
                     ambiguity_count += 1
                 qty = abs(position)
                 fee = qty * exit_price * contract_size * fee_rate
-                equity += position * (exit_price - open_ref) * contract_size - fee
+                equity += position * (exit_price - last_ref) * contract_size - fee
                 fee_arr[t] += fee
                 fills.append(_fill(t, seq, idx[t], exit_side, qty, exit_price, fee, reason))
                 seq += 1
@@ -251,8 +301,41 @@ def run_intrabar_reference(
                 active_tp = np.nan
 
         if position != 0.0:
-            equity += position * (close_ref - open_ref) * contract_size
-            active_stop = _update_trailing(intent, t - 1, position, close_ref, active_stop)
+            if _maintenance_breached_at_worst(
+                equity,
+                position,
+                last_ref,
+                high=float(highs[t]),
+                low=float(lows[t]),
+                contract_size=contract_size,
+                maintenance_ratio=account.maintenance_ratio,
+            ):
+                side = -1 if position > 0.0 else 1
+                worst = float(lows[t]) if position > 0.0 else float(highs[t])
+                price = _market_price(worst, side, slippage_rate)
+                fee = abs(position) * price * contract_size * fee_rate
+                equity += position * (price - last_ref) * contract_size - fee
+                fee_arr[t] += fee
+                fills.append(_fill(t, seq, idx[t], side, abs(position), price, fee, IntrabarFillReason.LIQUIDATION))
+                flags_arr[t] |= int(IntrabarEventFlag.EXIT_FILLED | IntrabarEventFlag.LIQUIDATION)
+                liquidated = True
+                liquidation_bar = t
+                equity = 0.0
+                position = 0.0
+                avg_entry = 0.0
+                active_stop = np.nan
+                active_tp = np.nan
+            else:
+                equity += position * (close_ref - last_ref) * contract_size
+                active_stop = _update_trailing(intent, t - 1, position, close_ref, active_stop)
+
+        if liquidated:
+            equity_arr[t] = 0.0
+            pos_arr[t] = 0.0
+            avg_arr[t] = 0.0
+            stop_arr[t] = 0.0
+            tp_arr[t] = 0.0
+            continue
 
         if position != 0.0 and funding_mask[t]:
             funding_cost = position * close_ref * contract_size * funding_rates[t]
@@ -292,6 +375,9 @@ def run_intrabar_reference(
         event_flags=pd.Series(flags_arr, index=idx, name="event_flags"),
         fills=tuple(fills),
         ambiguity_count=int(ambiguity_count),
+        rejected_count=int(rejected_count),
+        liquidated=bool(liquidated),
+        liquidation_bar=int(liquidation_bar),
         metadata={
             "engine": "intrabar_reference_v1",
             "engine_id": "intrabar_reference_v1",
@@ -299,6 +385,9 @@ def run_intrabar_reference(
             "data_signature": tape.signature,
             "fill_count": len(fills),
             "ambiguity_count": int(ambiguity_count),
+            "rejected_count": int(rejected_count),
+            "liquidated": bool(liquidated),
+            "liquidation_bar": int(liquidation_bar),
             "oracle": True,
         },
     )
@@ -325,6 +414,32 @@ def _fill(bar, seq, ts, side, qty, price, fee, reason) -> IntrabarFill:
 
 def _market_price(open_price: float, side: int, slippage_rate: float) -> float:
     return float(open_price * (1.0 + slippage_rate if side > 0 else 1.0 - slippage_rate))
+
+
+def _has_initial_margin(equity: float, qty: float, price: float, contract_size: float, leverage: float, margin_buffer: float) -> bool:
+    required = abs(qty) * price * contract_size / leverage
+    return bool(equity >= required * (1.0 + margin_buffer))
+
+
+def _maintenance_breached(equity: float, position: float, price: float, contract_size: float, maintenance_ratio: float) -> bool:
+    maintenance = abs(position) * price * contract_size * maintenance_ratio
+    return bool(maintenance > 0.0 and equity <= maintenance)
+
+
+def _maintenance_breached_at_worst(
+    equity: float,
+    position: float,
+    reference_price: float,
+    *,
+    high: float,
+    low: float,
+    contract_size: float,
+    maintenance_ratio: float,
+) -> bool:
+    worst = low if position > 0.0 else high
+    worst_equity = equity + position * (worst - reference_price) * contract_size
+    maintenance = abs(position) * worst * contract_size * maintenance_ratio
+    return bool(maintenance > 0.0 and worst_equity <= maintenance)
 
 
 def _initial_bracket(intent: IntrabarIntentTape, signal_bar: int, side: int, fill_price: float) -> tuple[float, float]:

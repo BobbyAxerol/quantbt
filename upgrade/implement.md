@@ -4421,7 +4421,7 @@ Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `g
 
 ## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
 
-Status: active. Phase 31A completed; Phase 31B implemented on
+Status: active. Phase 31A, Phase 31B, and Phase 31C implemented on
 `feat/31-execution-correctness-intrabar`.
 
 Source design document:
@@ -4672,6 +4672,40 @@ Acceptance:
   bracket workloads.
 - No Python objects are created in hot loops.
 - Audit mode is deterministic and preserves exact fill sequence.
+
+Implementation notes after Phase 31C:
+
+- Added `core/intrabar_kernel.py`:
+  - `_engine_intrabar_bracket_v1` is a Numba single-symbol linear intrabar
+    kernel for `intrabar_bracket_v1`;
+  - `run_intrabar_kernel(...)` wraps the kernel and returns
+    `NativeIntrabarKernelResult`;
+  - `report_level="minimal"` and `standard` avoid sparse fill materialization;
+  - `report_level="audit"` runs deterministic pass 2, allocates exact-size
+    sparse fill arrays, materializes fills/report, and asserts pass-1 parity;
+  - `FillReplayTape` and `run_fill_replay_kernel(...)` provide
+    `fill_replay_v1` accounting migration.
+- Corrected the Python oracle accounting for entry slippage:
+  - PnL after entry now marks from actual fill price, not raw bar open;
+  - this makes fee/slippage legs explicit and gives the Numba kernel a correct
+    parity target.
+- Added simple single-symbol margin/risk semantics to oracle and kernel:
+  - initial margin rejection with account leverage and margin buffer;
+  - conservative intrabar maintenance breach liquidation for unprotected paths;
+  - full venue mark-price liquidation remains future certification work.
+- Added public endpoints:
+  - `QuantBTEndpoint.intrabar_bracket(...)` for the fast Numba route;
+  - `QuantBTEndpoint.fill_replay(...)` for explicit-fill accounting replay.
+- Added public exports from `quantbt` and `quantbt.core`:
+  `run_intrabar_kernel`, `NativeIntrabarKernelResult`, `FillReplayTape`,
+  `run_fill_replay_kernel`, and `NativeFillReplayResult`.
+
+Validation after Phase 31C:
+
+- `tests/test_phase31c_intrabar_kernel.py` covers oracle parity, audit second
+  pass, slippage accounting, trailing/reversal behavior, insufficient-margin
+  rejection, single-symbol liquidation, fill replay accounting, endpoint
+  standard/audit routes, fill replay endpoint, and warm-kernel speed smoke.
 
 ### Phase 31D - Certification, Alpha Audit Tooling, And Docs
 
