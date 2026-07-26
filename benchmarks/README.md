@@ -88,3 +88,17 @@ python3 benchmarks/gamma_scalping_backtestsample.py \
   first-class delta-hedged combined-equity accounting.
 - Cython/C++ should only be considered after a larger profile shows pure
   kernels, not pandas/tape/report facade work, dominating runtime.
+
+Phase 31 intrabar execution:
+
+```bash
+python3 benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+python3 benchmarks/run_phase31_intrabar.py --rows 512 --repeats 1
+```
+
+- `phase31_intrabar_benchmark.*` compares the new fast
+  `intrabar_bracket_v1` kernel against the close-target pure kernel, the Python
+  intrabar oracle, fill replay, and the native-event explicit-order facade.
+- Use the fast intrabar route for single-symbol next-open SL/TP/trailing
+  research. Use `report_level="audit"` for fill-ledger certification and
+  `report_level="minimal"` for WFO/optimizer loops.
