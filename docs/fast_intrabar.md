@@ -162,6 +162,13 @@ Funding events must align exactly to a market bar timestamp for
 `POSITION_AT_EVENT` certification. Mid-bar funding events are rejected rather
 than approximated from the end-of-bar position.
 
+Timestamp semantics must also be explicit. The default
+`bar_timestamp_semantics="close"` means each OHLC timestamp labels the bar
+close, so funding is applied after intrabar execution on the remaining close
+position. For common crypto feeds whose OHLC timestamp labels the bar open,
+pass `bar_timestamp_semantics="open"`; funding is then applied after open-gap
+marking and before pending orders at `open[t]`.
+
 ## Fill Replay
 
 ```python

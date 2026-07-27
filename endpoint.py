@@ -365,6 +365,7 @@ class QuantBTEndpoint:
             validation_mode="strict",
             missing_funding_policy=str(self.config.metadata.get("missing_funding_policy", "raise")),
             source_timezone=self.config.metadata.get("source_timezone"),
+            bar_timestamp_semantics=str(self.config.metadata.get("bar_timestamp_semantics", "close")),
         )
         contract = _execution_contract_from_config(self.config)
         symbol = symbol_list[0]
@@ -1650,6 +1651,7 @@ class QuantBTEndpoint:
             use_funding=False,
             validation_mode="strict",
             source_timezone=self.config.metadata.get("source_timezone"),
+            bar_timestamp_semantics=str(self.config.metadata.get("bar_timestamp_semantics", "close")),
         )
         if isinstance(fill_replay, FillReplayTape):
             fill_tape = fill_replay
@@ -1707,6 +1709,7 @@ class QuantBTEndpoint:
             validation_mode="strict",
             missing_funding_policy=str(self.config.metadata.get("missing_funding_policy", "raise")),
             source_timezone=self.config.metadata.get("source_timezone"),
+            bar_timestamp_semantics=str(self.config.metadata.get("bar_timestamp_semantics", "close")),
         )
         lookup_frame = None if isinstance(data, PreparedMarketTape) else _strict_lookup_frame(data, datetime_index, source_timezone=self.config.metadata.get("source_timezone"))
         if intent is None:
@@ -2783,6 +2786,8 @@ def _config_from_kwargs(**kwargs) -> EndpointConfig:
         metadata.setdefault("source_timezone", kwargs.pop("source_timezone"))
     if "missing_funding_policy" in kwargs:
         metadata.setdefault("missing_funding_policy", kwargs.pop("missing_funding_policy"))
+    if "bar_timestamp_semantics" in kwargs:
+        metadata.setdefault("bar_timestamp_semantics", kwargs.pop("bar_timestamp_semantics"))
     hedge_type_alias = kwargs.pop("hedge_type", None)
     if hedge_type_alias is not None and "sizing" not in kwargs:
         kwargs["sizing"] = hedge_type_alias

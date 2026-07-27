@@ -62,6 +62,9 @@ SIZING_FIXED_NOTIONAL = 2
 SIZING_PCT_EQUITY = 3
 SIZING_RISK_PER_TRADE = 4
 
+BAR_TS_CLOSE = 1
+BAR_TS_OPEN = 2
+
 
 @dataclass(frozen=True)
 class NativeIntrabarKernelResult:
@@ -271,6 +274,8 @@ def run_intrabar_kernel(
         "liquidation_bar": int(liquidation_bar),
         "funding_timing_certified": True,
         "funding_event_alignment": "exact_bar_timestamp",
+        "bar_timestamp_semantics": tape.bar_timestamp_semantics,
+        "funding_event_price_reference": "open" if tape.bar_timestamp_semantics == "open" else "close",
         "sizing_mode": sizing_mode_value.value,
         "sizing": {
             "fixed_notional": float(fixed_notional),
@@ -402,6 +407,7 @@ def _run_intrabar_pass(
         exit_short,
         tape.funding_rates[:, 0],
         tape.funding_event_mask,
+        _bar_timestamp_semantics_code(tape.bar_timestamp_semantics),
         float(account.initial_capital),
         float(account.leverage),
         float(account.maintenance_ratio),
@@ -447,6 +453,7 @@ def _engine_intrabar_bracket_v1(
     exit_short,
     funding_rates,
     funding_mask,
+    bar_timestamp_semantics,
     initial_capital,
     leverage,
     maintenance_ratio,
@@ -526,6 +533,12 @@ def _engine_intrabar_bracket_v1(
             equity = 0.0
             equity_arr[t] = 0.0
             continue
+
+        if bar_timestamp_semantics == BAR_TS_OPEN and position != 0.0 and funding_mask[t]:
+            funding_cost = position * open_ref * contract_size * funding_rates[t]
+            equity -= funding_cost
+            funding_arr[t] = funding_cost
+            flags_arr[t] |= FLAG_FUNDING
 
         pending_side = entry_side[t - 1]
         pending_size = entry_size[t - 1]
@@ -674,7 +687,7 @@ def _engine_intrabar_bracket_v1(
             tp_arr[t] = 0.0
             continue
 
-        if position != 0.0 and funding_mask[t]:
+        if bar_timestamp_semantics == BAR_TS_CLOSE and position != 0.0 and funding_mask[t]:
             funding_cost = position * close_ref * contract_size * funding_rates[t]
             equity -= funding_cost
             funding_arr[t] = funding_cost
@@ -975,6 +988,15 @@ def _sizing_mode_code(mode) -> int:
     if value not in mapping:
         raise NotImplementedError(f"unsupported intrabar sizing_mode={mode!r}")
     return mapping[value]
+
+
+def _bar_timestamp_semantics_code(value: str) -> int:
+    semantics = str(value or "close").lower().strip()
+    if semantics == "close":
+        return BAR_TS_CLOSE
+    if semantics == "open":
+        return BAR_TS_OPEN
+    raise ValueError("bar_timestamp_semantics must be 'open' or 'close'")
 
 
 def _same_bar_policy_code(policy) -> int:

@@ -33,6 +33,7 @@ class MarketValidationCertificate:
     monotonic_ok: bool
     unique_ok: bool
     alignment_ok: bool
+    bar_timestamp_semantics: str = "close"
     validator_version: str = "market_tape_v1"
 
 
@@ -47,6 +48,7 @@ class PreparedMarketTape:
     volumes: np.ndarray
     funding_rates: np.ndarray
     funding_event_mask: np.ndarray
+    bar_timestamp_semantics: str
     signature: str
     validation_certificate: MarketValidationCertificate
 
@@ -76,6 +78,7 @@ def prepare_market_tape(
     validation_mode: str = "strict",
     missing_funding_policy: str = "raise",
     source_timezone: Optional[str] = None,
+    bar_timestamp_semantics: str = "close",
 ) -> PreparedMarketTape:
     """
     Build a strict, immutable OHLCV/funding tape.
@@ -86,7 +89,12 @@ def prepare_market_tape(
     mode = str(validation_mode).lower().strip()
     if mode not in {"strict", "trusted_prepared", "debug"}:
         raise ValueError("validation_mode must be strict, trusted_prepared, or debug")
+    timestamp_semantics = _normalize_bar_timestamp_semantics(bar_timestamp_semantics)
     if isinstance(data, PreparedMarketTape):
+        if data.bar_timestamp_semantics != timestamp_semantics:
+            raise ValueError(
+                "prepared market tape bar_timestamp_semantics does not match requested semantics"
+            )
         return data
 
     frames, symbol_list = _frames_from_inputs(
@@ -156,7 +164,18 @@ def prepare_market_tape(
         missing_funding_policy=missing_funding_policy,
         source_timezone=source_timezone,
     )
-    signature = _signature(timestamps_ns, symbol_list, opens_m, highs_m, lows_m, closes_m, volumes_m, funding_m, funding_mask.astype(np.float64))
+    signature = _signature(
+        timestamps_ns,
+        symbol_list,
+        opens_m,
+        highs_m,
+        lows_m,
+        closes_m,
+        volumes_m,
+        funding_m,
+        funding_mask.astype(np.float64),
+        metadata=f"bar_timestamp_semantics={timestamp_semantics}",
+    )
     cert = MarketValidationCertificate(
         signature=signature,
         row_count=int(n),
@@ -169,6 +188,7 @@ def prepare_market_tape(
         monotonic_ok=True,
         unique_ok=True,
         alignment_ok=True,
+        bar_timestamp_semantics=timestamp_semantics,
     )
     arrays = (timestamps_ns, opens_m, highs_m, lows_m, closes_m, volumes_m, funding_m, funding_mask)
     for arr in arrays:
@@ -183,6 +203,7 @@ def prepare_market_tape(
         volumes=np.ascontiguousarray(volumes_m),
         funding_rates=np.ascontiguousarray(funding_m),
         funding_event_mask=np.ascontiguousarray(funding_mask),
+        bar_timestamp_semantics=timestamp_semantics,
         signature=signature,
         validation_certificate=cert,
     )
@@ -441,10 +462,19 @@ def _event_rate_values(value, event_idx: pd.DatetimeIndex, name: str) -> np.ndar
     return np.ascontiguousarray(arr, dtype=np.float64)
 
 
-def _signature(timestamps_ns: np.ndarray, symbols: list[str], *arrays: np.ndarray) -> str:
+def _normalize_bar_timestamp_semantics(value: str) -> str:
+    semantics = str(value or "close").lower().strip()
+    if semantics not in {"open", "close"}:
+        raise ValueError("bar_timestamp_semantics must be 'open' or 'close'")
+    return semantics
+
+
+def _signature(timestamps_ns: np.ndarray, symbols: list[str], *arrays: np.ndarray, metadata: str = "") -> str:
     h = hashlib.sha256()
     h.update(np.ascontiguousarray(timestamps_ns).view(np.uint8))
     h.update("|".join(symbols).encode("utf-8"))
+    if metadata:
+        h.update(str(metadata).encode("utf-8"))
     for arr in arrays:
         h.update(np.ascontiguousarray(arr).view(np.uint8))
     return h.hexdigest()
