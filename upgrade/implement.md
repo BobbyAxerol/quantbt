@@ -5879,12 +5879,14 @@ will implement it as three larger phases without dropping any required checks.
 
 ### Phase 32A - Optimization Core Extraction And Compatibility Lock
 
+Status: implemented on `feat/domain-agnostic-optimization`.
+
 Goal: create the generic optimization package and move shared Optuna utilities
 out of WFO without changing current WFO behavior.
 
 Implementation scope:
 
-- Create `optimization/` package with:
+- Created `optimization/` package with:
   - `OptimizationConfig`;
   - `SamplerConfig`;
   - `ObjectiveResult`;
@@ -5896,21 +5898,50 @@ Implementation scope:
   - JSONL logger;
   - single-objective early stopping callback;
   - constraint user-attr helper.
-- Implement sampler factory for Phase 1 samplers:
+- Implemented sampler factory for Phase 1 samplers:
   - `tpe`;
   - `random`;
   - `grid`;
   - `cmaes`;
   - `nsgaii`.
-- Validate sampler compatibility:
+- Validated sampler compatibility:
   - CMA-ES rejects categorical/mixed spaces;
   - Grid rejects dynamic/infinite spaces and warns/rejects huge Cartesian grids;
   - multi-objective does not use single-objective `study.best_value`;
   - constraints are passed through Optuna user attrs when supported.
-- Keep `walkforward.py` behavior unchanged:
+- Kept `walkforward.py` behavior unchanged:
   - add compatibility imports first;
   - do not remove existing WFO utilities until parity tests are written;
   - no scoring/objective behavior drift.
+
+Implemented files:
+
+```text
+optimization/__init__.py
+optimization/config.py
+optimization/result.py
+optimization/space.py
+optimization/callbacks.py
+optimization/samplers.py
+optimization/constraints.py
+optimization/evaluator.py
+optimization/optimizer.py
+optimization/evaluators/__init__.py
+tests/test_optimization_core.py
+tests/test_optimization_samplers.py
+```
+
+Important correctness note:
+
+- Bool choice detection requires actual `bool` values. Numeric specs such as
+  `(0.0, 1.0)` must not be misclassified as `[False, True]`, because Python
+  equality makes `0.0 == False` and `1.0 == True`.
+- Unsupported formal-constraint samplers reject `constraints_func` in the
+  factory, while `OptunaOptimizer` only passes the constraint callback to
+  samplers that support it in Phase 32A (`tpe`, `nsgaii`).
+- `cmaes` factory compatibility exists, but the environment currently does not
+  include the optional external `cmaes` package; Phase 32A tests therefore
+  validate construction/rejection semantics rather than running a CMA-ES study.
 
 Tests:
 
@@ -5939,6 +5970,15 @@ Validation gate:
 ```bash
 pytest -q tests/test_optimization_core.py tests/test_optimization_samplers.py
 pytest -q tests/test_walkforward_phase1.py
+```
+
+Validation after implementation:
+
+```text
+tests/test_optimization_core.py tests/test_optimization_samplers.py: 17 passed
+tests/test_walkforward_phase1.py: 51 passed
+tests/test_endpoint.py: 22 passed
+pytest -q: 489 passed, 1 skipped
 ```
 
 ### Phase 32B - Domain Evaluators, Constraints, And Prepared Context Parity
