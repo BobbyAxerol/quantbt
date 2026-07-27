@@ -6041,6 +6041,65 @@ pytest -q tests/test_phase31*.py
 pytest -q tests/test_phase11_native_portfolio_backend.py
 ```
 
+Status: completed in Phase 32B.
+
+Implemented:
+
+- Added public evaluator adapters:
+  - `GenericEndpointEvaluator`;
+  - `PreparedSignalEvaluator`;
+  - `PreparedIntrabarEvaluator`;
+  - `PreparedPortfolioEvaluator`;
+  - `ArbitrageGenericEvaluator`;
+  - `GridDCAGenericEvaluator`;
+  - `OptionPackageGenericEvaluator`.
+- Added initial domain output contracts:
+  - `ArbitrageTrialOutput`;
+  - `GridDCATrialOutput`;
+  - `OptionTrialOutput`.
+- Added common objective helpers:
+  - `ReportMetricObjective`;
+  - `SharpeObjective`;
+  - `metric_from_result(...)`;
+  - `metrics_from_result(...)`;
+  - formal constraint helpers for minimum trades, max drawdown, turnover,
+    margin utilization, and rejection rate.
+- Added candidate selector layer:
+  - `CandidateSelector`;
+  - `SelectedCandidate`;
+  - `constraints_feasible(...)`.
+- Added `IntrabarIntentTape.from_frame(...)` as an adapter helper for compact
+  alpha DataFrames. This does not change the intrabar execution kernel.
+- Fixed optimizer result bookkeeping so `fixed_params` are preserved in
+  `best_params`, `selected_params`, and trial records via `quantbt_full_params`.
+
+Tests added:
+
+- `tests/test_optimization_evaluators.py`;
+- `tests/test_optimization_integration.py`.
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_evaluators.py tests/test_optimization_integration.py
+# 12 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase31*.py tests/test_phase11_native_portfolio_backend.py tests/test_optimization_core.py tests/test_optimization_samplers.py
+# 82 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 501 passed, 1 skipped
+```
+
+Scope note:
+
+- Arbitrage, grid/DCA, and options are intentionally available through generic
+  endpoint fallback contracts in Phase 32B. Specialized prepared evaluators for
+  these domains are future extensions and should not be claimed as done.
+- Candidate selection is conservative: single-objective can select best or
+  feasible-best; multi-objective keeps Pareto unless an explicit selector is
+  supplied.
+
 ### Phase 32C - Walk-Forward Consolidation, Docs, And Performance Benchmark
 
 Goal: reuse the generic optimizer in WFO without breaking anti-leakage logic or

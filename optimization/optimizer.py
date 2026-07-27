@@ -99,6 +99,8 @@ class OptunaOptimizer:
             raise ImportError("QuantBT optimization requires optuna") from exc
         params = suggest_params(trial, param_ranges, fixed_params=fixed_params)
         params_key = stable_params_key(params)
+        trial.set_user_attr("quantbt_full_params", dict(params))
+        trial.set_user_attr("quantbt_params_key", params_key)
         if params_key in self._seen_params:
             if self.config.duplicate_policy == "prune":
                 raise optuna.TrialPruned("duplicate parameter set")
@@ -123,7 +125,6 @@ class OptunaOptimizer:
 
         trial.set_user_attr("quantbt_metrics", dict(objective.metrics))
         trial.set_user_attr("quantbt_metadata", dict(objective.metadata))
-        trial.set_user_attr("quantbt_params_key", params_key)
         set_trial_constraints(trial, objective.constraints)
 
         if objective_count == 1:
@@ -140,7 +141,7 @@ def _build_result(study, objective_count: int) -> OptimizationResult:
         trials_frame = None
     if objective_count == 1:
         try:
-            best_params = dict(study.best_params)
+            best_params = dict(study.best_trial.user_attrs.get("quantbt_full_params", study.best_params))
             best_values = (float(study.best_value),)
         except Exception:
             best_params = None
@@ -165,7 +166,7 @@ def _trial_record(trial) -> OptimizationTrialRecord:
     return OptimizationTrialRecord(
         number=int(trial.number),
         state=str(trial.state.name),
-        params=dict(trial.params),
+        params=dict(trial.user_attrs.get("quantbt_full_params", trial.params)),
         values=values,
         metrics=dict(trial.user_attrs.get("quantbt_metrics", {})),
         constraints=tuple(float(value) for value in trial.user_attrs.get("quantbt_constraints", ())),

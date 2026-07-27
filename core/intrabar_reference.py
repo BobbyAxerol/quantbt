@@ -109,6 +109,59 @@ class IntrabarIntentTape:
             level_mode=level_mode,
         )
 
+    @classmethod
+    def from_frame(
+        cls,
+        frame: pd.DataFrame,
+        *,
+        entry_side_col: str = "entry_side",
+        signal_col: Optional[str] = None,
+        entry_size_col: str = "entry_size",
+        stop_col: str = "stop_value",
+        take_profit_col: str = "take_profit_value",
+        trailing_col: str = "trailing_value",
+        technical_exit_col: str = "technical_exit",
+        exit_long_col: str = "exit_long",
+        exit_short_col: str = "exit_short",
+        level_mode: IntrabarLevelMode = IntrabarLevelMode.PERCENT_DISTANCE,
+    ) -> "IntrabarIntentTape":
+        """Build intrabar intents from an alpha output frame.
+
+        This is an adapter convenience only. Strategy code still owns signal
+        causality; the intrabar kernel still owns fills, SL/TP/trailing, fee,
+        funding, margin, and liquidation semantics.
+        """
+
+        if not isinstance(frame, pd.DataFrame):
+            raise TypeError("frame must be a pandas DataFrame")
+        if entry_side_col in frame:
+            side = np.sign(frame[entry_side_col].fillna(0.0).to_numpy(dtype=float)).astype(np.int8)
+        else:
+            raw_col = signal_col or ("signal" if "signal" in frame else "entry")
+            if raw_col not in frame:
+                raise ValueError(f"frame must contain {entry_side_col!r}, {raw_col!r}, or provide signal_col")
+            raw = frame[raw_col].fillna(0.0).to_numpy(dtype=float)
+            side = np.sign(raw).astype(np.int8)
+        if entry_size_col in frame:
+            size = np.abs(frame[entry_size_col].fillna(0.0).to_numpy(dtype=float))
+        else:
+            size = np.abs(side.astype(np.float64))
+
+        def optional(name: str):
+            return frame[name].to_numpy() if name in frame else None
+
+        return cls.from_arrays(
+            entry_side=side,
+            entry_size=size,
+            stop_value=optional(stop_col),
+            take_profit_value=optional(take_profit_col),
+            trailing_value=optional(trailing_col),
+            technical_exit=optional(technical_exit_col),
+            exit_long=optional(exit_long_col),
+            exit_short=optional(exit_short_col),
+            level_mode=level_mode,
+        )
+
 
 @dataclass(frozen=True)
 class IntrabarFill:
