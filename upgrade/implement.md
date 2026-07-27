@@ -4854,6 +4854,13 @@ Final blockers reviewed:
    - Decision: keep `FundingPhase.POSITION_AT_EVENT` only for funding events
      whose timestamp matches an exact market bar timestamp.
    - Mid-bar funding events now raise and require a smaller timeframe.
+   - Added explicit `bar_timestamp_semantics`:
+     - `close` default: OHLC timestamp is the bar close, funding applies after
+       intrabar execution on the remaining close position;
+     - `open`: OHLC timestamp is the bar open, funding applies after open-gap
+       marking and before pending exit/entry orders at `open[t]`.
+   - `bar_timestamp_semantics` is part of the strict market tape signature, so
+     prepared caches cannot be reused across open/close timestamp contracts.
    - Kernel/reference metadata records
      `funding_timing_certified=true` and
      `funding_event_alignment="exact_bar_timestamp"`.
@@ -4871,7 +4878,8 @@ Final blockers reviewed:
      - open/high/low/close;
      - volume;
      - funding rates;
-     - funding event mask.
+     - funding event mask;
+     - bar timestamp semantics.
    - Prepared intrabar runner also freezes a `prepared_signature` containing
      market signature plus account/execution/sizing/constraint profile metadata.
 
@@ -4886,8 +4894,10 @@ Technical debt handled in the same pass:
   **single-symbol intrabar** execution only.
 - Added tests for:
   - funding position phase;
+  - open-vs-close bar timestamp funding semantics;
   - execution-contract propagation;
   - signature changes from volume/funding;
+  - signature changes from bar timestamp semantics;
   - prepared runner vs normal endpoint parity;
   - minimal/audit parity through the existing audit tests;
   - tick-size price quantization.
@@ -4926,8 +4936,11 @@ Implemented:
   - zero funding requires `use_funding=False` or
     `missing_funding_policy="zero"`;
   - `funding_event_timestamps` and `funding_event_rates` are supported;
-  - event application follows
-    `previous_bar_timestamp < event_timestamp <= current_bar_timestamp`.
+  - events must match an exact market bar timestamp;
+  - `bar_timestamp_semantics="close"` applies funding after intrabar execution
+    on the close position;
+  - `bar_timestamp_semantics="open"` applies funding before pending open
+    orders at `open[t]`.
 - Strict timezone:
   - naive market data is rejected unless `source_timezone` is provided;
   - source timezone is localized first, then converted to UTC;
@@ -5028,11 +5041,16 @@ hoặc một series đã có:
 rate != 0 chỉ tại funding event
 ```
 
-Funding được áp khi:
+Funding được áp khi event timestamp khớp chính xác một market bar timestamp:
 
 ```text
-previous_bar_timestamp < funding_event_timestamp <= current_bar_timestamp
+funding_event_timestamp == market_bar_timestamp
 ```
+
+Nếu OHLC timestamp là bar close, dùng `bar_timestamp_semantics="close"` để
+funding áp sau intrabar path trên position còn lại tại close. Nếu OHLC timestamp
+là bar open, dùng `bar_timestamp_semantics="open"` để funding áp trước pending
+orders tại `open[t]`.
 
 Thiếu funding của symbol phải raise trong strict mode. Chỉ dùng zero khi:
 

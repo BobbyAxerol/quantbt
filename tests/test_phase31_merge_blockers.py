@@ -99,6 +99,87 @@ def test_phase31g_funding_event_requires_exact_bar_boundary_and_applies_there():
     assert tape.funding_rates[1, 0] == pytest.approx(0.001)
 
 
+def test_phase31h_funding_timestamp_semantics_open_vs_close_and_kernel_parity():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0},
+            {"open": 100.0, "high": 120.0, "low": 100.0, "close": 120.0},
+            {"open": 200.0, "high": 200.0, "low": 200.0, "close": 200.0},
+        ]
+    )
+    funding_ts = [df.index[2]]
+    funding_rate = [0.01]
+    intent = IntrabarIntentTape.from_arrays(
+        entry_side=[1, 0, 0],
+        entry_size=[1.0, 0.0, 0.0],
+        exit_long=[False, True, False],
+    )
+    account = AccountConfig(initial_capital=10_000.0)
+    contract = ExecutionContract.intrabar_bracket(close_on_last_bar=False)
+
+    tape_open = prepare_market_tape(
+        data=df,
+        symbols=["BTC"],
+        use_funding=True,
+        funding_event_timestamps=funding_ts,
+        funding_event_rates=funding_rate,
+        bar_timestamp_semantics="open",
+    )
+    tape_close = prepare_market_tape(
+        data=df,
+        symbols=["BTC"],
+        use_funding=True,
+        funding_event_timestamps=funding_ts,
+        funding_event_rates=funding_rate,
+        bar_timestamp_semantics="close",
+    )
+
+    open_oracle = run_intrabar_reference(tape=tape_open, intent=intent, account=account, contract=contract)
+    close_oracle = run_intrabar_reference(tape=tape_close, intent=intent, account=account, contract=contract)
+    open_kernel = run_intrabar_kernel(tape=tape_open, intent=intent, account=account, contract=contract, report_level="audit")
+    close_kernel = run_intrabar_kernel(tape=tape_close, intent=intent, account=account, contract=contract, report_level="audit")
+
+    assert open_oracle.funding.iloc[2] == pytest.approx(2.0)
+    assert close_oracle.funding.iloc[2] == pytest.approx(0.0)
+    assert open_oracle.equity.iloc[-1] == pytest.approx(10_098.0)
+    assert close_oracle.equity.iloc[-1] == pytest.approx(10_100.0)
+    np.testing.assert_allclose(open_kernel.equity.to_numpy(), open_oracle.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    np.testing.assert_allclose(close_kernel.equity.to_numpy(), close_oracle.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    assert open_kernel.metadata["bar_timestamp_semantics"] == "open"
+    assert close_kernel.metadata["funding_event_price_reference"] == "close"
+
+
+def test_phase31h_endpoint_propagates_bar_timestamp_semantics_to_intrabar_tape():
+    df = _frame(
+        [
+            {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0, "entry": 1.0, "exit": False},
+            {"open": 100.0, "high": 120.0, "low": 100.0, "close": 120.0, "entry": 0.0, "exit": True},
+            {"open": 200.0, "high": 200.0, "low": 200.0, "close": 200.0, "entry": 0.0, "exit": True},
+        ]
+    )
+    bt = QuantBTEndpoint.intrabar_bracket(
+        initial_capital=10_000.0,
+        fee_rate=0.0,
+        use_funding=True,
+        bar_timestamp_semantics="open",
+        close_on_last_bar=False,
+        report_level="audit",
+    )
+
+    result = bt.backtest(
+        data=df,
+        signal_col="entry",
+        symbols=["BTC"],
+        intent_cols={"exit_long": "exit"},
+        funding_event_timestamps=[df.index[2]],
+        funding_event_rates=[0.01],
+    )
+
+    assert result.metadata["validation_certificate"]["bar_timestamp_semantics"] == "open"
+    assert result.metadata["bar_timestamp_semantics"] == "open"
+    assert result.funding.iloc[2] == pytest.approx(2.0)
+
+
 def test_phase31e_dynamic_trailing_uses_value_at_t_not_t_minus_1():
     df = _frame(
         [
@@ -325,9 +406,11 @@ def test_phase31g_data_signature_changes_with_volume_and_funding():
     sig_volume = prepare_market_tape(data=changed_volume, symbols=["BTC"], use_funding=False).signature
     sig_funding = prepare_market_tape(data=base, symbols=["BTC"], use_funding=True, funding_rate=funding).signature
     sig_no_funding = prepare_market_tape(data=base, symbols=["BTC"], use_funding=True, funding_rate=no_funding).signature
+    sig_open_semantics = prepare_market_tape(data=base, symbols=["BTC"], use_funding=False, bar_timestamp_semantics="open").signature
 
     assert sig_base != sig_volume
     assert sig_funding != sig_no_funding
+    assert sig_base != sig_open_semantics
 
 
 def test_phase31g_tick_size_quantizes_entry_stop_tp_and_trailing():

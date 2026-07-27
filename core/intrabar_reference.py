@@ -184,6 +184,10 @@ def run_intrabar_reference(
     closes = tape.closes[:, 0]
     funding_rates = tape.funding_rates[:, 0]
     funding_mask = tape.funding_event_mask
+    timestamp_semantics = str(getattr(tape, "bar_timestamp_semantics", "close")).lower().strip()
+    if timestamp_semantics not in {"open", "close"}:
+        raise ValueError("bar_timestamp_semantics must be 'open' or 'close'")
+    funding_at_open = timestamp_semantics == "open"
 
     n = tape.n_bars
     equity_arr = np.zeros(n, dtype=np.float64)
@@ -244,6 +248,12 @@ def run_intrabar_reference(
             stop_arr[t] = 0.0
             tp_arr[t] = 0.0
             continue
+
+        if funding_at_open and position != 0.0 and funding_mask[t]:
+            funding_cost = position * open_ref * contract_size * funding_rates[t]
+            equity -= funding_cost
+            funding_arr[t] = funding_cost
+            flags_arr[t] |= int(IntrabarEventFlag.FUNDING)
 
         pending_side = int(intent.entry_side[t - 1])
         pending_size = float(intent.entry_size[t - 1])
@@ -410,7 +420,7 @@ def run_intrabar_reference(
             tp_arr[t] = 0.0
             continue
 
-        if position != 0.0 and funding_mask[t]:
+        if not funding_at_open and position != 0.0 and funding_mask[t]:
             funding_cost = position * close_ref * contract_size * funding_rates[t]
             equity -= funding_cost
             funding_arr[t] = funding_cost
@@ -464,6 +474,8 @@ def run_intrabar_reference(
             "oracle": True,
             "funding_timing_certified": True,
             "funding_event_alignment": "exact_bar_timestamp",
+            "bar_timestamp_semantics": timestamp_semantics,
+            "funding_event_price_reference": "open" if funding_at_open else "close",
             "sizing_mode": sizing_code.value,
             "quantity_constraints": {
                 "qty_step": float(qty_step),

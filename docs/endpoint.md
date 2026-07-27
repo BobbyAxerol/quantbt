@@ -528,6 +528,12 @@ the test, pass an aligned funding Series with non-zero values only on funding
 bars, or pass exact-boundary `funding_event_timestamps` plus
 `funding_event_rates` to `backtest(...)` / `prepare_intrabar(...)`.
 
+Also declare the bar timestamp convention when funding is enabled:
+`bar_timestamp_semantics="close"` is the default and applies funding after the
+bar's intrabar path on the remaining close position. Use
+`bar_timestamp_semantics="open"` for bar-open timestamped crypto feeds; funding
+then applies before pending exit/entry orders at `open[t]`.
+
 Custom execution contracts can be passed directly and are preserved in
 metadata:
 
