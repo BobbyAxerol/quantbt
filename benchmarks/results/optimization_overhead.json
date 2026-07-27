@@ -1,0 +1,16 @@
+{
+  "intrabar_compile_to_warm_ratio": 3.6954904749510424,
+  "intrabar_final_equity_diff": 0.0,
+  "intrabar_first_run_seconds": 0.01777169480919838,
+  "intrabar_warm_run_seconds": 0.004809021949768066,
+  "loops": 24,
+  "normal_signal_replay_seconds": 0.1651457599364221,
+  "optimizer_overhead_per_trial_seconds": 0.0007232134230434895,
+  "optimizer_overhead_seconds": 0.017357122153043747,
+  "prepared_signal_replay_seconds": 0.08149230107665062,
+  "prepared_signal_speedup": 2.026519778611824,
+  "rows": 360,
+  "signal_final_equity_diff": 0.0,
+  "status": "pass",
+  "trials": 24
+}

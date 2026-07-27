@@ -3,6 +3,7 @@ from __future__ import annotations
 import optuna
 import pytest
 
+import quantbt.walkforward as walkforward_module
 from quantbt import (
     CandidateSelector,
     GenericEndpointEvaluator,
@@ -12,6 +13,7 @@ from quantbt import (
     SamplerConfig,
     constraints_feasible,
 )
+from quantbt.optimization.space import suggest_params
 
 
 class Result:
@@ -39,6 +41,26 @@ def test_optimizer_preserves_fixed_params_in_best_and_trial_records():
     assert result.best_params["issl"] is True
     assert result.selected_params["issl"] is True
     assert all(record.params.get("issl") is True for record in result.trials if record.state == "COMPLETE")
+
+
+def test_walkforward_sampling_reuses_optimization_core_and_preserves_float_int_ranges():
+    trial = optuna.trial.FixedTrial(
+        {
+            "window": 3,
+            "threshold": 0.2,
+            "flag": True,
+            "mode": "fast",
+        }
+    )
+    ranges = {
+        "window": (1.0, 5.0, 1.0),
+        "threshold": (0.1, 0.5, 0.1),
+        "flag": [True, False],
+        "mode": ["fast", "slow"],
+        "constant": 7,
+    }
+
+    assert walkforward_module._sample_params(trial, ranges) == suggest_params(trial, ranges)
 
 
 def test_constrained_optimization_and_feasible_candidate_selector():

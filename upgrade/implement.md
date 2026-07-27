@@ -6148,6 +6148,77 @@ pytest -q
 python benchmarks/run_optimization_overhead.py
 ```
 
+Status: completed in Phase 32C.
+
+Implemented:
+
+- Consolidated safe WFO utilities onto the domain-agnostic optimization layer:
+  - `_sample_params(...)` now delegates to `optimization.suggest_params(...)`;
+  - WFO duplicate keys use `optimization.stable_params_key(...)`;
+  - public `EarlyStoppingCallback` now reuses
+    `optimization.SingleObjectiveEarlyStopping`.
+- Kept WFO-only anti-leakage logic in `walkforward.py`:
+  - fold generation;
+  - IS/OOS isolation;
+  - mode 1/2/3/4/5 objective semantics;
+  - robust candidate selection metadata;
+  - OOS stitching.
+- Added documentation:
+  - `docs/optimization.md`;
+  - updated `docs/endpoint.md`;
+  - updated `docs/README.md`;
+  - updated `examples/README.md`;
+  - updated README performance/feature pointers.
+- Added runnable example:
+  - `examples/optimization_workflow.py`.
+- Added benchmark:
+  - `benchmarks/run_optimization_overhead.py`;
+  - `benchmarks/results/optimization_overhead.json`;
+  - `benchmarks/results/optimization_overhead.md`.
+
+Benchmark result on the committed smoke workload:
+
+```text
+status: pass
+optimizer overhead: 0.017357s for 24 trials
+optimizer overhead per trial: 0.000723s
+normal signal replays: 0.165146s
+prepared signal replays: 0.081492s
+prepared signal speedup: 2.027x
+intrabar first run: 0.017772s
+intrabar warm run: 0.004809s
+intrabar first/warm ratio: 3.695x
+signal final equity diff: 0.0
+intrabar final equity diff: 0.0
+```
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_integration.py tests/test_optimization_evaluators.py tests/test_optimization_core.py tests/test_optimization_samplers.py
+# 30 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_walkforward_phase1.py
+# 51 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_endpoint.py tests/test_phase31*.py
+# 66 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_optimization_overhead.py --rows 360 --trials 24 --loops 24
+# status: pass
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 502 passed, 1 skipped
+```
+
+Scope note:
+
+- Phase 32C intentionally did not rewrite WFO around `OptunaOptimizer`; WFO has
+  anti-leakage/fold semantics that remain domain-specific and are locked by
+  regression tests.
+- Specialized prepared evaluators for arbitrage, grid/DCA, and options remain
+  future work. They can be added without changing optimizer core.
+
 ## Merge Gates
 
 Do not merge unless all are true:
