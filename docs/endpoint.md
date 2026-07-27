@@ -2143,6 +2143,68 @@ timestamp-to-timestamp position changes, not the notional size of those changes.
 This keeps the penalty focused on under-trading rather than allocation
 magnitude.
 
+## Domain-Agnostic Optimization Adapters
+
+Use standalone optimization adapters when you want Optuna tuning without WFO
+fold stitching:
+
+```python
+from quantbt import (
+    OptimizationConfig,
+    SamplerConfig,
+    OptunaOptimizer,
+    PreparedSignalEvaluator,
+    SharpeObjective,
+)
+
+endpoint = QuantBTEndpoint.signal_notional(
+    backend="native_vectorized",
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+prepared = endpoint.prepare_service_context(
+    data=df,
+    symbols=["BTCUSDT"],
+)
+
+evaluator = PreparedSignalEvaluator(
+    prepared_context=prepared,
+    strategy_func=lambda params: build_signal(df, params),
+    objective_builder=SharpeObjective(),
+)
+
+study = OptunaOptimizer(
+    evaluator=evaluator,
+    config=OptimizationConfig(
+        study_name="signal_search",
+        n_trials=200,
+        show_progress_bar=False,
+    ),
+    sampler_config=SamplerConfig(name="tpe"),
+)
+
+result = study.optimize(param_ranges=param_ranges)
+```
+
+Routes:
+
+- `PreparedSignalEvaluator`: repeated single-symbol native-vectorized signal
+  replays.
+- `PreparedIntrabarEvaluator`: compact entry/SL/TP/trailing frames through
+  `QuantBTEndpoint.intrabar_bracket(...).prepare_intrabar(...)`.
+- `PreparedPortfolioEvaluator`: repeated native-portfolio position matrices.
+- `GenericEndpointEvaluator`: arbitrage, grid/DCA, options, or any endpoint
+  where `build_run_inputs(params)` can call `run_func(**inputs)`.
+
+The optimizer core does not shift signals and does not own look-ahead
+prevention. Strategy/research code owns feature causality; QuantBT endpoints
+own execution simulation, fills, PnL, fee, funding, margin, and liquidation.
+See [Domain-agnostic optimization](optimization.md) for full examples.
+
 ## Service Integration Pattern
 
 Recommended shape for alpha services:
