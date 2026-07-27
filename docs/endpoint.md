@@ -54,6 +54,9 @@ bt.metrics      # alias for bt.full_report()
 |---|---|---|---|
 | `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | legacy `%_equity` signal where notional is recomputed from live equity |
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | fast single-symbol signal research with fixed units between signal changes |
+| `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | fast Phase 31C Numba kernel for next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | readable Phase 31B oracle for next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
@@ -81,6 +84,29 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `orders` and `basket` route to native event;
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
+
+`native_vectorized` is explicitly the `close_target_v2` execution contract:
+signals are interpreted as target exposure at the same bar close, with no
+engine-owned intrabar SL/TP/trailing path. Results include contract metadata
+such as `engine_id`, `signal_phase`, `fill_phase`, `intrabar_exit_model`,
+`kernel_version`, and `data_signature`. If a close-target run receives columns
+that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
+`take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
+intrabar semantics instead of silently implying correctness.
+
+`intrabar_bracket` is the Phase 31C fast Numba implementation of
+`intrabar_bracket_v1`; `intrabar_bracket_reference` is the readable Python
+oracle for the same semantics. Both use strict market tape validation. They
+model: signal at bar close, entry at next bar open, gap-aware stop-loss,
+limit-style take-profit, same-bar SL/TP ambiguity, trailing-stop updates that
+only become effective on the next bar, technical exits, reversals as two
+fee/slippage legs, initial-margin rejection, simple single-symbol liquidation,
+and optional final close.
+
+For the full contract taxonomy and certification workflow, read
+[`execution_contracts.md`](execution_contracts.md),
+[`fast_intrabar.md`](fast_intrabar.md), and
+[`alpha_certification.md`](alpha_certification.md).
 
 ## Nautilus Support Matrix
 
@@ -377,6 +403,238 @@ Routing:
 
 For plain market rebalance signals, native vectorized and native event should
 match equity closely. Use event mode when fill-level diagnostics matter.
+
+## Intrabar Bracket, Fast And Reference
+
+Use this for execution-certified alpha logic that depends on SL/TP/trailing
+behavior inside the bar. `intrabar_bracket(...)` is the Phase 31C fast Numba
+kernel. `intrabar_bracket_reference(...)` keeps the readable Phase 31B Python
+oracle for debugging and parity checks.
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,     # one-way fee
+    slippage_bps=1.0,    # source of truth for intrabar slippage
+    tick_size=0.01,      # optional conservative price quantization
+    use_funding=False,
+    close_on_last_bar=True,
+    report_level="standard",
+)
+
+result = bt.backtest(
+    data=df,
+    signal_col="entry_signal",       # signed qty: +1.0 long, -1.0 short, 0 no new entry
+    symbols=["ETHUSDT"],
+    intent_cols={
+        "stop_value": "sl_pct",
+        "take_profit_value": "tp_pct",
+        "trailing_value": "trail_pct",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
+    },
+)
+
+bt.show_metrics()
+fills = bt.fills_report
+```
+
+Input contract:
+
+- `data`: strict single-symbol OHLCV DataFrame with timezone-aware
+  `DatetimeIndex` or timestamp column;
+- required market columns: `open`, `high`, `low`, `close`;
+- no sorting, deduplication, forward-fill, or high/low fallback is performed;
+- `signal` or `signal_col`: compact signed entry size, where the sign is side
+  and absolute value is quantity;
+- optional `intent_cols`: map strategy column names into `stop_value`,
+  `take_profit_value`, `trailing_value`, `exit_long`, and `exit_short`;
+- legacy `technical_exit` is still accepted and maps to both long/short exits,
+  but new alphas should use side-specific exits;
+- intrabar slippage uses `slippage_bps`; legacy `slippage` is converted with a
+  deprecation warning, and passing both raises;
+- `tick_size` is optional and quantizes entry, stop, take-profit, and trailing
+  prices conservatively;
+- default `level_mode="percent_distance"` interprets `0.05` as 5 percent from
+  fill price. Use `level_mode="price_distance"` or `"absolute_price"` when
+  supplying distance/level values in price units.
+
+Execution contract:
+
+- signal at close of bar `t`;
+- entry/technical exit/reversal at open of bar `t + 1`;
+- stop gaps fill at the open when the open is worse than trigger;
+- take-profit is limit-conservative by default;
+- same-bar SL/TP conflict is flagged and resolved conservatively;
+- trailing stop is updated after the bar close and only applies from the next
+  bar;
+- reversal pays two legs: close old position and open new position;
+- result metadata contains `validation_certificate`, `data_signature`,
+  `execution_contract`, `fills_report`, `kernel_version`, and report-level
+  details.
+
+Report levels:
+
+- `minimal`: optimizer/WFO path. Keeps equity, position, fees/funding, counters,
+  and event flags; no fill ledger materialization.
+- `standard`: default notebook/service path. Adds diagnostics such as active
+  stop/TP and margin series; still no fill DataFrame.
+- `audit`: runs a deterministic second pass, allocates sparse fill arrays sized
+  exactly to real `fill_count`, materializes `result.fills` and
+  `bt.fills_report`, and asserts parity against pass 1.
+
+Use the reference endpoint for differential debugging:
+
+```python
+ref = QuantBTEndpoint.intrabar_bracket_reference(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=False,
+)
+
+ref_result = ref.backtest(
+    data=df,
+    signal_col="entry_signal",
+    symbols=["ETHUSDT"],
+    intent_cols={"stop_value": "sl_pct", "take_profit_value": "tp_pct"},
+)
+```
+
+Prepared runner for optimizers:
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=False,
+    report_level="minimal",
+)
+
+runner = bt.prepare_intrabar(data=df, symbols=["ETHUSDT"])
+intent = alpha.generate(runner.market, params)
+result = runner.run(intent, report_level="minimal")
+audit = runner.run(intent, report_level="audit")
+```
+
+Funding for intrabar routes is event-causal only when the funding timestamp
+matches an exact market bar timestamp. Mid-bar funding events are rejected and
+require a smaller timeframe. Use `use_funding=False` when no funding is part of
+the test, pass an aligned funding Series with non-zero values only on funding
+bars, or pass exact-boundary `funding_event_timestamps` plus
+`funding_event_rates` to `backtest(...)` / `prepare_intrabar(...)`.
+
+Also declare the bar timestamp convention when funding is enabled:
+`bar_timestamp_semantics="close"` is the default and applies funding after the
+bar's intrabar path on the remaining close position. Use
+`bar_timestamp_semantics="open"` for bar-open timestamped crypto feeds; funding
+then applies before pending exit/entry orders at `open[t]`.
+
+Custom execution contracts can be passed directly and are preserved in
+metadata:
+
+```python
+from quantbt import ExecutionContract, IntrabarSameBarPolicy
+
+contract = ExecutionContract.intrabar_bracket(
+    same_bar_policy=IntrabarSameBarPolicy.TP_FIRST,
+    close_on_last_bar=False,
+)
+
+bt = QuantBTEndpoint.intrabar_bracket(execution_contract=contract)
+```
+
+Unsupported contract fields raise `NotImplementedError`; they are not silently
+reset to defaults.
+
+## Fill Replay
+
+Use this when an old alpha already emitted explicit fills and QuantBT should
+only validate/account them. This route certifies accounting, not fill
+generation.
+
+```python
+bt = QuantBTEndpoint.fill_replay(
+    initial_capital=20_000,
+    leverage=5,
+    contract_size=1.0,
+)
+
+result = bt.backtest(
+    data=df,
+    symbols=["ETHUSDT"],
+    fill_replay=fills_df,
+)
+```
+
+`fills_df` must be sorted by `bar_index`, then `sequence`, and contain:
+
+```text
+bar_index
+side       # +1 buy, -1 sell
+qty
+price
+```
+
+This route is Level 1 certification by design: QuantBT certifies accounting from
+the supplied fills, while the alpha or external system remains responsible for
+causal fill generation.
+
+## Alpha Execution Audit
+
+Use the scanner before migrating old alpha directories:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha \
+python3 quantbt/tools/audit_alpha_execution_contracts.py \
+  /root/bobby/pool_alpha/alphas_storage/TA \
+  --json-out /tmp/alpha_contracts.json \
+  --md-out /tmp/alpha_contracts.md
+```
+
+Or from Python:
+
+```python
+from quantbt import (
+    scan_alpha_directory,
+    build_alpha_certification_report,
+    alpha_report_markdown,
+)
+
+items = scan_alpha_directory("/root/bobby/pool_alpha/alphas_storage/TA")
+report = build_alpha_certification_report(items)
+print(alpha_report_markdown(report))
+```
+
+Certification levels:
+
+| Level | Meaning |
+|---:|---|
+| 0 | legacy or unspecified execution contract |
+| 1 | explicit-fill accounting replay |
+| 2 | engine-causal QuantBT execution |
+| 3 | native cross-backend parity |
+| 4 | external validation, usually Nautilus/lower-timeframe route |
+
+Optional columns:
+
+```text
+sequence
+fee
+reason
+```
+
+If `fee` is omitted, `fee_rate` is used to compute one-way fees from notional.
+Result metadata declares:
+
+```text
+accounting_certified = true
+execution_generation_certified = false
+```
 
 ## DCA / Grid Ladder
 

@@ -4421,7 +4421,9 @@ Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `g
 
 ## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
 
-Status: planning, awaiting approval.
+Status: complete for the current single-symbol OHLC intrabar scope. Phase 31A,
+Phase 31B, Phase 31C, and Phase 31D implemented on
+`feat/31-execution-correctness-intrabar`.
 
 Source design document:
 
@@ -4497,6 +4499,50 @@ Acceptance:
 - Silent execution ambiguity becomes explicit metadata, warning, or error.
 - No intrabar engine implementation yet.
 
+Implementation notes after Phase 31A:
+
+- `native_vectorized` now declares the close-target execution contract via
+  metadata:
+  - `engine="close_target_v2"`;
+  - `engine_id="close_target_v2"`;
+  - `backend_alias="native_vectorized"`;
+  - `kernel_version="units_v2"`;
+  - `signal_phase="bar_close"`;
+  - `fill_phase="same_close"`;
+  - `intrabar_exit_model="none"`;
+  - `first_bar_target_policy`;
+  - `data_signature`.
+- `NativeVectorizedConfig` fails fast on unsupported execution config for the
+  close-target contract:
+  - non-close fill price policy;
+  - non-conservative same-bar policy;
+  - partial fills;
+  - min order notional;
+  - disabling insufficient-margin rejection.
+- Funding dictionaries no longer synthesize `0.0001` for missing symbols; the
+  caller must pass the symbol explicitly, pass scalar funding, or disable
+  funding.
+- Missing high/low on native-vectorized close-target runs is now marked with
+  `high_low_source="close_fallback_uncertified_intrabar_risk"` and emits a
+  bounded warning. Phase 31B will replace this compatibility fallback with
+  strict prepared-tape certification.
+- Reactive native-event facade now passes `open` and `volume` from the input
+  frame into strategy context.
+- Close-target endpoint warns and marks runs as
+  `uncertified_intrabar_columns_on_close_target` if the input dataframe
+  contains likely intrabar artifacts such as `exit_price`, `stop_loss`,
+  `take_profit`, or `trailing`.
+
+Validation after Phase 31A:
+
+- `tests/test_phase31a_execution_correctness_contract.py`: `6 passed`.
+- Targeted regression:
+  `tests/test_phase2_native_vectorized.py`,
+  `tests/test_endpoint.py`,
+  `tests/test_phase30d_native_event_reactive_runner.py`,
+  `tests/test_phase30e_native_event_incremental_runner.py`,
+  `tests/test_phase9_performance_parity.py`: `42 passed`.
+
 ### Phase 31B - Strict Prepared Market Tape And Python Intrabar Oracle
 
 Scope:
@@ -4540,6 +4586,51 @@ Acceptance:
 - Prepared and non-prepared market inputs produce identical canonical arrays.
 - No Numba intrabar kernel is promoted until oracle tests are stable.
 
+Implementation notes after Phase 31B:
+
+- Added `core/execution_contract.py` with the execution contract registry:
+  `close_target_v2`, `next_open_v1`, `intrabar_bracket_v1`,
+  `fill_replay_v1`, and `event_lifecycle_v2`.
+- Added `core/market_tape.py` with strict immutable `PreparedMarketTape` and
+  `MarketValidationCertificate`.
+  - It rejects unsorted or duplicate timestamps.
+  - It rejects missing OHLC, NaN/inf, invalid OHLC invariants, non-positive
+    prices, and negative volume.
+  - It does not sort, deduplicate, forward-fill, back-fill, or synthesize
+    high/low from close.
+  - Funding dicts must explicitly cover every symbol.
+- Added `core/intrabar_reference.py` as the readable single-symbol truth model
+  for `intrabar_bracket_v1`.
+  - Signal at close becomes executable at next open.
+  - Stops are gap-aware.
+  - Take-profit is limit-conservative by default.
+  - Same-bar SL/TP ambiguity is flagged and conservatively resolved.
+  - Trailing updates are effective from the next bar, not the same bar.
+  - Reversal pays two explicit legs: exit old position and enter new position.
+  - Optional final close is controlled by the execution contract.
+- Added public exports from `quantbt` and `quantbt.core`.
+- Added `QuantBTEndpoint.intrabar_bracket_reference(...)`.
+  - The endpoint accepts a compact signed `signal` / `signal_col` where sign is
+    side and absolute value is entry quantity.
+  - Optional SL/TP/trailing/technical-exit columns are mapped through
+    `intent_cols` instead of requiring a wide fixed strategy schema.
+  - The endpoint returns `BacktestResultV2`, normalized `fills_report`,
+    diagnostics, validation certificate, and normal `show_metrics()` /
+    `full_report()` compatibility.
+
+Validation after Phase 31B:
+
+- `tests/test_phase31b_market_tape_intrabar_oracle.py`: strict tape,
+  execution-contract registry, funding dict strictness, same-bar ambiguity,
+  next-bar trailing, reversal double-fee accounting, and public endpoint smoke.
+
+Remaining for Phase 31C:
+
+- Promote the oracle semantics into a Numba fast intrabar kernel.
+- Add sparse audit ledger / second-pass fill replay.
+- Add parity tests between oracle, native event, and the new Numba kernel.
+- Add benchmark gates for `minimal`, `standard`, and `audit` report levels.
+
 ### Phase 31C - Numba Fast Intrabar Kernel, Audit Ledger, And Fill Replay
 
 Scope:
@@ -4582,6 +4673,40 @@ Acceptance:
   bracket workloads.
 - No Python objects are created in hot loops.
 - Audit mode is deterministic and preserves exact fill sequence.
+
+Implementation notes after Phase 31C:
+
+- Added `core/intrabar_kernel.py`:
+  - `_engine_intrabar_bracket_v1` is a Numba single-symbol linear intrabar
+    kernel for `intrabar_bracket_v1`;
+  - `run_intrabar_kernel(...)` wraps the kernel and returns
+    `NativeIntrabarKernelResult`;
+  - `report_level="minimal"` and `standard` avoid sparse fill materialization;
+  - `report_level="audit"` runs deterministic pass 2, allocates exact-size
+    sparse fill arrays, materializes fills/report, and asserts pass-1 parity;
+  - `FillReplayTape` and `run_fill_replay_kernel(...)` provide
+    `fill_replay_v1` accounting migration.
+- Corrected the Python oracle accounting for entry slippage:
+  - PnL after entry now marks from actual fill price, not raw bar open;
+  - this makes fee/slippage legs explicit and gives the Numba kernel a correct
+    parity target.
+- Added simple single-symbol margin/risk semantics to oracle and kernel:
+  - initial margin rejection with account leverage and margin buffer;
+  - conservative intrabar maintenance breach liquidation for unprotected paths;
+  - full venue mark-price liquidation remains future certification work.
+- Added public endpoints:
+  - `QuantBTEndpoint.intrabar_bracket(...)` for the fast Numba route;
+  - `QuantBTEndpoint.fill_replay(...)` for explicit-fill accounting replay.
+- Added public exports from `quantbt` and `quantbt.core`:
+  `run_intrabar_kernel`, `NativeIntrabarKernelResult`, `FillReplayTape`,
+  `run_fill_replay_kernel`, and `NativeFillReplayResult`.
+
+Validation after Phase 31C:
+
+- `tests/test_phase31c_intrabar_kernel.py` covers oracle parity, audit second
+  pass, slippage accounting, trailing/reversal behavior, insufficient-margin
+  rejection, single-symbol liquidation, fill replay accounting, endpoint
+  standard/audit routes, fill replay endpoint, and warm-kernel speed smoke.
 
 ### Phase 31D - Certification, Alpha Audit Tooling, And Docs
 
@@ -4641,3 +4766,1026 @@ Explicit non-goals for Phase 31:
 - No generic multi-order grid engine inside the intrabar kernel.
 - No options Greeks/portfolio option execution in this kernel.
 - No Cython/C++ until prepared tape, lazy result, and Numba kernels are profiled.
+
+Implementation notes after Phase 31D:
+
+- Added `core/certification.py`:
+  - `CertificationLevel` with Level 0-4 labels;
+  - `classify_alpha_source(...)` for conservative source classification;
+  - `scan_alpha_directory(...)` for `.py`, `.ipynb`, and `.md` alpha inventory;
+  - `build_alpha_certification_report(...)` and `alpha_report_markdown(...)`;
+  - `certify_result_metadata(...)` to summarize result metadata into a
+    stakeholder-readable certification label.
+- Added `tools/audit_alpha_execution_contracts.py`:
+  - writes JSON and Markdown alpha execution-contract audit reports;
+  - intentionally treats source scanning as a migration hint, not proof of
+    causality or absence of look-ahead bias.
+- Added Phase 31 benchmark harness:
+  - `benchmarks/run_phase31_intrabar.py`;
+  - committed `phase31_intrabar_benchmark.json` and
+    `phase31_intrabar_benchmark.md` after running the standard 25k-bar profile.
+- Added docs:
+  - `docs/execution_contracts.md`;
+  - `docs/fast_intrabar.md`;
+  - `docs/alpha_certification.md`;
+  - endpoint and benchmark documentation links.
+- Public exports now include certification helpers from `quantbt` and
+  `quantbt.core`.
+
+Validation after Phase 31D:
+
+- `tests/test_phase31d_certification.py` covers source classification, metadata
+  certification levels, directory scan/report generation, CLI artifact writes,
+  and benchmark smoke parity.
+- Phase 31A/B/C/D targeted tests pass together with endpoint smoke tests.
+- Full unit regression excluding real-data tests passes.
+- Benchmark standard profile compares:
+  - close-target pure kernel;
+  - fast intrabar minimal;
+  - fast intrabar audit;
+  - Python intrabar oracle;
+  - fill replay kernel;
+  - native-event explicit-order facade.
+
+Phase 31 certification conclusion:
+
+- Completed:
+  - semantic freeze and contract manifest;
+  - strict market tape validation;
+  - close-target misuse metadata;
+  - Python intrabar oracle;
+  - Numba fast intrabar bracket kernel;
+  - audit ledger second pass;
+  - fill replay accounting kernel;
+  - public endpoint routes;
+  - source scanner and certification docs;
+  - reproducible benchmark report.
+- Production readiness:
+  - practical Level 2 for single-symbol linear next-open SL/TP/trailing
+    intrabar research when the alpha emits compact intent columns and benchmark
+    parity passes;
+  - Level 1 for old explicit-fill alphas using `fill_replay`;
+  - Level 3/4 still requires native-event/Nautilus/lower-timeframe parity
+    artifacts for each concrete strategy and venue.
+- Coverage of
+  `quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md` is roughly
+  80 percent of the requested institutional methodology: the core semantic,
+  oracle, kernel, audit, docs, and scanner work is done. Deferred pieces are
+  intentionally outside the current single-symbol OHLC bracket kernel:
+  standalone `next_open_v1` facade, broad native-event/Nautilus parity bundles,
+  lower-timeframe/tick validation, shared cross-margin intrabar semantics,
+  venue-specific liquidation/funding event ordering, and generic DCA/grid
+  state machines.
+
+
+# Upgrade after Phase 31;
+## QuantBT Execution Correctness — Các sửa đổi bắt buộc trước khi merge
+
+Status: implemented as two compact follow-up phases on
+`feat/31-execution-correctness-intrabar`.
+
+### Phase 31G - Final Merge Blockers From Sol Review
+
+Status: implemented.
+
+Final blockers reviewed:
+
+1. Funding timing semantics.
+   - Decision: keep `FundingPhase.POSITION_AT_EVENT` only for funding events
+     whose timestamp matches an exact market bar timestamp.
+   - Mid-bar funding events now raise and require a smaller timeframe.
+   - Added explicit `bar_timestamp_semantics`:
+     - `close` default: OHLC timestamp is the bar close, funding applies after
+       intrabar execution on the remaining close position;
+     - `open`: OHLC timestamp is the bar open, funding applies after open-gap
+       marking and before pending exit/entry orders at `open[t]`.
+   - `bar_timestamp_semantics` is part of the strict market tape signature, so
+     prepared caches cannot be reused across open/close timestamp contracts.
+   - Kernel/reference metadata records
+     `funding_timing_certified=true` and
+     `funding_event_alignment="exact_bar_timestamp"`.
+2. Execution contract propagation.
+   - Added `ExecutionContract.from_metadata(...)`.
+   - `QuantBTEndpoint.intrabar_bracket(...)` and
+     `.intrabar_bracket_reference(...)` accept `execution_contract=contract`.
+   - Endpoint and `PreparedIntrabarRunner` restore the full contract from
+     metadata rather than reconstructing only `close_on_last_bar`.
+   - Unsupported fields still raise `NotImplementedError`.
+3. Data signature completeness.
+   - Strict market tape signature now includes:
+     - timestamps;
+     - symbols;
+     - open/high/low/close;
+     - volume;
+     - funding rates;
+     - funding event mask;
+     - bar timestamp semantics.
+   - Prepared intrabar runner also freezes a `prepared_signature` containing
+     market signature plus account/execution/sizing/constraint profile metadata.
+
+Technical debt handled in the same pass:
+
+- `exit + same-side entry` now emits `ENTRY_SUPPRESSED` instead of counting as
+  a rejected order.
+- Dynamic trailing has explicit Python-oracle vs Numba parity coverage.
+- Added optional `tick_size` conservative price quantization for entry, SL, TP,
+  and trailing levels.
+- Docs now state the current certified scope as fast, deterministic, audited
+  **single-symbol intrabar** execution only.
+- Added tests for:
+  - funding position phase;
+  - open-vs-close bar timestamp funding semantics;
+  - execution-contract propagation;
+  - signature changes from volume/funding;
+  - signature changes from bar timestamp semantics;
+  - prepared runner vs normal endpoint parity;
+  - minimal/audit parity through the existing audit tests;
+  - tick-size price quantization.
+
+Merge gate after Phase 31G:
+
+```bash
+pytest -q tests/test_phase31*.py
+pytest -q
+python3 benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+```
+
+Validation after Phase 31G:
+
+- `tests/test_phase31*.py`: 42 passed.
+- Full `pytest -q`: 470 passed, 1 skipped.
+- Phase31 benchmark: fast intrabar minimal 25k bars in 0.0118s, about 2.11M
+  bars/s and 23.32x faster than the Python oracle.
+
+Merge certification scope:
+
+> Fast, deterministic, and audited single-symbol intrabar execution kernel.
+
+### Phase 31E - Merge Blocker Execution Correctness
+
+Implemented:
+
+- `slippage_bps` is the source of truth for intrabar endpoints:
+  - fast/reference intrabar routes now pass `config.execution.slippage_rate`;
+  - legacy `slippage` on intrabar factories is converted once with a
+    deprecation warning;
+  - passing both `slippage` and `slippage_bps` raises;
+  - intrabar run config records `legacy_slippage_rate=None`.
+- Funding is event-causal in strict market tape:
+  - scalar funding is rejected in strict mode;
+  - zero funding requires `use_funding=False` or
+    `missing_funding_policy="zero"`;
+  - `funding_event_timestamps` and `funding_event_rates` are supported;
+  - events must match an exact market bar timestamp;
+  - `bar_timestamp_semantics="close"` applies funding after intrabar execution
+    on the close position;
+  - `bar_timestamp_semantics="open"` applies funding before pending open
+    orders at `open[t]`.
+- Strict timezone:
+  - naive market data is rejected unless `source_timezone` is provided;
+  - source timezone is localized first, then converted to UTC;
+  - data signatures are created after UTC normalization.
+- Dynamic trailing now uses `trailing_value[t]` at close `t`; the new trailing
+  level only affects later bars.
+- Intrabar intent supports side-specific `exit_long` and `exit_short`;
+  legacy `technical_exit` remains a compatibility alias for both sides.
+- Same-side `exit + entry` conflict is `exit only`; opposite entry remains a
+  two-leg reversal.
+- Intrabar sizing compiler added:
+  - `units`;
+  - `fixed_notional`;
+  - `pct_equity`;
+  - `risk_per_trade`.
+- Shared quantity constraints are applied to intrabar entry quantity:
+  - `qty_step` / `lot_size` / `slot_size`;
+  - `min_qty`;
+  - `min_notional`.
+- Unsupported `ExecutionContract` fields are rejected with
+  `NotImplementedError` instead of being silently ignored.
+- Fill replay certification metadata is granular:
+  - price and fee accounting are certified;
+  - funding, margin, liquidation, generation, and causality are explicitly not
+    certified by the current fill replay implementation.
+
+### Phase 31F - Prepared Intrabar Runner, Docs, And Regression Lock
+
+Implemented:
+
+- Added `PreparedIntrabarRunner`:
+  - `runner = bt.prepare_intrabar(data=df, symbols=[...])`;
+  - `runner.run(intent, report_level="minimal")`;
+  - `runner.run(intent, report_level="audit")`;
+  - caches strict OHLCV arrays, funding arrays, validation certificate, data
+    signature, quantity constraints, and frozen profile metadata.
+- Added endpoint support for event funding inputs:
+  - `funding_event_timestamps`;
+  - `funding_event_rates`.
+- Added docs for:
+  - `slippage_bps`;
+  - funding events;
+  - side-specific exits;
+  - intrabar sizing;
+  - prepared runner usage.
+- Added `tests/test_phase31_merge_blockers.py` covering the Sol blocker list
+  implemented in this compact follow-up.
+
+Validation:
+
+- `tests/test_phase31_merge_blockers.py`: 11 passed.
+- Phase31 A/B/C/D/E/F targeted suite: 39 passed.
+- Endpoint/native smoke suite: 41 passed.
+
+Remaining outside this compact follow-up:
+
+- A full `QuantBTProfile` / profile registry façade for every strategy family.
+- Output contract classes for portfolio, grid, DCA, arbitrage, and options.
+- Broad automatic output routing across all execution families.
+- L2/tick/lower-timeframe validation and Nautilus Level 4 bundles for each
+  concrete alpha.
+
+## 1. Các lỗi phải sửa trước
+
+### 1.1 `slippage_bps` là nguồn cấu hình duy nhất
+
+Intrabar kernel phải lấy slippage từ:
+
+```python
+slippage_rate = execution.slippage_bps / 10_000.0
+```
+
+Không được đồng thời duy trì hai nguồn:
+
+```python
+slippage
+slippage_bps
+```
+
+Nếu legacy API truyền `slippage`, chỉ convert tại compatibility adapter và phát cảnh báo deprecation. Nếu cả hai cùng được truyền, phải raise error.
+
+---
+
+### 1.2 Funding phải dựa trên event thực tế
+
+Không broadcast một scalar funding rate lên mọi bar.
+
+Intrabar backend chỉ nhận:
+
+```python
+funding_event_timestamps
+funding_event_rates
+```
+
+hoặc một series đã có:
+
+```text
+rate != 0 chỉ tại funding event
+```
+
+Funding được áp khi event timestamp khớp chính xác một market bar timestamp:
+
+```text
+funding_event_timestamp == market_bar_timestamp
+```
+
+Nếu OHLC timestamp là bar close, dùng `bar_timestamp_semantics="close"` để
+funding áp sau intrabar path trên position còn lại tại close. Nếu OHLC timestamp
+là bar open, dùng `bar_timestamp_semantics="open"` để funding áp trước pending
+orders tại `open[t]`.
+
+Thiếu funding của symbol phải raise trong strict mode. Chỉ dùng zero khi:
+
+```python
+use_funding=False
+```
+
+hoặc người dùng khai báo rõ:
+
+```python
+missing_funding_policy="zero"
+```
+
+---
+
+### 1.3 Dynamic trailing phải dùng giá trị tại `t`
+
+Tại `close[t]`, trailing mới phải được tính từ:
+
+```python
+trailing_value[t]
+```
+
+không phải:
+
+```python
+trailing_value[t - 1]
+```
+
+Trailing stop vừa cập nhật chỉ có hiệu lực từ bar `t+1`. Không được dùng stop mới để kiểm tra lại `high[t]` hoặc `low[t]`.
+
+---
+
+### 1.4 Thêm sizing compiler và quantity constraints
+
+Alpha không nên trả direct quantity trừ khi khai báo rõ:
+
+```python
+sizing_mode="units"
+```
+
+Phải hỗ trợ tối thiểu:
+
+```text
+UNITS
+FIXED_NOTIONAL
+PCT_EQUITY
+RISK_PER_TRADE
+```
+
+Ví dụ fixed notional:
+
+$$
+q =
+\frac{
+Notional \times SizeWeight
+}{
+FillPrice \times ContractSize
+}
+$$
+
+Ví dụ risk per trade:
+
+$$
+q =
+\frac{
+Equity \times RiskFraction \times SizeWeight
+}{
+StopDistance \times ContractSize
+}
+$$
+
+Sau khi tính raw quantity, engine phải áp:
+
+```text
+qty_step
+min_qty
+min_notional
+max_qty
+available_margin
+```
+
+Việc quantize quantity phải dùng cùng một hàm cho reference oracle, Numba kernel và event backend.
+
+---
+
+### 1.5 Tách `exit_long` và `exit_short`
+
+Không dùng một boolean chung:
+
+```python
+technical_exit
+```
+
+Thay bằng:
+
+```python
+exit_long
+exit_short
+```
+
+Quy tắc:
+
+```text
+exit_long  chỉ tác động khi đang long
+exit_short chỉ tác động khi đang short
+```
+
+Phải định nghĩa conflict policy khi cùng bar có exit và entry:
+
+```text
+EXIT_ONLY
+EXIT_THEN_REENTER
+REVERSAL
+REJECT_CONFLICT
+```
+
+Default khuyến nghị:
+
+```text
+opposite entry  -> reversal
+same-side entry -> bỏ qua
+exit + same-side entry -> exit only
+```
+
+Mọi reversal phải được account thành hai fill legs riêng biệt.
+
+---
+
+### 1.6 Strict timezone
+
+Không được tự hiểu naive datetime là UTC.
+
+Strict mode:
+
+```python
+if index.tz is None and source_timezone is None:
+    raise MarketDataError(...)
+```
+
+Nếu có:
+
+```python
+source_timezone="Asia/Ho_Chi_Minh"
+```
+
+thì localize trước, sau đó mới convert UTC.
+
+Data signature phải được tạo sau khi timezone đã chuẩn hóa.
+
+---
+
+### 1.7 Enforce hoặc reject mọi execution contract field
+
+Mọi field public trong `ExecutionContract` phải thuộc một trong hai trạng thái:
+
+```text
+được backend thực thi đầy đủ
+hoặc bị reject bằng NotImplementedError
+```
+
+Không được âm thầm bỏ qua các field như:
+
+```text
+stop_gap_policy
+take_profit_gap_policy
+same_bar_policy
+trailing_update_phase
+funding_phase
+liquidation_priority
+ambiguity_policy
+fill_price_policy
+```
+
+Mỗi backend nên khai báo capability:
+
+```python
+BackendCapabilities(
+    supported_fill_phases=...,
+    supports_intrabar_stop=True,
+    supports_trailing=True,
+    supports_partial_fill=False,
+    supports_cross_margin=False,
+)
+```
+
+Endpoint validate contract trước khi chạy kernel.
+
+---
+
+### 1.8 Sửa certification của fill replay
+
+`fill_replay` chỉ được chứng nhận cho những domain mà implementation thực sự xử lý.
+
+Metadata nên tách riêng:
+
+```json
+{
+  "price_accounting_certified": true,
+  "fee_accounting_certified": true,
+  "funding_certified": false,
+  "margin_certified": false,
+  "liquidation_certified": false,
+  "execution_generation_certified": false,
+  "causality_certified": false
+}
+```
+
+Chỉ nâng certification sau khi bổ sung implementation và parity tests tương ứng.
+
+---
+
+### 1.9 Thêm `PreparedIntrabarRunner`
+
+Data preparation, validation và profile compilation chỉ chạy một lần:
+
+```python
+runner = QuantBT.intrabar(
+    profile=profile,
+).prepare(
+    data=df,
+    symbol="ETHUSDT",
+    funding=funding_events,
+)
+```
+
+Mỗi trial chỉ cần:
+
+```python
+intent = alpha.generate(runner.market, params)
+
+result = runner.run(
+    intent,
+    report_level="minimal",
+)
+```
+
+Best candidate mới chạy:
+
+```python
+audit = runner.run(
+    intent,
+    report_level="audit",
+)
+```
+
+Prepared runner phải cache:
+
+```text
+OHLCV contiguous arrays
+timestamps
+funding event arrays
+instrument constraints
+compiled execution codes
+validation certificate
+data signature
+reusable buffers
+```
+
+Không được build lại DataFrame, funding mask hoặc instrument arrays trong mỗi Optuna trial.
+
+---
+
+## 2. Kiến trúc dùng chung cho mọi alpha
+
+Không nên biến `IntrabarAlphaOutput` thành output duy nhất cho mọi chiến lược.
+
+Intrabar, target-position, grid, DCA, arbitrage và portfolio có execution semantics khác nhau. Ép tất cả vào một schema sẽ lặp lại lỗi thiết kế cũ của `pos_weight`.
+
+Nên dùng một façade chung nhưng nhiều output contract chuyên biệt.
+
+```text
+QuantBT
+  ├── SharedProfile
+  ├── PreparedRunner
+  ├── AlphaOutput protocol
+  └── Backend/kernel registry
+```
+
+### 2.1 Profile dùng chung dạng composition
+
+```python
+@dataclass(frozen=True)
+class QuantBTProfile:
+    market: MarketProfile
+    account: AccountProfile
+    execution: ExecutionProfile
+    sizing: SizingProfile
+    portfolio: PortfolioProfile | None = None
+    reporting: ReportingProfile = ReportingProfile()
+```
+
+Profile được khai báo một lần cho từng môi trường/thị trường:
+
+```python
+VN30F_PROFILE
+BINANCE_PERP_PROFILE
+VN_STOCK_PROFILE
+DERIBIT_OPTION_PROFILE
+```
+
+Mọi alpha dùng cùng thị trường chỉ tham chiếu profile đó, không khai báo lại fee, leverage, slippage, contract size hoặc quantity constraints.
+
+### 2.2 Output contract theo họ chiến lược
+
+```python
+class AlphaOutput(Protocol):
+    execution_family: str
+```
+
+Các output cụ thể:
+
+```text
+TargetPositionOutput
+NextOpenSignalOutput
+IntrabarAlphaOutput
+PortfolioTargetOutput
+OrderIntentOutput
+GridPlanOutput
+DCAPlanOutput
+ArbitrageOutput
+OptionStrategyOutput
+```
+
+#### `IntrabarAlphaOutput`
+
+Dùng cho single-position hoặc simple multi-symbol SL/TP/trailing:
+
+```python
+@dataclass(frozen=True)
+class IntrabarAlphaOutput:
+    entry_side: np.ndarray
+    size_weight: np.ndarray
+
+    stop_value: np.ndarray | None
+    take_profit_value: np.ndarray | None
+    trailing_value: np.ndarray | None
+
+    exit_long: np.ndarray | None
+    exit_short: np.ndarray | None
+
+    level_mode: LevelMode
+    signal_mode: SignalMode = SignalMode.PULSE
+```
+
+#### `PortfolioTargetOutput`
+
+Dùng cho cross-sectional allocation:
+
+```python
+@dataclass(frozen=True)
+class PortfolioTargetOutput:
+    target_weights: np.ndarray
+    rebalance_mask: np.ndarray
+```
+
+#### `OrderIntentOutput`
+
+Dùng cho generic order lifecycle:
+
+```python
+@dataclass(frozen=True)
+class OrderIntentOutput:
+    commands: CompactOrderCommandTape
+```
+
+#### Grid và DCA
+
+Không nên ép grid/DCA thành một `entry_side`.
+
+Chúng cần output riêng:
+
+```python
+@dataclass(frozen=True)
+class GridPlanOutput:
+    level_prices: np.ndarray
+    level_sizes: np.ndarray
+    side: np.ndarray
+    cancel_replace_mask: np.ndarray
+```
+
+```python
+@dataclass(frozen=True)
+class DCAPlanOutput:
+    trigger_prices: np.ndarray
+    order_sizes: np.ndarray
+    take_profit_rules: np.ndarray
+    stop_rules: np.ndarray
+```
+
+#### Arbitrage
+
+Arbitrage phải biểu diễn một basket atomic hoặc coordinated legs:
+
+```python
+@dataclass(frozen=True)
+class ArbitrageOutput:
+    basket_entry: np.ndarray
+    basket_exit: np.ndarray
+    leg_weights: np.ndarray
+    hedge_ratios: np.ndarray
+    execution_policy: BasketExecutionPolicy
+```
+
+Không được chạy từng leg độc lập rồi gọi đó là arbitrage backtest chuẩn.
+
+---
+
+## 3. Không nên tạo endpoint ngầm bằng global state khi import
+
+Không nên làm:
+
+```python
+import quantbt
+```
+
+rồi package âm thầm giữ một global profile hoặc global endpoint.
+
+Global mutable state sẽ gây vấn đề:
+
+```text
+khó tái lập kết quả
+không thread-safe
+khó chạy nhiều thị trường trong một process
+Optuna trials có thể dùng nhầm profile
+tests ảnh hưởng lẫn nhau
+khó biết result dùng config nào
+```
+
+Nên dùng explicit façade nhưng khai báo rất ngắn:
+
+```python
+qbt = QuantBT(profile=BINANCE_PERP_PROFILE)
+runner = qbt.prepare(data=df, symbol="ETHUSDT")
+```
+
+Sau đó dùng lại `runner` cho mọi alpha:
+
+```python
+result_a = runner.run(alpha_a.generate(runner.market, params_a))
+result_b = runner.run(alpha_b.generate(runner.market, params_b))
+result_c = runner.run(alpha_c.generate(runner.market, params_c))
+```
+
+Có thể thêm profile registry:
+
+```python
+qbt = QuantBT.from_profile("binance_perp_default")
+```
+
+hoặc YAML:
+
+```yaml
+profile: binance_perp_default
+```
+
+Nhưng profile cuối cùng phải được đóng băng vào result metadata để bảo đảm reproducibility.
+
+---
+
+## 4. Routing tự động nhưng không được mơ hồ
+
+Runner có thể tự route theo kiểu output:
+
+```python
+result = runner.run(alpha_output)
+```
+
+Ví dụ:
+
+```text
+IntrabarAlphaOutput   -> intrabar_bracket_v1
+TargetPositionOutput  -> close_target_v2
+PortfolioTargetOutput -> native_portfolio_v3
+GridPlanOutput        -> grid kernel/event backend
+DCAPlanOutput         -> DCA kernel
+ArbitrageOutput       -> basket/arbitrage backend
+OrderIntentOutput     -> event_lifecycle_v2
+```
+
+Nếu profile và output không tương thích:
+
+```python
+raise ExecutionContractError(...)
+```
+
+Không được fallback âm thầm sang backend khác.
+
+---
+
+## 5. API sử dụng cuối cùng
+
+Khai báo profile một lần:
+
+```python
+profile = QuantBTProfile(
+    market=BinancePerpetualMarketProfile(
+        symbol="ETHUSDT",
+        contract_size=1.0,
+        qty_step=0.001,
+        min_qty=0.001,
+        min_notional=5.0,
+    ),
+    account=AccountProfile(
+        initial_capital=100_000.0,
+        leverage=3.0,
+        maintenance_ratio=0.005,
+    ),
+    execution=IntrabarExecutionProfile(
+        signal_phase="close",
+        fill_phase="next_open",
+        fee_rate=0.0004,
+        slippage_bps=2.0,
+        same_bar_policy="conservative",
+        close_on_last_bar=True,
+    ),
+    sizing=FixedNotionalSizing(
+        notional_per_trade=10_000.0,
+    ),
+)
+```
+
+Prepare một lần:
+
+```python
+runner = QuantBT(profile).prepare(
+    data=df,
+    funding=funding_events,
+)
+```
+
+Mỗi alpha chỉ còn:
+
+```python
+intent = alpha.generate(
+    market=runner.market,
+    params=params,
+)
+
+result = runner.run(
+    intent,
+    report_level="minimal",
+)
+```
+
+Audit:
+
+```python
+audit = runner.run(
+    intent,
+    report_level="audit",
+)
+```
+
+Đây nên là API chính. Các low-level endpoint vẫn được giữ cho advanced use cases và backward compatibility.
+
+---
+
+## 6. Regression tests phải bổ sung
+
+```text
+test_intrabar_uses_slippage_bps_as_source_of_truth
+test_legacy_slippage_conflict_raises
+test_scalar_funding_rejected
+test_funding_applied_only_at_event
+test_funding_crosses_missing_exact_hour
+test_dynamic_trailing_uses_value_at_t
+test_new_trailing_not_applied_to_same_bar
+test_fixed_notional_sizing
+test_pct_equity_sizing
+test_risk_per_trade_sizing
+test_qty_step_rounding
+test_min_qty_rejection
+test_min_notional_rejection
+test_exit_long_only_affects_long
+test_exit_short_only_affects_short
+test_exit_entry_conflict_policy
+test_reversal_has_two_fill_legs
+test_naive_timezone_rejected
+test_source_timezone_localized_then_converted
+test_unsupported_contract_field_raises
+test_fill_replay_certification_is_granular
+test_prepared_intrabar_matches_normal_endpoint
+test_minimal_and_audit_equity_parity
+test_profile_metadata_is_frozen_in_result
+test_output_type_routes_to_expected_backend
+test_incompatible_profile_output_raises
+```
+
+---
+
+## 7. Cách chạy test
+
+### Chạy toàn bộ test suite
+
+```bash
+pytest -q
+```
+
+### Dừng ngay tại lỗi đầu tiên
+
+```bash
+pytest -q -x
+```
+
+### Chạy các test Phase 31 hiện tại
+
+```bash
+pytest -q tests/test_phase31*.py
+```
+
+### Chạy riêng intrabar kernel và oracle
+
+```bash
+pytest -q \
+  tests/test_phase31_intrabar_reference.py \
+  tests/test_phase31c_intrabar_kernel.py
+```
+
+Nếu tên file thực tế khác, kiểm tra bằng:
+
+```bash
+find tests -maxdepth 1 -type f | sort | grep -E "phase31|intrabar|fill_replay"
+```
+
+### Chạy các regression tests mới
+
+Khuyến nghị đặt trong:
+
+```text
+tests/test_phase31_merge_blockers.py
+tests/test_phase31_profiles_and_runner.py
+```
+
+Sau đó chạy:
+
+```bash
+pytest -q \
+  tests/test_phase31_merge_blockers.py \
+  tests/test_phase31_profiles_and_runner.py
+```
+
+### Chạy test với output đầy đủ
+
+```bash
+pytest -vv -s tests/test_phase31_merge_blockers.py
+```
+
+### Chạy một test cụ thể
+
+```bash
+pytest -q \
+  tests/test_phase31_merge_blockers.py::test_dynamic_trailing_uses_value_at_t
+```
+
+### Chạy tests liên quan funding
+
+```bash
+pytest -q -k "funding"
+```
+
+### Chạy tests liên quan sizing
+
+```bash
+pytest -q -k "sizing or quantity or min_notional or qty_step"
+```
+
+### Chạy tests liên quan intrabar
+
+```bash
+pytest -q -k "intrabar or trailing or same_bar or reversal"
+```
+
+### Chạy coverage
+
+```bash
+pytest \
+  --cov=quantbt \
+  --cov-report=term-missing \
+  --cov-report=html
+```
+
+Nếu package import trực tiếp từ repository root:
+
+```bash
+PYTHONPATH=. pytest -q
+```
+
+### Chạy benchmark sau khi tests pass
+
+```bash
+python benchmarks/run_phase17_intrabar.py
+```
+
+Hoặc benchmark hiện có trên nhánh:
+
+```bash
+find benchmarks -maxdepth 1 -type f | sort | grep -E "phase17|phase31|intrabar"
+```
+
+Rồi chạy file tìm được:
+
+```bash
+python benchmarks/<intrabar_benchmark_file>.py
+```
+
+Benchmark phải chạy hai lần:
+
+```text
+cold JIT compile
+warm execution
+```
+
+Chỉ dùng warm execution cho performance gate.
+
+---
+
+## 8. Merge gate
+
+Chỉ merge vào `dev` khi:
+
+* [ ] Tất cả lỗi P0 phía trên đã sửa.
+* [ ] Mọi execution contract field được enforce hoặc reject.
+* [ ] Python oracle và Numba kernel parity.
+* [ ] Minimal và audit mode cho cùng equity/accounting.
+* [ ] Prepared và non-prepared endpoint parity.
+* [ ] Sizing và quantity constraints có regression tests.
+* [ ] Funding chỉ áp tại event.
+* [ ] Dynamic trailing dùng `t`.
+* [ ] Strict timezone hoạt động.
+* [ ] Fill replay certification không overclaim.
+* [ ] Full test suite pass.
+* [ ] Benchmark không vượt performance threshold đã đặt.
+* [ ] Result metadata lưu profile, execution contract, kernel version và data signature.
+
+Kiến trúc nên chốt theo nguyên tắc:
+
+> **Một façade và một profile dùng lại cho nhiều alpha, nhưng mỗi họ chiến lược phải có output contract và backend phù hợp riêng. Không dùng một schema duy nhất để ép target-position, intrabar, portfolio, grid, DCA và arbitrage vào cùng semantics.**
