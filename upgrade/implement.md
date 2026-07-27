@@ -5789,3 +5789,296 @@ Chỉ merge vào `dev` khi:
 Kiến trúc nên chốt theo nguyên tắc:
 
 > **Một façade và một profile dùng lại cho nhiều alpha, nhưng mỗi họ chiến lược phải có output contract và backend phù hợp riêng. Không dùng một schema duy nhất để ép target-position, intrabar, portfolio, grid, DCA và arbitrage vào cùng semantics.**
+
+---
+
+# Phase 32 - Domain-Agnostic Optimization Framework
+
+Status: planned, pending approval.
+
+Primary design guide:
+
+- [`upgrade/quantbt_domain_agnostic_optimization_upgrade.md`](./quantbt_domain_agnostic_optimization_upgrade.md)
+
+This section is only the implementation tracking layer. The detailed domain
+rules, module layout, evaluator contracts, sampler compatibility, constraints,
+tests, and merge gates must follow the primary design guide above.
+
+## Why This Phase Exists
+
+Current QuantBT optimization is strongest inside `walkforward.py`, but the
+Optuna plumbing is too tightly coupled to walk-forward semantics:
+
+- search-space parsing lives inside WFO;
+- sampler creation is mostly WFO-specific;
+- duplicate pruning and callbacks are WFO-specific;
+- robust candidate selection is useful beyond WFO but not exposed as a generic
+  optimizer layer;
+- prepared market contexts already exist for native vectorized, native
+  portfolio, and intrabar, but there is no domain-agnostic evaluator contract
+  that lets Optuna reuse those contexts across trials.
+
+The upgrade should create a reusable optimization core while preserving the
+important domain separation already built into QuantBT:
+
+```text
+optimizer core knows params/objectives/constraints only
+domain evaluator knows signal/intrabar/portfolio/arbitrage/grid/options output
+backtest backend keeps its own execution and accounting semantics
+```
+
+Do not build an `IntrabarOptimizer`. Build:
+
+```text
+optimization/
+  config.py
+  result.py
+  space.py
+  callbacks.py
+  samplers.py
+  constraints.py
+  evaluator.py
+  evaluators/
+  candidate_selection.py
+  optimizer.py
+```
+
+Public API should eventually expose:
+
+```python
+OptimizationConfig
+SamplerConfig
+ObjectiveResult
+OptimizationResult
+TrialEvaluator
+OptunaOptimizer
+GenericEndpointEvaluator
+PreparedSignalEvaluator
+PreparedIntrabarEvaluator
+PreparedPortfolioEvaluator
+```
+
+## Branch Plan
+
+Create a new branch from current `dev` after this plan is approved:
+
+```bash
+git switch dev
+git pull --ff-only origin dev
+git switch -c feat/domain-agnostic-optimization
+```
+
+All implementation commits for this phase should stay on that feature branch
+until tests and benchmarks pass. Do not merge into `dev` until the merge gates
+below are satisfied.
+
+## Condensed Phase Plan
+
+The source guide lists Phase A through Phase G. To keep the work practical, we
+will implement it as three larger phases without dropping any required checks.
+
+### Phase 32A - Optimization Core Extraction And Compatibility Lock
+
+Goal: create the generic optimization package and move shared Optuna utilities
+out of WFO without changing current WFO behavior.
+
+Implementation scope:
+
+- Create `optimization/` package with:
+  - `OptimizationConfig`;
+  - `SamplerConfig`;
+  - `ObjectiveResult`;
+  - `OptimizationResult`;
+  - `TrialEvaluator` protocol;
+  - search-space helpers compatible with existing `param_ranges`;
+  - fixed-param override semantics;
+  - process-local duplicate detection;
+  - JSONL logger;
+  - single-objective early stopping callback;
+  - constraint user-attr helper.
+- Implement sampler factory for Phase 1 samplers:
+  - `tpe`;
+  - `random`;
+  - `grid`;
+  - `cmaes`;
+  - `nsgaii`.
+- Validate sampler compatibility:
+  - CMA-ES rejects categorical/mixed spaces;
+  - Grid rejects dynamic/infinite spaces and warns/rejects huge Cartesian grids;
+  - multi-objective does not use single-objective `study.best_value`;
+  - constraints are passed through Optuna user attrs when supported.
+- Keep `walkforward.py` behavior unchanged:
+  - add compatibility imports first;
+  - do not remove existing WFO utilities until parity tests are written;
+  - no scoring/objective behavior drift.
+
+Tests:
+
+- `test_single_objective_result`;
+- `test_multi_objective_result`;
+- `test_constraint_storage`;
+- `test_fixed_params_override`;
+- `test_search_space_specs`;
+- `test_duplicate_pruning`;
+- `test_nonfinite_objective_pruned`;
+- `test_exception_policy_raise`;
+- `test_tpe_factory`;
+- `test_random_factory`;
+- `test_grid_factory`;
+- `test_cmaes_rejects_categorical`;
+- `test_nsgaii_multiobjective`;
+- `test_constraints_func_propagation`;
+- `test_sampler_seed_reproducibility`;
+- `test_single_objective_early_stopping`;
+- `test_pruned_trials_do_not_consume_patience`;
+- `test_multiobjective_rejects_single_best_callback`;
+- `test_jsonl_logger`.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_optimization_core.py tests/test_optimization_samplers.py
+pytest -q tests/test_walkforward_phase1.py
+```
+
+### Phase 32B - Domain Evaluators, Constraints, And Prepared Context Parity
+
+Goal: make the optimizer useful across QuantBT domains without forcing every
+domain into one output schema.
+
+Implementation scope:
+
+- Add `GenericEndpointEvaluator` as mandatory fallback.
+- Add prepared evaluators:
+  - `PreparedSignalEvaluator` for single-symbol close-target/vectorized routes;
+  - `PreparedIntrabarEvaluator` using `QuantBTEndpoint.prepare_intrabar(...)`;
+  - `PreparedPortfolioEvaluator` using native portfolio prepared market arrays.
+- Add initial adapter contracts for:
+  - arbitrage generic fallback;
+  - grid/DCA generic fallback;
+  - options generic fallback.
+- Keep domain-specific imports inside evaluator adapters only.
+- Add objective builder helpers for common metrics:
+  - Sharpe;
+  - max drawdown;
+  - trade count;
+  - turnover;
+  - margin utilization;
+  - rejection rate.
+- Add official constraint semantics:
+  - feasible when value `<= 0`;
+  - infeasible when value `> 0`;
+  - do not convert constraints into arbitrary penalty scores when formal
+    constraints are possible.
+- Add candidate selector interface:
+  - Optuna best trial is not automatically production params;
+  - feasibility filter precedes robust selection;
+  - single-objective returns best params;
+  - multi-objective returns Pareto trials unless a selector policy is passed.
+
+Tests:
+
+- `test_prepared_signal_evaluator`;
+- `test_prepared_intrabar_evaluator`;
+- `test_prepared_portfolio_evaluator`;
+- `test_generic_endpoint_evaluator`;
+- `test_arbitrage_adapter`;
+- `test_grid_dca_adapter`;
+- `test_option_adapter_contract`;
+- `normal endpoint == prepared evaluator`;
+- `minimal == audit core accounting` where the backend supports audit;
+- constrained optimization smoke;
+- multi-objective Pareto smoke;
+- custom objective override smoke;
+- persistent SQLite resume smoke.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_optimization_evaluators.py
+pytest -q tests/test_optimization_integration.py
+pytest -q tests/test_phase31*.py
+pytest -q tests/test_phase11_native_portfolio_backend.py
+```
+
+### Phase 32C - Walk-Forward Consolidation, Docs, And Performance Benchmark
+
+Goal: reuse the generic optimizer in WFO without breaking anti-leakage logic or
+the five existing WFO optimization modes.
+
+Implementation scope:
+
+- Replace duplicated WFO utilities with imports from `optimization/`:
+  - search-space suggestion;
+  - fixed-param merging;
+  - sampler factory;
+  - duplicate handling;
+  - JSONL logging where applicable;
+  - early stopping where applicable.
+- Keep WFO-only logic in `walkforward.py`:
+  - fold generation;
+  - anti-leakage train/test isolation;
+  - mode 1/2/3/4/5 scoring semantics;
+  - temporal/plateau/full-sample robust selection metadata;
+  - OOS stitching.
+- Add backward compatibility tests:
+  - old WFO sampling equals new search-space sampling;
+  - existing robust candidate selection metadata preserved;
+  - train-test split remains OOS-isolated;
+  - `mode_4_is_only_robust` still does not use OOS for selection;
+  - `mode_5_full_robust` remains explicitly full-sample, not WFO anti-leakage.
+- Add docs:
+  - `docs/optimization.md`;
+  - update `docs/endpoint.md`;
+  - README pointer to optimization docs;
+  - example snippets for signal, intrabar, portfolio, and generic endpoint.
+- Add benchmark:
+  - optimizer overhead separate from backtest runtime;
+  - prepared evaluator vs normal endpoint in repeated trials;
+  - cold vs warm Numba where applicable;
+  - JSON artifact under `benchmarks/results/`.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_walkforward_phase1.py
+pytest -q tests/test_optimization*.py
+pytest -q tests/test_endpoint.py
+pytest -q tests/test_phase31*.py
+pytest -q
+python benchmarks/run_optimization_overhead.py
+```
+
+## Merge Gates
+
+Do not merge unless all are true:
+
+- Existing walk-forward tests pass.
+- Existing endpoint tests pass.
+- Single-objective and multi-objective studies pass.
+- Constraint semantics pass.
+- TPE, Random, Grid, CMA-ES, and NSGA-II factory tests pass.
+- CMA-ES rejects incompatible mixed spaces.
+- Prepared signal/intrabar/portfolio parity passes.
+- Generic evaluator can run arbitrage/options/grid-DCA fallback without adding
+  optimizer-core imports from those domains.
+- No generic exception is silently converted to score `0`.
+- Multi-objective code never calls `study.best_value`.
+- JSONL logs are deterministic and parseable.
+- SQLite resume test passes.
+- Optimizer overhead benchmark is recorded.
+- Documentation and examples are updated.
+
+## Scope Certification Target
+
+Target after Phase 32C:
+
+> Domain-agnostic Optuna orchestration with prepared evaluators for signal,
+> intrabar, and portfolio; generic fallback for arbitrage, grid/DCA, and
+> options; single/multi-objective studies, formal constraints, robust candidate
+> selection hooks, and WFO utility consolidation without anti-leakage regression.
+
+Do not claim every strategy family has the same prepared performance path.
+Arbitrage, grid/DCA, and options can begin through `GenericEndpointEvaluator`
+and receive specialized prepared evaluators later without changing optimizer
+core.
