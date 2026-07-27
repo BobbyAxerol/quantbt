@@ -18,6 +18,7 @@ from .evaluators import (
     PreparedSignalEvaluator,
 )
 from .objectives import (
+    MissingOptimizationMetricError,
     ReportMetricObjective,
     SharpeObjective,
     max_drawdown_constraint,
@@ -50,6 +51,7 @@ __all__ = [
     "GridDCAGenericEvaluator",
     "GridDCATrialOutput",
     "JsonlOptimizationLogger",
+    "MissingOptimizationMetricError",
     "ObjectiveResult",
     "OptionPackageGenericEvaluator",
     "OptionTrialOutput",

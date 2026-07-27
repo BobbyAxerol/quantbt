@@ -84,7 +84,7 @@ class JsonlOptimizationLogger:
             "trial": int(frozen_trial.number),
             "state": str(frozen_trial.state.name),
             "values": _trial_values(frozen_trial),
-            "params": dict(frozen_trial.params),
+            "params": dict(frozen_trial.user_attrs.get("quantbt_full_params", frozen_trial.params)),
             "metrics": dict(frozen_trial.user_attrs.get("quantbt_metrics", {})),
             "constraints": list(frozen_trial.user_attrs.get("quantbt_constraints", ())),
             "metadata": dict(frozen_trial.user_attrs.get("quantbt_metadata", {})),

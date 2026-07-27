@@ -67,6 +67,7 @@ class SamplerConfig:
 
     name: str = "tpe"
     kwargs: dict[str, Any] = field(default_factory=dict)
+    constraint_mode: str = "sampler"
 
     def __post_init__(self) -> None:
         name = str(self.name).lower().strip()
@@ -74,3 +75,7 @@ class SamplerConfig:
             raise ValueError("sampler name must be non-empty")
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "kwargs", dict(self.kwargs or {}))
+        constraint_mode = str(self.constraint_mode).lower().strip()
+        if constraint_mode not in {"sampler", "post_filter"}:
+            raise ValueError("constraint_mode must be sampler or post_filter")
+        object.__setattr__(self, "constraint_mode", constraint_mode)

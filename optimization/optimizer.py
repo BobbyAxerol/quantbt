@@ -6,6 +6,7 @@ import math
 from typing import Any, Mapping, Optional
 
 from .callbacks import JsonlOptimizationLogger, SingleObjectiveEarlyStopping
+from .candidate_selection import CandidateSelector
 from .config import OptimizationConfig, SamplerConfig
 from .constraints import constraints_from_trial, set_trial_constraints
 from .evaluator import TrialEvaluator
@@ -42,9 +43,16 @@ class OptunaOptimizer:
             import optuna
         except Exception as exc:  # pragma: no cover - dependency guard
             raise ImportError("QuantBT optimization requires optuna") from exc
+        if int(self.config.n_jobs) != 1:
+            raise NotImplementedError("parallel optimization is not certified")
 
         objective_count = len(self.config.directions)
-        constraints_callback = constraints_from_trial if self.sampler_config.name in {"tpe", "nsgaii"} else None
+        self._seen_params = set()
+        constraints_callback = (
+            constraints_from_trial
+            if self.sampler_config.name in {"tpe", "nsgaii"} and self.sampler_config.constraint_mode == "sampler"
+            else None
+        )
         sampler = build_sampler(
             self.sampler_config,
             seed=int(self.config.seed),
@@ -60,6 +68,7 @@ class OptunaOptimizer:
             load_if_exists=bool(self.config.load_if_exists),
             pruner=optuna.pruners.NopPruner(),
         )
+        self._preload_seen_params(study)
         callbacks = []
         if self.config.early_stopping_rounds is not None:
             if objective_count != 1:
@@ -89,8 +98,24 @@ class OptunaOptimizer:
             result.selected_params = dict(getattr(selected, "params", selected))
             result.selection_metadata = dict(getattr(selected, "metadata", {}))
         elif objective_count == 1:
-            result.selected_params = dict(result.best_params or {})
+            if _result_has_constraints(result):
+                result.selected_params = None
+                result.selection_metadata = {"selected_by": None, "reason": "constraints_require_explicit_candidate_selector"}
+            else:
+                result.selected_params = dict(result.best_params or {})
         return result
+
+    def _preload_seen_params(self, study) -> None:
+        if not self.config.load_if_exists:
+            return
+        for trial in getattr(study, "trials", ()):
+            key = trial.user_attrs.get("quantbt_params_key")
+            if key is None:
+                params = trial.user_attrs.get("quantbt_full_params", trial.params)
+                if params:
+                    key = stable_params_key(params)
+            if key:
+                self._seen_params.add(str(key))
 
     def _objective(self, trial, param_ranges, fixed_params, objective_count: int):
         try:
@@ -118,6 +143,11 @@ class OptunaOptimizer:
             raise
         if not isinstance(objective, ObjectiveResult):
             raise TypeError("TrialEvaluator.evaluate must return ObjectiveResult")
+        if objective.constraints and self.sampler_config.name not in {"tpe", "nsgaii"} and self.sampler_config.constraint_mode != "post_filter":
+            raise ValueError(
+                f"sampler {self.sampler_config.name!r} does not support formal constraints; "
+                "set SamplerConfig(..., constraint_mode='post_filter') to filter candidates after optimization"
+            )
         if len(objective.values) != objective_count:
             raise ValueError(f"objective returned {len(objective.values)} values but config has {objective_count} directions")
         if not all(math.isfinite(float(value)) for value in objective.values):
@@ -159,6 +189,10 @@ def _build_result(study, objective_count: int) -> OptimizationResult:
         trials=trials,
         trials_frame=trials_frame,
     )
+
+
+def _result_has_constraints(result: OptimizationResult) -> bool:
+    return any(len(record.constraints) > 0 for record in result.trials if record.state == "COMPLETE")
 
 
 def _trial_record(trial) -> OptimizationTrialRecord:

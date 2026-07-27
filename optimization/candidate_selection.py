@@ -66,9 +66,10 @@ class CandidateSelector:
         )
 
     def _pareto_first(self, result: OptimizationResult) -> SelectedCandidate:
-        if not result.pareto_trials:
+        pareto = [trial for trial in result.pareto_trials if constraints_feasible(tuple(float(value) for value in trial.user_attrs.get("quantbt_constraints", ())))] 
+        if not pareto:
             raise ValueError("optimization result has no Pareto trials")
-        trial = result.pareto_trials[0]
+        trial = pareto[0]
         params = dict(trial.user_attrs.get("quantbt_full_params", trial.params))
         return SelectedCandidate(
             params=params,
@@ -79,6 +80,7 @@ class CandidateSelector:
                 "selector": self.mode,
                 "trial_number": int(trial.number),
                 "pareto_count": int(len(result.pareto_trials)),
+                "feasible_pareto_count": int(len(pareto)),
             },
         )
 

@@ -105,6 +105,38 @@ objective = ReportMetricObjective(
 This is preferred over arbitrary penalties when the domain rule can be expressed
 as a formal constraint.
 
+Metrics used by objective values or formal constraints are strict. If a metric
+is missing, QuantBT raises:
+
+```python
+MissingOptimizationMetricError
+```
+
+There is no silent objective fallback such as:
+
+```text
+missing sharpe -> 0.0
+missing turnover -> num_trades
+```
+
+Display metrics may be omitted from `ObjectiveResult.metrics`, but objective
+and constraint metrics must exist explicitly or be derivable from certified
+result fields.
+
+Samplers without native constrained sampling support require explicit
+post-filter mode:
+
+```python
+SamplerConfig(
+    name="grid",
+    constraint_mode="post_filter",
+)
+```
+
+This is required for `random`, `grid`, and `cmaes` studies returning formal
+constraints. `tpe` and `nsgaii` can pass constraints into Optuna when supported
+by the installed Optuna version.
+
 ## Search Space
 
 The optimizer keeps the same parameter style used by existing alpha notebooks:
@@ -284,6 +316,35 @@ result = optimizer.optimize(
 For multi-objective studies, QuantBT returns the Pareto front unless an explicit
 selector is supplied. No hidden scalarization is applied.
 
+When constraints exist and no candidate selector is supplied:
+
+```text
+result.best_params      -> raw Optuna best, useful for diagnostics
+result.selected_params  -> None
+```
+
+This prevents an infeasible high-score trial from being treated as production
+params. Use `CandidateSelector(mode="feasible_best")` or a domain-specific
+selector when production params are required.
+
+`CandidateSelector(mode="pareto_first")` filters infeasible Pareto trials before
+selection.
+
+## Reproducibility Safety
+
+Phase 32 final merge rules are conservative:
+
+```text
+n_jobs must be 1
+```
+
+Parallel optimization is rejected until evaluator mutable state and duplicate
+detection are certified thread-safe.
+
+For persistent Optuna storage with `load_if_exists=True`, previous QuantBT
+parameter keys are preloaded so duplicate detection still works after resume.
+JSONL logs write `quantbt_full_params`, including fixed params.
+
 ## Walk-Forward Relation
 
 Walk-forward still owns:
@@ -333,4 +394,3 @@ specialized prepared dynamic grid/DCA evaluator
 distributed duplicate detection across independent workers
 multi-objective production selector without explicit policy
 ```
-

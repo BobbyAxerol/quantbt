@@ -6219,6 +6219,71 @@ Scope note:
 - Specialized prepared evaluators for arbitrage, grid/DCA, and options remain
   future work. They can be added without changing optimizer core.
 
+### Phase 32 Final Merge Blockers - Sol Feedback
+
+Status: completed after Phase 32C.
+
+Assessment:
+
+- Feedback was correct. The optimizer should fail fast when an objective or
+  formal-constraint metric is missing, should not use raw infeasible Optuna
+  best params as selected production params, and should not claim parallel
+  optimization safety while evaluator adapters keep mutable `last_result` /
+  `last_intent` state.
+
+Implemented:
+
+- Added `MissingOptimizationMetricError`.
+- Objective/constraint metrics are strict:
+  - missing Sharpe / MaxDD / turnover / margin / rejection rate now raises when
+    used by objective values or formal constraints;
+  - `turnover` no longer falls back to `num_trades`.
+- Candidate selection is constraint-safe:
+  - unconstrained single-objective studies still auto-populate
+    `selected_params`;
+  - constrained studies without an explicit selector now keep
+    `selected_params=None`;
+  - `CandidateSelector("feasible_best")` selects the best feasible trial;
+  - `CandidateSelector("pareto_first")` filters infeasible Pareto trials.
+- Added `SamplerConfig.constraint_mode`:
+  - default: `"sampler"`;
+  - unsupported constrained samplers such as random/grid/CMA-ES require
+    `constraint_mode="post_filter"`;
+  - otherwise they raise instead of silently ignoring constraints.
+- Reproducibility safety:
+  - `n_jobs != 1` raises `NotImplementedError`;
+  - `_seen_params` is reset at the start of every study;
+  - persistent studies preload previous `quantbt_params_key` /
+    `quantbt_full_params` so resume duplicate detection works;
+  - JSONL logs now write full params including fixed params.
+
+Tests added:
+
+- `test_missing_objective_metric_raises`;
+- `test_missing_constraint_metric_raises`;
+- `test_turnover_does_not_fallback_to_trade_count`;
+- `test_infeasible_highest_score_not_selected`;
+- `test_pareto_selector_filters_infeasible_trials`;
+- `test_unsupported_constraint_sampler_requires_post_filter`;
+- `test_no_feasible_trial_returns_no_selected_params`;
+- `test_parallel_mode_rejected_until_thread_safe`;
+- `test_duplicate_detection_after_sqlite_resume`;
+- `test_repeated_optimize_does_not_reuse_stale_seen_set`;
+- `test_jsonl_contains_fixed_and_search_params`.
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_core.py tests/test_optimization_samplers.py tests/test_optimization_evaluators.py tests/test_optimization_integration.py
+# 41 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_walkforward_phase1.py tests/test_endpoint.py tests/test_phase31*.py
+# 117 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 513 passed, 1 skipped
+```
+
 ## Merge Gates
 
 Do not merge unless all are true:

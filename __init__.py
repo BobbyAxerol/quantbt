@@ -84,6 +84,7 @@ from .optimization import (
     GridDCAGenericEvaluator,
     GridDCATrialOutput,
     JsonlOptimizationLogger,
+    MissingOptimizationMetricError,
     ObjectiveResult,
     OptionPackageGenericEvaluator,
     OptionTrialOutput,

@@ -209,6 +209,8 @@ def test_common_objective_helpers_use_formal_constraints():
         use_funding=False,
     )
     result = endpoint.backtest(data=df, signal=signal, symbols=["BTC"])
+    result.metadata["rejected_count"] = 0
+    result.metadata["fill_count"] = 1
     objective = ReportMetricObjective(
         value_metrics=("sharpe",),
         constraints=(min_trades_constraint(10), max_drawdown_constraint(99), max_rejection_rate_constraint(0.01)),
