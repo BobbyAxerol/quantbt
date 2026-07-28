@@ -22,7 +22,7 @@ class OptimizationConfig:
     study_name: str
     n_trials: int = 300
     directions: Tuple[Direction, ...] = ("maximize",)
-    seed: int = 42
+    seed: Optional[int] = 42
     n_jobs: int = 1
     early_stopping_rounds: Optional[int] = None
     early_stopping_min_delta: float = 1e-4

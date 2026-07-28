@@ -109,6 +109,20 @@ def test_optuna_optimizer_single_objective_and_trial_records():
     assert any(record.metrics.get("x") == result.best_params["x"] for record in result.trials if record.metrics)
 
 
+def test_optuna_optimizer_accepts_unseeded_sampler():
+    evaluator = QuadraticEvaluator()
+    optimizer = OptunaOptimizer(
+        evaluator=evaluator,
+        config=OptimizationConfig(study_name="unseeded_core", n_trials=4, seed=None, show_progress_bar=False),
+        sampler_config=SamplerConfig(name="tpe", kwargs={"n_startup_trials": 1}),
+    )
+
+    result = optimizer.optimize(param_ranges={"x": (0, 6, 1)})
+
+    assert result.best_params is not None
+    assert len(result.trials) == 4
+
+
 def test_constraint_storage():
     class ConstraintEvaluator:
         def evaluate(self, params):

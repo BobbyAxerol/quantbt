@@ -55,7 +55,7 @@ class OptunaOptimizer:
         )
         sampler = build_sampler(
             self.sampler_config,
-            seed=int(self.config.seed),
+            seed=self.config.seed,
             search_space=param_ranges,
             objective_count=objective_count,
             constraints_func=constraints_callback,

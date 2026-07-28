@@ -190,6 +190,11 @@ optimizer = OptunaOptimizer(
 result = optimizer.optimize(param_ranges=param_ranges)
 ```
 
+Set `OptimizationConfig(seed=None)` when you intentionally want Optuna's
+unseeded sampler behavior, matching `optuna.samplers.TPESampler()` defaults.
+This is useful for exploratory legacy-style searches. Keep an explicit integer
+seed for reproducible studies and stakeholder audit runs.
+
 This fallback is intentionally used for early arbitrage, grid/DCA, and option
 package workflows until a specialized prepared evaluator is worth adding.
 
