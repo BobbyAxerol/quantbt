@@ -4921,6 +4921,103 @@ Merge certification scope:
 
 > Fast, deterministic, and audited single-symbol intrabar execution kernel.
 
+### Phase 31H - Session-Aware Intrabar Reference Contract
+
+Status: implemented on `feat/31-execution-correctness-intrabar`.
+
+Source:
+
+- Supplemental section `# PHẦN UPDATE BỔ SUNG:` in
+  `upgrade/quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md`.
+- This phase is the user's requested new "Phase 31E"; it is tracked as 31H
+  here because historical Phase 31E/F entries already exist below for earlier
+  merge-blocker work.
+
+Scope:
+
+- Add session execution schemas:
+  - `EntryPositionPolicy`;
+  - `SessionCounterBasis`;
+  - `ProtectiveExitReentryPolicy`;
+  - `SessionExecutionPolicy`;
+  - `IntrabarSessionTape`.
+- Keep `ExecutionContract` unchanged; session policy owns only session mutable
+  execution state.
+- Extend intrabar endpoint and prepared runner with optional:
+  - `session_policy`;
+  - `session_tape`.
+- Preserve backward compatibility:
+  - `session_policy=None` means existing intrabar reference/kernel behavior is
+    unchanged;
+  - session feature requires both policy and tape;
+  - fast kernel raises for session mode until Phase 31I.
+- Implement session semantics in the Python reference oracle:
+  - session reset;
+  - entry time window;
+  - force-flat at open;
+  - flat-only/no-reversal;
+  - per-session long/short entry quota;
+  - stale pending signal cancellation across session boundaries;
+  - protective-exit re-entry suppression.
+- Add audit flags and metadata counts:
+  - `SESSION_RESET`;
+  - `SESSION_FORCED_EXIT`;
+  - `ENTRY_WINDOW_BLOCKED`;
+  - `ENTRY_QUOTA_BLOCKED`;
+  - `FLAT_ONLY_BLOCKED`;
+  - `STALE_SESSION_SIGNAL`;
+  - `PROTECTIVE_REENTRY_BLOCKED`.
+
+Tests:
+
+- No-session reference output parity.
+- Session boundary resets counters.
+- Last-bar session signal does not fill in the new session.
+- Flat-only blocks reversal and does not close old position implicitly.
+- Entry quota blocks the next entry without counting rejects.
+- Margin/quantity reject does not increment quota.
+- Entry fill then same-bar SL still increments quota.
+- Force-flat bar closes position and blocks new entry when configured.
+- Protective exit at bar `t` suppresses signal from bar `t` at open `t+1`.
+
+### Phase 31I - Fast Prepared Session Kernel
+
+Status: planned.
+
+Scope:
+
+- Compile `SessionExecutionPolicy` into integer policy codes.
+- Add a separate `run_intrabar_session_kernel(...)`; do not add a
+  `session_enabled` branch to the existing fast kernel hot loop.
+- Dispatch once before execution:
+  - no session -> existing fast kernel;
+  - session enabled -> session-specific kernel.
+- Include session policy and session tape signature in prepared-context cache
+  signatures.
+- Differential-test session fast kernel against Phase 31H reference oracle.
+- Benchmark:
+  - existing fast kernel unchanged;
+  - session kernel overhead isolated;
+  - prepared/non-prepared parity preserved.
+
+Acceptance:
+
+- Existing intrabar workloads remain bit-for-bit stable when no session policy
+  is supplied.
+- Session-aware intrabar alphas get reference-correct behavior, audit metadata,
+  and later Numba parity without becoming a generic mutable state-machine
+  engine.
+
+Validation after Phase 31H:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31h_intrabar_session_reference.py
+# 12 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31*.py
+# 56 passed
+```
+
 ### Phase 31E - Merge Blocker Execution Correctness
 
 Implemented:

@@ -29,6 +29,13 @@ from .intrabar_reference import (
     IntrabarSizingMode,
     run_intrabar_reference,
 )
+from .intrabar_session import (
+    EntryPositionPolicy,
+    IntrabarSessionTape,
+    ProtectiveExitReentryPolicy,
+    SessionCounterBasis,
+    SessionExecutionPolicy,
+)
 from .intrabar_kernel import (
     FillReplayTape,
     NativeFillReplayResult,
@@ -195,7 +202,12 @@ __all__ = [
     "IntrabarIntentTape",
     "IntrabarLevelMode",
     "IntrabarReferenceResult",
+    "IntrabarSessionTape",
     "IntrabarSizingMode",
+    "EntryPositionPolicy",
+    "ProtectiveExitReentryPolicy",
+    "SessionCounterBasis",
+    "SessionExecutionPolicy",
     "IntrabarSameBarPolicy",
     "FillReplayTape",
     "LifecycleModel",
