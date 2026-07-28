@@ -13,7 +13,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
-import operator
 import time
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -22,6 +21,8 @@ import numpy as np
 import pandas as pd
 
 from .core.preprocessor import validate_datetime
+from .optimization.callbacks import SingleObjectiveEarlyStopping as _OptimizationEarlyStopping
+from .optimization.space import stable_params_key, suggest_params as _optimization_suggest_params
 
 try:  # optional acceleration; Python/NumPy baseline remains available
     from numba import njit
@@ -370,29 +371,12 @@ class WalkForwardTrialRecord:
     selection_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class EarlyStoppingCallback:
+class EarlyStoppingCallback(_OptimizationEarlyStopping):
     """Stop Optuna if best value does not improve after N trials."""
 
     def __init__(self, early_stopping_rounds: int, direction: str = "maximize"):
+        super().__init__(patience=int(early_stopping_rounds), direction=direction, min_delta=0.0)
         self.early_stopping_rounds = int(early_stopping_rounds)
-        self._iter = 0
-        if direction == "minimize":
-            self._operator = operator.lt
-            self._score = np.inf
-        elif direction == "maximize":
-            self._operator = operator.gt
-            self._score = -np.inf
-        else:
-            raise ValueError("direction must be maximize or minimize")
-
-    def __call__(self, study, trial) -> None:
-        if self._operator(study.best_value, self._score):
-            self._iter = 0
-            self._score = study.best_value
-        else:
-            self._iter += 1
-        if self._iter >= self.early_stopping_rounds:
-            study.stop()
 
 
 class DuplicatePruner(_optuna.pruners.BasePruner if _optuna is not None else object):
@@ -404,7 +388,7 @@ class DuplicatePruner(_optuna.pruners.BasePruner if _optuna is not None else obj
         self.trial_params = set()
 
     def prune(self, study, trial) -> bool:
-        params_key = tuple(sorted(trial.params.items()))
+        params_key = stable_params_key(trial.params)
         if params_key in self.trial_params:
             return True
         self.trial_params.add(params_key)
@@ -661,7 +645,7 @@ class WalkForwardEngine:
 
         def objective(trial):
             params = _sample_params(trial, param_ranges)
-            params_key = tuple(sorted(params.items()))
+            params_key = stable_params_key(params)
             if params_key in seen_params:
                 record = WalkForwardTrialRecord(
                     trial_id=int(trial.number),
@@ -3009,30 +2993,7 @@ def _fold_table(folds: Sequence[WalkForwardFold]) -> pd.DataFrame:
 
 
 def _sample_params(trial, param_ranges: Dict[str, Any]) -> Dict[str, Any]:
-    params: Dict[str, Any] = {}
-    for name, spec in param_ranges.items():
-        if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
-            low = spec[0]
-            high = spec[1]
-            step = spec[2] if len(spec) == 3 else None
-            if _looks_int(low) and _looks_int(high) and (step is None or _looks_int(step)):
-                params[name] = trial.suggest_int(name, int(low), int(high), step=1 if step is None else int(step))
-            else:
-                if step is None:
-                    params[name] = trial.suggest_float(name, float(low), float(high))
-                else:
-                    params[name] = trial.suggest_float(name, float(low), float(high), step=float(step))
-        elif isinstance(spec, list):
-            if not spec:
-                raise ValueError(f"param_ranges[{name!r}] is empty")
-            params[name] = trial.suggest_categorical(name, spec)
-        elif isinstance(spec, tuple):
-            if not spec:
-                raise ValueError(f"param_ranges[{name!r}] is empty")
-            params[name] = trial.suggest_categorical(name, list(spec))
-        else:
-            params[name] = spec
-    return params
+    return _optimization_suggest_params(trial, param_ranges)
 
 
 def _looks_int(value: Any) -> bool:

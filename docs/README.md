@@ -18,6 +18,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
+| Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 
 ## Strategy Route Map
 
@@ -33,6 +34,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Arbitrage | `QuantBTEndpoint.arbitrage(...)` | Domain specs for basis, stat-arb, funding, carry, and index-basket routes |
 | Walk-forward optimization | `QuantBTEndpoint.walk_forward(...)` | Folded OOS stitching, anti-leakage candidate selection, and full-sample robust calibration |
 | Single holdout train/test | `QuantBTEndpoint.train_test_split(...)` | One train period and one test period using the WFO scoring stack |
+| Standalone Optuna optimization | `OptunaOptimizer` + evaluator adapters | Prepared signal/intrabar/portfolio tuning or generic endpoint fallback |
 | Third-party validation | `QuantBTEndpoint.nautilus_validation(...)` or `backend="nautilus"` | Independent event-driven accounting reports |
 
 ## Example Map

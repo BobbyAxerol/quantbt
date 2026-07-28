@@ -48,6 +48,8 @@ historical reproduction.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection, plus full-sample robust calibration for final
   production parameter discovery.
+- Domain-agnostic Optuna optimization adapters for prepared signal, intrabar,
+  portfolio, and generic endpoint workflows.
 
 ## Performance Philosophy
 
@@ -140,6 +142,23 @@ SL/TP/trailing, and explicit fill replay paths. The fast intrabar kernel is
 about 23.3x faster than the readable Python oracle on the committed benchmark
 while preserving the oracle semantics through targeted parity tests and audit
 second-pass checks.
+
+Latest Phase 32C optimization overhead benchmark:
+
+| Measurement | Result |
+|---|---:|
+| Optimizer overhead | 0.0174s for 24 trials |
+| Optimizer overhead / trial | 0.000723s |
+| Prepared signal evaluator | 2.03x faster than normal endpoint replay |
+| Intrabar first vs warm run | 3.70x first/warm ratio |
+| Parity | pass, final equity diff 0.0 |
+
+Phase 32C consolidates safe walk-forward optimization primitives with the new
+domain-agnostic optimizer core while keeping WFO fold isolation and robust
+selection semantics inside `walkforward.py`. Read
+[`docs/optimization.md`](docs/optimization.md) and
+`benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
+arbitrage/grid/options fallback examples and benchmark details.
 
 Ecosystem positioning:
 
@@ -241,6 +260,9 @@ service creates a run.
 - Full-sample robust calibration selectors: `full_robust`,
   `full_plateau_robust`, `full_temporal_robust`, and `full_best`.
 - Optional trade-count penalty to avoid overfit low-trade Sharpe traps.
+- Shared domain-agnostic optimizer primitives for search-space parsing,
+  duplicate detection, early stopping, objective helpers, constraints, and
+  candidate selection.
 
 ### Nautilus Validation Reports
 
