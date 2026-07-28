@@ -16,6 +16,12 @@ def test_tpe_factory():
     assert isinstance(sampler, optuna.samplers.TPESampler)
 
 
+def test_tpe_factory_accepts_unseeded_default_sampler():
+    sampler = build_sampler(SamplerConfig(name="tpe"), seed=None, search_space={"x": (0.0, 1.0, 0.1)}, objective_count=1)
+
+    assert isinstance(sampler, optuna.samplers.TPESampler)
+
+
 def test_random_factory():
     sampler = build_sampler(SamplerConfig(name="random"), seed=42, search_space={"x": (0, 5, 1)}, objective_count=1)
 

@@ -6284,6 +6284,88 @@ PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
 # 513 passed, 1 skipped
 ```
 
+### Phase 33 - Optimization Search Quality And Robust Selection
+
+Guide:
+
+- Detailed source plan:
+  `upgrade/quantbt_optimization_search_quality_upgrade.md`.
+- Scope is intentionally split into 2 phases:
+  - Phase 33A: Search Assurance Core.
+  - Phase 33B: Multi-seed search and robust plateau candidate selection.
+
+Reason:
+
+- A single TPE trajectory over mixed/conditional alpha spaces can miss known
+  good regions such as historical Delta-RSI champions.
+- Search quality should guarantee that known baselines are evaluated by the
+  current evaluator and cannot be silently replaced by a worse sampled trial.
+- This does not claim global optimality; it raises the optimizer from
+  best-trial hunting to baseline-aware, diagnostic, reproducible research.
+
+### Phase 33A - Search Assurance Core
+
+Status: implemented on `feat/domain-agnostic-optimization`.
+
+Implemented:
+
+- Added `initial_trials` to `OptunaOptimizer.optimize(...)`.
+  - Historical champions are enqueued with `study.enqueue_trial(...)`.
+  - Warm-start trials are tagged as `quantbt_source="warm_start"`.
+  - Fixed params are merged before enqueue validation.
+  - Missing active search params in a warm-start raise instead of silently
+    sampling a partial baseline.
+- Added baseline floor for single-objective studies.
+  - `result.baseline_trials` records completed warm-start trials.
+  - If the selected candidate is worse than the best feasible warm-start,
+    QuantBT resets `selected_params` to that warm-start and sets
+    `search_regression=True`.
+- Added `effective_params_builder`.
+  - Duplicate detection can use semantic/effective params rather than raw
+    noisy params.
+  - This is designed for alpha spaces where toggles make params inactive.
+- Added `early_stopping_min_trials`.
+  - Early stopping cannot stop before the configured completed-trial floor.
+- Added `OptimizationConfig(seed=None)`.
+  - This restores true Optuna unseeded behavior for legacy-style exploratory
+    searches while keeping integer seeds for audit runs.
+- Added search diagnostics:
+  - nominal variable dimension;
+  - estimated grid size;
+  - param kind counts;
+  - source counts;
+  - effective duplicate count;
+  - per-param coverage;
+  - top-decile parameter distributions;
+  - baseline rank.
+- Added docs in `docs/optimization.md`.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_optimization_core.py quantbt/tests/test_optimization_samplers.py
+# 23 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_optimization_core.py quantbt/tests/test_optimization_samplers.py quantbt/tests/test_optimization_evaluators.py quantbt/tests/test_optimization_integration.py
+# 47 passed
+```
+
+Phase 33A merge gates:
+
+- Warm-start trials are evaluated before sampled trials.
+- Best feasible warm-start baseline cannot be silently lost.
+- Effective duplicate detection prunes semantic duplicates.
+- Early stopping respects `early_stopping_min_trials`.
+- `seed=None` runs Optuna's unseeded sampler path.
+- Search diagnostics persist baseline/source/coverage metadata.
+
+Remaining for Phase 33B:
+
+- Multi-seed orchestration.
+- Robust plateau selector.
+- Seed consensus diagnostics.
+- Validation/stress gate against historical baseline.
+
 ## Merge Gates
 
 Do not merge unless all are true:

@@ -71,3 +71,10 @@ class OptimizationResult:
     trials_frame: Any
     selected_params: Optional[dict[str, Any]] = None
     selection_metadata: dict[str, Any] = field(default_factory=dict)
+    baseline_trials: list[OptimizationTrialRecord] = field(default_factory=list)
+    phase_results: list[Any] = field(default_factory=list)
+    seed_results: list[Any] = field(default_factory=list)
+    robust_candidates: list[Any] = field(default_factory=list)
+    selected_validation: dict[str, Any] = field(default_factory=dict)
+    search_regression: bool = False
+    search_diagnostics: dict[str, Any] = field(default_factory=dict)

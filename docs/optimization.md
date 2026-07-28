@@ -190,6 +190,77 @@ optimizer = OptunaOptimizer(
 result = optimizer.optimize(param_ranges=param_ranges)
 ```
 
+Set `OptimizationConfig(seed=None)` when you intentionally want Optuna's
+unseeded sampler behavior, matching `optuna.samplers.TPESampler()` defaults.
+This is useful for exploratory legacy-style searches. Keep an explicit integer
+seed for reproducible studies and stakeholder audit runs.
+
+## Search Assurance
+
+Use `initial_trials` to force historical champions or hand-picked baselines to
+be evaluated by the current evaluator before sampled trials:
+
+```python
+result = optimizer.optimize(
+    param_ranges=param_ranges,
+    fixed_params={"issl": True},
+    initial_trials=[
+        hyhy,
+        hrhr,
+        hyhy_migrate_quantbt,
+    ],
+    candidate_selector=CandidateSelector(mode="feasible_best"),
+)
+```
+
+Warm-start trials are tagged as `quantbt_source="warm_start"` and are exposed
+through:
+
+```python
+result.baseline_trials
+result.search_diagnostics["baseline_rank"]
+result.search_regression
+```
+
+For single-objective studies, QuantBT applies a baseline floor: if the selected
+candidate is worse than the best feasible warm-start on the primary objective,
+`selected_params` is reset to the warm-start baseline and
+`search_regression=True`.
+
+When strategy params contain inactive/noisy branches, pass an
+`effective_params_builder` so duplicate detection and diagnostics can use the
+semantic parameter set:
+
+```python
+def effective(params):
+    out = dict(params)
+    if not out["istp"]:
+        out.pop("tppercent", None)
+    if not out["usevol"]:
+        out.pop("rvol", None)
+        out.pop("len_vol", None)
+    return out
+
+result = optimizer.optimize(
+    param_ranges=param_ranges,
+    fixed_params=fixed,
+    initial_trials=[hyhy],
+    effective_params_builder=effective,
+)
+```
+
+Use `early_stopping_min_trials` when early stopping is enabled so the study
+cannot stop before a minimum exploration floor:
+
+```python
+OptimizationConfig(
+    study_name="delta_rsi",
+    n_trials=1_500,
+    early_stopping_rounds=300,
+    early_stopping_min_trials=800,
+)
+```
+
 This fallback is intentionally used for early arbitrage, grid/DCA, and option
 package workflows until a specialized prepared evaluator is worth adding.
 
