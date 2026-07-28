@@ -1,7 +1,7 @@
 """Domain-agnostic optimization API for QuantBT."""
 
 from .callbacks import JsonlOptimizationLogger, SingleObjectiveEarlyStopping
-from .candidate_selection import CandidateSelector, SelectedCandidate, constraints_feasible
+from .candidate_selection import CandidateSelector, RobustSelectionConfig, SelectedCandidate, constraints_feasible
 from .config import OptimizationConfig, SamplerConfig
 from .constraints import CONSTRAINTS_USER_ATTR, constraints_from_trial, set_trial_constraints
 from .evaluator import TrialEvaluator
@@ -31,6 +31,7 @@ from .objectives import (
     result_full_report,
 )
 from .optimizer import OptunaOptimizer
+from .multiseed import MultiSeedOptimization
 from .result import ObjectiveResult, OptimizationResult, OptimizationTrialRecord
 from .samplers import build_sampler
 from .space import (
@@ -52,6 +53,7 @@ __all__ = [
     "GridDCATrialOutput",
     "JsonlOptimizationLogger",
     "MissingOptimizationMetricError",
+    "MultiSeedOptimization",
     "ObjectiveResult",
     "OptionPackageGenericEvaluator",
     "OptionTrialOutput",
@@ -63,6 +65,7 @@ __all__ = [
     "PreparedPortfolioEvaluator",
     "PreparedSignalEvaluator",
     "ReportMetricObjective",
+    "RobustSelectionConfig",
     "SamplerConfig",
     "SearchSpaceInfo",
     "SelectedCandidate",

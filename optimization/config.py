@@ -25,6 +25,7 @@ class OptimizationConfig:
     seed: Optional[int] = 42
     n_jobs: int = 1
     early_stopping_rounds: Optional[int] = None
+    early_stopping_min_trials: int = 0
     early_stopping_min_delta: float = 1e-4
     show_progress_bar: bool = True
     storage: Optional[str] = None
@@ -49,6 +50,8 @@ class OptimizationConfig:
             raise ValueError("n_jobs must be positive")
         if self.early_stopping_rounds is not None and self.early_stopping_rounds <= 0:
             raise ValueError("early_stopping_rounds must be positive when provided")
+        if self.early_stopping_min_trials < 0:
+            raise ValueError("early_stopping_min_trials must be >= 0")
         if self.early_stopping_min_delta < 0.0:
             raise ValueError("early_stopping_min_delta must be >= 0")
         duplicate_policy = str(self.duplicate_policy).lower().strip()

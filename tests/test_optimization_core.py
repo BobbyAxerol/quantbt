@@ -123,6 +123,84 @@ def test_optuna_optimizer_accepts_unseeded_sampler():
     assert len(result.trials) == 4
 
 
+def test_initial_trials_are_evaluated_first_and_recorded_as_baselines():
+    evaluator = QuadraticEvaluator()
+    optimizer = OptunaOptimizer(
+        evaluator=evaluator,
+        config=OptimizationConfig(study_name="initial_trials_core", n_trials=4, seed=7, show_progress_bar=False),
+        sampler_config=SamplerConfig(name="random"),
+    )
+
+    result = optimizer.optimize(
+        param_ranges={"x": (0, 6, 1)},
+        initial_trials=[{"x": 3}],
+    )
+
+    assert evaluator.calls[0]["x"] == 3
+    assert result.baseline_trials
+    assert result.baseline_trials[0].metadata["quantbt_source"] == "warm_start"
+    assert result.search_diagnostics["source_counts"]["warm_start"] == 1
+    assert result.search_diagnostics["baseline_rank"][0]["rank"] == 1
+
+
+def test_baseline_floor_keeps_warm_start_when_selector_prefers_worse_sample():
+    class FirstSampleSelector:
+        def select(self, result):
+            from quantbt.optimization import SelectedCandidate
+
+            sampled = next(record for record in result.trials if record.metadata.get("quantbt_source") != "warm_start" and record.state == "COMPLETE")
+            return SelectedCandidate(
+                params=dict(sampled.params),
+                values=tuple(sampled.values),
+                metrics=dict(sampled.metrics),
+                constraints=tuple(sampled.constraints),
+                metadata={"selector": "first_sample", "trial_number": sampled.number},
+            )
+
+    evaluator = QuadraticEvaluator()
+    optimizer = OptunaOptimizer(
+        evaluator=evaluator,
+        config=OptimizationConfig(study_name="baseline_floor_core", n_trials=3, seed=2, show_progress_bar=False),
+        sampler_config=SamplerConfig(name="random"),
+    )
+
+    result = optimizer.optimize(
+        param_ranges={"x": (0, 6, 1)},
+        initial_trials=[{"x": 3}],
+        candidate_selector=FirstSampleSelector(),
+    )
+
+    assert result.selected_params == {"x": 3}
+    assert result.search_regression is True
+    assert result.selection_metadata["selected_by"] == "warm_start_baseline_floor"
+
+
+def test_effective_params_builder_prunes_semantic_duplicates():
+    class ToggleEvaluator:
+        def __init__(self):
+            self.calls = []
+
+        def evaluate(self, params):
+            self.calls.append(dict(params))
+            return ObjectiveResult.scalar(float(params["x"]), metrics={"x": params["x"]})
+
+    evaluator = ToggleEvaluator()
+    optimizer = OptunaOptimizer(
+        evaluator=evaluator,
+        config=OptimizationConfig(study_name="effective_duplicate_core", n_trials=3, seed=1, show_progress_bar=False),
+        sampler_config=SamplerConfig(name="random"),
+    )
+
+    result = optimizer.optimize(
+        param_ranges={"x": [1], "use_filter": [False], "len_filter": [10, 20]},
+        effective_params_builder=lambda params: {"x": params["x"], "use_filter": params["use_filter"]},
+    )
+
+    assert len(evaluator.calls) == 1
+    assert [record.state for record in result.trials].count("PRUNED") == 2
+    assert result.search_diagnostics["effective_duplicate_count"] == 2
+
+
 def test_constraint_storage():
     class ConstraintEvaluator:
         def evaluate(self, params):
@@ -207,6 +285,27 @@ def test_single_objective_early_stopping_and_jsonl_logger(tmp_path):
     rows = [json.loads(line) for line in log_path.read_text().splitlines()]
     assert rows
     assert rows[0]["values"] == [1.0]
+
+
+def test_early_stopping_respects_min_trials_floor():
+    optimizer = OptunaOptimizer(
+        evaluator=ConstantEvaluator(1.0),
+        config=OptimizationConfig(
+            study_name="early_stop_min_trials_core",
+            n_trials=10,
+            seed=1,
+            early_stopping_rounds=1,
+            early_stopping_min_trials=4,
+            early_stopping_min_delta=0.0,
+            show_progress_bar=False,
+        ),
+        sampler_config=SamplerConfig(name="random"),
+    )
+
+    result = optimizer.optimize(param_ranges={"x": (1, 10, 1)})
+
+    assert len(result.trials) >= 4
+    assert len(result.trials) < 10
 
 
 def test_pruned_trials_do_not_consume_patience():

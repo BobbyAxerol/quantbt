@@ -11,7 +11,7 @@ from typing import Optional
 class SingleObjectiveEarlyStopping:
     """Stop a single-objective Optuna study after best-value stagnation."""
 
-    def __init__(self, patience: int, direction: str, min_delta: float = 1e-4):
+    def __init__(self, patience: int, direction: str, min_delta: float = 1e-4, min_trials: int = 0):
         if patience <= 0:
             raise ValueError("patience must be positive")
         direction = str(direction).lower().strip()
@@ -19,11 +19,15 @@ class SingleObjectiveEarlyStopping:
             raise ValueError("direction must be maximize or minimize")
         if min_delta < 0.0:
             raise ValueError("min_delta must be >= 0")
+        if min_trials < 0:
+            raise ValueError("min_trials must be >= 0")
         self.patience = int(patience)
         self.direction = direction
         self.min_delta = float(min_delta)
+        self.min_trials = int(min_trials)
         self._best: Optional[float] = None
         self._stale = 0
+        self._completed = 0
 
     def __call__(self, study, trial) -> None:
         try:
@@ -36,12 +40,13 @@ class SingleObjectiveEarlyStopping:
             current = float(study.best_value)
         except Exception:
             return
+        self._completed += 1
         if self._is_improved(current):
             self._best = current
             self._stale = 0
         else:
             self._stale += 1
-        if self._stale >= self.patience:
+        if self._completed >= self.min_trials and self._stale >= self.patience:
             study.stop()
 
     def _is_improved(self, current: float) -> bool:
