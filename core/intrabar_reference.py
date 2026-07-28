@@ -18,6 +18,13 @@ import pandas as pd
 
 from .execution_contract import ExecutionContract, IntrabarSameBarPolicy, TakeProfitGapPolicy
 from .constraints import quantize_signed_quantity
+from .intrabar_session import (
+    EntryPositionPolicy,
+    IntrabarSessionTape,
+    ProtectiveExitReentryPolicy,
+    SessionCounterBasis,
+    SessionExecutionPolicy,
+)
 from .market_tape import PreparedMarketTape
 from .schema import AccountConfig
 
@@ -44,6 +51,7 @@ class IntrabarFillReason(str, Enum):
     TAKE_PROFIT = "take_profit"
     LIQUIDATION = "liquidation"
     FINAL_CLOSE = "final_close"
+    SESSION_FORCED_EXIT = "session_forced_exit"
 
 
 class IntrabarEventFlag(IntFlag):
@@ -59,6 +67,13 @@ class IntrabarEventFlag(IntFlag):
     LIQUIDATION = 1 << 8
     REJECTED = 1 << 9
     ENTRY_SUPPRESSED = 1 << 10
+    SESSION_RESET = 1 << 11
+    SESSION_FORCED_EXIT = 1 << 12
+    ENTRY_WINDOW_BLOCKED = 1 << 13
+    ENTRY_QUOTA_BLOCKED = 1 << 14
+    FLAT_ONLY_BLOCKED = 1 << 15
+    STALE_SESSION_SIGNAL = 1 << 16
+    PROTECTIVE_REENTRY_BLOCKED = 1 << 17
 
 
 @dataclass(frozen=True)
@@ -210,6 +225,8 @@ def run_intrabar_reference(
     min_qty: float = 0.0,
     min_notional: float = 0.0,
     tick_size: float = 0.0,
+    session_policy: Optional[SessionExecutionPolicy] = None,
+    session_tape: Optional[IntrabarSessionTape] = None,
 ) -> IntrabarReferenceResult:
     """
     Execute a single-symbol intrabar bracket tape with causal next-open timing.
@@ -224,6 +241,11 @@ def run_intrabar_reference(
         raise ValueError("initial_capital must be > 0")
     if fee_rate < 0.0 or slippage_rate < 0.0:
         raise ValueError("fee_rate and slippage_rate must be >= 0")
+    if (session_policy is None) != (session_tape is None):
+        raise ValueError("session_policy and session_tape must be provided together")
+    session_enabled = session_policy is not None
+    if session_enabled and len(session_tape.session_id) != tape.n_bars:
+        raise ValueError("session_tape length must match market tape length")
     contract = contract or ExecutionContract.intrabar_bracket()
     if contract.engine_id != "intrabar_bracket_v1":
         raise ValueError("run_intrabar_reference requires intrabar_bracket_v1 contract")
@@ -250,7 +272,7 @@ def run_intrabar_reference(
     tp_arr = np.zeros(n, dtype=np.float64)
     fee_arr = np.zeros(n, dtype=np.float64)
     funding_arr = np.zeros(n, dtype=np.float64)
-    flags_arr = np.zeros(n, dtype=np.uint16)
+    flags_arr = np.zeros(n, dtype=np.uint32)
 
     equity = float(account.initial_capital)
     position = 0.0
@@ -262,6 +284,18 @@ def run_intrabar_reference(
     rejected_count = 0
     liquidated = False
     liquidation_bar = -1
+    current_session_id = int(session_tape.session_id[0]) if session_enabled and n else 0
+    long_entry_count = 0
+    short_entry_count = 0
+    protective_exit_on_previous_bar = False
+    session_reset_count = 0
+    session_forced_exit_count = 0
+    entry_window_blocked_count = 0
+    long_quota_blocked_count = 0
+    short_quota_blocked_count = 0
+    flat_only_blocked_count = 0
+    stale_session_signal_count = 0
+    reentry_suppressed_count = 0
 
     equity_arr[0] = equity
     for t in range(1, n):
@@ -279,6 +313,19 @@ def run_intrabar_reference(
         last_ref = open_ref
         if position != 0.0:
             equity += position * (open_ref - float(closes[t - 1])) * contract_size
+
+        reentry_block_from_previous_bar = False
+        if session_enabled:
+            bar_session_id = int(session_tape.session_id[t])
+            if bar_session_id != current_session_id:
+                current_session_id = bar_session_id
+                long_entry_count = 0
+                short_entry_count = 0
+                protective_exit_on_previous_bar = False
+                flags_arr[t] |= int(IntrabarEventFlag.SESSION_RESET)
+                session_reset_count += 1
+            reentry_block_from_previous_bar = bool(protective_exit_on_previous_bar)
+            protective_exit_on_previous_bar = False
 
         if position != 0.0 and _maintenance_breached(equity, position, open_ref, contract_size, account.maintenance_ratio):
             side = -1 if position > 0.0 else 1
@@ -308,14 +355,54 @@ def run_intrabar_reference(
             funding_arr[t] = funding_cost
             flags_arr[t] |= int(IntrabarEventFlag.FUNDING)
 
+        force_flat_bar = bool(session_enabled and session_tape.force_flat_at_open[t])
+        if force_flat_bar and position != 0.0:
+            side = -1 if position > 0.0 else 1
+            price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
+            fee = abs(position) * price * contract_size * fee_rate
+            equity += position * (price - open_ref) * contract_size - fee
+            fee_arr[t] += fee
+            fills.append(_fill(t, seq, idx[t], side, abs(position), price, fee, IntrabarFillReason.SESSION_FORCED_EXIT))
+            seq += 1
+            flags_arr[t] |= int(IntrabarEventFlag.EXIT_FILLED | IntrabarEventFlag.SESSION_FORCED_EXIT)
+            session_forced_exit_count += 1
+            position = 0.0
+            avg_entry = 0.0
+            active_stop = np.nan
+            active_tp = np.nan
+
         pending_side = int(intent.entry_side[t - 1])
         pending_size = float(intent.entry_size[t - 1])
         pending_exit = _pending_exit(intent, t - 1, position)
+        stale_session_signal = bool(
+            session_enabled
+            and session_policy.cancel_pending_on_session_change
+            and pending_side != 0
+            and int(session_tape.session_id[t - 1]) != int(session_tape.session_id[t])
+        )
+        if stale_session_signal:
+            pending_side = 0
+            pending_size = 0.0
+            flags_arr[t] |= int(IntrabarEventFlag.STALE_SESSION_SIGNAL | IntrabarEventFlag.ENTRY_SUPPRESSED)
+            stale_session_signal_count += 1
+        if (
+            session_enabled
+            and pending_side != 0
+            and position != 0.0
+            and session_policy.entry_position_policy is EntryPositionPolicy.FLAT_ONLY
+        ):
+            pending_side = 0
+            pending_size = 0.0
+            flags_arr[t] |= int(IntrabarEventFlag.FLAT_ONLY_BLOCKED | IntrabarEventFlag.ENTRY_SUPPRESSED)
+            flat_only_blocked_count += 1
         exit_same_side_conflict = bool(
             pending_exit and pending_side != 0 and position != 0.0 and np.sign(position) == pending_side
         )
+        reversal_allowed = not (
+            session_enabled and session_policy.entry_position_policy is EntryPositionPolicy.FLAT_ONLY
+        )
 
-        if position != 0.0 and (pending_exit or (pending_side != 0 and np.sign(position) != pending_side)):
+        if position != 0.0 and (pending_exit or (reversal_allowed and pending_side != 0 and np.sign(position) != pending_side)):
             reason = IntrabarFillReason.REVERSAL_EXIT if pending_side != 0 and np.sign(position) != pending_side else IntrabarFillReason.TECHNICAL_EXIT
             side = -1 if position > 0.0 else 1
             price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
@@ -337,7 +424,31 @@ def run_intrabar_reference(
         if pending_side != 0 and pending_size > 0.0 and position == 0.0:
             side = 1 if pending_side > 0 else -1
             price = _market_price(open_ref, side, slippage_rate, tick_size=tick_size)
-            if exit_same_side_conflict:
+            entry_blocked = False
+            if session_enabled:
+                if force_flat_bar and session_policy.suppress_entry_on_force_flat_bar:
+                    entry_blocked = True
+                    flags_arr[t] |= int(IntrabarEventFlag.SESSION_FORCED_EXIT | IntrabarEventFlag.ENTRY_SUPPRESSED)
+                elif not bool(session_tape.entry_allowed_at_open[t]):
+                    entry_blocked = True
+                    entry_window_blocked_count += 1
+                    flags_arr[t] |= int(IntrabarEventFlag.ENTRY_WINDOW_BLOCKED | IntrabarEventFlag.ENTRY_SUPPRESSED)
+                elif (
+                    session_policy.protective_exit_reentry_policy is ProtectiveExitReentryPolicy.SUPPRESS_SIGNAL_BAR
+                    and reentry_block_from_previous_bar
+                ):
+                    entry_blocked = True
+                    reentry_suppressed_count += 1
+                    flags_arr[t] |= int(IntrabarEventFlag.PROTECTIVE_REENTRY_BLOCKED | IntrabarEventFlag.ENTRY_SUPPRESSED)
+                elif side > 0 and session_policy.max_long_entries_per_session is not None and long_entry_count >= session_policy.max_long_entries_per_session:
+                    entry_blocked = True
+                    long_quota_blocked_count += 1
+                    flags_arr[t] |= int(IntrabarEventFlag.ENTRY_QUOTA_BLOCKED | IntrabarEventFlag.ENTRY_SUPPRESSED)
+                elif side < 0 and session_policy.max_short_entries_per_session is not None and short_entry_count >= session_policy.max_short_entries_per_session:
+                    entry_blocked = True
+                    short_quota_blocked_count += 1
+                    flags_arr[t] |= int(IntrabarEventFlag.ENTRY_QUOTA_BLOCKED | IntrabarEventFlag.ENTRY_SUPPRESSED)
+            if exit_same_side_conflict or entry_blocked:
                 qty = 0.0
             else:
                 qty = _compile_entry_quantity(
@@ -364,7 +475,7 @@ def run_intrabar_reference(
                         min_notional=min_notional,
                     )
                 )
-            if exit_same_side_conflict:
+            if exit_same_side_conflict or entry_blocked:
                 flags_arr[t] |= int(IntrabarEventFlag.ENTRY_SUPPRESSED)
                 equity_arr[t] = equity
                 pos_arr[t] = position
@@ -401,6 +512,11 @@ def run_intrabar_reference(
             fills.append(_fill(t, seq, idx[t], side, qty, price, fee, reason))
             seq += 1
             flags_arr[t] |= int(IntrabarEventFlag.ENTRY_FILLED)
+            if session_enabled and session_policy.counter_basis in {SessionCounterBasis.FILLED_ENTRY, SessionCounterBasis.ACCEPTED_ENTRY}:
+                if side > 0:
+                    long_entry_count += 1
+                else:
+                    short_entry_count += 1
 
         if position != 0.0:
             exit_info = _resolve_intrabar_exit(
@@ -429,8 +545,12 @@ def run_intrabar_reference(
                 flags_arr[t] |= int(IntrabarEventFlag.EXIT_FILLED)
                 if reason is IntrabarFillReason.STOP_LOSS:
                     flags_arr[t] |= int(IntrabarEventFlag.STOP_FILLED)
+                    if session_enabled:
+                        protective_exit_on_previous_bar = True
                 else:
                     flags_arr[t] |= int(IntrabarEventFlag.TP_FILLED)
+                    if session_enabled:
+                        protective_exit_on_previous_bar = True
                 position = 0.0
                 avg_entry = 0.0
                 active_stop = np.nan
@@ -536,6 +656,23 @@ def run_intrabar_reference(
                 "min_notional": float(min_notional),
                 "tick_size": float(tick_size),
             },
+            **(
+                {
+                    "session_execution_enabled": True,
+                    "session_policy": session_policy.to_metadata(),
+                    "session_tape_signature": session_tape.signature,
+                    "session_reset_count": int(session_reset_count),
+                    "session_forced_exit_count": int(session_forced_exit_count),
+                    "entry_window_blocked_count": int(entry_window_blocked_count),
+                    "long_quota_blocked_count": int(long_quota_blocked_count),
+                    "short_quota_blocked_count": int(short_quota_blocked_count),
+                    "flat_only_blocked_count": int(flat_only_blocked_count),
+                    "stale_session_signal_count": int(stale_session_signal_count),
+                    "reentry_suppressed_count": int(reentry_suppressed_count),
+                }
+                if session_enabled
+                else {"session_execution_enabled": False}
+            ),
         },
     )
 

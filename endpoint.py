@@ -54,7 +54,8 @@ from .core.intrabar_reference import (
     IntrabarSizingMode,
     run_intrabar_reference,
 )
-from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel
+from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
+from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import BacktestResultV2, OptionBacktestResult
@@ -217,6 +218,8 @@ class PreparedIntrabarRunner:
     symbol: str
     contract: ExecutionContract
     profile_metadata: Dict
+    session_policy: Optional[SessionExecutionPolicy] = None
+    session_tape: Optional[IntrabarSessionTape] = None
 
     @property
     def market(self) -> PreparedMarketTape:
@@ -225,17 +228,25 @@ class PreparedIntrabarRunner:
     def run(self, intent: IntrabarIntentTape, *, report_level: Optional[str] = None) -> BacktestResultV2:
         config = self.endpoint.config
         level = report_level or config.report_level
-        kernel = run_intrabar_kernel(
-            tape=self.tape,
-            intent=intent,
-            account=config.account,
-            contract=self.contract,
-            fee_rate=config.v2_fee_rate,
-            slippage_rate=float(config.execution.slippage_rate),
-            contract_size=_scalar_for_symbol(config.contract_size, self.symbol),
+        kwargs = {
+            "tape": self.tape,
+            "intent": intent,
+            "account": config.account,
+            "contract": self.contract,
+            "fee_rate": config.v2_fee_rate,
+            "slippage_rate": float(config.execution.slippage_rate),
+            "contract_size": _scalar_for_symbol(config.contract_size, self.symbol),
             **self.endpoint._intrabar_execution_kwargs(self.symbol),
-            report_level=level,
-        )
+            "report_level": level,
+        }
+        if self.session_policy is not None:
+            kernel = run_intrabar_session_kernel(
+                **kwargs,
+                session_policy=self.session_policy,
+                session_tape=self.session_tape,
+            )
+        else:
+            kernel = run_intrabar_kernel(**kwargs)
         idx = kernel.equity.index
         returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
         diagnostics = pd.DataFrame(
@@ -340,6 +351,7 @@ class QuantBTEndpoint:
         data,
         datetime_index=None,
         symbols: Optional[Sequence[str]] = None,
+        session_tape: Optional[IntrabarSessionTape] = None,
         funding_event_timestamps=None,
         funding_event_rates=None,
     ) -> PreparedIntrabarRunner:
@@ -368,6 +380,11 @@ class QuantBTEndpoint:
             bar_timestamp_semantics=str(self.config.metadata.get("bar_timestamp_semantics", "close")),
         )
         contract = _execution_contract_from_config(self.config)
+        session_policy = _session_policy_from_config(self.config)
+        if session_policy is not None and session_tape is None:
+            raise ValueError("session_tape is required when session_policy is configured")
+        if session_tape is not None and len(session_tape.session_id) != tape.n_bars:
+            raise ValueError("session_tape length must match prepared market tape length")
         symbol = symbol_list[0]
         profile = {
             "mode": self.config.mode,
@@ -378,9 +395,19 @@ class QuantBTEndpoint:
             "contract_size": _scalar_for_symbol(self.config.contract_size, symbol),
             "intrabar": self._intrabar_execution_kwargs(symbol),
             "data_signature": tape.signature,
+            "session_policy": None if session_policy is None else session_policy.to_metadata(),
+            "session_tape_signature": None if session_tape is None else session_tape.signature,
         }
         profile["prepared_signature"] = _prepared_profile_signature(tape.signature, profile)
-        return PreparedIntrabarRunner(endpoint=self, tape=tape, symbol=symbol, contract=contract, profile_metadata=profile)
+        return PreparedIntrabarRunner(
+            endpoint=self,
+            tape=tape,
+            symbol=symbol,
+            contract=contract,
+            profile_metadata=profile,
+            session_policy=session_policy,
+            session_tape=session_tape,
+        )
 
     @classmethod
     def pct_equity(cls, **kwargs) -> "QuantBTEndpoint":
@@ -420,6 +447,7 @@ class QuantBTEndpoint:
         intrabar_sizing_mode: Union[str, IntrabarSizingMode] = IntrabarSizingMode.UNITS,
         close_on_last_bar: bool = True,
         execution_contract: Optional[ExecutionContract] = None,
+        session_policy: Optional[SessionExecutionPolicy] = None,
         **kwargs,
     ) -> "QuantBTEndpoint":
         """
@@ -442,6 +470,8 @@ class QuantBTEndpoint:
         metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
         contract = execution_contract or ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
         metadata.setdefault("execution_contract", contract.to_metadata())
+        if session_policy is not None:
+            metadata["session_policy"] = session_policy.to_metadata()
         return cls(
             _config_from_kwargs(
                 mode="intrabar_bracket_reference",
@@ -460,6 +490,7 @@ class QuantBTEndpoint:
         intrabar_sizing_mode: Union[str, IntrabarSizingMode] = IntrabarSizingMode.UNITS,
         close_on_last_bar: bool = True,
         execution_contract: Optional[ExecutionContract] = None,
+        session_policy: Optional[SessionExecutionPolicy] = None,
         report_level: str = "standard",
         **kwargs,
     ) -> "QuantBTEndpoint":
@@ -478,6 +509,8 @@ class QuantBTEndpoint:
         metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
         contract = execution_contract or ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
         metadata.setdefault("execution_contract", contract.to_metadata())
+        if session_policy is not None:
+            metadata["session_policy"] = session_policy.to_metadata()
         return cls(
             _config_from_kwargs(
                 mode="intrabar_bracket",
@@ -1169,6 +1202,7 @@ class QuantBTEndpoint:
         strategy_run: Optional[OptionStrategyRun] = None,
         intent: Optional[IntrabarIntentTape] = None,
         intent_cols: Optional[Dict[str, str]] = None,
+        session_tape: Optional[IntrabarSessionTape] = None,
         funding_event_timestamps=None,
         funding_event_rates=None,
         fill_replay: Optional[Union[FillReplayTape, pd.DataFrame]] = None,
@@ -1255,6 +1289,7 @@ class QuantBTEndpoint:
                 symbols=symbols,
                 intent=intent,
                 intent_cols=intent_cols,
+                session_tape=session_tape,
                 funding_event_timestamps=funding_event_timestamps,
                 funding_event_rates=funding_event_rates,
             )
@@ -1267,6 +1302,7 @@ class QuantBTEndpoint:
                 symbols=symbols,
                 intent=intent,
                 intent_cols=intent_cols,
+                session_tape=session_tape,
                 funding_event_timestamps=funding_event_timestamps,
                 funding_event_rates=funding_event_rates,
             )
@@ -1521,9 +1557,12 @@ class QuantBTEndpoint:
         self._store_result(self.engine.result)
         return self.result
 
-    def _run_intrabar_bracket_reference(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps=None, funding_event_rates=None):
+    def _run_intrabar_bracket_reference(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, session_tape=None, funding_event_timestamps=None, funding_event_rates=None):
         tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps, funding_event_rates)
         contract = _execution_contract_from_config(self.config)
+        session_policy = _session_policy_from_config(self.config)
+        if session_policy is not None and session_tape is None:
+            raise ValueError("session_tape is required when session_policy is configured")
         oracle = run_intrabar_reference(
             tape=tape,
             intent=intent,
@@ -1532,6 +1571,8 @@ class QuantBTEndpoint:
             fee_rate=self.config.v2_fee_rate,
             slippage_rate=float(self.config.execution.slippage_rate),
             contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+            session_policy=session_policy,
+            session_tape=session_tape,
             **self._intrabar_execution_kwargs(symbol),
         )
         idx = oracle.equity.index
@@ -1578,20 +1619,33 @@ class QuantBTEndpoint:
         self._store_result(result)
         return self.result
 
-    def _run_intrabar_bracket_fast(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps=None, funding_event_rates=None):
+    def _run_intrabar_bracket_fast(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, session_tape=None, funding_event_timestamps=None, funding_event_rates=None):
         tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps, funding_event_rates)
         contract = _execution_contract_from_config(self.config)
-        kernel = run_intrabar_kernel(
-            tape=tape,
-            intent=intent,
-            account=self.config.account,
-            contract=contract,
-            fee_rate=self.config.v2_fee_rate,
-            slippage_rate=float(self.config.execution.slippage_rate),
-            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+        session_policy = _session_policy_from_config(self.config)
+        if session_policy is not None and session_tape is None:
+            raise ValueError("session_tape is required when session_policy is configured")
+        if session_policy is None and session_tape is not None:
+            raise ValueError("session_policy is required when session_tape is supplied")
+        kwargs = {
+            "tape": tape,
+            "intent": intent,
+            "account": self.config.account,
+            "contract": contract,
+            "fee_rate": self.config.v2_fee_rate,
+            "slippage_rate": float(self.config.execution.slippage_rate),
+            "contract_size": _scalar_for_symbol(self.config.contract_size, symbol),
             **self._intrabar_execution_kwargs(symbol),
-            report_level=self.config.report_level,
-        )
+            "report_level": self.config.report_level,
+        }
+        if session_policy is not None:
+            kernel = run_intrabar_session_kernel(
+                **kwargs,
+                session_policy=session_policy,
+                session_tape=session_tape,
+            )
+        else:
+            kernel = run_intrabar_kernel(**kwargs)
         idx = kernel.equity.index
         returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
         diagnostics = pd.DataFrame(
@@ -3469,6 +3523,10 @@ def _execution_contract_from_config(config: EndpointConfig) -> ExecutionContract
     if contract_id == "intrabar_bracket_v1":
         return ExecutionContract.intrabar_bracket()
     return ExecutionContract.from_metadata({"engine_id": contract_id})
+
+
+def _session_policy_from_config(config: EndpointConfig) -> Optional[SessionExecutionPolicy]:
+    return SessionExecutionPolicy.from_metadata(config.metadata.get("session_policy"))
 
 
 def _tick_size_for_symbol(instruments, symbol: str, default: float = 0.0) -> float:

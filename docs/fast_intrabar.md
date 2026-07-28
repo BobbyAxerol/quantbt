@@ -145,6 +145,86 @@ ref_result = ref.backtest(data=df, signal_col="entry_signal")
 Use the reference route to inspect behavior when migrating an alpha. Use the
 Numba route for real sweeps after parity tests pass.
 
+## Session-Aware Reference Mode
+
+Phase 31H adds optional session execution state to the Python reference route.
+It is for intraday alphas whose order eligibility depends on the trading
+session, while the strategy still emits compact entry/exit intent.
+
+```python
+from quantbt import (
+    EntryPositionPolicy,
+    IntrabarSessionTape,
+    ProtectiveExitReentryPolicy,
+    QuantBTEndpoint,
+    SessionExecutionPolicy,
+)
+
+session_policy = SessionExecutionPolicy(
+    entry_position_policy=EntryPositionPolicy.FLAT_ONLY,
+    max_long_entries_per_session=3,
+    max_short_entries_per_session=1,
+    protective_exit_reentry_policy=ProtectiveExitReentryPolicy.SUPPRESS_SIGNAL_BAR,
+)
+
+session_tape = IntrabarSessionTape.from_index(
+    df.index,
+    timezone="Asia/Ho_Chi_Minh",
+    session_key="local_date",
+    entry_windows=(("08:45", "11:30"), ("13:00", "14:20")),
+    force_flat_time="14:20",
+)
+
+bt = QuantBTEndpoint.intrabar_bracket_reference(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    session_policy=session_policy,
+)
+
+result = bt.backtest(
+    data=df,
+    signal_col="entry_signal",
+    session_tape=session_tape,
+    intent_cols={
+        "stop_value": "sl_pct",
+        "take_profit_value": "tp_pct",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
+    },
+)
+```
+
+When `session_policy=None`, existing intrabar reference and fast-kernel behavior
+is unchanged. When a session policy is supplied, `session_tape` is required.
+
+Certified Phase 31H primitives:
+
+```text
+session reset
+time-window entry blocking
+EOD force-flat at open
+flat-only / no implicit reversal
+per-session long/short entry quotas
+stale signal cancellation across session boundaries
+protective-exit re-entry suppression
+```
+
+Phase 31I adds a separate fast Numba session kernel. The existing non-session
+kernel remains unchanged; QuantBT dispatches once before execution:
+
+```text
+no session policy -> intrabar_bracket_v1
+session policy    -> intrabar_session_bracket_v1
+```
+
+Use `intrabar_bracket_reference(...)` as the readable oracle for new session
+semantics, then use `intrabar_bracket(...)` for sweeps after parity checks pass.
+Prepared runners also include `session_policy` and `session_tape_signature` in
+their frozen profile metadata to avoid cache reuse across different session
+contracts.
+
 ## Prepared Runner
 
 ```python

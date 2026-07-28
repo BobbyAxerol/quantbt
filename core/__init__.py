@@ -29,12 +29,20 @@ from .intrabar_reference import (
     IntrabarSizingMode,
     run_intrabar_reference,
 )
+from .intrabar_session import (
+    EntryPositionPolicy,
+    IntrabarSessionTape,
+    ProtectiveExitReentryPolicy,
+    SessionCounterBasis,
+    SessionExecutionPolicy,
+)
 from .intrabar_kernel import (
     FillReplayTape,
     NativeFillReplayResult,
     NativeIntrabarKernelResult,
     run_fill_replay_kernel,
     run_intrabar_kernel,
+    run_intrabar_session_kernel,
 )
 from .certification import (
     AlphaExecutionClassification,
@@ -195,7 +203,12 @@ __all__ = [
     "IntrabarIntentTape",
     "IntrabarLevelMode",
     "IntrabarReferenceResult",
+    "IntrabarSessionTape",
     "IntrabarSizingMode",
+    "EntryPositionPolicy",
+    "ProtectiveExitReentryPolicy",
+    "SessionCounterBasis",
+    "SessionExecutionPolicy",
     "IntrabarSameBarPolicy",
     "FillReplayTape",
     "LifecycleModel",
@@ -260,6 +273,7 @@ __all__ = [
     "round_down_to_step",
     "run_intrabar_reference",
     "run_intrabar_kernel",
+    "run_intrabar_session_kernel",
     "run_fill_replay_kernel",
     "scan_alpha_directory",
     "SUPPORTED_DEPTH_MODELS",

@@ -130,18 +130,21 @@ Latest Phase 31 intrabar execution benchmark:
 
 | Route | Workload | Runtime | Throughput | Ratio | Parity |
 |---|---:|---:|---:|---:|---|
-| `close_target_v2_pure_kernel` | 25,000 bars | 0.0115s | 2,171,235 bars/s | baseline | baseline |
-| `intrabar_bracket_v1_minimal` | 25,000 bars, 2,000 fills | 0.0118s | 2,113,511 bars/s | 1.03x close-target | oracle-checked |
-| `intrabar_bracket_v1_audit` | 25,000 bars, fill ledger | 0.0527s | 474,245 bars/s | 4.46x minimal | pass |
-| `intrabar_reference_python` | 25,000 bars | 0.2759s | 90,626 bars/s | 23.32x slower than minimal | truth model |
-| `fill_replay_v1_kernel` | 25,000 bars, 2,000 fills | 0.0111s | 2,259,396 bars/s | 0.94x minimal | accounting |
-| `native_event_explicit_orders_facade` | 25,000 bars, 2,000 market orders | 0.0761s | 328,311 bars/s | 6.44x minimal | speed reference |
+| `close_target_v2_pure_kernel` | 25,000 bars | 0.0087s | 2,879,313 bars/s | baseline | baseline |
+| `intrabar_bracket_v1_minimal` | 25,000 bars, 2,000 fills | 0.0118s | 2,115,865 bars/s | 1.36x close-target | oracle-checked |
+| `intrabar_bracket_v1_audit` | 25,000 bars, fill ledger | 0.0527s | 474,427 bars/s | 4.46x minimal | pass |
+| `intrabar_session_bracket_v1_minimal` | 25,000 bars, session state | 0.0117s | 2,145,495 bars/s | 0.99x minimal | reference-checked |
+| `intrabar_session_bracket_v1_audit` | 25,000 bars, session ledger | 0.0499s | 501,156 bars/s | 4.22x minimal | pass |
+| `intrabar_reference_python` | 25,000 bars | 0.2394s | 104,419 bars/s | 20.26x slower than minimal | truth model |
+| `fill_replay_v1_kernel` | 25,000 bars, 2,000 fills | 0.0124s | 2,013,664 bars/s | 1.05x minimal | accounting |
+| `native_event_explicit_orders_facade` | 25,000 bars, 2,000 market orders | 0.0761s | 328,618 bars/s | 6.44x minimal | speed reference |
 
 Phase 31 adds execution-contract certification for close-target, fast intrabar
-SL/TP/trailing, and explicit fill replay paths. The fast intrabar kernel is
-about 23.3x faster than the readable Python oracle on the committed benchmark
-while preserving the oracle semantics through targeted parity tests and audit
-second-pass checks.
+SL/TP/trailing, optional session-aware intraday execution state, and explicit
+fill replay paths. The fast intrabar kernel is about 20.3x faster than the
+readable Python oracle on the committed benchmark; the session kernel keeps the
+non-session hot path separate while adding entry windows, EOD force-flat,
+per-session quota, stale-signal cancellation, and re-entry suppression.
 
 Latest Phase 32C optimization overhead benchmark:
 
