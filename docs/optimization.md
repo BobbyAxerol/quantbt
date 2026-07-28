@@ -25,6 +25,8 @@ from quantbt import (
     ReportMetricObjective,
     SharpeObjective,
     CandidateSelector,
+    RobustSelectionConfig,
+    MultiSeedOptimization,
 )
 ```
 
@@ -400,6 +402,111 @@ selector when production params are required.
 
 `CandidateSelector(mode="pareto_first")` filters infeasible Pareto trials before
 selection.
+
+### Robust Plateau Selection
+
+For practical alpha research, the highest Optuna trial can be an isolated
+sample. QuantBT therefore exposes a post-search plateau selector:
+
+```python
+selector = CandidateSelector(
+    mode="robust_plateau",
+    config=RobustSelectionConfig(
+        top_quantile=0.10,
+        min_trades=100,
+        max_drawdown_pct=25.0,
+        neighborhood_radius=0.10,
+        min_neighbor_count=8,
+        seed_consensus=3,
+        instability_penalty=0.25,
+        worst_weight=0.25,
+        drawdown_penalty=0.0,
+    ),
+)
+
+result = optimizer.optimize(
+    param_ranges=param_ranges,
+    candidate_selector=selector,
+)
+```
+
+The sampler still optimizes the raw objective. The selector runs only after the
+study is complete:
+
+```text
+completed trials
+-> formal feasibility filter
+-> optional metric filters such as min trades / max drawdown
+-> top objective quantile
+-> parameter-neighborhood scoring
+-> medoid candidate from the best plateau
+```
+
+The robust score is selection-only:
+
+```text
+score =
+    median(objective in neighborhood)
+  + worst_weight * worst(objective in neighborhood)
+  - instability_penalty * std(objective in neighborhood)
+  - drawdown_penalty * median(max_drawdown_pct)
+  + size_bonus * log(1 + neighbor_count)
+```
+
+This is designed to avoid selecting a single lucky spike that does not survive
+nearby parameter perturbation. It does not change the objective surface seen by
+Optuna.
+
+`result.robust_candidates` records the ranked plateau candidates, including
+neighbor count, seed consensus count, objective dispersion, and selected medoid
+trial number.
+
+### Multi-Seed Search
+
+One random TPE trajectory is not enough evidence that a parameter region is
+stable. `MultiSeedOptimization` reruns the same evaluator under several sampler
+seeds, aggregates the completed trial records, then applies the same selector:
+
+```python
+multi = MultiSeedOptimization(
+    evaluator=evaluator,
+    config=OptimizationConfig(
+        study_name="delta_rsi_intrabar_multiseed",
+        n_trials=600,
+        seed=None,
+        show_progress_bar=False,
+        early_stopping_rounds=None,
+    ),
+    sampler_config=SamplerConfig(
+        name="tpe",
+        kwargs={
+            "n_startup_trials": 120,
+            "multivariate": False,
+            "group": False,
+        },
+    ),
+    seeds=(None, 41, 42, 43, 44),
+)
+
+result = multi.optimize(
+    param_ranges=param_ranges,
+    fixed_params={"issl": True},
+    initial_trials=[known_good_params],
+    candidate_selector=selector,
+)
+```
+
+`result.seed_results` stores best/selected params per seed. Trial metadata also
+contains `quantbt_seed`, so robust plateau selection can require a region to be
+seen across several seeds via `seed_consensus`.
+
+For a normal single-study `OptunaOptimizer` result without seed metadata, the
+selector treats the study as one consensus group. Set `seed_consensus > 1` only
+when using aggregated multi-seed trial records.
+
+Warm-start baseline floor still applies: if the robust candidate is worse than
+the best feasible historical baseline on the primary objective, QuantBT returns
+the baseline and sets `search_regression=True`.
 
 ## Reproducibility Safety
 
