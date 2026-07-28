@@ -18,6 +18,7 @@ from quantbt import (
     prepare_market_tape,
     run_intrabar_kernel,
     run_intrabar_reference,
+    run_intrabar_session_kernel,
 )
 
 
@@ -49,6 +50,46 @@ def _run(df, intent, policy, session_tape, *, account=None):
         session_policy=policy,
         session_tape=session_tape,
     )
+
+
+def _assert_session_kernel_matches_reference(df, intent, policy, session_tape, *, account=None):
+    tape = prepare_market_tape(data=df, symbols=["BTC"], use_funding=False)
+    account = account or AccountConfig(initial_capital=10_000.0, leverage=10.0)
+    contract = ExecutionContract.intrabar_bracket(close_on_last_bar=False)
+    reference = run_intrabar_reference(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        session_policy=policy,
+        session_tape=session_tape,
+    )
+    kernel = run_intrabar_session_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        session_policy=policy,
+        session_tape=session_tape,
+        report_level="audit",
+    )
+    np.testing.assert_allclose(kernel.equity.to_numpy(), reference.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    np.testing.assert_allclose(kernel.position.to_numpy(), reference.position.to_numpy(), atol=1e-9, rtol=0.0)
+    np.testing.assert_array_equal(kernel.event_flags.to_numpy(), reference.event_flags.to_numpy())
+    assert [fill.reason for fill in kernel.fills] == [fill.reason for fill in reference.fills]
+    assert kernel.fill_count == len(reference.fills)
+    for key in (
+        "session_reset_count",
+        "session_forced_exit_count",
+        "entry_window_blocked_count",
+        "long_quota_blocked_count",
+        "short_quota_blocked_count",
+        "flat_only_blocked_count",
+        "stale_session_signal_count",
+        "reentry_suppressed_count",
+    ):
+        assert kernel.metadata[key] == reference.metadata[key]
+    return reference, kernel
 
 
 def test_phase31h_no_session_path_matches_existing_fast_kernel():
@@ -219,17 +260,76 @@ def test_phase31h_endpoint_accepts_session_policy_and_tape_on_reference_route():
     assert result.metadata["session_policy"]["max_long_entries_per_session"] == 1
 
 
-def test_phase31h_fast_route_rejects_session_until_session_kernel_phase():
+def test_phase31i_session_kernel_matches_reference_for_quota_force_flat_and_reentry():
+    df = _frame([{}, {"low": 94.0}, {}, {}, {}])
+    intent = IntrabarIntentTape.from_arrays(
+        entry_side=[1, 1, 0, 1, 0],
+        entry_size=[1, 1, 0, 1, 0],
+        stop_value=[0.05, np.nan, np.nan, np.nan, np.nan],
+    )
+    policy = SessionExecutionPolicy(
+        max_long_entries_per_session=2,
+        protective_exit_reentry_policy=ProtectiveExitReentryPolicy.SUPPRESS_SIGNAL_BAR,
+    )
+    session_tape = _session(5, force_flat=[False, False, False, False, True])
+
+    reference, kernel = _assert_session_kernel_matches_reference(df, intent, policy, session_tape)
+
+    assert kernel.metadata["engine_id"] == "intrabar_session_bracket_v1"
+    assert reference.metadata["reentry_suppressed_count"] == 1
+
+
+def test_phase31i_fast_route_accepts_session_policy_and_matches_reference_route():
+    df = _frame([{}, {"low": 94.0}, {}])
+    signal = pd.Series([1, 1, 0], index=df.index)
+    policy = SessionExecutionPolicy(
+        protective_exit_reentry_policy=ProtectiveExitReentryPolicy.SUPPRESS_SIGNAL_BAR,
+    )
+    session_tape = _session(3)
+    ref_bt = QuantBTEndpoint.intrabar_bracket_reference(
+        initial_capital=10_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+        close_on_last_bar=False,
+        session_policy=policy,
+    )
+    fast_bt = QuantBTEndpoint.intrabar_bracket(
+        initial_capital=10_000.0,
+        fee_rate=0.0,
+        use_funding=False,
+        close_on_last_bar=False,
+        report_level="audit",
+        session_policy=policy,
+    )
+
+    df_with_stop = df.assign(sl=[0.05, np.nan, np.nan])
+    ref_result = ref_bt.backtest(data=df_with_stop, signal=signal, session_tape=session_tape, symbols=["BTC"], intent_cols={"stop_value": "sl"})
+    fast_result = fast_bt.backtest(data=df_with_stop, signal=signal, session_tape=session_tape, symbols=["BTC"], intent_cols={"stop_value": "sl"})
+
+    np.testing.assert_allclose(fast_result.equity.to_numpy(), ref_result.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    assert fast_result.metadata["engine_id"] == "intrabar_session_bracket_v1"
+
+
+def test_phase31i_prepared_session_runner_matches_normal_fast_endpoint():
     bt = QuantBTEndpoint.intrabar_bracket(
         initial_capital=10_000.0,
         fee_rate=0.0,
         use_funding=False,
+        close_on_last_bar=False,
+        report_level="audit",
         session_policy=SessionExecutionPolicy(),
     )
     df = _frame([{}, {}, {}])
+    signal = pd.Series([1, 0, 0], index=df.index)
+    session_tape = _session(3)
 
-    with pytest.raises(NotImplementedError, match="Phase 31I"):
-        bt.backtest(data=df, signal=pd.Series([1, 0, 0], index=df.index), session_tape=_session(3), symbols=["BTC"])
+    normal = bt.backtest(data=df, signal=signal, session_tape=session_tape, symbols=["BTC"])
+    intent = IntrabarIntentTape.from_arrays(entry_side=[1, 0, 0], entry_size=[1, 0, 0])
+    runner = bt.prepare_intrabar(data=df, symbols=["BTC"], session_tape=session_tape)
+    prepared = runner.run(intent, report_level="audit")
+
+    np.testing.assert_allclose(prepared.equity.to_numpy(), normal.equity.to_numpy(), atol=1e-9, rtol=0.0)
+    assert prepared.metadata["profile_metadata"]["session_tape_signature"] == session_tape.signature
 
 
 def test_phase31h_session_tape_from_index_builds_local_date_windows():

@@ -55,7 +55,7 @@ from .core.intrabar_reference import (
     run_intrabar_reference,
 )
 from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
-from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel
+from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import BacktestResultV2, OptionBacktestResult
@@ -226,21 +226,27 @@ class PreparedIntrabarRunner:
         return self.tape
 
     def run(self, intent: IntrabarIntentTape, *, report_level: Optional[str] = None) -> BacktestResultV2:
-        if self.session_policy is not None:
-            raise NotImplementedError("prepared fast session intrabar runner is Phase 31I; use intrabar_bracket_reference for Phase 31H session correctness")
         config = self.endpoint.config
         level = report_level or config.report_level
-        kernel = run_intrabar_kernel(
-            tape=self.tape,
-            intent=intent,
-            account=config.account,
-            contract=self.contract,
-            fee_rate=config.v2_fee_rate,
-            slippage_rate=float(config.execution.slippage_rate),
-            contract_size=_scalar_for_symbol(config.contract_size, self.symbol),
+        kwargs = {
+            "tape": self.tape,
+            "intent": intent,
+            "account": config.account,
+            "contract": self.contract,
+            "fee_rate": config.v2_fee_rate,
+            "slippage_rate": float(config.execution.slippage_rate),
+            "contract_size": _scalar_for_symbol(config.contract_size, self.symbol),
             **self.endpoint._intrabar_execution_kwargs(self.symbol),
-            report_level=level,
-        )
+            "report_level": level,
+        }
+        if self.session_policy is not None:
+            kernel = run_intrabar_session_kernel(
+                **kwargs,
+                session_policy=self.session_policy,
+                session_tape=self.session_tape,
+            )
+        else:
+            kernel = run_intrabar_kernel(**kwargs)
         idx = kernel.equity.index
         returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
         diagnostics = pd.DataFrame(
@@ -1614,21 +1620,32 @@ class QuantBTEndpoint:
         return self.result
 
     def _run_intrabar_bracket_fast(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, session_tape=None, funding_event_timestamps=None, funding_event_rates=None):
-        if _session_policy_from_config(self.config) is not None or session_tape is not None:
-            raise NotImplementedError("fast session-aware intrabar kernel is Phase 31I; use intrabar_bracket_reference for Phase 31H")
         tape, intent, symbol = self._prepare_intrabar_run(data, signal, signal_col, datetime_index, symbols, intent, intent_cols, funding_event_timestamps, funding_event_rates)
         contract = _execution_contract_from_config(self.config)
-        kernel = run_intrabar_kernel(
-            tape=tape,
-            intent=intent,
-            account=self.config.account,
-            contract=contract,
-            fee_rate=self.config.v2_fee_rate,
-            slippage_rate=float(self.config.execution.slippage_rate),
-            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+        session_policy = _session_policy_from_config(self.config)
+        if session_policy is not None and session_tape is None:
+            raise ValueError("session_tape is required when session_policy is configured")
+        if session_policy is None and session_tape is not None:
+            raise ValueError("session_policy is required when session_tape is supplied")
+        kwargs = {
+            "tape": tape,
+            "intent": intent,
+            "account": self.config.account,
+            "contract": contract,
+            "fee_rate": self.config.v2_fee_rate,
+            "slippage_rate": float(self.config.execution.slippage_rate),
+            "contract_size": _scalar_for_symbol(self.config.contract_size, symbol),
             **self._intrabar_execution_kwargs(symbol),
-            report_level=self.config.report_level,
-        )
+            "report_level": self.config.report_level,
+        }
+        if session_policy is not None:
+            kernel = run_intrabar_session_kernel(
+                **kwargs,
+                session_policy=session_policy,
+                session_tape=session_tape,
+            )
+        else:
+            kernel = run_intrabar_kernel(**kwargs)
         idx = kernel.equity.index
         returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
         diagnostics = pd.DataFrame(

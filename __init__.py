@@ -176,6 +176,7 @@ from .core.intrabar_kernel import (
     NativeIntrabarKernelResult,
     run_fill_replay_kernel,
     run_intrabar_kernel,
+    run_intrabar_session_kernel,
 )
 from .core.certification import (
     AlphaExecutionClassification,
@@ -744,6 +745,7 @@ __all__ = [
     "round_down_to_step",
     "run_fill_replay_kernel",
     "run_intrabar_kernel",
+    "run_intrabar_session_kernel",
     "run_intrabar_reference",
     "scan_alpha_directory",
     "SUPPORTED_DEPTH_MODELS",

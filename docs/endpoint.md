@@ -107,8 +107,10 @@ Session-aware intrabar execution is opt-in on the reference route:
 `QuantBTEndpoint.intrabar_bracket_reference(session_policy=...)` plus
 `backtest(..., session_tape=...)`. It supports entry windows, per-session entry
 quota, flat-only/no-reversal, force-flat at open, stale-signal cancellation, and
-protective-exit re-entry suppression. The fast Numba session kernel is a later
-Phase 31I item; the fast route raises if session policy/tape is supplied.
+protective-exit re-entry suppression. Phase 31I adds the matching fast Numba
+route on `QuantBTEndpoint.intrabar_bracket(session_policy=...)`; the non-session
+kernel remains a separate path and is selected when no session policy is
+supplied.
 
 For the full contract taxonomy and certification workflow, read
 [`execution_contracts.md`](execution_contracts.md),

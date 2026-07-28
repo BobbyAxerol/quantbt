@@ -4982,7 +4982,7 @@ Tests:
 
 ### Phase 31I - Fast Prepared Session Kernel
 
-Status: planned.
+Status: implemented on `feat/31-execution-correctness-intrabar`.
 
 Scope:
 
@@ -5008,6 +5008,32 @@ Acceptance:
   and later Numba parity without becoming a generic mutable state-machine
   engine.
 
+Implementation notes after Phase 31I:
+
+- Added `run_intrabar_session_kernel(...)`.
+  - Uses a separate `_engine_intrabar_session_bracket_v1` Numba kernel.
+  - Does not add a `session_enabled` branch to the existing
+    `_engine_intrabar_bracket_v1` hot loop.
+  - Supports `minimal`, `standard`, and `audit` report levels.
+  - Audit mode uses the same two-pass sparse fill ledger pattern as the
+    original intrabar kernel.
+- Endpoint dispatch:
+  - `intrabar_bracket(...)` runs the old fast kernel when no session policy is
+    configured;
+  - `intrabar_bracket(..., session_policy=...)` runs the session kernel when
+    `backtest(..., session_tape=...)` is supplied.
+- Prepared runner dispatch:
+  - no session -> old prepared fast kernel;
+  - session -> session prepared fast kernel.
+  - prepared profile metadata includes `session_policy` and
+    `session_tape_signature`.
+- Added public exports:
+  - `run_intrabar_session_kernel` from `quantbt`;
+  - `run_intrabar_session_kernel` from `quantbt.core`.
+- Extended Phase 31 benchmark report with:
+  - `intrabar_session_bracket_v1_minimal`;
+  - `intrabar_session_bracket_v1_audit`.
+
 Validation after Phase 31H:
 
 ```bash
@@ -5017,6 +5043,26 @@ MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31*.py
 # 56 passed
 ```
+
+Validation after Phase 31I:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31h_intrabar_session_reference.py
+# 14 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31*.py
+# 58 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python quantbt/benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+```
+
+Benchmark after Phase 31I:
+
+- `intrabar_bracket_v1_minimal`: `0.011815s`, about `2.12M bars/s`.
+- `intrabar_session_bracket_v1_minimal`: `0.011652s`, about `2.15M bars/s`.
+- `intrabar_session_bracket_v1_audit`: `0.049885s`, about `501k bars/s`.
+- Session audit parity: `pass`.
+- Session minimal speedup vs Python oracle: about `20.55x`.
 
 ### Phase 31E - Merge Blocker Execution Correctness
 

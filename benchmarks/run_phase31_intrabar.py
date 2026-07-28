@@ -30,13 +30,16 @@ from quantbt import (  # noqa: E402
     ExecutionContract,
     FillReplayTape,
     IntrabarIntentTape,
+    IntrabarSessionTape,
     OrderIntent,
     OrderSide,
     OrderType,
+    SessionExecutionPolicy,
     prepare_market_tape,
     run_fill_replay_kernel,
     run_intrabar_kernel,
     run_intrabar_reference,
+    run_intrabar_session_kernel,
 )
 from quantbt.core.vectorized import _engine_units_v2  # noqa: E402
 
@@ -105,6 +108,82 @@ def run_benchmark(*, rows: int = 25_000, repeats: int = 3, seed: int = 31) -> Di
         )
     )
 
+    session_tape = IntrabarSessionTape(
+        session_id=np.arange(rows, dtype=np.int64) // 24,
+        entry_allowed_at_open=np.ones(rows, dtype=np.bool_),
+        force_flat_at_open=(np.arange(rows, dtype=np.int64) % 24) == 23,
+    )
+    session_policy = SessionExecutionPolicy(max_long_entries_per_session=2)
+    session_minimal_stats = _measure(
+        lambda: run_intrabar_session_kernel(
+            tape=tape,
+            intent=intent,
+            account=account,
+            contract=contract,
+            session_policy=session_policy,
+            session_tape=session_tape,
+            report_level="minimal",
+        ),
+        repeats=repeats,
+    )
+    session_minimal = run_intrabar_session_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        session_policy=session_policy,
+        session_tape=session_tape,
+        report_level="minimal",
+    )
+    records.append(
+        _record(
+            "intrabar_session_bracket_v1_minimal",
+            rows,
+            1,
+            session_minimal.fill_count,
+            session_minimal_stats,
+            baseline=close_stats["best"],
+            intrabar_minimal=minimal_stats["best"],
+            parity="reference_checked_in_tests",
+            notes="session_state_kernel",
+        )
+    )
+
+    session_audit_stats = _measure(
+        lambda: run_intrabar_session_kernel(
+            tape=tape,
+            intent=intent,
+            account=account,
+            contract=contract,
+            session_policy=session_policy,
+            session_tape=session_tape,
+            report_level="audit",
+        ),
+        repeats=repeats,
+    )
+    session_audit = run_intrabar_session_kernel(
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        session_policy=session_policy,
+        session_tape=session_tape,
+        report_level="audit",
+    )
+    records.append(
+        _record(
+            "intrabar_session_bracket_v1_audit",
+            rows,
+            1,
+            session_audit.fill_count,
+            session_audit_stats,
+            baseline=close_stats["best"],
+            intrabar_minimal=minimal_stats["best"],
+            parity="pass" if np.allclose(session_audit.equity, session_minimal.equity, atol=1e-9, rtol=0.0) else "fail",
+            notes="session_two_pass_sparse_fills",
+        )
+    )
+
     reference_stats = _measure(
         lambda: run_intrabar_reference(tape=tape, intent=intent, account=account, contract=contract),
         repeats=max(1, min(2, repeats)),
@@ -157,7 +236,7 @@ def run_benchmark(*, rows: int = 25_000, repeats: int = 3, seed: int = 31) -> Di
 
     reference = next(r for r in records if r.route == "intrabar_reference_python")
     for record in records:
-        if record.route.startswith("intrabar_bracket_v1"):
+        if record.route.startswith("intrabar_bracket_v1") or record.route.startswith("intrabar_session_bracket_v1"):
             record.speedup_vs_reference = reference.runtime_seconds / record.runtime_seconds
 
     return {

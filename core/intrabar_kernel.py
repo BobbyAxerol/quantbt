@@ -18,6 +18,7 @@ from numba import njit
 
 from .execution_contract import ExecutionContract, IntrabarSameBarPolicy, TakeProfitGapPolicy
 from .intrabar_reference import IntrabarFill, IntrabarFillReason, IntrabarIntentTape, IntrabarLevelMode, IntrabarSizingMode, _validate_intrabar_contract_supported
+from .intrabar_session import EntryPositionPolicy, IntrabarSessionTape, ProtectiveExitReentryPolicy, SessionCounterBasis, SessionExecutionPolicy
 from .market_tape import PreparedMarketTape
 from .schema import AccountConfig
 
@@ -44,6 +45,7 @@ FILL_STOP_LOSS = 5
 FILL_TAKE_PROFIT = 6
 FILL_LIQUIDATION = 7
 FILL_FINAL_CLOSE = 8
+FILL_SESSION_FORCED_EXIT = 9
 
 FLAG_ENTRY_FILLED = 1 << 0
 FLAG_EXIT_FILLED = 1 << 1
@@ -56,6 +58,13 @@ FLAG_FUNDING = 1 << 7
 FLAG_LIQUIDATION = 1 << 8
 FLAG_REJECTED = 1 << 9
 FLAG_ENTRY_SUPPRESSED = 1 << 10
+FLAG_SESSION_RESET = 1 << 11
+FLAG_SESSION_FORCED_EXIT = 1 << 12
+FLAG_ENTRY_WINDOW_BLOCKED = 1 << 13
+FLAG_ENTRY_QUOTA_BLOCKED = 1 << 14
+FLAG_FLAT_ONLY_BLOCKED = 1 << 15
+FLAG_STALE_SESSION_SIGNAL = 1 << 16
+FLAG_PROTECTIVE_REENTRY_BLOCKED = 1 << 17
 
 SIZING_UNITS = 1
 SIZING_FIXED_NOTIONAL = 2
@@ -64,6 +73,16 @@ SIZING_RISK_PER_TRADE = 4
 
 BAR_TS_CLOSE = 1
 BAR_TS_OPEN = 2
+
+SESSION_ENTRY_CURRENT = 1
+SESSION_ENTRY_FLAT_ONLY = 2
+SESSION_ENTRY_REVERSE = 3
+
+SESSION_COUNTER_FILLED = 1
+SESSION_COUNTER_ACCEPTED = 2
+
+SESSION_REENTRY_ALLOW = 1
+SESSION_REENTRY_SUPPRESS_SIGNAL_BAR = 2
 
 
 @dataclass(frozen=True)
@@ -312,6 +331,207 @@ def run_intrabar_kernel(
     )
 
 
+def run_intrabar_session_kernel(
+    *,
+    tape: PreparedMarketTape,
+    intent: IntrabarIntentTape,
+    account: AccountConfig,
+    session_policy: SessionExecutionPolicy,
+    session_tape: IntrabarSessionTape,
+    contract: Optional[ExecutionContract] = None,
+    fee_rate: float = 0.0,
+    slippage_rate: float = 0.0,
+    contract_size: float = 1.0,
+    sizing_mode: IntrabarSizingMode | str = IntrabarSizingMode.UNITS,
+    fixed_notional: float = 0.0,
+    equity_fraction: float = 0.0,
+    risk_fraction: float = 0.0,
+    qty_step: float = 0.0,
+    min_qty: float = 0.0,
+    min_notional: float = 0.0,
+    tick_size: float = 0.0,
+    report_level: str = "standard",
+) -> NativeIntrabarKernelResult:
+    """Run the fast session-aware single-symbol intrabar kernel."""
+    if tape.n_symbols != 1:
+        raise NotImplementedError("session intrabar fast kernel v1 supports exactly one symbol")
+    if len(intent.entry_side) != tape.n_bars:
+        raise ValueError("intent length must match market tape length")
+    if len(session_tape.session_id) != tape.n_bars:
+        raise ValueError("session_tape length must match market tape length")
+    if fee_rate < 0.0 or slippage_rate < 0.0:
+        raise ValueError("fee_rate and slippage_rate must be >= 0")
+    level = _normalize_report_level(report_level)
+    contract = contract or ExecutionContract.intrabar_bracket()
+    if contract.engine_id != "intrabar_bracket_v1":
+        raise ValueError("run_intrabar_session_kernel requires intrabar_bracket_v1 contract")
+    _validate_intrabar_contract_supported(contract)
+    if contract.same_bar_policy is IntrabarSameBarPolicy.REJECT_AMBIGUOUS:
+        raise NotImplementedError("fast session intrabar kernel v1 does not support REJECT_AMBIGUOUS")
+    sizing_mode_value = IntrabarSizingMode(sizing_mode)
+    policy = SessionExecutionPolicy.from_metadata(session_policy.to_metadata())
+
+    arrays = _run_intrabar_session_pass(
+        record_fills=False,
+        fill_capacity=1,
+        tape=tape,
+        intent=intent,
+        account=account,
+        contract=contract,
+        fee_rate=fee_rate,
+        slippage_rate=slippage_rate,
+        contract_size=contract_size,
+        sizing_mode=sizing_mode_value,
+        fixed_notional=fixed_notional,
+        equity_fraction=equity_fraction,
+        risk_fraction=risk_fraction,
+        qty_step=qty_step,
+        min_qty=min_qty,
+        min_notional=min_notional,
+        tick_size=tick_size,
+        session_policy=policy,
+        session_tape=session_tape,
+    )
+    (
+        equity,
+        position,
+        avg_entry,
+        active_stop,
+        active_tp,
+        fees,
+        funding,
+        flags,
+        initial_margin,
+        maintenance_margin,
+        fill_count,
+        ambiguity_count,
+        rejected_count,
+        liquidated,
+        liquidation_bar,
+        _fill_bar,
+        _fill_seq,
+        _fill_side,
+        _fill_qty,
+        _fill_price,
+        _fill_fee,
+        _fill_reason,
+        session_reset_count,
+        session_forced_exit_count,
+        entry_window_blocked_count,
+        long_quota_blocked_count,
+        short_quota_blocked_count,
+        flat_only_blocked_count,
+        stale_session_signal_count,
+        reentry_suppressed_count,
+    ) = arrays
+
+    fills: tuple[IntrabarFill, ...] = ()
+    fills_report = pd.DataFrame()
+    if level == "audit":
+        audit = _run_intrabar_session_pass(
+            record_fills=True,
+            fill_capacity=int(fill_count),
+            tape=tape,
+            intent=intent,
+            account=account,
+            contract=contract,
+            fee_rate=fee_rate,
+            slippage_rate=slippage_rate,
+            contract_size=contract_size,
+            sizing_mode=sizing_mode_value,
+            fixed_notional=fixed_notional,
+            equity_fraction=equity_fraction,
+            risk_fraction=risk_fraction,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+            tick_size=tick_size,
+            session_policy=policy,
+            session_tape=session_tape,
+        )
+        _assert_intrabar_session_audit_parity(arrays, audit)
+        fills = _materialize_intrabar_fills(
+            timestamps_ns=tape.timestamps_ns,
+            fill_bar=audit[15],
+            fill_seq=audit[16],
+            fill_side=audit[17],
+            fill_qty=audit[18],
+            fill_price=audit[19],
+            fill_fee=audit[20],
+            fill_reason=audit[21],
+            fill_count=int(fill_count),
+        )
+        fills_report = _fills_to_report(fills)
+
+    idx = pd.DatetimeIndex(pd.to_datetime(tape.timestamps_ns, utc=True))
+    symbol = tape.symbols[0]
+    metadata = {
+        "engine": "intrabar_session_bracket_v1",
+        "engine_id": "intrabar_session_bracket_v1",
+        "backend": "native_intrabar",
+        "backend_alias": "native_intrabar_session",
+        "kernel_version": "intrabar_session_numba_v1",
+        "execution_contract": contract.to_metadata(),
+        "data_signature": tape.signature,
+        "session_execution_enabled": True,
+        "session_policy": policy.to_metadata(),
+        "session_tape_signature": session_tape.signature,
+        "validation_certificate": tape.validation_certificate.__dict__.copy(),
+        "report_level": level,
+        "two_pass_audit": level == "audit",
+        "fill_count": int(fill_count),
+        "ambiguity_count": int(ambiguity_count),
+        "rejected_count": int(rejected_count),
+        "liquidated": bool(liquidated),
+        "liquidation_bar": int(liquidation_bar),
+        "session_reset_count": int(session_reset_count),
+        "session_forced_exit_count": int(session_forced_exit_count),
+        "entry_window_blocked_count": int(entry_window_blocked_count),
+        "long_quota_blocked_count": int(long_quota_blocked_count),
+        "short_quota_blocked_count": int(short_quota_blocked_count),
+        "flat_only_blocked_count": int(flat_only_blocked_count),
+        "stale_session_signal_count": int(stale_session_signal_count),
+        "reentry_suppressed_count": int(reentry_suppressed_count),
+        "funding_timing_certified": True,
+        "funding_event_alignment": "exact_bar_timestamp",
+        "bar_timestamp_semantics": tape.bar_timestamp_semantics,
+        "funding_event_price_reference": "open" if tape.bar_timestamp_semantics == "open" else "close",
+        "sizing_mode": sizing_mode_value.value,
+        "sizing": {
+            "fixed_notional": float(fixed_notional),
+            "equity_fraction": float(equity_fraction),
+            "risk_fraction": float(risk_fraction),
+        },
+        "quantity_constraints": {
+            "qty_step": float(qty_step),
+            "min_qty": float(min_qty),
+            "min_notional": float(min_notional),
+            "tick_size": float(tick_size),
+        },
+    }
+    return NativeIntrabarKernelResult(
+        equity=pd.Series(equity, index=idx, name="equity"),
+        position=pd.Series(position, index=idx, name=f"Position_{symbol}"),
+        average_entry=pd.Series(avg_entry, index=idx, name="average_entry"),
+        active_stop=pd.Series(active_stop, index=idx, name="active_stop"),
+        active_take_profit=pd.Series(active_tp, index=idx, name="active_take_profit"),
+        fees=pd.Series(fees, index=idx, name="fees"),
+        funding=pd.Series(funding, index=idx, name="funding"),
+        event_flags=pd.Series(flags, index=idx, name="event_flags"),
+        initial_margin=pd.Series(initial_margin, index=idx, name="initial_margin"),
+        maintenance_margin=pd.Series(maintenance_margin, index=idx, name="maintenance_margin"),
+        fills=fills,
+        fills_report=fills_report,
+        ambiguity_count=int(ambiguity_count),
+        rejected_count=int(rejected_count),
+        fill_count=int(fill_count),
+        liquidated=bool(liquidated),
+        liquidation_bar=int(liquidation_bar),
+        report_level=level,
+        metadata=metadata,
+    )
+
+
 def run_fill_replay_kernel(
     *,
     tape: PreparedMarketTape,
@@ -408,6 +628,95 @@ def _run_intrabar_pass(
         tape.funding_rates[:, 0],
         tape.funding_event_mask,
         _bar_timestamp_semantics_code(tape.bar_timestamp_semantics),
+        float(account.initial_capital),
+        float(account.leverage),
+        float(account.maintenance_ratio),
+        float(account.margin_buffer),
+        float(contract_size),
+        float(fee_rate),
+        float(slippage_rate),
+        _sizing_mode_code(sizing_mode),
+        float(fixed_notional),
+        float(equity_fraction),
+        float(risk_fraction),
+        float(qty_step),
+        float(min_qty),
+        float(min_notional),
+        float(tick_size),
+        _level_mode_code(intent.level_mode),
+        _same_bar_policy_code(contract.same_bar_policy),
+        _tp_policy_code(contract.take_profit_gap_policy),
+        bool(contract.close_on_last_bar),
+        bool(record_fills),
+        fill_bar,
+        fill_seq,
+        fill_side,
+        fill_qty,
+        fill_price,
+        fill_fee,
+        fill_reason,
+    )
+
+
+def _run_intrabar_session_pass(
+    *,
+    record_fills: bool,
+    fill_capacity: int,
+    tape,
+    intent,
+    account,
+    contract,
+    fee_rate,
+    slippage_rate,
+    contract_size,
+    sizing_mode,
+    fixed_notional,
+    equity_fraction,
+    risk_fraction,
+    qty_step,
+    min_qty,
+    min_notional,
+    tick_size,
+    session_policy,
+    session_tape,
+):
+    stop_value = _optional_float_array(intent.stop_value, tape.n_bars)
+    tp_value = _optional_float_array(intent.take_profit_value, tape.n_bars)
+    trailing_value = _optional_float_array(intent.trailing_value, tape.n_bars)
+    exit_long = _optional_bool_array(intent.exit_long if intent.exit_long is not None else intent.technical_exit, tape.n_bars)
+    exit_short = _optional_bool_array(intent.exit_short if intent.exit_short is not None else intent.technical_exit, tape.n_bars)
+    fill_bar = np.zeros(max(1, int(fill_capacity)), dtype=np.int64)
+    fill_seq = np.zeros(max(1, int(fill_capacity)), dtype=np.int16)
+    fill_side = np.zeros(max(1, int(fill_capacity)), dtype=np.int8)
+    fill_qty = np.zeros(max(1, int(fill_capacity)), dtype=np.float64)
+    fill_price = np.zeros(max(1, int(fill_capacity)), dtype=np.float64)
+    fill_fee = np.zeros(max(1, int(fill_capacity)), dtype=np.float64)
+    fill_reason = np.zeros(max(1, int(fill_capacity)), dtype=np.int16)
+    return _engine_intrabar_session_bracket_v1(
+        tape.opens[:, 0],
+        tape.highs[:, 0],
+        tape.lows[:, 0],
+        tape.closes[:, 0],
+        np.ascontiguousarray(intent.entry_side, dtype=np.int8),
+        np.ascontiguousarray(intent.entry_size, dtype=np.float64),
+        stop_value,
+        tp_value,
+        trailing_value,
+        exit_long,
+        exit_short,
+        tape.funding_rates[:, 0],
+        tape.funding_event_mask,
+        _bar_timestamp_semantics_code(tape.bar_timestamp_semantics),
+        np.ascontiguousarray(session_tape.session_id, dtype=np.int64),
+        np.ascontiguousarray(session_tape.entry_allowed_at_open, dtype=np.bool_),
+        np.ascontiguousarray(session_tape.force_flat_at_open, dtype=np.bool_),
+        _session_entry_policy_code(session_policy.entry_position_policy),
+        _session_counter_basis_code(session_policy.counter_basis),
+        _session_reentry_policy_code(session_policy.protective_exit_reentry_policy),
+        -1 if session_policy.max_long_entries_per_session is None else int(session_policy.max_long_entries_per_session),
+        -1 if session_policy.max_short_entries_per_session is None else int(session_policy.max_short_entries_per_session),
+        bool(session_policy.cancel_pending_on_session_change),
+        bool(session_policy.suppress_entry_on_force_flat_bar),
         float(account.initial_capital),
         float(account.leverage),
         float(account.maintenance_ratio),
@@ -746,6 +1055,413 @@ def _engine_intrabar_bracket_v1(
 
 
 @njit(cache=True, nogil=True)
+def _engine_intrabar_session_bracket_v1(
+    opens,
+    highs,
+    lows,
+    closes,
+    entry_side,
+    entry_size,
+    stop_value,
+    tp_value,
+    trailing_value,
+    exit_long,
+    exit_short,
+    funding_rates,
+    funding_mask,
+    bar_timestamp_semantics,
+    session_id,
+    entry_allowed_at_open,
+    force_flat_at_open,
+    entry_position_policy,
+    counter_basis,
+    protective_reentry_policy,
+    max_long_entries_per_session,
+    max_short_entries_per_session,
+    cancel_pending_on_session_change,
+    suppress_entry_on_force_flat_bar,
+    initial_capital,
+    leverage,
+    maintenance_ratio,
+    margin_buffer,
+    contract_size,
+    fee_rate,
+    slippage_rate,
+    sizing_mode,
+    fixed_notional,
+    equity_fraction,
+    risk_fraction,
+    qty_step,
+    min_qty,
+    min_notional,
+    tick_size,
+    level_mode,
+    same_bar_policy,
+    tp_gap_policy,
+    close_on_last_bar,
+    record_fills,
+    fill_bar,
+    fill_seq,
+    fill_side,
+    fill_qty,
+    fill_price,
+    fill_fee,
+    fill_reason,
+):
+    n = closes.shape[0]
+    equity_arr = np.zeros(n, dtype=np.float64)
+    pos_arr = np.zeros(n, dtype=np.float64)
+    avg_arr = np.zeros(n, dtype=np.float64)
+    stop_arr = np.zeros(n, dtype=np.float64)
+    tp_arr = np.zeros(n, dtype=np.float64)
+    fee_arr = np.zeros(n, dtype=np.float64)
+    funding_arr = np.zeros(n, dtype=np.float64)
+    flags_arr = np.zeros(n, dtype=np.uint32)
+    init_margin = np.zeros(n, dtype=np.float64)
+    maint_margin = np.zeros(n, dtype=np.float64)
+
+    equity = initial_capital
+    position = 0.0
+    avg_entry = 0.0
+    active_stop = np.nan
+    active_tp = np.nan
+    fill_count = 0
+    ambiguity_count = 0
+    rejected_count = 0
+    liquidated = False
+    liquidation_bar = -1
+
+    current_session_id = session_id[0] if n > 0 else 0
+    long_entry_count = 0
+    short_entry_count = 0
+    protective_exit_on_previous_bar = False
+    session_reset_count = 0
+    session_forced_exit_count = 0
+    entry_window_blocked_count = 0
+    long_quota_blocked_count = 0
+    short_quota_blocked_count = 0
+    flat_only_blocked_count = 0
+    stale_session_signal_count = 0
+    reentry_suppressed_count = 0
+
+    equity_arr[0] = equity
+    for t in range(1, n):
+        if liquidated:
+            equity_arr[t] = 0.0
+            continue
+
+        seq = 0
+        open_ref = opens[t]
+        close_ref = closes[t]
+        last_ref = open_ref
+
+        if position != 0.0:
+            equity += position * (open_ref - closes[t - 1]) * contract_size
+
+        reentry_block_from_previous_bar = False
+        if session_id[t] != current_session_id:
+            current_session_id = session_id[t]
+            long_entry_count = 0
+            short_entry_count = 0
+            protective_exit_on_previous_bar = False
+            flags_arr[t] |= FLAG_SESSION_RESET
+            session_reset_count += 1
+        reentry_block_from_previous_bar = protective_exit_on_previous_bar
+        protective_exit_on_previous_bar = False
+
+        if position != 0.0 and _maintenance_breached_numba(equity, position, open_ref, contract_size, maintenance_ratio):
+            side = -1 if position > 0.0 else 1
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
+            qty = abs(position)
+            fee = qty * price * contract_size * fee_rate
+            equity += position * (price - open_ref) * contract_size - fee
+            fee_arr[t] += fee
+            fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, FILL_LIQUIDATION, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+            flags_arr[t] |= FLAG_EXIT_FILLED | FLAG_LIQUIDATION
+            liquidated = True
+            liquidation_bar = t
+            equity = 0.0
+            equity_arr[t] = 0.0
+            continue
+
+        if bar_timestamp_semantics == BAR_TS_OPEN and position != 0.0 and funding_mask[t]:
+            funding_cost = position * open_ref * contract_size * funding_rates[t]
+            equity -= funding_cost
+            funding_arr[t] = funding_cost
+            flags_arr[t] |= FLAG_FUNDING
+
+        force_flat_bar = force_flat_at_open[t]
+        if force_flat_bar and position != 0.0:
+            side = -1 if position > 0.0 else 1
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
+            qty = abs(position)
+            fee = qty * price * contract_size * fee_rate
+            equity += position * (price - open_ref) * contract_size - fee
+            fee_arr[t] += fee
+            fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, FILL_SESSION_FORCED_EXIT, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+            seq += 1
+            flags_arr[t] |= FLAG_EXIT_FILLED | FLAG_SESSION_FORCED_EXIT
+            session_forced_exit_count += 1
+            position = 0.0
+            avg_entry = 0.0
+            active_stop = np.nan
+            active_tp = np.nan
+
+        pending_side = entry_side[t - 1]
+        pending_size = entry_size[t - 1]
+        pending_exit = (position > 0.0 and exit_long[t - 1]) or (position < 0.0 and exit_short[t - 1])
+
+        if cancel_pending_on_session_change and pending_side != 0 and session_id[t - 1] != session_id[t]:
+            pending_side = 0
+            pending_size = 0.0
+            flags_arr[t] |= FLAG_STALE_SESSION_SIGNAL | FLAG_ENTRY_SUPPRESSED
+            stale_session_signal_count += 1
+
+        if pending_side != 0 and position != 0.0 and entry_position_policy == SESSION_ENTRY_FLAT_ONLY:
+            pending_side = 0
+            pending_size = 0.0
+            flags_arr[t] |= FLAG_FLAT_ONLY_BLOCKED | FLAG_ENTRY_SUPPRESSED
+            flat_only_blocked_count += 1
+
+        exit_same_side_conflict = pending_exit and pending_side != 0 and position != 0.0 and _sign_numba(position) == pending_side
+        reversal_allowed = entry_position_policy != SESSION_ENTRY_FLAT_ONLY
+
+        if position != 0.0 and (pending_exit or (reversal_allowed and pending_side != 0 and _sign_numba(position) != pending_side)):
+            reason = FILL_REVERSAL_EXIT if pending_side != 0 and _sign_numba(position) != pending_side else FILL_TECHNICAL_EXIT
+            side = -1 if position > 0.0 else 1
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
+            qty = abs(position)
+            fee = qty * price * contract_size * fee_rate
+            equity += position * (price - open_ref) * contract_size - fee
+            fee_arr[t] += fee
+            fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, reason, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+            seq += 1
+            flags_arr[t] |= FLAG_EXIT_FILLED
+            if reason == FILL_TECHNICAL_EXIT:
+                flags_arr[t] |= FLAG_TECH_EXIT
+            else:
+                flags_arr[t] |= FLAG_REVERSAL
+            position = 0.0
+            avg_entry = 0.0
+            active_stop = np.nan
+            active_tp = np.nan
+
+        if pending_side != 0 and pending_size > 0.0 and position == 0.0:
+            side = 1 if pending_side > 0 else -1
+            price = _market_price_numba(open_ref, side, slippage_rate, tick_size)
+            entry_blocked = False
+            if force_flat_bar and suppress_entry_on_force_flat_bar:
+                entry_blocked = True
+                flags_arr[t] |= FLAG_SESSION_FORCED_EXIT | FLAG_ENTRY_SUPPRESSED
+            elif not entry_allowed_at_open[t]:
+                entry_blocked = True
+                entry_window_blocked_count += 1
+                flags_arr[t] |= FLAG_ENTRY_WINDOW_BLOCKED | FLAG_ENTRY_SUPPRESSED
+            elif protective_reentry_policy == SESSION_REENTRY_SUPPRESS_SIGNAL_BAR and reentry_block_from_previous_bar:
+                entry_blocked = True
+                reentry_suppressed_count += 1
+                flags_arr[t] |= FLAG_PROTECTIVE_REENTRY_BLOCKED | FLAG_ENTRY_SUPPRESSED
+            elif side > 0 and max_long_entries_per_session >= 0 and long_entry_count >= max_long_entries_per_session:
+                entry_blocked = True
+                long_quota_blocked_count += 1
+                flags_arr[t] |= FLAG_ENTRY_QUOTA_BLOCKED | FLAG_ENTRY_SUPPRESSED
+            elif side < 0 and max_short_entries_per_session >= 0 and short_entry_count >= max_short_entries_per_session:
+                entry_blocked = True
+                short_quota_blocked_count += 1
+                flags_arr[t] |= FLAG_ENTRY_QUOTA_BLOCKED | FLAG_ENTRY_SUPPRESSED
+
+            if exit_same_side_conflict or entry_blocked:
+                flags_arr[t] |= FLAG_ENTRY_SUPPRESSED
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                init_margin[t] = abs(position) * close_ref * contract_size / leverage
+                maint_margin[t] = abs(position) * close_ref * contract_size * maintenance_ratio
+                continue
+
+            qty = _compile_entry_quantity_numba(
+                pending_size,
+                price,
+                equity,
+                contract_size,
+                sizing_mode,
+                fixed_notional,
+                equity_fraction,
+                risk_fraction,
+                stop_value[t - 1],
+                level_mode,
+                side,
+                tick_size,
+            )
+            qty = abs(_quantize_signed_quantity_numba(qty, price, contract_size, qty_step, min_qty, min_notional))
+            if qty <= 0.0:
+                flags_arr[t] |= FLAG_REJECTED
+                rejected_count += 1
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
+            if not _has_initial_margin_numba(equity, qty, price, contract_size, leverage, margin_buffer):
+                flags_arr[t] |= FLAG_REJECTED
+                rejected_count += 1
+                equity_arr[t] = equity
+                pos_arr[t] = position
+                avg_arr[t] = avg_entry
+                stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+                tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+                continue
+            fee = qty * price * contract_size * fee_rate
+            equity -= fee
+            fee_arr[t] += fee
+            position = qty * side
+            avg_entry = price
+            last_ref = price
+            active_stop, active_tp = _initial_bracket_numba(stop_value[t - 1], tp_value[t - 1], trailing_value[t - 1], side, price, level_mode, tick_size)
+            reason = FILL_REVERSAL_ENTRY if (flags_arr[t] & FLAG_REVERSAL) != 0 else FILL_ENTRY
+            fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, reason, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+            seq += 1
+            flags_arr[t] |= FLAG_ENTRY_FILLED
+            if side > 0:
+                long_entry_count += 1
+            else:
+                short_entry_count += 1
+
+        if position != 0.0:
+            exit_side, exit_price, exit_reason, ambiguous = _resolve_intrabar_exit_numba(
+                1 if position > 0.0 else -1,
+                open_ref,
+                highs[t],
+                lows[t],
+                active_stop,
+                active_tp,
+                same_bar_policy,
+                tp_gap_policy,
+                slippage_rate,
+                tick_size,
+            )
+            if exit_reason != 0:
+                if ambiguous:
+                    flags_arr[t] |= FLAG_AMBIGUOUS
+                    ambiguity_count += 1
+                qty = abs(position)
+                fee = qty * exit_price * contract_size * fee_rate
+                equity += position * (exit_price - last_ref) * contract_size - fee
+                fee_arr[t] += fee
+                fill_count = _record_fill_numba(record_fills, fill_count, t, seq, exit_side, qty, exit_price, fee, exit_reason, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+                seq += 1
+                flags_arr[t] |= FLAG_EXIT_FILLED
+                if exit_reason == FILL_STOP_LOSS:
+                    flags_arr[t] |= FLAG_STOP_FILLED
+                    protective_exit_on_previous_bar = True
+                else:
+                    flags_arr[t] |= FLAG_TP_FILLED
+                    protective_exit_on_previous_bar = True
+                position = 0.0
+                avg_entry = 0.0
+                active_stop = np.nan
+                active_tp = np.nan
+
+        if position != 0.0:
+            if _maintenance_breached_worst_numba(equity, position, last_ref, highs[t], lows[t], contract_size, maintenance_ratio):
+                side = -1 if position > 0.0 else 1
+                worst = lows[t] if position > 0.0 else highs[t]
+                price = _market_price_numba(worst, side, slippage_rate, tick_size)
+                qty = abs(position)
+                fee = qty * price * contract_size * fee_rate
+                equity += position * (price - last_ref) * contract_size - fee
+                fee_arr[t] += fee
+                fill_count = _record_fill_numba(record_fills, fill_count, t, seq, side, qty, price, fee, FILL_LIQUIDATION, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+                flags_arr[t] |= FLAG_EXIT_FILLED | FLAG_LIQUIDATION
+                liquidated = True
+                liquidation_bar = t
+                equity = 0.0
+                position = 0.0
+                avg_entry = 0.0
+                active_stop = np.nan
+                active_tp = np.nan
+            else:
+                equity += position * (close_ref - last_ref) * contract_size
+                active_stop = _update_trailing_numba(trailing_value[t], position, close_ref, active_stop, level_mode, tick_size)
+
+        if liquidated:
+            equity_arr[t] = 0.0
+            pos_arr[t] = 0.0
+            avg_arr[t] = 0.0
+            stop_arr[t] = 0.0
+            tp_arr[t] = 0.0
+            continue
+
+        if bar_timestamp_semantics == BAR_TS_CLOSE and position != 0.0 and funding_mask[t]:
+            funding_cost = position * close_ref * contract_size * funding_rates[t]
+            equity -= funding_cost
+            funding_arr[t] = funding_cost
+            flags_arr[t] |= FLAG_FUNDING
+
+        equity_arr[t] = equity
+        pos_arr[t] = position
+        avg_arr[t] = avg_entry
+        stop_arr[t] = 0.0 if not np.isfinite(active_stop) else active_stop
+        tp_arr[t] = 0.0 if not np.isfinite(active_tp) else active_tp
+        init_margin[t] = abs(position) * close_ref * contract_size / leverage
+        maint_margin[t] = abs(position) * close_ref * contract_size * maintenance_ratio
+
+    if close_on_last_bar and position != 0.0 and not liquidated:
+        t = n - 1
+        side = -1 if position > 0.0 else 1
+        price = _market_price_numba(closes[t], side, slippage_rate, tick_size)
+        qty = abs(position)
+        fee = qty * price * contract_size * fee_rate
+        equity += position * (price - closes[t]) * contract_size - fee
+        fee_arr[t] += fee
+        fill_count = _record_fill_numba(record_fills, fill_count, t, 99, side, qty, price, fee, FILL_FINAL_CLOSE, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, fill_reason)
+        position = 0.0
+        equity_arr[t] = equity
+        pos_arr[t] = 0.0
+        avg_arr[t] = 0.0
+        stop_arr[t] = 0.0
+        tp_arr[t] = 0.0
+        init_margin[t] = 0.0
+        maint_margin[t] = 0.0
+
+    return (
+        equity_arr,
+        pos_arr,
+        avg_arr,
+        stop_arr,
+        tp_arr,
+        fee_arr,
+        funding_arr,
+        flags_arr,
+        init_margin,
+        maint_margin,
+        fill_count,
+        ambiguity_count,
+        rejected_count,
+        liquidated,
+        liquidation_bar,
+        fill_bar,
+        fill_seq,
+        fill_side,
+        fill_qty,
+        fill_price,
+        fill_fee,
+        fill_reason,
+        session_reset_count,
+        session_forced_exit_count,
+        entry_window_blocked_count,
+        long_quota_blocked_count,
+        short_quota_blocked_count,
+        flat_only_blocked_count,
+        stale_session_signal_count,
+        reentry_suppressed_count,
+    )
+
+
+@njit(cache=True, nogil=True)
 def _engine_fill_replay_v1(opens, closes, fill_bar, fill_seq, fill_side, fill_qty, fill_price, fill_fee, initial_capital, contract_size):
     n = closes.shape[0]
     equity_arr = np.zeros(n, dtype=np.float64)
@@ -999,6 +1715,35 @@ def _bar_timestamp_semantics_code(value: str) -> int:
     raise ValueError("bar_timestamp_semantics must be 'open' or 'close'")
 
 
+def _session_entry_policy_code(policy) -> int:
+    value = policy.value if hasattr(policy, "value") else str(policy)
+    if value == EntryPositionPolicy.CURRENT_BEHAVIOR.value:
+        return SESSION_ENTRY_CURRENT
+    if value == EntryPositionPolicy.FLAT_ONLY.value:
+        return SESSION_ENTRY_FLAT_ONLY
+    if value == EntryPositionPolicy.REVERSE.value:
+        return SESSION_ENTRY_REVERSE
+    raise NotImplementedError(f"unsupported session entry_position_policy={policy!r}")
+
+
+def _session_counter_basis_code(policy) -> int:
+    value = policy.value if hasattr(policy, "value") else str(policy)
+    if value == SessionCounterBasis.FILLED_ENTRY.value:
+        return SESSION_COUNTER_FILLED
+    if value == SessionCounterBasis.ACCEPTED_ENTRY.value:
+        return SESSION_COUNTER_ACCEPTED
+    raise NotImplementedError(f"unsupported session counter_basis={policy!r}")
+
+
+def _session_reentry_policy_code(policy) -> int:
+    value = policy.value if hasattr(policy, "value") else str(policy)
+    if value == ProtectiveExitReentryPolicy.ALLOW.value:
+        return SESSION_REENTRY_ALLOW
+    if value == ProtectiveExitReentryPolicy.SUPPRESS_SIGNAL_BAR.value:
+        return SESSION_REENTRY_SUPPRESS_SIGNAL_BAR
+    raise NotImplementedError(f"unsupported protective_exit_reentry_policy={policy!r}")
+
+
 def _same_bar_policy_code(policy) -> int:
     value = policy.value if hasattr(policy, "value") else str(policy)
     mapping = {
@@ -1039,6 +1784,22 @@ def _assert_intrabar_audit_parity(first, second, atol: float = 1e-9) -> None:
     for i, name in ((10, "fill_count"), (11, "ambiguity_count"), (12, "rejected_count"), (13, "liquidated"), (14, "liquidation_bar")):
         if first[i] != second[i]:
             raise AssertionError(f"intrabar audit replay drifted from pass 1 for {name}")
+
+
+def _assert_intrabar_session_audit_parity(first, second, atol: float = 1e-9) -> None:
+    _assert_intrabar_audit_parity(first, second, atol=atol)
+    for i, name in (
+        (22, "session_reset_count"),
+        (23, "session_forced_exit_count"),
+        (24, "entry_window_blocked_count"),
+        (25, "long_quota_blocked_count"),
+        (26, "short_quota_blocked_count"),
+        (27, "flat_only_blocked_count"),
+        (28, "stale_session_signal_count"),
+        (29, "reentry_suppressed_count"),
+    ):
+        if first[i] != second[i]:
+            raise AssertionError(f"intrabar session audit replay drifted from pass 1 for {name}")
 
 
 def _materialize_intrabar_fills(
@@ -1100,6 +1861,7 @@ def _reason_code_to_enum(code: int) -> IntrabarFillReason:
         FILL_TAKE_PROFIT: IntrabarFillReason.TAKE_PROFIT,
         FILL_LIQUIDATION: IntrabarFillReason.LIQUIDATION,
         FILL_FINAL_CLOSE: IntrabarFillReason.FINAL_CLOSE,
+        FILL_SESSION_FORCED_EXIT: IntrabarFillReason.SESSION_FORCED_EXIT,
     }
     return mapping.get(code, IntrabarFillReason.ENTRY)
 
@@ -1115,6 +1877,7 @@ def _reason_series_to_codes(series: pd.Series) -> np.ndarray:
         (FILL_TAKE_PROFIT, IntrabarFillReason.TAKE_PROFIT),
         (FILL_LIQUIDATION, IntrabarFillReason.LIQUIDATION),
         (FILL_FINAL_CLOSE, IntrabarFillReason.FINAL_CLOSE),
+        (FILL_SESSION_FORCED_EXIT, IntrabarFillReason.SESSION_FORCED_EXIT),
     )}
     for i, value in enumerate(series.astype(str)):
         out[i] = mapping.get(value, 0)

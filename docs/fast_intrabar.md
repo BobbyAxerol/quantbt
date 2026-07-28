@@ -211,10 +211,19 @@ stale signal cancellation across session boundaries
 protective-exit re-entry suppression
 ```
 
-The fast Numba session kernel is intentionally deferred to Phase 31I. Until
-that parity pass exists, `QuantBTEndpoint.intrabar_bracket(...)` raises if a
-session policy or session tape is supplied. Use
-`intrabar_bracket_reference(...)` to certify the session semantics first.
+Phase 31I adds a separate fast Numba session kernel. The existing non-session
+kernel remains unchanged; QuantBT dispatches once before execution:
+
+```text
+no session policy -> intrabar_bracket_v1
+session policy    -> intrabar_session_bracket_v1
+```
+
+Use `intrabar_bracket_reference(...)` as the readable oracle for new session
+semantics, then use `intrabar_bracket(...)` for sweeps after parity checks pass.
+Prepared runners also include `session_policy` and `session_tape_signature` in
+their frozen profile metadata to avoid cache reuse across different session
+contracts.
 
 ## Prepared Runner
 
