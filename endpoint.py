@@ -193,6 +193,7 @@ class EndpointConfig:
     structured_order_spec: object = None
     event_engine_version: str = "v1"
     reactive_execution_mode: str = "fast"
+    reactive_kernel_mode: str = "replay_certified"
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -340,6 +341,7 @@ class PreparedNativeEventStrategyRunner:
             min_qty=config.min_qty,
             min_notional=config.min_notional,
             execution_mode=config.reactive_execution_mode,
+            reactive_kernel_mode=config.reactive_kernel_mode,
             report_level=level,
             audit_sink=config.audit_sink,
             audit_sink_path=config.audit_sink_path,
@@ -384,6 +386,7 @@ class PreparedNativeEventStrategyRunner:
             min_qty=config.min_qty,
             min_notional=config.min_notional,
             execution_mode=config.reactive_execution_mode,
+            reactive_kernel_mode="single_pass",
             report_level="score",
             audit_sink="none",
             market_arrays=self.market_arrays,
@@ -408,6 +411,8 @@ class PreparedNativeEventStrategyRunner:
                 "prepared_native_event_strategy": self.metadata,
                 "lifecycle_counters": counters,
                 "artifact_plan": result.metadata.get("artifact_plan"),
+                "reactive_kernel_mode": result.metadata.get("reactive_kernel_mode"),
+                "static_replay_available": result.metadata.get("static_replay_available"),
             },
         )
         object.__setattr__(self, "scores", self.scores + 1)
@@ -593,6 +598,7 @@ class QuantBTEndpoint:
                 report_level=config.report_level,
                 audit_sink=config.audit_sink,
                 audit_sink_path=config.audit_sink_path,
+                reactive_kernel_mode=config.reactive_kernel_mode,
             )
         )
         market = backend.prepare_market_arrays(
@@ -608,6 +614,7 @@ class QuantBTEndpoint:
             "backend": "native_event",
             "event_engine_version": "v2",
             "reactive_execution_mode": config.reactive_execution_mode,
+            "reactive_kernel_mode": config.reactive_kernel_mode,
             "account": asdict(config.account),
             "execution": asdict(config.execution),
             "fee_rate": config.v2_fee_rate,
@@ -2082,6 +2089,7 @@ class QuantBTEndpoint:
             report_level=self.config.report_level,
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -2126,6 +2134,7 @@ class QuantBTEndpoint:
             report_level=self.config.report_level,
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2162,6 +2171,7 @@ class QuantBTEndpoint:
             report_level=self.config.report_level,
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         self._store_result(self.engine.result)
         return self.result
