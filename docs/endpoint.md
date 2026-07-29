@@ -867,6 +867,39 @@ result = bt.simulate(
 )
 ```
 
+Native-event artifact policy:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    report_level="minimal",   # minimal | standard | audit | full
+    audit_sink="none",        # none | memory | jsonl | parquet
+)
+```
+
+`report_level` changes only artifact retention. It must not change equity,
+positions, fees, funding, margin, liquidation, or lifecycle counters.
+
+| Level | Intended use | Retained artifacts |
+|---|---|---|
+| `minimal` | WFO/service loops | accounting paths, diagnostics, compact fill/command ledgers, no Python fills/orders, no event DataFrame |
+| `standard` | research | minimal artifacts plus Python fills and command terminal report |
+| `audit` / `full` | certification | full command report, event report, active-order report, Python fills/orders, compact ledgers |
+
+For long audits, use a disk sink:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    report_level="audit",
+    audit_sink="jsonl",
+    audit_sink_path="/tmp/quantbt_native_event_audit",
+)
+```
+
+`jsonl` and `parquet` sinks require an explicit `audit_sink_path`; QuantBT does
+not silently create long-lived audit bundles in arbitrary project folders.
+
 Execution rules:
 
 - market orders fill on the bar close with slippage;
@@ -1008,6 +1041,11 @@ result.metadata["reactive_context_builder"]       # "incremental_session_v1"
 result.metadata["reactive_incremental_compile_replays"]  # 0
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
 ```
+
+For reactive strategies, `report_level="minimal"` intentionally omits
+`emitted_command_tape` from metadata while preserving
+`emitted_command_count`. Use `report_level="audit"` when a replayable command
+tape is required for certification.
 
 Scoped cancel-all:
 
