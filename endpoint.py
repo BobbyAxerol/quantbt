@@ -199,6 +199,8 @@ class EndpointConfig:
     nautilus_depth_config: Optional[NautilusExecutionDepthConfig] = None
     option_config: object = None
     report_level: str = "full"
+    audit_sink: str = "memory"
+    audit_sink_path: Optional[str] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
     walkforward_target_mode: str = "signal_notional"
@@ -1787,6 +1789,9 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
         )
         sizing_mode = IntrabarSizingMode(str(self.config.metadata.get("intrabar_sizing_mode", IntrabarSizingMode.UNITS.value)))
         fixed_notional = float(self.config.metadata.get("fixed_notional", self.config.alloc_per_trade if not isinstance(self.config.alloc_per_trade, dict) else self.config.alloc_per_trade.get(symbol, 0.0)))
@@ -1858,6 +1863,9 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -1899,6 +1907,9 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1932,6 +1943,9 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1981,6 +1995,9 @@ class QuantBTEndpoint:
                 slot_size=self.config.slot_size,
                 min_qty=self.config.min_qty,
                 min_notional=self.config.min_notional,
+                report_level=self.config.report_level,
+                audit_sink=self.config.audit_sink,
+                audit_sink_path=self.config.audit_sink_path,
             )
             result = self.engine.result
             result.metadata.update(
@@ -2124,6 +2141,9 @@ class QuantBTEndpoint:
                     execution=self.config.execution,
                     fee_rate=self.config.v2_fee_rate,
                     use_funding=self.config.use_funding,
+                    report_level=self.config.report_level,
+                    audit_sink=self.config.audit_sink,
+                    audit_sink_path=self.config.audit_sink_path,
                 )
             )
         else:
@@ -2723,6 +2743,8 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
         "symbols": _jsonable(config.symbols),
         "metadata": _jsonable(config.metadata),
         "report_level": config.report_level,
+        "audit_sink": config.audit_sink,
+        "audit_sink_path": config.audit_sink_path,
     }
     if config.nautilus_config is not None:
         payload["nautilus"] = _jsonable(

@@ -6611,6 +6611,8 @@ Goal:
 
 ### Phase 34A - Native Event Artifact And Memory Contract
 
+Status: implemented on `feat/30-native-event-lifecycle`.
+
 Scope:
 
 - Wire `report_level` through native-event endpoints, configs, backend, kernel
@@ -6645,6 +6647,59 @@ Acceptance:
 - Minimal path reduces peak RSS materially without changing results.
 - Audit can retain full trace through memory or chunked disk sink.
 - Public `.simulate()` remains source-compatible.
+
+Implemented:
+
+- Added `NativeEventConfig.report_level`, `audit_sink`, and `audit_sink_path`.
+- Added `NativeEventArtifactPlan` with explicit artifact-retention flags.
+- Added compact struct-of-arrays ledgers:
+  - `CompactFillLedger`;
+  - `CompactCommandLedger`;
+  - `CompactOrderEventLedger`.
+- Wired report policy through:
+  - `QuantBTEndpoint`;
+  - `BacktestEngineV2`;
+  - native-event lifecycle v2 backend;
+  - reactive native-event strategy replay.
+- `full` normalizes to `audit`; existing default behavior remains
+  audit-compatible.
+- `minimal` keeps accounting paths and compact ledgers but omits heavy Python
+  fills/orders and command/event DataFrames.
+- `standard` keeps command terminal report and Python fills but omits full
+  lifecycle event DataFrame.
+- `audit` keeps full command report, order events, active-order report, Python
+  fills/orders, compact ledgers, and optional disk sink artifacts.
+- Reactive minimal mode records `emitted_command_count` but does not retain the
+  full `emitted_command_tape`.
+- Added `audit_sink="jsonl"` and `audit_sink="parquet"` support with explicit
+  `audit_sink_path`; no silent project-folder writes.
+- Updated endpoint docs for native-event report levels and audit sinks.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase34a_native_event_artifacts.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase30a_native_event_lifecycle_contract.py tests/test_phase30b_native_event_lifecycle_kernel.py tests/test_phase30c_native_event_endpoint_lifecycle.py tests/test_phase30d_native_event_reactive_runner.py tests/test_phase30e_native_event_incremental_runner.py
+# 33 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_endpoint.py tests/test_phase14c_prepared_report_levels.py
+# 26 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_phase34a_native_event_memory.py --rows 3000 --levels 10 --cycle 40
+# artifact retention benchmark recorded in benchmarks/phase34a_native_event_memory.md
+```
+
+Benchmark interpretation:
+
+- `minimal` produced zero command-report rows, zero event-report rows, zero
+  materialized Python fills, and zero materialized Python orders for the test
+  workload while preserving final equity and lifecycle counters.
+- The small subprocess RSS numbers include Python import, pandas, and
+  Numba/cache overhead, so they are not used as a strict memory delta claim.
+  Larger Phase 34B/34C optimization-batch benchmarks are still required before
+  claiming stable RSS reduction percentages.
 
 ### Phase 34B - Prepared Native Event Score Path
 

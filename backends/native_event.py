@@ -6,7 +6,8 @@ Native event-driven backend using a Numba matching kernel.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
@@ -126,6 +127,9 @@ class NativeEventConfig:
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     fee_rate: Union[float, Dict[str, float]] = 0.0
     use_funding: bool = True
+    report_level: str = "audit"
+    audit_sink: str = "memory"
+    audit_sink_path: Optional[str] = None
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -133,6 +137,163 @@ class NativeEventConfig:
                 raise ValueError("fee_rate must be >= 0")
         elif float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
+        object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
+
+
+@dataclass(frozen=True)
+class NativeEventArtifactPlan:
+    keep_equity_path: bool
+    keep_position_path: bool
+    keep_fee_path: bool
+    keep_funding_path: bool
+    keep_margin_path: bool
+    keep_fill_ledger: bool
+    keep_command_terminal_state: bool
+    keep_event_ledger: bool
+    keep_command_tape: bool
+    materialize_pandas: bool
+    materialize_python_objects: bool
+    materialize_active_orders: bool
+
+
+@dataclass(frozen=True)
+class CompactFillLedger:
+    bar: np.ndarray
+    command_index: np.ndarray
+    original_index: np.ndarray
+    order_id_code: np.ndarray
+    symbol_code: np.ndarray
+    side: np.ndarray
+    qty: np.ndarray
+    price: np.ndarray
+    fee: np.ndarray
+    id_values: tuple[str, ...]
+    symbols: tuple[str, ...]
+
+    @property
+    def fill_count(self) -> int:
+        return int(len(self.bar))
+
+
+@dataclass(frozen=True)
+class CompactCommandLedger:
+    original_index: np.ndarray
+    command_bar: np.ndarray
+    action: np.ndarray
+    symbol_code: np.ndarray
+    side: np.ndarray
+    order_type: np.ndarray
+    order_id_code: np.ndarray
+    target_order_id_code: np.ndarray
+    parent_order_id_code: np.ndarray
+    group_id_code: np.ndarray
+    oco_group_id_code: np.ndarray
+    status: np.ndarray
+    reject_code: np.ndarray
+    fill_bar: np.ndarray
+    fill_qty: np.ndarray
+    fill_price: np.ndarray
+    fill_fee: np.ndarray
+    active: np.ndarray
+    waiting_parent: np.ndarray
+    working_qty: np.ndarray
+    working_price: np.ndarray
+    working_trigger: np.ndarray
+    id_values: tuple[str, ...]
+    symbols: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CompactOrderEventLedger:
+    bar: np.ndarray
+    command_index: np.ndarray
+    event_type: np.ndarray
+    status: np.ndarray
+    related_command_index: np.ndarray
+
+    @property
+    def event_count(self) -> int:
+        return int(len(self.bar))
+
+
+def _normalize_native_event_report_level(report_level: str) -> str:
+    level = str(report_level or "audit").lower().strip()
+    aliases = {"full": "audit", "debug": "audit", "research": "standard", "optimizer": "score", "scoring": "score"}
+    level = aliases.get(level, level)
+    if level not in {"score", "minimal", "standard", "audit"}:
+        raise ValueError("native_event report_level must be score, minimal, standard, audit, or full")
+    return level
+
+
+def _normalize_native_event_audit_sink(audit_sink: str) -> str:
+    sink = str(audit_sink or "memory").lower().strip()
+    if sink not in {"none", "memory", "jsonl", "parquet"}:
+        raise ValueError("native_event audit_sink must be none, memory, jsonl, or parquet")
+    return sink
+
+
+def _native_event_artifact_plan(report_level: str) -> NativeEventArtifactPlan:
+    level = _normalize_native_event_report_level(report_level)
+    if level == "score":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=False,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=False,
+            materialize_active_orders=False,
+        )
+    if level == "minimal":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=True,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=False,
+            materialize_active_orders=False,
+        )
+    if level == "standard":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=True,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=True,
+            materialize_active_orders=False,
+        )
+    return NativeEventArtifactPlan(
+        keep_equity_path=True,
+        keep_position_path=True,
+        keep_fee_path=True,
+        keep_funding_path=True,
+        keep_margin_path=True,
+        keep_fill_ledger=True,
+        keep_command_terminal_state=True,
+        keep_event_ledger=True,
+        keep_command_tape=True,
+        materialize_pandas=True,
+        materialize_python_objects=True,
+        materialize_active_orders=True,
+    )
 
 
 @dataclass
@@ -756,6 +917,9 @@ class NativeEventBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        report_level: Optional[str] = None,
+        audit_sink: Optional[str] = None,
+        audit_sink_path: Optional[str] = None,
     ) -> BacktestResultV2:
         """
         Execute Phase 30B lifecycle `OrderCommand` tapes through event v2.
@@ -765,6 +929,11 @@ class NativeEventBackend:
         phase.
         """
         idx = validate_datetime(datetime_index)
+        requested_report_level = self.config.report_level if report_level is None else report_level
+        level = _normalize_native_event_report_level(requested_report_level)
+        plan = _native_event_artifact_plan(level)
+        sink = self.config.audit_sink if audit_sink is None else _normalize_native_event_audit_sink(audit_sink)
+        sink_path = self.config.audit_sink_path if audit_sink_path is None else audit_sink_path
         if symbols is None:
             symbol_list = list(closes.keys())
         else:
@@ -895,13 +1064,39 @@ class NativeEventBackend:
             use_funding=bool(self.config.use_funding),
         )
 
-        fills = self._build_fills(
-            compiled_commands.sorted_commands,
-            idx,
-            fill_bar,
-            fill_qty,
-            fill_price,
-            fill_fee,
+        fill_ledger = self._build_compact_fill_ledger(
+            compiled_commands=compiled_commands,
+            fill_bar=fill_bar,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            fill_fee=fill_fee,
+        )
+        command_ledger = self._build_compact_command_ledger(
+            compiled_commands=compiled_commands,
+            command_status=command_status,
+            reject_code=reject_code,
+            fill_bar=fill_bar,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            fill_fee=fill_fee,
+            active=active,
+            waiting_parent=waiting_parent,
+            working_qty=working_qty,
+            working_price=working_price,
+            working_trigger=working_trigger,
+        )
+        event_ledger = self._build_compact_order_event_ledger(
+            event_count=int(event_count),
+            event_bar=event_bar,
+            event_command=event_command,
+            event_type=event_type,
+            event_status=event_status,
+            event_related_command=event_related_command,
+        )
+        fills = (
+            self._build_fills(compiled_commands.sorted_commands, idx, fill_bar, fill_qty, fill_price, fill_fee)
+            if plan.materialize_python_objects
+            else ()
         )
         equity = pd.Series(equity_arr, index=idx, name="equity")
         positions = pd.DataFrame(
@@ -920,36 +1115,86 @@ class NativeEventBackend:
             },
             index=idx,
         )
-        command_report = self._build_command_report(
-            compiled_commands,
-            command_status,
-            reject_code,
-            fill_bar,
-            fill_qty,
-            fill_price,
-            fill_fee,
-            active,
-            waiting_parent,
-            working_qty,
-            working_price,
-            working_trigger,
-        )
-        order_events = self._build_order_events(
-            idx=idx,
-            compiled_commands=compiled_commands,
-            event_count=int(event_count),
-            event_bar=event_bar,
-            event_command=event_command,
-            event_type=event_type,
-            event_status=event_status,
-            event_related_command=event_related_command,
-        )
-        if command_report.empty:
+        if level in {"standard", "audit"}:
+            command_report = self._build_command_report(
+                compiled_commands,
+                command_status,
+                reject_code,
+                fill_bar,
+                fill_qty,
+                fill_price,
+                fill_fee,
+                active,
+                waiting_parent,
+                working_qty,
+                working_price,
+                working_trigger,
+            )
+        else:
+            command_report = pd.DataFrame()
+        if level == "audit" and sink != "none":
+            order_events = self._build_order_events(
+                idx=idx,
+                compiled_commands=compiled_commands,
+                event_count=int(event_count),
+                event_bar=event_bar,
+                event_command=event_command,
+                event_type=event_type,
+                event_status=event_status,
+                event_related_command=event_related_command,
+            )
+        else:
+            order_events = pd.DataFrame()
+        if command_report.empty or not plan.materialize_active_orders:
             active_orders = pd.DataFrame()
         else:
             active_orders = command_report[
                 (command_report["active"] == True) | (command_report["waiting_parent"] == True)  # noqa: E712
             ].copy()
+        audit_artifacts = self._write_native_event_audit_sink(
+            sink=sink,
+            sink_path=sink_path,
+            command_report=command_report,
+            order_events=order_events,
+            fill_ledger=fill_ledger,
+            command_ledger=command_ledger,
+            event_ledger=event_ledger,
+            report_level=level,
+        )
+        lifecycle_counters = {
+            "fill_count": int(fill_ledger.fill_count),
+            "event_count": int(event_count),
+            "rejected_count": int(np.sum(command_status == ORDER_STATUS_REJECTED)),
+            "canceled_count": int(np.sum(command_status == ORDER_STATUS_CANCELED)),
+            "filled_command_count": int(np.sum(command_status == ORDER_STATUS_FILLED)),
+            "pending_command_count": int(np.sum(command_status == ORDER_STATUS_PENDING)),
+            "expired_event_count": int(np.sum(event_ledger.event_type == ORDER_EVENT_EXPIRE)),
+        }
+        metadata = {
+            "backend": "native_event",
+            "engine": "event_v2_lifecycle",
+            "report_level": level,
+            "report_level_requested": str(requested_report_level),
+            "artifact_plan": asdict(plan),
+            "audit_sink": sink,
+            "audit_sink_path": sink_path,
+            "audit_artifacts": audit_artifacts,
+            "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
+            "slippage_bps": self.config.execution.slippage_bps,
+            "order_report": command_report,
+            "command_report": command_report,
+            "order_events": order_events,
+            "active_orders": active_orders,
+            "compact_fill_ledger": fill_ledger if plan.keep_fill_ledger else None,
+            "compact_command_ledger": command_ledger if plan.keep_command_terminal_state else None,
+            "compact_order_event_ledger": event_ledger if plan.keep_event_ledger and sink == "memory" else None,
+            "id_values": compiled_commands.id_values,
+            "quantity_constraints": constraints.as_dict(),
+            "quantity_preflight": quantity_preflight,
+            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            "liquidation_reason": int(liq_reason),
+            "lifecycle_counters": lifecycle_counters,
+        }
 
         return BacktestResultV2(
             equity=equity,
@@ -961,7 +1206,7 @@ class NativeEventBackend:
             leverage=float(np.mean(leverages)),
             liquidated=bool(liq_flag),
             liquidation_bar=int(liq_idx),
-            orders=self._commands_to_order_intents(compiled_commands.sorted_commands),
+            orders=self._commands_to_order_intents(compiled_commands.sorted_commands) if plan.materialize_python_objects else (),
             fills=tuple(fills),
             fees=pd.Series(fee_arr, index=idx, name="fees"),
             funding=pd.Series(funding_arr, index=idx, name="funding"),
@@ -973,21 +1218,7 @@ class NativeEventBackend:
                 index=idx,
             ),
             diagnostics=diagnostics,
-            metadata={
-                "backend": "native_event",
-                "engine": "event_v2_lifecycle",
-                "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
-                "slippage_bps": self.config.execution.slippage_bps,
-                "order_report": command_report,
-                "command_report": command_report,
-                "order_events": order_events,
-                "active_orders": active_orders,
-                "id_values": compiled_commands.id_values,
-                "quantity_constraints": constraints.as_dict(),
-                "quantity_preflight": quantity_preflight,
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
-                "liquidation_reason": int(liq_reason),
-            },
+            metadata=metadata,
         )
 
     def run_strategy(
@@ -1012,6 +1243,9 @@ class NativeEventBackend:
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         execution_mode: str = "fast",
         command_effective_phase: str = "next_bar",
+        report_level: Optional[str] = None,
+        audit_sink: Optional[str] = None,
+        audit_sink_path: Optional[str] = None,
     ) -> BacktestResultV2:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -1028,6 +1262,9 @@ class NativeEventBackend:
         execution_mode = str(execution_mode).lower().strip()
         if execution_mode not in {"fast", "audit"}:
             raise ValueError("execution_mode must be 'fast' or 'audit'")
+        requested_report_level = self.config.report_level if report_level is None else report_level
+        level = _normalize_native_event_report_level(requested_report_level)
+        plan = _native_event_artifact_plan(level)
 
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
@@ -1153,13 +1390,17 @@ class NativeEventBackend:
             slot_size=slot_size,
             min_qty=min_qty,
             min_notional=min_notional,
+            report_level=level,
+            audit_sink=audit_sink,
+            audit_sink_path=audit_sink_path,
         )
         final_result.metadata.update(
             {
                 "engine": "event_v2_reactive_incremental",
                 "reactive_execution_mode": execution_mode,
                 "command_effective_phase": "next_bar",
-                "emitted_command_tape": tuple(emitted),
+                "emitted_command_tape": tuple(emitted) if plan.keep_command_tape else (),
+                "emitted_command_tape_retained": bool(plan.keep_command_tape),
                 "emitted_command_count": len(emitted),
                 "ignored_commands_after_end": int(ignored_commands_after_end),
                 "strategy_callback_count": int(callback_count),
@@ -1836,6 +2077,165 @@ class NativeEventBackend:
             )
 
         return size_order
+
+    @staticmethod
+    def _build_compact_fill_ledger(
+        *,
+        compiled_commands: CompiledOrderCommandArrays,
+        fill_bar: np.ndarray,
+        fill_qty: np.ndarray,
+        fill_price: np.ndarray,
+        fill_fee: np.ndarray,
+    ) -> CompactFillLedger:
+        mask = (fill_bar >= 0) & (fill_qty != 0.0)
+        command_index = np.nonzero(mask)[0].astype(np.int64)
+        return CompactFillLedger(
+            bar=np.ascontiguousarray(fill_bar[mask], dtype=np.int64),
+            command_index=np.ascontiguousarray(command_index, dtype=np.int64),
+            original_index=np.ascontiguousarray(compiled_commands.original_index[mask], dtype=np.int64),
+            order_id_code=np.ascontiguousarray(compiled_commands.command_order_id[mask], dtype=np.int64),
+            symbol_code=np.ascontiguousarray(compiled_commands.command_symbol[mask], dtype=np.int64),
+            side=np.ascontiguousarray(compiled_commands.command_side[mask], dtype=np.int64),
+            qty=np.ascontiguousarray(fill_qty[mask], dtype=np.float64),
+            price=np.ascontiguousarray(fill_price[mask], dtype=np.float64),
+            fee=np.ascontiguousarray(fill_fee[mask], dtype=np.float64),
+            id_values=tuple(compiled_commands.id_values),
+            symbols=tuple(compiled_commands.symbols),
+        )
+
+    @staticmethod
+    def _build_compact_command_ledger(
+        *,
+        compiled_commands: CompiledOrderCommandArrays,
+        command_status: np.ndarray,
+        reject_code: np.ndarray,
+        fill_bar: np.ndarray,
+        fill_qty: np.ndarray,
+        fill_price: np.ndarray,
+        fill_fee: np.ndarray,
+        active: np.ndarray,
+        waiting_parent: np.ndarray,
+        working_qty: np.ndarray,
+        working_price: np.ndarray,
+        working_trigger: np.ndarray,
+    ) -> CompactCommandLedger:
+        return CompactCommandLedger(
+            original_index=np.ascontiguousarray(compiled_commands.original_index, dtype=np.int64),
+            command_bar=np.ascontiguousarray(compiled_commands.command_bar, dtype=np.int64),
+            action=np.ascontiguousarray(compiled_commands.command_action, dtype=np.int64),
+            symbol_code=np.ascontiguousarray(compiled_commands.command_symbol, dtype=np.int64),
+            side=np.ascontiguousarray(compiled_commands.command_side, dtype=np.int64),
+            order_type=np.ascontiguousarray(compiled_commands.command_type, dtype=np.int64),
+            order_id_code=np.ascontiguousarray(compiled_commands.command_order_id, dtype=np.int64),
+            target_order_id_code=np.ascontiguousarray(compiled_commands.command_target_order_id, dtype=np.int64),
+            parent_order_id_code=np.ascontiguousarray(compiled_commands.command_parent_order_id, dtype=np.int64),
+            group_id_code=np.ascontiguousarray(compiled_commands.command_group_id, dtype=np.int64),
+            oco_group_id_code=np.ascontiguousarray(compiled_commands.command_oco_group_id, dtype=np.int64),
+            status=np.ascontiguousarray(command_status, dtype=np.int64),
+            reject_code=np.ascontiguousarray(reject_code, dtype=np.int64),
+            fill_bar=np.ascontiguousarray(fill_bar, dtype=np.int64),
+            fill_qty=np.ascontiguousarray(fill_qty, dtype=np.float64),
+            fill_price=np.ascontiguousarray(fill_price, dtype=np.float64),
+            fill_fee=np.ascontiguousarray(fill_fee, dtype=np.float64),
+            active=np.ascontiguousarray(active, dtype=np.int64),
+            waiting_parent=np.ascontiguousarray(waiting_parent, dtype=np.int64),
+            working_qty=np.ascontiguousarray(working_qty, dtype=np.float64),
+            working_price=np.ascontiguousarray(working_price, dtype=np.float64),
+            working_trigger=np.ascontiguousarray(working_trigger, dtype=np.float64),
+            id_values=tuple(compiled_commands.id_values),
+            symbols=tuple(compiled_commands.symbols),
+        )
+
+    @staticmethod
+    def _build_compact_order_event_ledger(
+        *,
+        event_count: int,
+        event_bar: np.ndarray,
+        event_command: np.ndarray,
+        event_type: np.ndarray,
+        event_status: np.ndarray,
+        event_related_command: np.ndarray,
+    ) -> CompactOrderEventLedger:
+        n = max(int(event_count), 0)
+        return CompactOrderEventLedger(
+            bar=np.ascontiguousarray(event_bar[:n], dtype=np.int64),
+            command_index=np.ascontiguousarray(event_command[:n], dtype=np.int64),
+            event_type=np.ascontiguousarray(event_type[:n], dtype=np.int64),
+            status=np.ascontiguousarray(event_status[:n], dtype=np.int64),
+            related_command_index=np.ascontiguousarray(event_related_command[:n], dtype=np.int64),
+        )
+
+    @staticmethod
+    def _write_native_event_audit_sink(
+        *,
+        sink: str,
+        sink_path: Optional[str],
+        command_report: pd.DataFrame,
+        order_events: pd.DataFrame,
+        fill_ledger: CompactFillLedger,
+        command_ledger: CompactCommandLedger,
+        event_ledger: CompactOrderEventLedger,
+        report_level: str,
+    ) -> Dict:
+        if sink in {"none", "memory"} or report_level != "audit":
+            return {}
+        if not sink_path:
+            raise ValueError("native_event audit_sink='jsonl' or 'parquet' requires audit_sink_path")
+        root = Path(sink_path)
+        root.mkdir(parents=True, exist_ok=True)
+        if sink == "jsonl":
+            command_path = root / "command_report.jsonl"
+            event_path = root / "order_events.jsonl"
+            fill_path = root / "fill_ledger.jsonl"
+            command_report.to_json(command_path, orient="records", lines=True, date_format="iso")
+            order_events.to_json(event_path, orient="records", lines=True, date_format="iso")
+            pd.DataFrame(
+                {
+                    "bar": fill_ledger.bar,
+                    "command_index": fill_ledger.command_index,
+                    "original_index": fill_ledger.original_index,
+                    "order_id_code": fill_ledger.order_id_code,
+                    "symbol_code": fill_ledger.symbol_code,
+                    "side": fill_ledger.side,
+                    "qty": fill_ledger.qty,
+                    "price": fill_ledger.price,
+                    "fee": fill_ledger.fee,
+                }
+            ).to_json(fill_path, orient="records", lines=True, date_format="iso")
+            return {
+                "format": "jsonl",
+                "command_report": str(command_path),
+                "order_events": str(event_path),
+                "fill_ledger": str(fill_path),
+                "event_count": int(event_ledger.event_count),
+                "fill_count": int(fill_ledger.fill_count),
+            }
+        command_path = root / "command_report.parquet"
+        event_path = root / "order_events.parquet"
+        fill_path = root / "fill_ledger.parquet"
+        command_report.to_parquet(command_path, index=False)
+        order_events.to_parquet(event_path, index=False)
+        pd.DataFrame(
+            {
+                "bar": fill_ledger.bar,
+                "command_index": fill_ledger.command_index,
+                "original_index": fill_ledger.original_index,
+                "order_id_code": fill_ledger.order_id_code,
+                "symbol_code": fill_ledger.symbol_code,
+                "side": fill_ledger.side,
+                "qty": fill_ledger.qty,
+                "price": fill_ledger.price,
+                "fee": fill_ledger.fee,
+            }
+        ).to_parquet(fill_path, index=False)
+        return {
+            "format": "parquet",
+            "command_report": str(command_path),
+            "order_events": str(event_path),
+            "fill_ledger": str(fill_path),
+            "event_count": int(event_ledger.event_count),
+            "fill_count": int(fill_ledger.fill_count),
+        }
 
     @staticmethod
     def _build_command_report(
