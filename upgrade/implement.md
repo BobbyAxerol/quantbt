@@ -6703,6 +6703,8 @@ Benchmark interpretation:
 
 ### Phase 34B - Prepared Native Event Score Path
 
+Status: implemented on `feat/30-native-event-lifecycle`.
+
 Scope:
 
 - Add prepared native-event strategy runner:
@@ -6735,6 +6737,57 @@ Acceptance:
 - Prepared score is materially faster and more memory-lean than public audit.
 - Optimizers can use the prepared score path without changing public endpoint
   behavior.
+
+Implemented:
+
+- Added `NativeAccountingArrays` as the canonical ndarray accounting payload
+  extracted from native-event public results.
+- Added `NativeEventScoreResult`:
+  - ndarray equity/returns/positions/fees/funding/margin views;
+  - lifecycle counters;
+  - scalar metrics;
+  - no public fills/orders artifact bundle.
+- Added shared array-first performance metric function:
+  `metrics.performance.compute_performance_metrics(...)`.
+- `BacktestResultV2.full_report()` and `NativeEventScoreResult.full_report()`
+  now use the same metric implementation through `metrics.performance`.
+- Added `QuantBTEndpoint.prepare_native_event_strategy(...)`.
+- Added `PreparedNativeEventStrategyRunner`:
+  - prepares market arrays once;
+  - reuses OHLC/funding/open/volume arrays;
+  - `.score(strategy)` returns `NativeEventScoreResult` and does not store
+    `endpoint.result`;
+  - `.run(strategy, report_level=...)` returns public `BacktestResultV2`.
+- Added `PreparedNativeEventStrategyEvaluator` for the optimization framework.
+- Exported the new score/result/evaluator APIs from top-level/core/optimization
+  namespaces.
+- Updated endpoint docs with prepared native-event scoring examples.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase34b_native_event_prepared_score.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_phase34b_native_event_prepared_score.py --rows 600 --trials 12
+# metric_parity: true
+# public_audit_seconds: 1.763319
+# prepared_score_seconds: 0.634422
+# speedup: 2.779x
+# prepared_endpoint_result_retained: false
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 544 passed, 1 skipped
+```
+
+Scope note:
+
+- Phase 34B still uses the existing reactive session plus static replay kernel
+  as the accounting source of truth. It prunes artifacts and reuses prepared
+  market arrays, but it is not yet the single-pass stateful kernel.
+- Fully eliminating transient pandas public-result construction from score
+  execution belongs to Phase 34C, where the stateful kernel can emit
+  `NativeAccountingArrays` directly.
 
 ### Phase 34C - Single-Pass Stateful Native Event Kernel
 

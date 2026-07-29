@@ -47,7 +47,14 @@ Advanced — standalone metrics + plots::
 
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
-from .endpoint import EndpointConfig, PreparedIntrabarRunner, QuantBTEndpoint, QuantBTPreparedContext, format_metrics_report
+from .endpoint import (
+    EndpointConfig,
+    PreparedIntrabarRunner,
+    PreparedNativeEventStrategyRunner,
+    QuantBTEndpoint,
+    QuantBTPreparedContext,
+    format_metrics_report,
+)
 from .walkforward import (
     DuplicatePruner,
     EarlyStoppingCallback,
@@ -94,6 +101,7 @@ from .optimization import (
     OptimizationTrialRecord,
     OptunaOptimizer,
     PreparedIntrabarEvaluator,
+    PreparedNativeEventStrategyEvaluator,
     PreparedPortfolioEvaluator,
     PreparedSignalEvaluator,
     ReportMetricObjective,
@@ -136,7 +144,7 @@ from .backends   import (
 )
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
-from .core.results import BacktestResultV2, OptionBacktestResult
+from .core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult, OptionBacktestResult
 from .core.execution_contract import (
     EXECUTION_CONTRACT_REGISTRY,
     AmbiguityPolicy,
@@ -441,7 +449,9 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativeAccountingArrays",
     "NativeActiveOrderSnapshot",
+    "NativeEventScoreResult",
     "NativeEventStrategyError",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
@@ -464,6 +474,7 @@ __all__ = [
     "PortfolioRebalancePolicy",
     "PortfolioSizingMode",
     "QuantBTEndpoint",
+    "PreparedNativeEventStrategyRunner",
     "QuantBTPreparedContext",
     "format_metrics_report",
     "CANONICAL_OPTION_CHAIN_COLUMNS",

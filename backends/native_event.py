@@ -1246,6 +1246,9 @@ class NativeEventBackend:
         report_level: Optional[str] = None,
         audit_sink: Optional[str] = None,
         audit_sink_path: Optional[str] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        opens_arr: Optional[np.ndarray] = None,
+        volumes_arr: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -1268,18 +1271,29 @@ class NativeEventBackend:
 
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
-        market_arrays = self.prepare_market_arrays(
-            datetime_index=idx,
-            closes=closes,
-            highs=highs,
-            lows=lows,
-            funding_rate=funding_rate,
-            symbols=symbol_list,
-        )
-        open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
-        volume_dict = align_series(volumes, symbol_list, idx, fallback={s: pd.Series(0.0, index=idx) for s in symbol_list})
-        opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
-        volumes_arr = np.ascontiguousarray(np.column_stack([volume_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        if market_arrays is None:
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
+        if opens_arr is None:
+            open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
+            opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        else:
+            opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        if volumes_arr is None:
+            volume_dict = align_series(volumes, symbol_list, idx, fallback={s: pd.Series(0.0, index=idx) for s in symbol_list})
+            volumes_arr = np.ascontiguousarray(np.column_stack([volume_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        else:
+            volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        if opens_arr.shape != market_arrays.closes.shape or volumes_arr.shape != market_arrays.closes.shape:
+            raise ValueError("prepared opens/volumes arrays must match market array shape")
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(

@@ -7,7 +7,7 @@ Richer result contract for upgraded backends.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Sequence
+from typing import Dict, List, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -117,6 +117,107 @@ class BacktestResultV2:
             liquidated=bool(self.liquidated),
             liquidation_bar=int(self.liquidation_bar),
             metadata=dict(self.metadata),
+        )
+
+
+@dataclass(frozen=True)
+class NativeAccountingArrays:
+    timestamps: np.ndarray
+    equity: np.ndarray
+    returns: np.ndarray
+    positions: np.ndarray
+    fees: np.ndarray
+    funding: np.ndarray
+    initial_margin: np.ndarray
+    maintenance_margin: np.ndarray
+    symbols: tuple[str, ...]
+    initial_capital: float
+    leverage: float = 1.0
+    liquidated: bool = False
+    liquidation_bar: int = -1
+
+    @classmethod
+    def from_result(cls, result: BacktestResultV2) -> "NativeAccountingArrays":
+        position_cols = [f"Position_{symbol}" for symbol in result.symbols]
+        return cls(
+            timestamps=result.equity.index.view("int64").copy(),
+            equity=result.equity.to_numpy(dtype=np.float64, copy=True),
+            returns=result.returns.to_numpy(dtype=np.float64, copy=True),
+            positions=result.positions[position_cols].to_numpy(dtype=np.float64, copy=True),
+            fees=result.fees.to_numpy(dtype=np.float64, copy=True),
+            funding=result.funding.to_numpy(dtype=np.float64, copy=True),
+            initial_margin=result.margin.get("initial_margin", pd.Series(0.0, index=result.equity.index)).to_numpy(
+                dtype=np.float64,
+                copy=True,
+            ),
+            maintenance_margin=result.margin.get(
+                "maintenance_margin",
+                pd.Series(0.0, index=result.equity.index),
+            ).to_numpy(dtype=np.float64, copy=True),
+            symbols=tuple(result.symbols),
+            initial_capital=float(result.initial_capital),
+            leverage=float(result.leverage),
+            liquidated=bool(result.liquidated),
+            liquidation_bar=int(result.liquidation_bar),
+        )
+
+    @property
+    def datetime_index(self) -> pd.DatetimeIndex:
+        return pd.DatetimeIndex(self.timestamps)
+
+
+@dataclass(frozen=True)
+class NativeEventScoreResult:
+    accounting: NativeAccountingArrays
+    final_positions: np.ndarray
+    fill_count: int
+    rejection_count: int
+    cancellation_count: int
+    liquidated: bool
+    liquidation_bar: int
+    metrics: Mapping[str, float]
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    @property
+    def equity(self) -> np.ndarray:
+        return self.accounting.equity
+
+    @property
+    def returns(self) -> np.ndarray:
+        return self.accounting.returns
+
+    @property
+    def positions(self) -> np.ndarray:
+        return self.accounting.positions
+
+    @property
+    def fees(self) -> np.ndarray:
+        return self.accounting.fees
+
+    @property
+    def funding(self) -> np.ndarray:
+        return self.accounting.funding
+
+    @property
+    def initial_margin(self) -> np.ndarray:
+        return self.accounting.initial_margin
+
+    @property
+    def maintenance_margin(self) -> np.ndarray:
+        return self.accounting.maintenance_margin
+
+    def full_report(self, trading_days: int = 365) -> Dict:
+        from ..metrics.performance import compute_performance_metrics
+
+        return compute_performance_metrics(
+            timestamps=self.accounting.datetime_index,
+            equity=self.accounting.equity,
+            returns=self.accounting.returns,
+            positions=self.accounting.positions,
+            symbols=self.accounting.symbols,
+            initial_capital=float(self.accounting.initial_capital),
+            liquidated=bool(self.liquidated),
+            trading_days=trading_days,
         )
 
 

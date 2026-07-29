@@ -1,0 +1,12 @@
+{
+  "metric_parity": true,
+  "peak_rss_mb": 337.92578125,
+  "prepared_endpoint_result_retained": false,
+  "prepared_score_seconds": 0.6344219469465315,
+  "prepared_scores": 12,
+  "public_audit_seconds": 1.7633190099149942,
+  "public_last_report_level": "audit",
+  "rows": 600,
+  "speedup": 2.779410482884201,
+  "trials": 12
+}

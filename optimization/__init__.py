@@ -14,6 +14,7 @@ from .evaluators import (
     OptionPackageGenericEvaluator,
     OptionTrialOutput,
     PreparedIntrabarEvaluator,
+    PreparedNativeEventStrategyEvaluator,
     PreparedPortfolioEvaluator,
     PreparedSignalEvaluator,
 )
@@ -62,6 +63,7 @@ __all__ = [
     "OptimizationTrialRecord",
     "OptunaOptimizer",
     "PreparedIntrabarEvaluator",
+    "PreparedNativeEventStrategyEvaluator",
     "PreparedPortfolioEvaluator",
     "PreparedSignalEvaluator",
     "ReportMetricObjective",

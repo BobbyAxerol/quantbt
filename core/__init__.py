@@ -2,7 +2,7 @@ from .engine       import _engine_units, _engine_pct_equity, _engine_dca_ladder,
 from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
-from .results      import BacktestResultV2
+from .results      import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult
 from .execution_contract import (
     EXECUTION_CONTRACT_REGISTRY,
     AmbiguityPolicy,
@@ -159,6 +159,8 @@ __all__ = [
     "_engine_portfolio",
     "BacktestResult",
     "BacktestResultV2",
+    "NativeAccountingArrays",
+    "NativeEventScoreResult",
     "BracketOrderSpec",
     "AccountConfig",
     "AlphaExecutionClassification",
