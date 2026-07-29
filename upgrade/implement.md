@@ -6829,6 +6829,74 @@ Acceptance:
 - Audit can still produce full trace and optional replay certification.
 - 500-trial prepared run does not grow RAM with completed-trial history.
 
+Implemented:
+
+- Added `NativeEventConfig.reactive_kernel_mode` with
+  `replay_certified` and `single_pass`.
+- Kept public compatibility default at `replay_certified`.
+- Added single-pass result materialization from `_NativeEventReactiveSession`
+  state:
+  - equity path;
+  - returns;
+  - position matrix;
+  - fee/funding arrays;
+  - turnover, rejection, cancellation diagnostics;
+  - margin paths;
+  - liquidation flags;
+  - compact fill ledger with real bar indices.
+- `single_pass` skips the final static replay for `report_level="minimal"` and
+  score runs.
+- `single_pass` still runs replay oracle for `standard`, `audit`, and
+  `reactive_execution_mode="audit"`, then asserts exact accounting parity.
+- Added metadata:
+  - `reactive_kernel_mode`;
+  - `static_replay_available`;
+  - `reactive_static_replay_count`;
+  - `single_pass_accounting_source`;
+  - `single_pass_replay_certified`.
+- Updated `PreparedNativeEventStrategyRunner.score(...)` to use
+  `reactive_kernel_mode="single_pass"` automatically.
+- Threaded `reactive_kernel_mode` through endpoint, prepared runner, and
+  `BacktestEngineV2`.
+- Preserved legacy `reactive_incremental_compile_replays == 0` semantics:
+  this field counts replay/compile inside callback construction, not the final
+  optional certification replay.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase34c_native_event_single_pass.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase30d_native_event_reactive_runner.py \
+  quantbt/tests/test_phase30e_native_event_incremental_runner.py \
+  quantbt/tests/test_phase34a_native_event_artifacts.py \
+  quantbt/tests/test_phase34b_native_event_prepared_score.py \
+  quantbt/tests/test_phase34c_native_event_single_pass.py
+# 19 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  benchmarks/run_phase34c_native_event_single_pass.py --rows 600 --trials 12
+# accounting_parity: true
+# replay_certified_seconds: 1.431315
+# single_pass_seconds: 0.750957
+# speedup: 1.906x
+# replay_certified_static_replays: 12
+# single_pass_static_replays: 0
+```
+
+Scope note:
+
+- Phase 34C completes the practical single-pass optimization contract for
+  reactive strategy minimal/score loops.
+- The implementation intentionally keeps the Python reactive session as the
+  state source and uses the existing event-v2 replay kernel as the oracle for
+  audit/certification.
+- A deeper future rewrite could move active-order state into a true low-level
+  Numba step kernel, but that is no longer required for current prepared
+  WFO/Optuna memory and replay-reduction goals.
+
 ### Phase 34 Final Merge Gate
 
 - Public endpoints stay source-compatible.

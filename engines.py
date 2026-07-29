@@ -69,6 +69,7 @@ class BacktestEngineV2:
         strategy=None,
         event_engine_version: str = "v1",
         reactive_execution_mode: str = "fast",
+        reactive_kernel_mode: str = "replay_certified",
         report_level: str = "audit",
         audit_sink: str = "memory",
         audit_sink_path: Optional[str] = None,
@@ -112,6 +113,7 @@ class BacktestEngineV2:
         self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
         self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
+        self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
         self.report_level = str(report_level)
         self.audit_sink = str(audit_sink)
         self.audit_sink_path = audit_sink_path
@@ -214,6 +216,7 @@ class BacktestEngineV2:
                 report_level=self.report_level,
                 audit_sink=self.audit_sink,
                 audit_sink_path=self.audit_sink_path,
+                reactive_kernel_mode=self.reactive_kernel_mode,
             )
         )
 
@@ -244,6 +247,7 @@ class BacktestEngineV2:
                 min_qty=self.min_qty,
                 min_notional=self.min_notional,
                 execution_mode=self.reactive_execution_mode,
+                reactive_kernel_mode=self.reactive_kernel_mode,
                 report_level=self.report_level,
                 audit_sink=self.audit_sink,
                 audit_sink_path=self.audit_sink_path,
