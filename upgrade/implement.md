@@ -2773,6 +2773,684 @@ Safety notes:
 - `l2_replay` raises explicitly until venue snapshots, incremental updates,
   trade prints, and timestamp/latency assumptions are provided.
 
+## Phase 16 - Performance Debt Closure
+
+Goal:
+
+Close the remaining non-Cython performance debt that was still open after
+Phase 13/14:
+
+- repeated pandas normalization in facade/service loops;
+- native portfolio report-construction residual cost;
+- larger WFO/service-loop benchmark before any Cython/C++ decision.
+
+Scope:
+
+- Add an opt-in prepared service context on the public endpoint:
+  `endpoint.prepare_service_context(...)`.
+- Support only routes with existing prepared-array parity locks:
+  - `QuantBTEndpoint.signal_notional(..., backend="native_vectorized")`;
+  - `QuantBTEndpoint.portfolio(..., backend="native_portfolio")`.
+- Keep normal `.backtest(...)` unchanged and defensive.
+- Reuse copied prepared market arrays and backend signature validation.
+- Convert repeated signal/position inputs to raw ndarray matrices when index and
+  columns already match, with safe pandas alignment fallback otherwise.
+- Add a larger benchmark artifact that compares:
+  - repeated normal endpoint replays;
+  - prepared service-context replays;
+  - full vs minimal native portfolio reports;
+  - larger Phase 14 WFO/service-loop profile.
+
+Acceptance:
+
+- Prepared service context has identical core accounting versus normal endpoint:
+  equity, returns, positions, fees, funding, margin.
+- Unsupported legacy/event/Nautilus routes raise clearly instead of silently
+  changing semantics.
+- Benchmark artifact records speed, parity, memory, and Cython/C++ decision.
+- Cython/C++ remains deferred unless pure kernels become the measured bottleneck.
+
+Status:
+
+- Implemented `QuantBTPreparedContext` and
+  `QuantBTEndpoint.prepare_service_context(...)`.
+- Exported `QuantBTPreparedContext` through top-level `quantbt`.
+- Added tests in `tests/test_phase16_prepared_service_context.py`:
+  - single-symbol `signal_notional` prepared context parity;
+  - native portfolio prepared context core-accounting parity;
+  - unsupported legacy `%_equity` rejection.
+- Added benchmark runner and artifacts:
+  - `benchmarks/run_phase16_performance_debt.py`;
+  - `benchmarks/phase16_performance_debt.json`;
+  - `benchmarks/phase16_performance_debt.md`.
+- Latest Phase 16 benchmark status: `pass`.
+- Latest measured prepared-context speedups:
+  - single-symbol signal-notional service replays: `1.821x`;
+  - native portfolio service replays: `4.483x`;
+  - native portfolio full vs minimal report construction: `1.917x`.
+- Larger WFO/service-loop parity remains `pass`.
+- Current Cython/C++ decision: not justified yet; measured bottlenecks remain
+  facade/report/preparation layers rather than pure Numba kernels.
+
+Safety notes:
+
+- This phase does not alter margin, sizing, fill, funding, liquidation, or PnL
+  kernels.
+- Prepared service contexts are caller-owned and run-local; there is no mutable
+  global cache.
+- If OHLC/funding data changes, rebuild the context.
+- For final stakeholder reports, rerun the selected signal/portfolio with
+  normal `.backtest(...)` or `report_level="full"`.
+
+---
+
+## Phase 17 - Options Backtest Engine
+
+Planning source:
+
+- `upgrade/option_backtest_plan/quantbt_options_engine_verified_design.md`
+- `upgrade/option_backtest_plan/quantbt_options_engine_execution_plan.md`
+
+Branch:
+
+- Requested branch `dev/option-engine` is not valid while branch `dev` exists,
+  because Git cannot store both `refs/heads/dev` and
+  `refs/heads/dev/option-engine`.
+- Active implementation branch: `feat/option-engine`.
+
+Goal:
+
+Add an institutional-grade options backtest stack while keeping existing
+QuantBT behavior stable:
+
+- option instrument conventions first;
+- ledger-based PnL and expiry accounting;
+- ragged option tape, not dense fixed-universe matrices;
+- bid/ask execution;
+- no lookahead in selector/tape usage;
+- optional Nautilus validation, never an import-time dependency.
+
+### Phase 17.0 - Baseline Protection
+
+Status: completed.
+
+Artifacts:
+
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.json`;
+- `upgrade/option_backtest_plan/phase0_baseline_snapshot.md`.
+
+Latest result:
+
+- full non-real regression: `286 passed, 1 skipped, 3 warnings`.
+- `import quantbt` did not import `nautilus_trader`.
+- existing endpoint support matrices were snapshotted.
+
+### Phase 17.1 - Domain Schema And Conventions
+
+Status: completed.
+
+Implemented:
+
+- Added `AssetType.OPTION`.
+- Added `quantbt.options` bounded context:
+  - schema;
+  - venue conventions;
+  - canonical option-chain data validation.
+- Added option enums, `OptionInstrumentSpec`, instrument registry signatures,
+  and versioned Deribit/Binance convention descriptors.
+- Exported Phase 1 schema helpers from top-level `quantbt`.
+- Added tests for additive import behavior, inverse/linear convention guards,
+  registry signatures, option chain normalization, quote guards, expiry guards,
+  and duplicate snapshot rejection.
+
+Latest tests:
+
+- Phase 1 option tests: `12 passed`.
+- import smoke: `phase1_import_smoke=pass`.
+- full non-real regression: `298 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.1:
+
+- `OptionInstrumentSpec.multiplier` currently mirrors
+  `InstrumentSpec.contract_size`; later phases should choose one canonical
+  reporting multiplier or keep both with stronger docs.
+- `OptionInstrumentSpec.qty_step` mirrors `InstrumentSpec.lot_size`; later
+  endpoint docs should settle on one user-facing term for quantity increment.
+- One-sided or zero-bid option quotes are not accepted yet; Phase 3 may add
+  explicit quote-status support.
+- Venue convention descriptors do not yet include historical venue fee/margin
+  schedule snapshots.
+- Binance option convention is metadata-safe only, not exact venue margin
+  certification.
+- Pricing, IV, Greeks, tape compilation, package execution, ledger, expiry,
+  endpoint, and Nautilus validation remain future phases by design.
+
+### Phase 17.2 - Pricing, IV, Greeks
+
+Status: completed.
+
+Implemented:
+
+- Added deterministic scalar option analytics primitives:
+  - linear Black-76 call/put pricing;
+  - linear intrinsic and put-call parity;
+  - inverse base-currency forward pricing;
+  - inverse intrinsic and base-currency parity;
+  - linear quote Greeks;
+  - inverse native base Greeks;
+  - inverse quote-reporting Greeks;
+  - static reporting-currency Greek scaling;
+  - bisection IV solvers with explicit status enum;
+  - minimal total variance surface and diagnostics.
+- Exported Phase 2 analytics helpers from top-level `quantbt`.
+- Added tests for:
+  - linear parity;
+  - inverse parity;
+  - IV recovery;
+  - invalid IV status;
+  - finite-difference delta/gamma/vega;
+  - no-future-timestamp surface calibration;
+  - basic calendar total variance diagnostics.
+
+Latest tests:
+
+- options tests: `31 passed`.
+- fastmath scan: no matches in `options` or `tests/options`.
+- import smoke: `phase2_import_smoke=pass`.
+- full non-real regression: `317 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.2:
+
+- Pricing/Greeks are scalar primitives; vectorized or Numba kernels should be
+  added only after Phase 3/4 tape and execution array shapes are stable.
+- Inverse pricing uses the Phase 2 forward convention: linear quote price
+  divided by forward. Venue-exact Deribit/Binance option accounting needs later
+  sample parity.
+- Theta assumes fixed forward and discount.
+- Surface diagnostics are minimal; butterfly convexity and full no-arb fitting
+  are not production-certified yet.
+- IV uses deterministic bisection for auditability; faster solvers are deferred.
+- Options still have no tape compiler, selector, execution engine, ledger,
+  expiry lifecycle, endpoint route, or Nautilus validation.
+
+### Phase 17.3 - Data Tape And Selectors
+
+Status: completed.
+
+Implemented:
+
+- Added a ragged/CSR option tape:
+  - `PreparedOptionTape`;
+  - `OptionTapeSignature`;
+  - `prepare_option_tape(...)`;
+  - snapshot timestamps;
+  - row pointers;
+  - per-row instrument codes and market fields.
+- Added no-lookahead option selectors:
+  - ATM;
+  - target delta;
+  - target DTE;
+  - target moneyness;
+  - available rows with liquidity/spread/OI filters.
+- Added registry, convention, and timestamp signature validation.
+- Added guards for:
+  - unknown/unlisted instruments;
+  - registry static-field mismatch;
+  - crossed quotes;
+  - stale source latency;
+  - stale decision-time quote age;
+  - expired contracts at decision time.
+- Exported Phase 3 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `43 passed`.
+- import smoke: `phase3_import_smoke=pass`.
+- dense/fastmath scan: no dense matrix construction and no `fastmath`.
+- full non-real regression: `329 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.3:
+
+- Selector scans are Python/NumPy. Numba kernels should wait until option
+  execution/package shapes are stable.
+- Delta/IV selectors use observable chain columns only. Model-derived fallback
+  selection must be explicit in later phases.
+- Stale checks are snapshot-level guards, not L2/order-book replay.
+- Tie-break policies are first-minimum after canonical sort; richer secondary
+  policies are future work.
+- Options still have no package compiler, execution engine, ledger, expiry
+  lifecycle, endpoint route, or Nautilus validation.
+
+### Phase 17.4 - Package Compiler And Options Execution
+
+Status: completed.
+
+Implemented:
+
+- Added option package domain objects:
+  - `OptionPackageLeg`;
+  - `OptionPackageIntent`;
+  - `OptionPackageExecutionPolicy`.
+- Added `compile_option_package_orders(...)` to compile option package legs into
+  existing QuantBT `OrderIntent` leaves with package metadata.
+- Added snapshot-level option package execution:
+  - `OptionExecutionConfig`;
+  - `OptionLimitFidelity`;
+  - `OptionDepthFidelity`;
+  - `OptionPackageExecutionResult`;
+  - `execute_option_package(...)`.
+- Supported policies:
+  - `ATOMIC_ALL_OR_NONE`;
+  - `BEST_EFFORT`;
+  - `SEQUENTIAL`;
+  - `HEDGE_AFTER_PRIMARY`;
+  - `REBALANCE_ONLY`.
+- Locked Phase 4 fill rules:
+  - market buy at ask;
+  - market sell at bid;
+  - no mark/mid default execution;
+  - FOK/IOC/GTC behavior where feasible on top-of-book snapshots;
+  - package debit/credit guard;
+  - explicit simulated atomicity/fidelity labels.
+- Exported Phase 4 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `54 passed`.
+- import smoke: `phase4_import_smoke=pass`.
+- full non-real regression: `340 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.4:
+
+- Execution remains snapshot/top-of-book, not L2 replay or venue-native combo
+  matching.
+- `MAKER_TOUCH` is an explicit approximation, not real maker queue priority.
+- Margin report is a placeholder until the multi-currency ledger phase.
+- Stop/conditional option lifecycle is rejected until lifecycle semantics exist.
+- Package debit/credit guard works in package premium units; full currency
+  conversion is deferred.
+- Options still have no endpoint route, full ledger, expiry lifecycle, or
+  Nautilus adapter.
+
+### Phase 17.5 - Multi-Currency Ledger, Fees, Lifecycle
+
+Status: completed.
+
+Implemented:
+
+- Added `OptionFeeSchedule`, `OptionFeeResult`, and deterministic per-leg fee
+  calculation.
+- Added Deribit-like fee schedules:
+  - inverse base-currency capped fee;
+  - linear USDC capped fee.
+- Added `OptionLedger` and `OptionPosition`:
+  - multi-currency cash;
+  - position quantity;
+  - average entry;
+  - realized PnL;
+  - fees;
+  - settlement cashflows;
+  - margin-locked bucket;
+  - event audit rows;
+  - reporting-currency equity identity.
+- Added lifecycle helpers:
+  - `option_expiry_payoff_per_unit(...)`;
+  - `settle_option_expiry(...)`;
+  - `OptionSettlementRepresentation`;
+  - `OptionSettlementResult`.
+- Locked Phase 5 accounting rules:
+  - long pays premium;
+  - short receives premium;
+  - fee is recorded separately;
+  - round trip with no price move equals spread plus fees;
+  - inverse BTC premium reconciles to USD reporting equity via conversion rate;
+  - OTM expiry closes at zero payoff;
+  - ITM linear payoff settles in quote/settlement currency;
+  - ITM inverse payoff settles in base currency;
+  - settlement closes exactly once.
+- Exported Phase 5 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `63 passed`.
+- import smoke: `phase5_import_smoke=pass`.
+- full non-real regression: `349 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.5:
+
+- Ledger is not wired into a full option backend or endpoint yet.
+- Margin models and liquidation sequencing remain Phase 6.
+- Fee schedules are deterministic Deribit-like approximations, not venue-exact
+  certified schedules.
+- `future_then_cash` is currently an audit representation with equivalent
+  economic cashflow.
+- Quanto lifecycle payoff is not implemented.
+- Reporting conversion uses caller-supplied rates only.
+
+### Phase 17.6 - Hedging And Margin
+
+Status: completed.
+
+Implemented:
+
+- Added option hedge-policy primitives:
+  - fixed threshold;
+  - hysteresis band;
+  - time-based;
+  - realized-vol scaled band.
+- Added hedge path accounting where hedge PnL for the prior price move uses the
+  previous hedge position before current-bar rebalance.
+- Added option margin primitives:
+  - long-premium-only;
+  - standard venue approximation;
+  - scenario PM approximation;
+  - no-margin research;
+  - external validator interface.
+- Added liquidation audit:
+  - maintenance breach check;
+  - adverse bid/ask liquidation;
+  - fee report;
+  - final cash;
+  - final positions.
+- Exported Phase 6 APIs from top-level `quantbt`.
+
+Latest tests:
+
+- options tests: `71 passed`.
+- import smoke: `phase6_import_smoke=pass`.
+- full non-real regression: `357 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 17.6:
+
+- Hedge/margin are primitives, not a full option backend loop yet.
+- Whalley-Wilmott remains intentionally excluded.
+- Standard/scenario PM models are approximations; scenario PM reports
+  `venue_exact=false`.
+- External margin validator has an interface only.
+- Liquidation closes all positions with adverse BBO prices, not exchange-native
+  queue/partial liquidation logic.
+- Underlying hedge instrument execution and Nautilus option validation remain
+  future work.
+
+---
+
+## Phase 30 - Native Event Lifecycle Upgrade
+
+Status: active on branch `feat/30-native-event-lifecycle`.
+
+Urgent goal:
+
+- Upgrade `native_event` from a static market/limit replay kernel into a
+  deterministic OHLC order-lifecycle engine.
+- Preserve strategy separation: alpha/research code still emits signals or
+  order commands; the backend owns order state, fills, PnL, fees, margin,
+  liquidation, and audit reports.
+- Keep old endpoint behavior stable while adding a v2 lifecycle path.
+
+Scope:
+
+- `quantbt.core.orders`;
+- `quantbt.core.order_compiler`;
+- `quantbt.core.event`;
+- `quantbt.backends.native_event`;
+- `quantbt.adapters.nautilus`;
+- endpoint/docs/tests only where needed to expose the new contract.
+
+Non-goals for Phase 30:
+
+- Do not move alpha/feature logic into the backend.
+- Do not silently change `OrderIntent` v1 market/limit replay semantics.
+- Do not claim exchange-native OCO/L2 queue behavior until parity tests exist.
+
+### Phase 30A - Command Contract And Compiler V2
+
+Status: completed.
+
+Plan:
+
+- Add canonical lifecycle command objects:
+  - `OrderAction.PLACE`;
+  - `OrderAction.CANCEL`;
+  - `OrderAction.REPLACE`;
+  - `OrderAction.AMEND`;
+  - `OrderAction.CANCEL_ALL`.
+- Keep `OrderIntent` as the backwards-compatible shorthand for immediate
+  `PLACE`.
+- Add lifecycle fields required by v2:
+  - `order_id`;
+  - `target_order_id`;
+  - `parent_order_id`;
+  - `group_id`;
+  - `oco_group_id`;
+  - `activation_policy`;
+  - `expires_at`;
+  - `reduce_only`;
+  - `trigger_price`.
+- Add `compile_order_commands(...)` to pack lifecycle commands into contiguous
+  NumPy arrays without running execution logic.
+- Preserve `compile_order_intents(...)` and `_engine_event_v1` unchanged for
+  old endpoint parity.
+- Add focused tests for validation, stable sorting, ID mapping, stop fields,
+  reduce-only flags, parent/OCO metadata, and backend helper exposure.
+
+Exit criteria:
+
+- New command contract imports from `quantbt`.
+- Compiler v2 supports market, limit, stop-market, stop-limit command payloads.
+- Old native-event market/limit tests still pass unchanged.
+- No endpoint default behavior changes.
+
+Implemented:
+
+- Added `OrderAction`, `OrderActivationPolicy`, and `OrderCommand`.
+- Preserved `OrderIntent` as the compatibility shorthand for immediate place
+  commands.
+- Added `order_intents_to_commands(...)` and `compile_order_commands(...)`.
+- Added `CompiledOrderCommandArrays` with packed fields for:
+  - action;
+  - symbol;
+  - side;
+  - order type;
+  - quantity;
+  - limit price;
+  - trigger price;
+  - TIF;
+  - reduce-only;
+  - order/target/parent/group/OCO IDs;
+  - activation policy;
+  - expiry bar;
+  - original command index.
+- Exposed `NativeEventBackend.compile_order_commands(...)`.
+- Exported the new command contract from `quantbt` and `quantbt.core`.
+- Documented the distinction between v1 `OrderIntent` execution and v2 command
+  tape compilation.
+
+Latest tests:
+
+- Phase 30A command contract tests: `4 passed`.
+- Native-event v1 parity/performance tests: `11 passed`.
+- Full non-real regression: `399 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 30A:
+
+- `OrderCommand` tapes are compiled but not yet executed by a lifecycle kernel.
+- Stop-market/stop-limit payloads are packed for v2, while v1 still executes
+  only market/limit orders.
+- OCO, parent-child activation, cancel/replace/amend, GTD expiry, and
+  reduce-only clipping are contract-ready but require Phase 30B execution
+  tests before production use.
+
+### Phase 30B - Native Event Lifecycle Kernel V2
+
+Status: completed.
+
+Plan:
+
+- Add an active-order registry in a v2 Numba kernel.
+- Implement deterministic lifecycle transitions:
+  - place;
+  - cancel;
+  - replace;
+  - amend;
+  - cancel-all;
+  - GTD expiry;
+  - reduce-only clipping;
+  - stop-market and stop-limit trigger activation;
+  - OCO sibling cancellation;
+  - parent-child activation on first/full fill.
+- Emit lifecycle audit artifacts:
+  - order event log;
+  - final active-order snapshot;
+  - status/reject/cancel/fill report;
+  - engine version metadata.
+- Keep v1 as compatibility route until v2 parity is explicitly accepted.
+
+Exit criteria:
+
+- Domain tests cover bracket/OCO, DCA/grid entry/exit, cancel/replace/amend,
+  reduce-only, stop triggers, GTD expiry, parent-child activation, and margin
+  rejection.
+- v1 compatibility tests still pass.
+- v2 metadata makes lifecycle behavior transparent enough for Nautilus parity.
+
+Implemented:
+
+- Added `_engine_event_v2(...)` as an opt-in Numba lifecycle kernel.
+- Added active-order registry arrays and dense ID lookup.
+- Implemented deterministic lifecycle commands:
+  - place;
+  - cancel;
+  - replace;
+  - amend;
+  - cancel-all.
+- Implemented order-state behavior:
+  - parent-child activation;
+  - OCO sibling cancellation;
+  - reduce-only no-op cancellation and quantity clipping;
+  - stop-market trigger fills;
+  - stop-limit trigger plus limit-touch fills;
+  - GTD expiry before matching;
+  - IOC/FOK cancellation when not touched;
+  - margin rejection using the same account model as v1.
+- Added `NativeEventBackend.run_order_commands(...)`.
+- Added lifecycle audit metadata:
+  - `command_report`;
+  - `order_report`;
+  - `order_events`;
+  - `active_orders`;
+  - `id_values`;
+  - quantity preflight.
+- Preserved `run_orders(...)` on event v1 for existing endpoint parity.
+
+Latest tests:
+
+- Phase 30A/30B lifecycle tests: `18 passed`.
+- Native-event v1 parity/performance tests: `11 passed`.
+- Simple market/limit v1-v2 parity test: passed inside Phase 30B suite.
+- Full non-real regression: `413 passed, 1 skipped, 3 warnings`.
+
+Additional locked domain cases:
+
+- cancel prevents later GTC fill;
+- replace cancels old slot and fills replacement;
+- amend updates working limit before matching;
+- stop-market trigger fill;
+- stop-limit trigger plus limit-touch fill;
+- cancel-all cancels active and parent-waiting orders;
+- parent-child bracket activation with OCO sibling cancel;
+- reduce-only no-op cancel without opposite position;
+- reduce-only clipping to existing position size;
+- margin rejection above buying power;
+- DCA/grid-style base plus safety limit fills at grid prices;
+- GTD expiry before later touch;
+- unfilled GTC active snapshot;
+- v1-v2 market/limit parity.
+
+Technical debt after Phase 30B:
+
+- Endpoint route still defaults to v1 `OrderIntent`; Phase 30C will expose
+  lifecycle v2 through endpoint/backends more ergonomically.
+- Structured DCA/grid, bracket, basket, and arbitrage packages are not yet
+  automatically compiled into `OrderCommand` tapes.
+- Partial fills, queue priority, latency, and L2 depth remain outside this
+  kernel; current v2 behavior is deterministic OHLC lifecycle simulation.
+- Nautilus parity for command tapes remains Phase 30C.
+
+### Phase 30C - Endpoint, Nautilus Adapter, And Structured Package Parity
+
+Status: completed.
+
+Plan:
+
+- Expose an opt-in native-event v2 route through endpoint/backends without
+  breaking existing calls.
+- Compile structured bracket, DCA/grid, basket, and arbitrage packages into
+  lifecycle commands where order state matters.
+- Align Nautilus adapter inputs around the same canonical command contract.
+- Add parity tests between:
+  - native-event v2 and old v1 for simple market/limit cases;
+  - native-event v2 and Nautilus for single-symbol explicit order packages;
+  - structured package preflight and lifecycle execution reports.
+
+Exit criteria:
+
+- Endpoint docs show how to pass `OrderIntent` vs `OrderCommand`.
+- Legacy endpoints remain stable.
+- Package-level reports include fills, cancels, rejects, and linked-order
+  status for stakeholder audit.
+
+Implemented:
+
+- Added endpoint-level lifecycle route:
+  - `QuantBTEndpoint.native_event_lifecycle(...)`;
+  - `QuantBTEndpoint.orders(event_engine_version="v2", ...)`;
+  - `simulate(..., order_commands=[OrderCommand(...), ...])`.
+- Added `BacktestEngineV2` support for:
+  - `order_commands`;
+  - `event_engine_version`;
+  - native-event v2 lifecycle execution;
+  - legacy `OrderIntent` to lifecycle `PLACE` conversion when v2 is requested.
+- Added structured native-event v2 endpoints:
+  - `QuantBTEndpoint.native_event_dca_grid(...)`;
+  - `QuantBTEndpoint.native_event_bracket_orders(...)`.
+- Added canonical metadata converter:
+  - `order_intents_to_lifecycle_commands(...)`;
+  - lifts parent/OCO/package metadata into explicit command fields;
+  - limits OCO linkage to reduce-only/exit legs so base/safety orders are not
+    accidentally canceled.
+- Aligned Nautilus adapter payloads:
+  - `QuantBTEndpoint.orders(backend="nautilus")` accepts `order_commands`;
+  - executable `PLACE` and `REPLACE` commands are converted into Nautilus
+    package `OrderIntent` payloads;
+  - legacy Nautilus `orders=[OrderIntent(...)]` params remain unchanged.
+- Updated endpoint/order-fill docs and Nautilus support matrix.
+
+Latest tests:
+
+- Phase 30A/30B/30C lifecycle suites: `23 passed`.
+- Endpoint/Nautilus compatibility subsets: `50 passed`.
+- Native-event v1 parity/performance subset: `11 passed`.
+- Full non-real regression: `418 passed, 1 skipped, 3 warnings`.
+
+Final Phase 30 conclusion:
+
+- Native-event v2 is usable for deterministic OHLC lifecycle research and
+  package audit through opt-in endpoint/backend routes.
+- Existing v1 `OrderIntent` endpoint behavior remains stable and default.
+- Structured DCA/grid and bracket/OCO packages can now run through native-event
+  v2 with command reports and event logs.
+- Nautilus adapter is command-payload aligned for executable package orders,
+  but exchange-native cancel/amend command parity remains future work.
+
+Remaining out-of-scope debt:
+
+- Partial fills, queue priority, latency, and L2 depth are still handled by
+  separate depth/preflight approximations, not the v2 OHLC kernel.
+- Nautilus parity for true cancel/replace/amend lifecycle requires a dedicated
+  Nautilus strategy upgrade and real Nautilus package runs.
+- Portfolio/arbitrage package command conversion can be deepened later where
+  linked lifecycle state materially changes the strategy behavior.
+
 ---
 
 ## Backend Selection Guide
@@ -2812,3 +3490,3423 @@ For every phase:
 6. Do not include unrelated dirty files.
 
 Main branch is protected by local pre-commit hook.
+
+
+## Aditional update to awesome-native event command reactive
+### Feature Request: Reactive Native-Event Strategy Runner
+
+### Phase 30D - Reactive Runner MVP
+
+Status: completed.
+
+Goal:
+
+- Add a safe opt-in reactive strategy runner above native-event v2.
+- Preserve the static command-tape route and all Phase 30A-C behavior.
+- Let strategy callbacks observe engine-generated fills, events, positions,
+  equity, margin, and active orders after each bar.
+- Enforce causal timing: commands emitted after close `t` become effective from
+  bar `t+1`.
+- Capture the emitted command tape and prove that static replay of this tape
+  has 100% accounting parity with the reactive run.
+
+Implementation scope:
+
+- Add read-only reactive records:
+  - `NativeStrategyContext`;
+  - `NativeFillEvent`;
+  - `NativeOrderEvent`;
+  - `NativeActiveOrderSnapshot`;
+  - `NativeEventStrategyError`.
+- Add `NativeEventBackend.run_strategy(...)`.
+- Add endpoint route:
+  - `QuantBTEndpoint.native_event_strategy(...)`;
+  - `simulate(..., strategy=...)`.
+- Add `context.size_order(...)` using the same quantity constraints as the
+  backend.
+- Preserve metadata round-trip for `campaign_id`, `cycle_id`, `level_id`,
+  `order_id`, `tag`, `parent_order_id`, and `oco_group_id`.
+
+MVP note:
+
+- Phase 30D may use a replay-backed context builder that calls the already
+  certified event-v2 command engine. This keeps lifecycle semantics identical
+  and makes parity exact. Phase 30E is reserved for the true incremental
+  session with preallocated buffers and large workload benchmarks.
+
+Acceptance tests:
+
+- `on_bar_close` is called exactly once after each bar.
+- Commands emitted at close `t` cannot fill inside bar `t`.
+- Commands become active/fillable from `t+1`.
+- Context fills/positions match final result state.
+- Rejected commands are visible in the next callback.
+- Liquidation prevents further command ingestion.
+- Captured `emitted_command_tape` static replay matches equity, positions,
+  fills, and command report.
+
+Implemented:
+
+- Added read-only reactive records:
+  - `NativeStrategyContext`;
+  - `NativeFillEvent`;
+  - `NativeOrderEvent`;
+  - `NativeActiveOrderSnapshot`;
+  - `NativeEventStrategyError`;
+  - `NativeEventStrategyProtocol`.
+- Added `NativeEventBackend.run_strategy(...)`.
+- Added endpoint route:
+  - `QuantBTEndpoint.native_event_strategy(...)`;
+  - `simulate(..., strategy=...)`.
+- Added `context.size_order(...)` using backend quantity constraints.
+- Added metadata round-trip into command report, order events, fills, and
+  reactive context for:
+  - `campaign_id`;
+  - `cycle_id`;
+  - `level_id`;
+  - `order_id`;
+  - `tag`;
+  - `parent_order_id`;
+  - `oco_group_id`.
+- Added captured command tape:
+  - `result.metadata["emitted_command_tape"]`;
+  - `emitted_command_count`;
+  - `strategy_callback_count`;
+  - `reactive_context_builder`.
+- Added clear callback failure errors with bar index and timestamp.
+
+Latest tests:
+
+- Phase 30D reactive runner tests: `6 passed`.
+- Phase 30A/30B/30C/30D lifecycle suites: `29 passed`.
+- Endpoint/Nautilus compatibility subsets: `50 passed`.
+- Full non-real regression: `424 passed, 1 skipped, 3 warnings`.
+
+Technical debt after Phase 30D:
+
+- The MVP context builder is replay-backed through the certified event-v2
+  command engine. It preserves exact semantics and replay parity, but it is not
+  the final high-throughput incremental session.
+- Scoped `CANCEL_ALL` filters and large dynamic-grid benchmarks remain Phase
+  30E.
+- Nautilus exchange-native cancel/amend parity remains future work.
+
+### Phase 30E - Incremental Reactive Session And Dynamic Grid Certification
+
+Status: completed.
+
+Goal:
+
+- Replace the Phase 30D replay-backed context builder with an incremental
+  session that appends per-bar commands without recompiling command history.
+- Add scoped `CANCEL_ALL` filters:
+  - symbol;
+  - side;
+  - order type;
+  - tag;
+  - tag prefix;
+  - parent order id;
+  - OCO group id;
+  - campaign/group ids.
+- Add dynamic grid fixture and benchmark:
+  - 25,000 bars;
+  - 15-30 active grid orders;
+  - 1-5 commands per bar;
+  - static tape vs reactive FAST vs reactive AUDIT;
+  - full accounting parity between FAST and AUDIT.
+
+Non-goals retained:
+
+- No tick matching.
+- No L2 book/queue priority.
+- No exchange-native Nautilus cancel/amend parity.
+- No async/live broker runtime.
+
+Implementation notes:
+
+- `NativeEventBackend.run_strategy(...)` now uses an incremental reactive
+  session for callback context instead of replaying/recompiling command history
+  on every bar.
+- Final accounting, fills, positions, fees, margin, liquidation, and reports
+  still come from one static `event_v2` replay of the emitted command tape.
+- `reactive_execution_mode="fast"` and `"audit"` keep the same public API.
+  Audit mode stores `reactive_audit` final equity/position diffs.
+- Reactive strategy metadata now reports:
+  - `reactive_context_builder="incremental_session_v1"`;
+  - `reactive_incremental_compile_replays=0`;
+  - `emitted_command_tape`;
+  - `emitted_command_count`.
+- Kernel `CANCEL_ALL` now supports scoped numeric filters:
+  - symbol;
+  - side;
+  - order type;
+  - parent order id;
+  - group id;
+  - OCO group id.
+- Reactive string-scoped `CANCEL_ALL` supports:
+  - exact tag;
+  - tag prefix;
+  - campaign id;
+  - cycle id;
+  - level id.
+  These commands are expanded into explicit target `CANCEL` commands before
+  final static replay so final accounting remains replayable by the Numba
+  kernel.
+- Active-order snapshots now include `group_id`.
+- Core path optimization:
+  - incremental session tracks only active/waiting pending orders;
+  - filled/canceled/rejected historical orders are no longer scanned every bar;
+  - pandas/report construction is kept out of the callback loop.
+
+Validation:
+
+- Phase 30A/30B/30C/30D/30E lifecycle suites: `33 passed`.
+- Full quantbt unit regression: pending for final phase closeout.
+- 25,000-bar dynamic grid benchmark:
+  - 20 active grid levels;
+  - 10,438 emitted commands;
+  - 10,438 fills;
+  - reactive context runtime: `3.5069s`;
+  - final static replay runtime: `1.6560s`;
+  - total runtime: `5.1629s`;
+  - max equity diff vs static replay: `0.0`;
+  - max position diff vs static replay: `0.0`.
+
+Final Phase 30E conclusion:
+
+- The urgent native-event lifecycle stack is now usable for dynamic DCA/grid,
+  recurring order management, reactive re-arm, scoped cancellation, and audit
+  replay workflows on OHLC bars.
+- The trusted accounting source remains the Numba event-v2 kernel.
+- Remaining future work is intentionally outside Phase 30:
+  - tick/L2 book simulation;
+  - exchange-native Nautilus cancel/amend/OCO order-list parity;
+  - async broker runtime;
+  - portfolio-margin venue clones.
+
+Technical debt after Phase 30E:
+
+- Add dedicated event-specific human loggers for:
+  - native event v1;
+  - native event v2 lifecycle;
+  - reactive native-event strategy runner;
+  - Nautilus validation adapter.
+- Current `simulate(show_order_logs=True)` is a bounded generic helper and is
+  useful for quick fill/order visibility, but it is not a full execution trace.
+- Future logger should support bounded output modes such as:
+  - `fills_only`;
+  - `order_events`;
+  - `bar_state`;
+  - `margin_debug`;
+  - `full_execution_trace`.
+- Expected per-line fields:
+  - timestamp/bar;
+  - order id / command id / event type;
+  - symbol, side, order type, qty, fill price;
+  - intended price, trigger price, realized slippage;
+  - fee, turnover;
+  - realized/unrealized PnL when available;
+  - equity before/after;
+  - initial margin, maintenance margin, free/available equity;
+  - reject/cancel/expire reason;
+  - active/waiting order count.
+- This should be implemented as a reporting layer over existing artifacts
+  (`fills`, `command_report`, `order_events`, `diagnostics`, `margin`) instead
+  of changing matching/accounting kernels.
+- Priority is lower than core kernel/domain upgrades, portfolio/arbitrage
+  engine depth, and Nautilus execution parity.
+
+## 1. Mục tiêu
+
+Bổ sung một **reactive lifecycle runner** lên `native_event v2` hiện tại để strategy có thể:
+
+1. Nhận trạng thái execution thực tế sau mỗi bar.
+2. Đọc fills, position và active orders do QuantBT tạo.
+3. Phát `OrderCommand[]` cho bar tiếp theo.
+4. Không phải tự kiểm tra `high/low` hoặc tự mô phỏng fill trong strategy.
+
+Đây không phải full exchange OMS và không thay đổi matching/accounting kernel hiện tại.
+
+Mục tiêu chính là hỗ trợ đúng domain cho:
+
+* Dynamic grid.
+* Recurring DCA.
+* Re-arm order sau khi exit.
+* Cancel/amend level theo indicator mới.
+* Regime switch.
+* Parent-child nhiều chu kỳ.
+* Stateful scale-in/scale-out strategies.
+
+---
+
+## 2. Vấn đề hiện tại
+
+`native_event v2` đã hỗ trợ:
+
+```text
+PLACE
+CANCEL
+REPLACE
+AMEND
+CANCEL_ALL
+MARKET / LIMIT / STOP
+parent-child
+OCO
+reduce-only
+GTD
+```
+
+Nhưng public backend hiện vẫn chạy theo mô hình:
+
+```python
+run_order_commands(
+    commands: Sequence[OrderCommand],
+    market_arrays=...,
+)
+```
+
+Tức là toàn bộ command tape phải được tạo trước simulation.
+
+Mô hình này không đủ cho recurring dynamic grid:
+
+```text
+entry fill
+→ strategy cần biết fill thực tế
+→ tạo exit cho đúng filled quantity
+→ exit fill
+→ re-arm entry
+→ amend grid theo level mới
+```
+
+Strategy không thể biết trước các event này nếu không tự mô phỏng fills, dẫn đến duplicate execution logic và nguy cơ sai parity.
+
+---
+
+## 3. Public API đề xuất
+
+### Phương án chính
+
+```python
+endpoint = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    slippage_bps=1.0,
+    report_level="minimal",
+)
+
+result = endpoint.simulate(
+    data=df,
+    strategy=DynamicGridStrategy(params),
+    symbols=["ETHUSDT"],
+)
+```
+
+Hoặc giữ endpoint hiện tại:
+
+```python
+endpoint = QuantBTEndpoint.native_event_lifecycle(...)
+
+result = endpoint.simulate_strategy(
+    data=df,
+    strategy=DynamicGridStrategy(params),
+)
+```
+
+Không thay đổi API hiện có:
+
+```python
+simulate(order_commands=[...])
+```
+
+Static command tape và reactive strategy runner phải cùng dùng một kernel lifecycle.
+
+---
+
+## 4. Strategy protocol
+
+```python
+class NativeEventStrategyProtocol:
+    def initialize(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+
+    def on_bar_close(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+
+    def finalize(
+        self,
+        context: "NativeStrategyContext",
+    ) -> list[OrderCommand]:
+        ...
+```
+
+MVP chỉ cần:
+
+```text
+initialize
+on_bar_close
+finalize
+```
+
+Chưa cần tick callback, order-book callback hoặc intrabar strategy callback.
+
+---
+
+## 5. Read-only strategy context
+
+```python
+@dataclass(frozen=True)
+class NativeStrategyContext:
+    bar_index: int
+    timestamp: pd.Timestamp
+
+    open: np.ndarray
+    high: np.ndarray
+    low: np.ndarray
+    close: np.ndarray
+    volume: np.ndarray
+
+    equity: float
+    available_equity: float
+    initial_margin: float
+    maintenance_margin: float
+
+    positions: Mapping[str, float]
+
+    fills_this_bar: Sequence[FillEvent]
+    order_events_this_bar: Sequence[OrderEvent]
+    active_orders: Sequence[ActiveOrderSnapshot]
+
+    liquidated: bool
+```
+
+`active_orders` cần chứa tối thiểu:
+
+```text
+order_id
+symbol
+side
+order_type
+status
+remaining_qty
+price
+trigger_price
+reduce_only
+parent_order_id
+oco_group_id
+tag
+```
+
+Context chỉ đọc. Strategy không được sửa trực tiếp engine state.
+
+---
+
+## 6. Timeline causal bắt buộc
+
+Tại bar `t`:
+
+```text
+1. Activate commands đã được submit từ trước.
+2. Xử lý trigger và fills bằng OHLC[t].
+3. Áp dụng fee, funding, margin và liquidation.
+4. Cập nhật positions/equity.
+5. Emit fill/order events của bar t.
+6. Gọi strategy.on_bar_close(context_t).
+7. Commands trả về chỉ active từ bar t+1.
+```
+
+Default phải là:
+
+```python
+command_effective_phase = "next_bar"
+```
+
+Như vậy strategy dùng indicator tại close `t` nhưng không thể retroactively đặt order trong high/low của chính bar `t`.
+
+Không cho callback sửa kết quả bar đã xử lý.
+
+---
+
+## 7. Không mô phỏng fill trong strategy
+
+Strategy chỉ được:
+
+```text
+tính indicator
+xác định regime
+xác định desired grid levels
+PLACE / CANCEL / AMEND orders
+quản lý campaign_id và level_id
+phản ứng với fill events thật
+```
+
+QuantBT tiếp tục là nguồn duy nhất cho:
+
+```text
+limit touch
+fill price
+slippage
+fee
+position
+average entry
+margin
+funding
+liquidation
+reduce-only clipping
+OCO
+parent activation
+order status
+```
+
+---
+
+## 8. Dynamic command ingestion
+
+Kernel/session cần cho phép append commands sau mỗi bar mà không compile lại toàn bộ lịch sử.
+
+Đề xuất internal structure:
+
+```text
+prepared market arrays
+active-order registry
+per-bar command buffer
+preallocated command/event arrays
+free-slot stack
+```
+
+API nội bộ:
+
+```python
+session.submit_commands(
+    commands,
+    effective_bar=current_bar + 1,
+)
+```
+
+Không nối lại toàn bộ `Sequence[OrderCommand]` rồi chạy lại simulation từ đầu.
+
+---
+
+## 9. Scoped `CANCEL_ALL`
+
+Dynamic grid cần hủy đúng campaign hoặc đúng side, không được luôn hủy toàn bộ account.
+
+Mở rộng `CANCEL_ALL` với filter tùy chọn:
+
+```python
+OrderCommand(
+    action=OrderAction.CANCEL_ALL,
+    symbol="ETHUSDT",
+    side=OrderSide.BUY,
+    tag_prefix="GRID-C12-LONG-ENTRY",
+)
+```
+
+Các scope cần thiết:
+
+```text
+symbol
+side
+order_type
+tag
+tag_prefix
+parent_order_id
+oco_group_id
+```
+
+Nếu chưa muốn đưa string filter vào Numba, compiler map tag/campaign/group thành integer code.
+
+---
+
+## 10. Metadata round-trip
+
+Các trường sau phải được giữ xuyên suốt:
+
+```text
+order command
+→ active order
+→ order event
+→ fill
+→ result reports
+```
+
+Fields:
+
+```text
+order_id
+tag
+campaign_id
+cycle_id
+level_id
+parent_order_id
+oco_group_id
+```
+
+Có thể lưu các domain ID dưới dạng integer code trong kernel và decode khi tạo pandas reports.
+
+Điều này cần thiết để strategy biết:
+
+```text
+fill này thuộc level nào
+exit nào vừa đóng
+entry nào cần re-arm
+campaign nào cần cancel
+```
+
+---
+
+## 11. Quantity semantics
+
+MVP tiếp tục dùng `qty`, nhưng nên thêm shared sizing helper ngoài strategy:
+
+```python
+qty = context.size_order(
+    symbol="ETHUSDT",
+    notional=cash_per_entry,
+    price=limit_price,
+)
+```
+
+Helper phải dùng cùng venue constraints với backend:
+
+```text
+contract_size
+qty_step
+lot_size
+min_qty
+min_notional
+```
+
+Strategy không nên tự lặp lại rounding logic.
+
+Không nhất thiết phải thêm `notional` vào kernel command trong phase này.
+
+---
+
+## 12. Performance
+
+### Hai mode
+
+```python
+execution_mode="fast"
+execution_mode="audit"
+```
+
+`fast`:
+
+* Reuse prepared market arrays.
+* Chỉ tạo context tối thiểu.
+* Không dựng DataFrame trong bar loop.
+* Fills/events dùng lightweight views hoặc arrays.
+* Không lưu full active-order snapshots mỗi bar.
+* `report_level="minimal"`.
+* Dùng cho Optuna và WFO.
+
+`audit`:
+
+* Full `order_events`.
+* Full active-order diagnostics.
+* Command tape export.
+* Dùng cho candidate cuối.
+
+### Không gọi pandas trong hot loop
+
+Alpha indicators nên được tính trước thành NumPy arrays:
+
+```python
+strategy.prepare(data) -> PreparedStrategyArrays
+```
+
+`on_bar_close()` chỉ đọc array tại `bar_index`.
+
+### Không copy toàn bộ registry
+
+Context chỉ expose:
+
+```text
+position vector
+fills/events vừa phát sinh
+active-order view cần thiết
+```
+
+Không copy tất cả historical events mỗi bar.
+
+### Benchmark bắt buộc
+
+Thêm benchmark:
+
+```text
+25,000 bars
+15–30 concurrent grid orders
+1–5 commands/bar
+multiple fill/re-arm cycles
+```
+
+So sánh:
+
+```text
+static command tape
+reactive FAST
+reactive AUDIT
+```
+
+Reactive FAST không nên chậm hơn Python event loop ngây thơ và phải đủ dùng cho Optuna trên dữ liệu 1h.
+
+---
+
+## 13. Determinism
+
+Cùng:
+
+```text
+market data
+strategy parameters
+initial state
+random seed
+```
+
+phải tạo chính xác cùng:
+
+```text
+command tape
+fills
+positions
+equity
+reports
+```
+
+Command ordering:
+
+```text
+bar_index
+callback_sequence
+command_sequence
+```
+
+Commands strategy trả về phải giữ nguyên stable list order.
+
+---
+
+## 14. Failure handling
+
+Nếu strategy callback raise exception:
+
+```text
+stop simulation
+return bar_index/timestamp gây lỗi
+không trả partial metrics như một backtest hợp lệ
+```
+
+Nếu command bị reject:
+
+* Event phải xuất hiện trong `order_events`.
+* Strategy nhận event đó ở callback tiếp theo.
+* Không tự động retry trừ khi strategy yêu cầu.
+
+Nếu liquidation xảy ra:
+
+* Cancel toàn bộ active orders.
+* Context đánh dấu `liquidated=True`.
+* Không tiếp tục submit order mới mặc định.
+
+---
+
+## 15. Captured command tape
+
+Reactive runner phải lưu toàn bộ commands mà strategy đã phát:
+
+```python
+result.metadata["emitted_command_tape"]
+```
+
+Hoặc:
+
+```python
+result.command_tape
+```
+
+Dùng cho:
+
+* Audit.
+* Reproduction.
+* Replay static.
+* So sánh strategy-state với engine-state.
+* Nautilus validation.
+
+Một reactive run phải có thể replay bằng:
+
+```python
+endpoint.simulate(
+    data=df,
+    order_commands=result.command_tape,
+)
+```
+
+và cho kết quả native-event giống hệt.
+
+Đây là acceptance criterion quan trọng nhất.
+
+---
+
+## 16. Nautilus validation follow-up
+
+Support matrix hiện ghi native lifecycle đã hỗ trợ đầy đủ phía native, nhưng Nautilus command path mới payload-aligned; cancel/amend chưa có exchange-native parity đầy đủ.
+
+Sau MVP reactive runner, bổ sung adapter:
+
+```python
+replay_lifecycle_tape_with_nautilus(
+    data,
+    command_tape,
+)
+```
+
+Mapping:
+
+```text
+PLACE   → submit_order
+CANCEL  → cancel_order
+REPLACE → cancel + submit hoặc modify đúng Nautilus API
+AMEND   → modify_order
+```
+
+Validation report:
+
+```text
+order lifecycle status
+fill count
+fill qty
+position by bar
+fees
+realized PnL
+final equity
+```
+
+Nautilus không cần nằm trong optimization loop; chỉ validate candidate cuối.
+
+---
+
+## 17. Acceptance tests bắt buộc
+
+### Core runner
+
+1. Callback được gọi đúng một lần sau mỗi bar.
+2. Command sinh tại close `t` không thể fill trong bar `t`.
+3. Command bắt đầu active tại `t+1`.
+4. Position/fills trong context khớp result cuối.
+5. Rejected command được trả về callback.
+6. Liquidation khóa strategy đúng cách.
+7. Static replay của captured command tape cho parity 100%.
+
+### Dynamic grid fixture
+
+1. Place 3 buy limits.
+2. Một entry fill.
+3. Chỉ child exit của đúng level được tạo.
+4. Exit fill ở bar sau.
+5. Entry level được re-arm.
+6. Grid level thay đổi thì pending order được amend.
+7. Regime switch cancel đúng pending side.
+8. Reduce-only market command đóng inventory.
+9. Không tồn tại stale hoặc duplicate order.
+10. Không có same-bar entry/exit nếu strategy không chủ động yêu cầu.
+
+### Performance
+
+* Prepared market arrays được reuse.
+* Không compile lại toàn bộ command history mỗi bar.
+* FAST và AUDIT có accounting parity.
+* Memory không tăng tuyến tính theo `bars × active_orders snapshots`.
+
+---
+
+## 18. Non-goals
+
+Không cần bổ sung:
+
+```text
+tick matching
+L2 order book
+queue position
+exchange latency
+market impact model
+distributed event bus
+live broker connectivity
+async strategy runtime
+full exchange OMS
+```
+
+Runner chỉ là cầu nối reactive giữa:
+
+```text
+strategy state
+↔ native-event lifecycle kernel
+```
+
+---
+
+## 19. Những phần cần hoàn thành trước khi viết lại grid alpha
+
+### Blocker bắt buộc
+
+* Reactive `on_bar_close` runner.
+* Context có positions, fills và active orders.
+* Commands effective từ next bar.
+* Scoped `CANCEL_ALL`.
+* Metadata/tag/level ID round-trip.
+* Captured command tape.
+* Static replay parity test.
+
+### Nên có ngay
+
+* Shared notional-to-qty sizing helper.
+* `report_level="minimal"` cho Optuna.
+* Prepared strategy/market arrays.
+* Dynamic grid integration fixture.
+* Clear error khi duplicate `order_id`.
+
+### Có thể làm sau alpha MVP
+
+* Nautilus exchange-native cancel/amend adapter.
+* Partial fills.
+* Volume-capped fills.
+* Intrabar callback.
+* Same-close callback phase.
+* Numba-compiled strategy callback protocol.
+
+---
+
+## 20. Deliverable cuối
+
+Sau nâng cấp, grid alpha phải được viết theo dạng:
+
+```python
+class DynamicGridStrategy:
+    def prepare(self, data, params):
+        # Tính trước MA, ATR, regime và grid levels.
+        ...
+
+    def on_bar_close(self, context):
+        # Đọc fills/active orders thật.
+        # Sinh PLACE/CANCEL/AMEND cho bar tiếp theo.
+        # Không kiểm tra high/low để tự quyết định fill.
+        return commands
+```
+
+Backtest:
+
+```python
+endpoint = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    report_level="minimal",
+)
+
+result = endpoint.simulate(
+    data=data_eth,
+    strategy=DynamicGridStrategy(params),
+)
+```
+
+Sau khi runner này hoàn thành, có thể viết lại `grid_long_only` và `grid_combine` thành một unified alpha mà không cần bất kỳ fill simulator nào bên trong strategy.
+
+---
+
+## Phase 31 - Execution Correctness And Fast Intrabar Upgrade
+
+Status: complete for the current single-symbol OHLC intrabar scope. Phase 31A,
+Phase 31B, Phase 31C, and Phase 31D implemented on
+`feat/31-execution-correctness-intrabar`.
+
+Source design document:
+
+- [`upgrade/quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md`](./quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md)
+
+Why this is tracked as Phase 31 here:
+
+- The source document is named "Phase 17" because it describes the conceptual
+  execution-correctness upgrade.
+- `upgrade/implement.md` already uses Phase 17 for the Options Backtest Engine
+  history, so the implementation roadmap is tracked as Phase 31 to avoid
+  confusing future agents.
+
+Branch recommendation:
+
+- Do not continue this large upgrade on `feat/30-native-event-lifecycle`.
+- First finish/push/merge the Phase 30 native-event lifecycle branch into
+  `dev` if accepted.
+- Then create a clean branch from updated `dev`, recommended:
+
+```bash
+git switch dev
+git pull --ff-only origin dev
+git switch -c feat/31-execution-correctness-intrabar
+```
+
+Reason:
+
+- This upgrade changes execution contracts, market tape validation, vectorized
+  semantics, endpoint routing, fill replay, and benchmark/certification docs.
+- Keeping it separate from Phase 30 avoids coupling reactive native-event
+  lifecycle work with a broader vectorized/intrabar correctness migration.
+
+Implementation should be compressed from the source document's Phase 17A-J into
+four practical phases:
+
+### Phase 31A - Semantic Freeze, P0 Safety, And Contract Manifest
+
+Scope:
+
+- Preserve existing close-target behavior but label it explicitly as
+  `close_target_v2`.
+- Add mandatory result metadata:
+  - `engine_id`;
+  - `backend_alias`;
+  - `execution_contract`;
+  - `signal_phase`;
+  - `fill_phase`;
+  - `intrabar_exit_model`;
+  - `kernel_version`;
+  - `data_signature` when available.
+- Add P0 safety checks without changing intentional close-target PnL:
+  - no silent fake funding fallback;
+  - no unsupported execution config silently passing through;
+  - no high/low fallback when intrabar liquidation is required;
+  - explicit first-bar target policy;
+  - open/volume plumbing for routes that need it.
+- Add warnings/errors for likely intrabar misuse on close-target endpoints,
+  especially columns such as `exit_price`, `exit_type`, `stop_loss`,
+  `take_profit`, `trailing`.
+
+Tests:
+
+- Golden close-target parity before/after.
+- Metadata contract tests.
+- Strict unsupported-config tests.
+- Funding missing-symbol tests.
+- High/low missing under liquidation tests.
+
+Acceptance:
+
+- Existing valid close-target alpha results remain reproducible.
+- Silent execution ambiguity becomes explicit metadata, warning, or error.
+- No intrabar engine implementation yet.
+
+Implementation notes after Phase 31A:
+
+- `native_vectorized` now declares the close-target execution contract via
+  metadata:
+  - `engine="close_target_v2"`;
+  - `engine_id="close_target_v2"`;
+  - `backend_alias="native_vectorized"`;
+  - `kernel_version="units_v2"`;
+  - `signal_phase="bar_close"`;
+  - `fill_phase="same_close"`;
+  - `intrabar_exit_model="none"`;
+  - `first_bar_target_policy`;
+  - `data_signature`.
+- `NativeVectorizedConfig` fails fast on unsupported execution config for the
+  close-target contract:
+  - non-close fill price policy;
+  - non-conservative same-bar policy;
+  - partial fills;
+  - min order notional;
+  - disabling insufficient-margin rejection.
+- Funding dictionaries no longer synthesize `0.0001` for missing symbols; the
+  caller must pass the symbol explicitly, pass scalar funding, or disable
+  funding.
+- Missing high/low on native-vectorized close-target runs is now marked with
+  `high_low_source="close_fallback_uncertified_intrabar_risk"` and emits a
+  bounded warning. Phase 31B will replace this compatibility fallback with
+  strict prepared-tape certification.
+- Reactive native-event facade now passes `open` and `volume` from the input
+  frame into strategy context.
+- Close-target endpoint warns and marks runs as
+  `uncertified_intrabar_columns_on_close_target` if the input dataframe
+  contains likely intrabar artifacts such as `exit_price`, `stop_loss`,
+  `take_profit`, or `trailing`.
+
+Validation after Phase 31A:
+
+- `tests/test_phase31a_execution_correctness_contract.py`: `6 passed`.
+- Targeted regression:
+  `tests/test_phase2_native_vectorized.py`,
+  `tests/test_endpoint.py`,
+  `tests/test_phase30d_native_event_reactive_runner.py`,
+  `tests/test_phase30e_native_event_incremental_runner.py`,
+  `tests/test_phase9_performance_parity.py`: `42 passed`.
+
+### Phase 31B - Strict Prepared Market Tape And Python Intrabar Oracle
+
+Scope:
+
+- Add execution contract schema and registry:
+  - `close_target_v2`;
+  - `next_open_v1`;
+  - `intrabar_bracket_v1`;
+  - `fill_replay_v1`;
+  - `event_lifecycle_v2`.
+- Add strict `PreparedMarketTape` with validation certificate:
+  - monotonic timestamps;
+  - duplicate rejection;
+  - finite OHLCV;
+  - OHLC invariant;
+  - explicit funding policy;
+  - no ffill/bfill OHLC in strict mode.
+- Add Python reference oracle for single-symbol linear intrabar execution:
+  - signal at close;
+  - entry at next open;
+  - gap-aware SL;
+  - TP limit policy;
+  - same-bar ambiguity;
+  - trailing update effective next bar;
+  - technical exit;
+  - reversal as two fee/slippage legs;
+  - close-on-last-bar policy.
+
+Tests:
+
+- Golden scenario matrix from the source document.
+- No-lookahead timeline tests.
+- Same-bar SL/TP ambiguity tests.
+- Gap stop tests.
+- Long/short symmetry tests.
+- Strict tape validation tests.
+
+Acceptance:
+
+- Oracle is readable and becomes the internal truth model.
+- Prepared and non-prepared market inputs produce identical canonical arrays.
+- No Numba intrabar kernel is promoted until oracle tests are stable.
+
+Implementation notes after Phase 31B:
+
+- Added `core/execution_contract.py` with the execution contract registry:
+  `close_target_v2`, `next_open_v1`, `intrabar_bracket_v1`,
+  `fill_replay_v1`, and `event_lifecycle_v2`.
+- Added `core/market_tape.py` with strict immutable `PreparedMarketTape` and
+  `MarketValidationCertificate`.
+  - It rejects unsorted or duplicate timestamps.
+  - It rejects missing OHLC, NaN/inf, invalid OHLC invariants, non-positive
+    prices, and negative volume.
+  - It does not sort, deduplicate, forward-fill, back-fill, or synthesize
+    high/low from close.
+  - Funding dicts must explicitly cover every symbol.
+- Added `core/intrabar_reference.py` as the readable single-symbol truth model
+  for `intrabar_bracket_v1`.
+  - Signal at close becomes executable at next open.
+  - Stops are gap-aware.
+  - Take-profit is limit-conservative by default.
+  - Same-bar SL/TP ambiguity is flagged and conservatively resolved.
+  - Trailing updates are effective from the next bar, not the same bar.
+  - Reversal pays two explicit legs: exit old position and enter new position.
+  - Optional final close is controlled by the execution contract.
+- Added public exports from `quantbt` and `quantbt.core`.
+- Added `QuantBTEndpoint.intrabar_bracket_reference(...)`.
+  - The endpoint accepts a compact signed `signal` / `signal_col` where sign is
+    side and absolute value is entry quantity.
+  - Optional SL/TP/trailing/technical-exit columns are mapped through
+    `intent_cols` instead of requiring a wide fixed strategy schema.
+  - The endpoint returns `BacktestResultV2`, normalized `fills_report`,
+    diagnostics, validation certificate, and normal `show_metrics()` /
+    `full_report()` compatibility.
+
+Validation after Phase 31B:
+
+- `tests/test_phase31b_market_tape_intrabar_oracle.py`: strict tape,
+  execution-contract registry, funding dict strictness, same-bar ambiguity,
+  next-bar trailing, reversal double-fee accounting, and public endpoint smoke.
+
+Remaining for Phase 31C:
+
+- Promote the oracle semantics into a Numba fast intrabar kernel.
+- Add sparse audit ledger / second-pass fill replay.
+- Add parity tests between oracle, native event, and the new Numba kernel.
+- Add benchmark gates for `minimal`, `standard`, and `audit` report levels.
+
+### Phase 31C - Numba Fast Intrabar Kernel, Audit Ledger, And Fill Replay
+
+Scope:
+
+- Add fast Numba intrabar kernels:
+  - `next_open_v1`;
+  - `intrabar_bracket_v1` fixed SL/TP;
+  - trailing-enabled variant when safe;
+  - compact event flags.
+- Add `report_level`:
+  - `minimal` for optimizer/WFO;
+  - `standard` for normal endpoint reports;
+  - `audit` for sparse fills/trades.
+- Implement two-pass audit ledger:
+  - pass 1 computes accounting and exact fill count;
+  - pass 2 writes sparse fill/trade arrays only in audit mode;
+  - minimal/audit core equity parity must hold.
+- Add `fill_replay_v1` migration backend for old alphas that already emit
+  explicit fills.
+
+Tests:
+
+- Python oracle vs Numba parity.
+- Minimal vs audit parity.
+- Fill replay accounting identity.
+- Reversal two-leg fee/turnover tests.
+- Liquidation/funding tests.
+- Endpoint compatibility tests.
+
+Benchmarks:
+
+- Kernel-only warm JIT ratios versus `close_target_v2`.
+- Prepared endpoint ratios.
+- Native-event comparison for single-position bracket cases.
+- Memory profile for minimal vs audit.
+
+Acceptance:
+
+- Intrabar kernel is materially faster than native-event for single-position
+  bracket workloads.
+- No Python objects are created in hot loops.
+- Audit mode is deterministic and preserves exact fill sequence.
+
+Implementation notes after Phase 31C:
+
+- Added `core/intrabar_kernel.py`:
+  - `_engine_intrabar_bracket_v1` is a Numba single-symbol linear intrabar
+    kernel for `intrabar_bracket_v1`;
+  - `run_intrabar_kernel(...)` wraps the kernel and returns
+    `NativeIntrabarKernelResult`;
+  - `report_level="minimal"` and `standard` avoid sparse fill materialization;
+  - `report_level="audit"` runs deterministic pass 2, allocates exact-size
+    sparse fill arrays, materializes fills/report, and asserts pass-1 parity;
+  - `FillReplayTape` and `run_fill_replay_kernel(...)` provide
+    `fill_replay_v1` accounting migration.
+- Corrected the Python oracle accounting for entry slippage:
+  - PnL after entry now marks from actual fill price, not raw bar open;
+  - this makes fee/slippage legs explicit and gives the Numba kernel a correct
+    parity target.
+- Added simple single-symbol margin/risk semantics to oracle and kernel:
+  - initial margin rejection with account leverage and margin buffer;
+  - conservative intrabar maintenance breach liquidation for unprotected paths;
+  - full venue mark-price liquidation remains future certification work.
+- Added public endpoints:
+  - `QuantBTEndpoint.intrabar_bracket(...)` for the fast Numba route;
+  - `QuantBTEndpoint.fill_replay(...)` for explicit-fill accounting replay.
+- Added public exports from `quantbt` and `quantbt.core`:
+  `run_intrabar_kernel`, `NativeIntrabarKernelResult`, `FillReplayTape`,
+  `run_fill_replay_kernel`, and `NativeFillReplayResult`.
+
+Validation after Phase 31C:
+
+- `tests/test_phase31c_intrabar_kernel.py` covers oracle parity, audit second
+  pass, slippage accounting, trailing/reversal behavior, insufficient-margin
+  rejection, single-symbol liquidation, fill replay accounting, endpoint
+  standard/audit routes, fill replay endpoint, and warm-kernel speed smoke.
+
+### Phase 31D - Certification, Alpha Audit Tooling, And Docs
+
+Scope:
+
+- Add alpha inventory scanner and registry template.
+- Classify alphas into:
+  - pure close target;
+  - next-open only;
+  - intrabar bracket;
+  - fill replay migration;
+  - event lifecycle/grid/DCA;
+  - deferred cross-margin intrabar.
+- Add certification levels:
+  - Level 0 legacy;
+  - Level 1 accounting replay;
+  - Level 2 engine-causal;
+  - Level 3 cross-backend;
+  - Level 4 external validation.
+- Add native-event parity scenarios for known intrabar cases.
+- Add docs:
+  - execution contracts;
+  - fast intrabar endpoint;
+  - fill replay migration;
+  - alpha certification guide;
+  - benchmark report.
+
+Tests:
+
+- Scanner smoke tests.
+- Migration report fixtures.
+- Native intrabar vs native-event known-case parity.
+- Public endpoint examples.
+
+Acceptance:
+
+- No old intrabar alpha is silently treated as production-certified.
+- Users know which backend to use for each strategy type.
+- Production claim requires at least Level 2, and execution-sensitive alphas
+  should target Level 3 or Level 4.
+
+Design assessment:
+
+- The direction is correct and materially more institutional than the current
+  "one backend name fits all" model.
+- It reaches fund-grade methodology once Phase 31A-B are in place because
+  semantics, data validation, causality, and oracle truth are explicit.
+- It reaches practical production-grade for single-symbol SL/TP/trailing
+  intrabar research after Phase 31C parity and benchmark gates pass.
+- It should not claim full institutional execution across venues until Phase
+  31D plus lower-timeframe/Nautilus parity artifacts exist.
+
+Explicit non-goals for Phase 31:
+
+- No tick/L2 queue simulation.
+- No exact shared cross-margin intrabar path claim from OHLC-only data.
+- No generic multi-order grid engine inside the intrabar kernel.
+- No options Greeks/portfolio option execution in this kernel.
+- No Cython/C++ until prepared tape, lazy result, and Numba kernels are profiled.
+
+Implementation notes after Phase 31D:
+
+- Added `core/certification.py`:
+  - `CertificationLevel` with Level 0-4 labels;
+  - `classify_alpha_source(...)` for conservative source classification;
+  - `scan_alpha_directory(...)` for `.py`, `.ipynb`, and `.md` alpha inventory;
+  - `build_alpha_certification_report(...)` and `alpha_report_markdown(...)`;
+  - `certify_result_metadata(...)` to summarize result metadata into a
+    stakeholder-readable certification label.
+- Added `tools/audit_alpha_execution_contracts.py`:
+  - writes JSON and Markdown alpha execution-contract audit reports;
+  - intentionally treats source scanning as a migration hint, not proof of
+    causality or absence of look-ahead bias.
+- Added Phase 31 benchmark harness:
+  - `benchmarks/run_phase31_intrabar.py`;
+  - committed `phase31_intrabar_benchmark.json` and
+    `phase31_intrabar_benchmark.md` after running the standard 25k-bar profile.
+- Added docs:
+  - `docs/execution_contracts.md`;
+  - `docs/fast_intrabar.md`;
+  - `docs/alpha_certification.md`;
+  - endpoint and benchmark documentation links.
+- Public exports now include certification helpers from `quantbt` and
+  `quantbt.core`.
+
+Validation after Phase 31D:
+
+- `tests/test_phase31d_certification.py` covers source classification, metadata
+  certification levels, directory scan/report generation, CLI artifact writes,
+  and benchmark smoke parity.
+- Phase 31A/B/C/D targeted tests pass together with endpoint smoke tests.
+- Full unit regression excluding real-data tests passes.
+- Benchmark standard profile compares:
+  - close-target pure kernel;
+  - fast intrabar minimal;
+  - fast intrabar audit;
+  - Python intrabar oracle;
+  - fill replay kernel;
+  - native-event explicit-order facade.
+
+Phase 31 certification conclusion:
+
+- Completed:
+  - semantic freeze and contract manifest;
+  - strict market tape validation;
+  - close-target misuse metadata;
+  - Python intrabar oracle;
+  - Numba fast intrabar bracket kernel;
+  - audit ledger second pass;
+  - fill replay accounting kernel;
+  - public endpoint routes;
+  - source scanner and certification docs;
+  - reproducible benchmark report.
+- Production readiness:
+  - practical Level 2 for single-symbol linear next-open SL/TP/trailing
+    intrabar research when the alpha emits compact intent columns and benchmark
+    parity passes;
+  - Level 1 for old explicit-fill alphas using `fill_replay`;
+  - Level 3/4 still requires native-event/Nautilus/lower-timeframe parity
+    artifacts for each concrete strategy and venue.
+- Coverage of
+  `quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md` is roughly
+  80 percent of the requested institutional methodology: the core semantic,
+  oracle, kernel, audit, docs, and scanner work is done. Deferred pieces are
+  intentionally outside the current single-symbol OHLC bracket kernel:
+  standalone `next_open_v1` facade, broad native-event/Nautilus parity bundles,
+  lower-timeframe/tick validation, shared cross-margin intrabar semantics,
+  venue-specific liquidation/funding event ordering, and generic DCA/grid
+  state machines.
+
+
+# Upgrade after Phase 31;
+## QuantBT Execution Correctness — Các sửa đổi bắt buộc trước khi merge
+
+Status: implemented as two compact follow-up phases on
+`feat/31-execution-correctness-intrabar`.
+
+### Phase 31G - Final Merge Blockers From Sol Review
+
+Status: implemented.
+
+Final blockers reviewed:
+
+1. Funding timing semantics.
+   - Decision: keep `FundingPhase.POSITION_AT_EVENT` only for funding events
+     whose timestamp matches an exact market bar timestamp.
+   - Mid-bar funding events now raise and require a smaller timeframe.
+   - Added explicit `bar_timestamp_semantics`:
+     - `close` default: OHLC timestamp is the bar close, funding applies after
+       intrabar execution on the remaining close position;
+     - `open`: OHLC timestamp is the bar open, funding applies after open-gap
+       marking and before pending exit/entry orders at `open[t]`.
+   - `bar_timestamp_semantics` is part of the strict market tape signature, so
+     prepared caches cannot be reused across open/close timestamp contracts.
+   - Kernel/reference metadata records
+     `funding_timing_certified=true` and
+     `funding_event_alignment="exact_bar_timestamp"`.
+2. Execution contract propagation.
+   - Added `ExecutionContract.from_metadata(...)`.
+   - `QuantBTEndpoint.intrabar_bracket(...)` and
+     `.intrabar_bracket_reference(...)` accept `execution_contract=contract`.
+   - Endpoint and `PreparedIntrabarRunner` restore the full contract from
+     metadata rather than reconstructing only `close_on_last_bar`.
+   - Unsupported fields still raise `NotImplementedError`.
+3. Data signature completeness.
+   - Strict market tape signature now includes:
+     - timestamps;
+     - symbols;
+     - open/high/low/close;
+     - volume;
+     - funding rates;
+     - funding event mask;
+     - bar timestamp semantics.
+   - Prepared intrabar runner also freezes a `prepared_signature` containing
+     market signature plus account/execution/sizing/constraint profile metadata.
+
+Technical debt handled in the same pass:
+
+- `exit + same-side entry` now emits `ENTRY_SUPPRESSED` instead of counting as
+  a rejected order.
+- Dynamic trailing has explicit Python-oracle vs Numba parity coverage.
+- Added optional `tick_size` conservative price quantization for entry, SL, TP,
+  and trailing levels.
+- Docs now state the current certified scope as fast, deterministic, audited
+  **single-symbol intrabar** execution only.
+- Added tests for:
+  - funding position phase;
+  - open-vs-close bar timestamp funding semantics;
+  - execution-contract propagation;
+  - signature changes from volume/funding;
+  - signature changes from bar timestamp semantics;
+  - prepared runner vs normal endpoint parity;
+  - minimal/audit parity through the existing audit tests;
+  - tick-size price quantization.
+
+Merge gate after Phase 31G:
+
+```bash
+pytest -q tests/test_phase31*.py
+pytest -q
+python3 benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+```
+
+Validation after Phase 31G:
+
+- `tests/test_phase31*.py`: 42 passed.
+- Full `pytest -q`: 470 passed, 1 skipped.
+- Phase31 benchmark: fast intrabar minimal 25k bars in 0.0118s, about 2.11M
+  bars/s and 23.32x faster than the Python oracle.
+
+Merge certification scope:
+
+> Fast, deterministic, and audited single-symbol intrabar execution kernel.
+
+### Phase 31H - Session-Aware Intrabar Reference Contract
+
+Status: implemented on `feat/31-execution-correctness-intrabar`.
+
+Source:
+
+- Supplemental section `# PHẦN UPDATE BỔ SUNG:` in
+  `upgrade/quantbt_phase17_execution_correctness_fast_intrabar_upgrade.md`.
+- This phase is the user's requested new "Phase 31E"; it is tracked as 31H
+  here because historical Phase 31E/F entries already exist below for earlier
+  merge-blocker work.
+
+Scope:
+
+- Add session execution schemas:
+  - `EntryPositionPolicy`;
+  - `SessionCounterBasis`;
+  - `ProtectiveExitReentryPolicy`;
+  - `SessionExecutionPolicy`;
+  - `IntrabarSessionTape`.
+- Keep `ExecutionContract` unchanged; session policy owns only session mutable
+  execution state.
+- Extend intrabar endpoint and prepared runner with optional:
+  - `session_policy`;
+  - `session_tape`.
+- Preserve backward compatibility:
+  - `session_policy=None` means existing intrabar reference/kernel behavior is
+    unchanged;
+  - session feature requires both policy and tape;
+  - fast kernel raises for session mode until Phase 31I.
+- Implement session semantics in the Python reference oracle:
+  - session reset;
+  - entry time window;
+  - force-flat at open;
+  - flat-only/no-reversal;
+  - per-session long/short entry quota;
+  - stale pending signal cancellation across session boundaries;
+  - protective-exit re-entry suppression.
+- Add audit flags and metadata counts:
+  - `SESSION_RESET`;
+  - `SESSION_FORCED_EXIT`;
+  - `ENTRY_WINDOW_BLOCKED`;
+  - `ENTRY_QUOTA_BLOCKED`;
+  - `FLAT_ONLY_BLOCKED`;
+  - `STALE_SESSION_SIGNAL`;
+  - `PROTECTIVE_REENTRY_BLOCKED`.
+
+Tests:
+
+- No-session reference output parity.
+- Session boundary resets counters.
+- Last-bar session signal does not fill in the new session.
+- Flat-only blocks reversal and does not close old position implicitly.
+- Entry quota blocks the next entry without counting rejects.
+- Margin/quantity reject does not increment quota.
+- Entry fill then same-bar SL still increments quota.
+- Force-flat bar closes position and blocks new entry when configured.
+- Protective exit at bar `t` suppresses signal from bar `t` at open `t+1`.
+
+### Phase 31I - Fast Prepared Session Kernel
+
+Status: implemented on `feat/31-execution-correctness-intrabar`.
+
+Scope:
+
+- Compile `SessionExecutionPolicy` into integer policy codes.
+- Add a separate `run_intrabar_session_kernel(...)`; do not add a
+  `session_enabled` branch to the existing fast kernel hot loop.
+- Dispatch once before execution:
+  - no session -> existing fast kernel;
+  - session enabled -> session-specific kernel.
+- Include session policy and session tape signature in prepared-context cache
+  signatures.
+- Differential-test session fast kernel against Phase 31H reference oracle.
+- Benchmark:
+  - existing fast kernel unchanged;
+  - session kernel overhead isolated;
+  - prepared/non-prepared parity preserved.
+
+Acceptance:
+
+- Existing intrabar workloads remain bit-for-bit stable when no session policy
+  is supplied.
+- Session-aware intrabar alphas get reference-correct behavior, audit metadata,
+  and later Numba parity without becoming a generic mutable state-machine
+  engine.
+
+Implementation notes after Phase 31I:
+
+- Added `run_intrabar_session_kernel(...)`.
+  - Uses a separate `_engine_intrabar_session_bracket_v1` Numba kernel.
+  - Does not add a `session_enabled` branch to the existing
+    `_engine_intrabar_bracket_v1` hot loop.
+  - Supports `minimal`, `standard`, and `audit` report levels.
+  - Audit mode uses the same two-pass sparse fill ledger pattern as the
+    original intrabar kernel.
+- Endpoint dispatch:
+  - `intrabar_bracket(...)` runs the old fast kernel when no session policy is
+    configured;
+  - `intrabar_bracket(..., session_policy=...)` runs the session kernel when
+    `backtest(..., session_tape=...)` is supplied.
+- Prepared runner dispatch:
+  - no session -> old prepared fast kernel;
+  - session -> session prepared fast kernel.
+  - prepared profile metadata includes `session_policy` and
+    `session_tape_signature`.
+- Added public exports:
+  - `run_intrabar_session_kernel` from `quantbt`;
+  - `run_intrabar_session_kernel` from `quantbt.core`.
+- Extended Phase 31 benchmark report with:
+  - `intrabar_session_bracket_v1_minimal`;
+  - `intrabar_session_bracket_v1_audit`.
+
+Validation after Phase 31H:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31h_intrabar_session_reference.py
+# 12 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31*.py
+# 56 passed
+```
+
+Validation after Phase 31I:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31h_intrabar_session_reference.py
+# 14 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase31*.py
+# 58 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python quantbt/benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+```
+
+Benchmark after Phase 31I:
+
+- `intrabar_bracket_v1_minimal`: `0.011815s`, about `2.12M bars/s`.
+- `intrabar_session_bracket_v1_minimal`: `0.011652s`, about `2.15M bars/s`.
+- `intrabar_session_bracket_v1_audit`: `0.049885s`, about `501k bars/s`.
+- Session audit parity: `pass`.
+- Session minimal speedup vs Python oracle: about `20.55x`.
+
+### Phase 31E - Merge Blocker Execution Correctness
+
+Implemented:
+
+- `slippage_bps` is the source of truth for intrabar endpoints:
+  - fast/reference intrabar routes now pass `config.execution.slippage_rate`;
+  - legacy `slippage` on intrabar factories is converted once with a
+    deprecation warning;
+  - passing both `slippage` and `slippage_bps` raises;
+  - intrabar run config records `legacy_slippage_rate=None`.
+- Funding is event-causal in strict market tape:
+  - scalar funding is rejected in strict mode;
+  - zero funding requires `use_funding=False` or
+    `missing_funding_policy="zero"`;
+  - `funding_event_timestamps` and `funding_event_rates` are supported;
+  - events must match an exact market bar timestamp;
+  - `bar_timestamp_semantics="close"` applies funding after intrabar execution
+    on the close position;
+  - `bar_timestamp_semantics="open"` applies funding before pending open
+    orders at `open[t]`.
+- Strict timezone:
+  - naive market data is rejected unless `source_timezone` is provided;
+  - source timezone is localized first, then converted to UTC;
+  - data signatures are created after UTC normalization.
+- Dynamic trailing now uses `trailing_value[t]` at close `t`; the new trailing
+  level only affects later bars.
+- Intrabar intent supports side-specific `exit_long` and `exit_short`;
+  legacy `technical_exit` remains a compatibility alias for both sides.
+- Same-side `exit + entry` conflict is `exit only`; opposite entry remains a
+  two-leg reversal.
+- Intrabar sizing compiler added:
+  - `units`;
+  - `fixed_notional`;
+  - `pct_equity`;
+  - `risk_per_trade`.
+- Shared quantity constraints are applied to intrabar entry quantity:
+  - `qty_step` / `lot_size` / `slot_size`;
+  - `min_qty`;
+  - `min_notional`.
+- Unsupported `ExecutionContract` fields are rejected with
+  `NotImplementedError` instead of being silently ignored.
+- Fill replay certification metadata is granular:
+  - price and fee accounting are certified;
+  - funding, margin, liquidation, generation, and causality are explicitly not
+    certified by the current fill replay implementation.
+
+### Phase 31F - Prepared Intrabar Runner, Docs, And Regression Lock
+
+Implemented:
+
+- Added `PreparedIntrabarRunner`:
+  - `runner = bt.prepare_intrabar(data=df, symbols=[...])`;
+  - `runner.run(intent, report_level="minimal")`;
+  - `runner.run(intent, report_level="audit")`;
+  - caches strict OHLCV arrays, funding arrays, validation certificate, data
+    signature, quantity constraints, and frozen profile metadata.
+- Added endpoint support for event funding inputs:
+  - `funding_event_timestamps`;
+  - `funding_event_rates`.
+- Added docs for:
+  - `slippage_bps`;
+  - funding events;
+  - side-specific exits;
+  - intrabar sizing;
+  - prepared runner usage.
+- Added `tests/test_phase31_merge_blockers.py` covering the Sol blocker list
+  implemented in this compact follow-up.
+
+Validation:
+
+- `tests/test_phase31_merge_blockers.py`: 11 passed.
+- Phase31 A/B/C/D/E/F targeted suite: 39 passed.
+- Endpoint/native smoke suite: 41 passed.
+
+Remaining outside this compact follow-up:
+
+- A full `QuantBTProfile` / profile registry façade for every strategy family.
+- Output contract classes for portfolio, grid, DCA, arbitrage, and options.
+- Broad automatic output routing across all execution families.
+- L2/tick/lower-timeframe validation and Nautilus Level 4 bundles for each
+  concrete alpha.
+
+## 1. Các lỗi phải sửa trước
+
+### 1.1 `slippage_bps` là nguồn cấu hình duy nhất
+
+Intrabar kernel phải lấy slippage từ:
+
+```python
+slippage_rate = execution.slippage_bps / 10_000.0
+```
+
+Không được đồng thời duy trì hai nguồn:
+
+```python
+slippage
+slippage_bps
+```
+
+Nếu legacy API truyền `slippage`, chỉ convert tại compatibility adapter và phát cảnh báo deprecation. Nếu cả hai cùng được truyền, phải raise error.
+
+---
+
+### 1.2 Funding phải dựa trên event thực tế
+
+Không broadcast một scalar funding rate lên mọi bar.
+
+Intrabar backend chỉ nhận:
+
+```python
+funding_event_timestamps
+funding_event_rates
+```
+
+hoặc một series đã có:
+
+```text
+rate != 0 chỉ tại funding event
+```
+
+Funding được áp khi event timestamp khớp chính xác một market bar timestamp:
+
+```text
+funding_event_timestamp == market_bar_timestamp
+```
+
+Nếu OHLC timestamp là bar close, dùng `bar_timestamp_semantics="close"` để
+funding áp sau intrabar path trên position còn lại tại close. Nếu OHLC timestamp
+là bar open, dùng `bar_timestamp_semantics="open"` để funding áp trước pending
+orders tại `open[t]`.
+
+Thiếu funding của symbol phải raise trong strict mode. Chỉ dùng zero khi:
+
+```python
+use_funding=False
+```
+
+hoặc người dùng khai báo rõ:
+
+```python
+missing_funding_policy="zero"
+```
+
+---
+
+### 1.3 Dynamic trailing phải dùng giá trị tại `t`
+
+Tại `close[t]`, trailing mới phải được tính từ:
+
+```python
+trailing_value[t]
+```
+
+không phải:
+
+```python
+trailing_value[t - 1]
+```
+
+Trailing stop vừa cập nhật chỉ có hiệu lực từ bar `t+1`. Không được dùng stop mới để kiểm tra lại `high[t]` hoặc `low[t]`.
+
+---
+
+### 1.4 Thêm sizing compiler và quantity constraints
+
+Alpha không nên trả direct quantity trừ khi khai báo rõ:
+
+```python
+sizing_mode="units"
+```
+
+Phải hỗ trợ tối thiểu:
+
+```text
+UNITS
+FIXED_NOTIONAL
+PCT_EQUITY
+RISK_PER_TRADE
+```
+
+Ví dụ fixed notional:
+
+$$
+q =
+\frac{
+Notional \times SizeWeight
+}{
+FillPrice \times ContractSize
+}
+$$
+
+Ví dụ risk per trade:
+
+$$
+q =
+\frac{
+Equity \times RiskFraction \times SizeWeight
+}{
+StopDistance \times ContractSize
+}
+$$
+
+Sau khi tính raw quantity, engine phải áp:
+
+```text
+qty_step
+min_qty
+min_notional
+max_qty
+available_margin
+```
+
+Việc quantize quantity phải dùng cùng một hàm cho reference oracle, Numba kernel và event backend.
+
+---
+
+### 1.5 Tách `exit_long` và `exit_short`
+
+Không dùng một boolean chung:
+
+```python
+technical_exit
+```
+
+Thay bằng:
+
+```python
+exit_long
+exit_short
+```
+
+Quy tắc:
+
+```text
+exit_long  chỉ tác động khi đang long
+exit_short chỉ tác động khi đang short
+```
+
+Phải định nghĩa conflict policy khi cùng bar có exit và entry:
+
+```text
+EXIT_ONLY
+EXIT_THEN_REENTER
+REVERSAL
+REJECT_CONFLICT
+```
+
+Default khuyến nghị:
+
+```text
+opposite entry  -> reversal
+same-side entry -> bỏ qua
+exit + same-side entry -> exit only
+```
+
+Mọi reversal phải được account thành hai fill legs riêng biệt.
+
+---
+
+### 1.6 Strict timezone
+
+Không được tự hiểu naive datetime là UTC.
+
+Strict mode:
+
+```python
+if index.tz is None and source_timezone is None:
+    raise MarketDataError(...)
+```
+
+Nếu có:
+
+```python
+source_timezone="Asia/Ho_Chi_Minh"
+```
+
+thì localize trước, sau đó mới convert UTC.
+
+Data signature phải được tạo sau khi timezone đã chuẩn hóa.
+
+---
+
+### 1.7 Enforce hoặc reject mọi execution contract field
+
+Mọi field public trong `ExecutionContract` phải thuộc một trong hai trạng thái:
+
+```text
+được backend thực thi đầy đủ
+hoặc bị reject bằng NotImplementedError
+```
+
+Không được âm thầm bỏ qua các field như:
+
+```text
+stop_gap_policy
+take_profit_gap_policy
+same_bar_policy
+trailing_update_phase
+funding_phase
+liquidation_priority
+ambiguity_policy
+fill_price_policy
+```
+
+Mỗi backend nên khai báo capability:
+
+```python
+BackendCapabilities(
+    supported_fill_phases=...,
+    supports_intrabar_stop=True,
+    supports_trailing=True,
+    supports_partial_fill=False,
+    supports_cross_margin=False,
+)
+```
+
+Endpoint validate contract trước khi chạy kernel.
+
+---
+
+### 1.8 Sửa certification của fill replay
+
+`fill_replay` chỉ được chứng nhận cho những domain mà implementation thực sự xử lý.
+
+Metadata nên tách riêng:
+
+```json
+{
+  "price_accounting_certified": true,
+  "fee_accounting_certified": true,
+  "funding_certified": false,
+  "margin_certified": false,
+  "liquidation_certified": false,
+  "execution_generation_certified": false,
+  "causality_certified": false
+}
+```
+
+Chỉ nâng certification sau khi bổ sung implementation và parity tests tương ứng.
+
+---
+
+### 1.9 Thêm `PreparedIntrabarRunner`
+
+Data preparation, validation và profile compilation chỉ chạy một lần:
+
+```python
+runner = QuantBT.intrabar(
+    profile=profile,
+).prepare(
+    data=df,
+    symbol="ETHUSDT",
+    funding=funding_events,
+)
+```
+
+Mỗi trial chỉ cần:
+
+```python
+intent = alpha.generate(runner.market, params)
+
+result = runner.run(
+    intent,
+    report_level="minimal",
+)
+```
+
+Best candidate mới chạy:
+
+```python
+audit = runner.run(
+    intent,
+    report_level="audit",
+)
+```
+
+Prepared runner phải cache:
+
+```text
+OHLCV contiguous arrays
+timestamps
+funding event arrays
+instrument constraints
+compiled execution codes
+validation certificate
+data signature
+reusable buffers
+```
+
+Không được build lại DataFrame, funding mask hoặc instrument arrays trong mỗi Optuna trial.
+
+---
+
+## 2. Kiến trúc dùng chung cho mọi alpha
+
+Không nên biến `IntrabarAlphaOutput` thành output duy nhất cho mọi chiến lược.
+
+Intrabar, target-position, grid, DCA, arbitrage và portfolio có execution semantics khác nhau. Ép tất cả vào một schema sẽ lặp lại lỗi thiết kế cũ của `pos_weight`.
+
+Nên dùng một façade chung nhưng nhiều output contract chuyên biệt.
+
+```text
+QuantBT
+  ├── SharedProfile
+  ├── PreparedRunner
+  ├── AlphaOutput protocol
+  └── Backend/kernel registry
+```
+
+### 2.1 Profile dùng chung dạng composition
+
+```python
+@dataclass(frozen=True)
+class QuantBTProfile:
+    market: MarketProfile
+    account: AccountProfile
+    execution: ExecutionProfile
+    sizing: SizingProfile
+    portfolio: PortfolioProfile | None = None
+    reporting: ReportingProfile = ReportingProfile()
+```
+
+Profile được khai báo một lần cho từng môi trường/thị trường:
+
+```python
+VN30F_PROFILE
+BINANCE_PERP_PROFILE
+VN_STOCK_PROFILE
+DERIBIT_OPTION_PROFILE
+```
+
+Mọi alpha dùng cùng thị trường chỉ tham chiếu profile đó, không khai báo lại fee, leverage, slippage, contract size hoặc quantity constraints.
+
+### 2.2 Output contract theo họ chiến lược
+
+```python
+class AlphaOutput(Protocol):
+    execution_family: str
+```
+
+Các output cụ thể:
+
+```text
+TargetPositionOutput
+NextOpenSignalOutput
+IntrabarAlphaOutput
+PortfolioTargetOutput
+OrderIntentOutput
+GridPlanOutput
+DCAPlanOutput
+ArbitrageOutput
+OptionStrategyOutput
+```
+
+#### `IntrabarAlphaOutput`
+
+Dùng cho single-position hoặc simple multi-symbol SL/TP/trailing:
+
+```python
+@dataclass(frozen=True)
+class IntrabarAlphaOutput:
+    entry_side: np.ndarray
+    size_weight: np.ndarray
+
+    stop_value: np.ndarray | None
+    take_profit_value: np.ndarray | None
+    trailing_value: np.ndarray | None
+
+    exit_long: np.ndarray | None
+    exit_short: np.ndarray | None
+
+    level_mode: LevelMode
+    signal_mode: SignalMode = SignalMode.PULSE
+```
+
+#### `PortfolioTargetOutput`
+
+Dùng cho cross-sectional allocation:
+
+```python
+@dataclass(frozen=True)
+class PortfolioTargetOutput:
+    target_weights: np.ndarray
+    rebalance_mask: np.ndarray
+```
+
+#### `OrderIntentOutput`
+
+Dùng cho generic order lifecycle:
+
+```python
+@dataclass(frozen=True)
+class OrderIntentOutput:
+    commands: CompactOrderCommandTape
+```
+
+#### Grid và DCA
+
+Không nên ép grid/DCA thành một `entry_side`.
+
+Chúng cần output riêng:
+
+```python
+@dataclass(frozen=True)
+class GridPlanOutput:
+    level_prices: np.ndarray
+    level_sizes: np.ndarray
+    side: np.ndarray
+    cancel_replace_mask: np.ndarray
+```
+
+```python
+@dataclass(frozen=True)
+class DCAPlanOutput:
+    trigger_prices: np.ndarray
+    order_sizes: np.ndarray
+    take_profit_rules: np.ndarray
+    stop_rules: np.ndarray
+```
+
+#### Arbitrage
+
+Arbitrage phải biểu diễn một basket atomic hoặc coordinated legs:
+
+```python
+@dataclass(frozen=True)
+class ArbitrageOutput:
+    basket_entry: np.ndarray
+    basket_exit: np.ndarray
+    leg_weights: np.ndarray
+    hedge_ratios: np.ndarray
+    execution_policy: BasketExecutionPolicy
+```
+
+Không được chạy từng leg độc lập rồi gọi đó là arbitrage backtest chuẩn.
+
+---
+
+## 3. Không nên tạo endpoint ngầm bằng global state khi import
+
+Không nên làm:
+
+```python
+import quantbt
+```
+
+rồi package âm thầm giữ một global profile hoặc global endpoint.
+
+Global mutable state sẽ gây vấn đề:
+
+```text
+khó tái lập kết quả
+không thread-safe
+khó chạy nhiều thị trường trong một process
+Optuna trials có thể dùng nhầm profile
+tests ảnh hưởng lẫn nhau
+khó biết result dùng config nào
+```
+
+Nên dùng explicit façade nhưng khai báo rất ngắn:
+
+```python
+qbt = QuantBT(profile=BINANCE_PERP_PROFILE)
+runner = qbt.prepare(data=df, symbol="ETHUSDT")
+```
+
+Sau đó dùng lại `runner` cho mọi alpha:
+
+```python
+result_a = runner.run(alpha_a.generate(runner.market, params_a))
+result_b = runner.run(alpha_b.generate(runner.market, params_b))
+result_c = runner.run(alpha_c.generate(runner.market, params_c))
+```
+
+Có thể thêm profile registry:
+
+```python
+qbt = QuantBT.from_profile("binance_perp_default")
+```
+
+hoặc YAML:
+
+```yaml
+profile: binance_perp_default
+```
+
+Nhưng profile cuối cùng phải được đóng băng vào result metadata để bảo đảm reproducibility.
+
+---
+
+## 4. Routing tự động nhưng không được mơ hồ
+
+Runner có thể tự route theo kiểu output:
+
+```python
+result = runner.run(alpha_output)
+```
+
+Ví dụ:
+
+```text
+IntrabarAlphaOutput   -> intrabar_bracket_v1
+TargetPositionOutput  -> close_target_v2
+PortfolioTargetOutput -> native_portfolio_v3
+GridPlanOutput        -> grid kernel/event backend
+DCAPlanOutput         -> DCA kernel
+ArbitrageOutput       -> basket/arbitrage backend
+OrderIntentOutput     -> event_lifecycle_v2
+```
+
+Nếu profile và output không tương thích:
+
+```python
+raise ExecutionContractError(...)
+```
+
+Không được fallback âm thầm sang backend khác.
+
+---
+
+## 5. API sử dụng cuối cùng
+
+Khai báo profile một lần:
+
+```python
+profile = QuantBTProfile(
+    market=BinancePerpetualMarketProfile(
+        symbol="ETHUSDT",
+        contract_size=1.0,
+        qty_step=0.001,
+        min_qty=0.001,
+        min_notional=5.0,
+    ),
+    account=AccountProfile(
+        initial_capital=100_000.0,
+        leverage=3.0,
+        maintenance_ratio=0.005,
+    ),
+    execution=IntrabarExecutionProfile(
+        signal_phase="close",
+        fill_phase="next_open",
+        fee_rate=0.0004,
+        slippage_bps=2.0,
+        same_bar_policy="conservative",
+        close_on_last_bar=True,
+    ),
+    sizing=FixedNotionalSizing(
+        notional_per_trade=10_000.0,
+    ),
+)
+```
+
+Prepare một lần:
+
+```python
+runner = QuantBT(profile).prepare(
+    data=df,
+    funding=funding_events,
+)
+```
+
+Mỗi alpha chỉ còn:
+
+```python
+intent = alpha.generate(
+    market=runner.market,
+    params=params,
+)
+
+result = runner.run(
+    intent,
+    report_level="minimal",
+)
+```
+
+Audit:
+
+```python
+audit = runner.run(
+    intent,
+    report_level="audit",
+)
+```
+
+Đây nên là API chính. Các low-level endpoint vẫn được giữ cho advanced use cases và backward compatibility.
+
+---
+
+## 6. Regression tests phải bổ sung
+
+```text
+test_intrabar_uses_slippage_bps_as_source_of_truth
+test_legacy_slippage_conflict_raises
+test_scalar_funding_rejected
+test_funding_applied_only_at_event
+test_funding_crosses_missing_exact_hour
+test_dynamic_trailing_uses_value_at_t
+test_new_trailing_not_applied_to_same_bar
+test_fixed_notional_sizing
+test_pct_equity_sizing
+test_risk_per_trade_sizing
+test_qty_step_rounding
+test_min_qty_rejection
+test_min_notional_rejection
+test_exit_long_only_affects_long
+test_exit_short_only_affects_short
+test_exit_entry_conflict_policy
+test_reversal_has_two_fill_legs
+test_naive_timezone_rejected
+test_source_timezone_localized_then_converted
+test_unsupported_contract_field_raises
+test_fill_replay_certification_is_granular
+test_prepared_intrabar_matches_normal_endpoint
+test_minimal_and_audit_equity_parity
+test_profile_metadata_is_frozen_in_result
+test_output_type_routes_to_expected_backend
+test_incompatible_profile_output_raises
+```
+
+---
+
+## 7. Cách chạy test
+
+### Chạy toàn bộ test suite
+
+```bash
+pytest -q
+```
+
+### Dừng ngay tại lỗi đầu tiên
+
+```bash
+pytest -q -x
+```
+
+### Chạy các test Phase 31 hiện tại
+
+```bash
+pytest -q tests/test_phase31*.py
+```
+
+### Chạy riêng intrabar kernel và oracle
+
+```bash
+pytest -q \
+  tests/test_phase31_intrabar_reference.py \
+  tests/test_phase31c_intrabar_kernel.py
+```
+
+Nếu tên file thực tế khác, kiểm tra bằng:
+
+```bash
+find tests -maxdepth 1 -type f | sort | grep -E "phase31|intrabar|fill_replay"
+```
+
+### Chạy các regression tests mới
+
+Khuyến nghị đặt trong:
+
+```text
+tests/test_phase31_merge_blockers.py
+tests/test_phase31_profiles_and_runner.py
+```
+
+Sau đó chạy:
+
+```bash
+pytest -q \
+  tests/test_phase31_merge_blockers.py \
+  tests/test_phase31_profiles_and_runner.py
+```
+
+### Chạy test với output đầy đủ
+
+```bash
+pytest -vv -s tests/test_phase31_merge_blockers.py
+```
+
+### Chạy một test cụ thể
+
+```bash
+pytest -q \
+  tests/test_phase31_merge_blockers.py::test_dynamic_trailing_uses_value_at_t
+```
+
+### Chạy tests liên quan funding
+
+```bash
+pytest -q -k "funding"
+```
+
+### Chạy tests liên quan sizing
+
+```bash
+pytest -q -k "sizing or quantity or min_notional or qty_step"
+```
+
+### Chạy tests liên quan intrabar
+
+```bash
+pytest -q -k "intrabar or trailing or same_bar or reversal"
+```
+
+### Chạy coverage
+
+```bash
+pytest \
+  --cov=quantbt \
+  --cov-report=term-missing \
+  --cov-report=html
+```
+
+Nếu package import trực tiếp từ repository root:
+
+```bash
+PYTHONPATH=. pytest -q
+```
+
+### Chạy benchmark sau khi tests pass
+
+```bash
+python benchmarks/run_phase17_intrabar.py
+```
+
+Hoặc benchmark hiện có trên nhánh:
+
+```bash
+find benchmarks -maxdepth 1 -type f | sort | grep -E "phase17|phase31|intrabar"
+```
+
+Rồi chạy file tìm được:
+
+```bash
+python benchmarks/<intrabar_benchmark_file>.py
+```
+
+Benchmark phải chạy hai lần:
+
+```text
+cold JIT compile
+warm execution
+```
+
+Chỉ dùng warm execution cho performance gate.
+
+---
+
+## 8. Merge gate
+
+Chỉ merge vào `dev` khi:
+
+* [ ] Tất cả lỗi P0 phía trên đã sửa.
+* [ ] Mọi execution contract field được enforce hoặc reject.
+* [ ] Python oracle và Numba kernel parity.
+* [ ] Minimal và audit mode cho cùng equity/accounting.
+* [ ] Prepared và non-prepared endpoint parity.
+* [ ] Sizing và quantity constraints có regression tests.
+* [ ] Funding chỉ áp tại event.
+* [ ] Dynamic trailing dùng `t`.
+* [ ] Strict timezone hoạt động.
+* [ ] Fill replay certification không overclaim.
+* [ ] Full test suite pass.
+* [ ] Benchmark không vượt performance threshold đã đặt.
+* [ ] Result metadata lưu profile, execution contract, kernel version và data signature.
+
+Kiến trúc nên chốt theo nguyên tắc:
+
+> **Một façade và một profile dùng lại cho nhiều alpha, nhưng mỗi họ chiến lược phải có output contract và backend phù hợp riêng. Không dùng một schema duy nhất để ép target-position, intrabar, portfolio, grid, DCA và arbitrage vào cùng semantics.**
+
+---
+
+# Phase 32 - Domain-Agnostic Optimization Framework
+
+Status: planned, pending approval.
+
+Primary design guide:
+
+- [`upgrade/quantbt_domain_agnostic_optimization_upgrade.md`](./quantbt_domain_agnostic_optimization_upgrade.md)
+
+This section is only the implementation tracking layer. The detailed domain
+rules, module layout, evaluator contracts, sampler compatibility, constraints,
+tests, and merge gates must follow the primary design guide above.
+
+## Why This Phase Exists
+
+Current QuantBT optimization is strongest inside `walkforward.py`, but the
+Optuna plumbing is too tightly coupled to walk-forward semantics:
+
+- search-space parsing lives inside WFO;
+- sampler creation is mostly WFO-specific;
+- duplicate pruning and callbacks are WFO-specific;
+- robust candidate selection is useful beyond WFO but not exposed as a generic
+  optimizer layer;
+- prepared market contexts already exist for native vectorized, native
+  portfolio, and intrabar, but there is no domain-agnostic evaluator contract
+  that lets Optuna reuse those contexts across trials.
+
+The upgrade should create a reusable optimization core while preserving the
+important domain separation already built into QuantBT:
+
+```text
+optimizer core knows params/objectives/constraints only
+domain evaluator knows signal/intrabar/portfolio/arbitrage/grid/options output
+backtest backend keeps its own execution and accounting semantics
+```
+
+Do not build an `IntrabarOptimizer`. Build:
+
+```text
+optimization/
+  config.py
+  result.py
+  space.py
+  callbacks.py
+  samplers.py
+  constraints.py
+  evaluator.py
+  evaluators/
+  candidate_selection.py
+  optimizer.py
+```
+
+Public API should eventually expose:
+
+```python
+OptimizationConfig
+SamplerConfig
+ObjectiveResult
+OptimizationResult
+TrialEvaluator
+OptunaOptimizer
+GenericEndpointEvaluator
+PreparedSignalEvaluator
+PreparedIntrabarEvaluator
+PreparedPortfolioEvaluator
+```
+
+## Branch Plan
+
+Create a new branch from current `dev` after this plan is approved:
+
+```bash
+git switch dev
+git pull --ff-only origin dev
+git switch -c feat/domain-agnostic-optimization
+```
+
+All implementation commits for this phase should stay on that feature branch
+until tests and benchmarks pass. Do not merge into `dev` until the merge gates
+below are satisfied.
+
+## Condensed Phase Plan
+
+The source guide lists Phase A through Phase G. To keep the work practical, we
+will implement it as three larger phases without dropping any required checks.
+
+### Phase 32A - Optimization Core Extraction And Compatibility Lock
+
+Status: implemented on `feat/domain-agnostic-optimization`.
+
+Goal: create the generic optimization package and move shared Optuna utilities
+out of WFO without changing current WFO behavior.
+
+Implementation scope:
+
+- Created `optimization/` package with:
+  - `OptimizationConfig`;
+  - `SamplerConfig`;
+  - `ObjectiveResult`;
+  - `OptimizationResult`;
+  - `TrialEvaluator` protocol;
+  - search-space helpers compatible with existing `param_ranges`;
+  - fixed-param override semantics;
+  - process-local duplicate detection;
+  - JSONL logger;
+  - single-objective early stopping callback;
+  - constraint user-attr helper.
+- Implemented sampler factory for Phase 1 samplers:
+  - `tpe`;
+  - `random`;
+  - `grid`;
+  - `cmaes`;
+  - `nsgaii`.
+- Validated sampler compatibility:
+  - CMA-ES rejects categorical/mixed spaces;
+  - Grid rejects dynamic/infinite spaces and warns/rejects huge Cartesian grids;
+  - multi-objective does not use single-objective `study.best_value`;
+  - constraints are passed through Optuna user attrs when supported.
+- Kept `walkforward.py` behavior unchanged:
+  - add compatibility imports first;
+  - do not remove existing WFO utilities until parity tests are written;
+  - no scoring/objective behavior drift.
+
+Implemented files:
+
+```text
+optimization/__init__.py
+optimization/config.py
+optimization/result.py
+optimization/space.py
+optimization/callbacks.py
+optimization/samplers.py
+optimization/constraints.py
+optimization/evaluator.py
+optimization/optimizer.py
+optimization/evaluators/__init__.py
+tests/test_optimization_core.py
+tests/test_optimization_samplers.py
+```
+
+Important correctness note:
+
+- Bool choice detection requires actual `bool` values. Numeric specs such as
+  `(0.0, 1.0)` must not be misclassified as `[False, True]`, because Python
+  equality makes `0.0 == False` and `1.0 == True`.
+- Unsupported formal-constraint samplers reject `constraints_func` in the
+  factory, while `OptunaOptimizer` only passes the constraint callback to
+  samplers that support it in Phase 32A (`tpe`, `nsgaii`).
+- `cmaes` factory compatibility exists, but the environment currently does not
+  include the optional external `cmaes` package; Phase 32A tests therefore
+  validate construction/rejection semantics rather than running a CMA-ES study.
+
+Tests:
+
+- `test_single_objective_result`;
+- `test_multi_objective_result`;
+- `test_constraint_storage`;
+- `test_fixed_params_override`;
+- `test_search_space_specs`;
+- `test_duplicate_pruning`;
+- `test_nonfinite_objective_pruned`;
+- `test_exception_policy_raise`;
+- `test_tpe_factory`;
+- `test_random_factory`;
+- `test_grid_factory`;
+- `test_cmaes_rejects_categorical`;
+- `test_nsgaii_multiobjective`;
+- `test_constraints_func_propagation`;
+- `test_sampler_seed_reproducibility`;
+- `test_single_objective_early_stopping`;
+- `test_pruned_trials_do_not_consume_patience`;
+- `test_multiobjective_rejects_single_best_callback`;
+- `test_jsonl_logger`.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_optimization_core.py tests/test_optimization_samplers.py
+pytest -q tests/test_walkforward_phase1.py
+```
+
+Validation after implementation:
+
+```text
+tests/test_optimization_core.py tests/test_optimization_samplers.py: 17 passed
+tests/test_walkforward_phase1.py: 51 passed
+tests/test_endpoint.py: 22 passed
+pytest -q: 489 passed, 1 skipped
+```
+
+### Phase 32B - Domain Evaluators, Constraints, And Prepared Context Parity
+
+Goal: make the optimizer useful across QuantBT domains without forcing every
+domain into one output schema.
+
+Implementation scope:
+
+- Add `GenericEndpointEvaluator` as mandatory fallback.
+- Add prepared evaluators:
+  - `PreparedSignalEvaluator` for single-symbol close-target/vectorized routes;
+  - `PreparedIntrabarEvaluator` using `QuantBTEndpoint.prepare_intrabar(...)`;
+  - `PreparedPortfolioEvaluator` using native portfolio prepared market arrays.
+- Add initial adapter contracts for:
+  - arbitrage generic fallback;
+  - grid/DCA generic fallback;
+  - options generic fallback.
+- Keep domain-specific imports inside evaluator adapters only.
+- Add objective builder helpers for common metrics:
+  - Sharpe;
+  - max drawdown;
+  - trade count;
+  - turnover;
+  - margin utilization;
+  - rejection rate.
+- Add official constraint semantics:
+  - feasible when value `<= 0`;
+  - infeasible when value `> 0`;
+  - do not convert constraints into arbitrary penalty scores when formal
+    constraints are possible.
+- Add candidate selector interface:
+  - Optuna best trial is not automatically production params;
+  - feasibility filter precedes robust selection;
+  - single-objective returns best params;
+  - multi-objective returns Pareto trials unless a selector policy is passed.
+
+Tests:
+
+- `test_prepared_signal_evaluator`;
+- `test_prepared_intrabar_evaluator`;
+- `test_prepared_portfolio_evaluator`;
+- `test_generic_endpoint_evaluator`;
+- `test_arbitrage_adapter`;
+- `test_grid_dca_adapter`;
+- `test_option_adapter_contract`;
+- `normal endpoint == prepared evaluator`;
+- `minimal == audit core accounting` where the backend supports audit;
+- constrained optimization smoke;
+- multi-objective Pareto smoke;
+- custom objective override smoke;
+- persistent SQLite resume smoke.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_optimization_evaluators.py
+pytest -q tests/test_optimization_integration.py
+pytest -q tests/test_phase31*.py
+pytest -q tests/test_phase11_native_portfolio_backend.py
+```
+
+Status: completed in Phase 32B.
+
+Implemented:
+
+- Added public evaluator adapters:
+  - `GenericEndpointEvaluator`;
+  - `PreparedSignalEvaluator`;
+  - `PreparedIntrabarEvaluator`;
+  - `PreparedPortfolioEvaluator`;
+  - `ArbitrageGenericEvaluator`;
+  - `GridDCAGenericEvaluator`;
+  - `OptionPackageGenericEvaluator`.
+- Added initial domain output contracts:
+  - `ArbitrageTrialOutput`;
+  - `GridDCATrialOutput`;
+  - `OptionTrialOutput`.
+- Added common objective helpers:
+  - `ReportMetricObjective`;
+  - `SharpeObjective`;
+  - `metric_from_result(...)`;
+  - `metrics_from_result(...)`;
+  - formal constraint helpers for minimum trades, max drawdown, turnover,
+    margin utilization, and rejection rate.
+- Added candidate selector layer:
+  - `CandidateSelector`;
+  - `SelectedCandidate`;
+  - `constraints_feasible(...)`.
+- Added `IntrabarIntentTape.from_frame(...)` as an adapter helper for compact
+  alpha DataFrames. This does not change the intrabar execution kernel.
+- Fixed optimizer result bookkeeping so `fixed_params` are preserved in
+  `best_params`, `selected_params`, and trial records via `quantbt_full_params`.
+
+Tests added:
+
+- `tests/test_optimization_evaluators.py`;
+- `tests/test_optimization_integration.py`.
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_evaluators.py tests/test_optimization_integration.py
+# 12 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase31*.py tests/test_phase11_native_portfolio_backend.py tests/test_optimization_core.py tests/test_optimization_samplers.py
+# 82 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 501 passed, 1 skipped
+```
+
+Scope note:
+
+- Arbitrage, grid/DCA, and options are intentionally available through generic
+  endpoint fallback contracts in Phase 32B. Specialized prepared evaluators for
+  these domains are future extensions and should not be claimed as done.
+- Candidate selection is conservative: single-objective can select best or
+  feasible-best; multi-objective keeps Pareto unless an explicit selector is
+  supplied.
+
+### Phase 32C - Walk-Forward Consolidation, Docs, And Performance Benchmark
+
+Goal: reuse the generic optimizer in WFO without breaking anti-leakage logic or
+the five existing WFO optimization modes.
+
+Implementation scope:
+
+- Replace duplicated WFO utilities with imports from `optimization/`:
+  - search-space suggestion;
+  - fixed-param merging;
+  - sampler factory;
+  - duplicate handling;
+  - JSONL logging where applicable;
+  - early stopping where applicable.
+- Keep WFO-only logic in `walkforward.py`:
+  - fold generation;
+  - anti-leakage train/test isolation;
+  - mode 1/2/3/4/5 scoring semantics;
+  - temporal/plateau/full-sample robust selection metadata;
+  - OOS stitching.
+- Add backward compatibility tests:
+  - old WFO sampling equals new search-space sampling;
+  - existing robust candidate selection metadata preserved;
+  - train-test split remains OOS-isolated;
+  - `mode_4_is_only_robust` still does not use OOS for selection;
+  - `mode_5_full_robust` remains explicitly full-sample, not WFO anti-leakage.
+- Add docs:
+  - `docs/optimization.md`;
+  - update `docs/endpoint.md`;
+  - README pointer to optimization docs;
+  - example snippets for signal, intrabar, portfolio, and generic endpoint.
+- Add benchmark:
+  - optimizer overhead separate from backtest runtime;
+  - prepared evaluator vs normal endpoint in repeated trials;
+  - cold vs warm Numba where applicable;
+  - JSON artifact under `benchmarks/results/`.
+
+Validation gate:
+
+```bash
+pytest -q tests/test_walkforward_phase1.py
+pytest -q tests/test_optimization*.py
+pytest -q tests/test_endpoint.py
+pytest -q tests/test_phase31*.py
+pytest -q
+python benchmarks/run_optimization_overhead.py
+```
+
+Status: completed in Phase 32C.
+
+Implemented:
+
+- Consolidated safe WFO utilities onto the domain-agnostic optimization layer:
+  - `_sample_params(...)` now delegates to `optimization.suggest_params(...)`;
+  - WFO duplicate keys use `optimization.stable_params_key(...)`;
+  - public `EarlyStoppingCallback` now reuses
+    `optimization.SingleObjectiveEarlyStopping`.
+- Kept WFO-only anti-leakage logic in `walkforward.py`:
+  - fold generation;
+  - IS/OOS isolation;
+  - mode 1/2/3/4/5 objective semantics;
+  - robust candidate selection metadata;
+  - OOS stitching.
+- Added documentation:
+  - `docs/optimization.md`;
+  - updated `docs/endpoint.md`;
+  - updated `docs/README.md`;
+  - updated `examples/README.md`;
+  - updated README performance/feature pointers.
+- Added runnable example:
+  - `examples/optimization_workflow.py`.
+- Added benchmark:
+  - `benchmarks/run_optimization_overhead.py`;
+  - `benchmarks/results/optimization_overhead.json`;
+  - `benchmarks/results/optimization_overhead.md`.
+
+Benchmark result on the committed smoke workload:
+
+```text
+status: pass
+optimizer overhead: 0.017357s for 24 trials
+optimizer overhead per trial: 0.000723s
+normal signal replays: 0.165146s
+prepared signal replays: 0.081492s
+prepared signal speedup: 2.027x
+intrabar first run: 0.017772s
+intrabar warm run: 0.004809s
+intrabar first/warm ratio: 3.695x
+signal final equity diff: 0.0
+intrabar final equity diff: 0.0
+```
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_integration.py tests/test_optimization_evaluators.py tests/test_optimization_core.py tests/test_optimization_samplers.py
+# 30 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_walkforward_phase1.py
+# 51 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_endpoint.py tests/test_phase31*.py
+# 66 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_optimization_overhead.py --rows 360 --trials 24 --loops 24
+# status: pass
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 502 passed, 1 skipped
+```
+
+Scope note:
+
+- Phase 32C intentionally did not rewrite WFO around `OptunaOptimizer`; WFO has
+  anti-leakage/fold semantics that remain domain-specific and are locked by
+  regression tests.
+- Specialized prepared evaluators for arbitrage, grid/DCA, and options remain
+  future work. They can be added without changing optimizer core.
+
+### Phase 32 Final Merge Blockers - Sol Feedback
+
+Status: completed after Phase 32C.
+
+Assessment:
+
+- Feedback was correct. The optimizer should fail fast when an objective or
+  formal-constraint metric is missing, should not use raw infeasible Optuna
+  best params as selected production params, and should not claim parallel
+  optimization safety while evaluator adapters keep mutable `last_result` /
+  `last_intent` state.
+
+Implemented:
+
+- Added `MissingOptimizationMetricError`.
+- Objective/constraint metrics are strict:
+  - missing Sharpe / MaxDD / turnover / margin / rejection rate now raises when
+    used by objective values or formal constraints;
+  - `turnover` no longer falls back to `num_trades`.
+- Candidate selection is constraint-safe:
+  - unconstrained single-objective studies still auto-populate
+    `selected_params`;
+  - constrained studies without an explicit selector now keep
+    `selected_params=None`;
+  - `CandidateSelector("feasible_best")` selects the best feasible trial;
+  - `CandidateSelector("pareto_first")` filters infeasible Pareto trials.
+- Added `SamplerConfig.constraint_mode`:
+  - default: `"sampler"`;
+  - unsupported constrained samplers such as random/grid/CMA-ES require
+    `constraint_mode="post_filter"`;
+  - otherwise they raise instead of silently ignoring constraints.
+- Reproducibility safety:
+  - `n_jobs != 1` raises `NotImplementedError`;
+  - `_seen_params` is reset at the start of every study;
+  - persistent studies preload previous `quantbt_params_key` /
+    `quantbt_full_params` so resume duplicate detection works;
+  - JSONL logs now write full params including fixed params.
+
+Tests added:
+
+- `test_missing_objective_metric_raises`;
+- `test_missing_constraint_metric_raises`;
+- `test_turnover_does_not_fallback_to_trade_count`;
+- `test_infeasible_highest_score_not_selected`;
+- `test_pareto_selector_filters_infeasible_trials`;
+- `test_unsupported_constraint_sampler_requires_post_filter`;
+- `test_no_feasible_trial_returns_no_selected_params`;
+- `test_parallel_mode_rejected_until_thread_safe`;
+- `test_duplicate_detection_after_sqlite_resume`;
+- `test_repeated_optimize_does_not_reuse_stale_seen_set`;
+- `test_jsonl_contains_fixed_and_search_params`.
+
+Validation:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_optimization_core.py tests/test_optimization_samplers.py tests/test_optimization_evaluators.py tests/test_optimization_integration.py
+# 41 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_walkforward_phase1.py tests/test_endpoint.py tests/test_phase31*.py
+# 117 passed
+
+PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 513 passed, 1 skipped
+```
+
+### Phase 33 - Optimization Search Quality And Robust Selection
+
+Guide:
+
+- Detailed source plan:
+  `upgrade/quantbt_optimization_search_quality_upgrade.md`.
+- Scope is intentionally split into 2 phases:
+  - Phase 33A: Search Assurance Core.
+  - Phase 33B: Multi-seed search and robust plateau candidate selection.
+
+Reason:
+
+- A single TPE trajectory over mixed/conditional alpha spaces can miss known
+  good regions such as historical Delta-RSI champions.
+- Search quality should guarantee that known baselines are evaluated by the
+  current evaluator and cannot be silently replaced by a worse sampled trial.
+- This does not claim global optimality; it raises the optimizer from
+  best-trial hunting to baseline-aware, diagnostic, reproducible research.
+
+### Phase 33A - Search Assurance Core
+
+Status: implemented on `feat/domain-agnostic-optimization`.
+
+Implemented:
+
+- Added `initial_trials` to `OptunaOptimizer.optimize(...)`.
+  - Historical champions are enqueued with `study.enqueue_trial(...)`.
+  - Warm-start trials are tagged as `quantbt_source="warm_start"`.
+  - Fixed params are merged before enqueue validation.
+  - Missing active search params in a warm-start raise instead of silently
+    sampling a partial baseline.
+- Added baseline floor for single-objective studies.
+  - `result.baseline_trials` records completed warm-start trials.
+  - If the selected candidate is worse than the best feasible warm-start,
+    QuantBT resets `selected_params` to that warm-start and sets
+    `search_regression=True`.
+- Added `effective_params_builder`.
+  - Duplicate detection can use semantic/effective params rather than raw
+    noisy params.
+  - This is designed for alpha spaces where toggles make params inactive.
+- Added `early_stopping_min_trials`.
+  - Early stopping cannot stop before the configured completed-trial floor.
+- Added `OptimizationConfig(seed=None)`.
+  - This restores true Optuna unseeded behavior for legacy-style exploratory
+    searches while keeping integer seeds for audit runs.
+- Added search diagnostics:
+  - nominal variable dimension;
+  - estimated grid size;
+  - param kind counts;
+  - source counts;
+  - effective duplicate count;
+  - per-param coverage;
+  - top-decile parameter distributions;
+  - baseline rank.
+- Added docs in `docs/optimization.md`.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_optimization_core.py quantbt/tests/test_optimization_samplers.py
+# 23 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_optimization_core.py quantbt/tests/test_optimization_samplers.py quantbt/tests/test_optimization_evaluators.py quantbt/tests/test_optimization_integration.py
+# 47 passed
+```
+
+Phase 33A merge gates:
+
+- Warm-start trials are evaluated before sampled trials.
+- Best feasible warm-start baseline cannot be silently lost.
+- Effective duplicate detection prunes semantic duplicates.
+- Early stopping respects `early_stopping_min_trials`.
+- `seed=None` runs Optuna's unseeded sampler path.
+- Search diagnostics persist baseline/source/coverage metadata.
+
+### Phase 33B - Multi-Seed Robust Plateau Candidate Selection
+
+Status: implemented on `feat/domain-agnostic-optimization`.
+
+Implemented:
+
+- Added `RobustSelectionConfig`.
+  - Controls top objective quantile, metric feasibility filters, parameter
+    neighborhood radius, minimum neighbor count, seed consensus, instability
+    penalty, worst-neighbor weight, drawdown penalty, and size bonus.
+- Added `CandidateSelector(mode="robust_plateau", config=...)`.
+  - Filters failed/pruned/infeasible trials.
+  - Applies optional `min_trades` and `max_drawdown_pct` filters.
+  - Takes a top objective quantile instead of only the best trial.
+  - Scores local parameter neighborhoods by median objective, worst-neighbor
+    objective, objective dispersion, drawdown penalty, plateau size, and seed
+    consistency.
+  - Selects the medoid record from the best plateau rather than an isolated
+    spike.
+  - Writes ranked `result.robust_candidates` metadata.
+- Added `MultiSeedOptimization`.
+  - Runs the same evaluator across several sampler seeds.
+  - Aggregates trial records with `quantbt_seed` and original trial metadata.
+  - Stores `result.seed_results` and seed-level diagnostics.
+  - Applies a robust selector over the aggregate search surface.
+  - Keeps the Phase 33A warm-start baseline floor, so a worse new candidate
+    cannot silently replace a better feasible historical baseline.
+- Exported the new API from both `quantbt.optimization` and top-level
+  `quantbt`.
+- Updated `docs/optimization.md` with robust selector and multi-seed examples.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_optimization_phase33b.py quantbt/tests/test_optimization_core.py quantbt/tests/test_optimization_samplers.py quantbt/tests/test_optimization_evaluators.py quantbt/tests/test_optimization_integration.py
+# 52 passed
+```
+
+Phase 33B merge gates:
+
+- Robust plateau selector does not choose an isolated spike in deterministic
+  mock data.
+- Feasibility constraints and metric filters are respected before selection.
+- Multi-seed aggregation records seed metadata and selects from a consensus
+  plateau.
+- Historical warm-start baseline floor remains active after robust selection.
+- Validation/stress gate is available through selector metadata and baseline
+  floor, but real alpha WFO/stress bundle validation remains a strategy-level
+  certification step, not a generic optimizer-core guarantee.
+
+## Merge Gates
+
+Do not merge unless all are true:
+
+- Existing walk-forward tests pass.
+- Existing endpoint tests pass.
+- Single-objective and multi-objective studies pass.
+- Constraint semantics pass.
+- TPE, Random, Grid, CMA-ES, and NSGA-II factory tests pass.
+- CMA-ES rejects incompatible mixed spaces.
+- Prepared signal/intrabar/portfolio parity passes.
+- Generic evaluator can run arbitrage/options/grid-DCA fallback without adding
+  optimizer-core imports from those domains.
+- No generic exception is silently converted to score `0`.
+- Multi-objective code never calls `study.best_value`.
+- JSONL logs are deterministic and parseable.
+- SQLite resume test passes.
+- Optimizer overhead benchmark is recorded.
+- Documentation and examples are updated.
+
+## Scope Certification Target
+
+Target after Phase 32C:
+
+> Domain-agnostic Optuna orchestration with prepared evaluators for signal,
+> intrabar, and portfolio; generic fallback for arbitrage, grid/DCA, and
+> options; single/multi-objective studies, formal constraints, robust candidate
+> selection hooks, and WFO utility consolidation without anti-leakage regression.
+
+Do not claim every strategy family has the same prepared performance path.
+Arbitrage, grid/DCA, and options can begin through `GenericEndpointEvaluator`
+and receive specialized prepared evaluators later without changing optimizer
+core.
+
+## Phase 34 - Native Event Memory And Performance Optimization
+
+Guide:
+
+- Detailed source plan:
+  `upgrade/optimized_native_event_kernel_v2.md`.
+- Note: the source guide names this work "Phase 33A -> 33C", but the master
+  implementation plan already uses Phase 33 for optimization search quality.
+  This master plan tracks the same native-event work as Phase 34A -> 34C to
+  avoid phase-number ambiguity.
+
+Goal:
+
+- Reduce native-event RSS and peak RAM for WFO, optimization, dynamic grid,
+  DCA, bracket, and command-heavy strategies.
+- Reduce report construction and pandas materialization overhead.
+- Preserve public endpoint usage, `BacktestResultV2`, strategy callback API,
+  lifecycle semantics, accounting formulas, fill policy, fee/funding/margin,
+  liquidation, parent-child/OCO behavior, and same-bar command sequencing.
+- Keep exactly one accounting source of truth. Score/minimal/standard/audit
+  must be different artifact policies over the same accounting arrays, not
+  different engines or metric implementations.
+
+### Phase 34A - Native Event Artifact And Memory Contract
+
+Status: implemented on `feat/30-native-event-lifecycle`.
+
+Scope:
+
+- Wire `report_level` through native-event endpoints, configs, backend, kernel
+  artifact planning, and result materialization.
+- Add an internal `NativeEventArtifactPlan` that controls whether equity,
+  positions, fees, funding, margin, fill ledger, command terminal state, event
+  ledger, command tape, pandas objects, and Python objects are retained.
+- Introduce compact struct-of-arrays ledgers for fills, command terminal state,
+  and lifecycle events.
+- Dictionary-encode repeated strings such as order IDs, tags, campaign IDs,
+  level IDs, OCO IDs, and parent IDs once.
+- Make heavy public artifacts lazy where possible while keeping public
+  `BacktestResultV2` compatibility.
+- Remove duplicate storage such as separate canonical `order_report` and
+  `command_report`; keep one canonical ledger/report with backward-compatible
+  aliases.
+- Add `audit_sink="none" | "memory" | "parquet" | "jsonl"` for long audit
+  runs.
+
+Required tests:
+
+- Same command tape across current full path, minimal, standard, and audit.
+- Exact equality for equity, returns, positions, fees, funding, margin,
+  liquidation bar/reason, fill count, rejected count, canceled count, expired
+  count, and terminal command status.
+- Backward-compatible accessors for existing endpoint/report users.
+- Benchmark dynamic-grid workload for peak RSS and report construction.
+
+Acceptance:
+
+- `report_level` changes only artifact retention, never accounting.
+- Minimal path reduces peak RSS materially without changing results.
+- Audit can retain full trace through memory or chunked disk sink.
+- Public `.simulate()` remains source-compatible.
+
+Implemented:
+
+- Added `NativeEventConfig.report_level`, `audit_sink`, and `audit_sink_path`.
+- Added `NativeEventArtifactPlan` with explicit artifact-retention flags.
+- Added compact struct-of-arrays ledgers:
+  - `CompactFillLedger`;
+  - `CompactCommandLedger`;
+  - `CompactOrderEventLedger`.
+- Wired report policy through:
+  - `QuantBTEndpoint`;
+  - `BacktestEngineV2`;
+  - native-event lifecycle v2 backend;
+  - reactive native-event strategy replay.
+- `full` normalizes to `audit`; existing default behavior remains
+  audit-compatible.
+- `minimal` keeps accounting paths and compact ledgers but omits heavy Python
+  fills/orders and command/event DataFrames.
+- `standard` keeps command terminal report and Python fills but omits full
+  lifecycle event DataFrame.
+- `audit` keeps full command report, order events, active-order report, Python
+  fills/orders, compact ledgers, and optional disk sink artifacts.
+- Reactive minimal mode records `emitted_command_count` but does not retain the
+  full `emitted_command_tape`.
+- Added `audit_sink="jsonl"` and `audit_sink="parquet"` support with explicit
+  `audit_sink_path`; no silent project-folder writes.
+- Updated endpoint docs for native-event report levels and audit sinks.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase34a_native_event_artifacts.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase30a_native_event_lifecycle_contract.py tests/test_phase30b_native_event_lifecycle_kernel.py tests/test_phase30c_native_event_endpoint_lifecycle.py tests/test_phase30d_native_event_reactive_runner.py tests/test_phase30e_native_event_incremental_runner.py
+# 33 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_endpoint.py tests/test_phase14c_prepared_report_levels.py
+# 26 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_phase34a_native_event_memory.py --rows 3000 --levels 10 --cycle 40
+# artifact retention benchmark recorded in benchmarks/phase34a_native_event_memory.md
+```
+
+Benchmark interpretation:
+
+- `minimal` produced zero command-report rows, zero event-report rows, zero
+  materialized Python fills, and zero materialized Python orders for the test
+  workload while preserving final equity and lifecycle counters.
+- The small subprocess RSS numbers include Python import, pandas, and
+  Numba/cache overhead, so they are not used as a strict memory delta claim.
+  Larger Phase 34B/34C optimization-batch benchmarks are still required before
+  claiming stable RSS reduction percentages.
+
+### Phase 34B - Prepared Native Event Score Path
+
+Status: implemented on `feat/30-native-event-lifecycle`.
+
+Scope:
+
+- Add prepared native-event strategy runner:
+  `prepare_native_event_strategy(data=..., symbols=...)`.
+- Reuse datetime signatures, OHLCV/funding arrays, symbol maps, instrument
+  constraints, contract sizes, leverage, fees, quantity constraints, and data
+  signatures across many optimization trials.
+- Add `NativeAccountingArrays` as the canonical post-kernel accounting object.
+- Add lightweight internal `NativeEventScoreResult` for optimization scoring.
+- Refactor performance metrics into shared pure array functions so
+  `BacktestResultV2.full_report()` and `NativeEventScoreResult.full_report()`
+  call the same metric implementation.
+- Add prepared evaluator such as `PreparedNativeEventStrategyEvaluator` that
+  plugs into the existing Optuna optimizer/objective contracts.
+
+Required tests:
+
+- `prepared.score(strategy)` vs `prepared.run(strategy, report_level="audit")`
+  on identical data/params/seed/config.
+- Exact metric equality for Sharpe, max drawdown, profit factor, number of
+  trades, turnover, margin utilization, rejection rate, final equity, and
+  liquidation status.
+- 50-trial and 500-trial prepared optimization memory tests proving market
+  arrays are prepared once and completed trials do not retain full artifacts.
+
+Acceptance:
+
+- Score path has no separate accounting or metric implementation.
+- Score/full metric diff is exactly `0.0` for supported metrics.
+- Prepared score is materially faster and more memory-lean than public audit.
+- Optimizers can use the prepared score path without changing public endpoint
+  behavior.
+
+Implemented:
+
+- Added `NativeAccountingArrays` as the canonical ndarray accounting payload
+  extracted from native-event public results.
+- Added `NativeEventScoreResult`:
+  - ndarray equity/returns/positions/fees/funding/margin views;
+  - lifecycle counters;
+  - scalar metrics;
+  - no public fills/orders artifact bundle.
+- Added shared array-first performance metric function:
+  `metrics.performance.compute_performance_metrics(...)`.
+- `BacktestResultV2.full_report()` and `NativeEventScoreResult.full_report()`
+  now use the same metric implementation through `metrics.performance`.
+- Added `QuantBTEndpoint.prepare_native_event_strategy(...)`.
+- Added `PreparedNativeEventStrategyRunner`:
+  - prepares market arrays once;
+  - reuses OHLC/funding/open/volume arrays;
+  - `.score(strategy)` returns `NativeEventScoreResult` and does not store
+    `endpoint.result`;
+  - `.run(strategy, report_level=...)` returns public `BacktestResultV2`.
+- Added `PreparedNativeEventStrategyEvaluator` for the optimization framework.
+- Exported the new score/result/evaluator APIs from top-level/core/optimization
+  namespaces.
+- Updated endpoint docs with prepared native-event scoring examples.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q tests/test_phase34b_native_event_prepared_score.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python benchmarks/run_phase34b_native_event_prepared_score.py --rows 600 --trials 12
+# metric_parity: true
+# public_audit_seconds: 1.763319
+# prepared_score_seconds: 0.634422
+# speedup: 2.779x
+# prepared_endpoint_result_retained: false
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q
+# 544 passed, 1 skipped
+```
+
+Scope note:
+
+- Phase 34B still uses the existing reactive session plus static replay kernel
+  as the accounting source of truth. It prunes artifacts and reuses prepared
+  market arrays, but it is not yet the single-pass stateful kernel.
+- Fully eliminating transient pandas public-result construction from score
+  execution belongs to Phase 34C, where the stateful kernel can emit
+  `NativeAccountingArrays` directly.
+
+### Phase 34C - Single-Pass Stateful Native Event Kernel
+
+Scope:
+
+- Replace the current reactive two-pass architecture for fast/score modes:
+  Python reactive callback session -> capture command tape -> static replay.
+- Add a stateful native-event kernel API:
+  initialize state, apply commands for bar, match active orders, apply funding,
+  apply margin/liquidation, finalize bar.
+- Add active-order indexing:
+  active slots, active slots by symbol, free slot stack, order ID to slot,
+  expiry buckets, parent-child adjacency, and OCO group membership.
+- Keep old replay-certified path as oracle/debug mode via
+  `reactive_kernel_mode="replay_certified" | "single_pass"`.
+- Make audit replay optional certification, not a requirement for every run.
+
+Required tests:
+
+- Lifecycle parity fixtures: market entry/exit, GTC limit, cancel before fill,
+  replace, amend, stop-market, stop-limit, GTD expiry, reduce-only clipping,
+  parent first/full-fill activation, OCO sibling cancellation, same timestamp
+  sequencing, close-and-reverse, insufficient margin, funding, intrabar and
+  post-funding liquidation, dynamic grid amend, grid entry/exit/re-arm, regime
+  switch cancel/flatten, and multi-symbol commands.
+- Compare replay-certified audit, minimal, standard, audit, score, single-pass
+  score, single-pass audit, and static replay.
+- Optimizer parity for fixed seeds/trial params/objective values/constraint
+  values/feasible classification/selected candidate.
+- Benchmarks in fresh subprocesses for real dynamic grid, one-minute stress,
+  multi-symbol workloads, and optimization batches.
+
+Acceptance:
+
+- Public API remains stable.
+- Single-pass path reaches exact accounting and lifecycle parity with replay
+  oracle.
+- Fast/score paths no longer need to retain full command tape or replay result.
+- Audit can still produce full trace and optional replay certification.
+- 500-trial prepared run does not grow RAM with completed-trial history.
+
+Implemented:
+
+- Added `NativeEventConfig.reactive_kernel_mode` with
+  `replay_certified` and `single_pass`.
+- Kept public compatibility default at `replay_certified`.
+- Added single-pass result materialization from `_NativeEventReactiveSession`
+  state:
+  - equity path;
+  - returns;
+  - position matrix;
+  - fee/funding arrays;
+  - turnover, rejection, cancellation diagnostics;
+  - margin paths;
+  - liquidation flags;
+  - compact fill ledger with real bar indices.
+- `single_pass` skips the final static replay for `report_level="minimal"` and
+  score runs.
+- `single_pass` still runs replay oracle for `standard`, `audit`, and
+  `reactive_execution_mode="audit"`, then asserts exact accounting parity.
+- Added metadata:
+  - `reactive_kernel_mode`;
+  - `static_replay_available`;
+  - `reactive_static_replay_count`;
+  - `single_pass_accounting_source`;
+  - `single_pass_replay_certified`.
+- Updated `PreparedNativeEventStrategyRunner.score(...)` to use
+  `reactive_kernel_mode="single_pass"` automatically.
+- Threaded `reactive_kernel_mode` through endpoint, prepared runner, and
+  `BacktestEngineV2`.
+- Preserved legacy `reactive_incremental_compile_replays == 0` semantics:
+  this field counts replay/compile inside callback construction, not the final
+  optional certification replay.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests/test_phase34c_native_event_single_pass.py
+# 3 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase30d_native_event_reactive_runner.py \
+  quantbt/tests/test_phase30e_native_event_incremental_runner.py \
+  quantbt/tests/test_phase34a_native_event_artifacts.py \
+  quantbt/tests/test_phase34b_native_event_prepared_score.py \
+  quantbt/tests/test_phase34c_native_event_single_pass.py
+# 19 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  benchmarks/run_phase34c_native_event_single_pass.py --rows 600 --trials 12
+# accounting_parity: true
+# replay_certified_seconds: 1.431315
+# single_pass_seconds: 0.750957
+# speedup: 1.906x
+# replay_certified_static_replays: 12
+# single_pass_static_replays: 0
+```
+
+Scope note:
+
+- Phase 34C completes the practical single-pass optimization contract for
+  reactive strategy minimal/score loops.
+- The implementation intentionally keeps the Python reactive session as the
+  state source and uses the existing event-v2 replay kernel as the oracle for
+  audit/certification.
+- A deeper future rewrite could move active-order state into a true low-level
+  Numba step kernel, but that is no longer required for current prepared
+  WFO/Optuna memory and replay-reduction goals.
+
+### Phase 34 Final Merge Gate
+
+- Public endpoints stay source-compatible.
+- Public standard/audit still return `BacktestResultV2`.
+- Strategy callback contract stays unchanged.
+- No second accounting engine or metric implementation is introduced.
+- Minimal/score artifact policies cannot change equity, positions, fees,
+  funding, margin, liquidation, lifecycle state, or metrics.
+- Dynamic grid, DCA, bracket, structured orders, and multi-symbol lifecycle
+  semantics remain unchanged.
+- Benchmark report records wall time, CPU time, peak RSS, Python heap peak,
+  NumPy allocated bytes, object count, ledger bytes, command count, fill count,
+  report construction time, and stage timings.

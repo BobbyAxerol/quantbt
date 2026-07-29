@@ -30,6 +30,8 @@ historical reproduction.
 - Native vectorized engines for fast sweeps and large parameter grids.
 - Native event-driven engines for market/limit orders, fills, baskets, and
   arbitrage package execution.
+- Prepared service contexts for repeated signal/portfolio replays on the same
+  market tape without re-normalizing pandas data each run.
 - Native portfolio engine with target weights, target notionals, target units,
   gross/net exposure, risk parity, beta neutrality, margin reports, and
   per-symbol attribution.
@@ -46,6 +48,8 @@ historical reproduction.
 - Walk-forward and train/test optimization designed to avoid leaking OOS data
   into parameter selection, plus full-sample robust calibration for final
   production parameter discovery.
+- Domain-agnostic Optuna optimization adapters for prepared signal, intrabar,
+  portfolio, and generic endpoint workflows.
 
 ## Performance Philosophy
 
@@ -107,6 +111,57 @@ Phase 14C added run-local prepared market-array reuse for WFO/service loops and
 `report_level="full" | "standard" | "minimal"` for native portfolio reports.
 The default remains `full`; lighter report levels are opt-in for optimizers and
 services, and parity tests lock core accounting equality before any speed claim.
+
+Latest Phase 16 service-context closure benchmark:
+
+| Workload | Normal endpoint | Prepared context | Speedup | Parity |
+|---|---:|---:|---:|---|
+| Single-symbol signal_notional replays | 0.0711s | 0.0390s | 1.82x | pass |
+| Native portfolio replays | 0.3115s | 0.0695s | 4.48x | pass |
+| Native portfolio reports | 0.0755s full | 0.0394s minimal | 1.92x | pass |
+
+Phase 16 adds `endpoint.prepare_service_context(...)`, an opt-in helper for
+services that replay many signals or position matrices against one fixed market
+tape. Normal `.backtest(...)` remains defensive and backward-compatible.
+Cython/C++ remains deferred because the larger benchmark still points to
+facade/report overhead rather than pure Numba kernels.
+
+Latest Phase 31 intrabar execution benchmark:
+
+| Route | Workload | Runtime | Throughput | Ratio | Parity |
+|---|---:|---:|---:|---:|---|
+| `close_target_v2_pure_kernel` | 25,000 bars | 0.0087s | 2,879,313 bars/s | baseline | baseline |
+| `intrabar_bracket_v1_minimal` | 25,000 bars, 2,000 fills | 0.0118s | 2,115,865 bars/s | 1.36x close-target | oracle-checked |
+| `intrabar_bracket_v1_audit` | 25,000 bars, fill ledger | 0.0527s | 474,427 bars/s | 4.46x minimal | pass |
+| `intrabar_session_bracket_v1_minimal` | 25,000 bars, session state | 0.0117s | 2,145,495 bars/s | 0.99x minimal | reference-checked |
+| `intrabar_session_bracket_v1_audit` | 25,000 bars, session ledger | 0.0499s | 501,156 bars/s | 4.22x minimal | pass |
+| `intrabar_reference_python` | 25,000 bars | 0.2394s | 104,419 bars/s | 20.26x slower than minimal | truth model |
+| `fill_replay_v1_kernel` | 25,000 bars, 2,000 fills | 0.0124s | 2,013,664 bars/s | 1.05x minimal | accounting |
+| `native_event_explicit_orders_facade` | 25,000 bars, 2,000 market orders | 0.0761s | 328,618 bars/s | 6.44x minimal | speed reference |
+
+Phase 31 adds execution-contract certification for close-target, fast intrabar
+SL/TP/trailing, optional session-aware intraday execution state, and explicit
+fill replay paths. The fast intrabar kernel is about 20.3x faster than the
+readable Python oracle on the committed benchmark; the session kernel keeps the
+non-session hot path separate while adding entry windows, EOD force-flat,
+per-session quota, stale-signal cancellation, and re-entry suppression.
+
+Latest Phase 32C optimization overhead benchmark:
+
+| Measurement | Result |
+|---|---:|
+| Optimizer overhead | 0.0174s for 24 trials |
+| Optimizer overhead / trial | 0.000723s |
+| Prepared signal evaluator | 2.03x faster than normal endpoint replay |
+| Intrabar first vs warm run | 3.70x first/warm ratio |
+| Parity | pass, final equity diff 0.0 |
+
+Phase 32C consolidates safe walk-forward optimization primitives with the new
+domain-agnostic optimizer core while keeping WFO fold isolation and robust
+selection semantics inside `walkforward.py`. Read
+[`docs/optimization.md`](docs/optimization.md) and
+`benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
+arbitrage/grid/options fallback examples and benchmark details.
 
 Ecosystem positioning:
 
@@ -208,6 +263,9 @@ service creates a run.
 - Full-sample robust calibration selectors: `full_robust`,
   `full_plateau_robust`, `full_temporal_robust`, and `full_best`.
 - Optional trade-count penalty to avoid overfit low-trade Sharpe traps.
+- Shared domain-agnostic optimizer primitives for search-space parsing,
+  duplicate detection, early stopping, objective helpers, constraints, and
+  candidate selection.
 
 ### Nautilus Validation Reports
 

@@ -104,7 +104,12 @@ def prepare_funding(
     out: Dict[str, pd.Series] = {}
     for sym in symbols:
         if isinstance(fr_input, dict):
-            val = fr_input.get(sym, 0.0001)
+            if sym not in fr_input:
+                raise KeyError(
+                    f"funding_rate dict is missing symbol {sym!r}; pass 0.0 explicitly "
+                    "or set use_funding=False to avoid synthetic funding defaults"
+                )
+            val = fr_input[sym]
         elif isinstance(fr_input, pd.Series):
             val = fr_input
         else:

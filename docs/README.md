@@ -8,6 +8,9 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
+| Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |
+| Migrate SL/TP/trailing alphas to the fast intrabar route | [Fast intrabar](fast_intrabar.md) |
+| Audit alpha source files before certification | [Alpha certification](alpha_certification.md) |
 | Understand vectorized vs event-driven tradeoffs | [Vectorized vs event-driven](vectorized_vs_event_driven.md) |
 | Validate leverage, buying power, liquidation, funding | [Margin and leverage](margin_leverage.md) |
 | Understand market/limit/stop fill behavior | [Order fill policies](order_fill_policies.md) |
@@ -15,12 +18,15 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
+| Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 
 ## Strategy Route Map
 
 | Strategy type | Preferred route | Why |
 |---|---|---|
 | Single-symbol signal research | `QuantBTEndpoint.signal_notional(...)` or `.pct_equity(...)` | Fast scalar signal backtests with stable notebook API |
+| Single-symbol SL/TP/trailing | `QuantBTEndpoint.intrabar_bracket(...)` | Strict next-open entry with high/low intrabar exit semantics |
+| Existing explicit fill tape | `QuantBTEndpoint.fill_replay(...)` | Accounting replay for old alphas before causal migration |
 | Explicit orders | `QuantBTEndpoint.orders(...)` | Market/limit/stop order lifecycle and fill reports |
 | DCA/grid | `QuantBTEndpoint.dca_ladder(...)` | Structural levels, high/low touch detection, trigger-price fills |
 | Portfolio matrix | `QuantBTEndpoint.portfolio(...)` | Multi-symbol positions with portfolio-level accounting |
@@ -28,6 +34,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Arbitrage | `QuantBTEndpoint.arbitrage(...)` | Domain specs for basis, stat-arb, funding, carry, and index-basket routes |
 | Walk-forward optimization | `QuantBTEndpoint.walk_forward(...)` | Folded OOS stitching, anti-leakage candidate selection, and full-sample robust calibration |
 | Single holdout train/test | `QuantBTEndpoint.train_test_split(...)` | One train period and one test period using the WFO scoring stack |
+| Standalone Optuna optimization | `OptunaOptimizer` + evaluator adapters | Prepared signal/intrabar/portfolio tuning or generic endpoint fallback |
 | Third-party validation | `QuantBTEndpoint.nautilus_validation(...)` or `backend="nautilus"` | Independent event-driven accounting reports |
 
 ## Example Map
@@ -47,3 +54,5 @@ For production-like research:
    is needed.
 4. Save `result.metadata`, order/fill reports, config, and benchmark artifacts
    with the strategy output.
+5. For execution-sensitive alphas, run the alpha certification scanner and do
+   not claim production certification below Level 2.

@@ -54,6 +54,9 @@ bt.metrics      # alias for bt.full_report()
 |---|---|---|---|
 | `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | legacy `%_equity` signal where notional is recomputed from live equity |
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | fast single-symbol signal research with fixed units between signal changes |
+| `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | fast Phase 31C Numba kernel for next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | readable Phase 31B oracle for next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
@@ -81,6 +84,38 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `orders` and `basket` route to native event;
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
+
+`native_vectorized` is explicitly the `close_target_v2` execution contract:
+signals are interpreted as target exposure at the same bar close, with no
+engine-owned intrabar SL/TP/trailing path. Results include contract metadata
+such as `engine_id`, `signal_phase`, `fill_phase`, `intrabar_exit_model`,
+`kernel_version`, and `data_signature`. If a close-target run receives columns
+that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
+`take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
+intrabar semantics instead of silently implying correctness.
+
+`intrabar_bracket` is the Phase 31C fast Numba implementation of
+`intrabar_bracket_v1`; `intrabar_bracket_reference` is the readable Python
+oracle for the same semantics. Both use strict market tape validation. They
+model: signal at bar close, entry at next bar open, gap-aware stop-loss,
+limit-style take-profit, same-bar SL/TP ambiguity, trailing-stop updates that
+only become effective on the next bar, technical exits, reversals as two
+fee/slippage legs, initial-margin rejection, simple single-symbol liquidation,
+and optional final close.
+
+Session-aware intrabar execution is opt-in on the reference route:
+`QuantBTEndpoint.intrabar_bracket_reference(session_policy=...)` plus
+`backtest(..., session_tape=...)`. It supports entry windows, per-session entry
+quota, flat-only/no-reversal, force-flat at open, stale-signal cancellation, and
+protective-exit re-entry suppression. Phase 31I adds the matching fast Numba
+route on `QuantBTEndpoint.intrabar_bracket(session_policy=...)`; the non-session
+kernel remains a separate path and is selected when no session policy is
+supplied.
+
+For the full contract taxonomy and certification workflow, read
+[`execution_contracts.md`](execution_contracts.md),
+[`fast_intrabar.md`](fast_intrabar.md), and
+[`alpha_certification.md`](alpha_certification.md).
 
 ## Nautilus Support Matrix
 
@@ -378,6 +413,238 @@ Routing:
 For plain market rebalance signals, native vectorized and native event should
 match equity closely. Use event mode when fill-level diagnostics matter.
 
+## Intrabar Bracket, Fast And Reference
+
+Use this for execution-certified alpha logic that depends on SL/TP/trailing
+behavior inside the bar. `intrabar_bracket(...)` is the Phase 31C fast Numba
+kernel. `intrabar_bracket_reference(...)` keeps the readable Phase 31B Python
+oracle for debugging and parity checks.
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,     # one-way fee
+    slippage_bps=1.0,    # source of truth for intrabar slippage
+    tick_size=0.01,      # optional conservative price quantization
+    use_funding=False,
+    close_on_last_bar=True,
+    report_level="standard",
+)
+
+result = bt.backtest(
+    data=df,
+    signal_col="entry_signal",       # signed qty: +1.0 long, -1.0 short, 0 no new entry
+    symbols=["ETHUSDT"],
+    intent_cols={
+        "stop_value": "sl_pct",
+        "take_profit_value": "tp_pct",
+        "trailing_value": "trail_pct",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
+    },
+)
+
+bt.show_metrics()
+fills = bt.fills_report
+```
+
+Input contract:
+
+- `data`: strict single-symbol OHLCV DataFrame with timezone-aware
+  `DatetimeIndex` or timestamp column;
+- required market columns: `open`, `high`, `low`, `close`;
+- no sorting, deduplication, forward-fill, or high/low fallback is performed;
+- `signal` or `signal_col`: compact signed entry size, where the sign is side
+  and absolute value is quantity;
+- optional `intent_cols`: map strategy column names into `stop_value`,
+  `take_profit_value`, `trailing_value`, `exit_long`, and `exit_short`;
+- legacy `technical_exit` is still accepted and maps to both long/short exits,
+  but new alphas should use side-specific exits;
+- intrabar slippage uses `slippage_bps`; legacy `slippage` is converted with a
+  deprecation warning, and passing both raises;
+- `tick_size` is optional and quantizes entry, stop, take-profit, and trailing
+  prices conservatively;
+- default `level_mode="percent_distance"` interprets `0.05` as 5 percent from
+  fill price. Use `level_mode="price_distance"` or `"absolute_price"` when
+  supplying distance/level values in price units.
+
+Execution contract:
+
+- signal at close of bar `t`;
+- entry/technical exit/reversal at open of bar `t + 1`;
+- stop gaps fill at the open when the open is worse than trigger;
+- take-profit is limit-conservative by default;
+- same-bar SL/TP conflict is flagged and resolved conservatively;
+- trailing stop is updated after the bar close and only applies from the next
+  bar;
+- reversal pays two legs: close old position and open new position;
+- result metadata contains `validation_certificate`, `data_signature`,
+  `execution_contract`, `fills_report`, `kernel_version`, and report-level
+  details.
+
+Report levels:
+
+- `minimal`: optimizer/WFO path. Keeps equity, position, fees/funding, counters,
+  and event flags; no fill ledger materialization.
+- `standard`: default notebook/service path. Adds diagnostics such as active
+  stop/TP and margin series; still no fill DataFrame.
+- `audit`: runs a deterministic second pass, allocates sparse fill arrays sized
+  exactly to real `fill_count`, materializes `result.fills` and
+  `bt.fills_report`, and asserts parity against pass 1.
+
+Use the reference endpoint for differential debugging:
+
+```python
+ref = QuantBTEndpoint.intrabar_bracket_reference(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=False,
+)
+
+ref_result = ref.backtest(
+    data=df,
+    signal_col="entry_signal",
+    symbols=["ETHUSDT"],
+    intent_cols={"stop_value": "sl_pct", "take_profit_value": "tp_pct"},
+)
+```
+
+Prepared runner for optimizers:
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=False,
+    report_level="minimal",
+)
+
+runner = bt.prepare_intrabar(data=df, symbols=["ETHUSDT"])
+intent = alpha.generate(runner.market, params)
+result = runner.run(intent, report_level="minimal")
+audit = runner.run(intent, report_level="audit")
+```
+
+Funding for intrabar routes is event-causal only when the funding timestamp
+matches an exact market bar timestamp. Mid-bar funding events are rejected and
+require a smaller timeframe. Use `use_funding=False` when no funding is part of
+the test, pass an aligned funding Series with non-zero values only on funding
+bars, or pass exact-boundary `funding_event_timestamps` plus
+`funding_event_rates` to `backtest(...)` / `prepare_intrabar(...)`.
+
+Also declare the bar timestamp convention when funding is enabled:
+`bar_timestamp_semantics="close"` is the default and applies funding after the
+bar's intrabar path on the remaining close position. Use
+`bar_timestamp_semantics="open"` for bar-open timestamped crypto feeds; funding
+then applies before pending exit/entry orders at `open[t]`.
+
+Custom execution contracts can be passed directly and are preserved in
+metadata:
+
+```python
+from quantbt import ExecutionContract, IntrabarSameBarPolicy
+
+contract = ExecutionContract.intrabar_bracket(
+    same_bar_policy=IntrabarSameBarPolicy.TP_FIRST,
+    close_on_last_bar=False,
+)
+
+bt = QuantBTEndpoint.intrabar_bracket(execution_contract=contract)
+```
+
+Unsupported contract fields raise `NotImplementedError`; they are not silently
+reset to defaults.
+
+## Fill Replay
+
+Use this when an old alpha already emitted explicit fills and QuantBT should
+only validate/account them. This route certifies accounting, not fill
+generation.
+
+```python
+bt = QuantBTEndpoint.fill_replay(
+    initial_capital=20_000,
+    leverage=5,
+    contract_size=1.0,
+)
+
+result = bt.backtest(
+    data=df,
+    symbols=["ETHUSDT"],
+    fill_replay=fills_df,
+)
+```
+
+`fills_df` must be sorted by `bar_index`, then `sequence`, and contain:
+
+```text
+bar_index
+side       # +1 buy, -1 sell
+qty
+price
+```
+
+This route is Level 1 certification by design: QuantBT certifies accounting from
+the supplied fills, while the alpha or external system remains responsible for
+causal fill generation.
+
+## Alpha Execution Audit
+
+Use the scanner before migrating old alpha directories:
+
+```bash
+PYTHONPATH=/root/bobby/pool_alpha \
+python3 quantbt/tools/audit_alpha_execution_contracts.py \
+  /root/bobby/pool_alpha/alphas_storage/TA \
+  --json-out /tmp/alpha_contracts.json \
+  --md-out /tmp/alpha_contracts.md
+```
+
+Or from Python:
+
+```python
+from quantbt import (
+    scan_alpha_directory,
+    build_alpha_certification_report,
+    alpha_report_markdown,
+)
+
+items = scan_alpha_directory("/root/bobby/pool_alpha/alphas_storage/TA")
+report = build_alpha_certification_report(items)
+print(alpha_report_markdown(report))
+```
+
+Certification levels:
+
+| Level | Meaning |
+|---:|---|
+| 0 | legacy or unspecified execution contract |
+| 1 | explicit-fill accounting replay |
+| 2 | engine-causal QuantBT execution |
+| 3 | native cross-backend parity |
+| 4 | external validation, usually Nautilus/lower-timeframe route |
+
+Optional columns:
+
+```text
+sequence
+fee
+reason
+```
+
+If `fee` is omitted, `fee_rate` is used to compute one-way fees from notional.
+Result metadata declares:
+
+```text
+accounting_certified = true
+execution_generation_certified = false
+```
+
 ## DCA / Grid Ladder
 
 Use this when `signal` is a structural ladder level, not a dynamic position
@@ -521,16 +788,117 @@ Input requirement:
 - `orders`: list of `OrderIntent`;
 - `symbols`: should contain the symbols used by the orders.
 
-Order fields:
+`OrderIntent` fields:
 
 - `timestamp`: bar timestamp;
 - `symbol`: instrument name;
 - `side`: `OrderSide.BUY` or `OrderSide.SELL`;
-- `order_type`: `MARKET`, `LIMIT`, `STOP_MARKET`, or `STOP_LIMIT`;
+- `order_type`: `MARKET` or `LIMIT` on the current native-event v1 route;
 - `qty`: positive quantity;
 - `price`: required for limit orders;
-- `trigger_price`: required for stop orders;
 - `tif`: `GTC`, `IOC`, `FOK`, or `GTD`.
+
+Lifecycle-v2 contract:
+
+```python
+from quantbt import OrderAction, OrderCommand
+
+commands = [
+    OrderCommand(
+        timestamp=df.index[10],
+        action=OrderAction.PLACE,
+        symbol="ETHUSDT",
+        side=OrderSide.BUY,
+        order_type=OrderType.STOP_LIMIT,
+        qty=3.0,
+        price=1795.0,
+        trigger_price=1800.0,
+        order_id="entry-stop-limit",
+        oco_group_id="eth-grid-1",
+    ),
+    OrderCommand(
+        timestamp=df.index[12],
+        action=OrderAction.CANCEL,
+        target_order_id="entry-stop-limit",
+    ),
+]
+```
+
+Phase 30C exposes this through `QuantBTEndpoint.native_event_lifecycle(...)`
+and through `QuantBTEndpoint.orders(..., event_engine_version="v2")`. Existing
+`QuantBTEndpoint.orders(...)` calls still default to the v1 `OrderIntent`
+route.
+
+```python
+from quantbt import AccountConfig, NativeEventBackend, NativeEventConfig
+
+backend = NativeEventBackend(
+    NativeEventConfig(account=AccountConfig(initial_capital=100_000, leverage=5))
+)
+
+result = backend.run_order_commands(
+    datetime_index=df.index,
+    commands=commands,
+    closes={"ETHUSDT": df["close"]},
+    highs={"ETHUSDT": df["high"]},
+    lows={"ETHUSDT": df["low"]},
+    symbols=["ETHUSDT"],
+)
+
+result.metadata["command_report"]
+result.metadata["order_events"]
+result.metadata["active_orders"]
+```
+
+Endpoint equivalent:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+result = bt.simulate(
+    data=df,
+    order_commands=commands,
+    symbols=["ETHUSDT"],
+)
+```
+
+Native-event artifact policy:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    report_level="minimal",   # minimal | standard | audit | full
+    audit_sink="none",        # none | memory | jsonl | parquet
+)
+```
+
+`report_level` changes only artifact retention. It must not change equity,
+positions, fees, funding, margin, liquidation, or lifecycle counters.
+
+| Level | Intended use | Retained artifacts |
+|---|---|---|
+| `minimal` | WFO/service loops | accounting paths, diagnostics, compact fill/command ledgers, no Python fills/orders, no event DataFrame |
+| `standard` | research | minimal artifacts plus Python fills and command terminal report |
+| `audit` / `full` | certification | full command report, event report, active-order report, Python fills/orders, compact ledgers |
+
+For long audits, use a disk sink:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    report_level="audit",
+    audit_sink="jsonl",
+    audit_sink_path="/tmp/quantbt_native_event_audit",
+)
+```
+
+`jsonl` and `parquet` sinks require an explicit `audit_sink_path`; QuantBT does
+not silently create long-lived audit bundles in arbitrary project folders.
 
 Execution rules:
 
@@ -584,6 +952,164 @@ stop-market, and stop-limit order factory mapping when Nautilus exposes the
 route cleanly. It preserves TIF, reduce-only, and tags in the Nautilus order
 reports. DCA/grid, bracket/OCO, basket, portfolio and arbitrage packages remain
 higher-level adapters that compile into this explicit-order replay path.
+
+Lifecycle commands with Nautilus:
+
+- `QuantBTEndpoint.orders(backend="nautilus")` accepts `order_commands`;
+- executable `PLACE` and `REPLACE` commands are converted to Nautilus package
+  `OrderIntent` payloads;
+- native lifecycle-only actions such as `CANCEL` and `AMEND` remain audited by
+  native-event v2 and are not exchange-native Nautilus command objects yet.
+
+Native structured lifecycle endpoints:
+
+```python
+bt = QuantBTEndpoint.native_event_bracket_orders(
+    spec=bracket_spec,
+    initial_capital=100_000,
+    leverage=5,
+)
+result = bt.simulate(data=df)
+result.metadata["command_report"]
+result.metadata["order_events"]
+
+grid_bt = QuantBTEndpoint.native_event_dca_grid(spec=dca_grid_spec)
+grid_result = grid_bt.simulate(data=df)
+```
+
+Reactive native-event strategy:
+
+```python
+from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
+
+class DynamicGridStrategy:
+    def initialize(self, context):
+        return []
+
+    def on_bar_close(self, context):
+        # Context is post-bar and read-only. Fills, positions and active orders
+        # come from QuantBT, not from strategy-side fill simulation.
+        if context.bar_index == 0:
+            qty = context.size_order("ETHUSDT", notional=1_000, price=context.close[0] * 0.99)
+            return [
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol="ETHUSDT",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.LIMIT,
+                    qty=qty,
+                    price=context.close[0] * 0.99,
+                    tif=TimeInForce.GTC,
+                    order_id="grid-c1-l1",
+                    metadata={"campaign_id": "c1", "level_id": "l1"},
+                )
+            ]
+        return []
+
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    reactive_execution_mode="fast",
+    reactive_kernel_mode="replay_certified",  # replay_certified | single_pass
+)
+
+result = bt.simulate(
+    data=df,
+    strategy=DynamicGridStrategy(),
+    symbols=["ETHUSDT"],
+)
+
+tape = result.metadata["emitted_command_tape"]
+replay = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+).simulate(data=df, order_commands=tape, symbols=["ETHUSDT"])
+```
+
+Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
+retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
+strategy just observed.
+
+`reactive_kernel_mode="replay_certified"` is the conservative default. It uses
+the incremental callback session to build state and then runs one certified
+static event-v2 replay for the final public result. Use it for stakeholder
+reports, debugging, and migration validation.
+
+`reactive_kernel_mode="single_pass"` materializes accounting directly from the
+incremental reactive session for `report_level="minimal"` and score paths,
+skipping the final static replay. For `report_level="standard"`,
+`report_level="audit"`, or `reactive_execution_mode="audit"`, QuantBT still
+runs the replay oracle and asserts accounting parity before returning the
+single-pass result.
+
+Reactive metadata:
+
+```python
+result.metadata["reactive_context_builder"]       # "incremental_session_v1"
+result.metadata["reactive_incremental_compile_replays"]  # 0
+result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/score
+result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
+```
+
+For reactive strategies, `report_level="minimal"` intentionally omits
+`emitted_command_tape` from metadata while preserving
+`emitted_command_count`. Use `report_level="audit"` when a replayable command
+tape is required for certification.
+
+Prepared native-event scoring:
+
+```python
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    report_level="audit",
+    reactive_kernel_mode="replay_certified",
+)
+
+prepared = bt.prepare_native_event_strategy(
+    data=df,
+    symbols=["ETHUSDT"],
+)
+
+score = prepared.score(
+    strategy=DynamicGridStrategy(params),
+    trading_days=365,
+)
+
+audit = prepared.run(
+    strategy=DynamicGridStrategy(params),
+    report_level="audit",
+)
+```
+
+`prepared.score(...)` returns `NativeEventScoreResult`: ndarray accounting
+paths plus metrics, not a public `BacktestResultV2`. It does not update
+`bt.result`, so Optuna/WFO loops do not retain the previous trial's full
+artifact bundle. Phase 34C makes `prepared.score(...)` use the single-pass
+reactive session accounting path and skip the final replay while maintaining
+parity with `prepared.run(..., report_level="audit")`. `prepared.run(...)`
+returns the normal public
+`BacktestResultV2` and should be used for final audit/replay exports.
+
+Scoped cancel-all:
+
+```python
+OrderCommand(
+    timestamp=context.timestamp,
+    action=OrderAction.CANCEL_ALL,
+    symbol="ETHUSDT",
+    tag_prefix="GRID-C12",
+)
+```
+
+Static lifecycle replay supports scoped `CANCEL_ALL` by symbol, side,
+order type, parent order id, group id and OCO group id. Reactive strategies can
+also scope by exact tag, tag prefix, campaign id, cycle id and level id; the
+runner expands those string scopes into target `CANCEL` commands before final
+kernel replay.
 
 Package execution-depth preflight:
 
@@ -1073,6 +1599,28 @@ result = QuantBTEndpoint.portfolio(
 Core accounting is identical across report levels; only metadata artifact
 construction changes.
 
+Prepared service context for repeated portfolio replays:
+
+```python
+endpoint = QuantBTEndpoint.portfolio(
+    portfolio_mode="market_neutral",
+    backend="native_portfolio",
+    hedge_type="signal_notional",
+    report_level="minimal",
+)
+
+ctx = endpoint.prepare_service_context(data=data_dict, symbols=["BTC", "ETH"])
+
+for positions in candidate_position_matrices:
+    result = ctx.backtest(positions=positions)
+```
+
+This opt-in helper normalizes and packs the market tape once, then reuses
+validated prepared arrays for repeated service/WFO-style runs. It does not alter
+normal `.backtest(...)` behavior. Use it when the OHLC/funding tape is fixed
+and many candidate position matrices are replayed. Rerun the selected candidate
+with `report_level="full"` for stakeholder audit artifacts.
+
 Experimental Nautilus portfolio validation:
 
 ```python
@@ -1322,6 +1870,33 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
+
+Prepared service context for repeated single-symbol runs:
+
+```python
+endpoint = QuantBTEndpoint.signal_notional(
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+ctx = endpoint.prepare_service_context(data=df, symbols=["BTC"])
+
+for signal in candidate_signals:
+    result = ctx.backtest(signal=signal)
+```
+
+Supported prepared-context routes are intentionally narrow:
+
+- `QuantBTEndpoint.signal_notional(..., backend="native_vectorized")`;
+- `QuantBTEndpoint.portfolio(..., backend="native_portfolio")`.
+
+Unsupported legacy/event/Nautilus modes raise `NotImplementedError` and should
+continue using normal `.backtest(...)` or existing backend prepared APIs. The
+context is caller-owned, run-local, and signature-validated by the backend; it
+does not use a mutable global cache.
 
 Prepared endpoint scoring:
 
@@ -1662,6 +2237,68 @@ timestamp-to-timestamp position changes, not the notional size of those changes.
 This keeps the penalty focused on under-trading rather than allocation
 magnitude.
 
+## Domain-Agnostic Optimization Adapters
+
+Use standalone optimization adapters when you want Optuna tuning without WFO
+fold stitching:
+
+```python
+from quantbt import (
+    OptimizationConfig,
+    SamplerConfig,
+    OptunaOptimizer,
+    PreparedSignalEvaluator,
+    SharpeObjective,
+)
+
+endpoint = QuantBTEndpoint.signal_notional(
+    backend="native_vectorized",
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+    use_funding=False,
+)
+
+prepared = endpoint.prepare_service_context(
+    data=df,
+    symbols=["BTCUSDT"],
+)
+
+evaluator = PreparedSignalEvaluator(
+    prepared_context=prepared,
+    strategy_func=lambda params: build_signal(df, params),
+    objective_builder=SharpeObjective(),
+)
+
+study = OptunaOptimizer(
+    evaluator=evaluator,
+    config=OptimizationConfig(
+        study_name="signal_search",
+        n_trials=200,
+        show_progress_bar=False,
+    ),
+    sampler_config=SamplerConfig(name="tpe"),
+)
+
+result = study.optimize(param_ranges=param_ranges)
+```
+
+Routes:
+
+- `PreparedSignalEvaluator`: repeated single-symbol native-vectorized signal
+  replays.
+- `PreparedIntrabarEvaluator`: compact entry/SL/TP/trailing frames through
+  `QuantBTEndpoint.intrabar_bracket(...).prepare_intrabar(...)`.
+- `PreparedPortfolioEvaluator`: repeated native-portfolio position matrices.
+- `GenericEndpointEvaluator`: arbitrage, grid/DCA, options, or any endpoint
+  where `build_run_inputs(params)` can call `run_func(**inputs)`.
+
+The optimizer core does not shift signals and does not own look-ahead
+prevention. Strategy/research code owns feature causality; QuantBT endpoints
+own execution simulation, fills, PnL, fee, funding, margin, and liquidation.
+See [Domain-agnostic optimization](optimization.md) for full examples.
+
 ## Service Integration Pattern
 
 Recommended shape for alpha services:
@@ -1697,6 +2334,215 @@ Rules for services:
 - use factory defaults unless the strategy requires a specific backend;
 - use `native_vectorized` for broad sweeps and `native_event` or `nautilus` for
   fill-level validation.
+
+## Options Endpoint
+
+`QuantBTEndpoint.options(...)` is the Phase 7 public route for native option
+research. It is intentionally separate from `native_event` and generic
+arbitrage because options require quote-side execution, premium-currency
+cashflows, expiry/settlement, Greeks, and option margin.
+
+Minimal call:
+
+```python
+from quantbt import (
+    OptionPackageIntent,
+    OptionPackageLeg,
+    OrderSide,
+    QuantBTEndpoint,
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=20_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 20_000},
+    conversion_rates={"BTC": 100_000},
+    fee_rate=0.0001,
+)
+
+package = OptionPackageIntent(
+    timestamp_ns=int(chain["timestamp_ns"].min()),
+    package_id="long-call",
+    legs=(
+        OptionPackageLeg(
+            instrument_id="BTC-01FEB26-100000-C.DERIBIT",
+            side=OrderSide.BUY,
+            ratio=1.0,
+        ),
+    ),
+    quantity=1.0,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=[package],
+)
+
+bt.show_metrics()
+fills = result.fills_report
+greeks = result.greeks_report
+margin = result.margin_report
+manifest = result.run_manifest
+```
+
+Required data:
+
+- `chain`: canonical long-form option chain with `timestamp_ns`,
+  `instrument_id`, venue/static fields, bid/ask/mark prices, bid/ask size,
+  index/forward price, IV and Greeks columns where available.
+- `instruments`: `OptionInstrumentRegistry`, list, or mapping of
+  `OptionInstrumentSpec`.
+- `packages`: optional sequence of `OptionPackageIntent`. Strategy/template
+  code owns signal generation and package construction; the backend owns
+  execution, ledger, margin, settlement, and reports.
+- `strategy_run`: optional `OptionStrategyRun` produced by an adapter such as
+  `build_gamma_scalping_strategy_run(...)`. When supplied, the endpoint reads
+  `strategy_run.packages`, stores `selected_contracts`, and carries strategy
+  metadata into the run manifest.
+- `underlying`: optional underlying price tape as `Series` or `DataFrame`
+  (`timestamp_ns`/`time` plus `close` or `price`). Required for first-class
+  delta-hedged option results.
+
+Useful config:
+
+- `reporting_currency`: reporting/account currency, default `USD`.
+- `initial_balances`: multi-currency starting balances. If omitted, QuantBT
+  starts with `initial_capital` in the reporting currency.
+- `conversion_rates`: required whenever premium/settlement currency differs
+  from reporting currency, for example inverse BTC options reported in USD.
+- `fee_schedule`: optional venue-like `OptionFeeSchedule`; otherwise the
+  endpoint fee rate is applied as a simple execution fee.
+- `option_execution`: optional `OptionExecutionConfig` for quote age, partial
+  fill, limit fidelity, and depth fidelity settings.
+- `option_margin`: optional `OptionMarginConfig`. Current margin is an explicit
+  approximation unless an external validator is provided in later phases.
+- `settlement_events`: optional expiry settlement events passed to
+  `backtest(...)`.
+- `prepared_cache`: optional `OptionPreparedRunCache` passed to `backtest(...)`
+  when replaying many package sets over the same option chain.
+- `hedge_policy`: optional `OptionHedgeConfig`. If omitted, the endpoint uses
+  `strategy_run.hedge_policy` when available.
+- `net_option_delta`: optional externally supplied net-delta series. If omitted
+  during a hedged run, QuantBT computes the path from executed option positions
+  and observable chain Greeks.
+
+Prepared cache pattern:
+
+```python
+from quantbt import OptionPreparedRunCache
+
+cache = OptionPreparedRunCache.from_chain(chain, option_registry)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    packages=packages,
+    prepared_cache=cache,
+)
+```
+
+Gamma-scalping adapter pattern:
+
+```python
+from quantbt import (
+    GammaScalpingConfig,
+    OptionHedgeConfig,
+    OptionHedgePolicyType,
+    QuantBTEndpoint,
+    build_gamma_scalping_strategy_run,
+)
+
+strategy_run = build_gamma_scalping_strategy_run(
+    chain,
+    option_registry,
+    GammaScalpingConfig(
+        side="long",
+        quantity=1.0,
+        min_dte_days=10,
+        max_dte_days=21,
+        roll_dte_days=2,
+        max_spread_bps=2_000,
+        hedge_policy=OptionHedgeConfig(
+            policy=OptionHedgePolicyType.FIXED_THRESHOLD,
+            threshold=0.05,
+        ),
+    ),
+)
+
+bt = QuantBTEndpoint.options(
+    initial_capital=100_000,
+    reporting_currency="USD",
+    initial_balances={"USD": 100_000},
+    fee_rate=0.0002,
+)
+
+result = bt.backtest(
+    chain=chain,
+    instruments=option_registry,
+    strategy_run=strategy_run,
+    underlying=btc_spot_or_perp,
+)
+
+combined_equity = result.equity
+option_only_equity = result.option_equity
+hedge_log = result.hedge_report
+selected = result.metadata["selected_contracts"]
+```
+
+For delta-hedged runs, `result.equity` is the combined option-plus-hedge
+equity curve. The option-only curve remains available as `result.option_equity`.
+QuantBT adds a pre-trade row at `first_timestamp - 1ns` so metrics begin from
+the declared initial capital before the first option fill.
+
+Returned result:
+
+- `OptionBacktestResult`, compatible with `BacktestResultV2`.
+- Standard helpers: `.show_metrics()`, `.full_report()`, `.quick_plot()`,
+  `.tearsheet()`.
+- Option audit tables: `fills_report`, `packages_report`, `cash_report`,
+  `marks_report`, `greeks_report`, `settlements_report`, `margin_report`,
+  `attribution_report`, `hedge_report`, `option_equity`, `combined_equity`,
+  `combined_returns`, and `run_manifest`.
+
+Support discovery:
+
+```python
+QuantBTEndpoint.options_support_matrix()
+QuantBTEndpoint.arbitrage_support_matrix()["OptionsVolArbSpec"]
+```
+
+`OptionsVolArbSpec` is routed to the specialized option route only. It should
+not be executed through generic arbitrage package backends.
+
+### Option Strategy Templates
+
+Phase 8 adds package builders under `quantbt.options.templates` and re-exports
+them from top-level `quantbt`:
+
+```python
+from quantbt import long_call, vertical, butterfly, calendar
+
+pkg = vertical(
+    timestamp_ns,
+    long_option_id="BTC-C100",
+    short_option_id="BTC-C110",
+    quantity=1.0,
+)
+```
+
+Supported V1 builders:
+
+- `long_call`, `short_call`, `long_put`, `short_put`;
+- `straddle`, `strangle`;
+- `vertical`, `butterfly`, `condor`, `calendar`;
+- `covered_call`, `collar`, `risk_reversal`.
+
+The builders only emit `OptionPackageIntent`. They do not compute payoff, PnL,
+margin, or Greeks. Covered-call and collar templates include an explicit
+underlying leg for domain clarity; the Phase 7 native option endpoint executes
+option-chain legs only, so mixed underlying+option execution remains a later
+adapter/engine fidelity item.
 
 ## Common Errors
 

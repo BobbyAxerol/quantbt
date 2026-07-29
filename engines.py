@@ -16,15 +16,22 @@ import pandas as pd
 from .backends import (
     NativeEventBackend,
     NativeEventConfig,
+    NativeOptionBackend,
+    NativeOptionConfig,
     NativePortfolioBackend,
     NativePortfolioConfig,
     NativeVectorizedBackend,
     NativeVectorizedConfig,
 )
-from .core.orders import OrderIntent
+from .core.orders import OrderAction, OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.preprocessor import validate_datetime
-from .core.results import BacktestResultV2
+from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
+from .options.cache import OptionPreparedRunCache
+from .options.hedging import OptionHedgeConfig
+from .options.packages import OptionPackageIntent
+from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
+from .options.strategy import OptionStrategyRun
 from .portfolio import MultiSymbolPortfolio
 from .sizing.modes import compute_target_units
 
@@ -58,6 +65,14 @@ class BacktestEngineV2:
         positions: Optional[Union[pd.Series, SeriesMap]] = None,
         target_units: Optional[Union[pd.Series, SeriesMap]] = None,
         orders: Optional[Sequence[OrderIntent]] = None,
+        order_commands: Optional[Sequence[OrderCommand]] = None,
+        strategy=None,
+        event_engine_version: str = "v1",
+        reactive_execution_mode: str = "fast",
+        reactive_kernel_mode: str = "replay_certified",
+        report_level: str = "audit",
+        audit_sink: str = "memory",
+        audit_sink_path: Optional[str] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -94,6 +109,14 @@ class BacktestEngineV2:
         self.positions = positions
         self.target_units = target_units
         self.orders = tuple(orders or ())
+        self.order_commands = tuple(order_commands or ())
+        self.strategy = strategy
+        self.event_engine_version = str(event_engine_version).lower().strip()
+        self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
+        self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
+        self.report_level = str(report_level)
+        self.audit_sink = str(audit_sink)
+        self.audit_sink_path = audit_sink_path
         self.datetime_index = datetime_index
         self.closes = closes
         self.highs = highs
@@ -190,8 +213,45 @@ class BacktestEngineV2:
                 execution=self.execution,
                 fee_rate=self.fee_rate,
                 use_funding=self.use_funding,
+                report_level=self.report_level,
+                audit_sink=self.audit_sink,
+                audit_sink_path=self.audit_sink_path,
+                reactive_kernel_mode=self.reactive_kernel_mode,
             )
         )
+
+        if self.strategy is not None:
+            opens, volumes = _market_open_volume(
+                data=self.data,
+                datetime_index=idx,
+                closes=closes,
+                symbols=symbols,
+            )
+            return backend.run_strategy(
+                datetime_index=idx,
+                strategy=self.strategy,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                opens=opens,
+                volumes=volumes,
+                funding_rate=self.funding_rate,
+                contract_size=self.contract_size,
+                leverage=self.leverage,
+                fee_rate=self.fee_rate,
+                symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
+                execution_mode=self.reactive_execution_mode,
+                reactive_kernel_mode=self.reactive_kernel_mode,
+                report_level=self.report_level,
+                audit_sink=self.audit_sink,
+                audit_sink_path=self.audit_sink_path,
+            )
 
         if self.basket is not None:
             basket_signal = self.signal if self.signal is not None else _first_signal(self.signals)
@@ -215,6 +275,47 @@ class BacktestEngineV2:
                 slot_size=self.slot_size,
                 min_qty=self.min_qty,
                 min_notional=self.min_notional,
+            )
+
+        if self.order_commands or self.event_engine_version in {"v2", "event_v2", "lifecycle", "lifecycle_v2"}:
+            commands = self.order_commands
+            if not commands and self.orders:
+                commands = order_intents_to_lifecycle_commands(self.orders)
+            if not commands:
+                raw_positions = self.positions if self.positions is not None else self.signals
+                if raw_positions is None:
+                    raise ValueError("native_event v2 requires order_commands, orders, signals, positions, or a basket")
+                generated_orders = tuple(
+                    _build_market_rebalance_orders(
+                        datetime_index=idx,
+                        positions=_as_series_map(raw_positions, symbols),
+                        closes=closes,
+                        alloc_per_trade=self.alloc_per_trade,
+                        hedge_type=self.hedge_type,
+                        use_pyramiding=self.use_pyramiding,
+                        symbols=symbols,
+                    )
+                )
+                commands = order_intents_to_lifecycle_commands(generated_orders)
+            return backend.run_order_commands(
+                datetime_index=idx,
+                commands=commands,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=self.funding_rate,
+                contract_size=self.contract_size,
+                leverage=self.leverage,
+                symbols=symbols,
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
+                report_level=self.report_level,
+                audit_sink=self.audit_sink,
+                audit_sink_path=self.audit_sink_path,
             )
 
         orders = self.orders
@@ -258,8 +359,13 @@ class BacktestEngineV2:
         trade_notional = self.alloc_per_trade if not isinstance(self.alloc_per_trade, dict) else next(
             iter(self.alloc_per_trade.values())
         )
-        if self.orders:
+        if self.orders or self.order_commands:
             idx, closes, highs, lows, symbols = self._market_data()
+            package_orders = self.orders
+            input_mode = "explicit_orders"
+            if self.order_commands:
+                package_orders = _commands_to_package_order_intents(self.order_commands)
+                input_mode = "lifecycle_commands"
             data = _frames_for_nautilus(
                 data=self.data,
                 datetime_index=idx,
@@ -285,14 +391,17 @@ class BacktestEngineV2:
                 )
             else:
                 config = replace(config, **updates)
+            package_params = {
+                "input_mode": input_mode,
+                "order_count_input": int(len(package_orders)),
+            }
+            if self.order_commands:
+                package_params["command_count_input"] = int(len(self.order_commands))
             return NautilusBacktestEngine(config).run_order_packages(
                 data=data,
-                orders=self.orders,
+                orders=package_orders,
                 symbols=symbols,
-                params={
-                    "input_mode": "explicit_orders",
-                    "order_count_input": int(len(self.orders)),
-                },
+                params=package_params,
             )
 
         data = _single_frame(self.data)
@@ -352,6 +461,79 @@ class EventDrivenBacktestEngine(BacktestEngineV2):
     def __init__(self, *args, **kwargs):
         kwargs["backend"] = "native_event"
         super().__init__(*args, **kwargs)
+
+
+class OptionBacktestEngine:
+    """
+    Native option facade returning `OptionBacktestResult`.
+
+    Parameters
+    ----------
+    chain:
+        Canonical long-form option chain rows.
+    instruments:
+        Option instrument registry, sequence, or mapping.
+    packages:
+        Option package intents generated by a strategy/template layer.
+    config:
+        Native option backend configuration.
+    """
+
+    def __init__(
+        self,
+        *,
+        chain: Optional[pd.DataFrame] = None,
+        instruments: Optional[OptionInstrumentRegistry | Sequence[OptionInstrumentSpec] | Dict[str, OptionInstrumentSpec]] = None,
+        packages: Sequence[OptionPackageIntent] = (),
+        strategy_run: Optional[OptionStrategyRun] = None,
+        underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
+        hedge_policy: Optional[OptionHedgeConfig] = None,
+        net_option_delta: Optional[pd.Series] = None,
+        config: Optional[NativeOptionConfig] = None,
+        settlement_events: Optional[Sequence] = None,
+        conversion_rates: Optional[Dict[str, float]] = None,
+        prepared_cache: Optional[OptionPreparedRunCache] = None,
+        auto_run: bool = True,
+    ):
+        self.chain = chain
+        self.instruments = instruments
+        self.strategy_run = strategy_run
+        self.packages = tuple(packages or (strategy_run.packages if strategy_run is not None else ()))
+        self.underlying = underlying
+        self.hedge_policy = hedge_policy or (strategy_run.hedge_policy if strategy_run is not None else None)
+        self.net_option_delta = net_option_delta
+        self.config = config or NativeOptionConfig()
+        self.settlement_events = tuple(settlement_events or ())
+        self.conversion_rates = conversion_rates
+        self.prepared_cache = prepared_cache
+        self.backend = NativeOptionBackend(self.config)
+        self.result: Optional[OptionBacktestResult] = None
+
+        if auto_run:
+            self.run()
+
+    def run(self) -> OptionBacktestResult:
+        if self.chain is None:
+            raise ValueError("OptionBacktestEngine requires chain")
+        if self.instruments is None:
+            raise ValueError("OptionBacktestEngine requires instruments")
+        self.result = self.backend.run(
+            chain=self.chain,
+            instruments=self.instruments,
+            packages=self.packages,
+            settlement_events=self.settlement_events,
+            conversion_rates=self.conversion_rates,
+            prepared_cache=self.prepared_cache,
+            underlying=self.underlying,
+            hedge_policy=self.hedge_policy,
+            net_option_delta=self.net_option_delta,
+        )
+        if self.strategy_run is not None:
+            self.result.metadata["strategy_run"] = self.strategy_run.metadata
+            self.result.metadata["selected_contracts"] = self.strategy_run.selected_contracts
+            self.result.run_manifest["strategy_run"] = self.strategy_run.metadata
+            self.result.metadata["run_manifest"] = self.result.run_manifest
+        return self.result
 
 
 class PortfolioBacktestEngine:
@@ -574,6 +756,40 @@ def _market_data(
     return idx, close_map, high_map, low_map, symbol_list
 
 
+def _market_open_volume(
+    data: Optional[Union[pd.DataFrame, Dict[str, Union[pd.DataFrame, pd.Series]]]],
+    datetime_index: pd.DatetimeIndex,
+    closes: SeriesMap,
+    symbols: List[str],
+) -> Tuple[SeriesMap, SeriesMap]:
+    opens: SeriesMap = {}
+    volumes: SeriesMap = {}
+    if isinstance(data, pd.DataFrame):
+        if len(symbols) != 1:
+            raise ValueError("single DataFrame reactive run requires one symbol")
+        frame = _extract_frame_ohlcv(data, datetime_index)
+        opens[symbols[0]] = frame["open"]
+        volumes[symbols[0]] = frame["volume"]
+        return opens, volumes
+    if isinstance(data, dict):
+        for symbol in symbols:
+            value = data[symbol]
+            if isinstance(value, pd.DataFrame):
+                frame = _extract_frame_ohlcv(value, datetime_index)
+                opens[symbol] = frame["open"]
+                volumes[symbol] = frame["volume"]
+            else:
+                close = closes[symbol]
+                opens[symbol] = close
+                volumes[symbol] = pd.Series(0.0, index=close.index, name="volume")
+        return opens, volumes
+    for symbol in symbols:
+        close = closes[symbol]
+        opens[symbol] = close
+        volumes[symbol] = pd.Series(0.0, index=close.index, name="volume")
+    return opens, volumes
+
+
 def _extract_frame_ohlc(
     data: pd.DataFrame,
     datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]],
@@ -737,6 +953,41 @@ def _per_symbol_mapping(value, symbols: List[str], default: float) -> Dict[str, 
     if isinstance(value, dict):
         return {s: float(value.get(s, default)) for s in symbols}
     return {s: float(value) for s in symbols}
+
+
+def _commands_to_package_order_intents(commands: Sequence[OrderCommand]) -> Tuple[OrderIntent, ...]:
+    orders: List[OrderIntent] = []
+    for command in commands:
+        if command.action not in (OrderAction.PLACE, OrderAction.REPLACE):
+            continue
+        if command.symbol is None or command.side is None or command.order_type is None or command.qty is None:
+            continue
+        metadata = {
+            **dict(command.metadata),
+            "command_action": command.action.value,
+            "target_order_id": command.target_order_id,
+            "parent_order_id": command.parent_order_id,
+            "group_id": command.group_id,
+            "oco_group_id": command.oco_group_id,
+            "activation_policy": command.activation_policy.value,
+        }
+        orders.append(
+            OrderIntent(
+                timestamp=command.timestamp,
+                symbol=command.symbol,
+                side=command.side,
+                order_type=command.order_type,
+                qty=float(command.qty),
+                price=command.price,
+                trigger_price=command.trigger_price,
+                tif=command.tif,
+                reduce_only=command.reduce_only,
+                order_id=command.order_id,
+                tag=command.tag,
+                metadata=metadata,
+            )
+        )
+    return tuple(orders)
 
 
 def _first_signal(value: Optional[Union[pd.Series, SeriesMap]]) -> Optional[pd.Series]:

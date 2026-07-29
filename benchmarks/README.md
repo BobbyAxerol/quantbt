@@ -48,3 +48,57 @@ Phase 9 optimization follow-up:
 - `--no-tracemalloc` is available when comparing runtime separately from memory
   instrumentation overhead. Use the default traced mode when peak memory is the
   metric under review.
+
+Phase 14/16 service-loop follow-up:
+
+```bash
+python3 benchmarks/run_phase14_service_loop.py --rows 1440 --symbols 6 --trials 8 --repeats 2
+python3 benchmarks/run_phase16_performance_debt.py --rows 1440 --symbols 6 --replays 8 --repeats 2
+```
+
+- `phase14_service_loop.*` decomposes WFO, native-event, arbitrage and report
+  workload costs.
+- `phase16_performance_debt.*` compares normal endpoint replays with
+  `endpoint.prepare_service_context(...)` and records the current Cython/C++
+  decision.
+
+Options Phase 10:
+
+```bash
+python3 benchmarks/run_options_engine.py --snapshots 96 --contracts 48 --packages 96 --repeats 3
+python3 benchmarks/gamma_scalping_backtestsample.py --snapshots 90 --seed 42
+python3 benchmarks/gamma_scalping_backtestsample.py \
+  --real-options-csv /root/bobby/pool_alpha/alphas_storage/option_based/options_full_history.csv.gz \
+  --underlying-source spot \
+  --hedge-timeframe 1h
+```
+
+- `options_phase10_baseline.*` records prepared-tape and compiled-package cache
+  parity for the native option backend.
+- The benchmark reports snapshots, contracts, quotes, packages, fills, hedges,
+  memory, uncached runtime, cached runtime, and run-manifest hashes.
+- `gamma_scalping_backtestsample.py` is a runnable long-straddle gamma-scalping
+  smoke sample. It keeps the original research helpers, then runs the public
+  `QuantBTEndpoint.options(...)` path through
+  `build_gamma_scalping_strategy_run(...)`, `strategy_run`, `underlying`, and
+  prepared-cache parity.
+- The real-data mode converts legacy Binance options CSV history into QuantBT's
+  canonical option-chain schema, selects an ATM call/put pair with entry/exit
+  quotes, and loads BTCUSDT spot or USD-M perpetual candles from `_get_data` for
+  first-class delta-hedged combined-equity accounting.
+- Cython/C++ should only be considered after a larger profile shows pure
+  kernels, not pandas/tape/report facade work, dominating runtime.
+
+Phase 31 intrabar execution:
+
+```bash
+python3 benchmarks/run_phase31_intrabar.py --rows 25000 --repeats 3
+python3 benchmarks/run_phase31_intrabar.py --rows 512 --repeats 1
+```
+
+- `phase31_intrabar_benchmark.*` compares the new fast
+  `intrabar_bracket_v1` kernel against the close-target pure kernel, the Python
+  intrabar oracle, fill replay, and the native-event explicit-order facade.
+- Use the fast intrabar route for single-symbol next-open SL/TP/trailing
+  research. Use `report_level="audit"` for fill-ledger certification and
+  `report_level="minimal"` for WFO/optimizer loops.
