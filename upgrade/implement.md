@@ -6585,3 +6585,152 @@ Do not claim every strategy family has the same prepared performance path.
 Arbitrage, grid/DCA, and options can begin through `GenericEndpointEvaluator`
 and receive specialized prepared evaluators later without changing optimizer
 core.
+
+## Phase 34 - Native Event Memory And Performance Optimization
+
+Guide:
+
+- Detailed source plan:
+  `upgrade/optimized_native_event_kernel_v2.md`.
+- Note: the source guide names this work "Phase 33A -> 33C", but the master
+  implementation plan already uses Phase 33 for optimization search quality.
+  This master plan tracks the same native-event work as Phase 34A -> 34C to
+  avoid phase-number ambiguity.
+
+Goal:
+
+- Reduce native-event RSS and peak RAM for WFO, optimization, dynamic grid,
+  DCA, bracket, and command-heavy strategies.
+- Reduce report construction and pandas materialization overhead.
+- Preserve public endpoint usage, `BacktestResultV2`, strategy callback API,
+  lifecycle semantics, accounting formulas, fill policy, fee/funding/margin,
+  liquidation, parent-child/OCO behavior, and same-bar command sequencing.
+- Keep exactly one accounting source of truth. Score/minimal/standard/audit
+  must be different artifact policies over the same accounting arrays, not
+  different engines or metric implementations.
+
+### Phase 34A - Native Event Artifact And Memory Contract
+
+Scope:
+
+- Wire `report_level` through native-event endpoints, configs, backend, kernel
+  artifact planning, and result materialization.
+- Add an internal `NativeEventArtifactPlan` that controls whether equity,
+  positions, fees, funding, margin, fill ledger, command terminal state, event
+  ledger, command tape, pandas objects, and Python objects are retained.
+- Introduce compact struct-of-arrays ledgers for fills, command terminal state,
+  and lifecycle events.
+- Dictionary-encode repeated strings such as order IDs, tags, campaign IDs,
+  level IDs, OCO IDs, and parent IDs once.
+- Make heavy public artifacts lazy where possible while keeping public
+  `BacktestResultV2` compatibility.
+- Remove duplicate storage such as separate canonical `order_report` and
+  `command_report`; keep one canonical ledger/report with backward-compatible
+  aliases.
+- Add `audit_sink="none" | "memory" | "parquet" | "jsonl"` for long audit
+  runs.
+
+Required tests:
+
+- Same command tape across current full path, minimal, standard, and audit.
+- Exact equality for equity, returns, positions, fees, funding, margin,
+  liquidation bar/reason, fill count, rejected count, canceled count, expired
+  count, and terminal command status.
+- Backward-compatible accessors for existing endpoint/report users.
+- Benchmark dynamic-grid workload for peak RSS and report construction.
+
+Acceptance:
+
+- `report_level` changes only artifact retention, never accounting.
+- Minimal path reduces peak RSS materially without changing results.
+- Audit can retain full trace through memory or chunked disk sink.
+- Public `.simulate()` remains source-compatible.
+
+### Phase 34B - Prepared Native Event Score Path
+
+Scope:
+
+- Add prepared native-event strategy runner:
+  `prepare_native_event_strategy(data=..., symbols=...)`.
+- Reuse datetime signatures, OHLCV/funding arrays, symbol maps, instrument
+  constraints, contract sizes, leverage, fees, quantity constraints, and data
+  signatures across many optimization trials.
+- Add `NativeAccountingArrays` as the canonical post-kernel accounting object.
+- Add lightweight internal `NativeEventScoreResult` for optimization scoring.
+- Refactor performance metrics into shared pure array functions so
+  `BacktestResultV2.full_report()` and `NativeEventScoreResult.full_report()`
+  call the same metric implementation.
+- Add prepared evaluator such as `PreparedNativeEventStrategyEvaluator` that
+  plugs into the existing Optuna optimizer/objective contracts.
+
+Required tests:
+
+- `prepared.score(strategy)` vs `prepared.run(strategy, report_level="audit")`
+  on identical data/params/seed/config.
+- Exact metric equality for Sharpe, max drawdown, profit factor, number of
+  trades, turnover, margin utilization, rejection rate, final equity, and
+  liquidation status.
+- 50-trial and 500-trial prepared optimization memory tests proving market
+  arrays are prepared once and completed trials do not retain full artifacts.
+
+Acceptance:
+
+- Score path has no separate accounting or metric implementation.
+- Score/full metric diff is exactly `0.0` for supported metrics.
+- Prepared score is materially faster and more memory-lean than public audit.
+- Optimizers can use the prepared score path without changing public endpoint
+  behavior.
+
+### Phase 34C - Single-Pass Stateful Native Event Kernel
+
+Scope:
+
+- Replace the current reactive two-pass architecture for fast/score modes:
+  Python reactive callback session -> capture command tape -> static replay.
+- Add a stateful native-event kernel API:
+  initialize state, apply commands for bar, match active orders, apply funding,
+  apply margin/liquidation, finalize bar.
+- Add active-order indexing:
+  active slots, active slots by symbol, free slot stack, order ID to slot,
+  expiry buckets, parent-child adjacency, and OCO group membership.
+- Keep old replay-certified path as oracle/debug mode via
+  `reactive_kernel_mode="replay_certified" | "single_pass"`.
+- Make audit replay optional certification, not a requirement for every run.
+
+Required tests:
+
+- Lifecycle parity fixtures: market entry/exit, GTC limit, cancel before fill,
+  replace, amend, stop-market, stop-limit, GTD expiry, reduce-only clipping,
+  parent first/full-fill activation, OCO sibling cancellation, same timestamp
+  sequencing, close-and-reverse, insufficient margin, funding, intrabar and
+  post-funding liquidation, dynamic grid amend, grid entry/exit/re-arm, regime
+  switch cancel/flatten, and multi-symbol commands.
+- Compare replay-certified audit, minimal, standard, audit, score, single-pass
+  score, single-pass audit, and static replay.
+- Optimizer parity for fixed seeds/trial params/objective values/constraint
+  values/feasible classification/selected candidate.
+- Benchmarks in fresh subprocesses for real dynamic grid, one-minute stress,
+  multi-symbol workloads, and optimization batches.
+
+Acceptance:
+
+- Public API remains stable.
+- Single-pass path reaches exact accounting and lifecycle parity with replay
+  oracle.
+- Fast/score paths no longer need to retain full command tape or replay result.
+- Audit can still produce full trace and optional replay certification.
+- 500-trial prepared run does not grow RAM with completed-trial history.
+
+### Phase 34 Final Merge Gate
+
+- Public endpoints stay source-compatible.
+- Public standard/audit still return `BacktestResultV2`.
+- Strategy callback contract stays unchanged.
+- No second accounting engine or metric implementation is introduced.
+- Minimal/score artifact policies cannot change equity, positions, fees,
+  funding, margin, liquidation, lifecycle state, or metrics.
+- Dynamic grid, DCA, bracket, structured orders, and multi-symbol lifecycle
+  semantics remain unchanged.
+- Benchmark report records wall time, CPU time, peak RSS, Python heap peak,
+  NumPy allocated bytes, object count, ledger bytes, command count, fill count,
+  report construction time, and stage timings.
