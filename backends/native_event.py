@@ -6,7 +6,8 @@ Native event-driven backend using a Numba matching kernel.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
@@ -126,6 +127,10 @@ class NativeEventConfig:
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     fee_rate: Union[float, Dict[str, float]] = 0.0
     use_funding: bool = True
+    report_level: str = "audit"
+    audit_sink: str = "memory"
+    audit_sink_path: Optional[str] = None
+    reactive_kernel_mode: str = "replay_certified"
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -133,6 +138,173 @@ class NativeEventConfig:
                 raise ValueError("fee_rate must be >= 0")
         elif float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
+        object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
+        object.__setattr__(self, "reactive_kernel_mode", _normalize_reactive_kernel_mode(self.reactive_kernel_mode))
+
+
+@dataclass(frozen=True)
+class NativeEventArtifactPlan:
+    keep_equity_path: bool
+    keep_position_path: bool
+    keep_fee_path: bool
+    keep_funding_path: bool
+    keep_margin_path: bool
+    keep_fill_ledger: bool
+    keep_command_terminal_state: bool
+    keep_event_ledger: bool
+    keep_command_tape: bool
+    materialize_pandas: bool
+    materialize_python_objects: bool
+    materialize_active_orders: bool
+
+
+@dataclass(frozen=True)
+class CompactFillLedger:
+    bar: np.ndarray
+    command_index: np.ndarray
+    original_index: np.ndarray
+    order_id_code: np.ndarray
+    symbol_code: np.ndarray
+    side: np.ndarray
+    qty: np.ndarray
+    price: np.ndarray
+    fee: np.ndarray
+    id_values: tuple[str, ...]
+    symbols: tuple[str, ...]
+
+    @property
+    def fill_count(self) -> int:
+        return int(len(self.bar))
+
+
+@dataclass(frozen=True)
+class CompactCommandLedger:
+    original_index: np.ndarray
+    command_bar: np.ndarray
+    action: np.ndarray
+    symbol_code: np.ndarray
+    side: np.ndarray
+    order_type: np.ndarray
+    order_id_code: np.ndarray
+    target_order_id_code: np.ndarray
+    parent_order_id_code: np.ndarray
+    group_id_code: np.ndarray
+    oco_group_id_code: np.ndarray
+    status: np.ndarray
+    reject_code: np.ndarray
+    fill_bar: np.ndarray
+    fill_qty: np.ndarray
+    fill_price: np.ndarray
+    fill_fee: np.ndarray
+    active: np.ndarray
+    waiting_parent: np.ndarray
+    working_qty: np.ndarray
+    working_price: np.ndarray
+    working_trigger: np.ndarray
+    id_values: tuple[str, ...]
+    symbols: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CompactOrderEventLedger:
+    bar: np.ndarray
+    command_index: np.ndarray
+    event_type: np.ndarray
+    status: np.ndarray
+    related_command_index: np.ndarray
+
+    @property
+    def event_count(self) -> int:
+        return int(len(self.bar))
+
+
+def _normalize_native_event_report_level(report_level: str) -> str:
+    level = str(report_level or "audit").lower().strip()
+    aliases = {"full": "audit", "debug": "audit", "research": "standard", "optimizer": "score", "scoring": "score"}
+    level = aliases.get(level, level)
+    if level not in {"score", "minimal", "standard", "audit"}:
+        raise ValueError("native_event report_level must be score, minimal, standard, audit, or full")
+    return level
+
+
+def _normalize_native_event_audit_sink(audit_sink: str) -> str:
+    sink = str(audit_sink or "memory").lower().strip()
+    if sink not in {"none", "memory", "jsonl", "parquet"}:
+        raise ValueError("native_event audit_sink must be none, memory, jsonl, or parquet")
+    return sink
+
+
+def _normalize_reactive_kernel_mode(reactive_kernel_mode: str) -> str:
+    mode = str(reactive_kernel_mode or "replay_certified").lower().strip()
+    aliases = {"replay": "replay_certified", "certified": "replay_certified", "stateful": "single_pass"}
+    mode = aliases.get(mode, mode)
+    if mode not in {"replay_certified", "single_pass"}:
+        raise ValueError("reactive_kernel_mode must be replay_certified or single_pass")
+    return mode
+
+
+def _native_event_artifact_plan(report_level: str) -> NativeEventArtifactPlan:
+    level = _normalize_native_event_report_level(report_level)
+    if level == "score":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=False,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=False,
+            materialize_active_orders=False,
+        )
+    if level == "minimal":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=True,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=False,
+            materialize_active_orders=False,
+        )
+    if level == "standard":
+        return NativeEventArtifactPlan(
+            keep_equity_path=True,
+            keep_position_path=True,
+            keep_fee_path=True,
+            keep_funding_path=True,
+            keep_margin_path=True,
+            keep_fill_ledger=True,
+            keep_command_terminal_state=True,
+            keep_event_ledger=False,
+            keep_command_tape=False,
+            materialize_pandas=True,
+            materialize_python_objects=True,
+            materialize_active_orders=False,
+        )
+    return NativeEventArtifactPlan(
+        keep_equity_path=True,
+        keep_position_path=True,
+        keep_fee_path=True,
+        keep_funding_path=True,
+        keep_margin_path=True,
+        keep_fill_ledger=True,
+        keep_command_terminal_state=True,
+        keep_event_ledger=True,
+        keep_command_tape=True,
+        materialize_pandas=True,
+        materialize_python_objects=True,
+        materialize_active_orders=True,
+    )
 
 
 @dataclass
@@ -205,6 +377,18 @@ class _NativeEventReactiveSession:
         self.processed_bar = -1
         self.last_initial_margin = 0.0
         self.last_maintenance_margin = 0.0
+        n_bars = len(idx)
+        n_syms = len(symbols)
+        self.equity_path = np.zeros(n_bars, dtype=np.float64)
+        self.pos_path = np.zeros((n_bars, n_syms), dtype=np.float64)
+        self.fee_path = np.zeros(n_bars, dtype=np.float64)
+        self.turnover_path = np.zeros(n_bars, dtype=np.float64)
+        self.funding_path = np.zeros(n_bars, dtype=np.float64)
+        self.initial_margin_path = np.zeros(n_bars, dtype=np.float64)
+        self.maintenance_margin_path = np.zeros(n_bars, dtype=np.float64)
+        self.rejected_bar = np.zeros(n_bars, dtype=np.int64)
+        self.canceled_bar = np.zeros(n_bars, dtype=np.int64)
+        self._record_bar(0)
 
     def schedule(self, bar: int, commands: Sequence[OrderCommand]) -> None:
         if not commands or bar >= len(self.idx):
@@ -252,6 +436,7 @@ class _NativeEventReactiveSession:
 
     def _process_single_bar(self, bar: int) -> None:
         if self.liquidated:
+            self._record_bar(bar)
             return
         if bar > 0:
             for s in range(len(self.symbols)):
@@ -264,6 +449,7 @@ class _NativeEventReactiveSession:
                     )
         if bar > 0 and self._liquidated_intrabar(bar):
             self._liquidate(bar, LIQ_INTRABAR)
+            self._record_bar(bar)
             return
         if bar > 0 and self.use_funding and self.market_arrays.is_funding_bar[bar]:
             funding_cost = 0.0
@@ -277,10 +463,12 @@ class _NativeEventReactiveSession:
                         * self.market_arrays.funding[bar, s]
                     )
             self.equity -= funding_cost
+            self.funding_path[bar] += funding_cost
         if bar > 0:
             _, close_mm = self._close_margin(bar)
             if close_mm > 0.0 and self.equity <= close_mm:
                 self._liquidate(bar, LIQ_AFTER_FUNDING)
+                self._record_bar(bar)
                 return
 
         self._expire_orders(bar)
@@ -291,6 +479,18 @@ class _NativeEventReactiveSession:
         _, close_mm = self._close_margin(bar)
         if close_mm > 0.0 and self.equity <= close_mm:
             self._liquidate(bar, LIQ_AFTER_ORDER)
+        self._record_bar(bar)
+
+    def _record_bar(self, bar: int) -> None:
+        if bar < 0 or bar >= len(self.idx):
+            return
+        init_margin, maint_margin = self._close_margin(bar)
+        self.equity_path[bar] = float(self.equity)
+        self.pos_path[bar, :] = self.current_pos
+        self.initial_margin_path[bar] = float(init_margin)
+        self.maintenance_margin_path[bar] = float(maint_margin)
+        self.last_initial_margin = float(init_margin)
+        self.last_maintenance_margin = float(maint_margin)
 
     def _apply_command(self, bar: int, command: OrderCommand) -> None:
         action = command.action
@@ -400,6 +600,8 @@ class _NativeEventReactiveSession:
 
             self.equity += delta * (close - float(exec_price)) * cs - fee_cost
             self.current_pos[state.symbol_col] += delta
+            self.fee_path[bar] += fee_cost
+            self.turnover_path[bar] += trade_notional
             state.status = ORDER_STATUS_FILLED
             state.active = False
             state.waiting_parent = False
@@ -472,6 +674,7 @@ class _NativeEventReactiveSession:
         state.active = False
         state.waiting_parent = False
         state.status = ORDER_STATUS_CANCELED
+        self.canceled_bar[bar] += 1
         self._event(
             bar,
             command,
@@ -491,6 +694,8 @@ class _NativeEventReactiveSession:
         target_order_id: Optional[str] = None,
         related_order_id: Optional[str] = None,
     ) -> None:
+        if event_name == "reject":
+            self.rejected_bar[bar] += 1
         self.events_by_bar.setdefault(bar, []).append(
             NativeOrderEvent(
                 timestamp=self.idx[bar],
@@ -756,6 +961,9 @@ class NativeEventBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        report_level: Optional[str] = None,
+        audit_sink: Optional[str] = None,
+        audit_sink_path: Optional[str] = None,
     ) -> BacktestResultV2:
         """
         Execute Phase 30B lifecycle `OrderCommand` tapes through event v2.
@@ -765,6 +973,11 @@ class NativeEventBackend:
         phase.
         """
         idx = validate_datetime(datetime_index)
+        requested_report_level = self.config.report_level if report_level is None else report_level
+        level = _normalize_native_event_report_level(requested_report_level)
+        plan = _native_event_artifact_plan(level)
+        sink = self.config.audit_sink if audit_sink is None else _normalize_native_event_audit_sink(audit_sink)
+        sink_path = self.config.audit_sink_path if audit_sink_path is None else audit_sink_path
         if symbols is None:
             symbol_list = list(closes.keys())
         else:
@@ -895,13 +1108,39 @@ class NativeEventBackend:
             use_funding=bool(self.config.use_funding),
         )
 
-        fills = self._build_fills(
-            compiled_commands.sorted_commands,
-            idx,
-            fill_bar,
-            fill_qty,
-            fill_price,
-            fill_fee,
+        fill_ledger = self._build_compact_fill_ledger(
+            compiled_commands=compiled_commands,
+            fill_bar=fill_bar,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            fill_fee=fill_fee,
+        )
+        command_ledger = self._build_compact_command_ledger(
+            compiled_commands=compiled_commands,
+            command_status=command_status,
+            reject_code=reject_code,
+            fill_bar=fill_bar,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            fill_fee=fill_fee,
+            active=active,
+            waiting_parent=waiting_parent,
+            working_qty=working_qty,
+            working_price=working_price,
+            working_trigger=working_trigger,
+        )
+        event_ledger = self._build_compact_order_event_ledger(
+            event_count=int(event_count),
+            event_bar=event_bar,
+            event_command=event_command,
+            event_type=event_type,
+            event_status=event_status,
+            event_related_command=event_related_command,
+        )
+        fills = (
+            self._build_fills(compiled_commands.sorted_commands, idx, fill_bar, fill_qty, fill_price, fill_fee)
+            if plan.materialize_python_objects
+            else ()
         )
         equity = pd.Series(equity_arr, index=idx, name="equity")
         positions = pd.DataFrame(
@@ -920,36 +1159,86 @@ class NativeEventBackend:
             },
             index=idx,
         )
-        command_report = self._build_command_report(
-            compiled_commands,
-            command_status,
-            reject_code,
-            fill_bar,
-            fill_qty,
-            fill_price,
-            fill_fee,
-            active,
-            waiting_parent,
-            working_qty,
-            working_price,
-            working_trigger,
-        )
-        order_events = self._build_order_events(
-            idx=idx,
-            compiled_commands=compiled_commands,
-            event_count=int(event_count),
-            event_bar=event_bar,
-            event_command=event_command,
-            event_type=event_type,
-            event_status=event_status,
-            event_related_command=event_related_command,
-        )
-        if command_report.empty:
+        if level in {"standard", "audit"}:
+            command_report = self._build_command_report(
+                compiled_commands,
+                command_status,
+                reject_code,
+                fill_bar,
+                fill_qty,
+                fill_price,
+                fill_fee,
+                active,
+                waiting_parent,
+                working_qty,
+                working_price,
+                working_trigger,
+            )
+        else:
+            command_report = pd.DataFrame()
+        if level == "audit" and sink != "none":
+            order_events = self._build_order_events(
+                idx=idx,
+                compiled_commands=compiled_commands,
+                event_count=int(event_count),
+                event_bar=event_bar,
+                event_command=event_command,
+                event_type=event_type,
+                event_status=event_status,
+                event_related_command=event_related_command,
+            )
+        else:
+            order_events = pd.DataFrame()
+        if command_report.empty or not plan.materialize_active_orders:
             active_orders = pd.DataFrame()
         else:
             active_orders = command_report[
                 (command_report["active"] == True) | (command_report["waiting_parent"] == True)  # noqa: E712
             ].copy()
+        audit_artifacts = self._write_native_event_audit_sink(
+            sink=sink,
+            sink_path=sink_path,
+            command_report=command_report,
+            order_events=order_events,
+            fill_ledger=fill_ledger,
+            command_ledger=command_ledger,
+            event_ledger=event_ledger,
+            report_level=level,
+        )
+        lifecycle_counters = {
+            "fill_count": int(fill_ledger.fill_count),
+            "event_count": int(event_count),
+            "rejected_count": int(np.sum(command_status == ORDER_STATUS_REJECTED)),
+            "canceled_count": int(np.sum(command_status == ORDER_STATUS_CANCELED)),
+            "filled_command_count": int(np.sum(command_status == ORDER_STATUS_FILLED)),
+            "pending_command_count": int(np.sum(command_status == ORDER_STATUS_PENDING)),
+            "expired_event_count": int(np.sum(event_ledger.event_type == ORDER_EVENT_EXPIRE)),
+        }
+        metadata = {
+            "backend": "native_event",
+            "engine": "event_v2_lifecycle",
+            "report_level": level,
+            "report_level_requested": str(requested_report_level),
+            "artifact_plan": asdict(plan),
+            "audit_sink": sink,
+            "audit_sink_path": sink_path,
+            "audit_artifacts": audit_artifacts,
+            "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
+            "slippage_bps": self.config.execution.slippage_bps,
+            "order_report": command_report,
+            "command_report": command_report,
+            "order_events": order_events,
+            "active_orders": active_orders,
+            "compact_fill_ledger": fill_ledger if plan.keep_fill_ledger else None,
+            "compact_command_ledger": command_ledger if plan.keep_command_terminal_state else None,
+            "compact_order_event_ledger": event_ledger if plan.keep_event_ledger and sink == "memory" else None,
+            "id_values": compiled_commands.id_values,
+            "quantity_constraints": constraints.as_dict(),
+            "quantity_preflight": quantity_preflight,
+            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            "liquidation_reason": int(liq_reason),
+            "lifecycle_counters": lifecycle_counters,
+        }
 
         return BacktestResultV2(
             equity=equity,
@@ -961,7 +1250,7 @@ class NativeEventBackend:
             leverage=float(np.mean(leverages)),
             liquidated=bool(liq_flag),
             liquidation_bar=int(liq_idx),
-            orders=self._commands_to_order_intents(compiled_commands.sorted_commands),
+            orders=self._commands_to_order_intents(compiled_commands.sorted_commands) if plan.materialize_python_objects else (),
             fills=tuple(fills),
             fees=pd.Series(fee_arr, index=idx, name="fees"),
             funding=pd.Series(funding_arr, index=idx, name="funding"),
@@ -973,21 +1262,7 @@ class NativeEventBackend:
                 index=idx,
             ),
             diagnostics=diagnostics,
-            metadata={
-                "backend": "native_event",
-                "engine": "event_v2_lifecycle",
-                "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
-                "slippage_bps": self.config.execution.slippage_bps,
-                "order_report": command_report,
-                "command_report": command_report,
-                "order_events": order_events,
-                "active_orders": active_orders,
-                "id_values": compiled_commands.id_values,
-                "quantity_constraints": constraints.as_dict(),
-                "quantity_preflight": quantity_preflight,
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
-                "liquidation_reason": int(liq_reason),
-            },
+            metadata=metadata,
         )
 
     def run_strategy(
@@ -1012,6 +1287,13 @@ class NativeEventBackend:
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         execution_mode: str = "fast",
         command_effective_phase: str = "next_bar",
+        reactive_kernel_mode: Optional[str] = None,
+        report_level: Optional[str] = None,
+        audit_sink: Optional[str] = None,
+        audit_sink_path: Optional[str] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        opens_arr: Optional[np.ndarray] = None,
+        volumes_arr: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -1028,21 +1310,38 @@ class NativeEventBackend:
         execution_mode = str(execution_mode).lower().strip()
         if execution_mode not in {"fast", "audit"}:
             raise ValueError("execution_mode must be 'fast' or 'audit'")
+        kernel_mode = _normalize_reactive_kernel_mode(
+            self.config.reactive_kernel_mode if reactive_kernel_mode is None else reactive_kernel_mode
+        )
+        requested_report_level = self.config.report_level if report_level is None else report_level
+        level = _normalize_native_event_report_level(requested_report_level)
+        plan = _native_event_artifact_plan(level)
 
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
-        market_arrays = self.prepare_market_arrays(
-            datetime_index=idx,
-            closes=closes,
-            highs=highs,
-            lows=lows,
-            funding_rate=funding_rate,
-            symbols=symbol_list,
-        )
-        open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
-        volume_dict = align_series(volumes, symbol_list, idx, fallback={s: pd.Series(0.0, index=idx) for s in symbol_list})
-        opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
-        volumes_arr = np.ascontiguousarray(np.column_stack([volume_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        if market_arrays is None:
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
+        if opens_arr is None:
+            open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
+            opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        else:
+            opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        if volumes_arr is None:
+            volume_dict = align_series(volumes, symbol_list, idx, fallback={s: pd.Series(0.0, index=idx) for s in symbol_list})
+            volumes_arr = np.ascontiguousarray(np.column_stack([volume_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
+        else:
+            volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        if opens_arr.shape != market_arrays.closes.shape or volumes_arr.shape != market_arrays.closes.shape:
+            raise ValueError("prepared opens/volumes arrays must match market array shape")
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -1135,49 +1434,76 @@ class NativeEventBackend:
             emitted.extend(scheduled)
             ignored_commands_after_end += ignored
 
-        final_result = self.run_order_commands(
-            datetime_index=idx,
-            commands=tuple(emitted),
-            closes=closes,
-            highs=highs,
-            lows=lows,
-            funding_rate=funding_rate,
-            contract_size=contract_size,
-            leverage=leverage,
-            fee_rate=fee_rate,
-            symbols=symbol_list,
-            market_arrays=market_arrays,
-            instruments=instruments,
-            qty_step=qty_step,
-            lot_size=lot_size,
-            slot_size=slot_size,
-            min_qty=min_qty,
-            min_notional=min_notional,
-        )
+        replay_required = kernel_mode == "replay_certified" or level in {"standard", "audit"} or execution_mode == "audit"
+        replay_result = None
+        if replay_required:
+            replay_result = self.run_order_commands(
+                datetime_index=idx,
+                commands=tuple(emitted),
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate,
+                contract_size=contract_size,
+                leverage=leverage,
+                fee_rate=fee_rate,
+                symbols=symbol_list,
+                market_arrays=market_arrays,
+                instruments=instruments,
+                qty_step=qty_step,
+                lot_size=lot_size,
+                slot_size=slot_size,
+                min_qty=min_qty,
+                min_notional=min_notional,
+                report_level=level,
+                audit_sink=audit_sink,
+                audit_sink_path=audit_sink_path,
+            )
+        if kernel_mode == "replay_certified":
+            final_result = replay_result
+            engine_name = "event_v2_reactive_incremental"
+        else:
+            if replay_result is not None:
+                self._assert_reactive_session_replay_parity(session, replay_result)
+            final_result = self._reactive_session_result(
+                session=session,
+                symbol_list=symbol_list,
+                market_arrays=market_arrays,
+                leverages=leverages,
+                report_level=level,
+                plan=plan,
+                replay_result=replay_result,
+                audit_sink=audit_sink,
+                audit_sink_path=audit_sink_path,
+            )
+            engine_name = "event_v2_reactive_single_pass"
         final_result.metadata.update(
             {
-                "engine": "event_v2_reactive_incremental",
+                "engine": engine_name,
                 "reactive_execution_mode": execution_mode,
+                "reactive_kernel_mode": kernel_mode,
                 "command_effective_phase": "next_bar",
-                "emitted_command_tape": tuple(emitted),
+                "emitted_command_tape": tuple(emitted) if plan.keep_command_tape else (),
+                "emitted_command_tape_retained": bool(plan.keep_command_tape),
                 "emitted_command_count": len(emitted),
                 "ignored_commands_after_end": int(ignored_commands_after_end),
                 "strategy_callback_count": int(callback_count),
-                "static_replay_available": True,
+                "static_replay_available": bool(replay_result is not None),
+                "reactive_static_replay_count": int(replay_result is not None),
                 "reactive_context_builder": "incremental_session_v1",
                 "reactive_incremental_compile_replays": 0,
                 "reactive_session_liquidated": bool(session.liquidated),
                 "reactive_session_liquidation_bar": int(session.liquidation_bar),
             }
         )
-        if execution_mode == "audit":
+        if execution_mode == "audit" and replay_result is not None:
             replay_last_pos = {
-                symbol: float(final_result.positions[f"Position_{symbol}"].iloc[-1])
+                symbol: float(replay_result.positions[f"Position_{symbol}"].iloc[-1])
                 for symbol in symbol_list
             }
             session_last_pos = {symbol: float(last_context.positions[symbol]) for symbol in symbol_list}
             final_result.metadata["reactive_audit"] = {
-                "final_equity_diff": float(abs(float(final_result.equity.iloc[-1]) - float(last_context.equity))),
+                "final_equity_diff": float(abs(float(replay_result.equity.iloc[-1]) - float(last_context.equity))),
                 "final_position_diff": {
                     symbol: float(abs(replay_last_pos.get(symbol, 0.0) - session_last_pos.get(symbol, 0.0)))
                     for symbol in symbol_list
@@ -1525,6 +1851,267 @@ class NativeEventBackend:
                 out.append(command)
         return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
 
+    def _reactive_session_result(
+        self,
+        *,
+        session: _NativeEventReactiveSession,
+        symbol_list: List[str],
+        market_arrays: PreparedMarketArrays,
+        leverages: np.ndarray,
+        report_level: str,
+        plan: NativeEventArtifactPlan,
+        replay_result: Optional[BacktestResultV2],
+        audit_sink: Optional[str],
+        audit_sink_path: Optional[str],
+    ) -> BacktestResultV2:
+        idx = session.idx
+        equity = pd.Series(session.equity_path.copy(), index=idx, name="equity")
+        returns = equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        positions = pd.DataFrame(
+            {f"Position_{symbol}": session.pos_path[:, j].copy() for j, symbol in enumerate(symbol_list)},
+            index=idx,
+        )
+        closes = pd.DataFrame(
+            {f"Close_{symbol}": market_arrays.closes[:, j].copy() for j, symbol in enumerate(symbol_list)},
+            index=idx,
+        )
+        margin = pd.DataFrame(
+            {
+                "initial_margin": session.initial_margin_path.copy(),
+                "maintenance_margin": session.maintenance_margin_path.copy(),
+            },
+            index=idx,
+        )
+        diagnostics = pd.DataFrame(
+            {
+                "turnover": session.turnover_path.copy(),
+                "rejected_orders": session.rejected_bar.copy(),
+                "canceled_orders": session.canceled_bar.copy(),
+            },
+            index=idx,
+        )
+        session_fills = self._fills_from_reactive_session(session)
+        fill_ledger = self._compact_fill_ledger_from_session(session, symbol_list)
+        lifecycle_counters = {
+            "fill_count": int(len(session_fills)),
+            "event_count": int(sum(len(events) for events in session.events_by_bar.values())),
+            "rejected_count": int(np.sum(session.rejected_bar)),
+            "canceled_count": int(np.sum(session.canceled_bar)),
+            "filled_command_count": int(len(session_fills)),
+            "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
+            "expired_event_count": int(
+                sum(1 for events in session.events_by_bar.values() for event in events if event.event_name == "expire")
+            ),
+        }
+        command_report = pd.DataFrame()
+        order_events = pd.DataFrame()
+        active_orders = pd.DataFrame()
+        orders = ()
+        fills = tuple(session_fills) if plan.materialize_python_objects else ()
+        compact_command_ledger = None
+        compact_order_event_ledger = None
+        audit_artifacts = {}
+        if replay_result is not None:
+            command_report = replay_result.metadata.get("command_report", pd.DataFrame())
+            order_events = replay_result.metadata.get("order_events", pd.DataFrame())
+            active_orders = replay_result.metadata.get("active_orders", pd.DataFrame())
+            orders = replay_result.orders if plan.materialize_python_objects else ()
+            fills = replay_result.fills if plan.materialize_python_objects else ()
+            compact_command_ledger = replay_result.metadata.get("compact_command_ledger")
+            compact_order_event_ledger = replay_result.metadata.get("compact_order_event_ledger")
+            audit_artifacts = replay_result.metadata.get("audit_artifacts", {})
+
+        metadata = {
+            "backend": "native_event",
+            "engine": "event_v2_reactive_single_pass",
+            "report_level": report_level,
+            "artifact_plan": asdict(plan),
+            "audit_sink": self.config.audit_sink if audit_sink is None else _normalize_native_event_audit_sink(audit_sink),
+            "audit_sink_path": self.config.audit_sink_path if audit_sink_path is None else audit_sink_path,
+            "audit_artifacts": audit_artifacts,
+            "fee_rate_oneway": self._fee_rate_metadata(session.fee_rates, symbol_list),
+            "slippage_bps": self.config.execution.slippage_bps,
+            "order_report": command_report,
+            "command_report": command_report,
+            "order_events": order_events,
+            "active_orders": active_orders,
+            "compact_fill_ledger": fill_ledger if plan.keep_fill_ledger else None,
+            "compact_command_ledger": compact_command_ledger if plan.keep_command_terminal_state else None,
+            "compact_order_event_ledger": compact_order_event_ledger if plan.keep_event_ledger else None,
+            "quantity_constraints": session.constraints.as_dict(),
+            "quantity_preflight": {"changed_count": 0, "dropped_count": 0, "dropped_orders": []},
+            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            "liquidation_reason": int(session.liquidation_reason),
+            "lifecycle_counters": lifecycle_counters,
+            "single_pass_accounting_source": "reactive_session_state",
+            "single_pass_replay_certified": bool(replay_result is not None),
+        }
+        return BacktestResultV2(
+            equity=equity,
+            returns=returns,
+            positions=positions,
+            closes=closes,
+            symbols=symbol_list,
+            initial_capital=self.config.account.initial_capital,
+            leverage=float(np.mean(leverages)),
+            liquidated=bool(session.liquidated),
+            liquidation_bar=int(session.liquidation_bar),
+            orders=orders,
+            fills=fills,
+            fees=pd.Series(session.fee_path.copy(), index=idx, name="fees"),
+            funding=pd.Series(session.funding_path.copy(), index=idx, name="funding"),
+            margin=margin,
+            diagnostics=diagnostics,
+            metadata=metadata,
+        )
+
+    @staticmethod
+    def _fills_from_reactive_session(session: _NativeEventReactiveSession) -> tuple[Fill, ...]:
+        fills: list[Fill] = []
+        for bar in sorted(session.fills_by_bar):
+            for fill in session.fills_by_bar[bar]:
+                fills.append(
+                    Fill(
+                        timestamp=fill.timestamp,
+                        symbol=fill.symbol,
+                        side=fill.side,
+                        qty=float(fill.qty),
+                        price=float(fill.price),
+                        fee=float(fill.fee),
+                        order_id=fill.order_id,
+                        metadata={
+                            **dict(fill.metadata),
+                            "tag": fill.tag,
+                            "campaign_id": fill.campaign_id,
+                            "cycle_id": fill.cycle_id,
+                            "level_id": fill.level_id,
+                            "parent_order_id": fill.parent_order_id,
+                            "oco_group_id": fill.oco_group_id,
+                        },
+                    )
+                )
+        return tuple(fills)
+
+    @staticmethod
+    def _compact_fill_ledger_from_session(
+        session: _NativeEventReactiveSession,
+        symbol_list: List[str],
+    ) -> CompactFillLedger:
+        id_map: Dict[str, int] = {}
+        symbol_to_col = {symbol: j for j, symbol in enumerate(symbol_list)}
+        bars = []
+        command_index = []
+        original_index = []
+        order_id_code = []
+        symbol_code = []
+        side = []
+        qty = []
+        price = []
+        fee = []
+        fill_index = 0
+        for bar in sorted(session.fills_by_bar):
+            for fill in session.fills_by_bar[bar]:
+                code = -1
+                if fill.order_id:
+                    if fill.order_id not in id_map:
+                        id_map[fill.order_id] = len(id_map)
+                    code = id_map[fill.order_id]
+                bars.append(int(bar))
+                command_index.append(fill_index)
+                original_index.append(-1)
+                order_id_code.append(code)
+                symbol_code.append(symbol_to_col.get(fill.symbol, -1))
+                side.append(fill.side.sign)
+                qty.append(float(fill.qty))
+                price.append(float(fill.price))
+                fee.append(float(fill.fee))
+                fill_index += 1
+        return CompactFillLedger(
+            bar=np.asarray(bars, dtype=np.int64),
+            command_index=np.asarray(command_index, dtype=np.int64),
+            original_index=np.asarray(original_index, dtype=np.int64),
+            order_id_code=np.asarray(order_id_code, dtype=np.int64),
+            symbol_code=np.asarray(symbol_code, dtype=np.int64),
+            side=np.asarray(side, dtype=np.int64),
+            qty=np.asarray(qty, dtype=np.float64),
+            price=np.asarray(price, dtype=np.float64),
+            fee=np.asarray(fee, dtype=np.float64),
+            id_values=tuple(sorted(id_map, key=id_map.get)),
+            symbols=tuple(symbol_list),
+        )
+
+    @staticmethod
+    def _compact_fill_ledger_from_fills(fills: Sequence[Fill], symbol_list: List[str]) -> CompactFillLedger:
+        id_map: Dict[str, int] = {}
+        symbol_to_col = {symbol: j for j, symbol in enumerate(symbol_list)}
+        bars = []
+        command_index = []
+        original_index = []
+        order_id_code = []
+        symbol_code = []
+        side = []
+        qty = []
+        price = []
+        fee = []
+        for n, fill in enumerate(fills):
+            code = -1
+            if fill.order_id:
+                if fill.order_id not in id_map:
+                    id_map[fill.order_id] = len(id_map)
+                code = id_map[fill.order_id]
+            bars.append(n)
+            command_index.append(n)
+            original_index.append(-1)
+            order_id_code.append(code)
+            symbol_code.append(symbol_to_col.get(fill.symbol, -1))
+            side.append(fill.side.sign)
+            qty.append(float(fill.qty))
+            price.append(float(fill.price))
+            fee.append(float(fill.fee))
+        return CompactFillLedger(
+            bar=np.asarray(bars, dtype=np.int64),
+            command_index=np.asarray(command_index, dtype=np.int64),
+            original_index=np.asarray(original_index, dtype=np.int64),
+            order_id_code=np.asarray(order_id_code, dtype=np.int64),
+            symbol_code=np.asarray(symbol_code, dtype=np.int64),
+            side=np.asarray(side, dtype=np.int64),
+            qty=np.asarray(qty, dtype=np.float64),
+            price=np.asarray(price, dtype=np.float64),
+            fee=np.asarray(fee, dtype=np.float64),
+            id_values=tuple(sorted(id_map, key=id_map.get)),
+            symbols=tuple(symbol_list),
+        )
+
+    @staticmethod
+    def _assert_reactive_session_replay_parity(
+        session: _NativeEventReactiveSession,
+        replay_result: BacktestResultV2,
+        *,
+        atol: float = 1e-9,
+    ) -> None:
+        checks = {
+            "equity": (session.equity_path, replay_result.equity.to_numpy(dtype=np.float64)),
+            "fees": (session.fee_path, replay_result.fees.to_numpy(dtype=np.float64)),
+            "funding": (session.funding_path, replay_result.funding.to_numpy(dtype=np.float64)),
+            "positions": (
+                session.pos_path,
+                replay_result.positions[[f"Position_{symbol}" for symbol in replay_result.symbols]].to_numpy(dtype=np.float64),
+            ),
+            "initial_margin": (session.initial_margin_path, replay_result.margin["initial_margin"].to_numpy(dtype=np.float64)),
+            "maintenance_margin": (
+                session.maintenance_margin_path,
+                replay_result.margin["maintenance_margin"].to_numpy(dtype=np.float64),
+            ),
+        }
+        for name, (left, right) in checks.items():
+            if not np.allclose(left, right, rtol=0.0, atol=atol, equal_nan=True):
+                diff = float(np.nanmax(np.abs(left - right)))
+                raise AssertionError(f"reactive single-pass replay parity failed for {name}: max_diff={diff}")
+        if bool(session.liquidated) != bool(replay_result.liquidated):
+            raise AssertionError("reactive single-pass replay parity failed for liquidated flag")
+        if int(session.liquidation_bar) != int(replay_result.liquidation_bar):
+            raise AssertionError("reactive single-pass replay parity failed for liquidation_bar")
+
     def _reactive_replay(
         self,
         *,
@@ -1836,6 +2423,165 @@ class NativeEventBackend:
             )
 
         return size_order
+
+    @staticmethod
+    def _build_compact_fill_ledger(
+        *,
+        compiled_commands: CompiledOrderCommandArrays,
+        fill_bar: np.ndarray,
+        fill_qty: np.ndarray,
+        fill_price: np.ndarray,
+        fill_fee: np.ndarray,
+    ) -> CompactFillLedger:
+        mask = (fill_bar >= 0) & (fill_qty != 0.0)
+        command_index = np.nonzero(mask)[0].astype(np.int64)
+        return CompactFillLedger(
+            bar=np.ascontiguousarray(fill_bar[mask], dtype=np.int64),
+            command_index=np.ascontiguousarray(command_index, dtype=np.int64),
+            original_index=np.ascontiguousarray(compiled_commands.original_index[mask], dtype=np.int64),
+            order_id_code=np.ascontiguousarray(compiled_commands.command_order_id[mask], dtype=np.int64),
+            symbol_code=np.ascontiguousarray(compiled_commands.command_symbol[mask], dtype=np.int64),
+            side=np.ascontiguousarray(compiled_commands.command_side[mask], dtype=np.int64),
+            qty=np.ascontiguousarray(fill_qty[mask], dtype=np.float64),
+            price=np.ascontiguousarray(fill_price[mask], dtype=np.float64),
+            fee=np.ascontiguousarray(fill_fee[mask], dtype=np.float64),
+            id_values=tuple(compiled_commands.id_values),
+            symbols=tuple(compiled_commands.symbols),
+        )
+
+    @staticmethod
+    def _build_compact_command_ledger(
+        *,
+        compiled_commands: CompiledOrderCommandArrays,
+        command_status: np.ndarray,
+        reject_code: np.ndarray,
+        fill_bar: np.ndarray,
+        fill_qty: np.ndarray,
+        fill_price: np.ndarray,
+        fill_fee: np.ndarray,
+        active: np.ndarray,
+        waiting_parent: np.ndarray,
+        working_qty: np.ndarray,
+        working_price: np.ndarray,
+        working_trigger: np.ndarray,
+    ) -> CompactCommandLedger:
+        return CompactCommandLedger(
+            original_index=np.ascontiguousarray(compiled_commands.original_index, dtype=np.int64),
+            command_bar=np.ascontiguousarray(compiled_commands.command_bar, dtype=np.int64),
+            action=np.ascontiguousarray(compiled_commands.command_action, dtype=np.int64),
+            symbol_code=np.ascontiguousarray(compiled_commands.command_symbol, dtype=np.int64),
+            side=np.ascontiguousarray(compiled_commands.command_side, dtype=np.int64),
+            order_type=np.ascontiguousarray(compiled_commands.command_type, dtype=np.int64),
+            order_id_code=np.ascontiguousarray(compiled_commands.command_order_id, dtype=np.int64),
+            target_order_id_code=np.ascontiguousarray(compiled_commands.command_target_order_id, dtype=np.int64),
+            parent_order_id_code=np.ascontiguousarray(compiled_commands.command_parent_order_id, dtype=np.int64),
+            group_id_code=np.ascontiguousarray(compiled_commands.command_group_id, dtype=np.int64),
+            oco_group_id_code=np.ascontiguousarray(compiled_commands.command_oco_group_id, dtype=np.int64),
+            status=np.ascontiguousarray(command_status, dtype=np.int64),
+            reject_code=np.ascontiguousarray(reject_code, dtype=np.int64),
+            fill_bar=np.ascontiguousarray(fill_bar, dtype=np.int64),
+            fill_qty=np.ascontiguousarray(fill_qty, dtype=np.float64),
+            fill_price=np.ascontiguousarray(fill_price, dtype=np.float64),
+            fill_fee=np.ascontiguousarray(fill_fee, dtype=np.float64),
+            active=np.ascontiguousarray(active, dtype=np.int64),
+            waiting_parent=np.ascontiguousarray(waiting_parent, dtype=np.int64),
+            working_qty=np.ascontiguousarray(working_qty, dtype=np.float64),
+            working_price=np.ascontiguousarray(working_price, dtype=np.float64),
+            working_trigger=np.ascontiguousarray(working_trigger, dtype=np.float64),
+            id_values=tuple(compiled_commands.id_values),
+            symbols=tuple(compiled_commands.symbols),
+        )
+
+    @staticmethod
+    def _build_compact_order_event_ledger(
+        *,
+        event_count: int,
+        event_bar: np.ndarray,
+        event_command: np.ndarray,
+        event_type: np.ndarray,
+        event_status: np.ndarray,
+        event_related_command: np.ndarray,
+    ) -> CompactOrderEventLedger:
+        n = max(int(event_count), 0)
+        return CompactOrderEventLedger(
+            bar=np.ascontiguousarray(event_bar[:n], dtype=np.int64),
+            command_index=np.ascontiguousarray(event_command[:n], dtype=np.int64),
+            event_type=np.ascontiguousarray(event_type[:n], dtype=np.int64),
+            status=np.ascontiguousarray(event_status[:n], dtype=np.int64),
+            related_command_index=np.ascontiguousarray(event_related_command[:n], dtype=np.int64),
+        )
+
+    @staticmethod
+    def _write_native_event_audit_sink(
+        *,
+        sink: str,
+        sink_path: Optional[str],
+        command_report: pd.DataFrame,
+        order_events: pd.DataFrame,
+        fill_ledger: CompactFillLedger,
+        command_ledger: CompactCommandLedger,
+        event_ledger: CompactOrderEventLedger,
+        report_level: str,
+    ) -> Dict:
+        if sink in {"none", "memory"} or report_level != "audit":
+            return {}
+        if not sink_path:
+            raise ValueError("native_event audit_sink='jsonl' or 'parquet' requires audit_sink_path")
+        root = Path(sink_path)
+        root.mkdir(parents=True, exist_ok=True)
+        if sink == "jsonl":
+            command_path = root / "command_report.jsonl"
+            event_path = root / "order_events.jsonl"
+            fill_path = root / "fill_ledger.jsonl"
+            command_report.to_json(command_path, orient="records", lines=True, date_format="iso")
+            order_events.to_json(event_path, orient="records", lines=True, date_format="iso")
+            pd.DataFrame(
+                {
+                    "bar": fill_ledger.bar,
+                    "command_index": fill_ledger.command_index,
+                    "original_index": fill_ledger.original_index,
+                    "order_id_code": fill_ledger.order_id_code,
+                    "symbol_code": fill_ledger.symbol_code,
+                    "side": fill_ledger.side,
+                    "qty": fill_ledger.qty,
+                    "price": fill_ledger.price,
+                    "fee": fill_ledger.fee,
+                }
+            ).to_json(fill_path, orient="records", lines=True, date_format="iso")
+            return {
+                "format": "jsonl",
+                "command_report": str(command_path),
+                "order_events": str(event_path),
+                "fill_ledger": str(fill_path),
+                "event_count": int(event_ledger.event_count),
+                "fill_count": int(fill_ledger.fill_count),
+            }
+        command_path = root / "command_report.parquet"
+        event_path = root / "order_events.parquet"
+        fill_path = root / "fill_ledger.parquet"
+        command_report.to_parquet(command_path, index=False)
+        order_events.to_parquet(event_path, index=False)
+        pd.DataFrame(
+            {
+                "bar": fill_ledger.bar,
+                "command_index": fill_ledger.command_index,
+                "original_index": fill_ledger.original_index,
+                "order_id_code": fill_ledger.order_id_code,
+                "symbol_code": fill_ledger.symbol_code,
+                "side": fill_ledger.side,
+                "qty": fill_ledger.qty,
+                "price": fill_ledger.price,
+                "fee": fill_ledger.fee,
+            }
+        ).to_parquet(fill_path, index=False)
+        return {
+            "format": "parquet",
+            "command_report": str(command_path),
+            "order_events": str(event_path),
+            "fill_ledger": str(fill_path),
+            "event_count": int(event_ledger.event_count),
+            "fill_count": int(fill_ledger.fill_count),
+        }
 
     @staticmethod
     def _build_command_report(

@@ -58,7 +58,7 @@ from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
-from .core.results import BacktestResultV2, OptionBacktestResult
+from .core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult, OptionBacktestResult
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -193,12 +193,15 @@ class EndpointConfig:
     structured_order_spec: object = None
     event_engine_version: str = "v1"
     reactive_execution_mode: str = "fast"
+    reactive_kernel_mode: str = "replay_certified"
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
     nautilus_depth_config: Optional[NautilusExecutionDepthConfig] = None
     option_config: object = None
     report_level: str = "full"
+    audit_sink: str = "memory"
+    audit_sink_path: Optional[str] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
     walkforward_target_mode: str = "signal_notional"
@@ -292,6 +295,137 @@ class PreparedIntrabarRunner:
         self.endpoint.engine = kernel
         self.endpoint._store_result(result)
         return self.endpoint.result
+
+
+@dataclass(frozen=True)
+class PreparedNativeEventStrategyRunner:
+    """Prepared native-event reactive runner for repeated strategy scoring."""
+
+    endpoint: "QuantBTEndpoint"
+    idx: pd.DatetimeIndex
+    symbols: list
+    close_map: SeriesMap
+    high_map: SeriesMap
+    low_map: SeriesMap
+    opens_arr: np.ndarray
+    volumes_arr: np.ndarray
+    market_arrays: object
+    backend: NativeEventBackend
+    profile_metadata: Dict
+    runs: int = 0
+    scores: int = 0
+
+    def run(self, strategy, *, report_level: Optional[str] = None) -> BacktestResultV2:
+        """Run the prepared strategy and return the public BacktestResultV2."""
+        if strategy is None:
+            raise ValueError("prepared native-event runner requires strategy=...")
+        config = self.endpoint.config
+        level = report_level or config.report_level
+        result = self.backend.run_strategy(
+            datetime_index=self.idx,
+            strategy=strategy,
+            closes=self.close_map,
+            highs=self.high_map,
+            lows=self.low_map,
+            opens=None,
+            volumes=None,
+            funding_rate=config.funding_rate,
+            contract_size=config.contract_size,
+            leverage=config.account.leverage,
+            fee_rate=config.v2_fee_rate,
+            symbols=self.symbols,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+            execution_mode=config.reactive_execution_mode,
+            reactive_kernel_mode=config.reactive_kernel_mode,
+            report_level=level,
+            audit_sink=config.audit_sink,
+            audit_sink_path=config.audit_sink_path,
+            market_arrays=self.market_arrays,
+            opens_arr=self.opens_arr,
+            volumes_arr=self.volumes_arr,
+        )
+        result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
+        object.__setattr__(self, "runs", self.runs + 1)
+        self.endpoint._store_result(result)
+        return self.endpoint.result
+
+    simulate = run
+
+    def score(self, strategy, *, trading_days: int = 365) -> NativeEventScoreResult:
+        """
+        Run the prepared strategy with score artifact retention.
+
+        The returned object stores ndarray accounting arrays and scalar metrics;
+        it intentionally does not update `endpoint.result`.
+        """
+        if strategy is None:
+            raise ValueError("prepared native-event score requires strategy=...")
+        config = self.endpoint.config
+        result = self.backend.run_strategy(
+            datetime_index=self.idx,
+            strategy=strategy,
+            closes=self.close_map,
+            highs=self.high_map,
+            lows=self.low_map,
+            opens=None,
+            volumes=None,
+            funding_rate=config.funding_rate,
+            contract_size=config.contract_size,
+            leverage=config.account.leverage,
+            fee_rate=config.v2_fee_rate,
+            symbols=self.symbols,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+            execution_mode=config.reactive_execution_mode,
+            reactive_kernel_mode="single_pass",
+            report_level="score",
+            audit_sink="none",
+            market_arrays=self.market_arrays,
+            opens_arr=self.opens_arr,
+            volumes_arr=self.volumes_arr,
+        )
+        accounting = NativeAccountingArrays.from_result(result)
+        counters = dict(result.metadata.get("lifecycle_counters") or {})
+        score = NativeEventScoreResult(
+            accounting=accounting,
+            final_positions=accounting.positions[-1].copy(),
+            fill_count=int(counters.get("fill_count", 0)),
+            rejection_count=int(counters.get("rejected_count", 0)),
+            cancellation_count=int(counters.get("canceled_count", 0)),
+            liquidated=bool(result.liquidated),
+            liquidation_bar=int(result.liquidation_bar),
+            metrics={},
+            metadata={
+                "backend": "native_event",
+                "engine": "event_v2_reactive_score",
+                "report_level": "score",
+                "prepared_native_event_strategy": self.metadata,
+                "lifecycle_counters": counters,
+                "artifact_plan": result.metadata.get("artifact_plan"),
+                "reactive_kernel_mode": result.metadata.get("reactive_kernel_mode"),
+                "static_replay_available": result.metadata.get("static_replay_available"),
+            },
+        )
+        object.__setattr__(self, "scores", self.scores + 1)
+        return replace(score, metrics=score.full_report(trading_days=trading_days))
+
+    @property
+    def metadata(self) -> Dict[str, object]:
+        return {
+            **self.profile_metadata,
+            "runs": int(self.runs),
+            "scores": int(self.scores),
+            "market_signature": self.market_arrays.signature,
+        }
 
 
 class QuantBTEndpoint:
@@ -407,6 +541,100 @@ class QuantBTEndpoint:
             profile_metadata=profile,
             session_policy=session_policy,
             session_tape=session_tape,
+        )
+
+    def prepare_native_event_strategy(
+        self,
+        *,
+        data=None,
+        closes=None,
+        highs=None,
+        lows=None,
+        datetime_index=None,
+        symbols: Optional[Sequence[str]] = None,
+    ) -> PreparedNativeEventStrategyRunner:
+        """
+        Prepare native-event reactive market state once for repeated scoring.
+
+        Normal `native_event_strategy(...).simulate(...)` remains unchanged.
+        This helper is for WFO/Optuna/service loops where the same market tape
+        is replayed many times with different strategy parameters.
+        """
+        config = self.config
+        if str(config.backend).lower().strip() not in {"native_event", "auto"}:
+            raise ValueError("prepare_native_event_strategy requires backend='native_event' or auto")
+        symbol_list = list(symbols or config.symbols or (closes.keys() if closes is not None else []))
+        if data is not None and not isinstance(data, dict) and not symbol_list:
+            symbol_list = ["asset"]
+        if not symbol_list:
+            raise ValueError("prepare_native_event_strategy requires symbols")
+        if data is not None and not isinstance(data, dict):
+            if len(symbol_list) != 1:
+                raise ValueError("single DataFrame native-event preparation requires exactly one symbol")
+            frame = _standardize_frame(data, datetime_index=datetime_index)
+            symbol = symbol_list[0]
+            idx = frame.index
+            close_map = {symbol: frame["close"]}
+            high_map = {symbol: frame.get("high", frame["close"])}
+            low_map = {symbol: frame.get("low", frame["close"])}
+            opens_arr = np.ascontiguousarray(frame[["open"]].to_numpy(dtype=np.float64))
+            volumes_arr = np.ascontiguousarray(frame[["volume"]].to_numpy(dtype=np.float64))
+        else:
+            close_map, high_map, low_map, idx, symbol_list = _normalize_symbol_data(
+                data=data,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                datetime_index=datetime_index,
+                symbols=symbol_list,
+            )
+            opens_arr, volumes_arr = _prepared_native_event_open_volume_arrays(data, idx, symbol_list, close_map)
+        backend = NativeEventBackend(
+            NativeEventConfig(
+                account=config.account,
+                execution=config.execution,
+                fee_rate=config.v2_fee_rate,
+                use_funding=bool(config.use_funding),
+                report_level=config.report_level,
+                audit_sink=config.audit_sink,
+                audit_sink_path=config.audit_sink_path,
+                reactive_kernel_mode=config.reactive_kernel_mode,
+            )
+        )
+        market = backend.prepare_market_arrays(
+            datetime_index=idx,
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            funding_rate=config.funding_rate,
+            symbols=symbol_list,
+        )
+        profile = {
+            "mode": config.mode,
+            "backend": "native_event",
+            "event_engine_version": "v2",
+            "reactive_execution_mode": config.reactive_execution_mode,
+            "reactive_kernel_mode": config.reactive_kernel_mode,
+            "account": asdict(config.account),
+            "execution": asdict(config.execution),
+            "fee_rate": config.v2_fee_rate,
+            "report_level": config.report_level,
+            "symbols": tuple(symbol_list),
+            "bars": int(len(idx)),
+            "data_signature": market.signature,
+        }
+        return PreparedNativeEventStrategyRunner(
+            endpoint=self,
+            idx=idx,
+            symbols=list(symbol_list),
+            close_map=close_map,
+            high_map=high_map,
+            low_map=low_map,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            market_arrays=market,
+            backend=backend,
+            profile_metadata=profile,
         )
 
     @classmethod
@@ -1858,6 +2086,10 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -1899,6 +2131,10 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1932,6 +2168,10 @@ class QuantBTEndpoint:
             slot_size=self.config.slot_size,
             min_qty=self.config.min_qty,
             min_notional=self.config.min_notional,
+            report_level=self.config.report_level,
+            audit_sink=self.config.audit_sink,
+            audit_sink_path=self.config.audit_sink_path,
+            reactive_kernel_mode=self.config.reactive_kernel_mode,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -1981,6 +2221,9 @@ class QuantBTEndpoint:
                 slot_size=self.config.slot_size,
                 min_qty=self.config.min_qty,
                 min_notional=self.config.min_notional,
+                report_level=self.config.report_level,
+                audit_sink=self.config.audit_sink,
+                audit_sink_path=self.config.audit_sink_path,
             )
             result = self.engine.result
             result.metadata.update(
@@ -2124,6 +2367,9 @@ class QuantBTEndpoint:
                     execution=self.config.execution,
                     fee_rate=self.config.v2_fee_rate,
                     use_funding=self.config.use_funding,
+                    report_level=self.config.report_level,
+                    audit_sink=self.config.audit_sink,
+                    audit_sink_path=self.config.audit_sink_path,
                 )
             )
         else:
@@ -2723,6 +2969,8 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
         "symbols": _jsonable(config.symbols),
         "metadata": _jsonable(config.metadata),
         "report_level": config.report_level,
+        "audit_sink": config.audit_sink,
+        "audit_sink_path": config.audit_sink_path,
     }
     if config.nautilus_config is not None:
         payload["nautilus"] = _jsonable(
@@ -3741,6 +3989,24 @@ def _frames_from_symbol_maps(close_map, high_map, low_map, symbols) -> FrameMap:
             index=close.index,
         )
     return frames
+
+
+def _prepared_native_event_open_volume_arrays(data, idx: pd.DatetimeIndex, symbols, close_map) -> tuple[np.ndarray, np.ndarray]:
+    open_cols = []
+    volume_cols = []
+    for symbol in symbols:
+        close = close_map[symbol]
+        if isinstance(data, dict) and symbol in data and isinstance(data[symbol], pd.DataFrame):
+            frame = _standardize_frame(data[symbol], datetime_index=None)
+            open_cols.append(_align_series(frame.get("open", frame["close"]), idx).to_numpy(dtype=np.float64))
+            volume_cols.append(_align_series(frame.get("volume", pd.Series(0.0, index=frame.index)), idx).to_numpy(dtype=np.float64))
+        else:
+            open_cols.append(close.to_numpy(dtype=np.float64))
+            volume_cols.append(np.zeros(len(idx), dtype=np.float64))
+    return (
+        np.ascontiguousarray(np.column_stack(open_cols), dtype=np.float64),
+        np.ascontiguousarray(np.column_stack(volume_cols), dtype=np.float64),
+    )
 
 
 def _empty_nautilus_preflight_result(data, symbols, account: AccountConfig, metadata: Dict) -> BacktestResultV2:

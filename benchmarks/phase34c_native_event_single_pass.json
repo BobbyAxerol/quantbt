@@ -1,0 +1,11 @@
+{
+  "accounting_parity": true,
+  "peak_rss_mb": 333.76953125,
+  "replay_certified_seconds": 1.4313148567453027,
+  "replay_certified_static_replays": 12,
+  "rows": 600,
+  "single_pass_seconds": 0.7509573502466083,
+  "single_pass_static_replays": 0,
+  "speedup": 1.9059868796480526,
+  "trials": 12
+}

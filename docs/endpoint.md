@@ -867,6 +867,39 @@ result = bt.simulate(
 )
 ```
 
+Native-event artifact policy:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    initial_capital=100_000,
+    leverage=5,
+    report_level="minimal",   # minimal | standard | audit | full
+    audit_sink="none",        # none | memory | jsonl | parquet
+)
+```
+
+`report_level` changes only artifact retention. It must not change equity,
+positions, fees, funding, margin, liquidation, or lifecycle counters.
+
+| Level | Intended use | Retained artifacts |
+|---|---|---|
+| `minimal` | WFO/service loops | accounting paths, diagnostics, compact fill/command ledgers, no Python fills/orders, no event DataFrame |
+| `standard` | research | minimal artifacts plus Python fills and command terminal report |
+| `audit` / `full` | certification | full command report, event report, active-order report, Python fills/orders, compact ledgers |
+
+For long audits, use a disk sink:
+
+```python
+bt = QuantBTEndpoint.native_event_lifecycle(
+    report_level="audit",
+    audit_sink="jsonl",
+    audit_sink_path="/tmp/quantbt_native_event_audit",
+)
+```
+
+`jsonl` and `parquet` sinks require an explicit `audit_sink_path`; QuantBT does
+not silently create long-lived audit bundles in arbitrary project folders.
+
 Execution rules:
 
 - market orders fill on the bar close with slippage;
@@ -978,6 +1011,7 @@ bt = QuantBTEndpoint.native_event_strategy(
     leverage=5,
     fee_rate=0.0005,
     reactive_execution_mode="fast",
+    reactive_kernel_mode="replay_certified",  # replay_certified | single_pass
 )
 
 result = bt.simulate(
@@ -996,18 +1030,69 @@ replay = QuantBTEndpoint.native_event_lifecycle(
 
 Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
 retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
-strategy just observed. Phase 30E uses an incremental callback session for
-speed, then replays the emitted command tape once through the certified
-event-v2 lifecycle kernel for final accounting, fills, margin, liquidation and
-reports.
+strategy just observed.
+
+`reactive_kernel_mode="replay_certified"` is the conservative default. It uses
+the incremental callback session to build state and then runs one certified
+static event-v2 replay for the final public result. Use it for stakeholder
+reports, debugging, and migration validation.
+
+`reactive_kernel_mode="single_pass"` materializes accounting directly from the
+incremental reactive session for `report_level="minimal"` and score paths,
+skipping the final static replay. For `report_level="standard"`,
+`report_level="audit"`, or `reactive_execution_mode="audit"`, QuantBT still
+runs the replay oracle and asserts accounting parity before returning the
+single-pass result.
 
 Reactive metadata:
 
 ```python
 result.metadata["reactive_context_builder"]       # "incremental_session_v1"
 result.metadata["reactive_incremental_compile_replays"]  # 0
+result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/score
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
 ```
+
+For reactive strategies, `report_level="minimal"` intentionally omits
+`emitted_command_tape` from metadata while preserving
+`emitted_command_count`. Use `report_level="audit"` when a replayable command
+tape is required for certification.
+
+Prepared native-event scoring:
+
+```python
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    report_level="audit",
+    reactive_kernel_mode="replay_certified",
+)
+
+prepared = bt.prepare_native_event_strategy(
+    data=df,
+    symbols=["ETHUSDT"],
+)
+
+score = prepared.score(
+    strategy=DynamicGridStrategy(params),
+    trading_days=365,
+)
+
+audit = prepared.run(
+    strategy=DynamicGridStrategy(params),
+    report_level="audit",
+)
+```
+
+`prepared.score(...)` returns `NativeEventScoreResult`: ndarray accounting
+paths plus metrics, not a public `BacktestResultV2`. It does not update
+`bt.result`, so Optuna/WFO loops do not retain the previous trial's full
+artifact bundle. Phase 34C makes `prepared.score(...)` use the single-pass
+reactive session accounting path and skip the final replay while maintaining
+parity with `prepared.run(..., report_level="audit")`. `prepared.run(...)`
+returns the normal public
+`BacktestResultV2` and should be used for final audit/replay exports.
 
 Scoped cancel-all:
 
