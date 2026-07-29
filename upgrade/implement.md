@@ -6910,3 +6910,43 @@ Scope note:
 - Benchmark report records wall time, CPU time, peak RSS, Python heap peak,
   NumPy allocated bytes, object count, ledger bytes, command count, fill count,
   report construction time, and stage timings.
+
+Merge regression fix on `dev`:
+
+- Cherry-picked Phase 34A, 34B, and 34C onto `dev` after detecting that the
+  native-event public endpoint integration was missing from the research
+  branch.
+- Restored public exports and endpoint contracts:
+  - `PreparedNativeEventStrategyRunner`;
+  - `QuantBTEndpoint.prepare_native_event_strategy(...)`;
+  - `EndpointConfig.reactive_kernel_mode`;
+  - `EndpointConfig.audit_sink`;
+  - `EndpointConfig.audit_sink_path`.
+- Added `scope="auto"` compatibility to
+  `NativeEventScoreResult.full_report(...)`, matching the public result
+  contract expected by `ReportMetricObjective`.
+- Added `quantbt_phase34_merge_gate.py` so future merges can verify public
+  Phase 34 integration directly.
+- Added regression tests covering:
+  - public `quantbt` imports;
+  - endpoint Phase 34 fields;
+  - prepared native-event runner availability;
+  - `prepared.score(...)`;
+  - `PreparedNativeEventStrategyEvaluator`;
+  - `ReportMetricObjective(score_result)`.
+
+Validation on `dev`:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 quantbt_phase34_merge_gate.py
+# PHASE 34 MERGE GATE: PASSED
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase34a_native_event_artifacts.py \
+  quantbt/tests/test_phase34b_native_event_prepared_score.py \
+  quantbt/tests/test_phase34c_native_event_single_pass.py
+# 11 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
+# 549 passed, 1 skipped
+```

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import inspect
+
 import numpy as np
 import pandas as pd
 
-from quantbt import QuantBTEndpoint
+import quantbt
+from quantbt import EndpointConfig, PreparedNativeEventStrategyRunner, QuantBTEndpoint
 from quantbt.core.orders import OrderCommand
 from quantbt.core.schema import OrderSide, OrderType, TimeInForce
-from quantbt.optimization import ObjectiveResult, PreparedNativeEventStrategyEvaluator
+from quantbt.optimization import ObjectiveResult, PreparedNativeEventStrategyEvaluator, ReportMetricObjective
 
 
 def _bars(n: int = 16) -> pd.DataFrame:
@@ -141,3 +144,29 @@ def test_prepared_native_event_strategy_evaluator_uses_score_result_contract():
     assert isinstance(objective, ObjectiveResult)
     assert evaluator.last_result.metadata["engine"] == "event_v2_reactive_score"
     assert prepared.metadata["scores"] == 1
+
+
+def test_public_native_event_phase34_contract_is_available_from_quantbt():
+    fields = EndpointConfig.__dataclass_fields__
+
+    assert hasattr(quantbt.QuantBTEndpoint, "prepare_native_event_strategy")
+    assert hasattr(quantbt, "PreparedNativeEventStrategyRunner")
+    assert PreparedNativeEventStrategyRunner is quantbt.PreparedNativeEventStrategyRunner
+    assert "reactive_kernel_mode" in fields
+    assert "audit_sink" in fields
+    assert "audit_sink_path" in fields
+
+
+def test_report_metric_objective_accepts_native_event_score_result_scope_contract():
+    df = _bars()
+    endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=10_000, leverage=10, use_funding=False)
+    prepared = endpoint.prepare_native_event_strategy(data=df, symbols=["BTC"])
+    score_result = prepared.score(TwoTradeStrategy(entry_bar=0, exit_bar=5))
+
+    assert "scope" in inspect.signature(score_result.full_report).parameters
+    objective = ReportMetricObjective(value_metrics=("sharpe",), scope="auto")
+    result = objective(score_result, {"entry_bar": 0, "exit_bar": 5})
+
+    assert isinstance(result, ObjectiveResult)
+    assert result.values == (score_result.metrics["sharpe"],)
+    assert result.metrics["num_trades"] == score_result.metrics["num_trades"]
