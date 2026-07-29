@@ -12,6 +12,7 @@ from .arbitrage import ArbitrageGenericEvaluator, ArbitrageTrialOutput
 from .generic import GenericEndpointEvaluator
 from .grid_dca import GridDCAGenericEvaluator, GridDCATrialOutput
 from .intrabar import PreparedIntrabarEvaluator
+from .native_event import PreparedNativeEventStrategyEvaluator
 from .options import OptionPackageGenericEvaluator, OptionTrialOutput
 from .portfolio import PreparedPortfolioEvaluator
 from .signal import PreparedSignalEvaluator
@@ -25,6 +26,7 @@ __all__ = [
     "OptionPackageGenericEvaluator",
     "OptionTrialOutput",
     "PreparedIntrabarEvaluator",
+    "PreparedNativeEventStrategyEvaluator",
     "PreparedPortfolioEvaluator",
     "PreparedSignalEvaluator",
 ]

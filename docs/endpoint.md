@@ -1047,6 +1047,38 @@ For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_count`. Use `report_level="audit"` when a replayable command
 tape is required for certification.
 
+Prepared native-event scoring:
+
+```python
+bt = QuantBTEndpoint.native_event_strategy(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,
+    report_level="audit",
+)
+
+prepared = bt.prepare_native_event_strategy(
+    data=df,
+    symbols=["ETHUSDT"],
+)
+
+score = prepared.score(
+    strategy=DynamicGridStrategy(params),
+    trading_days=365,
+)
+
+audit = prepared.run(
+    strategy=DynamicGridStrategy(params),
+    report_level="audit",
+)
+```
+
+`prepared.score(...)` returns `NativeEventScoreResult`: ndarray accounting
+paths plus metrics, not a public `BacktestResultV2`. It does not update
+`bt.result`, so Optuna/WFO loops do not retain the previous trial's full
+artifact bundle. `prepared.run(...)` returns the normal public
+`BacktestResultV2` and should be used for final audit/replay exports.
+
 Scoped cancel-all:
 
 ```python
