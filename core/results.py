@@ -206,7 +206,10 @@ class NativeEventScoreResult:
     def maintenance_margin(self) -> np.ndarray:
         return self.accounting.maintenance_margin
 
-    def full_report(self, trading_days: int = 365) -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+        if str(scope).lower().strip() not in {"auto", "full"}:
+            raise ValueError("NativeEventScoreResult supports scope='auto' or scope='full'")
+
         from ..metrics.performance import compute_performance_metrics
 
         return compute_performance_metrics(
