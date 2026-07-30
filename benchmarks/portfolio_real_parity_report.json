@@ -72,12 +72,12 @@
       "mode": "longshort",
       "sizing_mode": "notional",
       "legacy_final_equity": 246079.11837835083,
-      "native_final_equity": 246079.11837835083,
-      "max_abs_equity_diff": 0.0,
-      "max_abs_position_diff": 0.0,
-      "max_abs_target_units_diff": 0.0,
-      "max_abs_accepted_units_diff": 0.0,
-      "max_abs_accepted_notional_diff": 0.0,
+      "native_final_equity": 246079.11837835077,
+      "max_abs_equity_diff": 5.820766091346741e-11,
+      "max_abs_position_diff": 8.881784197001252e-16,
+      "max_abs_target_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_notional_diff": 7.275957614183426e-12,
       "contract_passed": true,
       "passed": true
     },
@@ -126,10 +126,10 @@
       "legacy_final_equity": 246211.69664330326,
       "native_final_equity": 246211.69664330326,
       "max_abs_equity_diff": 0.0,
-      "max_abs_position_diff": 0.0,
-      "max_abs_target_units_diff": 0.0,
-      "max_abs_accepted_units_diff": 0.0,
-      "max_abs_accepted_notional_diff": 0.0,
+      "max_abs_position_diff": 8.881784197001252e-16,
+      "max_abs_target_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_notional_diff": 1.0913936421275139e-11,
       "contract_passed": true,
       "passed": true
     },
@@ -178,10 +178,10 @@
       "legacy_final_equity": 254338.92144898913,
       "native_final_equity": 254338.92144898913,
       "max_abs_equity_diff": 0.0,
-      "max_abs_position_diff": 0.0,
-      "max_abs_target_units_diff": 0.0,
-      "max_abs_accepted_units_diff": 0.0,
-      "max_abs_accepted_notional_diff": 0.0,
+      "max_abs_position_diff": 8.881784197001252e-16,
+      "max_abs_target_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_units_diff": 8.881784197001252e-16,
+      "max_abs_accepted_notional_diff": 7.275957614183426e-12,
       "contract_passed": true,
       "passed": true
     },
@@ -258,7 +258,7 @@
       "final_equity": 249189.0082880651,
       "max_gross_leverage": 0.317686784520297,
       "fee_total": 5774.3311601379455,
-      "turnover_total": 27321505.467895642,
+      "turnover_total": 28871655.800689727,
       "contract_passed": true,
       "passed": true
     },
@@ -268,7 +268,7 @@
       "final_equity": 246079.11837835077,
       "max_gross_leverage": 0.26675180673723076,
       "fee_total": 5898.121477615312,
-      "turnover_total": 28053245.268579192,
+      "turnover_total": 29490607.38807656,
       "contract_passed": true,
       "passed": true
     },
@@ -278,7 +278,7 @@
       "final_equity": 246079.11837835077,
       "max_gross_leverage": 0.26675180673723076,
       "fee_total": 5898.121477615312,
-      "turnover_total": 28053245.268579192,
+      "turnover_total": 29490607.38807656,
       "contract_passed": true,
       "passed": true
     },
@@ -288,7 +288,7 @@
       "final_equity": 220319.7339349668,
       "max_gross_leverage": 2.377274407742148,
       "fee_total": 52213.968934384946,
-      "turnover_total": 248101583.45405817,
+      "turnover_total": 261069844.6719247,
       "contract_passed": true,
       "passed": true
     },
@@ -298,7 +298,7 @@
       "final_equity": 190919.09906491183,
       "max_gross_leverage": 4.759124345296473,
       "fee_total": 101695.47406036386,
-      "turnover_total": 482749117.6135695,
+      "turnover_total": 508477370.3018193,
       "contract_passed": true,
       "passed": true
     },
@@ -308,7 +308,7 @@
       "final_equity": 237508.95103968613,
       "max_gross_leverage": 1.0004025389013835,
       "fee_total": 22274.562173833678,
-      "turnover_total": 105900122.25394614,
+      "turnover_total": 111372810.86916837,
       "contract_passed": true,
       "passed": true
     },
@@ -328,7 +328,7 @@
       "final_equity": 234694.22280207596,
       "max_gross_leverage": 1.0004022866033728,
       "fee_total": 22221.381095212433,
-      "turnover_total": 105661774.70162633,
+      "turnover_total": 111106905.47606216,
       "contract_passed": true,
       "passed": true
     },
@@ -338,7 +338,7 @@
       "final_equity": 234996.5913951752,
       "max_gross_leverage": 1.0004024187471532,
       "fee_total": 22243.220140142766,
-      "turnover_total": 105747039.30515036,
+      "turnover_total": 111216100.70071384,
       "contract_passed": true,
       "passed": true
     }
@@ -358,9 +358,9 @@
     "native_only_passed": true,
     "unsupported_cases": 1,
     "unsupported_rejected": true,
-    "max_abs_equity_diff": 0.0,
-    "max_abs_position_diff": 0.0,
-    "max_abs_target_units_diff": 0.0,
-    "max_abs_accepted_notional_diff": 0.0
+    "max_abs_equity_diff": 5.820766091346741e-11,
+    "max_abs_position_diff": 8.881784197001252e-16,
+    "max_abs_target_units_diff": 8.881784197001252e-16,
+    "max_abs_accepted_notional_diff": 1.0913936421275139e-11
   }
 }

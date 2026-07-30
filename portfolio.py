@@ -284,6 +284,7 @@ class MultiSymbolPortfolio:
             pos_arr,
             sym_arr,
             fee_arr,
+            _slippage_arr,
             turn_arr,
             liq_flag,
             liq_idx,
@@ -300,8 +301,10 @@ class MultiSymbolPortfolio:
             leverages      = lev_arr,
             maint_ratio    = self.maintenance_ratio,
             fee_rate       = self.fee_rate,
+            slippage_rate  = 0.0,
             contract_sizes = cs_arr,
             use_funding    = bool(self.use_funding),
+            tradable       = np.ones((n, m), dtype=np.bool_),
         )
 
         # ── assemble result ───────────────────────────────────────────────

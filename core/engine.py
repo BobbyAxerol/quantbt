@@ -643,8 +643,10 @@ def _engine_portfolio(
     leverages:       np.ndarray,
     maint_ratio:     float,
     fee_rate:        float,
+    slippage_rate:   float,
     contract_sizes:  np.ndarray,
     use_funding:     bool,
+    tradable:         np.ndarray,
 ):
     """
     Numba portfolio simulation kernel.
@@ -657,6 +659,7 @@ def _engine_portfolio(
     pos_out      = np.zeros((n_bars, n_syms), dtype=np.float64)
     sym_pnl      = np.zeros((n_bars, n_syms), dtype=np.float64)
     fee_arr      = np.zeros(n_bars, dtype=np.float64)
+    slip_arr     = np.zeros(n_bars, dtype=np.float64)
     turn_arr     = np.zeros(n_bars, dtype=np.float64)
 
     current_pos  = np.zeros(n_syms, dtype=np.float64)
@@ -734,20 +737,31 @@ def _engine_portfolio(
         # 4. Cross-margin buying-power gate for target portfolio.
         cur_im = 0.0
         target_im = 0.0
+        target_mm = 0.0
         fee_est = 0.0
+        slip_est = 0.0
+        invalid_target = False
         for s in range(n_syms):
             c = closes[i, s]
             cs = contract_sizes[s]
             lev = leverages[s]
             cur_im += abs(current_pos[s]) * c * cs / lev
             target_im += abs(target_pos[i, s]) * c * cs / lev
+            target_mm += abs(target_pos[i, s]) * c * cs * maint_ratio
 
             delta = target_pos[i, s] - current_pos[s]
             if abs(delta) > 1e-12:
-                fee_est += abs(delta) * c * cs * fee_rate
+                if not tradable[i, s] or c <= 0.0 or not np.isfinite(c):
+                    invalid_target = True
+                    continue
+                exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                trade_notional = abs(delta) * exec_price * cs
+                fee_est += trade_notional * fee_rate
+                slip_est += abs(delta) * c * cs * slippage_rate
 
         can_rebalance = True
-        if target_im > cur_im and (target_im - cur_im) + fee_est > equity - cur_im:
+        post_trade_equity = equity - fee_est - slip_est
+        if invalid_target or post_trade_equity < target_im or post_trade_equity < target_mm:
             can_rebalance = False
 
         # 5. Execute accepted target at close.
@@ -757,15 +771,16 @@ def _engine_portfolio(
                 cs = contract_sizes[s]
                 delta = target_pos[i, s] - current_pos[s]
                 if abs(delta) > 1e-12:
-                    tv = abs(delta) * c * cs
+                    exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                    tv = abs(delta) * exec_price * cs
                     fee = tv * fee_rate
-                    equity -= fee
-                    current_pnl[s] -= fee
+                    slip = abs(delta) * c * cs * slippage_rate
+                    equity -= fee + slip
+                    current_pnl[s] -= fee + slip
                     fee_arr[i] += fee
+                    slip_arr[i] += slip
 
-                    old_notional = abs(current_pos[s]) * c * cs
-                    new_notional = abs(target_pos[i, s]) * c * cs
-                    turn_arr[i] += abs(new_notional - old_notional)
+                    turn_arr[i] += tv
                     current_pos[s] = target_pos[i, s]
 
         # 6. Post-fee maintenance check.
@@ -792,7 +807,7 @@ def _engine_portfolio(
 
         equity_curve[i] = equity
 
-    return equity_curve, pos_out, sym_pnl, fee_arr, turn_arr, liq_flag, liq_idx
+    return equity_curve, pos_out, sym_pnl, fee_arr, slip_arr, turn_arr, liq_flag, liq_idx
 
 
 @njit(cache=True)
@@ -809,6 +824,7 @@ def _engine_portfolio_equity_sizing(
     leverages: np.ndarray,
     maint_ratio: float,
     fee_rate: float,
+    slippage_rate: float,
     contract_sizes: np.ndarray,
     use_funding: bool,
     allocs: np.ndarray,
@@ -821,6 +837,7 @@ def _engine_portfolio_equity_sizing(
     qty_steps: np.ndarray,
     min_qtys: np.ndarray,
     min_notionals: np.ndarray,
+    tradable: np.ndarray,
 ):
     """
     Portfolio kernel for sizing modes which depend on live equity.
@@ -840,6 +857,7 @@ def _engine_portfolio_equity_sizing(
     pos_out = np.zeros((n_bars, n_syms), dtype=np.float64)
     sym_pnl = np.zeros((n_bars, n_syms), dtype=np.float64)
     fee_arr = np.zeros(n_bars, dtype=np.float64)
+    slip_arr = np.zeros(n_bars, dtype=np.float64)
     turn_arr = np.zeros(n_bars, dtype=np.float64)
 
     current_pos = np.zeros(n_syms, dtype=np.float64)
@@ -948,7 +966,7 @@ def _engine_portfolio_equity_sizing(
 
         for s in range(n_syms):
             denom = closes[i, s] * contract_sizes[s]
-            if denom != 0.0:
+            if tradable[i, s] and denom != 0.0:
                 target_units[s] = target_notional[s] / denom
             else:
                 target_units[s] = 0.0
@@ -959,19 +977,30 @@ def _engine_portfolio_equity_sizing(
 
         cur_im = 0.0
         target_im = 0.0
+        target_mm = 0.0
         fee_est = 0.0
+        slip_est = 0.0
+        invalid_target = False
         for s in range(n_syms):
             c = closes[i, s]
             cs = contract_sizes[s]
             lev = leverages[s]
             cur_im += abs(current_pos[s]) * c * cs / lev
             target_im += abs(target_units[s]) * c * cs / lev
+            target_mm += abs(target_units[s]) * c * cs * maint_ratio
             delta = target_units[s] - current_pos[s]
             if abs(delta) > 1e-12:
-                fee_est += abs(delta) * c * cs * fee_rate
+                if not tradable[i, s] or c <= 0.0 or not np.isfinite(c):
+                    invalid_target = True
+                    continue
+                exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                trade_notional = abs(delta) * exec_price * cs
+                fee_est += trade_notional * fee_rate
+                slip_est += abs(delta) * c * cs * slippage_rate
 
         can_rebalance = True
-        if target_im > cur_im and (target_im - cur_im) + fee_est > equity - cur_im:
+        post_trade_equity = equity - fee_est - slip_est
+        if invalid_target or post_trade_equity < target_im or post_trade_equity < target_mm:
             can_rebalance = False
 
         if can_rebalance:
@@ -980,14 +1009,15 @@ def _engine_portfolio_equity_sizing(
                 cs = contract_sizes[s]
                 delta = target_units[s] - current_pos[s]
                 if abs(delta) > 1e-12:
-                    tv = abs(delta) * c * cs
+                    exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                    tv = abs(delta) * exec_price * cs
                     fee = tv * fee_rate
-                    equity -= fee
-                    current_pnl[s] -= fee
+                    slip = abs(delta) * c * cs * slippage_rate
+                    equity -= fee + slip
+                    current_pnl[s] -= fee + slip
                     fee_arr[i] += fee
-                    old_notional = abs(current_pos[s]) * c * cs
-                    new_notional = abs(target_units[s]) * c * cs
-                    turn_arr[i] += abs(new_notional - old_notional)
+                    slip_arr[i] += slip
+                    turn_arr[i] += tv
                     current_pos[s] = target_units[s]
 
         close_mm = 0.0
@@ -1012,7 +1042,7 @@ def _engine_portfolio_equity_sizing(
             sym_pnl[i, s] = current_pnl[s]
         equity_curve[i] = equity
 
-    return equity_curve, target_out, pos_out, sym_pnl, fee_arr, turn_arr, liq_flag, liq_idx
+    return equity_curve, target_out, pos_out, sym_pnl, fee_arr, slip_arr, turn_arr, liq_flag, liq_idx
 
 
 @njit(cache=True)
@@ -1078,7 +1108,11 @@ def _apply_portfolio_notional_mode(
             if target_notional[s] != 0.0:
                 gross += abs(target_notional[s])
                 inv_sum += inv_vol[i, s]
-        if gross == 0.0 or inv_sum == 0.0:
+        if gross == 0.0:
+            return
+        if inv_sum == 0.0:
+            for s in range(n_syms):
+                target_notional[s] = 0.0
             return
         for s in range(n_syms):
             if target_notional[s] > 0.0:

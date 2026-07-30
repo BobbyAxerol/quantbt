@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from quantbt import AccountConfig, PortfolioBacktestEngine, PortfolioDomainSpec, validate_portfolio_result_contract
+from quantbt import AccountConfig, ExecutionConfig, PortfolioBacktestEngine, PortfolioDomainSpec, QuantBTEndpoint, validate_portfolio_result_contract
 
 
 def _daily_idx(n=5):
@@ -123,3 +123,149 @@ def test_phase11c_liquidation_is_auditable_without_fake_force_flat_fee():
     assert result.liquidation_bar == 2
     assert report["passed"] is True
     assert result.fees.sum() == 0.0
+
+
+def test_phase41_portfolio_turnover_uses_traded_delta_for_reversals():
+    idx = _daily_idx(4)
+    positions = {"BTC": pd.Series([0.0, 1.0, -1.0, 0.0], index=idx)}
+    closes = {"BTC": pd.Series([100.0, 100.0, 100.0, 100.0], index=idx)}
+
+    result = _run(positions, closes, hedge_type="target_units", fee_rate=0.0)
+
+    np.testing.assert_allclose(result.metadata["turnover_series"].to_numpy(), [0.0, 100.0, 200.0, 100.0])
+    assert result.metadata["turnover_total"] == 400.0
+
+
+def test_phase41_portfolio_slippage_is_charged_for_all_trade_directions():
+    idx = _daily_idx(5)
+    positions = {"BTC": pd.Series([0.0, 1.0, 0.0, -1.0, 0.0], index=idx)}
+    closes = {"BTC": pd.Series(100.0, index=idx)}
+
+    result = PortfolioBacktestEngine(
+        positions=positions,
+        closes=closes,
+        highs=closes,
+        lows=closes,
+        datetime_index=idx,
+        mode="longshort",
+        backend="native_portfolio",
+        account=AccountConfig(initial_capital=10_000.0, leverage=10.0, maintenance_ratio=0.005),
+        execution=ExecutionConfig(slippage_bps=10.0),
+        fee_rate=0.0,
+        hedge_type="target_units",
+        asset_type="crypto",
+        use_funding=False,
+        contract_size=1.0,
+    ).result
+
+    np.testing.assert_allclose(result.metadata["slippage_series"].to_numpy(), [0.0, 0.1, 0.1, 0.1, 0.1])
+    np.testing.assert_allclose(result.equity.iloc[-1], 9_999.6)
+
+
+def test_phase41_portfolio_endpoint_legacy_slippage_parameter_is_converted():
+    idx = _daily_idx(3)
+    positions = pd.DataFrame({"BTC": [0.0, 1.0, 0.0]}, index=idx)
+    data = {"BTC": pd.DataFrame({"close": [100.0, 100.0, 100.0], "high": [100.0, 100.0, 100.0], "low": [100.0, 100.0, 100.0]}, index=idx)}
+
+    result = QuantBTEndpoint.portfolio(
+        portfolio_mode="longshort",
+        hedge_type="target_units",
+        initial_capital=10_000,
+        leverage=10,
+        fee=0.0,
+        slippage=0.001,
+        use_funding=False,
+    ).backtest(data=data, positions=positions)
+
+    assert result.metadata["slippage_bps"] == 10.0
+    np.testing.assert_allclose(result.metadata["slippage_total"], 0.2)
+
+
+def test_phase41_portfolio_reversal_gate_includes_post_cost_equity_even_when_gross_unchanged():
+    idx = _daily_idx(3)
+    positions = {"BTC": pd.Series([0.0, 1.0, -1.0], index=idx)}
+    closes = {"BTC": pd.Series(100.0, index=idx)}
+
+    result = _run(
+        positions,
+        closes,
+        hedge_type="target_units",
+        initial_capital=105.0,
+        leverage=1.0,
+        fee_rate=0.08,
+    )
+
+    assert result.metadata["accepted_units_report"]["BTC"].iloc[1] == 1.0
+    assert result.metadata["accepted_units_report"]["BTC"].iloc[2] == 1.0
+    assert result.metadata["rebalance_report"].query("timestamp == @idx[2]")["reason"].iloc[0] == "margin_or_portfolio_gate"
+
+
+def test_phase41_market_neutral_missing_one_side_rejects_directional_exposure():
+    idx = _daily_idx(4)
+    positions = {"BTC": pd.Series([0.0, 1.0, 1.0, 1.0], index=idx), "ETH": pd.Series(0.0, index=idx)}
+    closes = {"BTC": pd.Series(100.0, index=idx), "ETH": pd.Series(50.0, index=idx)}
+
+    result = PortfolioBacktestEngine(
+        positions=positions,
+        closes=closes,
+        highs=closes,
+        lows=closes,
+        datetime_index=idx,
+        mode="market_neutral",
+        backend="native_portfolio",
+        account=AccountConfig(initial_capital=10_000.0, leverage=10.0, maintenance_ratio=0.005),
+        fee_rate=0.0,
+        hedge_type="target_units",
+        asset_type="crypto",
+        use_funding=False,
+        contract_size=1.0,
+    ).result
+
+    assert result.positions.abs().sum(axis=1).max() == 0.0
+
+
+def test_phase41_risk_parity_has_causal_warmup_without_backward_fill():
+    idx = _daily_idx(6)
+    positions = {
+        "BTC": pd.Series([0.0, 1.0, 1.0, 1.0, 1.0, 1.0], index=idx),
+        "ETH": pd.Series([0.0, -1.0, -1.0, -1.0, -1.0, -1.0], index=idx),
+    }
+    closes = {
+        "BTC": pd.Series([100.0, 101.0, 103.0, 102.0, 104.0, 106.0], index=idx),
+        "ETH": pd.Series([50.0, 49.0, 48.5, 49.5, 48.0, 47.5], index=idx),
+    }
+
+    result = PortfolioBacktestEngine(
+        positions=positions,
+        closes=closes,
+        highs=closes,
+        lows=closes,
+        datetime_index=idx,
+        mode="risk_parity",
+        backend="native_portfolio",
+        account=AccountConfig(initial_capital=10_000.0, leverage=10.0, maintenance_ratio=0.005),
+        fee_rate=0.0,
+        hedge_type="gross_exposure",
+        alloc_per_trade=1.0,
+        risk_lookback=3,
+        asset_type="crypto",
+        use_funding=False,
+        contract_size=1.0,
+    ).result
+
+    accepted = result.metadata["accepted_units_report"]
+    assert accepted.iloc[1].abs().sum() == 0.0
+    assert accepted.iloc[2].abs().sum() == 0.0
+    assert accepted.iloc[3].abs().sum() > 0.0
+
+
+def test_phase41_leading_missing_price_is_not_tradable_until_valid_observation():
+    idx = _daily_idx(4)
+    positions = {"NEW": pd.Series([0.0, 1.0, 1.0, 1.0], index=idx)}
+    closes = {"NEW": pd.Series([np.nan, np.nan, 100.0, 101.0], index=idx)}
+
+    result = _run(positions, closes, hedge_type="target_units", fee_rate=0.0)
+
+    accepted = result.metadata["accepted_units_report"]["NEW"]
+    assert accepted.iloc[1] == 0.0
+    assert accepted.iloc[2] == 1.0

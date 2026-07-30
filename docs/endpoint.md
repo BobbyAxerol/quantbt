@@ -1540,6 +1540,7 @@ result = QuantBTEndpoint.portfolio(
     alloc_per_trade={"BTC": 50_000, "ETH": 50_000},
     initial_capital=1_000_000,
     leverage=3,
+    slippage_bps=2.0,
 ).backtest(
     positions=positions_df,
     data=data_dict,
@@ -1571,6 +1572,50 @@ dollar-neutral beta constraint.
 
 `dca_ladder` remains on the DCA/grid engine because it requires intrabar
 grid-trigger fills.
+
+Execution and accounting semantics:
+
+- portfolio is a vectorized close-to-close engine; it does not claim intrabar
+  portfolio fills;
+- QuantBT does not shift the signal matrix. Strategies must pass already-causal
+  targets;
+- fees are one-way inside the native backend. The public facade keeps the
+  legacy `fee`/`fee_rate` round-trip convention and converts it internally;
+- `slippage_bps` is the source of truth for native portfolio slippage;
+- legacy `slippage` is accepted for compatibility and converted to
+  `slippage_bps`, but new code should prefer `slippage_bps`;
+- turnover is based on accepted traded delta:
+
+```text
+delta_qty = accepted_target_qty - previous_qty
+turnover_notional = abs(delta_qty) * execution_price * contract_size
+```
+
+- reversal `+1 -> -1` therefore records two units of traded turnover;
+- fees, slippage, turnover, symbol PnL, and rebalance reports are all derived
+  from the same accepted `delta_qty`;
+- buying-power checks use post-fee/post-slippage equity, including gross-neutral
+  reversals.
+
+Tradability and missing-data policy:
+
+- leading missing prices are not tradable;
+- non-tradable/stale symbols cannot be rebalanced on that bar;
+- existing positions may still mark to the last valid close when available;
+- `market_neutral` requires both long and short sides. If one side is missing,
+  the target is zeroed instead of becoming accidental directional exposure;
+- `risk_parity` is causal: rolling volatility uses only past/current close
+  returns and warm-up bars with insufficient observations target zero exposure.
+
+Native portfolio metadata includes:
+
+```python
+result.metadata["slippage_series"]
+result.metadata["slippage_total"]
+result.metadata["slippage_bps"]
+result.metadata["rebalance_report"]
+result.metadata["symbol_pnl_report"]
+```
 
 Native portfolio report levels:
 

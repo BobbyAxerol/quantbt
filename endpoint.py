@@ -3116,9 +3116,9 @@ def _config_from_kwargs(**kwargs) -> EndpointConfig:
     if execution is None:
         if slippage_bps is not None:
             execution = ExecutionConfig(slippage_bps=float(slippage_bps))
-        elif mode_name in {"intrabar_bracket", "intrabar_bracket_reference"} and legacy_slippage_supplied:
+        elif mode_name in {"intrabar_bracket", "intrabar_bracket_reference", "portfolio"} and legacy_slippage_supplied:
             warnings.warn(
-                "QuantBT intrabar endpoints use slippage_bps as the source of truth; "
+                "QuantBT native endpoints use slippage_bps as the source of truth; "
                 "legacy slippage was converted to slippage_bps for compatibility.",
                 DeprecationWarning,
                 stacklevel=3,

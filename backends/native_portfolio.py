@@ -156,9 +156,17 @@ class NativePortfolioBackend:
         maint_ratio = self.config.account.maintenance_ratio if maintenance_ratio is None else float(maintenance_ratio)
 
         beta_arr = self._per_symbol_array(betas, symbol_list, default=1.0)
+        tradable_mask = self._tradable_matrix(
+            closes=closes,
+            idx=idx,
+            symbols=symbol_list,
+            market=market,
+            max_stale_bars=int(self.config.account.metadata.get("portfolio_max_stale_bars", 0)),
+        )
         risk_vol = self._risk_volatility_matrix(market.closes, lookback=int(risk_lookback))
-        inv_vol = np.divide(1.0, risk_vol, out=np.ones_like(risk_vol), where=risk_vol > 0.0)
+        inv_vol = np.divide(1.0, risk_vol, out=np.zeros_like(risk_vol), where=risk_vol > 0.0)
         equity_aware = sizing_mode in {"%_equity", "target_weight", "gross_exposure", "net_exposure"}
+        slippage_rate = float(self.config.execution.slippage_rate)
 
         if equity_aware:
             (
@@ -167,6 +175,7 @@ class NativePortfolioBackend:
                 pos_arr,
                 sym_pnl_arr,
                 fee_arr,
+                slippage_arr,
                 turnover_arr,
                 liq_flag,
                 liq_idx,
@@ -183,6 +192,7 @@ class NativePortfolioBackend:
                 leverages=lev_arr,
                 maint_ratio=maint_ratio,
                 fee_rate=float(self.config.fee_rate),
+                slippage_rate=slippage_rate,
                 contract_sizes=cs_arr,
                 use_funding=bool(self.config.use_funding),
                 allocs=alloc_arr,
@@ -195,6 +205,7 @@ class NativePortfolioBackend:
                 qty_steps=constraints.qty_step,
                 min_qtys=constraints.min_qty,
                 min_notionals=constraints.min_notional,
+                tradable=tradable_mask,
             )
         else:
             target_units = self._scale_target_units(
@@ -220,6 +231,7 @@ class NativePortfolioBackend:
                 pos_arr,
                 sym_pnl_arr,
                 fee_arr,
+                slippage_arr,
                 turnover_arr,
                 liq_flag,
                 liq_idx,
@@ -236,8 +248,10 @@ class NativePortfolioBackend:
                 leverages=lev_arr,
                 maint_ratio=maint_ratio,
                 fee_rate=float(self.config.fee_rate),
+                slippage_rate=slippage_rate,
                 contract_sizes=cs_arr,
                 use_funding=bool(self.config.use_funding),
+                tradable=tradable_mask,
             )
 
         result = self._build_result(
@@ -251,6 +265,7 @@ class NativePortfolioBackend:
             is_funding_bar=market.is_funding_bar,
             equity_arr=equity_arr,
             fee_arr=fee_arr,
+            slippage_arr=slippage_arr,
             turnover_arr=turnover_arr,
             contract_sizes=cs_arr,
             leverages=lev_arr,
@@ -263,6 +278,7 @@ class NativePortfolioBackend:
             liquidated=bool(liq_flag),
             liquidation_bar=int(liq_idx),
             quantity_constraints=constraints.as_dict(),
+            tradable_mask=tradable_mask,
             report_level=self.config.report_level if report_level is None else report_level,
         )
         spec = PortfolioDomainSpec(mode=portfolio_mode, sizing_mode=sizing_mode)
@@ -385,8 +401,9 @@ class NativePortfolioBackend:
             long_sum = np.where(notional > 0.0, notional, 0.0).sum(axis=1)
             short_sum = np.where(notional < 0.0, -notional, 0.0).sum(axis=1)
             target = (long_sum + short_sum) / 2.0
-            long_scale = np.divide(target, long_sum, out=np.ones_like(target), where=long_sum != 0.0)
-            short_scale = np.divide(target, short_sum, out=np.ones_like(target), where=short_sum != 0.0)
+            valid = (long_sum > 0.0) & (short_sum > 0.0)
+            long_scale = np.divide(target, long_sum, out=np.zeros_like(target), where=valid)
+            short_scale = np.divide(target, short_sum, out=np.zeros_like(target), where=valid)
             out = np.where(
                 notional > 0.0,
                 out * long_scale.reshape(-1, 1),
@@ -411,7 +428,7 @@ class NativePortfolioBackend:
             )
         elif mode == "risk_parity":
             gross = np.abs(notional).sum(axis=1)
-            inv_vol = np.divide(1.0, risk_vol, out=np.ones_like(risk_vol), where=risk_vol > 0.0)
+            inv_vol = np.divide(1.0, risk_vol, out=np.zeros_like(risk_vol), where=risk_vol > 0.0)
             active_inv = np.where(notional != 0.0, inv_vol, 0.0)
             denom_inv = active_inv.sum(axis=1)
             target_abs = np.divide(gross.reshape(-1, 1) * active_inv, denom_inv.reshape(-1, 1), out=np.zeros_like(out), where=denom_inv.reshape(-1, 1) != 0.0)
@@ -445,6 +462,7 @@ class NativePortfolioBackend:
         is_funding_bar: np.ndarray,
         equity_arr: np.ndarray,
         fee_arr: np.ndarray,
+        slippage_arr: np.ndarray,
         turnover_arr: np.ndarray,
         contract_sizes: np.ndarray,
         leverages: np.ndarray,
@@ -457,6 +475,7 @@ class NativePortfolioBackend:
         liquidated: bool,
         liquidation_bar: int,
         quantity_constraints: Dict[str, Dict[str, float]],
+        tradable_mask: np.ndarray,
         report_level: str,
     ) -> BacktestResultV2:
         level = _normalize_report_level(report_level)
@@ -476,6 +495,7 @@ class NativePortfolioBackend:
         positions = pd.DataFrame(pos_arr, index=idx, columns=[f"Position_{s}" for s in symbol_list], copy=False)
         closes = pd.DataFrame(closes_m, index=idx, columns=[f"Close_{s}" for s in symbol_list], copy=False)
         fees = pd.Series(fee_arr, index=idx, name="fees")
+        slippage = pd.Series(slippage_arr, index=idx, name="slippage")
         turnover = pd.Series(turnover_arr, index=idx, name="turnover")
         prev_units = np.vstack([np.zeros((1, len(symbol_list)), dtype=np.float64), pos_arr[:-1]])
         funding_cost_arr = prev_units * closes_m * cs_row * funding_m
@@ -491,6 +511,7 @@ class NativePortfolioBackend:
         diagnostics = pd.DataFrame(
             {
                 "turnover": turnover_arr,
+                "slippage": slippage_arr,
                 "rejected_rebalances": np.abs(target_m - pos_arr).sum(axis=1) > 1e-10,
             },
             index=idx,
@@ -518,9 +539,12 @@ class NativePortfolioBackend:
             "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
             "fee_series": fees,
             "turnover_series": turnover,
+            "slippage_series": slippage,
             "fee_total": float(np.sum(fee_arr)),
+            "slippage_total": float(np.sum(slippage_arr)),
             "turnover_total": float(np.sum(turnover_arr)),
             "fee_rate_oneway": float(self.config.fee_rate),
+            "slippage_bps": float(self.config.execution.slippage_bps),
             "contract_size": {s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)},
             "quantity_constraints": quantity_constraints,
         }
@@ -545,6 +569,7 @@ class NativePortfolioBackend:
                 is_funding_bar=is_funding_bar,
                 contract_sizes=contract_sizes,
                 fee_arr=fee_arr,
+                slippage_arr=slippage_arr,
             )
             metadata.update(
                 {
@@ -621,6 +646,7 @@ class NativePortfolioBackend:
         is_funding_bar: np.ndarray,
         contract_sizes: np.ndarray,
         fee_arr: np.ndarray,
+        slippage_arr: np.ndarray,
     ) -> pd.DataFrame:
         n_bars, n_syms = accepted_units_arr.shape
         if n_bars == 0 or n_syms == 0:
@@ -641,7 +667,8 @@ class NativePortfolioBackend:
             where=total_trade_notional != 0.0,
         )
         fee = fee_arr.reshape(-1, 1) * share
-        total_pnl = mark_pnl - funding_cost - fee
+        slippage = slippage_arr.reshape(-1, 1) * share
+        total_pnl = mark_pnl - funding_cost - fee - slippage
 
         return pd.DataFrame(
             {
@@ -654,6 +681,8 @@ class NativePortfolioBackend:
                 "funding_pnl": (-funding_cost).T.reshape(-1),
                 "fee": fee.T.reshape(-1),
                 "fee_pnl": (-fee).T.reshape(-1),
+                "slippage_cost": slippage.T.reshape(-1),
+                "slippage_pnl": (-slippage).T.reshape(-1),
                 "total_pnl": total_pnl.T.reshape(-1),
             }
         )
@@ -741,13 +770,50 @@ class NativePortfolioBackend:
 
     @staticmethod
     def _risk_volatility_matrix(closes: np.ndarray, lookback: int) -> np.ndarray:
-        frame = pd.DataFrame(closes)
+        frame = pd.DataFrame(closes).where(lambda x: x > 0.0)
         returns = np.log(frame).diff()
-        vol = returns.rolling(max(2, int(lookback)), min_periods=2).std().bfill().ffill().fillna(1.0)
+        window = max(2, int(lookback))
+        vol = returns.rolling(window, min_periods=window).std()
         arr = vol.to_numpy(dtype=np.float64)
-        arr[~np.isfinite(arr)] = 1.0
-        arr[arr <= 0.0] = 1.0
+        arr[~np.isfinite(arr)] = 0.0
+        arr[arr <= 0.0] = 0.0
         return np.ascontiguousarray(arr, dtype=np.float64)
+
+    @staticmethod
+    def _tradable_matrix(
+        *,
+        closes: Dict[str, pd.Series],
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market: PreparedMarketArrays,
+        max_stale_bars: int = 0,
+    ) -> np.ndarray:
+        out = np.isfinite(market.closes) & (market.closes > 0.0)
+        if closes is None:
+            return np.ascontiguousarray(out, dtype=np.bool_)
+        max_stale = max(0, int(max_stale_bars))
+        for j, symbol in enumerate(symbols):
+            raw = closes[symbol]
+            if not isinstance(raw, pd.Series):
+                raw = pd.Series(raw, index=idx)
+            raw_idx = raw.index
+            if isinstance(raw_idx, pd.DatetimeIndex):
+                if raw_idx.tz is None:
+                    raw = raw.copy()
+                    raw.index = raw.index.tz_localize("UTC")
+                else:
+                    raw = raw.copy()
+                    raw.index = raw.index.tz_convert("UTC")
+            observed = raw[~raw.index.duplicated(keep="first")].reindex(idx)
+            values = observed.to_numpy(dtype=np.float64)
+            stale = max_stale + 1
+            for i in range(len(idx)):
+                if np.isfinite(values[i]) and values[i] > 0.0:
+                    stale = 0
+                else:
+                    stale += 1
+                out[i, j] = bool(out[i, j] and stale <= max_stale)
+        return np.ascontiguousarray(out, dtype=np.bool_)
 
     @staticmethod
     def _sizing_mode_id(sizing_mode: str) -> int:

@@ -6950,3 +6950,120 @@ MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
 # 549 passed, 1 skipped
 ```
+
+## Phase 41 - Portfolio Correctness And Performance V2
+
+Source guide:
+
+- `upgrade/quantbt_portfolio_correctness_performance_plan_v2.md`
+
+Issue/commit scope:
+
+- `bug: Portfolio engine with long short mode and risk parity mode bug #41`
+
+### Phase 41A - Correctness Blockers
+
+Scope:
+
+- Keep the existing portfolio endpoint and backend names stable.
+- Keep portfolio as vectorized close-to-close; no intrabar portfolio claim.
+- Do not auto-shift alpha signals; strategy/research layer owns causal target
+  timing.
+- Fix portfolio accounting blockers:
+  - reversal turnover must use canonical traded delta;
+  - slippage must affect execution cost and equity;
+  - buying-power gate must include post-fee/post-slippage equity even when
+    gross exposure is unchanged;
+  - fee, slippage, turnover, and reports must come from the same accepted
+    `delta_qty`.
+
+Implemented:
+
+- Updated `_engine_portfolio` and `_engine_portfolio_equity_sizing`.
+- Added canonical per-symbol `delta_qty = target_qty - current_qty`.
+- Turnover now uses traded notional from `abs(delta_qty)`, so `+1 -> -1`
+  records `2 units` of turnover.
+- Added slippage accounting through `ExecutionConfig.slippage_bps`:
+  - buy delta uses adverse buy execution price;
+  - sell delta uses adverse sell execution price;
+  - slippage cost is recorded separately and subtracted from equity.
+- Buying-power gate now checks:
+  - `post_trade_equity >= target_initial_margin`;
+  - `post_trade_equity >= target_maintenance_margin`;
+  - non-tradable/invalid target rejection.
+- Legacy `MultiSymbolPortfolio` keeps `slippage_rate=0.0` to preserve old
+  compatibility behavior.
+
+### Phase 41B - Risk Parity, Tradability, Audit, And Regression
+
+Scope:
+
+- Remove risk-parity warm-up look-ahead.
+- Add leading/stale missing-price tradability guard.
+- Standardize market-neutral missing-side semantics.
+- Expose slippage/turnover diagnostics without changing public endpoint
+  signatures.
+
+Implemented:
+
+- Risk parity volatility no longer uses `bfill()`.
+- Warm-up bars without enough rolling observations produce zero risk-parity
+  target exposure.
+- `market_neutral` with only one side now zeros target exposure instead of
+  silently creating directional exposure.
+- Native portfolio builds a `tradable_mask` from original close observations:
+  - leading missing price is not tradable;
+  - rebalance on non-tradable symbols is rejected atomically;
+  - held positions can still mark to last valid price.
+- Added metadata/report fields:
+  - `slippage_series`;
+  - `slippage_total`;
+  - `slippage_bps`;
+  - slippage columns in `symbol_pnl_report`.
+- Added regression tests for:
+  - `0 -> +1`;
+  - `+1 -> 0`;
+  - `+1 -> -1`;
+  - long/short reversal post-cost margin gate;
+  - slippage on long entry/exit and short entry/cover;
+  - market-neutral missing one side;
+  - risk-parity warm-up;
+  - leading missing/non-tradable price.
+
+Validation:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase11_portfolio_institutional_scenarios.py
+# 13 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase11_native_portfolio_backend.py \
+  quantbt/tests/test_phase11_native_portfolio_full_surface.py \
+  quantbt/tests/test_phase11_portfolio_engine_spec.py \
+  quantbt/tests/test_phase14c_prepared_report_levels.py \
+  quantbt/tests/test_phase16_prepared_service_context.py \
+  quantbt/tests/test_walkforward_phase1.py::test_walkforward_portfolio_endpoint_scoring_reuses_prepared_market_arrays_without_metric_drift
+# 46 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase12_benchmark_nautilus_cert.py \
+  quantbt/tests/test_phase14_service_loop_benchmark.py
+# 5 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
+# 556 passed, 1 skipped
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  quantbt/benchmarks/run_portfolio_real_parity.py
+# pass: legacy-compatible parity 16/16, native-only contract true,
+# max equity diff 5.82076609135e-11
+```
+
+Remaining debt:
+
+- Full L2/intrabar portfolio simulation remains out of scope.
+- Rejection reasons are still coarse (`margin_or_portfolio_gate`); structured
+  reason codes can be added in a future portfolio audit phase.
+- Prepared portfolio cache can later store the tradable/stale mask directly to
+  avoid recomputation in larger WFO/service loops.

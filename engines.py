@@ -575,6 +575,9 @@ class PortfolioBacktestEngine:
         auto_run: bool = True,
         **kwargs,
     ):
+        legacy_slippage = kwargs.pop("slippage", None)
+        if execution is None and legacy_slippage is not None:
+            execution = ExecutionConfig(slippage_bps=float(legacy_slippage) * 10_000.0)
         self.positions = positions
         self.closes = closes
         self.datetime_index = datetime_index

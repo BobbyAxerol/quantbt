@@ -340,7 +340,9 @@ def _prepare_portfolio_arrays(idx, positions, closes, highs, lows, account, allo
         "leverages": leverages,
         "maintenance_ratio": float(account.maintenance_ratio),
         "fee_rate": float(fee_rate),
+        "slippage_rate": 0.0,
         "contract_sizes": contract_sizes,
+        "tradable": np.ones_like(market.closes, dtype=np.bool_),
     }
 
 
@@ -358,8 +360,10 @@ def _kernel_portfolio(prepared: Dict):
         leverages=prepared["leverages"],
         maint_ratio=prepared["maintenance_ratio"],
         fee_rate=prepared["fee_rate"],
+        slippage_rate=prepared["slippage_rate"],
         contract_sizes=prepared["contract_sizes"],
         use_funding=False,
+        tradable=prepared["tradable"],
     )
 
 
