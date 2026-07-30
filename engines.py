@@ -614,6 +614,9 @@ class PortfolioBacktestEngine:
 
     def run(self) -> BacktestResultV2:
         if self.backend in {"legacy", "legacy_portfolio", "portfolio"}:
+            asset_type = self.asset_type.lower()
+            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
+            fee_oneway = self.fee_rate if self.fee_rate is not None else default_fee / 2.0
             legacy_kwargs = {
                 key: value
                 for key, value in self.kwargs.items()
@@ -624,7 +627,7 @@ class PortfolioBacktestEngine:
                 closes=self.closes,
                 datetime_index=self.datetime_index,
                 mode=self.mode,
-                fee_rate=self.fee_rate,
+                fee_rate=fee_oneway,
                 alloc_per_trade=self.alloc_per_trade,
                 contract_size=self.contract_size,
                 hedge_type=self.hedge_type,
@@ -671,9 +674,7 @@ class PortfolioBacktestEngine:
         if self.backend == "native_portfolio":
             asset_type = self.asset_type.lower()
             default_fee = 0.0004 if asset_type == "crypto" else 0.0001
-            # Preserve the legacy public convention: portfolio fee_rate is
-            # round-trip at the facade and one-way inside the backend.
-            fee_oneway = (self.fee_rate if self.fee_rate is not None else default_fee) / 2.0
+            fee_oneway = self.fee_rate if self.fee_rate is not None else default_fee / 2.0
             default_contract = 1.0 if asset_type == "crypto" else 100.0
             backend = NativePortfolioBackend(
                 NativePortfolioConfig(

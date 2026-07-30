@@ -183,22 +183,41 @@ bt = QuantBTEndpoint.portfolio(
     portfolio_mode="longshort",
     hedge_type="target_units",
     execution=ExecutionConfig(slippage_bps=2.0),
-    fee=0.0004,  # legacy round-trip facade convention
+    fee_rate=0.0002,  # canonical one-way fee
 )
 ```
 
-The public portfolio facade keeps the legacy fee convention: `fee`/`fee_rate`
-at the facade is round-trip and the native backend receives one-way fee.
+QuantBT uses one fee contract across native backends:
+
+```text
+fee_rate = one-way fee charged on each accepted fill side
+```
+
+Legacy `fee` remains accepted for old notebooks and means round-trip fee. The
+compatibility layer converts `fee` to canonical one-way fee before native
+portfolio sees it. Explicit `fee_rate` has priority over `fee`.
+
+The historical `MultiSymbolPortfolio` class follows the same rule after Phase
+41: `fee_rate` is one-way; `fee` is the optional round-trip compatibility alias.
+
 Native portfolio metadata exposes:
 
 ```python
 result.metadata["fee_rate_oneway"]
+result.metadata["canonical_one_way_fee_rate"]
 result.metadata["slippage_bps"]
 result.metadata["fee_total"]
 result.metadata["slippage_total"]
 result.metadata["turnover_total"]
 result.metadata["slippage_series"]
+result.metadata["portfolio_reconciliation_report"]
 ```
+
+The reconciliation report checks portfolio totals against symbol-level
+attribution for fee, slippage, PnL, and accepted positions. Full reports also
+assign specific rebalance rejection reasons such as `NON_TRADABLE`,
+`STALE_PRICE`, `POST_COST_MARGIN`, `INVALID_TARGET`, `MIN_QTY`, and
+`MIN_NOTIONAL` where the available arrays can identify the cause.
 
 Buying-power validation is post-cost:
 

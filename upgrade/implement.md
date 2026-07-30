@@ -7019,32 +7019,59 @@ Implemented:
   - `slippage_series`;
   - `slippage_total`;
   - `slippage_bps`;
+  - `canonical_one_way_fee_rate`;
   - slippage columns in `symbol_pnl_report`.
+- Finalized the fee contract:
+  - `fee_rate` is canonical one-way across native backends;
+  - legacy `fee` remains round-trip and is converted at compatibility
+    boundaries;
+  - explicit `fee_rate` has priority over `fee`;
+  - legacy `MultiSymbolPortfolio` is bridged with round-trip fee only when used
+    through its optional `fee` alias; explicit `fee_rate` is now one-way there
+    too.
+- Added detailed portfolio audit outputs:
+  - structured rebalance reasons: `NON_TRADABLE`, `STALE_PRICE`,
+    `POST_COST_MARGIN`, `INVALID_TARGET`, `MIN_QTY`, `MIN_NOTIONAL`;
+  - `portfolio_reconciliation_report` for fee, slippage, symbol PnL, turnover,
+    and accepted-position reconciliation.
 - Added regression tests for:
   - `0 -> +1`;
   - `+1 -> 0`;
   - `+1 -> -1`;
+  - explicit one-way `fee_rate` vs legacy round-trip `fee`;
+  - fixed-target and `%_equity` accounting invariants;
   - long/short reversal post-cost margin gate;
   - slippage on long entry/exit and short entry/cover;
   - market-neutral missing one side;
   - risk-parity warm-up;
-  - leading missing/non-tradable price.
+  - leading missing/non-tradable price;
+  - stale/asynchronous calendar rejection;
+  - symbol-vs-portfolio reconciliation.
 
 Validation:
 
 ```bash
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
   quantbt/tests/test_phase11_portfolio_institutional_scenarios.py
-# 13 passed
+# 18 passed
 
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
   quantbt/tests/test_phase11_native_portfolio_backend.py \
   quantbt/tests/test_phase11_native_portfolio_full_surface.py \
   quantbt/tests/test_phase11_portfolio_engine_spec.py \
+  quantbt/tests/test_phase13_portfolio_report_parity.py \
   quantbt/tests/test_phase14c_prepared_report_levels.py \
   quantbt/tests/test_phase16_prepared_service_context.py \
   quantbt/tests/test_walkforward_phase1.py::test_walkforward_portfolio_endpoint_scoring_reuses_prepared_market_arrays_without_metric_drift
-# 46 passed
+# 47 passed
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase11_portfolio_institutional_scenarios.py \
+  quantbt/tests/test_endpoint.py \
+  quantbt/tests/test_phase2_native_vectorized.py \
+  quantbt/tests/test_phase3_native_event.py \
+  quantbt/tests/test_phase34c_native_event_single_pass.py
+# 52 passed
 
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
   quantbt/tests/test_phase12_benchmark_nautilus_cert.py \
@@ -7052,7 +7079,7 @@ MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
 # 5 passed
 
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
-# 556 passed, 1 skipped
+# 561 passed, 1 skipped
 
 MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
   quantbt/benchmarks/run_portfolio_real_parity.py
@@ -7063,7 +7090,5 @@ MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
 Remaining debt:
 
 - Full L2/intrabar portfolio simulation remains out of scope.
-- Rejection reasons are still coarse (`margin_or_portfolio_gate`); structured
-  reason codes can be added in a future portfolio audit phase.
 - Prepared portfolio cache can later store the tradable/stale mask directly to
   avoid recomputation in larger WFO/service loops.

@@ -113,9 +113,11 @@ class EndpointConfig:
         Execution/slippage config used by V2 engines. Legacy runs use the
         endpoint `slippage` fraction.
     fee:
-        Legacy-style round-trip fee. `BacktestEngine` halves this internally.
+        Legacy compatibility round-trip fee. It is converted to canonical
+        one-way `fee_rate` at the endpoint boundary when explicit `fee_rate`
+        is omitted.
     fee_rate:
-        V2 one-way fee. If omitted, defaults to `fee / 2`.
+        Canonical one-way fee. If supplied, it has priority over `fee`.
     alloc_per_trade:
         Notional allocation for notional sizing modes, or equity fraction for
         `%_equity`.
@@ -210,6 +212,10 @@ class EndpointConfig:
     @property
     def v2_fee_rate(self) -> float:
         return self.fee / 2.0 if self.fee_rate is None else float(self.fee_rate)
+
+    @property
+    def canonical_one_way_fee_rate(self) -> float:
+        return self.v2_fee_rate
 
 
 @dataclass(frozen=True)
@@ -2689,7 +2695,7 @@ class QuantBTEndpoint:
                 backend="native_portfolio",
                 account=self.config.account,
                 execution=self.config.execution,
-                fee_rate=self.config.fee,
+                fee_rate=self.config.canonical_one_way_fee_rate,
                 alloc_per_trade=self.config.alloc_per_trade,
                 contract_size=self.config.contract_size,
                 hedge_type=self.config.sizing if self.config.sizing else "signal_notional",
@@ -2742,7 +2748,7 @@ class QuantBTEndpoint:
             backend=backend,
             account=self.config.account,
             execution=self.config.execution,
-            fee_rate=self.config.fee,
+            fee_rate=self.config.canonical_one_way_fee_rate,
             alloc_per_trade=self.config.alloc_per_trade,
             contract_size=self.config.contract_size,
             hedge_type=self.config.sizing if self.config.sizing else "notional",
@@ -2903,6 +2909,7 @@ def _attach_endpoint_run_config(result, config: EndpointConfig) -> None:
     metadata.setdefault("leverage", payload["account"]["leverage"])
     metadata.setdefault("maintenance_ratio", payload["account"]["maintenance_ratio"])
     metadata.setdefault("fee_rate", payload["fees"]["one_way_fee_rate"])
+    metadata.setdefault("canonical_one_way_fee_rate", payload["fees"]["canonical_one_way_fee_rate"])
     metadata.setdefault("fee_round_trip", payload["fees"]["round_trip_fee"])
     metadata.setdefault("alloc_per_trade", payload["sizing"]["alloc_per_trade"])
     metadata.setdefault("slippage", payload["execution"]["legacy_slippage_rate"])
@@ -2951,8 +2958,11 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
         },
         "fees": {
             "round_trip_fee": float(config.fee),
-            "one_way_fee_rate": float(config.v2_fee_rate),
+            "one_way_fee_rate": float(config.canonical_one_way_fee_rate),
+            "canonical_one_way_fee_rate": float(config.canonical_one_way_fee_rate),
             "explicit_fee_rate": None if config.fee_rate is None else float(config.fee_rate),
+            "legacy_fee_converted": config.fee_rate is None,
+            "applied_fee_source": "fee_rate" if config.fee_rate is not None else "legacy_fee",
         },
         "sizing": {
             "hedge_type": config.sizing,
@@ -3298,9 +3308,7 @@ class QuantBTPreparedContext:
                 datetime_index=datetime_index,
                 symbols=symbols or config.symbols,
             )
-            asset_type = config.asset_type.lower()
-            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
-            fee_oneway = (config.fee if config.fee is not None else default_fee) / 2.0
+            fee_oneway = config.canonical_one_way_fee_rate
             backend = NativePortfolioBackend(
                 NativePortfolioConfig(
                     account=config.account,
@@ -3651,9 +3659,7 @@ class _WalkForwardEndpointScorer:
 
     def _portfolio_backend_instance(self) -> NativePortfolioBackend:
         if self._portfolio_backend is None:
-            asset_type = self.score_config.asset_type.lower()
-            default_fee = 0.0004 if asset_type == "crypto" else 0.0001
-            fee_oneway = (self.score_config.fee if self.score_config.fee is not None else default_fee) / 2.0
+            fee_oneway = self.score_config.canonical_one_way_fee_rate
             self._portfolio_backend = NativePortfolioBackend(
                 NativePortfolioConfig(
                     account=self.score_config.account,

@@ -60,9 +60,8 @@ class NativePortfolioBackend:
     """
     Explicit native portfolio backend for multi-symbol position matrices.
 
-    `fee_rate` is interpreted as a one-way rate inside this backend.  The
-    `PortfolioBacktestEngine` facade keeps the legacy public convention and
-    passes the already-halved one-way value for parity.
+    `fee_rate` is interpreted as a canonical one-way rate inside this backend.
+    Legacy round-trip `fee` compatibility is handled only at facade boundaries.
     """
 
     def __init__(self, config: NativePortfolioConfig):
@@ -544,6 +543,7 @@ class NativePortfolioBackend:
             "slippage_total": float(np.sum(slippage_arr)),
             "turnover_total": float(np.sum(turnover_arr)),
             "fee_rate_oneway": float(self.config.fee_rate),
+            "canonical_one_way_fee_rate": float(self.config.fee_rate),
             "slippage_bps": float(self.config.execution.slippage_bps),
             "contract_size": {s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)},
             "quantity_constraints": quantity_constraints,
@@ -591,6 +591,19 @@ class NativePortfolioBackend:
                     accepted_units_arr=pos_arr,
                     closes_arr=closes_m,
                     contract_sizes=contract_sizes,
+                    tradable_mask=tradable_mask,
+                    quantity_constraints=quantity_constraints,
+                )
+                reconciliation_report = self._build_reconciliation_report(
+                    initial_capital=float(self.config.account.initial_capital),
+                    equity_arr=equity_arr,
+                    fee_arr=fee_arr,
+                    slippage_arr=slippage_arr,
+                    turnover_arr=turnover_arr,
+                    positions=positions,
+                    target_units_report=target_units_report,
+                    accepted_units_report=accepted_units_report,
+                    symbol_pnl_report=symbol_pnl_report,
                 )
                 metadata.update(
                     {
@@ -598,10 +611,11 @@ class NativePortfolioBackend:
                         "risk_contribution_report": risk_contribution_report,
                         "kernel_symbol_pnl": pd.DataFrame(sym_pnl_arr, index=idx, columns=symbol_list, copy=False),
                         "rebalance_report": rebalance_report,
+                        "portfolio_reconciliation_report": reconciliation_report,
                     }
                 )
             else:
-                omitted.extend(["risk_volatility_report", "risk_contribution_report", "kernel_symbol_pnl", "rebalance_report"])
+                omitted.extend(["risk_volatility_report", "risk_contribution_report", "kernel_symbol_pnl", "rebalance_report", "portfolio_reconciliation_report"])
         else:
             omitted.extend(
                 [
@@ -614,6 +628,7 @@ class NativePortfolioBackend:
                     "symbol_pnl_report",
                     "kernel_symbol_pnl",
                     "rebalance_report",
+                    "portfolio_reconciliation_report",
                 ]
             )
         metadata["reports_omitted"] = tuple(omitted)
@@ -738,6 +753,8 @@ class NativePortfolioBackend:
         accepted_units_arr: np.ndarray,
         closes_arr: np.ndarray,
         contract_sizes: np.ndarray,
+        tradable_mask: np.ndarray,
+        quantity_constraints: Dict[str, Dict[str, float]],
     ) -> pd.DataFrame:
         diff = target_units_arr - accepted_units_arr
         row_idx, col_idx = np.nonzero(np.abs(diff) > 1e-10)
@@ -748,6 +765,29 @@ class NativePortfolioBackend:
         unit_diff = diff[row_idx, col_idx]
         notional_diff = unit_diff * closes_arr[row_idx, col_idx] * contract_sizes[col_idx]
         symbol_arr = np.asarray(symbols, dtype=object)
+        reasons = []
+        for r, c in zip(row_idx, col_idx):
+            symbol = symbols[int(c)]
+            target = float(target_units_arr[r, c])
+            close = float(closes_arr[r, c])
+            cs = float(contract_sizes[c])
+            constraints = quantity_constraints.get(symbol, {})
+            min_qty = float(constraints.get("min_qty", 0.0) or 0.0)
+            min_notional = float(constraints.get("min_notional", 0.0) or 0.0)
+            abs_target = abs(target)
+            notional = abs_target * close * cs if np.isfinite(close) else np.nan
+            if not np.isfinite(target):
+                reasons.append("INVALID_TARGET")
+            elif not np.isfinite(close) or close <= 0.0:
+                reasons.append("NON_TRADABLE")
+            elif not bool(tradable_mask[r, c]):
+                reasons.append("STALE_PRICE")
+            elif min_qty > 0.0 and 0.0 < abs_target < min_qty:
+                reasons.append("MIN_QTY")
+            elif min_notional > 0.0 and np.isfinite(notional) and 0.0 < notional < min_notional:
+                reasons.append("MIN_NOTIONAL")
+            else:
+                reasons.append("POST_COST_MARGIN")
         return pd.DataFrame(
             {
                 "timestamp": idx.take(row_idx),
@@ -756,9 +796,47 @@ class NativePortfolioBackend:
                 "accepted_units": accepted_units_arr[row_idx, col_idx],
                 "unit_diff": unit_diff,
                 "notional_diff": notional_diff,
-                "reason": "margin_or_portfolio_gate",
+                "reason": reasons,
             }
         )
+
+    @staticmethod
+    def _build_reconciliation_report(
+        *,
+        initial_capital: float,
+        equity_arr: np.ndarray,
+        fee_arr: np.ndarray,
+        slippage_arr: np.ndarray,
+        turnover_arr: np.ndarray,
+        positions: pd.DataFrame,
+        target_units_report: pd.DataFrame,
+        accepted_units_report: pd.DataFrame,
+        symbol_pnl_report: pd.DataFrame,
+    ) -> Dict[str, float]:
+        if symbol_pnl_report is None or symbol_pnl_report.empty:
+            symbol_fee = 0.0
+            symbol_slippage = 0.0
+            symbol_pnl = 0.0
+        else:
+            symbol_fee = float(symbol_pnl_report["fee"].sum())
+            symbol_slippage = float(symbol_pnl_report["slippage_cost"].sum())
+            symbol_pnl = float(symbol_pnl_report["total_pnl"].sum())
+        positions_values = positions.to_numpy(dtype=np.float64, copy=False)
+        accepted_values = accepted_units_report.to_numpy(dtype=np.float64, copy=False)
+        return {
+            "fee_total": float(np.sum(fee_arr)),
+            "symbol_fee_total": symbol_fee,
+            "fee_diff": float(np.sum(fee_arr) - symbol_fee),
+            "slippage_total": float(np.sum(slippage_arr)),
+            "symbol_slippage_total": symbol_slippage,
+            "slippage_diff": float(np.sum(slippage_arr) - symbol_slippage),
+            "turnover_total": float(np.sum(turnover_arr)),
+            "symbol_total_pnl": symbol_pnl,
+            "equity_pnl": float(equity_arr[-1] - initial_capital) if len(equity_arr) else 0.0,
+            "equity_symbol_pnl_diff": float((equity_arr[-1] - initial_capital) - symbol_pnl) if len(equity_arr) else 0.0,
+            "max_result_position_diff": float(np.nanmax(np.abs(positions_values - accepted_values))) if positions_values.size else 0.0,
+            "max_target_accepted_diff": float(np.nanmax(np.abs(target_units_report.to_numpy(dtype=np.float64, copy=False) - accepted_values))) if accepted_values.size else 0.0,
+        }
 
     @staticmethod
     def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:

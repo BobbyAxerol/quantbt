@@ -50,7 +50,8 @@ class MultiSymbolPortfolio:
     closes           Dict[str, pd.Series]  close prices
     datetime_index   common DatetimeIndex (UTC)
     mode             'longshort' | 'market_neutral' | 'directional' | 'equal_weight'
-    fee_rate         round-trip fee; halved internally to one-way
+    fee_rate         canonical one-way fee per accepted trade side
+    fee              optional legacy round-trip fee; halved internally
     alloc_per_trade  notional per full signal unit; float or per-symbol dict
     contract_size    float or per-symbol dict
     hedge_type       'signal_notional' | 'notional' | 'unit'
@@ -98,6 +99,7 @@ class MultiSymbolPortfolio:
         # highs / lows for intrabar liquidation (optional)
         highs: Optional[Dict[str, pd.Series]] = None,
         lows:  Optional[Dict[str, pd.Series]] = None,
+        fee: Optional[float] = None,
     ):
         # ── config ────────────────────────────────────────────────────────
         atype = asset_type.lower()
@@ -107,7 +109,12 @@ class MultiSymbolPortfolio:
         cfg = self._ASSET_CFG[atype]
         self.asset_type       = atype
         self.trading_days     = cfg["trading_days"]
-        self.fee_rate         = (fee_rate if fee_rate is not None else cfg["fee_rate"]) / 2.0    # one-way
+        if fee_rate is not None:
+            self.fee_rate = float(fee_rate)
+        elif fee is not None:
+            self.fee_rate = float(fee) / 2.0
+        else:
+            self.fee_rate = float(cfg["fee_rate"]) / 2.0
         self.use_funding      = use_funding if use_funding is not None else cfg["funding"]
         self.maintenance_ratio = maintenance_ratio
         self.initial_capital  = initial_capital
@@ -377,6 +384,8 @@ class MultiSymbolPortfolio:
                 "fee_series":           pd.Series(fee_arr, index=idx, name="fee"),
                 "turnover_series":      pd.Series(turn_arr, index=idx, name="turnover"),
                 "fee_total":            float(np.sum(fee_arr)),
+                "fee_rate_oneway":      float(self.fee_rate),
+                "canonical_one_way_fee_rate": float(self.fee_rate),
                 "turnover_total":       float(np.sum(turn_arr)),
             },
         )

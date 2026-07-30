@@ -171,8 +171,10 @@ Important conventions:
 - `initial_capital` is account equity / initial margin;
 - buying power is `initial_capital * leverage`;
 - `alloc_per_trade` is not multiplied by leverage by the endpoint;
-- legacy `fee` is round-trip and is halved inside `BacktestEngine`;
-- V2 `fee_rate` is one-way;
+- legacy `fee` is round-trip and is converted to canonical one-way fee at the
+  compatibility boundary;
+- `fee_rate` is canonical one-way everywhere. If both are present,
+  explicit `fee_rate` is the source of truth for native endpoints;
 - legacy `slippage` is a decimal fraction, e.g. `0.0001` for 1 bp;
 - V2 `slippage_bps` is basis points, e.g. `1.0` for 1 bp.
 - exchange quantity constraints are shared across native legacy, native
@@ -1579,8 +1581,9 @@ Execution and accounting semantics:
   portfolio fills;
 - QuantBT does not shift the signal matrix. Strategies must pass already-causal
   targets;
-- fees are one-way inside the native backend. The public facade keeps the
-  legacy `fee`/`fee_rate` round-trip convention and converts it internally;
+- `fee_rate` is canonical one-way. Legacy `fee` is round-trip and is converted
+  at the endpoint boundary only;
+- metadata records `canonical_one_way_fee_rate`;
 - `slippage_bps` is the source of truth for native portfolio slippage;
 - legacy `slippage` is accepted for compatibility and converted to
   `slippage_bps`, but new code should prefer `slippage_bps`;
@@ -1613,8 +1616,11 @@ Native portfolio metadata includes:
 result.metadata["slippage_series"]
 result.metadata["slippage_total"]
 result.metadata["slippage_bps"]
+result.metadata["canonical_one_way_fee_rate"]
 result.metadata["rebalance_report"]
 result.metadata["symbol_pnl_report"]
+result.metadata["portfolio_reconciliation_report"]
+result.metadata["run_config"]["fees"]["applied_fee_source"]
 ```
 
 Native portfolio report levels:
