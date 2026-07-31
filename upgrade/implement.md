@@ -7092,3 +7092,1198 @@ Remaining debt:
 - Full L2/intrabar portfolio simulation remains out of scope.
 - Prepared portfolio cache can later store the tradable/stale mask directly to
   avoid recomputation in larger WFO/service loops.
+
+## Phase 42-44 - QuantBT Engine Packaging, Native Event, And PyO3 Roadmap
+
+Status:
+
+- Planned only. No code/package-layout/native-event implementation has started
+  for this roadmap yet.
+
+Source guide:
+
+- `upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v2_expanded.md`
+
+Hard rules from the guide:
+
+- Do not change public imports:
+  - `from quantbt import QuantBTEndpoint`
+- Do not rename existing endpoints.
+- Do not force old alphas to migrate.
+- Do not change domain semantics for speed.
+- Do not merge an optimization if parity fails.
+- Keep Python/Numba as fallback and accounting oracle.
+- Rust/PyO3 is optional acceleration only; users should not import
+  `_quantbt_native` directly.
+- Do not force-push `main`; avoid rewriting remote history on `dev`.
+- Prefer follow-up commits over amend once a commit has reached a shared
+  remote branch.
+
+Distribution targets:
+
+- PyPI distribution: `quantbt-engine`
+- Python import: `quantbt`
+- Optional native distribution: `quantbt-native`
+- Optional native module: `_quantbt_native`
+- Extra install target: `pip install "quantbt-engine[native]"`
+
+### Phase 42A - Packaging Baseline And Implementation Link
+
+Branch:
+
+- Start from `dev`.
+- Create branch: `feat/quantbt-engine-packaging`.
+
+Scope:
+
+- Link this roadmap to the source guide in `upgrade/implement.md`.
+- Create rollback/reference tag before migration:
+  - `pre-quantbt-engine-packaging-20260731`
+- Capture baseline:
+  - commit SHA;
+  - Python version;
+  - NumPy/Pandas/Numba versions;
+  - full test result;
+  - current Native Event benchmark/RSS baseline if available.
+- Run baseline tests using the current environment before any package layout
+  changes.
+
+Non-goals:
+
+- No source move yet unless Phase 42A baseline has passed.
+- No Native Event optimization.
+- No Rust/PyO3.
+- No PyPI publish.
+
+Validation target:
+
+```bash
+git status
+python --version
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
+```
+
+### Phase 42B - Python Package Layout And Wheel Install
+
+Branch:
+
+- Continue on `feat/quantbt-engine-packaging`.
+
+Scope:
+
+- Add package metadata for `quantbt-engine`.
+- Add `pyproject.toml` using PEP 621 / uv-compatible build metadata.
+- Add `src/quantbt/` package layout.
+- Copy current package source into `src/quantbt` safely.
+- Add `src/quantbt/py.typed`.
+- Keep existing public API/import behavior unchanged.
+- Keep the root source during migration until wheel install/parity pass.
+- Build and install the package in a clean environment.
+- Run public import smoke outside the repository root.
+
+Non-goals:
+
+- Do not optimize Native Event in this branch.
+- Do not introduce Rust.
+- Do not delete root source until the clean wheel import path and pool_alpha
+  compatibility are proven.
+
+Merge gate:
+
+- Public imports pass from clean wheel install.
+- Full tests pass.
+- Wheel build/install pass.
+- Backtest fingerprints unchanged.
+- Pool Alpha smoke can import `quantbt` without `PYTHONPATH` hacks.
+
+Validation target:
+
+```bash
+uv sync --all-extras --dev
+uv run pytest
+uv build
+python -m pip install dist/quantbt_engine-*.whl
+python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+### Phase 42C - CI, Pool Alpha Compatibility, And PyPI Preparation
+
+Branch:
+
+- Continue on `feat/quantbt-engine-packaging`, then PR/merge to `dev` only
+  after gates pass.
+
+Scope:
+
+- Add CI for:
+  - Python 3.11;
+  - Python 3.12;
+  - Python 3.13;
+  - lint/type smoke where safe;
+  - full pytest;
+  - wheel build;
+  - clean wheel install;
+  - public import smoke;
+  - pool_alpha compatibility smoke.
+- Add release workflow skeleton for `quantbt-engine`.
+- Prefer PyPI Trusted Publishing/OIDC.
+- Keep API token only as manual/emergency fallback.
+- Document release procedure:
+  - feature branch -> `dev`;
+  - release branch -> `main`;
+  - tag from `main`;
+  - GitHub Release triggers publish.
+
+Non-goals:
+
+- Do not publish to real PyPI without explicit approval.
+- Do not tag from `dev`.
+- Do not use `main` for package migration experiments.
+
+Merge gate:
+
+- CI-equivalent local commands pass.
+- Clean install smoke pass.
+- No `PYTHONPATH` dependency in package smoke.
+- `main` remains stable/releasable.
+
+Release policy:
+
+- `quantbt-engine 0.1.x`: packaging, Python behavior unchanged.
+- `quantbt-engine 0.2.x`: Python Native Event performance improvements.
+- `quantbt-native 0.3.x`: optional experimental Rust accelerator.
+
+### Phase 43A - Native Event Behavior Freeze And Baseline Benchmarks
+
+Branch:
+
+- Only create after Phase 42 is merged into `dev`.
+- Create branch: `perf/native-event-python-hotpath`.
+
+Scope:
+
+- Tests first; no implementation changes before behavior is frozen.
+- Add Native Event callback timing tests:
+  - initialize at bar 0;
+  - commands effective next bar;
+  - same effective bar sequence order;
+  - finalize commands beyond end of tape.
+- Add lifecycle parity tests for:
+  - PLACE;
+  - AMEND;
+  - REPLACE;
+  - CANCEL;
+  - CANCEL_ALL;
+  - market;
+  - limit;
+  - stop-market;
+  - stop-limit;
+  - GTC;
+  - GTD;
+  - IOC;
+  - FOK;
+  - reduce-only;
+  - parent first-fill/full-fill;
+  - OCO;
+  - quantity constraints;
+  - insufficient margin;
+  - funding;
+  - intrabar / after-funding / after-order liquidation;
+  - multi-symbol.
+- Add compact deterministic fingerprints instead of DataFrame string hashes.
+- Add baseline benchmark scenarios:
+  - 25k bars / low order count;
+  - 25k bars / high order churn;
+  - 100k bars / low order count;
+  - 100k bars / high order churn;
+  - parent/OCO-heavy;
+  - GTD-heavy;
+  - multi-symbol;
+  - 100 repeated prepared scores.
+
+Reference/oracle:
+
+- `replay_certified` is the canonical domain/accounting oracle.
+- Python single-pass must pass before any Rust work.
+
+Validation target:
+
+```bash
+pytest -q tests/native_event
+python benchmarks/native_event/benchmark_reactive_session.py
+```
+
+### Phase 43B - Native Event Python Hot Path, RSS, And Prepared Score
+
+Branch:
+
+- Continue on `perf/native-event-python-hotpath`.
+
+Scope:
+
+- Score retention and result path:
+  - add internal score requirements;
+  - avoid pandas materialization in score path;
+  - keep public `BacktestResultV2` path unchanged.
+- Queue/object lifetime:
+  - pop consumed scheduled commands;
+  - release fill/event callback payload after callback;
+  - separate active order state from terminal history;
+  - score mode should not retain terminal order objects.
+- Context allocation:
+  - cache immutable helpers;
+  - use read-only OHLCV row views;
+  - keep positions as snapshots;
+  - avoid active-order snapshots when no active orders.
+- Lifecycle indexes where clearly beneficial:
+  - active by ID;
+  - children by parent;
+  - OCO membership;
+  - expiry bucket by bar;
+  - keep `CANCEL_ALL` simple unless benchmark proves it is a hotspot.
+- Margin/accounting cache:
+  - refresh close margin once per bar;
+  - mark dirty after fill;
+  - do not change formulas.
+- Prepared runner/evaluator:
+  - immutable market arrays reused;
+  - mutable session reset per trial;
+  - evaluator does not retain prior strategy/result/session;
+  - selected candidate reruns replay-certified audit.
+
+Performance rules:
+
+- No `fastmath`.
+- No formula simplification.
+- No public endpoint/result change.
+- No merge if lifecycle/accounting parity fails.
+
+Merge gate:
+
+- Lifecycle parity: 100%.
+- Accounting parity: 100%.
+- RSS repeated-run plateau.
+- Score throughput improves or at least no material regression.
+- Audit path remains compatible.
+
+Validation target:
+
+```bash
+pytest -q tests/native_event
+pytest -q tests/test_phase34*.py
+python benchmarks/native_event/benchmark_reactive_session.py
+pytest -q quantbt/tests
+```
+
+### Phase 44A - PyO3 R0 Scaffold And Backend Fallback
+
+Branch:
+
+- Only create after Phase 43B is merged into `dev`.
+- Create branch: `feat/native-event-pyo3`.
+
+Scope:
+
+- Add `rust/native_event`.
+- Add Rust/PyO3 package `quantbt-native`.
+- Expose `_quantbt_native` version/capabilities only.
+- Add thin Python adapter:
+  - `quantbt/backends/_native_event_rust.py`.
+- Add backend selection internals:
+  - `auto`;
+  - `python`;
+  - `rust`;
+  - `replay_certified`.
+- Initial rollout:
+  - `auto -> python`;
+  - `rust` requires explicit opt-in and raises clearly if extension is absent
+    or version-incompatible.
+
+Non-goals:
+
+- No production route through Rust yet.
+- No domain logic in the adapter.
+
+Validation target:
+
+```bash
+cargo fmt --check
+cargo clippy -- -D warnings
+cargo test
+maturin build --release
+python -c "import _quantbt_native"
+pytest -q tests/native_event
+```
+
+### Phase 44B - PyO3 R1 Single-Symbol POC
+
+Branch:
+
+- Continue on `feat/native-event-pyo3`.
+
+Scope:
+
+- Rust POC supports:
+  - single symbol;
+  - PLACE;
+  - CANCEL;
+  - market;
+  - limit;
+  - GTC;
+  - fee;
+  - slippage;
+  - position/equity accounting.
+- Python adapter compiles command batches into contiguous numeric buffers.
+- Rust returns compact fill/event/state arrays.
+- Python materializes callback/audit objects only at boundaries.
+- `QUANTBT_NATIVE_BACKEND=rust` explicit opt-in only.
+- `auto` remains Python.
+
+Parity gate:
+
+- Same command timing.
+- Same lifecycle states.
+- Same fills.
+- Same positions.
+- Same fees/slippage.
+- Same final equity.
+
+Benchmark gate:
+
+- Median end-to-end speedup >= 1.20x.
+- High-churn speedup >= 1.50x.
+- Peak RSS reduction >= 30%.
+- Repeated-run RSS plateau.
+
+Stop condition:
+
+- If Rust boundary conversion dominates, parity needs loose tolerance, or RSS
+  does not improve, keep Rust experimental and do not expand.
+
+### Phase 44C - PyO3 Feature Expansion And Native Release Gate
+
+Branch:
+
+- Continue on `feat/native-event-pyo3`.
+
+Scope:
+
+- Expand only after Phase 44B gate passes.
+- Feature slices in order:
+  - stop orders;
+  - amend/replace;
+  - reduce-only;
+  - quantity constraints;
+  - parent-child;
+  - OCO;
+  - GTD;
+  - IOC/FOK;
+  - funding;
+  - margin/liquidation;
+  - multi-symbol.
+- Each slice gets differential tests against Python/replay oracle.
+- Add native wheel CI for Linux x86-64 first.
+- Add combined core+native wheel install test.
+
+Non-goals:
+
+- Do not enable Rust as default `auto` until full parity, randomized
+  certification, production soak, wheel coverage, fallback test, and RSS/runtime
+  gates all pass.
+- Do not publish `quantbt-native` unless the matching `quantbt-engine` version
+  exists and combined parity passes.
+
+Release gate:
+
+- Build core wheel.
+- Build native wheel.
+- Install both in clean environment.
+- Run native-event parity suite.
+- Run RSS benchmark smoke.
+- Publish only from GitHub Release / protected environment.
+
+### Phase 42-44 Definition Of Done
+
+This roadmap is complete only when:
+
+- `pip install quantbt-engine` works independently.
+- `from quantbt import QuantBTEndpoint` remains unchanged.
+- Existing alphas do not require migration.
+- `pool_alpha` can use editable/path dependency and later PyPI dependency.
+- Clean wheel install and public import smoke pass.
+- GitHub Release can publish through OIDC, not long-lived tokens.
+- Missing Rust wheel falls back to Python/Numba.
+- Rust version mismatch fails/falls back clearly.
+- Rust path passes lifecycle/accounting parity before any default rollout.
+- Candidate optimization results can rerun through replay-certified oracle.
+- Repeated prepared-score runs reach RSS plateau.
+- End-to-end benchmark proves benefit before Rust default.
+- `main` remains stable/releasable; no tag is cut from `dev`.
+
+### Phase 42-44 Agent Execution Addendum
+
+Purpose:
+
+- This addendum is the executable checklist for future agents.
+- The detailed source of truth remains:
+  - `upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v2_expanded.md`
+- Agents must read the referenced sections before implementing each phase.
+- Do not treat the summary above as enough context to code from.
+- If this addendum and the detailed guide conflict, follow the detailed guide
+  and update this file with the discovered correction.
+
+#### Global Execution Protocol
+
+Hard rule:
+
+- Before starting every Phase 42-44 phase, the agent must first read this
+  `Phase 42-44 Agent Execution Addendum` and the detailed guide sections listed
+  under that specific phase. This is mandatory even if the agent read it in a
+  previous turn.
+
+Before any phase:
+
+1. Confirm branch and remote state:
+   ```bash
+   git status --short --branch
+   git log --oneline --decorate --max-count=8
+   git fetch --all --prune
+   ```
+2. Work from `dev`, not `main`.
+3. Use feature branches exactly as the guide specifies.
+4. Do not rewrite shared history:
+   - no `commit --amend` after remote push;
+   - no force-push to `main`;
+   - prefer follow-up commits.
+5. Keep public imports unchanged:
+   ```python
+   from quantbt import QuantBTEndpoint
+   ```
+6. Keep endpoints unchanged unless the guide explicitly allows an internal-only
+   selector or environment variable.
+7. Preserve domain semantics first; optimize only after parity.
+8. Every phase must end with:
+   - tests run;
+   - exact command output summary;
+   - implementation note;
+   - remaining debt note;
+   - commit.
+
+#### Phase 42A Detailed Guide - Packaging Baseline
+
+Read first:
+
+- Guide sections `1` to `5`.
+- Guide section `24`, especially `Phase 1`.
+- Guide section `26.1`, `26.2`, `26.3`, `26.4`, `26.5`.
+- Guide section `42`.
+
+Branch:
+
+```bash
+git checkout dev
+git pull --ff-only origin dev
+git checkout -b feat/quantbt-engine-packaging
+```
+
+Required artifacts:
+
+- Baseline tag:
+  ```bash
+  git tag pre-quantbt-engine-packaging-20260731
+  ```
+- Baseline note in this file containing:
+  - commit SHA;
+  - branch;
+  - Python version;
+  - dependency versions for NumPy, Pandas, Numba, Optuna if installed;
+  - full test command and result;
+  - current Native Event benchmark command and result if benchmark exists;
+  - current import mode: root package, not `src/quantbt` yet.
+
+Implementation rules:
+
+- Do not move source in Phase 42A.
+- Do not add `src/quantbt` yet unless Phase 42A baseline is complete.
+- Do not edit Native Event implementation.
+- Do not edit endpoint behavior.
+- Do not publish anything.
+
+Validation commands:
+
+```bash
+git status --short --branch
+python --version
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
+```
+
+Optional if benchmark exists:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  quantbt/benchmarks/native_event/benchmark_reactive_session.py
+```
+
+Exit criteria:
+
+- Baseline recorded.
+- Rollback tag exists locally.
+- Full tests pass or failure is documented as pre-existing with exact failing
+  tests.
+- No production code changed.
+
+Phase 42A baseline captured on 2026-07-31 UTC:
+
+```text
+branch: feat/quantbt-engine-packaging
+source branch: dev
+baseline commit SHA: 6762cd7ac872e6344fbab13dc23ca790733990ab
+origin/dev SHA after fetch/pull: 6762cd7ac872e6344fbab13dc23ca790733990ab
+bobby-origin/dev SHA after fetch: 6762cd7ac872e6344fbab13dc23ca790733990ab
+rollback/reference tag: pre-quantbt-engine-packaging-20260731
+origin tag verification: refs/tags/pre-quantbt-engine-packaging-20260731 -> 6762cd7ac872e6344fbab13dc23ca790733990ab
+current import mode: root package layout, no src/quantbt package layout yet
+system python3: Python 3.10.4
+poetry python3: Python 3.12.13
+numpy: 2.2.6
+pandas: 2.3.3
+numba: 0.65.1
+optuna: 4.8.0
+```
+
+Baseline protocol commands:
+
+```bash
+git fetch --all --prune
+git pull --ff-only origin dev
+git tag pre-quantbt-engine-packaging-20260731
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q quantbt/tests
+```
+
+Baseline full test result:
+
+```text
+561 passed, 1 skipped, 25 warnings in 54.19s
+```
+
+Baseline Native Event benchmark commands:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  benchmarks/run_phase34a_native_event_memory.py
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  benchmarks/run_phase34b_native_event_prepared_score.py
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run python3 \
+  benchmarks/run_phase34c_native_event_single_pass.py
+```
+
+Baseline Native Event benchmark result:
+
+```text
+Phase 34A artifact memory:
+- minimal: 0.334564s, peak RSS 339.957 MB, commands 3100, fills 3000, events 6100
+- standard: 0.501138s, peak RSS 344.855 MB, commands 3100, fills 3000, events 6100
+- audit: 0.638208s, peak RSS 348.371 MB, commands 3100, fills 3000, events 6100
+
+Phase 34B prepared score:
+- public audit seconds: 2.869046
+- prepared score seconds: 1.846037
+- speedup: 1.554x
+- peak RSS: 335.645 MB
+- metric parity: True
+- prepared endpoint result retained: False
+
+Phase 34C single-pass:
+- replay-certified seconds: 2.352882
+- single-pass seconds: 1.977425
+- speedup: 1.190x
+- peak RSS: 347.438 MB
+- accounting parity: True
+```
+
+Phase 42A implementation note:
+
+- No package source was moved.
+- No `src/quantbt` layout was created.
+- No Native Event implementation was changed.
+- No endpoint behavior was changed.
+- Only the implementation roadmap/baseline notes and generated benchmark
+  baseline artifacts changed.
+
+#### Phase 42B Detailed Guide - Python Package Layout
+
+Read first:
+
+- Guide section `6`: target repo structure.
+- Guide section `7`: migration rules into `src/quantbt`.
+- Guide section `8`: `pyproject.toml`.
+- Guide section `23`: pool_alpha migration.
+- Guide section `25`: Definition of Done.
+
+File-level patch order:
+
+1. Add packaging metadata:
+   - `pyproject.toml`;
+   - package metadata for PyPI distribution `quantbt-engine`;
+   - Python import module remains `quantbt`;
+   - exact dependencies must come from current repo/environment, not guessed
+     major upgrades.
+2. Add source layout:
+   - `src/quantbt/`;
+   - `src/quantbt/py.typed`;
+   - copy current package source into `src/quantbt` without rewriting logic.
+3. Keep root source during migration:
+   - do not delete root modules until wheel install, public import smoke, and
+     pool_alpha smoke pass.
+4. Fix only import/path issues that are caused by package layout.
+5. Add packaging smoke tests if missing.
+
+Implementation rules:
+
+- Copy/move safely; do not manually rewrite modules.
+- Do not introduce compatibility shim as a long-term source of truth.
+- If a root shim is temporarily needed, document it as temporary and add a
+  removal gate.
+- Do not change domain/accounting/native-event semantics.
+- Do not optimize runtime in this branch.
+- Do not add Rust.
+
+Validation commands:
+
+```bash
+uv sync --all-extras --dev
+uv run pytest
+uv build
+python -m pip install dist/quantbt_engine-*.whl
+python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+Clean import smoke must run outside repository root:
+
+```bash
+cd /tmp
+python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+Pool Alpha compatibility smoke:
+
+```bash
+cd /root/bobby/pool_alpha
+poetry run python3 -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+Exit criteria:
+
+- Wheel builds.
+- Wheel installs in a clean environment.
+- Public import unchanged.
+- Existing tests pass through installed package path.
+- pool_alpha can still import QuantBT.
+- Backtest fingerprints are unchanged for representative fixtures.
+
+#### Phase 42C Detailed Guide - CI, Release Workflow, PyPI Prep
+
+Read first:
+
+- Guide section `16`: versioning.
+- Guide section `17`: CI.
+- Guide section `18`: PyPI release through Trusted Publishing/OIDC.
+- Guide section `19`: publish package workflow.
+- Guide section `21`: token fallback rules.
+- Guide section `22`: GitHub release procedure.
+- Guide section `41`: workflow correction/addendum.
+- Guide section `42`: main/dev release policy.
+
+File-level patch order:
+
+1. Add or update `.github/workflows/*` for core package:
+   - Python 3.11;
+   - Python 3.12;
+   - Python 3.13;
+   - `uv sync`;
+   - tests;
+   - wheel build;
+   - clean wheel install;
+   - public import smoke.
+2. Add release workflow skeleton:
+   - publish only on GitHub Release `published`;
+   - use protected environment `pypi`;
+   - use OIDC/trusted publishing, not long-lived token by default.
+3. Add manual/TestPyPI token fallback docs only:
+   - do not put token in repo;
+   - do not require token for normal release path.
+4. Add pool_alpha dependency migration docs:
+   - local editable/path dependency during development;
+   - `quantbt-engine` PyPI dependency after release.
+
+Implementation rules:
+
+- Do not publish to real PyPI without explicit user approval.
+- Do not tag from `dev`.
+- Do not make push-to-main publish automatically.
+- GitHub Release from `main` is the only intended publish trigger.
+- Native package workflow must not assume core wheel exists unless the workflow
+  builds/downloads/installs it explicitly.
+
+Validation commands:
+
+```bash
+uv sync --all-extras --dev
+uv run pytest
+uv build
+python -m pip install dist/quantbt_engine-*.whl
+cd /tmp && python -c "from quantbt import QuantBTEndpoint"
+```
+
+Exit criteria:
+
+- CI workflow is syntactically valid.
+- Local CI-equivalent commands pass.
+- Release workflow is prepared but not triggered.
+- No PyPI publish happened.
+- Release policy documented.
+
+#### Phase 43A Detailed Guide - Native Event Behavior Freeze
+
+Read first:
+
+- Guide section `27`: implementation map and public contract.
+- Guide section `28`: NE-0 behavior freeze.
+- Guide section `34`: lifecycle parity.
+- Guide section `39`: required test names.
+- Guide section `40`, PR/commit 1: tests only.
+- Guide section `43`: Native Event core DoD.
+
+Branch:
+
+```bash
+git checkout dev
+git pull --ff-only origin dev
+git checkout -b perf/native-event-python-hotpath
+```
+
+Required files to add:
+
+- `tests/native_event/test_reactive_callback_contract.py`
+- `tests/native_event/test_reactive_lifecycle_parity.py`
+- `tests/native_event/test_reactive_accounting_parity.py`
+- `tests/native_event/test_reactive_memory_lifetime.py`
+- `tests/native_event/test_reactive_backend_matrix.py`
+- `benchmarks/native_event/benchmark_reactive_session.py`
+
+Required golden cases:
+
+- market order;
+- limit order;
+- stop-market;
+- stop-limit;
+- GTC;
+- GTD;
+- IOC;
+- FOK;
+- PLACE;
+- AMEND;
+- REPLACE;
+- CANCEL;
+- CANCEL_ALL;
+- reduce-only;
+- parent first-fill;
+- parent full-fill;
+- OCO;
+- quantity quantization;
+- insufficient margin;
+- funding;
+- intrabar liquidation;
+- after-funding liquidation;
+- after-order liquidation;
+- multi-symbol.
+
+Required fingerprint fields:
+
+- command effective bar;
+- command sequence;
+- event type/status/reject reason;
+- fill bar/symbol/side/qty/price/fee;
+- position after each bar;
+- equity after each bar;
+- margin after each bar;
+- liquidation result.
+
+Implementation rules:
+
+- Tests only first.
+- Do not change `native_event.py` implementation in the tests-only commit.
+- Do not use DataFrame string representation as fingerprint.
+- Randomized tests must use fixed seeds and print the seed on failure.
+- Reference oracle is `replay_certified`.
+- Python single-pass must pass before Rust is attempted.
+
+Validation commands:
+
+```bash
+pytest -q tests/native_event
+python benchmarks/native_event/benchmark_reactive_session.py
+```
+
+Exit criteria:
+
+- Behavior/timing contract locked by tests.
+- Baseline benchmark recorded:
+  - wall time;
+  - CPU time if available;
+  - peak RSS;
+  - post-run RSS;
+  - command count;
+  - event count;
+  - fill count;
+  - max active orders.
+- No implementation changed before baseline tests exist.
+
+#### Phase 43B Detailed Guide - Native Event Python Hotpath Optimization
+
+Read first:
+
+- Guide section `29`: score retention and result path.
+- Guide section `30`: queue and object lifetime.
+- Guide section `31`: context allocation.
+- Guide section `32`: beneficial indexes.
+- Guide section `33`: margin/accounting cache.
+- Guide section `35`: prepared runner integration.
+- Guide section `40`, PR/commit 2 to PR/commit 5.
+- Guide section `43`: Native Event core DoD.
+
+Patch order:
+
+1. Retention and queue cleanup:
+   - mostly `quantbt/backends/native_event.py` or
+     `src/quantbt/backends/native_event.py` after packaging;
+   - pop consumed scheduled commands;
+   - release fills/events after callback;
+   - separate active order state from terminal history;
+   - add one terminal transition helper.
+2. Context and margin cache:
+   - cache symbols tuple;
+   - cache size helper;
+   - use empty tuple constants;
+   - make prepared market arrays read-only after build;
+   - use OHLCV row views, not copies;
+   - keep position snapshot semantics;
+   - refresh close margin once per bar;
+   - dirty margin after fill.
+3. Parent/OCO/expiry indexes:
+   - children by parent ID;
+   - members by OCO group;
+   - expiry bucket by bar;
+   - avoid changing order priority.
+4. Prepared score integration:
+   - internal score requirements;
+   - no pandas materialization in score path;
+   - mutable session reset per trial;
+   - evaluator does not retain last strategy/result/session;
+   - selected candidate reruns replay-certified audit.
+
+Implementation rules:
+
+- No `fastmath`.
+- No formula simplification.
+- Do not change callback timing.
+- Do not change command next-bar semantics.
+- Do not change same-bar command ordering.
+- Do not change public `BacktestResultV2`.
+- Do not change public endpoint signatures.
+- If a speed optimization changes lifecycle/accounting parity, revert it.
+- Add benchmark evidence before claiming performance improvement.
+
+Required parity checks:
+
+- lifecycle state exact;
+- command count/effective bar/order exact;
+- reject codes exact;
+- fill side/qty/price/fee exact;
+- parent activation exact;
+- OCO cancellation exact;
+- expiry exact;
+- liquidation flag/bar/reason exact;
+- positions/equity/fees/funding/turnover/margin exact or `atol <= 1e-12`
+  only when float operation order is the sole difference.
+
+Validation commands:
+
+```bash
+pytest -q tests/native_event
+pytest -q tests/test_phase34*.py
+python benchmarks/native_event/benchmark_reactive_session.py
+pytest -q quantbt/tests
+```
+
+Exit criteria:
+
+- Lifecycle parity 100%.
+- Accounting parity 100%.
+- Repeated prepared-score RSS plateaus.
+- Score path avoids unnecessary pandas/report materialization.
+- Public audit path remains compatible.
+- Benchmark report shows runtime/RSS before vs after.
+
+#### Phase 44A Detailed Guide - PyO3 R0 Scaffold
+
+Read first:
+
+- Guide section `9`: Rust/PyO3 subpackage.
+- Guide section `10`: Rust scope and boundary.
+- Guide section `36.1` and `36.2`: adapter and rollout.
+- Guide section `37`, Slice R0.
+- Guide section `40`, PR/commit 6.
+- Guide section `41`: native workflow correction.
+- Guide section `42`: release policy.
+
+Branch:
+
+```bash
+git checkout dev
+git pull --ff-only origin dev
+git checkout -b feat/native-event-pyo3
+```
+
+Required files:
+
+- `rust/native_event/Cargo.toml`
+- `rust/native_event/pyproject.toml`
+- `rust/native_event/src/lib.rs`
+- later split candidates:
+  - `rust/native_event/src/session.rs`
+  - `rust/native_event/src/types.rs`
+  - `rust/native_event/src/matching.rs`
+  - `rust/native_event/src/accounting.rs`
+- Python adapter:
+  - `quantbt/backends/_native_event_rust.py`
+  - or `src/quantbt/backends/_native_event_rust.py` after packaging.
+
+Implementation rules:
+
+- R0 exposes only version/capabilities/import smoke.
+- Do not route production runs through Rust in R0.
+- Keep `auto -> python`.
+- `rust` explicit opt-in must raise clearly if extension is absent or version
+  incompatible.
+- No domain logic in adapter.
+- No async runtime, message bus, actor model, Rayon, unsafe optimization, or
+  fast-math.
+
+Validation commands:
+
+```bash
+cargo fmt --check
+cargo clippy -- -D warnings
+cargo test
+maturin build --release
+python -c "import _quantbt_native"
+pytest -q tests/native_event
+```
+
+Exit criteria:
+
+- Rust crate builds.
+- Python fallback works without extension.
+- Explicit Rust mode fails clearly when unavailable.
+- Version/capability check exists.
+- No production behavior changed.
+
+#### Phase 44B Detailed Guide - PyO3 R1 POC
+
+Read first:
+
+- Guide section `12`: PyO3 POC.
+- Guide section `36.3` to `36.11`: Rust session API and boundary.
+- Guide section `37`, Slice R1.
+- Guide section `38`: benchmark and stop conditions.
+
+R1 supported scope:
+
+- single symbol;
+- PLACE;
+- CANCEL;
+- market;
+- limit;
+- GTC;
+- fee;
+- slippage;
+- position/equity accounting.
+
+Python/Rust boundary:
+
+- one Rust call per bar;
+- no per-fill/per-fee/per-margin PyO3 calls;
+- Python compiles command batches into contiguous numeric buffers;
+- Rust returns compact arrays/scalars;
+- Python materializes events/context only at callback boundary;
+- strategy callbacks remain Python.
+
+Bar 0 flow must match guide:
+
+1. `step(0, empty commands)`;
+2. build context 0;
+3. `initialize(context0)`;
+4. `on_bar_close(context0)`;
+5. concatenate initialize commands before bar0 commands;
+6. execute them at bar 1.
+
+Opt-in behavior:
+
+- `QUANTBT_NATIVE_BACKEND=rust` may route R1-supported cases to Rust.
+- `auto` remains Python.
+- Unsupported Rust feature must raise/fallback according to selected backend,
+  never silently change semantics.
+
+Validation commands:
+
+```bash
+pytest -q tests/native_event
+pytest -q tests/native_event -k rust
+python benchmarks/native_event/benchmark_reactive_session.py --backend python
+python benchmarks/native_event/benchmark_reactive_session.py --backend rust
+```
+
+Exit criteria:
+
+- Same commands.
+- Same fills.
+- Same positions.
+- Same fee/slippage.
+- Same final equity.
+- Median end-to-end speedup >= 1.20x.
+- High-churn speedup >= 1.50x.
+- Peak RSS reduction >= 30%.
+- Repeated-run RSS plateau.
+
+Stop conditions:
+
+- Boundary conversion dominates runtime.
+- Strategy Python time dominates and Rust cannot move needle.
+- RSS does not improve.
+- Parity requires loose tolerance.
+- Maintenance complexity exceeds benefit.
+
+#### Phase 44C Detailed Guide - PyO3 Expansion And Release Gate
+
+Read first:
+
+- Guide section `13`: Rust expansion order.
+- Guide section `37`, Slices R2 to R5.
+- Guide section `38`: benchmark gates.
+- Guide section `41`: workflow correction.
+- Guide section `42`: main/dev release policy.
+
+Expansion order:
+
+1. Stop orders.
+2. AMEND.
+3. REPLACE.
+4. Reduce-only.
+5. Quantity constraints.
+6. Parent-child.
+7. OCO.
+8. GTD.
+9. IOC.
+10. FOK.
+11. Funding.
+12. Margin/liquidation.
+13. Multi-symbol.
+
+Implementation rules:
+
+- One feature slice at a time.
+- Every slice must add differential parity tests first or in the same commit.
+- Do not enable Rust as default `auto` after a partial POC.
+- Do not publish native wheels until combined core+native parity passes.
+- Keep Python/Numba fallback and replay oracle.
+
+Native wheel CI requirements:
+
+- Linux x86-64 first.
+- Build native wheel.
+- Build/install core wheel from same tag/ref.
+- Install both wheels.
+- Run native parity tests.
+- Run RSS benchmark smoke.
+
+Release gate:
+
+```text
+feature branches -> dev -> release branch -> main -> GitHub Release -> PyPI
+```
+
+Do not:
+
+- tag from `dev`;
+- publish from uncommitted local tree;
+- publish on push to `main`;
+- publish native package if core compatible package has not passed combined
+  wheel install tests.
+
+Exit criteria:
+
+- All Rust-supported features have exact lifecycle/accounting parity.
+- Unsupported features fallback/raise clearly.
+- Native package remains optional.
+- Core package installs without Rust.
+- `quantbt-engine[native]` installs both packages when wheels are available.
+
+#### Required Test Name Checklist
+
+Agents should map the detailed guide section `39` to concrete tests. Minimum
+test names:
+
+- `test_native_event_initialize_and_bar0_ordering`
+- `test_native_event_commands_effective_next_bar`
+- `test_native_event_same_bar_command_sequence`
+- `test_native_event_cancel_replace_amend_parity`
+- `test_native_event_parent_activation_parity`
+- `test_native_event_oco_parity`
+- `test_native_event_gtd_expiry_bar_parity`
+- `test_native_event_ioc_fok_parity`
+- `test_native_event_reduce_only_parity`
+- `test_native_event_quantity_constraint_parity`
+- `test_native_event_funding_parity`
+- `test_native_event_margin_sequence_parity`
+- `test_native_event_liquidation_priority_parity`
+- `test_native_event_multisymbol_parity`
+- `test_native_event_score_no_pandas_materialization`
+- `test_native_event_score_does_not_retain_terminal_orders`
+- `test_native_event_consumed_queues_are_released`
+- `test_native_event_repeated_score_rss_plateaus`
+- `test_native_event_python_vs_replay_randomized`
+- `test_native_event_rust_vs_replay_randomized`
+- `test_native_event_backend_fallback_without_extension`
+- `test_native_event_backend_version_mismatch_falls_back`
+
+#### Final Merge Checklist For This Roadmap
+
+Before merging each branch into `dev`:
+
+- update this implementation log with:
+  - implemented items;
+  - exact tests;
+  - exact benchmark numbers;
+  - known remaining debt;
+  - commit hashes.
+- run branch-specific tests;
+- run full tests where feasible;
+- verify public import unchanged.
+
+Before merging any release branch into `main`:
+
+- clean wheel install passes;
+- no `PYTHONPATH` dependency;
+- pool_alpha smoke passes;
+- release notes/changelog/version are correct;
+- PyPI workflow is configured but not accidentally triggered.
+
+Before enabling Rust by default:
+
+- full lifecycle parity passes;
+- randomized differential tests pass;
+- production soak completed;
+- wheel coverage is sufficient;
+- fallback tests pass;
+- runtime/RSS gates pass end-to-end, not just inside Rust kernel.

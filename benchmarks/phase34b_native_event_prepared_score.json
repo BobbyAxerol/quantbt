@@ -1,12 +1,12 @@
 {
   "metric_parity": true,
-  "peak_rss_mb": 337.92578125,
+  "peak_rss_mb": 335.64453125,
   "prepared_endpoint_result_retained": false,
-  "prepared_score_seconds": 0.6344219469465315,
-  "prepared_scores": 12,
-  "public_audit_seconds": 1.7633190099149942,
+  "prepared_score_seconds": 1.8460372514091432,
+  "prepared_scores": 20,
+  "public_audit_seconds": 2.8690464491955936,
   "public_last_report_level": "audit",
-  "rows": 600,
-  "speedup": 2.779410482884201,
-  "trials": 12
+  "rows": 1000,
+  "speedup": 1.5541649806934028,
+  "trials": 20
 }
