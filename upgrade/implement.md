@@ -9331,3 +9331,323 @@ Before enabling Rust by default:
 - wheel coverage is sufficient;
 - fallback tests pass;
 - runtime/RSS gates pass end-to-end, not just inside Rust kernel.
+
+## Final Upgrade - Dual Backend, RSS, And PyPI Release
+
+Status: **planned; planning-only update, no implementation started**.
+
+Detailed source of truth:
+
+- [`quantbt_final_upgrade_dual_backend_pypi_plan.md`](quantbt_final_upgrade_dual_backend_pypi_plan.md)
+- Before implementing each phase, read the linked guide sections named in
+  that phase. This summary is a tracking plan, not a replacement for the
+  detailed guide.
+
+Branch baseline:
+
+- Work from `feat/quantbt-engine-packaging` after the committed Phase45F
+  state.
+- Phase45F sparse runner is implemented and full regression is green.
+- Rust remains explicit experimental because the current process peak-RSS
+  gate is not passed; `auto` remains Python.
+
+Global rules for all six phases:
+
+- Correctness and replay certification precede optimization claims.
+- Keep `from quantbt import QuantBTEndpoint` and existing endpoint defaults
+  compatible.
+- Never silently fallback from an explicit unsupported Rust capability or
+  silently change execution semantics.
+- Keep the root compatibility mirror through the intermediate phases. Remove
+  it only in the final packaging phase after the source-sync and clean-install
+  gates pass.
+- Do not use total-process RSS alone as an engine-memory claim. Record
+  interpreter, import, prepared, execution-peak, and post-run checkpoints.
+- Every phase ends with focused tests, exact benchmark/evidence output, a
+  technical-debt note, and a commit using the configured contributor identity.
+- Do not publish to production PyPI without explicit release approval. Build
+  and TestPyPI/OIDC validation may be prepared earlier, but credentials and
+  tokens must never enter the repository.
+
+### Phase 46A - PyPI Baseline And Correctness Certification
+
+Detailed guide sections:
+
+- Guide [`quantbt_final_upgrade_dual_backend_pypi_plan.md`](quantbt_final_upgrade_dual_backend_pypi_plan.md), sections `1`, `2`,
+  `2.1` to `2.3`, `13.1`, and Patch `F1` in section `16`.
+
+Objective:
+
+- Establish one correctness contract before changing the performance path.
+- Capture the core PyPI readiness baseline while keeping source layout and
+  public imports stable.
+
+Implementation:
+
+- Add one canonical `assert_native_event_full_parity(candidate, oracle, ...)`
+  helper used by Python optimized, Rust batched, and replay-certified tests.
+- Compare effective bar, command sequence, acceptance/rejection, status
+  transitions, fills, position/equity/fee/funding/turnover paths, margin,
+  parent/OCO/TIF/expiry/liquidation state where the capability exists, and
+  final state.
+- Use exact equality for discrete fields; use `rtol=0, atol=1e-12` only for
+  numeric operation-order differences that cannot change a discrete decision.
+- Create the canonical capability matrix consumed by the Python selector,
+  Rust `capabilities()`, tests, and docs. Rust unsupported requests must fail
+  clearly before execution.
+- Add seeded randomized differential tests and remove any required `xfail`
+  from the advertised single-symbol R2 scope.
+- Verify `pyproject` version, public metadata, core wheel/sdist entry points,
+  and existing root/src mirror integrity without deleting the mirror yet.
+
+Required tests/evidence:
+
+- Full Python/replay lifecycle matrix.
+- Rust/replay R2 matrix for the installed wheel.
+- Randomized Python-vs-replay and Rust-vs-replay fingerprints.
+- Public import and source-sync tests.
+- Evidence JSON must include `oracle_fingerprint`, candidate fingerprints,
+  exact parity status, capability matrix version, and commit hash.
+
+Acceptance and debt:
+
+- No performance result is accepted unless full parity passes first.
+- Any unsupported capability remains an explicit debt and is not included in
+  the Rust release claim.
+
+### Phase 46B - Apples-To-Apples Score And RSS Benchmark
+
+Detailed guide sections:
+
+- Guide sections `3`, `3.1` to `3.3`, `4`, `4.1` to `4.2`, and Patch `F2`.
+
+Objective:
+
+- Replace the current unfair Rust-scalar versus Python-minimal-result
+  comparison with equivalent scalar artifacts and staged RSS evidence.
+
+Implementation:
+
+- Add an internal Python `run_compiled_tape_score(...)` that avoids pandas,
+  `BacktestResultV2`, full ledgers, command reports, and nested artifacts.
+- Return the same scalar fields as Rust:
+  `final_equity`, `final_position`, `total_fee`, `total_turnover`, fill/event
+  counters, rejection/cancellation counters, and margin maxima.
+- Run one full audit parity pass before timing and persist its fingerprint.
+- Build separate Python, Rust, and replay child fixtures. Do not prepare two
+  backend representations in one process.
+- Record `rss_interpreter`, `rss_after_import_quantbt`,
+  `rss_after_market_prepare`, `rss_after_command_compile`,
+  `rss_after_runner_prepare`, `peak_rss_during_run`, and `rss_after_run`.
+- Run at least five warm measured repetitions for low churn, high churn, and
+  repeated prepared-score scenarios; add the 100-run RSS plateau workload.
+
+Required evidence:
+
+- JSON fields for fingerprints, scalar parity, timing medians, CPU time,
+  absolute RSS, incremental prepared RSS, incremental execution peak, and
+  post-run RSS.
+- No claim based only on final equity/fill count or total-process percentage.
+
+Acceptance and debt:
+
+- The benchmark is valid only when Python and Rust have the same scalar
+  artifact contract and the one-time audit fingerprint matches.
+- If Python score-path overhead dominates, record it as facade debt instead
+  of overstating Rust speedup.
+
+### Phase 46C - Import Graph, Core Dependencies, And RSS Floor
+
+Detailed guide sections:
+
+- Guide section `5`, subsections `5.1` to `5.4`, section `13.1`, and Patch
+  `F3`.
+
+Objective:
+
+- Lower the process RSS floor for both backends without removing public names.
+- Make the core PyPI distribution usable without visualization, optimization,
+  Nautilus, or report extras installed.
+
+Implementation:
+
+- Refactor `src/quantbt/__init__.py` to keep only minimal core imports eager
+  and expose non-core public names through safe lazy imports.
+- Preserve public export identity for `QuantBTEndpoint`, results, schemas,
+  `quick_plot`, `tearsheet`, `OptunaOptimizer`, Nautilus helpers, and other
+  existing names.
+- Move matplotlib/seaborn to `viz`, Optuna to `optimization`, Nautilus to
+  `validation`, and QuantStats/report dependencies to `reports` extras as
+  specified by the guide. Core import must work without those extras.
+- Add import-time and fresh-process RSS tests; use `-X importtime` evidence.
+- Keep the root mirror and SHA256 sync guard during this phase. Do not turn
+  lazy import work into an unreviewed source deletion.
+
+Required tests/evidence:
+
+- `import quantbt` does not import matplotlib, seaborn, Optuna, Nautilus, or
+  reporting modules.
+- All public exports remain accessible and preserve direct-import identity.
+- Thread-safety smoke for lazy export access.
+- Core-only wheel/sdist install plus each optional extra in isolation.
+- Full regression and before/after import RSS report.
+
+Acceptance and debt:
+
+- Core package import must not require optional extras.
+- Any downstream import that depended on eager side effects must be fixed
+  explicitly and tested; no hidden fallback import is allowed.
+
+### Phase 46D - Market Ownership, Tape Memory, And Rust Hot State
+
+Detailed guide sections:
+
+- Guide sections `6`, `6.1` to `6.4`, `7`, `7.1` to `7.3`, `8`, `8.1` to
+  `8.4`, `9`, `9.1` to `9.2`, and Patches `F4` and `F5`.
+
+Objective:
+
+- Remove avoidable duplicate market/tape ownership and reduce Rust order/
+  buffer allocation churn without altering domain semantics.
+
+Implementation:
+
+- Split fixtures and prepared containers into explicit Python-owned and
+  Rust-owned paths. After one safe Rust copy, release DataFrame/Series and
+  temporary NumPy inputs before timing checkpoints.
+- Keep Rust `PreparedMarketCore` immutable and consider `Box<[T]>` or
+  `Arc<[T]>` only after parity; do not use unsafe NumPy borrows in this
+  phase.
+- Replace linear active-order scans with an order-slot table, O(1) ID lookup,
+  priority-preserving active sequence, tombstone compaction, and tested alias
+  path compression.
+- Add reusable SoA audit buffers, typed score result boundary where safe, and
+  reset parity tests before allowing buffer reuse.
+- Replace unbounded object/tape retention with stable-fingerprint bounded
+  cache policy and `clear_tape_cache()` service control.
+- Avoid simultaneously retaining original `OrderCommand` objects, compiled
+  objects, and Rust arrays in score runs unless audit explicitly requests it.
+
+Required tests/evidence:
+
+- Exact lifecycle/accounting parity after each Rust state change.
+- Replacement-chain and alias-cycle tests.
+- Audit/score reset parity and 100-run memory plateau.
+- Rust-only prepared RSS checkpoints with Python inputs released.
+- Low/high order churn benchmarks and command-cache byte limits.
+
+Acceptance and debt:
+
+- All discrete decisions and accounting must remain exact.
+- If memory is not reduced after ownership separation, record allocator/import
+  floor separately; do not loosen domain parity or gate thresholds.
+
+### Phase 46E - Python Hot State, Dual Backend Contract, And Release Gate
+
+Detailed guide sections:
+
+- Guide sections `10`, `10.1` to `10.3`, `11`, `11.1` to `11.3`, `12`, and
+  Patch `F6` plus the first part of Patch `F7`.
+
+Objective:
+
+- Keep Python the full-featured canonical backend while making its static tape
+  fallback fair, compact, and explicit.
+- Re-run certification under the final dual-backend contract.
+
+Implementation:
+
+- Use primitive active-order state and optional metadata side tables in Python
+  score mode, without changing public `OrderCommand` or event types.
+- Make context fields such as active orders, event ledgers, fills, margin, and
+  positions lazy by score requirements; preserve the full compatibility
+  default.
+- Define the public/internal selection contract exactly as `python`, `rust`,
+  `auto`, and `replay_certified`.
+- Keep `python` full reactive/default, `rust` explicit capability-gated,
+  `auto` Python for this release, and `replay_certified` the audit oracle.
+- Keep the per-bar Rust adapter for debug/correctness only; do not call it a
+  performance route.
+- Re-run fresh-process benchmarks with identical scalar artifacts and at
+  least five repetitions plus 100-run plateau.
+
+Release gate:
+
+```text
+full lifecycle/accounting parity          = 100%
+low-churn speedup                         >= 1.50x
+high-churn speedup                        >= 2.00x
+incremental prepared RSS reduction       >= 40%
+incremental execution peak reduction     >= 40%
+absolute peak RSS                        below declared budget
+100-run RSS                              plateau
+```
+
+Acceptance and debt:
+
+- A failed RSS gate keeps Rust experimental and leaves `auto` on Python.
+- Native feature claims must be generated from the canonical capability
+  matrix; no package/docs drift is accepted.
+
+### Phase 46F - Core PyPI Finalization And Native Release Decision
+
+Detailed guide sections:
+
+- Guide sections `13`, `13.1` to `13.2`, `14`, `14.1` to `14.4`, `15`,
+  `15.1` to `15.4`, `16` Patches `F7` to `F9`, and `17`.
+
+Objective:
+
+- Finish the independently installable `quantbt-engine` core release first.
+- Only publish `quantbt-native` and expose a non-empty native extra if its
+  full parity, RSS, wheel, and fallback gates genuinely pass.
+
+Core PyPI implementation:
+
+- After the preceding source-sync and clean-install gates, make `src/quantbt`
+  the distribution source of truth and remove the root mirror only in this
+  phase. Run full regression immediately after removal.
+- Align `__version__`, `pyproject` version, Git tag, wheel metadata, and
+  release notes. Add `CHANGELOG.md`, documentation/changelog URLs,
+  Python 3.11/3.12/3.13 classifiers, and the `0.1.0` release notes.
+- Build and install wheel and sdist from a clean checkout outside the repo;
+  run `pip check`, core-only import smoke, each extra in isolation, and
+  `pool_alpha` editable and built-wheel smoke.
+- Configure TestPyPI RC and production PyPI Trusted Publishing/OIDC with
+  protected `pypi`/`testpypi` environments, reviewer approval, and release
+  tag protection. Do not add long-lived tokens.
+
+Native release decision:
+
+- Build `quantbt-native` for CPython 3.11, 3.12, and 3.13 on Linux
+  manylinux-compatible x86-64 runners, install the wheel with the matching
+  core wheel, and run combined parity/fallback/RSS smoke.
+- Complete native metadata, README, license inclusion, Cargo.lock, API
+  compatibility documentation, and separate distribution/API versioning.
+- If every gate passes: publish `quantbt-native` first, verify installation,
+  then add `quantbt-engine[native]` and publish the compatible core release.
+- If any gate fails: publish only `quantbt-engine`, keep Rust explicit
+  experimental, keep `auto=Python`, and leave the native extra empty/absent.
+
+Final definition of done:
+
+- Core `quantbt-engine` clean wheel/sdist install works without optional
+  dependencies and `from quantbt import QuantBTEndpoint` is unchanged.
+- Pool Alpha compatibility, full tests, source/import checks, and TestPyPI
+  RC smoke pass.
+- Python remains canonical/full-featured; replay remains the certification
+  oracle.
+- Rust claims, capabilities, wheel matrix, RSS evidence, and fallback policy
+  agree with one source of truth.
+- No production release is declared from a failed parity or RSS gate.
+
+### Final Upgrade Tracking Rules
+
+- This section is the only active plan for the final dual-backend/PyPI
+  upgrade; older Phase42-45 notes remain historical evidence.
+- Each agent must first read the linked detailed guide and this section before
+  starting a phase, then update the phase status with commit, tests, evidence,
+  and remaining debt.
+- The scope deliberately stops at the guide's dual-backend/static-tape and
+  PyPI release goals. It does not add arbitrary Python-to-Rust compilation,
+  portfolio/arbitrage Rust parity, or silent default routing.
