@@ -1514,11 +1514,9 @@ name = "quantbt-engine"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "matplotlib" },
     { name = "numba" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "seaborn" },
 ]
 
 [package.optional-dependencies]
@@ -1562,7 +1560,6 @@ dev = [
 requires-dist = [
     { name = "arch", marker = "extra == 'all'", specifier = ">=8.0.0,<8.1" },
     { name = "arch", marker = "extra == 'optimization'", specifier = ">=8.0.0,<8.1" },
-    { name = "matplotlib", specifier = ">=3.10.9,<3.11" },
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.9,<3.11" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.10.9,<3.11" },
     { name = "nautilus-trader", marker = "python_full_version >= '3.12' and extra == 'all'", specifier = ">=1.230.0,<1.231" },
@@ -1576,7 +1573,6 @@ requires-dist = [
     { name = "quantstats", marker = "extra == 'reports'", specifier = "==0.0.81" },
     { name = "scikit-learn", marker = "extra == 'all'", specifier = ">=1.8.0,<1.9" },
     { name = "scikit-learn", marker = "extra == 'optimization'", specifier = ">=1.8.0,<1.9" },
-    { name = "seaborn", specifier = ">=0.13.2,<0.14" },
     { name = "seaborn", marker = "extra == 'all'", specifier = ">=0.13.2,<0.14" },
     { name = "seaborn", marker = "extra == 'viz'", specifier = ">=0.13.2,<0.14" },
 ]

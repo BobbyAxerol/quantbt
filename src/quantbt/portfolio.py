@@ -34,7 +34,6 @@ from .core.preprocessor import (
     make_funding_mask,
 )
 from .metrics.performance import full_report
-from .viz.plots import quick_plot, tearsheet as _tearsheet
 from .core.types import BacktestResult
 from .core.engine import _engine_portfolio
 from .sizing.modes import compute_target_units
@@ -553,6 +552,8 @@ class MultiSymbolPortfolio:
         print()
 
     def analyze(self, theme: str = "dark", figsize: tuple = (14, 6)) -> None:
+        from .viz.plots import quick_plot
+
         self.print_metrics()
         quick_plot(self.result, theme=theme, figsize=figsize)
 
@@ -562,6 +563,8 @@ class MultiSymbolPortfolio:
         figsize:   tuple = (16, 20),
         benchmark: Optional[pd.Series] = None,
     ) -> None:
+        from .viz.plots import tearsheet as _tearsheet
+
         _tearsheet(
             self.result,
             theme        = theme,

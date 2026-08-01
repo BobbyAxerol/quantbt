@@ -66,7 +66,6 @@ from .core.constraints import build_quantity_constraints, quantize_target_units_
 from .core.schema import InstrumentSpec
 from .sizing.modes     import compute_target_units
 from .metrics.performance import full_report
-from .viz.plots        import quick_plot, tearsheet as _tearsheet
 
 
 class BacktestEngine:
@@ -403,6 +402,8 @@ class BacktestEngine:
         """
         Print a concise performance report, then show cumulative return + drawdown.
         """
+        from .viz.plots import quick_plot
+
         self.print_metrics(trading_days=trading_days)
         quick_plot(self.result, theme=theme, figsize=figsize)
 
@@ -452,6 +453,8 @@ class BacktestEngine:
         benchmark:    Optional[pd.Series] = None,
     ) -> None:
         """Full dashboard.  Optional; call explicitly when needed."""
+        from .viz.plots import tearsheet as _tearsheet
+
         _tearsheet(
             self.result,
             theme        = theme,

@@ -45,6 +45,132 @@ Advanced — standalone metrics + plots::
     tearsheet(result)
 """
 
+from importlib import import_module
+
+
+_LAZY_EXPORTS = {
+    **{
+        name: (".optimization", name)
+        for name in (
+            "CONSTRAINTS_USER_ATTR",
+            "ArbitrageGenericEvaluator",
+            "ArbitrageTrialOutput",
+            "CandidateSelector",
+            "GenericEndpointEvaluator",
+            "GridDCAGenericEvaluator",
+            "GridDCATrialOutput",
+            "JsonlOptimizationLogger",
+            "MissingOptimizationMetricError",
+            "MultiSeedOptimization",
+            "ObjectiveResult",
+            "OptionPackageGenericEvaluator",
+            "OptionTrialOutput",
+            "OptimizationConfig",
+            "OptimizationResult",
+            "OptimizationTrialRecord",
+            "OptunaOptimizer",
+            "PreparedIntrabarEvaluator",
+            "PreparedNativeEventStrategyEvaluator",
+            "PreparedPortfolioEvaluator",
+            "PreparedSignalEvaluator",
+            "ReportMetricObjective",
+            "RobustSelectionConfig",
+            "SamplerConfig",
+            "SearchSpaceInfo",
+            "SelectedCandidate",
+            "SharpeObjective",
+            "SingleObjectiveEarlyStopping",
+            "TrialEvaluator",
+            "build_grid_search_space",
+            "build_sampler",
+            "constraints_feasible",
+            "constraints_from_trial",
+            "max_drawdown_constraint",
+            "max_margin_utilization_constraint",
+            "max_rejection_rate_constraint",
+            "max_turnover_constraint",
+            "metric_from_result",
+            "metrics_from_result",
+            "min_trades_constraint",
+            "result_full_report",
+            "search_space_info",
+            "set_trial_constraints",
+            "stable_params_key",
+            "suggest_parameter",
+            "suggest_params",
+        )
+    },
+    **{
+        name: (".walkforward", name)
+        for name in (
+            "DuplicatePruner",
+            "EarlyStoppingCallback",
+            "WalkForwardBenchmarkSnapshot",
+            "WalkForwardCompatibilityEntry",
+            "WalkForwardConfig",
+            "WalkForwardEngine",
+            "WalkForwardFold",
+            "WalkForwardResult",
+            "WalkForwardTrialRecord",
+            "benchmark_walkforward_kernels",
+            "logging_callback",
+            "score_strategy_output",
+            "select_full_sample_robust_record",
+            "select_is_plateau_robust_record",
+            "select_is_only_robust_record",
+            "select_flat_minima_record",
+            "stationary_bootstrap_sharpes",
+            "synthetic_walkforward_sharpes",
+            "stitch_oos_outputs",
+            "strategy_return_series",
+            "trade_frequency_penalty",
+            "validate_param_ranges",
+            "volatility_regime_labels",
+            "validate_walkforward_strategy_output",
+            "walkforward_support_matrix",
+        )
+    },
+    "quick_plot": (".viz", "quick_plot"),
+    "tearsheet": (".viz", "tearsheet"),
+    "apply_theme": (".viz", "apply_theme"),
+    **{
+        name: (".reporting", name)
+        for name in (
+            "build_arbitrage_domain_audit",
+            "build_native_nautilus_parity_report",
+            "build_nautilus_certification_profile",
+            "build_nautilus_depth_execution_report",
+            "build_nautilus_depth_parity_summary",
+            "build_nautilus_pct_equity_diagnostic",
+            "build_portfolio_domain_audit",
+            "build_portfolio_nautilus_position_report",
+            "build_portfolio_nautilus_validation_report",
+            "compare_native_arbitrage_results",
+            "export_nautilus_report_bundle",
+            "NautilusToleranceProfile",
+            "summarize_native_nautilus_parity_report",
+            "write_nautilus_certification_artifacts",
+        )
+    },
+}
+
+
+def __getattr__(name: str):
+    """Resolve optional/heavy public exports on first use."""
+
+    try:
+        module_name, attribute_name = _LAZY_EXPORTS[name]
+    except KeyError as exc:  # pragma: no cover - normal Python attribute error
+        raise AttributeError(name) from exc
+    value = getattr(import_module(module_name, __name__), attribute_name)
+    globals()[name] = value
+    return value
+
+
+def __dir__():
+    return sorted(set(globals()) | set(_LAZY_EXPORTS))
+
+
 from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
 from .endpoint import (
@@ -54,81 +180,6 @@ from .endpoint import (
     QuantBTEndpoint,
     QuantBTPreparedContext,
     format_metrics_report,
-)
-from .walkforward import (
-    DuplicatePruner,
-    EarlyStoppingCallback,
-    WalkForwardBenchmarkSnapshot,
-    WalkForwardCompatibilityEntry,
-    WalkForwardConfig,
-    WalkForwardEngine,
-    WalkForwardFold,
-    WalkForwardResult,
-    WalkForwardTrialRecord,
-    benchmark_walkforward_kernels,
-    logging_callback,
-    score_strategy_output,
-    select_full_sample_robust_record,
-    select_is_plateau_robust_record,
-    select_is_only_robust_record,
-    select_flat_minima_record,
-    stationary_bootstrap_sharpes,
-    synthetic_walkforward_sharpes,
-    stitch_oos_outputs,
-    strategy_return_series,
-    trade_frequency_penalty,
-    validate_param_ranges,
-    volatility_regime_labels,
-    validate_walkforward_strategy_output,
-    walkforward_support_matrix,
-)
-from .optimization import (
-    CONSTRAINTS_USER_ATTR,
-    ArbitrageGenericEvaluator,
-    ArbitrageTrialOutput,
-    CandidateSelector,
-    GenericEndpointEvaluator,
-    GridDCAGenericEvaluator,
-    GridDCATrialOutput,
-    JsonlOptimizationLogger,
-    MissingOptimizationMetricError,
-    MultiSeedOptimization,
-    ObjectiveResult,
-    OptionPackageGenericEvaluator,
-    OptionTrialOutput,
-    OptimizationConfig,
-    OptimizationResult,
-    OptimizationTrialRecord,
-    OptunaOptimizer,
-    PreparedIntrabarEvaluator,
-    PreparedNativeEventStrategyEvaluator,
-    PreparedPortfolioEvaluator,
-    PreparedSignalEvaluator,
-    ReportMetricObjective,
-    RobustSelectionConfig,
-    SamplerConfig,
-    SearchSpaceInfo,
-    SelectedCandidate,
-    SharpeObjective,
-    SingleObjectiveEarlyStopping,
-    TrialEvaluator,
-    build_grid_search_space,
-    build_sampler,
-    constraints_feasible,
-    constraints_from_trial,
-    max_drawdown_constraint,
-    max_margin_utilization_constraint,
-    max_rejection_rate_constraint,
-    max_turnover_constraint,
-    metric_from_result,
-    metrics_from_result,
-    min_trades_constraint,
-    result_full_report,
-    search_space_info,
-    set_trial_constraints,
-    stable_params_key,
-    suggest_parameter,
-    suggest_params,
 )
 from .engines import BacktestEngineV2, EventDrivenBacktestEngine, OptionBacktestEngine, PortfolioBacktestEngine
 from .backends   import (
@@ -445,23 +496,6 @@ from .metrics import (
     option_run_manifest,
 )
 
-from .viz import quick_plot, tearsheet, apply_theme
-from .reporting import (
-    build_arbitrage_domain_audit,
-    build_native_nautilus_parity_report,
-    build_nautilus_certification_profile,
-    build_nautilus_depth_execution_report,
-    build_nautilus_depth_parity_summary,
-    build_nautilus_pct_equity_diagnostic,
-    build_portfolio_domain_audit,
-    build_portfolio_nautilus_position_report,
-    build_portfolio_nautilus_validation_report,
-    compare_native_arbitrage_results,
-    export_nautilus_report_bundle,
-    NautilusToleranceProfile,
-    summarize_native_nautilus_parity_report,
-    write_nautilus_certification_artifacts,
-)
 
 __version__ = "0.1.0"
 __author__  = "quantbt"

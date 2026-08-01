@@ -31,12 +31,6 @@ except Exception:  # pragma: no cover - optional dependency guard
 
 _NUMBA_AVAILABLE = njit is not None
 
-try:  # optional at import time; required only when optimization runs
-    import optuna as _optuna
-except Exception:  # pragma: no cover - optional dependency guard
-    _optuna = None
-
-
 StrategyOutput = Union[pd.Series, pd.DataFrame, Dict[str, pd.Series]]
 
 
@@ -379,12 +373,10 @@ class EarlyStoppingCallback(_OptimizationEarlyStopping):
         self.early_stopping_rounds = int(early_stopping_rounds)
 
 
-class DuplicatePruner(_optuna.pruners.BasePruner if _optuna is not None else object):
+class DuplicatePruner:
     """Optuna pruner that avoids running duplicate parameter sets."""
 
     def __init__(self):
-        if _optuna is None:  # pragma: no cover - dependency guard
-            raise ImportError("DuplicatePruner requires optuna")
         self.trial_params = set()
 
     def prune(self, study, trial) -> bool:

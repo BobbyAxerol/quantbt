@@ -9486,6 +9486,8 @@ Acceptance and debt:
 
 ### Phase 46C - Import Graph, Core Dependencies, And RSS Floor
 
+Status: **implemented locally; import, public-API, mirror, metadata, and fresh-process RSS gates pass**.
+
 Detailed guide sections:
 
 - Guide section `5`, subsections `5.1` to `5.4`, section `13.1`, and Patch
@@ -9511,6 +9513,43 @@ Implementation:
 - Keep the root mirror and SHA256 sync guard during this phase. Do not turn
   lazy import work into an unreviewed source deletion.
 
+Implementation completed:
+
+- Core `quantbt` import now resolves optional public exports through a cached
+  module-level lazy resolver. `QuantBTEndpoint`, engines, schemas, execution
+  contracts, metrics, and result types remain eager core imports.
+- `matplotlib` and `seaborn` were removed from core `project.dependencies` and
+  the corresponding `uv.lock` package metadata. They remain in `viz`/`all`;
+  Optuna, QuantStats, and Nautilus remain owned by their existing extras.
+- `walkforward.DuplicatePruner` no longer imports Optuna at module import;
+  Optuna is loaded only by the optimization execution path.
+- Top-level backend/report/viz imports were moved behind the method or lazy
+  export boundary. Existing root compatibility mirror files were synchronized
+  from `src/quantbt` and remain protected by the mirror test.
+- Added [`import_graph_and_rss_floor.md`](../docs/import_graph_and_rss_floor.md),
+  [`test_phase46c_import_graph.py`](../tests/test_phase46c_import_graph.py),
+  and [`benchmark_phase46c_import_rss.py`](../benchmarks/native_event/benchmark_phase46c_import_rss.py).
+
+Evidence:
+
+- [`phase46c_import_rss.json`](../benchmarks/native_event/phase46c_import_rss.json)
+  records a fresh `/tmp` child process with no forbidden optional modules,
+  `QuantBTEndpoint.__module__ == "quantbt.endpoint"`, 1,007 loaded modules,
+  and 188,170,240 bytes RSS after core import on the current host for the
+  saved run. RSS is allocator/environment dependent; the JSON is the exact
+  evidence for that run.
+- The focused Phase 46A/46B/46C and source-mirror suite passed with `23 passed`.
+- The complete public `quantbt.__all__` surface (351 names) resolved in the
+  full development environment. Optional names still require their declared
+  extra when installed in a core-only environment.
+- The pinned build toolchain produced
+  `quantbt_engine-0.1.0-py3-none-any.whl` and
+  `quantbt_engine-0.1.0.tar.gz`. The wheel was imported from a target
+  directory with `--no-deps`; its metadata contains only NumPy/pandas/Numba as
+  unconditional requirements and keeps optional markers for viz,
+  optimization, reports, and validation.
+- Full regression passed with `648 passed, 3 skipped`.
+
 Required tests/evidence:
 
 - `import quantbt` does not import matplotlib, seaborn, Optuna, Nautilus, or
@@ -9525,6 +9564,9 @@ Acceptance and debt:
 - Core package import must not require optional extras.
 - Any downstream import that depended on eager side effects must be fixed
   explicitly and tested; no hidden fallback import is allowed.
+- Phase 46C does not claim prepared-tape, execution, portfolio, or Rust RSS
+  improvements. Those remain Phase 46D/46E work; the measured value here is
+  the fresh core import/process floor only.
 
 ### Phase 46D - Market Ownership, Tape Memory, And Rust Hot State
 

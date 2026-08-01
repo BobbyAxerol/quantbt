@@ -74,8 +74,6 @@ from .core.structured_orders import (
 )
 from .core.types import BacktestResult
 from .engines import BacktestEngineV2, OptionBacktestEngine, PortfolioBacktestEngine
-from .metrics import full_report as _full_report
-from .reporting import build_portfolio_nautilus_validation_report
 from .sizing.modes import compute_target_units
 from .options.execution import OptionExecutionConfig
 from .options.fees import OptionFeeSchedule
@@ -85,9 +83,6 @@ from .options.cache import OptionPreparedRunCache
 from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .options.strategy import OptionStrategyRun
-from .viz import quick_plot as _quick_plot
-from .viz import tearsheet as _tearsheet
-from .walkforward import WalkForwardConfig, WalkForwardEngine
 
 
 SeriesMap = Dict[str, pd.Series]
@@ -1287,6 +1282,8 @@ class QuantBTEndpoint:
         wf_metadata = dict(optimization_config.get("metadata", {}) or {})
         wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
         if wf_config is None:
+            from .walkforward import WalkForwardConfig
+
             wf_config = WalkForwardConfig(
                 split_mode=split_mode,
                 split_frequency=split_frequency,
@@ -1626,6 +1623,8 @@ class QuantBTEndpoint:
         RuntimeError
             If no backtest has been run yet.
         """
+        from .metrics import full_report as _full_report
+
         return _full_report(self._result_for_report_scope(scope), trading_days=trading_days)
 
     def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
@@ -1643,12 +1642,16 @@ class QuantBTEndpoint:
         """
         Plot cumulative return and drawdown for the latest result.
         """
+        from .viz import quick_plot as _quick_plot
+
         return _quick_plot(self._require_result(), theme=theme, figsize=figsize, scope=scope)
 
     def tearsheet(self, theme: str = "dark", benchmark=None, scope: str = "auto"):
         """
         Render the full QuantBT tearsheet for the latest result.
         """
+        from .viz import tearsheet as _tearsheet
+
         return _tearsheet(self._require_result(), theme=theme, benchmark=benchmark, scope=scope)
 
     def export_orders(self, path: Union[str, Path]) -> None:
@@ -2443,6 +2446,8 @@ class QuantBTEndpoint:
     ):
         if self.config.strategy_class is None:
             raise ValueError("walk_forward endpoint requires strategy_class")
+        from .walkforward import WalkForwardConfig, WalkForwardEngine
+
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
         target_mode = self.config.walkforward_target_mode.lower().strip()
         scorer = (
@@ -2726,6 +2731,8 @@ class QuantBTEndpoint:
             )
             result.metadata["engine"] = "nautilus_portfolio_matrix"
             result.metadata["native_portfolio_reference_final_equity"] = float(native_reference.equity.iloc[-1])
+            from .reporting import build_portfolio_nautilus_validation_report
+
             result.metadata["portfolio_nautilus_validation_report"] = build_portfolio_nautilus_validation_report(
                 native_reference,
                 result,
