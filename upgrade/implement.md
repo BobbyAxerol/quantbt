@@ -7779,6 +7779,72 @@ Implementation status (local, 2026-08-01):
   `PreparedMarketCore`, run installed-wheel parity, and collect native RSS
   evidence before the PyO3 boundary can be certified or R3-R5 can begin.
 
+##### Phase 45B.1 - Native Evidence Gate For This Linux VPS
+
+Status: **completed: correctness evidence passes; performance gate rejects
+Rust default rollout**.
+
+Purpose:
+
+- Close the local evidence gap before Phase 45C. This is certification for the
+  current Linux x86_64 / CPython 3.12 VPS only, not a manylinux release claim.
+
+Required procedure:
+
+1. Install a minimal stable Rust toolchain with `rustfmt` and `clippy` outside
+   either Python virtual environment; pin the repository with
+   `rust-toolchain.toml`.
+2. Install `maturin` only into the QuantBT/Pool Alpha Python tool environment,
+   never by copying packages between virtual environments.
+3. Run `cargo fmt --check`, `cargo clippy -- -D warnings`, and `cargo test` in
+   `rust/native_event`.
+4. Build a release native wheel, build the core wheel from the same commit,
+   then clean-install both into an isolated CPython 3.12 virtual environment.
+5. Run the installed-wheel Python/Rust full lifecycle parity suite and the
+   fresh-process score/RSS benchmark. Archive JSON evidence locally.
+6. Compare Rust against warmed Python single-pass only; do not compare cold
+   Numba compilation. If parity or performance gates fail, keep Rust explicit
+   and fix the boundary before Phase 45C.
+
+Exit criteria:
+
+- The new Rust source compiles and passes format, lint, and unit tests on this
+  VPS.
+- Built-wheel installed R1/R2 parity tests no longer skip.
+- Prepared-market reuse is observed on the actual extension.
+- Python/Rust/replay accounting and lifecycle parity passes for the advertised
+  R2 capability matrix, with process-RSS and throughput evidence saved.
+
+Local evidence (Linux x86_64, CPython 3.12, 2026-08-01):
+
+- Installed Rust stable `1.97.1`, `rustfmt`, `clippy`, Linux C build tools, and
+  Maturin in the QuantBT virtual environment only. Neither project Python venv
+  was replaced or removed.
+- `cargo fmt --check`, `cargo clippy -- -D warnings`, and `cargo test` pass.
+  The first real compiler pass also fixed a missing NumPy trait import in the
+  PyO3 crate and strict dead-code handling in the prepared market container.
+- Built and clean-installed core plus native CPython 3.12 Linux wheel. The
+  extension imports from `site-packages`, advertises `prepared_market_core`,
+  and installed R1/R2 capability tests pass `15 passed, 1 skipped`.
+- Correctness is therefore evidenced for the advertised R2 subset only. The
+  full native-event suite must not run under `QUANTBT_NATIVE_BACKEND=rust`:
+  funding, liquidation, OCO/GTD, and multi-symbol remain explicit unsupported
+  features and must raise rather than silently fall back.
+- Performance gate **fails**: two fresh clean-wheel probes on identical warmed
+  R1 workloads place Rust at `0.69x-0.83x` Python throughput. The first probe
+  was `2.5499s` vs `1.9472s` low-order (`0.764x`) and `2.7063s` vs `1.9980s`
+  high-churn (`0.738x`); the repeat retained the direction and exact final
+  equity/fill counts. Peak RSS was also not lower (Rust `239.81/250.89 MB` vs
+  Python `238.41/245.23 MB` in the repeat). `auto` remains Python and
+  `quantbt-native` remains unpublished/experimental.
+- Root cause is now measured rather than speculative: the R2 adapter crosses
+  PyO3 once per callback bar and materializes a `PyDict` plus Python event and
+  active-order payload processing on that path. `PreparedMarketCore` removes
+  the per-trial market copy but cannot compensate for per-bar boundary churn.
+  Do not start R3-R5 on this architecture. A future Rust effort must first
+  provide a batched/compiled strategy or a compact typed step protocol and
+  demonstrate the documented speed/RSS thresholds.
+
 #### Phase 45C - Canonical Packaging And Release Readiness
 
 Read first:

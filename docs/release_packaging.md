@@ -169,3 +169,18 @@ Native publishing must wait until the Phase 44 PyO3 package exists, builds, and
 passes Python/Rust parity and the end-to-end performance/RSS gates. Native CI
 builds `quantbt-engine` and `quantbt-native` from the same ref, installs both
 wheels into a clean environment, then runs parity and RSS benchmark smoke.
+
+### Local Native Evidence Gate
+
+Phase 45B.1 ran the native evidence gate on Linux x86_64 with CPython 3.12 and
+Rust stable 1.97.1. The core and native wheels built from one commit, installed
+cleanly, and the installed R1/R2 parity suite passed for every advertised Rust
+capability. This is a correctness result, not an automatic performance claim.
+
+Repeated warmed 25,000-bar R1 workloads put the current PyO3 path at roughly
+`0.69x-0.83x` Python throughput, with no RSS reduction. The current adapter
+crosses the Python boundary once per bar and creates Python result payloads, so
+prepared market data alone cannot amortize that cost. Therefore `auto` remains
+Python and `quantbt-native` remains unpublished and experimental. A future
+native rollout requires a batched or compiled-strategy boundary and a fresh
+parity plus throughput/RSS certification run.

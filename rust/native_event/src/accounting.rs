@@ -2,7 +2,12 @@ pub fn initial_margin(position: f64, close: f64, contract_size: f64, leverage: f
     position.abs() * close * contract_size / leverage
 }
 
-pub fn maintenance_margin(position: f64, close: f64, contract_size: f64, maintenance_ratio: f64) -> f64 {
+pub fn maintenance_margin(
+    position: f64,
+    close: f64,
+    contract_size: f64,
+    maintenance_ratio: f64,
+) -> f64 {
     position.abs() * close * contract_size * maintenance_ratio
 }
 

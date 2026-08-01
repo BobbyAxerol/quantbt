@@ -4,21 +4,22 @@ use std::sync::Arc;
 use crate::accounting::{initial_margin, maintenance_margin, required_margin};
 use crate::matching::execution_price;
 use crate::types::{
-    ActiveOrder, StepResult, ACTION_AMEND, ACTION_CANCEL, ACTION_PLACE, ACTION_REPLACE, EVENT_AMEND,
-    EVENT_CANCEL, EVENT_FILL, EVENT_PLACE, EVENT_REJECT, EVENT_REPLACE, FLAG_REDUCE_ONLY, MUTATE_PRICE,
-    MUTATE_QTY, MUTATE_TRIGGER, ORDER_LIMIT, ORDER_MARKET, ORDER_STOP_LIMIT, ORDER_STOP_MARKET, SIDE_BUY,
-    SIDE_SELL, STATUS_CANCELED, STATUS_FILLED, STATUS_PENDING, STATUS_REJECTED,
+    ACTION_AMEND, ACTION_CANCEL, ACTION_PLACE, ACTION_REPLACE, ActiveOrder, EVENT_AMEND,
+    EVENT_CANCEL, EVENT_FILL, EVENT_PLACE, EVENT_REJECT, EVENT_REPLACE, FLAG_REDUCE_ONLY,
+    MUTATE_PRICE, MUTATE_QTY, MUTATE_TRIGGER, ORDER_LIMIT, ORDER_MARKET, ORDER_STOP_LIMIT,
+    ORDER_STOP_MARKET, SIDE_BUY, SIDE_SELL, STATUS_CANCELED, STATUS_FILLED, STATUS_PENDING,
+    STATUS_REJECTED, StepResult,
 };
 
 pub struct PreparedMarketData {
-    pub timestamps_ns: Vec<i64>,
-    pub opens: Vec<f64>,
+    pub _timestamps_ns: Vec<i64>,
+    pub _opens: Vec<f64>,
     pub highs: Vec<f64>,
     pub lows: Vec<f64>,
     pub closes: Vec<f64>,
-    pub volumes: Vec<f64>,
-    pub funding: Vec<f64>,
-    pub funding_mask: Vec<bool>,
+    pub _volumes: Vec<f64>,
+    pub _funding: Vec<f64>,
+    pub _funding_mask: Vec<bool>,
 }
 
 impl PreparedMarketData {
@@ -34,10 +35,27 @@ impl PreparedMarketData {
         funding_mask: Vec<bool>,
     ) -> Result<Self, String> {
         let n = closes.len();
-        if n == 0 || timestamps_ns.len() != n || opens.len() != n || highs.len() != n || lows.len() != n || volumes.len() != n || funding.len() != n || funding_mask.len() != n {
+        if n == 0
+            || timestamps_ns.len() != n
+            || opens.len() != n
+            || highs.len() != n
+            || lows.len() != n
+            || volumes.len() != n
+            || funding.len() != n
+            || funding_mask.len() != n
+        {
             return Err("all market arrays must be non-empty and share one length".to_owned());
         }
-        Ok(Self { timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask })
+        Ok(Self {
+            _timestamps_ns: timestamps_ns,
+            _opens: opens,
+            highs,
+            lows,
+            closes,
+            _volumes: volumes,
+            _funding: funding,
+            _funding_mask: funding_mask,
+        })
     }
 }
 
@@ -68,7 +86,13 @@ impl ReactiveSession {
         slippage_rate: f64,
         use_funding: bool,
     ) -> Result<Self, String> {
-        if contract_size <= 0.0 || leverage <= 0.0 || fee_rate < 0.0 || initial_capital <= 0.0 || maintenance_ratio < 0.0 || slippage_rate < 0.0 {
+        if contract_size <= 0.0
+            || leverage <= 0.0
+            || fee_rate < 0.0
+            || initial_capital <= 0.0
+            || maintenance_ratio < 0.0
+            || slippage_rate < 0.0
+        {
             return Err("invalid R1 account or execution parameter".to_owned());
         }
         if use_funding {
@@ -101,14 +125,23 @@ impl ReactiveSession {
         if bar >= self.market.closes.len() {
             return Err("bar_index is outside the prepared market tape".to_owned());
         }
-        if self.last_bar.map(|last| bar != last + 1).unwrap_or(bar != 0) {
-            return Err("ReactiveSessionCore.step must be called exactly once per consecutive bar".to_owned());
+        if self
+            .last_bar
+            .map(|last| bar != last + 1)
+            .unwrap_or(bar != 0)
+        {
+            return Err(
+                "ReactiveSessionCore.step must be called exactly once per consecutive bar"
+                    .to_owned(),
+            );
         }
         if codes.len() != command_count * 8 || values.len() != command_count * 3 {
             return Err("command batch buffer shape does not match command count".to_owned());
         }
         if bar > 0 {
-            self.equity += self.position * (self.market.closes[bar] - self.market.closes[bar - 1]) * self.contract_size;
+            self.equity += self.position
+                * (self.market.closes[bar] - self.market.closes[bar - 1])
+                * self.contract_size;
         }
         let mut fee_total = 0.0;
         let mut turnover = 0.0;
@@ -137,7 +170,11 @@ impl ReactiveSession {
                 }
                 ACTION_CANCEL => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(position) = self.active_orders.iter().position(|order| order.order_id == target) {
+                    if let Some(position) = self
+                        .active_orders
+                        .iter()
+                        .position(|order| order.order_id == target)
+                    {
                         self.active_orders.remove(position);
                         events.push(vec![EVENT_CANCEL, STATUS_FILLED, -1, code[5]]);
                     } else {
@@ -146,7 +183,11 @@ impl ReactiveSession {
                 }
                 ACTION_AMEND => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(order) = self.active_orders.iter_mut().find(|order| order.order_id == target) {
+                    if let Some(order) = self
+                        .active_orders
+                        .iter_mut()
+                        .find(|order| order.order_id == target)
+                    {
                         let mask = code[6];
                         if (mask & MUTATE_QTY) != 0 && value[0] > 0.0 {
                             order.qty = value[0];
@@ -164,7 +205,11 @@ impl ReactiveSession {
                 }
                 ACTION_REPLACE => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(position) = self.active_orders.iter().position(|order| order.order_id == target) {
+                    if let Some(position) = self
+                        .active_orders
+                        .iter()
+                        .position(|order| order.order_id == target)
+                    {
                         self.active_orders.remove(position);
                         events.push(vec![EVENT_REPLACE, STATUS_CANCELED, code[4], code[5]]);
                         let side = code[1];
@@ -195,13 +240,22 @@ impl ReactiveSession {
         let mut fills = Vec::new();
         let mut retained = Vec::with_capacity(self.active_orders.len());
         for order in self.active_orders.drain(..) {
-            let Some(price) = execution_price(&order, self.market.highs[bar], self.market.lows[bar], self.market.closes[bar], self.slippage_rate) else {
+            let Some(price) = execution_price(
+                &order,
+                self.market.highs[bar],
+                self.market.lows[bar],
+                self.market.closes[bar],
+                self.slippage_rate,
+            ) else {
                 retained.push(order);
                 continue;
             };
             let mut qty = order.qty;
             if order.reduce_only {
-                if self.position == 0.0 || (self.position > 0.0 && order.side == SIDE_BUY) || (self.position < 0.0 && order.side == SIDE_SELL) {
+                if self.position == 0.0
+                    || (self.position > 0.0 && order.side == SIDE_BUY)
+                    || (self.position < 0.0 && order.side == SIDE_SELL)
+                {
                     events.push(vec![EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1]);
                     continue;
                 }
@@ -227,25 +281,47 @@ impl ReactiveSession {
             self.position += delta;
             fee_total += fee;
             turnover += notional;
-            fills.push(vec![order.order_id as f64, order.side as f64, qty, price, fee]);
+            fills.push(vec![
+                order.order_id as f64,
+                order.side as f64,
+                qty,
+                price,
+                fee,
+            ]);
             events.push(vec![EVENT_FILL, STATUS_FILLED, order.order_id, -1]);
         }
         self.active_orders = retained;
         self.last_bar = Some(bar);
-        let initial_margin = initial_margin(self.position, self.market.closes[bar], self.contract_size, self.leverage);
-        let maintenance_margin = maintenance_margin(self.position, self.market.closes[bar], self.contract_size, self.maintenance_ratio);
+        let initial_margin = initial_margin(
+            self.position,
+            self.market.closes[bar],
+            self.contract_size,
+            self.leverage,
+        );
+        let maintenance_margin = maintenance_margin(
+            self.position,
+            self.market.closes[bar],
+            self.contract_size,
+            self.maintenance_ratio,
+        );
         let active_orders = self
             .active_orders
             .iter()
-            .map(|order| vec![
-                order.order_id as f64,
-                order.side as f64,
-                order.order_type as f64,
-                order.qty,
-                order.price,
-                order.trigger,
-                if order.reduce_only { FLAG_REDUCE_ONLY as f64 } else { 0.0 },
-            ])
+            .map(|order| {
+                vec![
+                    order.order_id as f64,
+                    order.side as f64,
+                    order.order_type as f64,
+                    order.qty,
+                    order.price,
+                    order.trigger,
+                    if order.reduce_only {
+                        FLAG_REDUCE_ONLY as f64
+                    } else {
+                        0.0
+                    },
+                ]
+            })
             .collect();
         Ok(StepResult {
             equity: self.equity,

@@ -3,9 +3,9 @@ mod matching;
 mod session;
 mod types;
 
+use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
-use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use std::sync::Arc;
 
 use session::{PreparedMarketData, ReactiveSession};
@@ -63,7 +63,9 @@ impl PreparedMarketCore {
             funding_mask.as_slice()?.to_vec(),
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner: Arc::new(market) })
+        Ok(Self {
+            inner: Arc::new(market),
+        })
     }
 }
 
@@ -81,7 +83,16 @@ impl PreparedMarketCore {
         funding: PyReadonlyArray1<'_, f64>,
         funding_mask: PyReadonlyArray1<'_, bool>,
     ) -> PyResult<Self> {
-        Self::from_arrays(timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask)
+        Self::from_arrays(
+            timestamps_ns,
+            opens,
+            highs,
+            lows,
+            closes,
+            volumes,
+            funding,
+            funding_mask,
+        )
     }
 }
 
@@ -112,7 +123,14 @@ impl ReactiveSessionCore {
         use_funding: bool,
     ) -> PyResult<Self> {
         let prepared = PreparedMarketCore::from_arrays(
-            timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask,
+            timestamps_ns,
+            opens,
+            highs,
+            lows,
+            closes,
+            volumes,
+            funding,
+            funding_mask,
         )?;
         let inner = ReactiveSession::new(
             prepared.inner,
@@ -168,13 +186,22 @@ impl ReactiveSessionCore {
         let codes_shape = command_codes.shape();
         let values_shape = command_values.shape();
         if codes_shape.len() != 2 || codes_shape[1] != types::COMMAND_CODE_WIDTH {
-            return Err(pyo3::exceptions::PyValueError::new_err("command_codes must have shape (n, 8)"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "command_codes must have shape (n, 8)",
+            ));
         }
-        if values_shape.len() != 2 || values_shape[0] != codes_shape[0] || values_shape[1] != types::COMMAND_VALUE_WIDTH {
-            return Err(pyo3::exceptions::PyValueError::new_err("command_values must have shape (n, 3)"));
+        if values_shape.len() != 2
+            || values_shape[0] != codes_shape[0]
+            || values_shape[1] != types::COMMAND_VALUE_WIDTH
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "command_values must have shape (n, 3)",
+            ));
         }
         if command_expiry.len() != codes_shape[0] {
-            return Err(pyo3::exceptions::PyValueError::new_err("command_expiry must have length n"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "command_expiry must have length n",
+            ));
         }
         let result = self
             .inner

@@ -274,6 +274,7 @@ def _run_case(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Benchmark Python or PyO3 native-event reactive session paths")
     parser.add_argument("--backend", choices=("python", "rust"), default="python")
+    parser.add_argument("--r1-only", action="store_true", help="run only the single-symbol R1-compatible comparison cases")
     args = parser.parse_args()
     os.environ["QUANTBT_NATIVE_BACKEND"] = args.backend
 
@@ -292,9 +293,14 @@ def main() -> int:
             ("r1_25k_low_orders", 25_000, R1PeriodicStrategy(every=2_000, hold=20), ("BTC",), 1, False),
             ("r1_25k_high_churn", 25_000, R1PeriodicStrategy(every=40, hold=8), ("BTC",), 1, False),
         ]
+    elif args.r1_only:
+        cases = [
+            ("r1_25k_low_orders", 25_000, R1PeriodicStrategy(every=2_000, hold=20), ("BTC",), 1, False),
+            ("r1_25k_high_churn", 25_000, R1PeriodicStrategy(every=40, hold=8), ("BTC",), 1, False),
+        ]
     results = [_run_case(*case, backend=args.backend) for case in cases]
     payload = {"benchmark": f"native_event_reactive_session_{args.backend}", "results": results}
-    suffix = "baseline" if args.backend == "python" else "r1_rust"
+    suffix = "r1_python" if args.backend == "python" and args.r1_only else ("baseline" if args.backend == "python" else "r1_rust")
     out_json = Path(__file__).with_name(f"reactive_session_{suffix}.json")
     out_md = Path(__file__).with_name(f"reactive_session_{suffix}.md")
     out_json.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
