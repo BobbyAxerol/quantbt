@@ -122,6 +122,37 @@ def test_prepared_native_event_score_reuses_market_arrays_and_keeps_endpoint_res
     assert second.metadata["prepared_native_event_strategy"]["market_signature"] == signature
 
 
+def test_prepared_native_event_score_bypasses_public_pandas_result_materialization(monkeypatch):
+    df = _bars(32)
+    endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=10_000, leverage=10, use_funding=False)
+    prepared = endpoint.prepare_native_event_strategy(data=df, symbols=["BTC"])
+
+    def fail_public_result(*args, **kwargs):
+        raise AssertionError("prepared score must not materialize BacktestResultV2/pandas")
+
+    monkeypatch.setattr(prepared.backend, "_reactive_session_result", fail_public_result)
+    score = prepared.score(TwoTradeStrategy(entry_bar=0, exit_bar=5))
+
+    assert score.metadata["score_direct_arrays"] is True
+    assert score.metadata["score_pandas_materialized"] is False
+    assert score.metadata["score_requirements"]["need_terminal_orders"] is False
+    assert score.fill_count == 2
+    assert endpoint.result is None
+
+
+def test_prepared_native_event_score_repeated_runs_release_terminal_trial_state():
+    df = _bars(64)
+    endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=10_000, leverage=10, use_funding=False)
+    prepared = endpoint.prepare_native_event_strategy(data=df, symbols=["BTC"])
+
+    for _ in range(100):
+        score = prepared.score(TwoTradeStrategy(entry_bar=0, exit_bar=5))
+        assert score.fill_count == 2
+
+    assert prepared.metadata["scores"] == 100
+    assert endpoint.result is None
+
+
 def test_prepared_native_event_strategy_evaluator_uses_score_result_contract():
     df = _bars()
     endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=10_000, leverage=10, use_funding=False)
@@ -142,8 +173,28 @@ def test_prepared_native_event_strategy_evaluator_uses_score_result_contract():
     objective = evaluator.evaluate({"entry_bar": 0, "exit_bar": 5})
 
     assert isinstance(objective, ObjectiveResult)
-    assert evaluator.last_result.metadata["engine"] == "event_v2_reactive_score"
+    assert evaluator.last_result is None
+    assert evaluator.last_strategy is None
     assert prepared.metadata["scores"] == 1
+
+
+def test_prepared_native_event_evaluator_only_retains_trial_objects_when_requested():
+    df = _bars()
+    endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=10_000, leverage=10, use_funding=False)
+    prepared = endpoint.prepare_native_event_strategy(data=df, symbols=["BTC"])
+    evaluator = PreparedNativeEventStrategyEvaluator(
+        runner=prepared,
+        strategy_factory=lambda params: TwoTradeStrategy(entry_bar=int(params["entry_bar"]), exit_bar=5),
+        objective_builder=lambda result, params: ObjectiveResult(
+            values=(float(result.metrics["sharpe"]),), metrics=result.metrics
+        ),
+        retain_last=True,
+    )
+
+    evaluator.evaluate({"entry_bar": 0})
+
+    assert evaluator.last_strategy is not None
+    assert evaluator.last_result.metadata["engine"] == "event_v2_reactive_score"
 
 
 def test_public_native_event_phase34_contract_is_available_from_quantbt():

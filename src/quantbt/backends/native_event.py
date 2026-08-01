@@ -87,7 +87,7 @@ from ..core.preprocessor import (
     prepare_funding,
     validate_datetime,
 )
-from ..core.results import BacktestResultV2
+from ..core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult
 from ..core.reactive import (
     NativeActiveOrderSnapshot,
     NativeEventStrategyError,
@@ -162,6 +162,35 @@ class NativeEventArtifactPlan:
     materialize_pandas: bool
     materialize_python_objects: bool
     materialize_active_orders: bool
+
+
+@dataclass(frozen=True, slots=True)
+class NativeEventScoreRequirements:
+    """Internal retention contract for direct prepared-score execution.
+
+    The public ``PreparedNativeEventStrategyRunner.score`` contract exposes
+    accounting arrays, so its safe default retains the paths required for an
+    exact public-audit metric comparison.  The session still honours every
+    field independently, allowing future scalar-only objectives to opt out of
+    paths without introducing a second accounting implementation.
+    """
+
+    need_equity_path: bool = True
+    need_position_path: bool = True
+    need_fee_path: bool = True
+    need_funding_path: bool = True
+    need_margin_path: bool = True
+    need_turnover_path: bool = False
+    need_rejection_path: bool = False
+    need_cancellation_path: bool = False
+    need_fill_ledger: bool = False
+    need_event_ledger: bool = False
+    need_terminal_orders: bool = False
+
+    @classmethod
+    def public_score_contract(cls) -> "NativeEventScoreRequirements":
+        """Return the compatible array set required by ``NativeEventScoreResult``."""
+        return cls()
 
 
 @dataclass(frozen=True)
@@ -352,6 +381,7 @@ class _NativeEventReactiveSession:
         slippage: float,
         use_funding: bool,
         retain_terminal_orders: bool = True,
+        score_requirements: Optional[NativeEventScoreRequirements] = None,
     ) -> None:
         self.idx = idx
         self.symbols = symbols
@@ -370,6 +400,13 @@ class _NativeEventReactiveSession:
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
         self.retain_terminal_orders = bool(retain_terminal_orders)
+        self.score_requirements = score_requirements
+        self.retain_fill_ledger = bool(
+            score_requirements is None or score_requirements.need_fill_ledger
+        )
+        self.retain_event_ledger = bool(
+            score_requirements is None or score_requirements.need_event_ledger
+        )
 
         self.current_pos = np.zeros(len(symbols), dtype=np.float64)
         self.equity = float(initial_capital)
@@ -385,6 +422,10 @@ class _NativeEventReactiveSession:
         self.events_by_bar: Dict[int, List[NativeOrderEvent]] = {}
         self.fills: List[NativeFillEvent] = []
         self.events: List[NativeOrderEvent] = []
+        self.fill_count = 0
+        self.event_count = 0
+        self.rejected_count = 0
+        self.canceled_count = 0
         self.children_by_parent_id: Dict[str, List[_ReactiveOrderState]] = {}
         self.members_by_oco_group: Dict[str, List[_ReactiveOrderState]] = {}
         self.expiry_by_bar: Dict[int, List[_ReactiveOrderState]] = {}
@@ -405,15 +446,16 @@ class _NativeEventReactiveSession:
         self._active_snapshot_dirty = True
         n_bars = len(idx)
         n_syms = len(symbols)
-        self.equity_path = np.zeros(n_bars, dtype=np.float64)
-        self.pos_path = np.zeros((n_bars, n_syms), dtype=np.float64)
-        self.fee_path = np.zeros(n_bars, dtype=np.float64)
-        self.turnover_path = np.zeros(n_bars, dtype=np.float64)
-        self.funding_path = np.zeros(n_bars, dtype=np.float64)
-        self.initial_margin_path = np.zeros(n_bars, dtype=np.float64)
-        self.maintenance_margin_path = np.zeros(n_bars, dtype=np.float64)
-        self.rejected_bar = np.zeros(n_bars, dtype=np.int64)
-        self.canceled_bar = np.zeros(n_bars, dtype=np.int64)
+        requirements = score_requirements
+        self.equity_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_equity_path else None
+        self.pos_path = np.zeros((n_bars, n_syms), dtype=np.float64) if requirements is None or requirements.need_position_path else None
+        self.fee_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_fee_path else None
+        self.turnover_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_turnover_path else None
+        self.funding_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_funding_path else None
+        self.initial_margin_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_margin_path else None
+        self.maintenance_margin_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_margin_path else None
+        self.rejected_bar = np.zeros(n_bars, dtype=np.int64) if requirements is None or requirements.need_rejection_path else None
+        self.canceled_bar = np.zeros(n_bars, dtype=np.int64) if requirements is None or requirements.need_cancellation_path else None
         self._record_bar(0)
 
     def schedule(self, bar: int, commands: Sequence[OrderCommand]) -> None:
@@ -491,7 +533,8 @@ class _NativeEventReactiveSession:
                         * self.market_arrays.funding[bar, s]
                     )
             self.equity -= funding_cost
-            self.funding_path[bar] += funding_cost
+            if self.funding_path is not None:
+                self.funding_path[bar] += funding_cost
         if bar > 0:
             _, close_mm = self._refresh_close_margin(bar)
             if close_mm > 0.0 and self.equity <= close_mm:
@@ -513,10 +556,14 @@ class _NativeEventReactiveSession:
         if bar < 0 or bar >= len(self.idx):
             return
         init_margin, maint_margin = self._refresh_close_margin(bar)
-        self.equity_path[bar] = float(self.equity)
-        self.pos_path[bar, :] = self.current_pos
-        self.initial_margin_path[bar] = float(init_margin)
-        self.maintenance_margin_path[bar] = float(maint_margin)
+        if self.equity_path is not None:
+            self.equity_path[bar] = float(self.equity)
+        if self.pos_path is not None:
+            self.pos_path[bar, :] = self.current_pos
+        if self.initial_margin_path is not None:
+            self.initial_margin_path[bar] = float(init_margin)
+        if self.maintenance_margin_path is not None:
+            self.maintenance_margin_path[bar] = float(maint_margin)
 
     def _apply_command(self, bar: int, command: OrderCommand) -> None:
         action = command.action
@@ -638,8 +685,10 @@ class _NativeEventReactiveSession:
             self.equity += delta * (close - float(exec_price)) * cs - fee_cost
             self.current_pos[state.symbol_col] += delta
             self.margin_dirty = True
-            self.fee_path[bar] += fee_cost
-            self.turnover_path[bar] += trade_notional
+            if self.fee_path is not None:
+                self.fee_path[bar] += fee_cost
+            if self.turnover_path is not None:
+                self.turnover_path[bar] += trade_notional
             state.status = ORDER_STATUS_FILLED
             fill = NativeFillEvent(
                 timestamp=self.idx[bar],
@@ -658,7 +707,9 @@ class _NativeEventReactiveSession:
                 metadata=dict(command.metadata),
             )
             self.fills_by_bar.setdefault(bar, []).append(fill)
-            self.fills.append(fill)
+            self.fill_count += 1
+            if self.retain_fill_ledger:
+                self.fills.append(fill)
             self._event(bar, command, "fill", ORDER_STATUS_FILLED)
             self._terminalize_state(state)
             self._activate_children(bar, state)
@@ -714,7 +765,9 @@ class _NativeEventReactiveSession:
         state.active = False
         state.waiting_parent = False
         state.status = ORDER_STATUS_CANCELED
-        self.canceled_bar[bar] += 1
+        self.canceled_count += 1
+        if self.canceled_bar is not None:
+            self.canceled_bar[bar] += 1
         self._event(
             bar,
             command,
@@ -736,7 +789,9 @@ class _NativeEventReactiveSession:
         related_order_id: Optional[str] = None,
     ) -> None:
         if event_name == "reject":
-            self.rejected_bar[bar] += 1
+            self.rejected_count += 1
+            if self.rejected_bar is not None:
+                self.rejected_bar[bar] += 1
         event = NativeOrderEvent(
             timestamp=self.idx[bar],
             bar=int(bar),
@@ -754,7 +809,9 @@ class _NativeEventReactiveSession:
             related_original_index=-1,
         )
         self.events_by_bar.setdefault(bar, []).append(event)
-        self.events.append(event)
+        self.event_count += 1
+        if self.retain_event_ledger:
+            self.events.append(event)
 
     def _lookup_pending(self, order_id: Optional[str]) -> Optional[_ReactiveOrderState]:
         if not order_id:
@@ -975,9 +1032,14 @@ class NativeEventBackend:
         # exposes capability metadata only, so an explicit rust request raises
         # before any execution semantics can change.
         self._backend_selection = resolve_native_event_backend()
+        # Keys use object identity in addition to the immutable market
+        # signature: open/volume are callback-visible and are not part of the
+        # OHLC/funding signature. Reuse is therefore safe only for the exact
+        # prepared arrays owned by one prepared runner.
+        self._rust_prepared_market_cores: Dict[tuple, object] = {}
 
-    @staticmethod
     def _create_reactive_session(
+        self,
         *,
         backend_selection: NativeEventBackendSelection,
         **kwargs,
@@ -989,7 +1051,14 @@ class NativeEventBackend:
         rather than silently switching domain behavior.
         """
         if backend_selection.resolved == "rust":
-            return RustReactiveSessionAdapter(**kwargs)
+            market_arrays = kwargs["market_arrays"]
+            key = (market_arrays.signature, id(kwargs["opens_arr"]), id(kwargs["volumes_arr"]))
+            kwargs["prepared_market_core"] = self._rust_prepared_market_cores.get(key)
+            session = RustReactiveSessionAdapter(**kwargs)
+            prepared_core = getattr(session, "prepared_market_core", None)
+            if prepared_core is not None:
+                self._rust_prepared_market_cores.setdefault(key, prepared_core)
+            return session
         return _NativeEventReactiveSession(**kwargs)
 
     def _backend_selection_metadata(self) -> dict:
@@ -1431,7 +1500,10 @@ class NativeEventBackend:
         market_arrays: Optional[PreparedMarketArrays] = None,
         opens_arr: Optional[np.ndarray] = None,
         volumes_arr: Optional[np.ndarray] = None,
-    ) -> BacktestResultV2:
+        _score_requirements: Optional[NativeEventScoreRequirements] = None,
+        _return_score: bool = False,
+        _trading_days: int = 365,
+    ) -> Union[BacktestResultV2, NativeEventScoreResult]:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
 
@@ -1456,6 +1528,14 @@ class NativeEventBackend:
         requested_report_level = self.config.report_level if report_level is None else report_level
         level = _normalize_native_event_report_level(requested_report_level)
         plan = _native_event_artifact_plan(level)
+        if _return_score:
+            if level != "score":
+                raise ValueError("internal direct score execution requires report_level='score'")
+            if kernel_mode != "single_pass" or execution_mode != "fast":
+                raise ValueError("internal direct score execution requires fast single_pass mode")
+            score_requirements = _score_requirements or NativeEventScoreRequirements.public_score_contract()
+        else:
+            score_requirements = None
 
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
@@ -1521,6 +1601,7 @@ class NativeEventBackend:
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
             retain_terminal_orders=level != "score",
+            score_requirements=score_requirements,
         )
 
         # Keep execution and audit tape distinct: next-bar semantics prohibit
@@ -1623,6 +1704,33 @@ class NativeEventBackend:
                 )
 
         replay_required = kernel_mode == "replay_certified" or level in {"standard", "audit"} or execution_mode == "audit"
+        if _return_score:
+            return self._reactive_session_score_result(
+                session=session,
+                symbol_list=symbol_list,
+                leverages=leverages,
+                requirements=score_requirements,
+                trading_days=_trading_days,
+                metadata={
+                    "backend": "native_event",
+                    "engine": "event_v2_reactive_score",
+                    "report_level": "score",
+                    "artifact_plan": asdict(plan),
+                    "score_requirements": asdict(score_requirements),
+                    "reactive_execution_mode": execution_mode,
+                    "reactive_kernel_mode": kernel_mode,
+                    "command_effective_phase": "next_bar",
+                    "emitted_command_count": len(emitted_audit_tape),
+                    "emitted_executable_command_count": len(emitted),
+                    "ignored_commands_after_end": int(ignored_commands_after_end),
+                    "strategy_callback_count": int(callback_count),
+                    "static_replay_available": False,
+                    "reactive_static_replay_count": 0,
+                    "reactive_session_liquidated": bool(session.liquidated),
+                    "reactive_session_liquidation_bar": int(session.liquidation_bar),
+                    **self._backend_selection_metadata(),
+                },
+            )
         replay_result = None
         if replay_required:
             replay_result = self.run_order_commands(
@@ -1703,6 +1811,34 @@ class NativeEventBackend:
                 },
             }
         return final_result
+
+    def run_strategy_score(
+        self,
+        *args,
+        trading_days: int = 365,
+        score_requirements: Optional[NativeEventScoreRequirements] = None,
+        **kwargs,
+    ) -> NativeEventScoreResult:
+        """Execute a prepared reactive score without pandas/result materialization.
+
+        This is an internal prepared-runner path. Public ``run_strategy`` keeps
+        returning ``BacktestResultV2`` for every report level, including
+        ``score``; callers that need an audit trace must use that public path.
+        """
+        kwargs.update(
+            {
+                "reactive_kernel_mode": "single_pass",
+                "report_level": "score",
+                "audit_sink": "none",
+                "_score_requirements": score_requirements,
+                "_return_score": True,
+                "_trading_days": int(trading_days),
+            }
+        )
+        result = self.run_strategy(*args, **kwargs)
+        if not isinstance(result, NativeEventScoreResult):  # pragma: no cover - protects the internal contract.
+            raise TypeError("native-event direct score did not return NativeEventScoreResult")
+        return result
 
     def run_orders(
         self,
@@ -2043,6 +2179,92 @@ class NativeEventBackend:
             else:
                 out.append(command)
         return tuple(out), {"changed_count": changed, "dropped_count": len(dropped), "dropped_orders": dropped}
+
+    @staticmethod
+    def _reactive_session_score_result(
+        *,
+        session,
+        symbol_list: List[str],
+        leverages: np.ndarray,
+        requirements: NativeEventScoreRequirements,
+        trading_days: int,
+        metadata: Dict[str, object],
+    ) -> NativeEventScoreResult:
+        """Build direct score arrays from session state without pandas objects."""
+        required = {
+            "equity_path": session.equity_path,
+            "pos_path": session.pos_path,
+            "fee_path": session.fee_path,
+            "funding_path": session.funding_path,
+            "initial_margin_path": session.initial_margin_path,
+            "maintenance_margin_path": session.maintenance_margin_path,
+        }
+        missing = [name for name, value in required.items() if value is None]
+        if missing:
+            raise RuntimeError(
+                "NativeEventScoreResult requires accounting paths; missing " + ", ".join(missing)
+            )
+
+        equity = required["equity_path"]
+        returns = np.zeros_like(equity)
+        if len(equity) > 1:
+            with np.errstate(divide="ignore", invalid="ignore"):
+                returns[1:] = equity[1:] / equity[:-1] - 1.0
+            returns[~np.isfinite(returns)] = 0.0
+        accounting = NativeAccountingArrays(
+            timestamps=np.ascontiguousarray(session.idx.asi8, dtype=np.int64),
+            equity=equity,
+            returns=returns,
+            positions=required["pos_path"],
+            fees=required["fee_path"],
+            funding=required["funding_path"],
+            initial_margin=required["initial_margin_path"],
+            maintenance_margin=required["maintenance_margin_path"],
+            symbols=tuple(symbol_list),
+            initial_capital=float(session.initial_capital),
+            leverage=float(np.mean(leverages)),
+            liquidated=bool(session.liquidated),
+            liquidation_bar=int(session.liquidation_bar),
+        )
+        from ..metrics.performance import compute_performance_metrics
+
+        counters = {
+            "fill_count": int(session.fill_count),
+            "event_count": int(session.event_count),
+            "rejected_count": int(session.rejected_count),
+            "canceled_count": int(session.canceled_count),
+            "filled_command_count": int(session.fill_count),
+            "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
+            "expired_event_count": int(sum(1 for event in session.events if event.event_name == "expire")),
+        }
+        score_metadata = {
+            **metadata,
+            "lifecycle_counters": counters,
+            "score_direct_arrays": True,
+            "score_pandas_materialized": False,
+            "score_requirements": asdict(requirements),
+        }
+        metrics = compute_performance_metrics(
+            timestamps=session.idx,
+            equity=accounting.equity,
+            returns=accounting.returns,
+            positions=accounting.positions,
+            symbols=accounting.symbols,
+            initial_capital=accounting.initial_capital,
+            liquidated=bool(session.liquidated),
+            trading_days=int(trading_days),
+        )
+        return NativeEventScoreResult(
+            accounting=accounting,
+            final_positions=accounting.positions[-1].copy(),
+            fill_count=counters["fill_count"],
+            rejection_count=counters["rejected_count"],
+            cancellation_count=counters["canceled_count"],
+            liquidated=bool(session.liquidated),
+            liquidation_bar=int(session.liquidation_bar),
+            metrics=metrics,
+            metadata=score_metadata,
+        )
 
     def _reactive_session_result(
         self,

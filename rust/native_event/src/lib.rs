@@ -4,10 +4,11 @@ mod session;
 mod types;
 
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyType};
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
+use std::sync::Arc;
 
-use session::ReactiveSession;
+use session::{PreparedMarketData, ReactiveSession};
 
 const VERSION: &str = "0.3.0";
 const API_VERSION: &str = "0.3";
@@ -30,7 +31,58 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("r1_single_symbol", true)?;
     values.set_item("r1_place_cancel_market_limit_gtc", true)?;
     values.set_item("r2_stop_amend_replace_reduce_only_constraints", true)?;
+    values.set_item("prepared_market_core", true)?;
     Ok(values)
+}
+
+#[pyclass]
+struct PreparedMarketCore {
+    inner: Arc<PreparedMarketData>,
+}
+
+impl PreparedMarketCore {
+    #[allow(clippy::too_many_arguments)]
+    fn from_arrays(
+        timestamps_ns: PyReadonlyArray1<'_, i64>,
+        opens: PyReadonlyArray1<'_, f64>,
+        highs: PyReadonlyArray1<'_, f64>,
+        lows: PyReadonlyArray1<'_, f64>,
+        closes: PyReadonlyArray1<'_, f64>,
+        volumes: PyReadonlyArray1<'_, f64>,
+        funding: PyReadonlyArray1<'_, f64>,
+        funding_mask: PyReadonlyArray1<'_, bool>,
+    ) -> PyResult<Self> {
+        let market = PreparedMarketData::new(
+            timestamps_ns.as_slice()?.to_vec(),
+            opens.as_slice()?.to_vec(),
+            highs.as_slice()?.to_vec(),
+            lows.as_slice()?.to_vec(),
+            closes.as_slice()?.to_vec(),
+            volumes.as_slice()?.to_vec(),
+            funding.as_slice()?.to_vec(),
+            funding_mask.as_slice()?.to_vec(),
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner: Arc::new(market) })
+    }
+}
+
+#[pymethods]
+impl PreparedMarketCore {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        timestamps_ns: PyReadonlyArray1<'_, i64>,
+        opens: PyReadonlyArray1<'_, f64>,
+        highs: PyReadonlyArray1<'_, f64>,
+        lows: PyReadonlyArray1<'_, f64>,
+        closes: PyReadonlyArray1<'_, f64>,
+        volumes: PyReadonlyArray1<'_, f64>,
+        funding: PyReadonlyArray1<'_, f64>,
+        funding_mask: PyReadonlyArray1<'_, bool>,
+    ) -> PyResult<Self> {
+        Self::from_arrays(timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask)
+    }
 }
 
 #[pyclass]
@@ -59,15 +111,40 @@ impl ReactiveSessionCore {
         slippage_rate: f64,
         use_funding: bool,
     ) -> PyResult<Self> {
+        let prepared = PreparedMarketCore::from_arrays(
+            timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask,
+        )?;
         let inner = ReactiveSession::new(
-            timestamps_ns.as_slice()?.to_vec(),
-            opens.as_slice()?.to_vec(),
-            highs.as_slice()?.to_vec(),
-            lows.as_slice()?.to_vec(),
-            closes.as_slice()?.to_vec(),
-            volumes.as_slice()?.to_vec(),
-            funding.as_slice()?.to_vec(),
-            funding_mask.as_slice()?.to_vec(),
+            prepared.inner,
+            contract_size,
+            leverage,
+            fee_rate,
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    #[classmethod]
+    #[allow(clippy::too_many_arguments)]
+    fn from_prepared(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<PreparedMarketCore>,
+        contract_size: f64,
+        leverage: f64,
+        fee_rate: f64,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let inner = ReactiveSession::new(
+            market,
             contract_size,
             leverage,
             fee_rate,
@@ -129,6 +206,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(api_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
+    module.add_class::<PreparedMarketCore>()?;
     module.add_class::<ReactiveSessionCore>()?;
     Ok(())
 }

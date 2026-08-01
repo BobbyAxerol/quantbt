@@ -7,7 +7,7 @@ future Rust slice has passed lifecycle and accounting parity certification.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 import importlib
 import os
 from types import ModuleType
@@ -75,6 +75,23 @@ class RustCommandBatch:
     values: np.ndarray
     expiry: np.ndarray
     commands: tuple[OrderCommand, ...]
+
+
+@dataclass
+class RustCommandBuffer:
+    """Capacity-managed primitive buffers reused across Rust callback bars."""
+
+    codes: np.ndarray = field(default_factory=lambda: np.empty((0, _R1_CODE_WIDTH), dtype=np.int64))
+    values: np.ndarray = field(default_factory=lambda: np.empty((0, _R1_VALUE_WIDTH), dtype=np.float64))
+    expiry: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+
+    def reserve(self, size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if size > len(self.codes):
+            capacity = max(int(size), max(8, len(self.codes) * 2))
+            self.codes = np.empty((capacity, _R1_CODE_WIDTH), dtype=np.int64)
+            self.values = np.empty((capacity, _R1_VALUE_WIDTH), dtype=np.float64)
+            self.expiry = np.empty(capacity, dtype=np.int64)
+        return self.codes[:size], self.values[:size], self.expiry[:size]
 
 
 @dataclass(frozen=True)
@@ -237,6 +254,7 @@ def compile_rust_r1_command_batch(
     *,
     symbol: str,
     intern_id: Callable[[Optional[str]], int],
+    buffer: Optional[RustCommandBuffer] = None,
 ) -> RustCommandBatch:
     """Compile the R2 lifecycle subset into contiguous primitive buffers.
 
@@ -246,9 +264,15 @@ def compile_rust_r1_command_batch(
     bar loop.
     """
     command_tuple = tuple(commands)
-    codes = np.full((len(command_tuple), _R1_CODE_WIDTH), -1, dtype=np.int64)
-    values = np.zeros((len(command_tuple), _R1_VALUE_WIDTH), dtype=np.float64)
-    expiry = np.full(len(command_tuple), -1, dtype=np.int64)
+    if buffer is None:
+        codes = np.full((len(command_tuple), _R1_CODE_WIDTH), -1, dtype=np.int64)
+        values = np.zeros((len(command_tuple), _R1_VALUE_WIDTH), dtype=np.float64)
+        expiry = np.full(len(command_tuple), -1, dtype=np.int64)
+    else:
+        codes, values, expiry = buffer.reserve(len(command_tuple))
+        codes.fill(-1)
+        values.fill(0.0)
+        expiry.fill(-1)
 
     for sequence, command in enumerate(command_tuple):
         codes[sequence, 7] = sequence
@@ -329,6 +353,8 @@ class RustReactiveSessionAdapter:
         slippage: float,
         use_funding: bool,
         retain_terminal_orders: bool = True,
+        score_requirements=None,
+        prepared_market_core=None,
     ) -> None:
         validate_rust_r1_support(
             symbols=symbols,
@@ -351,9 +377,13 @@ class RustReactiveSessionAdapter:
         self.slippage = float(slippage)
         self.use_funding = False
         self.retain_terminal_orders = bool(retain_terminal_orders)
+        self.score_requirements = score_requirements
+        self.retain_fill_ledger = bool(score_requirements is None or score_requirements.need_fill_ledger)
+        self.retain_event_ledger = bool(score_requirements is None or score_requirements.need_event_ledger)
         self._module = _require_r1_extension()
         extension_status = probe_native_event_rust_extension(module=self._module)
         self._r2_capable = bool(extension_status.capabilities.get("r2_stop_amend_replace_reduce_only_constraints", False))
+        self._prepared_market_core_capable = bool(extension_status.capabilities.get("prepared_market_core", False))
         if self.constraints.enabled and not self._r2_capable:
             raise NativeEventRustBackendError(
                 "installed _quantbt_native wheel is R1-only and cannot apply quantity constraints; rebuild/install R2 or use backend='python'"
@@ -361,11 +391,16 @@ class RustReactiveSessionAdapter:
         self._id_to_code: dict[str, int] = {}
         self._id_values: list[str] = []
         self._commands_by_id: dict[str, OrderCommand] = {}
+        self._command_buffer = RustCommandBuffer()
         self.scheduled: dict[int, list[OrderCommand]] = {}
         self.pending: list[_RustPendingOrder] = []
         self.orders: list[_RustPendingOrder] = []
         self.fills: list[NativeFillEvent] = []
         self.events: list[NativeOrderEvent] = []
+        self.fill_count = 0
+        self.event_count = 0
+        self.rejected_count = 0
+        self.canceled_count = 0
         self.fills_by_bar: dict[int, list[NativeFillEvent]] = {}
         self.events_by_bar: dict[int, list[NativeOrderEvent]] = {}
         self.current_pos = np.zeros(1, dtype=np.float64)
@@ -385,23 +420,48 @@ class RustReactiveSessionAdapter:
         self.rejected_bar = np.zeros(n_bars, dtype=np.int64)
         self.canceled_bar = np.zeros(n_bars, dtype=np.int64)
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = ()
-        self._core = self._module.ReactiveSessionCore(
-            np.ascontiguousarray(idx.asi8, dtype=np.int64),
-            np.ascontiguousarray(opens_arr[:, 0], dtype=np.float64),
-            np.ascontiguousarray(market_arrays.highs[:, 0], dtype=np.float64),
-            np.ascontiguousarray(market_arrays.lows[:, 0], dtype=np.float64),
-            np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64),
-            np.ascontiguousarray(volumes_arr[:, 0], dtype=np.float64),
-            np.zeros(n_bars, dtype=np.float64),
-            np.zeros(n_bars, dtype=np.bool_),
-            float(self.contract_sizes[0]),
-            float(self.leverages[0]),
-            float(self.fee_rates[0]),
-            float(initial_capital),
-            float(maintenance_ratio),
-            float(slippage),
-            False,
-        )
+        self.prepared_market_core = prepared_market_core
+        if self._prepared_market_core_capable and hasattr(self._module, "PreparedMarketCore"):
+            if self.prepared_market_core is None:
+                self.prepared_market_core = self._module.PreparedMarketCore(
+                    np.ascontiguousarray(idx.asi8, dtype=np.int64),
+                    np.ascontiguousarray(opens_arr[:, 0], dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.highs[:, 0], dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.lows[:, 0], dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64),
+                    np.ascontiguousarray(volumes_arr[:, 0], dtype=np.float64),
+                    np.zeros(n_bars, dtype=np.float64),
+                    np.zeros(n_bars, dtype=np.bool_),
+                )
+            self._core = self._module.ReactiveSessionCore.from_prepared(
+                self.prepared_market_core,
+                float(self.contract_sizes[0]),
+                float(self.leverages[0]),
+                float(self.fee_rates[0]),
+                float(initial_capital),
+                float(maintenance_ratio),
+                float(slippage),
+                False,
+            )
+        else:
+            self.prepared_market_core = None
+            self._core = self._module.ReactiveSessionCore(
+                np.ascontiguousarray(idx.asi8, dtype=np.int64),
+                np.ascontiguousarray(opens_arr[:, 0], dtype=np.float64),
+                np.ascontiguousarray(market_arrays.highs[:, 0], dtype=np.float64),
+                np.ascontiguousarray(market_arrays.lows[:, 0], dtype=np.float64),
+                np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64),
+                np.ascontiguousarray(volumes_arr[:, 0], dtype=np.float64),
+                np.zeros(n_bars, dtype=np.float64),
+                np.zeros(n_bars, dtype=np.bool_),
+                float(self.contract_sizes[0]),
+                float(self.leverages[0]),
+                float(self.fee_rates[0]),
+                float(initial_capital),
+                float(maintenance_ratio),
+                float(slippage),
+                False,
+            )
         self.size_helper = self._size_order
 
     def _intern_id(self, value: Optional[str]) -> int:
@@ -491,6 +551,7 @@ class RustReactiveSessionAdapter:
                 commands,
                 symbol=self.symbols[0],
                 intern_id=self._intern_id,
+                buffer=self._command_buffer,
             )
             for command in batch.commands:
                 if command.order_id:
@@ -524,7 +585,9 @@ class RustReactiveSessionAdapter:
                 metadata={} if command is None else dict(command.metadata),
             )
             fills.append(fill)
-            self.fills.append(fill)
+            self.fill_count += 1
+            if self.retain_fill_ledger:
+                self.fills.append(fill)
         if fills:
             self.fills_by_bar[bar] = fills
         events = []
@@ -534,8 +597,10 @@ class RustReactiveSessionAdapter:
             )
             if name == "reject":
                 self.rejected_bar[bar] += 1
+                self.rejected_count += 1
             if name == "cancel":
                 self.canceled_bar[bar] += 1
+                self.canceled_count += 1
             event = NativeOrderEvent(
                 timestamp=self.idx[bar],
                 bar=bar,
@@ -545,7 +610,9 @@ class RustReactiveSessionAdapter:
                 target_order_id=self._id_from_code(int(target_code)),
             )
             events.append(event)
-            self.events.append(event)
+            self.event_count += 1
+            if self.retain_event_ledger:
+                self.events.append(event)
         if events:
             self.events_by_bar[bar] = events
         pending = []
@@ -621,6 +688,7 @@ __all__ = [
     "NativeEventRustExtensionStatus",
     "RUST_NATIVE_API_VERSION",
     "RustCommandBatch",
+    "RustCommandBuffer",
     "RustReactiveSessionAdapter",
     "compile_rust_r1_command_batch",
     "probe_native_event_rust_extension",

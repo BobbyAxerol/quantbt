@@ -7752,6 +7752,33 @@ Exit criteria:
 - If the Rust boundary fails the speed/RSS gate, freeze it as experimental and
   do not start R3-R5.
 
+Implementation status (local, 2026-08-01):
+
+- Prepared `.score(...)` now calls the internal direct score route. It builds
+  `NativeAccountingArrays` from the completed reactive session and computes
+  metrics through the existing array-first performance contract; it does not
+  build `BacktestResultV2`, pandas Series, or DataFrames first.
+- `NativeEventScoreRequirements` controls session path retention internally.
+  The compatible public score contract retains accounting arrays needed for
+  exact audit metrics, while fill/event/terminal-order ledgers and endpoint
+  result retention are disabled by default. Evaluators also stop retaining the
+  last strategy/result unless `retain_last=True` is explicitly requested.
+- Added a capacity-managed Rust command buffer and a `PreparedMarketCore`
+  PyO3 design. A prepared runner caches that immutable core by exact prepared
+  array identity, so a capable native wheel copies market arrays once instead
+  of once per score trial. Older R2 wheels retain their explicit compatible
+  fallback path; `auto` remains Python.
+- Added fresh-process RSS benchmark `run_phase45b_native_event_score_rss.py`
+  and a CI gate requiring score/audit final-equity parity, score throughput
+  improvement, and score RSS no higher than audit. Local 1,000-bar/100-run
+  evidence: score `7.3839s`, `285.23 MB`; audit `10.0324s`, `335.11 MB`;
+  final-equity parity exact to `1e-12`.
+- Local native/lifecycle/PyO3/source-sync regression remains green. Rust code
+  is intentionally not certified locally because this workstation has no
+  `cargo`, `rustc`, or `maturin`; the feature-ref CI must compile the new
+  `PreparedMarketCore`, run installed-wheel parity, and collect native RSS
+  evidence before the PyO3 boundary can be certified or R3-R5 can begin.
+
 #### Phase 45C - Canonical Packaging And Release Readiness
 
 Read first:

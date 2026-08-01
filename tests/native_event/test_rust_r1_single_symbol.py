@@ -11,6 +11,7 @@ import pytest
 from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, TimeInForce
 from quantbt.backends._native_event_rust import (
     NativeEventRustBackendError,
+    RustCommandBuffer,
     compile_rust_r1_command_batch,
     validate_rust_r1_support,
 )
@@ -88,6 +89,26 @@ def test_rust_r1_compiles_contiguous_place_cancel_buffers() -> None:
     assert batch.values.shape == (2, 3)
     np.testing.assert_array_equal(batch.codes[:, 0], np.array([0, 1], dtype=np.int64))
     np.testing.assert_allclose(batch.values[0], np.array([1.25, 99.5, 0.0]))
+
+
+def test_rust_r2_reuses_capacity_managed_command_buffers() -> None:
+    df = bars(4)
+    command = OrderCommand(
+        timestamp=df.index[0],
+        symbol="BTC",
+        side=OrderSide.BUY,
+        order_type=OrderType.MARKET,
+        qty=1.0,
+        tif=TimeInForce.GTC,
+        order_id="reuse",
+    )
+    buffer = RustCommandBuffer()
+    first = compile_rust_r1_command_batch((command,), symbol="BTC", intern_id=_interner(), buffer=buffer)
+    second = compile_rust_r1_command_batch((command,), symbol="BTC", intern_id=_interner(), buffer=buffer)
+
+    assert np.shares_memory(first.codes, second.codes)
+    assert second.codes.flags.c_contiguous
+    assert second.values.flags.c_contiguous
 
 
 def test_rust_r1_rejects_features_not_in_certified_scope() -> None:

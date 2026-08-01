@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::accounting::{initial_margin, maintenance_margin, required_margin};
 use crate::matching::execution_price;
@@ -9,15 +10,39 @@ use crate::types::{
     SIDE_SELL, STATUS_CANCELED, STATUS_FILLED, STATUS_PENDING, STATUS_REJECTED,
 };
 
+pub struct PreparedMarketData {
+    pub timestamps_ns: Vec<i64>,
+    pub opens: Vec<f64>,
+    pub highs: Vec<f64>,
+    pub lows: Vec<f64>,
+    pub closes: Vec<f64>,
+    pub volumes: Vec<f64>,
+    pub funding: Vec<f64>,
+    pub funding_mask: Vec<bool>,
+}
+
+impl PreparedMarketData {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        timestamps_ns: Vec<i64>,
+        opens: Vec<f64>,
+        highs: Vec<f64>,
+        lows: Vec<f64>,
+        closes: Vec<f64>,
+        volumes: Vec<f64>,
+        funding: Vec<f64>,
+        funding_mask: Vec<bool>,
+    ) -> Result<Self, String> {
+        let n = closes.len();
+        if n == 0 || timestamps_ns.len() != n || opens.len() != n || highs.len() != n || lows.len() != n || volumes.len() != n || funding.len() != n || funding_mask.len() != n {
+            return Err("all market arrays must be non-empty and share one length".to_owned());
+        }
+        Ok(Self { timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask })
+    }
+}
+
 pub struct ReactiveSession {
-    _timestamps_ns: Vec<i64>,
-    _opens: Vec<f64>,
-    highs: Vec<f64>,
-    lows: Vec<f64>,
-    closes: Vec<f64>,
-    _volumes: Vec<f64>,
-    _funding: Vec<f64>,
-    _funding_mask: Vec<bool>,
+    market: Arc<PreparedMarketData>,
     contract_size: f64,
     leverage: f64,
     fee_rate: f64,
@@ -34,14 +59,7 @@ pub struct ReactiveSession {
 impl ReactiveSession {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        timestamps_ns: Vec<i64>,
-        opens: Vec<f64>,
-        highs: Vec<f64>,
-        lows: Vec<f64>,
-        closes: Vec<f64>,
-        volumes: Vec<f64>,
-        funding: Vec<f64>,
-        funding_mask: Vec<bool>,
+        market: Arc<PreparedMarketData>,
         contract_size: f64,
         leverage: f64,
         fee_rate: f64,
@@ -50,10 +68,6 @@ impl ReactiveSession {
         slippage_rate: f64,
         use_funding: bool,
     ) -> Result<Self, String> {
-        let n = closes.len();
-        if n == 0 || timestamps_ns.len() != n || opens.len() != n || highs.len() != n || lows.len() != n || volumes.len() != n || funding.len() != n || funding_mask.len() != n {
-            return Err("all market arrays must be non-empty and share one length".to_owned());
-        }
         if contract_size <= 0.0 || leverage <= 0.0 || fee_rate < 0.0 || initial_capital <= 0.0 || maintenance_ratio < 0.0 || slippage_rate < 0.0 {
             return Err("invalid R1 account or execution parameter".to_owned());
         }
@@ -61,14 +75,7 @@ impl ReactiveSession {
             return Err("Rust R1 does not support funding".to_owned());
         }
         Ok(Self {
-            _timestamps_ns: timestamps_ns,
-            _opens: opens,
-            highs,
-            lows,
-            closes,
-            _volumes: volumes,
-            _funding: funding,
-            _funding_mask: funding_mask,
+            market,
             contract_size,
             leverage,
             fee_rate,
@@ -91,7 +98,7 @@ impl ReactiveSession {
         _expiry: &[i64],
         command_count: usize,
     ) -> Result<StepResult, String> {
-        if bar >= self.closes.len() {
+        if bar >= self.market.closes.len() {
             return Err("bar_index is outside the prepared market tape".to_owned());
         }
         if self.last_bar.map(|last| bar != last + 1).unwrap_or(bar != 0) {
@@ -101,7 +108,7 @@ impl ReactiveSession {
             return Err("command batch buffer shape does not match command count".to_owned());
         }
         if bar > 0 {
-            self.equity += self.position * (self.closes[bar] - self.closes[bar - 1]) * self.contract_size;
+            self.equity += self.position * (self.market.closes[bar] - self.market.closes[bar - 1]) * self.contract_size;
         }
         let mut fee_total = 0.0;
         let mut turnover = 0.0;
@@ -188,7 +195,7 @@ impl ReactiveSession {
         let mut fills = Vec::new();
         let mut retained = Vec::with_capacity(self.active_orders.len());
         for order in self.active_orders.drain(..) {
-            let Some(price) = execution_price(&order, self.highs[bar], self.lows[bar], self.closes[bar], self.slippage_rate) else {
+            let Some(price) = execution_price(&order, self.market.highs[bar], self.market.lows[bar], self.market.closes[bar], self.slippage_rate) else {
                 retained.push(order);
                 continue;
             };
@@ -206,7 +213,7 @@ impl ReactiveSession {
             let (required, current_margin) = required_margin(
                 self.position,
                 delta,
-                self.closes[bar],
+                self.market.closes[bar],
                 price,
                 self.contract_size,
                 self.leverage,
@@ -216,7 +223,7 @@ impl ReactiveSession {
                 events.push(vec![EVENT_REJECT, STATUS_REJECTED, order.order_id, -1]);
                 continue;
             }
-            self.equity += delta * (self.closes[bar] - price) * self.contract_size - fee;
+            self.equity += delta * (self.market.closes[bar] - price) * self.contract_size - fee;
             self.position += delta;
             fee_total += fee;
             turnover += notional;
@@ -225,8 +232,8 @@ impl ReactiveSession {
         }
         self.active_orders = retained;
         self.last_bar = Some(bar);
-        let initial_margin = initial_margin(self.position, self.closes[bar], self.contract_size, self.leverage);
-        let maintenance_margin = maintenance_margin(self.position, self.closes[bar], self.contract_size, self.maintenance_ratio);
+        let initial_margin = initial_margin(self.position, self.market.closes[bar], self.contract_size, self.leverage);
+        let maintenance_margin = maintenance_margin(self.position, self.market.closes[bar], self.contract_size, self.maintenance_ratio);
         let active_orders = self
             .active_orders
             .iter()

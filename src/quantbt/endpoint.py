@@ -58,7 +58,7 @@ from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
-from .core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult, OptionBacktestResult
+from .core.results import BacktestResultV2, NativeEventScoreResult, OptionBacktestResult
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -372,7 +372,7 @@ class PreparedNativeEventStrategyRunner:
         if strategy is None:
             raise ValueError("prepared native-event score requires strategy=...")
         config = self.endpoint.config
-        result = self.backend.run_strategy(
+        score = self.backend.run_strategy_score(
             datetime_index=self.idx,
             strategy=strategy,
             closes=self.close_map,
@@ -392,37 +392,19 @@ class PreparedNativeEventStrategyRunner:
             min_qty=config.min_qty,
             min_notional=config.min_notional,
             execution_mode=config.reactive_execution_mode,
-            reactive_kernel_mode="single_pass",
-            report_level="score",
-            audit_sink="none",
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
-        )
-        accounting = NativeAccountingArrays.from_result(result)
-        counters = dict(result.metadata.get("lifecycle_counters") or {})
-        score = NativeEventScoreResult(
-            accounting=accounting,
-            final_positions=accounting.positions[-1].copy(),
-            fill_count=int(counters.get("fill_count", 0)),
-            rejection_count=int(counters.get("rejected_count", 0)),
-            cancellation_count=int(counters.get("canceled_count", 0)),
-            liquidated=bool(result.liquidated),
-            liquidation_bar=int(result.liquidation_bar),
-            metrics={},
-            metadata={
-                "backend": "native_event",
-                "engine": "event_v2_reactive_score",
-                "report_level": "score",
-                "prepared_native_event_strategy": self.metadata,
-                "lifecycle_counters": counters,
-                "artifact_plan": result.metadata.get("artifact_plan"),
-                "reactive_kernel_mode": result.metadata.get("reactive_kernel_mode"),
-                "static_replay_available": result.metadata.get("static_replay_available"),
-            },
+            trading_days=trading_days,
         )
         object.__setattr__(self, "scores", self.scores + 1)
-        return replace(score, metrics=score.full_report(trading_days=trading_days))
+        return replace(
+            score,
+            metadata={
+                **dict(score.metadata),
+                "prepared_native_event_strategy": self.metadata,
+            },
+        )
 
     @property
     def metadata(self) -> Dict[str, object]:

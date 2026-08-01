@@ -17,6 +17,7 @@ class PreparedNativeEventStrategyEvaluator:
     strategy_factory: Callable[[Mapping[str, Any]], Any]
     objective_builder: ObjectiveBuilder
     trading_days: int = 365
+    retain_last: bool = False
 
     last_result: Any = field(default=None, init=False)
     last_strategy: Any = field(default=None, init=False)
@@ -27,6 +28,12 @@ class PreparedNativeEventStrategyEvaluator:
         objective = self.objective_builder(result, params)
         if not isinstance(objective, ObjectiveResult):
             raise TypeError("objective_builder must return ObjectiveResult")
-        self.last_strategy = strategy
-        self.last_result = result
+        if self.retain_last:
+            self.last_strategy = strategy
+            self.last_result = result
+        else:
+            # Optimization can run thousands of trials. Retaining a strategy
+            # and score result pins their arrays until the evaluator dies.
+            self.last_strategy = None
+            self.last_result = None
         return objective
