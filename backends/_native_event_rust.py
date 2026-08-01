@@ -1,8 +1,9 @@
-"""Optional PyO3 capability probe for the native-event accelerator.
+"""Optional PyO3 adapter for the certified native-event Rust slices.
 
-Phase 44A deliberately keeps this module free of matching or accounting
-logic.  The Python/Numba implementation remains the execution backend until a
-future Rust slice has passed lifecycle and accounting parity certification.
+Python remains the full-featured reactive implementation. Rust is explicit and
+capability-gated for the certified single-symbol batched tape contract; audit
+buffers are adapted back to the common Python result surface outside the score
+hot path.
 """
 
 from __future__ import annotations
@@ -128,6 +129,180 @@ class RustBatchedAuditResult:
     max_initial_margin: float
     max_maintenance_margin: float
     metadata: Mapping[str, object] = field(default_factory=dict)
+    id_values: tuple[str, ...] = ()
+
+    @property
+    def final_equity(self) -> float:
+        """Final equity without materializing a second result object."""
+
+        return float(self.equity[-1]) if len(self.equity) else 0.0
+
+    @property
+    def final_position(self) -> float:
+        """Final single-symbol position from the audit path."""
+
+        return float(self.positions[-1]) if len(self.positions) else 0.0
+
+    def to_backtest_result(
+        self,
+        *,
+        datetime_index: pd.DatetimeIndex,
+        closes: pd.Series | pd.DataFrame,
+        symbol: str,
+        initial_capital: float,
+        leverage: float = 1.0,
+        metadata: Optional[Mapping[str, object]] = None,
+        include_fills: bool = True,
+    ):
+        """Adapt a Rust audit into the common :class:`BacktestResultV2`.
+
+        The Rust boundary intentionally returns typed scalar/SoA data rather
+        than Python domain objects.  This adapter is the single report
+        boundary: it creates the same equity, position, fee, margin,
+        ``fills_report`` and ``order_report`` surfaces used by native-event
+        Python results.  It is an audit/report operation, not part of the
+        batched score hot path.
+        """
+
+        from ..core.results import BacktestResultV2
+        from ..core.orders import Fill
+        from ..core.schema import OrderSide
+
+        idx = pd.DatetimeIndex(datetime_index)
+        if len(idx) != len(self.equity):
+            raise ValueError("datetime_index length must match Rust audit equity path")
+        if isinstance(closes, pd.DataFrame):
+            if symbol in closes.columns:
+                close_series = closes[symbol]
+            elif f"Close_{symbol}" in closes.columns:
+                close_series = closes[f"Close_{symbol}"]
+            elif len(closes.columns) == 1:
+                close_series = closes.iloc[:, 0]
+            else:
+                raise KeyError(f"close data does not contain symbol={symbol!r}")
+        else:
+            close_series = closes
+        close_series = pd.Series(close_series, index=idx, dtype=float)
+        equity = pd.Series(np.asarray(self.equity, dtype=np.float64), index=idx, name="equity")
+        positions = pd.DataFrame(
+            {f"Position_{symbol}": np.asarray(self.positions, dtype=np.float64)},
+            index=idx,
+        )
+        fees = pd.Series(np.asarray(self.fees, dtype=np.float64), index=idx, name="fees")
+        funding = pd.Series(0.0, index=idx, name="funding")
+        margin = pd.DataFrame(
+            {
+                "initial_margin": np.asarray(self.initial_margin, dtype=np.float64),
+                "maintenance_margin": np.asarray(self.maintenance_margin, dtype=np.float64),
+            },
+            index=idx,
+        )
+        diagnostics = pd.DataFrame(
+            {
+                "turnover": np.asarray(self.turnover, dtype=np.float64),
+                "rejected_orders": np.bincount(
+                    np.asarray(self.event_bar, dtype=np.int64)[
+                        np.asarray(self.event_kind, dtype=np.int64) == 3
+                    ],
+                    minlength=len(idx),
+                ),
+                "canceled_orders": np.bincount(
+                    np.asarray(self.event_bar, dtype=np.int64)[
+                        np.asarray(self.event_kind, dtype=np.int64) == 1
+                    ],
+                    minlength=len(idx),
+                ),
+            },
+            index=idx,
+        )
+
+        id_values = tuple(self.id_values or self.metadata.get("id_values", ()))
+
+        def order_id(code: int) -> Optional[str]:
+            return id_values[int(code)] if 0 <= int(code) < len(id_values) else None
+
+        fills_report = pd.DataFrame(
+            {
+                "bar": np.asarray(self.fill_bar, dtype=np.int64),
+                "timestamp": [idx[int(bar)] for bar in self.fill_bar],
+                "order_id": [order_id(code) for code in self.fill_order_id],
+                "side": ["BUY" if int(side) > 0 else "SELL" for side in self.fill_side],
+                "qty": np.asarray(self.fill_qty, dtype=np.float64),
+                "price": np.asarray(self.fill_price, dtype=np.float64),
+                "fee": np.asarray(self.fill_fee, dtype=np.float64),
+                "symbol": symbol,
+            }
+        )
+        order_report = pd.DataFrame(
+            {
+                "bar": np.asarray(self.event_bar, dtype=np.int64),
+                "timestamp": [idx[int(bar)] for bar in self.event_bar],
+                "event_kind": np.asarray(self.event_kind, dtype=np.int64),
+                "event_status": np.asarray(self.event_status, dtype=np.int64),
+                "order_id": [order_id(code) for code in self.event_order_id],
+                "target_order_id": [order_id(code) for code in self.event_target_id],
+                "symbol": symbol,
+            }
+        )
+        fill_objects = ()
+        if include_fills:
+            fill_objects = tuple(
+                Fill(
+                    timestamp=idx[int(bar)],
+                    symbol=symbol,
+                    side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
+                    qty=float(qty),
+                    price=float(price),
+                    fee=float(fee),
+                    order_id=order_id(order_code),
+                    metadata={"backend": "rust_batched", "bar": int(bar)},
+                )
+                for bar, order_code, side, qty, price, fee in zip(
+                    self.fill_bar,
+                    self.fill_order_id,
+                    self.fill_side,
+                    self.fill_qty,
+                    self.fill_price,
+                    self.fill_fee,
+                )
+            )
+        result_metadata = {
+            "backend": "native_event",
+            "engine": "event_v2_rust_batched_audit",
+            "report_level": "audit",
+            "native_event_backend_requested": "rust",
+            "native_event_backend_resolved": "rust",
+            "fills_report": fills_report,
+            "order_report": order_report,
+            "command_report": order_report,
+            "id_values": id_values,
+            "lifecycle_counters": {
+                "fill_count": int(self.fill_count),
+                "event_count": int(self.event_count),
+                "rejected_count": int(self.rejected_count),
+                "canceled_count": int(self.canceled_count),
+            },
+            "rust_audit_adapter": "RustBatchedAuditResult.to_backtest_result",
+        }
+        if metadata:
+            result_metadata.update(dict(metadata))
+        return BacktestResultV2(
+            equity=equity,
+            returns=equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0),
+            positions=positions,
+            closes=pd.DataFrame({f"Close_{symbol}": close_series.to_numpy()}, index=idx),
+            symbols=[symbol],
+            initial_capital=float(initial_capital),
+            leverage=float(leverage),
+            liquidated=False,
+            orders=(),
+            fills=fill_objects,
+            fees=fees,
+            funding=funding,
+            margin=margin,
+            diagnostics=diagnostics,
+            metadata=result_metadata,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -285,11 +460,11 @@ def resolve_native_event_backend(
     *,
     extension_status: Optional[NativeEventRustExtensionStatus] = None,
 ) -> NativeEventBackendSelection:
-    """Resolve the internal native-event backend under the R0 rollout policy.
+    """Resolve the native-event selector under the release rollout policy.
 
-    ``auto`` intentionally resolves to Python during R0, even with the wheel
-    installed.  ``rust`` is explicit and therefore fails loudly until a later
-    Rust feature slice certifies an executable reactive session.
+    ``auto`` intentionally resolves to Python for the first dual-backend
+    release, even with the wheel installed. ``rust`` is explicit and fails
+    loudly unless the installed extension advertises the required capability.
     """
     selected = str(requested or os.getenv("QUANTBT_NATIVE_BACKEND", "auto")).lower().strip()
     if selected not in _VALID_BACKENDS:
@@ -688,6 +863,7 @@ class RustBatchedRunner:
             max_initial_margin=float(payload["max_initial_margin"]),
             max_maintenance_margin=float(payload["max_maintenance_margin"]),
             metadata={"backend": "rust_batched", "mode": "audit", "pycalls": 1},
+            id_values=tuple(compiled_commands.id_values),
         )
 
 

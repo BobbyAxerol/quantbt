@@ -55,6 +55,7 @@ class BacktestEngineV2:
         data: Optional[Union[pd.DataFrame, Dict[str, Union[pd.DataFrame, pd.Series]]]] = None,
         signals: Optional[Union[pd.Series, SeriesMap]] = None,
         backend: str = "native_vectorized",
+        native_backend: Optional[str] = None,
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: float = 0.0,
@@ -98,6 +99,7 @@ class BacktestEngineV2:
             raise ValueError(f"backend must be one of {sorted(self.VALID_BACKENDS)}")
 
         self.data = data
+        self.native_backend = native_backend
         self.signals = signals
         self.account = account or AccountConfig(initial_capital=100_000.0)
         self.execution = execution or ExecutionConfig()
@@ -217,6 +219,7 @@ class BacktestEngineV2:
                 audit_sink=self.audit_sink,
                 audit_sink_path=self.audit_sink_path,
                 reactive_kernel_mode=self.reactive_kernel_mode,
+                native_backend=self.native_backend,
             )
         )
 

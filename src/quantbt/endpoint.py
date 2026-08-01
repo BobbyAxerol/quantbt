@@ -104,6 +104,10 @@ class EndpointConfig:
     backend:
         Engine selector. Use `auto` for domain-safe defaults, or explicitly set
         `legacy`, `native_vectorized`, `native_event`, or `nautilus`.
+    native_backend:
+        Native-event implementation selector: `python`, `rust`, `auto`, or
+        `replay_certified`. It is only consulted by native-event backends;
+        omitted means preserve the environment/default selection policy.
     sizing:
         Position sizing contract for signal modes. Examples: `%_equity`,
         `signal_notional`, `notional`, `unit`, `dca_ladder`.
@@ -170,6 +174,7 @@ class EndpointConfig:
 
     mode: str = "single_signal"
     backend: str = "auto"
+    native_backend: Optional[str] = None
     sizing: str = "signal_notional"
     account: AccountConfig = field(default_factory=lambda: AccountConfig(initial_capital=100_000.0))
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
@@ -597,6 +602,7 @@ class QuantBTEndpoint:
                 audit_sink=config.audit_sink,
                 audit_sink_path=config.audit_sink_path,
                 reactive_kernel_mode=config.reactive_kernel_mode,
+                native_backend=config.native_backend,
             )
         )
         market = backend.prepare_market_arrays(
@@ -2076,6 +2082,7 @@ class QuantBTEndpoint:
             signals=sig,
             symbols=symbol_list,
             backend=backend,
+            native_backend=self.config.native_backend,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2122,6 +2129,7 @@ class QuantBTEndpoint:
             data=frame,
             symbols=list(symbols or self.config.symbols or ["asset"]),
             backend=backend,
+            native_backend=self.config.native_backend,
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
@@ -2159,6 +2167,7 @@ class QuantBTEndpoint:
             data=frame,
             symbols=symbol_list,
             backend="native_event",
+            native_backend=self.config.native_backend,
             strategy=strategy,
             event_engine_version="v2",
             reactive_execution_mode=self.config.reactive_execution_mode,
@@ -2213,6 +2222,7 @@ class QuantBTEndpoint:
                 data=frame,
                 symbols=[spec.symbol],
                 backend="native_event",
+                native_backend=self.config.native_backend,
                 order_commands=commands,
                 event_engine_version="v2",
                 account=self.config.account,
@@ -2298,6 +2308,7 @@ class QuantBTEndpoint:
 
         self.engine = BacktestEngineV2(
             backend="native_event",
+            native_backend=self.config.native_backend,
             basket=spec,
             signal=sig,
             closes=close_map,
@@ -2376,6 +2387,7 @@ class QuantBTEndpoint:
                     report_level=self.config.report_level,
                     audit_sink=self.config.audit_sink,
                     audit_sink_path=self.config.audit_sink_path,
+                    native_backend=self.config.native_backend,
                 )
             )
         else:

@@ -1055,6 +1055,31 @@ result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/sc
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
 ```
 
+### Native-event backend selector (Phase 46E)
+
+Native-event endpoints accept the optional `native_backend` selector:
+
+```python
+bt = QuantBTEndpoint.orders(
+    backend="native_event",
+    native_backend="python",  # python | rust | auto | replay_certified
+    initial_capital=20_000,
+    leverage=5,
+    maintenance_ratio=0.0,
+    use_funding=False,
+)
+```
+
+`python` is the full-featured canonical reactive backend. `rust` is explicit
+and fail-fast: it currently accepts only certified single-symbol static
+`OrderCommand` tapes without funding, liquidation, or quantity constraints.
+`auto` remains Python for the release policy; it never silently activates an
+experimental Rust wheel. `replay_certified` is the deterministic audit
+oracle. Rust audit results are adapted to `BacktestResultV2`, so the normal
+`show_metrics()`, `full_report()`, `quick_plot()`, and `tearsheet()` helpers
+remain available. The score path does not materialize report DataFrames; rerun
+the selected tape at audit level when full evidence is required.
+
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving
 `emitted_command_count`. Use `report_level="audit"` when a replayable command

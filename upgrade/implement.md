@@ -9733,6 +9733,12 @@ Implementation completed and evidence:
 
 ### Phase 46E - Python Hot State, Dual Backend Contract, And Release Gate
 
+Status: **implemented on `feat/quantbt-engine-packaging`; dual-backend
+behavior, common-result adaptation, parity tests, and the fresh release-gate
+evidence are complete.** The native PyPI extra remains intentionally closed
+because the explicit prepared-RSS reduction threshold is not met; `auto`
+therefore remains Python by policy.
+
 Detailed guide sections:
 
 - Guide sections `10`, `10.1` to `10.3`, `11`, `11.1` to `11.3`, `12`, and
@@ -9777,6 +9783,45 @@ Acceptance and debt:
 - A failed RSS gate keeps Rust experimental and leaves `auto` on Python.
 - Native feature claims must be generated from the canonical capability
   matrix; no package/docs drift is accepted.
+
+Execution checklist for this phase:
+
+- Preserve `BacktestResultV2` and existing endpoint behavior for `python` and
+  public audit/report calls.
+- Add explicit backend selection and capability errors for direct Rust use;
+  never silently downgrade an explicit `rust` request.
+- Certify Rust audit-to-common-result conversion and Python/Rust scalar,
+  lifecycle, fills, fees, margin, and report parity.
+- Add score-requirement/lazy-state tests and fresh-process dual-backend
+  benchmark evidence. Record every release-gate result, including failed RSS
+  thresholds, without changing the declared policy.
+
+Implementation completed and evidence:
+
+- Added `native_backend` to `NativeEventConfig`, `EndpointConfig`, and
+  `BacktestEngineV2`. The selector is exactly `python`, `rust`, `auto`, or
+  `replay_certified`; explicit Rust requests fail fast for unsupported
+  multi-symbol, funding, liquidation, and quantity-constraint semantics.
+- Added `RustBatchedAuditResult.to_backtest_result(...)`. Rust SoA audit output
+  now reaches the common `BacktestResultV2` contract with equity, positions,
+  fees, margins, `fills_report`, `order_report`, `Fill` objects, and the normal
+  metrics/report/plot helpers. The adapter is outside the scalar score path.
+- Python scalar score state now drops non-execution strategy metadata when the
+  declared context requirements disable all related payloads. Full audit and
+  compatibility defaults retain their existing objects and metadata.
+- Added [`docs/native_event_dual_backend_phase46e.md`](../docs/native_event_dual_backend_phase46e.md),
+  the endpoint selector documentation, and
+  [`tests/native_event/test_phase46e_dual_backend_contract.py`](../tests/native_event/test_phase46e_dual_backend_contract.py).
+- The reproducible gate is
+  [`benchmarks/native_event/benchmark_phase46e_release_gate.py`](../benchmarks/native_event/benchmark_phase46e_release_gate.py),
+  with evidence in
+  [`benchmarks/native_event/phase46e_release_gate.json`](../benchmarks/native_event/phase46e_release_gate.json).
+  The fresh run passed full parity, low/high speed thresholds (`155.6x` and
+  `218.4x`), absolute peak RSS budget (`183.14 MB < 512 MB`), and the 100-run
+  RSS plateau. The prepared-RSS reduction was `-28.5%` low churn and `-17.8%`
+  high churn, so the required `40%` prepared-RSS gate is honestly recorded as
+  failed; no native extra or automatic Rust selection is claimed.
+- Focused Phase 46E and prior Rust/Python parity tests pass: `26 passed`.
 
 ### Phase 46F - Core PyPI Finalization And Native Release Decision
 

@@ -114,6 +114,7 @@ from ..core.schema import (
 )
 from ._native_event_rust import (
     NativeEventBackendSelection,
+    NativeEventRustBackendError,
     RustBatchedRunner,
     RustReactiveSessionAdapter,
     resolve_native_event_backend,
@@ -143,6 +144,7 @@ class NativeEventConfig:
     audit_sink: str = "memory"
     audit_sink_path: Optional[str] = None
     reactive_kernel_mode: str = "replay_certified"
+    native_backend: Optional[str] = None
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -153,6 +155,13 @@ class NativeEventConfig:
         object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
         object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
         object.__setattr__(self, "reactive_kernel_mode", _normalize_reactive_kernel_mode(self.reactive_kernel_mode))
+        if self.native_backend is not None:
+            selected = str(self.native_backend).lower().strip()
+            if selected not in {"python", "rust", "auto", "replay_certified"}:
+                raise ValueError(
+                    "native_backend must be one of: auto, python, replay_certified, rust"
+                )
+            object.__setattr__(self, "native_backend", selected)
 
 
 @dataclass(frozen=True)
@@ -428,6 +437,20 @@ class _ReactiveOrderState:
     working_price: float = 0.0
     working_trigger: float = 0.0
     reject_code: int = 0
+
+
+def _compact_score_command(command: OrderCommand) -> OrderCommand:
+    """Drop non-execution metadata from a score-only pending order.
+
+    Static score runs do not expose fills, events, active-order snapshots, or
+    terminal order objects.  Parent/OCO/group/tag fields remain because they
+    affect lifecycle matching; strategy metadata is deliberately not retained
+    on the hot state.  Public command objects and audit runs are untouched.
+    """
+
+    if not command.metadata:
+        return command
+    return replace(command, metadata={})
 
 
 class _OnlineScoreState:
@@ -767,6 +790,17 @@ class _NativeEventReactiveSession:
         self.emit_context_margin = bool(
             score_requirements is None or score_requirements.need_context_margin
         )
+        self.compact_score_state = bool(
+            score_requirements is not None
+            and not score_requirements.need_context_fills
+            and not score_requirements.need_context_events
+            and not score_requirements.need_context_active_orders
+            and not score_requirements.need_context_positions
+            and not score_requirements.need_context_margin
+            and not score_requirements.need_fill_ledger
+            and not score_requirements.need_event_ledger
+            and not score_requirements.need_terminal_orders
+        )
 
         self.current_pos = np.zeros(len(symbols), dtype=np.float64)
         self.equity = float(initial_capital)
@@ -999,8 +1033,9 @@ class _NativeEventReactiveSession:
         if command.symbol is None or command.symbol not in self.symbol_to_col:
             self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
             return None
+        stored_command = _compact_score_command(command) if self.compact_score_state else command
         state = _ReactiveOrderState(
-            command=command,
+            command=stored_command,
             command_index=self.command_seq,
             symbol_col=self.symbol_to_col[command.symbol],
             active=command.activation_policy is OrderActivationPolicy.IMMEDIATE,
@@ -1428,10 +1463,10 @@ class NativeEventBackend:
 
     def __init__(self, config: NativeEventConfig):
         self.config = config
-        # Phase 44A: selection is internal and defaults to Python.  Rust R0
-        # exposes capability metadata only, so an explicit rust request raises
-        # before any execution semantics can change.
-        self._backend_selection = resolve_native_event_backend()
+        # Phase 46E: selection is explicit and capability-gated. ``auto``
+        # remains Python for the release; direct Rust is limited to the
+        # certified single-symbol batched tape path.
+        self._backend_selection = resolve_native_event_backend(requested=config.native_backend)
         # Keys use object identity in addition to the immutable market
         # signature: open/volume are callback-visible and are not part of the
         # OHLC/funding signature. Reuse is therefore safe only for the exact
@@ -1446,9 +1481,9 @@ class NativeEventBackend:
     ) -> _NativeEventReactiveSession | RustReactiveSessionAdapter:
         """Create the selected reactive session without changing endpoint APIs.
 
-        Rust R1 is intentionally feature-gated by ``RustReactiveSessionAdapter``.
-        Unsupported execution semantics fail explicitly under backend='rust'
-        rather than silently switching domain behavior.
+        Rust's per-bar adapter remains a correctness/debug path. Unsupported
+        execution semantics fail explicitly under backend='rust' rather than
+        silently switching domain behavior.
         """
         if backend_selection.resolved == "rust":
             market_arrays = kwargs["market_arrays"]
@@ -1626,6 +1661,7 @@ class NativeEventBackend:
         report_level: Optional[str] = None,
         audit_sink: Optional[str] = None,
         audit_sink_path: Optional[str] = None,
+        _force_python_backend: bool = False,
     ) -> BacktestResultV2:
         """
         Execute Phase 30B lifecycle `OrderCommand` tapes through event v2.
@@ -1667,6 +1703,23 @@ class NativeEventBackend:
             min_qty=min_qty,
             min_notional=min_notional,
         )
+        if self._backend_selection.resolved == "rust" and not _force_python_backend:
+            if len(symbol_list) != 1:
+                raise NativeEventRustBackendError(
+                    "native_backend='rust' supports one-symbol batched tapes only"
+                )
+            if self.config.use_funding:
+                raise NativeEventRustBackendError(
+                    "native_backend='rust' batched tapes do not support funding; use native_backend='python'"
+                )
+            if float(self.config.account.maintenance_ratio) != 0.0:
+                raise NativeEventRustBackendError(
+                    "native_backend='rust' batched tapes do not support liquidation; use maintenance_ratio=0.0"
+                )
+            if constraints.enabled:
+                raise NativeEventRustBackendError(
+                    "native_backend='rust' batched tapes do not support quantity constraints; use native_backend='python'"
+                )
         effective_commands, quantity_preflight = self._apply_command_quantity_constraints(
             idx=idx,
             commands=commands,
@@ -1692,6 +1745,44 @@ class NativeEventBackend:
             or compiled_commands.symbols != tuple(symbol_list)
         ):
             raise ValueError("compiled commands do not match prepared market arrays")
+
+        if self._backend_selection.resolved == "rust" and not _force_python_backend:
+            contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+            leverages = self._per_symbol_array(
+                self.config.account.leverage if leverage is None else leverage,
+                symbol_list,
+                default=self.config.account.leverage,
+            )
+            configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
+            fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
+            runner = RustBatchedRunner(
+                idx=idx,
+                symbols=symbol_list,
+                market_arrays=market_arrays,
+                contract_size=float(contract_sizes[0]),
+                leverage=float(leverages[0]),
+                fee_rate=float(fee_rates[0]),
+                initial_capital=float(self.config.account.initial_capital),
+                maintenance_ratio=0.0,
+                slippage=float(self.config.execution.slippage_rate),
+                use_funding=False,
+            )
+            audit = runner.run_tape_audit(compiled_commands)
+            result = audit.to_backtest_result(
+                datetime_index=idx,
+                closes=closes[symbol_list[0]],
+                symbol=symbol_list[0],
+                initial_capital=float(self.config.account.initial_capital),
+                leverage=float(leverages[0]),
+                metadata={
+                    **self._backend_selection_metadata(),
+                    "quantity_preflight": quantity_preflight,
+                    "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
+                    "slippage_bps": self.config.execution.slippage_bps,
+                    "rust_tape_cache_bytes": runner.tape_cache_bytes,
+                },
+            )
+            return result
 
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
@@ -2228,6 +2319,7 @@ class NativeEventBackend:
                 report_level=level,
                 audit_sink=audit_sink,
                 audit_sink_path=audit_sink_path,
+                _force_python_backend=True,
             )
         if kernel_mode == "replay_certified":
             final_result = replay_result
@@ -2807,6 +2899,7 @@ class NativeEventBackend:
             "score_direct_arrays": True,
             "score_pandas_materialized": False,
             "score_requirements": asdict(requirements),
+            "score_primitive_order_state": bool(getattr(session, "compact_score_state", False)),
             "trading_days": int(trading_days),
         }
         all_paths = all(value is not None for value in required.values())
