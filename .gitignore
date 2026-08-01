@@ -31,4 +31,6 @@ Thumbs.db
 
 upgrade/
 benchmarks/
+!src/quantbt/benchmarks/
+!src/quantbt/benchmarks/**
 .local_arbitrage_sandboxes/

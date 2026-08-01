@@ -7781,6 +7781,153 @@ Exit criteria:
 - pool_alpha can still import QuantBT.
 - Backtest fingerprints are unchanged for representative fixtures.
 
+Phase 42B implementation note captured on 2026-07-31 UTC:
+
+```text
+branch: feat/quantbt-engine-packaging
+distribution name: quantbt-engine
+public import module: quantbt
+package layout: src/quantbt
+root source status: retained during migration
+py.typed: src/quantbt/py.typed
+build backend: setuptools.build_meta
+uv version used for validation: uv 0.12.0
+uv cache override: UV_CACHE_DIR=/tmp/uv-cache
+native extra status: intentionally empty until Phase 44 creates quantbt-native
+```
+
+Phase 42B source/layout changes:
+
+- Added `pyproject.toml` with PEP 621 metadata for the PyPI distribution
+  `quantbt-engine`.
+- Kept the Python import surface unchanged:
+  ```python
+  from quantbt import QuantBTEndpoint
+  ```
+- Copied current runtime source into `src/quantbt` without rewriting domain
+  logic.
+- Added `src/quantbt/benchmarks` because existing tests and certification
+  helpers currently import `quantbt.benchmarks.*`; this preserves compatibility
+  with the root package surface during migration. Only benchmark helper Python
+  files, `README.md`, and `phase7_thresholds.json` are kept in package source;
+  generated benchmark outputs are not copied.
+- Added `src/quantbt/py.typed`.
+- Added `tests/test_phase42_packaging_layout.py` to lock:
+  - distribution name vs import module;
+  - `src/quantbt` package layout;
+  - root source retained until migration exit gates pass.
+- Adjusted `.gitignore` so root benchmark artifacts remain ignored while
+  `src/quantbt/benchmarks` can be tracked as package compatibility source.
+
+Phase 42B dependency policy:
+
+- Dependency ranges were pinned around the currently validated Poetry baseline
+  instead of broad major ranges:
+  - NumPy `>=2.2.6,<2.3`;
+  - Pandas `>=2.3.3,<2.4`;
+  - Numba `>=0.65.1,<0.66`;
+  - Optuna `>=4.8.0,<4.9`;
+  - Matplotlib `>=3.10.9,<3.11`;
+  - scikit-learn `>=1.8.0,<1.9`;
+  - NautilusTrader `>=1.230.0,<1.231`.
+- This avoids the package env drifting from the certified baseline, for
+  example accidentally resolving NumPy `2.4.x`.
+
+Phase 42B validation commands and results:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha poetry run pytest -q \
+  quantbt/tests/test_phase42_packaging_layout.py
+```
+
+```text
+3 passed in 2.96s
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv sync --all-extras --dev
+```
+
+```text
+Resolved 95 packages
+Checked 93 packages
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv run pytest -q
+```
+
+```text
+564 passed, 1 skipped, 25 warnings in 48.74s
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv build
+```
+
+```text
+Successfully built dist/quantbt_engine-0.1.0.tar.gz
+Successfully built dist/quantbt_engine-0.1.0-py3-none-any.whl
+```
+
+```bash
+MPLCONFIGDIR=/tmp poetry run python3 -m pip install --force-reinstall --no-deps \
+  /root/bobby/pool_alpha/quantbt/dist/quantbt_engine-0.1.0-py3-none-any.whl
+```
+
+```text
+Successfully installed quantbt-engine-0.1.0
+```
+
+```bash
+cd /tmp
+MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/python -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+```text
+<class 'quantbt.endpoint.QuantBTEndpoint'>
+```
+
+```bash
+cd /tmp
+MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/python -c \
+  "from quantbt.benchmarks.run_phase7 import PROFILES; print(sorted(PROFILES)[:3])"
+```
+
+```text
+['large', 'smoke', 'standard']
+```
+
+```bash
+cd /root/bobby/pool_alpha
+MPLCONFIGDIR=/tmp poetry run python3 -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+```text
+<class 'quantbt.endpoint.QuantBTEndpoint'>
+```
+
+Phase 42B validation caveat:
+
+- A first `uv run pytest -q` attempt was accidentally launched from the
+  `pool_alpha` parent directory and collected unrelated MLops/alpha tests.
+  That failure was unrelated to QuantBT packaging. The accepted gate is the
+  rerun from `/root/bobby/pool_alpha/quantbt`, where `pyproject.toml`
+  `testpaths = ["tests"]` is active.
+
+Phase 42B remaining debt:
+
+- Root source is still retained intentionally. It should only be removed after
+  a later migration gate confirms editable install, wheel install, pool_alpha
+  compatibility, and import-path parity across the service notebooks.
+- `native` extra remains empty until Phase 44 creates and publishes the
+  `quantbt-native` PyO3 package.
+
 #### Phase 42C Detailed Guide - CI, Release Workflow, PyPI Prep
 
 Read first:
