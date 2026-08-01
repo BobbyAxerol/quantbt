@@ -163,6 +163,45 @@ selection semantics inside `walkforward.py`. Read
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
 
+### Phase 46F package and dual-backend release evidence
+
+The core distribution is packaged as `quantbt-engine` and imports as
+`quantbt`. Its release gate is independent from the optional experimental Rust
+wheel:
+
+| Release artifact | Current status | Backend policy |
+|---|---|---|
+| `quantbt-engine==0.1.0` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
+| `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
+
+The committed Phase 46F rerun compares the same prepared static tape and keeps
+Python/Rust accounting parity at 100%:
+
+| Workload | Rust score speedup | Peak RSS | Parity | Release decision |
+|---|---:|---:|---|---|
+| Low churn, 2,000 bars | 182.2x | 184.11 MB absolute | pass | Rust remains explicit |
+| High churn, 2,000 bars | 251.3x | 184.11 MB absolute | pass | Rust remains explicit |
+| Prepared RSS reduction | -26.1% / -7.6% | 512 MB budget pass | gate fail | no automatic Rust |
+
+These are score-kernel measurements, not claims about full facade/report
+runtime. The committed Phase 46E baseline measured `155.6x` / `218.4x` on the
+same gate, while the earlier Phase 45F end-to-end reference measured `42.08x`
+median speedup and at least `18.3%` peak-RSS reduction. The evidence files are
+[`phase46e_release_gate.json`](benchmarks/native_event/phase46e_release_gate.json),
+[`phase46f_release_gate.json`](benchmarks/native_event/phase46f_release_gate.json),
+[`phase46d1_score_rss.json`](benchmarks/native_event/phase46d1_score_rss.json),
+and [`phase45f_release_gate.json`](benchmarks/native_event/phase45f_release_gate.json).
+
+The release workflow is documented in
+[`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
+wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
+OIDC, then publish the final core package through the protected PyPI
+environment. No long-lived token is required. Native optimization remains an
+open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,
+intrabar, and Nautilus adapter workloads; each future route needs its own
+parity and RSS certification.
+
 Ecosystem positioning:
 
 | Tool | Core strength | Runtime model | QuantBT role beside it |
@@ -341,6 +380,27 @@ Development from this repository:
 uv sync --all-extras --dev
 uv run pytest -q
 ```
+
+For core-only package validation, use the same dependency boundary as the
+release wheel:
+
+```bash
+uv sync --dev
+uv run pytest -q
+uv build
+uv run twine check dist/*
+```
+
+Pool Alpha and notebooks can continue using an editable checkout while a
+feature is under development:
+
+```bash
+pip install -e /root/bobby/pool_alpha/quantbt
+```
+
+After the release is approved, downstream services should use
+`pip install quantbt-engine==0.1.0` and keep the unchanged import
+`from quantbt import QuantBTEndpoint`.
 
 ## Quick Start
 

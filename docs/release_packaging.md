@@ -1,6 +1,8 @@
 # QuantBT Packaging And Release
 
-This document records the Phase 42C release contract for `quantbt-engine`.
+This document records the Phase 46F release contract for `quantbt-engine`.
+The older Phase 42C rules remain valid unless this document explicitly updates
+them.
 
 ## Package Contract
 
@@ -16,6 +18,9 @@ from quantbt import QuantBTEndpoint
 - Root source is retained during migration until later compatibility gates
   explicitly remove it.
 - The first package release line is `0.1.x`, meaning Python behavior unchanged.
+- Phase 46F release candidate: `0.1.0`.
+- Python is the canonical/full-featured implementation for the first release.
+- `quantbt-native` is experimental and is not a dependency of the core wheel.
 
 Phase 45C keeps the root source mirror temporarily for rollback and editable
 compatibility. Distribution artifacts are built from `src/quantbt`, while the
@@ -37,6 +42,11 @@ Required checks:
 - Pool Alpha style import smoke.
 
 CI must not rely on `PYTHONPATH` to pretend the package is installed.
+
+Core CI intentionally tests the core dependency set separately from the native
+wheel. The `native` extra is currently an empty reservation, so `uv sync
+--all-extras --dev` cannot accidentally claim that a native PyPI distribution
+exists.
 
 NautilusTrader validation is optional and only resolves on Python `>=3.12`
 because `nautilus-trader==1.230.0` does not support Python 3.11. The core
@@ -63,6 +73,11 @@ feature branches -> dev -> release branch -> main -> GitHub Release -> PyPI
 Do not tag from `dev`.
 
 Do not publish from an uncommitted local tree.
+
+The release workflow runs `pip check` after both wheel and sdist installation.
+The package build source is `src/quantbt`; the root mirror is retained for
+editable Pool Alpha compatibility and is protected by the source-sync tests.
+It is not a second distribution source.
 
 ## Trusted Publishing
 
@@ -112,6 +127,50 @@ required release tag  = v0.1.0
 
 The publish workflow fails if the tag does not match.
 
+The same script validates an RC tag. To publish `0.1.0rc1`, first commit
+`version = "0.1.0rc1"`, create `v0.1.0rc1`, and run the manual TestPyPI
+workflow with that tag. Do not reuse the final `0.1.0` version for an RC.
+
+## Local Release Gate
+
+Run these commands from a clean feature/release commit. They use a temporary
+artifact directory and do not remove the repository's existing `.venv`, `dist`,
+or build directories:
+
+```bash
+poetry run python tools/check_release_version.py
+poetry run pytest -q
+poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
+poetry run twine check /tmp/quantbt-engine-dist/*
+```
+
+Inspect the artifacts before installing them:
+
+```bash
+poetry run python -c "import zipfile, pathlib; p=next(pathlib.Path('/tmp/quantbt-engine-dist').glob('*.whl')); print(*zipfile.ZipFile(p).namelist(), sep='\\n')"
+poetry run python -c "import tarfile, pathlib; p=next(pathlib.Path('/tmp/quantbt-engine-dist').glob('*.tar.gz')); print(*tarfile.open(p).getnames(), sep='\\n')"
+```
+
+Validate both formats outside the repository root. `--no-deps` makes this a
+package-content smoke; the CI workflow additionally installs dependencies and
+runs `pip check`:
+
+```bash
+python3 -m venv /tmp/quantbt-engine-wheel-smoke
+/tmp/quantbt-engine-wheel-smoke/bin/python -m pip install --upgrade pip
+/tmp/quantbt-engine-wheel-smoke/bin/python -m pip install --no-deps /tmp/quantbt-engine-dist/quantbt_engine-*.whl
+(cd /tmp && /tmp/quantbt-engine-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
+
+python3 -m venv /tmp/quantbt-engine-sdist-smoke
+/tmp/quantbt-engine-sdist-smoke/bin/python -m pip install --upgrade pip
+/tmp/quantbt-engine-sdist-smoke/bin/python -m pip install --no-deps /tmp/quantbt-engine-dist/quantbt_engine-*.tar.gz
+(cd /tmp && /tmp/quantbt-engine-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
+```
+
+For a dependency-complete check, install the wheel without `--no-deps` in a
+fresh environment and run `python3 -m pip check`. Never use a repository-root
+`PYTHONPATH` as evidence that a wheel works.
+
 ## Pool Alpha Development
 
 During local development, Pool Alpha can use editable/path install:
@@ -140,7 +199,26 @@ from quantbt import QuantBTEndpoint
 
 ## Native Package Note
 
-`quantbt-native` is not published in Phase 42C.
+`quantbt-native` is not published in Phase 46F. Its current Rust crate version
+and native API version are separate from the core package version. Rust remains
+available only through an explicitly installed local wheel and an explicit
+`native_backend="rust"` request.
+
+The current Phase 46F rerun evidence is:
+
+| Gate | Result |
+|---|---|
+| Python/Rust lifecycle and accounting parity | pass |
+| Low/high churn speed thresholds | pass (`182.2x` / `251.3x`) |
+| Absolute peak RSS | pass (`184.11 MB < 512 MB`) |
+| 100-run RSS plateau | pass |
+| Prepared RSS reduction >= 40% | fail (`-26.1%` / `-7.6%`) |
+| Automatic Rust routing | disabled |
+| Non-empty `quantbt-engine[native]` extra | not released |
+
+Consequently the core package can be released independently, while the native
+wheel remains behind its own manylinux CPython 3.11-3.13, parity, fallback,
+and incremental-RSS certification gate.
 
 ## Native R0/R2 Scaffold
 
@@ -174,6 +252,70 @@ Native publishing must wait until the Phase 44 PyO3 package exists, builds, and
 passes Python/Rust parity and the end-to-end performance/RSS gates. Native CI
 builds `quantbt-engine` and `quantbt-native` from the same ref, installs both
 wheels into a clean environment, then runs parity and RSS benchmark smoke.
+
+## TestPyPI To PyPI Workflow
+
+### TestPyPI release candidate
+
+1. Update the package version to an unused RC version such as `0.1.0rc1`.
+2. Commit the version and changelog on a release candidate ref.
+3. Create the matching tag, for example `v0.1.0rc1`.
+4. Configure the pending TestPyPI publisher for repository `BobbyAxerol/quantbt`,
+   workflow `publish-testpypi.yml`, and GitHub environment `testpypi`.
+5. Run **Publish quantbt-engine to TestPyPI** manually with the exact tag.
+6. Install and smoke-test the RC from both TestPyPI and the Pool Alpha
+   environment:
+
+```bash
+python3 -m venv /tmp/quantbt-testpypi-smoke
+/tmp/quantbt-testpypi-smoke/bin/python -m pip install --upgrade pip
+/tmp/quantbt-testpypi-smoke/bin/python -m pip install \
+  --index-url https://test.pypi.org/simple/ \
+  --extra-index-url https://pypi.org/simple/ \
+  quantbt-engine==0.1.0rc1
+/tmp/quantbt-testpypi-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+/tmp/quantbt-testpypi-smoke/bin/python -m pip check
+```
+
+### Production PyPI release
+
+1. Merge the verified release commit to protected `main`.
+2. Set the final version, for example `0.1.0`, and add the changelog entry.
+3. Create and push the matching protected tag `v0.1.0`.
+4. Create a GitHub Release from that tag and mark it published.
+5. The production workflow runs the matrix regression, builds the core wheel
+   and sdist, runs metadata and clean-install checks, then pauses at the
+   protected `pypi` environment reviewer gate.
+6. Approve only after the artifact name, version, and release notes have been
+   checked. The workflow publishes through OIDC; no long-lived API token is
+   needed.
+7. Verify `pip install quantbt-engine==0.1.0` from a fresh environment and
+   archive the wheel, sdist, test output, and release manifest.
+
+Do not publish `quantbt-native` in this flow. It has a separate future release
+when its wheel matrix and RSS gates pass. Until then, `auto` remains Python and
+the native extra remains empty.
+
+## Benchmark Evidence And Open Optimization Scope
+
+The committed benchmark evidence distinguishes score throughput from full
+facade/report runtime. The Phase 46F Rust batched score rerun reports `182.2x`
+low-churn and `251.3x` high-churn speedup against the Python score path, with
+full parity and an absolute `184.11 MB` peak RSS. The prepared RSS threshold
+did not pass, so these numbers do not justify automatic Rust selection. The
+prior Phase 46E snapshot (`155.6x` / `218.4x`) remains available for historical
+comparison.
+
+Phase 45F's isolated end-to-end reference reported a `42.08x` median speedup
+and an `18.3%` minimum peak-RSS reduction across its workload. These snapshots
+are evidence for different benchmark contracts, not interchangeable claims;
+always cite the JSON artifact and workload when comparing runs.
+
+The next optimization scope remains deliberately open and domain-preserving:
+Python scalar/object reduction and Rust batched paths may later be extended to
+portfolio, arbitrage, options, vectorized, intrabar, and Nautilus adapter
+workloads. Such work requires a separate parity/RSS gate for each domain and
+must not change the core PyPI release or silently change backend selection.
 
 ### Local Native Evidence Gate
 

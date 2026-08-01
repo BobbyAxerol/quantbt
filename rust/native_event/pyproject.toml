@@ -6,7 +6,18 @@ build-backend = "maturin"
 name = "quantbt-native"
 version = "0.3.0"
 description = "Optional PyO3 accelerator for quantbt-engine native event execution"
+readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "BobbyAxerol", email = "vugioan11022002@gmail.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Rust",
+]
 
 [tool.maturin]
 bindings = "pyo3"

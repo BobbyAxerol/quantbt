@@ -9825,6 +9825,9 @@ Implementation completed and evidence:
 
 ### Phase 46F - Core PyPI Finalization And Native Release Decision
 
+Status: implemented on `feat/quantbt-engine-packaging`; core release gate
+passed locally, native release gate remains intentionally closed.
+
 Detailed guide sections:
 
 - Guide sections `13`, `13.1` to `13.2`, `14`, `14.1` to `14.4`, `15`,
@@ -9838,18 +9841,25 @@ Objective:
 
 Core PyPI implementation:
 
-- After the preceding source-sync and clean-install gates, make `src/quantbt`
-  the distribution source of truth and remove the root mirror only in this
-  phase. Run full regression immediately after removal.
-- Align `__version__`, `pyproject` version, Git tag, wheel metadata, and
-  release notes. Add `CHANGELOG.md`, documentation/changelog URLs,
-  Python 3.11/3.12/3.13 classifiers, and the `0.1.0` release notes.
-- Build and install wheel and sdist from a clean checkout outside the repo;
-  run `pip check`, core-only import smoke, each extra in isolation, and
-  `pool_alpha` editable and built-wheel smoke.
-- Configure TestPyPI RC and production PyPI Trusted Publishing/OIDC with
-  protected `pypi`/`testpypi` environments, reviewer approval, and release
-  tag protection. Do not add long-lived tokens.
+- `src/quantbt` remains the distribution source of truth. The root mirror is
+  deliberately retained because the repository owner approved a staged
+  migration; it is byte-locked by `tests/test_phase45a_source_tree_sync.py`
+  and is not included as a second package source in the wheel.
+- Aligned `__version__`, `pyproject` version, wheel metadata, and release
+  notes at `0.1.0`; added Python 3.11/3.12/3.13 classifiers,
+  Documentation/Changelog URLs, and [`CHANGELOG.md`](../CHANGELOG.md).
+- Added local package-gate commands to
+  [`docs/release_packaging.md`](../docs/release_packaging.md): isolated
+  wheel/sdist build, metadata inspection, `twine check`, clean import, and
+  dependency-complete `pip check`.
+- Added manual `.github/workflows/publish-testpypi.yml` for RC tags with a
+  protected `testpypi` environment and OIDC. The production workflow now
+  refuses prerelease/draft GitHub Releases and retains the protected `pypi`
+  OIDC gate.
+- Added package metadata, workflow contract, native-extra, and release-note
+  tests in `tests/test_phase46f_packaging_release.py`.
+- The root mirror was not deleted; removing it remains a separate, explicitly
+  approved migration and is outside this release-finalization scope.
 
 Native release decision:
 
@@ -9863,6 +9873,15 @@ Native release decision:
 - If any gate fails: publish only `quantbt-engine`, keep Rust explicit
   experimental, keep `auto=Python`, and leave the native extra empty/absent.
 
+Phase 46E evidence and the Phase 46F fresh rerun confirm the second branch:
+Python/Rust parity and score speed thresholds pass. The fresh run measured
+`182.2x` low churn and `251.3x` high churn, with absolute peak RSS
+`184.11 MB < 512 MB` and a passing 100-run plateau. The prepared RSS
+reduction gate fails (`-26.1%` low churn, `-7.6%` high churn), so
+`quantbt-native` is not published and `project.optional-dependencies
+["native"]` remains empty. This is a deliberate release decision, not an
+unresolved correctness claim.
+
 Final definition of done:
 
 - Core `quantbt-engine` clean wheel/sdist install works without optional
@@ -9874,6 +9893,18 @@ Final definition of done:
 - Rust claims, capabilities, wheel matrix, RSS evidence, and fallback policy
   agree with one source of truth.
 - No production release is declared from a failed parity or RSS gate.
+
+Phase 46F local evidence:
+
+- Packaging metadata and workflow tests: pass.
+- Core package build toolchain: `build 1.5.0`, `twine 6.2.0`.
+- Full regression on the Phase 46F commit: `664 passed, 3 skipped`.
+- Root/source parity: pass for the complete mirrored Python tree.
+- Native release: intentionally not ready because the prepared RSS gate is
+  measured and failed; no automatic Rust selection or non-empty native extra
+  is claimed.
+- Fresh Phase 46F gate artifact:
+  [`benchmarks/native_event/phase46f_release_gate.json`](../benchmarks/native_event/phase46f_release_gate.json).
 
 ### Final Upgrade Tracking Rules
 

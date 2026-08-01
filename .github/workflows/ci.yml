@@ -52,6 +52,7 @@ jobs:
           python -m venv /tmp/quantbt-wheel-smoke
           /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          /tmp/quantbt-wheel-smoke/bin/python -m pip check
           cd /tmp
           /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
 
@@ -61,6 +62,7 @@ jobs:
           python -m venv /tmp/quantbt-sdist-smoke
           /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+          /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd /tmp
           /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
 

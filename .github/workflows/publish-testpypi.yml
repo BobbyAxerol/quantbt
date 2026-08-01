@@ -1,0 +1,80 @@
+name: Publish quantbt-engine to TestPyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag containing the RC version, for example v0.1.0rc1"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test release candidate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install core development environment
+        run: uv sync --dev
+
+      - name: Check RC version against tag
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref }}
+        run: uv run python tools/check_release_version.py
+
+      - name: Run regression
+        run: uv run pytest -q
+
+      - name: Build distributions
+        run: uv build --out-dir dist
+
+      - name: Validate distribution metadata
+        run: uv run twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpypi-dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish release candidate to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: testpypi-dist
+          path: dist
+
+      - name: Publish with TestPyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
