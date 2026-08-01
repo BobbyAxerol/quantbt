@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 use std::sync::Arc;
 
 use crate::accounting::{initial_margin, maintenance_margin, required_margin};
@@ -63,6 +64,29 @@ impl PreparedMarketData {
     }
 }
 
+#[derive(Default)]
+struct I64IdentityHasher(u64);
+
+impl Hasher for I64IdentityHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        let mut value = [0_u8; 8];
+        let width = bytes.len().min(value.len());
+        value[..width].copy_from_slice(&bytes[..width]);
+        self.0 = u64::from_ne_bytes(value);
+    }
+
+    fn write_i64(&mut self, value: i64) {
+        self.0 = value as u64;
+    }
+}
+
+type OrderIdMap = HashMap<i64, usize, BuildHasherDefault<I64IdentityHasher>>;
+const ORDER_INDEX_THRESHOLD: usize = 8;
+
 struct OrderSlot {
     active: bool,
     order: ActiveOrder,
@@ -70,20 +94,22 @@ struct OrderSlot {
 
 struct OrderTable {
     slots: Vec<OrderSlot>,
-    id_to_slot: HashMap<i64, usize>,
+    id_to_slot: OrderIdMap,
     active_sequence: Vec<usize>,
     free_slots: Vec<usize>,
     tombstones: usize,
+    active_count: usize,
 }
 
 impl OrderTable {
     fn new() -> Self {
         Self {
             slots: Vec::new(),
-            id_to_slot: HashMap::new(),
+            id_to_slot: OrderIdMap::default(),
             active_sequence: Vec::new(),
             free_slots: Vec::new(),
             tombstones: 0,
+            active_count: 0,
         }
     }
 
@@ -113,15 +139,40 @@ impl OrderTable {
             active: true,
             order,
         };
+        if self.active_count == ORDER_INDEX_THRESHOLD {
+            self.rebuild_index();
+        }
         self.active_sequence.push(slot);
-        // Order IDs are contractually unique. Keeping the first mapping also
-        // preserves the old linear-search behavior for malformed duplicate
-        // tapes without slowing the normal path.
-        self.id_to_slot.entry(order.order_id).or_insert(slot);
+        self.active_count += 1;
+        // Very small books use the priority sequence directly. This avoids a
+        // hash allocation for the common one-order market/reduce-only path;
+        // larger books keep O(1) ID lookup.
+        if self.active_count > ORDER_INDEX_THRESHOLD {
+            self.id_to_slot.entry(order.order_id).or_insert(slot);
+        }
+    }
+
+    fn rebuild_index(&mut self) {
+        self.id_to_slot.clear();
+        for slot in self.active_sequence.iter().copied() {
+            if let Some(order) = self.get_slot(slot) {
+                self.id_to_slot.entry(order.order_id).or_insert(slot);
+            }
+        }
+    }
+
+    fn lookup_slot(&self, order_id: i64) -> Option<usize> {
+        if self.active_count <= ORDER_INDEX_THRESHOLD {
+            return self.active_sequence.iter().copied().find(|slot| {
+                self.get_slot(*slot)
+                    .is_some_and(|order| order.order_id == order_id)
+            });
+        }
+        self.id_to_slot.get(&order_id).copied()
     }
 
     fn get_mut(&mut self, order_id: i64) -> Option<&mut ActiveOrder> {
-        let slot = *self.id_to_slot.get(&order_id)?;
+        let slot = self.lookup_slot(order_id)?;
         self.slots.get_mut(slot).and_then(|slot| {
             if slot.active {
                 Some(&mut slot.order)
@@ -138,7 +189,7 @@ impl OrderTable {
     }
 
     fn remove_by_id(&mut self, order_id: i64) -> Option<ActiveOrder> {
-        let slot = *self.id_to_slot.get(&order_id)?;
+        let slot = self.lookup_slot(order_id)?;
         self.remove_slot(slot)
     }
 
@@ -154,13 +205,17 @@ impl OrderTable {
             self.id_to_slot.remove(&order.order_id);
         }
         self.free_slots.push(slot);
+        self.active_count = self.active_count.saturating_sub(1);
         Some(order)
     }
 
     fn compact_if_needed(&mut self) {
-        if self.active_sequence.len() < 64
-            || self.tombstones.saturating_mul(4) < self.active_sequence.len()
-        {
+        // Compact a small live book earlier: market/reduce-only orders often
+        // fill in the same bar, so scanning dozens of dead sequence entries
+        // is slower than a bounded retain. Large live books still use the
+        // original 25% tombstone ratio to avoid disturbing priority order too
+        // often.
+        if self.tombstones < 8 && self.tombstones.saturating_mul(4) < self.active_sequence.len() {
             return;
         }
         self.active_sequence.retain(|slot| {
@@ -181,6 +236,7 @@ impl OrderTable {
         self.free_slots.clear();
         self.free_slots.extend(0..self.slots.len());
         self.tombstones = 0;
+        self.active_count = 0;
     }
 
     fn snapshot(&self) -> Vec<Vec<f64>> {

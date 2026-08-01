@@ -6,6 +6,7 @@ import importlib.util
 import numpy as np
 import pytest
 
+import quantbt.backends._native_event_rust as rust_adapter
 from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, TimeInForce
 from quantbt.backends._native_event_rust import RustBatchedRunner
 
@@ -134,6 +135,45 @@ def test_phase46d_tape_cache_is_fingerprint_bounded_and_clearable():
     )
     bounded.run_tape_score(compiled)
     assert bounded.tape_cache_bytes == 0
+
+
+def test_phase46d_compiled_tape_fingerprint_is_precomputed_and_arrays_are_read_only():
+    _, _, _, _, compiled, _ = _replacement_fixture()
+    assert compiled.tape_fingerprint
+    for name in (
+        "command_ptr",
+        "command_bar",
+        "command_action",
+        "command_symbol",
+        "command_side",
+        "command_type",
+        "command_qty",
+        "command_price",
+        "command_trigger_price",
+        "command_tif",
+        "command_reduce_only",
+        "command_order_id",
+        "command_target_order_id",
+        "command_parent_order_id",
+        "command_group_id",
+        "command_oco_group_id",
+        "command_activation",
+        "command_expires_bar",
+        "original_index",
+    ):
+        assert getattr(compiled, name).flags.writeable is False
+
+
+def test_phase46d_score_cache_does_not_rehash_compiled_tape(monkeypatch):
+    _, _, _, _, compiled, runner = _replacement_fixture()
+    runner.run_tape_score(compiled)
+
+    def fail_if_rehashed(_):
+        raise AssertionError("compiled tape was rehashed on the cache-hit path")
+
+    monkeypatch.setattr(rust_adapter, "_command_tape_fingerprint", fail_if_rehashed)
+    second = runner.run_tape_score(compiled)
+    assert second.bars == len(runner.idx)
 
 
 def test_phase46d_replacement_chain_preserves_audit_accounting():

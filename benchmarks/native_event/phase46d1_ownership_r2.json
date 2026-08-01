@@ -1,0 +1,82 @@
+{
+  "bars": 2000,
+  "high": {
+    "bars": 2000,
+    "churn": "high",
+    "first_seconds": 0.00423587579280138,
+    "incremental_first_score_rss": 0,
+    "incremental_repeat_rss": 0,
+    "max_tape_cache_bytes": 67108864,
+    "orders": 3999,
+    "peak_rss_bytes": 194392064,
+    "repeat_seconds": 0.022173178382217884,
+    "repeat_seconds_per_run": 0.00022173178382217884,
+    "reset_scalar_parity": true,
+    "rss_after_first_score": 194392064,
+    "rss_after_repeats": 194392064,
+    "rss_before_first_score": 194392064,
+    "score_metadata": {
+      "bars": 2000,
+      "canceled_count": 1999,
+      "event_count": 3999,
+      "fill_count": 0,
+      "final_equity": 10000.0,
+      "final_position": 0.0,
+      "max_initial_margin": 0.0,
+      "max_maintenance_margin": 0.0,
+      "metadata": {
+        "backend": "rust_batched",
+        "mode": "score",
+        "pycalls": 1
+      },
+      "rejected_count": 0,
+      "total_fee": 0.0,
+      "total_turnover": 0.0
+    },
+    "session_reset_parity": true,
+    "session_reset_rss_delta": 0,
+    "tape_cache_bytes_before_clear": 399912,
+    "tape_cache_cleared": true
+  },
+  "low": {
+    "bars": 2000,
+    "churn": "low",
+    "first_seconds": 0.00044868141412734985,
+    "incremental_first_score_rss": 0,
+    "incremental_repeat_rss": 0,
+    "max_tape_cache_bytes": 67108864,
+    "orders": 40,
+    "peak_rss_bytes": 190361600,
+    "repeat_seconds": 0.013972373213618994,
+    "repeat_seconds_per_run": 0.00013972373213618993,
+    "reset_scalar_parity": true,
+    "rss_after_first_score": 190361600,
+    "rss_after_repeats": 190361600,
+    "rss_before_first_score": 190361600,
+    "score_metadata": {
+      "bars": 2000,
+      "canceled_count": 20,
+      "event_count": 40,
+      "fill_count": 0,
+      "final_equity": 10000.0,
+      "final_position": 0.0,
+      "max_initial_margin": 0.0,
+      "max_maintenance_margin": 0.0,
+      "metadata": {
+        "backend": "rust_batched",
+        "mode": "score",
+        "pycalls": 1
+      },
+      "rejected_count": 0,
+      "total_fee": 0.0,
+      "total_turnover": 0.0
+    },
+    "session_reset_parity": true,
+    "session_reset_rss_delta": 0,
+    "tape_cache_bytes_before_clear": 19848,
+    "tape_cache_cleared": true
+  },
+  "passed": true,
+  "phase": "46D",
+  "repeats": 100
+}

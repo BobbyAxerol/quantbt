@@ -699,13 +699,14 @@ fn run_sparse_range(
     for bar in start_bar..=stop_bar {
         let start = command_ptr[bar] as usize;
         let end = command_ptr[bar + 1] as usize;
+        let materialize = wake_on_fill || wake_on_order_event;
         let step = session.step_with_output(
             bar,
             &codes[start * types::COMMAND_CODE_WIDTH..end * types::COMMAND_CODE_WIDTH],
             &values[start * types::COMMAND_VALUE_WIDTH..end * types::COMMAND_VALUE_WIDTH],
             &expiry[start..end],
             end - start,
-            true,
+            materialize,
         )?;
         output.final_equity = step.equity;
         output.final_position = step.position;

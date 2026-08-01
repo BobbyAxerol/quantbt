@@ -100,3 +100,32 @@ Acceptance requires exact audit/score accounting parity, replacement-chain and
 cycle safety, prepared-input release functionality, cache clearability, and a
 100-run scalar plateau. The next planned phase is 46E; Python full-featured
 reactive state remains canonical and is not replaced by this Rust optimization.
+
+## Phase 46D.1 refinement
+
+The first Phase 46D apples-to-apples rerun exposed two hot-path costs. The
+runner was hashing every primitive tape on every score call, and the order
+table retained too many dead priority slots for a small same-bar market-order
+book. The refinement now computes the complete tape fingerprint during
+compilation, locks compiled primitive arrays read-only, and uses the stored
+digest on cache hits. Small live books use bounded priority-sequence lookup;
+larger books retain the O(1) numeric ID index. Tombstones compact earlier when
+the live book is small. Sparse calls with both wake payload flags disabled
+retain scalar accounting only and return empty fill/event arrays.
+
+The final fresh-child Phase 46B benchmark evidence is stored at
+`benchmarks/native_event/phase46d1_score_rss.json`:
+
+| Profile | Rust median | Python median | Rust/Python speedup |
+|---|---:|---:|---:|
+| Low churn | 0.000113 s | 0.030461 s | 270.3x |
+| High churn | 0.000191 s | 0.033528 s | 175.3x |
+
+Both profiles passed scalar/full parity and repeated RSS plateau. The
+ownership benchmark evidence is stored at
+`benchmarks/native_event/phase46d1_ownership_r2.json`; its 100-run sparse
+reset RSS delta was 0 bytes in both profiles. Prepared incremental RSS in the
+Phase 46B process remained approximately 2.79 MB (low) and 2.98 MB (high), so
+the optional 20% prepared-RSS improvement target is not claimed. That
+checkpoint retains the Python prepared container for the staged benchmark;
+the explicit input-release test remains the ownership correctness evidence.

@@ -68,6 +68,20 @@ def test_sparse_wake_filters_do_not_change_accounting() -> None:
     np.testing.assert_array_equal(chunk.wake_kind, np.array([2], dtype=np.int64))
     assert chunk.liquidation_seen is False
     assert chunk.metadata["dense_paths_materialized"] is False
+    for name in (
+        "fill_bar",
+        "fill_order_id",
+        "fill_side",
+        "fill_qty",
+        "fill_price",
+        "fill_fee",
+        "event_bar",
+        "event_kind",
+        "event_status",
+        "event_order_id",
+        "event_target_id",
+    ):
+        assert getattr(chunk, name).size == 0
 
 
 def test_sparse_session_rejects_missing_or_replaced_tape() -> None:

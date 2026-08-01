@@ -9659,6 +9659,78 @@ Residual scope is intentionally unchanged: the later Phase 46E Python hot
 state and dual-backend release gate remain open, and the Rust backend is not
 auto-enabled until its complete parity/RSS/release gates pass.
 
+### Phase 46D.1 - Fast Score Cache And RSS Refinement
+
+Status: **implemented locally on `feat/quantbt-engine-packaging`; benchmark
+parity and score/RSS plateau gates pass.** The optional prepared-RSS reduction
+target was measured but not claimed; execution remains explicit Rust and
+`auto` remains Python.
+
+Guide link:
+
+- [`quantbt_final_upgrade_dual_backend_pypi_plan.md`](quantbt_final_upgrade_dual_backend_pypi_plan.md),
+  sections `8.2`, `8.4`, `9.1` to `9.2`, `10.1`, and gate section `12`.
+
+Objective:
+
+- Remove per-score tape fingerprint work from the measured Rust path while
+  preserving a stable, complete cache identity and avoiding retention of the
+  original command object.
+- Reduce avoidable sparse-result allocation when the caller does not request
+  fill/order-event wake payloads, without changing scalar accounting or the
+  default audit path.
+- Re-run the exact Phase 46B benchmark and target a return toward the earlier
+  `~167x` to `~180x` Rust/Python score ratio where the workload supports it;
+  report failure honestly if the state-table or ABI boundary remains the
+  limiting factor.
+
+Implementation:
+
+- Compute the complete primitive command-tape fingerprint at compile time,
+  including all fields that affect Rust validation or execution. Treat the
+  compiled tape arrays as an immutable internal contract so cache identity
+  cannot become stale through post-compile mutation.
+- Make `RustBatchedRunner._tape_arrays()` use the stored fingerprint in the
+  hot score loop; retain only bounded primitive arrays and the digest.
+- Keep the explicit `clear_tape_cache()` and byte-limit behavior unchanged.
+- Add a sparse fast path that retains scalar counters but does not materialize
+  fill/event arrays when both wake payload flags are disabled. Keep the
+  default wake/audit behavior byte-for-byte compatible.
+- Add focused cache-invalidation, immutable-tape, sparse-fast-path, parity,
+  and repeated-run RSS tests. Re-run the Phase 46B low/high benchmark in a
+  fresh subprocess and retain before/after JSON evidence.
+
+Acceptance:
+
+- Exact Python/Rust audit and scalar parity remains 100%.
+- Existing full regression remains green.
+- Rust score median returns toward the Phase 46B range, or the measured
+  residual cause is documented with no false speed claim.
+- Prepared/score RSS does not regress; repeated score RSS remains plateaued.
+- No new endpoint argument is required and `auto` remains Python until the
+  Phase 46E release gate passes.
+
+Implementation completed and evidence:
+
+- `CompiledOrderCommandArrays` now carries a complete compile-time primitive
+  fingerprint covering execution and validation fields. Its arrays are
+  read-only after compilation, preventing stale cache identity through
+  mutation. Rust score cache hits use the stored digest and avoid rehashing
+  the tape.
+- `OrderTable` uses a bounded small-book sequence lookup and early tombstone
+  compaction; larger live books retain the numeric O(1) ID map. Sparse calls
+  with both wake payload flags disabled keep scalar accounting without
+  materializing fill/event arrays.
+- Focused native tests pass: `16 passed`. The final apples-to-apples evidence
+  is [`phase46d1_score_rss.json`](../benchmarks/native_event/phase46d1_score_rss.json):
+  `270.3x` low-churn and `175.3x` high-churn Rust/Python score speedup in the
+  saved run; scalar/full parity and repeated RSS plateau pass.
+- Ownership evidence is in
+  [`phase46d1_ownership_r2.json`](../benchmarks/native_event/phase46d1_ownership_r2.json):
+  both low/high sparse reset RSS deltas are zero and cache/reset gates pass.
+  Prepared incremental RSS was approximately `2.79 MB`/`2.98 MB` in the
+  staged score benchmark, so no 20% prepared-RSS reduction is claimed.
+
 ### Phase 46E - Python Hot State, Dual Backend Contract, And Release Gate
 
 Detailed guide sections:

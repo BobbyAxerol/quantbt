@@ -8,7 +8,6 @@ future Rust slice has passed lifecycle and accounting parity certification.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-import hashlib
 import importlib
 import os
 from types import ModuleType
@@ -19,7 +18,7 @@ import pandas as pd
 
 from ..core.event import ORDER_STATUS_PENDING
 from ..core.constraints import quantize_signed_quantity
-from ..core.order_compiler import CompiledOrderCommandArrays
+from ..core.order_compiler import CompiledOrderCommandArrays, command_tape_fingerprint
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOrderEvent, NativeStrategyContext
 from ..core.schema import OrderSide, OrderType, TimeInForce
@@ -503,30 +502,10 @@ def compile_rust_batched_tape(
 
 
 def _command_tape_fingerprint(compiled_commands: CompiledOrderCommandArrays) -> str:
-    """Return a stable digest for the primitive command tape representation."""
+    """Return the compile-time identity of an immutable primitive tape."""
 
-    digest = hashlib.blake2b(digest_size=16)
-    digest.update(repr(compiled_commands.index_signature).encode("utf-8"))
-    digest.update(repr(tuple(compiled_commands.symbols)).encode("utf-8"))
-    for array in (
-        compiled_commands.command_ptr,
-        compiled_commands.command_action,
-        compiled_commands.command_symbol,
-        compiled_commands.command_side,
-        compiled_commands.command_type,
-        compiled_commands.command_qty,
-        compiled_commands.command_price,
-        compiled_commands.command_trigger_price,
-        compiled_commands.command_reduce_only,
-        compiled_commands.command_order_id,
-        compiled_commands.command_target_order_id,
-        compiled_commands.command_expires_bar,
-    ):
-        contiguous = np.ascontiguousarray(array)
-        digest.update(str(contiguous.dtype).encode("ascii"))
-        digest.update(str(contiguous.shape).encode("ascii"))
-        digest.update(contiguous.tobytes())
-    return digest.hexdigest()
+    stored = getattr(compiled_commands, "tape_fingerprint", "")
+    return stored or command_tape_fingerprint(compiled_commands)
 
 
 def _payload_value(payload, key: str):
@@ -642,7 +621,9 @@ class RustBatchedRunner:
         )
 
     def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
-        fingerprint = _command_tape_fingerprint(compiled_commands)
+        fingerprint = getattr(compiled_commands, "tape_fingerprint", "") or _command_tape_fingerprint(
+            compiled_commands
+        )
         if fingerprint == self._cached_tape_fingerprint and self._cached_tape_arrays is not None:
             return self._cached_tape_arrays
         arrays = compile_rust_batched_tape(compiled_commands, symbol=self.symbols[0])

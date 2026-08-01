@@ -8,7 +8,8 @@ kernel semantics.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import hashlib
 from typing import Dict, Sequence, Tuple
 
 import numpy as np
@@ -91,10 +92,52 @@ class CompiledOrderCommandArrays:
     command_expires_bar: np.ndarray
     original_index: np.ndarray
     id_values: Tuple[str, ...]
+    tape_fingerprint: str = ""
 
     @property
     def n_commands(self) -> int:
         return int(len(self.original_index))
+
+
+def command_tape_fingerprint(compiled: CompiledOrderCommandArrays) -> str:
+    """Return a complete identity for the immutable primitive command tape.
+
+    The digest includes fields used by Rust validation as well as execution.
+    It is computed when the compiler creates a tape so repeated score calls do
+    not hash every array on the measured execution path.
+    """
+
+    digest = hashlib.blake2b(digest_size=16)
+    digest.update(repr(compiled.index_signature).encode("utf-8"))
+    digest.update(repr(tuple(compiled.symbols)).encode("utf-8"))
+    digest.update(repr(tuple(compiled.id_values)).encode("utf-8"))
+    for name in (
+        "command_ptr",
+        "command_bar",
+        "command_action",
+        "command_symbol",
+        "command_side",
+        "command_type",
+        "command_qty",
+        "command_price",
+        "command_trigger_price",
+        "command_tif",
+        "command_reduce_only",
+        "command_order_id",
+        "command_target_order_id",
+        "command_parent_order_id",
+        "command_group_id",
+        "command_oco_group_id",
+        "command_activation",
+        "command_expires_bar",
+        "original_index",
+    ):
+        array = np.ascontiguousarray(getattr(compiled, name))
+        digest.update(name.encode("ascii"))
+        digest.update(str(array.dtype).encode("ascii"))
+        digest.update(str(array.shape).encode("ascii"))
+        digest.update(array.tobytes())
+    return digest.hexdigest()
 
 
 def compile_order_intents(
@@ -247,7 +290,7 @@ def compile_order_commands(
     original_index = np.ascontiguousarray(original_unsorted[order_sort], dtype=np.int64)
     sorted_commands = tuple((int(orig_idx), commands[int(orig_idx)]) for orig_idx in original_index)
     id_values = tuple(sorted(id_map, key=id_map.get))
-    return CompiledOrderCommandArrays(
+    compiled = CompiledOrderCommandArrays(
         index_signature=market_data_signature(idx, list(symbol_to_col.keys())),
         symbols=tuple(symbol_to_col.keys()),
         sorted_commands=sorted_commands,
@@ -272,6 +315,29 @@ def compile_order_commands(
         original_index=original_index,
         id_values=id_values,
     )
+    for name in (
+        "command_ptr",
+        "command_bar",
+        "command_action",
+        "command_symbol",
+        "command_side",
+        "command_type",
+        "command_qty",
+        "command_price",
+        "command_trigger_price",
+        "command_tif",
+        "command_reduce_only",
+        "command_order_id",
+        "command_target_order_id",
+        "command_parent_order_id",
+        "command_group_id",
+        "command_oco_group_id",
+        "command_activation",
+        "command_expires_bar",
+        "original_index",
+    ):
+        getattr(compiled, name).flags.writeable = False
+    return replace(compiled, tape_fingerprint=command_tape_fingerprint(compiled))
 
 
 def order_intents_to_commands(orders: Sequence[OrderIntent]) -> Tuple[OrderCommand, ...]:
