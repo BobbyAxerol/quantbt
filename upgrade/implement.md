@@ -9334,7 +9334,7 @@ Before enabling Rust by default:
 
 ## Final Upgrade - Dual Backend, RSS, And PyPI Release
 
-Status: **Phase 46A implemented locally; Phases 46B-46F remain planned**.
+Status: **Phases 46A-46B implemented locally; Phases 46C-46F remain planned**.
 
 Detailed source of truth:
 
@@ -9426,6 +9426,9 @@ Acceptance and debt:
 
 ### Phase 46B - Apples-To-Apples Score And RSS Benchmark
 
+Status: **implemented locally; scalar parity, audit parity, and standard RSS
+evidence pass**.
+
 Detailed guide sections:
 
 - Guide sections `3`, `3.1` to `3.3`, `4`, `4.1` to `4.2`, and Patch `F2`.
@@ -9464,6 +9467,22 @@ Acceptance and debt:
   artifact contract and the one-time audit fingerprint matches.
 - If Python score-path overhead dominates, record it as facade debt instead
   of overstating Rust speedup.
+- Implementation is in `NativeEventBackend.run_compiled_tape_score(...)` and
+  the scalar properties on `NativeEventScalarScoreResult`; source mirrors are
+  kept byte-identical during the packaging transition.
+- Evidence runner:
+  [`benchmark_phase46b_score_rss.py`](../benchmarks/native_event/benchmark_phase46b_score_rss.py).
+  Standard evidence:
+  [`phase46b_score_rss.json`](../benchmarks/native_event/phase46b_score_rss.json).
+  Methodology and runnable command:
+  [`native_event_score_rss.md`](../docs/native_event_score_rss.md).
+- The 2,000-bar, five-sample profile passed full audit parity and scalar
+  parity for low/high churn; both Python and Rust 100-run score plateaus
+  passed. Rust was faster on this host, while total process RSS remained
+  dominated by the shared Python/package import floor. Prepared and execution
+  deltas are reported separately and are not conflated with that floor.
+- Phase 46B does not change public endpoint defaults and does not certify
+  portfolio, arbitrage, multi-symbol, or unsupported Rust capabilities.
 
 ### Phase 46C - Import Graph, Core Dependencies, And RSS Floor
 

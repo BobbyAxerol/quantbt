@@ -2314,6 +2314,125 @@ class NativeEventBackend:
             raise TypeError("native-event direct score did not return a native-event score result")
         return result
 
+    def run_compiled_tape_score(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        compiled_commands: CompiledOrderCommandArrays,
+        *,
+        market_arrays: PreparedMarketArrays,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        initial_capital: Optional[float] = None,
+        maintenance_ratio: Optional[float] = None,
+        slippage: Optional[float] = None,
+        use_funding: Optional[bool] = None,
+        trading_days: int = 365,
+    ) -> NativeEventScalarScoreResult:
+        """Run a prepared static command tape and retain scalar state only.
+
+        This is the Python-side apples-to-apples score contract for the Rust
+        batched runner. It accepts already prepared market arrays and compiled
+        commands, schedules the existing lifecycle commands without pandas
+        reports or full ledgers, and returns the same scalar accounting fields
+        as :class:`RustBatchedScoreResult` via the result properties and
+        metadata.
+
+        The method is intentionally internal-facing: quantity preflight and
+        capability validation must happen before compiling the tape. It does
+        not change the public endpoint default or the audit ``run_orders``
+        contract.
+        """
+        if market_arrays is None:
+            raise ValueError("run_compiled_tape_score requires prepared market_arrays")
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(compiled_commands.symbols)
+        if not symbol_list:
+            raise ValueError("compiled command tape must contain at least one symbol")
+        if market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match datetime_index/symbols")
+        if compiled_commands.index_signature != market_arrays.signature:
+            raise ValueError("compiled commands do not match prepared market arrays")
+
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        leverages = self._per_symbol_array(
+            self.config.account.leverage if leverage is None else leverage,
+            symbol_list,
+            default=self.config.account.leverage,
+        )
+        configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
+        fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
+        initial = float(self.config.account.initial_capital if initial_capital is None else initial_capital)
+        maint = float(
+            self.config.account.maintenance_ratio if maintenance_ratio is None else maintenance_ratio
+        )
+        slip = float(self.config.execution.slippage_rate if slippage is None else slippage)
+        funding_enabled = bool(self.config.use_funding if use_funding is None else use_funding)
+        if initial <= 0.0 or maint < 0.0 or slip < 0.0 or np.any(contract_sizes <= 0.0) or np.any(leverages <= 0.0):
+            raise ValueError("invalid scalar score account or execution configuration")
+
+        requirements = NativeEventScoreRequirements(
+            need_trade_stats=True,
+            need_context_fills=False,
+            need_context_events=False,
+            need_context_active_orders=False,
+            need_context_positions=False,
+            need_context_margin=False,
+        )
+        opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        volumes_arr = np.zeros_like(opens_arr, dtype=np.float64)
+        session = _NativeEventReactiveSession(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=build_quantity_constraints(symbol_list),
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            initial_capital=initial,
+            maintenance_ratio=maint,
+            slippage=slip,
+            use_funding=funding_enabled,
+            retain_terminal_orders=False,
+            score_requirements=requirements,
+        )
+        session.online_score.trading_days = int(trading_days)
+
+        for bar in range(len(idx)):
+            start = int(compiled_commands.command_ptr[bar])
+            stop = int(compiled_commands.command_ptr[bar + 1])
+            if stop > start:
+                session.schedule(
+                    bar,
+                    tuple(compiled_commands.sorted_commands[row][1] for row in range(start, stop)),
+                )
+        session.process_bar(len(idx) - 1)
+        result = self._reactive_session_score_result(
+            session=session,
+            symbol_list=symbol_list,
+            leverages=leverages,
+            requirements=requirements,
+            trading_days=int(trading_days),
+            metadata={
+                "backend": "native_event",
+                "engine": "event_v2_compiled_tape_scalar_python",
+                "report_level": "score",
+                "score_pandas_materialized": False,
+                "score_full_ledgers_materialized": False,
+                "compiled_tape_commands": int(compiled_commands.n_commands),
+                "compiled_tape_symbols": tuple(symbol_list),
+                "use_funding": funding_enabled,
+                "total_fee": float(session.total_fee),
+                "total_funding": float(session.total_funding),
+                "total_turnover": float(session.total_turnover),
+            },
+        )
+        if not isinstance(result, NativeEventScalarScoreResult):  # pragma: no cover
+            raise TypeError("compiled tape scalar path unexpectedly retained dense accounting")
+        return result
+
     def run_orders(
         self,
         datetime_index: Union[pd.DatetimeIndex, pd.Series],

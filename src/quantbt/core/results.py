@@ -245,6 +245,44 @@ class NativeEventScalarScoreResult:
     metrics: Mapping[str, float]
     metadata: Mapping[str, object] = field(default_factory=dict)
 
+    def _lifecycle_counter(self, name: str, default: int = 0) -> int:
+        counters = self.metadata.get("lifecycle_counters", {})
+        return int(counters.get(name, default)) if isinstance(counters, Mapping) else int(default)
+
+    @property
+    def event_count(self) -> int:
+        """Number of lifecycle events emitted by the scalar run."""
+
+        return self._lifecycle_counter("event_count")
+
+    @property
+    def rejected_count(self) -> int:
+        """Number of rejected commands in the scalar run."""
+
+        return int(self.rejection_count)
+
+    @property
+    def canceled_count(self) -> int:
+        """Number of canceled commands in the scalar run."""
+
+        return int(self.cancellation_count)
+
+    @property
+    def max_initial_margin(self) -> float:
+        return float(self.metrics.get("max_initial_margin", 0.0))
+
+    @property
+    def max_maintenance_margin(self) -> float:
+        return float(self.metrics.get("max_maintenance_margin", 0.0))
+
+    @property
+    def total_fee(self) -> float:
+        return float(self.metadata.get("total_fee", 0.0))
+
+    @property
+    def total_turnover(self) -> float:
+        return float(self.metadata.get("total_turnover", 0.0))
+
     def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
         """Return the online report captured for this score run.
 
