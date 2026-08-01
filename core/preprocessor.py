@@ -207,14 +207,21 @@ def build_market_arrays(
         funding[:, k] = funding_dict[sym].fillna(0).values
 
     is_funding_bar = make_funding_mask(idx)
+    closes = np.ascontiguousarray(closes, dtype=np.float64)
+    highs = np.ascontiguousarray(highs, dtype=np.float64)
+    lows = np.ascontiguousarray(lows, dtype=np.float64)
+    funding = np.ascontiguousarray(funding, dtype=np.float64)
+    is_funding_bar = np.ascontiguousarray(is_funding_bar, dtype=np.bool_)
+    for arr in (closes, highs, lows, funding, is_funding_bar):
+        arr.setflags(write=False)
     return PreparedMarketArrays(
         idx=idx,
         symbols=tuple(symbols),
-        closes=np.ascontiguousarray(closes, dtype=np.float64),
-        highs=np.ascontiguousarray(highs, dtype=np.float64),
-        lows=np.ascontiguousarray(lows, dtype=np.float64),
-        funding=np.ascontiguousarray(funding, dtype=np.float64),
-        is_funding_bar=np.ascontiguousarray(is_funding_bar, dtype=np.bool_),
+        closes=closes,
+        highs=highs,
+        lows=lows,
+        funding=funding,
+        is_funding_bar=is_funding_bar,
         signature=market_data_signature(idx, symbols),
     )
 

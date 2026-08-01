@@ -7418,6 +7418,60 @@ python benchmarks/native_event/benchmark_reactive_session.py
 pytest -q quantbt/tests
 ```
 
+Implementation note, 2026-08-01:
+
+- Status: **completed as Python hot-path/RSS/prepared-score optimization
+  phase**.
+- Runtime implementation changed:
+  - `_ReactiveOrderState` now uses `slots=True`.
+  - Reactive session caches immutable context helpers:
+    `symbols_tuple`, `size_helper`, empty payload tuples, and active-order
+    snapshots.
+  - Prepared market arrays, reactive `opens_arr`, and `volumes_arr` are marked
+    read-only; context OHLCV now returns row views instead of per-bar copies.
+  - Scheduled command queues are popped per bar after execution.
+  - Callback payload dictionaries are released after the callback; full
+    fills/events are kept in separate compact lifecycle ledgers for reporting.
+  - Terminal state cleanup is centralized through `_terminalize_state(...)`.
+  - `id_to_order` is kept active/waiting only; score mode does not retain
+    terminal order history.
+  - Parent children, OCO membership, and GTD expiry buckets are indexed without
+    changing insertion-order priority.
+  - Close-margin calculation is cached per bar and dirtied after fills or
+    liquidation; formulas and liquidation priority are unchanged.
+- Public API changed: **none**.
+- Source mirrored in both packaging paths:
+  - `src/quantbt/backends/native_event.py`;
+  - `backends/native_event.py`;
+  - `src/quantbt/core/preprocessor.py`;
+  - `core/preprocessor.py`.
+- Validation:
+  - `UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/uv run pytest -q tests/native_event`
+    -> `20 passed, 2 skipped, 2 xfailed`.
+  - `UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/uv run pytest -q tests/native_event tests/test_phase30d_native_event_reactive_runner.py tests/test_phase34b_native_event_prepared_score.py tests/test_phase34c_native_event_single_pass.py`
+    -> `34 passed, 2 skipped, 2 xfailed`.
+  - `UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/uv run python benchmarks/native_event/benchmark_reactive_session.py`
+    -> completed and refreshed `benchmarks/native_event/reactive_session_baseline.*`.
+- Benchmark change versus Phase 43A warm baseline:
+  - 25k low orders: `1.4672s -> 1.2510s` (`~14.7%` faster).
+  - 25k high churn: `1.3999s -> 1.3620s` (`~2.7%` faster).
+  - 100k low orders: `4.4641s -> 3.5485s` (`~20.5%` faster).
+  - 100k high churn: `5.2720s -> 3.8159s` (`~27.6%` faster).
+  - parent/OCO-heavy: `1.3920s -> 1.1372s` (`~18.3%` faster).
+  - GTD-heavy: `1.3772s -> 1.0886s` (`~21.0%` faster).
+  - prepared 100 scores: `25.2063s -> 21.6358s` (`~14.2%` faster).
+  - Multi-symbol benchmark path changed from reactive facade fallback to direct
+    lifecycle package path after Phase 43A documented the facade limitation; it
+    is not compared as a like-for-like speedup.
+- Known debts still open:
+  - The two Phase 43A `xfail` items remain open intentionally: finalize
+    outside-tape audit retention and quantity-preflight replay parity.
+  - Prepared score still materializes enough accounting arrays to preserve the
+    existing score result contract; deeper requirements-driven scalar-only
+    metrics can be a later phase only after metric parity is locked.
+  - RSS peak is mostly bounded by pandas/result/report artifacts and Numba
+    compiled code residency; callback payload retention is now cleaned per bar.
+
 ### Phase 44A - PyO3 R0 Scaffold And Backend Fallback
 
 Branch:

@@ -307,7 +307,7 @@ def _native_event_artifact_plan(report_level: str) -> NativeEventArtifactPlan:
     )
 
 
-@dataclass
+@dataclass(slots=True)
 class _ReactiveOrderState:
     command: OrderCommand
     command_index: int
@@ -346,9 +346,12 @@ class _NativeEventReactiveSession:
         maintenance_ratio: float,
         slippage: float,
         use_funding: bool,
+        retain_terminal_orders: bool = True,
     ) -> None:
         self.idx = idx
         self.symbols = symbols
+        self.symbols_tuple = tuple(symbols)
+        self.n_symbols = len(symbols)
         self.symbol_to_col = {symbol: j for j, symbol in enumerate(symbols)}
         self.market_arrays = market_arrays
         self.opens_arr = opens_arr
@@ -361,6 +364,7 @@ class _NativeEventReactiveSession:
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
+        self.retain_terminal_orders = bool(retain_terminal_orders)
 
         self.current_pos = np.zeros(len(symbols), dtype=np.float64)
         self.equity = float(initial_capital)
@@ -374,9 +378,26 @@ class _NativeEventReactiveSession:
         self.scheduled: Dict[int, List[OrderCommand]] = {}
         self.fills_by_bar: Dict[int, List[NativeFillEvent]] = {}
         self.events_by_bar: Dict[int, List[NativeOrderEvent]] = {}
+        self.fills: List[NativeFillEvent] = []
+        self.events: List[NativeOrderEvent] = []
+        self.children_by_parent_id: Dict[str, List[_ReactiveOrderState]] = {}
+        self.members_by_oco_group: Dict[str, List[_ReactiveOrderState]] = {}
+        self.expiry_by_bar: Dict[int, List[_ReactiveOrderState]] = {}
         self.processed_bar = -1
         self.last_initial_margin = 0.0
         self.last_maintenance_margin = 0.0
+        self.margin_bar = -1
+        self.margin_dirty = True
+        self.size_helper = NativeEventBackend._reactive_size_helper(
+            symbols=self.symbols,
+            constraints=self.constraints,
+            contract_sizes=self.contract_sizes,
+        )
+        self.empty_fills: tuple[NativeFillEvent, ...] = ()
+        self.empty_events: tuple[NativeOrderEvent, ...] = ()
+        self.empty_active_orders: tuple[NativeActiveOrderSnapshot, ...] = ()
+        self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = self.empty_active_orders
+        self._active_snapshot_dirty = True
         n_bars = len(idx)
         n_syms = len(symbols)
         self.equity_path = np.zeros(n_bars, dtype=np.float64)
@@ -395,6 +416,10 @@ class _NativeEventReactiveSession:
             return
         self.scheduled.setdefault(int(bar), []).extend(commands)
 
+    def release_bar_payload(self, bar: int) -> None:
+        self.fills_by_bar.pop(int(bar), None)
+        self.events_by_bar.pop(int(bar), None)
+
     def process_bar(self, bar: int) -> None:
         if bar <= self.processed_bar:
             return
@@ -404,34 +429,32 @@ class _NativeEventReactiveSession:
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
-        init_margin, maint_margin = self._close_margin(bar)
-        self.last_initial_margin = init_margin
-        self.last_maintenance_margin = maint_margin
-        positions = {symbol: float(self.current_pos[j]) for j, symbol in enumerate(self.symbols)}
-        size_helper = NativeEventBackend._reactive_size_helper(
-            symbols=self.symbols,
-            constraints=self.constraints,
-            contract_sizes=self.contract_sizes,
-        )
+        init_margin, maint_margin = self._refresh_close_margin(bar)
+        if self.n_symbols == 1:
+            positions = {self.symbols[0]: float(self.current_pos[0])}
+        else:
+            positions = {symbol: float(self.current_pos[j]) for j, symbol in enumerate(self.symbols)}
+        fills_this_bar = tuple(self.fills_by_bar.get(int(bar), self.empty_fills))
+        events_this_bar = tuple(self.events_by_bar.get(int(bar), self.empty_events))
         return NativeStrategyContext(
             bar_index=int(bar),
             timestamp=self.idx[int(bar)],
-            open=np.ascontiguousarray(self.opens_arr[int(bar)].copy()),
-            high=np.ascontiguousarray(self.market_arrays.highs[int(bar)].copy()),
-            low=np.ascontiguousarray(self.market_arrays.lows[int(bar)].copy()),
-            close=np.ascontiguousarray(self.market_arrays.closes[int(bar)].copy()),
-            volume=np.ascontiguousarray(self.volumes_arr[int(bar)].copy()),
+            open=self.opens_arr[int(bar)],
+            high=self.market_arrays.highs[int(bar)],
+            low=self.market_arrays.lows[int(bar)],
+            close=self.market_arrays.closes[int(bar)],
+            volume=self.volumes_arr[int(bar)],
             equity=float(self.equity),
             available_equity=float(self.equity - init_margin),
             initial_margin=float(init_margin),
             maintenance_margin=float(maint_margin),
             positions=positions,
-            fills_this_bar=tuple(self.fills_by_bar.get(int(bar), ())),
-            order_events_this_bar=tuple(self.events_by_bar.get(int(bar), ())),
-            active_orders=tuple(self._active_snapshots()),
+            fills_this_bar=fills_this_bar,
+            order_events_this_bar=events_this_bar,
+            active_orders=self._active_snapshots(),
             liquidated=bool(self.liquidated),
-            symbols=tuple(self.symbols),
-            size_order=size_helper,
+            symbols=self.symbols_tuple,
+            size_order=self.size_helper,
         )
 
     def _process_single_bar(self, bar: int) -> None:
@@ -465,18 +488,18 @@ class _NativeEventReactiveSession:
             self.equity -= funding_cost
             self.funding_path[bar] += funding_cost
         if bar > 0:
-            _, close_mm = self._close_margin(bar)
+            _, close_mm = self._refresh_close_margin(bar)
             if close_mm > 0.0 and self.equity <= close_mm:
                 self._liquidate(bar, LIQ_AFTER_FUNDING)
                 self._record_bar(bar)
                 return
 
         self._expire_orders(bar)
-        for command in self.scheduled.get(bar, ()):
+        for command in self.scheduled.pop(bar, ()):
             self._apply_command(bar, command)
         self._match_orders(bar)
         self._compact_pending()
-        _, close_mm = self._close_margin(bar)
+        _, close_mm = self._refresh_close_margin(bar)
         if close_mm > 0.0 and self.equity <= close_mm:
             self._liquidate(bar, LIQ_AFTER_ORDER)
         self._record_bar(bar)
@@ -484,13 +507,11 @@ class _NativeEventReactiveSession:
     def _record_bar(self, bar: int) -> None:
         if bar < 0 or bar >= len(self.idx):
             return
-        init_margin, maint_margin = self._close_margin(bar)
+        init_margin, maint_margin = self._refresh_close_margin(bar)
         self.equity_path[bar] = float(self.equity)
         self.pos_path[bar, :] = self.current_pos
         self.initial_margin_path[bar] = float(init_margin)
         self.maintenance_margin_path[bar] = float(maint_margin)
-        self.last_initial_margin = float(init_margin)
-        self.last_maintenance_margin = float(maint_margin)
 
     def _apply_command(self, bar: int, command: OrderCommand) -> None:
         action = command.action
@@ -502,9 +523,9 @@ class _NativeEventReactiveSession:
                 self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
             else:
                 self._cancel_state(bar, target, "replace", ORDER_STATUS_CANCELED, command)
-                self._place_order(bar, command, "replace")
-                if command.target_order_id:
-                    self.id_to_order[command.target_order_id] = self.orders[-1]
+                replacement = self._place_order(bar, command, "replace")
+                if command.target_order_id and replacement is not None:
+                    self.id_to_order[command.target_order_id] = replacement
         elif action is OrderAction.CANCEL:
             target = self._lookup_pending(command.target_order_id)
             if target is None:
@@ -524,17 +545,18 @@ class _NativeEventReactiveSession:
                     target.working_trigger = float(command.trigger_price)
                 self._event(bar, command, "amend", ORDER_STATUS_FILLED, target_order_id=command.target_order_id)
         elif action is OrderAction.CANCEL_ALL:
-            for target in tuple(self.pending):
+            targets = self.pending if self._cancel_all_unfiltered(command) else tuple(self.pending)
+            for target in targets:
                 if self._is_pending(target) and self._cancel_all_matches(command, target.command):
                     self._cancel_state(bar, target, "cancel", ORDER_STATUS_CANCELED, command)
             self._event(bar, command, "cancel", ORDER_STATUS_FILLED)
         else:
             self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
 
-    def _place_order(self, bar: int, command: OrderCommand, event_name: str) -> None:
+    def _place_order(self, bar: int, command: OrderCommand, event_name: str) -> Optional[_ReactiveOrderState]:
         if command.symbol is None or command.symbol not in self.symbol_to_col:
             self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
-            return
+            return None
         state = _ReactiveOrderState(
             command=command,
             command_index=self.command_seq,
@@ -546,11 +568,22 @@ class _NativeEventReactiveSession:
             working_trigger=0.0 if command.trigger_price is None else float(command.trigger_price),
         )
         self.command_seq += 1
-        self.orders.append(state)
         self.pending.append(state)
+        if self.retain_terminal_orders:
+            self.orders.append(state)
         if command.order_id:
             self.id_to_order[command.order_id] = state
+        if command.parent_order_id:
+            self.children_by_parent_id.setdefault(command.parent_order_id, []).append(state)
+        if command.oco_group_id:
+            self.members_by_oco_group.setdefault(command.oco_group_id, []).append(state)
+        if command.expires_at is not None:
+            expiry_bar = max(self._expiry_bar(command.expires_at), int(bar) + 1)
+            if 0 <= expiry_bar < len(self.idx):
+                self.expiry_by_bar.setdefault(expiry_bar, []).append(state)
+        self._active_snapshot_dirty = True
         self._event(bar, command, event_name, ORDER_STATUS_PENDING)
+        return state
 
     def _match_orders(self, bar: int) -> None:
         for state in tuple(self.pending):
@@ -592,19 +625,17 @@ class _NativeEventReactiveSession:
             required, cur_im = self._margin_required(bar, state.symbol_col, delta, float(exec_price), fee_cost)
             if required > self.equity - cur_im:
                 state.status = ORDER_STATUS_REJECTED
-                state.active = False
-                state.waiting_parent = False
                 state.reject_code = REJECT_INSUFFICIENT_MARGIN
                 self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+                self._terminalize_state(state)
                 continue
 
             self.equity += delta * (close - float(exec_price)) * cs - fee_cost
             self.current_pos[state.symbol_col] += delta
+            self.margin_dirty = True
             self.fee_path[bar] += fee_cost
             self.turnover_path[bar] += trade_notional
             state.status = ORDER_STATUS_FILLED
-            state.active = False
-            state.waiting_parent = False
             fill = NativeFillEvent(
                 timestamp=self.idx[bar],
                 symbol=command.symbol or self.symbols[state.symbol_col],
@@ -622,7 +653,9 @@ class _NativeEventReactiveSession:
                 metadata=dict(command.metadata),
             )
             self.fills_by_bar.setdefault(bar, []).append(fill)
+            self.fills.append(fill)
             self._event(bar, command, "fill", ORDER_STATUS_FILLED)
+            self._terminalize_state(state)
             self._activate_children(bar, state)
             self._cancel_oco_siblings(bar, state)
 
@@ -630,7 +663,8 @@ class _NativeEventReactiveSession:
         parent_id = parent.command.order_id
         if not parent_id:
             return
-        for child in tuple(self.pending):
+        children = self.children_by_parent_id.get(parent_id, ())
+        for child in tuple(children):
             if child.waiting_parent and child.command.parent_order_id == parent_id:
                 if child.command.activation_policy in (
                     OrderActivationPolicy.ON_PARENT_FIRST_FILL,
@@ -638,30 +672,31 @@ class _NativeEventReactiveSession:
                 ):
                     child.waiting_parent = False
                     child.active = True
+                    self._active_snapshot_dirty = True
                     self._event(bar, child.command, "activate", ORDER_STATUS_PENDING, related_order_id=parent_id)
+        self.children_by_parent_id[parent_id] = [child for child in children if self._is_pending(child)]
+        if not self.children_by_parent_id[parent_id]:
+            self.children_by_parent_id.pop(parent_id, None)
 
     def _cancel_oco_siblings(self, bar: int, filled: _ReactiveOrderState) -> None:
         group = filled.command.oco_group_id
         if not group:
             return
-        for sibling in tuple(self.pending):
+        siblings = self.members_by_oco_group.get(group, ())
+        for sibling in tuple(siblings):
             if sibling is filled:
                 continue
             if self._is_pending(sibling) and sibling.command.oco_group_id == group:
                 self._cancel_state(bar, sibling, "cancel", ORDER_STATUS_CANCELED, filled.command)
+        self.members_by_oco_group[group] = [sibling for sibling in siblings if self._is_pending(sibling)]
+        if not self.members_by_oco_group[group]:
+            self.members_by_oco_group.pop(group, None)
 
     def _expire_orders(self, bar: int) -> None:
-        ts = self.idx[bar]
-        for state in tuple(self.pending):
+        for state in tuple(self.expiry_by_bar.pop(int(bar), ())):
             if not self._is_pending(state) or state.command.expires_at is None:
                 continue
-            exp = pd.Timestamp(state.command.expires_at)
-            if exp.tz is None:
-                exp = exp.tz_localize("UTC")
-            else:
-                exp = exp.tz_convert("UTC")
-            if ts.value >= exp.value:
-                self._cancel_state(bar, state, "expire", ORDER_STATUS_CANCELED, state.command)
+            self._cancel_state(bar, state, "expire", ORDER_STATUS_CANCELED, state.command)
 
     def _cancel_state(
         self,
@@ -683,6 +718,7 @@ class _NativeEventReactiveSession:
             target_order_id=state.command.order_id,
             related_order_id=state.command.order_id,
         )
+        self._terminalize_state(state)
 
     def _event(
         self,
@@ -696,24 +732,24 @@ class _NativeEventReactiveSession:
     ) -> None:
         if event_name == "reject":
             self.rejected_bar[bar] += 1
-        self.events_by_bar.setdefault(bar, []).append(
-            NativeOrderEvent(
-                timestamp=self.idx[bar],
-                bar=int(bar),
-                event_name=event_name,
-                status=int(status),
-                order_id=command.order_id,
-                target_order_id=target_order_id or command.target_order_id,
-                parent_order_id=command.parent_order_id,
-                oco_group_id=command.oco_group_id,
-                tag=command.tag,
-                campaign_id=command.metadata.get("campaign_id"),
-                cycle_id=command.metadata.get("cycle_id"),
-                level_id=command.metadata.get("level_id"),
-                original_index=-1,
-                related_original_index=-1,
-            )
+        event = NativeOrderEvent(
+            timestamp=self.idx[bar],
+            bar=int(bar),
+            event_name=event_name,
+            status=int(status),
+            order_id=command.order_id,
+            target_order_id=target_order_id or command.target_order_id,
+            parent_order_id=command.parent_order_id,
+            oco_group_id=command.oco_group_id,
+            tag=command.tag,
+            campaign_id=command.metadata.get("campaign_id"),
+            cycle_id=command.metadata.get("cycle_id"),
+            level_id=command.metadata.get("level_id"),
+            original_index=-1,
+            related_original_index=-1,
         )
+        self.events_by_bar.setdefault(bar, []).append(event)
+        self.events.append(event)
 
     def _lookup_pending(self, order_id: Optional[str]) -> Optional[_ReactiveOrderState]:
         if not order_id:
@@ -727,7 +763,43 @@ class _NativeEventReactiveSession:
     def _is_pending(state: _ReactiveOrderState) -> bool:
         return state.status == ORDER_STATUS_PENDING and (state.active or state.waiting_parent)
 
-    def _active_snapshots(self) -> List[NativeActiveOrderSnapshot]:
+    def _terminalize_state(self, state: _ReactiveOrderState) -> None:
+        state.active = False
+        state.waiting_parent = False
+        order_id = state.command.order_id
+        if order_id and self.id_to_order.get(order_id) is state:
+            self.id_to_order.pop(order_id, None)
+        parent_id = state.command.parent_order_id
+        if parent_id and parent_id in self.children_by_parent_id:
+            children = [child for child in self.children_by_parent_id[parent_id] if child is not state and self._is_pending(child)]
+            if children:
+                self.children_by_parent_id[parent_id] = children
+            else:
+                self.children_by_parent_id.pop(parent_id, None)
+        group = state.command.oco_group_id
+        if group and group in self.members_by_oco_group:
+            members = [member for member in self.members_by_oco_group[group] if member is not state and self._is_pending(member)]
+            if members:
+                self.members_by_oco_group[group] = members
+            else:
+                self.members_by_oco_group.pop(group, None)
+        self._active_snapshot_dirty = True
+
+    def _expiry_bar(self, expires_at) -> int:
+        exp = pd.Timestamp(expires_at)
+        if exp.tz is None:
+            exp = exp.tz_localize("UTC")
+        else:
+            exp = exp.tz_convert("UTC")
+        return int(self.idx.searchsorted(exp, side="left"))
+
+    def _active_snapshots(self) -> tuple[NativeActiveOrderSnapshot, ...]:
+        if not self.pending:
+            self._active_snapshot_cache = self.empty_active_orders
+            self._active_snapshot_dirty = False
+            return self.empty_active_orders
+        if not self._active_snapshot_dirty:
+            return self._active_snapshot_cache
         out: List[NativeActiveOrderSnapshot] = []
         for state in self.pending:
             if not self._is_pending(state):
@@ -753,9 +825,14 @@ class _NativeEventReactiveSession:
                     level_id=command.metadata.get("level_id"),
                 )
             )
-        return out
+        self._active_snapshot_cache = tuple(out) if out else self.empty_active_orders
+        self._active_snapshot_dirty = False
+        return self._active_snapshot_cache
 
-    def _close_margin(self, bar: int) -> tuple[float, float]:
+    def _refresh_close_margin(self, bar: int) -> tuple[float, float]:
+        bar = int(bar)
+        if not self.margin_dirty and self.margin_bar == bar:
+            return self.last_initial_margin, self.last_maintenance_margin
         init_margin = 0.0
         maint_margin = 0.0
         for s in range(len(self.symbols)):
@@ -764,10 +841,17 @@ class _NativeEventReactiveSession:
                 notional = abs(p) * self.market_arrays.closes[bar, s] * self.contract_sizes[s]
                 init_margin += notional / self.leverages[s]
                 maint_margin += notional * self.maintenance_ratio
-        return float(init_margin), float(maint_margin)
+        self.last_initial_margin = float(init_margin)
+        self.last_maintenance_margin = float(maint_margin)
+        self.margin_bar = bar
+        self.margin_dirty = False
+        return self.last_initial_margin, self.last_maintenance_margin
+
+    def _close_margin(self, bar: int) -> tuple[float, float]:
+        return self._refresh_close_margin(bar)
 
     def _margin_required(self, bar: int, sym: int, delta: float, exec_price: float, fee_cost: float) -> tuple[float, float]:
-        cur_im, _ = self._close_margin(bar)
+        cur_im, _ = self._refresh_close_margin(bar)
         close = float(self.market_arrays.closes[bar, sym])
         old_im = abs(self.current_pos[sym]) * close * self.contract_sizes[sym] / self.leverages[sym]
         new_im = abs(self.current_pos[sym] + delta) * exec_price * self.contract_sizes[sym] / self.leverages[sym]
@@ -795,6 +879,8 @@ class _NativeEventReactiveSession:
         self.liquidation_reason = int(reason)
         self.equity = 0.0
         self.current_pos[:] = 0.0
+        self.margin_dirty = True
+        self._active_snapshot_dirty = True
 
     def _touched_price(
         self,
@@ -826,6 +912,20 @@ class _NativeEventReactiveSession:
         return False, float(close)
 
     @staticmethod
+    def _cancel_all_unfiltered(command: OrderCommand) -> bool:
+        return (
+            command.symbol is None
+            and command.side is None
+            and command.order_type is None
+            and command.parent_order_id is None
+            and command.group_id is None
+            and command.oco_group_id is None
+            and command.tag is None
+            and command.tag_prefix is None
+            and not command.metadata
+        )
+
+    @staticmethod
     def _cancel_all_matches(cancel_command: OrderCommand, target: OrderCommand) -> bool:
         if cancel_command.symbol is not None and cancel_command.symbol != target.symbol:
             return False
@@ -852,6 +952,7 @@ class _NativeEventReactiveSession:
         if not self.pending:
             return
         self.pending = [state for state in self.pending if self._is_pending(state)]
+        self._active_snapshot_dirty = True
 
 
 class NativeEventBackend:
@@ -1342,6 +1443,8 @@ class NativeEventBackend:
             volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
         if opens_arr.shape != market_arrays.closes.shape or volumes_arr.shape != market_arrays.closes.shape:
             raise ValueError("prepared opens/volumes arrays must match market array shape")
+        opens_arr.setflags(write=False)
+        volumes_arr.setflags(write=False)
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -1377,6 +1480,7 @@ class NativeEventBackend:
             maintenance_ratio=self.config.account.maintenance_ratio,
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
+            retain_terminal_orders=level != "score",
         )
 
         emitted: list[OrderCommand] = []
@@ -1405,11 +1509,13 @@ class NativeEventBackend:
             last_context = context
             callback_count += 1
             if context.liquidated:
+                session.release_bar_payload(bar)
                 break
             commands = self._expand_scoped_cancel_all_commands(
                 self._call_strategy_callback(strategy, "on_bar_close", context),
                 context,
             )
+            session.release_bar_payload(bar)
             scheduled, ignored = self._retime_reactive_commands(
                 commands=commands,
                 effective_bar=bar + 1,
@@ -1894,14 +2000,12 @@ class NativeEventBackend:
         fill_ledger = self._compact_fill_ledger_from_session(session, symbol_list)
         lifecycle_counters = {
             "fill_count": int(len(session_fills)),
-            "event_count": int(sum(len(events) for events in session.events_by_bar.values())),
+            "event_count": int(len(session.events)),
             "rejected_count": int(np.sum(session.rejected_bar)),
             "canceled_count": int(np.sum(session.canceled_bar)),
             "filled_command_count": int(len(session_fills)),
             "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
-            "expired_event_count": int(
-                sum(1 for events in session.events_by_bar.values() for event in events if event.event_name == "expire")
-            ),
+            "expired_event_count": int(sum(1 for event in session.events if event.event_name == "expire")),
         }
         command_report = pd.DataFrame()
         order_events = pd.DataFrame()
@@ -1968,28 +2072,27 @@ class NativeEventBackend:
     @staticmethod
     def _fills_from_reactive_session(session: _NativeEventReactiveSession) -> tuple[Fill, ...]:
         fills: list[Fill] = []
-        for bar in sorted(session.fills_by_bar):
-            for fill in session.fills_by_bar[bar]:
-                fills.append(
-                    Fill(
-                        timestamp=fill.timestamp,
-                        symbol=fill.symbol,
-                        side=fill.side,
-                        qty=float(fill.qty),
-                        price=float(fill.price),
-                        fee=float(fill.fee),
-                        order_id=fill.order_id,
-                        metadata={
-                            **dict(fill.metadata),
-                            "tag": fill.tag,
-                            "campaign_id": fill.campaign_id,
-                            "cycle_id": fill.cycle_id,
-                            "level_id": fill.level_id,
-                            "parent_order_id": fill.parent_order_id,
-                            "oco_group_id": fill.oco_group_id,
-                        },
-                    )
+        for fill in session.fills:
+            fills.append(
+                Fill(
+                    timestamp=fill.timestamp,
+                    symbol=fill.symbol,
+                    side=fill.side,
+                    qty=float(fill.qty),
+                    price=float(fill.price),
+                    fee=float(fill.fee),
+                    order_id=fill.order_id,
+                    metadata={
+                        **dict(fill.metadata),
+                        "tag": fill.tag,
+                        "campaign_id": fill.campaign_id,
+                        "cycle_id": fill.cycle_id,
+                        "level_id": fill.level_id,
+                        "parent_order_id": fill.parent_order_id,
+                        "oco_group_id": fill.oco_group_id,
+                    },
                 )
+            )
         return tuple(fills)
 
     @staticmethod
@@ -2008,24 +2111,21 @@ class NativeEventBackend:
         qty = []
         price = []
         fee = []
-        fill_index = 0
-        for bar in sorted(session.fills_by_bar):
-            for fill in session.fills_by_bar[bar]:
-                code = -1
-                if fill.order_id:
-                    if fill.order_id not in id_map:
-                        id_map[fill.order_id] = len(id_map)
-                    code = id_map[fill.order_id]
-                bars.append(int(bar))
-                command_index.append(fill_index)
-                original_index.append(-1)
-                order_id_code.append(code)
-                symbol_code.append(symbol_to_col.get(fill.symbol, -1))
-                side.append(fill.side.sign)
-                qty.append(float(fill.qty))
-                price.append(float(fill.price))
-                fee.append(float(fill.fee))
-                fill_index += 1
+        for fill_index, fill in enumerate(session.fills):
+            code = -1
+            if fill.order_id:
+                if fill.order_id not in id_map:
+                    id_map[fill.order_id] = len(id_map)
+                code = id_map[fill.order_id]
+            bars.append(int(session.idx.searchsorted(pd.Timestamp(fill.timestamp), side="left")))
+            command_index.append(fill_index)
+            original_index.append(-1)
+            order_id_code.append(code)
+            symbol_code.append(symbol_to_col.get(fill.symbol, -1))
+            side.append(fill.side.sign)
+            qty.append(float(fill.qty))
+            price.append(float(fill.price))
+            fee.append(float(fill.fee))
         return CompactFillLedger(
             bar=np.asarray(bars, dtype=np.int64),
             command_index=np.asarray(command_index, dtype=np.int64),
