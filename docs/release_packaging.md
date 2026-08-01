@@ -17,6 +17,11 @@ from quantbt import QuantBTEndpoint
   explicitly remove it.
 - The first package release line is `0.1.x`, meaning Python behavior unchanged.
 
+Phase 45C keeps the root source mirror temporarily for rollback and editable
+compatibility. Distribution artifacts are built from `src/quantbt`, while the
+SHA256 source-sync test prevents the two source locations from drifting.
+Deleting the root mirror is a later, separately approved migration step.
+
 ## CI Contract
 
 The main CI workflow runs on pull requests and pushes to `dev` and `main`.

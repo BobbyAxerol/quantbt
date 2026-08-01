@@ -43,6 +43,9 @@ jobs:
       - name: Build package
         run: uv build
 
+      - name: Validate distribution metadata
+        run: uv run twine check dist/*
+
       - name: Clean wheel install smoke
         shell: bash
         run: |
@@ -51,6 +54,15 @@ jobs:
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           cd /tmp
           /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Clean sdist install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-sdist-smoke
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+          cd /tmp
+          /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
 
       - name: Pool Alpha import compatibility smoke
         run: uv run python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"

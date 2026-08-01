@@ -7845,31 +7845,95 @@ Local evidence (Linux x86_64, CPython 3.12, 2026-08-01):
   provide a batched/compiled strategy or a compact typed step protocol and
   demonstrate the documented speed/RSS thresholds.
 
-#### Phase 45C - Canonical Packaging And Release Readiness
+#### Phase 45C - Core Packaging Track A (Python Only)
 
-Read first:
+Detailed source of truth:
 
-- V3 sections `46` to `49`, `55` steps 3 and 6, `56`, and `57`.
+- [QuantBT Native Event - Core Packaging, Python Hot Path and Batched Rust
+  Execution Plan](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md)
+- Read the guide sections `1`, `2`, `2.1` to `2.4`, `13.1`, `14`, `15`, and
+  `16` before changing packaging or release files.
+
+Status: **completed locally: `quantbt-engine==0.1.0` core packaging gates pass;
+root compatibility source intentionally retained**.
 
 Scope:
 
-- Validate wheel/sdist contents, `twine check`, clean installed-artifact
-  imports, Pool Alpha editable/wheel compatibility, metadata, and README.
-- Remove root duplicate source only after those migration gates pass; update
-  the source-tree test from sync guard to sole-source enforcement.
-- Add reproducible manylinux CPython 3.11-3.13 native-wheel CI, combined
-  installed-artifact parity, benchmark/evidence artifacts, release workflow,
-  TestPyPI rehearsal, and Trusted Publisher checklist.
-- Enable `quantbt-engine[native]` only when the matching native wheel is
-  actually publishable; never advertise an empty extra as installed support.
+- Certify the Python core distribution independently from Rust/PyO3.
+- Keep `src/quantbt` as the wheel/sdist canonical package source.
+- Keep the existing root package mirror temporarily for rollback and editable
+  compatibility. Do not delete root files in this phase.
+- Keep `tests/test_phase45a_source_tree_sync.py` as a SHA256 drift guard while
+  both source locations exist.
+- Validate wheel and sdist metadata with `twine check`.
+- Test clean wheel and sdist installs from outside the repository root.
+- Test the unchanged public import:
+  `from quantbt import QuantBTEndpoint`.
+- Test Pool Alpha-style editable/path compatibility without requiring
+  `PYTHONPATH` for installed-package smoke tests.
+- Keep `quantbt-engine[native]` empty/unpublished until the separate Rust
+  batched path passes its performance and RSS gates.
+
+Required implementation:
+
+1. README installation uses `quantbt-engine==0.1.0` for the released core and
+   `uv sync --all-extras --dev` for repository development.
+2. CI validates `uv build`, `twine check dist/*`, clean wheel install, and clean
+   sdist install on Python 3.11, 3.12, and 3.13.
+3. Publish workflow repeats metadata and clean artifact checks before any OIDC
+   publication job.
+4. Version gate remains `pyproject.toml 0.1.0` to tag `v0.1.0`.
+5. No Rust implementation, endpoint, accounting, or fallback behavior changes
+   are allowed in this phase.
+
+Validation commands:
+
+```bash
+uv sync --all-extras --dev
+uv run pytest -q tests/test_phase42_packaging_layout.py \
+  tests/test_phase42c_ci_release.py tests/test_phase45a_source_tree_sync.py
+uv build
+uv run twine check dist/*
+```
+
+Clean artifact gates:
+
+```bash
+python3 -m venv /tmp/quantbt-phase45c-wheel
+/tmp/quantbt-phase45c-wheel/bin/python -m pip install dist/quantbt_engine-*.whl
+cd /tmp
+/tmp/quantbt-phase45c-wheel/bin/python -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+python3 -m venv /tmp/quantbt-phase45c-sdist
+/tmp/quantbt-phase45c-sdist/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+cd /tmp
+/tmp/quantbt-phase45c-sdist/bin/python -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
 
 Exit criteria:
 
-- `quantbt-engine` is independently release-ready from `main`.
-- `quantbt-native` remains unpublished unless its advertised capability matrix,
-  installed-wheel parity, and runtime/RSS gates all pass.
-- R3-R5 remain separate future feature slices, not hidden technical debt in a
-  packaging release.
+- `quantbt-engine==0.1.0` builds wheel and sdist from `src/quantbt`.
+- `twine check dist/*` passes.
+- Clean wheel and sdist imports resolve from `site-packages` outside the repo.
+- Root source mirror remains present and SHA256-identical to `src/quantbt`.
+- Existing alpha/notebook public imports remain unchanged.
+- Core package release readiness is independent of `quantbt-native`.
+- Rust remains explicit experimental and is not enabled by `auto`.
+
+Local implementation evidence (2026-08-01):
+
+- README now documents `pip install quantbt-engine==0.1.0` and the `uv`
+  development workflow; obsolete Poetry/PYTHONPATH package instructions were
+  removed from the installation/development section.
+- CI and publish workflows now validate distribution metadata and both wheel
+  and sdist clean-install smoke paths.
+- Root compatibility source was not deleted. The source mirror guard remains
+  active for safe future migration.
+- Native release readiness remains a separate later phase described by the
+  linked v3 guide; Phase 45B.1 performance evidence still blocks native
+  publication/default rollout.
 
 ### Phase 42-44 Definition Of Done
 
@@ -7895,7 +7959,8 @@ Purpose:
 
 - This addendum is the executable checklist for future agents.
 - The detailed source of truth remains:
-  - `upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v2_expanded.md`
+  - Phases 42-44: `upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v2_expanded.md`
+  - Phase 45 and later: [`upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md)
 - Agents must read the referenced sections before implementing each phase.
 - Do not treat the summary above as enough context to code from.
 - If this addendum and the detailed guide conflict, follow the detailed guide
@@ -8949,6 +9014,44 @@ test names:
 - `test_native_event_rust_vs_replay_randomized`
 - `test_native_event_backend_fallback_without_extension`
 - `test_native_event_backend_version_mismatch_falls_back`
+
+#### Phase 45C Detailed Guide - Core Packaging Track A
+
+Read first, every time this phase is resumed:
+
+- [`quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md),
+  sections `1`, `2`, `2.1` to `2.4`, `13.1`, `14`, `15`, and `16`.
+- This Phase 45C entry above, including the explicit root-source retention
+  decision.
+
+Hard rules:
+
+- Work on core packaging only; do not modify Rust execution semantics.
+- `src/quantbt` is the distribution source.
+- Root `quantbt` compatibility files stay in place during this phase.
+- Keep the SHA256 root/src mirror guard; do not replace it with a deletion
+  check.
+- Do not publish or enable `quantbt-native`.
+- Keep `from quantbt import QuantBTEndpoint` unchanged.
+
+Required checks:
+
+```bash
+uv sync --all-extras --dev
+uv run pytest -q tests/test_phase42_packaging_layout.py \
+  tests/test_phase42c_ci_release.py tests/test_phase45a_source_tree_sync.py
+uv build
+uv run twine check dist/*
+```
+
+Then install both `dist/quantbt_engine-*.whl` and
+`dist/quantbt_engine-*.tar.gz` into separate temporary environments and import
+from a directory outside the repository. Record the exact result, source
+path, version, and root/src mirror status in this implementation log.
+
+Phase 45C is complete only when wheel, sdist, CI metadata, public import,
+editable/path compatibility, and source-sync checks pass. Python hot-path work
+is Phase 45D; Rust batched execution is a separate Phase 45E/45F track.
 
 #### Final Merge Checklist For This Roadmap
 

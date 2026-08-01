@@ -323,22 +323,23 @@ fills, positions, account state, and performance report.
 
 ## Install
 
-Minimal research stack:
+Install the released core package:
 
 ```bash
-pip install numpy pandas numba matplotlib seaborn
+pip install quantbt-engine==0.1.0
 ```
 
-Workspace or Poetry environment:
+Optional reports and third-party validation:
 
 ```bash
-poetry install
+pip install "quantbt-engine[reports,validation]==0.1.0"
 ```
 
-Optional validation and reporting:
+Development from this repository:
 
 ```bash
-poetry add nautilus-trader quantstats
+uv sync --all-extras --dev
+uv run pytest -q
 ```
 
 ## Quick Start
@@ -534,7 +535,8 @@ Key examples:
 ## Development
 
 ```bash
-PYTHONPATH=/path/to/pool_alpha poetry run pytest -q quantbt/tests
+uv sync --all-extras --dev
+uv run pytest -q
 ```
 
 Contribution workflow:
