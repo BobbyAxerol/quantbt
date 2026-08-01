@@ -7313,6 +7313,49 @@ pytest -q tests/native_event
 python benchmarks/native_event/benchmark_reactive_session.py
 ```
 
+Implementation note, 2026-08-01:
+
+- Status: **completed as behavior-freeze and baseline phase**.
+- Branch deviation: the detailed guide suggests `perf/native-event-python-hotpath`
+  after Phase 42 is merged into `dev`; Phase 42A-C are still on
+  `feat/quantbt-engine-packaging`, so Phase 43A was implemented on the same
+  rollout branch to preserve package-layout/CI context.
+- Runtime implementation changed: **none**. This phase only added tests,
+  deterministic fingerprint helpers, and benchmark artifacts.
+- Added files:
+  - `tests/native_event/test_reactive_callback_contract.py`;
+  - `tests/native_event/test_reactive_lifecycle_parity.py`;
+  - `tests/native_event/test_reactive_accounting_parity.py`;
+  - `tests/native_event/test_reactive_memory_lifetime.py`;
+  - `tests/native_event/test_reactive_backend_matrix.py`;
+  - `benchmarks/native_event/benchmark_reactive_session.py`;
+  - `benchmarks/native_event/reactive_session_baseline.json`;
+  - `benchmarks/native_event/reactive_session_baseline.md`.
+- Validation:
+  - `UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/uv run pytest -q tests/native_event`
+    -> `20 passed, 2 skipped, 2 xfailed`.
+  - `UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp /root/bobby/pool_alpha/.venv/bin/uv run python benchmarks/native_event/benchmark_reactive_session.py`
+    -> completed and wrote baseline artifacts.
+- Baseline benchmark summary:
+  - 25k low orders: `1.4672s` wall, `329.11 MB` peak RSS, 26 fills.
+  - 25k high churn: `1.3999s` wall, `336.55 MB` peak RSS, 1,250 fills.
+  - 100k low orders: `4.4641s` wall, `387.48 MB` peak RSS, 26 fills.
+  - 100k high churn: `5.2720s` wall, `388.85 MB` peak RSS, 1,000 fills.
+  - parent/OCO-heavy: `1.3920s` wall, `388.85 MB` peak RSS, 626 fills.
+  - GTD-heavy: `1.3772s` wall, `388.85 MB` peak RSS, 418 fills.
+  - multi-symbol lifecycle: `6.0748s` wall, `388.85 MB` peak RSS, 400 fills.
+  - prepared 100 scores: `25.2063s` wall, `388.85 MB` peak RSS.
+- Known debts surfaced by freeze tests:
+  - `xfail`: finalize commands whose effective bar is beyond the market tape
+    are currently discarded instead of retained as outside-tape audit records.
+  - `xfail`: reactive `single_pass` replay parity currently fails after
+    quantity preflight/rounding, with the replay oracle differing in equity.
+  - `skip`: Rust/native extension parity and version-mismatch fallback remain
+    Phase 44 work because no native wheel is routed yet.
+  - Reactive strategy facade is still single-frame oriented; multi-symbol
+    lifecycle is tested through `NativeEventBackend.run_order_commands(...)`
+    directly.
+
 ### Phase 43B - Native Event Python Hot Path, RSS, And Prepared Score
 
 Branch:
