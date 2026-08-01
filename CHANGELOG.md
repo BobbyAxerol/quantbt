@@ -2,7 +2,7 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
-## [0.1.0] - Unreleased
+## [1.0.7] - Unreleased
 
 This is the first independently installable core package release line.
 

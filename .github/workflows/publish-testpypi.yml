@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Release tag containing the RC version, for example v0.1.0rc1"
+        description: "Release tag containing the RC version, for example v1.0.7rc1"
         required: true
         type: string
 

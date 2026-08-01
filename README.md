@@ -171,7 +171,7 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine==0.1.0` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-engine==1.0.7` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
 | `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
@@ -366,13 +366,13 @@ fills, positions, account state, and performance report.
 Install the released core package:
 
 ```bash
-pip install quantbt-engine==0.1.0
+pip install quantbt-engine==1.0.7
 ```
 
 Optional reports and third-party validation:
 
 ```bash
-pip install "quantbt-engine[reports,validation]==0.1.0"
+pip install "quantbt-engine[reports,validation]==1.0.7"
 ```
 
 Development from this repository:
@@ -400,7 +400,7 @@ pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
 After the release is approved, downstream services should use
-`pip install quantbt-engine==0.1.0` and keep the unchanged import
+`pip install quantbt-engine==1.0.7` and keep the unchanged import
 `from quantbt import QuantBTEndpoint`.
 
 ## Quick Start

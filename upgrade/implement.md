@@ -9846,7 +9846,7 @@ Core PyPI implementation:
   migration; it is byte-locked by `tests/test_phase45a_source_tree_sync.py`
   and is not included as a second package source in the wheel.
 - Aligned `__version__`, `pyproject` version, wheel metadata, and release
-  notes at `0.1.0`; added Python 3.11/3.12/3.13 classifiers,
+  notes at `1.0.7`; added Python 3.11/3.12/3.13 classifiers,
   Documentation/Changelog URLs, and [`CHANGELOG.md`](../CHANGELOG.md).
 - Added local package-gate commands to
   [`docs/release_packaging.md`](../docs/release_packaging.md): isolated

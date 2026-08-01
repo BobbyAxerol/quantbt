@@ -17,8 +17,11 @@ from quantbt import QuantBTEndpoint
 - Source layout is `src/quantbt`.
 - Root source is retained during migration until later compatibility gates
   explicitly remove it.
-- The first package release line is `0.1.x`, meaning Python behavior unchanged.
-- Phase 46F release candidate: `0.1.0`.
+- The current package release line is `1.0.x`, continuing the existing GitHub
+  release series without changing the public Python import contract.
+- Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
+  published.
+- Phase 46F release candidate: `1.0.7`.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native` is experimental and is not a dependency of the core wheel.
 
@@ -121,15 +124,15 @@ release tag.
 Example:
 
 ```text
-pyproject.toml version = 0.1.0
-required release tag  = v0.1.0
+pyproject.toml version = 1.0.7
+required release tag  = v1.0.7
 ```
 
 The publish workflow fails if the tag does not match.
 
-The same script validates an RC tag. To publish `0.1.0rc1`, first commit
-`version = "0.1.0rc1"`, create `v0.1.0rc1`, and run the manual TestPyPI
-workflow with that tag. Do not reuse the final `0.1.0` version for an RC.
+The same script validates an RC tag. To publish `1.0.7rc1`, first commit
+`version = "1.0.7rc1"`, create `v1.0.7rc1`, and run the manual TestPyPI
+workflow with that tag. Do not reuse the final `1.0.7` version for an RC.
 
 ## Local Release Gate
 
@@ -188,7 +191,7 @@ quantbt = { path = "../quantbt", develop = true }
 After release:
 
 ```toml
-quantbt-engine = "^0.1.0"
+quantbt-engine = "^1.0.7"
 ```
 
 Alpha/notebook imports do not change:
@@ -258,9 +261,9 @@ wheels into a clean environment, then runs parity and RSS benchmark smoke.
 
 ### TestPyPI release candidate
 
-1. Update the package version to an unused RC version such as `0.1.0rc1`.
+1. Update the package version to an unused RC version such as `1.0.7rc1`.
 2. Commit the version and changelog on a release candidate ref.
-3. Create the matching tag, for example `v0.1.0rc1`.
+3. Create the matching tag, for example `v1.0.7rc1`.
 4. Configure the pending TestPyPI publisher for repository `BobbyAxerol/quantbt`,
    workflow `publish-testpypi.yml`, and GitHub environment `testpypi`.
 5. Run **Publish quantbt-engine to TestPyPI** manually with the exact tag.
@@ -273,7 +276,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  quantbt-engine==0.1.0rc1
+  quantbt-engine==1.0.7rc1
 /tmp/quantbt-testpypi-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
 ```
@@ -281,8 +284,8 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 ### Production PyPI release
 
 1. Merge the verified release commit to protected `main`.
-2. Set the final version, for example `0.1.0`, and add the changelog entry.
-3. Create and push the matching protected tag `v0.1.0`.
+2. Set the final version, for example `1.0.7`, and add the changelog entry.
+3. Create and push the matching protected tag `v1.0.7`.
 4. Create a GitHub Release from that tag and mark it published.
 5. The production workflow runs the matrix regression, builds the core wheel
    and sdist, runs metadata and clean-install checks, then pauses at the
@@ -290,7 +293,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 6. Approve only after the artifact name, version, and release notes have been
    checked. The workflow publishes through OIDC; no long-lived API token is
    needed.
-7. Verify `pip install quantbt-engine==0.1.0` from a fresh environment and
+7. Verify `pip install quantbt-engine==1.0.7` from a fresh environment and
    archive the wheel, sdist, test output, and release manifest.
 
 Do not publish `quantbt-native` in this flow. It has a separate future release
