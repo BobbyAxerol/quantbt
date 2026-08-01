@@ -209,7 +209,8 @@ The current Phase 46F rerun evidence is:
 | Gate | Result |
 |---|---|
 | Python/Rust lifecycle and accounting parity | pass |
-| Low/high churn speed thresholds | pass (`182.2x` / `251.3x`) |
+| Low/high churn score runtime | pass (`20.33/36.16 ms` Python; `0.109/0.140 ms` Rust) |
+| Low/high churn throughput | pass (`98,385/55,308` Python bars/s; `18.30M/14.33M` Rust bars/s) |
 | Absolute peak RSS | pass (`184.11 MB < 512 MB`) |
 | 100-run RSS plateau | pass |
 | Prepared RSS reduction >= 40% | fail (`-26.1%` / `-7.6%`) |

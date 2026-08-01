@@ -178,16 +178,17 @@ wheel:
 The committed Phase 46F rerun compares the same prepared static tape and keeps
 Python/Rust accounting parity at 100%:
 
-| Workload | Rust score speedup | Peak RSS | Parity | Release decision |
-|---|---:|---:|---|---|
-| Low churn, 2,000 bars | 182.2x | 184.11 MB absolute | pass | Rust remains explicit |
-| High churn, 2,000 bars | 251.3x | 184.11 MB absolute | pass | Rust remains explicit |
-| Prepared RSS reduction | -26.1% / -7.6% | 512 MB budget pass | gate fail | no automatic Rust |
+| Workload | Python median | Rust median | Python throughput | Rust throughput | Peak RSS | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| Low churn, 2,000 bars | 20.33 ms | 0.109 ms | 98,385 bars/s | 18.30M bars/s | 181.97 MB | pass |
+| High churn, 2,000 bars | 36.16 ms | 0.140 ms | 55,308 bars/s | 14.33M bars/s | 181.94 MB | pass |
+| Prepared RSS reduction | - | - | - | - | -26.1% / -7.6%; absolute budget pass | gate fail |
 
 These are score-kernel measurements, not claims about full facade/report
-runtime. The committed Phase 46E baseline measured `155.6x` / `218.4x` on the
-same gate, while the earlier Phase 45F end-to-end reference measured `42.08x`
-median speedup and at least `18.3%` peak-RSS reduction. The evidence files are
+runtime. The table reports raw median time and bars/second from five warmed
+repetitions so the result is readable without an internal speedup convention.
+The earlier Phase 45F end-to-end reference is retained in the JSON evidence
+for historical comparison. The evidence files are
 [`phase46e_release_gate.json`](benchmarks/native_event/phase46e_release_gate.json),
 [`phase46f_release_gate.json`](benchmarks/native_event/phase46f_release_gate.json),
 [`phase46d1_score_rss.json`](benchmarks/native_event/phase46d1_score_rss.json),
