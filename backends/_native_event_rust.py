@@ -128,6 +128,44 @@ class RustBatchedAuditResult:
     metadata: Mapping[str, object] = field(default_factory=dict)
 
 
+@dataclass(frozen=True, slots=True)
+class RustBatchedChunkResult:
+    """Sparse result for one stateful ``run_until`` continuation chunk.
+
+    The arrays contain only fills/order events observed in the chunk.  No
+    dense equity or position path is materialized; the caller can request a
+    full audit separately when it needs bar-by-bar diagnostics.
+    """
+
+    start_bar: int
+    stop_bar: int
+    final_equity: float
+    final_position: float
+    total_fee: float
+    total_turnover: float
+    fill_count: int
+    event_count: int
+    rejected_count: int
+    canceled_count: int
+    max_initial_margin: float
+    max_maintenance_margin: float
+    liquidation_seen: bool
+    wake_bar: np.ndarray
+    wake_kind: np.ndarray
+    fill_bar: np.ndarray
+    fill_order_id: np.ndarray
+    fill_side: np.ndarray
+    fill_qty: np.ndarray
+    fill_price: np.ndarray
+    fill_fee: np.ndarray
+    event_bar: np.ndarray
+    event_kind: np.ndarray
+    event_status: np.ndarray
+    event_order_id: np.ndarray
+    event_target_id: np.ndarray
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+
 @dataclass
 class RustCommandBuffer:
     """Capacity-managed primitive buffers reused across Rust callback bars."""
@@ -487,7 +525,6 @@ class RustBatchedRunner:
             raise ValueError("fee_rate and slippage must be >= 0")
         self.idx = pd.DatetimeIndex(idx)
         self.symbols = tuple(symbols)
-        self.market_arrays = market_arrays
         self.contract_size = float(contract_size)
         self.leverage = float(leverage)
         self.fee_rate = float(fee_rate)
@@ -496,13 +533,20 @@ class RustBatchedRunner:
         self.slippage = float(slippage)
         self._module = _require_r1_extension()
         status = probe_native_event_rust_extension(module=self._module)
-        required = ("rust_batched_tape", "rust_batched_tape_score", "rust_batched_tape_audit")
+        required = (
+            "rust_batched_tape",
+            "rust_batched_tape_score",
+            "rust_batched_tape_audit",
+            "rust_batched_tape_sparse",
+        )
         missing = [name for name in required if not status.capabilities.get(name, False)]
         if missing:
             raise NativeEventRustBackendError(
                 "installed _quantbt_native wheel lacks Rust batched capabilities: " + ", ".join(missing)
             )
         self.prepared_market_core = prepared_market_core
+        self._cached_compiled_commands: Optional[CompiledOrderCommandArrays] = None
+        self._cached_tape_arrays: Optional[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
         if self.prepared_market_core is None:
             close = np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64)
             self.prepared_market_core = self._module.PreparedMarketCore(
@@ -515,6 +559,22 @@ class RustBatchedRunner:
                 np.zeros(len(self.idx), dtype=np.float64),
                 np.zeros(len(self.idx), dtype=np.bool_),
             )
+
+    def open_sparse_session(
+        self,
+        compiled_commands: Optional[CompiledOrderCommandArrays] = None,
+    ) -> "RustBatchedSession":
+        """Open a stateful sparse session over one compiled command tape.
+
+        ``run_until`` keeps the Rust lifecycle state between calls.  The
+        tape is compiled once and the session only returns sparse fills/events
+        plus scalar accounting, so strategy services do not pay for a dense
+        per-bar result path on every chunk.
+        """
+        return RustBatchedSession(self, compiled_commands)
+
+    # A descriptive alias for callers that use the shorter session wording.
+    new_sparse_session = open_sparse_session
 
     def _new_session(self):
         return self._module.ReactiveSessionCore.from_prepared(
@@ -529,7 +589,12 @@ class RustBatchedRunner:
         )
 
     def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
-        return compile_rust_batched_tape(compiled_commands, symbol=self.symbols[0])
+        if compiled_commands is self._cached_compiled_commands and self._cached_tape_arrays is not None:
+            return self._cached_tape_arrays
+        arrays = compile_rust_batched_tape(compiled_commands, symbol=self.symbols[0])
+        self._cached_compiled_commands = compiled_commands
+        self._cached_tape_arrays = arrays
+        return arrays
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> RustBatchedScoreResult:
         """Run a complete static tape through one PyO3 call and return scalars."""
@@ -570,6 +635,110 @@ class RustBatchedRunner:
             max_initial_margin=float(payload["max_initial_margin"]),
             max_maintenance_margin=float(payload["max_maintenance_margin"]),
             metadata={"backend": "rust_batched", "mode": "audit", "pycalls": 1},
+        )
+
+
+class RustBatchedSession:
+    """Stateful single-symbol sparse continuation over a static tape."""
+
+    def __init__(
+        self,
+        runner: RustBatchedRunner,
+        compiled_commands: Optional[CompiledOrderCommandArrays] = None,
+    ) -> None:
+        self.runner = runner
+        self.compiled_commands = compiled_commands
+        self._core = runner._new_session()
+        self._tape_arrays_cache = (
+            None if compiled_commands is None else runner._tape_arrays(compiled_commands)
+        )
+        self.next_bar = 0
+
+    @staticmethod
+    def _arrays(payload: Mapping[str, object]) -> dict[str, np.ndarray]:
+        return {
+            key: np.ascontiguousarray(np.asarray(payload[key]))
+            for key in (
+                "wake_bar",
+                "wake_kind",
+                "fill_bar",
+                "fill_order_id",
+                "fill_side",
+                "fill_qty",
+                "fill_price",
+                "fill_fee",
+                "event_bar",
+                "event_kind",
+                "event_status",
+                "event_order_id",
+                "event_target_id",
+            )
+        }
+
+    def run_until(
+        self,
+        stop_bar: int,
+        command_batch: Optional[CompiledOrderCommandArrays] = None,
+        *,
+        wake_on_fill: bool = True,
+        wake_on_order_event: bool = True,
+        wake_on_liquidation: bool = True,
+    ) -> RustBatchedChunkResult:
+        """Advance through ``stop_bar`` without crossing Python per bar.
+
+        The first call starts at bar zero and later calls continue at the bar
+        after the previous chunk.  ``command_batch`` is optional after a tape
+        was supplied to :meth:`open_sparse_session`; replacing the tape
+        mid-session is rejected to avoid an accounting mismatch.
+        """
+        if command_batch is not None:
+            if self.compiled_commands is not None and command_batch is not self.compiled_commands:
+                raise NativeEventRustBackendError("cannot replace the command tape during a sparse session")
+            self.compiled_commands = command_batch
+        if self.compiled_commands is None:
+            raise NativeEventRustBackendError("run_until requires a compiled command tape")
+        stop = int(stop_bar)
+        if stop < self.next_bar:
+            raise ValueError("run_until stop_bar must advance beyond the previous chunk")
+        if self._tape_arrays_cache is None:
+            self._tape_arrays_cache = self.runner._tape_arrays(self.compiled_commands)
+        ptr, codes, values, expiry = self._tape_arrays_cache
+        payload = self._core.run_until(
+            stop,
+            ptr,
+            codes,
+            values,
+            expiry,
+            bool(wake_on_fill),
+            bool(wake_on_order_event),
+            bool(wake_on_liquidation),
+        )
+        arrays = self._arrays(payload)
+        self.next_bar = stop + 1
+        return RustBatchedChunkResult(
+            start_bar=int(payload["start_bar"]),
+            stop_bar=int(payload["stop_bar"]),
+            final_equity=float(payload["final_equity"]),
+            final_position=float(payload["final_position"]),
+            total_fee=float(payload["total_fee"]),
+            total_turnover=float(payload["total_turnover"]),
+            fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]),
+            rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]),
+            max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]),
+            liquidation_seen=bool(payload["liquidation_seen"]),
+            **arrays,
+            metadata={
+                "backend": "rust_batched",
+                "mode": "sparse",
+                "pycalls": 1,
+                "dense_paths_materialized": False,
+                "wake_on_fill": bool(wake_on_fill),
+                "wake_on_order_event": bool(wake_on_order_event),
+                "wake_on_liquidation": bool(wake_on_liquidation),
+            },
         )
 
 
@@ -930,8 +1099,10 @@ __all__ = [
     "RustCommandBatch",
     "RustCommandBuffer",
     "RustBatchedAuditResult",
+    "RustBatchedChunkResult",
     "RustBatchedRunner",
     "RustBatchedScoreResult",
+    "RustBatchedSession",
     "RustReactiveSessionAdapter",
     "compile_rust_batched_tape",
     "compile_rust_r1_command_batch",

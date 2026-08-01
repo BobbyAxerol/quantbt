@@ -83,6 +83,10 @@ impl ReactiveSession {
         self.market.len()
     }
 
+    pub fn next_bar(&self) -> usize {
+        self.last_bar.map(|bar| bar + 1).unwrap_or(0)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         market: Arc<PreparedMarketData>,

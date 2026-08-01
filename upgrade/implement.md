@@ -8113,13 +8113,14 @@ Detailed source of truth:
 - Read sections `5.4`, `5.5`, `9`, `10`, `11`, `12`, `13.9`, `13.10`, `14`,
   `15`, and `16` before implementation.
 
-Status: **planned; begins only after Phase 45E full-tape parity passes**.
+Status: **implemented; native release gate not passed**.
 
 Implementation plan:
 
-- Add `run_until(...)` so Rust runs many bars continuously and Python wakes
-  only on decision bars, fills, relevant order events, liquidation, or end of
-  tape.
+- Add a stateful `RustBatchedSession.run_until(...)` so Rust runs many bars
+  continuously and Python receives only sparse fill/event wake arrays plus an
+  end-of-chunk marker. This is intentionally a static command-tape
+  continuation, not an arbitrary Python callback runner.
 - Extend feature slices in guide order: parent/OCO, GTD/IOC/FOK,
   funding, margin/liquidation, then multi-symbol.
 - Consider a restricted numeric native strategy program only after tape and
@@ -8144,6 +8145,37 @@ repeated-run RSS plateau
 If any gate fails, Rust stays explicit experimental, `auto` stays Python, and
 the failure plus evidence is recorded here. No native extra or PyPI claim is
 allowed before the gate passes.
+
+Implementation and certification evidence:
+
+- Added `RustBatchedSession` and `RustBatchedChunkResult` to the canonical
+  `src/quantbt` package and kept the root compatibility mirror synchronized.
+- The session keeps one Rust lifecycle/accounting state across consecutive
+  chunks, caches the compiled command tape, releases the GIL for each long
+  chunk, and returns only contiguous sparse fill/event/wake arrays and scalar
+  accounting. It does not materialize dense equity or position paths.
+- Added `tests/native_event/test_rust_batched_sparse.py`: chunk boundaries,
+  cumulative accounting, exact fill/event ledger replay, wake filtering, and
+  invalid session transitions all pass.
+- Added the process-isolated gate
+  `benchmarks/native_event/benchmark_phase45f_release_gate.py` and evidence
+  `benchmarks/native_event/phase45f_release_gate.json`.
+- Gate run: `100,000` bars, low/high churn, five warm repetitions per backend;
+  lifecycle smoke parity passed; speedup was `5.09x` low-churn and `79.06x`
+  high-churn; repeated RSS plateau passed; the lower process peak RSS
+  reduction was `18.3%`, so the required `40%` RSS gate failed.
+- The local installed wheel was rebuilt and exercised on CPython 3.12. The
+  CPython 3.11/3.13 manylinux matrix remains a release follow-up, not an
+  unverified claim.
+
+Scope integrity note:
+
+- Phase45F adds only the static single-symbol sparse continuation needed by
+  the linked guide. It does not expand feature semantics, route `auto` to
+  Rust, or claim portfolio/arbitrage/native-program parity.
+- The RSS miss is a release blocker, not a domain fallback: the explicit Rust
+  backend remains available for the certified feature slice, while unsupported
+  features continue to raise before execution.
 
 Non-goals:
 

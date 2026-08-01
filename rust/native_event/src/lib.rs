@@ -35,6 +35,7 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("rust_batched_tape", true)?;
     values.set_item("rust_batched_tape_score", true)?;
     values.set_item("rust_batched_tape_audit", true)?;
+    values.set_item("rust_batched_tape_sparse", true)?;
     Ok(values)
 }
 
@@ -337,6 +338,98 @@ impl ReactiveSessionCore {
         payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
         Ok(payload.unbind())
     }
+
+    #[allow(clippy::too_many_arguments)]
+    fn run_until(
+        &mut self,
+        py: Python<'_>,
+        stop_bar: usize,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+        wake_on_fill: bool,
+        wake_on_order_event: bool,
+        _wake_on_liquidation: bool,
+    ) -> PyResult<Py<PyDict>> {
+        let ptr = command_ptr.as_slice()?;
+        let codes = command_codes.as_slice()?;
+        let values = command_values.as_slice()?;
+        let expiry = command_expiry.as_slice()?;
+        validate_tape_arrays(
+            self.inner.market_len(),
+            ptr,
+            codes,
+            command_codes.shape(),
+            values,
+            command_values.shape(),
+            expiry,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        if stop_bar >= self.inner.market_len() {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "stop_bar is outside the prepared market tape",
+            ));
+        }
+        let start_bar = self.inner.next_bar();
+        if start_bar > stop_bar {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "run_until must advance to a bar after the previous chunk",
+            ));
+        }
+        let output = py
+            .detach(|| {
+                run_sparse_range(
+                    &mut self.inner,
+                    start_bar,
+                    stop_bar,
+                    ptr,
+                    codes,
+                    values,
+                    expiry,
+                    wake_on_fill,
+                    wake_on_order_event,
+                )
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let payload = PyDict::new(py);
+        payload.set_item("start_bar", output.start_bar)?;
+        payload.set_item("stop_bar", output.stop_bar)?;
+        payload.set_item("final_equity", output.final_equity)?;
+        payload.set_item("final_position", output.final_position)?;
+        payload.set_item("total_fee", output.total_fee)?;
+        payload.set_item("total_turnover", output.total_turnover)?;
+        payload.set_item("fill_count", output.fill_count)?;
+        payload.set_item("event_count", output.event_count)?;
+        payload.set_item("rejected_count", output.rejected_count)?;
+        payload.set_item("canceled_count", output.canceled_count)?;
+        payload.set_item("max_initial_margin", output.max_initial_margin)?;
+        payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+        payload.set_item("liquidation_seen", output.liquidation_seen)?;
+        payload.set_item("wake_bar", PyArray1::from_vec(py, output.wake_bar))?;
+        payload.set_item("wake_kind", PyArray1::from_vec(py, output.wake_kind))?;
+        payload.set_item("fill_bar", PyArray1::from_vec(py, output.fill_bar))?;
+        payload.set_item(
+            "fill_order_id",
+            PyArray1::from_vec(py, output.fill_order_id),
+        )?;
+        payload.set_item("fill_side", PyArray1::from_vec(py, output.fill_side))?;
+        payload.set_item("fill_qty", PyArray1::from_vec(py, output.fill_qty))?;
+        payload.set_item("fill_price", PyArray1::from_vec(py, output.fill_price))?;
+        payload.set_item("fill_fee", PyArray1::from_vec(py, output.fill_fee))?;
+        payload.set_item("event_bar", PyArray1::from_vec(py, output.event_bar))?;
+        payload.set_item("event_kind", PyArray1::from_vec(py, output.event_kind))?;
+        payload.set_item("event_status", PyArray1::from_vec(py, output.event_status))?;
+        payload.set_item(
+            "event_order_id",
+            PyArray1::from_vec(py, output.event_order_id),
+        )?;
+        payload.set_item(
+            "event_target_id",
+            PyArray1::from_vec(py, output.event_target_id),
+        )?;
+        Ok(payload.unbind())
+    }
 }
 
 fn validate_tape_arrays(
@@ -532,6 +625,102 @@ fn run_tape(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
+fn run_sparse_range(
+    session: &mut ReactiveSession,
+    start_bar: usize,
+    stop_bar: usize,
+    command_ptr: &[i64],
+    codes: &[i64],
+    values: &[f64],
+    expiry: &[i64],
+    wake_on_fill: bool,
+    wake_on_order_event: bool,
+) -> Result<SparseTapeOutput, String> {
+    let mut output = SparseTapeOutput {
+        start_bar,
+        stop_bar,
+        final_equity: 0.0,
+        final_position: 0.0,
+        total_fee: 0.0,
+        total_turnover: 0.0,
+        fill_count: 0,
+        event_count: 0,
+        rejected_count: 0,
+        canceled_count: 0,
+        max_initial_margin: 0.0,
+        max_maintenance_margin: 0.0,
+        liquidation_seen: false,
+        wake_bar: Vec::new(),
+        wake_kind: Vec::new(),
+        fill_bar: Vec::new(),
+        fill_order_id: Vec::new(),
+        fill_side: Vec::new(),
+        fill_qty: Vec::new(),
+        fill_price: Vec::new(),
+        fill_fee: Vec::new(),
+        event_bar: Vec::new(),
+        event_kind: Vec::new(),
+        event_status: Vec::new(),
+        event_order_id: Vec::new(),
+        event_target_id: Vec::new(),
+    };
+
+    for bar in start_bar..=stop_bar {
+        let start = command_ptr[bar] as usize;
+        let end = command_ptr[bar + 1] as usize;
+        let step = session.step(
+            bar,
+            &codes[start * types::COMMAND_CODE_WIDTH..end * types::COMMAND_CODE_WIDTH],
+            &values[start * types::COMMAND_VALUE_WIDTH..end * types::COMMAND_VALUE_WIDTH],
+            &expiry[start..end],
+            end - start,
+        )?;
+        output.final_equity = step.equity;
+        output.final_position = step.position;
+        output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
+        output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin);
+        output.total_fee += step.fee;
+        output.total_turnover += step.turnover;
+        output.fill_count += step.fills.len() as i64;
+        output.event_count += step.events.len() as i64;
+        for fill in step.fills {
+            if wake_on_fill {
+                output.wake_bar.push(bar as i64);
+                output.wake_kind.push(0);
+            }
+            output.fill_bar.push(bar as i64);
+            output.fill_order_id.push(fill[0] as i64);
+            output.fill_side.push(fill[1] as i64);
+            output.fill_qty.push(fill[2]);
+            output.fill_price.push(fill[3]);
+            output.fill_fee.push(fill[4]);
+        }
+        for event in step.events {
+            if event[0] == types::EVENT_REJECT {
+                output.rejected_count += 1;
+            }
+            if event[0] == types::EVENT_CANCEL {
+                output.canceled_count += 1;
+            }
+            if wake_on_order_event {
+                output.wake_bar.push(bar as i64);
+                output.wake_kind.push(1);
+            }
+            output.event_bar.push(bar as i64);
+            output.event_kind.push(event[0]);
+            output.event_status.push(event[1]);
+            output.event_order_id.push(event[2]);
+            output.event_target_id.push(event[3]);
+        }
+    }
+    // Kind 2 means end-of-chunk. It is always emitted so a caller can make
+    // progress without reconstructing a dense per-bar result path.
+    output.wake_bar.push(stop_bar as i64);
+    output.wake_kind.push(2);
+    Ok(output)
+}
+
 struct BatchedTapeOutput {
     equity: Vec<f64>,
     positions: Vec<f64>,
@@ -560,6 +749,35 @@ struct BatchedTapeOutput {
     final_position: f64,
     max_initial_margin: f64,
     max_maintenance_margin: f64,
+}
+
+struct SparseTapeOutput {
+    start_bar: usize,
+    stop_bar: usize,
+    final_equity: f64,
+    final_position: f64,
+    total_fee: f64,
+    total_turnover: f64,
+    fill_count: i64,
+    event_count: i64,
+    rejected_count: i64,
+    canceled_count: i64,
+    max_initial_margin: f64,
+    max_maintenance_margin: f64,
+    liquidation_seen: bool,
+    wake_bar: Vec<i64>,
+    wake_kind: Vec<i64>,
+    fill_bar: Vec<i64>,
+    fill_order_id: Vec<i64>,
+    fill_side: Vec<i64>,
+    fill_qty: Vec<f64>,
+    fill_price: Vec<f64>,
+    fill_fee: Vec<f64>,
+    event_bar: Vec<i64>,
+    event_kind: Vec<i64>,
+    event_status: Vec<i64>,
+    event_order_id: Vec<i64>,
+    event_target_id: Vec<i64>,
 }
 
 #[pymodule]

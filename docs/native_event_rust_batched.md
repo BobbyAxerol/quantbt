@@ -40,12 +40,27 @@ runner = backend.prepare_rust_batched_runner(
 
 score = runner.run_tape_score(compiled)
 audit = runner.run_tape_audit(compiled)
+
+# Stateful sparse continuation: no dense equity/position path per chunk.
+session = runner.open_sparse_session(compiled)
+first = session.run_until(3)
+second = session.run_until(len(index) - 1)
 ```
 
 `score` returns scalars only. `audit` returns contiguous struct-of-arrays
 buffers such as `fill_bar`, `fill_price`, `event_kind`, `equity`, and
 `positions`. The market preparation is reusable, while each call creates a
 fresh mutable session so trials cannot leak order state into one another.
+
+`RustBatchedSession.run_until(stop_bar)` keeps the same Rust order/account
+state across consecutive chunks. Each chunk returns scalar accounting plus
+contiguous sparse `fill_*`, `event_*`, and `wake_*` arrays. `wake_kind` uses
+`0=fill`, `1=order event`, and `2=end of chunk`. No dense bar path is created;
+run `run_tape_audit` separately when a full audit ledger is required. The
+current sparse contract is still the same certified single-symbol slice as
+the full-tape runner: immediate GTC market/limit/stop, cancel/amend/replace,
+reduce-only, fee and slippage, without funding, liquidation, quantity rules,
+package orders, non-GTC TIF, or multi-symbol state.
 
 ## Certified scope
 
@@ -60,3 +75,15 @@ backend for those semantics.
 replay-certified Python/Numba engine remains the domain oracle. Rust can only be
 promoted after the isolated benchmark, RSS and installed-wheel gates in
 `upgrade/implement.md` Phase 45F pass.
+
+## Phase45F certification evidence
+
+`benchmarks/native_event/benchmark_phase45f_release_gate.py` runs each backend
+in a fresh child process, with five measured runs after warm-up. Exact
+final-equity/fill-count parity passed. The warmed score-path speedups were
+`5.09x` for low churn and `79.06x` for high churn, with repeated RSS plateau
+in both backends. Peak RSS reduction was only `18.3%` at the lower scenario,
+below the required
+`40%` release threshold; the remaining overhead is consistent with Python
+prepared arrays coexisting with the Rust-owned prepared market. Rust
+therefore remains explicit experimental and `auto` remains Python.

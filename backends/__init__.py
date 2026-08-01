@@ -2,7 +2,13 @@ from .native_event import NativeEventBackend, NativeEventConfig, NativeEventScor
 from .native_option import NativeOptionBackend, NativeOptionConfig, OptionSettlementEvent
 from .native_portfolio import NativePortfolioBackend, NativePortfolioConfig
 from .native_vectorized import NativeVectorizedBackend, NativeVectorizedConfig
-from ._native_event_rust import RustBatchedAuditResult, RustBatchedRunner, RustBatchedScoreResult
+from ._native_event_rust import (
+    RustBatchedAuditResult,
+    RustBatchedChunkResult,
+    RustBatchedRunner,
+    RustBatchedScoreResult,
+    RustBatchedSession,
+)
 
 __all__ = [
     "NativeEventBackend",
@@ -16,6 +22,8 @@ __all__ = [
     "NativeVectorizedConfig",
     "OptionSettlementEvent",
     "RustBatchedAuditResult",
+    "RustBatchedChunkResult",
     "RustBatchedRunner",
     "RustBatchedScoreResult",
+    "RustBatchedSession",
 ]
