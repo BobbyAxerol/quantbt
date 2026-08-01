@@ -7935,6 +7935,143 @@ Local implementation evidence (2026-08-01):
   linked v3 guide; Phase 45B.1 performance evidence still blocks native
   publication/default rollout.
 
+#### Phase 45D - Python Native Event Zero-Object Hot Path
+
+Detailed source of truth:
+
+- [`quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md)
+- Read sections `1`, `3`, `4.1` to `4.9`, `6`, `8`, `10`, `11`, `12`, and
+  `13.2` to `13.4` before implementation.
+
+Status: **planned; do not start until Phase 45C is committed and the Python
+baseline is recorded**.
+
+Purpose:
+
+- Reduce Python Native Event score-path allocations and RSS without changing
+  endpoint behavior, strategy callbacks, accounting, or replay semantics.
+- Establish the fair zero-object Python baseline that Rust must beat. Rust must
+  not be compared with an unnecessarily heavy Python audit path.
+
+Implementation plan:
+
+- Add `NativeEventScoreRequirements` for conditional retention/allocation.
+- Keep score mode free of pandas, full fill/event ledgers, active-order
+  snapshots, full command history, and detailed report DataFrames.
+- Add online metrics for equity peak, drawdown, return moments, trades, gross
+  profit/loss, fee, funding, turnover, and margin.
+- Use compact primitive order state internally while preserving public
+  `OrderCommand` and `BacktestResultV2` contracts.
+- Release consumed command/fill/event queues and terminal order indexes as
+  soon as the score path no longer needs them.
+- Add optional strategy context requirements and `NativeCommandBatch` without
+  forcing existing alpha migrations.
+- Keep immutable prepared NumPy market arrays shared across trials.
+
+Acceptance:
+
+- Optimized Python score equals replay-certified accounting and metrics.
+- Public audit/full-report path remains unchanged.
+- Exact parity holds for fills, events, orders, positions, equity, fees,
+  funding, margin, liquidation, and rejection state.
+- Fresh-process benchmark records CPU, object/ledger retention and RSS for
+  100k-bar, high-churn, OCO/GTD, funding/liquidation, multi-symbol and
+  repeated-prepared-trial scenarios.
+
+Non-goals:
+
+- No Rust routing, no endpoint rename, no default backend change, and no
+  removal of the root compatibility source.
+
+#### Phase 45E - Rust Batched Full-Tape Execution
+
+Detailed source of truth:
+
+- [`quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md)
+- Read sections `1`, `3`, `5.1` to `5.3`, `6`, `7`, `8`, `9`, `10`, `11`,
+  `12`, and `13.5` to `13.8` before implementation.
+
+Status: **planned; blocked from native rollout until the Python baseline and
+batched parity contract are complete**.
+
+Implementation plan:
+
+- Add an internal `RustBatchedRunner` beside `PythonReactiveRunner`.
+- Keep `auto` on Python for arbitrary Python callbacks.
+- Add prepared immutable Rust market ownership with one market preparation per
+  process/session family, not one copy per trial.
+- Implement `run_tape_score(...)` as one PyO3 call for a complete static
+  command tape, returning scalar/typed score output.
+- Implement `run_tape_audit(...)` with contiguous struct-of-arrays buffers for
+  fills and events; do not return per-bar `PyDict`, nested lists, or Python row
+  objects.
+- Start with the advertised single-symbol R1/R2 scope, then add one feature
+  slice at a time: stop orders, amend/replace, reduce-only, and quantity
+  constraints.
+- Preserve the replay-certified oracle as the source of truth.
+
+Acceptance:
+
+- Same market, commands, and config produce exact lifecycle/accounting parity.
+- Discrete parity has no tolerance: effective bar, order sequence, fill,
+  rejection, quantity, OCO/expiry state and liquidation decision must match.
+- Numeric parity uses exact equality where possible and `atol=1e-12` only when
+  operation ordering requires it.
+- Rust wheel is built and tested in a clean environment, but remains explicit
+  experimental until end-to-end performance gates pass.
+
+Non-goals:
+
+- Do not compile arbitrary Python strategy callbacks.
+- Do not add sparse callbacks or native strategy programs in this phase.
+- Do not route `auto` to Rust or publish `quantbt-native` from a partial slice.
+
+#### Phase 45F - Sparse Runner, Certification, And Native Release Gate
+
+Detailed source of truth:
+
+- [`quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`](quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md)
+- Read sections `5.4`, `5.5`, `9`, `10`, `11`, `12`, `13.9`, `13.10`, `14`,
+  `15`, and `16` before implementation.
+
+Status: **planned; begins only after Phase 45E full-tape parity passes**.
+
+Implementation plan:
+
+- Add `run_until(...)` so Rust runs many bars continuously and Python wakes
+  only on decision bars, fills, relevant order events, liquidation, or end of
+  tape.
+- Extend feature slices in guide order: parent/OCO, GTD/IOC/FOK,
+  funding, margin/liquidation, then multi-symbol.
+- Consider a restricted numeric native strategy program only after tape and
+  sparse paths pass parity; arbitrary Python is never implicitly compiled.
+- Add process-isolated profiling for PyO3 calls, callbacks, command/event
+  buffers, kernel time, decode time, peak RSS, post-run RSS, and repeated-run
+  plateau.
+- Run at least five measured repetitions after warm-up on all guide scenarios.
+- Build manylinux CPython 3.11-3.13 wheels and perform combined installed-wheel
+  parity before any native release.
+
+Release gate:
+
+```text
+100% lifecycle/accounting parity
+median end-to-end speedup >= 1.50x
+high-churn speedup >= 2.00x
+peak RSS reduction >= 40%
+repeated-run RSS plateau
+```
+
+If any gate fails, Rust stays explicit experimental, `auto` stays Python, and
+the failure plus evidence is recorded here. No native extra or PyPI claim is
+allowed before the gate passes.
+
+Non-goals:
+
+- No silent semantic fallback from an unsupported Rust feature.
+- No claim of portfolio/arbitrage/native-program parity until those feature
+  slices have their own saved evidence bundles.
+
 ### Phase 42-44 Definition Of Done
 
 This roadmap is complete only when:
