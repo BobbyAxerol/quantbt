@@ -1,0 +1,48 @@
+{
+  "candidate_fingerprints": {
+    "seed_46_python_replay_fixture": "4840e2fcc4156fec4a524ee79869f91554f4b71d9e918ec57cb3979351aae551"
+  },
+  "capabilities": {
+    "amend": true,
+    "cancel": true,
+    "fok": false,
+    "funding": false,
+    "gtc": true,
+    "gtd": false,
+    "ioc": false,
+    "limit": true,
+    "liquidation": false,
+    "market": true,
+    "multi_symbol": false,
+    "oco": false,
+    "parent_child": false,
+    "place": true,
+    "quantity_constraints": true,
+    "reduce_only": true,
+    "replace": true,
+    "single_symbol": true,
+    "stop_limit": true,
+    "stop_market": true
+  },
+  "capability_matrix_fingerprint": "f3b2c32771f43ca02463594b2431aca8445c51728e16fb18a3b3e7a1011eb73c",
+  "capability_matrix_version": "single-symbol-r2-0.3",
+  "compared_fields": [
+    "equity",
+    "positions",
+    "fees",
+    "funding",
+    "turnover",
+    "initial_margin",
+    "maintenance_margin",
+    "liquidated",
+    "liquidation_bar",
+    "fills",
+    "events",
+    "command_tape"
+  ],
+  "exact_parity": true,
+  "oracle_fingerprint": "4840e2fcc4156fec4a524ee79869f91554f4b71d9e918ec57cb3979351aae551",
+  "phase": "46A",
+  "source_commit": "56e6bef5365fa3705155e74b89496d8c7dce0e7f",
+  "status": "passed"
+}
