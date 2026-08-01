@@ -137,12 +137,14 @@ from quantbt import QuantBTEndpoint
 
 `quantbt-native` is not published in Phase 42C.
 
-## Native R0/R1 Scaffold
+## Native R0/R2 Scaffold
 
 Phase 44A adds a local `rust/native_event` PyO3 crate named
-`quantbt-native`. R0 publishes version/capability metadata; R1 adds an
+`quantbt-native`. R0 publishes version/capability metadata. R1 adds an
 experimental single-symbol `ReactiveSessionCore` for `PLACE`/`CANCEL`, market
-and limit GTC orders, fee, slippage, position, and equity.
+and limit GTC orders, fee, slippage, position, and equity. R2 extends that
+explicit-only path with stop-market/stop-limit, amend, replace, reduce-only,
+and the shared quantity filter.
 
 For local Rust validation once the Rust toolchain and Maturin are installed:
 
@@ -156,12 +158,14 @@ maturin build --release
 
 `QUANTBT_NATIVE_BACKEND=auto` and `python` continue using the existing Python
 Native Event implementation. `rust` is explicit and is accepted only for the
-R1 feature gate: one symbol, no funding, no quantity constraints, and
-`maintenance_ratio=0.0`. Contingent orders, non-GTC TIFs, funding,
-liquidation, and multi-symbol execution still fail clearly under `rust`.
+R2 feature gate: one symbol, GTC, no funding, no parent/OCO/expiry, and
+`maintenance_ratio=0.0`. Quantity filters are supported through the same
+`qty_step`, `min_qty`, and `min_notional` helper used by Python replay.
+Parent/child, OCO, expiry, IOC/FOK, funding, liquidation, and multi-symbol
+execution still fail clearly under `rust`.
 `auto` is never enabled for Rust in this experimental stage.
 
 Native publishing must wait until the Phase 44 PyO3 package exists, builds, and
-passes Python/Rust parity. The native workflow must either build/install
-`quantbt-engine` from the same release tag or download a verified core wheel
-artifact before testing native wheels.
+passes Python/Rust parity and the end-to-end performance/RSS gates. Native CI
+builds `quantbt-engine` and `quantbt-native` from the same ref, installs both
+wheels into a clean environment, then runs parity and RSS benchmark smoke.

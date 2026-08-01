@@ -7,7 +7,7 @@ future Rust slice has passed lifecycle and accounting parity certification.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import importlib
 import os
 from types import ModuleType
@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from ..core.event import ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED, ORDER_STATUS_PENDING, ORDER_STATUS_REJECTED
+from ..core.constraints import quantize_signed_quantity
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOrderEvent, NativeStrategyContext
 from ..core.schema import OrderSide, OrderType, TimeInForce
@@ -26,10 +27,18 @@ RUST_NATIVE_API_VERSION = "0.3"
 _VALID_BACKENDS = frozenset({"auto", "python", "rust", "replay_certified"})
 _R1_ACTION_PLACE = 0
 _R1_ACTION_CANCEL = 1
+_R2_ACTION_AMEND = 2
+_R2_ACTION_REPLACE = 3
 _R1_ORDER_MARKET = 0
 _R1_ORDER_LIMIT = 1
+_R2_ORDER_STOP_MARKET = 2
+_R2_ORDER_STOP_LIMIT = 3
 _R1_CODE_WIDTH = 8
 _R1_VALUE_WIDTH = 3
+_R2_FLAG_REDUCE_ONLY = 1
+_R2_MUTATE_QTY = 1
+_R2_MUTATE_PRICE = 2
+_R2_MUTATE_TRIGGER = 4
 
 
 class NativeEventRustBackendError(RuntimeError):
@@ -75,6 +84,8 @@ class _RustPendingOrder:
     order_type: OrderType
     qty: float
     price: float
+    trigger_price: float
+    reduce_only: bool
 
 
 def _empty_status(reason: str) -> NativeEventRustExtensionStatus:
@@ -205,16 +216,19 @@ def validate_rust_r1_support(
     use_funding: bool,
     maintenance_ratio: float,
 ) -> None:
-    """Reject every feature outside the R1 parity-certified surface."""
+    """Reject every feature outside the R2 single-symbol surface.
+
+    The historic function name remains an internal compatibility alias for
+    callers introduced with R1. R2 adds lifecycle commands and quantity
+    filters, but funding/liquidation and multi-symbol remain Python-only.
+    """
     if len(symbols) != 1:
         raise NativeEventRustBackendError("Rust R1 supports exactly one symbol; use backend='python' for multi-symbol")
-    if constraints.enabled:
-        raise NativeEventRustBackendError("Rust R1 does not support quantity constraints; use backend='python'")
     if use_funding:
-        raise NativeEventRustBackendError("Rust R1 does not support funding; use backend='python'")
+        raise NativeEventRustBackendError("Rust R2 does not support funding; use backend='python'")
     if float(maintenance_ratio) != 0.0:
         raise NativeEventRustBackendError(
-            "Rust R1 does not support liquidation semantics; set maintenance_ratio=0.0 or use backend='python'"
+            "Rust R2 does not support liquidation semantics; set maintenance_ratio=0.0 or use backend='python'"
         )
 
 
@@ -224,7 +238,13 @@ def compile_rust_r1_command_batch(
     symbol: str,
     intern_id: Callable[[Optional[str]], int],
 ) -> RustCommandBatch:
-    """Compile the R1 lifecycle subset into contiguous primitive buffers."""
+    """Compile the R2 lifecycle subset into contiguous primitive buffers.
+
+    Field layout is stable from R1: ``[action, side, type, flags, order_id,
+    target_id, mutate_mask, sequence]`` and ``[qty, price, trigger]``.  This
+    lets the optional extension evolve without adding Python object work to the
+    bar loop.
+    """
     command_tuple = tuple(commands)
     codes = np.full((len(command_tuple), _R1_CODE_WIDTH), -1, dtype=np.int64)
     values = np.zeros((len(command_tuple), _R1_VALUE_WIDTH), dtype=np.float64)
@@ -232,38 +252,65 @@ def compile_rust_r1_command_batch(
 
     for sequence, command in enumerate(command_tuple):
         codes[sequence, 7] = sequence
-        if command.action is OrderAction.PLACE:
+        if command.action in (OrderAction.PLACE, OrderAction.REPLACE):
             if command.symbol != symbol:
-                raise NativeEventRustBackendError(f"Rust R1 command symbol must be {symbol!r}")
+                raise NativeEventRustBackendError(f"Rust R2 command symbol must be {symbol!r}")
             if command.side not in (OrderSide.BUY, OrderSide.SELL):
-                raise NativeEventRustBackendError("Rust R1 PLACE requires BUY or SELL")
-            if command.order_type not in (OrderType.MARKET, OrderType.LIMIT):
-                raise NativeEventRustBackendError("Rust R1 supports MARKET and LIMIT orders only")
+                raise NativeEventRustBackendError("Rust R2 PLACE/REPLACE requires BUY or SELL")
+            if command.order_type not in (
+                OrderType.MARKET,
+                OrderType.LIMIT,
+                OrderType.STOP_MARKET,
+                OrderType.STOP_LIMIT,
+            ):
+                raise NativeEventRustBackendError("Rust R2 supports MARKET, LIMIT, STOP_MARKET, and STOP_LIMIT only")
             if command.tif is not TimeInForce.GTC:
-                raise NativeEventRustBackendError("Rust R1 supports GTC only")
-            if command.reduce_only or command.parent_order_id or command.oco_group_id or command.group_id:
-                raise NativeEventRustBackendError("Rust R1 does not support reduce-only, parent, group, or OCO orders")
+                raise NativeEventRustBackendError("Rust R2 supports GTC only")
+            if command.parent_order_id or command.oco_group_id or command.group_id:
+                raise NativeEventRustBackendError("Rust R2 does not support parent, group, or OCO orders")
             if command.activation_policy is not OrderActivationPolicy.IMMEDIATE:
-                raise NativeEventRustBackendError("Rust R1 supports immediate order activation only")
+                raise NativeEventRustBackendError("Rust R2 supports immediate order activation only")
             if command.expires_at is not None or command.trigger_price is not None:
-                raise NativeEventRustBackendError("Rust R1 does not support expiry or trigger prices")
-            codes[sequence, 0] = _R1_ACTION_PLACE
+                if command.expires_at is not None:
+                    raise NativeEventRustBackendError("Rust R2 does not support expiry; use backend='python'")
+            codes[sequence, 0] = _R1_ACTION_PLACE if command.action is OrderAction.PLACE else _R2_ACTION_REPLACE
             codes[sequence, 1] = command.side.sign
-            codes[sequence, 2] = _R1_ORDER_MARKET if command.order_type is OrderType.MARKET else _R1_ORDER_LIMIT
-            codes[sequence, 3] = 0
+            codes[sequence, 2] = {
+                OrderType.MARKET: _R1_ORDER_MARKET,
+                OrderType.LIMIT: _R1_ORDER_LIMIT,
+                OrderType.STOP_MARKET: _R2_ORDER_STOP_MARKET,
+                OrderType.STOP_LIMIT: _R2_ORDER_STOP_LIMIT,
+            }[command.order_type]
+            codes[sequence, 3] = _R2_FLAG_REDUCE_ONLY if command.reduce_only else 0
             codes[sequence, 4] = intern_id(command.order_id)
+            codes[sequence, 5] = intern_id(command.target_order_id)
             values[sequence, 0] = float(command.qty or 0.0)
             values[sequence, 1] = float(command.price or 0.0)
+            values[sequence, 2] = float(command.trigger_price or 0.0)
         elif command.action is OrderAction.CANCEL:
             codes[sequence, 0] = _R1_ACTION_CANCEL
             codes[sequence, 5] = intern_id(command.target_order_id)
+        elif command.action is OrderAction.AMEND:
+            codes[sequence, 0] = _R2_ACTION_AMEND
+            codes[sequence, 5] = intern_id(command.target_order_id)
+            mask = 0
+            if command.qty is not None:
+                mask |= _R2_MUTATE_QTY
+                values[sequence, 0] = float(command.qty)
+            if command.price is not None:
+                mask |= _R2_MUTATE_PRICE
+                values[sequence, 1] = float(command.price)
+            if command.trigger_price is not None:
+                mask |= _R2_MUTATE_TRIGGER
+                values[sequence, 2] = float(command.trigger_price)
+            codes[sequence, 6] = mask
         else:
-            raise NativeEventRustBackendError("Rust R1 supports PLACE and CANCEL commands only")
+            raise NativeEventRustBackendError("Rust R2 supports PLACE, CANCEL, AMEND, and REPLACE commands only")
     return RustCommandBatch(codes=codes, values=values, expiry=expiry, commands=command_tuple)
 
 
 class RustReactiveSessionAdapter:
-    """R1 bridge: Python callbacks around one Rust state transition per bar."""
+    """R2 bridge: Python callbacks around one Rust state transition per bar."""
 
     def __init__(
         self,
@@ -305,6 +352,12 @@ class RustReactiveSessionAdapter:
         self.use_funding = False
         self.retain_terminal_orders = bool(retain_terminal_orders)
         self._module = _require_r1_extension()
+        extension_status = probe_native_event_rust_extension(module=self._module)
+        self._r2_capable = bool(extension_status.capabilities.get("r2_stop_amend_replace_reduce_only_constraints", False))
+        if self.constraints.enabled and not self._r2_capable:
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel is R1-only and cannot apply quantity constraints; rebuild/install R2 or use backend='python'"
+            )
         self._id_to_code: dict[str, int] = {}
         self._id_values: list[str] = []
         self._commands_by_id: dict[str, OrderCommand] = {}
@@ -369,6 +422,57 @@ class RustReactiveSessionAdapter:
             raise ValueError("price must be > 0")
         return abs(float(notional) / (float(price) * float(self.contract_sizes[0])))
 
+    def _quantize_r2_commands(self, bar: int, commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
+        """Apply the canonical quantity filter at the same bar as replay preflight.
+
+        Reactive commands cannot be preflighted before a strategy emits them.
+        The static replay performs the equivalent filtering over the emitted
+        tape; this method makes explicit Rust follow that exact exchange-rule
+        contract without changing the command tape or endpoint API.
+        """
+        if not self.constraints.enabled:
+            return tuple(commands)
+        out: list[OrderCommand] = []
+        close = float(self.market_arrays.closes[int(bar), 0])
+        for command in commands:
+            if command.action not in (OrderAction.PLACE, OrderAction.REPLACE) or command.qty is None:
+                out.append(command)
+                continue
+            price = float(command.price) if command.price is not None else close
+            signed = command.signed_qty
+            quantity = abs(
+                quantize_signed_quantity(
+                    signed,
+                    price,
+                    float(self.contract_sizes[0]),
+                    float(self.constraints.qty_step[0]),
+                    float(self.constraints.min_qty[0]),
+                    float(self.constraints.min_notional[0]),
+                )
+            )
+            if quantity <= 0.0:
+                continue
+            if abs(quantity - float(command.qty)) > 1e-12:
+                out.append(replace(command, qty=quantity))
+            else:
+                out.append(command)
+        return tuple(out)
+
+    @staticmethod
+    def _commands_require_r2(commands: Sequence[OrderCommand]) -> bool:
+        return any(
+            command.action in (OrderAction.AMEND, OrderAction.REPLACE)
+            or command.reduce_only
+            or command.order_type in (OrderType.STOP_MARKET, OrderType.STOP_LIMIT)
+            for command in commands
+        )
+
+    def _require_r2_for_commands(self, commands: Sequence[OrderCommand]) -> None:
+        if self._commands_require_r2(commands) and not self._r2_capable:
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel is R1-only and cannot execute R2 lifecycle commands; rebuild/install R2 or use backend='python'"
+            )
+
     def schedule(self, bar: int, commands: Sequence[OrderCommand]) -> None:
         if commands and int(bar) < len(self.idx):
             self.scheduled.setdefault(int(bar), []).extend(commands)
@@ -381,8 +485,10 @@ class RustReactiveSessionAdapter:
         if bar <= self.processed_bar:
             return
         for current_bar in range(self.processed_bar + 1, int(bar) + 1):
+            commands = self._quantize_r2_commands(current_bar, self.scheduled.pop(current_bar, ()))
+            self._require_r2_for_commands(commands)
             batch = compile_rust_r1_command_batch(
-                self.scheduled.pop(current_bar, ()),
+                commands,
                 symbol=self.symbols[0],
                 intern_id=self._intern_id,
             )
@@ -423,7 +529,9 @@ class RustReactiveSessionAdapter:
             self.fills_by_bar[bar] = fills
         events = []
         for event_kind, status, order_code, target_code in payload["events"]:
-            name = {0: "place", 1: "cancel", 2: "fill", 3: "reject"}.get(int(event_kind), "reject")
+            name = {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}.get(
+                int(event_kind), "reject"
+            )
             if name == "reject":
                 self.rejected_bar[bar] += 1
             if name == "cancel":
@@ -442,11 +550,27 @@ class RustReactiveSessionAdapter:
             self.events_by_bar[bar] = events
         pending = []
         snapshots = []
-        for order_code, side_sign, order_type, qty, price in payload["active_orders"]:
+        for order_code, side_sign, order_type, qty, price, trigger_price, flags in payload["active_orders"]:
             order_id = self._id_from_code(int(order_code))
             side = OrderSide.BUY if int(side_sign) > 0 else OrderSide.SELL
-            kind = OrderType.MARKET if int(order_type) == _R1_ORDER_MARKET else OrderType.LIMIT
-            pending.append(_RustPendingOrder(order_id=order_id, side=side, order_type=kind, qty=float(qty), price=float(price)))
+            kind = {
+                _R1_ORDER_MARKET: OrderType.MARKET,
+                _R1_ORDER_LIMIT: OrderType.LIMIT,
+                _R2_ORDER_STOP_MARKET: OrderType.STOP_MARKET,
+                _R2_ORDER_STOP_LIMIT: OrderType.STOP_LIMIT,
+            }.get(int(order_type), OrderType.MARKET)
+            reduce_only = bool(int(flags) & _R2_FLAG_REDUCE_ONLY)
+            pending.append(
+                _RustPendingOrder(
+                    order_id=order_id,
+                    side=side,
+                    order_type=kind,
+                    qty=float(qty),
+                    price=float(price),
+                    trigger_price=float(trigger_price),
+                    reduce_only=reduce_only,
+                )
+            )
             snapshots.append(
                 NativeActiveOrderSnapshot(
                     order_id=order_id,
@@ -456,8 +580,8 @@ class RustReactiveSessionAdapter:
                     status=ORDER_STATUS_PENDING,
                     remaining_qty=float(qty),
                     price=float(price),
-                    trigger_price=0.0,
-                    reduce_only=False,
+                    trigger_price=float(trigger_price),
+                    reduce_only=reduce_only,
                 )
             )
         self.pending = pending

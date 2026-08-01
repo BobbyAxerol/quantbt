@@ -29,6 +29,7 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("reactive_session", true)?;
     values.set_item("r1_single_symbol", true)?;
     values.set_item("r1_place_cancel_market_limit_gtc", true)?;
+    values.set_item("r2_stop_amend_replace_reduce_only_constraints", true)?;
     Ok(values)
 }
 

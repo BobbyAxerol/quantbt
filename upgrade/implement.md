@@ -7623,6 +7623,40 @@ Release gate:
 - Run RSS benchmark smoke.
 - Publish only from GitHub Release / protected environment.
 
+Status: R2 implementation and CI gate added; release certification remains
+blocked on an actual Rust toolchain/combined-wheel run.
+
+Implemented R2 slice:
+
+- Explicit `QUANTBT_NATIVE_BACKEND=rust` now supports, within the existing
+  single-symbol/no-funding/no-liquidation/GTC boundary:
+  - `STOP_MARKET` and `STOP_LIMIT` touch rules matching the Python reactive
+    session;
+  - `AMEND` and `REPLACE`, including a replacement alias so a later command
+    that targets the original ID reaches the active replacement;
+  - reduce-only quantity clipping/cancellation semantics;
+  - dynamic `qty_step`, `min_qty`, and `min_notional` filtering through the
+    shared canonical `quantize_signed_quantity` helper.
+- The Python/Rust boundary remains fixed-width contiguous primitive arrays;
+  R2 reuses the R1 buffer layout instead of allocating richer Python objects
+  in the bar loop.
+- `Native PyO3 Gate` CI now builds the core wheel and native wheel from the
+  same ref, clean-installs both, then runs the explicit Rust parity suite and
+  Rust RSS benchmark smoke.
+- Python-side feature-gate/buffer tests pass locally. Installed-wheel R1/R2
+  differential tests are present but skipped locally because this machine has
+  no `cargo`, `rustc`, or `maturin`.
+
+Remaining Phase 44C slices and release debt:
+
+- R3: parent-child, OCO, GTD, IOC/FOK, CANCEL_ALL.
+- R4: funding, margin acceptance, intrabar/after-funding/after-order
+  liquidation.
+- R5: deterministic multi-symbol lifecycle ordering.
+- Rust format/clippy/test/build, exact differential parity, randomized parity,
+  and end-to-end speed/RSS gates must pass in the combined native CI before
+  R2 is called certified or `quantbt-native` is published.
+
 ### Phase 42-44 Definition Of Done
 
 This roadmap is complete only when:

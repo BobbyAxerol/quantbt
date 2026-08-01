@@ -43,6 +43,7 @@ def test_native_event_r1_crate_declares_reactive_session_capability() -> None:
     assert metadata["tool"]["maturin"]["module-name"] == "_quantbt_native"
     assert '"r0_import_smoke", true' in source
     assert '"reactive_session", true' in source
+    assert '"r2_stop_amend_replace_reduce_only_constraints", true' in source
     assert "ReactiveSessionCore" in source
 
 

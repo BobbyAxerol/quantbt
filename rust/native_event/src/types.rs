@@ -3,15 +3,25 @@ pub const COMMAND_VALUE_WIDTH: usize = 3;
 
 pub const ACTION_PLACE: i64 = 0;
 pub const ACTION_CANCEL: i64 = 1;
+pub const ACTION_AMEND: i64 = 2;
+pub const ACTION_REPLACE: i64 = 3;
 pub const ORDER_MARKET: i64 = 0;
 pub const ORDER_LIMIT: i64 = 1;
+pub const ORDER_STOP_MARKET: i64 = 2;
+pub const ORDER_STOP_LIMIT: i64 = 3;
 pub const SIDE_BUY: i64 = 1;
 pub const SIDE_SELL: i64 = -1;
+pub const FLAG_REDUCE_ONLY: i64 = 1;
+pub const MUTATE_QTY: i64 = 1;
+pub const MUTATE_PRICE: i64 = 2;
+pub const MUTATE_TRIGGER: i64 = 4;
 
 pub const EVENT_PLACE: i64 = 0;
 pub const EVENT_CANCEL: i64 = 1;
 pub const EVENT_FILL: i64 = 2;
 pub const EVENT_REJECT: i64 = 3;
+pub const EVENT_AMEND: i64 = 4;
+pub const EVENT_REPLACE: i64 = 5;
 
 pub const STATUS_PENDING: i64 = 0;
 pub const STATUS_FILLED: i64 = 1;
@@ -25,6 +35,8 @@ pub struct ActiveOrder {
     pub order_type: i64,
     pub qty: f64,
     pub price: f64,
+    pub trigger: f64,
+    pub reduce_only: bool,
 }
 
 pub struct StepResult {

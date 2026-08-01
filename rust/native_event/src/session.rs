@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
 use crate::accounting::{initial_margin, maintenance_margin, required_margin};
 use crate::matching::execution_price;
 use crate::types::{
-    ActiveOrder, StepResult, ACTION_CANCEL, ACTION_PLACE, EVENT_CANCEL, EVENT_FILL, EVENT_PLACE, EVENT_REJECT,
-    ORDER_LIMIT, SIDE_BUY, SIDE_SELL, STATUS_CANCELED, STATUS_FILLED, STATUS_PENDING, STATUS_REJECTED,
+    ActiveOrder, StepResult, ACTION_AMEND, ACTION_CANCEL, ACTION_PLACE, ACTION_REPLACE, EVENT_AMEND,
+    EVENT_CANCEL, EVENT_FILL, EVENT_PLACE, EVENT_REJECT, EVENT_REPLACE, FLAG_REDUCE_ONLY, MUTATE_PRICE,
+    MUTATE_QTY, MUTATE_TRIGGER, ORDER_LIMIT, ORDER_MARKET, ORDER_STOP_LIMIT, ORDER_STOP_MARKET, SIDE_BUY,
+    SIDE_SELL, STATUS_CANCELED, STATUS_FILLED, STATUS_PENDING, STATUS_REJECTED,
 };
 
 pub struct ReactiveSession {
@@ -23,6 +27,7 @@ pub struct ReactiveSession {
     position: f64,
     equity: f64,
     active_orders: Vec<ActiveOrder>,
+    order_alias: HashMap<i64, i64>,
     last_bar: Option<usize>,
 }
 
@@ -73,6 +78,7 @@ impl ReactiveSession {
             position: 0.0,
             equity: initial_capital,
             active_orders: Vec::new(),
+            order_alias: HashMap::new(),
             last_bar: None,
         })
     }
@@ -107,7 +113,7 @@ impl ReactiveSession {
                 ACTION_PLACE => {
                     let side = code[1];
                     let order_type = code[2];
-                    if (side != SIDE_BUY && side != SIDE_SELL) || (order_type != 0 && order_type != ORDER_LIMIT) || value[0] <= 0.0 {
+                    if !valid_order(side, order_type, value[0], value[1], value[2]) {
                         events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], -1]);
                         continue;
                     }
@@ -117,15 +123,62 @@ impl ReactiveSession {
                         order_type,
                         qty: value[0],
                         price: value[1],
+                        trigger: value[2],
+                        reduce_only: (code[3] & FLAG_REDUCE_ONLY) != 0,
                     });
                     events.push(vec![EVENT_PLACE, STATUS_PENDING, code[4], -1]);
                 }
                 ACTION_CANCEL => {
-                    if let Some(position) = self.active_orders.iter().position(|order| order.order_id == code[5]) {
+                    let target = self.resolve_order_id(code[5]);
+                    if let Some(position) = self.active_orders.iter().position(|order| order.order_id == target) {
                         self.active_orders.remove(position);
                         events.push(vec![EVENT_CANCEL, STATUS_FILLED, -1, code[5]]);
                     } else {
                         events.push(vec![EVENT_REJECT, STATUS_REJECTED, -1, code[5]]);
+                    }
+                }
+                ACTION_AMEND => {
+                    let target = self.resolve_order_id(code[5]);
+                    if let Some(order) = self.active_orders.iter_mut().find(|order| order.order_id == target) {
+                        let mask = code[6];
+                        if (mask & MUTATE_QTY) != 0 && value[0] > 0.0 {
+                            order.qty = value[0];
+                        }
+                        if (mask & MUTATE_PRICE) != 0 && value[1] > 0.0 {
+                            order.price = value[1];
+                        }
+                        if (mask & MUTATE_TRIGGER) != 0 && value[2] > 0.0 {
+                            order.trigger = value[2];
+                        }
+                        events.push(vec![EVENT_AMEND, STATUS_FILLED, -1, code[5]]);
+                    } else {
+                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, -1, code[5]]);
+                    }
+                }
+                ACTION_REPLACE => {
+                    let target = self.resolve_order_id(code[5]);
+                    if let Some(position) = self.active_orders.iter().position(|order| order.order_id == target) {
+                        self.active_orders.remove(position);
+                        events.push(vec![EVENT_REPLACE, STATUS_CANCELED, code[4], code[5]]);
+                        let side = code[1];
+                        let order_type = code[2];
+                        if !valid_order(side, order_type, value[0], value[1], value[2]) {
+                            events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]);
+                            continue;
+                        }
+                        self.active_orders.push(ActiveOrder {
+                            order_id: code[4],
+                            side,
+                            order_type,
+                            qty: value[0],
+                            price: value[1],
+                            trigger: value[2],
+                            reduce_only: (code[3] & FLAG_REDUCE_ONLY) != 0,
+                        });
+                        self.order_alias.insert(code[5], code[4]);
+                        events.push(vec![EVENT_REPLACE, STATUS_PENDING, code[4], code[5]]);
+                    } else {
+                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]);
                     }
                 }
                 _ => events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]),
@@ -139,7 +192,15 @@ impl ReactiveSession {
                 retained.push(order);
                 continue;
             };
-            let delta = order.qty * order.side as f64;
+            let mut qty = order.qty;
+            if order.reduce_only {
+                if self.position == 0.0 || (self.position > 0.0 && order.side == SIDE_BUY) || (self.position < 0.0 && order.side == SIDE_SELL) {
+                    events.push(vec![EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1]);
+                    continue;
+                }
+                qty = qty.min(self.position.abs());
+            }
+            let delta = qty * order.side as f64;
             let notional = delta.abs() * price * self.contract_size;
             let fee = notional * self.fee_rate;
             let (required, current_margin) = required_margin(
@@ -159,7 +220,7 @@ impl ReactiveSession {
             self.position += delta;
             fee_total += fee;
             turnover += notional;
-            fills.push(vec![order.order_id as f64, order.side as f64, order.qty, price, fee]);
+            fills.push(vec![order.order_id as f64, order.side as f64, qty, price, fee]);
             events.push(vec![EVENT_FILL, STATUS_FILLED, order.order_id, -1]);
         }
         self.active_orders = retained;
@@ -169,7 +230,15 @@ impl ReactiveSession {
         let active_orders = self
             .active_orders
             .iter()
-            .map(|order| vec![order.order_id as f64, order.side as f64, order.order_type as f64, order.qty, order.price])
+            .map(|order| vec![
+                order.order_id as f64,
+                order.side as f64,
+                order.order_type as f64,
+                order.qty,
+                order.price,
+                order.trigger,
+                if order.reduce_only { FLAG_REDUCE_ONLY as f64 } else { 0.0 },
+            ])
             .collect();
         Ok(StepResult {
             equity: self.equity,
@@ -182,5 +251,35 @@ impl ReactiveSession {
             events,
             active_orders,
         })
+    }
+
+    fn resolve_order_id(&self, order_id: i64) -> i64 {
+        let mut resolved = order_id;
+        // A replacement can itself be replaced. The depth is bounded by the
+        // number of lifecycle commands and the guard prevents malformed
+        // command tapes from creating an infinite alias cycle.
+        for _ in 0..64 {
+            let Some(next) = self.order_alias.get(&resolved) else {
+                break;
+            };
+            if *next == resolved {
+                break;
+            }
+            resolved = *next;
+        }
+        resolved
+    }
+}
+
+fn valid_order(side: i64, order_type: i64, qty: f64, price: f64, trigger: f64) -> bool {
+    if (side != SIDE_BUY && side != SIDE_SELL) || qty <= 0.0 {
+        return false;
+    }
+    match order_type {
+        ORDER_MARKET => true,
+        ORDER_LIMIT => price > 0.0,
+        ORDER_STOP_MARKET => trigger > 0.0,
+        ORDER_STOP_LIMIT => price > 0.0 && trigger > 0.0,
+        _ => false,
     }
 }

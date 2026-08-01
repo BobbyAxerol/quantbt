@@ -1,4 +1,4 @@
-name: Native R0
+name: Native PyO3 Gate
 
 on:
   pull_request:
@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  native-r0:
-    name: PyO3 R0 build and import smoke
+  native-pyo3:
+    name: PyO3 build, combined wheel, parity, and RSS smoke
     runs-on: ubuntu-latest
 
     steps:
@@ -45,22 +45,31 @@ jobs:
           cargo clippy -- -D warnings
           cargo test
 
+      - name: Build core wheel from this ref
+        run: uv build --out-dir dist/core
+
       - name: Build native wheel
         working-directory: rust/native_event
         run: maturin build --release --out ../../dist/native
 
-      - name: Native import smoke
+      - name: Clean combined core and native wheel install smoke
         shell: bash
         run: |
-          python -m venv /tmp/quantbt-native-r0-smoke
-          /tmp/quantbt-native-r0-smoke/bin/python -m pip install dist/native/quantbt_native-*.whl
+          python -m venv /tmp/quantbt-native-combined-smoke
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip install dist/core/quantbt_engine-*.whl dist/native/quantbt_native-*.whl
           cd /tmp
-          /tmp/quantbt-native-r0-smoke/bin/python -c "import _quantbt_native; assert _quantbt_native.api_version() == '0.3'; assert _quantbt_native.capabilities()['r0_import_smoke']"
+          /tmp/quantbt-native-combined-smoke/bin/python -c "from quantbt import QuantBTEndpoint; import _quantbt_native; assert _quantbt_native.api_version() == '0.3'; assert _quantbt_native.capabilities()['r0_import_smoke']; print(QuantBTEndpoint)"
 
       - name: Install native wheel into core test environment
         run: uv run python -m pip install dist/native/quantbt_native-*.whl
 
-      - name: R1 Python-Rust parity
+      - name: Python-Rust parity
         env:
           QUANTBT_NATIVE_BACKEND: rust
         run: uv run pytest -q tests/native_event -k rust
+
+      - name: Rust RSS benchmark smoke
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: uv run python benchmarks/native_event/benchmark_reactive_session.py --backend rust
