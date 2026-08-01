@@ -7512,6 +7512,30 @@ python -c "import _quantbt_native"
 pytest -q tests/native_event
 ```
 
+Status: completed on `feat/quantbt-engine-packaging` (the planned
+`feat/native-event-pyo3` split is deferred until the packaging branch is
+integrated into `dev`).
+
+Implemented:
+
+- `rust/native_event` now contains the isolated `quantbt-native 0.3.0` PyO3
+  R0 crate. `_quantbt_native` exports only `version`, `api_version`, and a
+  capability map; it has no matching, accounting, or execution implementation.
+- `src/quantbt/backends/_native_event_rust.py` is the sole optional-import and
+  compatibility boundary. It validates API `0.3`, never silently enables an
+  incompatible extension, and contains no domain logic.
+- `QUANTBT_NATIVE_BACKEND=auto|python|rust|replay_certified` is internal-only:
+  `auto` and `python` resolve to the existing Python path, `replay_certified`
+  forces the canonical replay route, and explicit `rust` fails clearly until a
+  later Rust slice exposes `reactive_session` capability.
+- `NativeEventBackend` now records the selected backend and native capability
+  state in reactive-result metadata. No endpoint signature or default routing
+  changed.
+- Main package `native` extra intentionally remains empty until a native wheel
+  is published. Maturin remains isolated to the Rust subpackage and its native
+  CI workflow, so normal core Python installs and the locked core environment
+  do not need an unpublished package or a Rust toolchain.
+
 ### Phase 44B - PyO3 R1 Single-Symbol POC
 
 Branch:

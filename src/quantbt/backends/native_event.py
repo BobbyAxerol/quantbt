@@ -106,6 +106,7 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
+from ._native_event_rust import NativeEventBackendSelection, resolve_native_event_backend
 
 
 def _event_type_name(event_type: int) -> str:
@@ -966,6 +967,35 @@ class NativeEventBackend:
 
     def __init__(self, config: NativeEventConfig):
         self.config = config
+        # Phase 44A: selection is internal and defaults to Python.  Rust R0
+        # exposes capability metadata only, so an explicit rust request raises
+        # before any execution semantics can change.
+        self._backend_selection = resolve_native_event_backend()
+
+    @staticmethod
+    def _create_reactive_session(
+        *,
+        backend_selection: NativeEventBackendSelection,
+        **kwargs,
+    ) -> _NativeEventReactiveSession:
+        """Create the Python reactive session for the R0 rollout.
+
+        The factory is the only future insertion point for a certified Rust
+        adapter.  R0 intentionally has no Rust execution implementation.
+        """
+        if backend_selection.resolved == "rust":
+            raise RuntimeError("Rust reactive session routing is unavailable in PyO3 R0")
+        return _NativeEventReactiveSession(**kwargs)
+
+    def _backend_selection_metadata(self) -> dict:
+        selection = self._backend_selection
+        return {
+            "native_event_backend_requested": selection.requested,
+            "native_event_backend_resolved": selection.resolved,
+            "native_event_rust_available": bool(selection.extension.available),
+            "native_event_rust_compatible": bool(selection.extension.compatible),
+            "native_event_rust_capabilities": dict(selection.extension.capabilities),
+        }
 
     def prepare_market_arrays(
         self,
@@ -1318,6 +1348,7 @@ class NativeEventBackend:
         metadata = {
             "backend": "native_event",
             "engine": "event_v2_lifecycle",
+            **self._backend_selection_metadata(),
             "report_level": level,
             "report_level_requested": str(requested_report_level),
             "artifact_plan": asdict(plan),
@@ -1411,9 +1442,12 @@ class NativeEventBackend:
         execution_mode = str(execution_mode).lower().strip()
         if execution_mode not in {"fast", "audit"}:
             raise ValueError("execution_mode must be 'fast' or 'audit'")
+        backend_selection = self._backend_selection
         kernel_mode = _normalize_reactive_kernel_mode(
             self.config.reactive_kernel_mode if reactive_kernel_mode is None else reactive_kernel_mode
         )
+        if backend_selection.resolved == "replay_certified":
+            kernel_mode = "replay_certified"
         requested_report_level = self.config.report_level if report_level is None else report_level
         level = _normalize_native_event_report_level(requested_report_level)
         plan = _native_event_artifact_plan(level)
@@ -1466,7 +1500,8 @@ class NativeEventBackend:
             symbol_list,
             default=0.0,
         )
-        session = _NativeEventReactiveSession(
+        session = self._create_reactive_session(
+            backend_selection=backend_selection,
             idx=idx,
             symbols=symbol_list,
             market_arrays=market_arrays,
@@ -1586,6 +1621,7 @@ class NativeEventBackend:
         final_result.metadata.update(
             {
                 "engine": engine_name,
+                **self._backend_selection_metadata(),
                 "reactive_execution_mode": execution_mode,
                 "reactive_kernel_mode": kernel_mode,
                 "command_effective_phase": "next_bar",

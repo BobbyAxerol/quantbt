@@ -54,8 +54,9 @@ viz = [
 validation = [
     "nautilus-trader>=1.230.0,<1.231; python_version >= '3.12'",
 ]
-# Phase 44 will attach the optional PyO3/Rust accelerator package after
-# quantbt-native exists as a buildable and publishable distribution.
+# PyO3 R0 lives under rust/native_event.  Keep this empty until quantbt-native
+# is published; otherwise uv sync --all-extras would require an unavailable
+# PyPI distribution during core-only development and CI.
 native = []
 all = [
     "optuna>=4.8.0,<4.9",

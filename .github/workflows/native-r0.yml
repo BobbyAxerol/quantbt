@@ -1,0 +1,50 @@
+name: Native R0
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-r0:
+    name: PyO3 R0 build and import smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Maturin
+        run: python -m pip install "maturin>=1.9,<2"
+
+      - name: Rust format, lint, and tests
+        working-directory: rust/native_event
+        run: |
+          cargo fmt --check
+          cargo clippy -- -D warnings
+          cargo test
+
+      - name: Build native wheel
+        working-directory: rust/native_event
+        run: maturin build --release --out ../../dist/native
+
+      - name: Native import smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-native-r0-smoke
+          /tmp/quantbt-native-r0-smoke/bin/python -m pip install dist/native/quantbt_native-*.whl
+          cd /tmp
+          /tmp/quantbt-native-r0-smoke/bin/python -c "import _quantbt_native; assert _quantbt_native.api_version() == '0.3'; assert _quantbt_native.capabilities()['r0_import_smoke']"
