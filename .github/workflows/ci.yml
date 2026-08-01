@@ -2,17 +2,23 @@ name: CI
 
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
   push:
-    branches: [dev]
+    branches: [dev, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  tests:
-    name: Python tests
+  package:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout
@@ -21,18 +27,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install numpy pandas numba matplotlib seaborn pytest
+        run: uv sync --all-extras --dev
 
-      - name: Run core tests
-        env:
-          PYTHONPATH: ${{ github.workspace }}/..
+      - name: Test
+        run: uv run pytest -q
+
+      - name: Build package
+        run: uv build
+
+      - name: Clean wheel install smoke
+        shell: bash
         run: |
-          pytest tests \
-            --ignore=tests/test_real.py \
-            --ignore=tests/test_real_endpoints.py \
-            --ignore=tests/test_phase5_nautilus_adapter.py
+          python -m venv /tmp/quantbt-wheel-smoke
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          cd /tmp
+          /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Pool Alpha import compatibility smoke
+        run: uv run python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"

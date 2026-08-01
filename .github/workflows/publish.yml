@@ -1,0 +1,109 @@
+name: Publish quantbt-engine
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Check release version
+        if: matrix.python-version == '3.12'
+        run: uv run python tools/check_release_version.py
+
+      - name: Test
+        run: uv run pytest -q
+
+      - name: Build
+        run: uv build
+
+  build:
+    name: Build distribution
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: uv sync --dev
+
+      - name: Check release version
+        run: uv run python tools/check_release_version.py
+
+      - name: Build package
+        run: uv build
+
+      - name: Clean wheel install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-wheel-smoke
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          cd /tmp
+          /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
+
+      - name: Publish with PyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1

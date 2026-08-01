@@ -7990,6 +7990,155 @@ Exit criteria:
 - No PyPI publish happened.
 - Release policy documented.
 
+Phase 42C implementation note captured on 2026-08-01 UTC:
+
+```text
+branch: feat/quantbt-engine-packaging
+publish status: not published
+tag status: no release tag created
+workflow added: .github/workflows/publish.yml
+workflow updated: .github/workflows/ci.yml
+release environment: pypi
+publish trigger: GitHub Release published event only
+trusted publishing: OIDC / id-token write
+token fallback: docs only, no token added
+```
+
+Phase 42C source/layout changes:
+
+- Replaced the old `PYTHONPATH`-based CI with package-layout CI:
+  - Python matrix `3.11`, `3.12`, `3.13`;
+  - `uv sync --all-extras --dev`;
+  - `uv run pytest -q`;
+  - `uv build`;
+  - clean wheel install smoke;
+  - public import smoke;
+  - Pool Alpha style import smoke.
+- Added `.github/workflows/publish.yml` for `quantbt-engine`:
+  - trigger is only `release: published`;
+  - build/test jobs must pass first;
+  - artifact upload/download is explicit;
+  - publish job uses protected environment `pypi`;
+  - publish job uses PyPI Trusted Publishing/OIDC;
+  - no long-lived PyPI token is referenced.
+- Added `tools/check_release_version.py`:
+  - checks `GITHUB_REF_NAME == v{pyproject.version}` when running under GitHub;
+  - allows local execution without `GITHUB_REF_NAME`.
+- Added `docs/release_packaging.md` and linked it from `docs/README.md`.
+- Updated README Python badge to `3.11+`.
+- Updated `pyproject.toml`:
+  - `requires-python = ">=3.11,<3.14"`;
+  - moved `matplotlib` and `seaborn` into core dependencies because public
+    import currently imports `quantbt.viz`;
+  - kept `nautilus-trader` as optional validation dependency with
+    `python_version >= "3.12"` marker because NautilusTrader `1.230.0` does
+    not support Python 3.11.
+
+Phase 42C validation commands and results:
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv lock
+```
+
+```text
+Resolved 100 packages
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv run pytest -q \
+  tests/test_phase42_packaging_layout.py tests/test_phase42c_ci_release.py
+```
+
+```text
+6 passed in 4.94s
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv sync --all-extras --dev
+```
+
+```text
+Resolved 100 packages
+Checked 93 packages
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv run pytest -q
+```
+
+```text
+567 passed, 1 skipped, 25 warnings in 49.23s
+```
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv build
+```
+
+```text
+Successfully built dist/quantbt_engine-0.1.0.tar.gz
+Successfully built dist/quantbt_engine-0.1.0-py3-none-any.whl
+```
+
+Clean wheel install smoke:
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache \
+  /root/bobby/pool_alpha/.venv/bin/uv venv --clear \
+  /tmp/quantbt-wheel-smoke-42c \
+  --python /root/bobby/pool_alpha/.venv/bin/python
+env UV_CACHE_DIR=/tmp/uv-cache \
+  /root/bobby/pool_alpha/.venv/bin/uv pip install \
+  --python /tmp/quantbt-wheel-smoke-42c/bin/python \
+  /root/bobby/pool_alpha/quantbt/dist/quantbt_engine-0.1.0-py3-none-any.whl
+cd /tmp
+MPLCONFIGDIR=/tmp /tmp/quantbt-wheel-smoke-42c/bin/python -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+```text
+Installed 18 packages
+<class 'quantbt.endpoint.QuantBTEndpoint'>
+```
+
+Version gate smoke:
+
+```bash
+env UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp \
+  /root/bobby/pool_alpha/.venv/bin/uv run python tools/check_release_version.py
+```
+
+```text
+quantbt-engine version check passed: 0.1.0
+```
+
+Pool Alpha compatibility smoke:
+
+```bash
+cd /root/bobby/pool_alpha
+MPLCONFIGDIR=/tmp poetry run python3 -c \
+  "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+```
+
+```text
+<class 'quantbt.endpoint.QuantBTEndpoint'>
+```
+
+Phase 42C remaining debt:
+
+- No real PyPI/TestPyPI publish has been performed. Publishing still requires
+  explicit user approval, a protected GitHub `pypi` environment, and a GitHub
+  Release from `main`.
+- `quantbt-native` workflow is intentionally not added yet. Phase 44 must build
+  and test the core `quantbt-engine` artifact before any native wheel publish.
+- Root source remains retained until a later migration/removal gate proves
+  Pool Alpha notebooks/services are using installed/editable package layout
+  safely.
+
 #### Phase 43A Detailed Guide - Native Event Behavior Freeze
 
 Read first:

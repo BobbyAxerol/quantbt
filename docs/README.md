@@ -19,6 +19,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
+| Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
 
 ## Strategy Route Map
 

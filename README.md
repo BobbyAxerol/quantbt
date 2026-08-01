@@ -1,6 +1,6 @@
 # QuantBT
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Numba](https://img.shields.io/badge/core-numba-00A86B)
 ![Backtesting](https://img.shields.io/badge/backtesting-vectorized%20%7C%20event--driven-black)
 ![Nautilus](https://img.shields.io/badge/nautilus-optional-6f42c1)
