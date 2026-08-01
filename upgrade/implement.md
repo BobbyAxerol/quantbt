@@ -8024,8 +8024,8 @@ Detailed source of truth:
 - Read sections `1`, `3`, `5.1` to `5.3`, `6`, `7`, `8`, `9`, `10`, `11`,
   `12`, and `13.5` to `13.8` before implementation.
 
-Status: **planned; blocked from native rollout until the Python baseline and
-batched parity contract are complete**.
+Status: **implemented (explicit experimental backend; native rollout still
+blocked by the performance gate)**.
 
 Implementation plan:
 
@@ -8043,6 +8043,28 @@ Implementation plan:
   constraints.
 - Preserve the replay-certified oracle as the source of truth.
 
+Implemented surface:
+
+- `RustBatchedRunner` owns one immutable `PreparedMarketCore` and creates a
+  fresh Rust session per static tape, so market arrays are not recopied per
+  trial.
+- `compile_rust_batched_tape(...)` converts the canonical
+  `CompiledOrderCommandArrays` once into contiguous `(command_ptr, codes,
+  values, expiry)` buffers.
+- `run_tape_score(...)` crosses PyO3 once and returns only scalar accounting and
+  lifecycle counters.
+- `run_tape_audit(...)` crosses PyO3 once and returns contiguous SoA arrays for
+  fills and events; no per-bar Python dictionaries or nested Python rows cross
+  the boundary.
+- `NativeEventBackend.prepare_rust_batched_runner(...)` is an opt-in helper;
+  public endpoint defaults and `auto` routing remain unchanged.
+- The certified initial scope is single-symbol R1/R2 with immediate GTC
+  market/limit/stop commands, cancel/amend/replace, reduce-only, fee and
+  slippage. Unsupported funding, liquidation, quantity constraints, package
+  orders, expiry, non-GTC TIF and multi-symbol inputs raise before execution.
+- The static tape contract uses the native-event v2 effective bar timeline;
+  parity tests intentionally place the first executable command at bar 1.
+
 Acceptance:
 
 - Same market, commands, and config produce exact lifecycle/accounting parity.
@@ -8052,6 +8074,30 @@ Acceptance:
   operation ordering requires it.
 - Rust wheel is built and tested in a clean environment, but remains explicit
   experimental until end-to-end performance gates pass.
+
+Validation completed for this phase:
+
+```text
+cargo fmt --all
+cargo check
+local maturin release build + editable wheel install
+tests/native_event/test_rust_batched_full_tape.py: 5 passed
+tests/native_event: 47 passed, 2 skipped
+tests/test_phase45a_source_tree_sync.py + tests/test_phase45d_native_event_zero_object.py: 6 passed
+full regression: 623 passed, 3 skipped, 25 warnings
+clean manylinux_2_34 CPython 3.12 wheel import smoke: passed
+```
+
+The Rust/Python full-tape parity test uses the same prepared market, command
+tape and account config. It asserts exact lifecycle counts and `atol=1e-12`
+for equity, positions, fees, turnover and fill prices. The audit path also
+asserts every returned buffer is C-contiguous. A performance claim is not made
+as a release claim yet; Phase 45F owns the isolated multi-scenario benchmark
+and release gate. The Phase 45E smoke profile (`100,000` bars, `40` GTC
+commands, five warm repetitions) recorded Rust score `0.005314s` versus Python
+v2 `0.024851s` median (`4.68x` in this process) with exact final-equity and
+fill-count parity. This is evidence for the batched boundary, not a substitute
+for the required churn/RSS/multi-symbol gate.
 
 Non-goals:
 

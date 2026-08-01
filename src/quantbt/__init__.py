@@ -142,6 +142,9 @@ from .backends   import (
     NativeVectorizedBackend,
     NativeVectorizedConfig,
     OptionSettlementEvent,
+    RustBatchedAuditResult,
+    RustBatchedRunner,
+    RustBatchedScoreResult,
 )
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult

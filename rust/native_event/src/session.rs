@@ -57,6 +57,10 @@ impl PreparedMarketData {
             _funding_mask: funding_mask,
         })
     }
+
+    pub fn len(&self) -> usize {
+        self.closes.len()
+    }
 }
 
 pub struct ReactiveSession {
@@ -75,6 +79,10 @@ pub struct ReactiveSession {
 }
 
 impl ReactiveSession {
+    pub fn market_len(&self) -> usize {
+        self.market.len()
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         market: Arc<PreparedMarketData>,

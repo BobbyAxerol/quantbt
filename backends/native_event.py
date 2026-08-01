@@ -114,6 +114,7 @@ from ..core.schema import (
 )
 from ._native_event_rust import (
     NativeEventBackendSelection,
+    RustBatchedRunner,
     RustReactiveSessionAdapter,
     resolve_native_event_backend,
 )
@@ -1500,6 +1501,62 @@ class NativeEventBackend:
             highs_dict=high_dict,
             lows_dict=low_dict,
             funding_dict=funding_dict,
+        )
+
+    def prepare_rust_batched_runner(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        *,
+        symbols: Optional[Sequence[str]] = None,
+        contract_size: float = 1.0,
+        leverage: Optional[float] = None,
+        fee_rate: Optional[float] = None,
+        initial_capital: Optional[float] = None,
+        maintenance_ratio: Optional[float] = None,
+        slippage: Optional[float] = None,
+        prepared_market_core=None,
+    ) -> RustBatchedRunner:
+        """Prepare the explicit experimental Rust full-tape runner.
+
+        This helper does not change endpoint defaults and never accepts a
+        Python strategy callback.  Callers must compile a static
+        ``OrderCommand`` tape with :meth:`compile_order_commands`, then pass
+        that tape to ``run_tape_score`` or ``run_tape_audit``.  Unsupported
+        funding, liquidation, quantity-constraint and package semantics fail
+        explicitly in ``RustBatchedRunner``.
+        """
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        market_arrays = self.prepare_market_arrays(
+            datetime_index=idx,
+            closes=closes,
+            highs=highs,
+            lows=lows,
+            funding_rate=0.0,
+            symbols=symbol_list,
+        )
+        configured_fee = self.config.fee_rate
+        if isinstance(configured_fee, dict):
+            configured_fee = configured_fee.get(symbol_list[0], 0.0)
+        return RustBatchedRunner(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            contract_size=float(contract_size),
+            leverage=float(self.config.account.leverage if leverage is None else leverage),
+            fee_rate=float(configured_fee if fee_rate is None else fee_rate),
+            initial_capital=float(
+                self.config.account.initial_capital if initial_capital is None else initial_capital
+            ),
+            maintenance_ratio=float(
+                self.config.account.maintenance_ratio if maintenance_ratio is None else maintenance_ratio
+            ),
+            slippage=float(self.config.execution.slippage_rate if slippage is None else slippage),
+            use_funding=False,
+            prepared_market_core=prepared_market_core,
         )
 
     @staticmethod

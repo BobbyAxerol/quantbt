@@ -18,6 +18,7 @@ import pandas as pd
 
 from ..core.event import ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED, ORDER_STATUS_PENDING, ORDER_STATUS_REJECTED
 from ..core.constraints import quantize_signed_quantity
+from ..core.order_compiler import CompiledOrderCommandArrays
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOrderEvent, NativeStrategyContext
 from ..core.schema import OrderSide, OrderType, TimeInForce
@@ -75,6 +76,56 @@ class RustCommandBatch:
     values: np.ndarray
     expiry: np.ndarray
     commands: tuple[OrderCommand, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RustBatchedScoreResult:
+    """Scalar result returned by one Rust full-tape call."""
+
+    final_equity: float
+    final_position: float
+    total_fee: float
+    total_turnover: float
+    fill_count: int
+    event_count: int
+    rejected_count: int
+    canceled_count: int
+    max_initial_margin: float
+    max_maintenance_margin: float
+    bars: int
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class RustBatchedAuditResult:
+    """Contiguous SoA audit buffers returned by one Rust full-tape call."""
+
+    equity: np.ndarray
+    positions: np.ndarray
+    fees: np.ndarray
+    turnover: np.ndarray
+    initial_margin: np.ndarray
+    maintenance_margin: np.ndarray
+    fill_bar: np.ndarray
+    fill_order_id: np.ndarray
+    fill_side: np.ndarray
+    fill_qty: np.ndarray
+    fill_price: np.ndarray
+    fill_fee: np.ndarray
+    event_bar: np.ndarray
+    event_kind: np.ndarray
+    event_status: np.ndarray
+    event_order_id: np.ndarray
+    event_target_id: np.ndarray
+    total_fee: float
+    total_turnover: float
+    fill_count: int
+    event_count: int
+    rejected_count: int
+    canceled_count: int
+    max_initial_margin: float
+    max_maintenance_margin: float
+    metadata: Mapping[str, object] = field(default_factory=dict)
 
 
 @dataclass
@@ -331,6 +382,195 @@ def compile_rust_r1_command_batch(
         else:
             raise NativeEventRustBackendError("Rust R2 supports PLACE, CANCEL, AMEND, and REPLACE commands only")
     return RustCommandBatch(codes=codes, values=values, expiry=expiry, commands=command_tuple)
+
+
+def compile_rust_batched_tape(
+    compiled_commands: CompiledOrderCommandArrays,
+    *,
+    symbol: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Convert the canonical command compiler output to the Rust tape ABI.
+
+    The conversion is deliberately performed once per static tape, not once
+    per bar or per trial.  The canonical compiler remains the source of truth
+    for bar ordering and dense order identifiers.
+    """
+    if tuple(compiled_commands.symbols) != (symbol,):
+        raise NativeEventRustBackendError("Rust batched tape supports exactly one symbol")
+    commands = tuple(command for _, command in compiled_commands.sorted_commands)
+    n = len(commands)
+    codes = np.full((n, _R1_CODE_WIDTH), -1, dtype=np.int64)
+    values = np.zeros((n, _R1_VALUE_WIDTH), dtype=np.float64)
+    expiry = np.ascontiguousarray(compiled_commands.command_expires_bar, dtype=np.int64)
+    if n:
+        codes[:, 0] = np.asarray(compiled_commands.command_action, dtype=np.int64)
+        codes[:, 1] = np.asarray(compiled_commands.command_side, dtype=np.int64)
+        codes[:, 2] = np.asarray(compiled_commands.command_type, dtype=np.int64)
+        codes[:, 3] = np.asarray(compiled_commands.command_reduce_only, dtype=np.int64)
+        codes[:, 4] = np.asarray(compiled_commands.command_order_id, dtype=np.int64)
+        codes[:, 5] = np.asarray(compiled_commands.command_target_order_id, dtype=np.int64)
+        values[:, 0] = np.asarray(compiled_commands.command_qty, dtype=np.float64)
+        values[:, 1] = np.asarray(compiled_commands.command_price, dtype=np.float64)
+        values[:, 2] = np.asarray(compiled_commands.command_trigger_price, dtype=np.float64)
+        codes[:, 7] = np.arange(n, dtype=np.int64)
+
+    for row, command in enumerate(commands):
+        if command.symbol not in (None, symbol):
+            raise NativeEventRustBackendError(f"Rust batched command symbol must be {symbol!r}")
+        if command.action in (OrderAction.PLACE, OrderAction.REPLACE):
+            if command.tif is not TimeInForce.GTC:
+                raise NativeEventRustBackendError("Rust batched tape supports GTC only")
+            if command.parent_order_id or command.group_id or command.oco_group_id:
+                raise NativeEventRustBackendError("Rust batched tape does not support parent, group, or OCO orders")
+            if command.activation_policy is not OrderActivationPolicy.IMMEDIATE:
+                raise NativeEventRustBackendError("Rust batched tape supports immediate activation only")
+            if command.expires_at is not None:
+                raise NativeEventRustBackendError("Rust batched tape does not support expiry")
+        elif command.action is OrderAction.CANCEL:
+            if command.tif is not TimeInForce.GTC:
+                raise NativeEventRustBackendError("Rust batched tape supports GTC only")
+        elif command.action is OrderAction.AMEND:
+            mask = 0
+            if command.qty is not None:
+                mask |= _R2_MUTATE_QTY
+            if command.price is not None:
+                mask |= _R2_MUTATE_PRICE
+            if command.trigger_price is not None:
+                mask |= _R2_MUTATE_TRIGGER
+            codes[row, 6] = mask
+        else:
+            raise NativeEventRustBackendError("Rust batched tape supports PLACE, CANCEL, AMEND, and REPLACE only")
+        if command.expires_at is not None or int(expiry[row]) != -1:
+            raise NativeEventRustBackendError("Rust batched tape does not support expiry")
+
+    return (
+        np.ascontiguousarray(compiled_commands.command_ptr, dtype=np.int64),
+        np.ascontiguousarray(codes, dtype=np.int64),
+        np.ascontiguousarray(values, dtype=np.float64),
+        np.ascontiguousarray(expiry, dtype=np.int64),
+    )
+
+
+class RustBatchedRunner:
+    """Single-symbol Rust full-tape runner with prepared-market reuse.
+
+    This is an explicit experimental backend.  It accepts a precompiled
+    static command tape and never invokes arbitrary Python strategy callbacks.
+    Unsupported funding, liquidation, quantity constraints, TIF and package
+    semantics fail before crossing the Rust boundary.
+    """
+
+    def __init__(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market_arrays,
+        contract_size: float = 1.0,
+        leverage: float = 1.0,
+        fee_rate: float = 0.0,
+        initial_capital: float = 1_000.0,
+        maintenance_ratio: float = 0.0,
+        slippage: float = 0.0,
+        use_funding: bool = False,
+        prepared_market_core=None,
+    ) -> None:
+        if len(symbols) != 1:
+            raise NativeEventRustBackendError("Rust batched runner supports exactly one symbol")
+        if use_funding:
+            raise NativeEventRustBackendError("Rust batched runner does not support funding")
+        if float(maintenance_ratio) != 0.0:
+            raise NativeEventRustBackendError("Rust batched runner does not support liquidation")
+        if float(contract_size) <= 0.0 or float(leverage) <= 0.0:
+            raise ValueError("contract_size and leverage must be > 0")
+        if float(fee_rate) < 0.0 or float(slippage) < 0.0:
+            raise ValueError("fee_rate and slippage must be >= 0")
+        self.idx = pd.DatetimeIndex(idx)
+        self.symbols = tuple(symbols)
+        self.market_arrays = market_arrays
+        self.contract_size = float(contract_size)
+        self.leverage = float(leverage)
+        self.fee_rate = float(fee_rate)
+        self.initial_capital = float(initial_capital)
+        self.maintenance_ratio = float(maintenance_ratio)
+        self.slippage = float(slippage)
+        self._module = _require_r1_extension()
+        status = probe_native_event_rust_extension(module=self._module)
+        required = ("rust_batched_tape", "rust_batched_tape_score", "rust_batched_tape_audit")
+        missing = [name for name in required if not status.capabilities.get(name, False)]
+        if missing:
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks Rust batched capabilities: " + ", ".join(missing)
+            )
+        self.prepared_market_core = prepared_market_core
+        if self.prepared_market_core is None:
+            close = np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64)
+            self.prepared_market_core = self._module.PreparedMarketCore(
+                np.ascontiguousarray(self.idx.asi8, dtype=np.int64),
+                close,
+                np.ascontiguousarray(market_arrays.highs[:, 0], dtype=np.float64),
+                np.ascontiguousarray(market_arrays.lows[:, 0], dtype=np.float64),
+                close,
+                np.zeros(len(self.idx), dtype=np.float64),
+                np.zeros(len(self.idx), dtype=np.float64),
+                np.zeros(len(self.idx), dtype=np.bool_),
+            )
+
+    def _new_session(self):
+        return self._module.ReactiveSessionCore.from_prepared(
+            self.prepared_market_core,
+            self.contract_size,
+            self.leverage,
+            self.fee_rate,
+            self.initial_capital,
+            self.maintenance_ratio,
+            self.slippage,
+            False,
+        )
+
+    def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
+        return compile_rust_batched_tape(compiled_commands, symbol=self.symbols[0])
+
+    def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> RustBatchedScoreResult:
+        """Run a complete static tape through one PyO3 call and return scalars."""
+        ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
+        payload = self._new_session().run_tape_score(ptr, codes, values, expiry)
+        return RustBatchedScoreResult(
+            final_equity=float(payload["final_equity"]),
+            final_position=float(payload["final_position"]),
+            total_fee=float(payload["total_fee"]),
+            total_turnover=float(payload["total_turnover"]),
+            fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]),
+            rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]),
+            max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]),
+            bars=int(payload["bars"]),
+            metadata={"backend": "rust_batched", "mode": "score", "pycalls": 1},
+        )
+
+    def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustBatchedAuditResult:
+        """Run a complete tape and return contiguous struct-of-arrays audit data."""
+        ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
+        payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
+        arrays = {key: np.ascontiguousarray(np.asarray(payload[key])) for key in (
+            "equity", "positions", "fees", "turnover", "initial_margin", "maintenance_margin",
+            "fill_bar", "fill_order_id", "fill_side", "fill_qty", "fill_price", "fill_fee",
+            "event_bar", "event_kind", "event_status", "event_order_id", "event_target_id",
+        )}
+        return RustBatchedAuditResult(
+            **arrays,
+            total_fee=float(payload["total_fee"]),
+            total_turnover=float(payload["total_turnover"]),
+            fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]),
+            rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]),
+            max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]),
+            metadata={"backend": "rust_batched", "mode": "audit", "pycalls": 1},
+        )
 
 
 class RustReactiveSessionAdapter:
@@ -689,7 +929,11 @@ __all__ = [
     "RUST_NATIVE_API_VERSION",
     "RustCommandBatch",
     "RustCommandBuffer",
+    "RustBatchedAuditResult",
+    "RustBatchedRunner",
+    "RustBatchedScoreResult",
     "RustReactiveSessionAdapter",
+    "compile_rust_batched_tape",
     "compile_rust_r1_command_batch",
     "probe_native_event_rust_extension",
     "resolve_native_event_backend",
