@@ -58,6 +58,20 @@ from .certification import (
     classify_alpha_source,
     scan_alpha_directory,
 )
+from .native_event_capabilities import (
+    NATIVE_EVENT_CAPABILITY_MATRIX,
+    NATIVE_EVENT_CAPABILITY_MATRIX_VERSION,
+    capability_matrix_fingerprint,
+    native_event_capability_matrix,
+    normalize_native_event_capabilities,
+    validate_native_event_capability_matrix,
+)
+from .native_event_parity import (
+    DEFAULT_NUMERIC_ATOL,
+    NativeEventParityCertificate,
+    NativeEventParityError,
+    assert_native_event_full_parity,
+)
 from .orders       import (
     BasketIntent,
     Fill,
@@ -165,12 +179,17 @@ __all__ = [
     "_engine_portfolio",
     "BacktestResult",
     "BacktestResultV2",
+    "DEFAULT_NUMERIC_ATOL",
     "NativeAccountingArrays",
     "NativeEventScoreResult",
     "NativeEventScalarScoreResult",
+    "NativeEventParityCertificate",
+    "NativeEventParityError",
     "BracketOrderSpec",
     "AccountConfig",
     "AlphaExecutionClassification",
+    "NATIVE_EVENT_CAPABILITY_MATRIX",
+    "NATIVE_EVENT_CAPABILITY_MATRIX_VERSION",
     "AmbiguityPolicy",
     "ArbExecutionPolicy",
     "ArbitrageLeg",
@@ -294,4 +313,9 @@ __all__ = [
     "prepare_funding",
     "make_funding_mask",
     "build_arrays",
+    "assert_native_event_full_parity",
+    "capability_matrix_fingerprint",
+    "native_event_capability_matrix",
+    "normalize_native_event_capabilities",
+    "validate_native_event_capability_matrix",
 ]

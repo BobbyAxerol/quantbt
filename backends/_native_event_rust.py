@@ -22,6 +22,7 @@ from ..core.order_compiler import CompiledOrderCommandArrays
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOrderEvent, NativeStrategyContext
 from ..core.schema import OrderSide, OrderType, TimeInForce
+from ..core.native_event_capabilities import normalize_native_event_capabilities
 
 
 RUST_NATIVE_API_VERSION = "0.3"
@@ -57,6 +58,7 @@ class NativeEventRustExtensionStatus:
     api_version: Optional[str]
     capabilities: Mapping[str, bool]
     reason: Optional[str] = None
+    canonical_capabilities: Mapping[str, bool] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -203,6 +205,7 @@ def _empty_status(reason: str) -> NativeEventRustExtensionStatus:
         api_version=None,
         capabilities={},
         reason=reason,
+        canonical_capabilities={},
     )
 
 
@@ -246,6 +249,7 @@ def probe_native_event_rust_extension(
     if not isinstance(raw_capabilities, Mapping):
         raw_capabilities = {}
     capabilities = {str(name): bool(enabled) for name, enabled in raw_capabilities.items()}
+    canonical_capabilities = normalize_native_event_capabilities(capabilities)
     compatible = api_version == RUST_NATIVE_API_VERSION
     if not compatible:
         return NativeEventRustExtensionStatus(
@@ -259,6 +263,7 @@ def probe_native_event_rust_extension(
                 "_quantbt_native API version mismatch: "
                 f"expected {RUST_NATIVE_API_VERSION!r}, received {api_version!r}"
             ),
+            canonical_capabilities=canonical_capabilities,
         )
 
     executable = bool(capabilities.get("reactive_session", False))
@@ -271,6 +276,7 @@ def probe_native_event_rust_extension(
         api_version=api_version,
         capabilities=capabilities,
         reason=reason,
+        canonical_capabilities=canonical_capabilities,
     )
 
 

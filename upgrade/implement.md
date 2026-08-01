@@ -9334,7 +9334,7 @@ Before enabling Rust by default:
 
 ## Final Upgrade - Dual Backend, RSS, And PyPI Release
 
-Status: **planned; planning-only update, no implementation started**.
+Status: **Phase 46A implemented locally; Phases 46B-46F remain planned**.
 
 Detailed source of truth:
 
@@ -9370,6 +9370,8 @@ Global rules for all six phases:
   tokens must never enter the repository.
 
 ### Phase 46A - PyPI Baseline And Correctness Certification
+
+Status: **implemented locally; focused correctness and mirror gates pass**.
 
 Detailed guide sections:
 
@@ -9414,6 +9416,13 @@ Acceptance and debt:
 - No performance result is accepted unless full parity passes first.
 - Any unsupported capability remains an explicit debt and is not included in
   the Rust release claim.
+- Evidence is emitted by
+  [`benchmark_phase46a_certification.py`](../benchmarks/native_event/benchmark_phase46a_certification.py)
+  and records fingerprints, exact parity, capability version, and source
+  commit. The root compatibility mirror remains intentionally retained.
+- Remaining Phase 46A scope note: the installed Rust audit/replay matrix is
+  covered by the existing Rust batched full-tape tests and the new parity
+  contract; full score-path equivalence is deliberately Phase 46B.
 
 ### Phase 46B - Apples-To-Apples Score And RSS Benchmark
 

@@ -207,6 +207,20 @@ from .core.certification import (
     classify_alpha_source,
     scan_alpha_directory,
 )
+from .core.native_event_capabilities import (
+    NATIVE_EVENT_CAPABILITY_MATRIX,
+    NATIVE_EVENT_CAPABILITY_MATRIX_VERSION,
+    capability_matrix_fingerprint,
+    native_event_capability_matrix,
+    normalize_native_event_capabilities,
+    validate_native_event_capability_matrix,
+)
+from .core.native_event_parity import (
+    DEFAULT_NUMERIC_ATOL,
+    NativeEventParityCertificate,
+    NativeEventParityError,
+    assert_native_event_full_parity,
+)
 from .core.orders import (
     BasketIntent,
     Fill,
@@ -468,6 +482,8 @@ __all__ = [
     "NativeCommandBatch",
     "NativeEventScoreResult",
     "NativeEventScalarScoreResult",
+    "NativeEventParityCertificate",
+    "NativeEventParityError",
     "NativeEventStrategyError",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
@@ -661,6 +677,9 @@ __all__ = [
     "BracketOrderSpec",
     "AccountConfig",
     "AlphaExecutionClassification",
+    "DEFAULT_NUMERIC_ATOL",
+    "NATIVE_EVENT_CAPABILITY_MATRIX",
+    "NATIVE_EVENT_CAPABILITY_MATRIX_VERSION",
     "AmbiguityPolicy",
     "ArbExecutionPolicy",
     "ArbitrageLeg",
@@ -770,6 +789,11 @@ __all__ = [
     "portfolio_capability_matrix",
     "quantize_signed_quantity",
     "round_down_to_step",
+    "assert_native_event_full_parity",
+    "capability_matrix_fingerprint",
+    "native_event_capability_matrix",
+    "normalize_native_event_capabilities",
+    "validate_native_event_capability_matrix",
     "run_fill_replay_kernel",
     "run_intrabar_kernel",
     "run_intrabar_session_kernel",
