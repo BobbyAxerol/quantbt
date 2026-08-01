@@ -134,6 +134,7 @@ from .engines import BacktestEngineV2, EventDrivenBacktestEngine, OptionBacktest
 from .backends   import (
     NativeEventBackend,
     NativeEventConfig,
+    NativeEventScoreRequirements,
     NativeOptionBackend,
     NativeOptionConfig,
     NativePortfolioBackend,
@@ -144,7 +145,13 @@ from .backends   import (
 )
 from .adapters.nautilus import NautilusBacktestEngine
 from .core.types import BacktestResult
-from .core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult, OptionBacktestResult
+from .core.results import (
+    BacktestResultV2,
+    NativeAccountingArrays,
+    NativeEventScalarScoreResult,
+    NativeEventScoreResult,
+    OptionBacktestResult,
+)
 from .core.execution_contract import (
     EXECUTION_CONTRACT_REGISTRY,
     AmbiguityPolicy,
@@ -207,6 +214,7 @@ from .core.orders import (
 )
 from .core.reactive import (
     NativeActiveOrderSnapshot,
+    NativeCommandBatch,
     NativeEventStrategyError,
     NativeEventStrategyProtocol,
     NativeFillEvent,
@@ -449,9 +457,12 @@ __all__ = [
     "NautilusBacktestEngine",
     "NativeEventBackend",
     "NativeEventConfig",
+    "NativeEventScoreRequirements",
     "NativeAccountingArrays",
     "NativeActiveOrderSnapshot",
+    "NativeCommandBatch",
     "NativeEventScoreResult",
+    "NativeEventScalarScoreResult",
     "NativeEventStrategyError",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",

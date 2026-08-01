@@ -1,0 +1,31 @@
+{
+  "parity": true,
+  "runs": [
+    {
+      "final_equity": 49989.275173113085,
+      "mode": "audit",
+      "peak_rss_mb": 443.57421875,
+      "repeats": 1,
+      "rows": 100000,
+      "seconds": 10.270810868125409
+    },
+    {
+      "final_equity": 49989.275173113085,
+      "mode": "compat_score",
+      "peak_rss_mb": 294.30078125,
+      "repeats": 1,
+      "rows": 100000,
+      "seconds": 7.760626588016748
+    },
+    {
+      "final_equity": 49989.275173113085,
+      "mode": "scalar_score",
+      "peak_rss_mb": 294.35546875,
+      "repeats": 1,
+      "rows": 100000,
+      "seconds": 7.351332436781377
+    }
+  ],
+  "scalar_faster_than_compat": true,
+  "scalar_rss_below_compat": false
+}

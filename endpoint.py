@@ -23,6 +23,7 @@ from .backtester import BacktestEngine
 from .backends import (
     NativeEventBackend,
     NativeEventConfig,
+    NativeEventScoreRequirements,
     NativeOptionConfig,
     NativePortfolioBackend,
     NativePortfolioConfig,
@@ -58,7 +59,12 @@ from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
-from .core.results import BacktestResultV2, NativeEventScoreResult, OptionBacktestResult
+from .core.results import (
+    BacktestResultV2,
+    NativeEventScalarScoreResult,
+    NativeEventScoreResult,
+    OptionBacktestResult,
+)
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -362,12 +368,20 @@ class PreparedNativeEventStrategyRunner:
 
     simulate = run
 
-    def score(self, strategy, *, trading_days: int = 365) -> NativeEventScoreResult:
+    def score(
+        self,
+        strategy,
+        *,
+        trading_days: int = 365,
+        score_requirements: Optional[NativeEventScoreRequirements] = None,
+    ) -> Union[NativeEventScoreResult, NativeEventScalarScoreResult]:
         """
-        Run the prepared strategy with score artifact retention.
+        Run the prepared strategy through the direct score path.
 
-        The returned object stores ndarray accounting arrays and scalar metrics;
-        it intentionally does not update `endpoint.result`.
+        The default compatibility contract stores ndarray accounting arrays and
+        scalar metrics. Passing ``NativeEventScoreRequirements.scalar_score_contract()``
+        returns the low-retention scalar result instead. Neither form updates
+        ``endpoint.result``.
         """
         if strategy is None:
             raise ValueError("prepared native-event score requires strategy=...")
@@ -396,6 +410,7 @@ class PreparedNativeEventStrategyRunner:
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
             trading_days=trading_days,
+            score_requirements=score_requirements,
         )
         object.__setattr__(self, "scores", self.scores + 1)
         return replace(

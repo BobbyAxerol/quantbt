@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping
 
 from ..result import ObjectiveResult
+from ...backends.native_event import NativeEventScoreRequirements
 from .generic import ObjectiveBuilder
 
 
@@ -18,13 +19,24 @@ class PreparedNativeEventStrategyEvaluator:
     objective_builder: ObjectiveBuilder
     trading_days: int = 365
     retain_last: bool = False
+    score_requirements: NativeEventScoreRequirements = field(
+        default_factory=NativeEventScoreRequirements.scalar_score_contract
+    )
 
     last_result: Any = field(default=None, init=False)
     last_strategy: Any = field(default=None, init=False)
 
     def evaluate(self, params: Mapping[str, Any]) -> ObjectiveResult:
         strategy = self.strategy_factory(params)
-        result = self.runner.score(strategy, trading_days=self.trading_days)
+        requirements = NativeEventScoreRequirements.from_strategy(
+            strategy,
+            base=self.score_requirements,
+        )
+        result = self.runner.score(
+            strategy,
+            trading_days=self.trading_days,
+            score_requirements=requirements,
+        )
         objective = self.objective_builder(result, params)
         if not isinstance(objective, ObjectiveResult):
             raise TypeError("objective_builder must return ObjectiveResult")

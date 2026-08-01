@@ -1096,6 +1096,47 @@ parity with `prepared.run(..., report_level="audit")`. `prepared.run(...)`
 returns the normal public
 `BacktestResultV2` and should be used for final audit/replay exports.
 
+For high-volume prepared optimization, use the zero-retention score contract:
+
+```python
+from quantbt import NativeEventScoreRequirements
+
+score = prepared.score(
+    DynamicGridStrategy(params),
+    trading_days=365,
+    score_requirements=NativeEventScoreRequirements.scalar_score_contract(),
+)
+report = score.full_report()
+```
+
+This returns `NativeEventScalarScoreResult`. It keeps scalar online metrics,
+live order state, counters, and final positions; it does not allocate full
+equity/position/fee/funding/margin paths, pandas reports, or a command tape.
+Its metrics are parity-locked to the same array-first report implementation.
+The compatibility call without `score_requirements` keeps the ndarray
+`NativeEventScoreResult` contract for existing callers that inspect paths.
+
+Strategies may opt out of callback payload objects when they do not consume
+them:
+
+```python
+class GridStrategy:
+    native_context_requirements = {
+        "fills": False,
+        "events": False,
+        "active_orders": False,
+        "positions": False,
+        "margin": False,
+    }
+```
+
+The declaration only changes context materialization. It never changes order
+timing, matching, fees, funding, margin, liquidation, or accounting formulas.
+`PreparedNativeEventStrategyEvaluator` uses the scalar contract by default and
+still accepts legacy list/tuple callback returns. Strategies that want an
+explicit immutable callback batch may return
+`NativeCommandBatch.from_commands(commands)`.
+
 Scoped cancel-all:
 
 ```python

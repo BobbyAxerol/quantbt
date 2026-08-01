@@ -7,8 +7,9 @@ Native event-driven backend using a Numba matching kernel.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, replace
+import math
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -87,7 +88,12 @@ from ..core.preprocessor import (
     prepare_funding,
     validate_datetime,
 )
-from ..core.results import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult
+from ..core.results import (
+    BacktestResultV2,
+    NativeAccountingArrays,
+    NativeEventScalarScoreResult,
+    NativeEventScoreResult,
+)
 from ..core.reactive import (
     NativeActiveOrderSnapshot,
     NativeEventStrategyError,
@@ -168,29 +174,97 @@ class NativeEventArtifactPlan:
 class NativeEventScoreRequirements:
     """Internal retention contract for direct prepared-score execution.
 
-    The public ``PreparedNativeEventStrategyRunner.score`` contract exposes
-    accounting arrays, so its safe default retains the paths required for an
-    exact public-audit metric comparison.  The session still honours every
-    field independently, allowing future scalar-only objectives to opt out of
-    paths without introducing a second accounting implementation.
+    The public ``PreparedNativeEventStrategyRunner.score`` compatibility
+    contract exposes accounting arrays.  Prepared optimization uses
+    ``scalar_score_contract()`` instead, which relies on online metrics and
+    keeps only live reactive state. Context flags are separate from ledger
+    retention: a strategy may consume current-bar fills without retaining the
+    complete fill history.
     """
 
-    need_equity_path: bool = True
-    need_position_path: bool = True
-    need_fee_path: bool = True
-    need_funding_path: bool = True
-    need_margin_path: bool = True
+    need_equity_path: bool = False
+    need_position_path: bool = False
+    need_fee_path: bool = False
+    need_funding_path: bool = False
+    need_margin_path: bool = False
     need_turnover_path: bool = False
     need_rejection_path: bool = False
     need_cancellation_path: bool = False
+    need_trade_stats: bool = True
     need_fill_ledger: bool = False
     need_event_ledger: bool = False
     need_terminal_orders: bool = False
+    need_context_fills: bool = True
+    need_context_events: bool = True
+    need_context_active_orders: bool = True
+    need_context_positions: bool = True
+    need_context_margin: bool = True
+    need_command_tape: bool = False
 
     @classmethod
     def public_score_contract(cls) -> "NativeEventScoreRequirements":
         """Return the compatible array set required by ``NativeEventScoreResult``."""
-        return cls()
+        return cls(
+            need_equity_path=True,
+            need_position_path=True,
+            need_fee_path=True,
+            need_funding_path=True,
+            need_margin_path=True,
+            need_trade_stats=False,
+        )
+
+    @classmethod
+    def scalar_score_contract(cls) -> "NativeEventScoreRequirements":
+        """Return the low-retention contract used by prepared optimization."""
+        return cls(
+            need_equity_path=False,
+            need_position_path=False,
+            need_fee_path=False,
+            need_funding_path=False,
+            need_margin_path=False,
+            need_turnover_path=False,
+            need_rejection_path=False,
+            need_cancellation_path=False,
+            need_trade_stats=True,
+            need_fill_ledger=False,
+            need_event_ledger=False,
+            need_terminal_orders=False,
+            need_context_fills=True,
+            need_context_events=True,
+            need_context_active_orders=True,
+            need_context_positions=True,
+            need_context_margin=True,
+            need_command_tape=False,
+        )
+
+    @classmethod
+    def from_strategy(
+        cls,
+        strategy,
+        *,
+        base: Optional["NativeEventScoreRequirements"] = None,
+    ) -> "NativeEventScoreRequirements":
+        """Apply an optional strategy context declaration to a base contract."""
+        requirements = base or cls.scalar_score_contract()
+        declaration = getattr(strategy, "native_context_requirements", None)
+        if declaration is None:
+            return requirements
+        if not isinstance(declaration, Mapping):
+            raise TypeError("native_context_requirements must be a mapping")
+        aliases = {
+            "fills": "need_context_fills",
+            "events": "need_context_events",
+            "active_orders": "need_context_active_orders",
+            "positions": "need_context_positions",
+            "margin": "need_context_margin",
+        }
+        valid = set(aliases) | set(aliases.values())
+        updates = {}
+        for key, value in declaration.items():
+            if key not in valid:
+                raise ValueError(f"unsupported native context requirement: {key!r}")
+            updates[aliases.get(key, key)] = bool(value)
+        return replace(requirements, **updates)
 
 
 @dataclass(frozen=True)
@@ -288,10 +362,10 @@ def _native_event_artifact_plan(report_level: str) -> NativeEventArtifactPlan:
             keep_funding_path=True,
             keep_margin_path=True,
             keep_fill_ledger=False,
-            keep_command_terminal_state=True,
+            keep_command_terminal_state=False,
             keep_event_ledger=False,
             keep_command_tape=False,
-            materialize_pandas=True,
+            materialize_pandas=False,
             materialize_python_objects=False,
             materialize_active_orders=False,
         )
@@ -355,6 +429,276 @@ class _ReactiveOrderState:
     reject_code: int = 0
 
 
+class _OnlineScoreState:
+    """Streaming equivalent of the array-first performance metric helpers."""
+
+    __slots__ = (
+        "initial_capital", "n_symbols", "trading_days", "prev_equity", "first_equity",
+        "last_equity", "peak", "max_drawdown", "drawdown_sum", "drawdown_count",
+        "bar_count", "bar_mean", "bar_m2", "bar_downside_sq", "bar_downside_count", "bar_gain", "bar_loss",
+        "bar_win_sum", "bar_win_count", "bar_loss_sum", "bar_loss_count", "daily_day",
+        "daily_close", "last_daily_close", "daily_points", "daily_mean", "daily_m2",
+        "daily_downside_sq", "daily_downside_count", "daily_gain", "daily_loss", "daily_win_sum", "daily_win_count",
+        "daily_loss_sum", "daily_loss_count", "daily_peak", "daily_dd_run", "daily_dd_runs",
+        "prev_positions", "trade_count", "long_total", "short_total", "long_wins",
+        "short_wins", "last_timestamp_ns", "last_observed_bar", "max_initial_margin", "max_maintenance_margin",
+    )
+
+    def __init__(self, initial_capital: float, n_symbols: int, trading_days: int = 365) -> None:
+        self.initial_capital = float(initial_capital)
+        self.n_symbols = int(n_symbols)
+        self.trading_days = int(trading_days)
+        self.prev_equity = None
+        self.first_equity = None
+        self.last_equity = float(initial_capital)
+        self.peak = -np.inf
+        self.max_drawdown = 0.0
+        self.drawdown_sum = 0.0
+        self.drawdown_count = 0
+        self.bar_count = 0
+        self.bar_mean = 0.0
+        self.bar_m2 = 0.0
+        self.bar_downside_sq = 0.0
+        self.bar_downside_count = 0
+        self.bar_gain = 0.0
+        self.bar_loss = 0.0
+        self.bar_win_sum = 0.0
+        self.bar_win_count = 0
+        self.bar_loss_sum = 0.0
+        self.bar_loss_count = 0
+        self.daily_day = None
+        self.daily_close = None
+        self.last_daily_close = None
+        self.daily_points = 0
+        self.daily_mean = 0.0
+        self.daily_m2 = 0.0
+        self.daily_downside_sq = 0.0
+        self.daily_downside_count = 0
+        self.daily_gain = 0.0
+        self.daily_loss = 0.0
+        self.daily_win_sum = 0.0
+        self.daily_win_count = 0
+        self.daily_loss_sum = 0.0
+        self.daily_loss_count = 0
+        self.daily_peak = -np.inf
+        self.daily_dd_run = 0
+        self.daily_dd_runs: List[int] = []
+        self.prev_positions = np.zeros(self.n_symbols, dtype=np.float64)
+        self.trade_count = self.n_symbols
+        self.long_total = np.zeros(self.n_symbols, dtype=np.int64)
+        self.short_total = np.zeros(self.n_symbols, dtype=np.int64)
+        self.long_wins = np.zeros(self.n_symbols, dtype=np.int64)
+        self.short_wins = np.zeros(self.n_symbols, dtype=np.int64)
+        self.last_timestamp_ns = None
+        self.last_observed_bar = -1
+        self.max_initial_margin = 0.0
+        self.max_maintenance_margin = 0.0
+
+    @staticmethod
+    def _update_moments(value: float, count: int, mean: float, m2: float) -> tuple[int, float, float]:
+        count += 1
+        delta = value - mean
+        mean += delta / count
+        m2 += delta * (value - mean)
+        return count, mean, m2
+
+    def _observe_return(self, value: float, *, daily: bool) -> None:
+        if not np.isfinite(value):
+            return
+        if daily:
+            if value > 0.0:
+                self.daily_gain += float(value)
+                self.daily_win_sum += float(value)
+                self.daily_win_count += 1
+            elif value < 0.0:
+                self.daily_loss += float(-value)
+                self.daily_loss_sum += float(value)
+                self.daily_loss_count += 1
+            if value < 0.0:
+                self.daily_downside_sq += float(value * value)
+                self.daily_downside_count += 1
+            self.daily_points, self.daily_mean, self.daily_m2 = self._update_moments(
+                float(value), self.daily_points - 1, self.daily_mean, self.daily_m2
+            )
+        else:
+            if value > 0.0:
+                self.bar_gain += float(value)
+                self.bar_win_sum += float(value)
+                self.bar_win_count += 1
+            elif value < 0.0:
+                self.bar_loss += float(-value)
+                self.bar_loss_sum += float(value)
+                self.bar_loss_count += 1
+            if value < 0.0:
+                self.bar_downside_sq += float(value * value)
+                self.bar_downside_count += 1
+            self.bar_count, self.bar_mean, self.bar_m2 = self._update_moments(
+                float(value), self.bar_count, self.bar_mean, self.bar_m2
+            )
+
+    def _close_day(self) -> None:
+        if self.daily_close is None:
+            return
+        close = float(self.daily_close)
+        if self.last_daily_close is not None:
+            base = float(self.last_daily_close)
+            daily_return = (close - base) / base if base != 0.0 else 0.0
+            self._observe_return(float(daily_return), daily=True)
+        self.last_daily_close = close
+        self.daily_points += 1
+        self.daily_peak = max(self.daily_peak, close)
+        in_drawdown = self.daily_peak != close
+        if in_drawdown:
+            self.daily_dd_run += 1
+        elif self.daily_dd_run > 0:
+            self.daily_dd_runs.append(self.daily_dd_run)
+            self.daily_dd_run = 0
+
+    def observe(
+        self,
+        timestamp,
+        equity: float,
+        positions: np.ndarray,
+        initial_margin: float,
+        maintenance_margin: float,
+    ) -> None:
+        """Consume one canonical post-bar accounting observation."""
+        value = float(equity)
+        if self.first_equity is None:
+            self.first_equity = value
+        if self.prev_equity is None or self.prev_equity == 0.0:
+            bar_return = 0.0
+        else:
+            bar_return = value / float(self.prev_equity) - 1.0
+        if math.isfinite(float(bar_return)):
+            bar_return = float(bar_return)
+            self.bar_count += 1
+            delta = bar_return - self.bar_mean
+            self.bar_mean += delta / self.bar_count
+            self.bar_m2 += delta * (bar_return - self.bar_mean)
+            if bar_return > 0.0:
+                self.bar_gain += bar_return
+                self.bar_win_sum += bar_return
+                self.bar_win_count += 1
+            elif bar_return < 0.0:
+                self.bar_loss += -bar_return
+                self.bar_loss_sum += bar_return
+                self.bar_loss_count += 1
+                self.bar_downside_sq += bar_return * bar_return
+                self.bar_downside_count += 1
+
+        self.peak = max(self.peak, value)
+        drawdown = (self.peak - value) / self.peak if self.peak != 0.0 else 0.0
+        self.max_drawdown = max(self.max_drawdown, float(drawdown))
+        if drawdown > 0.0:
+            self.drawdown_sum += float(drawdown)
+            self.drawdown_count += 1
+
+        current = positions
+        for j in range(self.n_symbols):
+            position = float(current[j])
+            if self.bar_count > 1 and position != self.prev_positions[j]:
+                self.trade_count += 1
+            if position > 0.0:
+                self.long_total[j] += 1
+                if bar_return > 0.0:
+                    self.long_wins[j] += 1
+            elif position < 0.0:
+                self.short_total[j] += 1
+                if bar_return > 0.0:
+                    self.short_wins[j] += 1
+            self.prev_positions[j] = position
+        self.prev_equity = value
+        self.last_equity = value
+        self.last_timestamp_ns = int(timestamp) if isinstance(timestamp, (int, np.integer)) else int(pd.Timestamp(timestamp).value)
+        self.max_initial_margin = max(self.max_initial_margin, float(initial_margin))
+        self.max_maintenance_margin = max(self.max_maintenance_margin, float(maintenance_margin))
+
+        day = self.last_timestamp_ns // 86_400_000_000_000
+        if self.daily_day is not None and day != self.daily_day:
+            self._close_day()
+        self.daily_day = day
+        self.daily_close = value
+
+    def finish(self, timestamps: pd.DatetimeIndex) -> Dict[str, float]:
+        self._close_day()
+        if self.daily_dd_run > 0:
+            self.daily_dd_runs.append(self.daily_dd_run)
+            self.daily_dd_run = 0
+
+        use_daily = self.daily_points >= 2
+        count = self.daily_points - 1 if use_daily else self.bar_count
+        mean = self.daily_mean if use_daily else self.bar_mean
+        m2 = self.daily_m2 if use_daily else self.bar_m2
+        downside_sq = self.daily_downside_sq if use_daily else self.bar_downside_sq
+        downside_count = self.daily_downside_count if use_daily else self.bar_downside_count
+        gain = self.daily_gain if use_daily else self.bar_gain
+        loss = self.daily_loss if use_daily else self.bar_loss
+        win_sum = self.daily_win_sum if use_daily else self.bar_win_sum
+        win_count = self.daily_win_count if use_daily else self.bar_win_count
+        loss_sum = self.daily_loss_sum if use_daily else self.bar_loss_sum
+        loss_count = self.daily_loss_count if use_daily else self.bar_loss_count
+
+        if use_daily:
+            periods = float(self.trading_days)
+        else:
+            ns = np.asarray(timestamps.view("int64"), dtype=np.int64)
+            deltas = np.diff(ns).astype(np.float64) / 1_000_000_000.0
+            deltas = deltas[deltas > 0.0]
+            median_seconds = float(np.median(deltas)) if len(deltas) else 0.0
+            periods = 365.25 * 24.0 * 60.0 * 60.0 / median_seconds if median_seconds > 0.0 else float(self.trading_days)
+
+        std = float(np.sqrt(m2 / (count - 1))) if count >= 2 and m2 > 0.0 else 0.0
+        sharpe_value = float(mean / std * np.sqrt(periods)) if std > 0.0 else 0.0
+        downside = float(np.sqrt(downside_sq / downside_count)) if downside_count > 0 else 0.0
+        sortino_value = float(mean / downside * np.sqrt(periods)) if downside > 0.0 else (np.inf if mean > 0.0 else 0.0)
+        omega_value = float(gain / loss) if loss > 0.0 else np.inf
+        pf_value = omega_value
+        elapsed_days = 0.0
+        if len(timestamps) >= 2:
+            elapsed_days = (timestamps[-1] - timestamps[0]).total_seconds() / 86_400.0
+        years = elapsed_days / 365.25 if elapsed_days > 0.0 else 0.0
+        total_ret = (self.last_equity - self.initial_capital) / self.initial_capital
+        if 0.0 < elapsed_days < 1.0:
+            cagr_value = total_ret
+        elif years <= 0.0:
+            cagr_value = 0.0
+        elif self.first_equity is None or self.last_equity / self.first_equity <= 0.0:
+            cagr_value = -1.0
+        else:
+            annual_log = np.log(self.last_equity / self.first_equity) / years
+            cagr_value = float(np.expm1(np.clip(annual_log, -50.0, 50.0)))
+        long_hr = np.divide(self.long_wins, self.long_total, out=np.zeros_like(self.long_wins, dtype=np.float64), where=self.long_total != 0) * 100.0
+        short_hr = np.divide(self.short_wins, self.short_total, out=np.zeros_like(self.short_wins, dtype=np.float64), where=self.short_total != 0) * 100.0
+        avg_win = win_sum / win_count * 100.0 if win_count else 0.0
+        avg_loss = loss_sum / loss_count * 100.0 if loss_count else 0.0
+        hit_rate = (float(np.mean(long_hr)) + float(np.mean(short_hr))) / 200.0
+        avg_dd = self.drawdown_sum / self.drawdown_count if self.drawdown_count else 0.0
+        max_duration = max(self.daily_dd_runs) if self.daily_dd_runs else 0
+        avg_duration = float(np.mean(self.daily_dd_runs)) if self.daily_dd_runs else 0.0
+        return {
+            "initial_capital": float(self.initial_capital),
+            "final_equity": float(self.last_equity),
+            "total_return_pct": float(total_ret * 100.0),
+            "cagr_pct": float(cagr_value * 100.0),
+            "sharpe": sharpe_value,
+            "sortino": sortino_value,
+            "calmar": float(cagr_value / self.max_drawdown) if self.max_drawdown > 0.0 else 0.0,
+            "omega": omega_value,
+            "max_drawdown_pct": float(self.max_drawdown * 100.0),
+            "avg_drawdown_pct": float(avg_dd * 100.0),
+            "max_dd_duration_days": int(max_duration),
+            "avg_dd_duration_days": int(avg_duration),
+            "profit_factor": pf_value,
+            "long_hitrate_pct": float(np.mean(long_hr)),
+            "short_hitrate_pct": float(np.mean(short_hr)),
+            "avg_win_pct": float(avg_win),
+            "avg_loss_pct": float(avg_loss),
+            "expectancy_pct": float(hit_rate * avg_win + (1.0 - hit_rate) * avg_loss),
+            "num_trades": int(self.trade_count),
+        }
+
+
 class _NativeEventReactiveSession:
     """
     Lightweight per-bar state used only to feed reactive strategy callbacks.
@@ -407,6 +751,21 @@ class _NativeEventReactiveSession:
         self.retain_event_ledger = bool(
             score_requirements is None or score_requirements.need_event_ledger
         )
+        self.emit_context_fills = bool(
+            score_requirements is None or score_requirements.need_context_fills
+        )
+        self.emit_context_events = bool(
+            score_requirements is None or score_requirements.need_context_events
+        )
+        self.emit_context_active_orders = bool(
+            score_requirements is None or score_requirements.need_context_active_orders
+        )
+        self.emit_context_positions = bool(
+            score_requirements is None or score_requirements.need_context_positions
+        )
+        self.emit_context_margin = bool(
+            score_requirements is None or score_requirements.need_context_margin
+        )
 
         self.current_pos = np.zeros(len(symbols), dtype=np.float64)
         self.equity = float(initial_capital)
@@ -426,6 +785,10 @@ class _NativeEventReactiveSession:
         self.event_count = 0
         self.rejected_count = 0
         self.canceled_count = 0
+        self.expired_count = 0
+        self.total_fee = 0.0
+        self.total_funding = 0.0
+        self.total_turnover = 0.0
         self.children_by_parent_id: Dict[str, List[_ReactiveOrderState]] = {}
         self.members_by_oco_group: Dict[str, List[_ReactiveOrderState]] = {}
         self.expiry_by_bar: Dict[int, List[_ReactiveOrderState]] = {}
@@ -456,6 +819,11 @@ class _NativeEventReactiveSession:
         self.maintenance_margin_path = np.zeros(n_bars, dtype=np.float64) if requirements is None or requirements.need_margin_path else None
         self.rejected_bar = np.zeros(n_bars, dtype=np.int64) if requirements is None or requirements.need_rejection_path else None
         self.canceled_bar = np.zeros(n_bars, dtype=np.int64) if requirements is None or requirements.need_cancellation_path else None
+        self.online_score = (
+            _OnlineScoreState(self.initial_capital, n_syms)
+            if requirements is not None and requirements.need_trade_stats
+            else None
+        )
         self._record_bar(0)
 
     def schedule(self, bar: int, commands: Sequence[OrderCommand]) -> None:
@@ -477,12 +845,23 @@ class _NativeEventReactiveSession:
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
         init_margin, maint_margin = self._refresh_close_margin(bar)
-        if self.n_symbols == 1:
+        if self.emit_context_positions and self.n_symbols == 1:
             positions = {self.symbols[0]: float(self.current_pos[0])}
-        else:
+        elif self.emit_context_positions:
             positions = {symbol: float(self.current_pos[j]) for j, symbol in enumerate(self.symbols)}
-        fills_this_bar = tuple(self.fills_by_bar.get(int(bar), self.empty_fills))
-        events_this_bar = tuple(self.events_by_bar.get(int(bar), self.empty_events))
+        else:
+            positions = {}
+        if self.emit_context_fills:
+            fills_this_bar = tuple(self.fills_by_bar.get(int(bar), self.empty_fills))
+        else:
+            fills_this_bar = self.empty_fills
+        if self.emit_context_events:
+            events_this_bar = tuple(self.events_by_bar.get(int(bar), self.empty_events))
+        else:
+            events_this_bar = self.empty_events
+        if not self.emit_context_margin:
+            init_margin = 0.0
+            maint_margin = 0.0
         return NativeStrategyContext(
             bar_index=int(bar),
             timestamp=self.idx[int(bar)],
@@ -498,7 +877,7 @@ class _NativeEventReactiveSession:
             positions=positions,
             fills_this_bar=fills_this_bar,
             order_events_this_bar=events_this_bar,
-            active_orders=self._active_snapshots(),
+            active_orders=self._active_snapshots() if self.emit_context_active_orders else self.empty_active_orders,
             liquidated=bool(self.liquidated),
             symbols=self.symbols_tuple,
             size_order=self.size_helper,
@@ -533,6 +912,7 @@ class _NativeEventReactiveSession:
                         * self.market_arrays.funding[bar, s]
                     )
             self.equity -= funding_cost
+            self.total_funding += float(funding_cost)
             if self.funding_path is not None:
                 self.funding_path[bar] += funding_cost
         if bar > 0:
@@ -564,6 +944,15 @@ class _NativeEventReactiveSession:
             self.initial_margin_path[bar] = float(init_margin)
         if self.maintenance_margin_path is not None:
             self.maintenance_margin_path[bar] = float(maint_margin)
+        if self.online_score is not None and self.online_score.last_observed_bar != int(bar):
+            self.online_score.observe(
+                self.idx.asi8[bar],
+                self.equity,
+                self.current_pos,
+                init_margin,
+                maint_margin,
+            )
+            self.online_score.last_observed_bar = int(bar)
 
     def _apply_command(self, bar: int, command: OrderCommand) -> None:
         action = command.action
@@ -689,26 +1078,31 @@ class _NativeEventReactiveSession:
                 self.fee_path[bar] += fee_cost
             if self.turnover_path is not None:
                 self.turnover_path[bar] += trade_notional
+            self.total_fee += float(fee_cost)
+            self.total_turnover += float(trade_notional)
             state.status = ORDER_STATUS_FILLED
-            fill = NativeFillEvent(
-                timestamp=self.idx[bar],
-                symbol=command.symbol or self.symbols[state.symbol_col],
-                side=command.side,
-                qty=float(qty),
-                price=float(exec_price),
-                fee=float(fee_cost),
-                order_id=command.order_id,
-                tag=command.tag,
-                campaign_id=command.metadata.get("campaign_id"),
-                cycle_id=command.metadata.get("cycle_id"),
-                level_id=command.metadata.get("level_id"),
-                parent_order_id=command.parent_order_id,
-                oco_group_id=command.oco_group_id,
-                metadata=dict(command.metadata),
-            )
-            self.fills_by_bar.setdefault(bar, []).append(fill)
+            fill = None
+            if self.emit_context_fills or self.retain_fill_ledger:
+                fill = NativeFillEvent(
+                    timestamp=self.idx[bar],
+                    symbol=command.symbol or self.symbols[state.symbol_col],
+                    side=command.side,
+                    qty=float(qty),
+                    price=float(exec_price),
+                    fee=float(fee_cost),
+                    order_id=command.order_id,
+                    tag=command.tag,
+                    campaign_id=command.metadata.get("campaign_id"),
+                    cycle_id=command.metadata.get("cycle_id"),
+                    level_id=command.metadata.get("level_id"),
+                    parent_order_id=command.parent_order_id,
+                    oco_group_id=command.oco_group_id,
+                    metadata=dict(command.metadata),
+                )
+            if self.emit_context_fills:
+                self.fills_by_bar.setdefault(bar, []).append(fill)
             self.fill_count += 1
-            if self.retain_fill_ledger:
+            if self.retain_fill_ledger and fill is not None:
                 self.fills.append(fill)
             self._event(bar, command, "fill", ORDER_STATUS_FILLED)
             self._terminalize_state(state)
@@ -792,25 +1186,30 @@ class _NativeEventReactiveSession:
             self.rejected_count += 1
             if self.rejected_bar is not None:
                 self.rejected_bar[bar] += 1
-        event = NativeOrderEvent(
-            timestamp=self.idx[bar],
-            bar=int(bar),
-            event_name=event_name,
-            status=int(status),
-            order_id=command.order_id,
-            target_order_id=target_order_id or command.target_order_id,
-            parent_order_id=command.parent_order_id,
-            oco_group_id=command.oco_group_id,
-            tag=command.tag,
-            campaign_id=command.metadata.get("campaign_id"),
-            cycle_id=command.metadata.get("cycle_id"),
-            level_id=command.metadata.get("level_id"),
-            original_index=-1,
-            related_original_index=-1,
-        )
-        self.events_by_bar.setdefault(bar, []).append(event)
+        if event_name == "expire":
+            self.expired_count += 1
+        event = None
+        if self.emit_context_events or self.retain_event_ledger:
+            event = NativeOrderEvent(
+                timestamp=self.idx[bar],
+                bar=int(bar),
+                event_name=event_name,
+                status=int(status),
+                order_id=command.order_id,
+                target_order_id=target_order_id or command.target_order_id,
+                parent_order_id=command.parent_order_id,
+                oco_group_id=command.oco_group_id,
+                tag=command.tag,
+                campaign_id=command.metadata.get("campaign_id"),
+                cycle_id=command.metadata.get("cycle_id"),
+                level_id=command.metadata.get("level_id"),
+                original_index=-1,
+                related_original_index=-1,
+            )
+        if self.emit_context_events and event is not None:
+            self.events_by_bar.setdefault(bar, []).append(event)
         self.event_count += 1
-        if self.retain_event_ledger:
+        if self.retain_event_ledger and event is not None:
             self.events.append(event)
 
     def _lookup_pending(self, order_id: Optional[str]) -> Optional[_ReactiveOrderState]:
@@ -1603,6 +2002,8 @@ class NativeEventBackend:
             retain_terminal_orders=level != "score",
             score_requirements=score_requirements,
         )
+        if getattr(session, "online_score", None) is not None:
+            session.online_score.trading_days = int(_trading_days)
 
         # Keep execution and audit tape distinct: next-bar semantics prohibit
         # executing a final-close command, while audit still needs to preserve
@@ -1610,8 +2011,26 @@ class NativeEventBackend:
         emitted: list[OrderCommand] = []
         emitted_audit_tape: list[OrderCommand] = []
         emitted_order_ids: set[str] = set()
+        emitted_command_count = 0
+        emitted_executable_command_count = 0
         callback_count = 0
         ignored_commands_after_end = 0
+
+        def record_scheduled(commands: Sequence[OrderCommand]) -> None:
+            nonlocal emitted_command_count, emitted_executable_command_count
+            count = len(commands)
+            emitted_command_count += count
+            emitted_executable_command_count += count
+            if not _return_score:
+                emitted.extend(commands)
+                emitted_audit_tape.extend(commands)
+
+        def record_outside_tape(commands: Sequence[OrderCommand]) -> None:
+            nonlocal emitted_command_count
+            emitted_command_count += len(commands)
+            if not _return_score:
+                emitted_audit_tape.extend(commands)
+
         initial_context = session.context(0)
         last_context = initial_context
 
@@ -1636,12 +2055,11 @@ class NativeEventBackend:
             idx=idx,
             emitted_order_ids=emitted_order_ids,
         )
-        emitted.extend(scheduled)
-        emitted_audit_tape.extend(scheduled)
+        record_scheduled(scheduled)
         session.schedule(1, quantize_reactive_schedule(scheduled))
         ignored_commands_after_end += ignored
         if ignored:
-            emitted_audit_tape.extend(
+            record_outside_tape(
                 self._record_reactive_commands_outside_tape(
                     commands=initial_commands,
                     effective_bar=1,
@@ -1667,12 +2085,11 @@ class NativeEventBackend:
                 idx=idx,
                 emitted_order_ids=emitted_order_ids,
             )
-            emitted.extend(scheduled)
-            emitted_audit_tape.extend(scheduled)
+            record_scheduled(scheduled)
             session.schedule(bar + 1, quantize_reactive_schedule(scheduled))
             ignored_commands_after_end += ignored
             if ignored:
-                emitted_audit_tape.extend(
+                record_outside_tape(
                     self._record_reactive_commands_outside_tape(
                         commands=commands,
                         effective_bar=bar + 1,
@@ -1691,11 +2108,10 @@ class NativeEventBackend:
                 idx=idx,
                 emitted_order_ids=emitted_order_ids,
             )
-            emitted.extend(scheduled)
-            emitted_audit_tape.extend(scheduled)
+            record_scheduled(scheduled)
             ignored_commands_after_end += ignored
             if ignored:
-                emitted_audit_tape.extend(
+                record_outside_tape(
                     self._record_reactive_commands_outside_tape(
                         commands=final_commands,
                         effective_bar=len(idx),
@@ -1720,8 +2136,8 @@ class NativeEventBackend:
                     "reactive_execution_mode": execution_mode,
                     "reactive_kernel_mode": kernel_mode,
                     "command_effective_phase": "next_bar",
-                    "emitted_command_count": len(emitted_audit_tape),
-                    "emitted_executable_command_count": len(emitted),
+                    "emitted_command_count": int(emitted_command_count),
+                    "emitted_executable_command_count": int(emitted_executable_command_count),
                     "ignored_commands_after_end": int(ignored_commands_after_end),
                     "strategy_callback_count": int(callback_count),
                     "static_replay_available": False,
@@ -1782,8 +2198,8 @@ class NativeEventBackend:
                 "command_effective_phase": "next_bar",
                 "emitted_command_tape": tuple(emitted_audit_tape) if plan.keep_command_tape else (),
                 "emitted_command_tape_retained": bool(plan.keep_command_tape),
-                "emitted_command_count": len(emitted_audit_tape),
-                "emitted_executable_command_count": len(emitted),
+                "emitted_command_count": int(emitted_command_count),
+                "emitted_executable_command_count": int(emitted_executable_command_count),
                 "ignored_commands_after_end": int(ignored_commands_after_end),
                 "strategy_callback_count": int(callback_count),
                 "static_replay_available": bool(replay_result is not None),
@@ -1818,7 +2234,7 @@ class NativeEventBackend:
         trading_days: int = 365,
         score_requirements: Optional[NativeEventScoreRequirements] = None,
         **kwargs,
-    ) -> NativeEventScoreResult:
+    ) -> Union[NativeEventScoreResult, NativeEventScalarScoreResult]:
         """Execute a prepared reactive score without pandas/result materialization.
 
         This is an internal prepared-runner path. Public ``run_strategy`` keeps
@@ -1836,8 +2252,8 @@ class NativeEventBackend:
             }
         )
         result = self.run_strategy(*args, **kwargs)
-        if not isinstance(result, NativeEventScoreResult):  # pragma: no cover - protects the internal contract.
-            raise TypeError("native-event direct score did not return NativeEventScoreResult")
+        if not isinstance(result, (NativeEventScoreResult, NativeEventScalarScoreResult)):  # pragma: no cover
+            raise TypeError("native-event direct score did not return a native-event score result")
         return result
 
     def run_orders(
@@ -2199,35 +2615,6 @@ class NativeEventBackend:
             "initial_margin_path": session.initial_margin_path,
             "maintenance_margin_path": session.maintenance_margin_path,
         }
-        missing = [name for name, value in required.items() if value is None]
-        if missing:
-            raise RuntimeError(
-                "NativeEventScoreResult requires accounting paths; missing " + ", ".join(missing)
-            )
-
-        equity = required["equity_path"]
-        returns = np.zeros_like(equity)
-        if len(equity) > 1:
-            with np.errstate(divide="ignore", invalid="ignore"):
-                returns[1:] = equity[1:] / equity[:-1] - 1.0
-            returns[~np.isfinite(returns)] = 0.0
-        accounting = NativeAccountingArrays(
-            timestamps=np.ascontiguousarray(session.idx.asi8, dtype=np.int64),
-            equity=equity,
-            returns=returns,
-            positions=required["pos_path"],
-            fees=required["fee_path"],
-            funding=required["funding_path"],
-            initial_margin=required["initial_margin_path"],
-            maintenance_margin=required["maintenance_margin_path"],
-            symbols=tuple(symbol_list),
-            initial_capital=float(session.initial_capital),
-            leverage=float(np.mean(leverages)),
-            liquidated=bool(session.liquidated),
-            liquidation_bar=int(session.liquidation_bar),
-        )
-        from ..metrics.performance import compute_performance_metrics
-
         counters = {
             "fill_count": int(session.fill_count),
             "event_count": int(session.event_count),
@@ -2235,7 +2622,7 @@ class NativeEventBackend:
             "canceled_count": int(session.canceled_count),
             "filled_command_count": int(session.fill_count),
             "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
-            "expired_event_count": int(sum(1 for event in session.events if event.event_name == "expire")),
+            "expired_event_count": int(getattr(session, "expired_count", 0)),
         }
         score_metadata = {
             **metadata,
@@ -2243,20 +2630,75 @@ class NativeEventBackend:
             "score_direct_arrays": True,
             "score_pandas_materialized": False,
             "score_requirements": asdict(requirements),
+            "trading_days": int(trading_days),
         }
-        metrics = compute_performance_metrics(
-            timestamps=session.idx,
-            equity=accounting.equity,
-            returns=accounting.returns,
-            positions=accounting.positions,
-            symbols=accounting.symbols,
-            initial_capital=accounting.initial_capital,
-            liquidated=bool(session.liquidated),
-            trading_days=int(trading_days),
-        )
-        return NativeEventScoreResult(
-            accounting=accounting,
-            final_positions=accounting.positions[-1].copy(),
+        all_paths = all(value is not None for value in required.values())
+        if all_paths:
+            equity = required["equity_path"]
+            returns = np.zeros_like(equity)
+            if len(equity) > 1:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    returns[1:] = equity[1:] / equity[:-1] - 1.0
+                returns[~np.isfinite(returns)] = 0.0
+            accounting = NativeAccountingArrays(
+                timestamps=np.ascontiguousarray(session.idx.asi8, dtype=np.int64),
+                equity=equity,
+                returns=returns,
+                positions=required["pos_path"],
+                fees=required["fee_path"],
+                funding=required["funding_path"],
+                initial_margin=required["initial_margin_path"],
+                maintenance_margin=required["maintenance_margin_path"],
+                symbols=tuple(symbol_list),
+                initial_capital=float(session.initial_capital),
+                leverage=float(np.mean(leverages)),
+                liquidated=bool(session.liquidated),
+                liquidation_bar=int(session.liquidation_bar),
+            )
+            from ..metrics.performance import compute_performance_metrics
+
+            metrics = compute_performance_metrics(
+                timestamps=session.idx,
+                equity=accounting.equity,
+                returns=accounting.returns,
+                positions=accounting.positions,
+                symbols=accounting.symbols,
+                initial_capital=accounting.initial_capital,
+                liquidated=bool(session.liquidated),
+                trading_days=int(trading_days),
+            )
+            return NativeEventScoreResult(
+                accounting=accounting,
+                final_positions=accounting.positions[-1].copy(),
+                fill_count=counters["fill_count"],
+                rejection_count=counters["rejected_count"],
+                cancellation_count=counters["canceled_count"],
+                liquidated=bool(session.liquidated),
+                liquidation_bar=int(session.liquidation_bar),
+                metrics=metrics,
+                metadata=score_metadata,
+            )
+
+        online = getattr(session, "online_score", None)
+        if online is None:
+            raise RuntimeError("scalar native-event score requires online metric state")
+        metrics = online.finish(session.idx)
+        metrics["liquidated"] = bool(session.liquidated)
+        metrics["total_fee"] = float(getattr(session, "total_fee", 0.0))
+        metrics["total_funding"] = float(getattr(session, "total_funding", 0.0))
+        metrics["total_turnover"] = float(getattr(session, "total_turnover", 0.0))
+        metrics["max_initial_margin"] = float(online.max_initial_margin)
+        metrics["max_maintenance_margin"] = float(online.max_maintenance_margin)
+        score_metadata["score_scalar"] = True
+        score_metadata["score_retained_paths"] = {
+            name: bool(value is not None) for name, value in required.items()
+        }
+        score_metadata["total_fee"] = float(getattr(session, "total_fee", 0.0))
+        score_metadata["total_funding"] = float(getattr(session, "total_funding", 0.0))
+        score_metadata["total_turnover"] = float(getattr(session, "total_turnover", 0.0))
+        return NativeEventScalarScoreResult(
+            final_equity=float(online.last_equity),
+            final_positions=np.asarray(session.current_pos, dtype=np.float64).copy(),
             fill_count=counters["fill_count"],
             rejection_count=counters["rejected_count"],
             cancellation_count=counters["canceled_count"],

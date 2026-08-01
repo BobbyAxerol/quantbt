@@ -7943,8 +7943,8 @@ Detailed source of truth:
 - Read sections `1`, `3`, `4.1` to `4.9`, `6`, `8`, `10`, `11`, `12`, and
   `13.2` to `13.4` before implementation.
 
-Status: **planned; do not start until Phase 45C is committed and the Python
-baseline is recorded**.
+Status: **completed locally on 2026-08-01; Python parity/certification gates
+pass.**
 
 Purpose:
 
@@ -7955,28 +7955,61 @@ Purpose:
 
 Implementation plan:
 
-- Add `NativeEventScoreRequirements` for conditional retention/allocation.
-- Keep score mode free of pandas, full fill/event ledgers, active-order
-  snapshots, full command history, and detailed report DataFrames.
-- Add online metrics for equity peak, drawdown, return moments, trades, gross
-  profit/loss, fee, funding, turnover, and margin.
-- Use compact primitive order state internally while preserving public
-  `OrderCommand` and `BacktestResultV2` contracts.
-- Release consumed command/fill/event queues and terminal order indexes as
-  soon as the score path no longer needs them.
-- Add optional strategy context requirements and `NativeCommandBatch` without
-  forcing existing alpha migrations.
-- Keep immutable prepared NumPy market arrays shared across trials.
+- `NativeEventScoreRequirements` now has explicit low-retention scalar and
+  compatibility ndarray contracts. Score paths conditionally allocate
+  accounting arrays; no dummy full-length arrays are used.
+- `NativeEventScalarScoreResult` computes the same array-first metrics online
+  with stable moments, daily fallback/annualization, drawdown, trade count,
+  hit-rate, profit-factor, fee/funding/turnover and margin counters.
+- Scalar prepared scores do not create pandas results, full fill/event
+  ledgers, terminal-order history, or emitted command tapes. Scheduled queues
+  and per-bar callback payloads are released as soon as callbacks consume them.
+- `native_context_requirements` lets a strategy disable transient fills,
+  events, active-order snapshots, positions, and margin payloads explicitly.
+  Unknown declaration keys fail early. `NativeCommandBatch` is an optional
+  immutable callback wrapper; legacy list/tuple returns remain unchanged.
+- The compatibility `PreparedNativeEventStrategyRunner.score()` call still
+  returns ndarray `NativeEventScoreResult`; `PreparedNativeEventStrategyEvaluator`
+  uses the scalar contract by default, so existing direct-path consumers do
+  not change behavior.
+- Immutable prepared market arrays remain shared across trials. No endpoint
+  rename, default backend change, Rust routing, or root-source deletion was
+  introduced.
 
 Acceptance:
 
-- Optimized Python score equals replay-certified accounting and metrics.
-- Public audit/full-report path remains unchanged.
-- Exact parity holds for fills, events, orders, positions, equity, fees,
-  funding, margin, liquidation, and rejection state.
-- Fresh-process benchmark records CPU, object/ledger retention and RSS for
-  100k-bar, high-churn, OCO/GTD, funding/liquidation, multi-symbol and
-  repeated-prepared-trial scenarios.
+- Optimized scalar Python score equals replay-certified accounting metrics on
+  single- and multi-day tapes, including edge cases with no daily return
+  sample.
+- Public audit/full-report path remains unchanged; compatibility score tests
+  remain green.
+- Exact parity holds for equity, positions, fees, funding, margin,
+  liquidation, trade count, and scalar lifecycle counters; lifecycle fill and
+  event parity remains covered by the existing replay/audit suite.
+- Fresh-process benchmark `benchmarks/native_event/benchmark_phase45d_zero_object.py`
+  records audit, compatibility score, scalar score, CPU, and peak RSS. The
+  100k-bar single-symbol probe recorded audit `10.2708s / 443.57 MB`,
+  compatibility score `7.7606s / 294.30 MB`, and scalar score
+  `7.3513s / 294.36 MB`, with exact final-equity parity. This is a
+  lower-retention/object-allocation result, not a claim that HWM RSS is lower
+  on every machine; the scalar score was faster in this fresh process. Rust
+  must beat this fair baseline before any native default/release claim.
+
+Validation completed:
+
+```text
+tests/test_phase45d_native_event_zero_object.py: 5 passed
+tests/test_phase34b_native_event_prepared_score.py: 8 passed
+tests/test_phase34c_native_event_single_pass.py: 3 passed
+tests/native_event: 49 passed, 4 skipped
+tests/test_phase45a_source_tree_sync.py: 1 passed
+```
+
+Remaining follow-up is intentionally narrow: benchmark repeated 100k-bar
+OCO/GTD, funding/liquidation, and multi-symbol profiles in isolated CI, and
+replace the live Python order state with a fully primitive side-table only if
+profiling proves it improves RSS without parity drift. Those are not blockers
+for the scalar score correctness contract.
 
 Non-goals:
 

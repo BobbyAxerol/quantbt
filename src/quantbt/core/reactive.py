@@ -73,6 +73,32 @@ class NativeActiveOrderSnapshot:
     level_id: Optional[str] = None
 
 
+@dataclass(frozen=True, slots=True)
+class NativeCommandBatch:
+    """Optional compact callback container for reactive command batches.
+
+    Existing strategies may continue returning ``list[OrderCommand]`` or a
+    tuple.  This wrapper makes the batch boundary explicit for strategies that
+    already build a fixed command tuple, without changing command semantics or
+    the public ``OrderCommand`` type.
+    """
+
+    commands: Tuple[OrderCommand, ...] = field(default_factory=tuple)
+
+    @classmethod
+    def from_commands(cls, commands: Sequence[OrderCommand]) -> "NativeCommandBatch":
+        return cls(tuple(commands))
+
+    def __iter__(self):
+        return iter(self.commands)
+
+    def __len__(self) -> int:
+        return len(self.commands)
+
+    def __bool__(self) -> bool:
+        return bool(self.commands)
+
+
 @dataclass(frozen=True)
 class NativeStrategyContext:
     bar_index: int

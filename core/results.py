@@ -224,6 +224,45 @@ class NativeEventScoreResult:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class NativeEventScalarScoreResult:
+    """Low-retention score contract for prepared native-event optimization.
+
+    Unlike :class:`NativeEventScoreResult`, this result does not retain an
+    equity, position, fee, funding, or margin path.  The reactive session
+    computes the same report metrics online and keeps only scalar accounting
+    state.  Public audit runs and the compatibility ``score()`` contract keep
+    using ``NativeEventScoreResult`` with ndarray accounting.
+    """
+
+    final_equity: float
+    final_positions: np.ndarray
+    fill_count: int
+    rejection_count: int
+    cancellation_count: int
+    liquidated: bool
+    liquidation_bar: int
+    metrics: Mapping[str, float]
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+        """Return the online report captured for this score run.
+
+        A scalar score has no path from which to recompute a different
+        annualization convention.  Callers requesting a different
+        ``trading_days`` value must rerun the score with that value.
+        """
+        if str(scope).lower().strip() not in {"auto", "full"}:
+            raise ValueError("NativeEventScalarScoreResult supports scope='auto' or scope='full'")
+        recorded_days = int(self.metadata.get("trading_days", trading_days))
+        if int(trading_days) != recorded_days:
+            raise ValueError(
+                "scalar score metrics were computed with trading_days="
+                f"{recorded_days}; rerun the score to use trading_days={int(trading_days)}"
+            )
+        return dict(self.metrics)
+
+
 @dataclass
 class OptionBacktestResult(BacktestResultV2):
     """

@@ -2,7 +2,12 @@ from .engine       import _engine_units, _engine_pct_equity, _engine_dca_ladder,
 from .event        import _engine_event_v1
 from .vectorized   import _engine_units_v2
 from .types        import BacktestResult
-from .results      import BacktestResultV2, NativeAccountingArrays, NativeEventScoreResult
+from .results      import (
+    BacktestResultV2,
+    NativeAccountingArrays,
+    NativeEventScalarScoreResult,
+    NativeEventScoreResult,
+)
 from .execution_contract import (
     EXECUTION_CONTRACT_REGISTRY,
     AmbiguityPolicy,
@@ -80,6 +85,7 @@ from .structured_orders import (
 )
 from .reactive import (
     NativeActiveOrderSnapshot,
+    NativeCommandBatch,
     NativeEventStrategyError,
     NativeEventStrategyProtocol,
     NativeFillEvent,
@@ -161,6 +167,7 @@ __all__ = [
     "BacktestResultV2",
     "NativeAccountingArrays",
     "NativeEventScoreResult",
+    "NativeEventScalarScoreResult",
     "BracketOrderSpec",
     "AccountConfig",
     "AlphaExecutionClassification",
@@ -226,6 +233,7 @@ __all__ = [
     "NativeFillReplayResult",
     "NativeIntrabarKernelResult",
     "NativeActiveOrderSnapshot",
+    "NativeCommandBatch",
     "NativeEventStrategyError",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
