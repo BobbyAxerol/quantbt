@@ -212,7 +212,6 @@ def test_native_event_reduce_only_parity():
     assert [fill.qty for fill in candidate.fills] == [1.0, 1.0]
 
 
-@pytest.mark.xfail(reason="Phase 43A freeze: single-pass replay parity currently fails after reactive quantity preflight")
 def test_native_event_quantity_constraint_parity():
     df = bars(8)
     t0 = df.index[0]
@@ -229,6 +228,80 @@ def test_native_event_quantity_constraint_parity():
     assert [fill.qty for fill in candidate.fills] == [1.0]
     assert candidate.metadata["quantity_preflight"]["changed_count"] == 1
     assert candidate.metadata["quantity_preflight"]["dropped_count"] == 1
+
+
+@pytest.mark.parametrize(
+    ("quantity_kwargs", "qty", "expected_qty", "changed", "dropped"),
+    [
+        ({"lot_size": {"BTC": 0.25}}, 1.13, [1.0], 1, 0),
+        ({"min_qty": {"BTC": 0.2}}, 0.19, [], 0, 1),
+        ({"min_notional": {"BTC": 150.0}}, 1.0, [], 0, 1),
+        ({"qty_step": {"BTC": 0.1}}, 0.30000000000000004, [0.3], 0, 0),
+    ],
+)
+def test_native_event_quantity_constraint_edge_case_parity(
+    quantity_kwargs,
+    qty,
+    expected_qty,
+    changed,
+    dropped,
+):
+    df = bars(8)
+    t0 = df.index[0]
+    strategy = ScheduledCommandStrategy(
+        {
+            0: [
+                _c(
+                    t0,
+                    symbol="BTC",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.MARKET,
+                    qty=qty,
+                    tif=TimeInForce.IOC,
+                    order_id="quantity-edge",
+                )
+            ]
+        }
+    )
+
+    candidate, _ = _assert_strategy_parity(strategy, df, **quantity_kwargs)
+    assert [fill.qty for fill in candidate.fills] == pytest.approx(expected_qty, abs=1e-15)
+    assert candidate.metadata["quantity_preflight"]["changed_count"] == changed
+    assert candidate.metadata["quantity_preflight"]["dropped_count"] == dropped
+
+
+def test_native_event_reduce_only_quantity_constraint_clip_parity():
+    df = bars(8)
+    t0 = df.index[0]
+    strategy = ScheduledCommandStrategy(
+        {
+            0: [
+                _c(
+                    t0,
+                    symbol="BTC",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.MARKET,
+                    qty=1.07,
+                    tif=TimeInForce.IOC,
+                    order_id="rounded-entry",
+                ),
+                _c(
+                    t0,
+                    symbol="BTC",
+                    side=OrderSide.SELL,
+                    order_type=OrderType.MARKET,
+                    qty=3.07,
+                    tif=TimeInForce.IOC,
+                    reduce_only=True,
+                    order_id="rounded-reduce",
+                ),
+            ]
+        }
+    )
+
+    candidate, _ = _assert_strategy_parity(strategy, df, qty_step={"BTC": 0.1}, min_qty={"BTC": 0.1})
+    assert [fill.qty for fill in candidate.fills] == [1.0, 1.0]
+    assert candidate.positions["Position_BTC"].iloc[-1] == 0.0
 
 
 def test_native_event_stop_order_parity():

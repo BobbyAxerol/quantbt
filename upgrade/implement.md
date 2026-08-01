@@ -7589,6 +7589,7 @@ Branch:
 
 Scope:
 
+ 
 - Expand only after Phase 44B gate passes.
 - Feature slices in order:
   - stop orders;
@@ -7656,6 +7657,126 @@ Remaining Phase 44C slices and release debt:
 - Rust format/clippy/test/build, exact differential parity, randomized parity,
   and end-to-end speed/RSS gates must pass in the combined native CI before
   R2 is called certified or `quantbt-native` is published.
+
+### Phase 45 - Packaging And Native Event Branch Audit Closure
+
+Detailed source of truth:
+
+- `upgrade/quantbt_engine_packaging_pypi_pyo3_final_plan_v3_branch_audit.md`
+  (especially sections `45` to `57`).
+
+Execution rule:
+
+- Read the detailed v3 audit before every Phase 45 subphase. It overrides this
+  summary if a conflict is discovered.
+- Do not leave known P0 parity, source-tree, wheel-install, or certification
+  debt behind merely to claim a phase complete.
+- `src/quantbt` is the canonical implementation during migration; root source
+  is a verified compatibility mirror until it can be removed safely.
+- Rust remains explicit/experimental and `auto` remains Python until every
+  advertised capability has real installed-wheel parity and RSS evidence.
+
+#### Phase 45A - Branch Certification And P0 Correctness Lock
+
+Read first:
+
+- V3 sections `45.1` to `45.4`, `46.1` to `46.7`, `47.1`, and `55` steps 1-3.
+
+Scope:
+
+- Record branch certification evidence through a Draft PR or manual native CI;
+  never alter publish triggers for a feature branch.
+- Remove required native-event `xfail`s by fixing domain logic, including:
+  - reactive quantity preflight parity;
+  - finalize commands retained in the immutable audit tape even when their
+    effective bar lies beyond executable market data.
+- Add complete quantity constraint parity cases: `qty_step`, `lot_size`,
+  `min_qty`, `min_notional`, below-minimum post-quantization, reduce-only
+  clipping, and floating-point boundary values.
+- Make Rust installed-wheel tests use `assert_native_event_full_parity` plus
+  explicit raw-session fill/event checks.
+- Add a root/src SHA256 synchronization guard and CI coverage so neither tree
+  can silently drift before the migration cleanup phase.
+
+Exit criteria:
+
+- No `xfail` in the required native-event domain suite.
+- Exact lifecycle/accounting parity with the replay-certified oracle.
+- Root and `src` Python trees pass the synchronization guard.
+- Core wheel/sdist and native CI commands are ready to run on the feature ref;
+  remote CI evidence is archived rather than assumed.
+
+Implementation status (local, 2026-08-01):
+
+- Complete locally: the two required reactive P0 cases no longer use `xfail`.
+  Reactive scheduling now applies the same quantity preflight as the static
+  replay oracle, while preserving the original requested command in the audit
+  tape and reporting canonical rounding/drop diagnostics from replay.
+- Complete locally: callback commands with no executable next bar are retained
+  as `outside_executable_tape=True` audit intent. They are never scheduled,
+  replayed, or allowed to create a synthetic final-bar fill.
+- Complete locally: quantity/reduce-only boundary tests, root/src SHA256
+  mirror guard, full installed-wheel Rust parity assertions, and raw Rust
+  session fill/event comparison checks are present.
+- Local evidence: focused native/PyO3/source-sync suite passed `30 passed,
+  2 skipped`; broader native, packaging, and lifecycle suite passed
+  `90 passed, 4 skipped`. Core wheel and sdist both clean-installed and
+  imported successfully from isolated environments.
+- Required external evidence before branch certification: run the native CI on
+  this feature ref (or a Draft PR) to execute `cargo fmt`, `clippy`, Rust
+  tests, built-wheel differential parity, and RSS smoke. This workstation has
+  no Rust toolchain, so skipped installed-extension tests are not treated as
+  certification. `twine check` remains Phase 45C release validation.
+
+#### Phase 45B - Score Memory And PyO3 Boundary Certification
+
+Read first:
+
+- V3 sections `47.3` to `47.4`, `51`, `52.3` to `52.7`, and `55` steps 4-5.
+
+Scope:
+
+- Make prepared score execution scalar/array-first with conditional path
+  allocation, online metrics, and no pandas/result materialization per trial.
+- Add isolated process RSS benchmarks, warm-up discipline, threshold checks,
+  and parity locks for score versus audit reruns.
+- Replace per-trial Rust market copies with a safe shared immutable
+  `PreparedMarketCore`; add reusable command/result buffers and compact typed
+  boundary payloads before any R3+ lifecycle feature expansion.
+
+Exit criteria:
+
+- Score path retains no unnecessary audit history or DataFrames.
+- Python/Rust/replay parity is exact for each advertised R1/R2 capability.
+- RSS plateaus across repeated runs and benchmark gates have recorded evidence.
+- If the Rust boundary fails the speed/RSS gate, freeze it as experimental and
+  do not start R3-R5.
+
+#### Phase 45C - Canonical Packaging And Release Readiness
+
+Read first:
+
+- V3 sections `46` to `49`, `55` steps 3 and 6, `56`, and `57`.
+
+Scope:
+
+- Validate wheel/sdist contents, `twine check`, clean installed-artifact
+  imports, Pool Alpha editable/wheel compatibility, metadata, and README.
+- Remove root duplicate source only after those migration gates pass; update
+  the source-tree test from sync guard to sole-source enforcement.
+- Add reproducible manylinux CPython 3.11-3.13 native-wheel CI, combined
+  installed-artifact parity, benchmark/evidence artifacts, release workflow,
+  TestPyPI rehearsal, and Trusted Publisher checklist.
+- Enable `quantbt-engine[native]` only when the matching native wheel is
+  actually publishable; never advertise an empty extra as installed support.
+
+Exit criteria:
+
+- `quantbt-engine` is independently release-ready from `main`.
+- `quantbt-native` remains unpublished unless its advertised capability matrix,
+  installed-wheel parity, and runtime/RSS gates all pass.
+- R3-R5 remain separate future feature slices, not hidden technical debt in a
+  packaging release.
 
 ### Phase 42-44 Definition Of Done
 

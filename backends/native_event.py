@@ -1523,12 +1523,27 @@ class NativeEventBackend:
             retain_terminal_orders=level != "score",
         )
 
+        # Keep execution and audit tape distinct: next-bar semantics prohibit
+        # executing a final-close command, while audit still needs to preserve
+        # that strategy intent for replayability and review.
         emitted: list[OrderCommand] = []
+        emitted_audit_tape: list[OrderCommand] = []
         emitted_order_ids: set[str] = set()
         callback_count = 0
         ignored_commands_after_end = 0
         initial_context = session.context(0)
         last_context = initial_context
+
+        def quantize_reactive_schedule(commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
+            effective, _ = self._apply_command_quantity_constraints(
+                idx=idx,
+                commands=commands,
+                closes=market_arrays.closes,
+                symbol_list=symbol_list,
+                contract_sizes=contract_sizes,
+                constraints=constraints,
+            )
+            return effective
 
         initial_commands = self._expand_scoped_cancel_all_commands(
             self._call_strategy_callback(strategy, "initialize", initial_context),
@@ -1541,8 +1556,17 @@ class NativeEventBackend:
             emitted_order_ids=emitted_order_ids,
         )
         emitted.extend(scheduled)
-        session.schedule(1, scheduled)
+        emitted_audit_tape.extend(scheduled)
+        session.schedule(1, quantize_reactive_schedule(scheduled))
         ignored_commands_after_end += ignored
+        if ignored:
+            emitted_audit_tape.extend(
+                self._record_reactive_commands_outside_tape(
+                    commands=initial_commands,
+                    effective_bar=1,
+                    emitted_order_ids=emitted_order_ids,
+                )
+            )
 
         for bar in range(len(idx)):
             context = session.context(bar)
@@ -1563,8 +1587,17 @@ class NativeEventBackend:
                 emitted_order_ids=emitted_order_ids,
             )
             emitted.extend(scheduled)
-            session.schedule(bar + 1, scheduled)
+            emitted_audit_tape.extend(scheduled)
+            session.schedule(bar + 1, quantize_reactive_schedule(scheduled))
             ignored_commands_after_end += ignored
+            if ignored:
+                emitted_audit_tape.extend(
+                    self._record_reactive_commands_outside_tape(
+                        commands=commands,
+                        effective_bar=bar + 1,
+                        emitted_order_ids=emitted_order_ids,
+                    )
+                )
 
         if last_context is not None and not last_context.liquidated:
             final_commands = self._expand_scoped_cancel_all_commands(
@@ -1578,7 +1611,16 @@ class NativeEventBackend:
                 emitted_order_ids=emitted_order_ids,
             )
             emitted.extend(scheduled)
+            emitted_audit_tape.extend(scheduled)
             ignored_commands_after_end += ignored
+            if ignored:
+                emitted_audit_tape.extend(
+                    self._record_reactive_commands_outside_tape(
+                        commands=final_commands,
+                        effective_bar=len(idx),
+                        emitted_order_ids=emitted_order_ids,
+                    )
+                )
 
         replay_required = kernel_mode == "replay_certified" or level in {"standard", "audit"} or execution_mode == "audit"
         replay_result = None
@@ -1630,9 +1672,10 @@ class NativeEventBackend:
                 "reactive_execution_mode": execution_mode,
                 "reactive_kernel_mode": kernel_mode,
                 "command_effective_phase": "next_bar",
-                "emitted_command_tape": tuple(emitted) if plan.keep_command_tape else (),
+                "emitted_command_tape": tuple(emitted_audit_tape) if plan.keep_command_tape else (),
                 "emitted_command_tape_retained": bool(plan.keep_command_tape),
-                "emitted_command_count": len(emitted),
+                "emitted_command_count": len(emitted_audit_tape),
+                "emitted_executable_command_count": len(emitted),
                 "ignored_commands_after_end": int(ignored_commands_after_end),
                 "strategy_callback_count": int(callback_count),
                 "static_replay_available": bool(replay_result is not None),
@@ -2059,6 +2102,7 @@ class NativeEventBackend:
         compact_command_ledger = None
         compact_order_event_ledger = None
         audit_artifacts = {}
+        quantity_preflight = {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
         if replay_result is not None:
             command_report = replay_result.metadata.get("command_report", pd.DataFrame())
             order_events = replay_result.metadata.get("order_events", pd.DataFrame())
@@ -2068,6 +2112,7 @@ class NativeEventBackend:
             compact_command_ledger = replay_result.metadata.get("compact_command_ledger")
             compact_order_event_ledger = replay_result.metadata.get("compact_order_event_ledger")
             audit_artifacts = replay_result.metadata.get("audit_artifacts", {})
+            quantity_preflight = replay_result.metadata.get("quantity_preflight", quantity_preflight)
 
         metadata = {
             "backend": "native_event",
@@ -2087,7 +2132,7 @@ class NativeEventBackend:
             "compact_command_ledger": compact_command_ledger if plan.keep_command_terminal_state else None,
             "compact_order_event_ledger": compact_order_event_ledger if plan.keep_event_ledger else None,
             "quantity_constraints": session.constraints.as_dict(),
-            "quantity_preflight": {"changed_count": 0, "dropped_count": 0, "dropped_orders": []},
+            "quantity_preflight": quantity_preflight,
             "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
             "liquidation_reason": int(session.liquidation_reason),
             "lifecycle_counters": lifecycle_counters,
@@ -2455,6 +2500,43 @@ class NativeEventBackend:
                 emitted_order_ids.add(order_id)
             out.append(replace(command, timestamp=effective_ts, order_id=order_id))
         return tuple(out), ignored
+
+    @staticmethod
+    def _record_reactive_commands_outside_tape(
+        *,
+        commands: Sequence[OrderCommand],
+        effective_bar: int,
+        emitted_order_ids: set[str],
+    ) -> tuple[OrderCommand, ...]:
+        """Retain non-executable callback output without replaying a fake fill.
+
+        A final-close command has valid strategy intent but no next market bar.
+        It belongs in the audit tape, marked as outside executable data, while
+        the static replay consumes only the executable tape.
+        """
+        out: list[OrderCommand] = []
+        for seq, command in enumerate(tuple(commands)):
+            if not isinstance(command, OrderCommand):
+                raise TypeError("reactive strategy callbacks must return OrderCommand objects")
+            order_id = command.order_id
+            if command.action in (OrderAction.PLACE, OrderAction.REPLACE):
+                if order_id is None:
+                    order_id = command.tag or f"reactive-{effective_bar}-{seq}"
+                if order_id in emitted_order_ids:
+                    raise ValueError(f"duplicate reactive order_id={order_id!r}")
+                emitted_order_ids.add(order_id)
+            out.append(
+                replace(
+                    command,
+                    order_id=order_id,
+                    metadata={
+                        **dict(command.metadata),
+                        "reactive_effective_bar": int(effective_bar),
+                        "outside_executable_tape": True,
+                    },
+                )
+            )
+        return tuple(out)
 
     @staticmethod
     def _call_strategy_callback(strategy, callback: str, context: NativeStrategyContext) -> tuple[OrderCommand, ...]:

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from quantbt import OrderCommand, OrderSide, OrderType, TimeInForce
 
 from .conftest import bars, run_reactive
@@ -118,7 +116,6 @@ def test_native_event_same_bar_command_sequence():
     assert [fill.order_id for fill in result.fills] == ["seq-1", "seq-2"]
 
 
-@pytest.mark.xfail(reason="Phase 43A freeze: finalize commands are currently discarded when effective_bar is beyond data")
 def test_native_event_finalize_command_is_recorded_beyond_executable_tape():
     df = bars(4)
 
@@ -142,3 +139,6 @@ def test_native_event_finalize_command_is_recorded_beyond_executable_tape():
     assert len(result.fills) == 0
     assert len(tape) == 1
     assert tape[0].order_id == "finalize-outside-tape"
+    assert tape[0].metadata["outside_executable_tape"] is True
+    assert tape[0].metadata["reactive_effective_bar"] == len(df)
+    assert result.metadata["emitted_executable_command_count"] == 0

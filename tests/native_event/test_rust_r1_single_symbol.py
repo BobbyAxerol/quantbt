@@ -5,6 +5,7 @@ import sys
 from types import ModuleType
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from quantbt import OrderAction, OrderCommand, OrderSide, OrderType, TimeInForce
@@ -15,7 +16,7 @@ from quantbt.backends._native_event_rust import (
 )
 from quantbt.core.constraints import build_quantity_constraints
 
-from .conftest import ScheduledCommandStrategy, assert_accounting_equal, bars, run_reactive
+from .conftest import ScheduledCommandStrategy, assert_native_event_full_parity, bars, run_reactive
 
 
 def _interner():
@@ -27,6 +28,39 @@ def _interner():
         return codes.setdefault(value, len(codes))
 
     return intern
+
+
+def _nullable(value):
+    return None if pd.isna(value) else value
+
+
+def _session_event_records(events):
+    return [
+        (
+            pd.Timestamp(event.timestamp),
+            int(event.bar),
+            event.event_name,
+            int(event.status),
+            event.order_id,
+            event.target_order_id,
+        )
+        for event in events
+    ]
+
+
+def _replay_event_records(result):
+    frame = result.metadata["order_events"]
+    return [
+        (
+            pd.Timestamp(row["timestamp"]),
+            int(row["bar"]),
+            str(row["event_name"]),
+            int(row["status"]),
+            _nullable(row.get("order_id")),
+            _nullable(row.get("target_order_id")),
+        )
+        for row in frame.to_dict("records")
+    ]
 
 
 def test_rust_r1_compiles_contiguous_place_cancel_buffers() -> None:
@@ -248,10 +282,11 @@ def test_native_event_rust_r1_matches_replay_for_market_limit_and_cancel(monkeyp
     replay = run_reactive("single_pass", ScheduledCommandStrategy(schedule), data=df, **kwargs)
 
     assert rust.metadata["native_event_backend_resolved"] == "rust"
-    assert_accounting_equal(rust, replay)
+    assert_native_event_full_parity(rust, replay)
     assert [(fill.order_id, fill.qty, fill.price, fill.fee) for fill in rust.metadata["rust_r1_session_fills"]] == [
         (fill.order_id, fill.qty, fill.price, fill.fee) for fill in replay.fills
     ]
+    assert _session_event_records(rust.metadata["rust_r1_session_events"]) == _replay_event_records(replay)
 
 
 @pytest.mark.skipif(
@@ -327,7 +362,8 @@ def test_native_event_rust_r2_matches_replay_for_stop_amend_replace_reduce_only_
     replay = run_reactive("single_pass", ScheduledCommandStrategy(schedule), data=df, **kwargs)
 
     assert rust.metadata["native_event_backend_resolved"] == "rust"
-    assert_accounting_equal(rust, replay)
+    assert_native_event_full_parity(rust, replay)
     assert [(fill.order_id, fill.qty, fill.price, fill.fee) for fill in rust.metadata["rust_r1_session_fills"]] == [
         (fill.order_id, fill.qty, fill.price, fill.fee) for fill in replay.fills
     ]
+    assert _session_event_records(rust.metadata["rust_r1_session_events"]) == _replay_event_records(replay)
