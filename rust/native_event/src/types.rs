@@ -3,6 +3,8 @@ pub const COMMAND_VALUE_WIDTH: usize = 3;
 
 pub const ACTION_PLACE: i64 = 0;
 pub const ACTION_CANCEL: i64 = 1;
+// Reactive R2 ABI codes are kept stable for the installed wheel. The static
+// tape adapter translates the canonical Python compiler codes explicitly.
 pub const ACTION_AMEND: i64 = 2;
 pub const ACTION_REPLACE: i64 = 3;
 pub const ORDER_MARKET: i64 = 0;
@@ -28,7 +30,7 @@ pub const STATUS_FILLED: i64 = 1;
 pub const STATUS_CANCELED: i64 = 2;
 pub const STATUS_REJECTED: i64 = 3;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ActiveOrder {
     pub order_id: i64,
     pub side: i64,
@@ -49,4 +51,8 @@ pub struct StepResult {
     pub fills: Vec<Vec<f64>>,
     pub events: Vec<Vec<i64>>,
     pub active_orders: Vec<Vec<f64>>,
+    pub fill_count: i64,
+    pub event_count: i64,
+    pub rejected_count: i64,
+    pub canceled_count: i64,
 }

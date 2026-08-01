@@ -44,6 +44,32 @@ struct PreparedMarketCore {
     inner: Arc<PreparedMarketData>,
 }
 
+#[pyclass(frozen)]
+struct BatchedScoreResultCore {
+    #[pyo3(get)]
+    final_equity: f64,
+    #[pyo3(get)]
+    final_position: f64,
+    #[pyo3(get)]
+    total_fee: f64,
+    #[pyo3(get)]
+    total_turnover: f64,
+    #[pyo3(get)]
+    fill_count: i64,
+    #[pyo3(get)]
+    event_count: i64,
+    #[pyo3(get)]
+    rejected_count: i64,
+    #[pyo3(get)]
+    canceled_count: i64,
+    #[pyo3(get)]
+    max_initial_margin: f64,
+    #[pyo3(get)]
+    max_maintenance_margin: f64,
+    #[pyo3(get)]
+    bars: usize,
+}
+
 impl PreparedMarketCore {
     #[allow(clippy::too_many_arguments)]
     fn from_arrays(
@@ -230,6 +256,10 @@ impl ReactiveSessionCore {
         Ok(payload.unbind())
     }
 
+    fn reset(&mut self) {
+        self.inner.reset();
+    }
+
     fn run_tape_score(
         &mut self,
         py: Python<'_>,
@@ -237,7 +267,7 @@ impl ReactiveSessionCore {
         command_codes: PyReadonlyArray2<'_, i64>,
         command_values: PyReadonlyArray2<'_, f64>,
         command_expiry: PyReadonlyArray1<'_, i64>,
-    ) -> PyResult<Py<PyDict>> {
+    ) -> PyResult<Py<BatchedScoreResultCore>> {
         let ptr = command_ptr.as_slice()?;
         let codes = command_codes.as_slice()?;
         let values = command_values.as_slice()?;
@@ -255,19 +285,22 @@ impl ReactiveSessionCore {
         let output = py
             .detach(|| run_tape(&mut self.inner, ptr, codes, values, expiry, false))
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        let payload = PyDict::new(py);
-        payload.set_item("final_equity", output.final_equity)?;
-        payload.set_item("final_position", output.final_position)?;
-        payload.set_item("total_fee", output.total_fee)?;
-        payload.set_item("total_turnover", output.total_turnover)?;
-        payload.set_item("fill_count", output.fill_count)?;
-        payload.set_item("event_count", output.event_count)?;
-        payload.set_item("rejected_count", output.rejected_count)?;
-        payload.set_item("canceled_count", output.canceled_count)?;
-        payload.set_item("max_initial_margin", output.max_initial_margin)?;
-        payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
-        payload.set_item("bars", output.equity.len())?;
-        Ok(payload.unbind())
+        Py::new(
+            py,
+            BatchedScoreResultCore {
+                final_equity: output.final_equity,
+                final_position: output.final_position,
+                total_fee: output.total_fee,
+                total_turnover: output.total_turnover,
+                fill_count: output.fill_count,
+                event_count: output.event_count,
+                rejected_count: output.rejected_count,
+                canceled_count: output.canceled_count,
+                max_initial_margin: output.max_initial_margin,
+                max_maintenance_margin: output.max_maintenance_margin,
+                bars: self.inner.market_len(),
+            },
+        )
     }
 
     fn run_tape_audit(
@@ -545,12 +578,13 @@ fn run_tape(
     for bar in 0..n_bars {
         let start = command_ptr[bar] as usize;
         let end = command_ptr[bar + 1] as usize;
-        let step = session.step(
+        let step = session.step_with_output(
             bar,
             &codes[start * types::COMMAND_CODE_WIDTH..end * types::COMMAND_CODE_WIDTH],
             &values[start * types::COMMAND_VALUE_WIDTH..end * types::COMMAND_VALUE_WIDTH],
             &expiry[start..end],
             end - start,
+            audit,
         )?;
         if audit {
             equity.push(step.equity);
@@ -566,8 +600,10 @@ fn run_tape(
         max_maintenance_margin = max_maintenance_margin.max(step.maintenance_margin);
         total_fee += step.fee;
         total_turnover += step.turnover;
-        fill_count += step.fills.len() as i64;
-        event_count += step.events.len() as i64;
+        fill_count += step.fill_count;
+        event_count += step.event_count;
+        rejected_count += step.rejected_count;
+        canceled_count += step.canceled_count;
         for fill in step.fills {
             if audit {
                 fill_bar.push(bar as i64);
@@ -579,12 +615,6 @@ fn run_tape(
             }
         }
         for event in step.events {
-            if event[0] == types::EVENT_REJECT {
-                rejected_count += 1;
-            }
-            if event[0] == types::EVENT_CANCEL {
-                canceled_count += 1;
-            }
             if audit {
                 event_bar.push(bar as i64);
                 event_kind.push(event[0]);
@@ -669,12 +699,13 @@ fn run_sparse_range(
     for bar in start_bar..=stop_bar {
         let start = command_ptr[bar] as usize;
         let end = command_ptr[bar + 1] as usize;
-        let step = session.step(
+        let step = session.step_with_output(
             bar,
             &codes[start * types::COMMAND_CODE_WIDTH..end * types::COMMAND_CODE_WIDTH],
             &values[start * types::COMMAND_VALUE_WIDTH..end * types::COMMAND_VALUE_WIDTH],
             &expiry[start..end],
             end - start,
+            true,
         )?;
         output.final_equity = step.equity;
         output.final_position = step.position;
@@ -682,8 +713,10 @@ fn run_sparse_range(
         output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin);
         output.total_fee += step.fee;
         output.total_turnover += step.turnover;
-        output.fill_count += step.fills.len() as i64;
-        output.event_count += step.events.len() as i64;
+        output.fill_count += step.fill_count;
+        output.event_count += step.event_count;
+        output.rejected_count += step.rejected_count;
+        output.canceled_count += step.canceled_count;
         for fill in step.fills {
             if wake_on_fill {
                 output.wake_bar.push(bar as i64);
@@ -697,12 +730,6 @@ fn run_sparse_range(
             output.fill_fee.push(fill[4]);
         }
         for event in step.events {
-            if event[0] == types::EVENT_REJECT {
-                output.rejected_count += 1;
-            }
-            if event[0] == types::EVENT_CANCEL {
-                output.canceled_count += 1;
-            }
             if wake_on_order_event {
                 output.wake_bar.push(bar as i64);
                 output.wake_kind.push(1);
@@ -787,6 +814,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(api_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
     module.add_class::<PreparedMarketCore>()?;
+    module.add_class::<BatchedScoreResultCore>()?;
     module.add_class::<ReactiveSessionCore>()?;
     Ok(())
 }

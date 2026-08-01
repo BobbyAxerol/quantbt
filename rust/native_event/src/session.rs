@@ -12,14 +12,14 @@ use crate::types::{
 };
 
 pub struct PreparedMarketData {
-    pub _timestamps_ns: Vec<i64>,
-    pub _opens: Vec<f64>,
-    pub highs: Vec<f64>,
-    pub lows: Vec<f64>,
-    pub closes: Vec<f64>,
-    pub _volumes: Vec<f64>,
-    pub _funding: Vec<f64>,
-    pub _funding_mask: Vec<bool>,
+    pub _timestamps_ns: Box<[i64]>,
+    pub _opens: Box<[f64]>,
+    pub highs: Box<[f64]>,
+    pub lows: Box<[f64]>,
+    pub closes: Box<[f64]>,
+    pub _volumes: Box<[f64]>,
+    pub _funding: Box<[f64]>,
+    pub _funding_mask: Box<[bool]>,
 }
 
 impl PreparedMarketData {
@@ -47,19 +47,162 @@ impl PreparedMarketData {
             return Err("all market arrays must be non-empty and share one length".to_owned());
         }
         Ok(Self {
-            _timestamps_ns: timestamps_ns,
-            _opens: opens,
-            highs,
-            lows,
-            closes,
-            _volumes: volumes,
-            _funding: funding,
-            _funding_mask: funding_mask,
+            _timestamps_ns: timestamps_ns.into_boxed_slice(),
+            _opens: opens.into_boxed_slice(),
+            highs: highs.into_boxed_slice(),
+            lows: lows.into_boxed_slice(),
+            closes: closes.into_boxed_slice(),
+            _volumes: volumes.into_boxed_slice(),
+            _funding: funding.into_boxed_slice(),
+            _funding_mask: funding_mask.into_boxed_slice(),
         })
     }
 
     pub fn len(&self) -> usize {
         self.closes.len()
+    }
+}
+
+struct OrderSlot {
+    active: bool,
+    order: ActiveOrder,
+}
+
+struct OrderTable {
+    slots: Vec<OrderSlot>,
+    id_to_slot: HashMap<i64, usize>,
+    active_sequence: Vec<usize>,
+    free_slots: Vec<usize>,
+    tombstones: usize,
+}
+
+impl OrderTable {
+    fn new() -> Self {
+        Self {
+            slots: Vec::new(),
+            id_to_slot: HashMap::new(),
+            active_sequence: Vec::new(),
+            free_slots: Vec::new(),
+            tombstones: 0,
+        }
+    }
+
+    fn insert(&mut self, order: ActiveOrder) {
+        // A slot cannot be reused while its old sequence entry is still a
+        // tombstone: replacement in the same bar must not appear twice in
+        // priority order. Slots become reusable after compaction clears all
+        // tombstones.
+        let slot = if self.tombstones == 0 {
+            self.free_slots.pop().unwrap_or_else(|| {
+                let slot = self.slots.len();
+                self.slots.push(OrderSlot {
+                    active: false,
+                    order,
+                });
+                slot
+            })
+        } else {
+            let slot = self.slots.len();
+            self.slots.push(OrderSlot {
+                active: false,
+                order,
+            });
+            slot
+        };
+        self.slots[slot] = OrderSlot {
+            active: true,
+            order,
+        };
+        self.active_sequence.push(slot);
+        // Order IDs are contractually unique. Keeping the first mapping also
+        // preserves the old linear-search behavior for malformed duplicate
+        // tapes without slowing the normal path.
+        self.id_to_slot.entry(order.order_id).or_insert(slot);
+    }
+
+    fn get_mut(&mut self, order_id: i64) -> Option<&mut ActiveOrder> {
+        let slot = *self.id_to_slot.get(&order_id)?;
+        self.slots.get_mut(slot).and_then(|slot| {
+            if slot.active {
+                Some(&mut slot.order)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn get_slot(&self, slot: usize) -> Option<&ActiveOrder> {
+        self.slots
+            .get(slot)
+            .and_then(|slot| if slot.active { Some(&slot.order) } else { None })
+    }
+
+    fn remove_by_id(&mut self, order_id: i64) -> Option<ActiveOrder> {
+        let slot = *self.id_to_slot.get(&order_id)?;
+        self.remove_slot(slot)
+    }
+
+    fn remove_slot(&mut self, slot: usize) -> Option<ActiveOrder> {
+        let slot_state = self.slots.get_mut(slot)?;
+        if !slot_state.active {
+            return None;
+        }
+        slot_state.active = false;
+        self.tombstones += 1;
+        let order = slot_state.order;
+        if self.id_to_slot.get(&order.order_id).copied() == Some(slot) {
+            self.id_to_slot.remove(&order.order_id);
+        }
+        self.free_slots.push(slot);
+        Some(order)
+    }
+
+    fn compact_if_needed(&mut self) {
+        if self.active_sequence.len() < 64
+            || self.tombstones.saturating_mul(4) < self.active_sequence.len()
+        {
+            return;
+        }
+        self.active_sequence.retain(|slot| {
+            self.slots
+                .get(*slot)
+                .map(|slot_state| slot_state.active)
+                .unwrap_or(false)
+        });
+        self.tombstones = 0;
+    }
+
+    fn reset(&mut self) {
+        for slot in &mut self.slots {
+            slot.active = false;
+        }
+        self.id_to_slot.clear();
+        self.active_sequence.clear();
+        self.free_slots.clear();
+        self.free_slots.extend(0..self.slots.len());
+        self.tombstones = 0;
+    }
+
+    fn snapshot(&self) -> Vec<Vec<f64>> {
+        self.active_sequence
+            .iter()
+            .filter_map(|slot| self.get_slot(*slot))
+            .map(|order| {
+                vec![
+                    order.order_id as f64,
+                    order.side as f64,
+                    order.order_type as f64,
+                    order.qty,
+                    order.price,
+                    order.trigger,
+                    if order.reduce_only {
+                        FLAG_REDUCE_ONLY as f64
+                    } else {
+                        0.0
+                    },
+                ]
+            })
+            .collect()
     }
 }
 
@@ -71,9 +214,10 @@ pub struct ReactiveSession {
     maintenance_ratio: f64,
     slippage_rate: f64,
     _use_funding: bool,
+    initial_capital: f64,
     position: f64,
     equity: f64,
-    active_orders: Vec<ActiveOrder>,
+    active_orders: OrderTable,
     order_alias: HashMap<i64, i64>,
     last_bar: Option<usize>,
 }
@@ -118,12 +262,21 @@ impl ReactiveSession {
             maintenance_ratio,
             slippage_rate,
             _use_funding: use_funding,
+            initial_capital,
             position: 0.0,
             equity: initial_capital,
-            active_orders: Vec::new(),
+            active_orders: OrderTable::new(),
             order_alias: HashMap::new(),
             last_bar: None,
         })
+    }
+
+    pub fn reset(&mut self) {
+        self.active_orders.reset();
+        self.order_alias.clear();
+        self.position = 0.0;
+        self.equity = self.initial_capital;
+        self.last_bar = None;
     }
 
     pub fn step(
@@ -131,8 +284,20 @@ impl ReactiveSession {
         bar: usize,
         codes: &[i64],
         values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+    ) -> Result<StepResult, String> {
+        self.step_with_output(bar, codes, values, expiry, command_count, true)
+    }
+
+    pub fn step_with_output(
+        &mut self,
+        bar: usize,
+        codes: &[i64],
+        values: &[f64],
         _expiry: &[i64],
         command_count: usize,
+        materialize: bool,
     ) -> Result<StepResult, String> {
         if bar >= self.market.closes.len() {
             return Err("bar_index is outside the prepared market tape".to_owned());
@@ -158,6 +323,21 @@ impl ReactiveSession {
         let mut fee_total = 0.0;
         let mut turnover = 0.0;
         let mut events = Vec::new();
+        let mut event_count = 0_i64;
+        let mut rejected_count = 0_i64;
+        let mut canceled_count = 0_i64;
+        let mut record_event = |kind: i64, status: i64, order_id: i64, target_id: i64| {
+            event_count += 1;
+            if kind == EVENT_REJECT {
+                rejected_count += 1;
+            }
+            if kind == EVENT_CANCEL {
+                canceled_count += 1;
+            }
+            if materialize {
+                events.push(vec![kind, status, order_id, target_id]);
+            }
+        };
         for index in 0..command_count {
             let code = &codes[index * 8..(index + 1) * 8];
             let value = &values[index * 3..(index + 1) * 3];
@@ -166,10 +346,10 @@ impl ReactiveSession {
                     let side = code[1];
                     let order_type = code[2];
                     if !valid_order(side, order_type, value[0], value[1], value[2]) {
-                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], -1]);
+                        record_event(EVENT_REJECT, STATUS_REJECTED, code[4], -1);
                         continue;
                     }
-                    self.active_orders.push(ActiveOrder {
+                    self.active_orders.insert(ActiveOrder {
                         order_id: code[4],
                         side,
                         order_type,
@@ -178,28 +358,19 @@ impl ReactiveSession {
                         trigger: value[2],
                         reduce_only: (code[3] & FLAG_REDUCE_ONLY) != 0,
                     });
-                    events.push(vec![EVENT_PLACE, STATUS_PENDING, code[4], -1]);
+                    record_event(EVENT_PLACE, STATUS_PENDING, code[4], -1);
                 }
                 ACTION_CANCEL => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(position) = self
-                        .active_orders
-                        .iter()
-                        .position(|order| order.order_id == target)
-                    {
-                        self.active_orders.remove(position);
-                        events.push(vec![EVENT_CANCEL, STATUS_FILLED, -1, code[5]]);
+                    if self.active_orders.remove_by_id(target).is_some() {
+                        record_event(EVENT_CANCEL, STATUS_FILLED, -1, code[5]);
                     } else {
-                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, -1, code[5]]);
+                        record_event(EVENT_REJECT, STATUS_REJECTED, -1, code[5]);
                     }
                 }
                 ACTION_AMEND => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(order) = self
-                        .active_orders
-                        .iter_mut()
-                        .find(|order| order.order_id == target)
-                    {
+                    if let Some(order) = self.active_orders.get_mut(target) {
                         let mask = code[6];
                         if (mask & MUTATE_QTY) != 0 && value[0] > 0.0 {
                             order.qty = value[0];
@@ -210,27 +381,22 @@ impl ReactiveSession {
                         if (mask & MUTATE_TRIGGER) != 0 && value[2] > 0.0 {
                             order.trigger = value[2];
                         }
-                        events.push(vec![EVENT_AMEND, STATUS_FILLED, -1, code[5]]);
+                        record_event(EVENT_AMEND, STATUS_FILLED, -1, code[5]);
                     } else {
-                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, -1, code[5]]);
+                        record_event(EVENT_REJECT, STATUS_REJECTED, -1, code[5]);
                     }
                 }
                 ACTION_REPLACE => {
                     let target = self.resolve_order_id(code[5]);
-                    if let Some(position) = self
-                        .active_orders
-                        .iter()
-                        .position(|order| order.order_id == target)
-                    {
-                        self.active_orders.remove(position);
-                        events.push(vec![EVENT_REPLACE, STATUS_CANCELED, code[4], code[5]]);
+                    if self.active_orders.remove_by_id(target).is_some() {
+                        record_event(EVENT_REPLACE, STATUS_CANCELED, code[4], code[5]);
                         let side = code[1];
                         let order_type = code[2];
                         if !valid_order(side, order_type, value[0], value[1], value[2]) {
-                            events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]);
+                            record_event(EVENT_REJECT, STATUS_REJECTED, code[4], code[5]);
                             continue;
                         }
-                        self.active_orders.push(ActiveOrder {
+                        self.active_orders.insert(ActiveOrder {
                             order_id: code[4],
                             side,
                             order_type,
@@ -240,18 +406,23 @@ impl ReactiveSession {
                             reduce_only: (code[3] & FLAG_REDUCE_ONLY) != 0,
                         });
                         self.order_alias.insert(code[5], code[4]);
-                        events.push(vec![EVENT_REPLACE, STATUS_PENDING, code[4], code[5]]);
+                        record_event(EVENT_REPLACE, STATUS_PENDING, code[4], code[5]);
                     } else {
-                        events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]);
+                        record_event(EVENT_REJECT, STATUS_REJECTED, code[4], code[5]);
                     }
                 }
-                _ => events.push(vec![EVENT_REJECT, STATUS_REJECTED, code[4], code[5]]),
+                _ => record_event(EVENT_REJECT, STATUS_REJECTED, code[4], code[5]),
             }
         }
 
         let mut fills = Vec::new();
-        let mut retained = Vec::with_capacity(self.active_orders.len());
-        for order in self.active_orders.drain(..) {
+        let mut fill_count = 0_i64;
+        let active_sequence_len = self.active_orders.active_sequence.len();
+        for sequence_index in 0..active_sequence_len {
+            let slot = self.active_orders.active_sequence[sequence_index];
+            let Some(order) = self.active_orders.get_slot(slot).copied() else {
+                continue;
+            };
             let Some(price) = execution_price(
                 &order,
                 self.market.highs[bar],
@@ -259,7 +430,6 @@ impl ReactiveSession {
                 self.market.closes[bar],
                 self.slippage_rate,
             ) else {
-                retained.push(order);
                 continue;
             };
             let mut qty = order.qty;
@@ -268,7 +438,8 @@ impl ReactiveSession {
                     || (self.position > 0.0 && order.side == SIDE_BUY)
                     || (self.position < 0.0 && order.side == SIDE_SELL)
                 {
-                    events.push(vec![EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1]);
+                    self.active_orders.remove_slot(slot);
+                    record_event(EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1);
                     continue;
                 }
                 qty = qty.min(self.position.abs());
@@ -286,23 +457,28 @@ impl ReactiveSession {
                 fee,
             );
             if required > self.equity - current_margin {
-                events.push(vec![EVENT_REJECT, STATUS_REJECTED, order.order_id, -1]);
+                self.active_orders.remove_slot(slot);
+                record_event(EVENT_REJECT, STATUS_REJECTED, order.order_id, -1);
                 continue;
             }
             self.equity += delta * (self.market.closes[bar] - price) * self.contract_size - fee;
             self.position += delta;
             fee_total += fee;
             turnover += notional;
-            fills.push(vec![
-                order.order_id as f64,
-                order.side as f64,
-                qty,
-                price,
-                fee,
-            ]);
-            events.push(vec![EVENT_FILL, STATUS_FILLED, order.order_id, -1]);
+            fill_count += 1;
+            if materialize {
+                fills.push(vec![
+                    order.order_id as f64,
+                    order.side as f64,
+                    qty,
+                    price,
+                    fee,
+                ]);
+            }
+            self.active_orders.remove_slot(slot);
+            record_event(EVENT_FILL, STATUS_FILLED, order.order_id, -1);
         }
-        self.active_orders = retained;
+        self.active_orders.compact_if_needed();
         self.last_bar = Some(bar);
         let initial_margin = initial_margin(
             self.position,
@@ -316,25 +492,11 @@ impl ReactiveSession {
             self.contract_size,
             self.maintenance_ratio,
         );
-        let active_orders = self
-            .active_orders
-            .iter()
-            .map(|order| {
-                vec![
-                    order.order_id as f64,
-                    order.side as f64,
-                    order.order_type as f64,
-                    order.qty,
-                    order.price,
-                    order.trigger,
-                    if order.reduce_only {
-                        FLAG_REDUCE_ONLY as f64
-                    } else {
-                        0.0
-                    },
-                ]
-            })
-            .collect();
+        let active_orders = if materialize {
+            self.active_orders.snapshot()
+        } else {
+            Vec::new()
+        };
         Ok(StepResult {
             equity: self.equity,
             position: self.position,
@@ -345,22 +507,40 @@ impl ReactiveSession {
             fills,
             events,
             active_orders,
+            fill_count,
+            event_count,
+            rejected_count,
+            canceled_count,
         })
     }
 
-    fn resolve_order_id(&self, order_id: i64) -> i64 {
+    fn resolve_order_id(&mut self, order_id: i64) -> i64 {
         let mut resolved = order_id;
-        // A replacement can itself be replaced. The depth is bounded by the
-        // number of lifecycle commands and the guard prevents malformed
-        // command tapes from creating an infinite alias cycle.
+        let mut path = [0_i64; 64];
+        let mut path_len = 0;
+        // A replacement can itself be replaced. The fixed stack path keeps
+        // normal alias resolution allocation-free and the guard prevents a
+        // malformed tape from creating an infinite alias cycle.
         for _ in 0..64 {
+            if path_len < path.len() {
+                path[path_len] = resolved;
+                path_len += 1;
+            }
             let Some(next) = self.order_alias.get(&resolved) else {
                 break;
             };
             if *next == resolved {
                 break;
             }
+            if path[..path_len].contains(next) {
+                break;
+            }
             resolved = *next;
+        }
+        for old_id in path[..path_len].iter().copied() {
+            if old_id != resolved {
+                self.order_alias.insert(old_id, resolved);
+            }
         }
         resolved
     }

@@ -9570,6 +9570,11 @@ Acceptance and debt:
 
 ### Phase 46D - Market Ownership, Tape Memory, And Rust Hot State
 
+Status: **implemented locally on `feat/quantbt-engine-packaging`; ownership,
+hot-state, score-boundary, reset, and bounded-cache gates pass.** The Rust
+extension remains explicit/experimental under the Phase 46 release policy;
+this phase does not silently change the endpoint default.
+
 Detailed guide sections:
 
 - Guide sections `6`, `6.1` to `6.4`, `7`, `7.1` to `7.3`, `8`, `8.1` to
@@ -9598,6 +9603,27 @@ Implementation:
 - Avoid simultaneously retaining original `OrderCommand` objects, compiled
   objects, and Rust arrays in score runs unless audit explicitly requests it.
 
+Implementation completed:
+
+- Prepared market arrays now cross the PyO3 boundary once into immutable Rust
+  `Box<[T]>` storage. The runner can release the Python market frame and
+  temporary arrays after preparation without invalidating execution.
+- Reactive Rust state now uses an O(1) order-slot table with an ID index,
+  priority-preserving active sequence, tombstone compaction, and bounded alias
+  path compression/cycle protection. Slot reuse is delayed until compaction
+  so same-bar replacement cannot duplicate priority entries.
+- Score execution uses a typed `BatchedScoreResultCore` and scalar counters;
+  fill/event/order snapshots are materialized only by audit or sparse paths.
+  The static tape adapter explicitly translates canonical compiler
+  `REPLACE/AMEND` codes to the stable reactive ABI, preserving the existing
+  R2 behavior.
+- Static tapes use a stable primitive-array fingerprint and one runner-local
+  byte-bounded cache. `RustBatchedRunner.clear_tape_cache()` gives services a
+  deterministic release control. Sparse sessions expose `reset()` and retain
+  Rust buffer capacity while resetting accounting/lifecycle state.
+- Evidence and operational notes are recorded in
+  [`docs/native_event_rust_ownership_r2.md`](../docs/native_event_rust_ownership_r2.md).
+
 Required tests/evidence:
 
 - Exact lifecycle/accounting parity after each Rust state change.
@@ -9606,11 +9632,32 @@ Required tests/evidence:
 - Rust-only prepared RSS checkpoints with Python inputs released.
 - Low/high order churn benchmarks and command-cache byte limits.
 
+Evidence:
+
+- `cargo fmt --check` and `cargo check --manifest-path
+  rust/native_event/Cargo.toml` pass after the ownership/order-table changes.
+- Focused ownership, replacement-chain/cycle, typed-score, bounded-cache, and
+  sparse-reset tests pass with the installed local extension: `60 passed,
+  2 skipped`. The full repository regression is `654 passed, 3 skipped`.
+  The JSON evidence file is at
+  `benchmarks/native_event/phase46d_ownership_r2.json`.
+- The benchmark reports low/high order churn, first/repeated score timing,
+  Rust-owned incremental RSS, cache bytes before/after clear, and 100-run
+  sparse-session reset parity. Its RSS numbers are incremental Rust-path
+  measurements, not a claim about the Phase 46C fresh-process import floor.
+  On the 2,000-bar/100-run profile it passed with 40 low-churn orders and
+  3,999 high-churn orders; repeated score RSS growth was 0 bytes in both
+  profiles, and reset/cache gates passed.
+
 Acceptance and debt:
 
 - All discrete decisions and accounting must remain exact.
 - If memory is not reduced after ownership separation, record allocator/import
   floor separately; do not loosen domain parity or gate thresholds.
+
+Residual scope is intentionally unchanged: the later Phase 46E Python hot
+state and dual-backend release gate remain open, and the Rust backend is not
+auto-enabled until its complete parity/RSS/release gates pass.
 
 ### Phase 46E - Python Hot State, Dual Backend Contract, And Release Gate
 

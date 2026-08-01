@@ -8,6 +8,7 @@ dist/
 build/
 *.egg-info/
 *.egg
+rust/native_event/target/
 
 *.ipynb_checkpoints/
 .ipynb_checkpoints/

@@ -8,6 +8,7 @@ future Rust slice has passed lifecycle and accounting parity certification.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+import hashlib
 import importlib
 import os
 from types import ModuleType
@@ -16,7 +17,7 @@ from typing import Callable, Mapping, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from ..core.event import ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED, ORDER_STATUS_PENDING, ORDER_STATUS_REJECTED
+from ..core.event import ORDER_STATUS_PENDING
 from ..core.constraints import quantize_signed_quantity
 from ..core.order_compiler import CompiledOrderCommandArrays
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
@@ -470,10 +471,16 @@ def compile_rust_batched_tape(
                 raise NativeEventRustBackendError("Rust batched tape supports immediate activation only")
             if command.expires_at is not None:
                 raise NativeEventRustBackendError("Rust batched tape does not support expiry")
+            if command.action is OrderAction.REPLACE:
+                # CompiledOrderCommandArrays uses the canonical compiler
+                # codes (REPLACE=2, AMEND=3), while the stable reactive R2
+                # ABI uses AMEND=2, REPLACE=3.
+                codes[row, 0] = _R2_ACTION_REPLACE
         elif command.action is OrderAction.CANCEL:
             if command.tif is not TimeInForce.GTC:
                 raise NativeEventRustBackendError("Rust batched tape supports GTC only")
         elif command.action is OrderAction.AMEND:
+            codes[row, 0] = _R2_ACTION_AMEND
             mask = 0
             if command.qty is not None:
                 mask |= _R2_MUTATE_QTY
@@ -493,6 +500,41 @@ def compile_rust_batched_tape(
         np.ascontiguousarray(values, dtype=np.float64),
         np.ascontiguousarray(expiry, dtype=np.int64),
     )
+
+
+def _command_tape_fingerprint(compiled_commands: CompiledOrderCommandArrays) -> str:
+    """Return a stable digest for the primitive command tape representation."""
+
+    digest = hashlib.blake2b(digest_size=16)
+    digest.update(repr(compiled_commands.index_signature).encode("utf-8"))
+    digest.update(repr(tuple(compiled_commands.symbols)).encode("utf-8"))
+    for array in (
+        compiled_commands.command_ptr,
+        compiled_commands.command_action,
+        compiled_commands.command_symbol,
+        compiled_commands.command_side,
+        compiled_commands.command_type,
+        compiled_commands.command_qty,
+        compiled_commands.command_price,
+        compiled_commands.command_trigger_price,
+        compiled_commands.command_reduce_only,
+        compiled_commands.command_order_id,
+        compiled_commands.command_target_order_id,
+        compiled_commands.command_expires_bar,
+    ):
+        contiguous = np.ascontiguousarray(array)
+        digest.update(str(contiguous.dtype).encode("ascii"))
+        digest.update(str(contiguous.shape).encode("ascii"))
+        digest.update(contiguous.tobytes())
+    return digest.hexdigest()
+
+
+def _payload_value(payload, key: str):
+    """Read both the R2 dict boundary and the R2.1 typed score boundary."""
+
+    if isinstance(payload, Mapping):
+        return payload[key]
+    return getattr(payload, key)
 
 
 class RustBatchedRunner:
@@ -518,6 +560,7 @@ class RustBatchedRunner:
         slippage: float = 0.0,
         use_funding: bool = False,
         prepared_market_core=None,
+        max_tape_cache_bytes: int = 64 * 1024 * 1024,
     ) -> None:
         if len(symbols) != 1:
             raise NativeEventRustBackendError("Rust batched runner supports exactly one symbol")
@@ -529,6 +572,8 @@ class RustBatchedRunner:
             raise ValueError("contract_size and leverage must be > 0")
         if float(fee_rate) < 0.0 or float(slippage) < 0.0:
             raise ValueError("fee_rate and slippage must be >= 0")
+        if int(max_tape_cache_bytes) < 0:
+            raise ValueError("max_tape_cache_bytes must be >= 0")
         self.idx = pd.DatetimeIndex(idx)
         self.symbols = tuple(symbols)
         self.contract_size = float(contract_size)
@@ -537,6 +582,7 @@ class RustBatchedRunner:
         self.initial_capital = float(initial_capital)
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
+        self.max_tape_cache_bytes = int(max_tape_cache_bytes)
         self._module = _require_r1_extension()
         status = probe_native_event_rust_extension(module=self._module)
         required = (
@@ -551,8 +597,9 @@ class RustBatchedRunner:
                 "installed _quantbt_native wheel lacks Rust batched capabilities: " + ", ".join(missing)
             )
         self.prepared_market_core = prepared_market_core
-        self._cached_compiled_commands: Optional[CompiledOrderCommandArrays] = None
+        self._cached_tape_fingerprint: Optional[str] = None
         self._cached_tape_arrays: Optional[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
+        self._cached_tape_bytes = 0
         if self.prepared_market_core is None:
             close = np.ascontiguousarray(market_arrays.closes[:, 0], dtype=np.float64)
             self.prepared_market_core = self._module.PreparedMarketCore(
@@ -595,29 +642,48 @@ class RustBatchedRunner:
         )
 
     def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
-        if compiled_commands is self._cached_compiled_commands and self._cached_tape_arrays is not None:
+        fingerprint = _command_tape_fingerprint(compiled_commands)
+        if fingerprint == self._cached_tape_fingerprint and self._cached_tape_arrays is not None:
             return self._cached_tape_arrays
         arrays = compile_rust_batched_tape(compiled_commands, symbol=self.symbols[0])
-        self._cached_compiled_commands = compiled_commands
-        self._cached_tape_arrays = arrays
+        byte_size = sum(int(array.nbytes) for array in arrays)
+        if byte_size <= self.max_tape_cache_bytes:
+            self._cached_tape_fingerprint = fingerprint
+            self._cached_tape_arrays = arrays
+            self._cached_tape_bytes = byte_size
+        else:
+            self.clear_tape_cache()
         return arrays
+
+    @property
+    def tape_cache_bytes(self) -> int:
+        """Current resident size of the bounded primitive tape cache."""
+
+        return int(self._cached_tape_bytes)
+
+    def clear_tape_cache(self) -> None:
+        """Release cached command arrays and their fingerprint immediately."""
+
+        self._cached_tape_fingerprint = None
+        self._cached_tape_arrays = None
+        self._cached_tape_bytes = 0
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> RustBatchedScoreResult:
         """Run a complete static tape through one PyO3 call and return scalars."""
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_score(ptr, codes, values, expiry)
         return RustBatchedScoreResult(
-            final_equity=float(payload["final_equity"]),
-            final_position=float(payload["final_position"]),
-            total_fee=float(payload["total_fee"]),
-            total_turnover=float(payload["total_turnover"]),
-            fill_count=int(payload["fill_count"]),
-            event_count=int(payload["event_count"]),
-            rejected_count=int(payload["rejected_count"]),
-            canceled_count=int(payload["canceled_count"]),
-            max_initial_margin=float(payload["max_initial_margin"]),
-            max_maintenance_margin=float(payload["max_maintenance_margin"]),
-            bars=int(payload["bars"]),
+            final_equity=float(_payload_value(payload, "final_equity")),
+            final_position=float(_payload_value(payload, "final_position")),
+            total_fee=float(_payload_value(payload, "total_fee")),
+            total_turnover=float(_payload_value(payload, "total_turnover")),
+            fill_count=int(_payload_value(payload, "fill_count")),
+            event_count=int(_payload_value(payload, "event_count")),
+            rejected_count=int(_payload_value(payload, "rejected_count")),
+            canceled_count=int(_payload_value(payload, "canceled_count")),
+            max_initial_margin=float(_payload_value(payload, "max_initial_margin")),
+            max_maintenance_margin=float(_payload_value(payload, "max_maintenance_margin")),
+            bars=int(_payload_value(payload, "bars")),
             metadata={"backend": "rust_batched", "mode": "score", "pycalls": 1},
         )
 
@@ -746,6 +812,12 @@ class RustBatchedSession:
                 "wake_on_liquidation": bool(wake_on_liquidation),
             },
         )
+
+    def reset(self) -> None:
+        """Reset lifecycle/accounting while retaining Rust buffer capacity."""
+
+        self._core.reset()
+        self.next_bar = 0
 
 
 class RustReactiveSessionAdapter:
