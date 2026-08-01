@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import resource
 import sys
 import time
@@ -118,11 +120,56 @@ class PeriodicStrategy:
         return commands
 
 
-def _run_case(name: str, n_bars: int, strategy, symbols: tuple[str, ...] = ("BTC",), repeats: int = 1, prepared_score: bool = False):
+class R1PeriodicStrategy:
+    """Single-symbol GTC-only workload inside the PyO3 R1 support contract."""
+
+    def __init__(self, *, every: int, hold: int):
+        self.every = int(every)
+        self.hold = int(hold)
+
+    def on_bar_close(self, context):
+        bar = int(context.bar_index)
+        if bar % self.every == 0:
+            return [
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol="BTC",
+                    side=OrderSide.BUY,
+                    order_type=OrderType.MARKET,
+                    qty=0.05,
+                    tif=TimeInForce.GTC,
+                    order_id=f"r1-entry-{bar}",
+                )
+            ]
+        if bar > 0 and bar % self.every == self.hold:
+            return [
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol="BTC",
+                    side=OrderSide.SELL,
+                    order_type=OrderType.MARKET,
+                    qty=0.05,
+                    tif=TimeInForce.GTC,
+                    order_id=f"r1-exit-{bar}",
+                )
+            ]
+        return []
+
+
+def _run_case(
+    name: str,
+    n_bars: int,
+    strategy,
+    symbols: tuple[str, ...] = ("BTC",),
+    repeats: int = 1,
+    prepared_score: bool = False,
+    backend: str = "python",
+):
     data = _bars(n_bars, symbols=symbols)
     endpoint = QuantBTEndpoint.native_event_strategy(
         initial_capital=100_000,
         leverage=5,
+        maintenance_ratio=0.0 if backend == "rust" else 0.005,
         use_funding=False,
         fee_rate=0.0002,
         report_level="minimal" if prepared_score else "audit",
@@ -225,6 +272,11 @@ def _run_case(name: str, n_bars: int, strategy, symbols: tuple[str, ...] = ("BTC
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Benchmark Python or PyO3 native-event reactive session paths")
+    parser.add_argument("--backend", choices=("python", "rust"), default="python")
+    args = parser.parse_args()
+    os.environ["QUANTBT_NATIVE_BACKEND"] = args.backend
+
     cases = [
         ("25k_low_orders", 25_000, PeriodicStrategy(every=2_000, hold=20), ("BTC",), 1, False),
         ("25k_high_churn", 25_000, PeriodicStrategy(every=40, hold=8), ("BTC",), 1, False),
@@ -235,10 +287,16 @@ def main() -> int:
         ("multi_symbol", 25_000, PeriodicStrategy(every=250, hold=20, symbols=("BTC", "ETH")), ("BTC", "ETH"), 1, False),
         ("prepared_100_scores", 5_000, PeriodicStrategy(every=500, hold=20), ("BTC",), 100, True),
     ]
-    results = [_run_case(*case) for case in cases]
-    payload = {"benchmark": "native_event_reactive_session_phase43a", "results": results}
-    out_json = Path(__file__).with_name("reactive_session_baseline.json")
-    out_md = Path(__file__).with_name("reactive_session_baseline.md")
+    if args.backend == "rust":
+        cases = [
+            ("r1_25k_low_orders", 25_000, R1PeriodicStrategy(every=2_000, hold=20), ("BTC",), 1, False),
+            ("r1_25k_high_churn", 25_000, R1PeriodicStrategy(every=40, hold=8), ("BTC",), 1, False),
+        ]
+    results = [_run_case(*case, backend=args.backend) for case in cases]
+    payload = {"benchmark": f"native_event_reactive_session_{args.backend}", "results": results}
+    suffix = "baseline" if args.backend == "python" else "r1_rust"
+    out_json = Path(__file__).with_name(f"reactive_session_{suffix}.json")
+    out_md = Path(__file__).with_name(f"reactive_session_{suffix}.md")
     out_json.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     lines = ["# Native Event Reactive Session Baseline", "", "| Case | Bars | Symbols | Wall s | CPU s | Peak RSS MB | Commands | Events | Fills |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for row in results:

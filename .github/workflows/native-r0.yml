@@ -30,6 +30,14 @@ jobs:
       - name: Install Maturin
         run: python -m pip install "maturin>=1.9,<2"
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install core test environment
+        run: uv sync --all-extras --dev
+
       - name: Rust format, lint, and tests
         working-directory: rust/native_event
         run: |
@@ -48,3 +56,11 @@ jobs:
           /tmp/quantbt-native-r0-smoke/bin/python -m pip install dist/native/quantbt_native-*.whl
           cd /tmp
           /tmp/quantbt-native-r0-smoke/bin/python -c "import _quantbt_native; assert _quantbt_native.api_version() == '0.3'; assert _quantbt_native.capabilities()['r0_import_smoke']"
+
+      - name: Install native wheel into core test environment
+        run: uv run python -m pip install dist/native/quantbt_native-*.whl
+
+      - name: R1 Python-Rust parity
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: uv run pytest -q tests/native_event -k rust

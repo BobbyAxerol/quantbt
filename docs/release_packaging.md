@@ -137,11 +137,12 @@ from quantbt import QuantBTEndpoint
 
 `quantbt-native` is not published in Phase 42C.
 
-## Native R0 Scaffold
+## Native R0/R1 Scaffold
 
 Phase 44A adds a local `rust/native_event` PyO3 crate named
-`quantbt-native`. Its module, `_quantbt_native`, is deliberately import-only:
-it publishes version and capability metadata but does not execute orders.
+`quantbt-native`. R0 publishes version/capability metadata; R1 adds an
+experimental single-symbol `ReactiveSessionCore` for `PLACE`/`CANCEL`, market
+and limit GTC orders, fee, slippage, position, and equity.
 
 For local Rust validation once the Rust toolchain and Maturin are installed:
 
@@ -154,9 +155,11 @@ maturin build --release
 ```
 
 `QUANTBT_NATIVE_BACKEND=auto` and `python` continue using the existing Python
-Native Event implementation. `rust` is explicit and fails clearly until a
-future certified Rust execution slice is available; it is never auto-enabled
-by this R0 scaffold.
+Native Event implementation. `rust` is explicit and is accepted only for the
+R1 feature gate: one symbol, no funding, no quantity constraints, and
+`maintenance_ratio=0.0`. Contingent orders, non-GTC TIFs, funding,
+liquidation, and multi-symbol execution still fail clearly under `rust`.
+`auto` is never enabled for Rust in this experimental stage.
 
 Native publishing must wait until the Phase 44 PyO3 package exists, builds, and
 passes Python/Rust parity. The native workflow must either build/install

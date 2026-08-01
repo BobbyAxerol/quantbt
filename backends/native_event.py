@@ -106,7 +106,11 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
-from ._native_event_rust import NativeEventBackendSelection, resolve_native_event_backend
+from ._native_event_rust import (
+    NativeEventBackendSelection,
+    RustReactiveSessionAdapter,
+    resolve_native_event_backend,
+)
 
 
 def _event_type_name(event_type: int) -> str:
@@ -977,14 +981,15 @@ class NativeEventBackend:
         *,
         backend_selection: NativeEventBackendSelection,
         **kwargs,
-    ) -> _NativeEventReactiveSession:
-        """Create the Python reactive session for the R0 rollout.
+    ) -> _NativeEventReactiveSession | RustReactiveSessionAdapter:
+        """Create the selected reactive session without changing endpoint APIs.
 
-        The factory is the only future insertion point for a certified Rust
-        adapter.  R0 intentionally has no Rust execution implementation.
+        Rust R1 is intentionally feature-gated by ``RustReactiveSessionAdapter``.
+        Unsupported execution semantics fail explicitly under backend='rust'
+        rather than silently switching domain behavior.
         """
         if backend_selection.resolved == "rust":
-            raise RuntimeError("Rust reactive session routing is unavailable in PyO3 R0")
+            return RustReactiveSessionAdapter(**kwargs)
         return _NativeEventReactiveSession(**kwargs)
 
     def _backend_selection_metadata(self) -> dict:
@@ -1638,6 +1643,9 @@ class NativeEventBackend:
                 "reactive_session_liquidation_bar": int(session.liquidation_bar),
             }
         )
+        if backend_selection.resolved == "rust":
+            final_result.metadata["rust_r1_session_fills"] = tuple(session.fills) if plan.materialize_python_objects else ()
+            final_result.metadata["rust_r1_session_events"] = tuple(session.events) if plan.keep_event_ledger else ()
         if execution_mode == "audit" and replay_result is not None:
             replay_last_pos = {
                 symbol: float(replay_result.positions[f"Position_{symbol}"].iloc[-1])

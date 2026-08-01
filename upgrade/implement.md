@@ -8581,6 +8581,34 @@ Stop conditions:
 - Parity requires loose tolerance.
 - Maintenance complexity exceeds benefit.
 
+Status: implemented on `feat/quantbt-engine-packaging`; local native wheel
+build/parity remains pending the Rust toolchain and Maturin CI gate.
+
+Implemented:
+
+- Rust `ReactiveSessionCore` now owns single-symbol R1 market arrays, active
+  order state, GTC market/limit matching, PLACE/CANCEL lifecycle, fee,
+  slippage, PnL, position, equity, and basic post-cost margin acceptance.
+- The Python adapter compiles per-bar `OrderCommand` batches into contiguous
+  `int64` code and `float64` value arrays, preserves command identity through
+  a session-local interner, and materializes callback objects only at the
+  boundary.
+- Explicit `QUANTBT_NATIVE_BACKEND=rust` routes to R1 only for: one symbol,
+  no funding, no quantity constraints, immediate non-contingent orders, GTC,
+  and `maintenance_ratio=0.0`. Unsupported scope raises rather than falling
+  back silently. `auto` remains Python.
+- Rust path is compared with `replay_certified` via an installed-wheel parity
+  test. The native CI workflow now builds the wheel, installs it into the core
+  test environment, and runs `tests/native_event -k rust`.
+
+Remaining R1 certification gate:
+
+- This local machine has no Rust toolchain/Maturin, therefore only the Python
+  adapter/buffer/fake-extension boundary tests run locally. The real Rust
+  compile, Python-Rust differential parity, RSS plateau, and speed gates must
+  pass in `Native R0` CI before R1 can be called certified or considered for
+  further Rust expansion.
+
 #### Phase 44C Detailed Guide - PyO3 Expansion And Release Gate
 
 Read first:

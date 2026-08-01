@@ -32,7 +32,7 @@ def test_native_event_auto_resolves_to_python_without_importing_extension() -> N
     assert selection.resolved == "python"
 
 
-def test_native_event_r0_crate_declares_only_import_capability() -> None:
+def test_native_event_r1_crate_declares_reactive_session_capability() -> None:
     cargo = (PROJECT_ROOT / "rust" / "native_event" / "Cargo.toml").read_text(encoding="utf-8")
     metadata = tomllib.loads((PROJECT_ROOT / "rust" / "native_event" / "pyproject.toml").read_text(encoding="utf-8"))
     source = (PROJECT_ROOT / "rust" / "native_event" / "src" / "lib.rs").read_text(encoding="utf-8")
@@ -42,7 +42,8 @@ def test_native_event_r0_crate_declares_only_import_capability() -> None:
     assert metadata["project"]["name"] == "quantbt-native"
     assert metadata["tool"]["maturin"]["module-name"] == "_quantbt_native"
     assert '"r0_import_smoke", true' in source
-    assert '"reactive_session", false' in source
+    assert '"reactive_session", true' in source
+    assert "ReactiveSessionCore" in source
 
 
 def test_native_event_explicit_rust_fails_clearly_when_extension_is_absent() -> None:
@@ -63,14 +64,8 @@ def test_native_event_r0_extension_is_compatible_but_not_executable() -> None:
     status = probe_native_event_rust_extension(module=_native_module())
     assert status.compatible
     assert not status.executable
-    with pytest.raises(NativeEventRustBackendError, match="import-only"):
+    with pytest.raises(NativeEventRustBackendError, match="reactive_session"):
         resolve_native_event_backend(requested="rust", extension_status=status)
-
-
-def test_native_event_explicit_rust_environment_fails_before_strategy_execution(monkeypatch) -> None:
-    monkeypatch.setenv("QUANTBT_NATIVE_BACKEND", "rust")
-    with pytest.raises(NativeEventRustBackendError, match="unavailable"):
-        run_reactive("single_pass", ScheduledCommandStrategy({}), data=bars(4))
 
 
 def test_native_event_replay_certified_environment_preserves_replay_mode(monkeypatch) -> None:
