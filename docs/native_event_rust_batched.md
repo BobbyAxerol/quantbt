@@ -1,5 +1,11 @@
 # Rust Batched Native Event
 
+> Phase 47B adds the API `0.4` `RustFullRunner` contract. Read
+> [`native_event_rust_full_contract.md`](native_event_rust_full_contract.md)
+> for the current explicit `native_backend="rust"` path. This document
+> describes the earlier `RustBatchedRunner` compatibility surface below; it
+> remains intentionally single-symbol and fail-fast.
+
 QuantBT includes an explicit, experimental Rust/PyO3 full-tape runner for a
 precomputed single-symbol `OrderCommand` tape. It is designed for a static
 command sequence produced outside the execution kernel, not for compiling an

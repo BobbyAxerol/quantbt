@@ -51,6 +51,7 @@ class NativeOrderEvent:
     level_id: Optional[str] = None
     original_index: int = -1
     related_original_index: int = -1
+    metadata: Mapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

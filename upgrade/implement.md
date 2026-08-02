@@ -10051,7 +10051,8 @@ Phase 47A completion boundary:
 
 ### Phase 47B - Rust Native Event V2 Full Contract And Conformance Suite
 
-Status: **planned; blocked until Phase 47A Python/replay baseline passes.**
+Status: **implemented locally; full-contract conformance and focused Rust
+regressions pass. Grid workload certification remains Phase 47C.**
 
 Detailed guide sections:
 
@@ -10109,9 +10110,55 @@ Acceptance and possible debt:
 - Rust remains explicit/experimental until the conformance suite is green;
   this phase does not change `auto` routing.
 
+Implementation and evidence:
+
+- Added the versioned Rust API `0.4` full-contract ABI and capability gate.
+  The existing R1/R2 API remains readable for compatibility, while explicit
+  full execution requires every `native_event_v2_*` capability listed above.
+- Added `rust/native_event/src/full.rs` with the compact full session,
+  flattened multi-symbol market tape, lifecycle/order table, matching,
+  funding, margin, liquidation, quantity-preflight boundary, and SoA audit
+  output. Its execution ordering is locked to the Python replay oracle.
+- Extended `src/quantbt/backends/_native_event_rust.py` and the compatibility
+  mirror for full command compilation, per-symbol reactive batches, funding,
+  liquidation, full active-order relationship metadata, event reject codes,
+  and `RustFullAuditResult` adaptation to `BacktestResultV2`.
+- Corrected two parity defects found by the conformance suite: `REPLACE`
+  target aliases now resolve subsequent CANCEL/AMEND commands to the newest
+  slot, and replacement no longer emits a spurious cancellation event.
+  Quantity preflight also selects constraints by the command's symbol rather
+  than always using symbol column zero.
+- Added [`test_phase47b_full_contract.py`](../tests/native_event/contract/test_phase47b_full_contract.py).
+  It covers multi-symbol funding, parent activation, OCO, TIF/expiry,
+  CANCEL_ALL, liquidation, replace aliasing, amend, stop order types,
+  reduce-only, per-symbol quantity constraints, active metadata, event
+  status, and reject-code parity. Focused result after a release rebuild:
+  **9 passed**.
+- Updated [`native_event_rust_full_contract.md`](../docs/native_event_rust_full_contract.md)
+  and the endpoint/backend documentation. Public endpoint names and defaults
+  remain unchanged; `native_backend="rust"` is still explicit and fail-fast,
+  while `auto` remains Python.
+- Verification after the final Rust rebuild: `cargo check` passed, focused
+  Phase 47B/native-event regressions passed **41 tests**, and the complete
+  repository regression passed **678 passed, 3 skipped** with the existing
+  warning set only.
+
+Phase 47B completion boundary and remaining debt:
+
+- Rust and Python now execute the same tested Native Event V2 contract on the
+  synthetic conformance matrix, including full accounting and lifecycle
+  metadata. This is a domain-contract lock, not a production performance or
+  Grid result claim.
+- Phase 47C still must run Grid 2,000-bar long-only and long-short parity,
+  scalar-to-audit fingerprint checks, isolated runtime/RSS benchmarks, and
+  repeated-run leak checks before any Rust promotion policy can change.
+- The full Rust score call currently returns typed Rust equity/position paths
+  so common metrics can be computed correctly; it avoids pandas/report-frame
+  construction but is not yet the final scalar-only memory optimization.
+
 ### Phase 47C - Grid 2,000-Bar Parity, Backend Policy, And RSS Benchmark
 
-Status: **planned; blocked until Phase 47B conformance passes.**
+Status: **planned; Phase 47B conformance prerequisite is now green.**
 
 Detailed guide sections:
 

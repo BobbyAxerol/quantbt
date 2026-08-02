@@ -26,7 +26,7 @@ from ..core.schema import OrderSide, OrderType, TimeInForce
 from ..core.native_event_capabilities import normalize_native_event_capabilities
 
 
-RUST_NATIVE_API_VERSION = "0.3"
+RUST_NATIVE_API_VERSION = "0.4"
 _VALID_BACKENDS = frozenset({"auto", "python", "rust", "replay_certified"})
 _R1_ACTION_PLACE = 0
 _R1_ACTION_CANCEL = 1
@@ -42,6 +42,8 @@ _R2_FLAG_REDUCE_ONLY = 1
 _R2_MUTATE_QTY = 1
 _R2_MUTATE_PRICE = 2
 _R2_MUTATE_TRIGGER = 4
+_FULL_CODE_WIDTH = 16
+_FULL_VALUE_WIDTH = 3
 
 
 class NativeEventRustBackendError(RuntimeError):
@@ -306,6 +308,153 @@ class RustBatchedAuditResult:
 
 
 @dataclass(frozen=True, slots=True)
+class RustFullAuditResult:
+    """Full-contract Rust SoA result, including multi-symbol/funding state."""
+
+    equity: np.ndarray
+    positions: np.ndarray
+    fees: np.ndarray
+    turnover: np.ndarray
+    funding: np.ndarray
+    initial_margin: np.ndarray
+    maintenance_margin: np.ndarray
+    fill_bar: np.ndarray
+    fill_order_id: np.ndarray
+    fill_symbol: np.ndarray
+    fill_side: np.ndarray
+    fill_qty: np.ndarray
+    fill_price: np.ndarray
+    fill_fee: np.ndarray
+    event_bar: np.ndarray
+    event_kind: np.ndarray
+    event_status: np.ndarray
+    event_order_id: np.ndarray
+    event_target_id: np.ndarray
+    event_symbol: np.ndarray
+    event_reject_code: np.ndarray
+    total_fee: float
+    total_turnover: float
+    total_funding: float
+    fill_count: int
+    event_count: int
+    rejected_count: int
+    canceled_count: int
+    max_initial_margin: float
+    max_maintenance_margin: float
+    liquidated: bool
+    liquidation_bar: int
+    liquidation_reason: int
+    id_values: tuple[str, ...] = ()
+
+    @property
+    def final_equity(self) -> float:
+        return float(self.equity[-1]) if len(self.equity) else 0.0
+
+    def to_backtest_result(
+        self,
+        *,
+        datetime_index: pd.DatetimeIndex,
+        closes: pd.DataFrame,
+        symbols: Sequence[str],
+        initial_capital: float,
+        leverage: float,
+        metadata: Optional[Mapping[str, object]] = None,
+    ):
+        """Materialize the common result surface outside the Rust hot path."""
+        from ..core.results import BacktestResultV2
+        from ..core.orders import Fill
+        from ..core.schema import OrderSide
+
+        idx = pd.DatetimeIndex(datetime_index)
+        equity = pd.Series(self.equity, index=idx, name="equity")
+        positions = pd.DataFrame(
+            {f"Position_{symbol}": self.positions[:, col] for col, symbol in enumerate(symbols)},
+            index=idx,
+        )
+        close_frame = pd.DataFrame(
+            {f"Close_{symbol}": closes[symbol].to_numpy(dtype=np.float64) for symbol in symbols},
+            index=idx,
+        )
+
+        def order_id(code: int) -> Optional[str]:
+            return self.id_values[int(code)] if 0 <= int(code) < len(self.id_values) else None
+
+        fills_report = pd.DataFrame({
+            "bar": self.fill_bar,
+            "timestamp": [idx[int(bar)] for bar in self.fill_bar],
+            "order_id": [order_id(code) for code in self.fill_order_id],
+            "symbol": [symbols[int(code)] for code in self.fill_symbol],
+            "side": ["BUY" if int(side) > 0 else "SELL" for side in self.fill_side],
+            "qty": self.fill_qty,
+            "price": self.fill_price,
+            "fee": self.fill_fee,
+        })
+        order_report = pd.DataFrame({
+            "bar": self.event_bar,
+            "timestamp": [idx[int(bar)] for bar in self.event_bar],
+            "event_kind": self.event_kind,
+            "event_status": self.event_status,
+            "order_id": [order_id(code) for code in self.event_order_id],
+            "target_order_id": [order_id(code) for code in self.event_target_id],
+            "symbol": [None if int(code) < 0 else symbols[int(code)] for code in self.event_symbol],
+            "reject_code": self.event_reject_code,
+        })
+        fills = tuple(
+            Fill(
+                timestamp=idx[int(bar)], symbol=symbols[int(symbol)],
+                side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
+                qty=float(qty), price=float(price), fee=float(fee), order_id=order_id(order_code),
+                metadata={"backend": "rust_full_contract", "bar": int(bar)},
+            )
+            for bar, order_code, symbol, side, qty, price, fee in zip(
+                self.fill_bar, self.fill_order_id, self.fill_symbol, self.fill_side,
+                self.fill_qty, self.fill_price, self.fill_fee,
+            )
+        )
+        diagnostics = pd.DataFrame({
+            "turnover": self.turnover,
+            "rejected_orders": np.bincount(self.event_bar[self.event_kind == 7], minlength=len(idx)),
+            "canceled_orders": np.bincount(self.event_bar[self.event_kind == 1], minlength=len(idx)),
+        }, index=idx)
+        result_metadata = {
+            "backend": "native_event",
+            "engine": "event_v2_rust_full_contract",
+            "report_level": "audit",
+            "native_event_backend_requested": "rust",
+            "native_event_backend_resolved": "rust",
+            "fills_report": fills_report,
+            "order_report": order_report,
+            "command_report": order_report,
+            "id_values": self.id_values,
+            "liquidation_reason": int(self.liquidation_reason),
+            "lifecycle_counters": {
+                "fill_count": int(self.fill_count), "event_count": int(self.event_count),
+                "rejected_count": int(self.rejected_count), "canceled_count": int(self.canceled_count),
+            },
+            "rust_contract": "native_event_v2_full_contract",
+        }
+        if metadata:
+            result_metadata.update(dict(metadata))
+        return BacktestResultV2(
+            equity=equity,
+            returns=equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0),
+            positions=positions,
+            closes=close_frame,
+            symbols=list(symbols),
+            initial_capital=float(initial_capital),
+            leverage=float(leverage),
+            liquidated=bool(self.liquidated),
+            liquidation_bar=int(self.liquidation_bar),
+            orders=(), fills=fills,
+            fees=pd.Series(self.fees, index=idx, name="fees"),
+            funding=pd.Series(self.funding, index=idx, name="funding"),
+            margin=pd.DataFrame({"initial_margin": self.initial_margin, "maintenance_margin": self.maintenance_margin}, index=idx),
+            diagnostics=diagnostics,
+            metadata=result_metadata,
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class RustBatchedChunkResult:
     """Sparse result for one stateful ``run_until`` continuation chunk.
 
@@ -425,7 +574,9 @@ def probe_native_event_rust_extension(
         raw_capabilities = {}
     capabilities = {str(name): bool(enabled) for name, enabled in raw_capabilities.items()}
     canonical_capabilities = normalize_native_event_capabilities(capabilities)
-    compatible = api_version == RUST_NATIVE_API_VERSION
+    # 0.3 remains readable for the legacy R1/R2 classes. Full V2 capability
+    # is gated independently by the explicit 0.4 capability keys below.
+    compatible = api_version in {"0.3", RUST_NATIVE_API_VERSION}
     if not compatible:
         return NativeEventRustExtensionStatus(
             available=True,
@@ -676,6 +827,97 @@ def compile_rust_batched_tape(
     )
 
 
+def compile_rust_full_tape(
+    compiled_commands: CompiledOrderCommandArrays,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Compile the complete V2 command schema into the Rust 0.4 ABI.
+
+    Code layout is intentionally explicit and integer-only for relationship
+    fields.  The compiler's stable row order remains authoritative.
+    """
+    commands = tuple(command for _, command in compiled_commands.sorted_commands)
+    n = len(commands)
+    codes = np.full((n, _FULL_CODE_WIDTH), -1, dtype=np.int64)
+    values = np.zeros((n, _FULL_VALUE_WIDTH), dtype=np.float64)
+    expiry = np.ascontiguousarray(compiled_commands.command_expires_bar, dtype=np.int64)
+    if n:
+        codes[:, 0] = np.asarray(compiled_commands.command_action, dtype=np.int64)
+        codes[:, 1] = np.asarray(compiled_commands.command_symbol, dtype=np.int64)
+        codes[:, 2] = np.asarray(compiled_commands.command_side, dtype=np.int64)
+        codes[:, 3] = np.asarray(compiled_commands.command_type, dtype=np.int64)
+        codes[:, 4] = np.asarray(compiled_commands.command_tif, dtype=np.int64)
+        codes[:, 5] = np.asarray(compiled_commands.command_reduce_only, dtype=np.int64)
+        codes[:, 6] = np.asarray(compiled_commands.command_order_id, dtype=np.int64)
+        codes[:, 7] = np.asarray(compiled_commands.command_target_order_id, dtype=np.int64)
+        codes[:, 8] = np.asarray(compiled_commands.command_parent_order_id, dtype=np.int64)
+        codes[:, 9] = np.asarray(compiled_commands.command_group_id, dtype=np.int64)
+        codes[:, 10] = np.asarray(compiled_commands.command_oco_group_id, dtype=np.int64)
+        codes[:, 11] = np.asarray(compiled_commands.command_activation, dtype=np.int64)
+        codes[:, 12] = np.arange(n, dtype=np.int64)
+        values[:, 0] = np.asarray(compiled_commands.command_qty, dtype=np.float64)
+        values[:, 1] = np.asarray(compiled_commands.command_price, dtype=np.float64)
+        values[:, 2] = np.asarray(compiled_commands.command_trigger_price, dtype=np.float64)
+    for row, command in enumerate(commands):
+        if command.action.value not in {"place", "cancel", "cancel_all", "amend", "replace"}:
+            raise NativeEventRustBackendError(f"unsupported full-contract action={command.action!r}")
+        if command.expires_at is not None and int(expiry[row]) < 0:
+            raise NativeEventRustBackendError("compiled full tape lost command expiry")
+    return (
+        np.ascontiguousarray(compiled_commands.command_ptr, dtype=np.int64),
+        np.ascontiguousarray(codes, dtype=np.int64),
+        np.ascontiguousarray(values, dtype=np.float64),
+        np.ascontiguousarray(expiry, dtype=np.int64),
+    )
+
+
+def compile_rust_full_reactive_batch(
+    commands: Sequence[OrderCommand],
+    *,
+    symbols: Sequence[str],
+    intern_id: Callable[[Optional[str]], int],
+    idx: pd.DatetimeIndex,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Compile one callback batch for the full ABI without Python objects."""
+    rows = tuple(commands)
+    codes = np.full((len(rows), _FULL_CODE_WIDTH), -1, dtype=np.int64)
+    values = np.zeros((len(rows), _FULL_VALUE_WIDTH), dtype=np.float64)
+    expiry = np.full(len(rows), -1, dtype=np.int64)
+    symbol_to_code = {symbol: col for col, symbol in enumerate(symbols)}
+    order_type = {OrderType.MARKET: 0, OrderType.LIMIT: 1, OrderType.STOP_MARKET: 2, OrderType.STOP_LIMIT: 3}
+    tif = {TimeInForce.GTC: 0, TimeInForce.IOC: 1, TimeInForce.FOK: 2, TimeInForce.GTD: 3}
+    action = {OrderAction.PLACE: 0, OrderAction.CANCEL: 1, OrderAction.REPLACE: 2, OrderAction.AMEND: 3, OrderAction.CANCEL_ALL: 4}
+    activation = {
+        OrderActivationPolicy.IMMEDIATE: 0,
+        OrderActivationPolicy.ON_PARENT_FIRST_FILL: 1,
+        OrderActivationPolicy.ON_PARENT_FULL_FILL: 2,
+    }
+    for row, command in enumerate(rows):
+        codes[row, 0] = action[command.action]
+        codes[row, 1] = -1 if command.symbol is None else symbol_to_code[command.symbol]
+        codes[row, 2] = 0 if command.side is None else int(command.side.sign)
+        codes[row, 3] = -1 if command.order_type is None else order_type[command.order_type]
+        codes[row, 4] = tif[command.tif]
+        codes[row, 5] = 1 if command.reduce_only else 0
+        codes[row, 6] = intern_id(command.order_id)
+        codes[row, 7] = intern_id(command.target_order_id)
+        codes[row, 8] = intern_id(command.parent_order_id)
+        codes[row, 9] = intern_id(command.group_id)
+        codes[row, 10] = intern_id(command.oco_group_id)
+        codes[row, 11] = activation[command.activation_policy]
+        codes[row, 12] = row
+        values[row, 0] = 0.0 if command.qty is None else float(command.qty)
+        values[row, 1] = 0.0 if command.price is None else float(command.price)
+        values[row, 2] = 0.0 if command.trigger_price is None else float(command.trigger_price)
+        if command.expires_at is not None:
+            ts = pd.Timestamp(command.expires_at)
+            if ts.tz is None:
+                ts = ts.tz_localize("UTC")
+            else:
+                ts = ts.tz_convert("UTC")
+            expiry[row] = int(np.searchsorted(idx.asi8, ts.value, side="left"))
+    return np.ascontiguousarray(codes), np.ascontiguousarray(values), np.ascontiguousarray(expiry)
+
+
 def _command_tape_fingerprint(compiled_commands: CompiledOrderCommandArrays) -> str:
     """Return the compile-time identity of an immutable primitive tape."""
 
@@ -689,6 +931,105 @@ def _payload_value(payload, key: str):
     if isinstance(payload, Mapping):
         return payload[key]
     return getattr(payload, key)
+
+
+class RustFullRunner:
+    """Prepared full-contract Rust tape runner for explicit Rust execution."""
+
+    def __init__(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market_arrays,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        initial_capital: float,
+        maintenance_ratio: float,
+        slippage: float,
+        use_funding: bool,
+        opens_arr: Optional[np.ndarray] = None,
+        volumes_arr: Optional[np.ndarray] = None,
+        prepared_market_core=None,
+    ) -> None:
+        self.idx = pd.DatetimeIndex(idx)
+        self.symbols = tuple(symbols)
+        self.contract_sizes = np.ascontiguousarray(contract_sizes, dtype=np.float64)
+        self.leverages = np.ascontiguousarray(leverages, dtype=np.float64)
+        self.fee_rates = np.ascontiguousarray(fee_rates, dtype=np.float64)
+        self.initial_capital = float(initial_capital)
+        self.maintenance_ratio = float(maintenance_ratio)
+        self.slippage = float(slippage)
+        self.use_funding = bool(use_funding)
+        if len(self.symbols) == 0 or market_arrays.closes.shape[1] != len(self.symbols):
+            raise NativeEventRustBackendError("full Rust runner symbols do not match prepared market arrays")
+        self._module = _require_r1_extension()
+        status = probe_native_event_rust_extension(module=self._module)
+        required = {
+            "native_event_v2_full_contract", "native_event_v2_multisymbol",
+            "native_event_v2_funding", "native_event_v2_liquidation",
+            "native_event_v2_cancel_all_oco", "native_event_v2_tif_expiry",
+            "native_event_v2_relationships",
+        }
+        missing = sorted(name for name in required if not status.capabilities.get(name, False))
+        if missing:
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks Rust full-contract capabilities: " + ", ".join(missing)
+            )
+        self.prepared_market_core = prepared_market_core
+        if self.prepared_market_core is None:
+            shape = market_arrays.closes.shape
+            zeros = np.zeros(shape, dtype=np.float64)
+            opens = zeros if opens_arr is None else np.ascontiguousarray(opens_arr, dtype=np.float64)
+            volumes = zeros if volumes_arr is None else np.ascontiguousarray(volumes_arr, dtype=np.float64)
+            self.prepared_market_core = self._module.FullPreparedMarketCore(
+                np.ascontiguousarray(self.idx.asi8, dtype=np.int64),
+                opens,
+                np.ascontiguousarray(market_arrays.highs, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.lows, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.closes, dtype=np.float64),
+                volumes,
+                np.ascontiguousarray(market_arrays.funding, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.is_funding_bar, dtype=np.bool_),
+            )
+
+    def _new_session(self):
+        return self._module.FullReactiveSessionCore.from_prepared(
+            self.prepared_market_core,
+            self.contract_sizes,
+            self.leverages,
+            self.fee_rates,
+            self.initial_capital,
+            self.maintenance_ratio,
+            self.slippage,
+            self.use_funding,
+        )
+
+    def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
+        ptr, codes, values, expiry = compile_rust_full_tape(compiled_commands)
+        return self._new_session().run_tape_score(ptr, codes, values, expiry)
+
+    def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
+        ptr, codes, values, expiry = compile_rust_full_tape(compiled_commands)
+        payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
+        keys = (
+            "equity", "positions", "fees", "turnover", "funding", "initial_margin", "maintenance_margin",
+            "fill_bar", "fill_order_id", "fill_symbol", "fill_side", "fill_qty", "fill_price", "fill_fee",
+            "event_bar", "event_kind", "event_status", "event_order_id", "event_target_id", "event_symbol", "event_reject_code",
+        )
+        arrays = {key: np.ascontiguousarray(np.asarray(payload[key])) for key in keys}
+        arrays["positions"] = np.asarray(arrays["positions"], dtype=np.float64).reshape(len(self.idx), len(self.symbols))
+        return RustFullAuditResult(
+            **arrays,
+            total_fee=float(payload["total_fee"]), total_turnover=float(payload["total_turnover"]),
+            total_funding=float(payload["total_funding"]), fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]), rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]), max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]), liquidated=bool(payload["liquidated"]),
+            liquidation_bar=int(payload["liquidation_bar"]), liquidation_reason=int(payload["liquidation_reason"]),
+            id_values=tuple(compiled_commands.id_values),
+        )
 
 
 class RustBatchedRunner:
@@ -1000,12 +1341,16 @@ class RustReactiveSessionAdapter:
         score_requirements=None,
         prepared_market_core=None,
     ) -> None:
-        validate_rust_r1_support(
-            symbols=symbols,
-            constraints=constraints,
-            use_funding=use_funding,
-            maintenance_ratio=maintenance_ratio,
-        )
+        self._module = _require_r1_extension()
+        extension_status = probe_native_event_rust_extension(module=self._module)
+        self._full_contract = bool(extension_status.capabilities.get("native_event_v2_full_contract", False))
+        if not self._full_contract:
+            validate_rust_r1_support(
+                symbols=symbols,
+                constraints=constraints,
+                use_funding=use_funding,
+                maintenance_ratio=maintenance_ratio,
+            )
         self.idx = idx
         self.symbols = list(symbols)
         self.symbols_tuple = tuple(symbols)
@@ -1019,13 +1364,11 @@ class RustReactiveSessionAdapter:
         self.initial_capital = float(initial_capital)
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
-        self.use_funding = False
+        self.use_funding = bool(use_funding)
         self.retain_terminal_orders = bool(retain_terminal_orders)
         self.score_requirements = score_requirements
         self.retain_fill_ledger = bool(score_requirements is None or score_requirements.need_fill_ledger)
         self.retain_event_ledger = bool(score_requirements is None or score_requirements.need_event_ledger)
-        self._module = _require_r1_extension()
-        extension_status = probe_native_event_rust_extension(module=self._module)
         self._r2_capable = bool(extension_status.capabilities.get("r2_stop_amend_replace_reduce_only_constraints", False))
         self._prepared_market_core_capable = bool(extension_status.capabilities.get("prepared_market_core", False))
         if self.constraints.enabled and not self._r2_capable:
@@ -1047,7 +1390,7 @@ class RustReactiveSessionAdapter:
         self.canceled_count = 0
         self.fills_by_bar: dict[int, list[NativeFillEvent]] = {}
         self.events_by_bar: dict[int, list[NativeOrderEvent]] = {}
-        self.current_pos = np.zeros(1, dtype=np.float64)
+        self.current_pos = np.zeros(len(self.symbols), dtype=np.float64)
         self.equity = float(initial_capital)
         self.liquidated = False
         self.liquidation_bar = -1
@@ -1055,7 +1398,7 @@ class RustReactiveSessionAdapter:
         self.processed_bar = -1
         n_bars = len(idx)
         self.equity_path = np.zeros(n_bars, dtype=np.float64)
-        self.pos_path = np.zeros((n_bars, 1), dtype=np.float64)
+        self.pos_path = np.zeros((n_bars, len(self.symbols)), dtype=np.float64)
         self.fee_path = np.zeros(n_bars, dtype=np.float64)
         self.turnover_path = np.zeros(n_bars, dtype=np.float64)
         self.funding_path = np.zeros(n_bars, dtype=np.float64)
@@ -1065,7 +1408,26 @@ class RustReactiveSessionAdapter:
         self.canceled_bar = np.zeros(n_bars, dtype=np.int64)
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = ()
         self.prepared_market_core = prepared_market_core
-        if self._prepared_market_core_capable and hasattr(self._module, "PreparedMarketCore"):
+        if self._full_contract and hasattr(self._module, "FullPreparedMarketCore"):
+            if self.prepared_market_core is None:
+                self.prepared_market_core = self._module.FullPreparedMarketCore(
+                    np.ascontiguousarray(idx.asi8, dtype=np.int64),
+                    np.ascontiguousarray(opens_arr, dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.highs, dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.lows, dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.closes, dtype=np.float64),
+                    np.ascontiguousarray(volumes_arr, dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.funding, dtype=np.float64),
+                    np.ascontiguousarray(market_arrays.is_funding_bar, dtype=np.bool_),
+                )
+            self._core = self._module.FullReactiveSessionCore.from_prepared(
+                self.prepared_market_core,
+                np.ascontiguousarray(self.contract_sizes, dtype=np.float64),
+                np.ascontiguousarray(self.leverages, dtype=np.float64),
+                np.ascontiguousarray(self.fee_rates, dtype=np.float64),
+                float(initial_capital), float(maintenance_ratio), float(slippage), bool(use_funding),
+            )
+        elif self._prepared_market_core_capable and hasattr(self._module, "PreparedMarketCore"):
             if self.prepared_market_core is None:
                 self.prepared_market_core = self._module.PreparedMarketCore(
                     np.ascontiguousarray(idx.asi8, dtype=np.int64),
@@ -1120,11 +1482,12 @@ class RustReactiveSessionAdapter:
         return self._id_values[value] if 0 <= int(value) < len(self._id_values) else None
 
     def _size_order(self, symbol: str, notional: float, price: float, side: OrderSide = OrderSide.BUY) -> float:
-        if symbol != self.symbols[0]:
+        if symbol not in self.symbols:
             raise ValueError(f"unknown symbol={symbol!r}")
         if price <= 0.0:
             raise ValueError("price must be > 0")
-        return abs(float(notional) / (float(price) * float(self.contract_sizes[0])))
+        column = self.symbols.index(symbol)
+        return abs(float(notional) / (float(price) * float(self.contract_sizes[column])))
 
     def _quantize_r2_commands(self, bar: int, commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
         """Apply the canonical quantity filter at the same bar as replay preflight.
@@ -1137,21 +1500,27 @@ class RustReactiveSessionAdapter:
         if not self.constraints.enabled:
             return tuple(commands)
         out: list[OrderCommand] = []
-        close = float(self.market_arrays.closes[int(bar), 0])
         for command in commands:
             if command.action not in (OrderAction.PLACE, OrderAction.REPLACE) or command.qty is None:
                 out.append(command)
                 continue
+            try:
+                column = self.symbols.index(command.symbol)
+            except ValueError as exc:
+                raise NativeEventRustBackendError(
+                    f"quantity preflight received unknown symbol={command.symbol!r}"
+                ) from exc
+            close = float(self.market_arrays.closes[int(bar), column])
             price = float(command.price) if command.price is not None else close
             signed = command.signed_qty
             quantity = abs(
                 quantize_signed_quantity(
                     signed,
                     price,
-                    float(self.contract_sizes[0]),
-                    float(self.constraints.qty_step[0]),
-                    float(self.constraints.min_qty[0]),
-                    float(self.constraints.min_notional[0]),
+                    float(self.contract_sizes[column]),
+                    float(self.constraints.qty_step[column]),
+                    float(self.constraints.min_qty[column]),
+                    float(self.constraints.min_notional[column]),
                 )
             )
             if quantity <= 0.0:
@@ -1191,35 +1560,64 @@ class RustReactiveSessionAdapter:
         for current_bar in range(self.processed_bar + 1, int(bar) + 1):
             commands = self._quantize_r2_commands(current_bar, self.scheduled.pop(current_bar, ()))
             self._require_r2_for_commands(commands)
-            batch = compile_rust_r1_command_batch(
-                commands,
-                symbol=self.symbols[0],
-                intern_id=self._intern_id,
-                buffer=self._command_buffer,
-            )
-            for command in batch.commands:
-                if command.order_id:
-                    self._commands_by_id[command.order_id] = command
-            payload = self._core.step(current_bar, batch.codes, batch.values, batch.expiry)
+            if self._full_contract:
+                full_codes, full_values, full_expiry = compile_rust_full_reactive_batch(
+                    commands,
+                    symbols=self.symbols,
+                    intern_id=self._intern_id,
+                    idx=self.idx,
+                )
+                batch = None
+            else:
+                batch = compile_rust_r1_command_batch(
+                    commands,
+                    symbol=self.symbols[0],
+                    intern_id=self._intern_id,
+                    buffer=self._command_buffer,
+                )
+            if self._full_contract:
+                for command in commands:
+                    if command.order_id:
+                        self._commands_by_id[command.order_id] = command
+                payload = self._core.step(current_bar, full_codes, full_values, full_expiry)
+            else:
+                for command in batch.commands:
+                    if command.order_id:
+                        self._commands_by_id[command.order_id] = command
+                payload = self._core.step(current_bar, batch.codes, batch.values, batch.expiry)
             self._consume_step(current_bar, payload)
             self.processed_bar = current_bar
 
     def _consume_step(self, bar: int, payload) -> None:
         self.equity = float(payload["equity"])
-        self.current_pos[0] = float(payload["position"])
+        if self._full_contract:
+            self.current_pos[:] = np.asarray(payload["positions"], dtype=np.float64)
+        else:
+            self.current_pos[0] = float(payload["position"])
         self.equity_path[bar] = self.equity
-        self.pos_path[bar, 0] = self.current_pos[0]
+        self.pos_path[bar, :] = self.current_pos
         self.fee_path[bar] = float(payload["fee"])
         self.turnover_path[bar] = float(payload["turnover"])
+        if self._full_contract:
+            self.funding_path[bar] = float(payload["funding"])
         self.initial_margin_path[bar] = float(payload["initial_margin"])
         self.maintenance_margin_path[bar] = float(payload["maintenance_margin"])
+        self.liquidated = bool(payload.get("liquidated", False))
+        self.liquidation_bar = int(payload.get("liquidation_bar", -1))
+        self.liquidation_reason = int(payload.get("liquidation_reason", 0))
         fills = []
-        for order_code, side_sign, qty, price, fee in payload["fills"]:
+        for fill_row in payload["fills"]:
+            if self._full_contract:
+                order_code, symbol_code, side_sign, qty, price, fee = fill_row
+                symbol = self.symbols[int(symbol_code)]
+            else:
+                order_code, side_sign, qty, price, fee = fill_row
+                symbol = self.symbols[0]
             order_id = self._id_from_code(int(order_code))
             command = self._commands_by_id.get(order_id or "")
             fill = NativeFillEvent(
                 timestamp=self.idx[bar],
-                symbol=self.symbols[0],
+                symbol=symbol,
                 side=OrderSide.BUY if int(side_sign) > 0 else OrderSide.SELL,
                 qty=float(qty),
                 price=float(price),
@@ -1235,8 +1633,16 @@ class RustReactiveSessionAdapter:
         if fills:
             self.fills_by_bar[bar] = fills
         events = []
-        for event_kind, status, order_code, target_code in payload["events"]:
-            name = {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}.get(
+        for event_row in payload["events"]:
+            if self._full_contract:
+                event_kind, status, order_code, target_code, symbol_code = event_row[:5]
+                reject_code = int(event_row[5]) if len(event_row) > 5 else 0
+                event_symbol = None if int(symbol_code) < 0 else self.symbols[int(symbol_code)]
+            else:
+                event_kind, status, order_code, target_code = event_row
+                reject_code = 0
+                event_symbol = None
+            name = ({0: "place", 1: "cancel", 2: "replace", 3: "amend", 4: "fill", 5: "expire", 6: "activate", 7: "reject"} if self._full_contract else {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}).get(
                 int(event_kind), "reject"
             )
             if name == "reject":
@@ -1252,6 +1658,7 @@ class RustReactiveSessionAdapter:
                 status=int(status),
                 order_id=self._id_from_code(int(order_code)),
                 target_order_id=self._id_from_code(int(target_code)),
+                metadata={"reject_code": reject_code},
             )
             events.append(event)
             self.event_count += 1
@@ -1261,8 +1668,21 @@ class RustReactiveSessionAdapter:
             self.events_by_bar[bar] = events
         pending = []
         snapshots = []
-        for order_code, side_sign, order_type, qty, price, trigger_price, flags in payload["active_orders"]:
+        for active_row in payload["active_orders"]:
+            if self._full_contract:
+                order_code, symbol_code, side_sign, order_type, qty, price, trigger_price, tif, flags, parent, group, oco, activation, waiting_parent = active_row
+                active_symbol = self.symbols[int(symbol_code)]
+                parent_order_id = self._id_from_code(int(parent))
+                group_id = self._id_from_code(int(group))
+                oco_group_id = self._id_from_code(int(oco))
+            else:
+                order_code, side_sign, order_type, qty, price, trigger_price, flags = active_row
+                active_symbol = self.symbols[0]
+                parent_order_id = None
+                group_id = None
+                oco_group_id = None
             order_id = self._id_from_code(int(order_code))
+            command = self._commands_by_id.get(order_id or "")
             side = OrderSide.BUY if int(side_sign) > 0 else OrderSide.SELL
             kind = {
                 _R1_ORDER_MARKET: OrderType.MARKET,
@@ -1285,7 +1705,7 @@ class RustReactiveSessionAdapter:
             snapshots.append(
                 NativeActiveOrderSnapshot(
                     order_id=order_id,
-                    symbol=self.symbols[0],
+                    symbol=active_symbol,
                     side=side.value,
                     order_type=kind.value,
                     status=ORDER_STATUS_PENDING,
@@ -1293,6 +1713,13 @@ class RustReactiveSessionAdapter:
                     price=float(price),
                     trigger_price=float(trigger_price),
                     reduce_only=reduce_only,
+                    parent_order_id=parent_order_id,
+                    group_id=group_id,
+                    oco_group_id=oco_group_id,
+                    tag=None if command is None else command.tag,
+                    campaign_id=None if command is None else command.metadata.get("campaign_id"),
+                    cycle_id=None if command is None else command.metadata.get("cycle_id"),
+                    level_id=None if command is None else command.metadata.get("level_id"),
                 )
             )
         self.pending = pending
@@ -1316,11 +1743,11 @@ class RustReactiveSessionAdapter:
             available_equity=float(self.equity - self.initial_margin_path[int(bar)]),
             initial_margin=float(self.initial_margin_path[int(bar)]),
             maintenance_margin=float(self.maintenance_margin_path[int(bar)]),
-            positions={self.symbols[0]: float(self.current_pos[0])},
+            positions={symbol: float(self.current_pos[col]) for col, symbol in enumerate(self.symbols)},
             fills_this_bar=tuple(self.fills_by_bar.get(int(bar), ())),
             order_events_this_bar=tuple(self.events_by_bar.get(int(bar), ())),
             active_orders=self._active_snapshot_cache,
-            liquidated=False,
+            liquidated=bool(self.liquidated),
             symbols=self.symbols_tuple,
             size_order=self.size_helper,
         )
@@ -1334,12 +1761,16 @@ __all__ = [
     "RustCommandBatch",
     "RustCommandBuffer",
     "RustBatchedAuditResult",
+    "RustFullAuditResult",
     "RustBatchedChunkResult",
     "RustBatchedRunner",
+    "RustFullRunner",
     "RustBatchedScoreResult",
     "RustBatchedSession",
     "RustReactiveSessionAdapter",
     "compile_rust_batched_tape",
+    "compile_rust_full_tape",
+    "compile_rust_full_reactive_batch",
     "compile_rust_r1_command_batch",
     "probe_native_event_rust_extension",
     "resolve_native_event_backend",

@@ -116,6 +116,7 @@ from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
     RustBatchedRunner,
+    RustFullRunner,
     RustReactiveSessionAdapter,
     resolve_native_event_backend,
 )
@@ -1545,6 +1546,7 @@ class NativeEventBackend:
         closes: Dict[str, pd.Series],
         highs: Optional[Dict[str, pd.Series]] = None,
         lows: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
         *,
         symbols: Optional[Sequence[str]] = None,
         contract_size: float = 1.0,
@@ -1554,15 +1556,14 @@ class NativeEventBackend:
         maintenance_ratio: Optional[float] = None,
         slippage: Optional[float] = None,
         prepared_market_core=None,
-    ) -> RustBatchedRunner:
+    ) -> RustFullRunner:
         """Prepare the explicit experimental Rust full-tape runner.
 
         This helper does not change endpoint defaults and never accepts a
-        Python strategy callback.  Callers must compile a static
-        ``OrderCommand`` tape with :meth:`compile_order_commands`, then pass
-        that tape to ``run_tape_score`` or ``run_tape_audit``.  Unsupported
-        funding, liquidation, quantity-constraint and package semantics fail
-        explicitly in ``RustBatchedRunner``.
+        Python strategy callback. Callers compile a static ``OrderCommand``
+        tape once and pass it to ``run_tape_score`` or ``run_tape_audit``.
+        The selected Rust 0.4 full-contract capability set is checked before
+        crossing the boundary.
         """
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
@@ -1571,19 +1572,23 @@ class NativeEventBackend:
             closes=closes,
             highs=highs,
             lows=lows,
-            funding_rate=0.0,
+            funding_rate=funding_rate if self.config.use_funding else 0.0,
             symbols=symbol_list,
         )
         configured_fee = self.config.fee_rate
         if isinstance(configured_fee, dict):
             configured_fee = configured_fee.get(symbol_list[0], 0.0)
-        return RustBatchedRunner(
+        return RustFullRunner(
             idx=idx,
             symbols=symbol_list,
             market_arrays=market_arrays,
-            contract_size=float(contract_size),
-            leverage=float(self.config.account.leverage if leverage is None else leverage),
-            fee_rate=float(configured_fee if fee_rate is None else fee_rate),
+            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0),
+            leverages=self._per_symbol_array(
+                self.config.account.leverage if leverage is None else leverage,
+                symbol_list,
+                default=self.config.account.leverage,
+            ),
+            fee_rates=self._per_symbol_array(configured_fee if fee_rate is None else fee_rate, symbol_list, default=0.0),
             initial_capital=float(
                 self.config.account.initial_capital if initial_capital is None else initial_capital
             ),
@@ -1591,7 +1596,7 @@ class NativeEventBackend:
                 self.config.account.maintenance_ratio if maintenance_ratio is None else maintenance_ratio
             ),
             slippage=float(self.config.execution.slippage_rate if slippage is None else slippage),
-            use_funding=False,
+            use_funding=bool(self.config.use_funding),
             prepared_market_core=prepared_market_core,
         )
 
@@ -1704,21 +1709,20 @@ class NativeEventBackend:
             min_notional=min_notional,
         )
         if self._backend_selection.resolved == "rust" and not _force_python_backend:
-            if len(symbol_list) != 1:
+            status = self._backend_selection.extension
+            required = {
+                "native_event_v2_full_contract",
+                "native_event_v2_multisymbol",
+                "native_event_v2_funding",
+                "native_event_v2_liquidation",
+                "native_event_v2_cancel_all_oco",
+                "native_event_v2_tif_expiry",
+                "native_event_v2_relationships",
+            }
+            missing = sorted(name for name in required if not status.capabilities.get(name, False))
+            if missing:
                 raise NativeEventRustBackendError(
-                    "native_backend='rust' supports one-symbol batched tapes only"
-                )
-            if self.config.use_funding:
-                raise NativeEventRustBackendError(
-                    "native_backend='rust' batched tapes do not support funding; use native_backend='python'"
-                )
-            if float(self.config.account.maintenance_ratio) != 0.0:
-                raise NativeEventRustBackendError(
-                    "native_backend='rust' batched tapes do not support liquidation; use maintenance_ratio=0.0"
-                )
-            if constraints.enabled:
-                raise NativeEventRustBackendError(
-                    "native_backend='rust' batched tapes do not support quantity constraints; use native_backend='python'"
+                    "native_backend='rust' requires full-contract capabilities: " + ", ".join(missing)
                 )
         effective_commands, quantity_preflight = self._apply_command_quantity_constraints(
             idx=idx,
@@ -1755,31 +1759,32 @@ class NativeEventBackend:
             )
             configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
             fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
-            runner = RustBatchedRunner(
+            runner = RustFullRunner(
                 idx=idx,
                 symbols=symbol_list,
                 market_arrays=market_arrays,
-                contract_size=float(contract_sizes[0]),
-                leverage=float(leverages[0]),
-                fee_rate=float(fee_rates[0]),
+                contract_sizes=contract_sizes,
+                leverages=leverages,
+                fee_rates=fee_rates,
                 initial_capital=float(self.config.account.initial_capital),
-                maintenance_ratio=0.0,
+                maintenance_ratio=float(self.config.account.maintenance_ratio),
                 slippage=float(self.config.execution.slippage_rate),
-                use_funding=False,
+                use_funding=bool(self.config.use_funding),
             )
             audit = runner.run_tape_audit(compiled_commands)
             result = audit.to_backtest_result(
                 datetime_index=idx,
-                closes=closes[symbol_list[0]],
-                symbol=symbol_list[0],
+                closes=pd.DataFrame({symbol: market_arrays.closes[:, col] for col, symbol in enumerate(symbol_list)}, index=idx),
+                symbols=symbol_list,
                 initial_capital=float(self.config.account.initial_capital),
-                leverage=float(leverages[0]),
+                leverage=float(np.mean(leverages)),
                 metadata={
                     **self._backend_selection_metadata(),
                     "quantity_preflight": quantity_preflight,
                     "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
                     "slippage_bps": self.config.execution.slippage_bps,
-                    "rust_tape_cache_bytes": runner.tape_cache_bytes,
+                    "rust_contract": "native_event_v2_full_contract",
+                    "use_funding": bool(self.config.use_funding),
                 },
             )
             return result
@@ -2462,6 +2467,79 @@ class NativeEventBackend:
         funding_enabled = bool(self.config.use_funding if use_funding is None else use_funding)
         if initial <= 0.0 or maint < 0.0 or slip < 0.0 or np.any(contract_sizes <= 0.0) or np.any(leverages <= 0.0):
             raise ValueError("invalid scalar score account or execution configuration")
+
+        if self._backend_selection.resolved == "rust":
+            runner = RustFullRunner(
+                idx=idx,
+                symbols=symbol_list,
+                market_arrays=market_arrays,
+                contract_sizes=contract_sizes,
+                leverages=leverages,
+                fee_rates=fee_rates,
+                initial_capital=initial,
+                maintenance_ratio=maint,
+                slippage=slip,
+                use_funding=funding_enabled,
+            )
+            payload = runner.run_tape_score(compiled_commands)
+            equity = np.ascontiguousarray(np.asarray(payload["equity"], dtype=np.float64))
+            positions = np.ascontiguousarray(np.asarray(payload["positions"], dtype=np.float64))
+            returns = np.zeros_like(equity)
+            if len(equity) > 1:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    returns[1:] = equity[1:] / equity[:-1] - 1.0
+                returns[~np.isfinite(returns)] = 0.0
+            from ..metrics.performance import compute_performance_metrics
+
+            metrics = compute_performance_metrics(
+                timestamps=idx,
+                equity=equity,
+                returns=returns,
+                positions=positions,
+                symbols=tuple(symbol_list),
+                initial_capital=initial,
+                liquidated=bool(payload["liquidated"]),
+                trading_days=int(trading_days),
+            )
+            metadata = {
+                "backend": "native_event",
+                "engine": "event_v2_compiled_tape_scalar_rust_full",
+                "report_level": "score",
+                "score_pandas_materialized": False,
+                "score_full_ledgers_materialized": False,
+                "compiled_tape_commands": int(compiled_commands.n_commands),
+                "compiled_tape_symbols": tuple(symbol_list),
+                "use_funding": funding_enabled,
+                "total_fee": float(payload["total_fee"]),
+                "total_funding": float(payload["total_funding"]),
+                "total_turnover": float(payload["total_turnover"]),
+                "lifecycle_counters": {
+                    "fill_count": int(payload["fill_count"]),
+                    "event_count": int(payload["event_count"]),
+                    "rejected_count": int(payload["rejected_count"]),
+                    "canceled_count": int(payload["canceled_count"]),
+                },
+                "trading_days": int(trading_days),
+                "rust_contract": "native_event_v2_full_contract",
+            }
+            metrics.update({
+                "total_fee": float(payload["total_fee"]),
+                "total_funding": float(payload["total_funding"]),
+                "total_turnover": float(payload["total_turnover"]),
+                "max_initial_margin": float(payload["max_initial_margin"]),
+                "max_maintenance_margin": float(payload["max_maintenance_margin"]),
+            })
+            return NativeEventScalarScoreResult(
+                final_equity=float(payload["final_equity"]),
+                final_positions=np.asarray(payload["final_positions"], dtype=np.float64),
+                fill_count=int(payload["fill_count"]),
+                rejection_count=int(payload["rejected_count"]),
+                cancellation_count=int(payload["canceled_count"]),
+                liquidated=bool(payload["liquidated"]),
+                liquidation_bar=int(payload["liquidation_bar"]),
+                metrics=metrics,
+                metadata=metadata,
+            )
 
         requirements = NativeEventScoreRequirements(
             need_trade_stats=True,

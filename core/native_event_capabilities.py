@@ -4,7 +4,9 @@ The Rust extension exposes a low-level capability map whose names are tied to
 its release history (for example ``rust_batched_tape``).  Public selectors,
 tests, and documentation need a stable vocabulary instead.  This module is
 the single Python-side source of truth for the currently certified
-single-symbol R2 surface.
+single-symbol R2 surface. Full-contract 0.4 flags are additive and only
+normalize to the wider vocabulary when the extension advertises the complete
+capability gate.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from types import MappingProxyType
 from typing import Mapping
 
 
-NATIVE_EVENT_CAPABILITY_MATRIX_VERSION = "single-symbol-r2-0.3"
+NATIVE_EVENT_CAPABILITY_MATRIX_VERSION = "full-contract-v2-0.4"
 
 _CAPABILITIES = {
     "single_symbol": True,
@@ -30,14 +32,14 @@ _CAPABILITIES = {
     "reduce_only": True,
     "quantity_constraints": True,
     "gtc": True,
-    "gtd": False,
-    "ioc": False,
-    "fok": False,
-    "parent_child": False,
-    "oco": False,
-    "funding": False,
-    "liquidation": False,
-    "multi_symbol": False,
+    "gtd": True,
+    "ioc": True,
+    "fok": True,
+    "parent_child": True,
+    "oco": True,
+    "funding": True,
+    "liquidation": True,
+    "multi_symbol": True,
 }
 
 NATIVE_EVENT_CAPABILITY_MATRIX: Mapping[str, bool] = MappingProxyType(_CAPABILITIES)
@@ -73,20 +75,31 @@ def normalize_native_event_capabilities(raw: Mapping[str, object] | None) -> dic
     place_cancel = source.get("r1_place_cancel_market_limit_gtc", False)
     r2 = source.get("r2_stop_amend_replace_reduce_only_constraints", False)
     batched = source.get("rust_batched_tape", False) or source.get("rust_batched_tape_audit", False)
+    full = source.get("native_event_v2_full_contract", False)
 
     normalized = native_event_capability_matrix()
-    normalized["single_symbol"] = bool(lifecycle or batched)
-    normalized["market"] = bool(place_cancel or batched)
-    normalized["limit"] = bool(place_cancel or batched)
-    normalized["stop_market"] = bool(r2)
-    normalized["stop_limit"] = bool(r2)
-    normalized["place"] = bool(place_cancel or batched)
-    normalized["cancel"] = bool(place_cancel or batched)
-    normalized["amend"] = bool(r2)
-    normalized["replace"] = bool(r2)
-    normalized["reduce_only"] = bool(r2)
-    normalized["quantity_constraints"] = bool(r2)
-    normalized["gtc"] = bool(place_cancel or batched)
+    normalized["single_symbol"] = bool(full or lifecycle or batched)
+    normalized["market"] = bool(full or place_cancel or batched)
+    normalized["limit"] = bool(full or place_cancel or batched)
+    normalized["stop_market"] = bool(full or r2)
+    normalized["stop_limit"] = bool(full or r2)
+    normalized["place"] = bool(full or place_cancel or batched)
+    normalized["cancel"] = bool(full or place_cancel or batched)
+    normalized["amend"] = bool(full or r2)
+    normalized["replace"] = bool(full or r2)
+    normalized["reduce_only"] = bool(full or r2)
+    normalized["quantity_constraints"] = bool(full or r2)
+    normalized["gtc"] = bool(full or place_cancel or batched)
+    if full:
+        normalized.update({
+            "gtd": True, "ioc": True, "fok": True, "parent_child": True,
+            "oco": True, "funding": True, "liquidation": True, "multi_symbol": True,
+        })
+    else:
+        normalized.update({
+            "gtd": False, "ioc": False, "fok": False, "parent_child": False,
+            "oco": False, "funding": False, "liquidation": False, "multi_symbol": False,
+        })
     return normalized
 
 

@@ -20,6 +20,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
+| Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
 
 ## Strategy Route Map
 

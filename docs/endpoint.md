@@ -1071,14 +1071,21 @@ bt = QuantBTEndpoint.orders(
 ```
 
 `python` is the full-featured canonical reactive backend. `rust` is explicit
-and fail-fast: it currently accepts only certified single-symbol static
-`OrderCommand` tapes without funding, liquidation, or quantity constraints.
-`auto` remains Python for the release policy; it never silently activates an
-experimental Rust wheel. `replay_certified` is the deterministic audit
-oracle. Rust audit results are adapted to `BacktestResultV2`, so the normal
-`show_metrics()`, `full_report()`, `quick_plot()`, and `tearsheet()` helpers
-remain available. The score path does not materialize report DataFrames; rerun
-the selected tape at audit level when full evidence is required.
+and fail-fast: with the installed API `0.4` full-contract wheel it supports
+the same Native Event V2 lifecycle surface used by this endpoint, including
+multi-symbol tapes, funding, maintenance/liquidation, quantity preflight,
+MARKET/LIMIT/STOP orders, GTC/GTD/IOC/FOK, amend/replace/cancel-all, and
+parent/group/OCO relationships. A wheel without the required capability keys
+raises a capability error; it is never silently downgraded to Python.
+`auto` remains Python for the release policy and does not activate Rust yet.
+`replay_certified` is the deterministic audit oracle. Rust audit results are
+adapted to `BacktestResultV2`, so the normal `show_metrics()`, `full_report()`,
+`quick_plot()`, and `tearsheet()` helpers remain available. The score path
+crosses the PyO3 boundary with typed arrays and does not build pandas report
+frames; rerun the selected tape at audit level when full evidence is required.
+
+The complete Phase 47B contract and conformance evidence are documented in
+[`native_event_rust_full_contract.md`](native_event_rust_full_contract.md).
 
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving

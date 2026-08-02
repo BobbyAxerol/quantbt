@@ -1,4 +1,5 @@
 mod accounting;
+mod full;
 mod matching;
 mod session;
 mod types;
@@ -9,9 +10,10 @@ use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
 use session::{PreparedMarketData, ReactiveSession};
+use full::{FullMarketData, FullSession};
 
 const VERSION: &str = "0.3.0";
-const API_VERSION: &str = "0.3";
+const API_VERSION: &str = "0.4";
 
 #[pyfunction]
 fn version() -> &'static str {
@@ -36,6 +38,14 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("rust_batched_tape_score", true)?;
     values.set_item("rust_batched_tape_audit", true)?;
     values.set_item("rust_batched_tape_sparse", true)?;
+    values.set_item("native_event_v2_full_contract", true)?;
+    values.set_item("native_event_v2_multisymbol", true)?;
+    values.set_item("native_event_v2_funding", true)?;
+    values.set_item("native_event_v2_liquidation", true)?;
+    values.set_item("native_event_v2_cancel_all_oco", true)?;
+    values.set_item("native_event_v2_tif_expiry", true)?;
+    values.set_item("native_event_v2_relationships", true)?;
+    values.set_item("native_event_v2_quantity_preflight", true)?;
     Ok(values)
 }
 
@@ -808,6 +818,362 @@ struct SparseTapeOutput {
     event_target_id: Vec<i64>,
 }
 
+#[pyclass]
+struct FullPreparedMarketCore {
+    inner: Arc<FullMarketData>,
+}
+
+#[pymethods]
+impl FullPreparedMarketCore {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        timestamps_ns: PyReadonlyArray1<'_, i64>,
+        opens: PyReadonlyArray2<'_, f64>,
+        highs: PyReadonlyArray2<'_, f64>,
+        lows: PyReadonlyArray2<'_, f64>,
+        closes: PyReadonlyArray2<'_, f64>,
+        volumes: PyReadonlyArray2<'_, f64>,
+        funding: PyReadonlyArray2<'_, f64>,
+        funding_mask: PyReadonlyArray1<'_, bool>,
+    ) -> PyResult<Self> {
+        let shapes = [
+            opens.shape(), highs.shape(), lows.shape(), closes.shape(),
+            volumes.shape(), funding.shape(),
+        ];
+        if shapes.iter().any(|shape| shape.len() != 2 || *shape != closes.shape()) {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full OHLCV/funding arrays must share shape (n_bars, n_symbols)",
+            ));
+        }
+        let market = FullMarketData::new(
+            timestamps_ns.as_slice()?.to_vec(),
+            opens.as_slice()?.to_vec(),
+            highs.as_slice()?.to_vec(),
+            lows.as_slice()?.to_vec(),
+            closes.as_slice()?.to_vec(),
+            volumes.as_slice()?.to_vec(),
+            funding.as_slice()?.to_vec(),
+            funding_mask.as_slice()?.to_vec(),
+            closes.shape()[1],
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner: Arc::new(market) })
+    }
+
+    #[getter]
+    fn bars(&self) -> usize { self.inner.n_bars }
+
+    #[getter]
+    fn symbols(&self) -> usize { self.inner.n_symbols }
+}
+
+#[pyclass]
+struct FullReactiveSessionCore {
+    inner: FullSession,
+}
+
+#[pymethods]
+impl FullReactiveSessionCore {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        timestamps_ns: PyReadonlyArray1<'_, i64>,
+        opens: PyReadonlyArray2<'_, f64>,
+        highs: PyReadonlyArray2<'_, f64>,
+        lows: PyReadonlyArray2<'_, f64>,
+        closes: PyReadonlyArray2<'_, f64>,
+        volumes: PyReadonlyArray2<'_, f64>,
+        funding: PyReadonlyArray2<'_, f64>,
+        funding_mask: PyReadonlyArray1<'_, bool>,
+        contract_sizes: PyReadonlyArray1<'_, f64>,
+        leverages: PyReadonlyArray1<'_, f64>,
+        fee_rates: PyReadonlyArray1<'_, f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+    ) -> PyResult<Self> {
+        let prepared = FullPreparedMarketCore::new(
+            timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask,
+        )?;
+        let inner = FullSession::new(
+            (*prepared.inner).clone(),
+            contract_sizes.as_slice()?.to_vec(),
+            leverages.as_slice()?.to_vec(),
+            fee_rates.as_slice()?.to_vec(),
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    #[classmethod]
+    #[allow(clippy::too_many_arguments)]
+    fn from_prepared(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<FullPreparedMarketCore>,
+        contract_sizes: PyReadonlyArray1<'_, f64>,
+        leverages: PyReadonlyArray1<'_, f64>,
+        fee_rates: PyReadonlyArray1<'_, f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let inner = FullSession::new(
+            (*market).clone(),
+            contract_sizes.as_slice()?.to_vec(),
+            leverages.as_slice()?.to_vec(),
+            fee_rates.as_slice()?.to_vec(),
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    fn step(
+        &mut self,
+        py: Python<'_>,
+        bar_index: usize,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+    ) -> PyResult<Py<PyDict>> {
+        let codes_shape = command_codes.shape();
+        let values_shape = command_values.shape();
+        if codes_shape.len() != 2 || codes_shape[1] != full::CODE_WIDTH {
+            return Err(pyo3::exceptions::PyValueError::new_err("full command_codes must have shape (n, 16)"));
+        }
+        if values_shape.len() != 2 || values_shape[0] != codes_shape[0] || values_shape[1] != full::VALUE_WIDTH {
+            return Err(pyo3::exceptions::PyValueError::new_err("full command_values must have shape (n, 3)"));
+        }
+        if command_expiry.len() != codes_shape[0] {
+            return Err(pyo3::exceptions::PyValueError::new_err("command_expiry must have length n"));
+        }
+        let result = self.inner.step(
+            bar_index,
+            command_codes.as_slice()?,
+            command_values.as_slice()?,
+            command_expiry.as_slice()?,
+            codes_shape[0],
+        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        full_step_payload(py, result)
+    }
+
+    fn reset(&mut self) { self.inner.reset(); }
+
+    fn run_tape_score(
+        &mut self,
+        py: Python<'_>,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+    ) -> PyResult<Py<PyDict>> {
+        let output = run_full_tape(
+            &mut self.inner,
+            command_ptr.as_slice()?,
+            command_codes.as_slice()?,
+            command_codes.shape(),
+            command_values.as_slice()?,
+            command_values.shape(),
+            command_expiry.as_slice()?,
+            true,
+        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let payload = PyDict::new(py);
+        payload.set_item("final_equity", output.final_equity)?;
+        payload.set_item("final_positions", output.final_positions)?;
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("total_fee", output.total_fee)?;
+        payload.set_item("total_turnover", output.total_turnover)?;
+        payload.set_item("total_funding", output.total_funding)?;
+        payload.set_item("fill_count", output.fill_count)?;
+        payload.set_item("event_count", output.event_count)?;
+        payload.set_item("rejected_count", output.rejected_count)?;
+        payload.set_item("canceled_count", output.canceled_count)?;
+        payload.set_item("max_initial_margin", output.max_initial_margin)?;
+        payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+        payload.set_item("liquidated", output.liquidated)?;
+        payload.set_item("liquidation_bar", output.liquidation_bar)?;
+        payload.set_item("liquidation_reason", output.liquidation_reason)?;
+        payload.set_item("bars", self.inner.market.n_bars)?;
+        Ok(payload.unbind())
+    }
+
+    fn run_tape_audit(
+        &mut self,
+        py: Python<'_>,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+    ) -> PyResult<Py<PyDict>> {
+        let output = run_full_tape(
+            &mut self.inner,
+            command_ptr.as_slice()?,
+            command_codes.as_slice()?,
+            command_codes.shape(),
+            command_values.as_slice()?,
+            command_values.shape(),
+            command_expiry.as_slice()?,
+            true,
+        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let payload = PyDict::new(py);
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("fees", output.fees)?;
+        payload.set_item("turnover", output.turnover)?;
+        payload.set_item("funding", output.funding)?;
+        payload.set_item("initial_margin", output.initial_margin)?;
+        payload.set_item("maintenance_margin", output.maintenance_margin)?;
+        payload.set_item("fill_bar", output.fill_bar)?;
+        payload.set_item("fill_order_id", output.fill_order_id)?;
+        payload.set_item("fill_symbol", output.fill_symbol)?;
+        payload.set_item("fill_side", output.fill_side)?;
+        payload.set_item("fill_qty", output.fill_qty)?;
+        payload.set_item("fill_price", output.fill_price)?;
+        payload.set_item("fill_fee", output.fill_fee)?;
+        payload.set_item("event_bar", output.event_bar)?;
+        payload.set_item("event_kind", output.event_kind)?;
+        payload.set_item("event_status", output.event_status)?;
+        payload.set_item("event_order_id", output.event_order_id)?;
+        payload.set_item("event_target_id", output.event_target_id)?;
+        payload.set_item("event_symbol", output.event_symbol)?;
+        payload.set_item("event_reject_code", output.event_reject_code)?;
+        payload.set_item("total_fee", output.total_fee)?;
+        payload.set_item("total_turnover", output.total_turnover)?;
+        payload.set_item("total_funding", output.total_funding)?;
+        payload.set_item("fill_count", output.fill_count)?;
+        payload.set_item("event_count", output.event_count)?;
+        payload.set_item("rejected_count", output.rejected_count)?;
+        payload.set_item("canceled_count", output.canceled_count)?;
+        payload.set_item("max_initial_margin", output.max_initial_margin)?;
+        payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+        payload.set_item("liquidated", output.liquidated)?;
+        payload.set_item("liquidation_bar", output.liquidation_bar)?;
+        payload.set_item("liquidation_reason", output.liquidation_reason)?;
+        payload.set_item("bars", self.inner.market.n_bars)?;
+        Ok(payload.unbind())
+    }
+}
+
+fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    payload.set_item("equity", result.equity)?;
+    payload.set_item("positions", result.positions)?;
+    payload.set_item("fee", result.fee)?;
+    payload.set_item("turnover", result.turnover)?;
+    payload.set_item("funding", result.funding)?;
+    payload.set_item("initial_margin", result.initial_margin)?;
+    payload.set_item("maintenance_margin", result.maintenance_margin)?;
+    payload.set_item("liquidated", result.liquidated)?;
+    payload.set_item("liquidation_bar", result.liquidation_bar)?;
+    payload.set_item("liquidation_reason", result.liquidation_reason)?;
+    payload.set_item("fills", result.fills)?;
+    payload.set_item("events", result.events)?;
+    payload.set_item("active_orders", result.active_orders)?;
+    payload.set_item("rejected_count", result.rejected_count)?;
+    payload.set_item("canceled_count", result.canceled_count)?;
+    Ok(payload.unbind())
+}
+
+struct FullTapeOutput {
+    equity: Vec<f64>,
+    positions: Vec<Vec<f64>>,
+    fees: Vec<f64>,
+    turnover: Vec<f64>,
+    funding: Vec<f64>,
+    initial_margin: Vec<f64>,
+    maintenance_margin: Vec<f64>,
+    fill_bar: Vec<i64>,
+    fill_order_id: Vec<i64>,
+    fill_symbol: Vec<i64>,
+    fill_side: Vec<i64>,
+    fill_qty: Vec<f64>,
+    fill_price: Vec<f64>,
+    fill_fee: Vec<f64>,
+    event_bar: Vec<i64>,
+    event_kind: Vec<i64>,
+    event_status: Vec<i64>,
+    event_order_id: Vec<i64>,
+    event_target_id: Vec<i64>,
+    event_symbol: Vec<i64>,
+    event_reject_code: Vec<i64>,
+    final_equity: f64,
+    final_positions: Vec<f64>,
+    total_fee: f64,
+    total_turnover: f64,
+    total_funding: f64,
+    fill_count: i64,
+    event_count: i64,
+    rejected_count: i64,
+    canceled_count: i64,
+    max_initial_margin: f64,
+    max_maintenance_margin: f64,
+    liquidated: bool,
+    liquidation_bar: i64,
+    liquidation_reason: i64,
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_full_tape(
+    session: &mut FullSession,
+    ptr: &[i64],
+    codes: &[i64],
+    codes_shape: &[usize],
+    values: &[f64],
+    values_shape: &[usize],
+    expiry: &[i64],
+    audit: bool,
+) -> Result<FullTapeOutput, String> {
+    if ptr.len() != session.market.n_bars + 1 || codes_shape.len() != 2 || codes_shape[1] != full::CODE_WIDTH || values_shape.len() != 2 || values_shape[0] != codes_shape[0] || values_shape[1] != full::VALUE_WIDTH || expiry.len() != codes_shape[0] {
+        return Err("invalid full tape shapes".to_owned());
+    }
+    let n_commands = codes_shape[0] as i64;
+    if ptr.first().copied().unwrap_or(-1) != 0 || ptr.last().copied().unwrap_or(-1) != n_commands || ptr.windows(2).any(|pair| pair[1] < pair[0] || pair[1] > n_commands) {
+        return Err("command_ptr must be monotonic and bounded".to_owned());
+    }
+    if codes.len() != codes_shape[0] * full::CODE_WIDTH || values.len() != values_shape[0] * full::VALUE_WIDTH {
+        return Err("full command buffers are not contiguous".to_owned());
+    }
+    let n_bars = session.market.n_bars;
+    let mut output = FullTapeOutput {
+        equity: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        positions: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        fees: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        turnover: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        funding: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        initial_margin: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        maintenance_margin: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
+        fill_bar: Vec::new(), fill_order_id: Vec::new(), fill_symbol: Vec::new(), fill_side: Vec::new(), fill_qty: Vec::new(), fill_price: Vec::new(), fill_fee: Vec::new(),
+        event_bar: Vec::new(), event_kind: Vec::new(), event_status: Vec::new(), event_order_id: Vec::new(), event_target_id: Vec::new(), event_symbol: Vec::new(), event_reject_code: Vec::new(),
+        final_equity: session.equity, final_positions: session.positions.clone(), total_fee: 0.0, total_turnover: 0.0, total_funding: 0.0, fill_count: 0, event_count: 0, rejected_count: 0, canceled_count: 0, max_initial_margin: 0.0, max_maintenance_margin: 0.0, liquidated: false, liquidation_bar: -1, liquidation_reason: full::LIQ_NONE,
+    };
+    for bar in 0..n_bars {
+        let start = ptr[bar] as usize;
+        let end = ptr[bar + 1] as usize;
+        let step = session.step(bar, &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH], &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH], &expiry[start..end], end - start)?;
+        if audit {
+            output.equity.push(step.equity); output.positions.push(step.positions.clone()); output.fees.push(step.fee); output.turnover.push(step.turnover); output.funding.push(step.funding); output.initial_margin.push(step.initial_margin); output.maintenance_margin.push(step.maintenance_margin);
+        }
+        output.final_equity = step.equity; output.final_positions = step.positions; output.total_fee += step.fee; output.total_turnover += step.turnover; output.total_funding += step.funding; output.rejected_count += step.rejected_count; output.canceled_count += step.canceled_count;
+        for fill in step.fills { output.fill_count += 1; if audit { output.fill_bar.push(bar as i64); output.fill_order_id.push(fill[0] as i64); output.fill_symbol.push(fill[1] as i64); output.fill_side.push(fill[2] as i64); output.fill_qty.push(fill[3]); output.fill_price.push(fill[4]); output.fill_fee.push(fill[5]); } }
+        for event in step.events { output.event_count += 1; if audit { output.event_bar.push(bar as i64); output.event_kind.push(event[0]); output.event_status.push(event[1]); output.event_order_id.push(event[2]); output.event_target_id.push(event[3]); output.event_symbol.push(event[4]); output.event_reject_code.push(event.get(5).copied().unwrap_or(0)); } }
+        output.max_initial_margin = output.max_initial_margin.max(step.initial_margin); output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin); output.liquidated = step.liquidated; output.liquidation_bar = step.liquidation_bar; output.liquidation_reason = step.liquidation_reason;
+    }
+    Ok(output)
+}
+
 #[pymodule]
 fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("__version__", VERSION)?;
@@ -817,5 +1183,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PreparedMarketCore>()?;
     module.add_class::<BatchedScoreResultCore>()?;
     module.add_class::<ReactiveSessionCore>()?;
+    module.add_class::<FullPreparedMarketCore>()?;
+    module.add_class::<FullReactiveSessionCore>()?;
     Ok(())
 }

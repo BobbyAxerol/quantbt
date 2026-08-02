@@ -62,13 +62,13 @@ def _audit_fixture(seed: int = 42) -> SimpleNamespace:
 
 
 def test_phase46a_capability_matrix_is_canonical_and_fingerprinted() -> None:
-    assert NATIVE_EVENT_CAPABILITY_MATRIX_VERSION == "single-symbol-r2-0.3"
+    assert NATIVE_EVENT_CAPABILITY_MATRIX_VERSION == "full-contract-v2-0.4"
     assert NATIVE_EVENT_CAPABILITY_MATRIX["single_symbol"] is True
     assert NATIVE_EVENT_CAPABILITY_MATRIX["market"] is True
     assert NATIVE_EVENT_CAPABILITY_MATRIX["stop_limit"] is True
-    assert NATIVE_EVENT_CAPABILITY_MATRIX["funding"] is False
-    assert NATIVE_EVENT_CAPABILITY_MATRIX["liquidation"] is False
-    assert NATIVE_EVENT_CAPABILITY_MATRIX["multi_symbol"] is False
+    assert NATIVE_EVENT_CAPABILITY_MATRIX["funding"] is True
+    assert NATIVE_EVENT_CAPABILITY_MATRIX["liquidation"] is True
+    assert NATIVE_EVENT_CAPABILITY_MATRIX["multi_symbol"] is True
     assert len(capability_matrix_fingerprint()) == 64
     validate_native_event_capability_matrix(NATIVE_EVENT_CAPABILITY_MATRIX)
     with pytest.raises(ValueError, match="unknown"):

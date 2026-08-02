@@ -138,7 +138,7 @@ def test_phase46e_rust_explicit_tape_adapts_to_common_result_and_python_parity()
     assert np.isfinite(float(report["final_equity"]))
 
 
-def test_phase46e_rust_backend_fails_before_unsupported_accounting():
+def test_phase47b_rust_backend_executes_full_accounting_contract():
     frame = _bars()
     index = frame.index
     backend = NativeEventBackend(
@@ -150,15 +150,20 @@ def test_phase46e_rust_backend_fails_before_unsupported_accounting():
             native_backend="rust",
         )
     )
-    with pytest.raises(NativeEventRustBackendError, match="funding"):
-        backend.run_order_commands(
-            datetime_index=index,
-            commands=_commands(index),
-            closes={"BTC": frame["close"]},
-            highs={"BTC": frame["high"]},
-            lows={"BTC": frame["low"]},
-            symbols=["BTC"],
-        )
+    funding = pd.Series(0.0, index=index)
+    funding.iloc[8] = 0.001
+    result = backend.run_order_commands(
+        datetime_index=index,
+        commands=_commands(index),
+        closes={"BTC": frame["close"]},
+        highs={"BTC": frame["high"]},
+        lows={"BTC": frame["low"]},
+        funding_rate=funding,
+        symbols=["BTC"],
+        report_level="audit",
+    )
+    assert result.metadata["native_event_backend_resolved"] == "rust"
+    assert "native_event_v2_full_contract" in result.metadata["native_event_rust_capabilities"]
 
 
 class _MetadataOrderStrategy:
