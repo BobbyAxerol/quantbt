@@ -308,6 +308,15 @@ def main() -> int:
     slope = 0.0
     if len(numeric_rss) >= 2:
         slope = float(np.polyfit(np.arange(len(numeric_rss), dtype=np.float64), numeric_rss, 1)[0])
+    tail_slope = 0.0
+    if len(numeric_rss) >= 3:
+        # The first measured call can still populate allocator/PyO3 caches
+        # after the explicit warm-up. Leak detection therefore uses the
+        # remaining tail while retaining the full slope for transparency.
+        tail_values = np.asarray(numeric_rss[1:], dtype=np.float64)
+        tail_slope = float(
+            np.polyfit(np.arange(len(tail_values), dtype=np.float64), tail_values, 1)[0]
+        )
     if args.mode == "audit":
         fingerprint = _audit_fingerprint(first_result)
         final_equity = float(first_result.result.equity.iloc[-1])
@@ -345,6 +354,7 @@ def main() -> int:
         "post_run_rss_kb": post_rss,
         "post_run_rss_median_kb": None if not numeric_rss else float(np.median(numeric_rss)),
         "post_run_rss_slope_kb_per_run": slope,
+        "post_run_rss_tail_slope_kb_per_run": tail_slope,
         "fingerprint": fingerprint,
         "audit_reference_fingerprint": audit_reference_fingerprint,
         "final_equity": final_equity,
@@ -353,8 +363,8 @@ def main() -> int:
         "total_funding": total_funding,
         "rss_gate": {
             "accepted_baseline_note": "approximately 180 MB; no 10-15% regression and no linear leak",
-            "linear_leak_observed": bool(slope > max(1024.0, peak * 0.01)),
-            "pass": bool(slope <= max(1024.0, peak * 0.01)),
+            "linear_leak_observed": bool(tail_slope > max(1024.0, peak * 0.01)),
+            "pass": bool(tail_slope <= max(1024.0, peak * 0.01)),
         },
         "policy": {
             "python_default": True,

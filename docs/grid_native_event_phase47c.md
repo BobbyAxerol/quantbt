@@ -118,9 +118,12 @@ poetry run python benchmarks/native_event/benchmark_grid_2000.py \
 
 Default measurement is one warm-up and five measured runs. The JSON records
 module version, commit, backend resolution, runtime median/p95, CPU time, peak
-RSS/VmHWM, post-run RSS, repeated-run slope, audit fingerprint, terminal
-accounting, and gate status. Optional `--data path.csv.gz` accepts an OHLCV
-file; without it the deterministic 2,000-bar smoke tape is used.
+RSS/VmHWM, post-run RSS, full and post-warm-up tail slopes, audit fingerprint,
+terminal accounting, and gate status. Optional `--data path.csv.gz` accepts an
+OHLCV file; without it the deterministic 2,000-bar smoke tape is used. The
+tail slope is the leak gate because the first measured call can still populate
+allocator/PyO3 caches after the explicit warm-up; the full slope remains in
+the artifact for inspection.
 
 RSS is interpreted as a process-level evidence point, not a universal machine
 claim. The accepted reference is approximately 180 MB, with no unexplained
@@ -134,4 +137,3 @@ workload on the tested full Native Event V2 contract. Rust is still explicit;
 `auto` remains Python. Portfolio, arbitrage, options, L2 depth, and venue-
 specific cross-margin behavior are outside this certificate. Phase 47D is
 reserved for optimizer profiling and safe hot-path patches.
-
