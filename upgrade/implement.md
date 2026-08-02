@@ -9916,3 +9916,296 @@ Phase 46F local evidence:
 - The scope deliberately stops at the guide's dual-backend/static-tape and
   PyPI release goals. It does not add arbitrary Python-to-Rust compilation,
   portfolio/arbitrage Rust parity, or silent default routing.
+
+## Final Grid Python/Rust Full-Contract Upgrade
+
+Status: **planned; no runtime implementation started.**
+
+Detailed source of truth:
+
+- [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md)
+
+This plan condenses the complete Grid guide into four implementation phases.
+The linked guide remains normative; this section is only the execution tracker
+and must not replace the detailed code snippets, contracts, or acceptance rules
+in that guide.
+
+### Scope and non-negotiable rules
+
+- Work only with the existing Grid module at
+  `/root/bobby/pool_alpha/alphas_storage/TA/dynamic_grid_quantbt_native_event.py`.
+  Do not copy its source into the QuantBT repository.
+- Keep the public endpoints unchanged:
+  `QuantBTEndpoint.native_event_strategy(...)` and
+  `QuantBTEndpoint.prepare_native_event_strategy(...)`.
+- Add only the Grid-side `native_backend` selector and scalar/prepared helpers
+  described by the guide. Do not create a Grid-specific endpoint family.
+- Preserve the full Grid domain contract: `PLACE`, `AMEND`, `CANCEL`,
+  `CANCEL_ALL`, `MARKET`, `LIMIT`, `GTC`, `reduce_only`, OCO entry/exit
+  batches, active-order snapshots, per-bar fills, funding, initial and
+  maintenance margin, liquidation, and single-symbol lifecycle semantics.
+- Do not disable funding, OCO, maintenance margin, liquidation, or lifecycle
+  fields to make Rust run. An explicit unsupported Rust capability must raise a
+  clear capability error; it must never silently fallback or change semantics.
+- Keep Python/replay as the correctness reference until the Rust contract has
+  passed the shared conformance suite and both Grid parity workloads.
+- Keep the root compatibility mirror during all intermediate phases. Its
+  removal is not part of this Grid contract upgrade and requires a separately
+  approved packaging migration after clean-install/import verification.
+- Do not claim Rust production support, publish a native extra, or route
+  `native_backend="auto"` to Rust before all release gates pass.
+- Every completed phase must include focused tests, evidence/benchmark output,
+  explicit remaining debt, and an immediate commit using the configured
+  contributor identity. Do not modify `main`.
+
+### Phase 47A - Grid Adapter, Python Scalar Baseline, And Diagnostic Lock
+
+Status: **planned; implementation starts only after phase-plan approval.**
+
+Detailed guide sections:
+
+- Sections `1` to `7` of
+  [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md):
+  source of truth, current Python/Rust status, endpoint policy, Grid config
+  forwarding, public-result versus scalar-score separation, notebook import,
+  and the three canonical Python paths.
+- Sections `16` to `16.2` for the required Python-versus-replay diagnostic
+  before any Rust parity claim.
+
+Objective:
+
+- Freeze the actual Grid contract through the existing Python implementation
+  and replay-certified oracle before expanding Rust.
+- Make the existing Grid alpha selectable through the current endpoint without
+  changing its strategy callback, command generation, or accounting behavior.
+- Separate public result materialization from the prepared scalar score path.
+
+Implementation:
+
+- Add `native_backend` to the end of the existing `GridExecutionConfig` with
+  exactly `python`, `rust`, `auto`, and `replay_certified` validation.
+- Forward the selector and the existing reactive/report/audit settings once
+  through `build_grid_endpoint`; do not add a new endpoint or alter defaults.
+- Add `prepare_grid_score_runner(...)` and `score_grid_params(...)` using
+  `NativeEventScoreRequirements.scalar_score_contract()` and a fresh strategy
+  instance per evaluation.
+- Add the notebook import/version guard from guide section `6`, without
+  changing the source module or copying it into QuantBT.
+- Define and run the three Python paths exactly as specified:
+  replay-certified audit, Python public minimal, and Python scalar v2.
+- Add the diagnostic comparison that separates position transitions, fill
+  count, entry/exit/flatten fills, fees, funding, and `num_trades`; identify
+  the exact first divergent bar/transition before treating any result change
+  as an engine bug.
+
+Tests and evidence:
+
+- Python replay-certified versus Python single-pass full lifecycle parity.
+- Python public minimal versus replay position/fill/accounting parity.
+- Python scalar totals/fingerprint versus the same Python audit run.
+- Config forwarding, allowed selector values, default compatibility, fresh
+  strategy instances, and no `endpoint.result` materialization in score mode.
+- Diagnostic evidence explaining every `num_trades +2` or proving the metric
+  counting semantics are the only difference.
+
+Acceptance and possible debt:
+
+- Python must remain correct and unchanged for existing Grid users before Rust
+  work begins.
+- Scalar mode must not call `full_report()` or retain public ledgers.
+- Any unexplained command/fill/position/equity divergence blocks Phase 47B.
+- Expected residual debt is Rust capability incompleteness; it must be listed,
+  not hidden by disabling Grid features.
+
+### Phase 47B - Rust Native Event V2 Full Contract And Conformance Suite
+
+Status: **planned; blocked until Phase 47A Python/replay baseline passes.**
+
+Detailed guide sections:
+
+- Sections `8` to `10` of
+  [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md):
+  full Rust domain contract, file-level adapter/core design, order table,
+  exact bar execution order, and shared conformance tests.
+
+Objective:
+
+- Upgrade Rust from the currently narrower/static scope to the same advertised
+  Native Event V2 domain contract used by Python and Grid.
+- Make the replay-certified execution order the single lifecycle ordering
+  reference; Rust must reproduce it rather than infer a new ordering.
+
+Implementation:
+
+- Extend the Python Rust adapter command ABI for `PLACE`, `CANCEL`,
+  `CANCEL_ALL`, `AMEND`, `REPLACE`, order type, TIF, expiry, activation,
+  parent/group/OCO IDs, and symbol index.
+- Remove hardcoded unsupported behavior only after the Rust core implements
+  the corresponding semantics; pass real funding arrays/masks, maintenance
+  ratio, quantity constraints, liquidation state, and active-order metadata.
+- Split Rust internals into the guide's `types`, `session`, `commands`,
+  `order_table`, `matching`, `lifecycle`, `accounting`, and `buffers` roles.
+- Implement priority-preserving order slots, ID lookup, parent/group/OCO and
+  expiry indexes without `Vec.remove()` priority shifts.
+- Copy the oracle's exact bar sequence for mark/PnL, intrabar liquidation,
+  funding, after-funding liquidation, expiry, commands, matching, parent/OCO
+  lifecycle, after-order liquidation, and state recording.
+- Use compact primitive/SoA state at the Rust boundary; preserve public result
+  semantics and avoid per-bar Python object materialization in the score path.
+
+Tests and evidence:
+
+- Add the shared `tests/native_event/contract/` matrix and run every fixture
+  through replay-certified, Python, and Rust.
+- Cover command timing, all command kinds, MARKET/LIMIT/STOP variants,
+  GTC/GTD/IOC/FOK, reduce-only, quantity constraints, parent activation,
+  group/OCO, funding, margin, liquidation, and multi-symbol behavior declared
+  by the capability matrix.
+- Compare command tape, effective bars, statuses/reject reasons, fills,
+  positions, equity, fee, funding, turnover, margin, liquidation, and final
+  state. Discrete fields must be exact; numeric tolerance is only
+  `rtol=0, atol=1e-12` where operation order cannot change a decision.
+- Add explicit Rust capability/version mismatch tests proving fail-fast
+  behavior and no silent fallback.
+
+Acceptance and possible debt:
+
+- No Grid Rust integration is accepted if any full-contract lifecycle or
+  accounting field is missing from parity.
+- If multi-symbol or another capability is not implemented safely, capability
+  metadata must report it as unsupported and Phase 47C must not claim it.
+- Rust remains explicit/experimental until the conformance suite is green;
+  this phase does not change `auto` routing.
+
+### Phase 47C - Grid 2,000-Bar Parity, Backend Policy, And RSS Benchmark
+
+Status: **planned; blocked until Phase 47B conformance passes.**
+
+Detailed guide sections:
+
+- Sections `11` to `15` of
+  [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md):
+  2,000-bar data/configuration, parity gate, isolated benchmark process,
+  backend policy, and primary Definition of Done.
+
+Objective:
+
+- Prove that Grid itself, not merely synthetic micro-fixtures, produces the
+  same lifecycle/accounting result on Python and Rust.
+- Establish a fair runtime/RSS evidence bundle without mixing backend-owned
+  market representations in one process.
+
+Implementation:
+
+- Run the last 2,000 monotonic, unique bars for both
+  `best_params_long_only` and `best_params_long_short`.
+- Execute in this order: replay audit, Python audit/minimal, Python scalar v2,
+  Rust audit, Rust scalar. Never reuse a strategy instance between runs.
+- Compare full command/fill/position/equity/fee/funding/margin/liquidation
+  parity; certify scalar paths using audit fingerprints plus scalar totals,
+  never only Sharpe, final equity, or fill count.
+- Add `benchmarks/native_event/benchmark_grid_2000.py` with isolated child
+  processes, one warm-up, five measured runs, median runtime, CPU time,
+  peak/post-run RSS, and parity fingerprint.
+- Add repeated-run RSS plateau evidence and keep the accepted approximately
+  180 MB baseline rule: no regression beyond the guide's 10–15% allowance,
+  no linear leak, and no false 40% reduction requirement.
+- Make backend selection policy explicit: Python full/default, Rust explicit
+  capability-gated, replay oracle, and `auto` Rust only after all certification
+  and wheel/version checks pass.
+
+Tests and evidence:
+
+- Long-only and long-short Grid 2,000-bar parity tests.
+- Python/Rust scalar-to-audit fingerprint and totals parity.
+- Fresh-process low/high churn and repeated-run memory tests.
+- Explicit Rust unsupported capability and no-silent-fallback tests.
+- Benchmark JSON must record commit, module version, backend, fixture,
+  fingerprints, parity status, runtime medians, RSS checkpoints, and gate
+  results.
+
+Acceptance and possible debt:
+
+- Rust is not promoted or selected by `auto` unless every required gate passes.
+- Any RSS failure is reported separately from correctness; it cannot relax
+  accounting or lifecycle parity.
+- If a real Grid workload exposes a contract gap, freeze the result as a
+  reproducible failing fixture and keep Rust explicit until repaired.
+
+### Phase 47D - Optimizer Root-Cause, Safe Hot-Path Patches, And Final Certification
+
+Status: **planned; final phase after Phase 47C.**
+
+Detailed guide sections:
+
+- Sections `17` to `22` of
+  [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md):
+  optimizer bottleneck analysis, scalar-path gate, single-trial profiling,
+  safe Grid optimizer patches, performance acceptance, and supplemental
+  Definition of Done.
+
+Objective:
+
+- Improve optimizer throughput only after proving that it uses the prepared
+  scalar evaluator and that every optimization change preserves domain
+  behavior.
+- Explain whether remaining wall time is alpha preparation, strategy callback,
+  engine score, objective/reporting, or Optuna overhead rather than blaming the
+  backend generically.
+
+Implementation:
+
+- Add the one-trial timing breakdown for alpha preparation, strategy
+  initialization, engine score, objective overhead, total time, fills, and
+  `num_trades`.
+- Add the scalar optimizer gate: `scores` increments exactly once, `runs` does
+  not increment, `endpoint.result is None`, and evaluator does not retain the
+  last result or strategy.
+- Add minimal `native_context_requirements` for Grid and derive score
+  requirements without disabling fills, active orders, or positions.
+- Add optional `collect_diagnostics=True` to the Grid config. Score mode may
+  set it false to avoid `_diag_*` allocations, while public/audit defaults
+  remain unchanged.
+- Make diagnostic alias columns optional in
+  `prepare_grid_alpha_frame(...)`; execution columns remain identical.
+- Only if profiling proves alpha preparation is dominant, add a bounded
+  `PreparedGridAlphaFactory` that reuses immutable OHLC/indicator components,
+  has byte/entry limits and `clear()`, and always creates fresh strategy state.
+- Update endpoint/Grid docs and the phase evidence report with exact parity,
+  performance, RSS, and remaining capability results.
+
+Tests and evidence:
+
+- Re-run all Phase 47A-C parity tests after every optimization patch.
+- Verify command tape, fills, accounting, funding, margin, liquidation, and
+  report semantics are unchanged between diagnostics enabled/disabled and
+  cached/uncached alpha paths.
+- Test context requirement combinations, cache bounds/clear, fresh state per
+  trial, no result retention, and repeated optimizer score runs.
+- Report legacy public objective seconds/trial, prepared scalar seconds/trial,
+  alpha/strategy/engine/objective percentages, total wall time, and peak RSS.
+
+Final acceptance and explicit non-goals:
+
+- Python single-pass matches replay-certified lifecycle.
+- The `num_trades +2` discrepancy is explained by exact transitions/fills or
+  corrected metric semantics; it is never hidden with tolerance.
+- Prepared scalar evaluator is actually used and does not materialize public
+  results.
+- Score-mode diagnostics are optional and do not alter domain decisions.
+- Rust full contract, both Grid 2,000-bar modes, scalar paths, RSS plateau,
+  explicit failure policy, and benchmark evidence all pass.
+- This phase does not add a new endpoint, copy the Grid source into QuantBT,
+  claim portfolio/arbitrage/options Rust parity, or delete the root mirror.
+
+### Final Grid Upgrade Tracking Rules
+
+- Before every Phase 47 implementation, read this section and the linked
+  detailed guide in full; the guide's code snippets and exact contracts take
+  precedence over a shortened summary here.
+- Mark each phase only after its focused tests and the full regression pass,
+  record the commit and evidence paths, then state remaining debt explicitly.
+- The phrase “Rust Grid supported” is reserved for a pass of the complete
+  Native Event V2 conformance suite plus both 2,000-bar parity workloads.
+- Until that point, Python remains canonical, replay remains the oracle, Rust
+  remains explicit experimental, and `auto` remains Python.
