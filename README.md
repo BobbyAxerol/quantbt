@@ -278,6 +278,34 @@ for the scalar retention contract, RSS interpretation, and remaining debt.
 Raw Phase 47D artifacts are kept under
 `benchmarks/native_event/results/phase47d/`.
 
+### Phase 48C stable event-driven facade evidence
+
+The stable `QuantBTEndpoint.event_driven()` facade was benchmarked on the same
+deterministic **2,000-bar** single-symbol baseline as the direct native-event
+strategy constructor. Each route ran in a fresh process with five measured
+repetitions. The Grid workload is reported separately because indicator
+preparation and reactive state-machine work are part of its runtime.
+
+| Common route | Median runtime | Throughput | Peak RSS | Fills | Final Equity | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| `native_event_strategy` | 161.20 ms | 12,407 bars/s | 184.2 MB | 109 | 19,998.269072 | baseline |
+| `event_driven(profile="research")` | 154.54 ms | 12,942 bars/s | 183.4 MB | 109 | 19,998.269072 | pass |
+
+Separate reactive Grid benchmark on 2,000 bars:
+
+| Grid route | Median runtime | Throughput | Peak RSS | Fills | Final Equity | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| direct `native_event_strategy` | 1.4187 s | 1,410 bars/s | 274.5 MB | 839 | 28,972.788456 | baseline |
+| `event_driven(profile="audit")` | 1.3986 s | 1,430 bars/s | 274.5 MB | 839 | 28,972.788456 | pass |
+
+Both comparisons have identical accounting fingerprints, including equity,
+positions, fees, funding, margin, lifecycle counters, fills, and liquidation
+state. The facade adds no second execution loop; the small runtime difference
+is measurement noise and configuration resolution. Reproduce with
+`benchmarks/benchmark_phase48c_event_driven.py`; raw evidence is in
+[`phase48c_event_driven_facade.md`](benchmarks/phase48c_event_driven_facade.md)
+and [`phase48c_event_driven_facade.json`](benchmarks/phase48c_event_driven_facade.json).
+
 The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with

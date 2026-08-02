@@ -10669,6 +10669,12 @@ Phase 48C evidence:
   against direct native-event strategy and lifecycle endpoints. README and
   `docs/endpoint.md` now document the stable declaration, profiles, input
   modes, strategy responsibilities, backend release policy, and escape hatch.
+- Added `benchmarks/benchmark_phase48c_event_driven.py`, which runs direct and
+  facade routes in fresh processes on the fixed 2,000-bar baseline and reports
+  the external reactive Grid separately. The latest five-run evidence records
+  common throughput of `12,407` versus `12,942` bars/s and Grid throughput of
+  `1,410` versus `1,430` bars/s; facade/direct fingerprints and accounting are
+  identical in both cases.
 - The source mirror was synchronized with `tools/sync_source_mirror.py` and
   `--check` passes. Focused Phase 48C and compatibility tests pass **22/22**;
   full regression passes **704 passed, 3 skipped** with no failures.

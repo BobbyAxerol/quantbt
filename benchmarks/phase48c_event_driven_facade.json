@@ -1,0 +1,77 @@
+{
+  "bars": 2000,
+  "benchmark": "phase48c_event_driven_facade",
+  "common": {
+    "facade_overhead_pct": -4.130490791544739,
+    "parity": true,
+    "routes": [
+      {
+        "bars": 2000,
+        "fill_count": 109,
+        "final_equity": 19998.269071829167,
+        "fingerprint": "5e83a4ab0158ac2626c4a38583a211b69ea82215e3fa06a5e6ab73f050d67cbb",
+        "peak_rss_mb": 184.23046875,
+        "route": "native_event_strategy",
+        "runs": 5,
+        "runtime_median_seconds": 0.16119503695517778,
+        "runtime_p95_seconds": 0.19709980087354778,
+        "symbols": 1,
+        "throughput_bars_per_second": 12407.329889170993
+      },
+      {
+        "bars": 2000,
+        "fill_count": 109,
+        "final_equity": 19998.269071829167,
+        "fingerprint": "5e83a4ab0158ac2626c4a38583a211b69ea82215e3fa06a5e6ab73f050d67cbb",
+        "peak_rss_mb": 183.41015625,
+        "route": "event_driven_facade",
+        "runs": 5,
+        "runtime_median_seconds": 0.15453689079731703,
+        "runtime_p95_seconds": 0.20907546980306504,
+        "symbols": 1,
+        "throughput_bars_per_second": 12941.893613112105
+      }
+    ]
+  },
+  "grid": {
+    "facade_overhead_pct": -1.4155499227624158,
+    "parity": true,
+    "routes": [
+      {
+        "bars": 2000,
+        "fill_count": 839,
+        "final_equity": 28972.788456089613,
+        "fingerprint": "6c20b1472ca2e6db0da4cbd1f6ee55a27f68ebb15697e0f700be1fdf0a7c6c38",
+        "num_trades": 839,
+        "peak_rss_mb": 274.515625,
+        "route": "grid_native_event_strategy",
+        "runs": 5,
+        "runtime_median_seconds": 1.4186582509428263,
+        "runtime_p95_seconds": 1.4995531063526868,
+        "symbols": 1,
+        "throughput_bars_per_second": 1409.782799113754
+      },
+      {
+        "bars": 2000,
+        "fill_count": 839,
+        "final_equity": 28972.788456089613,
+        "fingerprint": "6c20b1472ca2e6db0da4cbd1f6ee55a27f68ebb15697e0f700be1fdf0a7c6c38",
+        "num_trades": 839,
+        "peak_rss_mb": 274.53515625,
+        "route": "grid_event_driven_facade",
+        "runs": 5,
+        "runtime_median_seconds": 1.3985764351673424,
+        "runtime_p95_seconds": 1.4352879355661572,
+        "symbols": 1,
+        "throughput_bars_per_second": 1430.0255243187305
+      }
+    ]
+  },
+  "policy": {
+    "common_baseline_bars": 2000,
+    "domain_parity_required": true,
+    "fresh_process_per_route": true,
+    "grid_reported_separately": true
+  },
+  "runs": 5
+}
