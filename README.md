@@ -51,6 +51,48 @@ historical reproduction.
 - Domain-agnostic Optuna optimization adapters for prepared signal, intrabar,
   portfolio, and generic endpoint workflows.
 
+## Event-Driven Quick Start
+
+New event-driven integrations should use the stable facade. Choose an input
+mode, a retention profile, and a public backend; the facade keeps matching,
+fills, fees, slippage, margin, funding, and PnL in the existing native-event
+engine.
+
+```python
+from quantbt import QuantBTEndpoint
+
+bt = QuantBTEndpoint.event_driven(
+    input_mode="strategy",   # strategy | orders
+    profile="research",      # research | optimize | audit
+    backend="auto",          # auto | python | rust
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,          # one-way fee per fill
+    slippage_bps=2.0,
+    use_funding=False,
+)
+
+result = bt.simulate(data=df, strategy=strategy, symbols=["BTCUSDT"])
+bt.show_metrics()
+```
+
+Use `profile="research"` for compact notebook results, `"optimize"` for
+scalar parameter-search results, and `"audit"` for replay-certified fills and
+event artifacts. For an upstream order planner, switch to
+`input_mode="orders"` and pass `order_commands=[...]`. The default `auto`
+backend follows the release policy; `rust` is an explicit request for the
+optional capability-gated native wheel.
+
+The strategy owns signal generation and look-ahead control. QuantBT owns the
+causal order lifecycle and accounting. Advanced users can still call
+`native_event_strategy(...)` or `native_event_lifecycle(...)` directly when a
+custom low-level execution/report combination is required.
+
+See [`docs/endpoint.md`](docs/endpoint.md#stable-event-driven-facade) for the
+full strategy protocol, profile matrix, explicit-order example, conflict
+rules, and migration guidance. The broader endpoint map is in
+[`docs/README.md`](docs/README.md).
+
 ## Performance Philosophy
 
 QuantBT is built for research loops where speed matters as much as accounting

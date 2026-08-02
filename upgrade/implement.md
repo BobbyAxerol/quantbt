@@ -10552,7 +10552,7 @@ wheel/sdist contain no suspicious private paths
 Phase 48B evidence:
 
 - `tools/source_mirror_manifest.py` defines the allowlisted compatibility
-  surface. The current 98-file root/source Python mirror is byte-identical;
+  surface. The current manifest-listed root/source Python mirror is byte-identical;
   `src/quantbt/benchmarks` and root benchmark scripts are intentionally not
   mirror entries, so benchmark/tool files cannot be confused with package
   compatibility source.
@@ -10579,6 +10579,8 @@ Phase 48B evidence:
   `quantbt-engine 1.0.7` wheel/sdist passed `twine check` and the artifact gate.
 
 ### Phase 48C - Stable Event-Driven Facade And Strategy Protocol
+
+Status: **implemented and locally certified**.
 
 Detailed guide sections:
 
@@ -10644,6 +10646,32 @@ existing endpoint snippets remain valid
 no domain behavior changes
 new users need profile/backend, not internal lifecycle flags
 ```
+
+Phase 48C evidence:
+
+- `QuantBTEndpoint.event_driven(...)` is the stable public resolver for both
+  `input_mode="strategy"` and `input_mode="orders"`. It delegates to the
+  existing `native_event_strategy(...)` and `native_event_lifecycle(...)`
+  constructors, so no second matcher, fill engine, or accounting path was
+  introduced.
+- `NativeEventProfile` exposes only `research`, `optimize`, and `audit`. Their
+  exact mappings are `fast/single_pass/minimal/none`,
+  `fast/single_pass/score/none`, and `audit/replay_certified/audit/memory`.
+  The public `backend` selector is limited to `auto`, `python`, and `rust`;
+  `replay_certified` remains an advanced internal kernel selector.
+- Profile-controlled low-level values raise an explicit conflict error rather
+  than being silently overwritten. Existing low-level constructors remain
+  available for advanced combinations and backward compatibility.
+- `NativeEventStrategy` is exported as a runtime-checkable structural protocol
+  for `initialize`, `on_bar_close`, and `finalize`; the existing duck-typed
+  `NativeEventStrategyProtocol` remains compatible with older strategies.
+- Focused facade/profile/delegation tests pass, including accounting equality
+  against direct native-event strategy and lifecycle endpoints. README and
+  `docs/endpoint.md` now document the stable declaration, profiles, input
+  modes, strategy responsibilities, backend release policy, and escape hatch.
+- The source mirror was synchronized with `tools/sync_source_mirror.py` and
+  `--check` passes. Focused Phase 48C and compatibility tests pass **22/22**;
+  full regression passes **704 passed, 3 skipped** with no failures.
 
 ### Phase 48D - Rust Full-Session Ownership, Output Requirements, And Indexed Lifecycle
 

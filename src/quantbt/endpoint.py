@@ -10,10 +10,11 @@ objects.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass, replace
+from enum import Enum
 import hashlib
 import json
 from pathlib import Path
-from typing import Dict, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, Optional, Sequence, Union
 import warnings
 
 import numpy as np
@@ -63,7 +64,6 @@ from .core.results import (
     BacktestResultV2,
     NativeEventScalarScoreResult,
     NativeEventScoreResult,
-    OptionBacktestResult,
 )
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
@@ -84,9 +84,104 @@ from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .options.strategy import OptionStrategyRun
 
+if TYPE_CHECKING:
+    from .walkforward import WalkForwardConfig
+
 
 SeriesMap = Dict[str, pd.Series]
 FrameMap = Dict[str, pd.DataFrame]
+
+
+class NativeEventProfile(str, Enum):
+    """Stable high-level retention/execution profile for event-driven runs."""
+
+    RESEARCH = "research"
+    OPTIMIZE = "optimize"
+    AUDIT = "audit"
+
+
+_NATIVE_EVENT_PROFILE_OPTIONS = {
+    NativeEventProfile.RESEARCH: {
+        "reactive_execution_mode": "fast",
+        "reactive_kernel_mode": "single_pass",
+        "report_level": "minimal",
+        "audit_sink": "none",
+    },
+    NativeEventProfile.OPTIMIZE: {
+        "reactive_execution_mode": "fast",
+        "reactive_kernel_mode": "single_pass",
+        "report_level": "score",
+        "audit_sink": "none",
+    },
+    NativeEventProfile.AUDIT: {
+        "reactive_execution_mode": "audit",
+        "reactive_kernel_mode": "replay_certified",
+        "report_level": "audit",
+        "audit_sink": "memory",
+    },
+}
+_NATIVE_EVENT_PUBLIC_BACKENDS = frozenset({"auto", "python", "rust"})
+
+
+def _normalize_native_event_profile(profile: Union[str, NativeEventProfile]) -> NativeEventProfile:
+    value = profile.value if isinstance(profile, NativeEventProfile) else str(profile).lower().strip()
+    try:
+        return NativeEventProfile(value)
+    except ValueError as exc:
+        valid = ", ".join(item.value for item in NativeEventProfile)
+        raise ValueError(f"profile must be one of: {valid}; received {profile!r}") from exc
+
+
+def _resolve_event_driven_kwargs(
+    *,
+    input_mode: str,
+    profile: Union[str, NativeEventProfile],
+    backend: str,
+    kwargs: Dict,
+) -> Dict:
+    """Resolve the small public facade into one legacy endpoint config.
+
+    This function only resolves configuration. Matching, accounting, and
+    result construction remain owned by the existing endpoint constructors.
+    """
+
+    mode = str(input_mode).lower().strip()
+    if mode not in {"strategy", "orders"}:
+        raise ValueError("input_mode must be 'strategy' or 'orders'")
+
+    profile_value = _normalize_native_event_profile(profile)
+    public_backend = str(backend).lower().strip()
+    if public_backend not in _NATIVE_EVENT_PUBLIC_BACKENDS:
+        raise ValueError("backend must be one of: auto, python, rust")
+
+    resolved = dict(kwargs)
+    profile_options = _NATIVE_EVENT_PROFILE_OPTIONS[profile_value]
+    for key, value in profile_options.items():
+        if key in resolved:
+            raise ValueError(
+                f"profile='{profile_value.value}' controls {key}; "
+                f"use the advanced native_event_{'strategy' if mode == 'strategy' else 'lifecycle'} "
+                "constructor for custom low-level combinations"
+            )
+        resolved[key] = value
+
+    advanced_backend = resolved.get("native_backend")
+    if advanced_backend is not None and public_backend != "auto":
+        raise ValueError("pass either backend=... or advanced native_backend=..., not both")
+    if advanced_backend is None:
+        resolved["native_backend"] = public_backend
+
+    metadata = dict(resolved.pop("metadata", {}) or {})
+    metadata.setdefault(
+        "event_driven_facade",
+        {
+            "input_mode": mode,
+            "profile": profile_value.value,
+            "backend": public_backend,
+        },
+    )
+    resolved["metadata"] = metadata
+    return resolved
 
 
 @dataclass(frozen=True)
@@ -800,6 +895,63 @@ class QuantBTEndpoint:
         handling, fees, margin checks, and fills in `result.fills`.
         """
         return cls(_config_from_kwargs(mode="orders", backend=backend, **kwargs))
+
+    @classmethod
+    def event_driven(
+        cls,
+        *,
+        input_mode: str = "strategy",
+        profile: Union[str, NativeEventProfile] = NativeEventProfile.RESEARCH,
+        backend: str = "auto",
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """Create the stable public native-event facade.
+
+        Parameters
+        ----------
+        input_mode:
+            ``"strategy"`` for a stateful strategy implementing the reactive
+            callback protocol, or ``"orders"`` for an explicit
+            ``OrderCommand``/``OrderIntent`` tape.
+        profile:
+            ``"research"`` keeps a compact public result, ``"optimize"``
+            selects the scalar score retention contract, and ``"audit"``
+            retains replay-certified accounting and event artifacts.
+        backend:
+            ``"auto"`` follows the release policy (currently Python),
+            ``"python"`` selects the canonical backend, or ``"rust"``
+            explicitly requests the capability-gated native wheel.
+
+        The facade resolves profiles and delegates to
+        :meth:`native_event_strategy` or :meth:`native_event_lifecycle`.
+        It does not implement a second matcher or accounting engine. Advanced
+        callers may continue using those constructors directly when they need
+        custom ``reactive_execution_mode``, ``reactive_kernel_mode``,
+        ``report_level``, or ``audit_sink`` combinations.
+
+        Examples
+        --------
+        >>> endpoint = QuantBTEndpoint.event_driven(
+        ...     profile="research", backend="auto", initial_capital=20_000,
+        ... )
+        >>> result = endpoint.simulate(data=data, strategy=strategy)
+
+        >>> endpoint = QuantBTEndpoint.event_driven(
+        ...     input_mode="orders", profile="audit", backend="python",
+        ...     initial_capital=20_000,
+        ... )
+        >>> result = endpoint.simulate(data=data, order_commands=commands)
+        """
+
+        resolved = _resolve_event_driven_kwargs(
+            input_mode=input_mode,
+            profile=profile,
+            backend=backend,
+            kwargs=kwargs,
+        )
+        if str(input_mode).lower().strip() == "strategy":
+            return cls.native_event_strategy(**resolved)
+        return cls.native_event_lifecycle(**resolved)
 
     @classmethod
     def native_event_lifecycle(cls, **kwargs) -> "QuantBTEndpoint":

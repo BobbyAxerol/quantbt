@@ -8,13 +8,13 @@ engine state after each bar and return `OrderCommand` objects for the next bar.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Mapping, Optional, Sequence, Tuple
+from typing import Callable, Mapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
 import numpy as np
 import pandas as pd
 
 from .orders import OrderCommand
-from .schema import OrderSide, OrderType
+from .schema import OrderSide
 
 
 @dataclass(frozen=True)
@@ -151,3 +151,23 @@ class NativeEventStrategyProtocol:
 
     def finalize(self, context: NativeStrategyContext) -> Sequence[OrderCommand]:
         return ()
+
+
+@runtime_checkable
+class NativeEventStrategy(Protocol):
+    """Public structural protocol for stateful native-event strategies.
+
+    Implementations are discovered by duck typing; subclassing this protocol
+    is optional. A strategy may optionally declare
+    ``native_context_requirements`` to reduce callback context materialization
+    for score/optimization runs.
+    """
+
+    def initialize(self, context: NativeStrategyContext) -> Sequence[OrderCommand]:
+        ...
+
+    def on_bar_close(self, context: NativeStrategyContext) -> Sequence[OrderCommand]:
+        ...
+
+    def finalize(self, context: NativeStrategyContext) -> Sequence[OrderCommand]:
+        ...

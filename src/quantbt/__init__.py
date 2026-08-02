@@ -175,6 +175,7 @@ from .backtester import BacktestEngine
 from .portfolio  import MultiSymbolPortfolio
 from .endpoint import (
     EndpointConfig,
+    NativeEventProfile,
     PreparedIntrabarRunner,
     PreparedNativeEventStrategyRunner,
     QuantBTEndpoint,
@@ -285,6 +286,7 @@ from .core.orders import (
 from .core.reactive import (
     NativeActiveOrderSnapshot,
     NativeCommandBatch,
+    NativeEventStrategy,
     NativeEventStrategyError,
     NativeEventStrategyProtocol,
     NativeFillEvent,
@@ -512,6 +514,7 @@ __all__ = [
     "NativeEventConfig",
     "NativeEventScoreRequirements",
     "NativeAccountingArrays",
+    "NativeEventProfile",
     "NativeActiveOrderSnapshot",
     "NativeCommandBatch",
     "NativeEventScoreResult",
@@ -519,6 +522,7 @@ __all__ = [
     "NativeEventParityCertificate",
     "NativeEventParityError",
     "NativeEventStrategyError",
+    "NativeEventStrategy",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
     "NativeOrderEvent",

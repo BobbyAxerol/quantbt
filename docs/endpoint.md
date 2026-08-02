@@ -59,6 +59,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
+| `QuantBTEndpoint.event_driven()` | `native_event_strategy` or `orders` | `auto` | stable facade for reactive strategies or explicit lifecycle commands |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
@@ -84,6 +85,122 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `orders` and `basket` route to native event;
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
+
+## Stable Event-Driven Facade
+
+`QuantBTEndpoint.event_driven()` is the recommended public entry point for new
+event-driven integrations. It keeps the common declaration small while leaving
+the existing lifecycle engine, matching rules, accounting, and audit artifacts
+unchanged underneath.
+
+```python
+from quantbt import QuantBTEndpoint
+
+bt = QuantBTEndpoint.event_driven(
+    input_mode="strategy",
+    profile="research",
+    backend="auto",
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,       # canonical one-way fee
+    slippage_bps=2.0,
+    use_funding=False,
+)
+
+result = bt.simulate(
+    data=df,
+    strategy=strategy,
+    symbols=["BTCUSDT"],
+)
+bt.show_metrics()
+```
+
+### Profiles
+
+The profile is an explicit retention and execution policy. It does not change
+fill or accounting semantics:
+
+| Profile | Execution | Kernel | Result/report retention | Audit sink |
+|---|---|---|---|---|
+| `research` | `fast` | `single_pass` | `minimal` | `none` |
+| `optimize` | `fast` | `single_pass` | `score` | `none` |
+| `audit` | `audit` | `replay_certified` | `audit` | `memory` |
+
+Use `research` for ordinary notebook/service runs, `optimize` for parameter
+search, and `audit` when fills, order events, replay evidence, and detailed
+accounting must be retained. `backend="auto"` follows the package release
+policy. `backend="python"` selects the canonical portable implementation;
+`backend="rust"` is an explicit capability-gated request for the optional
+native wheel and never silently changes to Rust.
+
+### Input modes
+
+`input_mode="strategy"` accepts a stateful callback object. The strategy owns
+signal generation and look-ahead control; the engine owns market processing,
+order lifecycle, fills, fees, slippage, margin, funding, and PnL.
+
+```python
+class MyStrategy:
+    def initialize(self, context):
+        return ()
+
+    def on_bar_close(self, context):
+        # Return OrderCommand objects for the next causal bar.
+        return ()
+
+    def finalize(self, context):
+        return ()
+
+bt = QuantBTEndpoint.event_driven(profile="audit", backend="python")
+result = bt.simulate(data=df, strategy=MyStrategy(), symbols=["BTCUSDT"])
+```
+
+`initialize` and `finalize` may return an empty tuple. A strategy may subclass
+`NativeEventStrategyProtocol`, or simply satisfy the public structural
+`NativeEventStrategy` protocol by duck typing. The optional
+`native_context_requirements` declaration can reduce context materialization
+for specialized optimization runs. Commands emitted at bar close are handled
+according to the native-event lifecycle and do not become an implicit
+same-bar fill.
+
+`input_mode="orders"` is for an already-created execution tape. Use it when
+the alpha or an upstream planner owns order generation but still needs the
+native lifecycle to process placement, cancellation, replacement, OCO links,
+trigger rules, fees, margin, and fills:
+
+```python
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="python",
+    initial_capital=20_000,
+)
+result = bt.simulate(data=df, order_commands=commands, symbols=["BTCUSDT"])
+fills = result.fills
+events = result.metadata.get("order_events")
+```
+
+Legacy `OrderIntent` inputs remain supported through the existing
+`QuantBTEndpoint.orders(...)` route. The new facade accepts the canonical
+`OrderCommand` lifecycle tape and delegates to
+`native_event_lifecycle(...)`; it does not introduce a second order engine.
+
+### Advanced controls and compatibility
+
+The facade owns the four low-level values in its selected profile. Passing a
+conflicting `reactive_execution_mode`, `reactive_kernel_mode`, `report_level`,
+or `audit_sink` raises a clear `ValueError` instead of silently overriding the
+user's configuration. Use `native_event_strategy(...)` or
+`native_event_lifecycle(...)` directly when an advanced, non-profile
+combination is required. Existing endpoint constructors and notebook snippets
+remain valid.
+
+For the recommended stable path, users need only choose `input_mode`,
+`profile`, and `backend`; account, instrument, quantity, and execution fields
+remain available as normal shared endpoint parameters. See
+[`execution_contracts.md`](execution_contracts.md) for exact fill policy and
+[`release_packaging.md`](release_packaging.md) for backend capability and
+wheel-release policy.
 
 `native_vectorized` is explicitly the `close_target_v2` execution contract:
 signals are interpreted as target exposure at the same bar close, with no

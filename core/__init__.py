@@ -100,6 +100,7 @@ from .structured_orders import (
 from .reactive import (
     NativeActiveOrderSnapshot,
     NativeCommandBatch,
+    NativeEventStrategy,
     NativeEventStrategyError,
     NativeEventStrategyProtocol,
     NativeFillEvent,
@@ -254,6 +255,7 @@ __all__ = [
     "NativeActiveOrderSnapshot",
     "NativeCommandBatch",
     "NativeEventStrategyError",
+    "NativeEventStrategy",
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
     "NativeOrderEvent",
