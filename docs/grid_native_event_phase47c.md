@@ -126,9 +126,12 @@ allocator/PyO3 caches after the explicit warm-up; the full slope remains in
 the artifact for inspection.
 
 RSS is interpreted as a process-level evidence point, not a universal machine
-claim. The accepted reference is approximately 180 MB, with no unexplained
-10--15% regression and no linear repeated-run leak. A further 40% reduction is
-not a Phase 47C requirement.
+claim. The repeated-run tail-slope gate passes and shows no live-object leak.
+The observed full Grid facade peaks are approximately 265.6--293.4 MB. The
+approximately 180 MB figure in the broader guide belongs to a different
+native-event process profile; Phase 47C therefore does not claim an absolute
+no-regression comparison until an apples-to-apples pre-Phase47C Grid run is
+archived. A further 40% reduction is not a Phase 47C requirement.
 
 ## Certification boundary
 

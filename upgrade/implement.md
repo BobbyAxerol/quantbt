@@ -10239,9 +10239,13 @@ Implementation and evidence:
   long-short; Rust scalar medians of `1.245s` and `1.985s`. Rust remains a correctness
   and explicit experimental backend here; this workload does not claim Rust
   is faster than the Python reactive score facade.
-- Audit process RSS stayed bounded under the repeated-run gate after explicit
-  collection. Rust and Python retained different allocator/high-water
-  profiles, so RSS is reported as evidence, not a universal hardware claim.
+- Audit process RSS stayed bounded under the repeated-run tail-slope gate
+  after explicit collection. Rust and Python retained different
+  allocator/high-water profiles, so RSS is reported as evidence, not a
+  universal hardware claim. The observed full Grid facade peaks are about
+  `265.6-293.4 MB`; the guide's approximately `180 MB` reference is from a
+  different native-event process profile, so this phase does not claim an
+  apples-to-apples absolute no-regression result against that number.
 
 Acceptance and possible debt:
 
@@ -10255,8 +10259,11 @@ Phase 47C completion boundary and remaining debt:
 
 - The Grid integration now has an executable 2,000-bar correctness gate for
   both supported modes, a low-retention Python/Rust score contract, and a
-  reproducible process-isolated RSS/runtime benchmark. `native_backend="rust"`
-  is explicit and fail-fast; `auto` still resolves to Python.
+  reproducible process-isolated RSS/runtime benchmark. The repeated-run
+  plateau gate passes, while an apples-to-apples pre-Phase47C Grid RSS
+  baseline remains required before claiming an absolute RSS regression
+  improvement. `native_backend="rust"` is explicit and fail-fast; `auto`
+  still resolves to Python.
 - The canonical parity surface intentionally excludes the diagnostic
   `filled_command_count` aggregate because replay counts filled command
   states while reactive sessions count fill records. The exact command/event/

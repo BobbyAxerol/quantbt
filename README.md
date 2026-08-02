@@ -208,7 +208,9 @@ command/fill/accounting fingerprint and is explicit fail-fast; `auto` remains
 Python. The benchmark runner, five-run RSS slope gate, and scalar/audit
 fingerprint contract are documented in
 [`docs/grid_native_event_phase47c.md`](docs/grid_native_event_phase47c.md),
-with raw JSON under `benchmarks/native_event/results/phase47c/`.
+with raw JSON under `benchmarks/native_event/results/phase47c/`. The RSS
+figures are the current Grid facade evidence; they are not compared directly
+to the older ~180 MB core-process profile without a like-for-like baseline.
 
 The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
