@@ -133,10 +133,77 @@ native-event process profile; Phase 47C therefore does not claim an absolute
 no-regression comparison until an apples-to-apples pre-Phase47C Grid run is
 archived. A further 40% reduction is not a Phase 47C requirement.
 
+## Phase 47D optimizer certification
+
+Phase 47D profiles the actual Grid optimizer path rather than using the
+static Rust tape as a proxy. The profile separates:
+
+```text
+alpha preparation
+strategy initialization
+prepared engine score
+public objective/report facade
+```
+
+On the deterministic 2,000-bar tape, the apples-to-apples prepared scalar
+profile after the patch measured `0.813s`, with alpha preparation at `2.15%`
+and the engine score at `97.89%`. This is an observed local measurement, not
+a fixed performance guarantee. The profile did not justify an indicator
+cache: the alpha layer is not the dominant cost, so no cache was added that
+could complicate parameter isolation or retain full DataFrames.
+
+The external Grid adapter now has these optimizer-safe policies:
+
+```python
+GridExecutionConfig(collect_diagnostics=True)   # public/audit default
+GridExecutionConfig(collect_diagnostics=False)  # scalar-only artifact policy
+```
+
+`score_grid_params(...)` always creates a fresh diagnostics-off execution
+policy for the trial. It also derives context requirements from
+`ReactiveDynamicGridStrategy.native_context_requirements`: fills, active
+orders, and positions remain enabled; full order events and margin payloads
+are not requested by the callback. Diagnostic alias columns and per-bar
+`_diag_*` arrays are therefore absent from scalar trials, while canonical
+execution columns and all accounting decisions remain unchanged. Calling
+`build_output_frame()` on a diagnostics-off strategy raises a clear error;
+final stakeholder plots must rerun the same params with the default audit
+policy.
+
+The scalar gate remains strict:
+
+```text
+prepared.scores += 1
+prepared.runs unchanged
+endpoint.result is None
+evaluator retains no result/strategy
+```
+
+The 47D tests compare terminal equity, fee, funding, fill count, liquidation,
+and the retained audit evidence. Public/audit diagnostics remain enabled by
+default. The exact source patch is committed in the external Grid alpha as
+`fda46c3`; QuantBT does not copy or own that strategy source.
+
+Current scalar benchmark evidence after the patch:
+
+| Mode | Python median | Rust median | Python peak RSS | Rust peak RSS | Fingerprint |
+|---|---:|---:|---:|---:|---|
+| Long-only | 0.850 s | 1.086 s | 265.4 MB | 271.2 MB | pass |
+| Long-short | 1.412 s | 1.831 s | 291.0 MB | 293.6 MB | pass |
+
+The repeated-run RSS gates pass with no positive tail slope. Rust remains an
+explicit, correctness-certified experimental backend for this workload and
+`auto` remains Python. The reactive callback itself is still the dominant
+runtime owner; this phase does not claim a new Numba/Rust optimization of the
+Python Grid callback or portfolio/arbitrage/options parity. Raw benchmark
+artifacts are stored under
+`benchmarks/native_event/results/phase47d/`.
+
 ## Certification boundary
 
-After Phase 47C, Python/replay/Rust are certified for this single-symbol Grid
+After Phase 47D, Python/replay/Rust are certified for this single-symbol Grid
 workload on the tested full Native Event V2 contract. Rust is still explicit;
 `auto` remains Python. Portfolio, arbitrage, options, L2 depth, and venue-
-specific cross-margin behavior are outside this certificate. Phase 47D is
-reserved for optimizer profiling and safe hot-path patches.
+specific cross-margin behavior are outside this certificate. The remaining
+performance debt is deeper callback-level optimization, which requires a new
+parity-first phase rather than an indicator cache based on this profile.

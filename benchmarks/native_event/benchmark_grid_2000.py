@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Process-isolated Phase 47C Grid runtime/RSS benchmark.
+"""Process-isolated Grid runtime/RSS benchmark for Phase 47C/47D.
 
 The external Grid alpha is loaded read-only. A scalar benchmark first creates
 one audit reference for its parity fingerprint, then measures only fresh
@@ -263,6 +263,7 @@ def main() -> int:
     parser.add_argument("--bars", type=int, default=2000)
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--runs", type=int, default=5)
+    parser.add_argument("--phase", type=str, default="47C")
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args()
     if args.bars <= 0 or args.warmup < 0 or args.runs <= 0:
@@ -335,7 +336,7 @@ def main() -> int:
         raise RuntimeError(f"explicit Rust benchmark resolved to {resolved!r}")
 
     payload = {
-        "phase": "47C",
+        "phase": str(args.phase),
         "grid_module_version": getattr(grid, "MODULE_VERSION", None),
         "git_revision": _git_revision(),
         "backend_requested": args.backend,

@@ -1,0 +1,116 @@
+{
+  "phase": "47D",
+  "grid_module": "/root/bobby/pool_alpha/alphas_storage/TA/dynamic_grid_quantbt_native_event.py",
+  "bars": 2000,
+  "repeats": 5,
+  "backend": "python",
+  "public_objective": {
+    "samples": [
+      {
+        "run_seconds": 1.248933516908437,
+        "report_seconds": 0.0029217731207609177,
+        "total_seconds": 1.251855290029198,
+        "fill_count": 0,
+        "num_trades": 794
+      },
+      {
+        "run_seconds": 1.1467866371385753,
+        "report_seconds": 0.0017385408282279968,
+        "total_seconds": 1.1485251779668033,
+        "fill_count": 0,
+        "num_trades": 794
+      },
+      {
+        "run_seconds": 1.2253255806863308,
+        "report_seconds": 0.0018004169687628746,
+        "total_seconds": 1.2271259976550937,
+        "fill_count": 0,
+        "num_trades": 794
+      },
+      {
+        "run_seconds": 1.172583345323801,
+        "report_seconds": 0.0016640317626297474,
+        "total_seconds": 1.1742473770864308,
+        "fill_count": 0,
+        "num_trades": 794
+      },
+      {
+        "run_seconds": 1.1392091778106987,
+        "report_seconds": 0.0018485900945961475,
+        "total_seconds": 1.141057767905295,
+        "fill_count": 0,
+        "num_trades": 794
+      }
+    ],
+    "median": {
+      "run_seconds": 1.172583345323801,
+      "report_seconds": 0.0018004169687628746,
+      "total_seconds": 1.1742473770864308,
+      "fill_count": 0.0,
+      "num_trades": 794.0,
+      "run_seconds_pct": 99.85828950567821,
+      "report_seconds_pct": 0.15332518546731694
+    }
+  },
+  "prepared_scalar": {
+    "samples": [
+      {
+        "alpha_seconds": 0.017120220698416233,
+        "strategy_init_seconds": 5.3612980991601944e-05,
+        "engine_score_seconds": 0.7962638223543763,
+        "total_seconds": 0.8134376560337842,
+        "fill_count": 839,
+        "num_trades": 794
+      },
+      {
+        "alpha_seconds": 0.017597327008843422,
+        "strategy_init_seconds": 0.00011811964213848114,
+        "engine_score_seconds": 0.792645042296499,
+        "total_seconds": 0.8103604889474809,
+        "fill_count": 839,
+        "num_trades": 794
+      },
+      {
+        "alpha_seconds": 0.017491152975708246,
+        "strategy_init_seconds": 0.0001720399595797062,
+        "engine_score_seconds": 0.7946259281598032,
+        "total_seconds": 0.8122891210950911,
+        "fill_count": 839,
+        "num_trades": 794
+      },
+      {
+        "alpha_seconds": 0.017332741990685463,
+        "strategy_init_seconds": 0.00013088714331388474,
+        "engine_score_seconds": 0.8262469749897718,
+        "total_seconds": 0.8437106041237712,
+        "fill_count": 839,
+        "num_trades": 794
+      },
+      {
+        "alpha_seconds": 0.019333916250616312,
+        "strategy_init_seconds": 0.00019873492419719696,
+        "engine_score_seconds": 0.8642722158692777,
+        "total_seconds": 0.8838048670440912,
+        "fill_count": 839,
+        "num_trades": 794
+      }
+    ],
+    "median": {
+      "alpha_seconds": 0.017491152975708246,
+      "strategy_init_seconds": 0.00013088714331388474,
+      "engine_score_seconds": 0.7962638223543763,
+      "total_seconds": 0.8134376560337842,
+      "fill_count": 839.0,
+      "num_trades": 794.0,
+      "alpha_seconds_pct": 2.150275788926815,
+      "strategy_init_seconds_pct": 0.016090617682008153,
+      "engine_score_seconds_pct": 97.88873387505255
+    }
+  },
+  "gate": {
+    "scores": 5,
+    "runs": 0,
+    "endpoint_result_is_none": true
+  },
+  "note": "Public objective includes result/report facade. Prepared scalar is the optimizer path and includes alpha/strategy timing by boundary."
+}

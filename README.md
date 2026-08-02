@@ -212,6 +212,30 @@ with raw JSON under `benchmarks/native_event/results/phase47c/`. The RSS
 figures are the current Grid facade evidence; they are not compared directly
 to the older ~180 MB core-process profile without a like-for-like baseline.
 
+### Phase 47D Grid optimizer evidence
+
+Phase 47D profiles the real prepared Grid optimizer path by separating alpha
+preparation, strategy construction, engine score, and public report work. The
+safe patch removes per-bar Grid diagnostics and diagnostic alias columns only
+from scalar trials, while public/audit defaults remain unchanged. On the same
+2,000-bar deterministic tape:
+
+| Grid mode | Python scalar | Rust scalar | Python throughput | Rust throughput | Peak RSS Python/Rust | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| Long-only | 0.850 s | 1.086 s | 2,354 bars/s | 1,842 bars/s | 265.4 / 271.2 MB | pass |
+| Long-short | 1.412 s | 1.831 s | 1,416 bars/s | 1,092 bars/s | 291.0 / 293.6 MB | pass |
+
+The apples-to-apples prepared scalar profile measured `0.813s` in the local
+five-repeat profile. The timing breakdown shows the reactive engine callback
+at about `97.9%` and alpha preparation at about `2.2%`, so an indicator cache
+was deliberately not added. This evidence does not claim that Rust is faster
+for the Python reactive Grid facade; Rust remains explicit experimental and
+`auto` remains Python. See
+[`docs/grid_native_event_phase47c.md`](docs/grid_native_event_phase47c.md)
+for the scalar retention contract, RSS interpretation, and remaining debt.
+Raw Phase 47D artifacts are kept under
+`benchmarks/native_event/results/phase47d/`.
+
 The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with

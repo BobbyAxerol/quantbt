@@ -10276,7 +10276,7 @@ Phase 47C completion boundary and remaining debt:
 
 ### Phase 47D - Optimizer Root-Cause, Safe Hot-Path Patches, And Final Certification
 
-Status: **planned; final phase after Phase 47C.**
+Status: **implemented locally; optimizer gate, parity, and RSS certification pass.**
 
 Detailed guide sections:
 
@@ -10297,35 +10297,45 @@ Objective:
 
 Implementation:
 
-- Add the one-trial timing breakdown for alpha preparation, strategy
-  initialization, engine score, objective overhead, total time, fills, and
-  `num_trades`.
-- Add the scalar optimizer gate: `scores` increments exactly once, `runs` does
-  not increment, `endpoint.result is None`, and evaluator does not retain the
-  last result or strategy.
-- Add minimal `native_context_requirements` for Grid and derive score
-  requirements without disabling fills, active orders, or positions.
-- Add optional `collect_diagnostics=True` to the Grid config. Score mode may
-  set it false to avoid `_diag_*` allocations, while public/audit defaults
-  remain unchanged.
-- Make diagnostic alias columns optional in
-  `prepare_grid_alpha_frame(...)`; execution columns remain identical.
-- Only if profiling proves alpha preparation is dominant, add a bounded
-  `PreparedGridAlphaFactory` that reuses immutable OHLC/indicator components,
-  has byte/entry limits and `clear()`, and always creates fresh strategy state.
-- Update endpoint/Grid docs and the phase evidence report with exact parity,
-  performance, RSS, and remaining capability results.
+- Added `benchmarks/native_event/profile_grid_optimizer_trial.py` to separate
+  alpha preparation, strategy construction, prepared engine score, public
+  objective/report work, fill count, and `num_trades`. The apples-to-apples
+  prepared scalar path measured `0.813s` on the local 2,000-bar five-repeat
+  profile after the patch.
+- The scalar gate is enforced by the external Grid helper: `scores` increments
+  exactly once, `runs` does not increment, `endpoint.result is None`, and the
+  score path materializes no public result.
+- Added the minimal Grid context declaration and changed
+  `score_grid_params(...)` to derive `NativeEventScoreRequirements` with
+  `from_strategy(...)`; fills, active orders, and positions remain enabled.
+- Added optional `GridExecutionConfig.collect_diagnostics=True`. The score
+  helper forces a fresh diagnostics-off policy, avoids all `_diag_*` arrays,
+  and keeps public/audit behavior unchanged.
+- Made `long_entry_*`, `long_exit_*`, `short_entry_*`, and `short_exit_*`
+  aliases optional. Canonical execution columns are parity-tested and remain
+  present in scalar mode.
+- Did not add `PreparedGridAlphaFactory`: profiling showed alpha preparation
+  was only about `2.2%`, while the reactive engine callback was about `97.9%`;
+  a bounded indicator cache would add state complexity
+  without addressing the measured bottleneck.
+- Updated the Grid endpoint/docs and recorded the external adapter patch as
+  commit `fda46c3` in the separate `alphas_storage` repository.
 
 Tests and evidence:
 
-- Re-run all Phase 47A-C parity tests after every optimization patch.
-- Verify command tape, fills, accounting, funding, margin, liquidation, and
-  report semantics are unchanged between diagnostics enabled/disabled and
-  cached/uncached alpha paths.
-- Test context requirement combinations, cache bounds/clear, fresh state per
-  trial, no result retention, and repeated optimizer score runs.
-- Report legacy public objective seconds/trial, prepared scalar seconds/trial,
-  alpha/strategy/engine/objective percentages, total wall time, and peak RSS.
+- Added `tests/test_phase47d_grid_optimizer.py` for context requirements,
+  alias parity, diagnostics retention, scalar gate, public-accounting parity,
+  and the explicit diagnostics-off report guard.
+- Focused Grid suite passes **13 tests** when combined with Phase 47A/47C
+  (Phase 47C Rust tests remain environment-gated if the extension is absent).
+- Re-ran the 2,000-bar Python/Rust scalar benchmark in isolated processes:
+  long-only `0.850s`/`1.086s`, long-short `1.412s`/`1.831s`; fingerprint,
+  terminal accounting, and repeated RSS tail gates pass. Peak RSS was
+  `265.4/271.2 MB` long-only and `291.0/293.6 MB` long-short.
+- The public/audit default remains diagnostic-enabled; no public lifecycle,
+  command, fill, fee, funding, margin, liquidation, or report contract was
+  relaxed. The detailed evidence is in
+  [`docs/grid_native_event_phase47c.md`](../docs/grid_native_event_phase47c.md).
 
 Final acceptance and explicit non-goals:
 

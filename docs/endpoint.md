@@ -1090,6 +1090,16 @@ The external Grid 2,000-bar parity, scalar-score retention contract, backend
 policy, and isolated RSS benchmark are documented in
 [`grid_native_event_phase47c.md`](grid_native_event_phase47c.md).
 
+The Grid optimizer-safe Phase 47D policy is documented in the same guide. The
+public/audit default keeps `collect_diagnostics=True`; the external Grid
+`score_grid_params(...)` helper overrides only that artifact policy to
+`False`, derives the minimal context contract from the strategy, and keeps
+the prepared runner scalar-only. This does not alter order generation,
+matching, fees, funding, margin, liquidation, or terminal accounting. A
+diagnostics-off strategy cannot build the stakeholder audit frame; rerun the
+candidate with the default audit policy for `build_output_frame()`, plots, and
+full reports.
+
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving
 `emitted_command_count`. Use `report_level="audit"` when a replayable command
