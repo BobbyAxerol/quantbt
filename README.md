@@ -199,8 +199,8 @@ the same deterministic 2,000-bar tape in both long-only and long-short modes:
 
 | Mode | Python scalar median | Rust scalar median | Python peak RSS | Rust peak RSS | Fingerprint parity |
 |---|---:|---:|---:|---:|---|
-| Long-only | 1.216 s | 1.297 s | 265.5 MB | 272.5 MB | pass |
-| Long-short | 1.845 s | 1.995 s | 292.7 MB | 294.2 MB | pass |
+| Long-only | 1.138 s | 1.245 s | 265.6 MB | 273.2 MB | pass |
+| Long-short | 1.846 s | 1.985 s | 291.1 MB | 293.4 MB | pass |
 
 These are full reactive facade measurements, not pure Rust kernel claims. Rust
 is currently slightly slower on this Grid integration but produces the same

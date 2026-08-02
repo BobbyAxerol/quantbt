@@ -3,23 +3,23 @@
   "backend_requested": "python",
   "backend_resolved": "python",
   "bars": 2000,
-  "cpu_median_seconds": 1.8285619729999993,
+  "cpu_median_seconds": 1.8297140459999994,
   "cpu_seconds": [
-    1.8285619729999993,
-    1.913703258,
-    1.8889025579999998,
-    1.8219432429999998,
-    1.824902989
+    1.8574830030000005,
+    1.8050197790000002,
+    1.7957384370000007,
+    1.8297140459999994,
+    1.833336182
   ],
   "fill_count": 107,
   "final_equity": 20457.971765918566,
   "fingerprint": "eb9c3143e65c6d7b16f419e39a73b40f544dbc11a25204a22d34fda83361595a",
-  "git_revision": "c382ab6",
+  "git_revision": "54525d3",
   "grid_mode": "long_short",
   "grid_module_version": "2026-07-29-phase34-prepared-native-event-v3",
   "measured_runs": 5,
   "mode": "scalar",
-  "peak_rss_kb": 299724,
+  "peak_rss_kb": 298104,
   "phase": "47C",
   "policy": {
     "auto_promoted": false,
@@ -28,27 +28,28 @@
     "rust_explicit_fail_fast": false
   },
   "post_run_rss_kb": [
-    294152,
-    294152,
-    294152,
-    294152,
-    294152
+    292572,
+    292572,
+    292572,
+    292572,
+    292572
   ],
-  "post_run_rss_median_kb": 294152.0,
-  "post_run_rss_slope_kb_per_run": -7.838412897784124e-12,
+  "post_run_rss_median_kb": 292572.0,
+  "post_run_rss_slope_kb_per_run": -1.682997631331872e-11,
+  "post_run_rss_tail_slope_kb_per_run": -5.249274689558284e-11,
   "rss_gate": {
     "accepted_baseline_note": "approximately 180 MB; no 10-15% regression and no linear leak",
     "linear_leak_observed": false,
     "pass": true
   },
-  "runtime_median_seconds": 1.844924469012767,
-  "runtime_p95_seconds": 1.9165260159410535,
+  "runtime_median_seconds": 1.8456540466286242,
+  "runtime_p95_seconds": 1.8748404739424587,
   "runtime_seconds": [
-    1.844924469012767,
-    1.92256885394454,
-    1.892354663927108,
-    1.8321086470969021,
-    1.8365901028737426
+    1.8767477069050074,
+    1.8122127749957144,
+    1.8366738301701844,
+    1.8672115420922637,
+    1.8456540466286242
   ],
   "total_fee": 53.990937020804054,
   "total_funding": -0.28817876653661534,
