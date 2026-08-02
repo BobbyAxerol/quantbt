@@ -2898,6 +2898,7 @@ class NativeEventBackend:
             "lifecycle_counters": counters,
             "score_direct_arrays": True,
             "score_pandas_materialized": False,
+            "score_full_ledgers_materialized": False,
             "score_requirements": asdict(requirements),
             "score_primitive_order_state": bool(getattr(session, "compact_score_state", False)),
             "trading_days": int(trading_days),

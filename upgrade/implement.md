@@ -9960,7 +9960,7 @@ in that guide.
 
 ### Phase 47A - Grid Adapter, Python Scalar Baseline, And Diagnostic Lock
 
-Status: **planned; implementation starts only after phase-plan approval.**
+Status: **implemented locally; Python scalar/public/replay gates pass.**
 
 Detailed guide sections:
 
@@ -10016,6 +10016,38 @@ Acceptance and possible debt:
 - Any unexplained command/fill/position/equity divergence blocks Phase 47B.
 - Expected residual debt is Rust capability incompleteness; it must be listed,
   not hidden by disabling Grid features.
+
+Implementation and evidence:
+
+- Updated the existing Grid module only at
+  `/root/bobby/pool_alpha/alphas_storage/TA/dynamic_grid_quantbt_native_event.py`;
+  the source was imported directly and was not copied into QuantBT.
+- `GridExecutionConfig.native_backend` now validates and normalizes exactly
+  `python`, `rust`, `auto`, and `replay_certified`, while the existing endpoint
+  forwarding remains the only routing change.
+- Added `prepare_grid_score_runner(...)` and `score_grid_params(...)`. Each
+  score creates a fresh mutable Grid strategy, reuses the prepared market tape,
+  uses `NativeEventScoreRequirements.scalar_score_contract()`, and leaves
+  `endpoint.result` untouched.
+- Added the scalar retention evidence flag
+  `score_full_ledgers_materialized=False` to both canonical `src/quantbt` and
+  the compatibility mirror; this is metadata only and does not change fills,
+  accounting, or execution order.
+- Added [`test_phase47a_grid_adapter.py`](../tests/test_phase47a_grid_adapter.py)
+  covering selector forwarding, public-result/scalar separation, repeated
+  score determinism, reportability, and Python single-pass/replay parity.
+- Focused Phase 47A suite: **5 passed**. Related native-event regression:
+  **20 passed**. Full repository regression: **669 passed, 3 skipped**.
+- Syntax compile and the complete mirrored Python-tree check pass with no
+  `src/quantbt` to root-mirror content differences.
+
+Phase 47A completion boundary:
+
+- Python/replay baseline is locked and safe to use as the Phase 47B oracle.
+- No Rust Grid claim, no 2,000-bar Grid production parity claim, no RSS
+  benchmark claim, and no optimizer speedup claim is made by this phase.
+- Existing dirty notebook changes in the external TA repository were left
+  untouched; only the Grid module was changed for this phase.
 
 ### Phase 47B - Rust Native Event V2 Full Contract And Conformance Suite
 
