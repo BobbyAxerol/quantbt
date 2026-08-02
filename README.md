@@ -349,6 +349,36 @@ full before/after table and parity fingerprints in
 [`pre48e/report.md`](benchmarks/native_event/results/pre48e/report.md); the
 raw JSON artifacts are versioned beside it.
 
+### Phase 48E native-event boundary evidence
+
+The Phase 48E rerun keeps the same 2,000-bar tape, seven warm repetitions,
+fresh-process routes, separate score/audit profiles, and `atol <= 1e-12`
+accounting parity. The full raw result is in
+[`phase48e/after.md`](benchmarks/native_event/results/phase48e/after.md).
+The common rows are the comparable native-event/event-driven workload; the
+explicit rows are a separate compiled-tape workload and must not be read as a
+claim that Rust is faster for every Python callback strategy.
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.094448 | 21,176 bars/s | 182.0 | pass |
+| Common low churn | Rust score | 0.179506 | 11,142 bars/s | 183.9 | pass |
+| Common low churn | Python audit | 0.093893 | 21,301 bars/s | 239.0 | pass |
+| Common low churn | Rust audit | 0.178550 | 11,201 bars/s | 242.6 | pass |
+| Common high churn | Python score | 0.107369 | 18,627 bars/s | 183.5 | pass |
+| Common high churn | Rust score | 0.188549 | 10,607 bars/s | 185.2 | pass |
+| Common high churn | Python audit | 0.106375 | 18,801 bars/s | 241.1 | pass |
+| Common high churn | Rust audit | 0.208654 | 9,585 bars/s | 241.3 | pass |
+
+Phase 48E also reduced the static explicit Rust score to `0.000302s`
+(`6,614,704 bars/s`) on the low-churn tape and `0.000392s`
+(`5,103,342 bars/s`) on the high-churn tape. Those numbers benefit from the
+scalar Rust output contract and prepared command-tape reuse, so they are
+reported separately from callback execution. Rust and Python fingerprints,
+fees, positions, fills, events, rejection counters, and final equity passed.
+`backend="auto"` remains Python and `[native]` remains empty until the public
+`quantbt-native` wheel matrix is clean-install certified.
+
 Ecosystem positioning:
 
 | Tool | Core strength | Runtime model | QuantBT role beside it |

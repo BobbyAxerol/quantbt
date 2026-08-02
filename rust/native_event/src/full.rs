@@ -7,6 +7,7 @@
 //! versioned full-contract class.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const STATUS_PENDING: i64 = 0;
 const STATUS_FILLED: i64 = 1;
@@ -62,6 +63,15 @@ pub const LIQ_AFTER_ORDER: i64 = 3;
 
 pub const CODE_WIDTH: usize = 16;
 pub const VALUE_WIDTH: usize = 3;
+
+// Per-step projection mask.  Accounting and lifecycle state are always
+// computed; these bits only control which transient vectors cross the PyO3
+// boundary for reactive callbacks.
+pub const OUTPUT_POSITIONS: u8 = 1;
+pub const OUTPUT_FILLS: u8 = 2;
+pub const OUTPUT_EVENTS: u8 = 4;
+pub const OUTPUT_ACTIVE_ORDERS: u8 = 8;
+pub const OUTPUT_ALL: u8 = OUTPUT_POSITIONS | OUTPUT_FILLS | OUTPUT_EVENTS | OUTPUT_ACTIVE_ORDERS;
 
 #[allow(dead_code)]
 #[derive(Clone)]
@@ -168,10 +178,15 @@ pub struct FullStepResult {
     pub active_orders: Vec<Vec<f64>>,
     pub rejected_count: i64,
     pub canceled_count: i64,
+    pub fill_count: i64,
+    pub event_count: i64,
 }
 
 pub struct FullSession {
-    pub market: FullMarketData,
+    /// Immutable market ownership is shared by every reset/session created
+    /// from one prepared PyO3 market object. Account and order state remain
+    /// session-local.
+    pub market: Arc<FullMarketData>,
     pub contract_sizes: Vec<f64>,
     pub leverages: Vec<f64>,
     pub fee_rates: Vec<f64>,
@@ -179,6 +194,7 @@ pub struct FullSession {
     pub maintenance_ratio: f64,
     pub slippage: f64,
     pub use_funding: bool,
+    pub output_mask: u8,
     pub positions: Vec<f64>,
     pub equity: f64,
     pub liquidated: bool,
@@ -191,12 +207,14 @@ pub struct FullSession {
     // lifecycle result without changing insertion priority.
     id_to_slot: HashMap<i64, usize>,
     last_bar: Option<usize>,
+    pub compaction_count: u64,
+    pub terminal_orders_removed: u64,
 }
 
 impl FullSession {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        market: FullMarketData,
+        market: Arc<FullMarketData>,
         contract_sizes: Vec<f64>,
         leverages: Vec<f64>,
         fee_rates: Vec<f64>,
@@ -227,6 +245,7 @@ impl FullSession {
             maintenance_ratio,
             slippage,
             use_funding,
+            output_mask: OUTPUT_ALL,
             positions: vec![0.0; n_symbols],
             equity: initial_capital,
             liquidated: false,
@@ -235,6 +254,8 @@ impl FullSession {
             orders: Vec::new(),
             id_to_slot: HashMap::new(),
             last_bar: None,
+            compaction_count: 0,
+            terminal_orders_removed: 0,
         })
     }
 
@@ -247,6 +268,16 @@ impl FullSession {
         self.orders.clear();
         self.id_to_slot.clear();
         self.last_bar = None;
+        self.compaction_count = 0;
+        self.terminal_orders_removed = 0;
+    }
+
+    pub fn orders_len(&self) -> usize {
+        self.orders.len()
+    }
+
+    pub fn orders_capacity(&self) -> usize {
+        self.orders.capacity()
     }
 
     #[inline]
@@ -304,6 +335,51 @@ impl FullSession {
         } else {
             None
         }
+    }
+
+    /// Drop terminal lifecycle records once they dominate the order arena.
+    ///
+    /// Active insertion order and every replacement alias are preserved. The
+    /// conservative threshold keeps short tapes cheap while preventing a
+    /// long reactive/Grid tape from retaining one heap record per command.
+    fn compact_terminal_orders(&mut self) {
+        let old_len = self.orders.len();
+        if old_len < 64 {
+            return;
+        }
+        let active_len = self
+            .orders
+            .iter()
+            .filter(|order| {
+                order.status == STATUS_PENDING && (order.active || order.waiting_parent)
+            })
+            .count();
+        let terminal_len = old_len.saturating_sub(active_len);
+        if terminal_len < 64 || terminal_len * 2 < old_len {
+            return;
+        }
+
+        let old_orders = std::mem::take(&mut self.orders);
+        let old_map = std::mem::take(&mut self.id_to_slot);
+        let mut remap = vec![usize::MAX; old_len];
+        let mut orders = Vec::with_capacity(active_len);
+        for (old_slot, order) in old_orders.into_iter().enumerate() {
+            if order.status == STATUS_PENDING && (order.active || order.waiting_parent) {
+                remap[old_slot] = orders.len();
+                orders.push(order);
+            }
+        }
+        let mut id_to_slot = HashMap::with_capacity(old_map.len());
+        for (order_id, old_slot) in old_map {
+            let new_slot = remap.get(old_slot).copied().unwrap_or(usize::MAX);
+            if new_slot != usize::MAX {
+                id_to_slot.insert(order_id, new_slot);
+            }
+        }
+        self.orders = orders;
+        self.id_to_slot = id_to_slot;
+        self.compaction_count += 1;
+        self.terminal_orders_removed += terminal_len as u64;
     }
 
     fn valid_order(code: &[i64], values: &[f64]) -> bool {
@@ -438,6 +514,7 @@ impl FullSession {
         canceled
     }
 
+    #[allow(dead_code)]
     #[allow(clippy::too_many_arguments)]
     pub fn step(
         &mut self,
@@ -446,6 +523,49 @@ impl FullSession {
         values: &[f64],
         expiry: &[i64],
         command_count: usize,
+    ) -> Result<FullStepResult, String> {
+        self.step_with_output(bar, codes, values, expiry, command_count, true)
+    }
+
+    /// Execute one bar while optionally suppressing per-step vectors.
+    ///
+    /// Score callers still receive scalar counts/accounting, but do not pay
+    /// for positions/fill/event/active-order vectors that are discarded at
+    /// the Python boundary. The default `step()` path remains full/audit
+    /// compatible for reactive callbacks.
+    #[allow(clippy::too_many_arguments)]
+    pub fn step_with_output(
+        &mut self,
+        bar: usize,
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+        include_details: bool,
+    ) -> Result<FullStepResult, String> {
+        self.step_with_mask(
+            bar,
+            codes,
+            values,
+            expiry,
+            command_count,
+            if include_details { OUTPUT_ALL } else { 0 },
+        )
+    }
+
+    /// Execute one bar with independent projection requirements.
+    ///
+    /// The engine never skips accounting or lifecycle transitions.  The mask
+    /// only avoids allocating vectors which the callback cannot observe.
+    #[allow(clippy::too_many_arguments)]
+    pub fn step_with_mask(
+        &mut self,
+        bar: usize,
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+        output_mask: u8,
     ) -> Result<FullStepResult, String> {
         if bar >= self.market.n_bars {
             return Err("bar_index is outside the full prepared market tape".to_owned());
@@ -469,7 +589,11 @@ impl FullSession {
             self.last_bar = Some(bar);
             return Ok(FullStepResult {
                 equity: 0.0,
-                positions: vec![0.0; self.market.n_symbols],
+                positions: if output_mask & OUTPUT_POSITIONS != 0 {
+                    vec![0.0; self.market.n_symbols]
+                } else {
+                    Vec::new()
+                },
                 liquidated: true,
                 liquidation_bar: self.liquidation_bar,
                 liquidation_reason: self.liquidation_reason,
@@ -488,7 +612,11 @@ impl FullSession {
             self.last_bar = Some(bar);
             return Ok(FullStepResult {
                 equity: 0.0,
-                positions: vec![0.0; self.market.n_symbols],
+                positions: if output_mask & OUTPUT_POSITIONS != 0 {
+                    vec![0.0; self.market.n_symbols]
+                } else {
+                    Vec::new()
+                },
                 liquidated: true,
                 liquidation_bar: self.liquidation_bar,
                 liquidation_reason: self.liquidation_reason,
@@ -513,7 +641,11 @@ impl FullSession {
             return Ok(FullStepResult {
                 equity: 0.0,
                 funding: funding_total,
-                positions: vec![0.0; self.market.n_symbols],
+                positions: if output_mask & OUTPUT_POSITIONS != 0 {
+                    vec![0.0; self.market.n_symbols]
+                } else {
+                    Vec::new()
+                },
                 liquidated: true,
                 liquidation_bar: self.liquidation_bar,
                 liquidation_reason: self.liquidation_reason,
@@ -887,33 +1019,43 @@ impl FullSession {
         if maintenance_margin > 0.0 && self.equity <= maintenance_margin {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
-        let active_orders = self
-            .orders
-            .iter()
-            .filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent))
-            .map(|o| {
-                vec![
-                    o.order_id as f64,
-                    o.symbol as f64,
-                    o.side as f64,
-                    o.order_type as f64,
-                    o.qty,
-                    o.price,
-                    o.trigger,
-                    o.tif as f64,
-                    if o.reduce_only { 1.0 } else { 0.0 },
-                    o.parent_id as f64,
-                    o.group_id as f64,
-                    o.oco_id as f64,
-                    o.activation as f64,
-                    if o.waiting_parent { 1.0 } else { 0.0 },
-                ]
-            })
-            .collect();
+        self.compact_terminal_orders();
+        let active_orders = if output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
+            self.orders
+                .iter()
+                .filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent))
+                .map(|o| {
+                    vec![
+                        o.order_id as f64,
+                        o.symbol as f64,
+                        o.side as f64,
+                        o.order_type as f64,
+                        o.qty,
+                        o.price,
+                        o.trigger,
+                        o.tif as f64,
+                        if o.reduce_only { 1.0 } else { 0.0 },
+                        o.parent_id as f64,
+                        o.group_id as f64,
+                        o.oco_id as f64,
+                        o.activation as f64,
+                        if o.waiting_parent { 1.0 } else { 0.0 },
+                    ]
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let fill_count = fills.len() as i64;
+        let event_count = events.len() as i64;
         self.last_bar = Some(bar);
         Ok(FullStepResult {
             equity: self.equity,
-            positions: self.positions.clone(),
+            positions: if output_mask & OUTPUT_POSITIONS != 0 {
+                self.positions.clone()
+            } else {
+                Vec::new()
+            },
             fee: fee_total,
             turnover,
             funding: funding_total,
@@ -926,11 +1068,21 @@ impl FullSession {
             liquidated: self.liquidated,
             liquidation_bar: self.liquidation_bar,
             liquidation_reason: self.liquidation_reason,
-            fills,
-            events,
+            fills: if output_mask & OUTPUT_FILLS != 0 {
+                fills
+            } else {
+                Vec::new()
+            },
+            events: if output_mask & OUTPUT_EVENTS != 0 {
+                events
+            } else {
+                Vec::new()
+            },
             active_orders,
             rejected_count: rejected,
             canceled_count: canceled,
+            fill_count,
+            event_count,
         })
     }
 }

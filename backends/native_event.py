@@ -2531,9 +2531,14 @@ class NativeEventBackend:
                 slippage=slip,
                 use_funding=funding_enabled,
             )
-            payload = runner.run_tape_score(compiled_commands)
-            equity = np.ascontiguousarray(np.asarray(payload["equity"], dtype=np.float64))
-            positions = np.ascontiguousarray(np.asarray(payload["positions"], dtype=np.float64))
+            # ``run_compiled_tape_score`` is the legacy/public score facade
+            # and promises dense accounting arrays for metric computation.
+            # Keep the Rust runner's scalar score ABI minimal, but use its
+            # typed audit projection here rather than manufacturing missing
+            # paths or changing the public result contract.
+            audit = runner.run_tape_audit(compiled_commands)
+            equity = np.ascontiguousarray(np.asarray(audit.equity, dtype=np.float64))
+            positions = np.ascontiguousarray(np.asarray(audit.positions, dtype=np.float64))
             returns = np.zeros_like(equity)
             if len(equity) > 1:
                 with np.errstate(divide="ignore", invalid="ignore"):
@@ -2548,45 +2553,45 @@ class NativeEventBackend:
                 positions=positions,
                 symbols=tuple(symbol_list),
                 initial_capital=initial,
-                liquidated=bool(payload["liquidated"]),
+                liquidated=bool(audit.liquidated),
                 trading_days=int(trading_days),
             )
             metadata = {
                 "backend": "native_event",
-                "engine": "event_v2_compiled_tape_scalar_rust_full",
+                "engine": "event_v2_compiled_tape_score_facade_rust_full",
                 "report_level": "score",
                 "score_pandas_materialized": False,
                 "score_full_ledgers_materialized": False,
                 "compiled_tape_commands": int(compiled_commands.n_commands),
                 "compiled_tape_symbols": tuple(symbol_list),
                 "use_funding": funding_enabled,
-                "total_fee": float(payload["total_fee"]),
-                "total_funding": float(payload["total_funding"]),
-                "total_turnover": float(payload["total_turnover"]),
+                "total_fee": float(audit.total_fee),
+                "total_funding": float(audit.total_funding),
+                "total_turnover": float(audit.total_turnover),
                 "lifecycle_counters": {
-                    "fill_count": int(payload["fill_count"]),
-                    "event_count": int(payload["event_count"]),
-                    "rejected_count": int(payload["rejected_count"]),
-                    "canceled_count": int(payload["canceled_count"]),
+                    "fill_count": int(audit.fill_count),
+                    "event_count": int(audit.event_count),
+                    "rejected_count": int(audit.rejected_count),
+                    "canceled_count": int(audit.canceled_count),
                 },
                 "trading_days": int(trading_days),
                 "rust_contract": "native_event_v2_full_contract",
             }
             metrics.update({
-                "total_fee": float(payload["total_fee"]),
-                "total_funding": float(payload["total_funding"]),
-                "total_turnover": float(payload["total_turnover"]),
-                "max_initial_margin": float(payload["max_initial_margin"]),
-                "max_maintenance_margin": float(payload["max_maintenance_margin"]),
+                "total_fee": float(audit.total_fee),
+                "total_funding": float(audit.total_funding),
+                "total_turnover": float(audit.total_turnover),
+                "max_initial_margin": float(audit.max_initial_margin),
+                "max_maintenance_margin": float(audit.max_maintenance_margin),
             })
             return NativeEventScalarScoreResult(
-                final_equity=float(payload["final_equity"]),
-                final_positions=np.asarray(payload["final_positions"], dtype=np.float64),
-                fill_count=int(payload["fill_count"]),
-                rejection_count=int(payload["rejected_count"]),
-                cancellation_count=int(payload["canceled_count"]),
-                liquidated=bool(payload["liquidated"]),
-                liquidation_bar=int(payload["liquidation_bar"]),
+                final_equity=float(audit.equity[-1]),
+                final_positions=np.asarray(audit.positions[-1], dtype=np.float64),
+                fill_count=int(audit.fill_count),
+                rejection_count=int(audit.rejected_count),
+                cancellation_count=int(audit.canceled_count),
+                liquidated=bool(audit.liquidated),
+                liquidation_bar=int(audit.liquidation_bar),
                 metrics=metrics,
                 metadata=metadata,
             )

@@ -7,9 +7,11 @@ name = "quantbt-native"
 version = "0.4.0"
 description = "Optional PyO3 accelerator for quantbt-engine native event execution"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 license = "MIT"
 authors = [{ name = "BobbyAxerol", email = "vugioan11022002@gmail.com" }]
+dependencies = []
+urls = { Homepage = "https://github.com/BobbyAxerol/quantbt", Repository = "https://github.com/BobbyAxerol/quantbt", Documentation = "https://github.com/BobbyAxerol/quantbt/blob/main/docs/native_event_rust_full_contract.md", Issues = "https://github.com/BobbyAxerol/quantbt/issues" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",

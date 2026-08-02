@@ -12,8 +12,12 @@ permissions:
 
 jobs:
   native-event-api-04:
-    name: Native Event API 0.4 build, parity, and RSS smoke
+    name: Native Event API 0.4 / CPython ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout
@@ -22,13 +26,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Maturin
-        run: python -m pip install "maturin>=1.9,<2"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
@@ -49,8 +50,15 @@ jobs:
         run: uv build --out-dir dist/core
 
       - name: Build native wheel
-        working-directory: rust/native_event
-        run: maturin build --release --out ../../dist/native
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out dist/native
+          manylinux: "2014"
 
       - name: Clean combined core and native wheel install smoke
         shell: bash
@@ -58,6 +66,7 @@ jobs:
           python -m venv /tmp/quantbt-native-combined-smoke
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install dist/core/quantbt_engine-*.whl dist/native/quantbt_native-*.whl
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip check
           cd /tmp
           /tmp/quantbt-native-combined-smoke/bin/python - <<'PY'
           from quantbt import QuantBTEndpoint

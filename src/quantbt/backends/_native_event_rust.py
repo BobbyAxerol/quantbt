@@ -44,6 +44,10 @@ _R2_MUTATE_PRICE = 2
 _R2_MUTATE_TRIGGER = 4
 _FULL_CODE_WIDTH = 16
 _FULL_VALUE_WIDTH = 3
+_FULL_OUTPUT_POSITIONS = 1
+_FULL_OUTPUT_FILLS = 2
+_FULL_OUTPUT_EVENTS = 4
+_FULL_OUTPUT_ACTIVE_ORDERS = 8
 
 
 class NativeEventRustBackendError(RuntimeError):
@@ -509,6 +513,57 @@ class RustCommandBuffer:
         return self.codes[:size], self.values[:size], self.expiry[:size]
 
 
+@dataclass
+class RustFullCommandBuffer:
+    """Capacity-managed buffers for the API 0.4 full command ABI.
+
+    The public compiler remains the source of truth for command meaning and
+    ordering. This object only owns reusable contiguous storage so repeated
+    static or reactive runs do not allocate a new ``(n, 16)``/``(n, 3)`` pair
+    for every call.
+    """
+
+    codes: np.ndarray = field(default_factory=lambda: np.empty((0, _FULL_CODE_WIDTH), dtype=np.int64))
+    values: np.ndarray = field(default_factory=lambda: np.empty((0, _FULL_VALUE_WIDTH), dtype=np.float64))
+    expiry: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+    growth_count: int = 0
+    commands_compiled: int = 0
+
+    @property
+    def capacity(self) -> int:
+        """Number of command rows currently reserved."""
+
+        return int(len(self.codes))
+
+    def reserve(self, size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        size = int(size)
+        if size < 0:
+            raise ValueError("command buffer size must be >= 0")
+        if size > self.capacity:
+            capacity = max(size, max(8, self.capacity * 2))
+            self.codes = np.empty((capacity, _FULL_CODE_WIDTH), dtype=np.int64)
+            self.values = np.empty((capacity, _FULL_VALUE_WIDTH), dtype=np.float64)
+            self.expiry = np.empty(capacity, dtype=np.int64)
+            self.growth_count += 1
+        self.commands_compiled += size
+        codes = self.codes[:size]
+        values = self.values[:size]
+        expiry = self.expiry[:size]
+        codes.fill(-1)
+        values.fill(0.0)
+        expiry.fill(-1)
+        return codes, values, expiry
+
+    def clear(self) -> None:
+        """Release storage and reset counters for explicit cache cleanup."""
+
+        self.codes = np.empty((0, _FULL_CODE_WIDTH), dtype=np.int64)
+        self.values = np.empty((0, _FULL_VALUE_WIDTH), dtype=np.float64)
+        self.expiry = np.empty(0, dtype=np.int64)
+        self.growth_count = 0
+        self.commands_compiled = 0
+
+
 @dataclass(frozen=True)
 class _RustPendingOrder:
     order_id: Optional[str]
@@ -829,6 +884,8 @@ def compile_rust_batched_tape(
 
 def compile_rust_full_tape(
     compiled_commands: CompiledOrderCommandArrays,
+    *,
+    buffer: Optional[RustFullCommandBuffer] = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Compile the complete V2 command schema into the Rust 0.4 ABI.
 
@@ -837,9 +894,14 @@ def compile_rust_full_tape(
     """
     commands = tuple(command for _, command in compiled_commands.sorted_commands)
     n = len(commands)
-    codes = np.full((n, _FULL_CODE_WIDTH), -1, dtype=np.int64)
-    values = np.zeros((n, _FULL_VALUE_WIDTH), dtype=np.float64)
-    expiry = np.ascontiguousarray(compiled_commands.command_expires_bar, dtype=np.int64)
+    if buffer is None:
+        codes = np.full((n, _FULL_CODE_WIDTH), -1, dtype=np.int64)
+        values = np.zeros((n, _FULL_VALUE_WIDTH), dtype=np.float64)
+        expiry = np.full(n, -1, dtype=np.int64)
+    else:
+        codes, values, expiry = buffer.reserve(n)
+    if n:
+        expiry[:] = np.asarray(compiled_commands.command_expires_bar, dtype=np.int64)
     if n:
         codes[:, 0] = np.asarray(compiled_commands.command_action, dtype=np.int64)
         codes[:, 1] = np.asarray(compiled_commands.command_symbol, dtype=np.int64)
@@ -864,9 +926,9 @@ def compile_rust_full_tape(
             raise NativeEventRustBackendError("compiled full tape lost command expiry")
     return (
         np.ascontiguousarray(compiled_commands.command_ptr, dtype=np.int64),
-        np.ascontiguousarray(codes, dtype=np.int64),
-        np.ascontiguousarray(values, dtype=np.float64),
-        np.ascontiguousarray(expiry, dtype=np.int64),
+        codes,
+        values,
+        expiry,
     )
 
 
@@ -876,12 +938,16 @@ def compile_rust_full_reactive_batch(
     symbols: Sequence[str],
     intern_id: Callable[[Optional[str]], int],
     idx: pd.DatetimeIndex,
+    buffer: Optional[RustFullCommandBuffer] = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compile one callback batch for the full ABI without Python objects."""
     rows = tuple(commands)
-    codes = np.full((len(rows), _FULL_CODE_WIDTH), -1, dtype=np.int64)
-    values = np.zeros((len(rows), _FULL_VALUE_WIDTH), dtype=np.float64)
-    expiry = np.full(len(rows), -1, dtype=np.int64)
+    if buffer is None:
+        codes = np.full((len(rows), _FULL_CODE_WIDTH), -1, dtype=np.int64)
+        values = np.zeros((len(rows), _FULL_VALUE_WIDTH), dtype=np.float64)
+        expiry = np.full(len(rows), -1, dtype=np.int64)
+    else:
+        codes, values, expiry = buffer.reserve(len(rows))
     symbol_to_code = {symbol: col for col, symbol in enumerate(symbols)}
     order_type = {OrderType.MARKET: 0, OrderType.LIMIT: 1, OrderType.STOP_MARKET: 2, OrderType.STOP_LIMIT: 3}
     tif = {TimeInForce.GTC: 0, TimeInForce.IOC: 1, TimeInForce.FOK: 2, TimeInForce.GTD: 3}
@@ -952,6 +1018,7 @@ class RustFullRunner:
         opens_arr: Optional[np.ndarray] = None,
         volumes_arr: Optional[np.ndarray] = None,
         prepared_market_core=None,
+        max_tape_cache_bytes: int = 64 * 1024 * 1024,
     ) -> None:
         self.idx = pd.DatetimeIndex(idx)
         self.symbols = tuple(symbols)
@@ -962,6 +1029,9 @@ class RustFullRunner:
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
+        if int(max_tape_cache_bytes) < 0:
+            raise ValueError("max_tape_cache_bytes must be >= 0")
+        self.max_tape_cache_bytes = int(max_tape_cache_bytes)
         if len(self.symbols) == 0 or market_arrays.closes.shape[1] != len(self.symbols):
             raise NativeEventRustBackendError("full Rust runner symbols do not match prepared market arrays")
         self._module = _require_r1_extension()
@@ -993,25 +1063,92 @@ class RustFullRunner:
                 np.ascontiguousarray(market_arrays.funding, dtype=np.float64),
                 np.ascontiguousarray(market_arrays.is_funding_bar, dtype=np.bool_),
             )
+        self._command_buffer = RustFullCommandBuffer()
+        self._cached_tape_fingerprint: Optional[str] = None
+        self._cached_tape_arrays: Optional[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
+        self._cached_tape_bytes = 0
+        self._session = None
 
     def _new_session(self):
-        return self._module.FullReactiveSessionCore.from_prepared(
-            self.prepared_market_core,
-            self.contract_sizes,
-            self.leverages,
-            self.fee_rates,
-            self.initial_capital,
-            self.maintenance_ratio,
-            self.slippage,
-            self.use_funding,
+        if self._session is None:
+            self._session = self._module.FullReactiveSessionCore.from_prepared(
+                self.prepared_market_core,
+                self.contract_sizes,
+                self.leverages,
+                self.fee_rates,
+                self.initial_capital,
+                self.maintenance_ratio,
+                self.slippage,
+                self.use_funding,
+            )
+        else:
+            self._session.reset()
+        return self._session
+
+    def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
+        fingerprint = getattr(compiled_commands, "tape_fingerprint", "") or _command_tape_fingerprint(
+            compiled_commands
         )
+        if fingerprint == self._cached_tape_fingerprint and self._cached_tape_arrays is not None:
+            return self._cached_tape_arrays
+        arrays = compile_rust_full_tape(compiled_commands, buffer=self._command_buffer)
+        byte_size = sum(int(array.nbytes) for array in arrays)
+        if byte_size <= self.max_tape_cache_bytes:
+            self._cached_tape_fingerprint = fingerprint
+            self._cached_tape_arrays = arrays
+            self._cached_tape_bytes = byte_size
+        else:
+            self.clear_tape_cache()
+        return arrays
+
+    @property
+    def tape_cache_bytes(self) -> int:
+        """Resident bytes held by the bounded full-contract tape cache."""
+
+        return int(self._cached_tape_bytes)
+
+    def clear_tape_cache(self) -> None:
+        """Release compiled tape arrays while retaining prepared market state."""
+
+        self._cached_tape_fingerprint = None
+        self._cached_tape_arrays = None
+        self._cached_tape_bytes = 0
+        self._command_buffer.clear()
+
+    def clear_caches(self) -> None:
+        """Release runner-local tape/session caches without mutating market data."""
+
+        self.clear_tape_cache()
+        self._session = None
+
+    def cache_info(self) -> Mapping[str, int]:
+        """Return observable bounded-cache and command-buffer counters."""
+
+        info = {
+            "tape_cache_bytes": self.tape_cache_bytes,
+            "tape_cache_entries": int(self._cached_tape_arrays is not None),
+            "command_buffer_capacity": self._command_buffer.capacity,
+            "command_buffer_growth_count": self._command_buffer.growth_count,
+            "commands_compiled": self._command_buffer.commands_compiled,
+        }
+        if self._session is not None and hasattr(self._session, "order_arena_counters"):
+            slots, capacity, compactions, removed = self._session.order_arena_counters()
+            info.update(
+                {
+                    "order_arena_slots": int(slots),
+                    "order_arena_capacity": int(capacity),
+                    "order_compactions": int(compactions),
+                    "terminal_orders_removed": int(removed),
+                }
+            )
+        return info
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
-        ptr, codes, values, expiry = compile_rust_full_tape(compiled_commands)
+        ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         return self._new_session().run_tape_score(ptr, codes, values, expiry)
 
     def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
-        ptr, codes, values, expiry = compile_rust_full_tape(compiled_commands)
+        ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
         keys = (
             "equity", "positions", "fees", "turnover", "funding", "initial_margin", "maintenance_margin",
@@ -1378,6 +1515,32 @@ class RustReactiveSessionAdapter:
         )
         self.retain_fill_ledger = bool(score_requirements is None or score_requirements.need_fill_ledger)
         self.retain_event_ledger = bool(score_requirements is None or score_requirements.need_event_ledger)
+        self.emit_context_fills = bool(
+            score_requirements is None or score_requirements.need_context_fills
+        )
+        self.emit_context_events = bool(
+            score_requirements is None or score_requirements.need_context_events
+        )
+        self.emit_context_active_orders = bool(
+            score_requirements is None or score_requirements.need_context_active_orders
+        )
+        self.emit_context_positions = bool(
+            score_requirements is None or score_requirements.need_context_positions
+        )
+        self.emit_context_margin = bool(
+            score_requirements is None or score_requirements.need_context_margin
+        )
+        self.compact_score_state = bool(
+            score_requirements is not None
+            and not score_requirements.need_context_fills
+            and not score_requirements.need_context_events
+            and not score_requirements.need_context_active_orders
+            and not score_requirements.need_context_positions
+            and not score_requirements.need_context_margin
+            and not score_requirements.need_fill_ledger
+            and not score_requirements.need_event_ledger
+            and not score_requirements.need_terminal_orders
+        )
         self._r2_capable = bool(extension_status.capabilities.get("r2_stop_amend_replace_reduce_only_constraints", False))
         self._prepared_market_core_capable = bool(extension_status.capabilities.get("prepared_market_core", False))
         if self.constraints.enabled and not self._r2_capable:
@@ -1388,6 +1551,22 @@ class RustReactiveSessionAdapter:
         self._id_values: list[str] = []
         self._commands_by_id: dict[str, OrderCommand] = {}
         self._command_buffer = RustCommandBuffer()
+        self._full_command_buffer = RustFullCommandBuffer()
+        self.execution_counters = {
+            "bars_processed": 0,
+            "bars_with_commands": 0,
+            "contexts_materialized": 0,
+            "timestamp_objects_materialized": 0,
+            "commands_compiled": 0,
+            "command_buffer_growths": 0,
+            "bytes_copied_to_rust": 0,
+            "active_snapshot_materializations": 0,
+            "empty_command_batches_skipped": 0,
+            "constraint_preflight_calls": 0,
+            "constraint_preflight_skipped": 0,
+            "commands_retimed": 0,
+            "commands_quantized": 0,
+        }
         self.scheduled: dict[int, list[OrderCommand]] = {}
         self.pending: list[_RustPendingOrder] = []
         self.orders: list[_RustPendingOrder] = []
@@ -1420,6 +1599,9 @@ class RustReactiveSessionAdapter:
         self.maintenance_margin_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
         self.rejected_bar = None if self.scalar_score else np.zeros(n_bars, dtype=np.int64)
         self.canceled_bar = None if self.scalar_score else np.zeros(n_bars, dtype=np.int64)
+        self.empty_fills: tuple[NativeFillEvent, ...] = ()
+        self.empty_events: tuple[NativeOrderEvent, ...] = ()
+        self.empty_active_orders: tuple[NativeActiveOrderSnapshot, ...] = ()
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = ()
         if self.scalar_score:
             # Import lazily to avoid the native_event <-> Rust adapter import
@@ -1450,6 +1632,17 @@ class RustReactiveSessionAdapter:
                 np.ascontiguousarray(self.fee_rates, dtype=np.float64),
                 float(initial_capital), float(maintenance_ratio), float(slippage), bool(use_funding),
             )
+            # Accounting and the live position vector are always required by
+            # the Python adapter.  Other projections are requested only when
+            # the strategy/ledger can observe them.
+            output_mask = _FULL_OUTPUT_POSITIONS
+            if self.retain_fill_ledger or self.emit_context_fills:
+                output_mask |= _FULL_OUTPUT_FILLS
+            if self.retain_event_ledger or self.emit_context_events:
+                output_mask |= _FULL_OUTPUT_EVENTS
+            if self.emit_context_active_orders:
+                output_mask |= _FULL_OUTPUT_ACTIVE_ORDERS
+            self._core.set_output_mask(output_mask)
         elif self._prepared_market_core_capable and hasattr(self._module, "PreparedMarketCore"):
             if self.prepared_market_core is None:
                 self.prepared_market_core = self._module.PreparedMarketCore(
@@ -1521,7 +1714,9 @@ class RustReactiveSessionAdapter:
         contract without changing the command tape or endpoint API.
         """
         if not self.constraints.enabled:
+            self.execution_counters["constraint_preflight_skipped"] += int(bool(commands))
             return tuple(commands)
+        self.execution_counters["constraint_preflight_calls"] += int(bool(commands))
         out: list[OrderCommand] = []
         for command in commands:
             if command.action not in (OrderAction.PLACE, OrderAction.REPLACE) or command.qty is None:
@@ -1552,6 +1747,7 @@ class RustReactiveSessionAdapter:
                 out.append(replace(command, qty=quantity))
             else:
                 out.append(command)
+        self.execution_counters["commands_quantized"] += len(commands)
         return tuple(out)
 
     @staticmethod
@@ -1589,6 +1785,7 @@ class RustReactiveSessionAdapter:
                     symbols=self.symbols,
                     intern_id=self._intern_id,
                     idx=self.idx,
+                    buffer=self._full_command_buffer,
                 )
                 batch = None
             else:
@@ -1610,6 +1807,14 @@ class RustReactiveSessionAdapter:
                 payload = self._core.step(current_bar, batch.codes, batch.values, batch.expiry)
             self._consume_step(current_bar, payload)
             self.processed_bar = current_bar
+            self.execution_counters["bars_processed"] += 1
+            self.execution_counters["commands_compiled"] += len(commands)
+            self.execution_counters["command_buffer_growths"] = self._full_command_buffer.growth_count
+            self.execution_counters["bytes_copied_to_rust"] += int(
+                full_codes.nbytes + full_values.nbytes + full_expiry.nbytes
+                if self._full_contract
+                else batch.codes.nbytes + batch.values.nbytes + batch.expiry.nbytes
+            )
 
     def _consume_step(self, bar: int, payload) -> None:
         self.equity = float(payload["equity"])
@@ -1652,6 +1857,20 @@ class RustReactiveSessionAdapter:
                 initial_margin,
                 maintenance_margin,
             )
+        reported_fill_count = "fill_count" in payload
+        reported_event_counts = "event_count" in payload
+        if reported_fill_count:
+            self.fill_count += int(payload.get("fill_count", 0))
+        if reported_event_counts:
+            self.event_count += int(payload.get("event_count", 0))
+            rejected = int(payload.get("rejected_count", 0))
+            canceled = int(payload.get("canceled_count", 0))
+            self.rejected_count += rejected
+            self.canceled_count += canceled
+            if self.rejected_bar is not None:
+                self.rejected_bar[bar] += rejected
+            if self.canceled_bar is not None:
+                self.canceled_bar[bar] += canceled
         fills = []
         for fill_row in payload["fills"]:
             if self._full_contract:
@@ -1674,7 +1893,8 @@ class RustReactiveSessionAdapter:
                 metadata={} if command is None else dict(command.metadata),
             )
             fills.append(fill)
-            self.fill_count += 1
+            if not reported_fill_count:
+                self.fill_count += 1
             if self.retain_fill_ledger:
                 self.fills.append(fill)
         if fills:
@@ -1692,14 +1912,6 @@ class RustReactiveSessionAdapter:
             name = ({0: "place", 1: "cancel", 2: "replace", 3: "amend", 4: "fill", 5: "expire", 6: "activate", 7: "reject"} if self._full_contract else {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}).get(
                 int(event_kind), "reject"
             )
-            if name == "reject":
-                if self.rejected_bar is not None:
-                    self.rejected_bar[bar] += 1
-                self.rejected_count += 1
-            if name == "cancel":
-                if self.canceled_bar is not None:
-                    self.canceled_bar[bar] += 1
-                self.canceled_count += 1
             event = NativeOrderEvent(
                 timestamp=self.idx[bar],
                 bar=bar,
@@ -1710,7 +1922,16 @@ class RustReactiveSessionAdapter:
                 metadata={"reject_code": reject_code},
             )
             events.append(event)
-            self.event_count += 1
+            if not reported_event_counts:
+                self.event_count += 1
+                if name == "reject":
+                    if self.rejected_bar is not None:
+                        self.rejected_bar[bar] += 1
+                    self.rejected_count += 1
+                if name == "cancel":
+                    if self.canceled_bar is not None:
+                        self.canceled_bar[bar] += 1
+                    self.canceled_count += 1
             if self.retain_event_ledger:
                 self.events.append(event)
         if events:
@@ -1772,7 +1993,11 @@ class RustReactiveSessionAdapter:
                 )
             )
         self.pending = pending
-        self._active_snapshot_cache = tuple(snapshots)
+        if self.emit_context_active_orders:
+            self._active_snapshot_cache = tuple(snapshots)
+            self.execution_counters["active_snapshot_materializations"] += 1
+        else:
+            self._active_snapshot_cache = self.empty_active_orders
 
     @staticmethod
     def _is_pending(state: _RustPendingOrder) -> bool:
@@ -1780,6 +2005,7 @@ class RustReactiveSessionAdapter:
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
+        self.execution_counters["contexts_materialized"] += 1
         initial_margin = (
             float(self.initial_margin_path[int(bar)])
             if self.initial_margin_path is not None
@@ -1800,12 +2026,24 @@ class RustReactiveSessionAdapter:
             volume=self.volumes_arr[int(bar)],
             equity=float(self.equity),
             available_equity=float(self.equity - initial_margin),
-            initial_margin=initial_margin,
-            maintenance_margin=maintenance_margin,
-            positions={symbol: float(self.current_pos[col]) for col, symbol in enumerate(self.symbols)},
-            fills_this_bar=tuple(self.fills_by_bar.get(int(bar), ())),
-            order_events_this_bar=tuple(self.events_by_bar.get(int(bar), ())),
-            active_orders=self._active_snapshot_cache,
+            initial_margin=initial_margin if self.emit_context_margin else 0.0,
+            maintenance_margin=maintenance_margin if self.emit_context_margin else 0.0,
+            positions=(
+                {symbol: float(self.current_pos[col]) for col, symbol in enumerate(self.symbols)}
+                if self.emit_context_positions else {}
+            ),
+            fills_this_bar=(
+                tuple(self.fills_by_bar.get(int(bar), ()))
+                if self.emit_context_fills else self.empty_fills
+            ),
+            order_events_this_bar=(
+                tuple(self.events_by_bar.get(int(bar), ()))
+                if self.emit_context_events else self.empty_events
+            ),
+            active_orders=(
+                self._active_snapshot_cache
+                if self.emit_context_active_orders else self.empty_active_orders
+            ),
             liquidated=bool(self.liquidated),
             symbols=self.symbols_tuple,
             size_order=self.size_helper,
@@ -1819,6 +2057,7 @@ __all__ = [
     "RUST_NATIVE_API_VERSION",
     "RustCommandBatch",
     "RustCommandBuffer",
+    "RustFullCommandBuffer",
     "RustBatchedAuditResult",
     "RustFullAuditResult",
     "RustBatchedChunkResult",

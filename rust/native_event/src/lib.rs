@@ -918,7 +918,7 @@ impl FullReactiveSessionCore {
             funding_mask,
         )?;
         let inner = FullSession::new(
-            (*prepared.inner).clone(),
+            prepared.inner.clone(),
             contract_sizes.as_slice()?.to_vec(),
             leverages.as_slice()?.to_vec(),
             fee_rates.as_slice()?.to_vec(),
@@ -947,7 +947,7 @@ impl FullReactiveSessionCore {
     ) -> PyResult<Self> {
         let market = prepared.borrow(py).inner.clone();
         let inner = FullSession::new(
-            (*market).clone(),
+            market,
             contract_sizes.as_slice()?.to_vec(),
             leverages.as_slice()?.to_vec(),
             fee_rates.as_slice()?.to_vec(),
@@ -990,19 +990,42 @@ impl FullReactiveSessionCore {
         }
         let result = self
             .inner
-            .step(
+            .step_with_mask(
                 bar_index,
                 command_codes.as_slice()?,
                 command_values.as_slice()?,
                 command_expiry.as_slice()?,
                 codes_shape[0],
+                self.inner.output_mask,
             )
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
         full_step_payload(py, result)
     }
 
+    /// Set reactive projection requirements without changing the stable
+    /// constructor ABI.  Unknown bits are rejected instead of silently
+    /// falling back to a wider allocation profile.
+    fn set_output_mask(&mut self, output_mask: u8) -> PyResult<()> {
+        if output_mask & !full::OUTPUT_ALL != 0 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full output mask contains unsupported bits",
+            ));
+        }
+        self.inner.output_mask = output_mask;
+        Ok(())
+    }
+
     fn reset(&mut self) {
         self.inner.reset();
+    }
+
+    fn order_arena_counters(&self) -> (usize, usize, u64, u64) {
+        (
+            self.inner.orders_len(),
+            self.inner.orders_capacity(),
+            self.inner.compaction_count,
+            self.inner.terminal_orders_removed,
+        )
     }
 
     fn run_tape_score(
@@ -1013,22 +1036,29 @@ impl FullReactiveSessionCore {
         command_values: PyReadonlyArray2<'_, f64>,
         command_expiry: PyReadonlyArray1<'_, i64>,
     ) -> PyResult<Py<PyDict>> {
-        let output = run_full_tape(
-            &mut self.inner,
-            command_ptr.as_slice()?,
-            command_codes.as_slice()?,
-            command_codes.shape(),
-            command_values.as_slice()?,
-            command_values.shape(),
-            command_expiry.as_slice()?,
-            true,
-        )
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let ptr = command_ptr.as_slice()?;
+        let codes = command_codes.as_slice()?;
+        let code_shape = command_codes.shape();
+        let values = command_values.as_slice()?;
+        let value_shape = command_values.shape();
+        let expiry = command_expiry.as_slice()?;
+        let output = py
+            .detach(|| {
+                run_full_tape(
+                    &mut self.inner,
+                    ptr,
+                    codes,
+                    code_shape,
+                    values,
+                    value_shape,
+                    expiry,
+                    false,
+                )
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
         let payload = PyDict::new(py);
         payload.set_item("final_equity", output.final_equity)?;
         payload.set_item("final_positions", output.final_positions)?;
-        payload.set_item("equity", output.equity)?;
-        payload.set_item("positions", output.positions)?;
         payload.set_item("total_fee", output.total_fee)?;
         payload.set_item("total_turnover", output.total_turnover)?;
         payload.set_item("total_funding", output.total_funding)?;
@@ -1053,17 +1083,26 @@ impl FullReactiveSessionCore {
         command_values: PyReadonlyArray2<'_, f64>,
         command_expiry: PyReadonlyArray1<'_, i64>,
     ) -> PyResult<Py<PyDict>> {
-        let output = run_full_tape(
-            &mut self.inner,
-            command_ptr.as_slice()?,
-            command_codes.as_slice()?,
-            command_codes.shape(),
-            command_values.as_slice()?,
-            command_values.shape(),
-            command_expiry.as_slice()?,
-            true,
-        )
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let ptr = command_ptr.as_slice()?;
+        let codes = command_codes.as_slice()?;
+        let code_shape = command_codes.shape();
+        let values = command_values.as_slice()?;
+        let value_shape = command_values.shape();
+        let expiry = command_expiry.as_slice()?;
+        let output = py
+            .detach(|| {
+                run_full_tape(
+                    &mut self.inner,
+                    ptr,
+                    codes,
+                    code_shape,
+                    values,
+                    value_shape,
+                    expiry,
+                    true,
+                )
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
         let payload = PyDict::new(py);
         payload.set_item("equity", output.equity)?;
         payload.set_item("positions", output.positions)?;
@@ -1120,6 +1159,8 @@ fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<P
     payload.set_item("active_orders", result.active_orders)?;
     payload.set_item("rejected_count", result.rejected_count)?;
     payload.set_item("canceled_count", result.canceled_count)?;
+    payload.set_item("fill_count", result.fill_count)?;
+    payload.set_item("event_count", result.event_count)?;
     Ok(payload.unbind())
 }
 
@@ -1265,12 +1306,13 @@ fn run_full_tape(
     for bar in 0..n_bars {
         let start = ptr[bar] as usize;
         let end = ptr[bar + 1] as usize;
-        let step = session.step(
+        let step = session.step_with_output(
             bar,
             &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH],
             &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH],
             &expiry[start..end],
             end - start,
+            audit,
         )?;
         if audit {
             output.equity.push(step.equity);
@@ -1282,15 +1324,16 @@ fn run_full_tape(
             output.maintenance_margin.push(step.maintenance_margin);
         }
         output.final_equity = step.equity;
-        output.final_positions = step.positions;
+        output.final_positions = session.positions.clone();
         output.total_fee += step.fee;
         output.total_turnover += step.turnover;
         output.total_funding += step.funding;
         output.rejected_count += step.rejected_count;
         output.canceled_count += step.canceled_count;
-        for fill in step.fills {
-            output.fill_count += 1;
-            if audit {
+        output.fill_count += step.fill_count;
+        output.event_count += step.event_count;
+        if audit {
+            for fill in step.fills {
                 output.fill_bar.push(bar as i64);
                 output.fill_order_id.push(fill[0] as i64);
                 output.fill_symbol.push(fill[1] as i64);
@@ -1299,10 +1342,7 @@ fn run_full_tape(
                 output.fill_price.push(fill[4]);
                 output.fill_fee.push(fill[5]);
             }
-        }
-        for event in step.events {
-            output.event_count += 1;
-            if audit {
+            for event in step.events {
                 output.event_bar.push(bar as i64);
                 output.event_kind.push(event[0]);
                 output.event_status.push(event[1]);
