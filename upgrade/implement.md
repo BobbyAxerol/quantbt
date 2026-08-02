@@ -10990,6 +10990,76 @@ auto remains Python for 1.0.7
 [native] is populated only if the public install is real
 ```
 
+### Phase 48E.1 - Native Production Closure Before 48F
+
+**Status: in progress.** This is a required closure phase between Phase 48E and
+Phase 48F. The normative implementation guide is
+[`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md),
+section `QuantBT Phase 48E.1 - Native Production Closure Before 48F`, including
+P0-P7, patch order `48E.1-A` through `48E.1-G`, the mandatory test matrix, and
+the acceptance gate. That guide is authoritative; this section tracks the
+actual repository work and evidence.
+
+#### Scope and non-regression contract
+
+- Complete Rust conditional output allocation, not only PyO3 payload omission.
+- Use one lifecycle implementation with count-only and collecting sinks.
+- Replace nested per-row hot-path projections with reusable Rust-owned SoA
+  buffers. Score must not materialize audit rows; audit converts once at the
+  boundary. No unsafe borrowed NumPy views.
+- Preserve the public command ABI (`i64/f64`, 16/3 full command arrays), public
+  endpoint, timing, fee, funding, margin, liquidation, parent/OCO/TIF and
+  quantity semantics.
+- Add validated compact internal enums/flags, immutable market storage and a
+  typed PyO3 scalar step result without changing the legacy `step()` surface.
+- Make `command_report`, `order_report`, `fills_report` and `order_events`
+  distinct, with command metadata enrichment performed once at the Python
+  audit boundary. Rust score/research/audit profiles must have explicit
+  retention semantics.
+- Harden existing compaction/reset relationships and isolate API 0.4 full
+  capability routing from legacy adapters. Explicit `backend="rust"` must
+  fail fast when its capability contract is unavailable; no silent fallback.
+
+#### Tracked implementation order
+
+1. `48E.1-A`: freeze current parity, report schema, RSS/runtime and counters.
+2. `48E.1-B`: implement `StepCounters`/`DetailSink` and prove score allocation
+   suppression with exact Python/oracle parity.
+3. `48E.1-C`: implement reusable `FillBuffer`, `EventBuffer`,
+   `ActiveOrderBuffer`, typed step payload and adapter projection tests.
+4. `48E.1-D`: compact validated internal types/flags and fixed market arrays;
+   run Rust format, clippy and release tests without ABI changes.
+5. `48E.1-E`: close report semantics, command metadata, full-report parity and
+   export bundle tests.
+6. `48E.1-F`: cover replacement aliases, waiting parent/child, OCO, GTD,
+   priority, multi-symbol and fresh/reset parity; run 100-run memory plateau.
+7. `48E.1-G`: build/install CPython 3.11/3.12/3.13 manylinux wheels in CI,
+   clean-install core plus native, run capability/full-contract/Grid/report/
+     `pip check` and RSS gates. Local Ubuntu wheels are not public evidence.
+
+#### Required tests and evidence
+
+- All command actions, order types, GTC/GTD/IOC/FOK, quantity constraints,
+  reduce-only, parent/group/OCO, funding, margin and liquidation paths.
+- Every valid output-mask combination: counts, positions, fills, events,
+  active orders, mixed projections and full audit; accounting/lifecycle must
+  remain identical.
+- Python/Rust/oracle parity at `atol <= 1e-12` for accounting and exact
+  discrete lifecycle parity, including report schema/value parity.
+- Score buffers do not grow, audit buffers reuse capacity, reset is equivalent
+  to a fresh session, prepared market is shared, and 100 runs have bounded RSS.
+- Isolated low/high-churn explicit, generic callback and Grid benchmarks with
+  CPU time, median/p95, VmHWM, RSS, capacity growth, PyO3 calls, returned bytes,
+  compactions and margin recomputes. No speed claim may hide missing domain
+  work, and no unexplained regression over 10-15% is accepted.
+
+#### Exit gate
+
+Phase 48E.1 is complete only when R3/R4 allocation counters, typed/result and
+report contracts, parity, compaction/reset, bounded RSS and the installed-wheel
+matrix pass. Any unavailable wheel target or report/correctness blocker keeps
+this phase open; Phase 48F remains limited to artifact/TestPyPI/release work.
+
 ### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
 
 Detailed guide sections:
