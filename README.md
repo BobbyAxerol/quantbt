@@ -278,6 +278,18 @@ for the scalar retention contract, RSS interpretation, and remaining debt.
 Raw Phase 47D artifacts are kept under
 `benchmarks/native_event/results/phase47d/`.
 
+### Phase 48F final release handoff
+
+The core `quantbt-engine` 1.0.7 artifact gate is now implemented locally and
+in the release workflows: exact version/ref validation, wheel and sdist
+`twine check`, archive allowlist and secret scan, clean import plus `pip check`,
+and a SHA256 release manifest. The TestPyPI workflow is manual and OIDC
+protected; it must be run with an unused matching RC version/tag and reviewed
+before production PyPI publication. See
+[`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
+`quantbt-native` is intentionally excluded from this core upload, `auto`
+remains Python, and explicit Rust remains capability-gated.
+
 ### Phase 48C stable event-driven facade evidence
 
 The stable `QuantBTEndpoint.event_driven()` facade was benchmarked on the same
@@ -310,7 +322,9 @@ The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
 OIDC, then publish the final core package through the protected PyPI
-environment. No long-lived token is required. Native optimization remains an
+environment. The exact handoff fields and artifact-hash procedure are in
+[`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
+No long-lived token is required. Native optimization remains an
 open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,
 intrabar, and Nautilus adapter workloads; each future route needs its own
 parity and RSS certification.

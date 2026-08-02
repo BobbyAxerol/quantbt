@@ -77,6 +77,7 @@ downloads/private/
 *.lprof
 *.memray
 *.flamegraph.svg
+release-manifest*.json
 artifacts/local/
 artifacts/tmp/
 benchmarks/**/local/

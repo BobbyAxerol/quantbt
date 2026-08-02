@@ -1,6 +1,6 @@
 # QuantBT Packaging And Release
 
-This document records the Phase 46F release contract for `quantbt-engine`.
+This document records the Phase 48F final release contract for `quantbt-engine`.
 The older Phase 42C rules remain valid unless this document explicitly updates
 them.
 
@@ -21,7 +21,9 @@ from quantbt import QuantBTEndpoint
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
-- Phase 46F release candidate: `1.0.7`.
+- Phase 48F release candidate: `1.0.7`.
+- Phase 48F local artifact gate: complete for the core Python distribution;
+  TestPyPI publication remains an explicit operator action.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native` is experimental and is not a dependency of the core wheel.
 
@@ -81,6 +83,13 @@ The release workflow runs `pip check` after both wheel and sdist installation.
 The package build source is `src/quantbt`; the root mirror is retained for
 editable Pool Alpha compatibility and is protected by the source-sync tests.
 It is not a second distribution source.
+
+The exact handoff fields, artifact hashes, RC tag procedure, and post-upload
+smoke steps are maintained in the
+[`TestPyPI release checklist`](testpypi_release_checklist.md). CI creates a
+`quantbt-release-manifest-v1` JSON artifact containing the release commit,
+version, wheel/sdist SHA256 values, benchmark evidence hashes and backend
+policy. The manifest is evidence only; it is never uploaded to PyPI.
 
 ## Trusted Publishing
 
@@ -145,6 +154,10 @@ poetry run python tools/check_release_version.py
 poetry run pytest -q
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
+poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist
+poetry run python tools/create_release_manifest.py \
+  --dist /tmp/quantbt-engine-dist \
+  --output /tmp/quantbt-release-manifest.json
 ```
 
 Inspect the artifacts before installing them:
@@ -202,12 +215,12 @@ from quantbt import QuantBTEndpoint
 
 ## Native Package Note
 
-`quantbt-native` is not published in Phase 46F. Its current Rust crate version
+`quantbt-native` is not published in the current Phase 48F core release. Its current Rust crate version
 and native API version are separate from the core package version. Rust remains
 available only through an explicitly installed local wheel and an explicit
 `native_backend="rust"` request.
 
-The current Phase 46F rerun evidence is:
+Historical Phase 46F rerun evidence retained for comparison is:
 
 | Gate | Result |
 |---|---|
@@ -326,6 +339,8 @@ accepted benchmark evidence remain trackable.
 4. Configure the pending TestPyPI publisher for repository `BobbyAxerol/quantbt`,
    workflow `publish-testpypi.yml`, and GitHub environment `testpypi`.
 5. Run **Publish quantbt-engine to TestPyPI** manually with the exact tag.
+   The workflow runs the clean wheel/sdist installation gate before the
+   publish job and uploads the release manifest separately for review.
 6. Install and smoke-test the RC from both TestPyPI and the Pool Alpha
    environment:
 

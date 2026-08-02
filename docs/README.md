@@ -20,6 +20,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
+| Prepare and inspect a TestPyPI RC | [TestPyPI release checklist](testpypi_release_checklist.md) |
 | Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
 | Certify the external Grid alpha on Python/Rust with 2,000-bar parity, RSS, and optimizer evidence | [Grid Phase 47C/47D](grid_native_event_phase47c.md) |
 

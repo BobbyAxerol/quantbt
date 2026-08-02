@@ -43,6 +43,9 @@ jobs:
       - name: Run regression
         run: uv run pytest -q
 
+      - name: Clean build directory
+        run: rm -rf dist release-manifest.json
+
       - name: Build distributions
         run: uv build --out-dir dist
 
@@ -60,11 +63,61 @@ jobs:
           uv run python tools/scan_public_secrets.py
           uv run python tools/check_release_artifacts.py --dist dist
 
+      - name: Clean wheel install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-testpypi-wheel-smoke
+          /tmp/quantbt-testpypi-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-testpypi-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          /tmp/quantbt-testpypi-wheel-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-testpypi-wheel-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
+
+      - name: Clean sdist install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-testpypi-sdist-smoke
+          /tmp/quantbt-testpypi-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-testpypi-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+          /tmp/quantbt-testpypi-sdist-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-testpypi-sdist-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
+
+      - name: Create release manifest
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref }}
+        run: >-
+          uv run python tools/create_release_manifest.py
+          --dist dist
+          --output release-manifest.json
+          --require-clean
+
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
           name: testpypi-dist
           path: dist/*
+          if-no-files-found: error
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpypi-release-manifest
+          path: release-manifest.json
           if-no-files-found: error
 
   publish:
@@ -83,6 +136,12 @@ jobs:
         with:
           name: testpypi-dist
           path: dist
+
+      - name: Download release manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: testpypi-release-manifest
+          path: release-evidence
 
       - name: Publish with TestPyPI trusted publishing
         uses: pypa/gh-action-pypi-publish@release/v1

@@ -11122,6 +11122,11 @@ until the public matrix passes.
 
 ### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
 
+**Status: local release gate complete; TestPyPI publication awaits explicit
+release approval and configured OIDC publisher.** The implementation follows
+the packaging/release sections linked from the guide; no publish action was
+triggered from this branch.
+
 Detailed guide sections:
 
 - Sections `8.2`, `8.3`, `7.7`, `9`, `10`, `11`, and `12`.
@@ -11155,6 +11160,16 @@ Implementation scope:
 - Produce the TestPyPI RC checklist containing exact SHA, version, artifact
   hashes, test results, wheel matrix, parity fingerprints, RSS results, and
   known policy (`auto=Python`, native extra state).
+- Add `tools/create_release_manifest.py` for deterministic artifact SHA256,
+  commit/ref, version, benchmark-evidence and backend-policy recording. The
+  manifest is uploaded separately from the publishable wheel/sdist files.
+- Extend `tools/check_release_artifacts.py` to inspect archive members and
+  small file contents, rejecting secret-like content, private/local data,
+  profiler/compiler output and unsafe paths while allowing the public
+  `quantbt/benchmarks` Python package.
+- Keep the source mirror and local editable workflow unchanged; the wheel is
+  still built only from `src/quantbt` and the root mirror is not copied into
+  the distribution.
 - Do not publish PyPI or merge branches in this implementation phase without
   explicit approval. The guide's public order remains: native first if real,
   then populate `[native]`, then core release, otherwise release Python-first
@@ -11174,13 +11189,35 @@ Tests and evidence:
   `endpoint usability`, `core PyPI`, and `public dual-backend installation`
   separately, exactly as Section 12 does.
 
+Local Phase 48F evidence:
+
+```text
+tests/test_phase48f_release_gate.py and release regressions  20 passed
+full repository regression                                   720 passed, 3 skipped
+native-event regression                                     79 passed, 2 skipped
+twine check wheel + sdist                                   PASS
+archive allowlist/secret scan                               PASS
+wheel target import from /tmp                               PASS
+sdist target import from /tmp                               PASS
+manifest version/hash/backend policy                         PASS
+```
+
+The reproducible local artifact manifest records the exact `1.0.7` wheel and
+sdist hashes, the release commit SHA/ref, and the current policy `auto=Python`,
+`native extra=empty`, explicit Rust experimental. The GitHub workflows recreate
+this manifest after checkout so its SHA always identifies the exact release
+artifact commit. They additionally run the dependency-complete fresh-venv
+`pip check` and CPython 3.11/3.12/3.13 matrix; those hosted jobs are the final
+multi-interpreter evidence because this VPS has only CPython 3.12 and no
+system `python3-venv` package.
+
 Exit gate:
 
 ```text
 exact release SHA is green
 wheel and sdist are clean-installable
 artifact contents are safe
-TestPyPI RC is reproducible
+TestPyPI RC is reproducible once the workflow is run with the matching RC tag
 endpoint quick start is stable
 native extra claim matches actual public wheels
 ```

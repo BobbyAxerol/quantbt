@@ -70,7 +70,9 @@ jobs:
         run: uv run python tools/check_release_version.py
 
       - name: Build package
-        run: uv build
+        run: |
+          rm -rf dist release-manifest.json
+          uv build
 
       - name: Validate distribution metadata
         run: uv run twine check dist/*
@@ -86,6 +88,13 @@ jobs:
           uv run python tools/scan_public_secrets.py
           uv run python tools/check_release_artifacts.py --dist dist
 
+      - name: Create release manifest
+        run: >-
+          uv run python tools/create_release_manifest.py
+          --dist dist
+          --output release-manifest.json
+          --require-clean
+
       - name: Clean wheel install smoke
         shell: bash
         run: |
@@ -94,7 +103,14 @@ jobs:
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip check
           cd /tmp
-          /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+          /tmp/quantbt-wheel-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
 
       - name: Clean sdist install smoke
         shell: bash
@@ -104,13 +120,27 @@ jobs:
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd /tmp
-          /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+          /tmp/quantbt-sdist-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
 
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4
         with:
           name: python-dist
           path: dist/*
+          if-no-files-found: error
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-release-manifest
+          path: release-manifest.json
           if-no-files-found: error
 
   publish:
