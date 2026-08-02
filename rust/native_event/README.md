@@ -15,9 +15,9 @@ silently falling back:
 - unsupported quantity and lifecycle policies;
 - reactive per-bar strategy callbacks.
 
-The Rust distribution version and `NATIVE_API_VERSION` are separate contracts.
-The current crate API is `0.3`; this does not imply that a `quantbt-native`
-PyPI release is available.
+The Rust distribution version and native API version are separate contracts.
+The current crate distribution is `0.4.0` and advertises Native Event API
+`0.4`; this does not imply that a `quantbt-native` PyPI release is available.
 
 ## Local build
 

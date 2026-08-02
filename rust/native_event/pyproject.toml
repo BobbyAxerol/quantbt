@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "quantbt-native"
-version = "0.3.0"
+version = "0.4.0"
 description = "Optional PyO3 accelerator for quantbt-engine native event execution"
 readme = "README.md"
 requires-python = ">=3.11"

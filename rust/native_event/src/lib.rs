@@ -9,10 +9,10 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
-use session::{PreparedMarketData, ReactiveSession};
 use full::{FullMarketData, FullSession};
+use session::{PreparedMarketData, ReactiveSession};
 
-const VERSION: &str = "0.3.0";
+const VERSION: &str = "0.4.0";
 const API_VERSION: &str = "0.4";
 
 #[pyfunction]
@@ -838,10 +838,17 @@ impl FullPreparedMarketCore {
         funding_mask: PyReadonlyArray1<'_, bool>,
     ) -> PyResult<Self> {
         let shapes = [
-            opens.shape(), highs.shape(), lows.shape(), closes.shape(),
-            volumes.shape(), funding.shape(),
+            opens.shape(),
+            highs.shape(),
+            lows.shape(),
+            closes.shape(),
+            volumes.shape(),
+            funding.shape(),
         ];
-        if shapes.iter().any(|shape| shape.len() != 2 || *shape != closes.shape()) {
+        if shapes
+            .iter()
+            .any(|shape| shape.len() != 2 || *shape != closes.shape())
+        {
             return Err(pyo3::exceptions::PyValueError::new_err(
                 "full OHLCV/funding arrays must share shape (n_bars, n_symbols)",
             ));
@@ -858,14 +865,20 @@ impl FullPreparedMarketCore {
             closes.shape()[1],
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner: Arc::new(market) })
+        Ok(Self {
+            inner: Arc::new(market),
+        })
     }
 
     #[getter]
-    fn bars(&self) -> usize { self.inner.n_bars }
+    fn bars(&self) -> usize {
+        self.inner.n_bars
+    }
 
     #[getter]
-    fn symbols(&self) -> usize { self.inner.n_symbols }
+    fn symbols(&self) -> usize {
+        self.inner.n_symbols
+    }
 }
 
 #[pyclass]
@@ -895,7 +908,14 @@ impl FullReactiveSessionCore {
         use_funding: bool,
     ) -> PyResult<Self> {
         let prepared = FullPreparedMarketCore::new(
-            timestamps_ns, opens, highs, lows, closes, volumes, funding, funding_mask,
+            timestamps_ns,
+            opens,
+            highs,
+            lows,
+            closes,
+            volumes,
+            funding,
+            funding_mask,
         )?;
         let inner = FullSession::new(
             (*prepared.inner).clone(),
@@ -951,25 +971,39 @@ impl FullReactiveSessionCore {
         let codes_shape = command_codes.shape();
         let values_shape = command_values.shape();
         if codes_shape.len() != 2 || codes_shape[1] != full::CODE_WIDTH {
-            return Err(pyo3::exceptions::PyValueError::new_err("full command_codes must have shape (n, 16)"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full command_codes must have shape (n, 16)",
+            ));
         }
-        if values_shape.len() != 2 || values_shape[0] != codes_shape[0] || values_shape[1] != full::VALUE_WIDTH {
-            return Err(pyo3::exceptions::PyValueError::new_err("full command_values must have shape (n, 3)"));
+        if values_shape.len() != 2
+            || values_shape[0] != codes_shape[0]
+            || values_shape[1] != full::VALUE_WIDTH
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full command_values must have shape (n, 3)",
+            ));
         }
         if command_expiry.len() != codes_shape[0] {
-            return Err(pyo3::exceptions::PyValueError::new_err("command_expiry must have length n"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "command_expiry must have length n",
+            ));
         }
-        let result = self.inner.step(
-            bar_index,
-            command_codes.as_slice()?,
-            command_values.as_slice()?,
-            command_expiry.as_slice()?,
-            codes_shape[0],
-        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let result = self
+            .inner
+            .step(
+                bar_index,
+                command_codes.as_slice()?,
+                command_values.as_slice()?,
+                command_expiry.as_slice()?,
+                codes_shape[0],
+            )
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
         full_step_payload(py, result)
     }
 
-    fn reset(&mut self) { self.inner.reset(); }
+    fn reset(&mut self) {
+        self.inner.reset();
+    }
 
     fn run_tape_score(
         &mut self,
@@ -988,7 +1022,8 @@ impl FullReactiveSessionCore {
             command_values.shape(),
             command_expiry.as_slice()?,
             true,
-        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
         let payload = PyDict::new(py);
         payload.set_item("final_equity", output.final_equity)?;
         payload.set_item("final_positions", output.final_positions)?;
@@ -1027,7 +1062,8 @@ impl FullReactiveSessionCore {
             command_values.shape(),
             command_expiry.as_slice()?,
             true,
-        ).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
         let payload = PyDict::new(py);
         payload.set_item("equity", output.equity)?;
         payload.set_item("positions", output.positions)?;
@@ -1136,40 +1172,153 @@ fn run_full_tape(
     expiry: &[i64],
     audit: bool,
 ) -> Result<FullTapeOutput, String> {
-    if ptr.len() != session.market.n_bars + 1 || codes_shape.len() != 2 || codes_shape[1] != full::CODE_WIDTH || values_shape.len() != 2 || values_shape[0] != codes_shape[0] || values_shape[1] != full::VALUE_WIDTH || expiry.len() != codes_shape[0] {
+    if ptr.len() != session.market.n_bars + 1
+        || codes_shape.len() != 2
+        || codes_shape[1] != full::CODE_WIDTH
+        || values_shape.len() != 2
+        || values_shape[0] != codes_shape[0]
+        || values_shape[1] != full::VALUE_WIDTH
+        || expiry.len() != codes_shape[0]
+    {
         return Err("invalid full tape shapes".to_owned());
     }
     let n_commands = codes_shape[0] as i64;
-    if ptr.first().copied().unwrap_or(-1) != 0 || ptr.last().copied().unwrap_or(-1) != n_commands || ptr.windows(2).any(|pair| pair[1] < pair[0] || pair[1] > n_commands) {
+    if ptr.first().copied().unwrap_or(-1) != 0
+        || ptr.last().copied().unwrap_or(-1) != n_commands
+        || ptr
+            .windows(2)
+            .any(|pair| pair[1] < pair[0] || pair[1] > n_commands)
+    {
         return Err("command_ptr must be monotonic and bounded".to_owned());
     }
-    if codes.len() != codes_shape[0] * full::CODE_WIDTH || values.len() != values_shape[0] * full::VALUE_WIDTH {
+    if codes.len() != codes_shape[0] * full::CODE_WIDTH
+        || values.len() != values_shape[0] * full::VALUE_WIDTH
+    {
         return Err("full command buffers are not contiguous".to_owned());
     }
     let n_bars = session.market.n_bars;
     let mut output = FullTapeOutput {
-        equity: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        positions: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        fees: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        turnover: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        funding: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        initial_margin: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        maintenance_margin: if audit { Vec::with_capacity(n_bars) } else { Vec::new() },
-        fill_bar: Vec::new(), fill_order_id: Vec::new(), fill_symbol: Vec::new(), fill_side: Vec::new(), fill_qty: Vec::new(), fill_price: Vec::new(), fill_fee: Vec::new(),
-        event_bar: Vec::new(), event_kind: Vec::new(), event_status: Vec::new(), event_order_id: Vec::new(), event_target_id: Vec::new(), event_symbol: Vec::new(), event_reject_code: Vec::new(),
-        final_equity: session.equity, final_positions: session.positions.clone(), total_fee: 0.0, total_turnover: 0.0, total_funding: 0.0, fill_count: 0, event_count: 0, rejected_count: 0, canceled_count: 0, max_initial_margin: 0.0, max_maintenance_margin: 0.0, liquidated: false, liquidation_bar: -1, liquidation_reason: full::LIQ_NONE,
+        equity: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        positions: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        fees: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        turnover: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        funding: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        initial_margin: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        maintenance_margin: if audit {
+            Vec::with_capacity(n_bars)
+        } else {
+            Vec::new()
+        },
+        fill_bar: Vec::new(),
+        fill_order_id: Vec::new(),
+        fill_symbol: Vec::new(),
+        fill_side: Vec::new(),
+        fill_qty: Vec::new(),
+        fill_price: Vec::new(),
+        fill_fee: Vec::new(),
+        event_bar: Vec::new(),
+        event_kind: Vec::new(),
+        event_status: Vec::new(),
+        event_order_id: Vec::new(),
+        event_target_id: Vec::new(),
+        event_symbol: Vec::new(),
+        event_reject_code: Vec::new(),
+        final_equity: session.equity,
+        final_positions: session.positions.clone(),
+        total_fee: 0.0,
+        total_turnover: 0.0,
+        total_funding: 0.0,
+        fill_count: 0,
+        event_count: 0,
+        rejected_count: 0,
+        canceled_count: 0,
+        max_initial_margin: 0.0,
+        max_maintenance_margin: 0.0,
+        liquidated: false,
+        liquidation_bar: -1,
+        liquidation_reason: full::LIQ_NONE,
     };
     for bar in 0..n_bars {
         let start = ptr[bar] as usize;
         let end = ptr[bar + 1] as usize;
-        let step = session.step(bar, &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH], &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH], &expiry[start..end], end - start)?;
+        let step = session.step(
+            bar,
+            &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH],
+            &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH],
+            &expiry[start..end],
+            end - start,
+        )?;
         if audit {
-            output.equity.push(step.equity); output.positions.push(step.positions.clone()); output.fees.push(step.fee); output.turnover.push(step.turnover); output.funding.push(step.funding); output.initial_margin.push(step.initial_margin); output.maintenance_margin.push(step.maintenance_margin);
+            output.equity.push(step.equity);
+            output.positions.push(step.positions.clone());
+            output.fees.push(step.fee);
+            output.turnover.push(step.turnover);
+            output.funding.push(step.funding);
+            output.initial_margin.push(step.initial_margin);
+            output.maintenance_margin.push(step.maintenance_margin);
         }
-        output.final_equity = step.equity; output.final_positions = step.positions; output.total_fee += step.fee; output.total_turnover += step.turnover; output.total_funding += step.funding; output.rejected_count += step.rejected_count; output.canceled_count += step.canceled_count;
-        for fill in step.fills { output.fill_count += 1; if audit { output.fill_bar.push(bar as i64); output.fill_order_id.push(fill[0] as i64); output.fill_symbol.push(fill[1] as i64); output.fill_side.push(fill[2] as i64); output.fill_qty.push(fill[3]); output.fill_price.push(fill[4]); output.fill_fee.push(fill[5]); } }
-        for event in step.events { output.event_count += 1; if audit { output.event_bar.push(bar as i64); output.event_kind.push(event[0]); output.event_status.push(event[1]); output.event_order_id.push(event[2]); output.event_target_id.push(event[3]); output.event_symbol.push(event[4]); output.event_reject_code.push(event.get(5).copied().unwrap_or(0)); } }
-        output.max_initial_margin = output.max_initial_margin.max(step.initial_margin); output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin); output.liquidated = step.liquidated; output.liquidation_bar = step.liquidation_bar; output.liquidation_reason = step.liquidation_reason;
+        output.final_equity = step.equity;
+        output.final_positions = step.positions;
+        output.total_fee += step.fee;
+        output.total_turnover += step.turnover;
+        output.total_funding += step.funding;
+        output.rejected_count += step.rejected_count;
+        output.canceled_count += step.canceled_count;
+        for fill in step.fills {
+            output.fill_count += 1;
+            if audit {
+                output.fill_bar.push(bar as i64);
+                output.fill_order_id.push(fill[0] as i64);
+                output.fill_symbol.push(fill[1] as i64);
+                output.fill_side.push(fill[2] as i64);
+                output.fill_qty.push(fill[3]);
+                output.fill_price.push(fill[4]);
+                output.fill_fee.push(fill[5]);
+            }
+        }
+        for event in step.events {
+            output.event_count += 1;
+            if audit {
+                output.event_bar.push(bar as i64);
+                output.event_kind.push(event[0]);
+                output.event_status.push(event[1]);
+                output.event_order_id.push(event[2]);
+                output.event_target_id.push(event[3]);
+                output.event_symbol.push(event[4]);
+                output
+                    .event_reject_code
+                    .push(event.get(5).copied().unwrap_or(0));
+            }
+        }
+        output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
+        output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin);
+        output.liquidated = step.liquidated;
+        output.liquidation_bar = step.liquidation_bar;
+        output.liquidation_reason = step.liquidation_reason;
     }
     Ok(output)
 }

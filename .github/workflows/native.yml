@@ -1,4 +1,4 @@
-name: Native PyO3 Gate
+name: Native Event API 0.4 Gate
 
 on:
   pull_request:
@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  native-pyo3:
-    name: PyO3 build, combined wheel, parity, and RSS smoke
+  native-event-api-04:
+    name: Native Event API 0.4 build, parity, and RSS smoke
     runs-on: ubuntu-latest
 
     steps:
@@ -59,7 +59,29 @@ jobs:
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install dist/core/quantbt_engine-*.whl dist/native/quantbt_native-*.whl
           cd /tmp
-          /tmp/quantbt-native-combined-smoke/bin/python -c "from quantbt import QuantBTEndpoint; import _quantbt_native; assert _quantbt_native.api_version() == '0.3'; assert _quantbt_native.capabilities()['r0_import_smoke']; print(QuantBTEndpoint)"
+          /tmp/quantbt-native-combined-smoke/bin/python - <<'PY'
+          from quantbt import QuantBTEndpoint
+          import _quantbt_native
+
+          assert _quantbt_native.api_version() == "0.4"
+          required = {
+              "native_event_v2_full_contract",
+              "native_event_v2_multisymbol",
+              "native_event_v2_funding",
+              "native_event_v2_liquidation",
+              "native_event_v2_cancel_all_oco",
+              "native_event_v2_tif_expiry",
+              "native_event_v2_relationships",
+              "native_event_v2_quantity_preflight",
+          }
+          capabilities = _quantbt_native.capabilities()
+          missing = {
+              key for key in required if not capabilities.get(key, False)
+          }
+          assert not missing, sorted(missing)
+          print(QuantBTEndpoint)
+          print("Native Event API 0.4 capabilities: PASS")
+          PY
 
       - name: Install native wheel into core test environment
         run: uv run python -m pip install dist/native/quantbt_native-*.whl

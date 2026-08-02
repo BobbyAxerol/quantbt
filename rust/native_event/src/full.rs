@@ -24,7 +24,9 @@ const ORDER_LIMIT: i64 = 1;
 const ORDER_STOP_MARKET: i64 = 2;
 const ORDER_STOP_LIMIT: i64 = 3;
 const TIF_GTC: i64 = 0;
+#[allow(dead_code)]
 const TIF_IOC: i64 = 1;
+#[allow(dead_code)]
 const TIF_FOK: i64 = 2;
 const TIF_GTD: i64 = 3;
 const SIDE_BUY: i64 = 1;
@@ -43,10 +45,12 @@ pub const EVENT_EXPIRE: i64 = 5;
 pub const EVENT_ACTIVATE: i64 = 6;
 pub const EVENT_REJECT: i64 = 7;
 
+#[allow(dead_code)]
 pub const REJECT_NONE: i64 = 0;
 pub const REJECT_INSUFFICIENT_MARGIN: i64 = 1;
 pub const REJECT_UNSUPPORTED_ORDER_TYPE: i64 = 2;
 pub const REJECT_UNKNOWN_ORDER: i64 = 3;
+#[allow(dead_code)]
 pub const REJECT_INVALID_AMEND: i64 = 4;
 pub const REJECT_REDUCE_ONLY_NO_POSITION: i64 = 5;
 pub const REJECT_UNSUPPORTED_ACTION: i64 = 6;
@@ -59,6 +63,7 @@ pub const LIQ_AFTER_ORDER: i64 = 3;
 pub const CODE_WIDTH: usize = 16;
 pub const VALUE_WIDTH: usize = 3;
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct FullMarketData {
     pub timestamps_ns: Vec<i64>,
@@ -125,6 +130,7 @@ impl FullMarketData {
 
 #[derive(Clone, Copy)]
 struct OrderState {
+    #[allow(dead_code)]
     command_index: usize,
     order_id: i64,
     symbol: i64,
@@ -274,13 +280,10 @@ impl FullSession {
             } else {
                 self.market.at(&self.market.highs, bar, symbol)
             };
-            worst_equity += position
-                * (worst_price - self.close(bar, symbol))
-                * self.contract_sizes[symbol];
-            worst_maintenance += position.abs()
-                * worst_price
-                * self.contract_sizes[symbol]
-                * self.maintenance_ratio;
+            worst_equity +=
+                position * (worst_price - self.close(bar, symbol)) * self.contract_sizes[symbol];
+            worst_maintenance +=
+                position.abs() * worst_price * self.contract_sizes[symbol] * self.maintenance_ratio;
         }
         worst_maintenance > 0.0 && worst_equity <= worst_maintenance
     }
@@ -319,7 +322,14 @@ impl FullSession {
         }
     }
 
-    fn add_event(events: &mut Vec<Vec<i64>>, kind: i64, status: i64, order: i64, target: i64, symbol: i64) {
+    fn add_event(
+        events: &mut Vec<Vec<i64>>,
+        kind: i64,
+        status: i64,
+        order: i64,
+        target: i64,
+        symbol: i64,
+    ) {
         events.push(vec![kind, status, order, target, symbol]);
     }
 
@@ -336,17 +346,40 @@ impl FullSession {
     }
 
     fn fill_price(&self, order: &OrderState, bar: usize) -> Option<f64> {
-        let high = self.market.at(&self.market.highs, bar, order.symbol as usize);
-        let low = self.market.at(&self.market.lows, bar, order.symbol as usize);
+        let high = self
+            .market
+            .at(&self.market.highs, bar, order.symbol as usize);
+        let low = self
+            .market
+            .at(&self.market.lows, bar, order.symbol as usize);
         let close = self.close(bar, order.symbol as usize);
         match order.order_type {
-            ORDER_MARKET => Some(close * if order.side == SIDE_BUY { 1.0 + self.slippage } else { 1.0 - self.slippage }),
+            ORDER_MARKET => Some(
+                close
+                    * if order.side == SIDE_BUY {
+                        1.0 + self.slippage
+                    } else {
+                        1.0 - self.slippage
+                    },
+            ),
             ORDER_LIMIT if order.side == SIDE_BUY && low <= order.price => Some(order.price),
             ORDER_LIMIT if order.side == SIDE_SELL && high >= order.price => Some(order.price),
-            ORDER_STOP_MARKET if order.side == SIDE_BUY && high >= order.trigger => Some(order.trigger * (1.0 + self.slippage)),
-            ORDER_STOP_MARKET if order.side == SIDE_SELL && low <= order.trigger => Some(order.trigger * (1.0 - self.slippage)),
-            ORDER_STOP_LIMIT if order.side == SIDE_BUY && high >= order.trigger && low <= order.price => Some(order.price),
-            ORDER_STOP_LIMIT if order.side == SIDE_SELL && low <= order.trigger && high >= order.price => Some(order.price),
+            ORDER_STOP_MARKET if order.side == SIDE_BUY && high >= order.trigger => {
+                Some(order.trigger * (1.0 + self.slippage))
+            }
+            ORDER_STOP_MARKET if order.side == SIDE_SELL && low <= order.trigger => {
+                Some(order.trigger * (1.0 - self.slippage))
+            }
+            ORDER_STOP_LIMIT
+                if order.side == SIDE_BUY && high >= order.trigger && low <= order.price =>
+            {
+                Some(order.price)
+            }
+            ORDER_STOP_LIMIT
+                if order.side == SIDE_SELL && low <= order.trigger && high >= order.price =>
+            {
+                Some(order.price)
+            }
             _ => None,
         }
     }
@@ -360,12 +393,24 @@ impl FullSession {
             {
                 child.waiting_parent = false;
                 child.active = true;
-                Self::add_event(events, EVENT_ACTIVATE, STATUS_PENDING, child.order_id, parent_id, child.symbol);
+                Self::add_event(
+                    events,
+                    EVENT_ACTIVATE,
+                    STATUS_PENDING,
+                    child.order_id,
+                    parent_id,
+                    child.symbol,
+                );
             }
         }
     }
 
-    fn cancel_oco_siblings(&mut self, oco_id: i64, filled_order_id: i64, events: &mut Vec<Vec<i64>>) -> i64 {
+    fn cancel_oco_siblings(
+        &mut self,
+        oco_id: i64,
+        filled_order_id: i64,
+        events: &mut Vec<Vec<i64>>,
+    ) -> i64 {
         if oco_id < 0 {
             return 0;
         }
@@ -380,7 +425,14 @@ impl FullSession {
                 sibling.waiting_parent = false;
                 sibling.status = STATUS_CANCELED;
                 canceled += 1;
-                Self::add_event(events, EVENT_CANCEL, STATUS_CANCELED, sibling.order_id, filled_order_id, sibling.symbol);
+                Self::add_event(
+                    events,
+                    EVENT_CANCEL,
+                    STATUS_CANCELED,
+                    sibling.order_id,
+                    filled_order_id,
+                    sibling.symbol,
+                );
             }
         }
         canceled
@@ -398,15 +450,31 @@ impl FullSession {
         if bar >= self.market.n_bars {
             return Err("bar_index is outside the full prepared market tape".to_owned());
         }
-        if self.last_bar.map(|last| bar != last + 1).unwrap_or(bar != 0) {
-            return Err("FullReactiveSessionCore.step must be called once per consecutive bar".to_owned());
+        if self
+            .last_bar
+            .map(|last| bar != last + 1)
+            .unwrap_or(bar != 0)
+        {
+            return Err(
+                "FullReactiveSessionCore.step must be called once per consecutive bar".to_owned(),
+            );
         }
-        if codes.len() != command_count * CODE_WIDTH || values.len() != command_count * VALUE_WIDTH || expiry.len() != command_count {
+        if codes.len() != command_count * CODE_WIDTH
+            || values.len() != command_count * VALUE_WIDTH
+            || expiry.len() != command_count
+        {
             return Err("full command buffers do not match command count".to_owned());
         }
         if self.liquidated {
             self.last_bar = Some(bar);
-            return Ok(FullStepResult { equity: 0.0, positions: vec![0.0; self.market.n_symbols], liquidated: true, liquidation_bar: self.liquidation_bar, liquidation_reason: self.liquidation_reason, ..Default::default() });
+            return Ok(FullStepResult {
+                equity: 0.0,
+                positions: vec![0.0; self.market.n_symbols],
+                liquidated: true,
+                liquidation_bar: self.liquidation_bar,
+                liquidation_reason: self.liquidation_reason,
+                ..Default::default()
+            });
         }
         if bar > 0 {
             for symbol in 0..self.market.n_symbols {
@@ -418,7 +486,14 @@ impl FullSession {
         if self.intrabar_liquidated(bar) {
             self.liquidate(bar, LIQ_INTRABAR);
             self.last_bar = Some(bar);
-            return Ok(FullStepResult { equity: 0.0, positions: vec![0.0; self.market.n_symbols], liquidated: true, liquidation_bar: self.liquidation_bar, liquidation_reason: self.liquidation_reason, ..Default::default() });
+            return Ok(FullStepResult {
+                equity: 0.0,
+                positions: vec![0.0; self.market.n_symbols],
+                liquidated: true,
+                liquidation_bar: self.liquidation_bar,
+                liquidation_reason: self.liquidation_reason,
+                ..Default::default()
+            });
         }
         let mut funding_total = 0.0;
         if self.use_funding && self.market.funding_mask[bar] {
@@ -435,7 +510,15 @@ impl FullSession {
         if close_mm > 0.0 && self.equity <= close_mm {
             self.liquidate(bar, LIQ_AFTER_FUNDING);
             self.last_bar = Some(bar);
-            return Ok(FullStepResult { equity: 0.0, funding: funding_total, positions: vec![0.0; self.market.n_symbols], liquidated: true, liquidation_bar: self.liquidation_bar, liquidation_reason: self.liquidation_reason, ..Default::default() });
+            return Ok(FullStepResult {
+                equity: 0.0,
+                funding: funding_total,
+                positions: vec![0.0; self.market.n_symbols],
+                liquidated: true,
+                liquidation_bar: self.liquidation_bar,
+                liquidation_reason: self.liquidation_reason,
+                ..Default::default()
+            });
         }
 
         let mut events = Vec::new();
@@ -445,12 +528,23 @@ impl FullSession {
 
         // GTD expiry precedes commands at the current bar.
         for order in &mut self.orders {
-            if order.status == STATUS_PENDING && (order.active || order.waiting_parent) && order.expires_bar >= 0 && bar as i64 >= order.expires_bar {
+            if order.status == STATUS_PENDING
+                && (order.active || order.waiting_parent)
+                && order.expires_bar >= 0
+                && bar as i64 >= order.expires_bar
+            {
                 order.active = false;
                 order.waiting_parent = false;
                 order.status = STATUS_CANCELED;
                 canceled += 1;
-                Self::add_event(&mut events, EVENT_EXPIRE, STATUS_CANCELED, order.order_id, -1, order.symbol);
+                Self::add_event(
+                    &mut events,
+                    EVENT_EXPIRE,
+                    STATUS_CANCELED,
+                    order.order_id,
+                    -1,
+                    order.symbol,
+                );
             }
         }
 
@@ -462,17 +556,54 @@ impl FullSession {
             let target_id = code[7];
             match action {
                 ACTION_PLACE => {
-                    if !Self::valid_order(code, value) || code[1] < 0 || code[1] >= self.market.n_symbols as i64 {
+                    if !Self::valid_order(code, value)
+                        || code[1] < 0
+                        || code[1] >= self.market.n_symbols as i64
+                    {
                         rejected += 1;
-                        Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, order_id, -1, code[1], REJECT_UNSUPPORTED_ORDER_TYPE);
+                        Self::add_event_with_reject(
+                            &mut events,
+                            EVENT_REJECT,
+                            STATUS_REJECTED,
+                            order_id,
+                            -1,
+                            code[1],
+                            REJECT_UNSUPPORTED_ORDER_TYPE,
+                        );
                         continue;
                     }
                     let active = code[11] == ACTIVATION_IMMEDIATE;
-                    self.orders.push(OrderState { command_index: code[12].max(0) as usize, order_id, symbol: code[1], side: code[2], order_type: code[3], tif: code[4], reduce_only: code[5] != 0, qty: value[0], price: value[1], trigger: value[2], parent_id: code[8], group_id: code[9], oco_id: code[10], activation: code[11], expires_bar: expiry[command_index], active, waiting_parent: !active, status: STATUS_PENDING });
+                    self.orders.push(OrderState {
+                        command_index: code[12].max(0) as usize,
+                        order_id,
+                        symbol: code[1],
+                        side: code[2],
+                        order_type: code[3],
+                        tif: code[4],
+                        reduce_only: code[5] != 0,
+                        qty: value[0],
+                        price: value[1],
+                        trigger: value[2],
+                        parent_id: code[8],
+                        group_id: code[9],
+                        oco_id: code[10],
+                        activation: code[11],
+                        expires_bar: expiry[command_index],
+                        active,
+                        waiting_parent: !active,
+                        status: STATUS_PENDING,
+                    });
                     if order_id >= 0 {
                         self.id_to_slot.insert(order_id, self.orders.len() - 1);
                     }
-                    Self::add_event(&mut events, EVENT_PLACE, STATUS_PENDING, order_id, -1, code[1]);
+                    Self::add_event(
+                        &mut events,
+                        EVENT_PLACE,
+                        STATUS_PENDING,
+                        order_id,
+                        -1,
+                        code[1],
+                    );
                 }
                 ACTION_CANCEL => {
                     if let Some(slot) = self.find_pending(target_id) {
@@ -482,22 +613,58 @@ impl FullSession {
                         self.orders[slot].waiting_parent = false;
                         self.orders[slot].status = STATUS_CANCELED;
                         canceled += 1;
-                        Self::add_event(&mut events, EVENT_CANCEL, STATUS_FILLED, -1, resolved_target_id, symbol);
+                        Self::add_event(
+                            &mut events,
+                            EVENT_CANCEL,
+                            STATUS_FILLED,
+                            -1,
+                            resolved_target_id,
+                            symbol,
+                        );
                     } else {
                         rejected += 1;
-                        Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, -1, target_id, code[1], REJECT_UNKNOWN_ORDER);
+                        Self::add_event_with_reject(
+                            &mut events,
+                            EVENT_REJECT,
+                            STATUS_REJECTED,
+                            -1,
+                            target_id,
+                            code[1],
+                            REJECT_UNKNOWN_ORDER,
+                        );
                     }
                 }
                 ACTION_AMEND => {
                     if let Some(slot) = self.find_pending(target_id) {
                         let resolved_target_id = self.orders[slot].order_id;
-                        if value[0] > 0.0 { self.orders[slot].qty = value[0]; }
-                        if value[1] > 0.0 { self.orders[slot].price = value[1]; }
-                        if value[2] > 0.0 { self.orders[slot].trigger = value[2]; }
-                        Self::add_event(&mut events, EVENT_AMEND, STATUS_FILLED, -1, resolved_target_id, self.orders[slot].symbol);
+                        if value[0] > 0.0 {
+                            self.orders[slot].qty = value[0];
+                        }
+                        if value[1] > 0.0 {
+                            self.orders[slot].price = value[1];
+                        }
+                        if value[2] > 0.0 {
+                            self.orders[slot].trigger = value[2];
+                        }
+                        Self::add_event(
+                            &mut events,
+                            EVENT_AMEND,
+                            STATUS_FILLED,
+                            -1,
+                            resolved_target_id,
+                            self.orders[slot].symbol,
+                        );
                     } else {
                         rejected += 1;
-                        Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, -1, target_id, code[1], REJECT_UNKNOWN_ORDER);
+                        Self::add_event_with_reject(
+                            &mut events,
+                            EVENT_REJECT,
+                            STATUS_REJECTED,
+                            -1,
+                            target_id,
+                            code[1],
+                            REJECT_UNKNOWN_ORDER,
+                        );
                     }
                 }
                 ACTION_REPLACE => {
@@ -505,12 +672,42 @@ impl FullSession {
                         self.orders[slot].active = false;
                         self.orders[slot].waiting_parent = false;
                         self.orders[slot].status = STATUS_CANCELED;
-                        if !Self::valid_order(code, value) || code[1] < 0 || code[1] >= self.market.n_symbols as i64 {
+                        if !Self::valid_order(code, value)
+                            || code[1] < 0
+                            || code[1] >= self.market.n_symbols as i64
+                        {
                             rejected += 1;
-                            Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, order_id, target_id, code[1], REJECT_UNSUPPORTED_ORDER_TYPE);
+                            Self::add_event_with_reject(
+                                &mut events,
+                                EVENT_REJECT,
+                                STATUS_REJECTED,
+                                order_id,
+                                target_id,
+                                code[1],
+                                REJECT_UNSUPPORTED_ORDER_TYPE,
+                            );
                         } else {
                             let active = code[11] == ACTIVATION_IMMEDIATE;
-                            self.orders.push(OrderState { command_index: code[12].max(0) as usize, order_id, symbol: code[1], side: code[2], order_type: code[3], tif: code[4], reduce_only: code[5] != 0, qty: value[0], price: value[1], trigger: value[2], parent_id: code[8], group_id: code[9], oco_id: code[10], activation: code[11], expires_bar: expiry[command_index], active, waiting_parent: !active, status: STATUS_PENDING });
+                            self.orders.push(OrderState {
+                                command_index: code[12].max(0) as usize,
+                                order_id,
+                                symbol: code[1],
+                                side: code[2],
+                                order_type: code[3],
+                                tif: code[4],
+                                reduce_only: code[5] != 0,
+                                qty: value[0],
+                                price: value[1],
+                                trigger: value[2],
+                                parent_id: code[8],
+                                group_id: code[9],
+                                oco_id: code[10],
+                                activation: code[11],
+                                expires_bar: expiry[command_index],
+                                active,
+                                waiting_parent: !active,
+                                status: STATUS_PENDING,
+                            });
                             let new_slot = self.orders.len() - 1;
                             if target_id >= 0 {
                                 self.id_to_slot.insert(target_id, new_slot);
@@ -518,16 +715,32 @@ impl FullSession {
                             if order_id >= 0 {
                                 self.id_to_slot.insert(order_id, new_slot);
                             }
-                            Self::add_event(&mut events, EVENT_REPLACE, STATUS_PENDING, order_id, target_id, code[1]);
+                            Self::add_event(
+                                &mut events,
+                                EVENT_REPLACE,
+                                STATUS_PENDING,
+                                order_id,
+                                target_id,
+                                code[1],
+                            );
                         }
                     } else {
                         rejected += 1;
-                        Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, order_id, target_id, code[1], REJECT_UNKNOWN_ORDER);
+                        Self::add_event_with_reject(
+                            &mut events,
+                            EVENT_REJECT,
+                            STATUS_REJECTED,
+                            order_id,
+                            target_id,
+                            code[1],
+                            REJECT_UNKNOWN_ORDER,
+                        );
                     }
                 }
                 ACTION_CANCEL_ALL => {
                     for order in &mut self.orders {
-                        let matches = (order.active || order.waiting_parent) && order.status == STATUS_PENDING
+                        let matches = (order.active || order.waiting_parent)
+                            && order.status == STATUS_PENDING
                             && (code[1] < 0 || code[1] == order.symbol)
                             && (code[2] == 0 || code[2] == order.side)
                             && (code[3] < 0 || code[3] == order.order_type)
@@ -541,11 +754,26 @@ impl FullSession {
                             canceled += 1;
                         }
                     }
-                    Self::add_event(&mut events, EVENT_CANCEL, STATUS_FILLED, order_id, -1, code[1]);
+                    Self::add_event(
+                        &mut events,
+                        EVENT_CANCEL,
+                        STATUS_FILLED,
+                        order_id,
+                        -1,
+                        code[1],
+                    );
                 }
                 _ => {
                     rejected += 1;
-                    Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, order_id, target_id, code[1], REJECT_UNSUPPORTED_ACTION);
+                    Self::add_event_with_reject(
+                        &mut events,
+                        EVENT_REJECT,
+                        STATUS_REJECTED,
+                        order_id,
+                        target_id,
+                        code[1],
+                        REJECT_UNSUPPORTED_ACTION,
+                    );
                 }
             }
         }
@@ -566,7 +794,14 @@ impl FullSession {
                     self.orders[cursor].active = false;
                     self.orders[cursor].status = STATUS_CANCELED;
                     canceled += 1;
-                    Self::add_event(&mut events, EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1, order.symbol);
+                    Self::add_event(
+                        &mut events,
+                        EVENT_CANCEL,
+                        STATUS_CANCELED,
+                        order.order_id,
+                        -1,
+                        order.symbol,
+                    );
                 }
                 cursor += 1;
                 continue;
@@ -574,11 +809,22 @@ impl FullSession {
             let mut qty = order.qty;
             let current = self.positions[order.symbol as usize];
             if order.reduce_only {
-                if current == 0.0 || (current > 0.0 && order.side == SIDE_BUY) || (current < 0.0 && order.side == SIDE_SELL) {
+                if current == 0.0
+                    || (current > 0.0 && order.side == SIDE_BUY)
+                    || (current < 0.0 && order.side == SIDE_SELL)
+                {
                     self.orders[cursor].active = false;
                     self.orders[cursor].status = STATUS_CANCELED;
                     canceled += 1;
-                    Self::add_event_with_reject(&mut events, EVENT_CANCEL, STATUS_CANCELED, order.order_id, -1, order.symbol, REJECT_REDUCE_ONLY_NO_POSITION);
+                    Self::add_event_with_reject(
+                        &mut events,
+                        EVENT_CANCEL,
+                        STATUS_CANCELED,
+                        order.order_id,
+                        -1,
+                        order.symbol,
+                        REJECT_REDUCE_ONLY_NO_POSITION,
+                    );
                     cursor += 1;
                     continue;
                 }
@@ -598,7 +844,15 @@ impl FullSession {
                 self.orders[cursor].active = false;
                 self.orders[cursor].status = STATUS_REJECTED;
                 rejected += 1;
-                Self::add_event_with_reject(&mut events, EVENT_REJECT, STATUS_REJECTED, order.order_id, -1, order.symbol, REJECT_INSUFFICIENT_MARGIN);
+                Self::add_event_with_reject(
+                    &mut events,
+                    EVENT_REJECT,
+                    STATUS_REJECTED,
+                    order.order_id,
+                    -1,
+                    order.symbol,
+                    REJECT_INSUFFICIENT_MARGIN,
+                );
                 cursor += 1;
                 continue;
             }
@@ -608,8 +862,22 @@ impl FullSession {
             self.orders[cursor].status = STATUS_FILLED;
             fee_total += fee;
             turnover += notional;
-            fills.push(vec![order.order_id as f64, order.symbol as f64, order.side as f64, qty, exec_price, fee]);
-            Self::add_event(&mut events, EVENT_FILL, STATUS_FILLED, order.order_id, -1, order.symbol);
+            fills.push(vec![
+                order.order_id as f64,
+                order.symbol as f64,
+                order.side as f64,
+                qty,
+                exec_price,
+                fee,
+            ]);
+            Self::add_event(
+                &mut events,
+                EVENT_FILL,
+                STATUS_FILLED,
+                order.order_id,
+                -1,
+                order.symbol,
+            );
             self.activate_children(order.order_id, &mut events);
             canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut events);
             cursor += 1;
@@ -619,8 +887,50 @@ impl FullSession {
         if maintenance_margin > 0.0 && self.equity <= maintenance_margin {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
-        let active_orders = self.orders.iter().filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent)).map(|o| vec![o.order_id as f64, o.symbol as f64, o.side as f64, o.order_type as f64, o.qty, o.price, o.trigger, o.tif as f64, if o.reduce_only { 1.0 } else { 0.0 }, o.parent_id as f64, o.group_id as f64, o.oco_id as f64, o.activation as f64, if o.waiting_parent { 1.0 } else { 0.0 }]).collect(); 
+        let active_orders = self
+            .orders
+            .iter()
+            .filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent))
+            .map(|o| {
+                vec![
+                    o.order_id as f64,
+                    o.symbol as f64,
+                    o.side as f64,
+                    o.order_type as f64,
+                    o.qty,
+                    o.price,
+                    o.trigger,
+                    o.tif as f64,
+                    if o.reduce_only { 1.0 } else { 0.0 },
+                    o.parent_id as f64,
+                    o.group_id as f64,
+                    o.oco_id as f64,
+                    o.activation as f64,
+                    if o.waiting_parent { 1.0 } else { 0.0 },
+                ]
+            })
+            .collect();
         self.last_bar = Some(bar);
-        Ok(FullStepResult { equity: self.equity, positions: self.positions.clone(), fee: fee_total, turnover, funding: funding_total, initial_margin: if self.liquidated { 0.0 } else { initial_margin }, maintenance_margin: if self.liquidated { 0.0 } else { maintenance_margin }, liquidated: self.liquidated, liquidation_bar: self.liquidation_bar, liquidation_reason: self.liquidation_reason, fills, events, active_orders, rejected_count: rejected, canceled_count: canceled })
+        Ok(FullStepResult {
+            equity: self.equity,
+            positions: self.positions.clone(),
+            fee: fee_total,
+            turnover,
+            funding: funding_total,
+            initial_margin: if self.liquidated { 0.0 } else { initial_margin },
+            maintenance_margin: if self.liquidated {
+                0.0
+            } else {
+                maintenance_margin
+            },
+            liquidated: self.liquidated,
+            liquidation_bar: self.liquidation_bar,
+            liquidation_reason: self.liquidation_reason,
+            fills,
+            events,
+            active_orders,
+            rejected_count: rejected,
+            canceled_count: canceled,
+        })
     }
 }

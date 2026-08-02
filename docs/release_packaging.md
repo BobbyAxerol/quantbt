@@ -224,14 +224,34 @@ Consequently the core package can be released independently, while the native
 wheel remains behind its own manylinux CPython 3.11-3.13, parity, fallback,
 and incremental-RSS certification gate.
 
-## Native R0/R2 Scaffold
+## Native Event Rust API 0.4
 
-Phase 44A adds a local `rust/native_event` PyO3 crate named
-`quantbt-native`. R0 publishes version/capability metadata. R1 adds an
-experimental single-symbol `ReactiveSessionCore` for `PLACE`/`CANCEL`, market
-and limit GTC orders, fee, slippage, position, and equity. R2 extends that
-explicit-only path with stop-market/stop-limit, amend, replace, reduce-only,
-and the shared quantity filter.
+The optional `quantbt-native` package implements the public Native Event V2
+contract certified by the shared Python/replay/Rust conformance suite. Its
+distribution version is currently `0.4.0` and its executable native API is
+`0.4`; these are separate version contracts.
+
+`native_backend="rust"` is explicit and fail-fast. It does not silently
+downgrade to Python. `native_backend="auto"` remains Python in
+`quantbt-engine 1.0.7` until the public wheel matrix and release gates pass.
+
+The API 0.4 capability contract covers:
+
+```text
+Native Event V2 full contract
+single- and multi-symbol execution
+funding, margin and liquidation
+PLACE/CANCEL/CANCEL_ALL/AMEND/REPLACE
+MARKET/LIMIT/STOP_MARKET/STOP_LIMIT
+GTC/GTD/IOC/FOK
+reduce-only, quantity preflight, parent/group/OCO and expiry
+```
+
+See:
+
+- [`native_event_rust_full_contract.md`](native_event_rust_full_contract.md)
+- [`grid_native_event_phase47c.md`](grid_native_event_phase47c.md)
+- [`endpoint.md`](endpoint.md)
 
 For local Rust validation once the Rust toolchain and Maturin are installed:
 
@@ -244,18 +264,24 @@ maturin build --release
 ```
 
 `QUANTBT_NATIVE_BACKEND=auto` and `python` continue using the existing Python
-Native Event implementation. `rust` is explicit and is accepted only for the
-R2 feature gate: one symbol, GTC, no funding, no parent/OCO/expiry, and
-`maintenance_ratio=0.0`. Quantity filters are supported through the same
-`qty_step`, `min_qty`, and `min_notional` helper used by Python replay.
-Parent/child, OCO, expiry, IOC/FOK, funding, liquidation, and multi-symbol
-execution still fail clearly under `rust`.
-`auto` is never enabled for Rust in this experimental stage.
+Native Event implementation. `rust` is explicit and is capability-gated at
+API 0.4 before execution. A missing or incomplete native wheel fails clearly;
+it never falls back silently. Public native installation remains a separate
+manylinux CPython 3.11–3.13 release gate.
 
-Native publishing must wait until the Phase 44 PyO3 package exists, builds, and
-passes Python/Rust parity and the end-to-end performance/RSS gates. Native CI
-builds `quantbt-engine` and `quantbt-native` from the same ref, installs both
-wheels into a clean environment, then runs parity and RSS benchmark smoke.
+Native publishing must wait until the API 0.4 package builds for every
+advertised wheel target, installs beside the matching `quantbt-engine` wheel,
+and passes Python/replay/Rust parity, Grid integration, and performance/RSS
+gates. Native CI builds both distributions from the same ref, installs them in
+a clean environment, verifies API 0.4 capabilities, and runs parity/RSS smoke.
+
+### Historical R0/R1/R2 scaffold
+
+The earlier R0/R1/R2 milestones remain useful engineering history. They
+covered the initial local PyO3 import, single-symbol reactive execution, and
+the early explicit-order subset. They are not the current public Rust
+contract, and their restrictions must not be used as the release policy for
+API 0.4.
 
 ## TestPyPI To PyPI Workflow
 

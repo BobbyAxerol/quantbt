@@ -10418,6 +10418,8 @@ Rust and arbitrary Python reactive strategies.
 
 ### Phase 48A - P0 Release Surfaces, API 0.4 CI, And Stale Documentation
 
+Status: **implemented and locally certified**.
+
 Detailed guide sections:
 
 - Sections `1`, `2.1`, `2.2`, `2.3`, `8.1` to `8.4`.
@@ -10465,6 +10467,35 @@ required capabilities are present
 release docs match implementation
 no execution logic changed
 ```
+
+Phase 48A evidence:
+
+- `.github/workflows/native.yml` is now the Native Event API 0.4 workflow. Its
+  smoke gate asserts `_quantbt_native.api_version() == "0.4"` and all eight
+  required capability keys, including full contract, multisymbol, funding,
+  liquidation, cancel-all/OCO, TIF expiry, relationships, and quantity
+  preflight.
+- Native metadata is aligned at distribution version `0.4.0` in Cargo,
+  maturin metadata, and the exported native version constant. The Python
+  distribution remains `quantbt-engine 1.0.7`; the distribution version and
+  native API version remain separate contracts.
+- `docs/release_packaging.md` now describes the current API 0.4 contract,
+  explicit Rust failure policy, and `auto=Python` policy. R0/R1/R2 text is
+  retained only as historical scaffold material.
+- The core wheel and native wheel were built and installed together into an
+  isolated target directory. The smoke imported `quantbt` from that target,
+  verified native version `0.4.0`, API `0.4`, and all required capabilities.
+  Both wheels passed `twine check`.
+- Focused regression: `87 passed, 2 skipped`. Rust checks passed with
+  `cargo fmt --check`, `cargo clippy --all-targets --all-features --
+  -D warnings`, and `cargo test --release`.
+- The host does not provide `uv`, `python3-venv`, or a network-independent
+  clean virtualenv bootstrap. The combined wheel smoke therefore used the
+  repository Poetry Python with a fresh `pip --target` install; the CI clean
+  install workflow remains the authoritative isolated-environment gate.
+- No execution semantics changed. The Rust source adjustments outside version
+  metadata are formatting and explicit dead-code annotations required by the
+  strict lint gate.
 
 ### Phase 48B - Two-Way Mirror, Git Hygiene, Secret Safety, And Artifact Allowlist
 
