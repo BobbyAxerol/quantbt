@@ -1086,6 +1086,9 @@ frames; rerun the selected tape at audit level when full evidence is required.
 
 The complete Phase 47B contract and conformance evidence are documented in
 [`native_event_rust_full_contract.md`](native_event_rust_full_contract.md).
+The external Grid 2,000-bar parity, scalar-score retention contract, backend
+policy, and isolated RSS benchmark are documented in
+[`grid_native_event_phase47c.md`](grid_native_event_phase47c.md).
 
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving

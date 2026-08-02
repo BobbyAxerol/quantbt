@@ -21,6 +21,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
 | Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
+| Certify the external Grid alpha on Python/Rust with 2,000-bar parity and RSS evidence | [Grid Phase 47C](grid_native_event_phase47c.md) |
 
 ## Strategy Route Map
 

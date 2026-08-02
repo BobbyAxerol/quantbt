@@ -9919,7 +9919,7 @@ Phase 46F local evidence:
 
 ## Final Grid Python/Rust Full-Contract Upgrade
 
-Status: **planned; no runtime implementation started.**
+Status: **Phases 47A-47C implemented locally; Phase 47D remains planned.**
 
 Detailed source of truth:
 
@@ -10158,7 +10158,8 @@ Phase 47B completion boundary and remaining debt:
 
 ### Phase 47C - Grid 2,000-Bar Parity, Backend Policy, And RSS Benchmark
 
-Status: **planned; Phase 47B conformance prerequisite is now green.**
+Status: **implemented locally; 2,000-bar parity, scalar retention, backend
+policy, and isolated RSS/runtime gates pass.**
 
 Detailed guide sections:
 
@@ -10203,6 +10204,45 @@ Tests and evidence:
   fingerprints, parity status, runtime medians, RSS checkpoints, and gate
   results.
 
+Implementation and evidence:
+
+- Added [`test_phase47c_grid_parity.py`](../tests/test_phase47c_grid_parity.py).
+  It imports the external Grid module read-only, generates a deterministic
+  sorted/unique 2,000-bar OHLCV fixture, and runs both `long_only` and
+  `long_short` through replay-certified, Python, and explicit Rust audit paths.
+  It compares command tape, event ledger, fill ledger, positions, equity,
+  fees, funding, margin, liquidation, and lifecycle counters. Result:
+  **3 passed** after the Rust scalar retention patch.
+- Completed Rust reactive scalar retention: when the prepared runner receives
+  `scalar_score_contract()`, the Rust adapter uses the same online score state
+  as Python and does not allocate dense equity/position/fee/funding/margin
+  paths or retain full ledgers. Both Python and Rust now return
+  `NativeEventScalarScoreResult`; the public audit path remains unchanged.
+- Added [`benchmark_grid_2000.py`](../benchmarks/native_event/benchmark_grid_2000.py).
+  It accepts optional OHLCV CSV/CSV.GZ input, otherwise uses the deterministic
+  fixture, runs one warm-up plus five measurements in one backend-owned
+  process, records median/p95 wall time, CPU time, peak/post RSS, repeated-run
+  RSS slope, and a SHA-256 audit fingerprint. `gc.collect()` is performed
+  between retained runs so Python allocator high-water behavior is not falsely
+  classified as a live-object leak.
+- Added the runbook [`grid_native_event_phase47c.md`](../docs/grid_native_event_phase47c.md)
+  and linked it from the documentation map and endpoint guide. It records the
+  public endpoint contract, scalar/audit separation, policy, fingerprint
+  evidence, and the exact benchmark commands.
+- Full audit runs produced identical fingerprints for all three backends in
+  both Grid modes. Long-only terminal equity is `28972.788456089613` with
+  `839` fills; long-short terminal equity is `20457.971765918566` with `107`
+  fills. Scalar totals match the same-backend audit for equity, positions,
+  fees, funding, fills, rejects, cancels, and liquidation.
+- The first five-run benchmark evidence (synthetic 2,000 bars) shows Python
+  scalar medians of about `1.162s` long-only and `1.856s` long-short; Rust
+  scalar medians of about `1.294s` and `2.039s`. Rust remains a correctness
+  and explicit experimental backend here; this workload does not claim Rust
+  is faster than the Python reactive score facade.
+- Audit process RSS stayed bounded under the repeated-run gate after explicit
+  collection. Rust and Python retained different allocator/high-water
+  profiles, so RSS is reported as evidence, not a universal hardware claim.
+
 Acceptance and possible debt:
 
 - Rust is not promoted or selected by `auto` unless every required gate passes.
@@ -10210,6 +10250,22 @@ Acceptance and possible debt:
   accounting or lifecycle parity.
 - If a real Grid workload exposes a contract gap, freeze the result as a
   reproducible failing fixture and keep Rust explicit until repaired.
+
+Phase 47C completion boundary and remaining debt:
+
+- The Grid integration now has an executable 2,000-bar correctness gate for
+  both supported modes, a low-retention Python/Rust score contract, and a
+  reproducible process-isolated RSS/runtime benchmark. `native_backend="rust"`
+  is explicit and fail-fast; `auto` still resolves to Python.
+- The canonical parity surface intentionally excludes the diagnostic
+  `filled_command_count` aggregate because replay counts filled command
+  states while reactive sessions count fill records. The exact command/event/
+  fill ledgers and accounting paths are compared instead; this naming
+  difference is documented and not used to hide a lifecycle mismatch.
+- Phase 47D remains open for optimizer root-cause profiling, optional Grid
+  alpha preparation caching, and safe diagnostics-off patches. This phase
+  does not claim Rust promotion, portfolio/arbitrage/options parity, L2 depth,
+  or venue-specific cross-margin certification.
 
 ### Phase 47D - Optimizer Root-Cause, Safe Hot-Path Patches, And Final Certification
 

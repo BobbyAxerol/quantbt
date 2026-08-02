@@ -1367,6 +1367,15 @@ class RustReactiveSessionAdapter:
         self.use_funding = bool(use_funding)
         self.retain_terminal_orders = bool(retain_terminal_orders)
         self.score_requirements = score_requirements
+        self.scalar_score = bool(
+            score_requirements is not None
+            and score_requirements.need_trade_stats
+            and not score_requirements.need_equity_path
+            and not score_requirements.need_position_path
+            and not score_requirements.need_fee_path
+            and not score_requirements.need_funding_path
+            and not score_requirements.need_margin_path
+        )
         self.retain_fill_ledger = bool(score_requirements is None or score_requirements.need_fill_ledger)
         self.retain_event_ledger = bool(score_requirements is None or score_requirements.need_event_ledger)
         self._r2_capable = bool(extension_status.capabilities.get("r2_stop_amend_replace_reduce_only_constraints", False))
@@ -1388,6 +1397,9 @@ class RustReactiveSessionAdapter:
         self.event_count = 0
         self.rejected_count = 0
         self.canceled_count = 0
+        self.total_fee = 0.0
+        self.total_funding = 0.0
+        self.total_turnover = 0.0
         self.fills_by_bar: dict[int, list[NativeFillEvent]] = {}
         self.events_by_bar: dict[int, list[NativeOrderEvent]] = {}
         self.current_pos = np.zeros(len(self.symbols), dtype=np.float64)
@@ -1395,18 +1407,29 @@ class RustReactiveSessionAdapter:
         self.liquidated = False
         self.liquidation_bar = -1
         self.liquidation_reason = 0
+        self.last_initial_margin = 0.0
+        self.last_maintenance_margin = 0.0
         self.processed_bar = -1
         n_bars = len(idx)
-        self.equity_path = np.zeros(n_bars, dtype=np.float64)
-        self.pos_path = np.zeros((n_bars, len(self.symbols)), dtype=np.float64)
-        self.fee_path = np.zeros(n_bars, dtype=np.float64)
-        self.turnover_path = np.zeros(n_bars, dtype=np.float64)
-        self.funding_path = np.zeros(n_bars, dtype=np.float64)
-        self.initial_margin_path = np.zeros(n_bars, dtype=np.float64)
-        self.maintenance_margin_path = np.zeros(n_bars, dtype=np.float64)
-        self.rejected_bar = np.zeros(n_bars, dtype=np.int64)
-        self.canceled_bar = np.zeros(n_bars, dtype=np.int64)
+        self.equity_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.pos_path = None if self.scalar_score else np.zeros((n_bars, len(self.symbols)), dtype=np.float64)
+        self.fee_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.turnover_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.funding_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.initial_margin_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.maintenance_margin_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
+        self.rejected_bar = None if self.scalar_score else np.zeros(n_bars, dtype=np.int64)
+        self.canceled_bar = None if self.scalar_score else np.zeros(n_bars, dtype=np.int64)
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = ()
+        if self.scalar_score:
+            # Import lazily to avoid the native_event <-> Rust adapter import
+            # cycle. The class is shared with Python scalar scoring so metric
+            # definitions remain identical across backends.
+            from .native_event import _OnlineScoreState
+
+            self.online_score = _OnlineScoreState(self.initial_capital, len(self.symbols))
+        else:
+            self.online_score = None
         self.prepared_market_core = prepared_market_core
         if self._full_contract and hasattr(self._module, "FullPreparedMarketCore"):
             if self.prepared_market_core is None:
@@ -1594,17 +1617,41 @@ class RustReactiveSessionAdapter:
             self.current_pos[:] = np.asarray(payload["positions"], dtype=np.float64)
         else:
             self.current_pos[0] = float(payload["position"])
-        self.equity_path[bar] = self.equity
-        self.pos_path[bar, :] = self.current_pos
-        self.fee_path[bar] = float(payload["fee"])
-        self.turnover_path[bar] = float(payload["turnover"])
-        if self._full_contract:
-            self.funding_path[bar] = float(payload["funding"])
-        self.initial_margin_path[bar] = float(payload["initial_margin"])
-        self.maintenance_margin_path[bar] = float(payload["maintenance_margin"])
+        fee = float(payload["fee"])
+        turnover = float(payload["turnover"])
+        funding = float(payload.get("funding", 0.0)) if self._full_contract else 0.0
+        initial_margin = float(payload["initial_margin"])
+        maintenance_margin = float(payload["maintenance_margin"])
+        self.last_initial_margin = initial_margin
+        self.last_maintenance_margin = maintenance_margin
+        self.total_fee += fee
+        self.total_turnover += turnover
+        self.total_funding += funding
+        if self.equity_path is not None:
+            self.equity_path[bar] = self.equity
+        if self.pos_path is not None:
+            self.pos_path[bar, :] = self.current_pos
+        if self.fee_path is not None:
+            self.fee_path[bar] = fee
+        if self.turnover_path is not None:
+            self.turnover_path[bar] = turnover
+        if self.funding_path is not None:
+            self.funding_path[bar] = funding
+        if self.initial_margin_path is not None:
+            self.initial_margin_path[bar] = initial_margin
+        if self.maintenance_margin_path is not None:
+            self.maintenance_margin_path[bar] = maintenance_margin
         self.liquidated = bool(payload.get("liquidated", False))
         self.liquidation_bar = int(payload.get("liquidation_bar", -1))
         self.liquidation_reason = int(payload.get("liquidation_reason", 0))
+        if self.online_score is not None:
+            self.online_score.observe(
+                self.idx.asi8[bar],
+                self.equity,
+                self.current_pos,
+                initial_margin,
+                maintenance_margin,
+            )
         fills = []
         for fill_row in payload["fills"]:
             if self._full_contract:
@@ -1646,10 +1693,12 @@ class RustReactiveSessionAdapter:
                 int(event_kind), "reject"
             )
             if name == "reject":
-                self.rejected_bar[bar] += 1
+                if self.rejected_bar is not None:
+                    self.rejected_bar[bar] += 1
                 self.rejected_count += 1
             if name == "cancel":
-                self.canceled_bar[bar] += 1
+                if self.canceled_bar is not None:
+                    self.canceled_bar[bar] += 1
                 self.canceled_count += 1
             event = NativeOrderEvent(
                 timestamp=self.idx[bar],
@@ -1731,6 +1780,16 @@ class RustReactiveSessionAdapter:
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
+        initial_margin = (
+            float(self.initial_margin_path[int(bar)])
+            if self.initial_margin_path is not None
+            else float(self.last_initial_margin)
+        )
+        maintenance_margin = (
+            float(self.maintenance_margin_path[int(bar)])
+            if self.maintenance_margin_path is not None
+            else float(self.last_maintenance_margin)
+        )
         return NativeStrategyContext(
             bar_index=int(bar),
             timestamp=self.idx[int(bar)],
@@ -1740,9 +1799,9 @@ class RustReactiveSessionAdapter:
             close=self.market_arrays.closes[int(bar)],
             volume=self.volumes_arr[int(bar)],
             equity=float(self.equity),
-            available_equity=float(self.equity - self.initial_margin_path[int(bar)]),
-            initial_margin=float(self.initial_margin_path[int(bar)]),
-            maintenance_margin=float(self.maintenance_margin_path[int(bar)]),
+            available_equity=float(self.equity - initial_margin),
+            initial_margin=initial_margin,
+            maintenance_margin=maintenance_margin,
             positions={symbol: float(self.current_pos[col]) for col, symbol in enumerate(self.symbols)},
             fills_this_bar=tuple(self.fills_by_bar.get(int(bar), ())),
             order_events_this_bar=tuple(self.events_by_bar.get(int(bar), ())),
