@@ -283,6 +283,39 @@ the early explicit-order subset. They are not the current public Rust
 contract, and their restrictions must not be used as the release policy for
 API 0.4.
 
+## Repository Mirror And Artifact Safety
+
+The Python wheel source of truth is `src/quantbt`. The root-level Python tree
+is a temporary compatibility mirror for local Pool Alpha imports. Its scope is
+explicitly limited by `tools/source_mirror_manifest.py`; benchmark scripts,
+tests, and tools are not package mirror entries.
+
+Check or synchronize one direction at a time:
+
+```bash
+poetry run python tools/sync_source_mirror.py --check
+poetry run python tools/sync_source_mirror.py --src-to-root
+poetry run python tools/sync_source_mirror.py --root-to-src
+```
+
+The sync tool never merges both trees automatically and never deletes an
+unknown root-only file. A missing, extra, or byte-different Python file is a
+reviewable failure. `src/quantbt` remains the wheel source until the mirror is
+formally retired.
+
+Before a public release, CI verifies that `upgrade/implement.md` remains
+tracked and visible, scans tracked files for high-confidence credential
+patterns, and inspects wheel/sdist members. Generic words such as `token`,
+`password`, or the PyPI publish action are documented terms and are not leaks
+by themselves; credential-like matches still require manual review.
+
+The core wheel allowlist is `quantbt/**` plus its own
+`quantbt_engine-*.dist-info/**`. `MANIFEST.in` controls sdist content only;
+it is not a substitute for removing a secret from Git history. Private data,
+credentials, compiler output, profiler traces, and local benchmark output are
+ignored by path-specific rules, while public plans, tests, tools, docs, and
+accepted benchmark evidence remain trackable.
+
 ## TestPyPI To PyPI Workflow
 
 ### TestPyPI release candidate

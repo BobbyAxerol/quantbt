@@ -10499,6 +10499,8 @@ Phase 48A evidence:
 
 ### Phase 48B - Two-Way Mirror, Git Hygiene, Secret Safety, And Artifact Allowlist
 
+Status: **implemented and locally certified**.
+
 Detailed guide sections:
 
 - Sections `2.4`, `7.1` to `7.7`, and the mirror code block in Section 2.4.
@@ -10546,6 +10548,35 @@ private files remain ignored
 accepted benchmark evidence remains trackable
 wheel/sdist contain no suspicious private paths
 ```
+
+Phase 48B evidence:
+
+- `tools/source_mirror_manifest.py` defines the allowlisted compatibility
+  surface. The current 98-file root/source Python mirror is byte-identical;
+  `src/quantbt/benchmarks` and root benchmark scripts are intentionally not
+  mirror entries, so benchmark/tool files cannot be confused with package
+  compatibility source.
+- `tools/sync_source_mirror.py` supports only explicit `--src-to-root`,
+  `--root-to-src`, or `--check` directions. It never merges both trees and
+  never deletes an unknown root-only file. Extra, missing, or drifted files
+  stop the command with a reviewable report.
+- `.gitignore` no longer blankets `upgrade/` or `benchmarks/`. Public plans,
+  tests, docs, tools, benchmark scripts, and accepted evidence remain visible;
+  only private planning, local benchmark output, caches, credentials, local
+  data, and build/profiling artifacts are ignored.
+- CI, TestPyPI, and PyPI workflows now require tracked/non-ignored
+  `upgrade/implement.md`, run `tools/scan_public_secrets.py`, and inspect
+  built artifacts with `tools/check_release_artifacts.py` before upload.
+  Generic documentation terms are excluded from the high-confidence scanner;
+  actual credential-shaped matches still fail for manual review.
+- `MANIFEST.in` controls sdist content and excludes private/local paths and
+  credential extensions. The core wheel allowlist is `quantbt/**` plus its
+  own dist-info metadata; a suspicious-path fixture is rejected by tests.
+- Focused Phase 48B hygiene checks: **8 passed**; the compatibility/release
+  bundle with prior source-tree and CI packaging locks passed **15 passed**.
+  Coverage includes mirror parity, extra/missing/drift detection, check mode,
+  visibility, secret scanning, workflow gates, and artifact rejection. Built
+  `quantbt-engine 1.0.7` wheel/sdist passed `twine check` and the artifact gate.
 
 ### Phase 48C - Stable Event-Driven Facade And Strategy Protocol
 
