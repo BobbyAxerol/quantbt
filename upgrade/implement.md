@@ -10745,6 +10745,137 @@ RSS/runtime improvement or neutral result
 no Rust fallback or API drift
 ```
 
+### Pre-Phase 48E - Apples-To-Apples Native Event Performance Pass
+
+Detailed guide: [`quantbt_final_grid_python_rust_full_contract_guide.md`](./quantbt_final_grid_python_rust_full_contract_guide.md), sections `# QuantBT pre-48E`, `pre-48E.A` through `pre-48E.F`, and acceptance sections `8` and `9`.
+
+Status: **complete**. The accepted evidence is frozen before Phase 48E.
+
+Objective: establish a current, reproducible performance baseline and apply only
+domain-preserving zero-work optimizations to the native event Python/Rust paths.
+Historical Phase 43 numbers are reference-only; all accepted numbers must use
+the same commit, machine, tape, contract, and process-isolated runner.
+
+Scope and execution order:
+
+1. **Baseline freeze (`pre-48E.A`)**
+   - Add `benchmarks/native_event/benchmark_pre48e.py`.
+   - Use one deterministic `2,000`-bar single-symbol tape for comparable
+     native-event/common reporting and the same command tape for Python/Rust.
+   - Measure explicit lifecycle orders and generic `native_event_strategy` in
+     separate cases; run `score` and `audit` separately.
+   - Separate cold preparation/first execution from warm execution. Use a fresh
+     subprocess per route, `7` measured warm runs, median, p95, CPU time,
+     `VmHWM`/peak RSS, post-prepare RSS, and post-run RSS.
+   - Record bars, commands, events, fills, active-order peak, commit SHA,
+     Python/NumPy/Numba/Rust API versions, backend resolution and contract.
+   - Save JSON/Markdown under `benchmarks/native_event/results/pre48e/`.
+
+2. **Python safe fast paths (`pre-48E.B`)**
+   - Cache quantity-constraint enablement at session construction.
+   - Skip retime, quantization and schedule allocation for empty command batches.
+   - Preserve all preflight behavior for `PLACE`/`REPLACE` when constraints are
+     enabled; do not change timestamp, next-bar, rejection, fill or accounting
+     semantics.
+   - Expose execution counters for bars, commands, retime/quantize calls,
+     contexts, snapshots and constraint preflight so speed claims are auditable.
+
+3. **Score/audit separation (`pre-48E.C`)**
+   - Keep score output scalar/minimal and audit output full. Do not create audit
+     ledger objects in score mode merely to discard them later.
+   - Preserve the existing public result surface and undeclared-strategy
+     compatibility. Any strategy context requirement remains explicit.
+
+4. **Rust bridge/allocation evidence (`pre-48E.D`)**
+   - Benchmark the existing prepared Rust full-tape score/audit contract with
+     the identical compiled tape. Do not claim Rust parity where the extension
+     capability gate rejects a feature.
+   - Report PyO3 call count, prepared-market reuse, command-buffer reuse and
+     allocation/copy counters where available. No silent Python fallback for an
+     explicit Rust route.
+
+5. **Lifecycle and Grid evidence (`pre-48E.E`)**
+   - Run high-churn explicit lifecycle and Grid smoke/parity separately.
+   - Grid/reactive results are written to this plan only; they are not merged
+     into the README native-event throughput headline.
+
+6. **Freeze accepted result (`pre-48E.F`)**
+   - Save before/after artifacts, exact fingerprints, parity tolerances and
+     remaining hotspots. Required parity covers effective commands, lifecycle
+     status/rejection, fills, positions, fees, funding, turnover, margin,
+     liquidation and final equity.
+
+Acceptance gates:
+
+```text
+Python/replay/Rust exact lifecycle parity on the supported contract
+score/audit parity and prepared/non-prepared parity
+no changed fill, rejection, fee, funding, margin or liquidation behavior
+no RSS regression >10-15%; repeated-run RSS remains bounded
+same 2,000-bar contract and s/ms formatting in the README benchmark table
+explicit Rust remains fail-fast when its capability contract is unavailable
+```
+
+Deliverables:
+
+- benchmark script, JSON and Markdown evidence;
+- focused parity/counter tests;
+- README native-event benchmark table only for the common native-event routes;
+- Grid/reactive evidence and remaining hotspots in this implementation plan;
+- a committed pre-48E result before entering Phase 48E.
+
+#### Pre-48E evidence and close-out
+
+The gate was executed with `benchmarks/native_event/benchmark_pre48e.py` using
+the required deterministic 2,000-bar, one-symbol tape, fresh subprocesses,
+seven warm runs, separate score/audit routes, and the same compiled command
+tape for Python and Rust. The complete before/after evidence is in
+[`benchmarks/native_event/results/pre48e/report.md`](../benchmarks/native_event/results/pre48e/report.md);
+the machine-readable artifacts are `baseline.json` and `after.json` in the
+same directory.
+
+All eight required parity groups passed:
+
+```text
+common_low/high_churn     x score/audit       PASS
+explicit_low/high_churn   x score/audit       PASS
+numeric accounting        atol <= 1e-12       PASS
+discrete lifecycle fields  exact               PASS
+```
+
+The fingerprint covers effective accounting outputs, positions, fees,
+funding, margin, fill rows, final equity, and fill/event/rejection/cancellation
+counters. The Python safe-path patch removed empty-batch retime/quantize work
+and retained quantity preflight whenever constraints are enabled. The common
+Python score route improved from `0.148483s` to `0.087736s` on the frozen
+workload (`13,470` to `22,796` bars/s); common Python audit improved from
+`0.166945s` to `0.087327s` (`11,980` to `22,902` bars/s). Rust used the prepared
+full-tape bridge and stayed parity-locked; its common score route moved from
+`0.232064s` to `0.188448s`. Explicit Rust score remained the fastest measured
+route at `0.000964s` (`2,075,635` bars/s) for the low-churn tape. Short explicit
+high-churn score runs varied slightly and are intentionally not presented as a
+universal speed claim.
+
+Peak RSS is reported alongside every route. The Python common audit path fell
+from `316.3MB` in the old warm baseline to `240.8MB` after the patch; other RSS
+changes remain within normal process/import noise and no route exceeded the
+accepted regression envelope. No accounting, preflight, fill, rejection,
+funding, margin, or liquidation work was removed for the speed result.
+
+Reactive evidence was measured separately with the existing
+`benchmarks/benchmark_phase48c_event_driven.py`, also on 2,000 bars. Direct
+Grid and `event_driven(profile="audit")` both produced `839` fills and final
+equity `28,972.788456`, with parity **PASS**. The measured Grid facade overhead
+was `+2.04%` (`1.146060s` direct vs `1.169473s` facade); peak RSS was about
+`274.5MB` for both routes. This result stays in the plan and is deliberately
+excluded from the README common native-event throughput headline.
+
+Pre-48E remaining hotspots, carried into Phase 48E, are Python context/timestamp
+boxing and higher-level WFO/service loops, PyO3/context bridge cost on generic
+callbacks, audit report construction, and deeper RSS retention analysis. These
+are optimization candidates only after the same parity contract continues to
+pass. The pre-phase does not certify Rust as the default reactive Grid backend.
+
 ### Phase 48E - Python Context/Command Reuse, Dual Backend Wheels, And Native Certification
 
 Detailed guide sections:

@@ -761,6 +761,9 @@ class _NativeEventReactiveSession:
         self.opens_arr = opens_arr
         self.volumes_arr = volumes_arr
         self.constraints = constraints
+        # Quantity policy is immutable for a session.  Cache the decision once
+        # so score/research loops do not scan every constraint array per bar.
+        self.constraints_enabled = bool(constraints.enabled)
         self.contract_sizes = contract_sizes
         self.leverages = leverages
         self.fee_rates = fee_rates
@@ -843,6 +846,18 @@ class _NativeEventReactiveSession:
         self.empty_active_orders: tuple[NativeActiveOrderSnapshot, ...] = ()
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = self.empty_active_orders
         self._active_snapshot_dirty = True
+        self.execution_counters = {
+            "bars_processed": 0,
+            "bars_with_commands": 0,
+            "contexts_materialized": 0,
+            "timestamp_objects_materialized": 0,
+            "active_snapshot_materializations": 0,
+            "empty_command_batches_skipped": 0,
+            "constraint_preflight_calls": 0,
+            "constraint_preflight_skipped": 0,
+            "commands_retimed": 0,
+            "commands_quantized": 0,
+        }
         n_bars = len(idx)
         n_syms = len(symbols)
         requirements = score_requirements
@@ -877,9 +892,12 @@ class _NativeEventReactiveSession:
         for i in range(self.processed_bar + 1, int(bar) + 1):
             self._process_single_bar(i)
             self.processed_bar = i
+            self.execution_counters["bars_processed"] += 1
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
+        self.execution_counters["contexts_materialized"] += 1
+        self.execution_counters["timestamp_objects_materialized"] += 1
         init_margin, maint_margin = self._refresh_close_margin(bar)
         if self.emit_context_positions and self.n_symbols == 1:
             positions = {self.symbols[0]: float(self.current_pos[0])}
@@ -1298,6 +1316,7 @@ class _NativeEventReactiveSession:
             return self.empty_active_orders
         if not self._active_snapshot_dirty:
             return self._active_snapshot_cache
+        self.execution_counters["active_snapshot_materializations"] += 1
         out: List[NativeActiveOrderSnapshot] = []
         for state in self.pending:
             if not self._is_pending(state):
@@ -2156,6 +2175,10 @@ class NativeEventBackend:
             retain_terminal_orders=level != "score",
             score_requirements=score_requirements,
         )
+        execution_counters = getattr(session, "execution_counters", None)
+        if execution_counters is None:
+            execution_counters = {}
+        constraints_enabled = bool(getattr(session, "constraints_enabled", constraints.enabled))
         if getattr(session, "online_score", None) is not None:
             session.online_score.trading_days = int(_trading_days)
 
@@ -2189,6 +2212,16 @@ class NativeEventBackend:
         last_context = initial_context
 
         def quantize_reactive_schedule(commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
+            if not commands:
+                if execution_counters:
+                    execution_counters["empty_command_batches_skipped"] += 1
+                return ()
+            if not constraints_enabled:
+                if execution_counters:
+                    execution_counters["constraint_preflight_skipped"] += 1
+                return tuple(commands)
+            if execution_counters:
+                execution_counters["constraint_preflight_calls"] += 1
             effective, _ = self._apply_command_quantity_constraints(
                 idx=idx,
                 commands=commands,
@@ -2197,20 +2230,37 @@ class NativeEventBackend:
                 contract_sizes=contract_sizes,
                 constraints=constraints,
             )
+            if execution_counters:
+                execution_counters["commands_quantized"] += len(commands)
             return effective
+
+        def schedule_reactive_batch(
+            commands: Sequence[OrderCommand],
+            effective_bar: int,
+        ) -> tuple[tuple[OrderCommand, ...], int]:
+            if not commands:
+                if execution_counters:
+                    execution_counters["empty_command_batches_skipped"] += 1
+                return (), 0
+            if execution_counters:
+                execution_counters["bars_with_commands"] += 1
+                execution_counters["commands_retimed"] += 1
+            scheduled, ignored = self._retime_reactive_commands(
+                commands=commands,
+                effective_bar=effective_bar,
+                idx=idx,
+                emitted_order_ids=emitted_order_ids,
+            )
+            if scheduled:
+                record_scheduled(scheduled)
+                session.schedule(effective_bar, quantize_reactive_schedule(scheduled))
+            return scheduled, ignored
 
         initial_commands = self._expand_scoped_cancel_all_commands(
             self._call_strategy_callback(strategy, "initialize", initial_context),
             initial_context,
         )
-        scheduled, ignored = self._retime_reactive_commands(
-            commands=initial_commands,
-            effective_bar=1,
-            idx=idx,
-            emitted_order_ids=emitted_order_ids,
-        )
-        record_scheduled(scheduled)
-        session.schedule(1, quantize_reactive_schedule(scheduled))
+        scheduled, ignored = schedule_reactive_batch(initial_commands, 1)
         ignored_commands_after_end += ignored
         if ignored:
             record_outside_tape(
@@ -2233,14 +2283,7 @@ class NativeEventBackend:
                 context,
             )
             session.release_bar_payload(bar)
-            scheduled, ignored = self._retime_reactive_commands(
-                commands=commands,
-                effective_bar=bar + 1,
-                idx=idx,
-                emitted_order_ids=emitted_order_ids,
-            )
-            record_scheduled(scheduled)
-            session.schedule(bar + 1, quantize_reactive_schedule(scheduled))
+            scheduled, ignored = schedule_reactive_batch(commands, bar + 1)
             ignored_commands_after_end += ignored
             if ignored:
                 record_outside_tape(
@@ -2256,12 +2299,18 @@ class NativeEventBackend:
                 self._call_strategy_callback(strategy, "finalize", last_context),
                 last_context,
             )
-            scheduled, ignored = self._retime_reactive_commands(
-                commands=final_commands,
-                effective_bar=len(idx),
-                idx=idx,
-                emitted_order_ids=emitted_order_ids,
-            )
+            if final_commands:
+                if execution_counters:
+                    execution_counters["bars_with_commands"] += 1
+                    execution_counters["commands_retimed"] += 1
+                scheduled, ignored = self._retime_reactive_commands(
+                    commands=final_commands,
+                    effective_bar=len(idx),
+                    idx=idx,
+                    emitted_order_ids=emitted_order_ids,
+                )
+            else:
+                scheduled, ignored = (), 0
             record_scheduled(scheduled)
             ignored_commands_after_end += ignored
             if ignored:
@@ -2298,6 +2347,7 @@ class NativeEventBackend:
                     "reactive_static_replay_count": 0,
                     "reactive_session_liquidated": bool(session.liquidated),
                     "reactive_session_liquidation_bar": int(session.liquidation_bar),
+                    "execution_counters": dict(getattr(session, "execution_counters", {})),
                     **self._backend_selection_metadata(),
                 },
             )
@@ -2974,6 +3024,7 @@ class NativeEventBackend:
         score_metadata = {
             **metadata,
             "lifecycle_counters": counters,
+            "execution_counters": dict(getattr(session, "execution_counters", {})),
             "score_direct_arrays": True,
             "score_pandas_materialized": False,
             "score_full_ledgers_materialized": False,
@@ -3149,6 +3200,7 @@ class NativeEventBackend:
             "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
             "liquidation_reason": int(session.liquidation_reason),
             "lifecycle_counters": lifecycle_counters,
+            "execution_counters": dict(getattr(session, "execution_counters", {})),
             "single_pass_accounting_source": "reactive_session_state",
             "single_pass_replay_certified": bool(replay_result is not None),
         }

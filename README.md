@@ -315,6 +315,40 @@ open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,
 intrabar, and Nautilus adapter workloads; each future route needs its own
 parity and RSS certification.
 
+### Pre-48E apples-to-apples native event evidence
+
+The native-event headline below uses one deterministic **2,000-bar**,
+single-symbol tape, a fresh process per route, the same compiled command tape,
+separate score/audit runs, and seven measured warm repetitions. Runtime is in
+seconds, throughput is bars per second, and RSS is peak resident memory. Every
+Python/Rust score and audit fingerprint passed accounting and lifecycle parity
+(equity, positions, fees, funding, margin, fills, and event counters).
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.087736 | 22,796 bars/s | 183.2 | pass |
+| Common low churn | Rust score | 0.188448 | 10,613 bars/s | 185.7 | pass |
+| Common low churn | Python audit | 0.087327 | 22,902 bars/s | 240.8 | pass |
+| Common low churn | Rust audit | 0.176075 | 11,359 bars/s | 243.9 | pass |
+| Common high churn | Python score | 0.086609 | 23,092 bars/s | 182.9 | pass |
+| Common high churn | Rust score | 0.188299 | 10,621 bars/s | 186.1 | pass |
+| Common high churn | Python audit | 0.119269 | 16,769 bars/s | 241.2 | pass |
+| Common high churn | Rust audit | 0.198521 | 10,074 bars/s | 243.1 | pass |
+
+The safe Python patch improved the common low-churn score from `0.148483s`
+to `0.087736s` on the frozen pre-patch baseline, without skipping any domain
+accounting or quantity preflight when constraints are enabled. Explicit order
+and Rust full-tape results are also recorded, but they are kept as route-level
+evidence rather than used to imply that every reactive strategy is faster in
+Rust. Reactive Grid has a separate workload and remains outside this common
+native-event headline.
+
+Reproduce the gate with
+[`benchmark_pre48e.py`](benchmarks/native_event/benchmark_pre48e.py). Read the
+full before/after table and parity fingerprints in
+[`pre48e/report.md`](benchmarks/native_event/results/pre48e/report.md); the
+raw JSON artifacts are versioned beside it.
+
 Ecosystem positioning:
 
 | Tool | Core strength | Runtime model | QuantBT role beside it |
