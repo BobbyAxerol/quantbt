@@ -10361,3 +10361,443 @@ Final acceptance and explicit non-goals:
   Native Event V2 conformance suite plus both 2,000-bar parity workloads.
 - Until that point, Python remains canonical, replay remains the oracle, Rust
   remains explicit experimental, and `auto` remains Python.
+
+## Final Release Audit Upgrade: Six-Phase Plan
+
+Status: **planned; implementation awaits approval.**
+
+This release pass follows the complete guide:
+
+[`quantbt_final_release_native_event_endpoint_packaging_audit.md`](quantbt_final_release_native_event_endpoint_packaging_audit.md)
+
+The guide is the detailed source of truth. The phase summaries below are
+tracking boundaries only; every implementation must read the linked sections
+and execute the exact contracts, examples, and gates described there.
+
+### Release baseline and non-negotiable policy
+
+Current baseline before this plan:
+
+```text
+core distribution: quantbt-engine 1.0.7
+import package: quantbt
+native API: 0.4
+Python/replay/Rust: Phase 47 domain evidence available
+backend="auto": Python
+native extra: empty until public native wheels are certified
+src/quantbt: wheel source of truth
+root mirror: intentionally retained for Pool Alpha/local development
+```
+
+Release priority remains:
+
+```text
+domain correctness
+→ replay-certified parity
+→ stable public endpoint
+→ no runtime/RSS regression
+→ clean artifacts and TestPyPI
+```
+
+No phase may:
+
+- change command timing, fill priority, funding, margin, liquidation, or
+  accounting semantics to obtain a benchmark result;
+- silently fallback when `backend="rust"` is explicit;
+- remove the root compatibility mirror before two-way parity and migration
+  evidence pass;
+- claim a public dual backend while `quantbt-engine[native]` is empty or
+  `quantbt-native` wheels do not install from a clean public index;
+- publish to TestPyPI/PyPI without the exact-SHA release gate and user approval.
+
+The final acceptance target is not a fixed speedup ratio. It is exact lifecycle
+parity, no unexplained runtime regression, no RSS regression above the guide's
+10–15% tolerance, no positive repeated-run RSS slope, and no trial-proportional
+retention. The accepted benchmark scope remains separate for static/batched
+Rust and arbitrary Python reactive strategies.
+
+### Phase 48A - P0 Release Surfaces, API 0.4 CI, And Stale Documentation
+
+Detailed guide sections:
+
+- Sections `1`, `2.1`, `2.2`, `2.3`, `8.1` to `8.4`.
+- Patch `1` and the native workflow examples in the guide.
+
+Objective:
+
+Close the blockers that would make CI or documentation contradict the actual
+Native Event API 0.4 implementation before touching optimization or release
+publishing.
+
+Implementation scope:
+
+- Update native CI assertions from API `0.3` to API `0.4`.
+- Assert the complete required capability set:
+  `native_event_v2_full_contract`, multisymbol, funding, liquidation,
+  cancel-all/OCO, TIF expiry, relationships, and quantity preflight.
+- Rename stale R0 workflow/job terminology to the current Native Event API
+  0.4 terminology; no compatibility redirect is needed for workflow names.
+- Add the clean combined core/native install smoke specified in Section 2.1,
+  but keep the public native wheel matrix gate in Phase 48E.
+- Update `docs/release_packaging.md` from the obsolete R1/R2 restrictions to
+  the API 0.4 contract, explicit Rust fail-fast policy, and `auto=Python`
+  policy. Keep historical R0/R1/R2 material only under a clearly labelled
+  history section.
+- Align native package metadata, API version wording, project URLs, and
+  distribution-version/API-version distinction. Never reuse an uploaded
+  version.
+
+Tests and evidence:
+
+- Native workflow API/capability smoke on the exact commit.
+- Existing full Native Event conformance suite and Grid long-only/long-short
+  integration tests.
+- Documentation consistency scan for stale API `0.3`, R0/R1/R2 restrictions,
+  and claims that Rust is the default backend.
+- Record the exact workflow file, job names, capability keys, and release
+  metadata in the phase report.
+
+Exit gate:
+
+```text
+CI checks API 0.4
+required capabilities are present
+release docs match implementation
+no execution logic changed
+```
+
+### Phase 48B - Two-Way Mirror, Git Hygiene, Secret Safety, And Artifact Allowlist
+
+Detailed guide sections:
+
+- Sections `2.4`, `7.1` to `7.7`, and the mirror code block in Section 2.4.
+- Patch `2` and the artifact inspection commands in Section 7.7.
+
+Objective:
+
+Make the open-source repository auditable without deleting the root mirror or
+mistaking private/local artifacts for package source.
+
+Implementation scope:
+
+- Add the explicit mirror manifest and two-way byte/hash test. It must detect
+  both missing files in the root mirror and extra root-only Python files.
+- Add `tools/sync_source_mirror.py` with explicit, non-automatic directions:
+  `--src-to-root`, `--root-to-src`, and `--check`. Never merge both trees
+  automatically.
+- Keep `src/quantbt` as wheel source of truth and the root mirror as a
+  compatibility source until migration is explicitly completed.
+- Replace blanket `.gitignore` rules for `upgrade/` and `benchmarks/` with
+  selective private/local/cache/build rules from Section 7.3.
+- Keep tracked implementation plans, tests, docs, deterministic fixtures,
+  benchmark scripts, accepted summaries, and small JSON evidence visible.
+- Add the `implement.md` presence/non-ignored CI gate.
+- Add the release secret scan and review documented false positives.
+- Add explicit wheel/sdist artifact inspection and an allowlist/denylist gate;
+  secrets must never be protected only by `MANIFEST.in` after entering Git.
+- Add or align `MANIFEST.in` only for sdist content control, with private data,
+  credentials, profiler output, and local artifacts excluded.
+
+Tests and evidence:
+
+- Two-way mirror test and sync-tool check mode.
+- `git ls-files --error-unmatch upgrade/implement.md` and check-ignore gate.
+- Secret-path scan and manual review record.
+- Wheel/sdist listing plus suspicious-path rejection fixture.
+- Full regression after `.gitignore`, manifest, and tooling changes.
+
+Exit gate:
+
+```text
+src/root trees are byte-identical over the explicit manifest
+implement.md remains visible
+private files remain ignored
+accepted benchmark evidence remains trackable
+wheel/sdist contain no suspicious private paths
+```
+
+### Phase 48C - Stable Event-Driven Facade And Strategy Protocol
+
+Detailed guide sections:
+
+- Sections `3.1` to `3.6` and `9`.
+- Patch `3` and all stable usage examples in Section 3.4.
+
+Objective:
+
+Stop endpoint surface drift while preserving every existing constructor and
+execution behavior. The new facade is a configuration resolver, not a second
+execution engine.
+
+Implementation scope:
+
+- Add `NativeEventProfile` values `research`, `optimize`, and `audit`.
+- Add canonical `QuantBTEndpoint.event_driven(...)` with the small public
+  surface:
+
+  ```python
+  event_driven(
+      input_mode="strategy",  # strategy | orders
+      profile="research",      # research | optimize | audit
+      backend="auto",          # auto | python | rust
+      ...,
+  )
+  ```
+
+- Delegate `input_mode="strategy"` to the existing
+  `native_event_strategy(...)` path and `input_mode="orders"` to the existing
+  `native_event_lifecycle(...)` path. Do not duplicate matching/accounting.
+- Resolve profiles exactly as the guide specifies:
+  `research=fast/single_pass/minimal/none`,
+  `optimize=fast/single_pass/score/none`,
+  `audit=audit/replay_certified/audit/memory`.
+- Map public `backend` to internal `native_backend`; do not expose
+  `replay_certified` as a language backend in this facade.
+- Raise on contradictory profile-controlled low-level options instead of
+  silently overriding them. Keep the advanced legacy constructors available
+  for custom combinations and backward compatibility.
+- Document one `NativeEventStrategy` protocol for stateful reactive alphas:
+  `initialize`, `on_bar_close`, `finalize`, and declared context requirements.
+- Document the three input levels: target/signal, explicit order tape, and
+  stateful reactive strategy. Grid remains a strategy-level integration, not a
+  Grid-specific endpoint.
+- Add a concise README quick start and move low-level flags into advanced docs.
+
+Tests and evidence:
+
+- Profile mapping tests for research/optimize/audit.
+- Strategy and explicit-order delegation parity against existing endpoints.
+- Conflict validation tests.
+- Backward compatibility tests for
+  `native_event_strategy`, `native_event_lifecycle`, and `orders`.
+- Grid 2,000-bar fingerprint/accounting parity through the new facade.
+- Public result API smoke: `simulate`, `show_metrics`, `full_report`,
+  `quick_plot`/tearsheet where applicable.
+
+Exit gate:
+
+```text
+new facade changes configuration only
+existing endpoint snippets remain valid
+no domain behavior changes
+new users need profile/backend, not internal lifecycle flags
+```
+
+### Phase 48D - Rust Full-Session Ownership, Output Requirements, And Indexed Lifecycle
+
+Detailed guide sections:
+
+- Sections `5.1` to `5.8`, including P1–P6.
+- Optimization order `O1` to `O3` in Section 5.17.
+
+Objective:
+
+Reduce full-contract Rust allocation/RSS overhead without changing the
+replay-certified lifecycle. This is the main native performance phase and must
+be implemented as individually testable patches, not one broad rewrite.
+
+Implementation scope, in order:
+
+1. Share immutable prepared market data with `Arc<FullMarketData>`; sessions
+   own only mutable account/lifecycle state and never clone OHLCV/funding tape.
+2. Replace the growing historical order vector with a stable-priority arena,
+   free list, generation-safe slot references, and bounded tombstone
+   compaction. Preserve active insertion priority and relationship references.
+3. Add relationship/expiry indexes for parent activation, OCO cancellation,
+   GTD expiry, group filters, and active-only `CANCEL_ALL`. Index lookup must
+   preserve replay event order.
+4. Add internal `FullOutputRequirements` for score, reactive-context, and audit
+   output. Keep the old full `step()` behavior as a compatibility wrapper.
+5. Replace nested per-step vectors with reusable SoA buffers; clear without
+   shrinking on every bar and expose explicit excess-capacity release.
+6. Add typed frozen PyO3 step/sparse chunk result classes while retaining
+   dictionary conversion only at backward-compatible public boundaries.
+
+Every subpatch must preserve:
+
+```text
+command effective bar and priority
+accept/reject and reason
+parent/group/OCO/expiry lifecycle
+fills and prices
+funding
+margin/liquidation ordering
+positions/equity/fees/turnover
+```
+
+Tests and evidence after each subpatch:
+
+- Replay-certified → Python single-pass → Rust exact conformance.
+- All actions/order types/TIF/quantity constraints/reduce-only/relationships.
+- Single- and multi-symbol, funding, margin and liquidation.
+- Stable priority after arena slot reuse and compaction.
+- 100k terminal-order retention fixture and active-only scan evidence.
+- Prepared market shared by two sessions; reset cannot mutate the tape.
+- Output requirement combinations and old `step()` compatibility.
+- SoA capacity/release counters and typed result field parity.
+- Grid long-only/long-short parity after every patch.
+- Repeated 100-run RSS plateau and high-churn benchmark.
+
+Exit gate:
+
+```text
+exact discrete lifecycle parity
+numeric parity at documented tolerance
+no prepared-market duplication in full sessions
+no historical-order retention proportional to terminal orders
+RSS/runtime improvement or neutral result
+no Rust fallback or API drift
+```
+
+### Phase 48E - Python Context/Command Reuse, Dual Backend Wheels, And Native Certification
+
+Detailed guide sections:
+
+- Sections `5.9` to `5.16`, `8.4` to `8.5`, and `6.3` to `6.4`.
+- Optimization `O4` and `O5` in Section 5.17.
+- Native wheel matrix in Section 2.2.
+
+Objective:
+
+Finish the Python↔Rust boundary and certify a real public native distribution
+before considering a non-empty `[native]` extra.
+
+Implementation scope:
+
+- Add a reusable full-contract Python command buffer with one canonical ABI
+  layout, capacity growth counters, and no per-bar `zeros/full` allocation.
+- Reuse the Python context container and materialize fills, events,
+  active-order snapshots, positions, margin, and metadata only when required.
+- Add active-order generation caching and bounded metadata behavior while
+  preserving full compatibility for undeclared strategies and audit profiles.
+- Remove duplicate Python retention through separate prepared Python/Rust
+  market ownership; `backend="rust"` must release temporary normalized arrays
+  when safe, while `auto` must not eagerly prepare both backends.
+- Add exact session reset, `clear_caches()`, `cache_info()`, capacity counters,
+  and 100-run reset/fresh-session parity.
+- Apply GIL policy from the guide: detach long Rust-only tape/chunk calls;
+  benchmark, but do not automatically detach very short per-bar reactive
+  callbacks.
+- Add portable Rust release profile (`opt-level=3`, thin LTO, one codegen
+  unit, stripped symbols, no `target-cpu=native`, no panic-abort shortcut).
+- Split the large Python adapter only after behavior/performance stabilizes,
+  preserving all re-exports and isolating legacy API 0.3 compatibility from
+  API 0.4 full/ batched modules.
+- Add observability counters for bars, commands, fills/events, active peaks,
+  slots/compactions, snapshots, copies, GIL calls, cache bytes/entries.
+- Build native wheels for CPython `3.11`, `3.12`, `3.13`, Linux x86_64
+  manylinux2014/`manylinux_2_17` using maturin/PyO3 CI. Do not publish a
+  locally built Ubuntu-only wheel as public artifact.
+- Clean-install each native wheel together with the core wheel, run API and
+  capability smoke, full Rust contract, Python/replay/Rust parity, Grid
+  integration, and `pip check`.
+- Align native package metadata (`quantbt-native`, preferred `0.4.0`) with API
+  version and project URLs. If no native wheel is published, keep
+  `quantbt-engine[native]` empty and label Rust local/experimental.
+
+Tests and evidence:
+
+- Python context/command buffer parity and memory counter tests.
+- Fresh-vs-reset session exact fingerprint parity.
+- 100 repeated runs plateau with bounded capacities and no retained trial
+  result/strategy.
+- Cargo fmt, clippy `-D warnings`, release cargo tests.
+- CPython 3.11/3.12/3.13 manylinux wheel install matrix.
+- Combined core+native clean install, API `0.4`, required capability keys,
+  contract suite, Grid smoke, and `pip check` for every wheel.
+- Static tape speed evidence remains separate from reactive facade evidence;
+  no universal Rust speed claim is made.
+
+Exit gate:
+
+```text
+native wheels install on every supported Python target
+API/capabilities are 0.4 and complete
+full parity and RSS plateau pass per wheel
+explicit Rust is fail-fast
+auto remains Python for 1.0.7
+[native] is populated only if the public install is real
+```
+
+### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
+
+Detailed guide sections:
+
+- Sections `8.2`, `8.3`, `7.7`, `9`, `10`, `11`, and `12`.
+- Patches `6` and `7`.
+
+Objective:
+
+Prove that the exact release artifacts install and behave correctly in clean
+environments, then prepare a controlled TestPyPI RC. Public PyPI release is a
+separate user-approved action after the RC is inspected.
+
+Implementation scope:
+
+- Add clean wheel and sdist install steps to `publish-testpypi.yml` before
+  upload. Install the exact built artifacts, run isolated import smoke, and
+  run `pip check` for both paths.
+- Keep production publishing release-only: exact tag/version gate, GitHub
+  Release trigger, protected PyPI environment, OIDC trusted publishing, and
+  no normal `dev`/`main` push upload.
+- Build to a clean directory and run `twine check`.
+- Inspect wheel/sdist contents against the allowlist; fail on credentials,
+  private data, profiler output, `.env`, `.pypirc`, key material, or private
+  planning paths.
+- Run the complete local gate from Section 11: clean tree/diff check, `uv
+  sync`, full pytest, native tests, cargo fmt/clippy/test, build, wheel/sdist
+  smoke, and artifact scan.
+- Update README/docs so the quick start uses stable `event_driven(profile,
+  backend)` and phase details remain in engineering evidence docs.
+- Verify Pool Alpha/local editable-path usage and a clean wheel import in
+  separate environments; ensure package import resolves from `site-packages`.
+- Produce the TestPyPI RC checklist containing exact SHA, version, artifact
+  hashes, test results, wheel matrix, parity fingerprints, RSS results, and
+  known policy (`auto=Python`, native extra state).
+- Do not publish PyPI or merge branches in this implementation phase without
+  explicit approval. The guide's public order remains: native first if real,
+  then populate `[native]`, then core release, otherwise release Python-first
+  with native clearly experimental.
+
+Tests and evidence:
+
+- `uv run pytest -q`, Native Event tests, source mirror tests.
+- `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test --release`.
+- `uv build`, `twine check`, wheel clean install, sdist clean install, and
+  `pip check`.
+- TestPyPI workflow dry-run/build validation and exact artifact install.
+- Secret scan, package-path allowlist, version/tag/ref consistency, and
+  `quantbt.__file__` site-packages check.
+- Final report must classify:
+  `domain correctness`, `Python performance/RSS`, `Rust performance/RSS`,
+  `endpoint usability`, `core PyPI`, and `public dual-backend installation`
+  separately, exactly as Section 12 does.
+
+Exit gate:
+
+```text
+exact release SHA is green
+wheel and sdist are clean-installable
+artifact contents are safe
+TestPyPI RC is reproducible
+endpoint quick start is stable
+native extra claim matches actual public wheels
+```
+
+#### Final release decision boundary
+
+The six phases are complete only when Phase 48F has produced a reproducible
+TestPyPI-ready artifact bundle. At that point:
+
+```text
+core Python package: publishable after user approval
+Rust reactive correctness: certified for Native Event V2 tested matrix
+Rust static/batched performance: report separately
+backend="auto": Python for 1.0.7 unless policy is explicitly changed
+native extra: empty unless quantbt-native wheels passed public clean install
+```
+
+The plan deliberately does not promise further raw benchmark gains before
+TestPyPI. Any future native DSL, portfolio/arbitrage/options native backend,
+or deeper reactive callback optimization must be a new parity-first upgrade
+after this release gate rather than being mixed into the packaging release.
