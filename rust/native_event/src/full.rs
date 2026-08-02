@@ -36,6 +36,72 @@ const SIDE_SELL: i64 = -1;
 const ACTIVATION_IMMEDIATE: i64 = 0;
 const ACTIVATION_ON_PARENT_FIRST_FILL: i64 = 1;
 const ACTIVATION_ON_PARENT_FULL_FILL: i64 = 2;
+const FLAG_REDUCE_ONLY: u16 = 1 << 0;
+
+#[repr(u8)]
+#[derive(Clone, Copy)]
+enum InternalOrderType {
+    Market = ORDER_MARKET as u8,
+    Limit = ORDER_LIMIT as u8,
+    StopMarket = ORDER_STOP_MARKET as u8,
+    StopLimit = ORDER_STOP_LIMIT as u8,
+}
+
+impl TryFrom<i64> for InternalOrderType {
+    type Error = ();
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        match value {
+            ORDER_MARKET => Ok(Self::Market),
+            ORDER_LIMIT => Ok(Self::Limit),
+            ORDER_STOP_MARKET => Ok(Self::StopMarket),
+            ORDER_STOP_LIMIT => Ok(Self::StopLimit),
+            _ => Err(()),
+        }
+    }
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy)]
+enum InternalTimeInForce {
+    Gtc = TIF_GTC as u8,
+    Ioc = TIF_IOC as u8,
+    Fok = TIF_FOK as u8,
+    Gtd = TIF_GTD as u8,
+}
+
+impl TryFrom<i64> for InternalTimeInForce {
+    type Error = ();
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        match value {
+            TIF_GTC => Ok(Self::Gtc),
+            TIF_IOC => Ok(Self::Ioc),
+            TIF_FOK => Ok(Self::Fok),
+            TIF_GTD => Ok(Self::Gtd),
+            _ => Err(()),
+        }
+    }
+}
+
+#[repr(i8)]
+#[derive(Clone, Copy)]
+enum InternalSide {
+    Sell = SIDE_SELL as i8,
+    Buy = SIDE_BUY as i8,
+}
+
+impl TryFrom<i64> for InternalSide {
+    type Error = ();
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        match value {
+            SIDE_BUY => Ok(Self::Buy),
+            SIDE_SELL => Ok(Self::Sell),
+            _ => Err(()),
+        }
+    }
+}
 
 pub const EVENT_PLACE: i64 = 0;
 pub const EVENT_CANCEL: i64 = 1;
@@ -73,17 +139,320 @@ pub const OUTPUT_EVENTS: u8 = 4;
 pub const OUTPUT_ACTIVE_ORDERS: u8 = 8;
 pub const OUTPUT_ALL: u8 = OUTPUT_POSITIONS | OUTPUT_FILLS | OUTPUT_EVENTS | OUTPUT_ACTIVE_ORDERS;
 
+/// Scalar lifecycle counters are kept separately from projected detail rows.
+/// This is the count-only sink used by score runs, so a score never needs to
+/// allocate a nested row just to report a fill or event count.
+#[derive(Clone, Copy, Default)]
+pub struct StepCounters {
+    pub fill_count: i64,
+    pub event_count: i64,
+    pub rejected_count: i64,
+    pub canceled_count: i64,
+}
+
+#[derive(Default)]
+pub struct FillBuffer {
+    pub order_id: Vec<i64>,
+    pub symbol: Vec<i64>,
+    pub side: Vec<i64>,
+    pub qty: Vec<f64>,
+    pub price: Vec<f64>,
+    pub fee: Vec<f64>,
+}
+
+impl FillBuffer {
+    #[inline]
+    pub fn clear(&mut self) {
+        self.order_id.clear();
+        self.symbol.clear();
+        self.side.clear();
+        self.qty.clear();
+        self.price.clear();
+        self.fee.clear();
+    }
+
+    #[inline]
+    pub fn push(&mut self, order_id: i64, symbol: i64, side: i64, qty: f64, price: f64, fee: f64) {
+        self.order_id.push(order_id);
+        self.symbol.push(symbol);
+        self.side.push(side);
+        self.qty.push(qty);
+        self.price.push(price);
+        self.fee.push(fee);
+    }
+
+    pub fn rows(&self) -> Vec<Vec<f64>> {
+        (0..self.order_id.len())
+            .map(|i| {
+                vec![
+                    self.order_id[i] as f64,
+                    self.symbol[i] as f64,
+                    self.side[i] as f64,
+                    self.qty[i],
+                    self.price[i],
+                    self.fee[i],
+                ]
+            })
+            .collect()
+    }
+}
+
+#[derive(Default)]
+pub struct EventBuffer {
+    pub kind: Vec<i64>,
+    pub status: Vec<i64>,
+    pub order_id: Vec<i64>,
+    pub target_id: Vec<i64>,
+    pub symbol: Vec<i64>,
+    pub reject_code: Vec<i64>,
+}
+
+impl EventBuffer {
+    #[inline]
+    pub fn clear(&mut self) {
+        self.kind.clear();
+        self.status.clear();
+        self.order_id.clear();
+        self.target_id.clear();
+        self.symbol.clear();
+        self.reject_code.clear();
+    }
+
+    #[inline]
+    pub fn push(
+        &mut self,
+        kind: i64,
+        status: i64,
+        order_id: i64,
+        target_id: i64,
+        symbol: i64,
+        reject_code: i64,
+    ) {
+        self.kind.push(kind);
+        self.status.push(status);
+        self.order_id.push(order_id);
+        self.target_id.push(target_id);
+        self.symbol.push(symbol);
+        self.reject_code.push(reject_code);
+    }
+
+    pub fn rows(&self) -> Vec<Vec<i64>> {
+        (0..self.kind.len())
+            .map(|i| {
+                vec![
+                    self.kind[i],
+                    self.status[i],
+                    self.order_id[i],
+                    self.target_id[i],
+                    self.symbol[i],
+                    self.reject_code[i],
+                ]
+            })
+            .collect()
+    }
+}
+
+#[derive(Default)]
+pub struct ActiveOrderBuffer {
+    pub order_id: Vec<i64>,
+    pub symbol: Vec<i64>,
+    pub side: Vec<i64>,
+    pub order_type: Vec<i64>,
+    pub qty: Vec<f64>,
+    pub price: Vec<f64>,
+    pub trigger: Vec<f64>,
+    pub tif: Vec<i64>,
+    pub flags: Vec<i64>,
+    pub parent_id: Vec<i64>,
+    pub group_id: Vec<i64>,
+    pub oco_id: Vec<i64>,
+    pub activation: Vec<i64>,
+    pub waiting_parent: Vec<i64>,
+}
+
+impl ActiveOrderBuffer {
+    #[inline]
+    pub fn clear(&mut self) {
+        self.order_id.clear();
+        self.symbol.clear();
+        self.side.clear();
+        self.order_type.clear();
+        self.qty.clear();
+        self.price.clear();
+        self.trigger.clear();
+        self.tif.clear();
+        self.flags.clear();
+        self.parent_id.clear();
+        self.group_id.clear();
+        self.oco_id.clear();
+        self.activation.clear();
+        self.waiting_parent.clear();
+    }
+
+    #[inline]
+    fn push(&mut self, order: &OrderState) {
+        self.order_id.push(order.order_id);
+        self.symbol.push(order.symbol as i64);
+        self.side.push(order.side as i64);
+        self.order_type.push(order.order_type as i64);
+        self.qty.push(order.qty);
+        self.price.push(order.price);
+        self.trigger.push(order.trigger);
+        self.tif.push(order.tif as i64);
+        self.flags.push(if order.reduce_only() {
+            FLAG_REDUCE_ONLY as i64
+        } else {
+            0
+        });
+        self.parent_id.push(order.parent_id);
+        self.group_id.push(order.group_id);
+        self.oco_id.push(order.oco_id);
+        self.activation.push(order.activation as i64);
+        self.waiting_parent
+            .push(if order.waiting_parent { 1 } else { 0 });
+    }
+
+    pub fn rows(&self) -> Vec<Vec<f64>> {
+        (0..self.order_id.len())
+            .map(|i| {
+                vec![
+                    self.order_id[i] as f64,
+                    self.symbol[i] as f64,
+                    self.side[i] as f64,
+                    self.order_type[i] as f64,
+                    self.qty[i],
+                    self.price[i],
+                    self.trigger[i],
+                    self.tif[i] as f64,
+                    self.flags[i] as f64,
+                    self.parent_id[i] as f64,
+                    self.group_id[i] as f64,
+                    self.oco_id[i] as f64,
+                    self.activation[i] as f64,
+                    self.waiting_parent[i] as f64,
+                ]
+            })
+            .collect()
+    }
+}
+
+#[derive(Default)]
+pub struct StepBuffers {
+    pub fills: FillBuffer,
+    pub events: EventBuffer,
+    pub active_orders: ActiveOrderBuffer,
+}
+
+impl StepBuffers {
+    #[inline]
+    pub fn clear(&mut self) {
+        self.fills.clear();
+        self.events.clear();
+        self.active_orders.clear();
+    }
+
+    /// Release only deliberately excessive capacity during service
+    /// maintenance. The execution loop never shrinks its working buffers.
+    pub fn release_excess_capacity(&mut self, max_capacity: usize) {
+        for capacity in [
+            self.fills.order_id.capacity(),
+            self.events.kind.capacity(),
+            self.active_orders.order_id.capacity(),
+        ] {
+            if capacity > max_capacity {
+                self.fills.order_id.shrink_to(max_capacity);
+                self.fills.symbol.shrink_to(max_capacity);
+                self.fills.side.shrink_to(max_capacity);
+                self.fills.qty.shrink_to(max_capacity);
+                self.fills.price.shrink_to(max_capacity);
+                self.fills.fee.shrink_to(max_capacity);
+                self.events.kind.shrink_to(max_capacity);
+                self.events.status.shrink_to(max_capacity);
+                self.events.order_id.shrink_to(max_capacity);
+                self.events.target_id.shrink_to(max_capacity);
+                self.events.symbol.shrink_to(max_capacity);
+                self.events.reject_code.shrink_to(max_capacity);
+                self.active_orders.order_id.shrink_to(max_capacity);
+                self.active_orders.symbol.shrink_to(max_capacity);
+                self.active_orders.side.shrink_to(max_capacity);
+                self.active_orders.order_type.shrink_to(max_capacity);
+                self.active_orders.qty.shrink_to(max_capacity);
+                self.active_orders.price.shrink_to(max_capacity);
+                self.active_orders.trigger.shrink_to(max_capacity);
+                self.active_orders.tif.shrink_to(max_capacity);
+                self.active_orders.flags.shrink_to(max_capacity);
+                self.active_orders.parent_id.shrink_to(max_capacity);
+                self.active_orders.group_id.shrink_to(max_capacity);
+                self.active_orders.oco_id.shrink_to(max_capacity);
+                self.active_orders.activation.shrink_to(max_capacity);
+                self.active_orders.waiting_parent.shrink_to(max_capacity);
+                break;
+            }
+        }
+    }
+
+    pub fn capacity_signature(&self) -> (usize, usize, usize) {
+        (
+            self.fills.order_id.capacity(),
+            self.events.kind.capacity(),
+            self.active_orders.order_id.capacity(),
+        )
+    }
+}
+
+pub enum DetailSink<'a> {
+    CountOnly(&'a mut StepCounters),
+    Collect {
+        counters: &'a mut StepCounters,
+        buffers: &'a mut StepBuffers,
+    },
+}
+
+impl DetailSink<'_> {
+    #[inline]
+    pub fn event(
+        &mut self,
+        kind: i64,
+        status: i64,
+        order_id: i64,
+        target_id: i64,
+        symbol: i64,
+        reject_code: i64,
+    ) {
+        match self {
+            Self::CountOnly(counters) => counters.event_count += 1,
+            Self::Collect { counters, buffers } => {
+                counters.event_count += 1;
+                buffers
+                    .events
+                    .push(kind, status, order_id, target_id, symbol, reject_code);
+            }
+        }
+    }
+
+    #[inline]
+    pub fn fill(&mut self, order_id: i64, symbol: i64, side: i64, qty: f64, price: f64, fee: f64) {
+        match self {
+            Self::CountOnly(counters) => counters.fill_count += 1,
+            Self::Collect { counters, buffers } => {
+                counters.fill_count += 1;
+                buffers.fills.push(order_id, symbol, side, qty, price, fee);
+            }
+        }
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Clone)]
 pub struct FullMarketData {
-    pub timestamps_ns: Vec<i64>,
-    pub opens: Vec<f64>,
-    pub highs: Vec<f64>,
-    pub lows: Vec<f64>,
-    pub closes: Vec<f64>,
-    pub volumes: Vec<f64>,
-    pub funding: Vec<f64>,
-    pub funding_mask: Vec<bool>,
+    pub timestamps_ns: Box<[i64]>,
+    pub opens: Box<[f64]>,
+    pub highs: Box<[f64]>,
+    pub lows: Box<[f64]>,
+    pub closes: Box<[f64]>,
+    pub volumes: Box<[f64]>,
+    pub funding: Box<[f64]>,
+    pub funding_mask: Box<[bool]>,
     pub n_bars: usize,
     pub n_symbols: usize,
 }
@@ -119,14 +488,14 @@ impl FullMarketData {
             return Err("full market arrays have inconsistent shapes".to_owned());
         }
         Ok(Self {
-            timestamps_ns,
-            opens,
-            highs,
-            lows,
-            closes,
-            volumes,
-            funding,
-            funding_mask,
+            timestamps_ns: timestamps_ns.into_boxed_slice(),
+            opens: opens.into_boxed_slice(),
+            highs: highs.into_boxed_slice(),
+            lows: lows.into_boxed_slice(),
+            closes: closes.into_boxed_slice(),
+            volumes: volumes.into_boxed_slice(),
+            funding: funding.into_boxed_slice(),
+            funding_mask: funding_mask.into_boxed_slice(),
             n_bars,
             n_symbols,
         })
@@ -143,22 +512,29 @@ struct OrderState {
     #[allow(dead_code)]
     command_index: usize,
     order_id: i64,
-    symbol: i64,
-    side: i64,
-    order_type: i64,
-    tif: i64,
-    reduce_only: bool,
+    symbol: u32,
+    side: i8,
+    order_type: u8,
+    tif: u8,
+    flags: u16,
     qty: f64,
     price: f64,
     trigger: f64,
     parent_id: i64,
     group_id: i64,
     oco_id: i64,
-    activation: i64,
+    activation: u8,
     expires_bar: i64,
     active: bool,
     waiting_parent: bool,
     status: i64,
+}
+
+impl OrderState {
+    #[inline]
+    fn reduce_only(&self) -> bool {
+        self.flags & FLAG_REDUCE_ONLY != 0
+    }
 }
 
 #[derive(Clone, Default)]
@@ -187,9 +563,9 @@ pub struct FullSession {
     /// from one prepared PyO3 market object. Account and order state remain
     /// session-local.
     pub market: Arc<FullMarketData>,
-    pub contract_sizes: Vec<f64>,
-    pub leverages: Vec<f64>,
-    pub fee_rates: Vec<f64>,
+    pub contract_sizes: Box<[f64]>,
+    pub leverages: Box<[f64]>,
+    pub fee_rates: Box<[f64]>,
     pub initial_capital: f64,
     pub maintenance_ratio: f64,
     pub slippage: f64,
@@ -206,6 +582,7 @@ pub struct FullSession {
     // explicit so a later CANCEL/AMEND using the replaced target has the same
     // lifecycle result without changing insertion priority.
     id_to_slot: HashMap<i64, usize>,
+    step_buffers: StepBuffers,
     last_bar: Option<usize>,
     pub compaction_count: u64,
     pub terminal_orders_removed: u64,
@@ -238,9 +615,9 @@ impl FullSession {
         }
         Ok(Self {
             market,
-            contract_sizes,
-            leverages,
-            fee_rates,
+            contract_sizes: contract_sizes.into_boxed_slice(),
+            leverages: leverages.into_boxed_slice(),
+            fee_rates: fee_rates.into_boxed_slice(),
             initial_capital,
             maintenance_ratio,
             slippage,
@@ -253,6 +630,7 @@ impl FullSession {
             liquidation_reason: LIQ_NONE,
             orders: Vec::new(),
             id_to_slot: HashMap::new(),
+            step_buffers: StepBuffers::default(),
             last_bar: None,
             compaction_count: 0,
             terminal_orders_removed: 0,
@@ -267,6 +645,7 @@ impl FullSession {
         self.liquidation_reason = LIQ_NONE;
         self.orders.clear();
         self.id_to_slot.clear();
+        self.step_buffers.clear();
         self.last_bar = None;
         self.compaction_count = 0;
         self.terminal_orders_removed = 0;
@@ -278,6 +657,14 @@ impl FullSession {
 
     pub fn orders_capacity(&self) -> usize {
         self.orders.capacity()
+    }
+
+    pub fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
+        self.step_buffers.release_excess_capacity(max_capacity);
+    }
+
+    pub fn step_buffer_capacities(&self) -> (usize, usize, usize) {
+        self.step_buffers.capacity_signature()
     }
 
     #[inline]
@@ -386,7 +773,11 @@ impl FullSession {
         let side = code[2];
         let order_type = code[3];
         let qty = values[0];
-        if side != SIDE_BUY && side != SIDE_SELL || qty <= 0.0 {
+        if InternalSide::try_from(side).is_err()
+            || InternalOrderType::try_from(order_type).is_err()
+            || InternalTimeInForce::try_from(code[4]).is_err()
+            || qty <= 0.0
+        {
             return false;
         }
         match order_type {
@@ -399,18 +790,18 @@ impl FullSession {
     }
 
     fn add_event(
-        events: &mut Vec<Vec<i64>>,
+        sink: &mut DetailSink<'_>,
         kind: i64,
         status: i64,
         order: i64,
         target: i64,
         symbol: i64,
     ) {
-        events.push(vec![kind, status, order, target, symbol]);
+        sink.event(kind, status, order, target, symbol, 0);
     }
 
     fn add_event_with_reject(
-        events: &mut Vec<Vec<i64>>,
+        sink: &mut DetailSink<'_>,
         kind: i64,
         status: i64,
         order: i64,
@@ -418,7 +809,7 @@ impl FullSession {
         symbol: i64,
         reject_code: i64,
     ) {
-        events.push(vec![kind, status, order, target, symbol, reject_code]);
+        sink.event(kind, status, order, target, symbol, reject_code);
     }
 
     fn fill_price(&self, order: &OrderState, bar: usize) -> Option<f64> {
@@ -429,30 +820,34 @@ impl FullSession {
             .market
             .at(&self.market.lows, bar, order.symbol as usize);
         let close = self.close(bar, order.symbol as usize);
-        match order.order_type {
+        match order.order_type as i64 {
             ORDER_MARKET => Some(
                 close
-                    * if order.side == SIDE_BUY {
+                    * if order.side as i64 == SIDE_BUY {
                         1.0 + self.slippage
                     } else {
                         1.0 - self.slippage
                     },
             ),
-            ORDER_LIMIT if order.side == SIDE_BUY && low <= order.price => Some(order.price),
-            ORDER_LIMIT if order.side == SIDE_SELL && high >= order.price => Some(order.price),
-            ORDER_STOP_MARKET if order.side == SIDE_BUY && high >= order.trigger => {
+            ORDER_LIMIT if order.side as i64 == SIDE_BUY && low <= order.price => Some(order.price),
+            ORDER_LIMIT if order.side as i64 == SIDE_SELL && high >= order.price => {
+                Some(order.price)
+            }
+            ORDER_STOP_MARKET if order.side as i64 == SIDE_BUY && high >= order.trigger => {
                 Some(order.trigger * (1.0 + self.slippage))
             }
-            ORDER_STOP_MARKET if order.side == SIDE_SELL && low <= order.trigger => {
+            ORDER_STOP_MARKET if order.side as i64 == SIDE_SELL && low <= order.trigger => {
                 Some(order.trigger * (1.0 - self.slippage))
             }
             ORDER_STOP_LIMIT
-                if order.side == SIDE_BUY && high >= order.trigger && low <= order.price =>
+                if order.side as i64 == SIDE_BUY && high >= order.trigger && low <= order.price =>
             {
                 Some(order.price)
             }
             ORDER_STOP_LIMIT
-                if order.side == SIDE_SELL && low <= order.trigger && high >= order.price =>
+                if order.side as i64 == SIDE_SELL
+                    && low <= order.trigger
+                    && high >= order.price =>
             {
                 Some(order.price)
             }
@@ -460,22 +855,22 @@ impl FullSession {
         }
     }
 
-    fn activate_children(&mut self, parent_id: i64, events: &mut Vec<Vec<i64>>) {
+    fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) {
         for child in &mut self.orders {
             if child.waiting_parent
                 && child.parent_id == parent_id
-                && (child.activation == ACTIVATION_ON_PARENT_FIRST_FILL
-                    || child.activation == ACTIVATION_ON_PARENT_FULL_FILL)
+                && (child.activation as i64 == ACTIVATION_ON_PARENT_FIRST_FILL
+                    || child.activation as i64 == ACTIVATION_ON_PARENT_FULL_FILL)
             {
                 child.waiting_parent = false;
                 child.active = true;
                 Self::add_event(
-                    events,
+                    sink,
                     EVENT_ACTIVATE,
                     STATUS_PENDING,
                     child.order_id,
                     parent_id,
-                    child.symbol,
+                    child.symbol as i64,
                 );
             }
         }
@@ -485,7 +880,7 @@ impl FullSession {
         &mut self,
         oco_id: i64,
         filled_order_id: i64,
-        events: &mut Vec<Vec<i64>>,
+        sink: &mut DetailSink<'_>,
     ) -> i64 {
         if oco_id < 0 {
             return 0;
@@ -502,12 +897,12 @@ impl FullSession {
                 sibling.status = STATUS_CANCELED;
                 canceled += 1;
                 Self::add_event(
-                    events,
+                    sink,
                     EVENT_CANCEL,
                     STATUS_CANCELED,
                     sibling.order_id,
                     filled_order_id,
-                    sibling.symbol,
+                    sibling.symbol as i64,
                 );
             }
         }
@@ -567,6 +962,48 @@ impl FullSession {
         command_count: usize,
         output_mask: u8,
     ) -> Result<FullStepResult, String> {
+        let mut buffers = std::mem::take(&mut self.step_buffers);
+        let result = self.step_with_buffers(
+            bar,
+            codes,
+            values,
+            expiry,
+            command_count,
+            output_mask,
+            true,
+            &mut buffers,
+        );
+        self.step_buffers = buffers;
+        result
+    }
+
+    /// Core lifecycle implementation. `materialize_rows` is true only for
+    /// the compatibility/reactive dict surface. Static tape execution keeps
+    /// the reusable SoA buffers and consumes them directly, so it never builds
+    /// nested per-row vectors in the hot loop.
+    #[allow(clippy::too_many_arguments)]
+    pub fn step_with_buffers(
+        &mut self,
+        bar: usize,
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+        output_mask: u8,
+        materialize_rows: bool,
+        buffers: &mut StepBuffers,
+    ) -> Result<FullStepResult, String> {
+        buffers.clear();
+        let mut counters = StepCounters::default();
+        let collect_details = output_mask & (OUTPUT_FILLS | OUTPUT_EVENTS) != 0;
+        let mut sink = if collect_details {
+            DetailSink::Collect {
+                counters: &mut counters,
+                buffers,
+            }
+        } else {
+            DetailSink::CountOnly(&mut counters)
+        };
         if bar >= self.market.n_bars {
             return Err("bar_index is outside the full prepared market tape".to_owned());
         }
@@ -653,8 +1090,6 @@ impl FullSession {
             });
         }
 
-        let mut events = Vec::new();
-        let mut fills = Vec::new();
         let mut rejected = 0_i64;
         let mut canceled = 0_i64;
 
@@ -670,12 +1105,12 @@ impl FullSession {
                 order.status = STATUS_CANCELED;
                 canceled += 1;
                 Self::add_event(
-                    &mut events,
+                    &mut sink,
                     EVENT_EXPIRE,
                     STATUS_CANCELED,
                     order.order_id,
                     -1,
-                    order.symbol,
+                    order.symbol as i64,
                 );
             }
         }
@@ -694,7 +1129,7 @@ impl FullSession {
                     {
                         rejected += 1;
                         Self::add_event_with_reject(
-                            &mut events,
+                            &mut sink,
                             EVENT_REJECT,
                             STATUS_REJECTED,
                             order_id,
@@ -708,18 +1143,18 @@ impl FullSession {
                     self.orders.push(OrderState {
                         command_index: code[12].max(0) as usize,
                         order_id,
-                        symbol: code[1],
-                        side: code[2],
-                        order_type: code[3],
-                        tif: code[4],
-                        reduce_only: code[5] != 0,
+                        symbol: code[1] as u32,
+                        side: code[2] as i8,
+                        order_type: code[3] as u8,
+                        tif: code[4] as u8,
+                        flags: if code[5] != 0 { FLAG_REDUCE_ONLY } else { 0 },
                         qty: value[0],
                         price: value[1],
                         trigger: value[2],
                         parent_id: code[8],
                         group_id: code[9],
                         oco_id: code[10],
-                        activation: code[11],
+                        activation: code[11] as u8,
                         expires_bar: expiry[command_index],
                         active,
                         waiting_parent: !active,
@@ -729,7 +1164,7 @@ impl FullSession {
                         self.id_to_slot.insert(order_id, self.orders.len() - 1);
                     }
                     Self::add_event(
-                        &mut events,
+                        &mut sink,
                         EVENT_PLACE,
                         STATUS_PENDING,
                         order_id,
@@ -739,14 +1174,14 @@ impl FullSession {
                 }
                 ACTION_CANCEL => {
                     if let Some(slot) = self.find_pending(target_id) {
-                        let symbol = self.orders[slot].symbol;
+                        let symbol = self.orders[slot].symbol as i64;
                         let resolved_target_id = self.orders[slot].order_id;
                         self.orders[slot].active = false;
                         self.orders[slot].waiting_parent = false;
                         self.orders[slot].status = STATUS_CANCELED;
                         canceled += 1;
                         Self::add_event(
-                            &mut events,
+                            &mut sink,
                             EVENT_CANCEL,
                             STATUS_FILLED,
                             -1,
@@ -756,7 +1191,7 @@ impl FullSession {
                     } else {
                         rejected += 1;
                         Self::add_event_with_reject(
-                            &mut events,
+                            &mut sink,
                             EVENT_REJECT,
                             STATUS_REJECTED,
                             -1,
@@ -779,17 +1214,17 @@ impl FullSession {
                             self.orders[slot].trigger = value[2];
                         }
                         Self::add_event(
-                            &mut events,
+                            &mut sink,
                             EVENT_AMEND,
                             STATUS_FILLED,
                             -1,
                             resolved_target_id,
-                            self.orders[slot].symbol,
+                            self.orders[slot].symbol as i64,
                         );
                     } else {
                         rejected += 1;
                         Self::add_event_with_reject(
-                            &mut events,
+                            &mut sink,
                             EVENT_REJECT,
                             STATUS_REJECTED,
                             -1,
@@ -810,7 +1245,7 @@ impl FullSession {
                         {
                             rejected += 1;
                             Self::add_event_with_reject(
-                                &mut events,
+                                &mut sink,
                                 EVENT_REJECT,
                                 STATUS_REJECTED,
                                 order_id,
@@ -823,18 +1258,18 @@ impl FullSession {
                             self.orders.push(OrderState {
                                 command_index: code[12].max(0) as usize,
                                 order_id,
-                                symbol: code[1],
-                                side: code[2],
-                                order_type: code[3],
-                                tif: code[4],
-                                reduce_only: code[5] != 0,
+                                symbol: code[1] as u32,
+                                side: code[2] as i8,
+                                order_type: code[3] as u8,
+                                tif: code[4] as u8,
+                                flags: if code[5] != 0 { FLAG_REDUCE_ONLY } else { 0 },
                                 qty: value[0],
                                 price: value[1],
                                 trigger: value[2],
                                 parent_id: code[8],
                                 group_id: code[9],
                                 oco_id: code[10],
-                                activation: code[11],
+                                activation: code[11] as u8,
                                 expires_bar: expiry[command_index],
                                 active,
                                 waiting_parent: !active,
@@ -848,7 +1283,7 @@ impl FullSession {
                                 self.id_to_slot.insert(order_id, new_slot);
                             }
                             Self::add_event(
-                                &mut events,
+                                &mut sink,
                                 EVENT_REPLACE,
                                 STATUS_PENDING,
                                 order_id,
@@ -859,7 +1294,7 @@ impl FullSession {
                     } else {
                         rejected += 1;
                         Self::add_event_with_reject(
-                            &mut events,
+                            &mut sink,
                             EVENT_REJECT,
                             STATUS_REJECTED,
                             order_id,
@@ -873,9 +1308,9 @@ impl FullSession {
                     for order in &mut self.orders {
                         let matches = (order.active || order.waiting_parent)
                             && order.status == STATUS_PENDING
-                            && (code[1] < 0 || code[1] == order.symbol)
-                            && (code[2] == 0 || code[2] == order.side)
-                            && (code[3] < 0 || code[3] == order.order_type)
+                            && (code[1] < 0 || code[1] == order.symbol as i64)
+                            && (code[2] == 0 || code[2] == order.side as i64)
+                            && (code[3] < 0 || code[3] == order.order_type as i64)
                             && (code[8] < 0 || code[8] == order.parent_id)
                             && (code[9] < 0 || code[9] == order.group_id)
                             && (code[10] < 0 || code[10] == order.oco_id);
@@ -887,7 +1322,7 @@ impl FullSession {
                         }
                     }
                     Self::add_event(
-                        &mut events,
+                        &mut sink,
                         EVENT_CANCEL,
                         STATUS_FILLED,
                         order_id,
@@ -898,7 +1333,7 @@ impl FullSession {
                 _ => {
                     rejected += 1;
                     Self::add_event_with_reject(
-                        &mut events,
+                        &mut sink,
                         EVENT_REJECT,
                         STATUS_REJECTED,
                         order_id,
@@ -922,17 +1357,17 @@ impl FullSession {
             }
             let order = self.orders[cursor];
             let Some(exec_price) = self.fill_price(&order, bar) else {
-                if order.tif != TIF_GTC && order.tif != TIF_GTD {
+                if order.tif as i64 != TIF_GTC && order.tif as i64 != TIF_GTD {
                     self.orders[cursor].active = false;
                     self.orders[cursor].status = STATUS_CANCELED;
                     canceled += 1;
                     Self::add_event(
-                        &mut events,
+                        &mut sink,
                         EVENT_CANCEL,
                         STATUS_CANCELED,
                         order.order_id,
                         -1,
-                        order.symbol,
+                        order.symbol as i64,
                     );
                 }
                 cursor += 1;
@@ -940,21 +1375,21 @@ impl FullSession {
             };
             let mut qty = order.qty;
             let current = self.positions[order.symbol as usize];
-            if order.reduce_only {
+            if order.reduce_only() {
                 if current == 0.0
-                    || (current > 0.0 && order.side == SIDE_BUY)
-                    || (current < 0.0 && order.side == SIDE_SELL)
+                    || (current > 0.0 && order.side as i64 == SIDE_BUY)
+                    || (current < 0.0 && order.side as i64 == SIDE_SELL)
                 {
                     self.orders[cursor].active = false;
                     self.orders[cursor].status = STATUS_CANCELED;
                     canceled += 1;
                     Self::add_event_with_reject(
-                        &mut events,
+                        &mut sink,
                         EVENT_CANCEL,
                         STATUS_CANCELED,
                         order.order_id,
                         -1,
-                        order.symbol,
+                        order.symbol as i64,
                         REJECT_REDUCE_ONLY_NO_POSITION,
                     );
                     cursor += 1;
@@ -977,12 +1412,12 @@ impl FullSession {
                 self.orders[cursor].status = STATUS_REJECTED;
                 rejected += 1;
                 Self::add_event_with_reject(
-                    &mut events,
+                    &mut sink,
                     EVENT_REJECT,
                     STATUS_REJECTED,
                     order.order_id,
                     -1,
-                    order.symbol,
+                    order.symbol as i64,
                     REJECT_INSUFFICIENT_MARGIN,
                 );
                 cursor += 1;
@@ -994,24 +1429,24 @@ impl FullSession {
             self.orders[cursor].status = STATUS_FILLED;
             fee_total += fee;
             turnover += notional;
-            fills.push(vec![
-                order.order_id as f64,
-                order.symbol as f64,
-                order.side as f64,
+            sink.fill(
+                order.order_id,
+                order.symbol as i64,
+                order.side as i64,
                 qty,
                 exec_price,
                 fee,
-            ]);
+            );
             Self::add_event(
-                &mut events,
+                &mut sink,
                 EVENT_FILL,
                 STATUS_FILLED,
                 order.order_id,
                 -1,
-                order.symbol,
+                order.symbol as i64,
             );
-            self.activate_children(order.order_id, &mut events);
-            canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut events);
+            self.activate_children(order.order_id, &mut sink);
+            canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut sink);
             cursor += 1;
         }
 
@@ -1020,34 +1455,34 @@ impl FullSession {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
         self.compact_terminal_orders();
-        let active_orders = if output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
-            self.orders
+        if output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
+            for order in self
+                .orders
                 .iter()
                 .filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent))
-                .map(|o| {
-                    vec![
-                        o.order_id as f64,
-                        o.symbol as f64,
-                        o.side as f64,
-                        o.order_type as f64,
-                        o.qty,
-                        o.price,
-                        o.trigger,
-                        o.tif as f64,
-                        if o.reduce_only { 1.0 } else { 0.0 },
-                        o.parent_id as f64,
-                        o.group_id as f64,
-                        o.oco_id as f64,
-                        o.activation as f64,
-                        if o.waiting_parent { 1.0 } else { 0.0 },
-                    ]
-                })
-                .collect()
+            {
+                buffers.active_orders.push(order);
+            }
+        }
+        counters.rejected_count = rejected;
+        counters.canceled_count = canceled;
+        let fill_rows = if materialize_rows && output_mask & OUTPUT_FILLS != 0 {
+            buffers.fills.rows()
         } else {
             Vec::new()
         };
-        let fill_count = fills.len() as i64;
-        let event_count = events.len() as i64;
+        let event_rows = if materialize_rows && output_mask & OUTPUT_EVENTS != 0 {
+            buffers.events.rows()
+        } else {
+            Vec::new()
+        };
+        let active_rows = if materialize_rows && output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
+            buffers.active_orders.rows()
+        } else {
+            Vec::new()
+        };
+        let fill_count = counters.fill_count;
+        let event_count = counters.event_count;
         self.last_bar = Some(bar);
         Ok(FullStepResult {
             equity: self.equity,
@@ -1068,17 +1503,9 @@ impl FullSession {
             liquidated: self.liquidated,
             liquidation_bar: self.liquidation_bar,
             liquidation_reason: self.liquidation_reason,
-            fills: if output_mask & OUTPUT_FILLS != 0 {
-                fills
-            } else {
-                Vec::new()
-            },
-            events: if output_mask & OUTPUT_EVENTS != 0 {
-                events
-            } else {
-                Vec::new()
-            },
-            active_orders,
+            fills: fill_rows,
+            events: event_rows,
+            active_orders: active_rows,
             rejected_count: rejected,
             canceled_count: canceled,
             fill_count,

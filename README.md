@@ -379,6 +379,39 @@ fees, positions, fills, events, rejection counters, and final equity passed.
 `backend="auto"` remains Python and `[native]` remains empty until the public
 `quantbt-native` wheel matrix is clean-install certified.
 
+### Phase 48E.1 native production-closure evidence
+
+The Phase 48E.1 rerun uses the same isolated 2,000-bar tape, fresh subprocesses,
+seven warm runs, separate score/audit routes, and exact Python/Rust fingerprints.
+The complete report is [`phase48e1/after.md`](benchmarks/native_event/results/phase48e1/after.md).
+This table separates the explicit prepared-tape path from the generic callback
+facade; it is not a universal Rust speed claim.
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.082857 | 24,138 bars/s | 181.2 | pass |
+| Common low churn | Rust score | 0.227636 | 8,786 bars/s | 183.9 | pass |
+| Common low churn | Python audit | 0.093072 | 21,489 bars/s | 239.4 | pass |
+| Common low churn | Rust audit | 0.228717 | 8,744 bars/s | 240.7 | pass |
+| Common high churn | Python score | 0.092475 | 21,627 bars/s | 182.2 | pass |
+| Common high churn | Rust score | 0.221475 | 9,030 bars/s | 184.4 | pass |
+| Common high churn | Python audit | 0.111079 | 18,005 bars/s | 239.7 | pass |
+| Common high churn | Rust audit | 0.236611 | 8,453 bars/s | 240.9 | pass |
+| Explicit low churn | Python score | 0.022146 | 90,310 bars/s | 178.9 | pass |
+| Explicit low churn | Rust score | 0.000328 | 6,106,670 bars/s | 180.2 | pass |
+| Explicit low churn | Python audit | 0.007442 | 268,733 bars/s | 237.4 | pass |
+| Explicit low churn | Rust audit | 0.004286 | 466,624 bars/s | 182.0 | pass |
+| Explicit high churn | Python score | 0.020751 | 96,381 bars/s | 179.8 | pass |
+| Explicit high churn | Rust score | 0.000457 | 4,374,099 bars/s | 181.0 | pass |
+| Explicit high churn | Python audit | 0.013069 | 153,033 bars/s | 237.5 | pass |
+| Explicit high churn | Rust audit | 0.005028 | 397,810 bars/s | 180.7 | pass |
+
+Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
+reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
+validated Rust order state, and reset/compaction parity. `auto` remains Python;
+the native extra remains empty until the CPython 3.11/3.12/3.13 manylinux
+clean-install workflow passes.
+
 Ecosystem positioning:
 
 | Tool | Core strength | Runtime model | QuantBT role beside it |

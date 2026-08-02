@@ -10992,7 +10992,7 @@ auto remains Python for 1.0.7
 
 ### Phase 48E.1 - Native Production Closure Before 48F
 
-**Status: in progress.** This is a required closure phase between Phase 48E and
+**Status: implemented locally; CI wheel gate pending.** This is a required closure phase between Phase 48E and
 Phase 48F. The normative implementation guide is
 [`quantbt_final_grid_python_rust_full_contract_guide.md`](quantbt_final_grid_python_rust_full_contract_guide.md),
 section `QuantBT Phase 48E.1 - Native Production Closure Before 48F`, including
@@ -11059,6 +11059,56 @@ Phase 48E.1 is complete only when R3/R4 allocation counters, typed/result and
 report contracts, parity, compaction/reset, bounded RSS and the installed-wheel
 matrix pass. Any unavailable wheel target or report/correctness blocker keeps
 this phase open; Phase 48F remains limited to artifact/TestPyPI/release work.
+
+#### Phase 48E.1 implementation and local evidence
+
+Implemented in the Rust full-contract core and both Python mirrors:
+
+- `StepCounters`/`DetailSink` is the single lifecycle output path. Score uses
+  count-only mode, so fills/events/active rows are not materialized or allocated
+  before the PyO3 boundary.
+- Reusable `FillBuffer`, `EventBuffer`, `ActiveOrderBuffer` SoA storage is
+  cleared without shrinking. Static audit consumes those columns directly;
+  compatibility/reactive projections materialize rows only when requested.
+- API 0.4 `FullStepResultCore` provides typed scalar fields and optional
+  projection fields. The old dictionary `step()` method remains intact.
+- Rust internal order state now validates side/order-type/TIF at the boundary,
+  stores symbol/side/type/TIF/activation in compact representations and packs
+  reduce-only into a flag. Public command IDs and the 16/3 ABI remain `i64/f64`.
+- Market and fixed account arrays use boxed immutable storage behind the shared
+  `Arc<FullMarketData>` ownership. Existing compaction/reset behavior is kept;
+  relationship coverage includes replacement aliases, parent/OCO/GTD paths.
+- Rust audit now exposes independent command-intent, lifecycle order and fill
+  reports. Fill metadata is enriched from the immutable command side table;
+  `command_report` is never an alias of `order_report`.
+- Explicit Rust capability selection includes quantity-preflight capability and
+  continues to fail fast; no silent Python fallback was introduced.
+
+Focused evidence:
+
+```text
+tests/native_event/test_phase48e1_closure.py       4 passed
+tests/native_event suite                            79 passed, 2 skipped
+cargo fmt / clippy -D warnings / cargo test --release PASS
+```
+
+The isolated 2,000-bar rerun is in
+[`benchmarks/native_event/results/phase48e1/after.md`](../benchmarks/native_event/results/phase48e1/after.md)
+and `after.json`. All eight score/audit Python/Rust parity groups pass exact
+fingerprints and `atol <= 1e-12`. Common callback measurements remain a
+separate facade result (Python is faster on this tape); explicit prepared Rust
+score reaches `6.11M bars/s` low churn and `4.37M bars/s` high churn, while
+explicit Rust audit reaches `466K` and `398K bars/s`. Explicit Rust audit RSS
+is about `182 MB`, versus Python audit about `237 MB`; common score RSS is
+about `181-184 MB` and common audit about `239-241 MB`.
+
+The local clean wheel smoke was run on CPython 3.12 with API `0.4` and
+`pip check`. The committed `.github/workflows/native.yml` is the authoritative
+CPython 3.11/3.12/3.13 manylinux/maturin gate and now runs the Phase 48E.1
+closure tests. Since this host does not contain CPython 3.11/3.13, those two
+installed-wheel jobs remain CI evidence rather than being claimed as local
+passes. The native extra therefore remains empty and `auto` remains Python
+until the public matrix passes.
 
 ### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
 

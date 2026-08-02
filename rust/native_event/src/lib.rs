@@ -818,6 +818,69 @@ struct SparseTapeOutput {
     event_target_id: Vec<i64>,
 }
 
+#[pyclass(frozen, skip_from_py_object)]
+struct FullStepResultCore {
+    #[pyo3(get)]
+    equity: f64,
+    #[pyo3(get)]
+    fee: f64,
+    #[pyo3(get)]
+    turnover: f64,
+    #[pyo3(get)]
+    funding: f64,
+    #[pyo3(get)]
+    initial_margin: f64,
+    #[pyo3(get)]
+    maintenance_margin: f64,
+    #[pyo3(get)]
+    fill_count: i64,
+    #[pyo3(get)]
+    event_count: i64,
+    #[pyo3(get)]
+    rejected_count: i64,
+    #[pyo3(get)]
+    canceled_count: i64,
+    #[pyo3(get)]
+    liquidated: bool,
+    #[pyo3(get)]
+    liquidation_bar: i64,
+    #[pyo3(get)]
+    liquidation_reason: i64,
+    #[pyo3(get)]
+    positions: Option<Vec<f64>>,
+    #[pyo3(get)]
+    fills: Option<Vec<Vec<f64>>>,
+    #[pyo3(get)]
+    events: Option<Vec<Vec<i64>>>,
+    #[pyo3(get)]
+    active_orders: Option<Vec<Vec<f64>>>,
+}
+
+impl FullStepResultCore {
+    fn from_result(result: full::FullStepResult, output_mask: u8) -> Self {
+        Self {
+            equity: result.equity,
+            fee: result.fee,
+            turnover: result.turnover,
+            funding: result.funding,
+            initial_margin: result.initial_margin,
+            maintenance_margin: result.maintenance_margin,
+            fill_count: result.fill_count,
+            event_count: result.event_count,
+            rejected_count: result.rejected_count,
+            canceled_count: result.canceled_count,
+            liquidated: result.liquidated,
+            liquidation_bar: result.liquidation_bar,
+            liquidation_reason: result.liquidation_reason,
+            positions: (output_mask & full::OUTPUT_POSITIONS != 0).then_some(result.positions),
+            fills: (output_mask & full::OUTPUT_FILLS != 0).then_some(result.fills),
+            events: (output_mask & full::OUTPUT_EVENTS != 0).then_some(result.events),
+            active_orders: (output_mask & full::OUTPUT_ACTIVE_ORDERS != 0)
+                .then_some(result.active_orders),
+        }
+    }
+}
+
 #[pyclass]
 struct FullPreparedMarketCore {
     inner: Arc<FullMarketData>,
@@ -1002,6 +1065,52 @@ impl FullReactiveSessionCore {
         full_step_payload(py, result)
     }
 
+    /// Typed per-bar result for API 0.4 reactive callers. Scalar accounting is
+    /// always present; projected vectors are `None` unless requested by the
+    /// session output mask. The legacy dict-returning `step()` remains stable.
+    fn step_typed(
+        &mut self,
+        py: Python<'_>,
+        bar_index: usize,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+    ) -> PyResult<Py<FullStepResultCore>> {
+        let codes_shape = command_codes.shape();
+        let values_shape = command_values.shape();
+        if codes_shape.len() != 2 || codes_shape[1] != full::CODE_WIDTH {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full command_codes must have shape (n, 16)",
+            ));
+        }
+        if values_shape.len() != 2
+            || values_shape[0] != codes_shape[0]
+            || values_shape[1] != full::VALUE_WIDTH
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "full command_values must have shape (n, 3)",
+            ));
+        }
+        if command_expiry.len() != codes_shape[0] {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "command_expiry must have length n",
+            ));
+        }
+        let mask = self.inner.output_mask;
+        let result = self
+            .inner
+            .step_with_mask(
+                bar_index,
+                command_codes.as_slice()?,
+                command_values.as_slice()?,
+                command_expiry.as_slice()?,
+                codes_shape[0],
+                mask,
+            )
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Py::new(py, FullStepResultCore::from_result(result, mask))
+    }
+
     /// Set reactive projection requirements without changing the stable
     /// constructor ABI.  Unknown bits are rejected instead of silently
     /// falling back to a wider allocation profile.
@@ -1026,6 +1135,14 @@ impl FullReactiveSessionCore {
             self.inner.compaction_count,
             self.inner.terminal_orders_removed,
         )
+    }
+
+    fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
+        self.inner.release_step_buffer_capacity(max_capacity);
+    }
+
+    fn step_buffer_capacities(&self) -> (usize, usize, usize) {
+        self.inner.step_buffer_capacities()
     }
 
     fn run_tape_score(
@@ -1303,16 +1420,23 @@ fn run_full_tape(
         liquidation_bar: -1,
         liquidation_reason: full::LIQ_NONE,
     };
+    let mut step_buffers = full::StepBuffers::default();
     for bar in 0..n_bars {
         let start = ptr[bar] as usize;
         let end = ptr[bar + 1] as usize;
-        let step = session.step_with_output(
+        let step = session.step_with_buffers(
             bar,
             &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH],
             &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH],
             &expiry[start..end],
             end - start,
-            audit,
+            if audit {
+                full::OUTPUT_POSITIONS | full::OUTPUT_FILLS | full::OUTPUT_EVENTS
+            } else {
+                0
+            },
+            false,
+            &mut step_buffers,
         )?;
         if audit {
             output.equity.push(step.equity);
@@ -1333,25 +1457,27 @@ fn run_full_tape(
         output.fill_count += step.fill_count;
         output.event_count += step.event_count;
         if audit {
-            for fill in step.fills {
+            for n in 0..step_buffers.fills.order_id.len() {
                 output.fill_bar.push(bar as i64);
-                output.fill_order_id.push(fill[0] as i64);
-                output.fill_symbol.push(fill[1] as i64);
-                output.fill_side.push(fill[2] as i64);
-                output.fill_qty.push(fill[3]);
-                output.fill_price.push(fill[4]);
-                output.fill_fee.push(fill[5]);
+                output.fill_order_id.push(step_buffers.fills.order_id[n]);
+                output.fill_symbol.push(step_buffers.fills.symbol[n]);
+                output.fill_side.push(step_buffers.fills.side[n]);
+                output.fill_qty.push(step_buffers.fills.qty[n]);
+                output.fill_price.push(step_buffers.fills.price[n]);
+                output.fill_fee.push(step_buffers.fills.fee[n]);
             }
-            for event in step.events {
+            for n in 0..step_buffers.events.kind.len() {
                 output.event_bar.push(bar as i64);
-                output.event_kind.push(event[0]);
-                output.event_status.push(event[1]);
-                output.event_order_id.push(event[2]);
-                output.event_target_id.push(event[3]);
-                output.event_symbol.push(event[4]);
+                output.event_kind.push(step_buffers.events.kind[n]);
+                output.event_status.push(step_buffers.events.status[n]);
+                output.event_order_id.push(step_buffers.events.order_id[n]);
+                output
+                    .event_target_id
+                    .push(step_buffers.events.target_id[n]);
+                output.event_symbol.push(step_buffers.events.symbol[n]);
                 output
                     .event_reject_code
-                    .push(event.get(5).copied().unwrap_or(0));
+                    .push(step_buffers.events.reject_code[n]);
             }
         }
         output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
@@ -1372,6 +1498,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PreparedMarketCore>()?;
     module.add_class::<BatchedScoreResultCore>()?;
     module.add_class::<ReactiveSessionCore>()?;
+    module.add_class::<FullStepResultCore>()?;
     module.add_class::<FullPreparedMarketCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
     Ok(())

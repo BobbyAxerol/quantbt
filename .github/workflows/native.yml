@@ -100,6 +100,15 @@ jobs:
           QUANTBT_NATIVE_BACKEND: rust
         run: uv run pytest -q tests/native_event -k rust
 
+      - name: API 0.4 full-contract closure tests
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: |
+          uv run pytest -q \
+            tests/native_event/test_phase48e1_closure.py \
+            tests/native_event/contract/test_phase47b_full_contract.py \
+            tests/native_event/test_reactive_callback_contract.py
+
       - name: Prepared score RSS and parity gate
         run: |
           uv run python benchmarks/run_phase45b_native_event_score_rss.py --rows 1000 --repeats 25 --json-out /tmp/phase45b-score-rss.json

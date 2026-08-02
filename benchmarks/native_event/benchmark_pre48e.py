@@ -287,6 +287,7 @@ def _explicit(case: str, backend: str, level: str, high_churn: bool) -> dict[str
             "pycalls": 1 if backend == "rust" else 0,
             "prepared_market_core": bool(runner is not None and runner.prepared_market_core is not None),
             "tape_cache_bytes": int(getattr(runner, "tape_cache_bytes", 0)) if runner is not None else 0,
+            "runner_cache_info": runner.cache_info() if runner is not None else {},
         },
     }
 
@@ -397,8 +398,9 @@ def _environment() -> dict[str, Any]:
 
 def _render(payload: dict[str, Any]) -> str:
     rows = payload["results"]
+    title = payload.get("benchmark_title", "Pre-48E Native Event Performance Pass")
     lines = [
-        "# Pre-48E Native Event Performance Pass",
+        f"# {title}",
         "",
         f"Contract: **{N_BARS:,} bars**, one symbol, fresh process per route, `{N_RUNS}` warm runs.",
         "All runtime columns use seconds; RSS uses MB.",
@@ -470,8 +472,18 @@ def main() -> int:
             for level in ("score", "audit"):
                 for backend in ("python", "rust"):
                     rows.append(_run_worker(route, backend, level, high_churn))
+    benchmark_name = (
+        "phase48e1_native_event_production_closure"
+        if "phase48e1" in str(args.json_output)
+        else "pre48e_native_event_performance"
+    )
     payload = {
-        "benchmark": "pre48e_native_event_performance",
+        "benchmark": benchmark_name,
+        "benchmark_title": (
+            "Phase 48E.1 Native Production Closure Benchmark"
+            if benchmark_name.startswith("phase48e1")
+            else "Pre-48E Native Event Performance Pass"
+        ),
         "bars": N_BARS,
         "warm_runs": N_RUNS,
         "environment": _environment(),

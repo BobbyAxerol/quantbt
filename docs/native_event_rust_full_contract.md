@@ -112,6 +112,72 @@ margin paths, fills, `fills_report`, `order_report`, and reporting helpers.
 The score facade keeps pandas report construction out of the optimization
 boundary; use an audit rerun for stakeholder-level ledgers and plots.
 
+## Phase 48E.1 production-closure contract
+
+Phase 48E.1 keeps the public command ABI and endpoint stable while closing the
+native allocation/report boundary before the TestPyPI gate.
+
+### Execution profiles
+
+The Rust lifecycle is one implementation. Its output profile changes what is
+retained, never what is executed:
+
+| Profile | Retained output | Intended use |
+|---|---|---|
+| `score` | scalar accounting, terminal state, counters, liquidation | Optuna/search |
+| `research` / `minimal` | dense equity, positions, fees, funding, turnover, margin | metrics and diagnostics |
+| `audit` | dense paths plus fills, lifecycle events, reject codes, command metadata | stakeholder replay/export |
+
+The score sink is count-only for fills/events and does not create nested row
+vectors. Audit uses reusable Rust-owned SoA buffers and converts them at the
+Python report boundary. No borrowed NumPy view is used, so Rust buffers cannot
+be mutated while Python holds a view.
+
+API 0.4 reactive callers can use the typed `FullStepResultCore` path. Scalar
+fields are always present; `positions`, `fills`, `events`, and `active_orders`
+are `None` unless their output-mask bit was requested. The legacy dictionary
+`step()` remains available for compatibility.
+
+### Report semantics
+
+The reports are intentionally different:
+
+- `command_report` is the immutable command-intent table from the compiled
+  tape. It contains requested action, order identity, quantity/price/trigger,
+  TIF, relationship fields, expiry and strategy metadata.
+- `order_report` is the Rust lifecycle event table: event bar/type/status,
+  target identity and reject code.
+- `fills_report` is the execution table with bar, symbol, side, quantity,
+  price, fee and enriched tag/campaign/cycle/level metadata.
+
+`command_report` is never assigned to `order_report`. `result.orders` may stay
+empty for the Rust audit adapter; reports and visualizations must use the
+explicit report tables instead.
+
+### Memory and lifecycle guarantees
+
+Prepared market arrays use immutable fixed-length Rust storage shared through
+`Arc`; account arrays use fixed boxed storage and public order identities remain
+`i64`. Internal side/order-type/TIF values are validated and stored in compact
+integer representations; no public command field changes.
+
+The existing terminal-order compaction runs only after a bar lifecycle is
+complete. It preserves replacement aliases, parent activation, OCO cancellation,
+GTD expiry and insertion priority. Reset clears logical state while retaining
+capacity, and `release_step_buffer_capacity()` is an explicit maintenance
+operation rather than a per-trial shrink.
+
+The authoritative closure evidence is the Phase 48E.1 test and wheel matrix:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=src poetry run pytest -q \
+  tests/native_event/test_phase48e1_closure.py \
+  tests/native_event/contract/test_phase47b_full_contract.py
+```
+
+See [`upgrade/implement.md`](../upgrade/implement.md) for the complete P0-P7
+acceptance matrix, benchmark artifacts and CI wheel gate.
+
 `prepare_rust_batched_runner(...)` retains its historical name for endpoint
 compatibility, but on a full-capability wheel it returns `RustFullRunner`.
 The older `RustBatchedRunner` remains a separate legacy single-symbol runner
@@ -142,4 +208,3 @@ Current focused evidence: **9 passed** after Rust rebuild. Related R0/R1/R2,
 score/RSS, and capability regression suites also pass. Grid 2,000-bar
 long-only/long-short parity, isolated RSS evidence, and `auto` promotion are
 Phase 47C gates and are intentionally not claimed here.
-

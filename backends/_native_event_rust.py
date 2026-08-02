@@ -50,6 +50,20 @@ _FULL_OUTPUT_EVENTS = 4
 _FULL_OUTPUT_ACTIVE_ORDERS = 8
 
 
+def _step_value(payload, key: str, default=None):
+    """Read a legacy dict or the API 0.4 typed Rust step result."""
+
+    if isinstance(payload, Mapping):
+        return payload.get(key, default)
+    return getattr(payload, key, default)
+
+
+def _step_has(payload, key: str) -> bool:
+    if isinstance(payload, Mapping):
+        return key in payload
+    return hasattr(payload, key)
+
+
 class NativeEventRustBackendError(RuntimeError):
     """Raised when an explicitly requested Rust backend cannot be used."""
 
@@ -349,6 +363,8 @@ class RustFullAuditResult:
     liquidation_bar: int
     liquidation_reason: int
     id_values: tuple[str, ...] = ()
+    command_report: Optional[pd.DataFrame] = None
+    command_metadata: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
 
     @property
     def final_equity(self) -> float:
@@ -383,6 +399,9 @@ class RustFullAuditResult:
         def order_id(code: int) -> Optional[str]:
             return self.id_values[int(code)] if 0 <= int(code) < len(self.id_values) else None
 
+        fill_meta = [
+            self.command_metadata.get(order_id(code) or "", {}) for code in self.fill_order_id
+        ]
         fills_report = pd.DataFrame({
             "bar": self.fill_bar,
             "timestamp": [idx[int(bar)] for bar in self.fill_bar],
@@ -392,6 +411,10 @@ class RustFullAuditResult:
             "qty": self.fill_qty,
             "price": self.fill_price,
             "fee": self.fill_fee,
+            "tag": [meta.get("tag") for meta in fill_meta],
+            "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
+            "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
+            "level_id": [meta.get("level_id") for meta in fill_meta],
         })
         order_report = pd.DataFrame({
             "bar": self.event_bar,
@@ -428,7 +451,11 @@ class RustFullAuditResult:
             "native_event_backend_resolved": "rust",
             "fills_report": fills_report,
             "order_report": order_report,
-            "command_report": order_report,
+            "command_report": (
+                self.command_report.copy(deep=False)
+                if self.command_report is not None
+                else pd.DataFrame()
+            ),
             "id_values": self.id_values,
             "liquidation_reason": int(self.liquidation_reason),
             "lifecycle_counters": {
@@ -991,6 +1018,51 @@ def _command_tape_fingerprint(compiled_commands: CompiledOrderCommandArrays) -> 
     return stored or command_tape_fingerprint(compiled_commands)
 
 
+def _build_rust_command_intent_report(
+    compiled_commands: CompiledOrderCommandArrays,
+) -> pd.DataFrame:
+    """Build the command-intent surface independently from lifecycle events.
+
+    Rust owns execution lifecycle rows. The immutable compiler tape owns the
+    requested command semantics, so this report is deliberately an intent
+    table rather than an alias of ``order_report``.
+    """
+
+    rows = []
+    for sorted_index, (original_index, command) in enumerate(compiled_commands.sorted_commands):
+        metadata = dict(command.metadata)
+        rows.append(
+            {
+                "original_index": int(original_index),
+                "sorted_index": int(sorted_index),
+                "timestamp": command.timestamp,
+                "action": command.action.value,
+                "symbol": command.symbol,
+                "side": None if command.side is None else command.side.value,
+                "order_type": None if command.order_type is None else command.order_type.value,
+                "order_id": command.order_id,
+                "target_order_id": command.target_order_id,
+                "parent_order_id": command.parent_order_id,
+                "group_id": command.group_id,
+                "oco_group_id": command.oco_group_id,
+                "qty": None if command.qty is None else float(command.qty),
+                "price": None if command.price is None else float(command.price),
+                "trigger_price": None if command.trigger_price is None else float(command.trigger_price),
+                "tif": command.tif.value,
+                "reduce_only": bool(command.reduce_only),
+                "activation_policy": command.activation_policy.value,
+                "expires_at": command.expires_at,
+                "tag": command.tag,
+                "tag_prefix": command.tag_prefix,
+                "campaign_id": metadata.get("campaign_id"),
+                "cycle_id": metadata.get("cycle_id"),
+                "level_id": metadata.get("level_id"),
+                "report_kind": "command_intent",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _payload_value(payload, key: str):
     """Read both the R2 dict boundary and the R2.1 typed score boundary."""
 
@@ -1040,7 +1112,7 @@ class RustFullRunner:
             "native_event_v2_full_contract", "native_event_v2_multisymbol",
             "native_event_v2_funding", "native_event_v2_liquidation",
             "native_event_v2_cancel_all_oco", "native_event_v2_tif_expiry",
-            "native_event_v2_relationships",
+            "native_event_v2_relationships", "native_event_v2_quantity_preflight",
         }
         missing = sorted(name for name in required if not status.capabilities.get(name, False))
         if missing:
@@ -1141,6 +1213,15 @@ class RustFullRunner:
                     "terminal_orders_removed": int(removed),
                 }
             )
+        if self._session is not None and hasattr(self._session, "step_buffer_capacities"):
+            fills, events, active = self._session.step_buffer_capacities()
+            info.update(
+                {
+                    "step_fill_buffer_capacity": int(fills),
+                    "step_event_buffer_capacity": int(events),
+                    "step_active_order_buffer_capacity": int(active),
+                }
+            )
         return info
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
@@ -1166,6 +1247,12 @@ class RustFullRunner:
             max_maintenance_margin=float(payload["max_maintenance_margin"]), liquidated=bool(payload["liquidated"]),
             liquidation_bar=int(payload["liquidation_bar"]), liquidation_reason=int(payload["liquidation_reason"]),
             id_values=tuple(compiled_commands.id_values),
+            command_report=_build_rust_command_intent_report(compiled_commands),
+            command_metadata={
+                command.order_id: dict(command.metadata)
+                for _, command in compiled_commands.sorted_commands
+                if command.order_id
+            },
         )
 
 
@@ -1799,7 +1886,8 @@ class RustReactiveSessionAdapter:
                 for command in commands:
                     if command.order_id:
                         self._commands_by_id[command.order_id] = command
-                payload = self._core.step(current_bar, full_codes, full_values, full_expiry)
+                step_method = getattr(self._core, "step_typed", self._core.step)
+                payload = step_method(current_bar, full_codes, full_values, full_expiry)
             else:
                 for command in batch.commands:
                     if command.order_id:
@@ -1817,16 +1905,18 @@ class RustReactiveSessionAdapter:
             )
 
     def _consume_step(self, bar: int, payload) -> None:
-        self.equity = float(payload["equity"])
+        self.equity = float(_step_value(payload, "equity", 0.0))
         if self._full_contract:
-            self.current_pos[:] = np.asarray(payload["positions"], dtype=np.float64)
+            positions = _step_value(payload, "positions")
+            if positions is not None:
+                self.current_pos[:] = np.asarray(positions, dtype=np.float64)
         else:
-            self.current_pos[0] = float(payload["position"])
-        fee = float(payload["fee"])
-        turnover = float(payload["turnover"])
-        funding = float(payload.get("funding", 0.0)) if self._full_contract else 0.0
-        initial_margin = float(payload["initial_margin"])
-        maintenance_margin = float(payload["maintenance_margin"])
+            self.current_pos[0] = float(_step_value(payload, "position", 0.0))
+        fee = float(_step_value(payload, "fee", 0.0))
+        turnover = float(_step_value(payload, "turnover", 0.0))
+        funding = float(_step_value(payload, "funding", 0.0)) if self._full_contract else 0.0
+        initial_margin = float(_step_value(payload, "initial_margin", 0.0))
+        maintenance_margin = float(_step_value(payload, "maintenance_margin", 0.0))
         self.last_initial_margin = initial_margin
         self.last_maintenance_margin = maintenance_margin
         self.total_fee += fee
@@ -1846,9 +1936,9 @@ class RustReactiveSessionAdapter:
             self.initial_margin_path[bar] = initial_margin
         if self.maintenance_margin_path is not None:
             self.maintenance_margin_path[bar] = maintenance_margin
-        self.liquidated = bool(payload.get("liquidated", False))
-        self.liquidation_bar = int(payload.get("liquidation_bar", -1))
-        self.liquidation_reason = int(payload.get("liquidation_reason", 0))
+        self.liquidated = bool(_step_value(payload, "liquidated", False))
+        self.liquidation_bar = int(_step_value(payload, "liquidation_bar", -1))
+        self.liquidation_reason = int(_step_value(payload, "liquidation_reason", 0))
         if self.online_score is not None:
             self.online_score.observe(
                 self.idx.asi8[bar],
@@ -1857,14 +1947,14 @@ class RustReactiveSessionAdapter:
                 initial_margin,
                 maintenance_margin,
             )
-        reported_fill_count = "fill_count" in payload
-        reported_event_counts = "event_count" in payload
+        reported_fill_count = _step_has(payload, "fill_count")
+        reported_event_counts = _step_has(payload, "event_count")
         if reported_fill_count:
-            self.fill_count += int(payload.get("fill_count", 0))
+            self.fill_count += int(_step_value(payload, "fill_count", 0))
         if reported_event_counts:
-            self.event_count += int(payload.get("event_count", 0))
-            rejected = int(payload.get("rejected_count", 0))
-            canceled = int(payload.get("canceled_count", 0))
+            self.event_count += int(_step_value(payload, "event_count", 0))
+            rejected = int(_step_value(payload, "rejected_count", 0))
+            canceled = int(_step_value(payload, "canceled_count", 0))
             self.rejected_count += rejected
             self.canceled_count += canceled
             if self.rejected_bar is not None:
@@ -1872,7 +1962,7 @@ class RustReactiveSessionAdapter:
             if self.canceled_bar is not None:
                 self.canceled_bar[bar] += canceled
         fills = []
-        for fill_row in payload["fills"]:
+        for fill_row in (_step_value(payload, "fills") or ()):
             if self._full_contract:
                 order_code, symbol_code, side_sign, qty, price, fee = fill_row
                 symbol = self.symbols[int(symbol_code)]
@@ -1900,7 +1990,7 @@ class RustReactiveSessionAdapter:
         if fills:
             self.fills_by_bar[bar] = fills
         events = []
-        for event_row in payload["events"]:
+        for event_row in (_step_value(payload, "events") or ()):
             if self._full_contract:
                 event_kind, status, order_code, target_code, symbol_code = event_row[:5]
                 reject_code = int(event_row[5]) if len(event_row) > 5 else 0
@@ -1938,7 +2028,7 @@ class RustReactiveSessionAdapter:
             self.events_by_bar[bar] = events
         pending = []
         snapshots = []
-        for active_row in payload["active_orders"]:
+        for active_row in (_step_value(payload, "active_orders") or ()):
             if self._full_contract:
                 order_code, symbol_code, side_sign, order_type, qty, price, trigger_price, tif, flags, parent, group, oco, activation, waiting_parent = active_row
                 active_symbol = self.symbols[int(symbol_code)]
