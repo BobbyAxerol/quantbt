@@ -10234,9 +10234,9 @@ Implementation and evidence:
   `839` fills; long-short terminal equity is `20457.971765918566` with `107`
   fills. Scalar totals match the same-backend audit for equity, positions,
   fees, funding, fills, rejects, cancels, and liquidation.
-- The first five-run benchmark evidence (synthetic 2,000 bars) shows Python
-  scalar medians of about `1.162s` long-only and `1.856s` long-short; Rust
-  scalar medians of about `1.294s` and `2.039s`. Rust remains a correctness
+- The final five-run benchmark evidence on commit `c382ab6` (synthetic 2,000
+  bars) shows Python scalar medians of `1.216s` long-only and `1.845s`
+  long-short; Rust scalar medians of `1.297s` and `1.995s`. Rust remains a correctness
   and explicit experimental backend here; this workload does not claim Rust
   is faster than the Python reactive score facade.
 - Audit process RSS stayed bounded under the repeated-run gate after explicit

@@ -194,6 +194,22 @@ for historical comparison. The evidence files are
 [`phase46d1_score_rss.json`](benchmarks/native_event/phase46d1_score_rss.json),
 and [`phase45f_release_gate.json`](benchmarks/native_event/phase45f_release_gate.json).
 
+Phase 47C Grid integration evidence uses the external read-only Grid alpha on
+the same deterministic 2,000-bar tape in both long-only and long-short modes:
+
+| Mode | Python scalar median | Rust scalar median | Python peak RSS | Rust peak RSS | Fingerprint parity |
+|---|---:|---:|---:|---:|---|
+| Long-only | 1.216 s | 1.297 s | 265.5 MB | 272.5 MB | pass |
+| Long-short | 1.845 s | 1.995 s | 292.7 MB | 294.2 MB | pass |
+
+These are full reactive facade measurements, not pure Rust kernel claims. Rust
+is currently slightly slower on this Grid integration but produces the same
+command/fill/accounting fingerprint and is explicit fail-fast; `auto` remains
+Python. The benchmark runner, five-run RSS slope gate, and scalar/audit
+fingerprint contract are documented in
+[`docs/grid_native_event_phase47c.md`](docs/grid_native_event_phase47c.md),
+with raw JSON under `benchmarks/native_event/results/phase47c/`.
+
 The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
