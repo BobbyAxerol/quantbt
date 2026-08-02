@@ -191,3 +191,4 @@ def test_phase48e1_score_reset_has_bounded_reuse_for_100_runs():
     assert final_info["command_buffer_growth_count"] == first_info["command_buffer_growth_count"]
     assert final_info.get("step_fill_buffer_capacity", 0) == 0
     assert final_info.get("step_event_buffer_capacity", 0) == 0
+    assert 0 < final_info.get("margin_recompute_count", 0) <= len(frame)

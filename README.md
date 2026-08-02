@@ -389,22 +389,22 @@ facade; it is not a universal Rust speed claim.
 
 | Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
 |---|---|---:|---:|---:|---|
-| Common low churn | Python score | 0.082857 | 24,138 bars/s | 181.2 | pass |
-| Common low churn | Rust score | 0.227636 | 8,786 bars/s | 183.9 | pass |
-| Common low churn | Python audit | 0.093072 | 21,489 bars/s | 239.4 | pass |
-| Common low churn | Rust audit | 0.228717 | 8,744 bars/s | 240.7 | pass |
-| Common high churn | Python score | 0.092475 | 21,627 bars/s | 182.2 | pass |
-| Common high churn | Rust score | 0.221475 | 9,030 bars/s | 184.4 | pass |
-| Common high churn | Python audit | 0.111079 | 18,005 bars/s | 239.7 | pass |
-| Common high churn | Rust audit | 0.236611 | 8,453 bars/s | 240.9 | pass |
-| Explicit low churn | Python score | 0.022146 | 90,310 bars/s | 178.9 | pass |
-| Explicit low churn | Rust score | 0.000328 | 6,106,670 bars/s | 180.2 | pass |
-| Explicit low churn | Python audit | 0.007442 | 268,733 bars/s | 237.4 | pass |
-| Explicit low churn | Rust audit | 0.004286 | 466,624 bars/s | 182.0 | pass |
-| Explicit high churn | Python score | 0.020751 | 96,381 bars/s | 179.8 | pass |
-| Explicit high churn | Rust score | 0.000457 | 4,374,099 bars/s | 181.0 | pass |
-| Explicit high churn | Python audit | 0.013069 | 153,033 bars/s | 237.5 | pass |
-| Explicit high churn | Rust audit | 0.005028 | 397,810 bars/s | 180.7 | pass |
+| Common low churn | Python score | 0.085853 | 23,296 bars/s | 182.2 | pass |
+| Common low churn | Rust score | 0.218293 | 9,162 bars/s | 185.7 | pass |
+| Common low churn | Python audit | 0.095110 | 21,028 bars/s | 239.4 | pass |
+| Common low churn | Rust audit | 0.230769 | 8,667 bars/s | 242.1 | pass |
+| Common high churn | Python score | 0.091562 | 21,843 bars/s | 182.1 | pass |
+| Common high churn | Rust score | 0.222166 | 9,002 bars/s | 185.1 | pass |
+| Common high churn | Python audit | 0.104712 | 19,100 bars/s | 239.6 | pass |
+| Common high churn | Rust audit | 0.237654 | 8,416 bars/s | 241.4 | pass |
+| Explicit low churn | Python score | 0.023777 | 84,114 bars/s | 180.4 | pass |
+| Explicit low churn | Rust score | 0.000289 | 6,921,851 bars/s | 181.6 | pass |
+| Explicit low churn | Python audit | 0.007385 | 270,814 bars/s | 237.7 | pass |
+| Explicit low churn | Rust audit | 0.004357 | 459,060 bars/s | 182.0 | pass |
+| Explicit high churn | Python score | 0.021689 | 92,214 bars/s | 180.2 | pass |
+| Explicit high churn | Rust score | 0.000366 | 5,461,021 bars/s | 181.9 | pass |
+| Explicit high churn | Python audit | 0.013703 | 145,952 bars/s | 239.6 | pass |
+| Explicit high churn | Rust audit | 0.006469 | 309,174 bars/s | 183.1 | pass |
 
 Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
 reusable SoA audit buffers, separate command/lifecycle/fill reports, compact

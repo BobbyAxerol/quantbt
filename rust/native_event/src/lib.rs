@@ -1145,6 +1145,10 @@ impl FullReactiveSessionCore {
         self.inner.step_buffer_capacities()
     }
 
+    fn margin_recompute_count(&self) -> u64 {
+        self.inner.margin_recompute_count()
+    }
+
     fn run_tape_score(
         &mut self,
         py: Python<'_>,

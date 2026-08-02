@@ -1222,6 +1222,8 @@ class RustFullRunner:
                     "step_active_order_buffer_capacity": int(active),
                 }
             )
+        if self._session is not None and hasattr(self._session, "margin_recompute_count"):
+            info["margin_recompute_count"] = int(self._session.margin_recompute_count())
         return info
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:

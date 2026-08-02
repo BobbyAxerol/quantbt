@@ -167,6 +167,14 @@ GTD expiry and insertion priority. Reset clears logical state while retaining
 capacity, and `release_step_buffer_capacity()` is an explicit maintenance
 operation rather than a per-trial shrink.
 
+Close-price margin accounting uses a per-bar cache. The first lookup computes
+the complete symbol aggregate; a fill then updates the affected symbol's
+initial and maintenance contribution using the old and new absolute quantity.
+Liquidation invalidates the cache. This is an accounting optimization only:
+the original margin formulas, post-cost margin gate and liquidation ordering
+remain unchanged, and the Rust/Python parity suite covers additions, reductions,
+reversals and multi-fill bars.
+
 The authoritative closure evidence is the Phase 48E.1 test and wheel matrix:
 
 ```bash
@@ -204,7 +212,7 @@ TIF and expiry;
 replace alias resolution.
 ```
 
-Current focused evidence: **9 passed** after Rust rebuild. Related R0/R1/R2,
+Current focused evidence: **13 passed** after Rust rebuild. Related R0/R1/R2,
 score/RSS, and capability regression suites also pass. Grid 2,000-bar
 long-only/long-short parity, isolated RSS evidence, and `auto` promotion are
 Phase 47C gates and are intentionally not claimed here.

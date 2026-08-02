@@ -558,6 +558,14 @@ pub struct FullStepResult {
     pub event_count: i64,
 }
 
+#[derive(Clone, Copy, Default)]
+struct MarginCache {
+    bar: usize,
+    initial_margin: f64,
+    maintenance_margin: f64,
+    valid: bool,
+}
+
 pub struct FullSession {
     /// Immutable market ownership is shared by every reset/session created
     /// from one prepared PyO3 market object. Account and order state remain
@@ -583,6 +591,8 @@ pub struct FullSession {
     // lifecycle result without changing insertion priority.
     id_to_slot: HashMap<i64, usize>,
     step_buffers: StepBuffers,
+    margin_cache: MarginCache,
+    margin_recompute_count: u64,
     last_bar: Option<usize>,
     pub compaction_count: u64,
     pub terminal_orders_removed: u64,
@@ -631,6 +641,8 @@ impl FullSession {
             orders: Vec::new(),
             id_to_slot: HashMap::new(),
             step_buffers: StepBuffers::default(),
+            margin_cache: MarginCache::default(),
+            margin_recompute_count: 0,
             last_bar: None,
             compaction_count: 0,
             terminal_orders_removed: 0,
@@ -646,6 +658,8 @@ impl FullSession {
         self.orders.clear();
         self.id_to_slot.clear();
         self.step_buffers.clear();
+        self.margin_cache = MarginCache::default();
+        self.margin_recompute_count = 0;
         self.last_bar = None;
         self.compaction_count = 0;
         self.terminal_orders_removed = 0;
@@ -667,12 +681,16 @@ impl FullSession {
         self.step_buffers.capacity_signature()
     }
 
+    pub fn margin_recompute_count(&self) -> u64 {
+        self.margin_recompute_count
+    }
+
     #[inline]
     fn close(&self, bar: usize, symbol: usize) -> f64 {
         self.market.at(&self.market.closes, bar, symbol)
     }
 
-    fn close_margin(&self, bar: usize) -> (f64, f64) {
+    fn compute_close_margin(&self, bar: usize) -> (f64, f64) {
         let mut initial = 0.0;
         let mut maintenance = 0.0;
         for symbol in 0..self.market.n_symbols {
@@ -683,6 +701,55 @@ impl FullSession {
             maintenance += notional * self.maintenance_ratio;
         }
         (initial, maintenance)
+    }
+
+    /// Return margin at the bar-close valuation without scanning symbols more
+    /// than once per bar. A fill updates the cached symbol contribution in
+    /// O(1); liquidation invalidates the cache because all positions reset.
+    fn close_margin(&mut self, bar: usize) -> (f64, f64) {
+        if self.margin_cache.valid && self.margin_cache.bar == bar {
+            return (
+                self.margin_cache.initial_margin,
+                self.margin_cache.maintenance_margin,
+            );
+        }
+        let (initial_margin, maintenance_margin) = self.compute_close_margin(bar);
+        self.margin_cache = MarginCache {
+            bar,
+            initial_margin,
+            maintenance_margin,
+            valid: true,
+        };
+        self.margin_recompute_count += 1;
+        (initial_margin, maintenance_margin)
+    }
+
+    fn update_margin_cache_after_fill(
+        &mut self,
+        bar: usize,
+        symbol: usize,
+        old_position: f64,
+        new_position: f64,
+    ) {
+        if !(self.margin_cache.valid && self.margin_cache.bar == bar) {
+            let (initial_margin, maintenance_margin) = self.compute_close_margin(bar);
+            self.margin_cache = MarginCache {
+                bar,
+                initial_margin,
+                maintenance_margin,
+                valid: true,
+            };
+            self.margin_recompute_count += 1;
+            return;
+        }
+        let close = self.close(bar, symbol);
+        let contract_size = self.contract_sizes[symbol];
+        let leverage = self.leverages[symbol];
+        let old_notional = old_position.abs() * close * contract_size;
+        let new_notional = new_position.abs() * close * contract_size;
+        self.margin_cache.initial_margin += (new_notional - old_notional) / leverage;
+        self.margin_cache.maintenance_margin +=
+            (new_notional - old_notional) * self.maintenance_ratio;
     }
 
     fn intrabar_liquidated(&self, bar: usize) -> bool {
@@ -712,6 +779,7 @@ impl FullSession {
         self.liquidation_reason = reason;
         self.equity = 0.0;
         self.positions.fill(0.0);
+        self.margin_cache.valid = false;
     }
 
     fn find_pending(&self, order_id: i64) -> Option<usize> {
@@ -1424,7 +1492,9 @@ impl FullSession {
                 continue;
             }
             self.equity += delta * (close - exec_price) * cs - fee;
-            self.positions[symbol] += delta;
+            let new_position = current + delta;
+            self.positions[symbol] = new_position;
+            self.update_margin_cache_after_fill(bar, symbol, current, new_position);
             self.orders[cursor].active = false;
             self.orders[cursor].status = STATUS_FILLED;
             fee_total += fee;

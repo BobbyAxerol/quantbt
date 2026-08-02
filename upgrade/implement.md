@@ -11078,6 +11078,12 @@ Implemented in the Rust full-contract core and both Python mirrors:
 - Market and fixed account arrays use boxed immutable storage behind the shared
   `Arc<FullMarketData>` ownership. Existing compaction/reset behavior is kept;
   relationship coverage includes replacement aliases, parent/OCO/GTD paths.
+- Per-bar margin valuation is cached safely. The first close-margin lookup scans
+  the symbol set once; accepted fills update only the changed symbol's initial
+  and maintenance contribution in O(1), while liquidation invalidates the
+  cache. `margin_recompute_count` is observable through `cache_info()` and is
+  covered by parity/plateau tests; formulas and post-cost margin gates are
+  unchanged.
 - Rust audit now exposes independent command-intent, lifecycle order and fill
   reports. Fill metadata is enriched from the immutable command side table;
   `command_report` is never an alias of `order_report`.
@@ -11090,6 +11096,8 @@ Focused evidence:
 tests/native_event/test_phase48e1_closure.py       4 passed
 tests/native_event suite                            79 passed, 2 skipped
 cargo fmt / clippy -D warnings / cargo test --release PASS
+margin recomputes are bounded to at most one per bar on the 100-run
+score/reset fixture
 ```
 
 The isolated 2,000-bar rerun is in
@@ -11097,10 +11105,12 @@ The isolated 2,000-bar rerun is in
 and `after.json`. All eight score/audit Python/Rust parity groups pass exact
 fingerprints and `atol <= 1e-12`. Common callback measurements remain a
 separate facade result (Python is faster on this tape); explicit prepared Rust
-score reaches `6.11M bars/s` low churn and `4.37M bars/s` high churn, while
-explicit Rust audit reaches `466K` and `398K bars/s`. Explicit Rust audit RSS
-is about `182 MB`, versus Python audit about `237 MB`; common score RSS is
-about `181-184 MB` and common audit about `239-241 MB`.
+score reaches `6.92M bars/s` low churn and `5.46M bars/s` high churn, while
+explicit Rust audit reaches `459K` and `309K bars/s`. Explicit Rust audit RSS
+is about `182-183 MB`, versus Python audit about `238-240 MB`; common score RSS
+is about `182-186 MB` and common audit about `239-242 MB`. The benchmark also
+records one margin recompute per bar for the explicit score/audit sessions,
+with fill updates handled by the O(1) cache delta path.
 
 The local clean wheel smoke was run on CPython 3.12 with API `0.4` and
 `pip check`. The committed `.github/workflows/native.yml` is the authoritative
