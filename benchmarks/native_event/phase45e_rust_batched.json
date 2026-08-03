@@ -1,0 +1,15 @@
+{
+  "phase": "45E",
+  "bars": 100000,
+  "commands": 40,
+  "repetitions": 5,
+  "rust_batched_score_seconds_median": 0.00531427888199687,
+  "python_v2_seconds_median": 0.02485075406730175,
+  "speedup_python_over_rust": 4.676223175168395,
+  "rust_final_equity": 19999.884029203757,
+  "python_final_equity": 19999.884029203757,
+  "rust_fill_count": 40,
+  "python_fill_count": 40,
+  "maxrss_mb": 361.08984375,
+  "note": "Rust remains explicit experimental until isolated multi-scenario speed/RSS gates pass."
+}

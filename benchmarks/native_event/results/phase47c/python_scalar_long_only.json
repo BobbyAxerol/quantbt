@@ -1,0 +1,57 @@
+{
+  "audit_reference_fingerprint": "78e1f92e5d1ce3096bb0778ed9d33ae64003817c77c824e65ce4a0c89fc4da77",
+  "backend_requested": "python",
+  "backend_resolved": "python",
+  "bars": 2000,
+  "cpu_median_seconds": 1.1338916129999994,
+  "cpu_seconds": [
+    1.1514802150000003,
+    1.1123359950000005,
+    1.2123222799999986,
+    1.1338916129999994,
+    1.1186609940000007
+  ],
+  "fill_count": 839,
+  "final_equity": 28972.788456089613,
+  "fingerprint": "78e1f92e5d1ce3096bb0778ed9d33ae64003817c77c824e65ce4a0c89fc4da77",
+  "git_revision": "54525d3",
+  "grid_mode": "long_only",
+  "grid_module_version": "2026-07-29-phase34-prepared-native-event-v3",
+  "measured_runs": 5,
+  "mode": "scalar",
+  "peak_rss_kb": 272020,
+  "phase": "47C",
+  "policy": {
+    "auto_promoted": false,
+    "python_default": true,
+    "replay_is_oracle": true,
+    "rust_explicit_fail_fast": false
+  },
+  "post_run_rss_kb": [
+    270512,
+    270512,
+    270512,
+    270512,
+    270512
+  ],
+  "post_run_rss_median_kb": 270512.0,
+  "post_run_rss_slope_kb_per_run": -5.6797036363100246e-12,
+  "post_run_rss_tail_slope_kb_per_run": -4.9223063440280823e-11,
+  "rss_gate": {
+    "accepted_baseline_note": "approximately 180 MB; no 10-15% regression and no linear leak",
+    "linear_leak_observed": false,
+    "pass": true
+  },
+  "runtime_median_seconds": 1.1377169508486986,
+  "runtime_p95_seconds": 1.2065768348053099,
+  "runtime_seconds": [
+    1.1594691900536418,
+    1.119192838203162,
+    1.2183537459932268,
+    1.1377169508486986,
+    1.1232997477054596
+  ],
+  "total_fee": 424.18830718151406,
+  "total_funding": 33.05610695634667,
+  "warmup_runs": 1
+}

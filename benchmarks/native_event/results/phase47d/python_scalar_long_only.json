@@ -1,0 +1,57 @@
+{
+  "audit_reference_fingerprint": "78e1f92e5d1ce3096bb0778ed9d33ae64003817c77c824e65ce4a0c89fc4da77",
+  "backend_requested": "python",
+  "backend_resolved": "python",
+  "bars": 2000,
+  "cpu_median_seconds": 0.7924911629999993,
+  "cpu_seconds": [
+    0.7975947300000001,
+    0.7980110280000003,
+    0.7877454310000003,
+    0.7866582390000003,
+    0.7924911629999993
+  ],
+  "fill_count": 839,
+  "final_equity": 28972.788456089613,
+  "fingerprint": "78e1f92e5d1ce3096bb0778ed9d33ae64003817c77c824e65ce4a0c89fc4da77",
+  "git_revision": "7043c3f",
+  "grid_mode": "long_only",
+  "grid_module_version": "2026-08-02-phase47d-optimizer-safe-hot-path-v1",
+  "measured_runs": 5,
+  "mode": "scalar",
+  "peak_rss_kb": 271800,
+  "phase": "47D",
+  "policy": {
+    "auto_promoted": false,
+    "python_default": true,
+    "replay_is_oracle": true,
+    "rust_explicit_fail_fast": false
+  },
+  "post_run_rss_kb": [
+    270492,
+    270492,
+    270492,
+    270492,
+    270492
+  ],
+  "post_run_rss_median_kb": 270492.0,
+  "post_run_rss_slope_kb_per_run": -1.5577006449697628e-11,
+  "post_run_rss_tail_slope_kb_per_run": -4.9262433268162864e-11,
+  "rss_gate": {
+    "accepted_baseline_note": "approximately 180 MB; no 10-15% regression and no linear leak",
+    "linear_leak_observed": false,
+    "pass": true
+  },
+  "runtime_median_seconds": 0.8495033131912351,
+  "runtime_p95_seconds": 0.8930041712708772,
+  "runtime_seconds": [
+    0.8495033131912351,
+    0.8959734258241951,
+    0.83362772827968,
+    0.881127153057605,
+    0.847237064037472
+  ],
+  "total_fee": 424.18830718151406,
+  "total_funding": 33.05610695634667,
+  "warmup_runs": 1
+}

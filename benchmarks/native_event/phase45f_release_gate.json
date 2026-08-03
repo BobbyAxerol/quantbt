@@ -1,0 +1,138 @@
+{
+  "phase": "45F",
+  "bars": 100000,
+  "repetitions": 5,
+  "process_isolated": true,
+  "results": {
+    "low_churn": {
+      "python": {
+        "backend": "python",
+        "bars": 100000,
+        "commands": 40,
+        "fill_count": 40,
+        "final_equity": 19999.884029203757,
+        "median_seconds": 0.02794578392058611,
+        "peak_rss_mb": 357.9609375,
+        "post_run_rss_mb": 345.07421875,
+        "repetitions": 5,
+        "rss_samples_mb": [
+          348.55859375,
+          357.06640625,
+          352.80859375,
+          357.9609375,
+          345.07421875
+        ],
+        "scenario": "low_churn",
+        "seconds": [
+          0.035926816053688526,
+          0.02794578392058611,
+          0.02132273092865944,
+          0.02887671161442995,
+          0.022661636117845774
+        ]
+      },
+      "rust": {
+        "backend": "rust",
+        "bars": 100000,
+        "commands": 40,
+        "fill_count": 40,
+        "final_equity": 19999.884029203757,
+        "median_seconds": 0.005487040150910616,
+        "peak_rss_mb": 292.56640625,
+        "post_run_rss_mb": 292.56640625,
+        "repetitions": 5,
+        "rss_samples_mb": [
+          292.56640625,
+          292.56640625,
+          292.56640625,
+          292.56640625,
+          292.56640625
+        ],
+        "scenario": "low_churn",
+        "seconds": [
+          0.0054585570469498634,
+          0.005476885009557009,
+          0.005487040150910616,
+          0.005539251957088709,
+          0.005545840132981539
+        ]
+      }
+    },
+    "high_churn": {
+      "python": {
+        "backend": "python",
+        "bars": 100000,
+        "commands": 3032,
+        "fill_count": 3032,
+        "final_equity": 19878.76256887449,
+        "median_seconds": 0.4909677291288972,
+        "peak_rss_mb": 362.78515625,
+        "post_run_rss_mb": 362.78515625,
+        "repetitions": 5,
+        "rss_samples_mb": [
+          352.7421875,
+          362.0234375,
+          362.78515625,
+          362.78515625,
+          362.78515625
+        ],
+        "scenario": "high_churn",
+        "seconds": [
+          0.46796485502272844,
+          0.45656465413048863,
+          0.5193740469403565,
+          0.5123407319188118,
+          0.4909677291288972
+        ]
+      },
+      "rust": {
+        "backend": "rust",
+        "bars": 100000,
+        "commands": 3032,
+        "fill_count": 3032,
+        "final_equity": 19878.76256887449,
+        "median_seconds": 0.006210046820342541,
+        "peak_rss_mb": 293.078125,
+        "post_run_rss_mb": 293.078125,
+        "repetitions": 5,
+        "rss_samples_mb": [
+          293.078125,
+          293.078125,
+          293.078125,
+          293.078125,
+          293.078125
+        ],
+        "scenario": "high_churn",
+        "seconds": [
+          0.0062201907858252525,
+          0.006210046820342541,
+          0.006190197076648474,
+          0.006191210355609655,
+          0.006616781931370497
+        ]
+      }
+    }
+  },
+  "comparisons": {
+    "low_churn": {
+      "speedup_python_over_rust": 5.093052566044791,
+      "peak_rss_reduction": 0.1826862218730221,
+      "parity": true,
+      "high_churn_speed_gate": null
+    },
+    "high_churn": {
+      "speedup_python_over_rust": 79.06022987147395,
+      "peak_rss_reduction": 0.1921441107749292,
+      "parity": true,
+      "high_churn_speed_gate": true
+    }
+  },
+  "gate": {
+    "parity": true,
+    "median_end_to_end_speedup": 42.07664121875937,
+    "minimum_peak_rss_reduction": 0.1826862218730221,
+    "repeated_run_rss_plateau": true,
+    "release_ready": false
+  },
+  "policy": "Rust remains explicit experimental and auto remains Python when release_ready is false."
+}

@@ -1,11 +1,11 @@
 # Phase 34B Native Event Prepared Score Benchmark
 
-- Rows: `600`
-- Trials: `12`
-- Public audit seconds: `1.763319`
-- Prepared score seconds: `0.634422`
-- Speedup: `2.779x`
-- Peak RSS MB: `337.926`
+- Rows: `1000`
+- Trials: `20`
+- Public audit seconds: `2.869046`
+- Prepared score seconds: `1.846037`
+- Speedup: `1.554x`
+- Peak RSS MB: `335.645`
 - Metric parity: `True`
 - Prepared endpoint result retained: `False`
 

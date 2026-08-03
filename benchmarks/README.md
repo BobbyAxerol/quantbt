@@ -89,6 +89,26 @@ python3 benchmarks/gamma_scalping_backtestsample.py \
 - Cython/C++ should only be considered after a larger profile shows pure
   kernels, not pandas/tape/report facade work, dominating runtime.
 
+Phase 47C Grid 2,000-bar parity and RSS:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha \
+poetry run python benchmarks/native_event/benchmark_grid_2000.py \
+  --grid-module-dir /root/bobby/pool_alpha/alphas_storage/TA \
+  --backend python --mode scalar --grid-mode long_only --bars 2000
+
+MPLCONFIGDIR=/tmp PYTHONPATH=/root/bobby/pool_alpha \
+poetry run python benchmarks/native_event/benchmark_grid_2000.py \
+  --grid-module-dir /root/bobby/pool_alpha/alphas_storage/TA \
+  --backend rust --mode audit --grid-mode long_short --bars 2000
+```
+
+The runner uses one warm-up and five measured runs in a backend-isolated
+process and writes JSON with command/audit fingerprint, terminal accounting,
+runtime, CPU time, peak/post RSS, and repeated-run RSS slope. See
+[`docs/grid_native_event_phase47c.md`](../docs/grid_native_event_phase47c.md)
+for the parity contract and backend policy.
+
 Phase 31 intrabar execution:
 
 ```bash

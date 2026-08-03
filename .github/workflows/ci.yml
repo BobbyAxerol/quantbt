@@ -2,17 +2,23 @@ name: CI
 
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
   push:
-    branches: [dev]
+    branches: [dev, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  tests:
-    name: Python tests
+  package:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout
@@ -21,18 +27,62 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install numpy pandas numba matplotlib seaborn pytest
+        # The shared suite exercises Optuna, reporting, and plotting APIs.
+        # Keep the heavyweight optional Nautilus validation extra out of this
+        # matrix; it has its own gate and creates avoidable RSS pressure.
+        run: uv sync --extra optimization --extra reports --extra viz --dev
 
-      - name: Run core tests
-        env:
-          PYTHONPATH: ${{ github.workspace }}/..
+      - name: Test
+        run: >-
+          .venv/bin/python -m pytest -q
+          --ignore=tests/test_real.py
+          --ignore=tests/test_real_endpoints.py
+          --ignore=tests/native_event
+          --ignore=tests/test_phase47a_grid_adapter.py
+          --ignore=tests/test_phase47c_grid_parity.py
+          --ignore=tests/test_phase47d_grid_optimizer.py
+
+      - name: Build package
         run: |
-          pytest tests \
-            --ignore=tests/test_real.py \
-            --ignore=tests/test_real_endpoints.py \
-            --ignore=tests/test_phase5_nautilus_adapter.py
+          rm -rf dist
+          uv build
+
+      - name: Validate distribution metadata
+        run: uv run twine check dist/*
+
+      - name: Check repository visibility and release artifacts
+        run: |
+          git ls-files --error-unmatch upgrade/implement.md
+          python "$GITHUB_WORKSPACE/tools/scan_public_secrets.py" --root "$GITHUB_WORKSPACE"
+          python "$GITHUB_WORKSPACE/tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist"
+
+      - name: Clean wheel install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-wheel-smoke
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          /tmp/quantbt-wheel-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Clean sdist install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-sdist-smoke
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+          /tmp/quantbt-sdist-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Pool Alpha import compatibility smoke
+        run: uv run python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
