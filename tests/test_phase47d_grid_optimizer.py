@@ -22,7 +22,10 @@ GRID_PATH = Path(
 
 def _load_grid_module():
     if not GRID_PATH.exists():
-        pytest.skip(f"external Grid fixture is unavailable: {GRID_PATH}")
+        pytest.skip(
+            f"external Grid fixture is unavailable: {GRID_PATH}",
+            allow_module_level=True,
+        )
     spec = importlib.util.spec_from_file_location("phase47d_grid_alpha", GRID_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load Grid fixture: {GRID_PATH}")
