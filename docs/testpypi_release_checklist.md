@@ -20,8 +20,9 @@ upload a final `1.0.7` artifact under an RC tag.
 
 ## Workflow Gate
 
-Run **Publish quantbt-engine to TestPyPI** with the exact tag in the `ref`
-input. Before upload, CI performs:
+Push the matching `v*rc*` tag to trigger **Publish quantbt-engine to TestPyPI**
+automatically, or run the same workflow manually with the exact tag in the
+`ref` input. Before upload, CI performs:
 
 - Python regression and package build;
 - `twine check`;

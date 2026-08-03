@@ -23,7 +23,7 @@ def test_phase46f_core_metadata_and_release_notes_are_complete() -> None:
     project = metadata["project"]
 
     assert project["name"] == "quantbt-engine"
-    assert project["version"] == "1.0.7"
+    assert project["version"] in {"1.0.7rc1", "1.0.7"}
     assert {"3.11", "3.12", "3.13"} <= {
         classifier.rsplit(" :: ", 1)[-1]
         for classifier in project["classifiers"]
@@ -35,10 +35,11 @@ def test_phase46f_core_metadata_and_release_notes_are_complete() -> None:
     assert metadata["project"]["optional-dependencies"]["native"] == []
 
 
-def test_phase46f_testpypi_workflow_is_manual_and_oidc_protected() -> None:
+def test_phase46f_testpypi_workflow_has_manual_and_rc_tag_oidc_paths() -> None:
     payload = _load_yaml(PROJECT_ROOT / ".github" / "workflows" / "publish-testpypi.yml")
     events = _event_block(payload)
     assert "workflow_dispatch" in events
+    assert events["push"]["tags"] == ["v*rc*"]
     assert "ref" in events["workflow_dispatch"]["inputs"]
 
     publish = payload["jobs"]["publish"]
@@ -50,6 +51,7 @@ def test_phase46f_testpypi_workflow_is_manual_and_oidc_protected() -> None:
     assert "https://test.pypi.org/legacy/" in workflow_text
     assert "PYPI_API_TOKEN" not in workflow_text
     assert "tools/check_release_version.py" in workflow_text
+    assert "inputs.ref || github.ref_name" in workflow_text
 
 
 def test_phase46f_production_publish_rejects_prereleases() -> None:

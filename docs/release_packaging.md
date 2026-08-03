@@ -21,7 +21,7 @@ from quantbt import QuantBTEndpoint
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
-- Phase 48F release candidate: `1.0.7`.
+- Phase 48F release candidate: `1.0.7rc1` for TestPyPI; final target `1.0.7`.
 - Phase 48F local artifact gate: complete for the core Python distribution;
   TestPyPI publication remains an explicit operator action.
 - Python is the canonical/full-featured implementation for the first release.
@@ -338,9 +338,10 @@ accepted benchmark evidence remain trackable.
 3. Create the matching tag, for example `v1.0.7rc1`.
 4. Configure the pending TestPyPI publisher for repository `BobbyAxerol/quantbt`,
    workflow `publish-testpypi.yml`, and GitHub environment `testpypi`.
-5. Run **Publish quantbt-engine to TestPyPI** manually with the exact tag.
-   The workflow runs the clean wheel/sdist installation gate before the
-   publish job and uploads the release manifest separately for review.
+5. Push the matching RC tag to trigger **Publish quantbt-engine to TestPyPI**,
+   or run it manually with the exact tag. The workflow runs the clean
+   wheel/sdist installation gate before the publish job and uploads the release
+   manifest separately for review.
 6. Install and smoke-test the RC from both TestPyPI and the Pool Alpha
    environment:
 

@@ -11122,10 +11122,10 @@ until the public matrix passes.
 
 ### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
 
-**Status: local release gate complete; TestPyPI publication awaits explicit
-release approval and configured OIDC publisher.** The implementation follows
-the packaging/release sections linked from the guide; no publish action was
-triggered from this branch.
+**Status: `1.0.7rc1` local release gate complete; feature branch is waiting for
+maintainer merge into `dev` before the RC tag/TestPyPI step.** The
+implementation follows the packaging/release sections linked from the guide;
+no tag, merge, or publish action was triggered from this branch.
 
 Detailed guide sections:
 

@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantbt-engine"
-version = "1.0.7"
+version = "1.0.7rc1"
 description = "Transparent, high-performance quantitative backtesting engine"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = "MIT"
 authors = [
-    { name = "BobbyAxerol", email = "vugioan11022002@gmail.com" },
+    { name = "Vu Cong Minh", email = "vugioan11022002@gmail.com" },
 ]
 keywords = [
     "backtesting",

@@ -14,6 +14,11 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
+def _project_version() -> str:
+    payload = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    return str(payload["project"]["version"])
+
+
 def _load_yaml(path: Path) -> dict:
     yaml = pytest.importorskip("yaml")
     return yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -26,7 +31,9 @@ def _event_block(payload: dict) -> dict:
 def test_phase48f_testpypi_workflow_has_pre_upload_clean_artifact_gate() -> None:
     path = PROJECT_ROOT / ".github/workflows/publish-testpypi.yml"
     payload = _load_yaml(path)
-    assert "workflow_dispatch" in _event_block(payload)
+    events = _event_block(payload)
+    assert "workflow_dispatch" in events
+    assert events["push"]["tags"] == ["v*rc*"]
     text = path.read_text(encoding="utf-8")
     for expected in (
         "pip install dist/quantbt_engine-*.whl",
@@ -34,13 +41,14 @@ def test_phase48f_testpypi_workflow_has_pre_upload_clean_artifact_gate() -> None
         "pip check",
         "tools/check_release_artifacts.py --dist dist",
         "tools/create_release_manifest.py",
-        "uv run twine check dist/*",
+        "uv run twine check --strict dist/*",
     ):
         assert expected in text
     assert "gh-action-pypi-publish" in text
     assert "PYPI_API_TOKEN" not in text
     assert payload["jobs"]["publish"]["environment"]["name"] == "testpypi"
     assert payload["jobs"]["publish"]["permissions"]["id-token"] == "write"
+    assert "inputs.ref || github.ref_name" in text
 
 
 def test_phase48f_production_workflow_is_release_only_and_manifested() -> None:
@@ -56,17 +64,21 @@ def test_phase48f_production_workflow_is_release_only_and_manifested() -> None:
 
 
 def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Path) -> None:
-    artifact = tmp_path / "quantbt_engine-1.0.7-py3-none-any.whl"
+    version = _project_version()
+    artifact = tmp_path / f"quantbt_engine-{version}-py3-none-any.whl"
     with zipfile.ZipFile(artifact, "w") as archive:
-        archive.writestr("quantbt/__init__.py", "__version__ = '1.0.7'\n")
-        archive.writestr("quantbt_engine-1.0.7.dist-info/METADATA", "Name: quantbt-engine\n")
+        archive.writestr("quantbt/__init__.py", f"__version__ = '{version}'\n")
+        archive.writestr(f"quantbt_engine-{version}.dist-info/METADATA", "Name: quantbt-engine\n")
     dist = tmp_path / "dist"
     dist.mkdir()
     artifact.rename(dist / artifact.name)
-    sdist = dist / "quantbt_engine-1.0.7.tar.gz"
+    sdist = dist / f"quantbt_engine-{version}.tar.gz"
     with tarfile.open(sdist, "w:gz") as archive:
-        member = tarfile.TarInfo("quantbt_engine-1.0.7/pyproject.toml")
-        payload = b"[project]\nname = 'quantbt-engine'\nversion = '1.0.7'\n"
+        member = tarfile.TarInfo(f"quantbt_engine-{version}/pyproject.toml")
+        payload = (
+            "[project]\nname = 'quantbt-engine'\nversion = "
+            f"'{version}'\n"
+        ).encode()
         member.size = len(payload)
         archive.addfile(member, io.BytesIO(payload))
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -75,7 +87,7 @@ def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Pat
     manifest = build_manifest(dist)
     assert manifest["schema"] == "quantbt-release-manifest-v1"
     assert manifest["distribution"] == "quantbt-engine"
-    assert manifest["version"] == "1.0.7"
+    assert manifest["version"] == version
     assert len(manifest["git_sha"]) == 40
     assert {item["kind"] for item in manifest["artifacts"]} == {"wheel", "sdist"}
     assert all(len(item["sha256"]) == 64 for item in manifest["artifacts"])
@@ -85,7 +97,7 @@ def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Pat
         "rust": "explicit_experimental",
     }
 
-    (dist / "quantbt_engine-1.0.6-py3-none-any.whl").write_bytes(b"wrong version")
+    (dist / "quantbt_engine-0.0.0-py3-none-any.whl").write_bytes(b"wrong version")
     with pytest.raises(RuntimeError, match="does not match"):
         build_manifest(dist)
 
@@ -93,10 +105,11 @@ def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Pat
 def test_phase48f_archive_gate_rejects_private_and_build_members(tmp_path: Path) -> None:
     from tools.check_release_artifacts import inspect_artifact
 
-    wheel = tmp_path / "quantbt_engine-1.0.7-py3-none-any.whl"
+    version = _project_version()
+    wheel = tmp_path / f"quantbt_engine-{version}-py3-none-any.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
         archive.writestr("quantbt/__init__.py", "")
-        archive.writestr("quantbt_engine-1.0.7.dist-info/METADATA", "")
+        archive.writestr(f"quantbt_engine-{version}.dist-info/METADATA", "")
         archive.writestr("quantbt/.env", "PYPI_TOKEN=pypi-" + "A" * 40)
         archive.writestr("quantbt/local.prof", "profile")
     findings = inspect_artifact(wheel)
@@ -104,9 +117,9 @@ def test_phase48f_archive_gate_rejects_private_and_build_members(tmp_path: Path)
     assert any("build/profiling artifact" in finding for finding in findings)
     assert any("credential-like content" in finding for finding in findings)
 
-    sdist = tmp_path / "quantbt_engine-1.0.7.tar.gz"
+    sdist = tmp_path / f"quantbt_engine-{version}.tar.gz"
     with tarfile.open(sdist, "w:gz") as archive:
-        member = tarfile.TarInfo("quantbt_engine-1.0.7/data/private/secret.csv")
+        member = tarfile.TarInfo(f"quantbt_engine-{version}/data/private/secret.csv")
         payload = b"profile"
         member.size = len(payload)
         archive.addfile(member, io.BytesIO(payload))

@@ -75,7 +75,7 @@ jobs:
           uv build
 
       - name: Validate distribution metadata
-        run: uv run twine check dist/*
+        run: uv run twine check --strict dist/*
 
       - name: Inspect release surfaces
         run: |
@@ -83,6 +83,12 @@ jobs:
           test -s upgrade/implement.md
           if git check-ignore --no-index upgrade/implement.md; then
             echo "upgrade/implement.md must not be ignored"
+            exit 1
+          fi
+          test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*.tar.gz' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*-py3-none-any.whl' -print -quit)"
+          if find dist -maxdepth 1 -type f \( -iname '*quantbt_native*' -o -iname '*manylinux*' \) | grep -q .; then
+            echo "ERROR: native artifact found in core PyPI release"
             exit 1
           fi
           uv run python tools/scan_public_secrets.py

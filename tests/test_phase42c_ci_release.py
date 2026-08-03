@@ -33,7 +33,7 @@ def test_phase42c_ci_uses_uv_matrix_and_installed_package_smoke() -> None:
     assert "uv sync --all-extras --dev" in workflow_text
     assert "uv run pytest -q" in workflow_text
     assert "uv build" in workflow_text
-    assert "uv run twine check dist/*" in workflow_text
+    assert "uv run twine check" in workflow_text
     assert "pip install dist/quantbt_engine-*.whl" in workflow_text
     assert "pip install dist/quantbt_engine-*.tar.gz" in workflow_text
     assert "from quantbt import QuantBTEndpoint" in workflow_text
@@ -54,7 +54,7 @@ def test_phase42c_publish_requires_release_event_oidc_and_pypi_environment() -> 
     workflow_text = (PROJECT_ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
     assert "gh-action-pypi-publish" in workflow_text
     assert "PYPI_API_TOKEN" not in workflow_text
-    assert "uv run twine check dist/*" in workflow_text
+    assert "uv run twine check" in workflow_text
     assert "pip install dist/quantbt_engine-*.tar.gz" in workflow_text
 
 

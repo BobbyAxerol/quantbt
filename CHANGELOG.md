@@ -6,6 +6,15 @@ All notable changes to `quantbt-engine` are documented here.
 
 This is the first independently installable core package release line.
 
+### Release candidate
+
+- `1.0.7rc1` prepared for TestPyPI on 2026-08-03.
+- Python 3.11-3.13 package validation is required before final publication.
+- `backend="auto"` remains Python.
+- `backend="rust"` remains explicit and experimental.
+- `quantbt-native` is not included in this core release.
+- Native crate and Python metadata remain aligned to API version `0.4.0`.
+
 ### Added
 
 - Stable `from quantbt import QuantBTEndpoint` import contract.
