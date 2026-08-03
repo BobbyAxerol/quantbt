@@ -54,7 +54,8 @@ jobs:
       - name: Check repository visibility and release artifacts
         run: |
           git ls-files --error-unmatch upgrade/implement.md
-          test -s upgrade/implement.md
+          test "$(git cat-file -t HEAD:upgrade/implement.md)" = blob
+          test "$(git cat-file -s HEAD:upgrade/implement.md)" -gt 0
           python tools/scan_public_secrets.py
           python tools/check_release_artifacts.py --dist dist
 
