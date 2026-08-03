@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Release tag containing the RC version, for example v1.0.7rc1"
+        description: "Release tag containing the RC version, for example v1.0.7rc2"
         required: true
         type: string
   push:
@@ -36,7 +36,7 @@ jobs:
           enable-cache: true
 
       - name: Install core development environment
-        run: uv sync --extra optimization --extra reports --extra viz --dev
+        run: uv sync --locked --extra optimization --extra reports --extra viz --dev
 
       - name: Check RC version against tag
         env:

@@ -30,7 +30,7 @@ def test_phase42c_ci_uses_uv_matrix_and_installed_package_smoke() -> None:
     assert versions == ["3.11", "3.12", "3.13"]
 
     workflow_text = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    assert "uv sync --extra optimization --extra reports --extra viz --dev" in workflow_text
+    assert "uv sync --locked --extra optimization --extra reports --extra viz --dev" in workflow_text
     assert "--ignore=tests/test_real.py" in workflow_text
     assert "--ignore=tests/test_real_endpoints.py" in workflow_text
     assert "--ignore=tests/native_event" in workflow_text

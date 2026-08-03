@@ -38,7 +38,7 @@ jobs:
         # The shared suite exercises Optuna, reporting, and plotting APIs.
         # Keep the heavyweight optional Nautilus validation extra out of this
         # matrix; it has its own gate and creates avoidable RSS pressure.
-        run: uv sync --extra optimization --extra reports --extra viz --dev
+        run: uv sync --locked --extra optimization --extra reports --extra viz --dev
 
       - name: Test
         run: >-

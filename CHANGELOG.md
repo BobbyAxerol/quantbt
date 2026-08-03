@@ -8,7 +8,8 @@ This is the first independently installable core package release line.
 
 ### Release candidate
 
-- `1.0.7rc1` prepared for TestPyPI on 2026-08-03.
+- `1.0.7rc1` was blocked before publication because its lockfile version was stale.
+- `1.0.7rc2` prepared for TestPyPI on 2026-08-03 with immutable lock validation.
 - Python 3.11-3.13 package validation is required before final publication.
 - `backend="auto"` remains Python.
 - `backend="rust"` remains explicit and experimental.

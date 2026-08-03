@@ -23,7 +23,7 @@ def test_phase46f_core_metadata_and_release_notes_are_complete() -> None:
     project = metadata["project"]
 
     assert project["name"] == "quantbt-engine"
-    assert project["version"] in {"1.0.7rc1", "1.0.7"}
+    assert project["version"] in {"1.0.7rc2", "1.0.7"}
     assert {"3.11", "3.12", "3.13"} <= {
         classifier.rsplit(" :: ", 1)[-1]
         for classifier in project["classifiers"]

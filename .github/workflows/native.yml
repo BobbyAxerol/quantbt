@@ -41,7 +41,7 @@ jobs:
         # shared test suite, but not the optional Nautilus/report/viz extras.
         # Keeping those out avoids importing a large third-party stack in
         # every CPython matrix job.
-        run: uv sync --extra optimization --dev
+        run: uv sync --locked --extra optimization --dev
 
       - name: Rust format, lint, and tests
         working-directory: rust/native_event

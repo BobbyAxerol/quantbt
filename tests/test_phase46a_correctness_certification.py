@@ -181,7 +181,7 @@ def test_phase46a_public_import_and_package_metadata_baseline() -> None:
     metadata = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = metadata["project"]
     assert project["name"] == "quantbt-engine"
-    assert project["version"] in {"1.0.7rc1", "1.0.7"}
+    assert project["version"] in {"1.0.7rc2", "1.0.7"}
     assert metadata["tool"]["setuptools"]["packages"]["find"]["where"] == ["src"]
     assert "quantbt*" in metadata["tool"]["setuptools"]["packages"]["find"]["include"]
 

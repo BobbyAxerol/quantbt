@@ -8,9 +8,9 @@ and released while `quantbt-native` remains experimental.
 
 1. Work from a release commit, not `dev`.
 2. Set `project.version` in `pyproject.toml` to an unused RC version, for
-   example `1.0.7rc1`.
+   example `1.0.7rc2`.
 3. Keep `CHANGELOG.md` and the release notes aligned with that version.
-4. Create the matching tag, for example `v1.0.7rc1`.
+4. Create the matching tag, for example `v1.0.7rc2`.
 5. Configure the pending TestPyPI publisher:
    `BobbyAxerol/quantbt`, workflow `publish-testpypi.yml`, environment
    `testpypi`.
@@ -64,7 +64,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  quantbt-engine==1.0.7rc1
+  quantbt-engine==1.0.7rc2
 (cd /tmp && /tmp/quantbt-testpypi-smoke/bin/python -c \
   "import quantbt; print(quantbt.__file__)")
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
