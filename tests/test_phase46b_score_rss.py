@@ -16,9 +16,6 @@ from quantbt import (
     OrderType,
     TimeInForce,
 )
-from quantbt.backends._native_event_rust import RustBatchedRunner, NativeEventRustBackendError
-
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -123,6 +120,11 @@ def test_phase46b_prepared_and_compiled_signatures_are_hard_gates():
 def test_phase46b_rust_scalar_matches_python_scalar_when_wheel_is_available():
     backend, frame, market, _, compiled = _fixture()
     try:
+        from quantbt.backends._native_event_rust import (
+            NativeEventRustBackendError,
+            RustBatchedRunner,
+        )
+
         runner = RustBatchedRunner(
             idx=frame.index,
             symbols=["BTC"],
