@@ -89,8 +89,8 @@ def test_phase48b_release_workflows_run_visibility_and_artifact_gates() -> None:
     for name in ("ci.yml", "publish-testpypi.yml", "publish.yml"):
         text = (workflow_root / name).read_text(encoding="utf-8")
         assert "git ls-files --error-unmatch upgrade/implement.md" in text
-        assert "tools/scan_public_secrets.py" in text
-        assert "tools/check_release_artifacts.py --dist dist" in text
+        assert 'tools/scan_public_secrets.py" --root "$GITHUB_WORKSPACE' in text
+        assert 'tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist' in text
 
 
 def test_phase48b_manifest_has_sdist_private_path_prunes() -> None:

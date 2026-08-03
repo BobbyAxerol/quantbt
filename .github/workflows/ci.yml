@@ -54,8 +54,8 @@ jobs:
       - name: Check repository visibility and release artifacts
         run: |
           git ls-files --error-unmatch upgrade/implement.md
-          python tools/scan_public_secrets.py
-          python tools/check_release_artifacts.py --dist dist
+          python "$GITHUB_WORKSPACE/tools/scan_public_secrets.py" --root "$GITHUB_WORKSPACE"
+          python "$GITHUB_WORKSPACE/tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist"
 
       - name: Clean wheel install smoke
         shell: bash
