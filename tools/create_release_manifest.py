@@ -17,14 +17,23 @@ import tomllib
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run_git(*args: str) -> str:
+def _run_git(*args: str, required: bool = True) -> str:
     completed = subprocess.run(
         ["git", *args],
         cwd=PROJECT_ROOT,
-        check=True,
+        check=False,
         capture_output=True,
         text=True,
     )
+    if required and completed.returncode != 0:
+        raise subprocess.CalledProcessError(
+            completed.returncode,
+            completed.args,
+            output=completed.stdout,
+            stderr=completed.stderr,
+        )
+    if completed.returncode != 0:
+        return ""
     return completed.stdout.strip()
 
 
@@ -99,7 +108,9 @@ def build_manifest(dist: Path, *, require_clean: bool = False) -> dict:
         "schema": "quantbt-release-manifest-v1",
         **metadata,
         "git_sha": _run_git("rev-parse", "HEAD"),
-        "git_ref": _run_git("symbolic-ref", "--short", "-q", "HEAD") or None,
+        "git_ref": _run_git(
+            "symbolic-ref", "--short", "-q", "HEAD", required=False
+        ) or None,
         "release_ref": os.environ.get("GITHUB_REF_NAME") or None,
         "working_tree_clean": not bool(status),
         "backend_policy": {

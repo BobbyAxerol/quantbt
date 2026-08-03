@@ -102,6 +102,40 @@ def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Pat
         build_manifest(dist)
 
 
+def test_phase48f_release_manifest_allows_detached_head(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tools import create_release_manifest
+
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append(tuple(args))
+        if args[1:3] == ["symbolic-ref", "--short"]:
+            return subprocess.CompletedProcess(args, 1, "", "")
+        if args[1:] == ["status", "--porcelain"]:
+            return subprocess.CompletedProcess(args, 0, "", "")
+        if args[1:] == ["rev-parse", "HEAD"]:
+            return subprocess.CompletedProcess(args, 0, "a" * 40 + "\n", "")
+        raise AssertionError(args)
+
+    monkeypatch.setattr(create_release_manifest.subprocess, "run", fake_run)
+
+    version = _project_version()
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    with zipfile.ZipFile(dist / f"quantbt_engine-{version}-py3-none-any.whl", "w"):
+        pass
+    with tarfile.open(dist / f"quantbt_engine-{version}.tar.gz", "w:gz"):
+        pass
+
+    manifest = create_release_manifest.build_manifest(dist)
+
+    assert manifest["git_sha"] == "a" * 40
+    assert manifest["git_ref"] is None
+    assert any(call[1] == "symbolic-ref" for call in calls)
+
+
 def test_phase48f_archive_gate_rejects_private_and_build_members(tmp_path: Path) -> None:
     from tools.check_release_artifacts import inspect_artifact
 
