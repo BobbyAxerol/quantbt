@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import importlib.util
-
 import numpy as np
 import pandas as pd
 import pytest
 
-import _quantbt_native
+try:
+    import _quantbt_native
+except ImportError:
+    _quantbt_native = None
 
 from quantbt import OrderCommand, OrderSide, OrderType, TimeInForce
 from quantbt.backends._native_event_rust import RustFullRunner
@@ -15,7 +16,7 @@ from .test_phase48e_reuse import _bars, _runner
 
 
 pytestmark = pytest.mark.skipif(
-    importlib.util.find_spec("_quantbt_native") is None,
+    _quantbt_native is None,
     reason="quantbt-native full-contract wheel is not installed in this environment",
 )
 
