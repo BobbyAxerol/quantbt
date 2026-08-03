@@ -36,7 +36,7 @@ jobs:
           enable-cache: true
 
       - name: Install core development environment
-        run: uv sync --dev
+        run: uv sync --extra optimization --extra reports --extra viz --dev
 
       - name: Check RC version against tag
         env:
@@ -44,7 +44,7 @@ jobs:
         run: uv run python tools/check_release_version.py
 
       - name: Run regression
-        run: uv run pytest -q
+        run: uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 
       - name: Clean build directory
         run: rm -rf dist release-manifest.json

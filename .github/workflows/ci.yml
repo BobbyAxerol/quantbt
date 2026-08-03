@@ -35,10 +35,13 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        # The shared suite exercises Optuna, reporting, and plotting APIs.
+        # Keep the heavyweight optional Nautilus validation extra out of this
+        # matrix; it has its own gate and creates avoidable RSS pressure.
+        run: uv sync --extra optimization --extra reports --extra viz --dev
 
       - name: Test
-        run: uv run pytest -q
+        run: uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 
       - name: Build package
         run: uv build

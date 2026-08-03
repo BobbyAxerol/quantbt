@@ -24,7 +24,8 @@ Push the matching `v*rc*` tag to trigger **Publish quantbt-engine to TestPyPI**
 automatically, or run the same workflow manually with the exact tag in the
 `ref` input. Before upload, CI performs:
 
-- Python regression and package build;
+- Python regression and package build (the two external-data `test_real*.py`
+  scripts are intentionally excluded from portable CI);
 - `twine check`;
 - tracked-secret scan and archive allowlist scan;
 - clean wheel install, import from `/tmp`, and `pip check`;
@@ -46,7 +47,7 @@ version:
 wheel name + sha256:
 sdist name + sha256:
 Python matrix:
-full pytest result:
+portable pytest result (excluding `test_real*.py`):
 native-event parity result:
 RSS/benchmark artifact:
 auto backend policy: Python

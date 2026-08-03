@@ -37,7 +37,11 @@ jobs:
           enable-cache: true
 
       - name: Install core test environment
-        run: uv sync --all-extras --dev
+        # The native gate needs the optimization dependencies used by the
+        # shared test suite, but not the optional Nautilus/report/viz extras.
+        # Keeping those out avoids importing a large third-party stack in
+        # every CPython matrix job.
+        run: uv sync --extra optimization --dev
 
       - name: Rust format, lint, and tests
         working-directory: rust/native_event
@@ -93,28 +97,28 @@ jobs:
           PY
 
       - name: Install native wheel into core test environment
-        run: uv run python -m pip install dist/native/quantbt_native-*.whl
+        run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
 
       - name: Python-Rust parity
         env:
           QUANTBT_NATIVE_BACKEND: rust
-        run: uv run pytest -q tests/native_event -k rust
+        run: .venv/bin/python -m pytest -q tests/native_event -k rust
 
       - name: API 0.4 full-contract closure tests
         env:
           QUANTBT_NATIVE_BACKEND: rust
         run: |
-          uv run pytest -q \
+          .venv/bin/python -m pytest -q \
             tests/native_event/test_phase48e1_closure.py \
             tests/native_event/contract/test_phase47b_full_contract.py \
             tests/native_event/test_reactive_callback_contract.py
 
       - name: Prepared score RSS and parity gate
         run: |
-          uv run python benchmarks/run_phase45b_native_event_score_rss.py --rows 1000 --repeats 25 --json-out /tmp/phase45b-score-rss.json
-          uv run python -c "import json; p=json.load(open('/tmp/phase45b-score-rss.json')); assert p['parity']; assert p['score_faster_than_audit']; assert p['score_rss_not_higher_than_audit']"
+          .venv/bin/python benchmarks/run_phase45b_native_event_score_rss.py --rows 1000 --repeats 25 --json-out /tmp/phase45b-score-rss.json
+          .venv/bin/python -c "import json; p=json.load(open('/tmp/phase45b-score-rss.json')); assert p['parity']; assert p['score_faster_than_audit']; assert p['score_rss_not_higher_than_audit']"
 
       - name: Rust RSS benchmark smoke
         env:
           QUANTBT_NATIVE_BACKEND: rust
-        run: uv run python benchmarks/native_event/benchmark_reactive_session.py --backend rust
+        run: .venv/bin/python benchmarks/native_event/benchmark_reactive_session.py --backend rust

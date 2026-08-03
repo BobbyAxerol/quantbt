@@ -39,8 +39,9 @@ The main CI workflow runs on pull requests and pushes to `dev` and `main`.
 Required checks:
 
 - Python matrix: `3.11`, `3.12`, `3.13`.
-- `uv sync --all-extras --dev`.
-- `uv run pytest -q`.
+- `uv sync --extra optimization --extra reports --extra viz --dev`.
+- `uv run pytest -q --ignore=tests/test_real.py
+  --ignore=tests/test_real_endpoints.py`.
 - `uv build`.
 - Clean wheel install in a fresh virtual environment.
 - Public import smoke from outside the repository root.
@@ -48,10 +49,16 @@ Required checks:
 
 CI must not rely on `PYTHONPATH` to pretend the package is installed.
 
-Core CI intentionally tests the core dependency set separately from the native
-wheel. The `native` extra is currently an empty reservation, so `uv sync
---all-extras --dev` cannot accidentally claim that a native PyPI distribution
-exists.
+Core CI intentionally tests the Python package separately from the native
+wheel. It installs the optimization, report, and visualization extras needed
+by the shared test suite, but omits the optional Nautilus validation stack.
+The `native` extra is currently an empty reservation, so CI cannot accidentally
+claim that a native PyPI distribution exists.
+
+The two `tests/test_real*.py` files are notebook-style data scripts, not
+portable unit tests: they read Pool Alpha data outside this repository and
+execute a backtest during module import. Run them separately in the Pool
+Alpha environment; do not include them in public package CI.
 
 NautilusTrader validation is optional and only resolves on Python `>=3.12`
 because `nautilus-trader==1.230.0` does not support Python 3.11. The core
@@ -151,7 +158,7 @@ or build directories:
 
 ```bash
 poetry run python tools/check_release_version.py
-poetry run pytest -q
+poetry run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
 poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist

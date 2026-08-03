@@ -30,8 +30,8 @@ def test_phase42c_ci_uses_uv_matrix_and_installed_package_smoke() -> None:
     assert versions == ["3.11", "3.12", "3.13"]
 
     workflow_text = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    assert "uv sync --all-extras --dev" in workflow_text
-    assert "uv run pytest -q" in workflow_text
+    assert "uv sync --extra optimization --extra reports --extra viz --dev" in workflow_text
+    assert "uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py" in workflow_text
     assert "uv build" in workflow_text
     assert "uv run twine check" in workflow_text
     assert "pip install dist/quantbt_engine-*.whl" in workflow_text

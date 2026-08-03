@@ -601,16 +601,15 @@ pip install "quantbt-engine[reports,validation]==1.0.7"
 Development from this repository:
 
 ```bash
-uv sync --all-extras --dev
-uv run pytest -q
+uv sync --extra optimization --extra reports --extra viz --dev
+uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 ```
 
-For core-only package validation, use the same dependency boundary as the
-release wheel:
+For core-only package/build validation, use the smaller dependency boundary
+used by the native gate:
 
 ```bash
 uv sync --dev
-uv run pytest -q
 uv build
 uv run twine check dist/*
 ```
@@ -819,8 +818,8 @@ Key examples:
 ## Development
 
 ```bash
-uv sync --all-extras --dev
-uv run pytest -q
+uv sync --extra optimization --extra reports --extra viz --dev
+uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 ```
 
 Contribution workflow:

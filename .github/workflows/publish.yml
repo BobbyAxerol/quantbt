@@ -32,14 +32,14 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --extra optimization --extra reports --extra viz --dev
 
       - name: Check release version
         if: matrix.python-version == '3.12'
         run: uv run python tools/check_release_version.py
 
       - name: Test
-        run: uv run pytest -q
+        run: uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 
       - name: Build
         run: uv build
