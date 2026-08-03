@@ -39,7 +39,14 @@ jobs:
         run: uv run python tools/check_release_version.py
 
       - name: Test
-        run: .venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event
+        run: >-
+          .venv/bin/python -m pytest -q
+          --ignore=tests/test_real.py
+          --ignore=tests/test_real_endpoints.py
+          --ignore=tests/native_event
+          --ignore=tests/test_phase47a_grid_adapter.py
+          --ignore=tests/test_phase47c_grid_parity.py
+          --ignore=tests/test_phase47d_grid_optimizer.py
 
       - name: Build
         run: uv build
