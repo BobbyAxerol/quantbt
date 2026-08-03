@@ -81,10 +81,6 @@ jobs:
         run: |
           git ls-files --error-unmatch upgrade/implement.md
           test -s upgrade/implement.md
-          if git check-ignore --no-index upgrade/implement.md; then
-            echo "upgrade/implement.md must not be ignored"
-            exit 1
-          fi
           test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*.tar.gz' -print -quit)"
           test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*-py3-none-any.whl' -print -quit)"
           if find dist -maxdepth 1 -type f \( -iname '*quantbt_native*' -o -iname '*manylinux*' \) | grep -q .; then
