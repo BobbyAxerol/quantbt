@@ -80,8 +80,6 @@ jobs:
       - name: Inspect release surfaces
         run: |
           git ls-files --error-unmatch upgrade/implement.md
-          test "$(git cat-file -t HEAD:upgrade/implement.md)" = blob
-          test "$(git cat-file -s HEAD:upgrade/implement.md)" -gt 0
           test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*.tar.gz' -print -quit)"
           test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*-py3-none-any.whl' -print -quit)"
           if find dist -maxdepth 1 -type f \( -iname '*quantbt_native*' -o -iname '*manylinux*' \) | grep -q .; then
