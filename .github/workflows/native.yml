@@ -100,8 +100,6 @@ jobs:
         run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
 
       - name: Native Event full suite
-        env:
-          QUANTBT_NATIVE_BACKEND: rust
         run: .venv/bin/python -m pytest -q tests/native_event
 
       - name: API 0.4 full-contract closure tests
