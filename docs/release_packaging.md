@@ -40,7 +40,8 @@ Required checks:
 
 - Python matrix: `3.11`, `3.12`, `3.13`.
 - `uv sync --extra optimization --extra reports --extra viz --dev`.
-- `.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`.
+- `.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event`.
+- The separate Native Event API 0.4 workflow runs the complete `tests/native_event` suite after installing the native wheel.
 - `uv build`.
 - Clean wheel install in a fresh virtual environment.
 - Public import smoke from outside the repository root.
@@ -157,7 +158,7 @@ or build directories:
 
 ```bash
 poetry run python tools/check_release_version.py
-.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
 poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist
