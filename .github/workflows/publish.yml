@@ -87,8 +87,8 @@ jobs:
             echo "ERROR: native artifact found in core PyPI release"
             exit 1
           fi
-          uv run python tools/scan_public_secrets.py
-          uv run python tools/check_release_artifacts.py --dist dist
+          python tools/scan_public_secrets.py
+          python tools/check_release_artifacts.py --dist dist
 
       - name: Create release manifest
         run: >-

@@ -55,8 +55,8 @@ jobs:
         run: |
           git ls-files --error-unmatch upgrade/implement.md
           test -s upgrade/implement.md
-          uv run python tools/scan_public_secrets.py
-          uv run python tools/check_release_artifacts.py --dist dist
+          python tools/scan_public_secrets.py
+          python tools/check_release_artifacts.py --dist dist
 
       - name: Clean wheel install smoke
         shell: bash

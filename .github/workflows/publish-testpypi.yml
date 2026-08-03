@@ -65,8 +65,8 @@ jobs:
             echo "ERROR: native artifact found in core TestPyPI release"
             exit 1
           fi
-          uv run python tools/scan_public_secrets.py
-          uv run python tools/check_release_artifacts.py --dist dist
+          python tools/scan_public_secrets.py
+          python tools/check_release_artifacts.py --dist dist
 
       - name: Clean wheel install smoke
         shell: bash
