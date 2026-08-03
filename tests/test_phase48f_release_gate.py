@@ -39,7 +39,7 @@ def test_phase48f_testpypi_workflow_has_pre_upload_clean_artifact_gate() -> None
         "pip install dist/quantbt_engine-*.whl",
         "pip install dist/quantbt_engine-*.tar.gz",
         "pip check",
-        "tools/check_release_artifacts.py --dist dist",
+        'tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist',
         "tools/create_release_manifest.py",
         "uv run twine check --strict dist/*",
     ):

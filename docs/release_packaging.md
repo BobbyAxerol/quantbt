@@ -40,8 +40,7 @@ Required checks:
 
 - Python matrix: `3.11`, `3.12`, `3.13`.
 - `uv sync --extra optimization --extra reports --extra viz --dev`.
-- `uv run pytest -q --ignore=tests/test_real.py
-  --ignore=tests/test_real_endpoints.py`.
+- `.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py`.
 - `uv build`.
 - Clean wheel install in a fresh virtual environment.
 - Public import smoke from outside the repository root.
@@ -158,7 +157,7 @@ or build directories:
 
 ```bash
 poetry run python tools/check_release_version.py
-poetry run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
 poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist

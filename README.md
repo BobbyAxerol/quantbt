@@ -602,7 +602,7 @@ Development from this repository:
 
 ```bash
 uv sync --extra optimization --extra reports --extra viz --dev
-uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 ```
 
 For core-only package/build validation, use the smaller dependency boundary
@@ -819,7 +819,7 @@ Key examples:
 
 ```bash
 uv sync --extra optimization --extra reports --extra viz --dev
-uv run pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
 ```
 
 Contribution workflow:
