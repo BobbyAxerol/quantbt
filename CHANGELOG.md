@@ -2,7 +2,7 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
-## [1.0.7] - Unreleased
+## [1.0.7] - 2026-08-04
 
 This is the first independently installable core package release line.
 
@@ -10,6 +10,7 @@ This is the first independently installable core package release line.
 
 - `1.0.7rc1` was blocked before publication because its lockfile version was stale.
 - `1.0.7rc2` prepared for TestPyPI on 2026-08-03 with immutable lock validation.
+- `1.0.7rc2` passed clean TestPyPI installation and functional endpoint smoke.
 - Python 3.11-3.13 package validation is required before final publication.
 - `backend="auto"` remains Python.
 - `backend="rust"` remains explicit and experimental.

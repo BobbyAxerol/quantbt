@@ -22,8 +22,8 @@ from quantbt import QuantBTEndpoint
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
 - Phase 48F release candidate: `1.0.7rc2` for TestPyPI; final target `1.0.7`.
-- Phase 48F local artifact gate: complete for the core Python distribution;
-  TestPyPI publication remains an explicit operator action.
+- Phase 48F TestPyPI artifact and functional endpoint gates passed for
+  `1.0.7rc2`; the core Python distribution is ready for final `1.0.7` review.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native` is experimental and is not a dependency of the core wheel.
 

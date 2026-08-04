@@ -11123,7 +11123,8 @@ until the public matrix passes.
 ### Phase 48F - TestPyPI Artifact Gate, Release Workflow, And Final Handoff
 
 **Status: `1.0.7rc1` was blocked before publication by a stale lockfile;
-`1.0.7rc2` is the corrected release candidate on `release/1.0.7`.** The
+`1.0.7rc2` passed TestPyPI artifact and functional endpoint smoke, and
+`release/1.0.7` is being finalized for production review.** The
 implementation follows the packaging/release sections linked from the guide;
 no tag, merge, or publish action was triggered from this branch.
 
