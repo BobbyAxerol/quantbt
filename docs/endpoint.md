@@ -59,6 +59,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
+| `QuantBTEndpoint.event_driven()` | `native_event_strategy` or `orders` | `auto` | stable facade for reactive strategies or explicit lifecycle commands |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
@@ -84,6 +85,122 @@ Use `backend="auto"` when service code wants QuantBT to choose the safest route:
 - `orders` and `basket` route to native event;
 - `nautilus_validation` routes to Nautilus;
 - other signal modes route to native vectorized.
+
+## Stable Event-Driven Facade
+
+`QuantBTEndpoint.event_driven()` is the recommended public entry point for new
+event-driven integrations. It keeps the common declaration small while leaving
+the existing lifecycle engine, matching rules, accounting, and audit artifacts
+unchanged underneath.
+
+```python
+from quantbt import QuantBTEndpoint
+
+bt = QuantBTEndpoint.event_driven(
+    input_mode="strategy",
+    profile="research",
+    backend="auto",
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,       # canonical one-way fee
+    slippage_bps=2.0,
+    use_funding=False,
+)
+
+result = bt.simulate(
+    data=df,
+    strategy=strategy,
+    symbols=["BTCUSDT"],
+)
+bt.show_metrics()
+```
+
+### Profiles
+
+The profile is an explicit retention and execution policy. It does not change
+fill or accounting semantics:
+
+| Profile | Execution | Kernel | Result/report retention | Audit sink |
+|---|---|---|---|---|
+| `research` | `fast` | `single_pass` | `minimal` | `none` |
+| `optimize` | `fast` | `single_pass` | `score` | `none` |
+| `audit` | `audit` | `replay_certified` | `audit` | `memory` |
+
+Use `research` for ordinary notebook/service runs, `optimize` for parameter
+search, and `audit` when fills, order events, replay evidence, and detailed
+accounting must be retained. `backend="auto"` follows the package release
+policy. `backend="python"` selects the canonical portable implementation;
+`backend="rust"` is an explicit capability-gated request for the optional
+native wheel and never silently changes to Rust.
+
+### Input modes
+
+`input_mode="strategy"` accepts a stateful callback object. The strategy owns
+signal generation and look-ahead control; the engine owns market processing,
+order lifecycle, fills, fees, slippage, margin, funding, and PnL.
+
+```python
+class MyStrategy:
+    def initialize(self, context):
+        return ()
+
+    def on_bar_close(self, context):
+        # Return OrderCommand objects for the next causal bar.
+        return ()
+
+    def finalize(self, context):
+        return ()
+
+bt = QuantBTEndpoint.event_driven(profile="audit", backend="python")
+result = bt.simulate(data=df, strategy=MyStrategy(), symbols=["BTCUSDT"])
+```
+
+`initialize` and `finalize` may return an empty tuple. A strategy may subclass
+`NativeEventStrategyProtocol`, or simply satisfy the public structural
+`NativeEventStrategy` protocol by duck typing. The optional
+`native_context_requirements` declaration can reduce context materialization
+for specialized optimization runs. Commands emitted at bar close are handled
+according to the native-event lifecycle and do not become an implicit
+same-bar fill.
+
+`input_mode="orders"` is for an already-created execution tape. Use it when
+the alpha or an upstream planner owns order generation but still needs the
+native lifecycle to process placement, cancellation, replacement, OCO links,
+trigger rules, fees, margin, and fills:
+
+```python
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="python",
+    initial_capital=20_000,
+)
+result = bt.simulate(data=df, order_commands=commands, symbols=["BTCUSDT"])
+fills = result.fills
+events = result.metadata.get("order_events")
+```
+
+Legacy `OrderIntent` inputs remain supported through the existing
+`QuantBTEndpoint.orders(...)` route. The new facade accepts the canonical
+`OrderCommand` lifecycle tape and delegates to
+`native_event_lifecycle(...)`; it does not introduce a second order engine.
+
+### Advanced controls and compatibility
+
+The facade owns the four low-level values in its selected profile. Passing a
+conflicting `reactive_execution_mode`, `reactive_kernel_mode`, `report_level`,
+or `audit_sink` raises a clear `ValueError` instead of silently overriding the
+user's configuration. Use `native_event_strategy(...)` or
+`native_event_lifecycle(...)` directly when an advanced, non-profile
+combination is required. Existing endpoint constructors and notebook snippets
+remain valid.
+
+For the recommended stable path, users need only choose `input_mode`,
+`profile`, and `backend`; account, instrument, quantity, and execution fields
+remain available as normal shared endpoint parameters. See
+[`execution_contracts.md`](execution_contracts.md) for exact fill policy and
+[`release_packaging.md`](release_packaging.md) for backend capability and
+wheel-release policy.
 
 `native_vectorized` is explicitly the `close_target_v2` execution contract:
 signals are interpreted as target exposure at the same bar close, with no
@@ -171,8 +288,10 @@ Important conventions:
 - `initial_capital` is account equity / initial margin;
 - buying power is `initial_capital * leverage`;
 - `alloc_per_trade` is not multiplied by leverage by the endpoint;
-- legacy `fee` is round-trip and is halved inside `BacktestEngine`;
-- V2 `fee_rate` is one-way;
+- legacy `fee` is round-trip and is converted to canonical one-way fee at the
+  compatibility boundary;
+- `fee_rate` is canonical one-way everywhere. If both are present,
+  explicit `fee_rate` is the source of truth for native endpoints;
 - legacy `slippage` is a decimal fraction, e.g. `0.0001` for 1 bp;
 - V2 `slippage_bps` is basis points, e.g. `1.0` for 1 bp.
 - exchange quantity constraints are shared across native legacy, native
@@ -1053,6 +1172,51 @@ result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/sc
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
 ```
 
+### Native-event backend selector (Phase 46E)
+
+Native-event endpoints accept the optional `native_backend` selector:
+
+```python
+bt = QuantBTEndpoint.orders(
+    backend="native_event",
+    native_backend="python",  # python | rust | auto | replay_certified
+    initial_capital=20_000,
+    leverage=5,
+    maintenance_ratio=0.0,
+    use_funding=False,
+)
+```
+
+`python` is the full-featured canonical reactive backend. `rust` is explicit
+and fail-fast: with the installed API `0.4` full-contract wheel it supports
+the same Native Event V2 lifecycle surface used by this endpoint, including
+multi-symbol tapes, funding, maintenance/liquidation, quantity preflight,
+MARKET/LIMIT/STOP orders, GTC/GTD/IOC/FOK, amend/replace/cancel-all, and
+parent/group/OCO relationships. A wheel without the required capability keys
+raises a capability error; it is never silently downgraded to Python.
+`auto` remains Python for the release policy and does not activate Rust yet.
+`replay_certified` is the deterministic audit oracle. Rust audit results are
+adapted to `BacktestResultV2`, so the normal `show_metrics()`, `full_report()`,
+`quick_plot()`, and `tearsheet()` helpers remain available. The score path
+crosses the PyO3 boundary with typed arrays and does not build pandas report
+frames; rerun the selected tape at audit level when full evidence is required.
+
+The complete Phase 47B contract and conformance evidence are documented in
+[`native_event_rust_full_contract.md`](native_event_rust_full_contract.md).
+The external Grid 2,000-bar parity, scalar-score retention contract, backend
+policy, and isolated RSS benchmark are documented in
+[`grid_native_event_phase47c.md`](grid_native_event_phase47c.md).
+
+The Grid optimizer-safe Phase 47D policy is documented in the same guide. The
+public/audit default keeps `collect_diagnostics=True`; the external Grid
+`score_grid_params(...)` helper overrides only that artifact policy to
+`False`, derives the minimal context contract from the strategy, and keeps
+the prepared runner scalar-only. This does not alter order generation,
+matching, fees, funding, margin, liquidation, or terminal accounting. A
+diagnostics-off strategy cannot build the stakeholder audit frame; rerun the
+candidate with the default audit policy for `build_output_frame()`, plots, and
+full reports.
+
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving
 `emitted_command_count`. Use `report_level="audit"` when a replayable command
@@ -1093,6 +1257,47 @@ reactive session accounting path and skip the final replay while maintaining
 parity with `prepared.run(..., report_level="audit")`. `prepared.run(...)`
 returns the normal public
 `BacktestResultV2` and should be used for final audit/replay exports.
+
+For high-volume prepared optimization, use the zero-retention score contract:
+
+```python
+from quantbt import NativeEventScoreRequirements
+
+score = prepared.score(
+    DynamicGridStrategy(params),
+    trading_days=365,
+    score_requirements=NativeEventScoreRequirements.scalar_score_contract(),
+)
+report = score.full_report()
+```
+
+This returns `NativeEventScalarScoreResult`. It keeps scalar online metrics,
+live order state, counters, and final positions; it does not allocate full
+equity/position/fee/funding/margin paths, pandas reports, or a command tape.
+Its metrics are parity-locked to the same array-first report implementation.
+The compatibility call without `score_requirements` keeps the ndarray
+`NativeEventScoreResult` contract for existing callers that inspect paths.
+
+Strategies may opt out of callback payload objects when they do not consume
+them:
+
+```python
+class GridStrategy:
+    native_context_requirements = {
+        "fills": False,
+        "events": False,
+        "active_orders": False,
+        "positions": False,
+        "margin": False,
+    }
+```
+
+The declaration only changes context materialization. It never changes order
+timing, matching, fees, funding, margin, liquidation, or accounting formulas.
+`PreparedNativeEventStrategyEvaluator` uses the scalar contract by default and
+still accepts legacy list/tuple callback returns. Strategies that want an
+explicit immutable callback batch may return
+`NativeCommandBatch.from_commands(commands)`.
 
 Scoped cancel-all:
 
@@ -1540,6 +1745,7 @@ result = QuantBTEndpoint.portfolio(
     alloc_per_trade={"BTC": 50_000, "ETH": 50_000},
     initial_capital=1_000_000,
     leverage=3,
+    slippage_bps=2.0,
 ).backtest(
     positions=positions_df,
     data=data_dict,
@@ -1571,6 +1777,54 @@ dollar-neutral beta constraint.
 
 `dca_ladder` remains on the DCA/grid engine because it requires intrabar
 grid-trigger fills.
+
+Execution and accounting semantics:
+
+- portfolio is a vectorized close-to-close engine; it does not claim intrabar
+  portfolio fills;
+- QuantBT does not shift the signal matrix. Strategies must pass already-causal
+  targets;
+- `fee_rate` is canonical one-way. Legacy `fee` is round-trip and is converted
+  at the endpoint boundary only;
+- metadata records `canonical_one_way_fee_rate`;
+- `slippage_bps` is the source of truth for native portfolio slippage;
+- legacy `slippage` is accepted for compatibility and converted to
+  `slippage_bps`, but new code should prefer `slippage_bps`;
+- turnover is based on accepted traded delta:
+
+```text
+delta_qty = accepted_target_qty - previous_qty
+turnover_notional = abs(delta_qty) * execution_price * contract_size
+```
+
+- reversal `+1 -> -1` therefore records two units of traded turnover;
+- fees, slippage, turnover, symbol PnL, and rebalance reports are all derived
+  from the same accepted `delta_qty`;
+- buying-power checks use post-fee/post-slippage equity, including gross-neutral
+  reversals.
+
+Tradability and missing-data policy:
+
+- leading missing prices are not tradable;
+- non-tradable/stale symbols cannot be rebalanced on that bar;
+- existing positions may still mark to the last valid close when available;
+- `market_neutral` requires both long and short sides. If one side is missing,
+  the target is zeroed instead of becoming accidental directional exposure;
+- `risk_parity` is causal: rolling volatility uses only past/current close
+  returns and warm-up bars with insufficient observations target zero exposure.
+
+Native portfolio metadata includes:
+
+```python
+result.metadata["slippage_series"]
+result.metadata["slippage_total"]
+result.metadata["slippage_bps"]
+result.metadata["canonical_one_way_fee_rate"]
+result.metadata["rebalance_report"]
+result.metadata["symbol_pnl_report"]
+result.metadata["portfolio_reconciliation_report"]
+result.metadata["run_config"]["fees"]["applied_fee_source"]
+```
 
 Native portfolio report levels:
 

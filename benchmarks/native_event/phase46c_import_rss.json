@@ -1,0 +1,21 @@
+{
+  "cwd_for_child": "/tmp",
+  "import": {
+    "endpoint_module": "quantbt.endpoint",
+    "forbidden_modules": [],
+    "modules_loaded": 1007,
+    "rss_after_endpoint_export": 188170240,
+    "rss_after_import_quantbt": 188170240
+  },
+  "importtime": {
+    "importtime_line_count": 1014,
+    "importtime_tail": [
+      "import time:       545 |        545 |     quantbt.engines",
+      "import time:      8054 |      99700 |   quantbt.endpoint",
+      "import time:      1689 |     953641 | quantbt"
+    ]
+  },
+  "passed": true,
+  "phase": "46C",
+  "source_root": "/root/bobby/pool_alpha/quantbt/src"
+}

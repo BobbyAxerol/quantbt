@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "notes": [
+    "Thresholds are guardrails, not hard promises across every machine.",
+    "Use the same machine and Python environment when comparing commits.",
+    "Cython/C++ escalation requires repeated threshold misses after profiling identifies a hot loop."
+  ],
+  "native_vectorized": {
+    "smoke_max_runtime_seconds": 0.25,
+    "standard_max_seconds_per_million_bar_symbols": 1.5,
+    "large_max_seconds_per_million_bar_symbols": 1.0
+  },
+  "native_event": {
+    "smoke_max_runtime_seconds": 0.35,
+    "standard_max_seconds_per_100k_orders": 1.25,
+    "large_max_seconds_per_100k_orders": 0.9
+  },
+  "native_event_prepared": {
+    "smoke_max_runtime_seconds": 0.2,
+    "standard_max_seconds_per_100k_orders": 1.5,
+    "large_max_seconds_per_100k_orders": 1.1,
+    "purpose": "higher-level WFO/service replay with validated prepared market arrays and compiled orders"
+  },
+  "portfolio_legacy": {
+    "smoke_max_runtime_seconds": 0.5,
+    "standard_max_seconds_per_million_bar_symbols": 2.5,
+    "large_max_seconds_per_million_bar_symbols": 2.0,
+    "purpose": "multi-symbol portfolio matrix diagnostics and attribution"
+  },
+  "native_portfolio": {
+    "smoke_max_runtime_seconds": 0.5,
+    "standard_max_seconds_per_million_bar_symbols": 2.5,
+    "large_max_seconds_per_million_bar_symbols": 2.0,
+    "purpose": "explicit Phase 11B native portfolio route with legacy parity"
+  },
+  "nautilus": {
+    "smoke_max_runtime_seconds": 5.0,
+    "standard_max_seconds_per_100k_bars": 8.0,
+    "purpose": "validation oracle, not optimizer hot path"
+  },
+  "memory": {
+    "native_vectorized_max_peak_mb_per_million_bar_symbols": 180.0,
+    "native_event_max_peak_mb_per_100k_orders": 80.0
+  }
+}

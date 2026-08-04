@@ -1,6 +1,6 @@
 # QuantBT
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Numba](https://img.shields.io/badge/core-numba-00A86B)
 ![Backtesting](https://img.shields.io/badge/backtesting-vectorized%20%7C%20event--driven-black)
 ![Nautilus](https://img.shields.io/badge/nautilus-optional-6f42c1)
@@ -50,6 +50,48 @@ historical reproduction.
   production parameter discovery.
 - Domain-agnostic Optuna optimization adapters for prepared signal, intrabar,
   portfolio, and generic endpoint workflows.
+
+## Event-Driven Quick Start
+
+New event-driven integrations should use the stable facade. Choose an input
+mode, a retention profile, and a public backend; the facade keeps matching,
+fills, fees, slippage, margin, funding, and PnL in the existing native-event
+engine.
+
+```python
+from quantbt import QuantBTEndpoint
+
+bt = QuantBTEndpoint.event_driven(
+    input_mode="strategy",   # strategy | orders
+    profile="research",      # research | optimize | audit
+    backend="auto",          # auto | python | rust
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0005,          # one-way fee per fill
+    slippage_bps=2.0,
+    use_funding=False,
+)
+
+result = bt.simulate(data=df, strategy=strategy, symbols=["BTCUSDT"])
+bt.show_metrics()
+```
+
+Use `profile="research"` for compact notebook results, `"optimize"` for
+scalar parameter-search results, and `"audit"` for replay-certified fills and
+event artifacts. For an upstream order planner, switch to
+`input_mode="orders"` and pass `order_commands=[...]`. The default `auto`
+backend follows the release policy; `rust` is an explicit request for the
+optional capability-gated native wheel.
+
+The strategy owns signal generation and look-ahead control. QuantBT owns the
+causal order lifecycle and accounting. Advanced users can still call
+`native_event_strategy(...)` or `native_event_lifecycle(...)` directly when a
+custom low-level execution/report combination is required.
+
+See [`docs/endpoint.md`](docs/endpoint.md#stable-event-driven-facade) for the
+full strategy protocol, profile matrix, explicit-order example, conflict
+rules, and migration guidance. The broader endpoint map is in
+[`docs/README.md`](docs/README.md).
 
 ## Performance Philosophy
 
@@ -162,6 +204,227 @@ selection semantics inside `walkforward.py`. Read
 [`docs/optimization.md`](docs/optimization.md) and
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
+
+### Phase 46F package and dual-backend release evidence
+
+The core distribution is packaged as `quantbt-engine` and imports as
+`quantbt`. Its release gate is independent from the optional experimental Rust
+wheel:
+
+| Release artifact | Current status | Backend policy |
+|---|---|---|
+| `quantbt-engine==1.0.7` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
+| `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
+
+The committed Phase 46F rerun compares the same prepared static tape and keeps
+Python/Rust accounting parity at 100%:
+
+| Workload | Python median | Rust median | Python throughput | Rust throughput | Peak RSS | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| Low churn, 2,000 bars | 20.33 ms | 0.109 ms | 98,385 bars/s | 18.30M bars/s | 181.97 MB | pass |
+| High churn, 2,000 bars | 36.16 ms | 0.140 ms | 55,308 bars/s | 14.33M bars/s | 181.94 MB | pass |
+| Prepared RSS reduction | - | - | - | - | -26.1% / -7.6%; absolute budget pass | gate fail |
+
+These are score-kernel measurements, not claims about full facade/report
+runtime. The table reports raw median time and bars/second from five warmed
+repetitions so the result is readable without an internal speedup convention.
+The earlier Phase 45F end-to-end reference is retained in the JSON evidence
+for historical comparison. The evidence files are
+[`phase46e_release_gate.json`](benchmarks/native_event/phase46e_release_gate.json),
+[`phase46f_release_gate.json`](benchmarks/native_event/phase46f_release_gate.json),
+[`phase46d1_score_rss.json`](benchmarks/native_event/phase46d1_score_rss.json),
+and [`phase45f_release_gate.json`](benchmarks/native_event/phase45f_release_gate.json).
+
+Phase 47C Grid integration evidence uses the external read-only Grid alpha on
+the same deterministic 2,000-bar tape in both long-only and long-short modes:
+
+| Mode | Python scalar median | Rust scalar median | Python peak RSS | Rust peak RSS | Fingerprint parity |
+|---|---:|---:|---:|---:|---|
+| Long-only | 1.138 s | 1.245 s | 265.6 MB | 273.2 MB | pass |
+| Long-short | 1.846 s | 1.985 s | 291.1 MB | 293.4 MB | pass |
+
+These are full reactive facade measurements, not pure Rust kernel claims. Rust
+is currently slightly slower on this Grid integration but produces the same
+command/fill/accounting fingerprint and is explicit fail-fast; `auto` remains
+Python. The benchmark runner, five-run RSS slope gate, and scalar/audit
+fingerprint contract are documented in
+[`docs/grid_native_event_phase47c.md`](docs/grid_native_event_phase47c.md),
+with raw JSON under `benchmarks/native_event/results/phase47c/`. The RSS
+figures are the current Grid facade evidence; they are not compared directly
+to the older ~180 MB core-process profile without a like-for-like baseline.
+
+### Phase 47D Grid optimizer evidence
+
+Phase 47D profiles the real prepared Grid optimizer path by separating alpha
+preparation, strategy construction, engine score, and public report work. The
+safe patch removes per-bar Grid diagnostics and diagnostic alias columns only
+from scalar trials, while public/audit defaults remain unchanged. On the same
+2,000-bar deterministic tape:
+
+| Grid mode | Python scalar | Rust scalar | Python throughput | Rust throughput | Peak RSS Python/Rust | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| Long-only | 0.850 s | 1.086 s | 2,354 bars/s | 1,842 bars/s | 265.4 / 271.2 MB | pass |
+| Long-short | 1.412 s | 1.831 s | 1,416 bars/s | 1,092 bars/s | 291.0 / 293.6 MB | pass |
+
+The apples-to-apples prepared scalar profile measured `0.813s` in the local
+five-repeat profile. The timing breakdown shows the reactive engine callback
+at about `97.9%` and alpha preparation at about `2.2%`, so an indicator cache
+was deliberately not added. This evidence does not claim that Rust is faster
+for the Python reactive Grid facade; Rust remains explicit experimental and
+`auto` remains Python. See
+[`docs/grid_native_event_phase47c.md`](docs/grid_native_event_phase47c.md)
+for the scalar retention contract, RSS interpretation, and remaining debt.
+Raw Phase 47D artifacts are kept under
+`benchmarks/native_event/results/phase47d/`.
+
+### Phase 48F final release handoff
+
+The core `quantbt-engine` 1.0.7 artifact gate is now implemented locally and
+in the release workflows: exact version/ref validation, wheel and sdist
+`twine check`, archive allowlist and secret scan, clean import plus `pip check`,
+and a SHA256 release manifest. The TestPyPI workflow is manual and OIDC
+protected; it must be run with an unused matching RC version/tag and reviewed
+before production PyPI publication. See
+[`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
+`quantbt-native` is intentionally excluded from this core upload, `auto`
+remains Python, and explicit Rust remains capability-gated.
+
+### Phase 48C stable event-driven facade evidence
+
+The stable `QuantBTEndpoint.event_driven()` facade was benchmarked on the same
+deterministic **2,000-bar** single-symbol baseline as the direct native-event
+strategy constructor. Each route ran in a fresh process with five measured
+repetitions. The Grid workload is reported separately because indicator
+preparation and reactive state-machine work are part of its runtime.
+
+| Common route | Median runtime | Throughput | Peak RSS | Fills | Final Equity | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| `native_event_strategy` | 161.20 ms | 12,407 bars/s | 184.2 MB | 109 | 19,998.269072 | baseline |
+| `event_driven(profile="research")` | 154.54 ms | 12,942 bars/s | 183.4 MB | 109 | 19,998.269072 | pass |
+
+Separate reactive Grid benchmark on 2,000 bars:
+
+| Grid route | Median runtime | Throughput | Peak RSS | Fills | Final Equity | Parity |
+|---|---:|---:|---:|---:|---:|---|
+| direct `native_event_strategy` | 1.4187 s | 1,410 bars/s | 274.5 MB | 839 | 28,972.788456 | baseline |
+| `event_driven(profile="audit")` | 1.3986 s | 1,430 bars/s | 274.5 MB | 839 | 28,972.788456 | pass |
+
+Both comparisons have identical accounting fingerprints, including equity,
+positions, fees, funding, margin, lifecycle counters, fills, and liquidation
+state. The facade adds no second execution loop; the small runtime difference
+is measurement noise and configuration resolution. Reproduce with
+`benchmarks/benchmark_phase48c_event_driven.py`; raw evidence is in
+[`phase48c_event_driven_facade.md`](benchmarks/phase48c_event_driven_facade.md)
+and [`phase48c_event_driven_facade.json`](benchmarks/phase48c_event_driven_facade.json).
+
+The release workflow is documented in
+[`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
+wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
+OIDC, then publish the final core package through the protected PyPI
+environment. The exact handoff fields and artifact-hash procedure are in
+[`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
+No long-lived token is required. Native optimization remains an
+open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,
+intrabar, and Nautilus adapter workloads; each future route needs its own
+parity and RSS certification.
+
+### Pre-48E apples-to-apples native event evidence
+
+The native-event headline below uses one deterministic **2,000-bar**,
+single-symbol tape, a fresh process per route, the same compiled command tape,
+separate score/audit runs, and seven measured warm repetitions. Runtime is in
+seconds, throughput is bars per second, and RSS is peak resident memory. Every
+Python/Rust score and audit fingerprint passed accounting and lifecycle parity
+(equity, positions, fees, funding, margin, fills, and event counters).
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.087736 | 22,796 bars/s | 183.2 | pass |
+| Common low churn | Rust score | 0.188448 | 10,613 bars/s | 185.7 | pass |
+| Common low churn | Python audit | 0.087327 | 22,902 bars/s | 240.8 | pass |
+| Common low churn | Rust audit | 0.176075 | 11,359 bars/s | 243.9 | pass |
+| Common high churn | Python score | 0.086609 | 23,092 bars/s | 182.9 | pass |
+| Common high churn | Rust score | 0.188299 | 10,621 bars/s | 186.1 | pass |
+| Common high churn | Python audit | 0.119269 | 16,769 bars/s | 241.2 | pass |
+| Common high churn | Rust audit | 0.198521 | 10,074 bars/s | 243.1 | pass |
+
+The safe Python patch improved the common low-churn score from `0.148483s`
+to `0.087736s` on the frozen pre-patch baseline, without skipping any domain
+accounting or quantity preflight when constraints are enabled. Explicit order
+and Rust full-tape results are also recorded, but they are kept as route-level
+evidence rather than used to imply that every reactive strategy is faster in
+Rust. Reactive Grid has a separate workload and remains outside this common
+native-event headline.
+
+Reproduce the gate with
+[`benchmark_pre48e.py`](benchmarks/native_event/benchmark_pre48e.py). Read the
+full before/after table and parity fingerprints in
+[`pre48e/report.md`](benchmarks/native_event/results/pre48e/report.md); the
+raw JSON artifacts are versioned beside it.
+
+### Phase 48E native-event boundary evidence
+
+The Phase 48E rerun keeps the same 2,000-bar tape, seven warm repetitions,
+fresh-process routes, separate score/audit profiles, and `atol <= 1e-12`
+accounting parity. The full raw result is in
+[`phase48e/after.md`](benchmarks/native_event/results/phase48e/after.md).
+The common rows are the comparable native-event/event-driven workload; the
+explicit rows are a separate compiled-tape workload and must not be read as a
+claim that Rust is faster for every Python callback strategy.
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.094448 | 21,176 bars/s | 182.0 | pass |
+| Common low churn | Rust score | 0.179506 | 11,142 bars/s | 183.9 | pass |
+| Common low churn | Python audit | 0.093893 | 21,301 bars/s | 239.0 | pass |
+| Common low churn | Rust audit | 0.178550 | 11,201 bars/s | 242.6 | pass |
+| Common high churn | Python score | 0.107369 | 18,627 bars/s | 183.5 | pass |
+| Common high churn | Rust score | 0.188549 | 10,607 bars/s | 185.2 | pass |
+| Common high churn | Python audit | 0.106375 | 18,801 bars/s | 241.1 | pass |
+| Common high churn | Rust audit | 0.208654 | 9,585 bars/s | 241.3 | pass |
+
+Phase 48E also reduced the static explicit Rust score to `0.000302s`
+(`6,614,704 bars/s`) on the low-churn tape and `0.000392s`
+(`5,103,342 bars/s`) on the high-churn tape. Those numbers benefit from the
+scalar Rust output contract and prepared command-tape reuse, so they are
+reported separately from callback execution. Rust and Python fingerprints,
+fees, positions, fills, events, rejection counters, and final equity passed.
+`backend="auto"` remains Python and `[native]` remains empty until the public
+`quantbt-native` wheel matrix is clean-install certified.
+
+### Phase 48E.1 native production-closure evidence
+
+The Phase 48E.1 rerun uses the same isolated 2,000-bar tape, fresh subprocesses,
+seven warm runs, separate score/audit routes, and exact Python/Rust fingerprints.
+The complete report is [`phase48e1/after.md`](benchmarks/native_event/results/phase48e1/after.md).
+This table separates the explicit prepared-tape path from the generic callback
+facade; it is not a universal Rust speed claim.
+
+| Workload | Route | Runtime s | Throughput | Peak RSS MB | Parity |
+|---|---|---:|---:|---:|---|
+| Common low churn | Python score | 0.085853 | 23,296 bars/s | 182.2 | pass |
+| Common low churn | Rust score | 0.218293 | 9,162 bars/s | 185.7 | pass |
+| Common low churn | Python audit | 0.095110 | 21,028 bars/s | 239.4 | pass |
+| Common low churn | Rust audit | 0.230769 | 8,667 bars/s | 242.1 | pass |
+| Common high churn | Python score | 0.091562 | 21,843 bars/s | 182.1 | pass |
+| Common high churn | Rust score | 0.222166 | 9,002 bars/s | 185.1 | pass |
+| Common high churn | Python audit | 0.104712 | 19,100 bars/s | 239.6 | pass |
+| Common high churn | Rust audit | 0.237654 | 8,416 bars/s | 241.4 | pass |
+| Explicit low churn | Python score | 0.023777 | 84,114 bars/s | 180.4 | pass |
+| Explicit low churn | Rust score | 0.000289 | 6,921,851 bars/s | 181.6 | pass |
+| Explicit low churn | Python audit | 0.007385 | 270,814 bars/s | 237.7 | pass |
+| Explicit low churn | Rust audit | 0.004357 | 459,060 bars/s | 182.0 | pass |
+| Explicit high churn | Python score | 0.021689 | 92,214 bars/s | 180.2 | pass |
+| Explicit high churn | Rust score | 0.000366 | 5,461,021 bars/s | 181.9 | pass |
+| Explicit high churn | Python audit | 0.013703 | 145,952 bars/s | 239.6 | pass |
+| Explicit high churn | Rust audit | 0.006469 | 309,174 bars/s | 183.1 | pass |
+
+Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
+reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
+validated Rust order state, and reset/compaction parity. `auto` remains Python;
+the native extra remains empty until the CPython 3.11/3.12/3.13 manylinux
+clean-install workflow passes.
 
 Ecosystem positioning:
 
@@ -323,23 +586,44 @@ fills, positions, account state, and performance report.
 
 ## Install
 
-Minimal research stack:
+Install the released core package:
 
 ```bash
-pip install numpy pandas numba matplotlib seaborn
+pip install quantbt-engine==1.0.7
 ```
 
-Workspace or Poetry environment:
+Optional reports and third-party validation:
 
 ```bash
-poetry install
+pip install "quantbt-engine[reports,validation]==1.0.7"
 ```
 
-Optional validation and reporting:
+Development from this repository:
 
 ```bash
-poetry add nautilus-trader quantstats
+uv sync --extra optimization --extra reports --extra viz --dev
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event
 ```
+
+For core-only package/build validation, use the smaller dependency boundary
+used by the native gate:
+
+```bash
+uv sync --dev
+uv build
+uv run twine check dist/*
+```
+
+Pool Alpha and notebooks can continue using an editable checkout while a
+feature is under development:
+
+```bash
+pip install -e /root/bobby/pool_alpha/quantbt
+```
+
+After the release is approved, downstream services should use
+`pip install quantbt-engine==1.0.7` and keep the unchanged import
+`from quantbt import QuantBTEndpoint`.
 
 ## Quick Start
 
@@ -534,7 +818,8 @@ Key examples:
 ## Development
 
 ```bash
-PYTHONPATH=/path/to/pool_alpha poetry run pytest -q quantbt/tests
+uv sync --extra optimization --extra reports --extra viz --dev
+.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event
 ```
 
 Contribution workflow:

@@ -10,7 +10,7 @@ from quantbt import (
     scan_alpha_directory,
 )
 from quantbt.benchmarks.run_phase31_intrabar import make_markdown, run_benchmark
-from quantbt.tools.audit_alpha_execution_contracts import main as audit_main
+from tools.audit_alpha_execution_contracts import main as audit_main
 
 
 def test_phase31d_classifies_execution_sensitive_sources():

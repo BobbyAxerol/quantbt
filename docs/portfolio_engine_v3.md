@@ -118,14 +118,20 @@ Covered mock scenarios:
 - long-only;
 - short-only;
 - long/short;
+- long-to-short and short-to-long reversal turnover;
 - market-neutral rebalance;
+- market-neutral missing-side rejection/zero exposure;
 - equal-weight rebalance;
-- inverse-volatility risk-parity allocation;
+- causal inverse-volatility risk-parity allocation without backward-filled
+  warm-up;
 - beta-neutral allocation;
 - price drift without signal change;
 - missing data;
+- leading missing/non-tradable price;
 - fee and funding reconciliation;
+- slippage reconciliation;
 - leverage and buying-power gate;
+- post-cost reversal margin rejection;
 - margin rejection;
 - liquidation audit without fake force-flat fees.
 
@@ -141,6 +147,101 @@ Default-readiness status:
   `benchmarks/portfolio_real_parity_report.md`;
 - `dca_ladder` is intentionally rejected by native portfolio and remains on the
   DCA/grid endpoint.
+
+## Phase 41 - Corrected Close-To-Close Portfolio Accounting
+
+Phase 41 fixes the production accounting contract for native portfolio
+long/short and risk-parity research while keeping the endpoint stable.
+
+The engine remains a close-to-close vectorized portfolio simulator. It does not
+shift signals and does not claim intrabar portfolio fills. Strategies must pass
+causal target positions at the intended execution timestamp.
+
+Canonical rebalance delta:
+
+```text
+delta_qty = accepted_target_qty - previous_qty
+```
+
+All rebalance accounting now derives from this one delta:
+
+```text
+traded_notional = abs(delta_qty) * execution_price * contract_size
+fee_cost        = traded_notional * one_way_fee_rate
+slippage_cost   = abs(delta_qty) * close * contract_size * slippage_rate
+```
+
+This matters most for reversals. A move from `+1` to `-1` is a trade of
+`2 units`, not zero turnover from unchanged absolute exposure.
+
+Slippage uses `ExecutionConfig.slippage_bps`:
+
+```python
+from quantbt import ExecutionConfig, QuantBTEndpoint
+
+bt = QuantBTEndpoint.portfolio(
+    portfolio_mode="longshort",
+    hedge_type="target_units",
+    execution=ExecutionConfig(slippage_bps=2.0),
+    fee_rate=0.0002,  # canonical one-way fee
+)
+```
+
+QuantBT uses one fee contract across native backends:
+
+```text
+fee_rate = one-way fee charged on each accepted fill side
+```
+
+Legacy `fee` remains accepted for old notebooks and means round-trip fee. The
+compatibility layer converts `fee` to canonical one-way fee before native
+portfolio sees it. Explicit `fee_rate` has priority over `fee`.
+
+The historical `MultiSymbolPortfolio` class follows the same rule after Phase
+41: `fee_rate` is one-way; `fee` is the optional round-trip compatibility alias.
+
+Native portfolio metadata exposes:
+
+```python
+result.metadata["fee_rate_oneway"]
+result.metadata["canonical_one_way_fee_rate"]
+result.metadata["slippage_bps"]
+result.metadata["fee_total"]
+result.metadata["slippage_total"]
+result.metadata["turnover_total"]
+result.metadata["slippage_series"]
+result.metadata["portfolio_reconciliation_report"]
+```
+
+The reconciliation report checks portfolio totals against symbol-level
+attribution for fee, slippage, PnL, and accepted positions. Full reports also
+assign specific rebalance rejection reasons such as `NON_TRADABLE`,
+`STALE_PRICE`, `POST_COST_MARGIN`, `INVALID_TARGET`, `MIN_QTY`, and
+`MIN_NOTIONAL` where the available arrays can identify the cause.
+
+Buying-power validation is post-cost:
+
+```text
+post_trade_equity = equity - fee_cost - slippage_cost
+
+post_trade_equity >= target_initial_margin
+post_trade_equity >= target_maintenance_margin
+```
+
+This prevents a same-gross reversal such as `+1 -> -1` from being accepted when
+fees/slippage would push equity below margin requirement.
+
+Risk parity is causal. Rolling volatility no longer uses backward-fill. Warm-up
+bars without enough observations produce zero risk-parity exposure. This avoids
+using future volatility information to size early bars.
+
+Missing-price handling is explicit for native portfolio:
+
+- leading missing price is not tradable;
+- rebalance on a non-tradable symbol is rejected atomically;
+- held positions can still mark on the last valid price;
+- future work may expose structured rejection reason codes and stricter stale
+  policies.
 
 ## Phase 11D - Nautilus Validation
 

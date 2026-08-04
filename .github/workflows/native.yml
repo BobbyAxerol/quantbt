@@ -1,0 +1,122 @@
+name: Native Event API 0.4 Gate
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-event-api-04:
+    name: Native Event API 0.4 / CPython ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install core test environment
+        # The native gate needs the optimization dependencies used by the
+        # shared test suite, but not the optional Nautilus/report/viz extras.
+        # Keeping those out avoids importing a large third-party stack in
+        # every CPython matrix job.
+        run: uv sync --locked --extra optimization --dev
+
+      - name: Rust format, lint, and tests
+        working-directory: rust/native_event
+        run: |
+          cargo fmt --check
+          cargo clippy -- -D warnings
+          cargo test
+
+      - name: Build core wheel from this ref
+        run: uv build --out-dir dist/core
+
+      - name: Build native wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out dist/native
+          manylinux: "2014"
+
+      - name: Clean combined core and native wheel install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-native-combined-smoke
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip install dist/core/quantbt_engine-*.whl dist/native/quantbt_native-*.whl
+          /tmp/quantbt-native-combined-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-native-combined-smoke/bin/python - <<'PY'
+          from quantbt import QuantBTEndpoint
+          import _quantbt_native
+
+          assert _quantbt_native.api_version() == "0.4"
+          required = {
+              "native_event_v2_full_contract",
+              "native_event_v2_multisymbol",
+              "native_event_v2_funding",
+              "native_event_v2_liquidation",
+              "native_event_v2_cancel_all_oco",
+              "native_event_v2_tif_expiry",
+              "native_event_v2_relationships",
+              "native_event_v2_quantity_preflight",
+          }
+          capabilities = _quantbt_native.capabilities()
+          missing = {
+              key for key in required if not capabilities.get(key, False)
+          }
+          assert not missing, sorted(missing)
+          print(QuantBTEndpoint)
+          print("Native Event API 0.4 capabilities: PASS")
+          PY
+
+      - name: Install native wheel into core test environment
+        run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+
+      - name: Native Event full suite
+        run: .venv/bin/python -m pytest -q tests/native_event
+
+      - name: API 0.4 full-contract closure tests
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: |
+          .venv/bin/python -m pytest -q \
+            tests/native_event/test_phase48e1_closure.py \
+            tests/native_event/contract/test_phase47b_full_contract.py \
+            tests/native_event/test_reactive_callback_contract.py
+
+      - name: Prepared score RSS and parity gate
+        run: |
+          .venv/bin/python benchmarks/run_phase45b_native_event_score_rss.py --rows 1000 --repeats 25 --json-out /tmp/phase45b-score-rss.json
+          .venv/bin/python -c "import json; p=json.load(open('/tmp/phase45b-score-rss.json')); assert p['parity']; assert p['score_faster_than_audit']; assert p['score_rss_not_higher_than_audit']"
+
+      - name: Rust RSS benchmark smoke
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: .venv/bin/python benchmarks/native_event/benchmark_reactive_session.py --backend rust

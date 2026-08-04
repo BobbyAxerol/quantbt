@@ -1,0 +1,21 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include pyproject.toml
+
+recursive-include src/quantbt *.py py.typed
+
+global-exclude *.pem
+global-exclude *.key
+global-exclude .env
+global-exclude .env.*
+global-exclude .pypirc
+
+prune upgrade/private
+prune upgrade/local
+prune upgrade/drafts
+prune benchmarks
+prune artifacts
+prune data/raw
+prune data/private
+prune data/local

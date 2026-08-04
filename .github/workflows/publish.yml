@@ -1,0 +1,173 @@
+name: Publish quantbt-engine
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --extra optimization --extra reports --extra viz --dev
+
+      - name: Check release version
+        if: matrix.python-version == '3.12'
+        run: uv run python tools/check_release_version.py
+
+      - name: Test
+        run: >-
+          .venv/bin/python -m pytest -q
+          --ignore=tests/test_real.py
+          --ignore=tests/test_real_endpoints.py
+          --ignore=tests/native_event
+          --ignore=tests/test_phase47a_grid_adapter.py
+          --ignore=tests/test_phase47c_grid_parity.py
+          --ignore=tests/test_phase47d_grid_optimizer.py
+
+      - name: Build
+        run: uv build
+
+  build:
+    name: Build distribution
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: uv sync --locked --dev
+
+      - name: Check release version
+        run: uv run python tools/check_release_version.py
+
+      - name: Build package
+        run: |
+          rm -rf dist release-manifest.json
+          uv build
+
+      - name: Validate distribution metadata
+        run: uv run twine check --strict dist/*
+
+      - name: Inspect release surfaces
+        run: |
+          git ls-files --error-unmatch upgrade/implement.md
+          test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*.tar.gz' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -type f -name 'quantbt_engine-*-py3-none-any.whl' -print -quit)"
+          if find dist -maxdepth 1 -type f \( -iname '*quantbt_native*' -o -iname '*manylinux*' \) | grep -q .; then
+            echo "ERROR: native artifact found in core PyPI release"
+            exit 1
+          fi
+          python "$GITHUB_WORKSPACE/tools/scan_public_secrets.py" --root "$GITHUB_WORKSPACE"
+          python "$GITHUB_WORKSPACE/tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist"
+
+      - name: Create release manifest
+        run: >-
+          uv run python tools/create_release_manifest.py
+          --dist dist
+          --output release-manifest.json
+          --require-clean
+
+      - name: Clean wheel install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-wheel-smoke
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
+          /tmp/quantbt-wheel-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-wheel-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
+
+      - name: Clean sdist install smoke
+        shell: bash
+        run: |
+          python -m venv /tmp/quantbt-sdist-smoke
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
+          /tmp/quantbt-sdist-smoke/bin/python -m pip check
+          cd /tmp
+          /tmp/quantbt-sdist-smoke/bin/python - <<'PY'
+          import pathlib
+          import quantbt
+
+          path = pathlib.Path(quantbt.__file__).resolve()
+          assert "site-packages" in path.parts, path
+          print(path)
+          PY
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-release-manifest
+          path: release-manifest.json
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    if: ${{ !github.event.release.prerelease && !github.event.release.draft }}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
+
+      - name: Publish with PyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
