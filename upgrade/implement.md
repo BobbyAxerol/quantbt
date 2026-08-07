@@ -11240,3 +11240,214 @@ The plan deliberately does not promise further raw benchmark gains before
 TestPyPI. Any future native DSL, portfolio/arbitrage/options native backend,
 or deeper reactive callback optimization must be a new parity-first upgrade
 after this release gate rather than being mixed into the packaging release.
+
+---
+
+## Phase 49 - Causal Per-Fold Walk-Forward Retraining
+
+**Status: planned only. No engine, endpoint, documentation, or behavior change
+has been made under this roadmap.**
+
+### Why This Phase Exists
+
+The existing multi-fold WFO lifecycle builds every fold, runs one Optuna study
+over the aggregate of their train windows, selects one global parameter set,
+then stitches all OOS outputs. The existing Mode 4 selector is IS-only at the
+trial/candidate level, but later train windows contain periods that were OOS
+for earlier folds. Therefore the current global lifecycle is appropriate for
+retrospective global-parameter calibration, not a strict historical causal
+retraining claim for the earliest OOS folds.
+
+This roadmap adds an explicit *schedule*, not a sixth mixed objective mode:
+
+```python
+optimization_mode="mode_4_is_only_robust"
+optimization_schedule="per_fold_causal"
+```
+
+`optimization_mode` continues to mean *how candidates are scored/selected*.
+`optimization_schedule` means *when a fresh parameter search is allowed*.
+This keeps the five existing modes stable and makes the lifecycle visible to
+notebooks, services, and audit consumers.
+
+Authoritative current-code references before implementation:
+
+- `walkforward.py::WalkForwardEngine.run`, `optimize_params`,
+  `evaluate_params_is`, and `stitch_oos_outputs`;
+- `endpoint.py::_run_walk_forward`, which routes one stitched OOS target tape
+  through the normal account engine exactly once;
+- `docs/` WFO methodology and `docs/endpoint.md` for public contract updates.
+
+### Public Contract To Add
+
+Add one optional, backward-compatible parameter to both
+`QuantBTEndpoint.walk_forward(...)` and
+`QuantBTEndpoint.train_test_split(...)`, and to `WalkForwardConfig`:
+
+```python
+optimization_schedule: str = "global"
+```
+
+Allowed values:
+
+| Value | Meaning | Historical causality claim |
+|---|---|---|
+| `global` | Current behavior: one study and one parameter set across all folds. | No causal multi-fold claim; retrospective global calibration. |
+| `per_fold_causal` | Chronologically optimize on each fold's own train window, freeze that fold's params, then emit only its next OOS window. | Strict fold-local retraining, subject to a causal strategy implementation. |
+
+The existing default remains `global`; no current notebook, endpoint call, or
+stored result may change merely because this feature is added.
+
+`per_fold_causal` must initially certify `mode_4_is_only_robust` as the
+recommended strict selector. Mode 1 must not silently be treated as causal,
+because its decay objective consumes real OOS metrics. Mode 5 must reject the
+schedule because it explicitly treats supplied history as full-sample
+calibration. Any support decision for Modes 2 and 3 must be explicit,
+train-only, documented, and covered by tests; unsupported combinations must
+raise rather than fall back to `global`.
+
+The schedule also adds an explicit boundary policy:
+
+```python
+fold_boundary_position_policy: str = "carry"
+```
+
+`carry` is the only planned default. It does not fabricate a close/reopen at a
+retraining boundary: the final account run receives the actual stitched target
+series and trades only its normal target delta. A future explicit `flatten`
+policy may be added only with dedicated domain tests; it is not implied by
+retraining.
+
+### Phase 49A - Causal Fold-Local Optimization Core And Audit Contract
+
+Goal:
+
+Implement strict chronological re-training for the new schedule without
+changing `global` behavior.
+
+Scope:
+
+- Extend `WalkForwardConfig`, endpoint factories, validation, compatibility
+  matrix, and public docstrings with `optimization_schedule="global"`.
+- For `per_fold_causal`, iterate folds chronologically. For each fold:
+  1. create an independent deterministic Optuna study using only
+     `fold.train_index`;
+  2. score/choose candidates only from that train window;
+  3. lock the selected parameter set before any OOS candidate execution;
+  4. invoke the strategy to emit only `fold.test_index` output;
+  5. append that output and immutable selection ledger to the chronological
+     OOS tape.
+- Derive reproducible fold seeds from the configured base seed and `fold_id`;
+  no fold may share mutable Optuna state with a later fold.
+- For the strict Mode 4 path, prohibit OOS candidate scoring before selection.
+  The candidate ledger is IS-only; OOS metrics are recorded only for the one
+  previously selected, frozen parameter set as a post-selection realization.
+- Preserve strategy context: IS scoring may expose data only through the train
+  end; OOS execution may expose data through that fold's test end. QuantBT
+  cannot prove that user strategy code is causal internally, so this contract
+  and requirement must be documented.
+- Reuse existing `stitch_oos_outputs(...)`; do not concatenate per-fold equity
+  curves or reset capital. The final target tape must continue to route once
+  into `_run_single`, portfolio, basket, or arbitrage as currently supported.
+- Keep `WalkForwardResult.params` backward-compatible and add unambiguous
+  schedule-specific fields rather than pretending all folds used one params
+  dictionary.
+
+Required audit metadata:
+
+```text
+optimization_schedule
+causality_claim
+oos_used_for_selection
+params_by_fold
+fold_selection_table
+selection_data_start / selection_data_end
+test_start / test_end
+fold_seed
+selected_trial_id
+selected_is_objective
+candidate_count
+fold_boundary_position_policy
+```
+
+For `global`, add a truthful metadata classification such as
+`retrospective_global_calibration`; preserve all existing values for backward
+compatibility. For `per_fold_causal`, emit
+`strict_fold_local_retraining` and `oos_used_for_selection=False`.
+
+Phase 49A tests:
+
+- deterministic two-regime mock: earlier and later folds select different
+  expected params from their own train data;
+- assert each fold Optuna record has no OOS metric/decay during selection;
+- append-future **prefix invariance**: adding future bars must not change
+  params or OOS output of already completed folds;
+- exact parity for current `optimization_schedule="global"` behavior;
+- single `train_test_split` parity: `per_fold_causal` and one-fold Mode 4
+  retain strict train-only selection;
+- invalid schedule/mode combinations raise actionable errors.
+
+### Phase 49B - Continuous Account Boundary Certification, Documentation, And Release Gate
+
+Goal:
+
+Prove that fold-local parameter changes do not create artificial account
+resets, hidden closes, duplicated fees, or discontinuous percent-equity sizing.
+
+Scope:
+
+- Add boundary diagnostics derived from the stitched target tape and final
+  account result: target before/after boundary, observed target delta, accepted
+  trade count, fee/slippage, and whether an actual position transition occurred.
+- Certify the default `carry` behavior:
+  - equal targets across a boundary generate no artificial order;
+  - flat/reversal/size-change targets produce exactly the normal single target
+    delta and normal cost treatment;
+  - no capital, cash, funding, margin, liquidation, or percent-equity state is
+    reset at a fold boundary.
+- Detect and report signal gaps: missing OOS bars or an unexpected `fill_value`
+  zero at a boundary must be observable in metadata, never silently confused
+  with a deliberate flat signal.
+- Keep final accounting one-pass and existing-domain-native:
+  `pct_equity` continues to use current continuous equity, native portfolio
+  keeps its own rebalance/account path, and package routes retain their current
+  compatibility constraints.
+- Update endpoint docstrings, `docs/endpoint.md`, WFO methodology, examples,
+  and `walkforward_support_matrix()` to distinguish:
+  - `global`: retrospective global calibration;
+  - `per_fold_causal`: causal fold-local retraining;
+  - `train_test_split`: one frozen IS-to-holdout validation.
+
+Phase 49B tests and gates:
+
+- one target held across a quarterly boundary: zero extra turnover, fee, or
+  close/reopen;
+- long-to-flat and long-to-short boundaries: exact expected target delta,
+  turnover, fee, and slippage;
+- `%_equity` rolling WFO: final equity equals a one-pass manual stitched-target
+  baseline and is not an average/concatenation of fold equities;
+- funding/margin smoke across a boundary with no reset;
+- target signal gap/NaN policy test with explicit audit reason;
+- endpoint/report metadata parity for `signal_notional`, `%_equity`, and every
+  currently supported WFO route;
+- full WFO/endpoint regression suite plus a realistic multi-fold smoke
+  fixture.
+
+Release condition:
+
+```text
+global behavior remains parity-locked;
+per_fold_causal passes prefix invariance;
+no OOS candidate metric influences any fold selection;
+one-pass account parity and boundary-cost tests pass;
+docs make calibration-vs-validation scope unambiguous.
+```
+
+Non-goals for this roadmap:
+
+- proving arbitrary user strategy code free of internal indicator look-ahead;
+- automatic intrabar/order-level state transfer between separate strategy
+  objects; this roadmap transfers target positions through the existing final
+  account engine;
+- changing the five existing objective semantics or silently upgrading current
+  `global` WFO notebooks.
