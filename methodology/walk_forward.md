@@ -40,6 +40,30 @@ Tham số split: `split_mode`, `split_frequency`, `window_mode`, `train_window`,
 `min_train_bars`, `min_test_bars`. `expanding` dùng toàn bộ lịch sử trước OOS;
 `rolling` chỉ dùng cửa sổ train gần nhất.
 
+### 2.1. Global Và Per-Fold Optimization Schedule
+
+`optimization_mode` trả lời câu hỏi *chấm và chọn params như thế nào*.
+`optimization_schedule` trả lời câu hỏi *khi nào tạo một study mới*.
+
+`global` giữ behavior lịch sử: một Optuna study đánh giá toàn bộ folds và chọn
+một params chung. Đây là retrospective global calibration; train window của
+fold sau có thể chứa giai đoạn từng là OOS của fold trước.
+
+`per_fold_decay` chỉ dành cho Mode 1 trong Phase 49A. Với mỗi outer fold (k),
+QuantBT tạo study độc lập, rank toàn bộ trials trên (D_{\mathrm{IS},k}), freeze
+top-IS candidate pool, rồi dùng chính (D_{\mathrm{OOS},k}) để đo decay và chọn
+candidate của fold đó. Vì OOS tham gia selection, kết quả là
+`selection_adjusted_oos`, không phải untouched holdout.
+
+`per_fold_causal` chỉ dành cho Mode 4 trong Phase 49A. Params được chọn hoàn
+toàn từ (D_{\mathrm{IS},k}), freeze trước khi outer OOS được chạy. Đây là
+strict fold-local retraining nếu strategy implementation cũng causal.
+
+Mỗi fold có study, duplicate state và deterministic seed riêng. Khi fold hoàn
+tất, QuantBT stitch target OOS theo chronology và chạy account engine đúng một
+lần. Policy `carry` giữ position/equity liên tục; boundary không tự reset vốn
+hay tạo close/reopen.
+
 ---
 
 ## 3. Strategy Contract

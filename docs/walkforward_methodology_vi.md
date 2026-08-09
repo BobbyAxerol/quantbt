@@ -160,6 +160,45 @@ Do đó OOS chỉ ảnh hưởng ở bước chọn cuối trong một tập nh�
 
 Nhưng nó giảm đáng kể rủi ro optimizer học trực tiếp OOS.
 
+### 3.1. Optimization Schedule Của Phase 49A
+
+QuantBT tách objective khỏi lifecycle bằng `optimization_schedule`.
+
+`global` là behavior cũ: một Optuna study chạy trên aggregate train folds và
+chọn một params cuối cho toàn timeline. Cách này phù hợp khi mục tiêu là tìm
+một bộ tham số global mang tính retrospective calibration.
+
+`per_fold_decay` áp dụng cho `mode_1_decay`. Mỗi outer fold có study độc lập:
+
+```text
+all trials on fold IS
+-> freeze top-IS candidates
+-> evaluate those candidates on the same fold OOS
+-> select by existing robust_decay objective
+-> emit that fold OOS target
+-> create a new study for the next fold
+```
+
+OOS không được Optuna sampler nhìn trực tiếp ở trial stage, nhưng nó vẫn được
+dùng ở final candidate selection. Vì vậy đây là fold-local decay calibration,
+không phải untouched OOS. Nó trả lời câu hỏi: “nếu hiệu chỉnh riêng trong từng
+regime, candidate nào giữ edge tốt nhất sang đoạn kế tiếp?”
+
+`per_fold_causal` áp dụng cho `mode_4_is_only_robust`. Mỗi fold chọn params chỉ
+từ IS temporal/plateau evidence, freeze params, rồi mới chạy outer OOS đúng một
+lần. OOS metric chỉ là realized audit outcome và không thể thay đổi selected
+params của fold đó.
+
+Trong cả hai schedule, fold sau có thể dùng dữ liệu của fold trước vì tại thời
+điểm lịch sử đó dữ liệu đã tồn tại. Điều bị cấm là fold hiện tại nhìn bars sau
+`test_end`, hoặc một global study dùng future folds để sửa params của fold đã
+hoàn tất.
+
+QuantBT truyền strategy một data view kết thúc đúng tại `train_end` cho IS và
+`test_end` cho OOS. Target của các fold được stitch trước khi account engine
+chạy một lần. `fold_boundary_position_policy="carry"` đảm bảo không reset
+equity, không tự flatten và không nhân đôi fee tại retraining boundary.
+
 ---
 
 ## 4. Fold-Level Metrics
@@ -845,4 +884,3 @@ Một backtest đáng tin không phải backtest có Sharpe cao nhất.
 
 Một backtest đáng tin là backtest có methodology chọn params minh bạch,
 ít leak, có kiểm định robustness, và có thể audit.
-

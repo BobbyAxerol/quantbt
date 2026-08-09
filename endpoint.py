@@ -1410,6 +1410,8 @@ class QuantBTEndpoint:
         window_mode: str = "expanding",
         train_window: Optional[str] = None,
         optimization_mode: str = "none",
+        optimization_schedule: str = "global",
+        fold_boundary_position_policy: str = "carry",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1426,6 +1428,12 @@ class QuantBTEndpoint:
         Supported optimization modes are `mode_1_decay`, `mode_2_sbb`,
         `mode_3_flat_minima`, `mode_4_is_only_robust`, and
         `mode_5_full_robust`.
+        `optimization_schedule="global"` preserves the existing one-study
+        behavior. `per_fold_decay` runs Mode 1 as one independent two-stage
+        study per fold and uses that fold's OOS metrics for decay candidate
+        selection. `per_fold_causal` runs Mode 4 as strict fold-local IS-only
+        selection. Per-fold schedules keep one continuous final account run;
+        Phase 49A supports `fold_boundary_position_policy="carry"` only.
         Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
@@ -1449,6 +1457,8 @@ class QuantBTEndpoint:
                 train_window=train_window,
                 target_mode=target_mode,
                 optimization_mode=optimization_mode,
+                optimization_schedule=optimization_schedule,
+                fold_boundary_position_policy=fold_boundary_position_policy,
                 optuna_trials=optuna_trials,
                 optuna_early_stopping=optuna_early_stopping,
                 random_seed=random_seed,
@@ -1531,6 +1541,8 @@ class QuantBTEndpoint:
         window_mode: str = "expanding",
         train_window: Optional[str] = None,
         optimization_mode: str = "none",
+        optimization_schedule: str = "global",
+        fold_boundary_position_policy: str = "carry",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1548,6 +1560,9 @@ class QuantBTEndpoint:
         walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`,
         `mode_3_flat_minima`, `mode_4_is_only_robust`, and
         `mode_5_full_robust`.
+        The optional optimization schedule has the same contract as
+        `walk_forward(...)`; the per-fold schedules create one study for this
+        single declared train/test pair.
         """
         return cls.walk_forward(
             strategy_class=strategy_class,
@@ -1557,6 +1572,8 @@ class QuantBTEndpoint:
             window_mode=window_mode,
             train_window=train_window,
             optimization_mode=optimization_mode,
+            optimization_schedule=optimization_schedule,
+            fold_boundary_position_policy=fold_boundary_position_policy,
             optimization_config=optimization_config,
             optuna_trials=optuna_trials,
             optuna_early_stopping=optuna_early_stopping,
@@ -2705,9 +2722,21 @@ class QuantBTEndpoint:
             "candidate_table": wf_result.candidate_table,
             "best_trial": wf_result.best_trial,
             "optimization_mode": wf_result.metadata.get("optimization_mode"),
+            "optimization_schedule": wf_result.metadata.get("optimization_schedule"),
+            "fold_boundary_position_policy": wf_result.metadata.get("fold_boundary_position_policy"),
             "validation_claim": wf_result.metadata.get("validation_claim"),
+            "causality_claim": wf_result.metadata.get("causality_claim"),
             "full_sample_used_for_selection": wf_result.metadata.get("full_sample_used_for_selection"),
             "oos_used_for_selection": wf_result.metadata.get("oos_used_for_selection"),
+            "params_semantics": wf_result.metadata.get("params_semantics"),
+            "params_by_fold": wf_result.metadata.get("params_by_fold"),
+            "fold_selection_table": wf_result.metadata.get("fold_selection_table"),
+            "fold_boundary_table": wf_result.metadata.get("fold_boundary_table"),
+            "account_execution": wf_result.metadata.get("account_execution"),
+            "n_studies": wf_result.metadata.get("n_studies"),
+            "optuna_trials_scope": wf_result.metadata.get("optuna_trials_scope"),
+            "optuna_trials_configured_per_study": wf_result.metadata.get("optuna_trials_configured_per_study"),
+            "n_optuna_trial_rows": wf_result.metadata.get("n_optuna_trial_rows"),
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
             "random_seed": wf_result.metadata.get("random_seed"),

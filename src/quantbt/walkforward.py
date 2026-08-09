@@ -120,6 +120,15 @@ class WalkForwardConfig:
         or `arbitrage`.
     fill_value:
         Value used outside OOS windows when constructing the stitched output.
+    optimization_schedule:
+        `global` preserves the existing one-study lifecycle. `per_fold_decay`
+        runs the existing Mode 1 two-stage decay selector independently inside
+        every outer fold. `per_fold_causal` performs strict IS-only Mode 4
+        selection independently inside every outer fold.
+    fold_boundary_position_policy:
+        Position treatment when adjacent fold outputs are stitched. Phase 49A
+        supports `carry` only: the final account engine receives one continuous
+        target tape and trades only the actual target delta.
     """
 
     split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022"
@@ -131,6 +140,8 @@ class WalkForwardConfig:
     target_mode: str = "signal_notional"
     fill_value: float = 0.0
     optimization_mode: str = "none"
+    optimization_schedule: str = "global"
+    fold_boundary_position_policy: str = "carry"
     optuna_trials: int = 0
     optuna_early_stopping: Optional[int] = None
     random_seed: int = 42
@@ -205,6 +216,43 @@ class WalkForwardConfig:
                 "mode_4_is_only_robust, mode_5_full_robust"
             )
         object.__setattr__(self, "optimization_mode", opt_mode)
+        schedule = self.optimization_schedule.lower().strip()
+        if schedule not in {"global", "per_fold_decay", "per_fold_causal"}:
+            raise ValueError(
+                "optimization_schedule must be global, per_fold_decay, or per_fold_causal"
+            )
+        if schedule == "per_fold_decay":
+            if opt_mode != "mode_1_decay":
+                raise NotImplementedError(
+                    "optimization_schedule='per_fold_decay' currently requires "
+                    "optimization_mode='mode_1_decay'"
+                )
+            if self.candidate_selection_metric.lower().strip() != "robust_decay":
+                raise ValueError(
+                    "per_fold_decay requires candidate_selection_metric='robust_decay' "
+                    "to preserve the certified Mode 1 objective"
+                )
+        elif schedule == "per_fold_causal" and opt_mode != "mode_4_is_only_robust":
+            if opt_mode == "mode_1_decay":
+                raise NotImplementedError(
+                    "causal Mode 1 requires a future nested inner-validation contract; "
+                    "use per_fold_decay for fold-local decay calibration or Mode 4 "
+                    "with per_fold_causal for strict IS-only selection"
+                )
+            raise NotImplementedError(
+                "optimization_schedule='per_fold_causal' currently requires "
+                "optimization_mode='mode_4_is_only_robust'"
+            )
+        if schedule != "global" and self.optuna_trials <= 0:
+            raise ValueError("per-fold optimization schedules require optuna_trials > 0")
+        object.__setattr__(self, "optimization_schedule", schedule)
+
+        boundary_policy = self.fold_boundary_position_policy.lower().strip()
+        if boundary_policy != "carry":
+            raise NotImplementedError(
+                "fold_boundary_position_policy currently supports 'carry' only"
+            )
+        object.__setattr__(self, "fold_boundary_position_policy", boundary_policy)
         if self.optuna_trials < 0:
             raise ValueError("optuna_trials must be >= 0")
         if self.optuna_early_stopping is not None and self.optuna_early_stopping <= 0:
@@ -365,6 +413,18 @@ class WalkForwardTrialRecord:
     selection_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass
+class _PerFoldScheduleRun:
+    """Internal Phase 49A artifact before chronological OOS stitching."""
+
+    outputs: List[StrategyOutput]
+    selected_records: List[WalkForwardTrialRecord]
+    trial_records: List[WalkForwardTrialRecord]
+    candidate_records: List[WalkForwardTrialRecord]
+    params_by_fold: Dict[int, Dict[str, Any]]
+    selection_rows: List[Dict[str, Any]]
+
+
 class EarlyStoppingCallback(_OptimizationEarlyStopping):
     """Stop Optuna if best value does not improve after N trials."""
 
@@ -506,35 +566,72 @@ class WalkForwardEngine:
         idx = _infer_datetime_index(data, datetime_index)
         data_for_strategy = _align_data_to_datetime_index(data, idx)
         folds = self.build_folds(idx)
-        trial_records: List[WalkForwardTrialRecord] = []
-        candidate_records: List[WalkForwardTrialRecord] = []
-        if params is not None:
-            chosen_params = dict(params)
-            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
-            trial_records.append(selected_record)
-        elif self.config.optimization_mode in {
-            "mode_1_decay",
-            "mode_2_sbb",
-            "mode_3_flat_minima",
-            "mode_4_is_only_robust",
-            "mode_5_full_robust",
-        } and self.config.optuna_trials > 0:
-            selected_record, trial_records, candidate_records = self.optimize_params(
+        schedule = self.config.optimization_schedule
+        params_by_fold: Dict[int, Dict[str, Any]] = {}
+        selection_rows: List[Dict[str, Any]] = []
+
+        if schedule == "global":
+            optimization_requested = (
+                params is None
+                and self.config.optimization_mode in {
+                    "mode_1_decay",
+                    "mode_2_sbb",
+                    "mode_3_flat_minima",
+                    "mode_4_is_only_robust",
+                    "mode_5_full_robust",
+                }
+                and self.config.optuna_trials > 0
+            )
+            trial_records: List[WalkForwardTrialRecord] = []
+            candidate_records: List[WalkForwardTrialRecord] = []
+            if params is not None:
+                chosen_params = dict(params)
+                selected_record = self.evaluate_params(
+                    data=data_for_strategy,
+                    folds=folds,
+                    params=chosen_params,
+                    trial_id=0,
+                )
+                trial_records.append(selected_record)
+            elif optimization_requested:
+                selected_record, trial_records, candidate_records = self.optimize_params(
+                    data=data_for_strategy,
+                    folds=folds,
+                    param_ranges=param_ranges or {},
+                )
+                chosen_params = dict(selected_record.params)
+            else:
+                chosen_params = dict(_default_params_from_ranges(param_ranges or {}))
+                selected_record = self.evaluate_params(
+                    data=data_for_strategy,
+                    folds=folds,
+                    params=chosen_params,
+                    trial_id=0,
+                )
+                trial_records.append(selected_record)
+
+            outputs: List[StrategyOutput] = []
+            for fold in folds:
+                out = self._call_strategy(data=data_for_strategy, params=chosen_params, fold=fold)
+                outputs.append(_slice_output_to_test(out, fold.test_index))
+        else:
+            if params is not None:
+                raise ValueError(
+                    "per-fold optimization schedules require param_ranges and do not "
+                    "accept one fixed params dictionary"
+                )
+            scheduled = self._run_per_fold_schedule(
                 data=data_for_strategy,
                 folds=folds,
                 param_ranges=param_ranges or {},
             )
+            outputs = scheduled.outputs
+            trial_records = scheduled.trial_records
+            candidate_records = scheduled.candidate_records
+            params_by_fold = scheduled.params_by_fold
+            selection_rows = scheduled.selection_rows
+            selected_record = scheduled.selected_records[-1]
             chosen_params = dict(selected_record.params)
-        else:
-            chosen_params = dict(_default_params_from_ranges(param_ranges or {}))
-            selected_record = self.evaluate_params(data=data_for_strategy, folds=folds, params=chosen_params, trial_id=0)
-            trial_records.append(selected_record)
-
-        outputs: List[StrategyOutput] = []
-
-        for fold in folds:
-            out = self._call_strategy(data=data_for_strategy, params=chosen_params, fold=fold)
-            outputs.append(_slice_output_to_test(out, fold.test_index))
 
         stitched = stitch_oos_outputs(
             outputs=outputs,
@@ -543,6 +640,43 @@ class WalkForwardEngine:
             fill_value=self.config.fill_value,
         )
         fold_table = _fold_table(folds)
+        boundary_table = _fold_boundary_table(
+            stitched,
+            folds=folds,
+            full_index=idx,
+            fill_value=self.config.fill_value,
+        )
+        if schedule == "per_fold_decay":
+            validation_claim = "selection_adjusted_oos"
+            causality_claim = "fold_local_decay_calibration"
+            oos_used_for_selection = True
+            params_semantics = "last_completed_fold_selected_params"
+        elif schedule == "per_fold_causal":
+            validation_claim = "strict_fold_local_retraining"
+            causality_claim = "strict_fold_local_retraining"
+            oos_used_for_selection = False
+            params_semantics = "last_completed_fold_selected_params"
+        else:
+            validation_claim = (
+                "none_full_sample_calibration"
+                if self.config.optimization_mode == "mode_5_full_robust"
+                else "walk_forward_oos"
+            )
+            causality_claim = "retrospective_global_calibration"
+            oos_used_for_selection = self.config.optimization_mode not in {
+                "mode_2_sbb",
+                "mode_4_is_only_robust",
+                "mode_5_full_robust",
+            } and self.config.candidate_selection_metric not in {
+                "is_plateau_robust",
+                "is_only_robust",
+                "full_robust",
+                "full_plateau_robust",
+                "full_temporal_robust",
+                "full_best",
+            }
+            params_semantics = "single_global_parameter_set"
+
         return WalkForwardResult(
             folds=folds,
             oos_output=stitched,
@@ -552,32 +686,30 @@ class WalkForwardEngine:
             candidate_table=_trial_table(candidate_records),
             best_trial=_trial_to_dict(selected_record),
             metadata={
-                "engine": "walk_forward_phase4",
+                "engine": "walk_forward_phase49a" if schedule != "global" else "walk_forward_phase4",
                 "split_mode": str(self.config.split_mode),
                 "split_frequency": self.config.split_frequency,
                 "window_mode": self.config.window_mode,
                 "target_mode": self.config.target_mode,
                 "optimization_mode": self.config.optimization_mode,
-                "validation_claim": (
-                    "none_full_sample_calibration"
-                    if self.config.optimization_mode == "mode_5_full_robust"
-                    else "walk_forward_oos"
-                ),
+                "optimization_schedule": schedule,
+                "fold_boundary_position_policy": self.config.fold_boundary_position_policy,
+                "validation_claim": validation_claim,
+                "causality_claim": causality_claim,
                 "full_sample_used_for_selection": self.config.optimization_mode == "mode_5_full_robust",
-                "oos_used_for_selection": self.config.optimization_mode not in {
-                    "mode_2_sbb",
-                    "mode_4_is_only_robust",
-                    "mode_5_full_robust",
-                }
-                and self.config.candidate_selection_metric not in {
-                    "is_plateau_robust",
-                    "is_only_robust",
-                    "full_robust",
-                    "full_plateau_robust",
-                    "full_temporal_robust",
-                    "full_best",
-                },
+                "oos_used_for_selection": oos_used_for_selection,
+                "params_semantics": params_semantics,
+                "params_by_fold": params_by_fold,
+                "fold_selection_table": pd.DataFrame(selection_rows),
+                "fold_boundary_table": boundary_table,
+                "account_execution": "single_stitched_run",
                 "n_folds": len(folds),
+                "n_studies": len(folds) if schedule != "global" else int(optimization_requested),
+                "optuna_trials_scope": (
+                    "per_fold" if schedule != "global" else ("global" if optimization_requested else "none")
+                ),
+                "optuna_trials_configured_per_study": int(self.config.optuna_trials),
+                "n_optuna_trial_rows": _optuna_record_count(trial_records),
                 "n_trials": len(trial_records),
                 "n_candidates": len(candidate_records),
                 "top_is_fraction": self.config.top_is_fraction,
@@ -617,11 +749,163 @@ class WalkForwardEngine:
             },
         )
 
+    def _run_per_fold_schedule(
+        self,
+        data,
+        folds: Sequence[WalkForwardFold],
+        param_ranges: Dict[str, Any],
+    ) -> _PerFoldScheduleRun:
+        """Run independent chronological studies under the Phase 49A contract."""
+        schedule = self.config.optimization_schedule
+        outputs: List[StrategyOutput] = []
+        selected_records: List[WalkForwardTrialRecord] = []
+        trial_records: List[WalkForwardTrialRecord] = []
+        candidate_records: List[WalkForwardTrialRecord] = []
+        params_by_fold: Dict[int, Dict[str, Any]] = {}
+        selection_rows: List[Dict[str, Any]] = []
+
+        for fold in folds:
+            fold_seed = _derive_fold_seed(self.config.random_seed, fold.fold_id)
+            selected, fold_trials, fold_candidates = self.optimize_params(
+                data=data,
+                folds=[fold],
+                param_ranges=param_ranges,
+                random_seed=fold_seed,
+                evaluate_oos_candidates=schedule == "per_fold_decay",
+            )
+
+            oos_used = schedule == "per_fold_decay"
+            selection_label = (
+                "fold_local_decay_calibration"
+                if oos_used
+                else "strict_fold_local_retraining"
+            )
+            common_metadata = {
+                "optimization_schedule": schedule,
+                "schedule_fold_id": int(fold.fold_id),
+                "study_id": int(fold.fold_id),
+                "fold_seed": int(fold_seed),
+                "selection_data_start": fold.train_start,
+                "selection_data_end": fold.train_end,
+                "test_start": fold.test_start,
+                "test_end": fold.test_end,
+            }
+            tagged_trials = [
+                _with_selection_metadata(
+                    record,
+                    {**record.selection_metadata, **common_metadata},
+                )
+                for record in fold_trials
+            ]
+            tagged_candidates = [
+                _with_selection_metadata(
+                    record,
+                    {**record.selection_metadata, **common_metadata},
+                )
+                for record in fold_candidates
+            ]
+
+            selected = _with_selection_metadata(
+                selected,
+                {
+                    **selected.selection_metadata,
+                    **common_metadata,
+                    "causality_claim": selection_label,
+                    "outer_oos_used_for_selection": bool(oos_used),
+                    "oos_used_for_selection": bool(oos_used),
+                    "selection_adjustment_note": (
+                        "same_fold_oos_used_for_candidate_decay_selection"
+                        if oos_used
+                        else "outer_oos_excluded_from_parameter_selection"
+                    ),
+                },
+            )
+            params_by_fold[int(fold.fold_id)] = dict(selected.params)
+
+            out = self._call_strategy(data=data, params=dict(selected.params), fold=fold)
+            out = _slice_output_to_test(out, fold.test_index)
+            outputs.append(out)
+
+            if oos_used:
+                outer_is = float(selected.mean_is_sharpe)
+                outer_oos = float(selected.mean_oos_sharpe)
+                outer_decay = float(selected.mean_decay)
+            else:
+                oos_metrics = self._score_strategy_output(
+                    data,
+                    out,
+                    fold.test_index,
+                    fold=fold,
+                    params=dict(selected.params),
+                    context="post-selection outer OOS realization",
+                )
+                required = _required_trades_for_index(
+                    fold.test_index,
+                    self.config.min_trades_per_year,
+                )
+                factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
+                penalty = trade_frequency_penalty(oos_metrics["trade_count"], required, factor)
+                outer_is = float(selected.mean_is_sharpe)
+                outer_oos = float(oos_metrics["sharpe"] - penalty)
+                outer_decay = float(outer_is - outer_oos)
+                selected = _with_selection_metadata(
+                    selected,
+                    {
+                        **selected.selection_metadata,
+                        "outer_is_metric": outer_is,
+                        "outer_oos_metric": outer_oos,
+                        "outer_realized_decay": outer_decay,
+                        "outer_oos_trade_count": float(oos_metrics["trade_count"]),
+                        "outer_oos_trade_penalty": float(penalty),
+                    },
+                )
+
+            selected_records.append(selected)
+            trial_records.extend(tagged_trials)
+            candidate_records.extend(tagged_candidates)
+            optuna_rows = sum(
+                1
+                for record in tagged_trials
+                if record.pruned or record.selection_metadata.get("stage") == "is_search"
+            )
+            selection_rows.append(
+                {
+                    "fold_id": int(fold.fold_id),
+                    "study_id": int(fold.fold_id),
+                    "fold_seed": int(fold_seed),
+                    "train_start": fold.train_start,
+                    "train_end": fold.train_end,
+                    "test_start": fold.test_start,
+                    "test_end": fold.test_end,
+                    "selected_trial_id": int(selected.trial_id),
+                    "selected_params": dict(selected.params),
+                    "selected_is_objective": float(selected.mean_is_sharpe),
+                    "candidate_is_metric": outer_is,
+                    "candidate_oos_metric": outer_oos,
+                    "candidate_decay": outer_decay,
+                    "candidate_count": int(len(tagged_candidates)),
+                    "study_trial_rows": int(optuna_rows),
+                    "outer_oos_used_for_selection": bool(oos_used),
+                    "causality_claim": selection_label,
+                }
+            )
+
+        return _PerFoldScheduleRun(
+            outputs=outputs,
+            selected_records=selected_records,
+            trial_records=trial_records,
+            candidate_records=candidate_records,
+            params_by_fold=params_by_fold,
+            selection_rows=selection_rows,
+        )
+
     def optimize_params(
         self,
         data,
         folds: Sequence[WalkForwardFold],
         param_ranges: Dict[str, Any],
+        random_seed: Optional[int] = None,
+        evaluate_oos_candidates: bool = True,
     ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
         """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
         if not param_ranges:
@@ -666,7 +950,8 @@ class WalkForwardEngine:
             trial.set_user_attr("std_decay", record.std_decay)
             return record.objective
 
-        sampler = optuna.samplers.TPESampler(seed=int(self.config.random_seed))
+        study_seed = int(self.config.random_seed if random_seed is None else random_seed)
+        sampler = optuna.samplers.TPESampler(seed=study_seed)
         pruner = DuplicatePruner()
         study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner)
         callbacks = [logging_callback]
@@ -696,6 +981,24 @@ class WalkForwardEngine:
                 },
             )
             records.extend(candidates)
+            return selected, records, list(candidates)
+        if not evaluate_oos_candidates:
+            if self.config.optimization_mode != "mode_4_is_only_robust":
+                raise NotImplementedError(
+                    "OOS-free candidate selection is currently certified for Mode 4 only"
+                )
+            if not candidates:
+                raise ValueError("IS-only robust optimization produced no candidates")
+            selected = _with_selection_metadata(
+                candidates[0],
+                {
+                    **candidates[0].selection_metadata,
+                    "stage": "is_only_candidate_selection",
+                    "candidate_selection_complete": True,
+                    "oos_seen_by_optuna": False,
+                    "oos_used_for_selection": False,
+                },
+            )
             return selected, records, list(candidates)
         candidate_records = []
         seen_candidate_params = set()
@@ -1209,10 +1512,15 @@ class WalkForwardEngine:
         params: Dict[str, Any],
         context: str,
     ) -> Dict[str, float]:
+        scoring_data = (
+            data
+            if self.config.optimization_schedule == "global"
+            else _slice_strategy_data_through(data, index[-1])
+        )
         if self.config.scoring_backend == "endpoint":
             assert self.scorer is not None
             return self.scorer(
-                data=data,
+                data=scoring_data,
                 output=output,
                 index=index,
                 fold=fold,
@@ -1221,7 +1529,7 @@ class WalkForwardEngine:
                 trading_days=int(self.config.scoring_trading_days),
             )
         return score_strategy_output(
-            data,
+            scoring_data,
             output,
             index,
             trading_days=int(self.config.scoring_trading_days),
@@ -1247,10 +1555,15 @@ class WalkForwardEngine:
         context: str = "out-of-sample generation",
     ) -> StrategyOutput:
         strategy = self.strategy() if isinstance(self.strategy, type) else self.strategy
+        strategy_data = (
+            data
+            if self.config.optimization_schedule == "global"
+            else _slice_strategy_data_through(data, test_index[-1])
+        )
         try:
             if hasattr(strategy, "build_signal"):
                 output = strategy.build_signal(
-                    data=data,
+                    data=strategy_data,
                     params=params,
                     train_index=train_index,
                     test_index=test_index,
@@ -1258,7 +1571,7 @@ class WalkForwardEngine:
                 )
             elif hasattr(strategy, "generate_signal"):
                 output = strategy.generate_signal(
-                    data=data,
+                    data=strategy_data,
                     params=params,
                     train_index=train_index,
                     test_index=test_index,
@@ -1266,7 +1579,7 @@ class WalkForwardEngine:
                 )
             elif callable(strategy):
                 output = strategy(
-                    data=data,
+                    data=strategy_data,
                     params=params,
                     train_index=train_index,
                     test_index=test_index,
@@ -2893,6 +3206,96 @@ def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex):
     return data
 
 
+def _slice_strategy_data_through(data, end: pd.Timestamp):
+    """Expose no market rows after the declared fold evaluation boundary."""
+    cutoff = pd.Timestamp(end)
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        return data.loc[data.index <= cutoff]
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, (pd.DataFrame, pd.Series)) and isinstance(value.index, pd.DatetimeIndex):
+                out[key] = value.loc[value.index <= cutoff]
+            else:
+                out[key] = value
+        return out
+    return data
+
+
+def _derive_fold_seed(base_seed: int, fold_id: int) -> int:
+    """Return a deterministic independent uint32-compatible study seed."""
+    return int((int(base_seed) + int(fold_id) * 1_000_003) % (2**32))
+
+
+def _fold_boundary_table(
+    stitched: Optional[StrategyOutput],
+    folds: Sequence[WalkForwardFold],
+    full_index: pd.DatetimeIndex,
+    fill_value: float = 0.0,
+) -> pd.DataFrame:
+    """Describe target continuity at adjacent fold boundaries without trading."""
+    columns = [
+        "previous_fold_id",
+        "fold_id",
+        "previous_test_end",
+        "test_start",
+        "gap_bars",
+        "gap_policy",
+        "gap_fill_value",
+        "target_before",
+        "target_after",
+        "changed_targets",
+        "position_policy",
+    ]
+    if stitched is None or len(folds) < 2:
+        return pd.DataFrame(columns=columns)
+
+    idx = validate_datetime(full_index)
+    rows = []
+    for previous, current in zip(folds[:-1], folds[1:]):
+        previous_position = int(idx.get_indexer([previous.test_end])[0])
+        current_position = int(idx.get_indexer([current.test_start])[0])
+        if previous_position < 0 or current_position < 0:
+            raise ValueError("walk-forward boundary timestamp is missing from the stitched index")
+        before = _target_snapshot(stitched, previous.test_end)
+        after = _target_snapshot(stitched, current.test_start)
+        rows.append(
+            {
+                "previous_fold_id": int(previous.fold_id),
+                "fold_id": int(current.fold_id),
+                "previous_test_end": previous.test_end,
+                "test_start": current.test_start,
+                "gap_bars": max(0, current_position - previous_position - 1),
+                "gap_policy": "fill_value" if current_position - previous_position > 1 else "contiguous",
+                "gap_fill_value": float(fill_value),
+                "target_before": before,
+                "target_after": after,
+                "changed_targets": _changed_target_count(before, after),
+                "position_policy": "carry",
+            }
+        )
+    return pd.DataFrame(rows, columns=columns)
+
+
+def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
+    if isinstance(output, pd.Series):
+        return float(output.loc[timestamp])
+    if isinstance(output, pd.DataFrame):
+        return {str(key): float(value) for key, value in output.loc[timestamp].items()}
+    if isinstance(output, dict):
+        return {str(key): float(series.loc[timestamp]) for key, series in output.items()}
+    raise TypeError("unsupported stitched walk-forward target type")
+
+
+def _changed_target_count(before, after, tolerance: float = 1e-12) -> int:
+    if isinstance(before, dict) and isinstance(after, dict):
+        keys = set(before) | set(after)
+        return int(
+            sum(abs(float(after.get(key, 0.0)) - float(before.get(key, 0.0))) > tolerance for key in keys)
+        )
+    return int(abs(float(after) - float(before)) > tolerance)
+
+
 def _first_oos_timestamp(split_mode) -> pd.Timestamp:
     if isinstance(split_mode, int):
         ts = pd.Timestamp(year=int(split_mode), month=1, day=1, tz="UTC")
@@ -3000,6 +3403,15 @@ def _trial_table(records: Sequence[WalkForwardTrialRecord]) -> pd.DataFrame:
     return pd.DataFrame([_trial_to_dict(record, include_fold_metrics=False) for record in records])
 
 
+def _optuna_record_count(records: Sequence[WalkForwardTrialRecord]) -> int:
+    return int(
+        sum(
+            record.pruned or record.selection_metadata.get("stage") in {"is_search", "sbb_search"}
+            for record in records
+        )
+    )
+
+
 def _trial_to_dict(record: WalkForwardTrialRecord, include_fold_metrics: bool = True) -> Dict[str, Any]:
     out = {
         "trial_id": record.trial_id,
@@ -3024,6 +3436,10 @@ def _trial_to_dict(record: WalkForwardTrialRecord, include_fold_metrics: bool = 
             "is_subperiod_count",
             "is_only_robust_score",
             "plateau_score",
+            "schedule_fold_id",
+            "study_id",
+            "fold_seed",
+            "outer_oos_used_for_selection",
         ):
             if key in record.selection_metadata:
                 out[key] = record.selection_metadata[key]
@@ -3089,6 +3505,8 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "min_test_bars": config.min_test_bars,
         "target_mode": config.target_mode,
         "optimization_mode": config.optimization_mode,
+        "optimization_schedule": config.optimization_schedule,
+        "fold_boundary_position_policy": config.fold_boundary_position_policy,
         "optuna_trials": config.optuna_trials,
         "optuna_early_stopping": config.optuna_early_stopping,
         "random_seed": config.random_seed,

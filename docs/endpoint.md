@@ -2052,6 +2052,7 @@ wfo = QuantBTEndpoint.walk_forward(
     split_frequency="quarterly",  # yearly | semi_yearly | quarterly | monthly | weekly
     target_mode="signal_notional",
     optimization_mode="mode_1_decay",
+    optimization_schedule="global",  # existing one-study lifecycle
     optimization_config={
         "decay_lambda": 0.5,
         "decay_gamma": 0.5,
@@ -2124,6 +2125,94 @@ result.metadata["walk_forward"]["trial_table"]
 result.metadata["walk_forward"]["candidate_table"]
 result.metadata["walk_forward"]["best_trial"]
 ```
+
+### Optimization schedules
+
+`optimization_mode` defines how candidates are scored. The optional
+`optimization_schedule` defines when QuantBT creates a new Optuna study:
+
+| Schedule | Certified mode | Study lifecycle | Selection claim |
+|---|---|---|---|
+| `global` | Existing modes | One study over all configured folds; one final params set | Retrospective global calibration |
+| `per_fold_decay` | `mode_1_decay` | One independent study per outer fold | Same-fold OOS is used to select among frozen top-IS candidates; selection-adjusted OOS |
+| `per_fold_causal` | `mode_4_is_only_robust` | One independent study per outer fold | Params are selected from that fold's IS only; outer OOS is evaluated after selection |
+
+Mode 1 fold-local decay calibration:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    window_mode="rolling",
+    train_window="365D",
+    target_mode="pct_equity",
+    optimization_mode="mode_1_decay",
+    optimization_schedule="per_fold_decay",
+    fold_boundary_position_policy="carry",
+    optimization_config={
+        "candidate_selection_metric": "robust_decay",
+        "top_is_fraction": 0.10,
+        "scoring_backend": "endpoint",
+    },
+    optuna_trials=400,  # per fold for a per-fold schedule
+    optuna_early_stopping=200,
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee_rate=0.0005,
+)
+```
+
+Strict fold-local IS-only retraining:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    window_mode="rolling",
+    train_window="365D",
+    target_mode="pct_equity",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_schedule="per_fold_causal",
+    optimization_config={
+        "candidate_selection_metric": "is_only_robust",
+        "top_is_fraction": 0.10,
+        "scoring_backend": "endpoint",
+    },
+    optuna_trials=400,
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee_rate=0.0005,
+)
+```
+
+For both per-fold schedules, `optuna_trials`, early stopping, duplicate state,
+and the deterministic seed belong to each fold's independent study. The fold
+seed is derived from `random_seed` and `fold_id`. QuantBT returns the latest
+completed fold's params through the backward-compatible `params` field and
+stores the full parameter history in:
+
+```python
+wf = result.metadata["walk_forward"]
+wf["params_by_fold"]
+wf["fold_selection_table"]
+wf["fold_boundary_table"]
+wf["optimization_schedule"]
+wf["causality_claim"]
+wf["oos_used_for_selection"]
+```
+
+`fold_boundary_position_policy="carry"` is the only Phase 49A policy. QuantBT
+stitches targets first and runs the account engine once. Equal targets across
+a boundary do not create a synthetic close/reopen, reset equity, or duplicate
+fees. Unsupported schedule/mode combinations raise; they never fall back to
+`global`. Strict causal Mode 1 requires a future nested-validation contract and
+is therefore not exposed by `per_fold_causal` today.
 
 Prepared service context for repeated single-symbol runs:
 
@@ -2237,6 +2326,10 @@ Important rules:
 - train data is always strictly before the OOS test window;
 - data passed into the strategy is aligned to the UTC fold index, so tz-naive
   research frames can safely use `series.reindex(test_index)`;
+- under either per-fold schedule, strategy data is physically truncated at
+  `train_end` for IS calls and at `test_end` for OOS calls; the default
+  `global` schedule retains its historical data-passing behavior for exact
+  compatibility;
 - outputs are sliced to `test_index` before stitching;
 - strategy outputs must be timestamp-indexed `pd.Series`, `pd.DataFrame`, or
   `{symbol: pd.Series}` and cover every timestamp in the requested fold;
@@ -2249,9 +2342,11 @@ Important rules:
 - optimization modes are `mode_1_decay`, `mode_2_sbb`,
   `mode_3_flat_minima`, `mode_4_is_only_robust`, and
   `mode_5_full_robust`;
-- for all optimization modes, Optuna receives only in-sample or synthetic
-  in-sample objectives; OOS scoring is delayed until after the top IS candidate
-  set is frozen, reducing indirect look-ahead bias;
+- raw Optuna trials receive only in-sample or synthetic in-sample objectives;
+  OOS scoring is delayed until the top IS candidate set is frozen. With
+  `per_fold_decay`, that same-fold OOS score deliberately selects the final
+  candidate and is reported as selection-adjusted OOS. With
+  `per_fold_causal`, Mode 4 selection never receives outer OOS metrics;
 - candidate selection is controlled by `top_is_fraction` or `top_is_k`;
   `candidate_selection_metric` defaults to `robust_decay`. For strict
   train/test split validation, use `candidate_selection_metric="is_plateau_robust"`

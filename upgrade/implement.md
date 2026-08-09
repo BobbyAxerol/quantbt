@@ -11245,8 +11245,8 @@ after this release gate rather than being mixed into the packaging release.
 
 ## Phase 49 - Per-Fold Walk-Forward Schedules And Retraining Audit
 
-**Status: planned only. No engine, endpoint, documentation, or behavior change
-has been made under this roadmap.**
+**Status: Phase 49A completed on `feat/wfengine_v2`; Phase 49B remains planned.
+The compatible `global` schedule is unchanged by default.**
 
 ### Why This Phase Exists
 
@@ -11410,6 +11410,8 @@ retraining.
 
 ### Phase 49A - Per-Fold Study Core, Decay Protocol, And Audit Contract
 
+**Status: completed on `feat/wfengine_v2`.**
+
 Goal:
 
 Implement independent chronological studies for `per_fold_decay` and
@@ -11505,53 +11507,88 @@ Phase 49A tests:
   `per_fold_causal` retains strict train-only selection;
 - invalid schedule/mode combinations raise actionable errors.
 
-### Phase 49B - Continuous Account Boundary Certification, Documentation, And Release Gate
+Implemented evidence:
+
+- Added the optional endpoint/config fields `optimization_schedule` and
+  `fold_boundary_position_policy` while retaining `global` and `carry` as the
+  compatible defaults.
+- Added independent deterministic studies and fold-local ledgers for
+  `mode_1_decay + per_fold_decay`; the implementation reuses the existing
+  IS-search -> top-IS candidate -> OOS `robust_decay` selector exactly inside
+  each fold.
+- Added strict IS-only selection for
+  `mode_4_is_only_robust + per_fold_causal`; only the frozen selected params
+  receive one post-selection outer OOS realization.
+- Per-fold strategy calls receive data physically truncated at `train_end` or
+  `test_end`. The global path retains its historical data-passing behavior.
+- Added `params_by_fold`, `fold_selection_table`, `fold_boundary_table`, study
+  seeds, selection claims, params semantics and one-pass account metadata.
+- Added Series, DataFrame/multi-symbol, prefix-invariance, single holdout,
+  schedule rejection, global parity and direct-account parity tests in
+  `tests/test_phase49a_walkforward_schedules.py`.
+- Updated endpoint docs, public README and both WFO methodology documents.
+- Root/source package mirrors remain byte-identical for modified Python files.
+- Verification gate: `731 passed, 3 skipped`; skips are existing optional
+  backend-dependent tests, with no Phase 49A failure.
+
+### Phase 49B - Prepared WFO Context, Scalar Scoring, And Performance Certification
+
+**Status: planned only. Phase 49A correctness artifacts are the parity oracle.**
 
 Goal:
 
-Prove that fold-local parameter changes do not create artificial account
-resets, hidden closes, duplicated fees, or discontinuous percent-equity sizing.
+Reduce the cost per trial and bound RSS systematically across `global`,
+`per_fold_decay`, and `per_fold_causal` without changing selected params,
+objective values, stitched targets, boundary behavior, or final accounting.
 
 Scope:
 
-- Add boundary diagnostics derived from the stitched target tape and final
-  account result: target before/after boundary, observed target delta, accepted
-  trade count, fee/slippage, and whether an actual position transition occurred.
-- Certify the default `carry` behavior:
-  - equal targets across a boundary generate no artificial order;
-  - flat/reversal/size-change targets produce exactly the normal single target
-    delta and normal cost treatment;
-  - no capital, cash, funding, margin, liquidation, or percent-equity state is
-    reset at a fold boundary.
-- Detect and report signal gaps: missing OOS bars or an unexpected `fill_value`
-  zero at a boundary must be observable in metadata, never silently confused
-  with a deliberate flat signal.
-- Keep final accounting one-pass and existing-domain-native:
-  `pct_equity` continues to use current continuous equity, native portfolio
-  keeps its own rebalance/account path, and package routes retain their current
-  compatibility constraints.
-- Update endpoint docstrings, `docs/endpoint.md`, WFO methodology, examples,
-  and `walkforward_support_matrix()` to distinguish:
-  - `global`: retrospective global calibration;
-  - `per_fold_decay`: independent fold-local Mode 1 decay calibration with
-    same-fold OOS candidate selection;
-  - `per_fold_causal`: causal fold-local retraining;
-  - `train_test_split`: one frozen IS-to-holdout validation.
+- Profile one representative real WFO/service workload before changing code.
+  Report strategy generation, market normalization, scoring/account kernel,
+  Optuna orchestration, ledger/report construction, cold compile, warm runtime
+  and peak RSS separately.
+- Introduce a run-local immutable `PreparedWalkForwardContext` (exact public or
+  internal name may follow existing prepared-context conventions) containing:
+  canonical aligned index/OHLCV/funding arrays, integer fold slices,
+  scoring/account config, market signature and backend-prepared state.
+- Normalize and prepare market inputs once. Fold/train/test evaluators must use
+  validated views/slices instead of repeated pandas alignment and ndarray
+  packing. Cache keys/signatures must include all result-affecting market and
+  account fields; no mutable global cache is allowed.
+- Reuse the existing prepared native-vectorized and native-portfolio scoring
+  paths. Extend only through parity-first typed interfaces; do not create a
+  second scoring formula or a WFO-only accounting implementation.
+- Add scalar-only trial scoring: each trial retains only objective inputs,
+  params, trade-count constraint fields and compact audit identifiers. Full
+  result/report construction is deferred to selected/top candidates and the
+  final stitched backtest.
+- Keep strategy output caching conservative. QuantBT may cache immutable market
+  preparation and fold definitions, but must not cache arbitrary strategy
+  signals/indicators unless a future explicit deterministic strategy-prepare
+  protocol owns the signature and lifecycle.
+- Process fold studies sequentially by default and release fold-local Optuna
+  objects after compact ledgers are extracted. `n_trials` and early stopping
+  remain per-fold for per-fold schedules and must be labelled as such.
+- Preserve the Phase 49A one-pass account contract and deepen boundary tests
+  for flat, reversal, size change, fee, slippage, funding and margin paths.
 
 Phase 49B tests and gates:
 
-- one target held across a quarterly boundary: zero extra turnover, fee, or
-  close/reopen;
-- long-to-flat and long-to-short boundaries: exact expected target delta,
-  turnover, fee, and slippage;
-- `%_equity` rolling WFO: final equity equals a one-pass manual stitched-target
-  baseline and is not an average/concatenation of fold equities;
-- funding/margin smoke across a boundary with no reset;
-- target signal gap/NaN policy test with explicit audit reason;
-- endpoint/report metadata parity for `signal_notional`, `%_equity`, and every
-  currently supported WFO route;
-- full WFO/endpoint regression suite plus a realistic multi-fold smoke
-  fixture.
+- exact prepared/non-prepared parity for sampled params, selected params,
+  objective values, candidate order, trial status and per-fold seeds;
+- exact stitched target and final account parity for signal-notional,
+  `%_equity`, native portfolio and currently supported package routes;
+- one target held across a boundary: zero extra turnover/fee; flat/reversal/
+  size-change boundaries: exact normal target delta and costs;
+- prepared context mutation/signature tests, timezone/alignment tests and no
+  cross-run cache contamination;
+- cold/warm benchmark on the same bars, folds, trials, candidate count and
+  strategy implementation; never compare one global study with many per-fold
+  studies as if they performed equal mathematical work;
+- peak RSS measured in isolated child processes. Memory must remain bounded by
+  prepared market state plus compact trial ledgers, not retained per-trial
+  backtest/report objects;
+- full WFO/endpoint regression suite and realistic multi-fold alpha smoke.
 
 Release condition:
 
@@ -11561,8 +11598,10 @@ both per-fold schedules pass completed-fold prefix invariance;
 per_fold_decay is explicitly labelled selection-adjusted and has no
 cross-fold future observation;
 no OOS candidate metric influences per_fold_causal Mode 4 selection;
+prepared and reference paths are domain-identical;
 one-pass account parity and boundary-cost tests pass;
-docs make calibration-vs-validation scope unambiguous.
+benchmark artifacts separate mathematical work from framework overhead;
+docs expose performance lifecycle and calibration-vs-validation scope.
 ```
 
 Non-goals for this roadmap:

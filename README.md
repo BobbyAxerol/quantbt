@@ -753,6 +753,19 @@ result = wf.backtest(data=df, param_ranges=param_ranges)
 wf.show_metrics(scope="auto")
 ```
 
+Multi-fold WFO keeps `optimization_schedule="global"` as the compatible
+default. Phase 49A also exposes two explicit fold-local schedules:
+
+- `mode_1_decay + per_fold_decay`: one study per fold, with same-fold OOS used
+  for final decay candidate selection (`selection_adjusted_oos`);
+- `mode_4_is_only_robust + per_fold_causal`: one study per fold, with strict
+  IS-only selection before outer OOS execution.
+
+Both schedules stitch one continuous target tape and run accounting once with
+`fold_boundary_position_policy="carry"`. See [docs/endpoint.md](docs/endpoint.md)
+and [methodology/walk_forward.md](methodology/walk_forward.md) for the exact
+selection claims and metadata.
+
 `scope="auto"` reports only the tested/OOS segment for walk-forward and
 train/test runs. Pass `scope="full"` when you need to audit the full stitched
 timeline.
