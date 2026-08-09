@@ -11298,13 +11298,88 @@ Allowed values:
 The existing default remains `global`; no current notebook, endpoint call, or
 stored result may change merely because this feature is added.
 
-`per_fold_causal` must initially certify `mode_4_is_only_robust` as the
-recommended strict selector. Mode 1 must not silently be treated as causal,
-because its decay objective consumes real OOS metrics. Mode 5 must reject the
-schedule because it explicitly treats supplied history as full-sample
-calibration. Any support decision for Modes 2 and 3 must be explicit,
-train-only, documented, and covered by tests; unsupported combinations must
-raise rather than fall back to `global`.
+`per_fold_causal` must certify two distinct causal paths, which must never be
+conflated:
+
+- `mode_4_is_only_robust` is the recommended direct strict selector. Each
+  outer fold chooses its parameters only from that fold's train window using
+  IS temporal/plateau robustness.
+- `mode_1_decay` is supported only through **nested inner walk-forward
+  validation**. Its decay objective may use inner train/validation pairs that
+  are wholly contained within the current outer fold's train window. It must
+  never use the current outer OOS window to select that outer fold's params.
+
+Mode 5 must reject the schedule because it explicitly treats supplied history
+as full-sample calibration. Any support decision for Modes 2 and 3 must be
+explicit, train-only, documented, and covered by tests; unsupported
+combinations must raise rather than fall back to `global`.
+
+### Causal Mode 1: Nested Decay Selection
+
+For an outer chronological fold \(i\), let \(D_i\) be its available train
+history and \(T_i\) its next untouched OOS window. The causal Mode 1 contract
+constructs inner folds \((d_{ij}, t_{ij})\) such that every timestamp in both
+inner sides is no later than the end of \(D_i\):
+
+First the Optuna study ranks trials only by their aggregate inner-IS score and
+forms the existing top-IS candidate set \(C_i\). Only these candidates are
+then evaluated on the inner validation windows. For a candidate \(\theta\),
+
+\[
+d_{ij}(\theta) =
+S(d_{ij}; \theta) - S(t_{ij}; \theta)
+\]
+
+\[
+\theta_i^\star =
+\arg\max_{\theta \in C_i}
+\left[
+\overline{S}_{\mathrm{inner\text{-}validation}}(\theta)
+- \lambda\,\operatorname{std}_j(d_{ij}(\theta))
+- \gamma\,\max\left(0, \overline{d}(\theta)\right)
+\right]
+\]
+
+This is the current Mode 1 `robust_decay` candidate objective, moved entirely
+inside the outer fold's information set.
+
+The selected \(\theta_i^\star\) is frozen before the engine emits any target
+for \(T_i\). Only after execution may the engine record the realized outer
+decay:
+
+\[
+\operatorname{outer\_decay}_i =
+S(D_i; \theta_i^\star) - S(T_i; \theta_i^\star)
+\]
+
+`outer_decay_i` is an audit outcome, never a selector input for
+\(\theta_i^\star\). Selecting a trial after observing the same outer \(T_i\)
+would invalidate the strict causal claim.
+
+This preserves the current Mode 1 mathematical purpose - favoring candidates
+whose IS-to-validation performance decays less - while moving all validation
+used for selection inside the information set available at the fold decision
+time. The outer WFO now evaluates the retraining policy, rather than
+retrospectively choosing one global parameter set.
+
+The public configuration must make inner validation explicit; it must not
+silently reuse an outer rolling window that can produce zero inner folds. The
+planned surface is:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_causal"
+inner_split_frequency="quarterly"
+inner_window_mode="rolling"
+inner_train_window="180D"
+inner_min_folds=2
+```
+
+The exact parameter names may be consolidated into a typed inner-validation
+config during implementation, but the semantics are fixed: inner folds are
+derived only from `fold.train_index`, inner validation must end on or before
+`selection_data_end`, and insufficient inner history must raise an actionable
+error rather than use outer OOS or fall back to `global`.
 
 The schedule also adds an explicit boundary policy:
 
@@ -11342,6 +11417,15 @@ Scope:
 - For the strict Mode 4 path, prohibit OOS candidate scoring before selection.
   The candidate ledger is IS-only; OOS metrics are recorded only for the one
   previously selected, frozen parameter set as a post-selection realization.
+- For the strict Mode 1 path, derive a fresh inner-fold schedule solely from
+  each `fold.train_index`, run the existing IS-to-validation decay selection
+  only on those inner folds, then freeze the selected params before the outer
+  `fold.test_index` is called. Inner validation is allowed to affect selection;
+  outer OOS is not. Record outer IS/OOS decay only after the frozen outer target
+  has been emitted.
+- Reject causal Mode 1 when the requested inner schedule produces fewer than
+  `inner_min_folds`; do not substitute the outer test window, a full-sample
+  selector, or current `global` behavior.
 - Preserve strategy context: IS scoring may expose data only through the train
   end; OOS execution may expose data through that fold's test end. QuantBT
   cannot prove that user strategy code is causal internally, so this contract
@@ -11368,6 +11452,13 @@ selected_trial_id
 selected_is_objective
 candidate_count
 fold_boundary_position_policy
+
+# Required only for causal Mode 1 nested validation
+inner_fold_count
+inner_selection_data_start / inner_selection_data_end
+inner_candidate_oos_used_for_selection
+outer_oos_used_for_selection
+outer_is_metric / outer_oos_metric / outer_realized_decay
 ```
 
 For `global`, add a truthful metadata classification such as
@@ -11379,7 +11470,15 @@ Phase 49A tests:
 
 - deterministic two-regime mock: earlier and later folds select different
   expected params from their own train data;
-- assert each fold Optuna record has no OOS metric/decay during selection;
+- Mode 4: assert each fold Optuna record has no OOS metric/decay during
+  selection; Mode 1: assert only inner validation metrics are selectable and
+  outer OOS metrics are absent until post-selection realization;
+- nested Mode 1 mock: perturbing the outer test window changes only realized
+  outer metrics, never that fold's selected params; perturbing a valid inner
+  validation segment may change selection because it belongs to the fold's
+  available history;
+- causal Mode 1 rejects insufficient inner history/folds instead of reading
+  outer OOS or falling back to `global`;
 - append-future **prefix invariance**: adding future bars must not change
   params or OOS output of already completed folds;
 - exact parity for current `optimization_schedule="global"` behavior;
