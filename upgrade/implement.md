@@ -11243,7 +11243,7 @@ after this release gate rather than being mixed into the packaging release.
 
 ---
 
-## Phase 49 - Causal Per-Fold Walk-Forward Retraining
+## Phase 49 - Per-Fold Walk-Forward Schedules And Retraining Audit
 
 **Status: planned only. No engine, endpoint, documentation, or behavior change
 has been made under this roadmap.**
@@ -11258,11 +11258,18 @@ for earlier folds. Therefore the current global lifecycle is appropriate for
 retrospective global-parameter calibration, not a strict historical causal
 retraining claim for the earliest OOS folds.
 
-This roadmap adds an explicit *schedule*, not a sixth mixed objective mode:
+This roadmap adds explicit *schedules*, not a sixth mixed objective mode:
 
 ```python
 optimization_mode="mode_4_is_only_robust"
 optimization_schedule="per_fold_causal"
+```
+
+and, for the existing Mode 1 decay research workflow:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_decay"
 ```
 
 `optimization_mode` continues to mean *how candidates are scored/selected*.
@@ -11293,78 +11300,89 @@ Allowed values:
 | Value | Meaning | Historical causality claim |
 |---|---|---|
 | `global` | Current behavior: one study and one parameter set across all folds. | No causal multi-fold claim; retrospective global calibration. |
+| `per_fold_decay` | One independent study per chronological outer fold. Mode 1 retains its existing two-stage IS-candidate then same-fold OOS-decay selection. | Fold-local decay calibration; the selected candidate has seen that fold's OOS metrics, so this is not an untouched-OOS or causal deployment claim. |
 | `per_fold_causal` | Chronologically optimize on each fold's own train window, freeze that fold's params, then emit only its next OOS window. | Strict fold-local retraining, subject to a causal strategy implementation. |
 
 The existing default remains `global`; no current notebook, endpoint call, or
 stored result may change merely because this feature is added.
 
-`per_fold_causal` must certify two distinct causal paths, which must never be
-conflated:
+The Phase 49 initial scope deliberately has two distinct protocols that must
+never be conflated:
 
-- `mode_4_is_only_robust` is the recommended direct strict selector. Each
-  outer fold chooses its parameters only from that fold's train window using
-  IS temporal/plateau robustness.
-- `mode_1_decay` is supported only through **nested inner walk-forward
-  validation**. Its decay objective may use inner train/validation pairs that
-  are wholly contained within the current outer fold's train window. It must
-  never use the current outer OOS window to select that outer fold's params.
+- `mode_1_decay + per_fold_decay` is the requested fold-local version of the
+  current Mode 1 workflow. It deliberately evaluates selected IS candidates
+  on the current fold's OOS segment to measure decay and choose the fold's
+  candidate. It is useful for regime-by-regime parameter robustness research,
+  but the stitched result is **selection-adjusted OOS**, not a strict causal
+  validation claim.
+- `mode_4_is_only_robust + per_fold_causal` is the direct strict selector.
+  Each outer fold chooses parameters solely from that fold's train window
+  using IS temporal/plateau robustness, freezes them, and only then emits the
+  next OOS segment.
 
-Mode 5 must reject the schedule because it explicitly treats supplied history
-as full-sample calibration. Any support decision for Modes 2 and 3 must be
-explicit, train-only, documented, and covered by tests; unsupported
+Initial compatibility is intentionally narrow:
+
+| `optimization_mode` | `global` | `per_fold_decay` | `per_fold_causal` |
+|---|---:|---:|---:|
+| `mode_1_decay` | supported, existing behavior | supported, same-fold OOS decay selection | future nested-validation extension; raise for now |
+| `mode_4_is_only_robust` | supported, existing behavior | not needed in initial scope; raise | supported, strict IS-only selection |
+| `mode_2_sbb`, `mode_3_flat_minima`, `mode_5_full_robust` | existing behavior | raise | raise |
+
+Mode 5 must reject both per-fold schedules because it explicitly treats the
+supplied history as full-sample calibration. Modes 2 and 3 remain `global`
+until a separate, explicit schedule contract and tests exist; unsupported
 combinations must raise rather than fall back to `global`.
 
-### Causal Mode 1: Nested Decay Selection
+### Mode 1 Per-Fold Decay Selection
 
-For an outer chronological fold \(i\), let \(D_i\) be its available train
-history and \(T_i\) its next untouched OOS window. The causal Mode 1 contract
-constructs inner folds \((d_{ij}, t_{ij})\) such that every timestamp in both
-inner sides is no later than the end of \(D_i\):
+For an outer chronological fold \(i\), let \(D_i\) be its train history and
+\(T_i\) its immediately following OOS window. For example, a split may yield
+\(D_i =\) 2020--2021, \(T_i =\) 2021--2022, followed chronologically by a new
+independent study for the next fold. Boundary ownership must be explicit and
+non-overlapping: a timestamp belongs to exactly one side of a fold.
 
-First the Optuna study ranks trials only by their aggregate inner-IS score and
-forms the existing top-IS candidate set \(C_i\). Only these candidates are
-then evaluated on the inner validation windows. For a candidate \(\theta\),
+The study for fold \(i\) reuses the current Mode 1 two-stage implementation
+without changing its objective semantics:
+
+1. Run the configured `optuna_trials` only against \(D_i\)'s IS score.
+2. Rank completed trials by that IS objective and form the existing top-IS
+   candidate set \(C_i\), using `top_is_fraction` or `top_is_k`.
+3. For each unique \(\theta \in C_i\), run the strategy on both \(D_i\) and
+   \(T_i\), then calculate the existing Mode 1 metrics:
 
 \[
-d_{ij}(\theta) =
-S(d_{ij}; \theta) - S(t_{ij}; \theta)
+ d_i(\theta) = S(D_i; \theta) - S(T_i; \theta)
 \]
 
 \[
-\theta_i^\star =
-\arg\max_{\theta \in C_i}
-\left[
-\overline{S}_{\mathrm{inner\text{-}validation}}(\theta)
-- \lambda\,\operatorname{std}_j(d_{ij}(\theta))
-- \gamma\,\max\left(0, \overline{d}(\theta)\right)
-\right]
+ J_i(\theta) = S(T_i; \theta)
+ - \lambda\,\operatorname{std}(d_i)
+ - \gamma\,\max(0, d_i(\theta))
 \]
 
-This is the current Mode 1 `robust_decay` candidate objective, moved entirely
-inside the outer fold's information set.
+For one train/OOS pair, \(\operatorname{std}(d_i) = 0\); it remains in the
+formula and metadata so the per-fold record is mathematically identical to the
+current Mode 1 record shape and can be compared with global multi-fold Mode 1.
+The chosen \(\theta_i^\star = \arg\max_{\theta\in C_i} J_i(\theta)\) then
+generates the stored output for \(T_i\). Only after this fold is complete may
+the engine create a new, independent Optuna study for fold \(i+1\).
 
-The selected \(\theta_i^\star\) is frozen before the engine emits any target
-for \(T_i\). Only after execution may the engine record the realized outer
-decay:
+This is intentionally **not** strict causal WFO: \(T_i\) is used in candidate
+selection. The value of this schedule is isolation: the study for fold \(i\)
+cannot see later folds, later regimes, or their OOS metrics, unlike the current
+single global study. It should be labelled fold-local decay calibration or
+selection-adjusted OOS in research and stakeholder reports.
 
-\[
-\operatorname{outer\_decay}_i =
-S(D_i; \theta_i^\star) - S(T_i; \theta_i^\star)
-\]
+### Deferred Strict Causal Mode 1 Extension
 
-`outer_decay_i` is an audit outcome, never a selector input for
-\(\theta_i^\star\). Selecting a trial after observing the same outer \(T_i\)
-would invalidate the strict causal claim.
+Strict `mode_1_decay + per_fold_causal` remains a future, separately certified
+extension. It requires nested inner train/validation folds wholly contained in
+\(D_i\), then records outer \(T_i\) decay only after the parameters are frozen.
+It is explicitly out of the first Phase 49 implementation so neither its
+heavier compute cost nor its causality claim is hidden behind `per_fold_decay`.
 
-This preserves the current Mode 1 mathematical purpose - favoring candidates
-whose IS-to-validation performance decays less - while moving all validation
-used for selection inside the information set available at the fold decision
-time. The outer WFO now evaluates the retraining policy, rather than
-retrospectively choosing one global parameter set.
-
-The public configuration must make inner validation explicit; it must not
-silently reuse an outer rolling window that can produce zero inner folds. The
-planned surface is:
+When implemented later, the public surface must make its inner schedule
+explicit rather than silently reuse an outer rolling window:
 
 ```python
 optimization_mode="mode_1_decay"
@@ -11375,11 +11393,8 @@ inner_train_window="180D"
 inner_min_folds=2
 ```
 
-The exact parameter names may be consolidated into a typed inner-validation
-config during implementation, but the semantics are fixed: inner folds are
-derived only from `fold.train_index`, inner validation must end on or before
-`selection_data_end`, and insufficient inner history must raise an actionable
-error rather than use outer OOS or fall back to `global`.
+Until that extension exists, this exact combination must raise an actionable
+`NotImplementedError`; it must never silently substitute `per_fold_decay`.
 
 The schedule also adds an explicit boundary policy:
 
@@ -11393,39 +11408,41 @@ series and trades only its normal target delta. A future explicit `flatten`
 policy may be added only with dedicated domain tests; it is not implied by
 retraining.
 
-### Phase 49A - Causal Fold-Local Optimization Core And Audit Contract
+### Phase 49A - Per-Fold Study Core, Decay Protocol, And Audit Contract
 
 Goal:
 
-Implement strict chronological re-training for the new schedule without
-changing `global` behavior.
+Implement independent chronological studies for `per_fold_decay` and
+`per_fold_causal` without changing `global` behavior or Mode 1 mathematics.
 
 Scope:
 
 - Extend `WalkForwardConfig`, endpoint factories, validation, compatibility
   matrix, and public docstrings with `optimization_schedule="global"`.
-- For `per_fold_causal`, iterate folds chronologically. For each fold:
+- For both supported per-fold schedules, iterate folds chronologically. For
+  each fold:
   1. create an independent deterministic Optuna study using only
      `fold.train_index`;
-  2. score/choose candidates only from that train window;
-  3. lock the selected parameter set before any OOS candidate execution;
+  2. run the existing trial sampling, duplicate handling, seed, early-stop,
+     IS scoring, top-candidate, and selection helpers within that fold only;
+  3. select according to the declared schedule/mode contract;
   4. invoke the strategy to emit only `fold.test_index` output;
   5. append that output and immutable selection ledger to the chronological
      OOS tape.
 - Derive reproducible fold seeds from the configured base seed and `fold_id`;
   no fold may share mutable Optuna state with a later fold.
+- For `mode_1_decay + per_fold_decay`, preserve current two-stage behavior
+  exactly inside every outer fold: all trials are ranked on fold IS; only the
+  unique top-IS candidates run on that same fold's OOS; `robust_decay` then
+  selects the candidate. Store the candidate IS/OOS/decay rows, but classify
+  the result as `fold_local_decay_calibration`, with
+  `outer_oos_used_for_selection=True`.
 - For the strict Mode 4 path, prohibit OOS candidate scoring before selection.
   The candidate ledger is IS-only; OOS metrics are recorded only for the one
   previously selected, frozen parameter set as a post-selection realization.
-- For the strict Mode 1 path, derive a fresh inner-fold schedule solely from
-  each `fold.train_index`, run the existing IS-to-validation decay selection
-  only on those inner folds, then freeze the selected params before the outer
-  `fold.test_index` is called. Inner validation is allowed to affect selection;
-  outer OOS is not. Record outer IS/OOS decay only after the frozen outer target
-  has been emitted.
-- Reject causal Mode 1 when the requested inner schedule produces fewer than
-  `inner_min_folds`; do not substitute the outer test window, a full-sample
-  selector, or current `global` behavior.
+- Reject `mode_1_decay + per_fold_causal` until its nested inner-validation
+  extension is implemented. Do not substitute current fold OOS, a full-sample
+  selector, or `global` behavior.
 - Preserve strategy context: IS scoring may expose data only through the train
   end; OOS execution may expose data through that fold's test end. QuantBT
   cannot prove that user strategy code is causal internally, so this contract
@@ -11453,37 +11470,39 @@ selected_is_objective
 candidate_count
 fold_boundary_position_policy
 
-# Required only for causal Mode 1 nested validation
-inner_fold_count
-inner_selection_data_start / inner_selection_data_end
-inner_candidate_oos_used_for_selection
+# Required for Mode 1 per_fold_decay
+candidate_is_metric / candidate_oos_metric / candidate_decay
 outer_oos_used_for_selection
-outer_is_metric / outer_oos_metric / outer_realized_decay
+selection_adjustment_note
 ```
 
 For `global`, add a truthful metadata classification such as
 `retrospective_global_calibration`; preserve all existing values for backward
-compatibility. For `per_fold_causal`, emit
-`strict_fold_local_retraining` and `oos_used_for_selection=False`.
+compatibility. For `per_fold_decay`, emit `fold_local_decay_calibration`,
+`oos_used_for_selection=True`, and a no-untouched-OOS validation claim. For
+`per_fold_causal`, emit `strict_fold_local_retraining` and
+`oos_used_for_selection=False`.
 
 Phase 49A tests:
 
 - deterministic two-regime mock: earlier and later folds select different
   expected params from their own train data;
-- Mode 4: assert each fold Optuna record has no OOS metric/decay during
-  selection; Mode 1: assert only inner validation metrics are selectable and
-  outer OOS metrics are absent until post-selection realization;
-- nested Mode 1 mock: perturbing the outer test window changes only realized
-  outer metrics, never that fold's selected params; perturbing a valid inner
-  validation segment may change selection because it belongs to the fold's
-  available history;
-- causal Mode 1 rejects insufficient inner history/folds instead of reading
-  outer OOS or falling back to `global`;
+- Mode 1 per-fold decay: assert the study's raw trial rows are IS-only, only
+  top-IS candidates receive same-fold OOS metrics, and the selected candidate
+  is the maximum existing `robust_decay` objective within that fold;
+- Mode 1 perturbation: changing a fold's OOS may change only that fold's
+  candidate selection and output; it must not alter any prior fold's study,
+  params, or output, and it must be reported as OOS-used-for-selection;
+- Mode 4 per-fold causal: assert each fold Optuna/candidate record has no OOS
+  metric/decay during selection and uses only its train window;
+- causal Mode 1 raises `NotImplementedError` rather than reading outer OOS or
+  falling back to `global`;
 - append-future **prefix invariance**: adding future bars must not change
   params or OOS output of already completed folds;
 - exact parity for current `optimization_schedule="global"` behavior;
-- single `train_test_split` parity: `per_fold_causal` and one-fold Mode 4
-  retain strict train-only selection;
+- single `train_test_split` parity: Mode 1 `per_fold_decay` retains current
+  two-stage selection within the declared train/test pair; Mode 4
+  `per_fold_causal` retains strict train-only selection;
 - invalid schedule/mode combinations raise actionable errors.
 
 ### Phase 49B - Continuous Account Boundary Certification, Documentation, And Release Gate
@@ -11514,6 +11533,8 @@ Scope:
 - Update endpoint docstrings, `docs/endpoint.md`, WFO methodology, examples,
   and `walkforward_support_matrix()` to distinguish:
   - `global`: retrospective global calibration;
+  - `per_fold_decay`: independent fold-local Mode 1 decay calibration with
+    same-fold OOS candidate selection;
   - `per_fold_causal`: causal fold-local retraining;
   - `train_test_split`: one frozen IS-to-holdout validation.
 
@@ -11536,8 +11557,10 @@ Release condition:
 
 ```text
 global behavior remains parity-locked;
-per_fold_causal passes prefix invariance;
-no OOS candidate metric influences any fold selection;
+both per-fold schedules pass completed-fold prefix invariance;
+per_fold_decay is explicitly labelled selection-adjusted and has no
+cross-fold future observation;
+no OOS candidate metric influences per_fold_causal Mode 4 selection;
 one-pass account parity and boundary-cost tests pass;
 docs make calibration-vs-validation scope unambiguous.
 ```
