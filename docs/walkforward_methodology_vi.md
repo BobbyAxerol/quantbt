@@ -199,6 +199,22 @@ QuantBT truyền strategy một data view kết thúc đúng tại `train_end` c
 chạy một lần. `fold_boundary_position_policy="carry"` đảm bảo không reset
 equity, không tự flatten và không nhân đôi fee tại retraining boundary.
 
+### 3.2. Prepared Context Và Scalar Scoring Của Phase 49B
+
+Phase 49B không thay objective hay phương pháp chọn params. Nó thay lifecycle
+tính toán: index, fold cutoffs và market signature được chuẩn bị một lần trong
+`PreparedWalkForwardContext`; mỗi trial dùng integer slice thay vì tạo lại mask
+pandas. Với scoring qua endpoint, kernel accounting vẫn là kernel public nhưng
+metrics được tính trực tiếp từ arrays bằng cùng `compute_performance_metrics`.
+Sau đó equity/position paths của trial được giải phóng thay vì dựng report.
+
+Trial ledger compact chỉ bỏ fold-level payload lặp lại sau khi selector đã hoàn
+tất. `best_trial` vẫn giữ evidence đầy đủ; `trial_table`, `candidate_table`, seed,
+objective và candidate order không đổi. Context chỉ sống trong một WFO run,
+signature hash toàn bộ timestamp và cột dữ liệu, và QuantBT không cache output
+indicator/signal của strategy. Do đó tối ưu này giảm framework overhead mà không
+biến strategy thành black box hoặc tạo cache xuyên lần chạy.
+
 ---
 
 ## 4. Fold-Level Metrics

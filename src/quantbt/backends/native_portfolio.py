@@ -36,7 +36,7 @@ from ..core.preprocessor import (
     prepare_funding,
     validate_datetime,
 )
-from ..core.results import BacktestResultV2
+from ..core.results import BacktestResultV2, BacktestScalarScoreResult
 from ..core.schema import AccountConfig
 from ..core.schema import ExecutionConfig, InstrumentSpec
 from ..sizing.fast import scale_signal_notional_matrix
@@ -96,7 +96,8 @@ class NativePortfolioBackend:
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         report_level: Optional[str] = None,
-    ) -> BacktestResultV2:
+        _scalar_score_trading_days: Optional[int] = None,
+    ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         idx = validate_datetime(datetime_index)
         if positions is None and raw_signal_matrix is None:
             raise ValueError("positions or raw_signal_matrix is required")
@@ -253,6 +254,46 @@ class NativePortfolioBackend:
                 tradable=tradable_mask,
             )
 
+        if _scalar_score_trading_days is not None:
+            from ..metrics.performance import compute_performance_metrics
+
+            returns_arr = np.zeros_like(equity_arr, dtype=np.float64)
+            if len(equity_arr) > 1:
+                returns_arr[1:] = np.divide(
+                    equity_arr[1:] - equity_arr[:-1],
+                    equity_arr[:-1],
+                    out=np.zeros(len(equity_arr) - 1, dtype=np.float64),
+                    where=equity_arr[:-1] != 0.0,
+                )
+            metrics = compute_performance_metrics(
+                timestamps=idx,
+                equity=equity_arr,
+                returns=returns_arr,
+                positions=pos_arr,
+                symbols=symbol_list,
+                initial_capital=float(self.config.account.initial_capital),
+                liquidated=bool(liq_flag),
+                trading_days=int(_scalar_score_trading_days),
+            )
+            final_positions = (
+                np.asarray(pos_arr[-1], dtype=np.float64).copy()
+                if len(pos_arr)
+                else np.zeros(len(symbol_list), dtype=np.float64)
+            )
+            return BacktestScalarScoreResult(
+                final_equity=float(equity_arr[-1]),
+                final_positions=final_positions,
+                metrics=metrics,
+                liquidated=bool(liq_flag),
+                liquidation_bar=int(liq_idx),
+                metadata={
+                    "backend": "native_portfolio",
+                    "score_scalar": True,
+                    "score_pandas_materialized": False,
+                    "trading_days": int(_scalar_score_trading_days),
+                },
+            )
+
         result = self._build_result(
             idx=idx,
             symbol_list=symbol_list,
@@ -290,6 +331,16 @@ class NativePortfolioBackend:
             }
         else:
             result.metadata["portfolio_contract_report"] = validate_portfolio_result_contract(result, spec, tolerance=1e-8)
+        return result
+
+    def score_signals(self, *, trading_days: int = 365, **kwargs) -> BacktestScalarScoreResult:
+        """Run the portfolio accounting kernel and retain scalar metrics only."""
+        result = self.run_signals(
+            **kwargs,
+            _scalar_score_trading_days=int(trading_days),
+        )
+        if not isinstance(result, BacktestScalarScoreResult):  # pragma: no cover - guarded above
+            raise RuntimeError("native_portfolio scalar score unexpectedly materialized a public result")
         return result
 
     def prepare_market_arrays(

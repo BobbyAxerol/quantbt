@@ -11533,7 +11533,7 @@ Implemented evidence:
 
 ### Phase 49B - Prepared WFO Context, Scalar Scoring, And Performance Certification
 
-**Status: planned only. Phase 49A correctness artifacts are the parity oracle.**
+**Status: completed on `feat/wfengine_v2` (2026-08-09). Phase 49A remained the correctness oracle.**
 
 Goal:
 
@@ -11612,3 +11612,34 @@ Non-goals for this roadmap:
   account engine;
 - changing the five existing objective semantics or silently upgrading current
   `global` WFO notebooks.
+
+Phase 49B completion evidence:
+
+- Added run-local `PreparedWalkForwardContext` with full content/config/fold
+  signatures, integer causal slices, timezone normalization, mutation checks and
+  no cross-run global cache.
+- Added array-first scalar score contracts to native vectorized and native
+  portfolio backends. They execute the same sizing/accounting kernels and call
+  the shared `compute_performance_metrics`; public report construction is
+  skipped only for optimizer trials.
+- Added exact-index signal packing fast paths and compact completed-trial
+  ledgers. The selected trial retains full fold metrics and all public trial /
+  candidate tables remain stable.
+- Preserved strategy execution per trial. No arbitrary indicator/signal cache
+  was introduced.
+- Added optional `profile_walkforward=True` timing evidence plus context/scorer/
+  ledger metadata. Compatible defaults are prepared context, scalar scoring and
+  compact ledgers; each can be disabled independently for reference replay.
+- Added direct scalar/public report parity, prepared/reference WFO parity,
+  content mutation, timezone, run-local isolation, single-symbol, `%_equity`,
+  portfolio and Phase 49A schedule regression tests in
+  `tests/test_phase49b_wfo_performance.py`.
+- Committed benchmark artifacts:
+  `benchmarks/phase49b_wfo_performance.{json,md}`. At 1,000 bars, portfolio
+  global improved from `0.386s` to `0.330s` (`1.17x`), while six-study Mode 4
+  per-fold causal improved from `4.051s` to `1.781s` (`2.27x`). Equity,
+  positions, params, best trial, trial order and candidate order matched exactly.
+- Warm isolated peak RSS remained a plateau (`-0.14%` to `+0.05%`, below a
+  material regression threshold), so Phase 49B makes no unsupported memory
+  reduction claim. Memory remains bounded by market/kernel state plus compact
+  ledgers rather than retained per-trial public reports.

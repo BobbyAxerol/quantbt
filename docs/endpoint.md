@@ -2082,6 +2082,10 @@ wfo = QuantBTEndpoint.walk_forward(
         # "candidate_selection_metric": "is_plateau_robust",
         # "scoring_backend": "endpoint",   # endpoint | proxy
         # "use_prepared_scoring_cache": True,
+        # "use_prepared_wfo_context": True,
+        # "use_scalar_trial_scoring": True,
+        # "compact_trial_ledger": True,
+        # "profile_walkforward": False,
         # "prepared_scoring_report_level": "minimal",
         # "plateau_quantile": 0.25,
         # "plateau_median_weight": 0.25,
@@ -2213,6 +2217,36 @@ a boundary do not create a synthetic close/reopen, reset equity, or duplicate
 fees. Unsupported schedule/mode combinations raise; they never fall back to
 `global`. Strict causal Mode 1 requires a future nested-validation contract and
 is therefore not exposed by `per_fold_causal` today.
+
+### Prepared WFO performance lifecycle
+
+Phase 49B enables three compatible defaults for endpoint-backed optimization:
+
+- `use_prepared_wfo_context=True` aligns data, hashes all timestamped columns,
+  and prepares integer fold cutoffs once per `.backtest()` call;
+- `use_scalar_trial_scoring=True` runs the existing accounting kernel and the
+  shared `compute_performance_metrics` contract without constructing public
+  pandas reports for every trial;
+- `compact_trial_ledger=True` retains complete fold metrics for the selected
+  trial and compact rows for completed trial/candidate tables.
+
+These options change retention and preparation only. They do not change the
+Optuna seed, objective, candidate ordering, selected params, target stitching,
+or final account run. Set all three to `False` when reproducing the Phase 49A
+reference lifecycle. `profile_walkforward=True` adds timing counters without
+changing selection.
+
+```python
+wf = result.metadata["walk_forward"]
+wf["prepared_wfo_context"]       # content/config signature and slice counts
+wf["prepared_scoring_cache"]     # cache hits, scalar runs, kernel/report time
+wf["trial_ledger_mode"]          # "compact" or "full"
+wf["performance_profile"]        # strategy and scorer timing when enabled
+```
+
+Prepared state is run-local. QuantBT never caches an arbitrary strategy's
+indicator or signal output, and content signatures include all DataFrame
+columns, including volume and funding columns supplied to the strategy.
 
 Prepared service context for repeated single-symbol runs:
 

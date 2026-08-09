@@ -15,7 +15,7 @@ import hashlib
 import json
 import time
 import warnings
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -89,6 +89,118 @@ class WalkForwardFold:
     test_end: pd.Timestamp
     train_index: pd.DatetimeIndex
     test_index: pd.DatetimeIndex
+
+
+@dataclass(frozen=True)
+class PreparedWalkForwardContext:
+    """Run-local, immutable WFO market/fold preparation contract.
+
+    The context owns the one canonical timezone-aligned market snapshot used by
+    a WFO run. Integer slicing replaces repeated boolean masks while strategy
+    calls still receive isolated copies, so arbitrary user code cannot mutate
+    another trial's market view. No context is shared across runs.
+    """
+
+    data: Any
+    datetime_index: pd.DatetimeIndex
+    folds: Tuple[WalkForwardFold, ...]
+    data_signature: str
+    config_signature: str
+    signature: str
+    cutoff_stops: Mapping[int, int]
+    _stats: Dict[str, int] = field(
+        default_factory=lambda: {
+            "strategy_slice_requests": 0,
+            "scoring_slice_requests": 0,
+            "integer_slice_hits": 0,
+        },
+        repr=False,
+        compare=False,
+    )
+
+    @classmethod
+    def prepare(
+        cls,
+        *,
+        data,
+        datetime_index: pd.DatetimeIndex,
+        folds: Sequence[WalkForwardFold],
+        config: "WalkForwardConfig",
+    ) -> "PreparedWalkForwardContext":
+        idx = validate_datetime(datetime_index)
+        fold_tuple = tuple(folds)
+        cutoffs = {
+            int(timestamp.value)
+            for fold in fold_tuple
+            for timestamp in (fold.train_end, fold.test_end)
+        }
+        if config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
+            for fold in fold_tuple:
+                for shard in _split_index_into_subperiods(fold.train_index, int(config.is_subperiods)):
+                    if len(shard):
+                        cutoffs.add(int(shard[-1].value))
+        cutoff_stops = {
+            value: int(idx.searchsorted(pd.Timestamp(value, tz="UTC"), side="right"))
+            for value in sorted(cutoffs)
+        }
+        data_signature = _complete_data_hash(data)
+        config_signature = _config_hash(config)
+        fold_payload = [
+            (int(fold.fold_id), int(fold.train_start.value), int(fold.train_end.value), int(fold.test_start.value), int(fold.test_end.value))
+            for fold in fold_tuple
+        ]
+        signature_payload = json.dumps(
+            {
+                "data": data_signature,
+                "config": config_signature,
+                "folds": fold_payload,
+            },
+            sort_keys=True,
+        ).encode("utf-8")
+        return cls(
+            data=data,
+            datetime_index=idx,
+            folds=fold_tuple,
+            data_signature=data_signature,
+            config_signature=config_signature,
+            signature=hashlib.sha256(signature_payload).hexdigest(),
+            cutoff_stops=cutoff_stops,
+        )
+
+    def data_through(self, end: pd.Timestamp, *, strategy_copy: bool):
+        """Return an integer-sliced causal view through ``end``."""
+        key = int(pd.Timestamp(end).value)
+        stop = self.cutoff_stops.get(key)
+        if stop is None:
+            stop = int(self.datetime_index.searchsorted(pd.Timestamp(end), side="right"))
+        self._stats["integer_slice_hits"] += 1
+        counter = "strategy_slice_requests" if strategy_copy else "scoring_slice_requests"
+        self._stats[counter] += 1
+        return _slice_strategy_data_by_stop(
+            self.data,
+            stop=stop,
+            end=pd.Timestamp(end),
+            strategy_copy=strategy_copy,
+        )
+
+    def validate_source(self, data) -> None:
+        """Reject attempted reuse after any result-affecting source mutation."""
+        if _complete_data_hash(data) != self.data_signature:
+            raise ValueError("prepared walk-forward context source data signature changed")
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        return {
+            "enabled": True,
+            "run_local": True,
+            "signature": self.signature,
+            "data_signature": self.data_signature,
+            "config_signature": self.config_signature,
+            "bars": int(len(self.datetime_index)),
+            "folds": int(len(self.folds)),
+            "prepared_cutoffs": int(len(self.cutoff_stops)),
+            **dict(self._stats),
+        }
 
 
 @dataclass(frozen=True)
@@ -563,9 +675,50 @@ class WalkForwardEngine:
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
+        profile_enabled = bool(self.config.metadata.get("profile_walkforward", False))
+        self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
+        prepare_started = time.perf_counter()
         idx = _infer_datetime_index(data, datetime_index)
         data_for_strategy = _align_data_to_datetime_index(data, idx)
         folds = self.build_folds(idx)
+        use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
+        prepared_context = (
+            PreparedWalkForwardContext.prepare(
+                data=data_for_strategy,
+                datetime_index=idx,
+                folds=folds,
+                config=self.config,
+            )
+            if use_prepared_context
+            else None
+        )
+        if profile_enabled:
+            self._performance_profile["data_alignment_fold_prepare_seconds"] = time.perf_counter() - prepare_started
+        self._prepared_context = prepared_context
+        if prepared_context is not None and hasattr(self.scorer, "bind_walkforward_context"):
+            self.scorer.bind_walkforward_context(prepared_context)
+        try:
+            return self._run_aligned(
+                data_for_strategy=data_for_strategy,
+                idx=idx,
+                folds=folds,
+                params=params,
+                param_ranges=param_ranges,
+                prepared_context=prepared_context,
+            )
+        finally:
+            self._prepared_context = None
+
+    def _run_aligned(
+        self,
+        *,
+        data_for_strategy,
+        idx: pd.DatetimeIndex,
+        folds: Sequence[WalkForwardFold],
+        params: Optional[Dict[str, Any]],
+        param_ranges: Optional[Dict[str, Any]],
+        prepared_context: Optional[PreparedWalkForwardContext],
+    ) -> WalkForwardResult:
         schedule = self.config.optimization_schedule
         params_by_fold: Dict[int, Dict[str, Any]] = {}
         selection_rows: List[Dict[str, Any]] = []
@@ -712,6 +865,10 @@ class WalkForwardEngine:
                 "n_optuna_trial_rows": _optuna_record_count(trial_records),
                 "n_trials": len(trial_records),
                 "n_candidates": len(candidate_records),
+                "trial_ledger_mode": (
+                    "compact" if self.config.metadata.get("compact_trial_ledger", True) else "full"
+                ),
+                "full_trial_metrics_retained": 1 if selected_record.fold_metrics else 0,
                 "top_is_fraction": self.config.top_is_fraction,
                 "top_is_k": self.config.top_is_k,
                 "candidate_selection_metric": self.config.candidate_selection_metric,
@@ -745,6 +902,12 @@ class WalkForwardEngine:
                 "use_bootstrap_penalty": self.config.use_bootstrap_penalty,
                 "use_complexity_penalty": self.config.use_complexity_penalty,
                 "scoring_backend": self.config.scoring_backend,
+                "prepared_wfo_context": (
+                    prepared_context.metadata
+                    if prepared_context is not None
+                    else {"enabled": False, "run_local": True}
+                ),
+                "performance_profile": dict(getattr(self, "_performance_profile", {})),
                 **self.config.metadata,
             },
         )
@@ -918,6 +1081,7 @@ class WalkForwardEngine:
 
         records: List[WalkForwardTrialRecord] = []
         seen_params = set()
+        compact_ledger = bool(self.config.metadata.get("compact_trial_ledger", True))
 
         def objective(trial):
             params = _sample_params(trial, param_ranges)
@@ -942,12 +1106,13 @@ class WalkForwardEngine:
             else:
                 record = self.evaluate_params_is(data=data, folds=folds, params=params, trial_id=trial.number)
             records.append(record)
-            trial.set_user_attr("fold_metrics", record.fold_metrics)
-            trial.set_user_attr("params", record.params)
-            trial.set_user_attr("mean_is_sharpe", record.mean_is_sharpe)
-            trial.set_user_attr("mean_oos_sharpe", record.mean_oos_sharpe)
-            trial.set_user_attr("mean_decay", record.mean_decay)
-            trial.set_user_attr("std_decay", record.std_decay)
+            if not compact_ledger:
+                trial.set_user_attr("fold_metrics", record.fold_metrics)
+                trial.set_user_attr("params", record.params)
+                trial.set_user_attr("mean_is_sharpe", record.mean_is_sharpe)
+                trial.set_user_attr("mean_oos_sharpe", record.mean_oos_sharpe)
+                trial.set_user_attr("mean_decay", record.mean_decay)
+                trial.set_user_attr("std_decay", record.std_decay)
             return record.objective
 
         study_seed = int(self.config.random_seed if random_seed is None else random_seed)
@@ -963,6 +1128,7 @@ class WalkForwardEngine:
             callbacks=callbacks,
             show_progress_bar=False,
         )
+        del study
         candidates = _select_is_candidate_records(records, param_ranges, self.config)
         if self.config.optimization_mode == "mode_5_full_robust":
             if not candidates:
@@ -981,7 +1147,7 @@ class WalkForwardEngine:
                 },
             )
             records.extend(candidates)
-            return selected, records, list(candidates)
+            return selected, self._compact_trial_records(records), self._compact_trial_records(candidates)
         if not evaluate_oos_candidates:
             if self.config.optimization_mode != "mode_4_is_only_robust":
                 raise NotImplementedError(
@@ -999,7 +1165,7 @@ class WalkForwardEngine:
                     "oos_used_for_selection": False,
                 },
             )
-            return selected, records, list(candidates)
+            return selected, self._compact_trial_records(records), self._compact_trial_records(candidates)
         candidate_records = []
         seen_candidate_params = set()
         for candidate_id, candidate in enumerate(candidates):
@@ -1029,7 +1195,15 @@ class WalkForwardEngine:
             raise ValueError("anti-leakage optimization produced no OOS candidates")
         best = _select_oos_candidate_record(candidate_records, self.config)
         records.extend(candidate_records)
-        return best, records, candidate_records
+        return best, self._compact_trial_records(records), self._compact_trial_records(candidate_records)
+
+    def _compact_trial_records(
+        self,
+        records: Sequence[WalkForwardTrialRecord],
+    ) -> List[WalkForwardTrialRecord]:
+        if not bool(self.config.metadata.get("compact_trial_ledger", True)):
+            return list(records)
+        return [_without_fold_metrics(record) for record in records]
 
     def evaluate_params_is(
         self,
@@ -1512,14 +1686,15 @@ class WalkForwardEngine:
         params: Dict[str, Any],
         context: str,
     ) -> Dict[str, float]:
+        score_started = time.perf_counter()
         scoring_data = (
             data
             if self.config.optimization_schedule == "global"
-            else _slice_strategy_data_through(data, index[-1])
+            else self._prepared_data_through(data, index[-1], strategy_copy=False)
         )
         if self.config.scoring_backend == "endpoint":
             assert self.scorer is not None
-            return self.scorer(
+            metrics = self.scorer(
                 data=scoring_data,
                 output=output,
                 index=index,
@@ -1528,13 +1703,16 @@ class WalkForwardEngine:
                 context=context,
                 trading_days=int(self.config.scoring_trading_days),
             )
-        return score_strategy_output(
-            scoring_data,
-            output,
-            index,
-            trading_days=int(self.config.scoring_trading_days),
-            use_numba=bool(self.config.use_numba),
-        )
+        else:
+            metrics = score_strategy_output(
+                scoring_data,
+                output,
+                index,
+                trading_days=int(self.config.scoring_trading_days),
+                use_numba=bool(self.config.use_numba),
+            )
+        self._profile_add("score_seconds", time.perf_counter() - score_started, count_key="score_calls")
+        return metrics
 
     def _call_strategy(self, data, params: Dict[str, Any], fold: WalkForwardFold) -> StrategyOutput:
         return self._call_strategy_for_indices(
@@ -1554,11 +1732,12 @@ class WalkForwardEngine:
         fold: WalkForwardFold,
         context: str = "out-of-sample generation",
     ) -> StrategyOutput:
+        strategy_started = time.perf_counter()
         strategy = self.strategy() if isinstance(self.strategy, type) else self.strategy
         strategy_data = (
             data
             if self.config.optimization_schedule == "global"
-            else _slice_strategy_data_through(data, test_index[-1])
+            else self._prepared_data_through(data, test_index[-1], strategy_copy=True)
         )
         try:
             if hasattr(strategy, "build_signal"):
@@ -1594,11 +1773,26 @@ class WalkForwardEngine:
                 f"train=[{fold.train_start}, {fold.train_end}], "
                 f"test=[{test_index[0]}, {test_index[-1]}]"
             ) from exc
-        return validate_walkforward_strategy_output(
+        validated = validate_walkforward_strategy_output(
             output,
             expected_index=test_index,
             context=f"{context} fold_id={fold.fold_id}",
         )
+        self._profile_add("strategy_seconds", time.perf_counter() - strategy_started, count_key="strategy_calls")
+        return validated
+
+    def _prepared_data_through(self, data, end: pd.Timestamp, *, strategy_copy: bool):
+        prepared = getattr(self, "_prepared_context", None)
+        if prepared is not None and data is prepared.data:
+            return prepared.data_through(end, strategy_copy=strategy_copy)
+        return _slice_strategy_data_through(data, end)
+
+    def _profile_add(self, key: str, elapsed: float, *, count_key: str) -> None:
+        profile = getattr(self, "_performance_profile", None)
+        if not profile or not profile.get("enabled"):
+            return
+        profile[key] = float(profile.get(key, 0.0)) + float(elapsed)
+        profile[count_key] = int(profile.get(count_key, 0)) + 1
 
 
 def validate_walkforward_strategy_output(
@@ -2986,6 +3180,24 @@ def _with_selection_metadata(record: WalkForwardTrialRecord, metadata: Dict[str,
     )
 
 
+def _without_fold_metrics(record: WalkForwardTrialRecord) -> WalkForwardTrialRecord:
+    """Compact a completed trial ledger row after all selectors have finished."""
+    if not record.fold_metrics:
+        return record
+    return WalkForwardTrialRecord(
+        trial_id=int(record.trial_id),
+        params=dict(record.params),
+        objective=float(record.objective),
+        mean_is_sharpe=float(record.mean_is_sharpe),
+        mean_oos_sharpe=float(record.mean_oos_sharpe),
+        mean_decay=float(record.mean_decay),
+        std_decay=float(record.std_decay),
+        fold_metrics=[],
+        pruned=bool(record.pruned),
+        selection_metadata=dict(record.selection_metadata),
+    )
+
+
 def _param_matrix(
     records: Sequence[WalkForwardTrialRecord],
     param_ranges: Dict[str, Any],
@@ -3216,6 +3428,30 @@ def _slice_strategy_data_through(data, end: pd.Timestamp):
         for key, value in data.items():
             if isinstance(value, (pd.DataFrame, pd.Series)) and isinstance(value.index, pd.DatetimeIndex):
                 out[key] = value.loc[value.index <= cutoff]
+            else:
+                out[key] = value
+        return out
+    return data
+
+
+def _slice_strategy_data_by_stop(
+    data,
+    *,
+    stop: int,
+    end: pd.Timestamp,
+    strategy_copy: bool,
+):
+    """Integer-slice prepared data while preserving strategy mutation isolation."""
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        sliced = data.iloc[:stop]
+        return sliced.copy(deep=True) if strategy_copy else sliced
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, (pd.DataFrame, pd.Series)) and isinstance(value.index, pd.DatetimeIndex):
+                item_stop = int(value.index.searchsorted(pd.Timestamp(end), side="right"))
+                sliced = value.iloc[:item_stop]
+                out[key] = sliced.copy(deep=True) if strategy_copy else sliced
             else:
                 out[key] = value
         return out
@@ -3493,6 +3729,39 @@ def _data_hash(data) -> str:
         return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
     except Exception:
         return "unavailable"
+
+
+def _complete_data_hash(data) -> str:
+    """Hash all timestamped values which can affect a prepared WFO replay."""
+    digest = hashlib.sha256()
+
+    def update(value, label: str) -> None:
+        digest.update(label.encode("utf-8"))
+        digest.update(type(value).__name__.encode("utf-8"))
+        if isinstance(value, pd.DataFrame):
+            digest.update(json.dumps([str(column) for column in value.columns]).encode("utf-8"))
+            hashed = pd.util.hash_pandas_object(value, index=True, categorize=True)
+            digest.update(np.ascontiguousarray(hashed.to_numpy(dtype=np.uint64)).tobytes())
+        elif isinstance(value, pd.Series):
+            digest.update(str(value.name).encode("utf-8"))
+            hashed = pd.util.hash_pandas_object(value, index=True, categorize=True)
+            digest.update(np.ascontiguousarray(hashed.to_numpy(dtype=np.uint64)).tobytes())
+        elif isinstance(value, dict):
+            for key in sorted(value, key=lambda item: str(item)):
+                update(value[key], f"{label}.{key}")
+        else:
+            digest.update(json.dumps(value, sort_keys=True, default=str).encode("utf-8"))
+
+    try:
+        update(data, "market")
+        return digest.hexdigest()
+    except Exception:
+        # Object-heavy research columns can be unhashable to pandas. Preserve a
+        # deterministic fallback rather than permitting an identity-only cache.
+        digest = hashlib.sha256()
+        digest.update(_data_hash(data).encode("utf-8"))
+        digest.update(repr(data).encode("utf-8"))
+        return digest.hexdigest()
 
 
 def _config_hash(config: WalkForwardConfig) -> str:

@@ -168,6 +168,21 @@ tape. Normal `.backtest(...)` remains defensive and backward-compatible.
 Cython/C++ remains deferred because the larger benchmark still points to
 facade/report overhead rather than pure Numba kernels.
 
+Latest Phase 49B WFO benchmark (1,000 daily bars, identical seeds, folds,
+trials, strategies, account settings, and accounting kernels):
+
+| WFO workload | Phase 49A reference | Phase 49B prepared/scalar | Speedup | Parity |
+|---|---:|---:|---:|---|
+| Portfolio global, 1 study x 16 trials | 0.386s | 0.330s | 1.17x | exact |
+| Single-symbol causal, 6 studies x 16 trials | 4.051s | 1.781s | 2.27x | exact |
+
+Phase 49B prepares aligned WFO fold state once, scores trials directly from
+accounting arrays, and compacts completed Optuna ledgers. It does not cache user
+strategy signals or alter objectives. The isolated warm peak-RSS difference was
+within +/-0.15%, so the result is reported as an RSS plateau rather than a memory
+reduction. Reproduce it with
+`python benchmarks/run_phase49b_wfo_performance.py --rows 1000 --trials 16`.
+
 Latest Phase 31 intrabar execution benchmark:
 
 | Route | Workload | Runtime | Throughput | Ratio | Parity |
@@ -765,6 +780,11 @@ Both schedules stitch one continuous target tape and run accounting once with
 `fold_boundary_position_policy="carry"`. See [docs/endpoint.md](docs/endpoint.md)
 and [methodology/walk_forward.md](methodology/walk_forward.md) for the exact
 selection claims and metadata.
+
+Phase 49B keeps this API stable. Endpoint-backed optimization prepares market
+and fold state once and uses scalar-only trial reports by default. Audit the
+lifecycle through `prepared_wfo_context`, `prepared_scoring_cache`,
+`trial_ledger_mode`, and `performance_profile` in walk-forward metadata.
 
 `scope="auto"` reports only the tested/OOS segment for walk-forward and
 train/test runs. Pass `scope="full"` when you need to audit the full stitched

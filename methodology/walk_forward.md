@@ -64,6 +64,29 @@ tất, QuantBT stitch target OOS theo chronology và chạy account engine đún
 lần. Policy `carry` giữ position/equity liên tục; boundary không tự reset vốn
 hay tạo close/reopen.
 
+### 2.2. Tối Ưu Lifecycle Phase 49B
+
+Phase 49B giữ nguyên map toán học từ params đến objective. Một prepared context
+run-local chuẩn hóa index, fold slices và content signature đúng một lần. Scorer
+endpoint gọi cùng accounting kernel và cùng `compute_performance_metrics`, nhưng
+trả scalar objective contract thay vì dựng `BacktestResult`/DataFrame đầy đủ cho
+mỗi trial. Sau selection, ledger trial không được chọn chỉ giữ scalar fields cần
+cho audit table; selected trial vẫn giữ fold metrics đầy đủ.
+
+Ba invariants được khóa bằng parity tests:
+
+$$
+\theta^{*}_{\mathrm{prepared}}=\theta^{*}_{\mathrm{reference}},
+\qquad
+J_{\mathrm{prepared}}(\theta)=J_{\mathrm{reference}}(\theta),
+\qquad
+E^{\mathrm{final}}_{\mathrm{prepared}}=E^{\mathrm{final}}_{\mathrm{reference}}.
+$$
+
+QuantBT không cache arbitrary strategy output. Vì vậy cải thiện tốc độ chỉ đến
+từ framework preparation/report retention, không giả định indicator của user là
+deterministic hoặc causal.
+
 ---
 
 ## 3. Strategy Contract
