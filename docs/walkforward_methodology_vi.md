@@ -184,10 +184,19 @@ dùng ở final candidate selection. Vì vậy đây là fold-local decay calibr
 không phải untouched OOS. Nó trả lời câu hỏi: “nếu hiệu chỉnh riêng trong từng
 regime, candidate nào giữ edge tốt nhất sang đoạn kế tiếp?”
 
-`per_fold_causal` áp dụng cho `mode_4_is_only_robust`. Mỗi fold chọn params chỉ
-từ IS temporal/plateau evidence, freeze params, rồi mới chạy outer OOS đúng một
-lần. OOS metric chỉ là realized audit outcome và không thể thay đổi selected
-params của fold đó.
+`per_fold_causal` áp dụng cho `mode_4_is_only_robust` hoặc `mode_1_decay` với
+nested validation. Với mode 4, mỗi fold chọn params chỉ từ IS temporal/plateau
+evidence, freeze params, rồi mới chạy outer OOS đúng một lần. OOS metric chỉ là
+realized audit outcome và không thể thay đổi selected params của fold đó.
+
+Với Mode 1 causal, outer fold \(D_i, T_i\) tạo thêm các inner folds nằm hoàn
+toàn trong \(D_i\). `robust_decay` vẫn dùng chênh lệch IS/OOS nhưng OOS ở đây
+chỉ là inner OOS thuộc lịch sử đã biết tại thời điểm chọn params. Sau khi chọn
+\(\theta_i^\star\), QuantBT mới chạy đúng một lần trên outer \(T_i\). Vì vậy
+outer OOS không tham gia Optuna hay candidate selector. Cần khai báo rõ
+`inner_split_frequency`, `inner_window_mode`, `inner_train_window` và
+`inner_min_folds`; nếu thiếu data để tạo đủ inner folds thì engine raise, không
+fallback sang `per_fold_decay`.
 
 Trong cả hai schedule, fold sau có thể dùng dữ liệu của fold trước vì tại thời
 điểm lịch sử đó dữ liệu đã tồn tại. Điều bị cấm là fold hiện tại nhìn bars sau
@@ -198,6 +207,13 @@ QuantBT truyền strategy một data view kết thúc đúng tại `train_end` c
 `test_end` cho OOS. Target của các fold được stitch trước khi account engine
 chạy một lần. `fold_boundary_position_policy="carry"` đảm bảo không reset
 equity, không tự flatten và không nhân đôi fee tại retraining boundary.
+
+Metadata cần đọc cùng nhau là `validation_claim`, `causality_claim` và
+`chronological_validation_claim`. Field cuối tách riêng để `global` vẫn giữ
+backward-compatible `validation_claim="walk_forward_oos"` nhưng không thể bị
+diễn giải nhầm là strict chronological validation. Nested Mode 1 còn trả về
+`inner_validation` và `inner_fold_table` để audit đúng vùng dữ liệu được phép
+dùng trong selection.
 
 ### 3.2. Prepared Context Và Scalar Scoring Của Phase 49B
 

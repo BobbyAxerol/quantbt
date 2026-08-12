@@ -228,7 +228,7 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine==1.0.7` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-engine==1.0.8` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
 | `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
@@ -295,7 +295,7 @@ Raw Phase 47D artifacts are kept under
 
 ### Phase 48F final release handoff
 
-The core `quantbt-engine` 1.0.7 artifact gate is now implemented locally and
+The core `quantbt-engine` 1.0.8 artifact gate is now implemented locally and
 in the release workflows: exact version/ref validation, wheel and sdist
 `twine check`, archive allowlist and secret scan, clean import plus `pip check`,
 and a SHA256 release manifest. The TestPyPI workflow is manual and OIDC
@@ -604,13 +604,13 @@ fills, positions, account state, and performance report.
 Install the released core package:
 
 ```bash
-pip install quantbt-engine==1.0.7
+pip install quantbt-engine==1.0.8
 ```
 
 Optional reports and third-party validation:
 
 ```bash
-pip install "quantbt-engine[reports,validation]==1.0.7"
+pip install "quantbt-engine[reports,validation]==1.0.8"
 ```
 
 Development from this repository:
@@ -637,7 +637,7 @@ pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
 After the release is approved, downstream services should use
-`pip install quantbt-engine==1.0.7` and keep the unchanged import
+`pip install quantbt-engine==1.0.8` and keep the unchanged import
 `from quantbt import QuantBTEndpoint`.
 
 ## Quick Start
@@ -775,6 +775,9 @@ default. Phase 49A also exposes two explicit fold-local schedules:
   for final decay candidate selection (`selection_adjusted_oos`);
 - `mode_4_is_only_robust + per_fold_causal`: one study per fold, with strict
   IS-only selection before outer OOS execution.
+- `mode_1_decay + per_fold_causal`: one outer study per fold, where Mode 1
+  decay is measured only on explicit nested inner folds contained in that
+  outer IS window; outer OOS remains untouched until parameters are frozen.
 
 Both schedules stitch one continuous target tape and run accounting once with
 `fold_boundary_position_policy="carry"`. See [docs/endpoint.md](docs/endpoint.md)
@@ -785,6 +788,9 @@ Phase 49B keeps this API stable. Endpoint-backed optimization prepares market
 and fold state once and uses scalar-only trial reports by default. Audit the
 lifecycle through `prepared_wfo_context`, `prepared_scoring_cache`,
 `trial_ledger_mode`, and `performance_profile` in walk-forward metadata.
+Nested Mode 1 also records `inner_validation`, `inner_fold_table`, and
+`chronological_validation_claim` so services can distinguish retrospective,
+selection-adjusted, and strict outer-OOS results.
 
 `scope="auto"` reports only the tested/OOS segment for walk-forward and
 train/test runs. Pass `scope="full"` when you need to audit the full stitched

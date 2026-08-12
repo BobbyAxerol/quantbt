@@ -2140,6 +2140,7 @@ result.metadata["walk_forward"]["best_trial"]
 | `global` | Existing modes | One study over all configured folds; one final params set | Retrospective global calibration |
 | `per_fold_decay` | `mode_1_decay` | One independent study per outer fold | Same-fold OOS is used to select among frozen top-IS candidates; selection-adjusted OOS |
 | `per_fold_causal` | `mode_4_is_only_robust` | One independent study per outer fold | Params are selected from that fold's IS only; outer OOS is evaluated after selection |
+| `per_fold_causal` | `mode_1_decay` | One independent outer study with nested inner folds inside its IS | Mode 1 decay is selected from inner OOS only; outer OOS is evaluated after parameters freeze |
 
 Mode 1 fold-local decay calibration:
 
@@ -2195,6 +2196,44 @@ wfo = QuantBTEndpoint.walk_forward(
 )
 ```
 
+Strict causal Mode 1 with nested validation:
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    window_mode="rolling",
+    train_window="730D",
+    target_mode="pct_equity",
+    optimization_mode="mode_1_decay",
+    optimization_schedule="per_fold_causal",
+    optimization_config={
+        "candidate_selection_metric": "robust_decay",
+        # These folds are built only inside each outer IS window.
+        "inner_split_frequency": "quarterly",
+        "inner_window_mode": "rolling",
+        "inner_train_window": "180D",
+        "inner_min_folds": 2,
+        "top_is_fraction": 0.10,
+        "scoring_backend": "endpoint",
+    },
+    optuna_trials=400,  # per outer study
+    random_seed=42,
+    initial_capital=20_000,
+    leverage=5,
+    alloc_per_trade=0.5,
+    fee_rate=0.0005,
+)
+```
+
+This is the strict causal Mode 1 route. Its existing `robust_decay` objective
+still evaluates IS-to-OOS decay, but those OOS windows are nested inside the
+outer IS history. The outer OOS segment is never passed to Optuna or candidate
+selection and is scored once only after the outer parameters are frozen. If an
+outer IS window cannot produce `inner_min_folds`, QuantBT raises rather than
+falling back to selection-adjusted decay.
+
 For both per-fold schedules, `optuna_trials`, early stopping, duplicate state,
 and the deterministic seed belong to each fold's independent study. The fold
 seed is derived from `random_seed` and `fold_id`. QuantBT returns the latest
@@ -2209,14 +2248,18 @@ wf["fold_boundary_table"]
 wf["optimization_schedule"]
 wf["causality_claim"]
 wf["oos_used_for_selection"]
+wf["chronological_validation_claim"]
+wf["inner_validation"]
+wf["inner_fold_table"]
 ```
 
-`fold_boundary_position_policy="carry"` is the only Phase 49A policy. QuantBT
+`fold_boundary_position_policy="carry"` is the only Phase 50 policy. QuantBT
 stitches targets first and runs the account engine once. Equal targets across
 a boundary do not create a synthetic close/reopen, reset equity, or duplicate
 fees. Unsupported schedule/mode combinations raise; they never fall back to
-`global`. Strict causal Mode 1 requires a future nested-validation contract and
-is therefore not exposed by `per_fold_causal` today.
+`global`. Global results retain `validation_claim="walk_forward_oos"` for
+compatibility, while `chronological_validation_claim` explicitly reports that
+global multi-fold selection is retrospective rather than causal.
 
 ### Prepared WFO performance lifecycle
 

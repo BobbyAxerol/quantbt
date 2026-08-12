@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from quantbt import QuantBTEndpoint
 from quantbt.walkforward import WalkForwardConfig, WalkForwardEngine
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _bars(end: str = "2021-06-30") -> pd.DataFrame:
@@ -215,3 +221,22 @@ def test_global_schedule_exposes_non_causal_chronological_claim_without_changing
     assert result.metadata["validation_claim"] == "walk_forward_oos"
     assert result.metadata["causality_claim"] == "retrospective_global_calibration"
     assert result.metadata["chronological_validation_claim"] == "not_causal_multi_fold_global_calibration"
+
+
+def test_release_shard_runner_keeps_ci_selection_explicit_and_non_real_data_only():
+    runner_path = PROJECT_ROOT / "tools" / "run_test_shards.py"
+    spec = importlib.util.spec_from_file_location("quantbt_test_shards", runner_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    release = [path.name for group in module._collect("release") for path in group]
+    ci_core = [path.name for group in module._collect("ci-core") for path in group]
+
+    assert "test_real.py" not in release
+    assert "test_real_endpoints.py" not in release
+    assert set(ci_core).issubset(set(release))
+    assert "test_phase47a_grid_adapter.py" not in ci_core
+    assert "test_phase47c_grid_parity.py" not in ci_core
+    assert "test_phase47d_grid_optimizer.py" not in ci_core
+    assert not any("native_event" in path.parts for group in module._collect("ci-core") for path in group)

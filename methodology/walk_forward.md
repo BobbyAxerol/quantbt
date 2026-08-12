@@ -699,3 +699,20 @@ surface bằng `mode_3_flat_minima`, validate bằng endpoint thật, rồi dùn
 
 Không có mode nào đúng cho mọi alpha. Lựa chọn mode phụ thuộc vào số tham số, độ
 dài data, trade frequency, regime sensitivity và mức cần anti-leakage.
+
+### 15.1. Strict Causal Mode 1 Theo Nested Validation
+
+`mode_1_decay + optimization_schedule="per_fold_causal"` dùng khi muốn giữ
+objective decay của Mode 1 nhưng không cho outer OOS tham gia chọn params. Với
+outer fold \(D_i, T_i\), engine tạo các inner folds \((d_{ij}, t_{ij})\) sao cho
+mọi \(t_{ij} \subset D_i\). Optuna, top-IS candidates và `robust_decay` chỉ
+được chạy trên các inner folds này. Sau khi chọn \(\theta_i^\star\), engine mới
+emit signal và đo performance trên \(T_i\) đúng một lần.
+
+Do đó, đây là strict outer-OOS protocol, nhưng không phải “free validation”:
+nó tốn nhiều backtest hơn vì `optuna_trials` được áp dụng cho mỗi outer study,
+và outer IS phải đủ dài để chứa `inner_min_folds`. Metadata trả về
+`inner_validation`, `inner_fold_table`, `params_by_fold` và
+`chronological_validation_claim="strict_outer_oos_after_frozen_selection"`.
+Không đủ inner history là lỗi cấu hình/data, không phải lý do để fallback sang
+schedule khác.

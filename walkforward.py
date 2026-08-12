@@ -252,6 +252,13 @@ class WalkForwardConfig:
         Position treatment when adjacent fold outputs are stitched. Phase 49A
         supports `carry` only: the final account engine receives one continuous
         target tape and trades only the actual target delta.
+    inner_split_frequency, inner_window_mode, inner_train_window:
+        Required only for `mode_1_decay + per_fold_causal`. They define nested
+        inner folds inside each outer IS window, so Mode 1 decay selection never
+        observes that outer fold's OOS segment.
+    inner_min_folds:
+        Minimum valid nested inner folds required for each outer fold. The run
+        raises if early history cannot satisfy this requirement.
     """
 
     split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022"

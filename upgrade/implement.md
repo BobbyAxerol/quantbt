@@ -11648,7 +11648,7 @@ Phase 49B completion evidence:
 
 ## Phase 50 - Strict Mode 1 Causal Retraining And WFO Release Closure
 
-**Status: in progress on `feat/wfengine_v2`; release target `1.0.8`.**
+**Status: completed on `feat/wfengine_v2`; release target `1.0.8`.**
 
 This closure addresses the WFO debt that cannot be hidden behind the existing
 `per_fold_decay` label. It adds a strict causal route for Mode 1 without
@@ -11719,6 +11719,28 @@ Scope:
   identity.
 - Run the WFO suite and the full release suite through isolated shards, then
   record the exact command and result before the `1.0.8` version bump.
+
+Completion evidence:
+
+- Phase 50A nested-causal checks pass: outer-OOS exclusion, inner-boundary
+  audit, append-future prefix invariance, insufficient-history fail-closed
+  behavior, prepared/reference accounting parity, and global metadata
+  compatibility.
+- `poetry run python tools/run_test_shards.py --profile release
+  --max-files-per-shard 8` completed **16 isolated shards: 744 passed,
+  3 skipped, exit 0**. `test_real.py` and `test_real_endpoints.py` remain
+  intentionally excluded because they require local Pool Alpha data.
+- The runner launches each shard in a fresh interpreter, preventing Numba,
+  pandas, and plotting imports from accumulating RSS across the suite. It is a
+  verification harness only; product execution and endpoint semantics are
+  unchanged.
+- Wheel/sdist smoke commands use a unique `mktemp -d` working directory rather
+  than bare `/tmp`, preventing an unrelated local `quantbt/` directory from
+  shadowing the installed artifact on `sys.path`.
+- Fresh `1.0.8` artifacts built from `src/quantbt` passed strict `twine check`,
+  archive allowlist/secret scan, matching `v1.0.8` version gate, `pip check`,
+  and independent wheel/sdist imports from `site-packages` in clean managed
+  virtual environments.
 
 Deliberate non-goals retained after Phase 50:
 

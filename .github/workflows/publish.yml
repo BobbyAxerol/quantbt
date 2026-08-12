@@ -39,14 +39,7 @@ jobs:
         run: uv run python tools/check_release_version.py
 
       - name: Test
-        run: >-
-          .venv/bin/python -m pytest -q
-          --ignore=tests/test_real.py
-          --ignore=tests/test_real_endpoints.py
-          --ignore=tests/native_event
-          --ignore=tests/test_phase47a_grid_adapter.py
-          --ignore=tests/test_phase47c_grid_parity.py
-          --ignore=tests/test_phase47d_grid_optimizer.py
+        run: .venv/bin/python tools/run_test_shards.py --profile ci-core
 
       - name: Build
         run: uv build
@@ -110,7 +103,7 @@ jobs:
           /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip check
-          cd /tmp
+          cd "$(mktemp -d)"
           /tmp/quantbt-wheel-smoke/bin/python - <<'PY'
           import pathlib
           import quantbt
@@ -127,7 +120,7 @@ jobs:
           /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
-          cd /tmp
+          cd "$(mktemp -d)"
           /tmp/quantbt-sdist-smoke/bin/python - <<'PY'
           import pathlib
           import quantbt

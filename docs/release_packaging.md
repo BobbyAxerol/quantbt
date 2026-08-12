@@ -21,9 +21,9 @@ from quantbt import QuantBTEndpoint
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
-- Phase 48F release candidate: `1.0.7rc2` for TestPyPI; final target `1.0.7`.
-- Phase 48F TestPyPI artifact and functional endpoint gates passed for
-  `1.0.7rc2`; the core Python distribution is ready for final `1.0.7` review.
+- Phase 48F TestPyPI artifact and functional endpoint gates passed for the
+  historical `1.0.7rc2` candidate. The current WFO patch release target is
+  `1.0.8`.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native` is experimental and is not a dependency of the core wheel.
 
@@ -40,7 +40,7 @@ Required checks:
 
 - Python matrix: `3.11`, `3.12`, `3.13`.
 - `uv sync --extra optimization --extra reports --extra viz --dev`.
-- `.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event`.
+- `.venv/bin/python tools/run_test_shards.py --profile ci-core`.
 - The separate Native Event API 0.4 workflow runs the complete `tests/native_event` suite after installing the native wheel.
 - `uv build`.
 - Clean wheel install in a fresh virtual environment.
@@ -140,15 +140,15 @@ release tag.
 Example:
 
 ```text
-pyproject.toml version = 1.0.7
-required release tag  = v1.0.7
+pyproject.toml version = 1.0.8
+required release tag  = v1.0.8
 ```
 
 The publish workflow fails if the tag does not match.
 
-The same script validates an RC tag. To publish `1.0.7rc2`, first commit
-`version = "1.0.7rc2"`, create `v1.0.7rc2`, and run the manual TestPyPI
-workflow with that tag. Do not reuse the final `1.0.7` version for an RC.
+The same script validates an RC tag. To publish an RC, first commit an unused
+version such as `1.0.8rc1`, create the matching `v1.0.8rc1` tag, and run the
+manual TestPyPI workflow with that tag. Do not reuse final `1.0.8` for an RC.
 
 ## Local Release Gate
 
@@ -158,7 +158,7 @@ or build directories:
 
 ```bash
 poetry run python tools/check_release_version.py
-.venv/bin/python -m pytest -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py --ignore=tests/native_event
+.venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
 poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist
@@ -182,12 +182,14 @@ runs `pip check`:
 python3 -m venv /tmp/quantbt-engine-wheel-smoke
 /tmp/quantbt-engine-wheel-smoke/bin/python -m pip install --upgrade pip
 /tmp/quantbt-engine-wheel-smoke/bin/python -m pip install --no-deps /tmp/quantbt-engine-dist/quantbt_engine-*.whl
-(cd /tmp && /tmp/quantbt-engine-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
+smoke_dir="$(mktemp -d)"
+(cd "$smoke_dir" && /tmp/quantbt-engine-wheel-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
 
 python3 -m venv /tmp/quantbt-engine-sdist-smoke
 /tmp/quantbt-engine-sdist-smoke/bin/python -m pip install --upgrade pip
 /tmp/quantbt-engine-sdist-smoke/bin/python -m pip install --no-deps /tmp/quantbt-engine-dist/quantbt_engine-*.tar.gz
-(cd /tmp && /tmp/quantbt-engine-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
+smoke_dir="$(mktemp -d)"
+(cd "$smoke_dir" && /tmp/quantbt-engine-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)")
 ```
 
 For a dependency-complete check, install the wheel without `--no-deps` in a
@@ -211,7 +213,7 @@ quantbt = { path = "../quantbt", develop = true }
 After release:
 
 ```toml
-quantbt-engine = "^1.0.7"
+quantbt-engine = "^1.0.8"
 ```
 
 Alpha/notebook imports do not change:
@@ -253,7 +255,7 @@ distribution version is currently `0.4.0` and its executable native API is
 
 `native_backend="rust"` is explicit and fail-fast. It does not silently
 downgrade to Python. `native_backend="auto"` remains Python in
-`quantbt-engine 1.0.7` until the public wheel matrix and release gates pass.
+`quantbt-engine 1.0.8` until the public wheel matrix and release gates pass.
 
 The API 0.4 capability contract covers:
 
@@ -340,9 +342,9 @@ accepted benchmark evidence remain trackable.
 
 ### TestPyPI release candidate
 
-1. Update the package version to an unused RC version such as `1.0.7rc2`.
+1. Update the package version to an unused RC version such as `1.0.8rc1`.
 2. Commit the version and changelog on a release candidate ref.
-3. Create the matching tag, for example `v1.0.7rc2`.
+3. Create the matching tag, for example `v1.0.8rc1`.
 4. Configure the pending TestPyPI publisher for repository `BobbyAxerol/quantbt`,
    workflow `publish-testpypi.yml`, and GitHub environment `testpypi`.
 5. Push the matching RC tag to trigger **Publish quantbt-engine to TestPyPI**,
@@ -358,7 +360,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  quantbt-engine==1.0.7rc2
+  quantbt-engine==1.0.8rc1
 /tmp/quantbt-testpypi-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
 ```
@@ -366,8 +368,8 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 ### Production PyPI release
 
 1. Merge the verified release commit to protected `main`.
-2. Set the final version, for example `1.0.7`, and add the changelog entry.
-3. Create and push the matching protected tag `v1.0.7`.
+2. Set the final version, for example `1.0.8`, and add the changelog entry.
+3. Create and push the matching protected tag `v1.0.8`.
 4. Create a GitHub Release from that tag and mark it published.
 5. The production workflow runs the matrix regression, builds the core wheel
    and sdist, runs metadata and clean-install checks, then pauses at the
@@ -375,7 +377,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 6. Approve only after the artifact name, version, and release notes have been
    checked. The workflow publishes through OIDC; no long-lived API token is
    needed.
-7. Verify `pip install quantbt-engine==1.0.7` from a fresh environment and
+7. Verify `pip install quantbt-engine==1.0.8` from a fresh environment and
    archive the wheel, sdist, test output, and release manifest.
 
 Do not publish `quantbt-native` in this flow. It has a separate future release

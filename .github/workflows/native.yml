@@ -71,7 +71,7 @@ jobs:
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install --upgrade pip
           /tmp/quantbt-native-combined-smoke/bin/python -m pip install dist/core/quantbt_engine-*.whl dist/native/quantbt_native-*.whl
           /tmp/quantbt-native-combined-smoke/bin/python -m pip check
-          cd /tmp
+          cd "$(mktemp -d)"
           /tmp/quantbt-native-combined-smoke/bin/python - <<'PY'
           from quantbt import QuantBTEndpoint
           import _quantbt_native
