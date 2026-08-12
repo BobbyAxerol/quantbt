@@ -1433,8 +1433,10 @@ class QuantBTEndpoint:
         behavior. `per_fold_decay` runs Mode 1 as one independent two-stage
         study per fold and uses that fold's OOS metrics for decay candidate
         selection. `per_fold_causal` runs Mode 4 as strict fold-local IS-only
-        selection. Per-fold schedules keep one continuous final account run;
-        Phase 49A supports `fold_boundary_position_policy="carry"` only.
+        selection, or Mode 1 with explicit nested inner validation entirely
+        inside each outer IS window. Per-fold schedules keep one continuous
+        final account run; `fold_boundary_position_policy="carry"` is the
+        only supported policy.
         Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
@@ -1464,6 +1466,10 @@ class QuantBTEndpoint:
                 optimization_mode=optimization_mode,
                 optimization_schedule=optimization_schedule,
                 fold_boundary_position_policy=fold_boundary_position_policy,
+                inner_split_frequency=optimization_config.get("inner_split_frequency"),
+                inner_window_mode=optimization_config.get("inner_window_mode"),
+                inner_train_window=optimization_config.get("inner_train_window"),
+                inner_min_folds=int(optimization_config.get("inner_min_folds", 2)),
                 optuna_trials=optuna_trials,
                 optuna_early_stopping=optuna_early_stopping,
                 random_seed=random_seed,
@@ -2731,11 +2737,14 @@ class QuantBTEndpoint:
             "fold_boundary_position_policy": wf_result.metadata.get("fold_boundary_position_policy"),
             "validation_claim": wf_result.metadata.get("validation_claim"),
             "causality_claim": wf_result.metadata.get("causality_claim"),
+            "chronological_validation_claim": wf_result.metadata.get("chronological_validation_claim"),
             "full_sample_used_for_selection": wf_result.metadata.get("full_sample_used_for_selection"),
             "oos_used_for_selection": wf_result.metadata.get("oos_used_for_selection"),
             "params_semantics": wf_result.metadata.get("params_semantics"),
             "params_by_fold": wf_result.metadata.get("params_by_fold"),
             "fold_selection_table": wf_result.metadata.get("fold_selection_table"),
+            "inner_fold_table": wf_result.metadata.get("inner_fold_table"),
+            "inner_validation": wf_result.metadata.get("inner_validation"),
             "fold_boundary_table": wf_result.metadata.get("fold_boundary_table"),
             "account_execution": wf_result.metadata.get("account_execution"),
             "n_studies": wf_result.metadata.get("n_studies"),

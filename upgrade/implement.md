@@ -11245,7 +11245,7 @@ after this release gate rather than being mixed into the packaging release.
 
 ## Phase 49 - Per-Fold Walk-Forward Schedules And Retraining Audit
 
-**Status: Phase 49A completed on `feat/wfengine_v2`; Phase 49B remains planned.
+**Status: Phase 49A and 49B completed on `feat/wfengine_v2`.
 The compatible `global` schedule is unchanged by default.**
 
 ### Why This Phase Exists
@@ -11643,3 +11643,88 @@ Phase 49B completion evidence:
   material regression threshold), so Phase 49B makes no unsupported memory
   reduction claim. Memory remains bounded by market/kernel state plus compact
   ledgers rather than retained per-trial public reports.
+
+---
+
+## Phase 50 - Strict Mode 1 Causal Retraining And WFO Release Closure
+
+**Status: in progress on `feat/wfengine_v2`; release target `1.0.8`.**
+
+This closure addresses the WFO debt that cannot be hidden behind the existing
+`per_fold_decay` label. It adds a strict causal route for Mode 1 without
+changing the default `global` lifecycle, Mode 1 decay mathematics, or the
+already-certified Mode 4 per-fold causal route.
+
+Detailed implementation rules for this closure remain in this section and the
+existing Phase 49 contract above. Every implementation change must preserve the
+root/source mirror and pass reference/prepared parity before it is released.
+
+### Phase 50A - Nested Mode 1 Causal Selection And Audit Contract
+
+Goal: support:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_causal"
+```
+
+without allowing an outer OOS bar to influence parameter selection.
+
+For every outer fold \(D_i, T_i\):
+
+1. Build chronological inner folds entirely inside \(D_i\), using explicit
+   `inner_split_frequency`, `inner_window_mode`, `inner_train_window`, and
+   `inner_min_folds` inputs.
+2. Run one independent Optuna study on those inner folds. Mode 1 keeps its
+   existing IS search, top-IS candidate set, and decay objective, but every
+   inner OOS used by `robust_decay` is a subset of \(D_i\).
+3. Freeze the selected parameters, generate exactly one target output for
+   outer \(T_i\), then record outer OOS metrics as post-selection realization
+   only.
+4. Stitch outer targets and run the normal account engine once with
+   `fold_boundary_position_policy="carry"`.
+
+Required safeguards:
+
+- The outer test index must never be passed to Optuna, candidate evaluation, or
+  inner-fold construction.
+- Insufficient inner history/folds must raise an actionable `ValueError`; no
+  fallback to `per_fold_decay`, global selection, or a synthetic inner OOS.
+- Store `inner_*` configuration, `inner_fold_table`, inner/outer selection
+  boundaries, seed, and explicit `outer_oos_used_for_selection=False` in the
+  audit ledger.
+- Keep `mode_1_decay + per_fold_decay` explicitly selection-adjusted and
+  preserve Mode 4 `per_fold_causal` behavior byte-for-byte at the public
+  result boundary.
+
+### Phase 50B - WFO Metadata, Test Sharding, And 1.0.8 Gate
+
+Goal: make the WFO contract unambiguous to notebook, service, and release
+consumers, then certify it under bounded host RSS.
+
+Scope:
+
+- Add a separate chronological-validation metadata field for global WFO so a
+  consumer cannot mistake `validation_claim="walk_forward_oos"` for a causal
+  multi-fold deployment claim. Preserve legacy fields for compatibility.
+- Document the complete mode/schedule matrix, inner Mode 1 contract, and the
+  distinction between `selection_adjusted_oos`, strict outer OOS, and Mode 5
+  full-sample calibration.
+- Add a repository test-shard runner that invokes isolated pytest processes;
+  it must preserve existing test selection while releasing Numba/pandas memory
+  between shards. It is a release-test harness, not a production runtime path.
+- Add deterministic tests for nested-fold boundaries, outer-OOS exclusion,
+  append-future prefix invariance, malformed/insufficient inner configurations,
+  prepared/reference parity, target carry accounting, and root/source mirror
+  identity.
+- Run the WFO suite and the full release suite through isolated shards, then
+  record the exact command and result before the `1.0.8` version bump.
+
+Deliberate non-goals retained after Phase 50:
+
+- automatic state checkpoint/restore for arbitrary reactive grid/DCA strategy
+  objects across WFO folds;
+- per-fold schedule variants for Mode 2 SBB, Mode 3 flat minima, or Mode 5
+  full-sample calibration without their own causal contracts;
+- a `flatten` boundary policy without dedicated accounting semantics and tests;
+- proving arbitrary user strategy code free of internal look-ahead.

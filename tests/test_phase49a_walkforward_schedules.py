@@ -166,7 +166,7 @@ def test_per_fold_causal_mode4_selects_on_is_then_realizes_outer_oos_once():
 
 
 def test_phase49a_schedule_validation_is_explicit_and_never_falls_back():
-    with pytest.raises(NotImplementedError, match="nested inner-validation"):
+    with pytest.raises(ValueError, match="requires inner_split_frequency"):
         WalkForwardConfig(
             optimization_mode="mode_1_decay",
             optimization_schedule="per_fold_causal",

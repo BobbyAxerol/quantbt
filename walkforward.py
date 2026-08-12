@@ -139,6 +139,17 @@ class PreparedWalkForwardContext:
                 for shard in _split_index_into_subperiods(fold.train_index, int(config.is_subperiods)):
                     if len(shard):
                         cutoffs.add(int(shard[-1].value))
+        if (
+            config.optimization_mode == "mode_1_decay"
+            and config.optimization_schedule == "per_fold_causal"
+        ):
+            for outer_fold in fold_tuple:
+                for inner_fold in _build_inner_folds(outer_fold, config):
+                    for timestamp in (
+                        inner_fold.train_end,
+                        inner_fold.test_end,
+                    ):
+                        cutoffs.add(int(timestamp.value))
         cutoff_stops = {
             value: int(idx.searchsorted(pd.Timestamp(value, tz="UTC"), side="right"))
             for value in sorted(cutoffs)
@@ -254,6 +265,10 @@ class WalkForwardConfig:
     optimization_mode: str = "none"
     optimization_schedule: str = "global"
     fold_boundary_position_policy: str = "carry"
+    inner_split_frequency: Optional[str] = None
+    inner_window_mode: Optional[str] = None
+    inner_train_window: Optional[str] = None
+    inner_min_folds: int = 2
     optuna_trials: int = 0
     optuna_early_stopping: Optional[int] = None
     random_seed: int = 42
@@ -344,17 +359,43 @@ class WalkForwardConfig:
                     "per_fold_decay requires candidate_selection_metric='robust_decay' "
                     "to preserve the certified Mode 1 objective"
                 )
-        elif schedule == "per_fold_causal" and opt_mode != "mode_4_is_only_robust":
-            if opt_mode == "mode_1_decay":
-                raise NotImplementedError(
-                    "causal Mode 1 requires a future nested inner-validation contract; "
-                    "use per_fold_decay for fold-local decay calibration or Mode 4 "
-                    "with per_fold_causal for strict IS-only selection"
-                )
+        elif schedule == "per_fold_causal" and opt_mode not in {"mode_1_decay", "mode_4_is_only_robust"}:
             raise NotImplementedError(
                 "optimization_schedule='per_fold_causal' currently requires "
+                "optimization_mode='mode_1_decay' with nested inner validation or "
                 "optimization_mode='mode_4_is_only_robust'"
             )
+        if schedule == "per_fold_causal" and opt_mode == "mode_1_decay":
+            if self.candidate_selection_metric.lower().strip() != "robust_decay":
+                raise ValueError(
+                    "causal Mode 1 requires candidate_selection_metric='robust_decay' "
+                    "to preserve the certified inner-fold decay objective"
+                )
+            if self.inner_split_frequency is None or self.inner_window_mode is None or self.inner_train_window is None:
+                raise ValueError(
+                    "causal Mode 1 requires inner_split_frequency, inner_window_mode, "
+                    "and inner_train_window so all decay selection stays inside outer IS"
+                )
+            inner_frequency = str(self.inner_split_frequency).lower().strip()
+            if inner_frequency not in {"single", "yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
+                raise ValueError(
+                    "inner_split_frequency must be single, yearly, semi_yearly, quarterly, monthly, or weekly"
+                )
+            inner_window_mode = str(self.inner_window_mode).lower().strip()
+            if inner_window_mode not in {"expanding", "rolling"}:
+                raise ValueError("inner_window_mode must be expanding or rolling")
+            try:
+                inner_window = pd.Timedelta(self.inner_train_window)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("inner_train_window must be a positive pandas Timedelta string such as '180D'") from exc
+            if inner_window <= pd.Timedelta(0):
+                raise ValueError("inner_train_window must be positive")
+            if int(self.inner_min_folds) <= 0:
+                raise ValueError("inner_min_folds must be > 0")
+            object.__setattr__(self, "inner_split_frequency", inner_frequency)
+            object.__setattr__(self, "inner_window_mode", inner_window_mode)
+            object.__setattr__(self, "inner_train_window", str(self.inner_train_window))
+            object.__setattr__(self, "inner_min_folds", int(self.inner_min_folds))
         if schedule != "global" and self.optuna_trials <= 0:
             raise ValueError("per-fold optimization schedules require optuna_trials > 0")
         object.__setattr__(self, "optimization_schedule", schedule)
@@ -535,6 +576,7 @@ class _PerFoldScheduleRun:
     candidate_records: List[WalkForwardTrialRecord]
     params_by_fold: Dict[int, Dict[str, Any]]
     selection_rows: List[Dict[str, Any]]
+    inner_fold_rows: List[Dict[str, Any]]
 
 
 class EarlyStoppingCallback(_OptimizationEarlyStopping):
@@ -722,6 +764,7 @@ class WalkForwardEngine:
         schedule = self.config.optimization_schedule
         params_by_fold: Dict[int, Dict[str, Any]] = {}
         selection_rows: List[Dict[str, Any]] = []
+        inner_fold_rows: List[Dict[str, Any]] = []
 
         if schedule == "global":
             optimization_requested = (
@@ -783,6 +826,7 @@ class WalkForwardEngine:
             candidate_records = scheduled.candidate_records
             params_by_fold = scheduled.params_by_fold
             selection_rows = scheduled.selection_rows
+            inner_fold_rows = scheduled.inner_fold_rows
             selected_record = scheduled.selected_records[-1]
             chosen_params = dict(selected_record.params)
 
@@ -802,11 +846,18 @@ class WalkForwardEngine:
         if schedule == "per_fold_decay":
             validation_claim = "selection_adjusted_oos"
             causality_claim = "fold_local_decay_calibration"
+            chronological_validation_claim = "selection_adjusted_outer_oos"
             oos_used_for_selection = True
             params_semantics = "last_completed_fold_selected_params"
         elif schedule == "per_fold_causal":
-            validation_claim = "strict_fold_local_retraining"
-            causality_claim = "strict_fold_local_retraining"
+            strict_claim = (
+                "strict_nested_fold_local_retraining"
+                if self.config.optimization_mode == "mode_1_decay"
+                else "strict_fold_local_retraining"
+            )
+            validation_claim = strict_claim
+            causality_claim = strict_claim
+            chronological_validation_claim = "strict_outer_oos_after_frozen_selection"
             oos_used_for_selection = False
             params_semantics = "last_completed_fold_selected_params"
         else:
@@ -816,6 +867,7 @@ class WalkForwardEngine:
                 else "walk_forward_oos"
             )
             causality_claim = "retrospective_global_calibration"
+            chronological_validation_claim = "not_causal_multi_fold_global_calibration"
             oos_used_for_selection = self.config.optimization_mode not in {
                 "mode_2_sbb",
                 "mode_4_is_only_robust",
@@ -854,6 +906,7 @@ class WalkForwardEngine:
                 "params_semantics": params_semantics,
                 "params_by_fold": params_by_fold,
                 "fold_selection_table": pd.DataFrame(selection_rows),
+                "inner_fold_table": pd.DataFrame(inner_fold_rows),
                 "fold_boundary_table": boundary_table,
                 "account_execution": "single_stitched_run",
                 "n_folds": len(folds),
@@ -872,6 +925,8 @@ class WalkForwardEngine:
                 "top_is_fraction": self.config.top_is_fraction,
                 "top_is_k": self.config.top_is_k,
                 "candidate_selection_metric": self.config.candidate_selection_metric,
+                "chronological_validation_claim": chronological_validation_claim,
+                "inner_validation": _inner_validation_metadata(self.config),
                 "data_hash": _data_hash(data_for_strategy),
                 "config_hash": _config_hash(self.config),
                 "random_seed": self.config.random_seed,
@@ -926,22 +981,48 @@ class WalkForwardEngine:
         candidate_records: List[WalkForwardTrialRecord] = []
         params_by_fold: Dict[int, Dict[str, Any]] = {}
         selection_rows: List[Dict[str, Any]] = []
+        inner_fold_rows: List[Dict[str, Any]] = []
 
         for fold in folds:
             fold_seed = _derive_fold_seed(self.config.random_seed, fold.fold_id)
-            selected, fold_trials, fold_candidates = self.optimize_params(
-                data=data,
-                folds=[fold],
-                param_ranges=param_ranges,
-                random_seed=fold_seed,
-                evaluate_oos_candidates=schedule == "per_fold_decay",
+            is_nested_mode1 = (
+                schedule == "per_fold_causal"
+                and self.config.optimization_mode == "mode_1_decay"
             )
+            inner_folds: List[WalkForwardFold] = []
+            if is_nested_mode1:
+                inner_folds = _build_inner_folds(fold, self.config)
+                selected, fold_trials, fold_candidates = self.optimize_params(
+                    data=data,
+                    folds=inner_folds,
+                    param_ranges=param_ranges,
+                    random_seed=fold_seed,
+                    evaluate_oos_candidates=True,
+                )
+                inner_fold_rows.extend(
+                    _inner_fold_audit_rows(
+                        outer_fold=fold,
+                        inner_folds=inner_folds,
+                    )
+                )
+            else:
+                selected, fold_trials, fold_candidates = self.optimize_params(
+                    data=data,
+                    folds=[fold],
+                    param_ranges=param_ranges,
+                    random_seed=fold_seed,
+                    evaluate_oos_candidates=schedule == "per_fold_decay",
+                )
 
             oos_used = schedule == "per_fold_decay"
             selection_label = (
                 "fold_local_decay_calibration"
                 if oos_used
-                else "strict_fold_local_retraining"
+                else (
+                    "strict_nested_fold_local_retraining"
+                    if is_nested_mode1
+                    else "strict_fold_local_retraining"
+                )
             )
             common_metadata = {
                 "optimization_schedule": schedule,
@@ -952,6 +1033,8 @@ class WalkForwardEngine:
                 "selection_data_end": fold.train_end,
                 "test_start": fold.test_start,
                 "test_end": fold.test_end,
+                "inner_fold_count": int(len(inner_folds)),
+                "inner_validation": _inner_validation_metadata(self.config),
             }
             tagged_trials = [
                 _with_selection_metadata(
@@ -979,7 +1062,11 @@ class WalkForwardEngine:
                     "selection_adjustment_note": (
                         "same_fold_oos_used_for_candidate_decay_selection"
                         if oos_used
-                        else "outer_oos_excluded_from_parameter_selection"
+                        else (
+                            "outer_oos_excluded_from_nested_inner_decay_selection"
+                            if is_nested_mode1
+                            else "outer_oos_excluded_from_parameter_selection"
+                        )
                     ),
                 },
             )
@@ -1050,6 +1137,8 @@ class WalkForwardEngine:
                     "study_trial_rows": int(optuna_rows),
                     "outer_oos_used_for_selection": bool(oos_used),
                     "causality_claim": selection_label,
+                    "inner_fold_count": int(len(inner_folds)),
+                    "inner_validation": _inner_validation_metadata(self.config),
                 }
             )
 
@@ -1060,6 +1149,7 @@ class WalkForwardEngine:
             candidate_records=candidate_records,
             params_by_fold=params_by_fold,
             selection_rows=selection_rows,
+            inner_fold_rows=inner_fold_rows,
         )
 
     def optimize_params(
@@ -3530,6 +3620,131 @@ def _changed_target_count(before, after, tolerance: float = 1e-12) -> int:
             sum(abs(float(after.get(key, 0.0)) - float(before.get(key, 0.0))) > tolerance for key in keys)
         )
     return int(abs(float(after) - float(before)) > tolerance)
+
+
+def _inner_validation_metadata(config: WalkForwardConfig) -> Optional[Dict[str, Any]]:
+    """Return the explicit nested-validation contract, when Mode 1 uses it."""
+    if not (
+        config.optimization_mode == "mode_1_decay"
+        and config.optimization_schedule == "per_fold_causal"
+    ):
+        return None
+    return {
+        "enabled": True,
+        "selection_scope": "outer_is_only",
+        "inner_split_frequency": config.inner_split_frequency,
+        "inner_window_mode": config.inner_window_mode,
+        "inner_train_window": config.inner_train_window,
+        "inner_min_folds": int(config.inner_min_folds),
+        "outer_oos_used_for_selection": False,
+    }
+
+
+def _build_inner_folds(outer_fold: WalkForwardFold, config: WalkForwardConfig) -> List[WalkForwardFold]:
+    """Build nested chronological folds strictly inside one outer IS window."""
+    if (
+        config.inner_split_frequency is None
+        or config.inner_window_mode is None
+        or config.inner_train_window is None
+    ):
+        raise ValueError(
+            "causal Mode 1 nested validation is missing inner fold configuration"
+        )
+
+    idx = validate_datetime(outer_fold.train_index)
+    minimum_train_end = idx[0] + pd.Timedelta(config.inner_train_window)
+    first_position = int(idx.searchsorted(minimum_train_end, side="left"))
+    if first_position >= len(idx):
+        raise ValueError(
+            "causal Mode 1 outer fold "
+            f"{outer_fold.fold_id} has no room for an inner OOS window after "
+            f"inner_train_window={config.inner_train_window!r}"
+        )
+
+    first_oos = idx[first_position]
+    frequency = str(config.inner_split_frequency)
+    window_mode = str(config.inner_window_mode)
+    train_window = pd.Timedelta(config.inner_train_window)
+    folds: List[WalkForwardFold] = []
+
+    if frequency == "single":
+        train_start = idx[0] if window_mode == "expanding" else first_oos - train_window
+        train_index = idx[(idx >= train_start) & (idx < first_oos)]
+        test_index = idx[idx >= first_oos]
+        if len(train_index) >= config.min_train_bars and len(test_index) >= config.min_test_bars:
+            folds.append(
+                WalkForwardFold(
+                    fold_id=0,
+                    train_start=train_index[0],
+                    train_end=train_index[-1],
+                    test_start=test_index[0],
+                    test_end=test_index[-1],
+                    train_index=train_index,
+                    test_index=test_index,
+                )
+            )
+    else:
+        step = _frequency_offset(frequency)
+        test_start = first_oos
+        inner_fold_id = 0
+        while test_start <= idx[-1]:
+            test_stop = test_start + step
+            test_index = idx[(idx >= test_start) & (idx < test_stop)]
+            if len(test_index) < config.min_test_bars:
+                test_start = test_stop
+                continue
+
+            train_start = idx[0] if window_mode == "expanding" else test_start - train_window
+            train_index = idx[(idx >= train_start) & (idx < test_start)]
+            if len(train_index) >= config.min_train_bars:
+                folds.append(
+                    WalkForwardFold(
+                        fold_id=inner_fold_id,
+                        train_start=train_index[0],
+                        train_end=train_index[-1],
+                        test_start=test_index[0],
+                        test_end=test_index[-1],
+                        train_index=train_index,
+                        test_index=test_index,
+                    )
+                )
+                inner_fold_id += 1
+            test_start = test_stop
+
+    if len(folds) < int(config.inner_min_folds):
+        raise ValueError(
+            "causal Mode 1 outer fold "
+            f"{outer_fold.fold_id} produced {len(folds)} inner folds; "
+            f"inner_min_folds={config.inner_min_folds} is required. "
+            "Use an earlier outer OOS start, a shorter inner_train_window, "
+            "or a coarser inner_split_frequency."
+        )
+    if any(inner_fold.test_end > outer_fold.train_end for inner_fold in folds):
+        raise RuntimeError("nested Mode 1 construction leaked beyond the outer IS boundary")
+    return folds
+
+
+def _inner_fold_audit_rows(
+    *,
+    outer_fold: WalkForwardFold,
+    inner_folds: Sequence[WalkForwardFold],
+) -> List[Dict[str, Any]]:
+    """Create immutable provenance rows for nested Mode 1 validation."""
+    return [
+        {
+            "outer_fold_id": int(outer_fold.fold_id),
+            "outer_train_start": outer_fold.train_start,
+            "outer_train_end": outer_fold.train_end,
+            "outer_test_start": outer_fold.test_start,
+            "inner_fold_id": int(inner_fold.fold_id),
+            "inner_train_start": inner_fold.train_start,
+            "inner_train_end": inner_fold.train_end,
+            "inner_test_start": inner_fold.test_start,
+            "inner_test_end": inner_fold.test_end,
+            "outer_oos_used_for_selection": False,
+        }
+        for inner_fold in inner_folds
+    ]
 
 
 def _first_oos_timestamp(split_mode) -> pd.Timestamp:
