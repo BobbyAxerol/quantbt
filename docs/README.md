@@ -17,6 +17,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Build pair trades or baskets | [Pair and basket guide](pair_basket_guide.md) |
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
+| Choose a strict causal WFO schedule and read its audit metadata | [Causal walk-forward guide](walkforward_causal.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |

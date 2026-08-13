@@ -120,6 +120,36 @@ class BacktestResultV2:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class BacktestScalarScoreResult:
+    """Low-retention score returned by prepared vectorized backends.
+
+    The backend computes these metrics from the same accounting arrays and the
+    same :func:`compute_performance_metrics` contract used by public reports,
+    then releases the paths instead of materializing pandas report objects.
+    This result is intentionally sufficient for optimizer/WFO scoring only.
+    """
+
+    final_equity: float
+    final_positions: np.ndarray
+    metrics: Mapping[str, float]
+    liquidated: bool = False
+    liquidation_bar: int = -1
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+        """Return the immutable report captured by the score execution."""
+        if str(scope).lower().strip() not in {"auto", "full"}:
+            raise ValueError("BacktestScalarScoreResult supports scope='auto' or scope='full'")
+        recorded_days = int(self.metadata.get("trading_days", trading_days))
+        if int(trading_days) != recorded_days:
+            raise ValueError(
+                "scalar score metrics were computed with trading_days="
+                f"{recorded_days}; rerun the score to use trading_days={int(trading_days)}"
+            )
+        return dict(self.metrics)
+
+
 @dataclass(frozen=True)
 class NativeAccountingArrays:
     timestamps: np.ndarray

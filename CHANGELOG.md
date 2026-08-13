@@ -2,6 +2,25 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
+## [1.0.8] - 2026-08-12
+
+### Changed
+
+- Added strict nested causal retraining for
+  `mode_1_decay + optimization_schedule="per_fold_causal"`. Mode 1 decay now
+  uses inner IS-only folds while each outer OOS segment remains untouched until
+  its parameters are frozen.
+- Added explicit chronological validation metadata so consumers can distinguish
+  retrospective global calibration, selection-adjusted OOS, and strict outer
+  OOS evaluation without breaking legacy result fields.
+- Added a bounded-RSS release test runner that executes deterministic pytest
+  shards in fresh processes; CI and publish workflows use the same selection.
+
+### Verification
+
+- Root/source mirror, prepared/reference WFO parity, nested-fold causality,
+  and the full non-real-data release suite passed before this version bump.
+
 ## [1.0.7] - 2026-08-04
 
 This is the first independently installable core package release line.

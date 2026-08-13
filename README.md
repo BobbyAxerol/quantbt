@@ -168,6 +168,21 @@ tape. Normal `.backtest(...)` remains defensive and backward-compatible.
 Cython/C++ remains deferred because the larger benchmark still points to
 facade/report overhead rather than pure Numba kernels.
 
+Latest Phase 49B WFO benchmark (1,000 daily bars, identical seeds, folds,
+trials, strategies, account settings, and accounting kernels):
+
+| WFO workload | Phase 49A reference | Phase 49B prepared/scalar | Speedup | Parity |
+|---|---:|---:|---:|---|
+| Portfolio global, 1 study x 16 trials | 0.386s | 0.330s | 1.17x | exact |
+| Single-symbol causal, 6 studies x 16 trials | 4.051s | 1.781s | 2.27x | exact |
+
+Phase 49B prepares aligned WFO fold state once, scores trials directly from
+accounting arrays, and compacts completed Optuna ledgers. It does not cache user
+strategy signals or alter objectives. The isolated warm peak-RSS difference was
+within +/-0.15%, so the result is reported as an RSS plateau rather than a memory
+reduction. Reproduce it with
+`python benchmarks/run_phase49b_wfo_performance.py --rows 1000 --trials 16`.
+
 Latest Phase 31 intrabar execution benchmark:
 
 | Route | Workload | Runtime | Throughput | Ratio | Parity |
@@ -213,7 +228,7 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine==1.0.7` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-engine==1.0.8` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
 | `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
@@ -280,7 +295,7 @@ Raw Phase 47D artifacts are kept under
 
 ### Phase 48F final release handoff
 
-The core `quantbt-engine` 1.0.7 artifact gate is now implemented locally and
+The core `quantbt-engine` 1.0.8 artifact gate is now implemented locally and
 in the release workflows: exact version/ref validation, wheel and sdist
 `twine check`, archive allowlist and secret scan, clean import plus `pip check`,
 and a SHA256 release manifest. The TestPyPI workflow is manual and OIDC
@@ -589,14 +604,18 @@ fills, positions, account state, and performance report.
 Install the released core package:
 
 ```bash
-pip install quantbt-engine==1.0.7
+pip install quantbt-engine==1.0.8
 ```
 
-Optional reports and third-party validation:
+Optional optimization, reports, and third-party validation:
 
 ```bash
-pip install "quantbt-engine[reports,validation]==1.0.7"
+pip install "quantbt-engine[optimization,reports,validation]==1.0.8"
 ```
+
+Walk-forward parameter search specifically requires the `optimization` extra.
+Read the [causal WFO guide](docs/walkforward_causal.md) before reporting OOS
+metrics from a fold-local schedule.
 
 Development from this repository:
 
@@ -622,7 +641,7 @@ pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
 After the release is approved, downstream services should use
-`pip install quantbt-engine==1.0.7` and keep the unchanged import
+`pip install quantbt-engine==1.0.8` and keep the unchanged import
 `from quantbt import QuantBTEndpoint`.
 
 ## Quick Start
@@ -753,6 +772,31 @@ result = wf.backtest(data=df, param_ranges=param_ranges)
 wf.show_metrics(scope="auto")
 ```
 
+Multi-fold WFO keeps `optimization_schedule="global"` as the compatible
+default. Phase 49A also exposes two explicit fold-local schedules:
+
+- `mode_1_decay + per_fold_decay`: one study per fold, with same-fold OOS used
+  for final decay candidate selection (`selection_adjusted_oos`);
+- `mode_4_is_only_robust + per_fold_causal`: one study per fold, with strict
+  IS-only selection before outer OOS execution.
+- `mode_1_decay + per_fold_causal`: one outer study per fold, where Mode 1
+  decay is measured only on explicit nested inner folds contained in that
+  outer IS window; outer OOS remains untouched until parameters are frozen.
+
+Both schedules stitch one continuous target tape and run accounting once with
+`fold_boundary_position_policy="carry"`. See the [causal WFO guide]
+(docs/walkforward_causal.md), [docs/endpoint.md](docs/endpoint.md), and
+[methodology/walk_forward.md](methodology/walk_forward.md) for selection claims,
+strictness boundaries, and audit metadata.
+
+Phase 49B keeps this API stable. Endpoint-backed optimization prepares market
+and fold state once and uses scalar-only trial reports by default. Audit the
+lifecycle through `prepared_wfo_context`, `prepared_scoring_cache`,
+`trial_ledger_mode`, and `performance_profile` in walk-forward metadata.
+Nested Mode 1 also records `inner_validation`, `inner_fold_table`, and
+`chronological_validation_claim` so services can distinguish retrospective,
+selection-adjusted, and strict outer-OOS results.
+
 `scope="auto"` reports only the tested/OOS segment for walk-forward and
 train/test runs. Pass `scope="full"` when you need to audit the full stitched
 timeline.
@@ -802,6 +846,7 @@ backend, endpoint, or strategy route to use.
 | Market/limit/stop fill behavior | [Order fill policies](docs/order_fill_policies.md) |
 | Nautilus validation and report bundles | [Nautilus backend](docs/nautilus_backend.md) |
 | Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
+| Causal WFO schedules, outer-OOS claims, and audit metadata | [Causal WFO guide](docs/walkforward_causal.md) |
 | Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
 | Runnable smoke templates | [Examples index](examples/README.md) |
 
