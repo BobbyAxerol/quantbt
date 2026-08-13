@@ -14,6 +14,7 @@ from enum import Enum
 import hashlib
 import json
 from pathlib import Path
+from time import perf_counter
 from typing import TYPE_CHECKING, Dict, Optional, Sequence, Union
 import warnings
 
@@ -1410,6 +1411,8 @@ class QuantBTEndpoint:
         window_mode: str = "expanding",
         train_window: Optional[str] = None,
         optimization_mode: str = "none",
+        optimization_schedule: str = "global",
+        fold_boundary_position_policy: str = "carry",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1426,6 +1429,14 @@ class QuantBTEndpoint:
         Supported optimization modes are `mode_1_decay`, `mode_2_sbb`,
         `mode_3_flat_minima`, `mode_4_is_only_robust`, and
         `mode_5_full_robust`.
+        `optimization_schedule="global"` preserves the existing one-study
+        behavior. `per_fold_decay` runs Mode 1 as one independent two-stage
+        study per fold and uses that fold's OOS metrics for decay candidate
+        selection. `per_fold_causal` runs Mode 4 as strict fold-local IS-only
+        selection, or Mode 1 with explicit nested inner validation entirely
+        inside each outer IS window. Per-fold schedules keep one continuous
+        final account run; `fold_boundary_position_policy="carry"` is the
+        only supported policy.
         Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
@@ -1439,6 +1450,10 @@ class QuantBTEndpoint:
         )
         wf_metadata = dict(optimization_config.get("metadata", {}) or {})
         wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
+        wf_metadata.setdefault("use_prepared_wfo_context", bool(optimization_config.get("use_prepared_wfo_context", True)))
+        wf_metadata.setdefault("use_scalar_trial_scoring", bool(optimization_config.get("use_scalar_trial_scoring", True)))
+        wf_metadata.setdefault("compact_trial_ledger", bool(optimization_config.get("compact_trial_ledger", True)))
+        wf_metadata.setdefault("profile_walkforward", bool(optimization_config.get("profile_walkforward", False)))
         if wf_config is None:
             from .walkforward import WalkForwardConfig
 
@@ -1449,6 +1464,12 @@ class QuantBTEndpoint:
                 train_window=train_window,
                 target_mode=target_mode,
                 optimization_mode=optimization_mode,
+                optimization_schedule=optimization_schedule,
+                fold_boundary_position_policy=fold_boundary_position_policy,
+                inner_split_frequency=optimization_config.get("inner_split_frequency"),
+                inner_window_mode=optimization_config.get("inner_window_mode"),
+                inner_train_window=optimization_config.get("inner_train_window"),
+                inner_min_folds=int(optimization_config.get("inner_min_folds", 2)),
                 optuna_trials=optuna_trials,
                 optuna_early_stopping=optuna_early_stopping,
                 random_seed=random_seed,
@@ -1531,6 +1552,8 @@ class QuantBTEndpoint:
         window_mode: str = "expanding",
         train_window: Optional[str] = None,
         optimization_mode: str = "none",
+        optimization_schedule: str = "global",
+        fold_boundary_position_policy: str = "carry",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1548,6 +1571,9 @@ class QuantBTEndpoint:
         walk-forward: `none`, `mode_1_decay`, `mode_2_sbb`,
         `mode_3_flat_minima`, `mode_4_is_only_robust`, and
         `mode_5_full_robust`.
+        The optional optimization schedule has the same contract as
+        `walk_forward(...)`; the per-fold schedules create one study for this
+        single declared train/test pair.
         """
         return cls.walk_forward(
             strategy_class=strategy_class,
@@ -1557,6 +1583,8 @@ class QuantBTEndpoint:
             window_mode=window_mode,
             train_window=train_window,
             optimization_mode=optimization_mode,
+            optimization_schedule=optimization_schedule,
+            fold_boundary_position_policy=fold_boundary_position_policy,
             optimization_config=optimization_config,
             optuna_trials=optuna_trials,
             optuna_early_stopping=optuna_early_stopping,
@@ -2705,9 +2733,28 @@ class QuantBTEndpoint:
             "candidate_table": wf_result.candidate_table,
             "best_trial": wf_result.best_trial,
             "optimization_mode": wf_result.metadata.get("optimization_mode"),
+            "optimization_schedule": wf_result.metadata.get("optimization_schedule"),
+            "fold_boundary_position_policy": wf_result.metadata.get("fold_boundary_position_policy"),
             "validation_claim": wf_result.metadata.get("validation_claim"),
+            "causality_claim": wf_result.metadata.get("causality_claim"),
+            "chronological_validation_claim": wf_result.metadata.get("chronological_validation_claim"),
             "full_sample_used_for_selection": wf_result.metadata.get("full_sample_used_for_selection"),
             "oos_used_for_selection": wf_result.metadata.get("oos_used_for_selection"),
+            "params_semantics": wf_result.metadata.get("params_semantics"),
+            "params_by_fold": wf_result.metadata.get("params_by_fold"),
+            "fold_selection_table": wf_result.metadata.get("fold_selection_table"),
+            "inner_fold_table": wf_result.metadata.get("inner_fold_table"),
+            "inner_validation": wf_result.metadata.get("inner_validation"),
+            "fold_boundary_table": wf_result.metadata.get("fold_boundary_table"),
+            "account_execution": wf_result.metadata.get("account_execution"),
+            "n_studies": wf_result.metadata.get("n_studies"),
+            "optuna_trials_scope": wf_result.metadata.get("optuna_trials_scope"),
+            "optuna_trials_configured_per_study": wf_result.metadata.get("optuna_trials_configured_per_study"),
+            "n_optuna_trial_rows": wf_result.metadata.get("n_optuna_trial_rows"),
+            "trial_ledger_mode": wf_result.metadata.get("trial_ledger_mode"),
+            "full_trial_metrics_retained": wf_result.metadata.get("full_trial_metrics_retained"),
+            "prepared_wfo_context": wf_result.metadata.get("prepared_wfo_context"),
+            "performance_profile": wf_result.metadata.get("performance_profile"),
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
             "random_seed": wf_result.metadata.get("random_seed"),
@@ -2743,7 +2790,11 @@ class QuantBTEndpoint:
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
         }
         if scorer is not None and hasattr(scorer, "prepared_cache_metadata"):
-            result.metadata["walk_forward"]["prepared_scoring_cache"] = scorer.prepared_cache_metadata()
+            cache_metadata = scorer.prepared_cache_metadata()
+            if hasattr(scorer, "release_prepared_state"):
+                scorer.release_prepared_state()
+                cache_metadata["released_after_run"] = True
+            result.metadata["walk_forward"]["prepared_scoring_cache"] = cache_metadata
         result.metadata["walk_forward_result"] = wf_result
         self.engine = engine
         self.result = result
@@ -3633,6 +3684,9 @@ class _WalkForwardEndpointScorer:
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
+        self.use_scalar_trial_scoring = bool(
+            (wf_config.metadata if wf_config is not None else {}).get("use_scalar_trial_scoring", True)
+        )
         self.prepared_scoring_report_level = str(
             (wf_config.metadata if wf_config is not None else {}).get("prepared_scoring_report_level", "minimal")
         )
@@ -3650,18 +3704,39 @@ class _WalkForwardEndpointScorer:
             "market_cache_misses": 0,
             "market_cache_entries": 0,
             "prepared_runs": 0,
+            "scalar_runs": 0,
             "fallback_runs": 0,
+            "market_prepare_seconds": 0.0,
+            "signal_pack_seconds": 0.0,
+            "kernel_score_seconds": 0.0,
+            "metric_report_seconds": 0.0,
         }
+
+    def bind_walkforward_context(self, context) -> None:
+        """Bind one run-local prepared WFO snapshot to this scorer instance."""
+        self.market_data = context.data
+        self.market_datetime_index = context.datetime_index
+        self._stats["walkforward_context_signature"] = context.signature
 
     def __call__(self, data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
         try:
             if self._can_score_single_vectorized_prepared(output):
-                result = self._score_single_vectorized_prepared(output=output, index=index)
+                result = self._score_single_vectorized_prepared(
+                    output=output,
+                    index=index,
+                    trading_days=trading_days,
+                )
             elif self._can_score_portfolio_prepared(output):
-                result = self._score_portfolio_prepared(output=output, index=index)
+                result = self._score_portfolio_prepared(
+                    output=output,
+                    index=index,
+                    trading_days=trading_days,
+                )
             else:
                 result = self._score_fallback(data=data, output=output, index=index)
+            report_started = perf_counter()
             report = result.full_report(trading_days=trading_days, scope="full")
+            self._stats["metric_report_seconds"] += perf_counter() - report_started
         except Exception as exc:
             raise RuntimeError(
                 "walk-forward endpoint scoring failed during "
@@ -3681,11 +3756,26 @@ class _WalkForwardEndpointScorer:
         meta = dict(self._stats)
         meta["market_cache_entries"] = len(self._portfolio_market_cache) + len(self._single_market_cache)
         meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
+        meta["use_scalar_trial_scoring"] = self.use_scalar_trial_scoring
         meta["available"] = (
             self._prepared_single_available()
             or (self.target_mode == "portfolio" and self.score_config.backend == "native_portfolio")
         )
         return meta
+
+    def release_prepared_state(self) -> None:
+        """Release run-local market snapshots after WFO metadata is captured."""
+        self.market_data = None
+        self.market_closes = None
+        self.market_highs = None
+        self.market_lows = None
+        self.market_datetime_index = None
+        self._single_market_maps.clear()
+        self._single_market_cache.clear()
+        self._portfolio_market_maps.clear()
+        self._portfolio_market_cache.clear()
+        self._single_backend = None
+        self._portfolio_backend = None
 
     def _prepared_single_available(self) -> bool:
         return (
@@ -3717,7 +3807,7 @@ class _WalkForwardEndpointScorer:
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
 
-    def _score_single_vectorized_prepared(self, output: pd.Series, index):
+    def _score_single_vectorized_prepared(self, output: pd.Series, index, trading_days: int):
         idx = _ensure_utc_index(index)
         symbol_list = self._symbol_list(output)
         close_map, high_map, low_map = self._single_maps(symbol_list)
@@ -3725,6 +3815,7 @@ class _WalkForwardEndpointScorer:
         cache_key = self._market_cache_key(idx, symbol_list)
         market = self._single_market_cache.get(cache_key)
         if market is None:
+            prepare_started = perf_counter()
             market = backend.prepare_market_arrays(
                 datetime_index=idx,
                 closes=close_map,
@@ -3735,11 +3826,17 @@ class _WalkForwardEndpointScorer:
             )
             self._single_market_cache[cache_key] = market
             self._stats["market_cache_misses"] += 1
+            self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
         else:
             self._stats["market_cache_hits"] += 1
 
+        signal_started = perf_counter()
+        raw_signals = _series_to_raw_matrix(output, idx)
+        self._stats["signal_pack_seconds"] += perf_counter() - signal_started
         self._stats["prepared_runs"] += 1
-        return backend.run_signals(
+        run_started = perf_counter()
+        runner = backend.score_signals if self.use_scalar_trial_scoring else backend.run_signals
+        kwargs = dict(
             positions={symbol_list[0]: output},
             closes=close_map,
             highs=high_map,
@@ -3753,6 +3850,7 @@ class _WalkForwardEndpointScorer:
             use_pyramiding=self.score_config.use_pyramiding,
             symbols=symbol_list,
             market_arrays=market,
+            raw_signal_matrix=raw_signals,
             instruments=self.score_config.instruments,
             qty_step=self.score_config.qty_step,
             lot_size=self.score_config.lot_size,
@@ -3760,8 +3858,15 @@ class _WalkForwardEndpointScorer:
             min_qty=self.score_config.min_qty,
             min_notional=self.score_config.min_notional,
         )
+        if self.use_scalar_trial_scoring:
+            result = runner(trading_days=int(trading_days), **kwargs)
+            self._stats["scalar_runs"] += 1
+        else:
+            result = runner(**kwargs)
+        self._stats["kernel_score_seconds"] += perf_counter() - run_started
+        return result
 
-    def _score_portfolio_prepared(self, output, index):
+    def _score_portfolio_prepared(self, output, index, trading_days: int):
         idx = _ensure_utc_index(index)
         symbol_list = self._symbol_list(output)
         close_map, high_map, low_map = self._portfolio_maps(symbol_list)
@@ -3769,6 +3874,7 @@ class _WalkForwardEndpointScorer:
         cache_key = self._market_cache_key(idx, symbol_list)
         market = self._portfolio_market_cache.get(cache_key)
         if market is None:
+            prepare_started = perf_counter()
             market = backend.prepare_market_arrays(
                 datetime_index=idx,
                 closes=close_map,
@@ -3779,13 +3885,17 @@ class _WalkForwardEndpointScorer:
             )
             self._portfolio_market_cache[cache_key] = market
             self._stats["market_cache_misses"] += 1
+            self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
         else:
             self._stats["market_cache_hits"] += 1
 
-        pos_map = _positions_to_map(output)
-        raw_signals = NativePortfolioBackend.prepare_signal_matrix(pos_map, idx, symbol_list)
+        signal_started = perf_counter()
+        raw_signals = _positions_to_raw_matrix(output, idx, symbol_list)
+        self._stats["signal_pack_seconds"] += perf_counter() - signal_started
         self._stats["prepared_runs"] += 1
-        return backend.run_signals(
+        run_started = perf_counter()
+        runner = backend.score_signals if self.use_scalar_trial_scoring else backend.run_signals
+        kwargs = dict(
             positions=None,
             closes=close_map,
             highs=high_map,
@@ -3812,6 +3922,13 @@ class _WalkForwardEndpointScorer:
             min_notional=self.score_config.min_notional,
             report_level=self.prepared_scoring_report_level,
         )
+        if self.use_scalar_trial_scoring:
+            result = runner(trading_days=int(trading_days), **kwargs)
+            self._stats["scalar_runs"] += 1
+        else:
+            result = runner(**kwargs)
+        self._stats["kernel_score_seconds"] += perf_counter() - run_started
+        return result
 
     def _single_backend_instance(self) -> NativeVectorizedBackend:
         if self._single_backend is None:

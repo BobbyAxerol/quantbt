@@ -24,7 +24,7 @@ from ..core.preprocessor import (
     validate_datetime,
 )
 from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
-from ..core.results import BacktestResultV2
+from ..core.results import BacktestResultV2, BacktestScalarScoreResult
 from ..core.schema import (
     AccountConfig,
     BasketLegSpec,
@@ -276,7 +276,8 @@ class NativeVectorizedBackend:
         market_arrays: Optional[PreparedMarketArrays] = None,
         raw_signal_matrix: Optional[np.ndarray] = None,
         high_low_source: str = "provided",
-    ) -> BacktestResultV2:
+        _scalar_score_trading_days: Optional[int] = None,
+    ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
             symbol_list,
@@ -329,6 +330,46 @@ class NativeVectorizedBackend:
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
         )
+
+        if _scalar_score_trading_days is not None:
+            from ..metrics.performance import compute_performance_metrics
+
+            returns_arr = np.zeros_like(equity_arr, dtype=np.float64)
+            if len(equity_arr) > 1:
+                returns_arr[1:] = np.divide(
+                    equity_arr[1:] - equity_arr[:-1],
+                    equity_arr[:-1],
+                    out=np.zeros(len(equity_arr) - 1, dtype=np.float64),
+                    where=equity_arr[:-1] != 0.0,
+                )
+            metrics = compute_performance_metrics(
+                timestamps=idx,
+                equity=equity_arr,
+                returns=returns_arr,
+                positions=pos_arr,
+                symbols=symbol_list,
+                initial_capital=float(self.config.account.initial_capital),
+                liquidated=bool(liq_flag),
+                trading_days=int(_scalar_score_trading_days),
+            )
+            final_positions = (
+                np.asarray(pos_arr[-1], dtype=np.float64).copy()
+                if len(pos_arr)
+                else np.zeros(len(symbol_list), dtype=np.float64)
+            )
+            return BacktestScalarScoreResult(
+                final_equity=float(equity_arr[-1]),
+                final_positions=final_positions,
+                metrics=metrics,
+                liquidated=bool(liq_flag),
+                liquidation_bar=int(liq_idx),
+                metadata={
+                    "backend": "native_vectorized",
+                    "score_scalar": True,
+                    "score_pandas_materialized": False,
+                    "trading_days": int(_scalar_score_trading_days),
+                },
+            )
 
         equity = pd.Series(equity_arr, index=idx, name="equity")
         returns = equity.pct_change().fillna(0.0)
@@ -413,7 +454,8 @@ class NativeVectorizedBackend:
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         market_arrays: Optional[PreparedMarketArrays] = None,
         raw_signal_matrix: Optional[np.ndarray] = None,
-    ) -> BacktestResultV2:
+        _scalar_score_trading_days: Optional[int] = None,
+    ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         """
         Scale raw position signals into target units, then run the V2 kernel.
 
@@ -487,6 +529,7 @@ class NativeVectorizedBackend:
                 min_qty=min_qty,
                 min_notional=min_notional,
                 high_low_source=high_low_source,
+                _scalar_score_trading_days=_scalar_score_trading_days,
             )
 
         if close_dict is None:
@@ -527,6 +570,21 @@ class NativeVectorizedBackend:
             min_qty=min_qty,
             min_notional=min_notional,
         )
+
+    def score_signals(self, *, trading_days: int = 365, **kwargs) -> BacktestScalarScoreResult:
+        """Score prepared signal-notional targets without pandas report paths."""
+        hedge_type = str(kwargs.get("hedge_type", "signal_notional")).lower().strip()
+        if hedge_type not in {"signal_notional", "signal"}:
+            raise NotImplementedError(
+                "native_vectorized scalar scoring currently supports signal_notional only"
+            )
+        result = self.run_signals(
+            **kwargs,
+            _scalar_score_trading_days=int(trading_days),
+        )
+        if not isinstance(result, BacktestScalarScoreResult):  # pragma: no cover - guarded above
+            raise RuntimeError("native_vectorized scalar score unexpectedly materialized a public result")
+        return result
 
     def run_basis_arbitrage(
         self,

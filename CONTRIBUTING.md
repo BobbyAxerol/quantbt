@@ -75,6 +75,21 @@ pytest tests/test_phase3_native_event.py
 pytest tests/test_phase5_nautilus_adapter.py
 ```
 
+On memory-constrained hosts, use the isolated release runner. It starts a new
+pytest process after each bounded shard so Numba/pandas imports from an earlier
+group cannot accumulate into the next one:
+
+```bash
+poetry run python tools/run_test_shards.py --profile release --max-files-per-shard 8
+```
+
+For changes to causal walk-forward behavior, also run the deterministic
+certification tool. It writes its JSON outside the repository by default:
+
+```bash
+poetry run python tools/audit_phase50_wfo_causal.py
+```
+
 For changes to accounting, sizing, margin, liquidation, fees, funding, or
 Nautilus parity, include at least one deterministic test with a small synthetic
 dataset. Real-data tests are useful for smoke checks, but they should not be the

@@ -40,6 +40,55 @@ Tham số split: `split_mode`, `split_frequency`, `window_mode`, `train_window`,
 `min_train_bars`, `min_test_bars`. `expanding` dùng toàn bộ lịch sử trước OOS;
 `rolling` chỉ dùng cửa sổ train gần nhất.
 
+### 2.1. Global Và Per-Fold Optimization Schedule
+
+`optimization_mode` trả lời câu hỏi *chấm và chọn params như thế nào*.
+`optimization_schedule` trả lời câu hỏi *khi nào tạo một study mới*.
+
+`global` giữ behavior lịch sử: một Optuna study đánh giá toàn bộ folds và chọn
+một params chung. Đây là retrospective global calibration; train window của
+fold sau có thể chứa giai đoạn từng là OOS của fold trước.
+
+`per_fold_decay` chỉ dành cho Mode 1 trong Phase 49A. Với mỗi outer fold (k),
+QuantBT tạo study độc lập, rank toàn bộ trials trên (D_{\mathrm{IS},k}), freeze
+top-IS candidate pool, rồi dùng chính (D_{\mathrm{OOS},k}) để đo decay và chọn
+candidate của fold đó. Vì OOS tham gia selection, kết quả là
+`selection_adjusted_oos`, không phải untouched holdout.
+
+`per_fold_causal` áp dụng cho Mode 4 hoặc Mode 1 nested validation. Với Mode 4,
+params được chọn hoàn toàn từ (D_{\mathrm{IS},k}), freeze trước khi outer OOS
+được chạy. Với Mode 1, decay được đo bằng inner folds nằm hoàn toàn trong
+(D_{\mathrm{IS},k}), rồi outer OOS mới được chạy sau khi params freeze. Cả hai
+route là strict fold-local retraining nếu strategy implementation cũng causal.
+
+Mỗi fold có study, duplicate state và deterministic seed riêng. Khi fold hoàn
+tất, QuantBT stitch target OOS theo chronology và chạy account engine đúng một
+lần. Policy `carry` giữ position/equity liên tục; boundary không tự reset vốn
+hay tạo close/reopen.
+
+### 2.2. Tối Ưu Lifecycle Phase 49B
+
+Phase 49B giữ nguyên map toán học từ params đến objective. Một prepared context
+run-local chuẩn hóa index, fold slices và content signature đúng một lần. Scorer
+endpoint gọi cùng accounting kernel và cùng `compute_performance_metrics`, nhưng
+trả scalar objective contract thay vì dựng `BacktestResult`/DataFrame đầy đủ cho
+mỗi trial. Sau selection, ledger trial không được chọn chỉ giữ scalar fields cần
+cho audit table; selected trial vẫn giữ fold metrics đầy đủ.
+
+Ba invariants được khóa bằng parity tests:
+
+$$
+\theta^{*}_{\mathrm{prepared}}=\theta^{*}_{\mathrm{reference}},
+\qquad
+J_{\mathrm{prepared}}(\theta)=J_{\mathrm{reference}}(\theta),
+\qquad
+E^{\mathrm{final}}_{\mathrm{prepared}}=E^{\mathrm{final}}_{\mathrm{reference}}.
+$$
+
+QuantBT không cache arbitrary strategy output. Vì vậy cải thiện tốc độ chỉ đến
+từ framework preparation/report retention, không giả định indicator của user là
+deterministic hoặc causal.
+
 ---
 
 ## 3. Strategy Contract
@@ -652,3 +701,20 @@ surface bằng `mode_3_flat_minima`, validate bằng endpoint thật, rồi dùn
 
 Không có mode nào đúng cho mọi alpha. Lựa chọn mode phụ thuộc vào số tham số, độ
 dài data, trade frequency, regime sensitivity và mức cần anti-leakage.
+
+### 15.1. Strict Causal Mode 1 Theo Nested Validation
+
+`mode_1_decay + optimization_schedule="per_fold_causal"` dùng khi muốn giữ
+objective decay của Mode 1 nhưng không cho outer OOS tham gia chọn params. Với
+outer fold \(D_i, T_i\), engine tạo các inner folds \((d_{ij}, t_{ij})\) sao cho
+mọi \(t_{ij} \subset D_i\). Optuna, top-IS candidates và `robust_decay` chỉ
+được chạy trên các inner folds này. Sau khi chọn \(\theta_i^\star\), engine mới
+emit signal và đo performance trên \(T_i\) đúng một lần.
+
+Do đó, đây là strict outer-OOS protocol, nhưng không phải “free validation”:
+nó tốn nhiều backtest hơn vì `optuna_trials` được áp dụng cho mỗi outer study,
+và outer IS phải đủ dài để chứa `inner_min_folds`. Metadata trả về
+`inner_validation`, `inner_fold_table`, `params_by_fold` và
+`chronological_validation_claim="strict_outer_oos_after_frozen_selection"`.
+Không đủ inner history là lỗi cấu hình/data, không phải lý do để fallback sang
+schedule khác.

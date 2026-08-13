@@ -11240,3 +11240,522 @@ The plan deliberately does not promise further raw benchmark gains before
 TestPyPI. Any future native DSL, portfolio/arbitrage/options native backend,
 or deeper reactive callback optimization must be a new parity-first upgrade
 after this release gate rather than being mixed into the packaging release.
+
+---
+
+## Phase 49 - Per-Fold Walk-Forward Schedules And Retraining Audit
+
+**Status: Phase 49A and 49B completed on `feat/wfengine_v2`.
+The compatible `global` schedule is unchanged by default.**
+
+### Why This Phase Exists
+
+The existing multi-fold WFO lifecycle builds every fold, runs one Optuna study
+over the aggregate of their train windows, selects one global parameter set,
+then stitches all OOS outputs. The existing Mode 4 selector is IS-only at the
+trial/candidate level, but later train windows contain periods that were OOS
+for earlier folds. Therefore the current global lifecycle is appropriate for
+retrospective global-parameter calibration, not a strict historical causal
+retraining claim for the earliest OOS folds.
+
+This roadmap adds explicit *schedules*, not a sixth mixed objective mode:
+
+```python
+optimization_mode="mode_4_is_only_robust"
+optimization_schedule="per_fold_causal"
+```
+
+and, for the existing Mode 1 decay research workflow:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_decay"
+```
+
+`optimization_mode` continues to mean *how candidates are scored/selected*.
+`optimization_schedule` means *when a fresh parameter search is allowed*.
+This keeps the five existing modes stable and makes the lifecycle visible to
+notebooks, services, and audit consumers.
+
+Authoritative current-code references before implementation:
+
+- `walkforward.py::WalkForwardEngine.run`, `optimize_params`,
+  `evaluate_params_is`, and `stitch_oos_outputs`;
+- `endpoint.py::_run_walk_forward`, which routes one stitched OOS target tape
+  through the normal account engine exactly once;
+- `docs/` WFO methodology and `docs/endpoint.md` for public contract updates.
+
+### Public Contract To Add
+
+Add one optional, backward-compatible parameter to both
+`QuantBTEndpoint.walk_forward(...)` and
+`QuantBTEndpoint.train_test_split(...)`, and to `WalkForwardConfig`:
+
+```python
+optimization_schedule: str = "global"
+```
+
+Allowed values:
+
+| Value | Meaning | Historical causality claim |
+|---|---|---|
+| `global` | Current behavior: one study and one parameter set across all folds. | No causal multi-fold claim; retrospective global calibration. |
+| `per_fold_decay` | One independent study per chronological outer fold. Mode 1 retains its existing two-stage IS-candidate then same-fold OOS-decay selection. | Fold-local decay calibration; the selected candidate has seen that fold's OOS metrics, so this is not an untouched-OOS or causal deployment claim. |
+| `per_fold_causal` | Chronologically optimize on each fold's own train window, freeze that fold's params, then emit only its next OOS window. | Strict fold-local retraining, subject to a causal strategy implementation. |
+
+The existing default remains `global`; no current notebook, endpoint call, or
+stored result may change merely because this feature is added.
+
+The Phase 49 initial scope deliberately has two distinct protocols that must
+never be conflated:
+
+- `mode_1_decay + per_fold_decay` is the requested fold-local version of the
+  current Mode 1 workflow. It deliberately evaluates selected IS candidates
+  on the current fold's OOS segment to measure decay and choose the fold's
+  candidate. It is useful for regime-by-regime parameter robustness research,
+  but the stitched result is **selection-adjusted OOS**, not a strict causal
+  validation claim.
+- `mode_4_is_only_robust + per_fold_causal` is the direct strict selector.
+  Each outer fold chooses parameters solely from that fold's train window
+  using IS temporal/plateau robustness, freezes them, and only then emits the
+  next OOS segment.
+
+Initial compatibility is intentionally narrow:
+
+| `optimization_mode` | `global` | `per_fold_decay` | `per_fold_causal` |
+|---|---:|---:|---:|
+| `mode_1_decay` | supported, existing behavior | supported, same-fold OOS decay selection | future nested-validation extension; raise for now |
+| `mode_4_is_only_robust` | supported, existing behavior | not needed in initial scope; raise | supported, strict IS-only selection |
+| `mode_2_sbb`, `mode_3_flat_minima`, `mode_5_full_robust` | existing behavior | raise | raise |
+
+Mode 5 must reject both per-fold schedules because it explicitly treats the
+supplied history as full-sample calibration. Modes 2 and 3 remain `global`
+until a separate, explicit schedule contract and tests exist; unsupported
+combinations must raise rather than fall back to `global`.
+
+### Mode 1 Per-Fold Decay Selection
+
+For an outer chronological fold \(i\), let \(D_i\) be its train history and
+\(T_i\) its immediately following OOS window. For example, a split may yield
+\(D_i =\) 2020--2021, \(T_i =\) 2021--2022, followed chronologically by a new
+independent study for the next fold. Boundary ownership must be explicit and
+non-overlapping: a timestamp belongs to exactly one side of a fold.
+
+The study for fold \(i\) reuses the current Mode 1 two-stage implementation
+without changing its objective semantics:
+
+1. Run the configured `optuna_trials` only against \(D_i\)'s IS score.
+2. Rank completed trials by that IS objective and form the existing top-IS
+   candidate set \(C_i\), using `top_is_fraction` or `top_is_k`.
+3. For each unique \(\theta \in C_i\), run the strategy on both \(D_i\) and
+   \(T_i\), then calculate the existing Mode 1 metrics:
+
+\[
+ d_i(\theta) = S(D_i; \theta) - S(T_i; \theta)
+\]
+
+\[
+ J_i(\theta) = S(T_i; \theta)
+ - \lambda\,\operatorname{std}(d_i)
+ - \gamma\,\max(0, d_i(\theta))
+\]
+
+For one train/OOS pair, \(\operatorname{std}(d_i) = 0\); it remains in the
+formula and metadata so the per-fold record is mathematically identical to the
+current Mode 1 record shape and can be compared with global multi-fold Mode 1.
+The chosen \(\theta_i^\star = \arg\max_{\theta\in C_i} J_i(\theta)\) then
+generates the stored output for \(T_i\). Only after this fold is complete may
+the engine create a new, independent Optuna study for fold \(i+1\).
+
+This is intentionally **not** strict causal WFO: \(T_i\) is used in candidate
+selection. The value of this schedule is isolation: the study for fold \(i\)
+cannot see later folds, later regimes, or their OOS metrics, unlike the current
+single global study. It should be labelled fold-local decay calibration or
+selection-adjusted OOS in research and stakeholder reports.
+
+### Deferred Strict Causal Mode 1 Extension
+
+Strict `mode_1_decay + per_fold_causal` remains a future, separately certified
+extension. It requires nested inner train/validation folds wholly contained in
+\(D_i\), then records outer \(T_i\) decay only after the parameters are frozen.
+It is explicitly out of the first Phase 49 implementation so neither its
+heavier compute cost nor its causality claim is hidden behind `per_fold_decay`.
+
+When implemented later, the public surface must make its inner schedule
+explicit rather than silently reuse an outer rolling window:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_causal"
+inner_split_frequency="quarterly"
+inner_window_mode="rolling"
+inner_train_window="180D"
+inner_min_folds=2
+```
+
+Until that extension exists, this exact combination must raise an actionable
+`NotImplementedError`; it must never silently substitute `per_fold_decay`.
+
+The schedule also adds an explicit boundary policy:
+
+```python
+fold_boundary_position_policy: str = "carry"
+```
+
+`carry` is the only planned default. It does not fabricate a close/reopen at a
+retraining boundary: the final account run receives the actual stitched target
+series and trades only its normal target delta. A future explicit `flatten`
+policy may be added only with dedicated domain tests; it is not implied by
+retraining.
+
+### Phase 49A - Per-Fold Study Core, Decay Protocol, And Audit Contract
+
+**Status: completed on `feat/wfengine_v2`.**
+
+Goal:
+
+Implement independent chronological studies for `per_fold_decay` and
+`per_fold_causal` without changing `global` behavior or Mode 1 mathematics.
+
+Scope:
+
+- Extend `WalkForwardConfig`, endpoint factories, validation, compatibility
+  matrix, and public docstrings with `optimization_schedule="global"`.
+- For both supported per-fold schedules, iterate folds chronologically. For
+  each fold:
+  1. create an independent deterministic Optuna study using only
+     `fold.train_index`;
+  2. run the existing trial sampling, duplicate handling, seed, early-stop,
+     IS scoring, top-candidate, and selection helpers within that fold only;
+  3. select according to the declared schedule/mode contract;
+  4. invoke the strategy to emit only `fold.test_index` output;
+  5. append that output and immutable selection ledger to the chronological
+     OOS tape.
+- Derive reproducible fold seeds from the configured base seed and `fold_id`;
+  no fold may share mutable Optuna state with a later fold.
+- For `mode_1_decay + per_fold_decay`, preserve current two-stage behavior
+  exactly inside every outer fold: all trials are ranked on fold IS; only the
+  unique top-IS candidates run on that same fold's OOS; `robust_decay` then
+  selects the candidate. Store the candidate IS/OOS/decay rows, but classify
+  the result as `fold_local_decay_calibration`, with
+  `outer_oos_used_for_selection=True`.
+- For the strict Mode 4 path, prohibit OOS candidate scoring before selection.
+  The candidate ledger is IS-only; OOS metrics are recorded only for the one
+  previously selected, frozen parameter set as a post-selection realization.
+- Reject `mode_1_decay + per_fold_causal` until its nested inner-validation
+  extension is implemented. Do not substitute current fold OOS, a full-sample
+  selector, or `global` behavior.
+- Preserve strategy context: IS scoring may expose data only through the train
+  end; OOS execution may expose data through that fold's test end. QuantBT
+  cannot prove that user strategy code is causal internally, so this contract
+  and requirement must be documented.
+- Reuse existing `stitch_oos_outputs(...)`; do not concatenate per-fold equity
+  curves or reset capital. The final target tape must continue to route once
+  into `_run_single`, portfolio, basket, or arbitrage as currently supported.
+- Keep `WalkForwardResult.params` backward-compatible and add unambiguous
+  schedule-specific fields rather than pretending all folds used one params
+  dictionary.
+
+Required audit metadata:
+
+```text
+optimization_schedule
+causality_claim
+oos_used_for_selection
+params_by_fold
+fold_selection_table
+selection_data_start / selection_data_end
+test_start / test_end
+fold_seed
+selected_trial_id
+selected_is_objective
+candidate_count
+fold_boundary_position_policy
+
+# Required for Mode 1 per_fold_decay
+candidate_is_metric / candidate_oos_metric / candidate_decay
+outer_oos_used_for_selection
+selection_adjustment_note
+```
+
+For `global`, add a truthful metadata classification such as
+`retrospective_global_calibration`; preserve all existing values for backward
+compatibility. For `per_fold_decay`, emit `fold_local_decay_calibration`,
+`oos_used_for_selection=True`, and a no-untouched-OOS validation claim. For
+`per_fold_causal`, emit `strict_fold_local_retraining` and
+`oos_used_for_selection=False`.
+
+Phase 49A tests:
+
+- deterministic two-regime mock: earlier and later folds select different
+  expected params from their own train data;
+- Mode 1 per-fold decay: assert the study's raw trial rows are IS-only, only
+  top-IS candidates receive same-fold OOS metrics, and the selected candidate
+  is the maximum existing `robust_decay` objective within that fold;
+- Mode 1 perturbation: changing a fold's OOS may change only that fold's
+  candidate selection and output; it must not alter any prior fold's study,
+  params, or output, and it must be reported as OOS-used-for-selection;
+- Mode 4 per-fold causal: assert each fold Optuna/candidate record has no OOS
+  metric/decay during selection and uses only its train window;
+- causal Mode 1 raises `NotImplementedError` rather than reading outer OOS or
+  falling back to `global`;
+- append-future **prefix invariance**: adding future bars must not change
+  params or OOS output of already completed folds;
+- exact parity for current `optimization_schedule="global"` behavior;
+- single `train_test_split` parity: Mode 1 `per_fold_decay` retains current
+  two-stage selection within the declared train/test pair; Mode 4
+  `per_fold_causal` retains strict train-only selection;
+- invalid schedule/mode combinations raise actionable errors.
+
+Implemented evidence:
+
+- Added the optional endpoint/config fields `optimization_schedule` and
+  `fold_boundary_position_policy` while retaining `global` and `carry` as the
+  compatible defaults.
+- Added independent deterministic studies and fold-local ledgers for
+  `mode_1_decay + per_fold_decay`; the implementation reuses the existing
+  IS-search -> top-IS candidate -> OOS `robust_decay` selector exactly inside
+  each fold.
+- Added strict IS-only selection for
+  `mode_4_is_only_robust + per_fold_causal`; only the frozen selected params
+  receive one post-selection outer OOS realization.
+- Per-fold strategy calls receive data physically truncated at `train_end` or
+  `test_end`. The global path retains its historical data-passing behavior.
+- Added `params_by_fold`, `fold_selection_table`, `fold_boundary_table`, study
+  seeds, selection claims, params semantics and one-pass account metadata.
+- Added Series, DataFrame/multi-symbol, prefix-invariance, single holdout,
+  schedule rejection, global parity and direct-account parity tests in
+  `tests/test_phase49a_walkforward_schedules.py`.
+- Updated endpoint docs, public README and both WFO methodology documents.
+- Root/source package mirrors remain byte-identical for modified Python files.
+- Verification gate: `731 passed, 3 skipped`; skips are existing optional
+  backend-dependent tests, with no Phase 49A failure.
+
+### Phase 49B - Prepared WFO Context, Scalar Scoring, And Performance Certification
+
+**Status: completed on `feat/wfengine_v2` (2026-08-09). Phase 49A remained the correctness oracle.**
+
+Goal:
+
+Reduce the cost per trial and bound RSS systematically across `global`,
+`per_fold_decay`, and `per_fold_causal` without changing selected params,
+objective values, stitched targets, boundary behavior, or final accounting.
+
+Scope:
+
+- Profile one representative real WFO/service workload before changing code.
+  Report strategy generation, market normalization, scoring/account kernel,
+  Optuna orchestration, ledger/report construction, cold compile, warm runtime
+  and peak RSS separately.
+- Introduce a run-local immutable `PreparedWalkForwardContext` (exact public or
+  internal name may follow existing prepared-context conventions) containing:
+  canonical aligned index/OHLCV/funding arrays, integer fold slices,
+  scoring/account config, market signature and backend-prepared state.
+- Normalize and prepare market inputs once. Fold/train/test evaluators must use
+  validated views/slices instead of repeated pandas alignment and ndarray
+  packing. Cache keys/signatures must include all result-affecting market and
+  account fields; no mutable global cache is allowed.
+- Reuse the existing prepared native-vectorized and native-portfolio scoring
+  paths. Extend only through parity-first typed interfaces; do not create a
+  second scoring formula or a WFO-only accounting implementation.
+- Add scalar-only trial scoring: each trial retains only objective inputs,
+  params, trade-count constraint fields and compact audit identifiers. Full
+  result/report construction is deferred to selected/top candidates and the
+  final stitched backtest.
+- Keep strategy output caching conservative. QuantBT may cache immutable market
+  preparation and fold definitions, but must not cache arbitrary strategy
+  signals/indicators unless a future explicit deterministic strategy-prepare
+  protocol owns the signature and lifecycle.
+- Process fold studies sequentially by default and release fold-local Optuna
+  objects after compact ledgers are extracted. `n_trials` and early stopping
+  remain per-fold for per-fold schedules and must be labelled as such.
+- Preserve the Phase 49A one-pass account contract and deepen boundary tests
+  for flat, reversal, size change, fee, slippage, funding and margin paths.
+
+Phase 49B tests and gates:
+
+- exact prepared/non-prepared parity for sampled params, selected params,
+  objective values, candidate order, trial status and per-fold seeds;
+- exact stitched target and final account parity for signal-notional,
+  `%_equity`, native portfolio and currently supported package routes;
+- one target held across a boundary: zero extra turnover/fee; flat/reversal/
+  size-change boundaries: exact normal target delta and costs;
+- prepared context mutation/signature tests, timezone/alignment tests and no
+  cross-run cache contamination;
+- cold/warm benchmark on the same bars, folds, trials, candidate count and
+  strategy implementation; never compare one global study with many per-fold
+  studies as if they performed equal mathematical work;
+- peak RSS measured in isolated child processes. Memory must remain bounded by
+  prepared market state plus compact trial ledgers, not retained per-trial
+  backtest/report objects;
+- full WFO/endpoint regression suite and realistic multi-fold alpha smoke.
+
+Release condition:
+
+```text
+global behavior remains parity-locked;
+both per-fold schedules pass completed-fold prefix invariance;
+per_fold_decay is explicitly labelled selection-adjusted and has no
+cross-fold future observation;
+no OOS candidate metric influences per_fold_causal Mode 4 selection;
+prepared and reference paths are domain-identical;
+one-pass account parity and boundary-cost tests pass;
+benchmark artifacts separate mathematical work from framework overhead;
+docs expose performance lifecycle and calibration-vs-validation scope.
+```
+
+Non-goals for this roadmap:
+
+- proving arbitrary user strategy code free of internal indicator look-ahead;
+- automatic intrabar/order-level state transfer between separate strategy
+  objects; this roadmap transfers target positions through the existing final
+  account engine;
+- changing the five existing objective semantics or silently upgrading current
+  `global` WFO notebooks.
+
+Phase 49B completion evidence:
+
+- Added run-local `PreparedWalkForwardContext` with full content/config/fold
+  signatures, integer causal slices, timezone normalization, mutation checks and
+  no cross-run global cache.
+- Added array-first scalar score contracts to native vectorized and native
+  portfolio backends. They execute the same sizing/accounting kernels and call
+  the shared `compute_performance_metrics`; public report construction is
+  skipped only for optimizer trials.
+- Added exact-index signal packing fast paths and compact completed-trial
+  ledgers. The selected trial retains full fold metrics and all public trial /
+  candidate tables remain stable.
+- Preserved strategy execution per trial. No arbitrary indicator/signal cache
+  was introduced.
+- Added optional `profile_walkforward=True` timing evidence plus context/scorer/
+  ledger metadata. Compatible defaults are prepared context, scalar scoring and
+  compact ledgers; each can be disabled independently for reference replay.
+- Added direct scalar/public report parity, prepared/reference WFO parity,
+  content mutation, timezone, run-local isolation, single-symbol, `%_equity`,
+  portfolio and Phase 49A schedule regression tests in
+  `tests/test_phase49b_wfo_performance.py`.
+- Committed benchmark artifacts:
+  `benchmarks/phase49b_wfo_performance.{json,md}`. At 1,000 bars, portfolio
+  global improved from `0.386s` to `0.330s` (`1.17x`), while six-study Mode 4
+  per-fold causal improved from `4.051s` to `1.781s` (`2.27x`). Equity,
+  positions, params, best trial, trial order and candidate order matched exactly.
+- Warm isolated peak RSS remained a plateau (`-0.14%` to `+0.05%`, below a
+  material regression threshold), so Phase 49B makes no unsupported memory
+  reduction claim. Memory remains bounded by market/kernel state plus compact
+  ledgers rather than retained per-trial public reports.
+
+---
+
+## Phase 50 - Strict Mode 1 Causal Retraining And WFO Release Closure
+
+**Status: completed on `feat/wfengine_v2`; release target `1.0.8`.**
+
+This closure addresses the WFO debt that cannot be hidden behind the existing
+`per_fold_decay` label. It adds a strict causal route for Mode 1 without
+changing the default `global` lifecycle, Mode 1 decay mathematics, or the
+already-certified Mode 4 per-fold causal route.
+
+Detailed implementation rules for this closure remain in this section and the
+existing Phase 49 contract above. Every implementation change must preserve the
+root/source mirror and pass reference/prepared parity before it is released.
+
+### Phase 50A - Nested Mode 1 Causal Selection And Audit Contract
+
+Goal: support:
+
+```python
+optimization_mode="mode_1_decay"
+optimization_schedule="per_fold_causal"
+```
+
+without allowing an outer OOS bar to influence parameter selection.
+
+For every outer fold \(D_i, T_i\):
+
+1. Build chronological inner folds entirely inside \(D_i\), using explicit
+   `inner_split_frequency`, `inner_window_mode`, `inner_train_window`, and
+   `inner_min_folds` inputs.
+2. Run one independent Optuna study on those inner folds. Mode 1 keeps its
+   existing IS search, top-IS candidate set, and decay objective, but every
+   inner OOS used by `robust_decay` is a subset of \(D_i\).
+3. Freeze the selected parameters, generate exactly one target output for
+   outer \(T_i\), then record outer OOS metrics as post-selection realization
+   only.
+4. Stitch outer targets and run the normal account engine once with
+   `fold_boundary_position_policy="carry"`.
+
+Required safeguards:
+
+- The outer test index must never be passed to Optuna, candidate evaluation, or
+  inner-fold construction.
+- Insufficient inner history/folds must raise an actionable `ValueError`; no
+  fallback to `per_fold_decay`, global selection, or a synthetic inner OOS.
+- Store `inner_*` configuration, `inner_fold_table`, inner/outer selection
+  boundaries, seed, and explicit `outer_oos_used_for_selection=False` in the
+  audit ledger.
+- Keep `mode_1_decay + per_fold_decay` explicitly selection-adjusted and
+  preserve Mode 4 `per_fold_causal` behavior byte-for-byte at the public
+  result boundary.
+
+### Phase 50B - WFO Metadata, Test Sharding, And 1.0.8 Gate
+
+Goal: make the WFO contract unambiguous to notebook, service, and release
+consumers, then certify it under bounded host RSS.
+
+Scope:
+
+- Add a separate chronological-validation metadata field for global WFO so a
+  consumer cannot mistake `validation_claim="walk_forward_oos"` for a causal
+  multi-fold deployment claim. Preserve legacy fields for compatibility.
+- Document the complete mode/schedule matrix, inner Mode 1 contract, and the
+  distinction between `selection_adjusted_oos`, strict outer OOS, and Mode 5
+  full-sample calibration.
+- Add a repository test-shard runner that invokes isolated pytest processes;
+  it must preserve existing test selection while releasing Numba/pandas memory
+  between shards. It is a release-test harness, not a production runtime path.
+- Add deterministic tests for nested-fold boundaries, outer-OOS exclusion,
+  append-future prefix invariance, malformed/insufficient inner configurations,
+  prepared/reference parity, target carry accounting, and root/source mirror
+  identity.
+- Run the WFO suite and the full release suite through isolated shards, then
+  record the exact command and result before the `1.0.8` version bump.
+
+Completion evidence:
+
+- Phase 50A nested-causal checks pass: outer-OOS exclusion, inner-boundary
+  audit, append-future prefix invariance, insufficient-history fail-closed
+  behavior, prepared/reference accounting parity, and global metadata
+  compatibility.
+- `poetry run python tools/run_test_shards.py --profile release
+  --max-files-per-shard 8` completed **16 isolated shards: 745 passed,
+  3 skipped, exit 0**. `test_real.py` and `test_real_endpoints.py` remain
+  intentionally excluded because they require local Pool Alpha data.
+- The runner launches each shard in a fresh interpreter, preventing Numba,
+  pandas, and plotting imports from accumulating RSS across the suite. It is a
+  verification harness only; product execution and endpoint semantics are
+  unchanged.
+- Wheel/sdist smoke commands use a unique `mktemp -d` working directory rather
+  than bare `/tmp`, preventing an unrelated local `quantbt/` directory from
+  shadowing the installed artifact on `sys.path`.
+- Fresh `1.0.8` artifacts built from `src/quantbt` passed strict `twine check`,
+  archive allowlist/secret scan, matching `v1.0.8` version gate, `pip check`,
+  and independent wheel/sdist imports from `site-packages` in clean managed
+  virtual environments.
+- `tools/audit_phase50_wfo_causal.py` is the repeatable final behavior audit.
+  It fails closed and emits JSON proving inner-fold containment, untouched
+  outer OOS, completed-prefix invariance, fail-closed malformed-history
+  behavior, and public endpoint prepared/reference parity. It explicitly does
+  not claim to prove look-ahead safety inside arbitrary user strategies.
+- Public release docs now include `docs/walkforward_causal.md` as the concise
+  schedule-selection and audit guide. The README, docs map, endpoint reference,
+  packaging guide, and TestPyPI checklist link it; PyPI WFO smoke explicitly
+  installs the `optimization` extra rather than assuming Optuna is in core.
+
+Deliberate non-goals retained after Phase 50:
+
+- automatic state checkpoint/restore for arbitrary reactive grid/DCA strategy
+  objects across WFO folds;
+- per-fold schedule variants for Mode 2 SBB, Mode 3 flat minima, or Mode 5
+  full-sample calibration without their own causal contracts;
+- a `flatten` boundary policy without dedicated accounting semantics and tests;
+- proving arbitrary user strategy code free of internal look-ahead.

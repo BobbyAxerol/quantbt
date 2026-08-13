@@ -62,6 +62,20 @@ python3 benchmarks/run_phase16_performance_debt.py --rows 1440 --symbols 6 --rep
   `endpoint.prepare_service_context(...)` and records the current Cython/C++
   decision.
 
+Phase 49B WFO prepared/scalar certification:
+
+```bash
+python3 benchmarks/run_phase49b_wfo_performance.py --rows 1000 --trials 16
+```
+
+- compares Phase 49A reference retention with Phase 49B prepared context,
+  scalar trial scoring and compact ledgers using identical mathematical work;
+- checks exact equity, positions, selected params, objectives, trial order and
+  candidate order;
+- separates warm runtime from isolated child-process RSS and records strategy,
+  scorer, market preparation, signal packing and metric-report timing;
+- does not cache arbitrary strategy indicators or signal output.
+
 Options Phase 10:
 
 ```bash
