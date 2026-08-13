@@ -11727,7 +11727,7 @@ Completion evidence:
   behavior, prepared/reference accounting parity, and global metadata
   compatibility.
 - `poetry run python tools/run_test_shards.py --profile release
-  --max-files-per-shard 8` completed **16 isolated shards: 744 passed,
+  --max-files-per-shard 8` completed **16 isolated shards: 745 passed,
   3 skipped, exit 0**. `test_real.py` and `test_real_endpoints.py` remain
   intentionally excluded because they require local Pool Alpha data.
 - The runner launches each shard in a fresh interpreter, preventing Numba,
@@ -11741,6 +11741,11 @@ Completion evidence:
   archive allowlist/secret scan, matching `v1.0.8` version gate, `pip check`,
   and independent wheel/sdist imports from `site-packages` in clean managed
   virtual environments.
+- `tools/audit_phase50_wfo_causal.py` is the repeatable final behavior audit.
+  It fails closed and emits JSON proving inner-fold containment, untouched
+  outer OOS, completed-prefix invariance, fail-closed malformed-history
+  behavior, and public endpoint prepared/reference parity. It explicitly does
+  not claim to prove look-ahead safety inside arbitrary user strategies.
 
 Deliberate non-goals retained after Phase 50:
 

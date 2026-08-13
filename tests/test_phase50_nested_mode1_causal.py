@@ -240,3 +240,19 @@ def test_release_shard_runner_keeps_ci_selection_explicit_and_non_real_data_only
     assert "test_phase47c_grid_parity.py" not in ci_core
     assert "test_phase47d_grid_optimizer.py" not in ci_core
     assert not any("native_event" in path.parts for group in module._collect("ci-core") for path in group)
+
+
+def test_phase50_causal_audit_tool_certifies_oracle_and_public_endpoint_parity():
+    audit_path = PROJECT_ROOT / "tools" / "audit_phase50_wfo_causal.py"
+    spec = importlib.util.spec_from_file_location("quantbt_phase50_audit", audit_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    report = module.run_audit()
+
+    assert report["passed"] is True
+    assert report["checks"]["outer_oos_used_for_selection"] is False
+    assert report["checks"]["prefix_invariance"] is True
+    assert report["checks"]["prepared_reference_equity_max_abs_diff"] == 0.0
+    assert report["checks"]["prepared_reference_positions_max_abs_diff"] == 0.0

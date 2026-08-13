@@ -159,6 +159,8 @@ or build directories:
 ```bash
 poetry run python tools/check_release_version.py
 .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8
+poetry run python tools/audit_phase50_wfo_causal.py \
+  --output /tmp/quantbt-phase50-wfo-causal-audit.json
 poetry run python -m build --no-isolation --outdir /tmp/quantbt-engine-dist
 poetry run twine check /tmp/quantbt-engine-dist/*
 poetry run python tools/check_release_artifacts.py --dist /tmp/quantbt-engine-dist
@@ -195,6 +197,12 @@ smoke_dir="$(mktemp -d)"
 For a dependency-complete check, install the wheel without `--no-deps` in a
 fresh environment and run `python3 -m pip check`. Never use a repository-root
 `PYTHONPATH` as evidence that a wheel works.
+
+The Phase 50 audit is an additional deterministic behavior gate for strict
+`mode_1_decay + per_fold_causal`. Its JSON confirms nested inner-OOS boundaries,
+outer-OOS exclusion, completed-prefix invariance, fail-closed inner-history
+validation, and prepared/reference account parity. It proves QuantBT's engine
+boundary, not indicator causality inside arbitrary user strategy code.
 
 ## Pool Alpha Development
 
