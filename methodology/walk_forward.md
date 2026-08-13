@@ -55,9 +55,11 @@ top-IS candidate pool, rồi dùng chính (D_{\mathrm{OOS},k}) để đo decay v
 candidate của fold đó. Vì OOS tham gia selection, kết quả là
 `selection_adjusted_oos`, không phải untouched holdout.
 
-`per_fold_causal` chỉ dành cho Mode 4 trong Phase 49A. Params được chọn hoàn
-toàn từ (D_{\mathrm{IS},k}), freeze trước khi outer OOS được chạy. Đây là
-strict fold-local retraining nếu strategy implementation cũng causal.
+`per_fold_causal` áp dụng cho Mode 4 hoặc Mode 1 nested validation. Với Mode 4,
+params được chọn hoàn toàn từ (D_{\mathrm{IS},k}), freeze trước khi outer OOS
+được chạy. Với Mode 1, decay được đo bằng inner folds nằm hoàn toàn trong
+(D_{\mathrm{IS},k}), rồi outer OOS mới được chạy sau khi params freeze. Cả hai
+route là strict fold-local retraining nếu strategy implementation cũng causal.
 
 Mỗi fold có study, duplicate state và deterministic seed riêng. Khi fold hoàn
 tất, QuantBT stitch target OOS theo chronology và chạy account engine đúng một

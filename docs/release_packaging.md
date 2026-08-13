@@ -198,6 +198,19 @@ For a dependency-complete check, install the wheel without `--no-deps` in a
 fresh environment and run `python3 -m pip check`. Never use a repository-root
 `PYTHONPATH` as evidence that a wheel works.
 
+Walk-forward parameter search is intentionally an optional dependency surface.
+Use `quantbt-engine[optimization]` for every WFO release smoke, and verify that
+both Optuna and the public WFO route import from the installed distribution:
+
+```bash
+wheel="$(find /tmp/quantbt-engine-dist -maxdepth 1 -name '*.whl' -print -quit)"
+/tmp/quantbt-engine-wheel-smoke/bin/python -m pip install \
+  "${wheel}[optimization]"
+smoke_dir="$(mktemp -d)"
+(cd "$smoke_dir" && /tmp/quantbt-engine-wheel-smoke/bin/python -c \
+  "import optuna; from quantbt import QuantBTEndpoint; from quantbt.walkforward import WalkForwardConfig; print(QuantBTEndpoint, WalkForwardConfig)")
+```
+
 The Phase 50 audit is an additional deterministic behavior gate for strict
 `mode_1_decay + per_fold_causal`. Its JSON confirms nested inner-OOS boundaries,
 outer-OOS exclusion, completed-prefix invariance, fail-closed inner-history
@@ -368,8 +381,8 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  quantbt-engine==1.0.8rc1
-/tmp/quantbt-testpypi-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+  "quantbt-engine[optimization]==1.0.8rc1"
+/tmp/quantbt-testpypi-smoke/bin/python -c "import optuna; from quantbt import QuantBTEndpoint; from quantbt.walkforward import WalkForwardConfig; print(QuantBTEndpoint, WalkForwardConfig)"
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
 ```
 

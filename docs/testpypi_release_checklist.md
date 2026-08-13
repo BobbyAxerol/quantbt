@@ -64,16 +64,18 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  quantbt-engine==1.0.8rc1
+  "quantbt-engine[optimization]==1.0.8rc1"
 smoke_dir="$(mktemp -d)"
 (cd "$smoke_dir" && /tmp/quantbt-testpypi-smoke/bin/python -c \
-  "import quantbt; print(quantbt.__file__)")
+  "import optuna, quantbt; from quantbt.walkforward import WalkForwardConfig; print(quantbt.__file__, WalkForwardConfig)")
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
 ```
 
 Verify that `quantbt.__file__` points into the temporary environment's
 `site-packages`, not the repository checkout. Run one representative endpoint
-smoke and compare its metadata/config with the local artifact run.
+smoke and compare its metadata/config with the local artifact run. For a WFO
+release, use the installed `optimization` extra and review the [causal
+walk-forward guide](walkforward_causal.md) before interpreting OOS metrics.
 
 ## Production Handoff
 

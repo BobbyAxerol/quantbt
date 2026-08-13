@@ -11746,6 +11746,10 @@ Completion evidence:
   outer OOS, completed-prefix invariance, fail-closed malformed-history
   behavior, and public endpoint prepared/reference parity. It explicitly does
   not claim to prove look-ahead safety inside arbitrary user strategies.
+- Public release docs now include `docs/walkforward_causal.md` as the concise
+  schedule-selection and audit guide. The README, docs map, endpoint reference,
+  packaging guide, and TestPyPI checklist link it; PyPI WFO smoke explicitly
+  installs the `optimization` extra rather than assuming Optuna is in core.
 
 Deliberate non-goals retained after Phase 50:
 

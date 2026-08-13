@@ -607,11 +607,15 @@ Install the released core package:
 pip install quantbt-engine==1.0.8
 ```
 
-Optional reports and third-party validation:
+Optional optimization, reports, and third-party validation:
 
 ```bash
-pip install "quantbt-engine[reports,validation]==1.0.8"
+pip install "quantbt-engine[optimization,reports,validation]==1.0.8"
 ```
+
+Walk-forward parameter search specifically requires the `optimization` extra.
+Read the [causal WFO guide](docs/walkforward_causal.md) before reporting OOS
+metrics from a fold-local schedule.
 
 Development from this repository:
 
@@ -780,9 +784,10 @@ default. Phase 49A also exposes two explicit fold-local schedules:
   outer IS window; outer OOS remains untouched until parameters are frozen.
 
 Both schedules stitch one continuous target tape and run accounting once with
-`fold_boundary_position_policy="carry"`. See [docs/endpoint.md](docs/endpoint.md)
-and [methodology/walk_forward.md](methodology/walk_forward.md) for the exact
-selection claims and metadata.
+`fold_boundary_position_policy="carry"`. See the [causal WFO guide]
+(docs/walkforward_causal.md), [docs/endpoint.md](docs/endpoint.md), and
+[methodology/walk_forward.md](methodology/walk_forward.md) for selection claims,
+strictness boundaries, and audit metadata.
 
 Phase 49B keeps this API stable. Endpoint-backed optimization prepares market
 and fold state once and uses scalar-only trial reports by default. Audit the
@@ -841,6 +846,7 @@ backend, endpoint, or strategy route to use.
 | Market/limit/stop fill behavior | [Order fill policies](docs/order_fill_policies.md) |
 | Nautilus validation and report bundles | [Nautilus backend](docs/nautilus_backend.md) |
 | Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
+| Causal WFO schedules, outer-OOS claims, and audit metadata | [Causal WFO guide](docs/walkforward_causal.md) |
 | Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
 | Runnable smoke templates | [Examples index](examples/README.md) |
 

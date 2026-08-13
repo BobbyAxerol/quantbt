@@ -2039,6 +2039,10 @@ continuous timeline, and run one final QuantBT backtest. The final simulation
 uses the same engines as normal research, so fold-boundary trades are charged
 with normal fees/slippage/margin behavior.
 
+For the schedule decision table, strictness claims, external-holdout workflow,
+and metadata interpretation, read the [causal WFO guide](walkforward_causal.md)
+before presenting WFO metrics.
+
 ```python
 from quantbt import QuantBTEndpoint
 
@@ -2423,7 +2427,9 @@ Important rules:
   OOS scoring is delayed until the top IS candidate set is frozen. With
   `per_fold_decay`, that same-fold OOS score deliberately selects the final
   candidate and is reported as selection-adjusted OOS. With
-  `per_fold_causal`, Mode 4 selection never receives outer OOS metrics;
+  `per_fold_causal`, Mode 4 selection never receives outer OOS metrics; Mode 1
+  measures decay only on nested inner OOS folds contained in outer IS, then
+  freezes parameters before outer OOS is evaluated;
 - candidate selection is controlled by `top_is_fraction` or `top_is_k`;
   `candidate_selection_metric` defaults to `robust_decay`. For strict
   train/test split validation, use `candidate_selection_metric="is_plateau_robust"`
