@@ -95,6 +95,24 @@ Nautilus parity, include at least one deterministic test with a small synthetic
 dataset. Real-data tests are useful for smoke checks, but they should not be the
 only proof.
 
+For product, Rust boundary, registry, or public-API changes, run the generated
+contract gates before opening a PR:
+
+```bash
+make test-contracts
+```
+
+`src/quantbt` is the authoritative Python tree. The root mirror is transitional
+and generated from `src`; after a source edit, synchronize it with:
+
+```bash
+python tools/sync_source_mirror.py --src-to-root
+python tools/sync_source_mirror.py --check
+```
+
+Do not hand-edit generated product artifacts. Update the source registry, run
+the generators, and commit source plus generated output together.
+
 ## Backtest Engine Rules
 
 Please make assumptions explicit. A good engine change should document:

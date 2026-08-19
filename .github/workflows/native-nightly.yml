@@ -1,0 +1,74 @@
+name: Native Nightly Regression Evidence
+
+on:
+  schedule:
+    - cron: "43 2 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-nightly:
+    name: Native E0/E3/E6 evidence
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install native benchmark environment
+        run: uv sync --locked --extra optimization --dev
+
+      - name: Validate registries and baseline governance
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/check_benchmark_governance.py
+
+      - name: Build and install the native wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          command: develop
+          args: --release --manifest-path rust/native_event/Cargo.toml
+
+      - name: Run deterministic native corpus and RSS smoke
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: |
+          .venv/bin/python -m pytest -q tests/native_event
+          .venv/bin/python benchmarks/run_phase45b_native_event_score_rss.py \
+            --rows 1000 --repeats 25 --json-out /tmp/phase54a-rss.json
+          .venv/bin/python -c "import json; p=json.load(open('/tmp/phase54a-rss.json')); assert p['parity']; assert p['score_faster_than_audit']; assert p['score_rss_not_higher_than_audit']"
+
+      - name: Produce E0/E3/E6 workload evidence
+        env:
+          QUANTBT_NATIVE_BACKEND: rust
+        run: |
+          mkdir -p native-nightly-evidence
+          .venv/bin/python benchmarks/native_event/benchmark_phase53a_e0_profiles.py \
+            --bars 2000 --repeats 5 --output native-nightly-evidence/e0.json
+          .venv/bin/python benchmarks/native_event/benchmark_phase53b_native_drivers.py \
+            --bars 2000 --scenarios 64 --repeats 5 --output native-nightly-evidence/e3-e6.json
+          cp /tmp/phase54a-rss.json native-nightly-evidence/rss.json
+
+      - name: Upload nightly evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-nightly-e0-e3-e6
+          path: native-nightly-evidence/*
+          if-no-files-found: error

@@ -53,8 +53,18 @@ jobs:
           --ignore=tests/test_phase47c_grid_parity.py
           --ignore=tests/test_phase47d_grid_optimizer.py
 
+      - name: P3 source, registry, and public API gates
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_module_architecture.py
+          .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/check_docs_links.py
+
       - name: Clean build directory
-        run: rm -rf dist release-manifest.json
+        run: rm -rf dist release-manifest.json release-evidence
 
       - name: Build distributions
         run: uv build --out-dir dist
@@ -111,11 +121,15 @@ jobs:
       - name: Create release manifest
         env:
           GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
-        run: >-
-          uv run python tools/create_release_manifest.py
-          --dist dist
-          --output release-manifest.json
-          --require-clean
+        run: |
+          uv run python tools/create_supply_chain_report.py --output release-evidence/supply-chain.json
+          uv run python tools/create_sbom.py --output release-evidence/sbom.cdx.json
+          uv run python tools/create_release_manifest.py \
+            --dist dist \
+            --output release-manifest.json \
+            --supply-chain-report release-evidence/supply-chain.json \
+            --sbom release-evidence/sbom.cdx.json \
+            --require-clean
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
@@ -129,6 +143,13 @@ jobs:
         with:
           name: testpypi-release-manifest
           path: release-manifest.json
+          if-no-files-found: error
+
+      - name: Upload supply-chain evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpypi-supply-chain-evidence
+          path: release-evidence/*
           if-no-files-found: error
 
   publish:

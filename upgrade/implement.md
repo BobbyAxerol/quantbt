@@ -12578,7 +12578,7 @@ Remaining P2 scope is intentionally explicit rather than silently claimed:
 
 ### Phase 54A - P3 Source, Registry, Packaging, CI, Security, And Documentation
 
-**Status: planned.**
+**Status: complete (Phase 54A scope).**
 
 Detailed guide:
 
@@ -12639,6 +12639,56 @@ Exit gate:
 Installed wheels, not source-tree tests, are the authority for release support.
 No production capability may be advertised without a clean-wheel trace,
 accounting, performance, RSS, compatibility, and rollback result.
+
+Implemented:
+
+- `src/quantbt` is the single authoritative Python tree. The temporary root
+  mirror is generated only through `tools/sync_source_mirror.py`; byte identity
+  is checked in local and CI contract gates. It remains intentionally present
+  until the separately approved Phase 54B deletion/migration release.
+- Added the versioned product registry
+  `contracts/native_event_product_registry.json`. It generates Python/Rust
+  product constants, exact core/native pairing, workload maturity records,
+  public API inventory, compatibility documentation, and a generated product
+  conformance corpus. The frozen lifecycle registry remains unchanged.
+- Rust now builds its API version, capabilities, semantic descriptor, and
+  separate product ABI descriptor from generated contract values. The Python
+  probe validates semantic behavior plus product fingerprint, exact package
+  pair, protocol range, command/result ABI, trace schema, and strategy-IR
+  version before any explicit Rust execution.
+- Added ownership/import-boundary review gates, CODEOWNERS, ADRs, public API
+  inventory, documentation map, generated capability table, native install and
+  troubleshooting documentation, and a stable Makefile command surface.
+- Added core/native wheel source-hash verification, native artifact allowlist,
+  exact staged-pair verification, release manifest binding, CycloneDX SBOM,
+  supply-chain/unsafe inventory/provenance evidence, scheduled `cargo audit`,
+  PR/main/release source gates, and a non-promoting nightly E0/E3/E6 evidence
+  workflow.
+
+Evidence:
+
+- `874 passed, 3 skipped` for the full Python suite excluding only the two
+  repository-local real-data scripts.
+- `206 passed, 2 skipped` for `tests/native_event`; product/release focused
+  tests and legacy release-surface coverage pass.
+- Rust workspace `fmt`, tests, and `clippy -D warnings` pass.
+- Built `quantbt-engine==1.0.8` wheel/sdist and
+  `quantbt-native==0.4.0` local wheel: artifact allowlist, source-to-wheel hash
+  parity, generated registry checks, exact staged pairing, runtime extension
+  import, semantic descriptor, and product descriptor all pass.
+- Full dependency-resolving clean-install verification remains an installed
+  wheel CI gate. The local sandbox cannot resolve the package index; a
+  no-repository-path wheel smoke with the already provisioned dependency set
+  passed, so this is an environment limitation rather than a fallback claim.
+
+Boundary after Phase 54A:
+
+- `backend="auto"` remains Python-first; `backend="rust"` is explicit and
+  fail-closed. No workload was silently promoted.
+- Phase 54B owns workload-aware Rust promotion, rollback controls, real
+  installed-wheel performance certification, and deletion of the generated root
+  mirror/shadow compatibility paths. Those are deliberate promotion/cleanup
+  scope, not unresolved Phase 54A correctness defects.
 
 ---
 

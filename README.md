@@ -872,6 +872,10 @@ backend, endpoint, or strategy route to use.
 | Causal WFO schedules, outer-OOS claims, and audit metadata | [Causal WFO guide](docs/walkforward_causal.md) |
 | Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
 | Opt-in Rust strategy templates, batch scoring, and causal OOS batch folds | [Native strategy IR and batch](docs/native_strategy_ir.md) |
+| Python/Rust plan ownership and backend routing | [Execution-plan architecture](docs/architecture/execution-plan.md) |
+| Exact staged core/native pair and maturity matrix | [Generated native compatibility](docs/contracts/generated_product_compatibility.md) |
+| Build, clean-install, and verify local native wheels | [Native companion installation](docs/native/install.md) |
+| Workload-scoped benchmark methodology | [Benchmarking governance](docs/performance/benchmarking.md) |
 | Runnable smoke templates | [Examples index](examples/README.md) |
 
 Key examples:

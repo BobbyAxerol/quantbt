@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "reviewers": {
+    "correctness": "@BobbyAxerol",
+    "reference-semantics": "@BobbyAxerol",
+    "native-core": "@BobbyAxerol",
+    "strategy-ir": "@BobbyAxerol",
+    "portfolio": "@BobbyAxerol",
+    "package-execution": "@BobbyAxerol",
+    "release": "@BobbyAxerol",
+    "performance": "@BobbyAxerol"
+  },
+  "subsystems": [
+    {
+      "path_prefix": "src/quantbt/core/",
+      "owner": "correctness",
+      "responsibility": "Execution contracts, order/fill semantics, market validation, accounting primitives, and canonical traces."
+    },
+    {
+      "path_prefix": "src/quantbt/backends/",
+      "owner": "reference-semantics",
+      "responsibility": "Backend adapters, native/vectorized/portfolio route selection, and public-result assembly."
+    },
+    {
+      "path_prefix": "src/quantbt/engine_spi/",
+      "owner": "native-core",
+      "responsibility": "Immutable execution-plan SPI and Python/Rust session boundary."
+    },
+    {
+      "path_prefix": "src/quantbt/planning/",
+      "owner": "native-core",
+      "responsibility": "Capability resolution, immutable plans, output projection, and deterministic backend decisions."
+    },
+    {
+      "path_prefix": "src/quantbt/preparation/",
+      "owner": "native-core",
+      "responsibility": "Prepared market ownership, cache identity, and pandas-to-array boundary."
+    },
+    {
+      "path_prefix": "src/quantbt/strategies/",
+      "owner": "strategy-ir",
+      "responsibility": "Strategy context, command writer, requirements, and bounded native IR."
+    },
+    {
+      "path_prefix": "src/quantbt/portfolio.py",
+      "owner": "portfolio",
+      "responsibility": "Legacy-compatible portfolio facade and migration surface."
+    },
+    {
+      "path_prefix": "src/quantbt/reporting/",
+      "owner": "performance",
+      "responsibility": "Reporting and certification artifacts that must not mutate execution state."
+    },
+    {
+      "path_prefix": "src/quantbt/options/",
+      "owner": "package-execution",
+      "responsibility": "Option data, pricing, lifecycle, packages, and option-specific accounting."
+    },
+    {
+      "path_prefix": "src/quantbt/adapters/",
+      "owner": "release",
+      "responsibility": "Third-party validation adapters and optional dependency boundaries."
+    },
+    {
+      "path_prefix": "src/quantbt/optimization/",
+      "owner": "performance",
+      "responsibility": "Optuna orchestration, evaluators, constraints, and reproducible search metadata."
+    },
+    {
+      "path_prefix": "src/quantbt/",
+      "owner": "release",
+      "responsibility": "Public package facade, endpoints, compatibility modules, metrics, visualization, and shared public types."
+    }
+  ],
+  "import_rules": [
+    {
+      "path_prefix": "src/quantbt/planning/",
+      "forbidden_substrings": ["reporting", "endpoint", "_quantbt_native", "pandas"]
+    },
+    {
+      "path_prefix": "src/quantbt/engine_spi/",
+      "forbidden_substrings": ["reporting", "endpoint", "pandas"]
+    },
+    {
+      "path_prefix": "src/quantbt/results/",
+      "forbidden_substrings": ["backends", "endpoint", "pandas"]
+    }
+  ],
+  "size_guideline": {
+    "python_module_lines": 1000,
+    "function_lines": 150,
+    "review_policy": "A listed exception is a review trigger, not an approval to add another responsibility."
+  },
+  "module_exceptions": [
+    {
+      "path": "src/quantbt/__init__.py",
+      "owner": "release",
+      "reason": "Root compatibility facade exports legacy and current public APIs while the package inventory is kept mechanically checked.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/endpoint.py",
+      "owner": "release",
+      "reason": "Compatibility facade for legacy endpoints while public APIs are gradually routed through planning/SPI modules.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/backends/native_event.py",
+      "owner": "reference-semantics",
+      "reason": "Legacy-compatible Python event engine and result adapter retained as executable oracle during Rust promotion.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/backends/_native_event_rust.py",
+      "owner": "native-core",
+      "reason": "PyO3 compatibility adapter is retained until a promoted native package has a stable public handshake.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/backends/native_vectorized.py",
+      "owner": "reference-semantics",
+      "reason": "Vectorized compatibility backend groups legacy sizing modes and Numba kernels pending a separate parity-preserving module split.",
+      "review_target": "Vectorized engine architecture release"
+    },
+    {
+      "path": "src/quantbt/core/engine.py",
+      "owner": "correctness",
+      "reason": "Legacy vectorized accounting oracle is retained intact so established alpha results stay reproducible during native migration.",
+      "review_target": "Vectorized engine architecture release"
+    },
+    {
+      "path": "src/quantbt/core/event.py",
+      "owner": "correctness",
+      "reason": "Legacy event kernels remain co-located with compatibility constants until a trace-locked extraction can prove no lifecycle drift.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/engines.py",
+      "owner": "release",
+      "reason": "Legacy engine facade remains available for endpoint compatibility while current planning/SPI routes are adopted incrementally.",
+      "review_target": "Phase 54B cleanup release"
+    },
+    {
+      "path": "src/quantbt/walkforward.py",
+      "owner": "performance",
+      "reason": "Existing WalkForwardEngine remains a compatibility facade; new causal schedule code is isolated but not yet split into a public subpackage.",
+      "review_target": "Dedicated WFO architecture release"
+    },
+    {
+      "path": "src/quantbt/core/intrabar_kernel.py",
+      "owner": "correctness",
+      "reason": "Fast Numba intrabar kernel remains coupled to its audited replay forms until an independently certified split is practical.",
+      "review_target": "Intrabar certification release"
+    }
+  ]
+}

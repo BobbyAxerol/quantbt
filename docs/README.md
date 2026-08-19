@@ -22,6 +22,13 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
 | Prepare and inspect a TestPyPI RC | [TestPyPI release checklist](testpypi_release_checklist.md) |
+| Understand the Python/Rust execution boundary | [Execution-plan architecture](architecture/execution-plan.md) |
+| Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
+| Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
+| Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
+| Troubleshoot a native descriptor or wheel mismatch | [Native troubleshooting](native/troubleshooting.md) |
+| Reproduce native-event performance claims | [Benchmarking governance](performance/benchmarking.md) |
+| Migrate a callback toward a command writer or bounded IR | [Strategy boundary migration](migration/context-writer-ir.md) |
 | Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
 | Understand the pure Rust ABI 0.5 core, arena, and output ownership | [Rust full contract: Phase 53A](native_event_rust_full_contract.md#phase-53a-pure-rust-core) |
 | Use the opt-in bounded native strategy IR, batch score, or causal fold primitive | [Native strategy IR and batch](native_strategy_ir.md) |
@@ -63,3 +70,12 @@ For production-like research:
    with the strategy output.
 5. For execution-sensitive alphas, run the alpha certification scanner and do
    not claim production certification below Level 2.
+
+## Native Product Status
+
+`src/quantbt` is the authoritative Python source tree. The root mirror is a
+checked compatibility mirror during the transition and must be synchronized by
+the repository tool, never edited independently. The optional Rust companion is
+currently an explicit staged implementation; `backend="auto"` remains
+Python-first until a workload is promoted through installed-wheel parity and
+performance gates. See [Native capabilities](native/capabilities.md).

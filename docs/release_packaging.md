@@ -4,6 +4,43 @@ This document records the Phase 48F final release contract for `quantbt-engine`.
 The older Phase 42C rules remain valid unless this document explicitly updates
 them.
 
+## P3 Product Evidence
+
+The shipped Python package is built from `src/quantbt`. The repository root
+mirror is a temporary checked compatibility mirror and is never an independent
+release source. Before a release candidate, run:
+
+```bash
+make test-contracts
+make build-core-wheel
+make verify-wheels
+make supply-chain-report
+make sbom
+make release-manifest
+```
+
+`release-manifest.json` records artifact checksums, product/lifecycle registry
+fingerprints, benchmark references, and hashes of the supply-chain report and
+CycloneDX SBOM. The core release remains Python-first. A locally built
+`quantbt-native` wheel is an exact staged companion only; it is not bundled in
+the core PyPI artifact and it does not make `backend="auto"` select Rust.
+
+The supply-chain report also records source/ref cleanliness, Python/Rust
+toolchain and target metadata, native build profile/features, the Cargo lock
+hash, and both contract fingerprints. It is release evidence, not a claim that
+a locally built native wheel is portable or promoted.
+
+To inspect a staged core/native pair locally:
+
+```bash
+make build-native-wheel
+make verify-staged-wheels
+```
+
+The staged verifier creates clean environments, checks source-to-wheel module
+hashes, rejects source-tree import leakage, and requires an exact pair declared
+by the generated product registry.
+
 ## Package Contract
 
 - PyPI distribution: `quantbt-engine`.

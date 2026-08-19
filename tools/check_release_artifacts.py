@@ -29,6 +29,12 @@ BUILD_ARTIFACT = re.compile(
     re.IGNORECASE,
 )
 CORE_WHEEL_MEMBER = re.compile(r"^quantbt_engine-[^/]+\.dist-info/")
+NATIVE_WHEEL_MEMBER = re.compile(r"^quantbt_native-[^/]+\.dist-info/")
+NATIVE_EXTENSION_MEMBER = re.compile(
+    r"^_quantbt_native/_quantbt_native(?:\.[^/]+)?\.(?:so|pyd|dylib)$",
+    re.IGNORECASE,
+)
+NATIVE_PACKAGE_INIT = re.compile(r"^_quantbt_native/__init__\.py$", re.IGNORECASE)
 SECRET_CONTENT = re.compile(
     r"pypi-[A-Za-z0-9_-]{32,}|"
     r"ghp_[A-Za-z0-9]{36,}|"
@@ -62,17 +68,42 @@ def _content_findings(path: Path, name: str, payload: bytes) -> list[str]:
     return [f"{path.name}: credential-like content in {name}: {match.group(0)[:24]}..."]
 
 
+def _wheel_kind(path: Path) -> str | None:
+    name = path.name.lower()
+    if name.startswith("quantbt_engine-"):
+        return "core"
+    if name.startswith("quantbt_native-"):
+        return "native"
+    return None
+
+
 def inspect_artifact(path: Path) -> list[str]:
-    """Return findings for one core wheel or source distribution."""
+    """Return allowlist/secret findings for one core or native artifact."""
 
     findings: list[str] = []
     if path.suffix == ".whl":
+        kind = _wheel_kind(path)
+        if kind is None:
+            return [f"unsupported wheel distribution: {path.name}"]
         with zipfile.ZipFile(path) as archive:
             for name in archive.namelist():
-                findings.extend(f"{path.name}: {item}" for item in _path_findings(name))
+                path_findings = _path_findings(name)
                 normalized = name.replace("\\", "/")
-                if not (normalized.startswith("quantbt/") or CORE_WHEEL_MEMBER.match(normalized)):
-                    findings.append(f"{path.name}: non-core wheel member: {name}")
+                if kind == "native" and NATIVE_EXTENSION_MEMBER.match(normalized):
+                    path_findings = [item for item in path_findings if "build/profiling artifact" not in item]
+                findings.extend(f"{path.name}: {item}" for item in path_findings)
+                if kind == "core":
+                    allowed = normalized.startswith("quantbt/") or CORE_WHEEL_MEMBER.match(normalized)
+                    label = "non-core wheel member"
+                else:
+                    allowed = bool(
+                        NATIVE_EXTENSION_MEMBER.match(normalized)
+                        or NATIVE_PACKAGE_INIT.match(normalized)
+                        or NATIVE_WHEEL_MEMBER.match(normalized)
+                    )
+                    label = "non-native wheel member"
+                if not allowed:
+                    findings.append(f"{path.name}: {label}: {name}")
                 item = archive.getinfo(name)
                 if not item.is_dir() and item.file_size <= 4 * 1024 * 1024:
                     findings.extend(_content_findings(path, name, archive.read(name)))
