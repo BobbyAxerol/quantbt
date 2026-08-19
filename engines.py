@@ -69,6 +69,7 @@ class BacktestEngineV2:
         order_commands: Optional[Sequence[OrderCommand]] = None,
         strategy=None,
         event_engine_version: str = "v1",
+        execution_contract=None,
         reactive_execution_mode: str = "fast",
         reactive_kernel_mode: str = "replay_certified",
         report_level: str = "audit",
@@ -114,6 +115,7 @@ class BacktestEngineV2:
         self.order_commands = tuple(order_commands or ())
         self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
+        self.execution_contract = execution_contract
         self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
         self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
         self.report_level = str(report_level)
@@ -220,6 +222,11 @@ class BacktestEngineV2:
                 audit_sink_path=self.audit_sink_path,
                 reactive_kernel_mode=self.reactive_kernel_mode,
                 native_backend=self.native_backend,
+                execution_contract=(
+                    self.execution_contract
+                    if self.execution_contract is not None
+                    else "event_lifecycle_v2_next_bar_close"
+                ),
             )
         )
 
@@ -280,7 +287,17 @@ class BacktestEngineV2:
                 min_notional=self.min_notional,
             )
 
-        if self.order_commands or self.event_engine_version in {"v2", "event_v2", "lifecycle", "lifecycle_v2"}:
+        if self.order_commands or self.event_engine_version in {
+            "v2",
+            "event_v2",
+            "lifecycle",
+            "lifecycle_v2",
+            "v3",
+            "event_v3",
+            "lifecycle_v3",
+            "event_lifecycle_v2_next_bar_close",
+            "event_lifecycle_v3_next_open",
+        }:
             commands = self.order_commands
             if not commands and self.orders:
                 commands = order_intents_to_lifecycle_commands(self.orders)
@@ -300,12 +317,19 @@ class BacktestEngineV2:
                     )
                 )
                 commands = order_intents_to_lifecycle_commands(generated_orders)
+            opens, _ = _market_open_volume(
+                data=self.data,
+                datetime_index=idx,
+                closes=closes,
+                symbols=symbols,
+            )
             return backend.run_order_commands(
                 datetime_index=idx,
                 commands=commands,
                 closes=closes,
                 highs=highs,
                 lows=lows,
+                opens=opens,
                 funding_rate=self.funding_rate,
                 contract_size=self.contract_size,
                 leverage=self.leverage,
@@ -319,6 +343,7 @@ class BacktestEngineV2:
                 report_level=self.report_level,
                 audit_sink=self.audit_sink,
                 audit_sink_path=self.audit_sink_path,
+                execution_contract=self.execution_contract,
             )
 
         orders = self.orders

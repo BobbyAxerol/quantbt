@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, replace
 import math
 from pathlib import Path
+from time import perf_counter_ns
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
@@ -23,6 +24,19 @@ from ..core.event import (
     COMMAND_ACTION_CANCEL_ALL,
     COMMAND_ACTION_PLACE,
     COMMAND_ACTION_REPLACE,
+    FILL_REASON_LIMIT_OPEN_IMPROVEMENT,
+    FILL_REASON_LIMIT_TRIGGER,
+    FILL_REASON_NEXT_BAR_CLOSE,
+    FILL_REASON_NEXT_OPEN,
+    FILL_REASON_NONE,
+    FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER,
+    FILL_REASON_STOP_LIMIT_LEGACY,
+    FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+    FILL_REASON_STOP_OPEN_WORSE,
+    FILL_REASON_STOP_TRIGGER,
+    FILL_REASON_STOP_TRIGGER_LEGACY,
+    FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR,
+    FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
     LIQ_AFTER_FUNDING,
     LIQ_AFTER_ORDER,
     LIQ_INTRABAR,
@@ -34,6 +48,7 @@ from ..core.event import (
     ORDER_EVENT_FILL,
     ORDER_EVENT_PLACE,
     ORDER_EVENT_REJECT,
+    ORDER_EVENT_REPLACE,
     ORDER_STATUS_CANCELED,
     ORDER_STATUS_FILLED,
     ORDER_STATUS_PENDING,
@@ -53,6 +68,19 @@ from ..core.event import (
     TIF_IOC,
     _engine_event_v1,
     _engine_event_v2,
+)
+from ..core.event_contracts import (
+    BarView,
+    CommandOutcome,
+    EngineDiagnosticsV1,
+    EventClockContract,
+    LifecycleEventKind,
+    LifecycleOrderStatus,
+    WorkingOrderView,
+    EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+    EVENT_LIFECYCLE_V3_NEXT_OPEN,
+    get_event_clock_contract,
+    decide_bar_fill,
 )
 from ..core.constraints import build_quantity_constraints, quantize_signed_quantity
 from ..core.arbitrage import (
@@ -135,6 +163,23 @@ def _event_type_name(event_type: int) -> str:
     }.get(int(event_type), "unknown")
 
 
+_LEGACY_EVENT_TO_LIFECYCLE_KIND = {
+    ORDER_EVENT_PLACE: LifecycleEventKind.PLACE,
+    ORDER_EVENT_ACTIVATE: LifecycleEventKind.ACTIVATE,
+    ORDER_EVENT_AMEND: LifecycleEventKind.AMEND,
+    ORDER_EVENT_REPLACE: LifecycleEventKind.REPLACE,
+    ORDER_EVENT_CANCEL: LifecycleEventKind.CANCEL,
+    ORDER_EVENT_EXPIRE: LifecycleEventKind.EXPIRE,
+    ORDER_EVENT_FILL: LifecycleEventKind.FILL,
+    ORDER_EVENT_REJECT: LifecycleEventKind.REJECT,
+}
+
+
+def _event_engine_name(clock: EventClockContract, suffix: str) -> str:
+    version = "v3" if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN else "v2"
+    return f"event_{version}_{suffix}"
+
+
 @dataclass(frozen=True)
 class NativeEventConfig:
     account: AccountConfig
@@ -146,6 +191,8 @@ class NativeEventConfig:
     audit_sink_path: Optional[str] = None
     reactive_kernel_mode: str = "replay_certified"
     native_backend: Optional[str] = None
+    execution_contract: Union[str, EventClockContract] = EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
+    diagnostics: bool = False
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -156,6 +203,7 @@ class NativeEventConfig:
         object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
         object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
         object.__setattr__(self, "reactive_kernel_mode", _normalize_reactive_kernel_mode(self.reactive_kernel_mode))
+        object.__setattr__(self, "execution_contract", get_event_clock_contract(self.execution_contract))
         if self.native_backend is not None:
             selected = str(self.native_backend).lower().strip()
             if selected not in {"python", "rust", "auto", "replay_certified"}:
@@ -438,6 +486,7 @@ class _ReactiveOrderState:
     working_price: float = 0.0
     working_trigger: float = 0.0
     reject_code: int = 0
+    trigger_armed: bool = False
 
 
 def _compact_score_command(command: OrderCommand) -> OrderCommand:
@@ -749,6 +798,7 @@ class _NativeEventReactiveSession:
         maintenance_ratio: float,
         slippage: float,
         use_funding: bool,
+        event_contract: Union[str, EventClockContract] = EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
         retain_terminal_orders: bool = True,
         score_requirements: Optional[NativeEventScoreRequirements] = None,
     ) -> None:
@@ -771,6 +821,7 @@ class _NativeEventReactiveSession:
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
+        self.event_contract = get_event_clock_contract(event_contract)
         self.retain_terminal_orders = bool(retain_terminal_orders)
         self.score_requirements = score_requirements
         self.retain_fill_ledger = bool(
@@ -1088,15 +1139,18 @@ class _NativeEventReactiveSession:
             command = state.command
             if command.side is None or command.order_type is None:
                 continue
-            touched, exec_price = self._touched_price(
+            touched, exec_price, trigger_armed, _, _ = self._touched_price(
                 command.order_type,
                 command.side,
                 state.working_price,
                 state.working_trigger,
+                state.trigger_armed,
+                self.opens_arr[bar, state.symbol_col],
                 self.market_arrays.highs[bar, state.symbol_col],
                 self.market_arrays.lows[bar, state.symbol_col],
                 self.market_arrays.closes[bar, state.symbol_col],
             )
+            state.trigger_armed = trigger_armed
             if not touched:
                 if command.tif in (TimeInForce.GTC, TimeInForce.GTD):
                     continue
@@ -1405,28 +1459,68 @@ class _NativeEventReactiveSession:
         side: OrderSide,
         price: float,
         trigger_price: float,
+        trigger_armed: bool,
+        open_price: float,
         high: float,
         low: float,
         close: float,
-    ) -> tuple[bool, float]:
-        if order_type is OrderType.MARKET:
-            return True, float(close * (1.0 + self.slippage if side is OrderSide.BUY else 1.0 - self.slippage))
-        if order_type is OrderType.LIMIT:
-            if side is OrderSide.BUY and low <= price:
-                return True, float(price)
-            if side is OrderSide.SELL and high >= price:
-                return True, float(price)
-        if order_type is OrderType.STOP_MARKET:
-            if side is OrderSide.BUY and high >= trigger_price:
-                return True, float(trigger_price * (1.0 + self.slippage))
-            if side is OrderSide.SELL and low <= trigger_price:
-                return True, float(trigger_price * (1.0 - self.slippage))
-        if order_type is OrderType.STOP_LIMIT:
-            if side is OrderSide.BUY and high >= trigger_price and low <= price:
-                return True, float(price)
-            if side is OrderSide.SELL and low <= trigger_price and high >= price:
-                return True, float(price)
-        return False, float(close)
+    ) -> tuple[bool, float, bool, int, int]:
+        order_code = {
+            OrderType.MARKET: ORDER_TYPE_MARKET,
+            OrderType.LIMIT: ORDER_TYPE_LIMIT,
+            OrderType.STOP_MARKET: ORDER_TYPE_STOP_MARKET,
+            OrderType.STOP_LIMIT: ORDER_TYPE_STOP_LIMIT,
+        }[order_type]
+        decision = decide_bar_fill(
+            WorkingOrderView(
+                order_type=order_code,
+                side=side.sign,
+                price=float(price),
+                trigger_price=float(trigger_price),
+                trigger_armed=bool(trigger_armed),
+            ),
+            BarView(
+                open=(
+                    float(close)
+                    if self.event_contract.contract_id == EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
+                    else float(open_price)
+                ),
+                high=float(high),
+                low=float(low),
+                close=float(close),
+            ),
+            self.event_contract,
+            slippage=self.slippage,
+        )
+        ambiguity_codes = {
+            "NONE": 0,
+            "UNORDERED_OHLC_RANGE": 1,
+            "STOP_LIMIT_INTRABAR_PATH_UNKNOWN": 2,
+        }
+        reason_codes = {
+            "NOT_TOUCHED": FILL_REASON_NONE,
+            "NEXT_BAR_CLOSE": FILL_REASON_NEXT_BAR_CLOSE,
+            "NEXT_OPEN": FILL_REASON_NEXT_OPEN,
+            "LIMIT_TRIGGER": FILL_REASON_LIMIT_TRIGGER,
+            "LIMIT_OPEN_IMPROVEMENT": FILL_REASON_LIMIT_OPEN_IMPROVEMENT,
+            "STOP_TRIGGER_LEGACY": FILL_REASON_STOP_TRIGGER_LEGACY,
+            "STOP_TRIGGER": FILL_REASON_STOP_TRIGGER,
+            "STOP_OPEN_WORSE": FILL_REASON_STOP_OPEN_WORSE,
+            "STOP_LIMIT_LEGACY": FILL_REASON_STOP_LIMIT_LEGACY,
+            "STOP_LIMIT_OPEN_IMPROVEMENT": FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+            "STOP_LIMIT_AFTER_OPEN_TRIGGER": FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER,
+            "TRIGGERED_LIMIT_NOT_TOUCHED": FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
+            "TRIGGERED_AWAIT_NEXT_BAR": FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR,
+            "ARMED_STOP_LIMIT_LIMIT_OPEN_IMPROVEMENT": FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+            "ARMED_STOP_LIMIT_LIMIT_TRIGGER": FILL_REASON_LIMIT_TRIGGER,
+        }
+        return (
+            decision.matched,
+            decision.fill_price,
+            decision.triggered,
+            reason_codes.get(decision.price_reason, FILL_REASON_NONE),
+            ambiguity_codes.get(decision.ambiguity_code, 0),
+        )
 
     @staticmethod
     def _cancel_all_unfiltered(command: OrderCommand) -> bool:
@@ -1685,6 +1779,9 @@ class NativeEventBackend:
         report_level: Optional[str] = None,
         audit_sink: Optional[str] = None,
         audit_sink_path: Optional[str] = None,
+        opens: Optional[Dict[str, pd.Series]] = None,
+        execution_contract: Optional[Union[str, EventClockContract]] = None,
+        diagnostics_enabled: Optional[bool] = None,
         _force_python_backend: bool = False,
     ) -> BacktestResultV2:
         """
@@ -1694,7 +1791,12 @@ class NativeEventBackend:
         remains routed to event v1 until endpoint parity is promoted in a later
         phase.
         """
+        diagnostics_requested = self.config.diagnostics if diagnostics_enabled is None else bool(diagnostics_enabled)
+        total_started_ns = perf_counter_ns() if diagnostics_requested else 0
         idx = validate_datetime(datetime_index)
+        if len(idx) == 0:
+            raise ValueError("native-event command execution requires at least one market bar")
+        clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
         requested_report_level = self.config.report_level if report_level is None else report_level
         level = _normalize_native_event_report_level(requested_report_level)
         plan = _native_event_artifact_plan(level)
@@ -1716,6 +1818,19 @@ class NativeEventBackend:
             )
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
+        if opens is None:
+            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                raise ValueError(
+                    "event_lifecycle_v3_next_open requires explicit open prices; "
+                    "pass opens={symbol: series} or use an endpoint DataFrame with an open column"
+                )
+            opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        else:
+            open_map = align_series(opens, symbol_list, idx)
+            opens_arr = np.ascontiguousarray(
+                np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
+            )
+        prepare_finished_ns = perf_counter_ns() if diagnostics_requested else 0
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -1738,6 +1853,14 @@ class NativeEventBackend:
                 "native_event_v2_tif_expiry",
                 "native_event_v2_relationships",
             }
+            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                required.update(
+                    {
+                        "event_contract_registry_v1",
+                        "event_lifecycle_v3_next_open",
+                        "bar_fill_reason_v1",
+                    }
+                )
             missing = sorted(name for name in required if not status.capabilities.get(name, False))
             if missing:
                 raise NativeEventRustBackendError(
@@ -1789,8 +1912,12 @@ class NativeEventBackend:
                 maintenance_ratio=float(self.config.account.maintenance_ratio),
                 slippage=float(self.config.execution.slippage_rate),
                 use_funding=bool(self.config.use_funding),
+                opens_arr=opens_arr,
+                event_contract=clock,
             )
+            engine_started_ns = perf_counter_ns() if diagnostics_requested else 0
             audit = runner.run_tape_audit(compiled_commands)
+            engine_finished_ns = perf_counter_ns() if diagnostics_requested else 0
             result = audit.to_backtest_result(
                 datetime_index=idx,
                 closes=pd.DataFrame({symbol: market_arrays.closes[:, col] for col, symbol in enumerate(symbol_list)}, index=idx),
@@ -1802,10 +1929,56 @@ class NativeEventBackend:
                     "quantity_preflight": quantity_preflight,
                     "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
                     "slippage_bps": self.config.execution.slippage_bps,
-                    "rust_contract": "native_event_v2_full_contract",
+                    "rust_contract": (
+                        "native_event_v2_full_contract"
+                        if clock.contract_id == EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
+                        else "native_event_v3_full_contract"
+                    ),
                     "use_funding": bool(self.config.use_funding),
+                    "event_clock_contract": clock.to_metadata(),
+                    "execution_contract_id": clock.contract_id,
                 },
             )
+            rust_events = result.metadata.get("order_report", pd.DataFrame())
+            result.metadata["lifecycle_event_report_v1"] = self._build_lifecycle_event_report(rust_events)
+            result.metadata["event_phase_trace_v1"] = (
+                self._build_event_phase_trace(idx, clock, int(audit.liquidation_bar), int(audit.liquidation_reason))
+                if level == "audit" and sink == "memory"
+                else pd.DataFrame()
+            )
+            if diagnostics_requested:
+                report_finished_ns = perf_counter_ns()
+                rust_counters = runner.cache_info()
+                rust_output_bytes = sum(
+                    array.nbytes
+                    for array in (
+                        audit.equity,
+                        audit.positions,
+                        audit.fees,
+                        audit.turnover,
+                        audit.funding,
+                        audit.initial_margin,
+                        audit.maintenance_margin,
+                        audit.fill_bar,
+                        audit.fill_price,
+                        audit.event_bar,
+                        audit.event_kind,
+                    )
+                )
+                result.metadata["engine_diagnostics_v1"] = EngineDiagnosticsV1(
+                    bars_processed=len(idx),
+                    symbols_processed=len(symbol_list),
+                    commands_processed=compiled_commands.n_commands,
+                    expiry_scan_count=int(rust_counters.get("expiry_scan_count", 0)),
+                    matching_scan_count=int(rust_counters.get("matching_scan_count", 0)),
+                    relationship_scan_count=int(rust_counters.get("relationship_scan_count", 0)),
+                    fills_emitted=int(audit.fill_count),
+                    events_emitted=int(audit.event_count),
+                    output_bytes=int(rust_output_bytes),
+                    prepare_ns=prepare_finished_ns - total_started_ns,
+                    engine_ns=engine_finished_ns - engine_started_ns,
+                    report_ns=report_finished_ns - engine_finished_ns,
+                ).to_metadata()
             return result
 
         leverages = self._per_symbol_array(
@@ -1840,6 +2013,9 @@ class NativeEventBackend:
             working_qty,
             working_price,
             working_trigger,
+            trigger_armed,
+            fill_reason,
+            fill_ambiguity,
             event_count,
             event_bar,
             event_command,
@@ -1849,6 +2025,9 @@ class NativeEventBackend:
             liq_flag,
             liq_idx,
             liq_reason,
+            expiry_scan_count,
+            matching_scan_count,
+            relationship_scan_count,
         ) = _engine_event_v2(
             n_bars=len(idx),
             n_syms=len(symbol_list),
@@ -1871,6 +2050,7 @@ class NativeEventBackend:
             command_oco_group_id=compiled_commands.command_oco_group_id,
             command_activation=compiled_commands.command_activation,
             command_expires_bar=compiled_commands.command_expires_bar,
+            opens=opens_arr,
             highs=market_arrays.highs,
             lows=market_arrays.lows,
             closes=market_arrays.closes,
@@ -1883,7 +2063,9 @@ class NativeEventBackend:
             contract_sizes=contract_sizes,
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
+            event_contract_code=clock.contract_code,
         )
+        engine_finished_ns = perf_counter_ns() if diagnostics_requested else 0
 
         fill_ledger = self._build_compact_fill_ledger(
             compiled_commands=compiled_commands,
@@ -1966,6 +2148,18 @@ class NativeEventBackend:
             )
         else:
             order_events = pd.DataFrame()
+        command_outcomes = self._build_command_outcome_report(
+            command_report=command_report,
+            compiled_commands=compiled_commands,
+            n_bars=len(idx),
+            event_ledger=event_ledger,
+        )
+        lifecycle_events = self._build_lifecycle_event_report(order_events)
+        phase_trace = (
+            self._build_event_phase_trace(idx, clock, int(liq_idx), int(liq_reason))
+            if level == "audit" and sink == "memory"
+            else pd.DataFrame()
+        )
         if command_report.empty or not plan.materialize_active_orders:
             active_orders = pd.DataFrame()
         else:
@@ -1991,9 +2185,18 @@ class NativeEventBackend:
             "pending_command_count": int(np.sum(command_status == ORDER_STATUS_PENDING)),
             "expired_event_count": int(np.sum(event_ledger.event_type == ORDER_EVENT_EXPIRE)),
         }
+        fill_policy_diagnostics = pd.DataFrame(
+            {
+                "command_index": np.arange(compiled_commands.n_commands, dtype=np.int64),
+                "trigger_armed": trigger_armed.astype(bool),
+                "fill_reason_code": fill_reason,
+                "fill_ambiguity_code": fill_ambiguity,
+            }
+        )
+        report_finished_ns = perf_counter_ns() if diagnostics_requested else 0
         metadata = {
             "backend": "native_event",
-            "engine": "event_v2_lifecycle",
+            "engine": _event_engine_name(clock, "lifecycle"),
             **self._backend_selection_metadata(),
             "report_level": level,
             "report_level_requested": str(requested_report_level),
@@ -2005,7 +2208,10 @@ class NativeEventBackend:
             "slippage_bps": self.config.execution.slippage_bps,
             "order_report": command_report,
             "command_report": command_report,
+            "command_outcome_report_v1": command_outcomes,
             "order_events": order_events,
+            "lifecycle_event_report_v1": lifecycle_events,
+            "event_phase_trace_v1": phase_trace,
             "active_orders": active_orders,
             "compact_fill_ledger": fill_ledger if plan.keep_fill_ledger else None,
             "compact_command_ledger": command_ledger if plan.keep_command_terminal_state else None,
@@ -2016,7 +2222,33 @@ class NativeEventBackend:
             "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
             "liquidation_reason": int(liq_reason),
             "lifecycle_counters": lifecycle_counters,
+            "event_clock_contract": clock.to_metadata(),
+            "execution_contract_id": clock.contract_id,
+            "fill_policy_diagnostics": fill_policy_diagnostics,
         }
+        if diagnostics_requested:
+            metadata["engine_diagnostics_v1"] = EngineDiagnosticsV1(
+                bars_processed=len(idx),
+                symbols_processed=len(symbol_list),
+                commands_processed=compiled_commands.n_commands,
+                expiry_scan_count=int(expiry_scan_count),
+                matching_scan_count=int(matching_scan_count),
+                relationship_scan_count=int(relationship_scan_count),
+                fills_emitted=int(fill_ledger.fill_count),
+                events_emitted=int(event_count),
+                output_bytes=int(
+                    equity_arr.nbytes
+                    + pos_arr.nbytes
+                    + fee_arr.nbytes
+                    + turnover_arr.nbytes
+                    + funding_arr.nbytes
+                    + init_margin_arr.nbytes
+                    + maint_margin_arr.nbytes
+                ),
+                prepare_ns=prepare_finished_ns - total_started_ns,
+                engine_ns=engine_finished_ns - prepare_finished_ns,
+                report_ns=report_finished_ns - engine_finished_ns,
+            ).to_metadata()
 
         return BacktestResultV2(
             equity=equity,
@@ -2110,6 +2342,9 @@ class NativeEventBackend:
             score_requirements = None
 
         idx = validate_datetime(datetime_index)
+        if len(idx) == 0:
+            raise ValueError("native-event strategy execution requires at least one market bar")
+        clock = get_event_clock_contract(self.config.execution_contract)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
         if market_arrays is None:
             market_arrays = self.prepare_market_arrays(
@@ -2123,6 +2358,11 @@ class NativeEventBackend:
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
         if opens_arr is None:
+            if opens is None and clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                raise ValueError(
+                    "event_lifecycle_v3_next_open requires explicit open prices; "
+                    "pass opens={symbol: series} or prepared opens_arr"
+                )
             open_dict = align_series(opens, symbol_list, idx, fallback=align_series(closes, symbol_list, idx))
             opens_arr = np.ascontiguousarray(np.column_stack([open_dict[s].to_numpy(dtype=np.float64) for s in symbol_list]))
         else:
@@ -2172,6 +2412,7 @@ class NativeEventBackend:
             maintenance_ratio=self.config.account.maintenance_ratio,
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
+            event_contract=clock,
             retain_terminal_orders=level != "score",
             score_requirements=score_requirements,
         )
@@ -2332,13 +2573,15 @@ class NativeEventBackend:
                 trading_days=_trading_days,
                 metadata={
                     "backend": "native_event",
-                    "engine": "event_v2_reactive_score",
+                    "engine": _event_engine_name(clock, "reactive_score"),
                     "report_level": "score",
                     "artifact_plan": asdict(plan),
                     "score_requirements": asdict(score_requirements),
                     "reactive_execution_mode": execution_mode,
                     "reactive_kernel_mode": kernel_mode,
                     "command_effective_phase": "next_bar",
+                    "event_clock_contract": clock.to_metadata(),
+                    "execution_contract_id": clock.contract_id,
                     "emitted_command_count": int(emitted_command_count),
                     "emitted_executable_command_count": int(emitted_executable_command_count),
                     "ignored_commands_after_end": int(ignored_commands_after_end),
@@ -2353,6 +2596,12 @@ class NativeEventBackend:
             )
         replay_result = None
         if replay_required:
+            replay_opens = opens
+            if replay_opens is None and clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                replay_opens = {
+                    symbol: pd.Series(opens_arr[:, col], index=idx)
+                    for col, symbol in enumerate(symbol_list)
+                }
             replay_result = self.run_order_commands(
                 datetime_index=idx,
                 commands=tuple(emitted),
@@ -2374,11 +2623,13 @@ class NativeEventBackend:
                 report_level=level,
                 audit_sink=audit_sink,
                 audit_sink_path=audit_sink_path,
+                opens=replay_opens,
+                execution_contract=clock,
                 _force_python_backend=True,
             )
         if kernel_mode == "replay_certified":
             final_result = replay_result
-            engine_name = "event_v2_reactive_incremental"
+            engine_name = _event_engine_name(clock, "reactive_incremental")
         else:
             if replay_result is not None:
                 self._assert_reactive_session_replay_parity(session, replay_result)
@@ -2393,7 +2644,7 @@ class NativeEventBackend:
                 audit_sink=audit_sink,
                 audit_sink_path=audit_sink_path,
             )
-            engine_name = "event_v2_reactive_single_pass"
+            engine_name = _event_engine_name(clock, "reactive_single_pass")
         final_result.metadata.update(
             {
                 "engine": engine_name,
@@ -2401,6 +2652,8 @@ class NativeEventBackend:
                 "reactive_execution_mode": execution_mode,
                 "reactive_kernel_mode": kernel_mode,
                 "command_effective_phase": "next_bar",
+                "event_clock_contract": clock.to_metadata(),
+                "execution_contract_id": clock.contract_id,
                 "emitted_command_tape": tuple(emitted_audit_tape) if plan.keep_command_tape else (),
                 "emitted_command_tape_retained": bool(plan.keep_command_tape),
                 "emitted_command_count": int(emitted_command_count),
@@ -2620,6 +2873,7 @@ class NativeEventBackend:
             maintenance_ratio=maint,
             slippage=slip,
             use_funding=funding_enabled,
+            event_contract=self.config.execution_contract,
             retain_terminal_orders=False,
             score_requirements=requirements,
         )
@@ -3127,6 +3381,7 @@ class NativeEventBackend:
         audit_sink_path: Optional[str],
     ) -> BacktestResultV2:
         idx = session.idx
+        clock = get_event_clock_contract(session.event_contract)
         equity = pd.Series(session.equity_path.copy(), index=idx, name="equity")
         returns = equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
         positions = pd.DataFrame(
@@ -3185,7 +3440,7 @@ class NativeEventBackend:
 
         metadata = {
             "backend": "native_event",
-            "engine": "event_v2_reactive_single_pass",
+            "engine": _event_engine_name(clock, "reactive_single_pass"),
             "report_level": report_level,
             "artifact_plan": asdict(plan),
             "audit_sink": self.config.audit_sink if audit_sink is None else _normalize_native_event_audit_sink(audit_sink),
@@ -3208,6 +3463,8 @@ class NativeEventBackend:
             "execution_counters": dict(getattr(session, "execution_counters", {})),
             "single_pass_accounting_source": "reactive_session_state",
             "single_pass_replay_certified": bool(replay_result is not None),
+            "event_clock_contract": clock.to_metadata(),
+            "execution_contract_id": clock.contract_id,
         }
         return BacktestResultV2(
             equity=equity,
@@ -3933,6 +4190,172 @@ class NativeEventBackend:
         if not rows:
             return pd.DataFrame()
         return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)
+
+    @staticmethod
+    def _build_command_outcome_report(
+        *,
+        command_report: pd.DataFrame,
+        compiled_commands: CompiledOrderCommandArrays,
+        n_bars: int,
+        event_ledger: CompactOrderEventLedger,
+    ) -> pd.DataFrame:
+        """Project legacy command slots into explicit command/order concepts."""
+
+        if command_report.empty:
+            return pd.DataFrame()
+        expired_commands = set(
+            int(value)
+            for value in event_ledger.command_index[event_ledger.event_type == ORDER_EVENT_EXPIRE]
+        )
+        by_sorted = command_report.set_index("sorted_index", drop=False)
+        rows = []
+        for sorted_idx, (_, command) in enumerate(compiled_commands.sorted_commands):
+            row = by_sorted.loc[sorted_idx]
+            command_bar = int(compiled_commands.command_bar[sorted_idx])
+            status = int(row["status"])
+            active = bool(row["active"])
+            waiting = bool(row["waiting_parent"])
+            fill_bar = int(row["fill_bar"])
+
+            if command_bar <= 0 or command_bar >= n_bars:
+                outcome = CommandOutcome.OUTSIDE_TAPE
+            elif status == ORDER_STATUS_REJECTED:
+                outcome = CommandOutcome.REJECTED
+            elif command.action is OrderAction.PLACE or status == ORDER_STATUS_FILLED:
+                outcome = CommandOutcome.ACCEPTED
+            else:
+                outcome = CommandOutcome.NOOP
+
+            order_status = None
+            if command.action in {OrderAction.PLACE, OrderAction.REPLACE} and outcome is not CommandOutcome.OUTSIDE_TAPE:
+                if status == ORDER_STATUS_REJECTED:
+                    order_status = LifecycleOrderStatus.REJECTED
+                elif fill_bar >= 0:
+                    order_status = LifecycleOrderStatus.FILLED
+                elif active:
+                    order_status = LifecycleOrderStatus.ACTIVE
+                elif waiting:
+                    order_status = LifecycleOrderStatus.WAITING_PARENT
+                elif status == ORDER_STATUS_CANCELED:
+                    order_status = (
+                        LifecycleOrderStatus.EXPIRED
+                        if sorted_idx in expired_commands
+                        else LifecycleOrderStatus.CANCELED
+                    )
+                else:
+                    order_status = LifecycleOrderStatus.CREATED
+
+            rows.append(
+                {
+                    "original_index": int(compiled_commands.original_index[sorted_idx]),
+                    "sorted_index": sorted_idx,
+                    "timestamp": command.timestamp,
+                    "action": command.action.value,
+                    "order_id": command.order_id,
+                    "target_order_id": command.target_order_id,
+                    "command_outcome_code": int(outcome),
+                    "command_outcome": outcome.name,
+                    "order_status_code": None if order_status is None else int(order_status),
+                    "order_status": None if order_status is None else order_status.name,
+                    "legacy_status_code": status,
+                }
+            )
+        return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)
+
+    @staticmethod
+    def _build_lifecycle_event_report(order_events: pd.DataFrame) -> pd.DataFrame:
+        if order_events.empty:
+            return pd.DataFrame()
+        report = order_events.copy()
+        event_column = "event_type" if "event_type" in report.columns else "event_kind"
+        kinds = [
+            _LEGACY_EVENT_TO_LIFECYCLE_KIND.get(int(value))
+            for value in report[event_column].to_numpy()
+        ]
+        statuses = []
+        for kind in kinds:
+            if kind is LifecycleEventKind.FILL:
+                statuses.append(LifecycleOrderStatus.FILLED)
+            elif kind is LifecycleEventKind.CANCEL or kind is LifecycleEventKind.REPLACE:
+                statuses.append(LifecycleOrderStatus.CANCELED)
+            elif kind is LifecycleEventKind.EXPIRE:
+                statuses.append(LifecycleOrderStatus.EXPIRED)
+            elif kind is LifecycleEventKind.REJECT:
+                statuses.append(LifecycleOrderStatus.REJECTED)
+            elif kind is LifecycleEventKind.ACTIVATE or kind is LifecycleEventKind.AMEND:
+                statuses.append(LifecycleOrderStatus.ACTIVE)
+            elif kind is LifecycleEventKind.PLACE:
+                statuses.append(LifecycleOrderStatus.CREATED)
+            else:
+                statuses.append(None)
+        report["lifecycle_event_kind_code"] = [None if value is None else int(value) for value in kinds]
+        report["lifecycle_event_kind"] = [None if value is None else value.name for value in kinds]
+        report["lifecycle_order_status_code"] = [None if value is None else int(value) for value in statuses]
+        report["lifecycle_order_status"] = [None if value is None else value.name for value in statuses]
+        return report
+
+    @staticmethod
+    def _build_event_phase_trace(
+        idx: pd.DatetimeIndex,
+        clock: EventClockContract,
+        liquidation_bar: int,
+        liquidation_reason: int,
+    ) -> pd.DataFrame:
+        rows = []
+        sequence = 0
+        if len(idx):
+            rows.append(
+                {
+                    "bar": 0,
+                    "timestamp_ns": int(idx[0].value),
+                    "phase": "BAR_ZERO_INITIAL_STATE",
+                    "sequence": sequence,
+                }
+            )
+            sequence += 1
+        terminal = False
+        phase_stop = {
+            LIQ_INTRABAR: 2,
+            LIQ_AFTER_FUNDING: 4,
+            LIQ_AFTER_ORDER: 9,
+        }
+        for bar in range(1, len(idx)):
+            if terminal:
+                rows.append(
+                    {
+                        "bar": bar,
+                        "timestamp_ns": int(idx[bar].value),
+                        "phase": "TERMINAL_CARRY_FORWARD",
+                        "sequence": sequence,
+                    }
+                )
+                sequence += 1
+                continue
+            phases = clock.phase_sequence
+            if bar == liquidation_bar:
+                phases = phases[: phase_stop.get(liquidation_reason, len(phases))]
+            for phase in phases:
+                rows.append(
+                    {
+                        "bar": bar,
+                        "timestamp_ns": int(idx[bar].value),
+                        "phase": phase,
+                        "sequence": sequence,
+                    }
+                )
+                sequence += 1
+            if bar == liquidation_bar:
+                rows.append(
+                    {
+                        "bar": bar,
+                        "timestamp_ns": int(idx[bar].value),
+                        "phase": "TERMINAL_SNAPSHOT",
+                        "sequence": sequence,
+                    }
+                )
+                sequence += 1
+                terminal = True
+        return pd.DataFrame(rows, columns=["bar", "timestamp_ns", "phase", "sequence"])
 
     @staticmethod
     def _build_order_events(

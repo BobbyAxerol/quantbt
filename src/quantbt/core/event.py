@@ -9,6 +9,8 @@ from __future__ import annotations
 import numpy as np
 from numba import njit
 
+from .generated_native_event_contracts import CONTRACT_CODES
+
 
 ORDER_STATUS_PENDING = 0
 ORDER_STATUS_FILLED = 1
@@ -59,6 +61,27 @@ ORDER_EVENT_FILL = 4
 ORDER_EVENT_EXPIRE = 5
 ORDER_EVENT_ACTIVATE = 6
 ORDER_EVENT_REJECT = 7
+
+EVENT_CONTRACT_V2_NEXT_BAR_CLOSE = CONTRACT_CODES["event_lifecycle_v2_next_bar_close"]
+EVENT_CONTRACT_V3_NEXT_OPEN = CONTRACT_CODES["event_lifecycle_v3_next_open"]
+
+FILL_REASON_NONE = 0
+FILL_REASON_NEXT_BAR_CLOSE = 1
+FILL_REASON_NEXT_OPEN = 2
+FILL_REASON_LIMIT_TRIGGER = 3
+FILL_REASON_LIMIT_OPEN_IMPROVEMENT = 4
+FILL_REASON_STOP_TRIGGER_LEGACY = 5
+FILL_REASON_STOP_TRIGGER = 6
+FILL_REASON_STOP_OPEN_WORSE = 7
+FILL_REASON_STOP_LIMIT_LEGACY = 8
+FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT = 9
+FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER = 10
+FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED = 11
+FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR = 12
+
+FILL_AMBIGUITY_NONE = 0
+FILL_AMBIGUITY_UNORDERED_OHLC_RANGE = 1
+FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN = 2
 
 
 @njit(cache=True)
@@ -426,6 +449,113 @@ def _event_v2_touched_price(
 
 
 @njit(cache=True)
+def _event_contract_touched_price(
+    contract_code: int,
+    otype: int,
+    side: int,
+    price: float,
+    trigger_price: float,
+    trigger_armed: int,
+    open_price: float,
+    high: float,
+    low: float,
+    close: float,
+    slippage: float,
+):
+    """Compact mirror of the versioned Python bar-fill oracle."""
+
+    if contract_code == EVENT_CONTRACT_V2_NEXT_BAR_CLOSE:
+        touched, exec_price = _event_v2_touched_price(
+            otype, side, price, trigger_price, high, low, close, slippage
+        )
+        armed = trigger_armed
+        reason = FILL_REASON_NONE
+        ambiguity = FILL_AMBIGUITY_NONE
+        if touched:
+            if otype == ORDER_TYPE_MARKET:
+                reason = FILL_REASON_NEXT_BAR_CLOSE
+            elif otype == ORDER_TYPE_LIMIT:
+                reason = FILL_REASON_LIMIT_TRIGGER
+            elif otype == ORDER_TYPE_STOP_MARKET:
+                armed = 1
+                reason = FILL_REASON_STOP_TRIGGER_LEGACY
+            elif otype == ORDER_TYPE_STOP_LIMIT:
+                armed = 1
+                reason = FILL_REASON_STOP_LIMIT_LEGACY
+                ambiguity = FILL_AMBIGUITY_UNORDERED_OHLC_RANGE
+        return touched, exec_price, armed, reason, ambiguity
+
+    touched = False
+    exec_price = 0.0
+    armed = trigger_armed
+    reason = FILL_REASON_NONE
+    ambiguity = FILL_AMBIGUITY_NONE
+
+    if otype == ORDER_TYPE_MARKET:
+        touched = True
+        exec_price = open_price * (1.0 + slippage if side > 0 else 1.0 - slippage)
+        reason = FILL_REASON_NEXT_OPEN
+    elif otype == ORDER_TYPE_LIMIT:
+        favorable_gap = open_price <= price if side > 0 else open_price >= price
+        if favorable_gap:
+            touched = True
+            exec_price = open_price
+            reason = FILL_REASON_LIMIT_OPEN_IMPROVEMENT
+        elif (side > 0 and low <= price) or (side < 0 and high >= price):
+            touched = True
+            exec_price = price
+            reason = FILL_REASON_LIMIT_TRIGGER
+    elif otype == ORDER_TYPE_STOP_MARKET:
+        gap_trigger = open_price >= trigger_price if side > 0 else open_price <= trigger_price
+        trigger_touched = high >= trigger_price if side > 0 else low <= trigger_price
+        if gap_trigger:
+            touched = True
+            armed = 1
+            exec_price = open_price * (1.0 + slippage if side > 0 else 1.0 - slippage)
+            reason = FILL_REASON_STOP_OPEN_WORSE
+        elif trigger_touched:
+            touched = True
+            armed = 1
+            exec_price = trigger_price * (1.0 + slippage if side > 0 else 1.0 - slippage)
+            reason = FILL_REASON_STOP_TRIGGER
+    elif otype == ORDER_TYPE_STOP_LIMIT:
+        if trigger_armed == 1:
+            favorable_gap = open_price <= price if side > 0 else open_price >= price
+            if favorable_gap:
+                touched = True
+                exec_price = open_price
+                reason = FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT
+            elif (side > 0 and low <= price) or (side < 0 and high >= price):
+                touched = True
+                exec_price = price
+                reason = FILL_REASON_LIMIT_TRIGGER
+        else:
+            gap_trigger = open_price >= trigger_price if side > 0 else open_price <= trigger_price
+            trigger_touched = high >= trigger_price if side > 0 else low <= trigger_price
+            limit_touched = low <= price if side > 0 else high >= price
+            if trigger_touched:
+                armed = 1
+                if gap_trigger:
+                    favorable_gap = open_price <= price if side > 0 else open_price >= price
+                    if favorable_gap:
+                        touched = True
+                        exec_price = open_price
+                        reason = FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT
+                    elif limit_touched:
+                        touched = True
+                        exec_price = price
+                        reason = FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER
+                    else:
+                        reason = FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED
+                elif limit_touched:
+                    reason = FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR
+                    ambiguity = FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN
+                else:
+                    reason = FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED
+    return touched, exec_price, armed, reason, ambiguity
+
+
+@njit(cache=True)
 def _engine_event_v2(
     n_bars:                 int,
     n_syms:                 int,
@@ -448,6 +578,7 @@ def _engine_event_v2(
     command_oco_group_id:   np.ndarray,
     command_activation:     np.ndarray,
     command_expires_bar:    np.ndarray,
+    opens:                  np.ndarray,
     highs:                  np.ndarray,
     lows:                   np.ndarray,
     closes:                 np.ndarray,
@@ -460,6 +591,7 @@ def _engine_event_v2(
     contract_sizes:         np.ndarray,
     slippage:               float,
     use_funding:            bool,
+    event_contract_code:    int,
 ):
     equity_curve = np.zeros(n_bars, dtype=np.float64)
     pos_out      = np.zeros((n_bars, n_syms), dtype=np.float64)
@@ -483,6 +615,9 @@ def _engine_event_v2(
     working_qty = np.copy(command_qty)
     working_price = np.copy(command_price)
     working_trigger = np.copy(command_trigger_price)
+    trigger_armed = np.zeros(n_commands, dtype=np.int64)
+    fill_reason = np.zeros(n_commands, dtype=np.int64)
+    fill_ambiguity = np.zeros(n_commands, dtype=np.int64)
     id_to_slot = np.full(n_ids, -1, dtype=np.int64)
 
     max_events = n_commands * 8 + n_bars
@@ -498,6 +633,9 @@ def _engine_event_v2(
     liq_flag = False
     liq_idx = -1
     liq_reason = LIQ_NONE
+    expiry_scan_count = 0
+    matching_scan_count = 0
+    relationship_scan_count = 0
 
     equity_curve[0] = equity
 
@@ -551,6 +689,7 @@ def _engine_event_v2(
 
         # Expire active GTD orders before processing the current bar.
         for oid in range(n_commands):
+            expiry_scan_count += 1
             if active[oid] == 1 and command_status[oid] == ORDER_STATUS_PENDING:
                 exp_bar = command_expires_bar[oid]
                 if exp_bar >= 0 and i >= exp_bar:
@@ -663,6 +802,7 @@ def _engine_event_v2(
                     )
             elif action == COMMAND_ACTION_CANCEL_ALL:
                 for target in range(n_commands):
+                    relationship_scan_count += 1
                     if (
                         (active[target] == 1 or waiting_parent[target] == 1)
                         and command_status[target] == ORDER_STATUS_PENDING
@@ -699,6 +839,7 @@ def _engine_event_v2(
         # Match active order slots. Children activated by an earlier parent fill
         # can fill in the same bar if they appear later in command order.
         for oid in range(n_commands):
+            matching_scan_count += 1
             if active[oid] != 1 or command_status[oid] != ORDER_STATUS_PENDING:
                 continue
             action = command_action[oid]
@@ -710,10 +851,14 @@ def _engine_event_v2(
             otype = command_type[oid]
             tif = command_tif[oid]
 
-            touched, exec_price = _event_v2_touched_price(
-                otype, side, working_price[oid], working_trigger[oid],
-                highs[i, sym], lows[i, sym], closes[i, sym], slippage,
+            touched, exec_price, armed, reason, ambiguity = _event_contract_touched_price(
+                event_contract_code, otype, side, working_price[oid], working_trigger[oid],
+                trigger_armed[oid], opens[i, sym], highs[i, sym], lows[i, sym],
+                closes[i, sym], slippage,
             )
+            trigger_armed[oid] = armed
+            fill_reason[oid] = reason
+            fill_ambiguity[oid] = ambiguity
 
             if not touched:
                 if tif == TIF_GTC or tif == TIF_GTD:
@@ -787,6 +932,7 @@ def _engine_event_v2(
 
             order_id = command_order_id[oid]
             for child in range(n_commands):
+                relationship_scan_count += 1
                 if waiting_parent[child] == 1 and command_parent_order_id[child] == order_id:
                     if (
                         command_activation[child] == ACTIVATION_ON_PARENT_FIRST_FILL
@@ -803,6 +949,7 @@ def _engine_event_v2(
             oco_group = command_oco_group_id[oid]
             if oco_group >= 0:
                 for sibling in range(n_commands):
+                    relationship_scan_count += 1
                     if sibling != oid and active[sibling] == 1 and command_status[sibling] == ORDER_STATUS_PENDING:
                         if command_oco_group_id[sibling] == oco_group:
                             active[sibling] = 0
@@ -857,6 +1004,9 @@ def _engine_event_v2(
         working_qty,
         working_price,
         working_trigger,
+        trigger_armed,
+        fill_reason,
+        fill_ambiguity,
         event_count,
         event_bar,
         event_command,
@@ -866,4 +1016,7 @@ def _engine_event_v2(
         liq_flag,
         liq_idx,
         liq_reason,
+        expiry_scan_count,
+        matching_scan_count,
+        relationship_scan_count,
     )

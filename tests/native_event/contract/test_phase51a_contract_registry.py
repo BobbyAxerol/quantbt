@@ -35,6 +35,18 @@ def test_contract_registry_fingerprint_is_canonical() -> None:
     assert get_event_clock_contract(EVENT_LIFECYCLE_V3_NEXT_OPEN).contract_code == 3
 
 
+def test_installed_native_extension_uses_same_generated_contract_registry() -> None:
+    native = pytest.importorskip("_quantbt_native")
+    assert native.contract_registry_fingerprint() == NATIVE_EVENT_CONTRACT_FINGERPRINT
+    assert tuple(native.event_contract_ids()) == (
+        EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+        EVENT_LIFECYCLE_V3_NEXT_OPEN,
+    )
+    capabilities = native.capabilities()
+    assert capabilities["event_contract_registry_v1"]
+    assert capabilities["event_lifecycle_v3_next_open"]
+
+
 def test_execution_contract_names_historical_behavior_honestly() -> None:
     legacy = ExecutionContract.event_lifecycle()
     assert legacy.engine_id == EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE

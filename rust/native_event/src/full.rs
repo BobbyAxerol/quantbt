@@ -9,6 +9,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::generated_contracts::{
+    CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE, CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
+};
+
 const STATUS_PENDING: i64 = 0;
 const STATUS_FILLED: i64 = 1;
 const STATUS_CANCELED: i64 = 2;
@@ -37,6 +41,54 @@ const ACTIVATION_IMMEDIATE: i64 = 0;
 const ACTIVATION_ON_PARENT_FIRST_FILL: i64 = 1;
 const ACTIVATION_ON_PARENT_FULL_FILL: i64 = 2;
 const FLAG_REDUCE_ONLY: u16 = 1 << 0;
+
+pub const FILL_REASON_NONE: i64 = 0;
+pub const FILL_REASON_NEXT_BAR_CLOSE: i64 = 1;
+pub const FILL_REASON_NEXT_OPEN: i64 = 2;
+pub const FILL_REASON_LIMIT_TRIGGER: i64 = 3;
+pub const FILL_REASON_LIMIT_OPEN_IMPROVEMENT: i64 = 4;
+pub const FILL_REASON_STOP_TRIGGER_LEGACY: i64 = 5;
+pub const FILL_REASON_STOP_TRIGGER: i64 = 6;
+pub const FILL_REASON_STOP_OPEN_WORSE: i64 = 7;
+pub const FILL_REASON_STOP_LIMIT_LEGACY: i64 = 8;
+pub const FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT: i64 = 9;
+pub const FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER: i64 = 10;
+pub const FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED: i64 = 11;
+pub const FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR: i64 = 12;
+
+pub const FILL_AMBIGUITY_NONE: i64 = 0;
+pub const FILL_AMBIGUITY_UNORDERED_OHLC_RANGE: i64 = 1;
+pub const FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN: i64 = 2;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct FillDecision {
+    price: Option<f64>,
+    triggered: bool,
+    reason: i64,
+    ambiguity: i64,
+}
+
+impl FillDecision {
+    #[inline]
+    fn no_fill(triggered: bool, reason: i64, ambiguity: i64) -> Self {
+        Self {
+            price: None,
+            triggered,
+            reason,
+            ambiguity,
+        }
+    }
+
+    #[inline]
+    fn fill(price: f64, triggered: bool, reason: i64, ambiguity: i64) -> Self {
+        Self {
+            price: Some(price),
+            triggered,
+            reason,
+            ambiguity,
+        }
+    }
+}
 
 #[repr(u8)]
 #[derive(Clone, Copy)]
@@ -158,6 +210,8 @@ pub struct FillBuffer {
     pub qty: Vec<f64>,
     pub price: Vec<f64>,
     pub fee: Vec<f64>,
+    pub reason: Vec<i64>,
+    pub ambiguity: Vec<i64>,
 }
 
 impl FillBuffer {
@@ -169,16 +223,30 @@ impl FillBuffer {
         self.qty.clear();
         self.price.clear();
         self.fee.clear();
+        self.reason.clear();
+        self.ambiguity.clear();
     }
 
     #[inline]
-    pub fn push(&mut self, order_id: i64, symbol: i64, side: i64, qty: f64, price: f64, fee: f64) {
+    pub fn push(
+        &mut self,
+        order_id: i64,
+        symbol: i64,
+        side: i64,
+        qty: f64,
+        price: f64,
+        fee: f64,
+        reason: i64,
+        ambiguity: i64,
+    ) {
         self.order_id.push(order_id);
         self.symbol.push(symbol);
         self.side.push(side);
         self.qty.push(qty);
         self.price.push(price);
         self.fee.push(fee);
+        self.reason.push(reason);
+        self.ambiguity.push(ambiguity);
     }
 
     pub fn rows(&self) -> Vec<Vec<f64>> {
@@ -431,12 +499,24 @@ impl DetailSink<'_> {
     }
 
     #[inline]
-    pub fn fill(&mut self, order_id: i64, symbol: i64, side: i64, qty: f64, price: f64, fee: f64) {
+    pub fn fill(
+        &mut self,
+        order_id: i64,
+        symbol: i64,
+        side: i64,
+        qty: f64,
+        price: f64,
+        fee: f64,
+        reason: i64,
+        ambiguity: i64,
+    ) {
         match self {
             Self::CountOnly(counters) => counters.fill_count += 1,
             Self::Collect { counters, buffers } => {
                 counters.fill_count += 1;
-                buffers.fills.push(order_id, symbol, side, qty, price, fee);
+                buffers
+                    .fills
+                    .push(order_id, symbol, side, qty, price, fee, reason, ambiguity);
             }
         }
     }
@@ -528,6 +608,7 @@ struct OrderState {
     active: bool,
     waiting_parent: bool,
     status: i64,
+    trigger_armed: bool,
 }
 
 impl OrderState {
@@ -578,6 +659,7 @@ pub struct FullSession {
     pub maintenance_ratio: f64,
     pub slippage: f64,
     pub use_funding: bool,
+    pub event_contract_code: i64,
     pub output_mask: u8,
     pub positions: Vec<f64>,
     pub equity: f64,
@@ -593,6 +675,9 @@ pub struct FullSession {
     step_buffers: StepBuffers,
     margin_cache: MarginCache,
     margin_recompute_count: u64,
+    expiry_scan_count: u64,
+    matching_scan_count: u64,
+    relationship_scan_count: u64,
     last_bar: Option<usize>,
     pub compaction_count: u64,
     pub terminal_orders_removed: u64,
@@ -632,6 +717,7 @@ impl FullSession {
             maintenance_ratio,
             slippage,
             use_funding,
+            event_contract_code: CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
             output_mask: OUTPUT_ALL,
             positions: vec![0.0; n_symbols],
             equity: initial_capital,
@@ -643,6 +729,9 @@ impl FullSession {
             step_buffers: StepBuffers::default(),
             margin_cache: MarginCache::default(),
             margin_recompute_count: 0,
+            expiry_scan_count: 0,
+            matching_scan_count: 0,
+            relationship_scan_count: 0,
             last_bar: None,
             compaction_count: 0,
             terminal_orders_removed: 0,
@@ -660,9 +749,27 @@ impl FullSession {
         self.step_buffers.clear();
         self.margin_cache = MarginCache::default();
         self.margin_recompute_count = 0;
+        self.expiry_scan_count = 0;
+        self.matching_scan_count = 0;
+        self.relationship_scan_count = 0;
         self.last_bar = None;
         self.compaction_count = 0;
         self.terminal_orders_removed = 0;
+    }
+
+    pub fn set_event_contract(&mut self, contract_code: i64) -> Result<(), String> {
+        if contract_code != CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
+            && contract_code != CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN
+        {
+            return Err(format!(
+                "unsupported native-event contract code {contract_code}"
+            ));
+        }
+        if self.last_bar.is_some() {
+            return Err("event contract cannot change after execution has started".to_owned());
+        }
+        self.event_contract_code = contract_code;
+        Ok(())
     }
 
     pub fn orders_len(&self) -> usize {
@@ -679,6 +786,14 @@ impl FullSession {
 
     pub fn step_buffer_capacities(&self) -> (usize, usize, usize) {
         self.step_buffers.capacity_signature()
+    }
+
+    pub fn engine_scan_counters(&self) -> (u64, u64, u64) {
+        (
+            self.expiry_scan_count,
+            self.matching_scan_count,
+            self.relationship_scan_count,
+        )
     }
 
     pub fn margin_recompute_count(&self) -> u64 {
@@ -880,7 +995,10 @@ impl FullSession {
         sink.event(kind, status, order, target, symbol, reject_code);
     }
 
-    fn fill_price(&self, order: &OrderState, bar: usize) -> Option<f64> {
+    fn fill_decision(&self, order: &OrderState, bar: usize) -> FillDecision {
+        let open = self
+            .market
+            .at(&self.market.opens, bar, order.symbol as usize);
         let high = self
             .market
             .at(&self.market.highs, bar, order.symbol as usize);
@@ -888,42 +1006,246 @@ impl FullSession {
             .market
             .at(&self.market.lows, bar, order.symbol as usize);
         let close = self.close(bar, order.symbol as usize);
+        let side = order.side as i64;
+        let slipped = |price: f64| {
+            price
+                * if side == SIDE_BUY {
+                    1.0 + self.slippage
+                } else {
+                    1.0 - self.slippage
+                }
+        };
+        if self.event_contract_code == CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE {
+            return match order.order_type as i64 {
+                ORDER_MARKET => FillDecision::fill(
+                    slipped(close),
+                    order.trigger_armed,
+                    FILL_REASON_NEXT_BAR_CLOSE,
+                    FILL_AMBIGUITY_NONE,
+                ),
+                ORDER_LIMIT if side == SIDE_BUY && low <= order.price => FillDecision::fill(
+                    order.price,
+                    order.trigger_armed,
+                    FILL_REASON_LIMIT_TRIGGER,
+                    FILL_AMBIGUITY_NONE,
+                ),
+                ORDER_LIMIT if side == SIDE_SELL && high >= order.price => FillDecision::fill(
+                    order.price,
+                    order.trigger_armed,
+                    FILL_REASON_LIMIT_TRIGGER,
+                    FILL_AMBIGUITY_NONE,
+                ),
+                ORDER_STOP_MARKET if side == SIDE_BUY && high >= order.trigger => {
+                    FillDecision::fill(
+                        slipped(order.trigger),
+                        true,
+                        FILL_REASON_STOP_TRIGGER_LEGACY,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                }
+                ORDER_STOP_MARKET if side == SIDE_SELL && low <= order.trigger => {
+                    FillDecision::fill(
+                        slipped(order.trigger),
+                        true,
+                        FILL_REASON_STOP_TRIGGER_LEGACY,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                }
+                ORDER_STOP_LIMIT
+                    if side == SIDE_BUY && high >= order.trigger && low <= order.price =>
+                {
+                    FillDecision::fill(
+                        order.price,
+                        true,
+                        FILL_REASON_STOP_LIMIT_LEGACY,
+                        FILL_AMBIGUITY_UNORDERED_OHLC_RANGE,
+                    )
+                }
+                ORDER_STOP_LIMIT
+                    if side == SIDE_SELL && low <= order.trigger && high >= order.price =>
+                {
+                    FillDecision::fill(
+                        order.price,
+                        true,
+                        FILL_REASON_STOP_LIMIT_LEGACY,
+                        FILL_AMBIGUITY_UNORDERED_OHLC_RANGE,
+                    )
+                }
+                _ => FillDecision::no_fill(
+                    order.trigger_armed,
+                    FILL_REASON_NONE,
+                    FILL_AMBIGUITY_NONE,
+                ),
+            };
+        }
+
         match order.order_type as i64 {
-            ORDER_MARKET => Some(
-                close
-                    * if order.side as i64 == SIDE_BUY {
-                        1.0 + self.slippage
-                    } else {
-                        1.0 - self.slippage
-                    },
+            ORDER_MARKET => FillDecision::fill(
+                slipped(open),
+                order.trigger_armed,
+                FILL_REASON_NEXT_OPEN,
+                FILL_AMBIGUITY_NONE,
             ),
-            ORDER_LIMIT if order.side as i64 == SIDE_BUY && low <= order.price => Some(order.price),
-            ORDER_LIMIT if order.side as i64 == SIDE_SELL && high >= order.price => {
-                Some(order.price)
+            ORDER_LIMIT => {
+                let favorable_gap = if side == SIDE_BUY {
+                    open <= order.price
+                } else {
+                    open >= order.price
+                };
+                let touched = if side == SIDE_BUY {
+                    low <= order.price
+                } else {
+                    high >= order.price
+                };
+                if favorable_gap {
+                    FillDecision::fill(
+                        open,
+                        order.trigger_armed,
+                        FILL_REASON_LIMIT_OPEN_IMPROVEMENT,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else if touched {
+                    FillDecision::fill(
+                        order.price,
+                        order.trigger_armed,
+                        FILL_REASON_LIMIT_TRIGGER,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else {
+                    FillDecision::no_fill(
+                        order.trigger_armed,
+                        FILL_REASON_NONE,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                }
             }
-            ORDER_STOP_MARKET if order.side as i64 == SIDE_BUY && high >= order.trigger => {
-                Some(order.trigger * (1.0 + self.slippage))
+            ORDER_STOP_MARKET => {
+                let gap_trigger = if side == SIDE_BUY {
+                    open >= order.trigger
+                } else {
+                    open <= order.trigger
+                };
+                let trigger_touched = if side == SIDE_BUY {
+                    high >= order.trigger
+                } else {
+                    low <= order.trigger
+                };
+                if gap_trigger {
+                    FillDecision::fill(
+                        slipped(open),
+                        true,
+                        FILL_REASON_STOP_OPEN_WORSE,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else if trigger_touched {
+                    FillDecision::fill(
+                        slipped(order.trigger),
+                        true,
+                        FILL_REASON_STOP_TRIGGER,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else {
+                    FillDecision::no_fill(false, FILL_REASON_NONE, FILL_AMBIGUITY_NONE)
+                }
             }
-            ORDER_STOP_MARKET if order.side as i64 == SIDE_SELL && low <= order.trigger => {
-                Some(order.trigger * (1.0 - self.slippage))
+            ORDER_STOP_LIMIT if order.trigger_armed => {
+                let favorable_gap = if side == SIDE_BUY {
+                    open <= order.price
+                } else {
+                    open >= order.price
+                };
+                let limit_touched = if side == SIDE_BUY {
+                    low <= order.price
+                } else {
+                    high >= order.price
+                };
+                if favorable_gap {
+                    FillDecision::fill(
+                        open,
+                        true,
+                        FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else if limit_touched {
+                    FillDecision::fill(
+                        order.price,
+                        true,
+                        FILL_REASON_LIMIT_TRIGGER,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                } else {
+                    FillDecision::no_fill(
+                        true,
+                        FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                }
             }
-            ORDER_STOP_LIMIT
-                if order.side as i64 == SIDE_BUY && high >= order.trigger && low <= order.price =>
-            {
-                Some(order.price)
+            ORDER_STOP_LIMIT => {
+                let gap_trigger = if side == SIDE_BUY {
+                    open >= order.trigger
+                } else {
+                    open <= order.trigger
+                };
+                let trigger_touched = if side == SIDE_BUY {
+                    high >= order.trigger
+                } else {
+                    low <= order.trigger
+                };
+                let limit_touched = if side == SIDE_BUY {
+                    low <= order.price
+                } else {
+                    high >= order.price
+                };
+                if !trigger_touched {
+                    FillDecision::no_fill(false, FILL_REASON_NONE, FILL_AMBIGUITY_NONE)
+                } else if gap_trigger {
+                    let favorable_gap = if side == SIDE_BUY {
+                        open <= order.price
+                    } else {
+                        open >= order.price
+                    };
+                    if favorable_gap {
+                        FillDecision::fill(
+                            open,
+                            true,
+                            FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+                            FILL_AMBIGUITY_NONE,
+                        )
+                    } else if limit_touched {
+                        FillDecision::fill(
+                            order.price,
+                            true,
+                            FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER,
+                            FILL_AMBIGUITY_NONE,
+                        )
+                    } else {
+                        FillDecision::no_fill(
+                            true,
+                            FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
+                            FILL_AMBIGUITY_NONE,
+                        )
+                    }
+                } else if limit_touched {
+                    FillDecision::no_fill(
+                        true,
+                        FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR,
+                        FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN,
+                    )
+                } else {
+                    FillDecision::no_fill(
+                        true,
+                        FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
+                        FILL_AMBIGUITY_NONE,
+                    )
+                }
             }
-            ORDER_STOP_LIMIT
-                if order.side as i64 == SIDE_SELL
-                    && low <= order.trigger
-                    && high >= order.price =>
-            {
-                Some(order.price)
-            }
-            _ => None,
+            _ => FillDecision::no_fill(order.trigger_armed, FILL_REASON_NONE, FILL_AMBIGUITY_NONE),
         }
     }
 
     fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) {
+        self.relationship_scan_count += self.orders.len() as u64;
         for child in &mut self.orders {
             if child.waiting_parent
                 && child.parent_id == parent_id
@@ -953,6 +1275,7 @@ impl FullSession {
         if oco_id < 0 {
             return 0;
         }
+        self.relationship_scan_count += self.orders.len() as u64;
         let mut canceled = 0;
         for sibling in &mut self.orders {
             if sibling.order_id != filled_order_id
@@ -1162,6 +1485,7 @@ impl FullSession {
         let mut canceled = 0_i64;
 
         // GTD expiry precedes commands at the current bar.
+        self.expiry_scan_count += self.orders.len() as u64;
         for order in &mut self.orders {
             if order.status == STATUS_PENDING
                 && (order.active || order.waiting_parent)
@@ -1227,6 +1551,7 @@ impl FullSession {
                         active,
                         waiting_parent: !active,
                         status: STATUS_PENDING,
+                        trigger_armed: false,
                     });
                     if order_id >= 0 {
                         self.id_to_slot.insert(order_id, self.orders.len() - 1);
@@ -1342,6 +1667,7 @@ impl FullSession {
                                 active,
                                 waiting_parent: !active,
                                 status: STATUS_PENDING,
+                                trigger_armed: false,
                             });
                             let new_slot = self.orders.len() - 1;
                             if target_id >= 0 {
@@ -1373,6 +1699,7 @@ impl FullSession {
                     }
                 }
                 ACTION_CANCEL_ALL => {
+                    self.relationship_scan_count += self.orders.len() as u64;
                     for order in &mut self.orders {
                         let matches = (order.active || order.waiting_parent)
                             && order.status == STATUS_PENDING
@@ -1419,12 +1746,15 @@ impl FullSession {
         // an earlier fill are appended before the next scan reaches them.
         let mut cursor = 0;
         while cursor < self.orders.len() {
+            self.matching_scan_count += 1;
             if !self.orders[cursor].active || self.orders[cursor].status != STATUS_PENDING {
                 cursor += 1;
                 continue;
             }
             let order = self.orders[cursor];
-            let Some(exec_price) = self.fill_price(&order, bar) else {
+            let decision = self.fill_decision(&order, bar);
+            self.orders[cursor].trigger_armed = decision.triggered;
+            let Some(exec_price) = decision.price else {
                 if order.tif as i64 != TIF_GTC && order.tif as i64 != TIF_GTD {
                     self.orders[cursor].active = false;
                     self.orders[cursor].status = STATUS_CANCELED;
@@ -1506,6 +1836,8 @@ impl FullSession {
                 qty,
                 exec_price,
                 fee,
+                decision.reason,
+                decision.ambiguity,
             );
             Self::add_event(
                 &mut sink,
@@ -1581,5 +1913,124 @@ impl FullSession {
             fill_count,
             event_count,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn session(open: f64, high: f64, low: f64, close: f64) -> FullSession {
+        let market = FullMarketData::new(
+            vec![0],
+            vec![open],
+            vec![high],
+            vec![low],
+            vec![close],
+            vec![1_000.0],
+            vec![0.0],
+            vec![false],
+            1,
+        )
+        .unwrap();
+        FullSession::new(
+            Arc::new(market),
+            vec![1.0],
+            vec![5.0],
+            vec![0.0],
+            10_000.0,
+            0.005,
+            0.001,
+            false,
+        )
+        .unwrap()
+    }
+
+    fn order(order_type: i64, side: i64, price: f64, trigger: f64) -> OrderState {
+        OrderState {
+            command_index: 0,
+            order_id: 1,
+            symbol: 0,
+            side: side as i8,
+            order_type: order_type as u8,
+            tif: TIF_GTC as u8,
+            flags: 0,
+            qty: 1.0,
+            price,
+            trigger,
+            parent_id: -1,
+            group_id: -1,
+            oco_id: -1,
+            activation: ACTIVATION_IMMEDIATE as u8,
+            expires_bar: -1,
+            active: true,
+            waiting_parent: false,
+            status: STATUS_PENDING,
+            trigger_armed: false,
+        }
+    }
+
+    #[test]
+    fn v2_market_is_frozen_at_next_bar_close() {
+        let engine = session(100.0, 115.0, 95.0, 110.0);
+        let decision = engine.fill_decision(&order(ORDER_MARKET, SIDE_BUY, 0.0, 0.0), 0);
+        assert!((decision.price.unwrap() - 110.11).abs() <= 1e-12);
+        assert_eq!(decision.reason, FILL_REASON_NEXT_BAR_CLOSE);
+    }
+
+    #[test]
+    fn v3_market_uses_actual_open() {
+        let mut engine = session(100.0, 115.0, 95.0, 110.0);
+        engine
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+        let decision = engine.fill_decision(&order(ORDER_MARKET, SIDE_BUY, 0.0, 0.0), 0);
+        assert_eq!(decision.price, Some(100.1));
+        assert_eq!(decision.reason, FILL_REASON_NEXT_OPEN);
+    }
+
+    #[test]
+    fn v3_limit_gap_improves_to_open() {
+        let mut engine = session(95.0, 101.0, 94.0, 99.0);
+        engine
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+        let decision = engine.fill_decision(&order(ORDER_LIMIT, SIDE_BUY, 100.0, 0.0), 0);
+        assert_eq!(decision.price, Some(95.0));
+        assert_eq!(decision.reason, FILL_REASON_LIMIT_OPEN_IMPROVEMENT);
+    }
+
+    #[test]
+    fn v3_adverse_stop_gap_uses_open() {
+        let mut engine = session(110.0, 112.0, 107.0, 109.0);
+        engine
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+        let decision = engine.fill_decision(&order(ORDER_STOP_MARKET, SIDE_BUY, 0.0, 105.0), 0);
+        assert!((decision.price.unwrap() - 110.11).abs() <= 1e-12);
+        assert_eq!(decision.reason, FILL_REASON_STOP_OPEN_WORSE);
+    }
+
+    #[test]
+    fn v3_stop_limit_unknown_path_arms_without_fill() {
+        let mut engine = session(100.0, 110.0, 99.0, 108.0);
+        engine
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+        let decision = engine.fill_decision(&order(ORDER_STOP_LIMIT, SIDE_BUY, 104.0, 105.0), 0);
+        assert!(decision.price.is_none());
+        assert!(decision.triggered);
+        assert_eq!(decision.ambiguity, FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN);
+    }
+
+    #[test]
+    fn contract_cannot_change_mid_run() {
+        let mut engine = session(100.0, 101.0, 99.0, 100.0);
+        engine.last_bar = Some(0);
+        assert!(
+            engine
+                .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+                .is_err()
+        );
     }
 }

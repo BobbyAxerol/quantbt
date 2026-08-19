@@ -296,6 +296,7 @@ class EndpointConfig:
     arbitrage_spec: object = None
     structured_order_spec: object = None
     event_engine_version: str = "v1"
+    execution_contract: object = None
     reactive_execution_mode: str = "fast"
     reactive_kernel_mode: str = "replay_certified"
     symbols: Optional[Sequence[str]] = None
@@ -699,6 +700,11 @@ class QuantBTEndpoint:
                 audit_sink_path=config.audit_sink_path,
                 reactive_kernel_mode=config.reactive_kernel_mode,
                 native_backend=config.native_backend,
+                execution_contract=(
+                    config.execution_contract
+                    if config.execution_contract is not None
+                    else "event_lifecycle_v2_next_bar_close"
+                ),
             )
         )
         market = backend.prepare_market_arrays(
@@ -2313,6 +2319,7 @@ class QuantBTEndpoint:
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
+            execution_contract=self.config.execution_contract,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2350,6 +2357,7 @@ class QuantBTEndpoint:
             native_backend=self.config.native_backend,
             strategy=strategy,
             event_engine_version="v2",
+            execution_contract=self.config.execution_contract,
             reactive_execution_mode=self.config.reactive_execution_mode,
             account=self.config.account,
             execution=self.config.execution,
@@ -2405,6 +2413,7 @@ class QuantBTEndpoint:
                 native_backend=self.config.native_backend,
                 order_commands=commands,
                 event_engine_version="v2",
+                execution_contract=self.config.execution_contract,
                 account=self.config.account,
                 execution=self.config.execution,
                 fee_rate=self.config.v2_fee_rate,
@@ -3167,6 +3176,8 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
     payload = {
         "mode": config.mode,
         "backend": config.backend,
+        "event_engine_version": config.event_engine_version,
+        "execution_contract": _jsonable(config.execution_contract),
         "portfolio_mode": config.portfolio_mode,
         "asset_type": config.asset_type,
         "account": _jsonable(asdict(config.account)),

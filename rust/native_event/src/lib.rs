@@ -60,6 +60,11 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("native_event_v2_tif_expiry", true)?;
     values.set_item("native_event_v2_relationships", true)?;
     values.set_item("native_event_v2_quantity_preflight", true)?;
+    values.set_item("event_contract_registry_v1", true)?;
+    values.set_item("event_lifecycle_v2_next_bar_close", true)?;
+    values.set_item("event_lifecycle_v3_next_open", true)?;
+    values.set_item("bar_fill_reason_v1", true)?;
+    values.set_item("lifecycle_transition_schema_v1", true)?;
     Ok(values)
 }
 
@@ -1037,6 +1042,17 @@ impl FullReactiveSessionCore {
         Ok(Self { inner })
     }
 
+    fn set_event_contract(&mut self, contract_code: i64) -> PyResult<()> {
+        self.inner
+            .set_event_contract(contract_code)
+            .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    #[getter]
+    fn event_contract_code(&self) -> i64 {
+        self.inner.event_contract_code
+    }
+
     fn step(
         &mut self,
         py: Python<'_>,
@@ -1163,6 +1179,10 @@ impl FullReactiveSessionCore {
         self.inner.margin_recompute_count()
     }
 
+    fn engine_scan_counters(&self) -> (u64, u64, u64) {
+        self.inner.engine_scan_counters()
+    }
+
     fn run_tape_score(
         &mut self,
         py: Python<'_>,
@@ -1253,6 +1273,8 @@ impl FullReactiveSessionCore {
         payload.set_item("fill_qty", output.fill_qty)?;
         payload.set_item("fill_price", output.fill_price)?;
         payload.set_item("fill_fee", output.fill_fee)?;
+        payload.set_item("fill_reason", output.fill_reason)?;
+        payload.set_item("fill_ambiguity", output.fill_ambiguity)?;
         payload.set_item("event_bar", output.event_bar)?;
         payload.set_item("event_kind", output.event_kind)?;
         payload.set_item("event_status", output.event_status)?;
@@ -1314,6 +1336,8 @@ struct FullTapeOutput {
     fill_qty: Vec<f64>,
     fill_price: Vec<f64>,
     fill_fee: Vec<f64>,
+    fill_reason: Vec<i64>,
+    fill_ambiguity: Vec<i64>,
     event_bar: Vec<i64>,
     event_kind: Vec<i64>,
     event_status: Vec<i64>,
@@ -1416,6 +1440,8 @@ fn run_full_tape(
         fill_qty: Vec::new(),
         fill_price: Vec::new(),
         fill_fee: Vec::new(),
+        fill_reason: Vec::new(),
+        fill_ambiguity: Vec::new(),
         event_bar: Vec::new(),
         event_kind: Vec::new(),
         event_status: Vec::new(),
@@ -1440,8 +1466,15 @@ fn run_full_tape(
     };
     let mut step_buffers = full::StepBuffers::default();
     for bar in 0..n_bars {
-        let start = ptr[bar] as usize;
-        let end = ptr[bar + 1] as usize;
+        // Bar zero is the immutable initial-state snapshot in the Python
+        // oracle. Explicit commands mapped to bar zero are outside the
+        // executable tape and must not mutate Rust state either.
+        let (start, end) = if bar == 0 {
+            let after_bar_zero = ptr[1] as usize;
+            (after_bar_zero, after_bar_zero)
+        } else {
+            (ptr[bar] as usize, ptr[bar + 1] as usize)
+        };
         let step = session.step_with_buffers(
             bar,
             &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH],
@@ -1483,6 +1516,8 @@ fn run_full_tape(
                 output.fill_qty.push(step_buffers.fills.qty[n]);
                 output.fill_price.push(step_buffers.fills.price[n]);
                 output.fill_fee.push(step_buffers.fills.fee[n]);
+                output.fill_reason.push(step_buffers.fills.reason[n]);
+                output.fill_ambiguity.push(step_buffers.fills.ambiguity[n]);
             }
             for n in 0..step_buffers.events.kind.len() {
                 output.event_bar.push(bar as i64);

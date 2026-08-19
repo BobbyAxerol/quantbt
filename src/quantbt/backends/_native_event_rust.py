@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 
 from ..core.event import ORDER_STATUS_PENDING
+from ..core.event_contracts import EventClockContract, get_event_clock_contract
 from ..core.constraints import quantize_signed_quantity
 from ..core.order_compiler import CompiledOrderCommandArrays, command_tape_fingerprint
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
@@ -293,6 +294,13 @@ class RustBatchedAuditResult:
             "native_event_backend_requested": "rust",
             "native_event_backend_resolved": "rust",
             "fills_report": fills_report,
+            "event_ledger": {
+                "bar": self.event_bar,
+                "kind": self.event_kind,
+                "status": self.event_status,
+                "order_id": self.event_order_id,
+                "target_id": self.event_target_id,
+            },
             "order_report": order_report,
             "command_report": order_report,
             "id_values": id_values,
@@ -343,6 +351,8 @@ class RustFullAuditResult:
     fill_qty: np.ndarray
     fill_price: np.ndarray
     fill_fee: np.ndarray
+    fill_reason: np.ndarray
+    fill_ambiguity: np.ndarray
     event_bar: np.ndarray
     event_kind: np.ndarray
     event_status: np.ndarray
@@ -411,6 +421,8 @@ class RustFullAuditResult:
             "qty": self.fill_qty,
             "price": self.fill_price,
             "fee": self.fill_fee,
+            "fill_reason_code": self.fill_reason,
+            "fill_ambiguity_code": self.fill_ambiguity,
             "tag": [meta.get("tag") for meta in fill_meta],
             "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
             "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
@@ -461,6 +473,13 @@ class RustFullAuditResult:
             "lifecycle_counters": {
                 "fill_count": int(self.fill_count), "event_count": int(self.event_count),
                 "rejected_count": int(self.rejected_count), "canceled_count": int(self.canceled_count),
+            },
+            "event_ledger": {
+                "bar": self.event_bar,
+                "kind": self.event_kind,
+                "status": self.event_status,
+                "order_id": self.event_order_id,
+                "target_id": self.event_target_id,
             },
             "rust_contract": "native_event_v2_full_contract",
         }
@@ -1087,6 +1106,7 @@ class RustFullRunner:
         maintenance_ratio: float,
         slippage: float,
         use_funding: bool,
+        event_contract: EventClockContract | str = "event_lifecycle_v2_next_bar_close",
         opens_arr: Optional[np.ndarray] = None,
         volumes_arr: Optional[np.ndarray] = None,
         prepared_market_core=None,
@@ -1101,6 +1121,7 @@ class RustFullRunner:
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
+        self.event_contract = get_event_clock_contract(event_contract)
         if int(max_tape_cache_bytes) < 0:
             raise ValueError("max_tape_cache_bytes must be >= 0")
         self.max_tape_cache_bytes = int(max_tape_cache_bytes)
@@ -1155,6 +1176,13 @@ class RustFullRunner:
             )
         else:
             self._session.reset()
+        if not hasattr(self._session, "set_event_contract"):
+            if self.event_contract.contract_code != 2:
+                raise NativeEventRustBackendError(
+                    "installed _quantbt_native wheel does not expose versioned event contracts"
+                )
+        else:
+            self._session.set_event_contract(self.event_contract.contract_code)
         return self._session
 
     def _tape_arrays(self, compiled_commands: CompiledOrderCommandArrays):
@@ -1224,6 +1252,15 @@ class RustFullRunner:
             )
         if self._session is not None and hasattr(self._session, "margin_recompute_count"):
             info["margin_recompute_count"] = int(self._session.margin_recompute_count())
+        if self._session is not None and hasattr(self._session, "engine_scan_counters"):
+            expiry, matching, relationship = self._session.engine_scan_counters()
+            info.update(
+                {
+                    "expiry_scan_count": int(expiry),
+                    "matching_scan_count": int(matching),
+                    "relationship_scan_count": int(relationship),
+                }
+            )
         return info
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
@@ -1233,12 +1270,31 @@ class RustFullRunner:
     def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
-        keys = (
-            "equity", "positions", "fees", "turnover", "funding", "initial_margin", "maintenance_margin",
-            "fill_bar", "fill_order_id", "fill_symbol", "fill_side", "fill_qty", "fill_price", "fill_fee",
-            "event_bar", "event_kind", "event_status", "event_order_id", "event_target_id", "event_symbol", "event_reject_code",
+        float_keys = (
+            "equity", "positions", "fees", "turnover", "funding", "initial_margin",
+            "maintenance_margin", "fill_qty", "fill_price", "fill_fee",
         )
-        arrays = {key: np.ascontiguousarray(np.asarray(payload[key])) for key in keys}
+        int_keys = (
+            "fill_bar", "fill_order_id", "fill_symbol", "fill_side", "event_bar",
+            "event_kind", "event_status", "event_order_id", "event_target_id",
+            "event_symbol", "event_reject_code",
+        )
+        arrays = {
+            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            for key in float_keys
+        }
+        arrays.update(
+            {
+                key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.int64)
+                for key in int_keys
+            }
+        )
+        arrays["fill_reason"] = np.ascontiguousarray(
+            np.asarray(payload.get("fill_reason", np.zeros(len(arrays["fill_bar"]), dtype=np.int64)))
+        )
+        arrays["fill_ambiguity"] = np.ascontiguousarray(
+            np.asarray(payload.get("fill_ambiguity", np.zeros(len(arrays["fill_bar"]), dtype=np.int64)))
+        )
         arrays["positions"] = np.asarray(arrays["positions"], dtype=np.float64).reshape(len(self.idx), len(self.symbols))
         return RustFullAuditResult(
             **arrays,
@@ -1563,6 +1619,7 @@ class RustReactiveSessionAdapter:
         maintenance_ratio: float,
         slippage: float,
         use_funding: bool,
+        event_contract: EventClockContract | str = "event_lifecycle_v2_next_bar_close",
         retain_terminal_orders: bool = True,
         score_requirements=None,
         prepared_market_core=None,
@@ -1591,6 +1648,7 @@ class RustReactiveSessionAdapter:
         self.maintenance_ratio = float(maintenance_ratio)
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
+        self.event_contract = get_event_clock_contract(event_contract)
         self.retain_terminal_orders = bool(retain_terminal_orders)
         self.score_requirements = score_requirements
         self.scalar_score = bool(
@@ -1721,6 +1779,13 @@ class RustReactiveSessionAdapter:
                 np.ascontiguousarray(self.fee_rates, dtype=np.float64),
                 float(initial_capital), float(maintenance_ratio), float(slippage), bool(use_funding),
             )
+            if not hasattr(self._core, "set_event_contract"):
+                if self.event_contract.contract_code != 2:
+                    raise NativeEventRustBackendError(
+                        "installed _quantbt_native wheel does not expose versioned event contracts"
+                    )
+            else:
+                self._core.set_event_contract(self.event_contract.contract_code)
             # Accounting and the live position vector are always required by
             # the Python adapter.  Other projections are requested only when
             # the strategy/ledger can observe them.
