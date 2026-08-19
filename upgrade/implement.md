@@ -12423,7 +12423,7 @@ Evidence:
 
 ### Phase 53B - P2 Native Strategy IR, Batch/WFO, Portfolio, Package, And Performance Gate
 
-**Status: planned.**
+**Status: completed (scoped native-driver certification; no default endpoint promotion).**
 
 Detailed guide:
 
@@ -12486,12 +12486,93 @@ Required tests and evidence:
 - E0-E6 performance and memory matrix reports honest boundary calls, callbacks,
   copies, engine time, adaptation, reports, peak/steady RSS, and fingerprints.
 
-Exit gate:
+Phase 53B exit gate:
 
-All blueprint [P2 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p220--p2-exit-checklist)
-items pass. Rust must be demonstrably faster end to end for its promoted native
-workloads, while callback compatibility remains correctly labelled rather than
-used to hide boundary overhead.
+The scoped native IR and batch drivers must pass the reference trace,
+single/batch, worker-count, prepared-market reuse, selected-audit, and
+installed-extension gates before they are documented. Portfolio/package drivers
+must retain reference-preflight and typed-tape lifecycle parity. The full
+blueprint [P2 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p220--p2-exit-checklist)
+remains a wider production-promotion horizon; it is **not** silently marked
+passed until generic WFO, portfolio, package, and E0--E6 endpoint paths have
+their own evidence. Rust must be demonstrably faster end to end only for the
+native workloads actually promoted, while callback compatibility remains
+correctly labelled rather than used to hide boundary overhead.
+
+Implementation slices and evidence discipline:
+
+1. **Native Strategy IR v1:** add a bounded declarative Python compiler,
+   deterministic reference interpreter, Rust instruction/runtime contract, a
+   human-readable disassembler and stable program fingerprint. Promote only
+   precomputed-signal strategies whose command tape matches the reference
+   trace exactly; Grid/DCA/bracket fixtures are mandatory.
+2. **Batch and WFO bridge:** run independent parameter rows over one shared
+   prepared market with scalar score rows, stable top-K and selected audit
+   reruns. Existing Optuna/WFO scheduling, objectives, splits and defaults
+   remain compatibility routes until direct batch parity is demonstrated.
+3. **Portfolio and package drivers:** compile approved target and package
+   plans into immutable native tapes. Every target/package action must pass
+   through the certified event/account lifecycle; Python remains the reference
+   oracle for rejection, reservation, rollback and attribution reconciliation.
+4. **Promotion gate:** test reference/Rust traces, single/batch and
+   worker-count determinism, prepared-market reuse, selected audit equality,
+   portfolio/package accounting and bounded RSS. Publish E0--E6 evidence only
+   for workload routes that actually use the new runtime. Unsupported strategy
+   constructs continue to raise a capability error on explicit Rust selection
+   and retain their existing Python path.
+
+Delivered:
+
+- Added the bounded Strategy IR v1 and a pure Python reference compiler for
+  `signal_target`, `grid_level`, `dca_periodic`, and `fixed_bracket`. Rust
+  compiles the same immutable ABI-0.5 tape, exposes a human-readable
+  disassembly and cross-language fingerprint, and executes with zero Python
+  callbacks after the boundary call.
+- Added a prepared scenario batch runtime with immutable shared market/program,
+  worker-local `FullSession` state, stable ID order/top-K tie-breaks, score-only
+  retention, selected audit reruns, and explicit `NativeIRFold` OOS windows.
+  This is intentionally a low-level execution bridge: existing Optuna/WFO
+  objectives, schedules, seeds, folds, stitching, and endpoint defaults are
+  unchanged.
+- Added Rust portfolio target and package preflight drivers that preserve the
+  certified Python reference contracts, compile approved deltas/legs into
+  typed ABI-0.5 tapes, and prove those tapes run through the shared event,
+  fill, fee, slippage, margin, and lifecycle core.
+- Added [`docs/native_strategy_ir.md`](../docs/native_strategy_ir.md), the
+  [`Phase 53B certification`](../docs/contracts/phase53b_certification.json),
+  and reproducible E3/E6 evidence at
+  [`native_drivers.json`](../benchmarks/native_event/results/phase53b/native_drivers.json).
+
+Evidence:
+
+- Focused native-driver differential suite: `16 passed`.
+- Full native-event regression: `197 passed, 2 skipped`; WFO compatibility
+  regression: `75 passed`.
+- Repository regression excluding the two external real-data tests: `864
+  passed, 3 skipped`.
+- `cargo test --offline --workspace` passed (`39` Rust tests), and
+  `cargo clippy --offline --workspace --all-targets -- -D warnings` passed.
+- On the committed 2,000-bar/64-scenario fixture, native Grid IR score ran at
+  `5.997M bars/s` versus `418,613 bars/s` for the Python reference command
+  route with exact audit parity. Four-worker batch reached `21.41M` simulated
+  bars/s, zero prepared-market copies per scenario, and an observed incremental
+  RSS delta of `1.16 MiB`. This is E3/E6 local evidence only, not a universal
+  callback/portfolio/arbitrage claim.
+
+Remaining P2 scope is intentionally explicit rather than silently claimed:
+
+- Native IR v1 is bounded templates, not a general strategy VM, dynamic
+  trailing/amend runtime, or arbitrary Python callback replacement.
+- `NativeIRFold` is not wired as an automatic `WalkForwardEngine`/Optuna
+  backend until full strategy/objective/fold-accounting parity is separately
+  demonstrated.
+- Portfolio/package native support is a replayable preflight-to-typed-tape
+  driver. General Rust portfolio reports, cross-currency accounting, actual
+  fill-derived dynamic hedging/unwind, and venue-native atomicity remain future
+  capabilities, not current endpoint claims.
+- E4/E5 full endpoint performance promotion and the broader E0-E6 production
+  matrix remain a later promotion decision. The current tests prove accounting
+  and lifecycle reuse, not generic endpoint speed.
 
 ---
 

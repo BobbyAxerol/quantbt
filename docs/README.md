@@ -24,6 +24,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Prepare and inspect a TestPyPI RC | [TestPyPI release checklist](testpypi_release_checklist.md) |
 | Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
 | Understand the pure Rust ABI 0.5 core, arena, and output ownership | [Rust full contract: Phase 53A](native_event_rust_full_contract.md#phase-53a-pure-rust-core) |
+| Use the opt-in bounded native strategy IR, batch score, or causal fold primitive | [Native strategy IR and batch](native_strategy_ir.md) |
 | Certify the external Grid alpha on Python/Rust with 2,000-bar parity, RSS, and optimizer evidence | [Grid Phase 47C/47D](grid_native_event_phase47c.md) |
 
 ## Strategy Route Map

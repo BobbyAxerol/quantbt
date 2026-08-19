@@ -38,6 +38,29 @@ Phase 53B work. See
 [`phase53a/benchmark_taxonomy.json`](../benchmarks/native_event/results/phase53a/benchmark_taxonomy.json)
 for the frozen E0-E6 benchmark taxonomy.
 
+## Phase 53B Native Strategy IR and Batch Drivers
+
+Phase 53B activates a separate, **opt-in** native execution boundary for
+bounded declarative strategies. It is intentionally not an automatic
+replacement for the stable event-driven facade: arbitrary Python callbacks,
+current endpoint routes, and public WFO schedules retain their compatibility
+behavior. The supported v1 templates are signal targets, structural Grid
+levels, periodic DCA, and fixed bracket/OCO transitions. Python and Rust
+compile the same immutable program fingerprint and differential tests require
+exact accounting/lifecycle parity.
+
+Batch scoring shares one immutable prepared market/program, uses worker-local
+sessions, returns scalar rows in stable scenario order, and reruns audit only
+for selected candidates. `NativeIRFold` creates an explicit causal OOS window
+with fresh account state; it is not a hidden parameter-selection policy and
+does not change `QuantBTEndpoint.walk_forward()` semantics. Portfolio targets
+and package plans now compile accepted decisions into ABI-0.5 tapes which pass
+through `FullSession`, but they remain narrow preflight/tape drivers rather
+than a promoted general portfolio or arbitrage endpoint.
+
+The complete API, scope boundary, and reproducible E3/E6 benchmark command are
+documented in [Native strategy IR and batch](native_strategy_ir.md).
+
 ### Static output profiles and E0 evidence
 
 The static command-tape core resolves its retention profile before execution;

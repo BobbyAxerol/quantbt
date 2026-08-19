@@ -229,6 +229,20 @@ selection semantics inside `walkforward.py`. Read
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
 
+### Phase 53B native IR and batch evidence
+
+The opt-in bounded Rust strategy IR now covers precomputed signal targets,
+structural Grid levels, periodic DCA, and fixed bracket/OCO transitions. It is
+separate from arbitrary Python callbacks and does not change the default event
+endpoint. On the committed 2,000-bar Grid fixture, the Python reference oracle
+measured **4.778 ms / 418,613 bars/s** while one-call Rust IR score measured
+**0.333 ms / 5.997M bars/s** with exact audit parity. A 64-scenario batch
+reached **21.41M simulated bars/s** at four workers, with zero prepared-market
+copies per scenario and selected-candidate audit reruns only. These are
+machine-local E3/E6 measurements, not a universal callback or portfolio claim;
+the reproducible artifact and capability boundary are in
+[`docs/native_strategy_ir.md`](docs/native_strategy_ir.md).
+
 ### Phase 46F package and dual-backend release evidence
 
 The core distribution is packaged as `quantbt-engine` and imports as
@@ -857,6 +871,7 @@ backend, endpoint, or strategy route to use.
 | Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
 | Causal WFO schedules, outer-OOS claims, and audit metadata | [Causal WFO guide](docs/walkforward_causal.md) |
 | Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
+| Opt-in Rust strategy templates, batch scoring, and causal OOS batch folds | [Native strategy IR and batch](docs/native_strategy_ir.md) |
 | Runnable smoke templates | [Examples index](examples/README.md) |
 
 Key examples:

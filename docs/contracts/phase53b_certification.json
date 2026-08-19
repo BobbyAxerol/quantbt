@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "phase": "53B",
+  "branch": "feat/51-native-rust-production-core",
+  "status": "scoped-native-driver-certified",
+  "native_extension": {
+    "api_version": "0.4",
+    "internal_abi": "0.5",
+    "public_default_changed": false,
+    "auto_backend_changed": false
+  },
+  "certified_scope": {
+    "strategy_ir": [
+      "signal_target",
+      "grid_level",
+      "dca_periodic",
+      "fixed_bracket"
+    ],
+    "strategy_ir_contract": [
+      "bounded_program_limits",
+      "Python/Rust deterministic fingerprint",
+      "Python-reference command-tape parity",
+      "one PyO3 call per single run or batch",
+      "no Python callback while native IR executes"
+    ],
+    "batch": [
+      "shared immutable prepared market",
+      "worker-local FullSession/account/order state",
+      "stable scenario ordering and top-K tie break",
+      "fresh-account causal OOS fold primitive",
+      "selected-candidate audit rerun"
+    ],
+    "portfolio": [
+      "target preflight parity",
+      "typed target-delta tape compiles into FullSession"
+    ],
+    "package": [
+      "preflight/reservation policy parity",
+      "typed accepted-leg tape compiles into FullSession",
+      "explicit OHLC bar-transaction atomicity model"
+    ]
+  },
+  "parity": {
+    "ir_python_reference_vs_rust": true,
+    "ir_single_vs_batch": true,
+    "ir_worker_counts_1_2_4_8": true,
+    "ir_selected_audit_vs_score": true,
+    "fold_batch_vs_fresh_oos_session": true,
+    "portfolio_preflight_vs_python_reference": true,
+    "package_preflight_vs_python_reference": true,
+    "portfolio_and_package_tapes_use_shared_event_core": true
+  },
+  "tests": {
+    "phase53b_focused": {"passed": 16, "failed": 0},
+    "native_event_tree": {"passed": 197, "skipped": 2, "failed": 0},
+    "walkforward_regression": {"passed": 75, "failed": 0},
+    "repository_regression_without_external_real_data": {"passed": 864, "skipped": 3, "failed": 0},
+    "rust_workspace": {"passed": 39, "failed": 0},
+    "rust_clippy_deny_warnings": "PASS",
+    "source_mirror_check": "PASS"
+  },
+  "benchmark": {
+    "artifact": "benchmarks/native_event/results/phase53b/native_drivers.json",
+    "fixture": "2,000 bars, 64 scenarios, five warm repetitions",
+    "e3_rust_ir_score_bars_per_second": 5997100.280099529,
+    "e3_python_reference_bars_per_second": 418613.44968959014,
+    "e3_reference_path_speedup": 14.326105108535076,
+    "e6_batch_four_worker_simulated_bars_per_second": 21412119.04505958,
+    "e6_shared_market_copies_per_scenario": 0,
+    "e6_incremental_rss_bytes": 1220608
+  },
+  "not_promoted": [
+    "Arbitrary Python callbacks remain compatibility routes and are not native IR.",
+    "QuantBTEndpoint.walk_forward and Optuna schedules do not auto-switch to native IR.",
+    "NativeIRFold is an execution primitive; it does not select parameters or alter WFO objectives.",
+    "Portfolio support is target preflight plus typed-tape lifecycle reuse, not a general Rust portfolio endpoint.",
+    "Package support is deterministic preflight/tape compilation, not actual-fill-driven dynamic hedge/unwind or venue-native atomicity.",
+    "No generic strategy VM, dynamic trailing/amend runtime, cross-currency portfolio ledger, or full E4/E5 endpoint performance promotion is claimed."
+  ]
+}
