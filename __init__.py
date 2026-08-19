@@ -319,6 +319,21 @@ from .core.execution_trace import (
     canonical_trace_fingerprint,
     compare_canonical_traces,
 )
+from .core.portfolio_execution_contracts import (
+    PORTFOLIO_EXECUTION_CONTRACT_VERSION,
+    PortfolioMarginAllocationPolicy,
+    PortfolioTargetExecutionResult,
+    PortfolioTargetRejectReason,
+    execute_portfolio_target_reference,
+)
+from .core.package_execution_contracts import (
+    PACKAGE_EXECUTION_CONTRACT_VERSION,
+    PackageLegRequest,
+    PackageState,
+    PackageTransactionPolicy,
+    PackageTransactionResult,
+    execute_package_transaction_reference,
+)
 from .core.orders import (
     BasketIntent,
     Fill,
@@ -943,4 +958,15 @@ __all__ = [
     "build_canonical_execution_trace",
     "canonical_trace_fingerprint",
     "compare_canonical_traces",
+    "PORTFOLIO_EXECUTION_CONTRACT_VERSION",
+    "PortfolioMarginAllocationPolicy",
+    "PortfolioTargetExecutionResult",
+    "PortfolioTargetRejectReason",
+    "execute_portfolio_target_reference",
+    "PACKAGE_EXECUTION_CONTRACT_VERSION",
+    "PackageLegRequest",
+    "PackageState",
+    "PackageTransactionPolicy",
+    "PackageTransactionResult",
+    "execute_package_transaction_reference",
 ]
