@@ -1940,6 +1940,13 @@ class NativeEventBackend:
                 },
             )
             rust_events = result.metadata.get("order_report", pd.DataFrame())
+            rust_command_report = result.metadata.get("command_report", pd.DataFrame())
+            result.metadata["command_outcome_report_v1"] = self._build_rust_command_outcome_report(
+                command_report=rust_command_report,
+                compiled_commands=compiled_commands,
+                n_bars=len(idx),
+                order_events=rust_events,
+            )
             result.metadata["lifecycle_event_report_v1"] = self._build_lifecycle_event_report(rust_events)
             result.metadata["event_phase_trace_v1"] = (
                 self._build_event_phase_trace(idx, clock, int(audit.liquidation_bar), int(audit.liquidation_reason))
@@ -4258,6 +4265,156 @@ class NativeEventBackend:
                     "order_status_code": None if order_status is None else int(order_status),
                     "order_status": None if order_status is None else order_status.name,
                     "legacy_status_code": status,
+                }
+            )
+        return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)
+
+    @staticmethod
+    def _build_rust_command_outcome_report(
+        *,
+        command_report: pd.DataFrame,
+        compiled_commands: CompiledOrderCommandArrays,
+        n_bars: int,
+        order_events: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """Project Rust lifecycle events onto the canonical command surface.
+
+        Rust deliberately returns lifecycle events instead of Python command
+        objects. The immutable compiler tape supplies command identity while
+        stable Rust event order supplies acceptance and terminal order state.
+        This report construction stays outside the execution hot path.
+        """
+
+        if command_report.empty:
+            return pd.DataFrame()
+
+        events = order_events.reset_index(drop=True)
+        used = np.zeros(len(events), dtype=bool)
+
+        def same_id(value, expected) -> bool:
+            if expected is None:
+                return value is None or pd.isna(value)
+            if value is None or pd.isna(value):
+                return False
+            return value == expected
+
+        def event_matches(row: pd.Series, command: OrderCommand, expected_kind: int) -> bool:
+            kind = int(row["event_kind"])
+            if kind not in {expected_kind, ORDER_EVENT_REJECT}:
+                return False
+            if command.action is OrderAction.PLACE:
+                return same_id(row["order_id"], command.order_id)
+            if command.action is OrderAction.REPLACE:
+                return same_id(row["order_id"], command.order_id) and same_id(
+                    row["target_order_id"], command.target_order_id
+                )
+            if command.action in {OrderAction.CANCEL, OrderAction.AMEND}:
+                return same_id(row["target_order_id"], command.target_order_id)
+            if command.action is OrderAction.CANCEL_ALL:
+                return (
+                    kind == ORDER_EVENT_CANCEL
+                    and int(row["event_status"]) == ORDER_STATUS_FILLED
+                    and (
+                        command.order_id is None
+                        or same_id(row["order_id"], command.order_id)
+                    )
+                )
+            return False
+
+        expected_kinds = {
+            OrderAction.PLACE: ORDER_EVENT_PLACE,
+            OrderAction.CANCEL: ORDER_EVENT_CANCEL,
+            OrderAction.REPLACE: ORDER_EVENT_REPLACE,
+            OrderAction.AMEND: ORDER_EVENT_AMEND,
+            OrderAction.CANCEL_ALL: ORDER_EVENT_CANCEL,
+        }
+        rows = []
+        for sorted_idx, (_, command) in enumerate(compiled_commands.sorted_commands):
+            command_bar = int(compiled_commands.command_bar[sorted_idx])
+            matched_event = None
+            if 0 < command_bar < n_bars:
+                expected_kind = expected_kinds[command.action]
+                for event_idx, event in events.iterrows():
+                    if used[event_idx] or int(event["bar"]) != command_bar:
+                        continue
+                    if event_matches(event, command, expected_kind):
+                        used[event_idx] = True
+                        matched_event = event
+                        break
+
+            if command_bar <= 0 or command_bar >= n_bars:
+                outcome = CommandOutcome.OUTSIDE_TAPE
+            elif matched_event is not None and int(matched_event["event_kind"]) == ORDER_EVENT_REJECT:
+                outcome = CommandOutcome.REJECTED
+            elif matched_event is not None:
+                outcome = CommandOutcome.ACCEPTED
+            else:
+                outcome = CommandOutcome.NOOP
+
+            order_status = None
+            if command.action in {OrderAction.PLACE, OrderAction.REPLACE} and outcome is not CommandOutcome.OUTSIDE_TAPE:
+                if outcome is CommandOutcome.REJECTED:
+                    order_status = LifecycleOrderStatus.REJECTED
+                else:
+                    order_status = (
+                        LifecycleOrderStatus.ACTIVE
+                        if command.activation_policy is OrderActivationPolicy.IMMEDIATE
+                        else LifecycleOrderStatus.WAITING_PARENT
+                    )
+                    for _, event in events.iterrows():
+                        if int(event["bar"]) < command_bar:
+                            continue
+                        kind = int(event["event_kind"])
+                        event_order_id = event["order_id"]
+                        event_target_id = event["target_order_id"]
+                        owns_order = same_id(event_order_id, command.order_id)
+                        targets_order = same_id(event_target_id, command.order_id)
+                        if kind == ORDER_EVENT_FILL and owns_order:
+                            order_status = LifecycleOrderStatus.FILLED
+                        elif kind == ORDER_EVENT_EXPIRE and owns_order:
+                            order_status = LifecycleOrderStatus.EXPIRED
+                        elif kind == ORDER_EVENT_REJECT and owns_order:
+                            order_status = LifecycleOrderStatus.REJECTED
+                        elif kind == ORDER_EVENT_CANCEL and (
+                            targets_order
+                            or (owns_order and int(event["event_status"]) == ORDER_STATUS_CANCELED)
+                        ):
+                            order_status = LifecycleOrderStatus.CANCELED
+                        elif kind == ORDER_EVENT_REPLACE and targets_order:
+                            order_status = LifecycleOrderStatus.CANCELED
+                        elif kind in {ORDER_EVENT_ACTIVATE, ORDER_EVENT_AMEND} and owns_order:
+                            order_status = LifecycleOrderStatus.ACTIVE
+
+            if outcome is CommandOutcome.REJECTED:
+                legacy_status = ORDER_STATUS_REJECTED
+            elif command.action not in {OrderAction.PLACE, OrderAction.REPLACE}:
+                legacy_status = (
+                    ORDER_STATUS_FILLED
+                    if outcome is CommandOutcome.ACCEPTED
+                    else ORDER_STATUS_PENDING
+                )
+            elif order_status is LifecycleOrderStatus.FILLED:
+                legacy_status = ORDER_STATUS_FILLED
+            elif order_status in {LifecycleOrderStatus.CANCELED, LifecycleOrderStatus.EXPIRED}:
+                legacy_status = ORDER_STATUS_CANCELED
+            elif order_status is LifecycleOrderStatus.REJECTED:
+                legacy_status = ORDER_STATUS_REJECTED
+            else:
+                legacy_status = ORDER_STATUS_PENDING
+
+            rows.append(
+                {
+                    "original_index": int(compiled_commands.original_index[sorted_idx]),
+                    "sorted_index": sorted_idx,
+                    "timestamp": command.timestamp,
+                    "action": command.action.value,
+                    "order_id": command.order_id,
+                    "target_order_id": command.target_order_id,
+                    "command_outcome_code": int(outcome),
+                    "command_outcome": outcome.name,
+                    "order_status_code": None if order_status is None else int(order_status),
+                    "order_status": None if order_status is None else order_status.name,
+                    "legacy_status_code": legacy_status,
                 }
             )
         return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)

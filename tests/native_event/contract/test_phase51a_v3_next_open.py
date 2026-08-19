@@ -81,6 +81,10 @@ def test_v3_market_uses_actual_open_in_python_and_rust(side, multiplier) -> None
     assert python.fills[0].price == pytest.approx(expected)
     assert rust.fills[0].price == pytest.approx(expected)
     assert_native_event_full_parity(python, rust)
+    pd.testing.assert_frame_equal(
+        python.metadata["event_phase_trace_v1"],
+        rust.metadata["event_phase_trace_v1"],
+    )
     assert python.metadata["execution_contract_id"] == EVENT_LIFECYCLE_V3_NEXT_OPEN
     diagnostics = python.metadata["engine_diagnostics_v1"]
     assert diagnostics["bars_processed"] == 5
@@ -250,9 +254,33 @@ def test_bar_zero_explicit_command_is_reported_outside_tape_without_fill(backend
     result = _run(backend, EVENT_LIFECYCLE_V3_NEXT_OPEN, commands)
     assert len(result.fills) == 0
     np.testing.assert_array_equal(result.positions.to_numpy(), 0.0)
-    if backend == "python":
-        outcomes = result.metadata["command_outcome_report_v1"]
-        assert outcomes.iloc[0]["command_outcome"] == "OUTSIDE_TAPE"
+    outcomes = result.metadata["command_outcome_report_v1"]
+    assert outcomes.iloc[0]["command_outcome"] == "OUTSIDE_TAPE"
+
+
+def test_python_and_rust_command_outcomes_have_identical_canonical_projection() -> None:
+    index, _ = _market()
+    commands = (
+        OrderCommand(
+            timestamp=index[1], symbol="TEST", side=OrderSide.BUY,
+            order_type=OrderType.LIMIT, qty=1.0, price=90.0, order_id="resting",
+            expires_at=index[3],
+        ),
+        OrderCommand(timestamp=index[2], action="amend", target_order_id="resting", price=89.0),
+        OrderCommand(timestamp=index[2], action="cancel", target_order_id="missing"),
+    )
+    python = _run("python", EVENT_LIFECYCLE_V3_NEXT_OPEN, commands)
+    rust = _run("rust", EVENT_LIFECYCLE_V3_NEXT_OPEN, commands)
+    columns = [
+        "original_index", "sorted_index", "action", "order_id", "target_order_id",
+        "command_outcome_code", "command_outcome", "order_status_code", "order_status",
+        "legacy_status_code",
+    ]
+    pd.testing.assert_frame_equal(
+        python.metadata["command_outcome_report_v1"][columns],
+        rust.metadata["command_outcome_report_v1"][columns],
+        check_dtype=False,
+    )
 
 
 def test_one_bar_and_empty_tape_boundaries_are_deterministic() -> None:
@@ -345,3 +373,58 @@ def test_prepared_reactive_v3_accepts_open_array_and_replay_matches(backend: str
     )
     assert result.fills[0].price == pytest.approx(108.108)
     assert result.metadata["execution_contract_id"] == EVENT_LIFECYCLE_V3_NEXT_OPEN
+
+
+@pytest.mark.parametrize("backend", ["python", "rust"])
+def test_explicit_command_on_final_market_bar_executes_on_that_bar(backend: str) -> None:
+    index, _ = _market()
+    command = (
+        OrderCommand(
+            timestamp=index[-1], symbol="TEST", side=OrderSide.SELL,
+            order_type=OrderType.MARKET, qty=1.0, order_id="final-explicit",
+        ),
+    )
+    result = _run(backend, EVENT_LIFECYCLE_V3_NEXT_OPEN, command)
+    assert result.fills[0].timestamp == index[-1]
+    assert result.fills[0].price == pytest.approx(104.0 * 0.999)
+
+
+def test_duplicate_naive_timestamps_normalize_deterministically_before_execution() -> None:
+    raw_index = pd.DatetimeIndex(
+        ["2026-01-01 00:00", "2026-01-01 01:00", "2026-01-01 01:00", "2026-01-01 02:00"]
+    )
+    frame = pd.DataFrame(
+        {
+            "open": [100.0, 105.0, 999.0, 106.0],
+            "high": [101.0, 107.0, 1_000.0, 108.0],
+            "low": [99.0, 104.0, 998.0, 105.0],
+            "close": [100.0, 106.0, 999.0, 107.0],
+        },
+        index=raw_index,
+    )
+    command = (
+        OrderCommand(
+            timestamp=raw_index[1], symbol="TEST", side=OrderSide.BUY,
+            order_type=OrderType.MARKET, qty=1.0, order_id="dedup",
+        ),
+    )
+
+    def run(backend: str):
+        engine = _backend(backend, EVENT_LIFECYCLE_V3_NEXT_OPEN)
+        maps = {name: {"TEST": frame[name]} for name in ("open", "high", "low", "close")}
+        return engine.run_order_commands(
+            datetime_index=raw_index,
+            commands=command,
+            closes=maps["close"],
+            highs=maps["high"],
+            lows=maps["low"],
+            opens=maps["open"],
+            symbols=["TEST"],
+        )
+
+    python = run("python")
+    rust = run("rust")
+    assert len(python.equity) == 3
+    assert str(python.equity.index.tz) == "UTC"
+    assert python.fills[0].price == pytest.approx(105.105)
+    assert_native_event_full_parity(python, rust)
