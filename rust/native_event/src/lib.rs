@@ -1,20 +1,17 @@
-mod accounting;
-mod full;
-mod generated_contracts;
-mod matching;
-mod session;
-mod types;
-
 use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
-use full::{FullMarketData, FullSession};
-use session::{PreparedMarketData, ReactiveSession};
+use quantbt_domain::generated_contracts;
+use quantbt_engine as full;
+use quantbt_engine::legacy::types;
+use quantbt_engine::legacy::{PreparedMarketData, ReactiveSession};
+use quantbt_engine::{FullMarketData, FullSession};
 
 const VERSION: &str = "0.4.0";
 const API_VERSION: &str = "0.4";
+const INTERNAL_ABI_VERSION: &str = "0.5";
 
 #[pyfunction]
 fn version() -> &'static str {
@@ -24,6 +21,13 @@ fn version() -> &'static str {
 #[pyfunction]
 fn api_version() -> &'static str {
     API_VERSION
+}
+
+/// Internal Rust contract version. Public PyO3 input remains API 0.4 until a
+/// separately versioned Python surface opts into the typed ABI directly.
+#[pyfunction]
+fn core_abi_version() -> &'static str {
+    INTERNAL_ABI_VERSION
 }
 
 #[pyfunction]
@@ -67,6 +71,10 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("lifecycle_transition_schema_v1", true)?;
     values.set_item("semantic_descriptor_v1", true)?;
     values.set_item("deterministic_quantization_v1", true)?;
+    values.set_item("core_abi_0_5", true)?;
+    values.set_item("generation_safe_order_arena", true)?;
+    values.set_item("flat_static_tape_output", true)?;
+    values.set_item("static_tape_compact", true)?;
     Ok(values)
 }
 
@@ -193,6 +201,7 @@ fn quantize_quantity_v1(
 
 #[pyfunction]
 #[pyo3(signature = (price, qty, tick_size, qty_step, side, order_type, min_qty=0.0, max_qty=0.0, min_notional=0.0, contract_size=1.0))]
+#[allow(clippy::too_many_arguments)]
 fn quantize_order_value_v1(
     price: f64,
     qty: f64,
@@ -1567,6 +1576,63 @@ impl FullReactiveSessionCore {
         Ok(payload.unbind())
     }
 
+    /// Retain dense account paths for metrics/research while deliberately
+    /// omitting fill/event rows. The execution tape and scalar counters are
+    /// identical to score and audit profiles.
+    fn run_tape_compact(
+        &mut self,
+        py: Python<'_>,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+    ) -> PyResult<Py<PyDict>> {
+        let ptr = command_ptr.as_slice()?;
+        let codes = command_codes.as_slice()?;
+        let code_shape = command_codes.shape();
+        let values = command_values.as_slice()?;
+        let value_shape = command_values.shape();
+        let expiry = command_expiry.as_slice()?;
+        let output = py
+            .detach(|| {
+                run_full_tape_profile(
+                    &mut self.inner,
+                    ptr,
+                    codes,
+                    code_shape,
+                    values,
+                    value_shape,
+                    expiry,
+                    quantbt_engine::StaticOutputProfile::Compact,
+                )
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let payload = PyDict::new(py);
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("fees", output.fees)?;
+        payload.set_item("turnover", output.turnover)?;
+        payload.set_item("funding", output.funding)?;
+        payload.set_item("initial_margin", output.initial_margin)?;
+        payload.set_item("maintenance_margin", output.maintenance_margin)?;
+        payload.set_item("final_equity", output.final_equity)?;
+        payload.set_item("final_positions", output.final_positions)?;
+        payload.set_item("total_fee", output.total_fee)?;
+        payload.set_item("total_turnover", output.total_turnover)?;
+        payload.set_item("total_funding", output.total_funding)?;
+        payload.set_item("fill_count", output.fill_count)?;
+        payload.set_item("event_count", output.event_count)?;
+        payload.set_item("rejected_count", output.rejected_count)?;
+        payload.set_item("canceled_count", output.canceled_count)?;
+        payload.set_item("max_initial_margin", output.max_initial_margin)?;
+        payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+        payload.set_item("liquidated", output.liquidated)?;
+        payload.set_item("liquidation_bar", output.liquidation_bar)?;
+        payload.set_item("liquidation_reason", output.liquidation_reason)?;
+        payload.set_item("bars", self.inner.market.n_bars)?;
+        Ok(payload.unbind())
+    }
+
     fn run_tape_audit(
         &mut self,
         py: Python<'_>,
@@ -1658,46 +1724,9 @@ fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<P
     Ok(payload.unbind())
 }
 
-struct FullTapeOutput {
-    equity: Vec<f64>,
-    positions: Vec<Vec<f64>>,
-    fees: Vec<f64>,
-    turnover: Vec<f64>,
-    funding: Vec<f64>,
-    initial_margin: Vec<f64>,
-    maintenance_margin: Vec<f64>,
-    fill_bar: Vec<i64>,
-    fill_order_id: Vec<i64>,
-    fill_symbol: Vec<i64>,
-    fill_side: Vec<i64>,
-    fill_qty: Vec<f64>,
-    fill_price: Vec<f64>,
-    fill_fee: Vec<f64>,
-    fill_reason: Vec<i64>,
-    fill_ambiguity: Vec<i64>,
-    event_bar: Vec<i64>,
-    event_kind: Vec<i64>,
-    event_status: Vec<i64>,
-    event_order_id: Vec<i64>,
-    event_target_id: Vec<i64>,
-    event_symbol: Vec<i64>,
-    event_reject_code: Vec<i64>,
-    final_equity: f64,
-    final_positions: Vec<f64>,
-    total_fee: f64,
-    total_turnover: f64,
-    total_funding: f64,
-    fill_count: i64,
-    event_count: i64,
-    rejected_count: i64,
-    canceled_count: i64,
-    max_initial_margin: f64,
-    max_maintenance_margin: f64,
-    liquidated: bool,
-    liquidation_bar: i64,
-    liquidation_reason: i64,
-}
-
+/// API 0.4 adapter: validate public matrix dimensions once, then delegate the
+/// complete run to the pure Rust engine. The engine returns flat SoA columns;
+/// this binding no longer constructs nested rows or owns execution state.
 #[allow(clippy::too_many_arguments)]
 fn run_full_tape(
     session: &mut FullSession,
@@ -1708,175 +1737,57 @@ fn run_full_tape(
     values_shape: &[usize],
     expiry: &[i64],
     audit: bool,
-) -> Result<FullTapeOutput, String> {
-    if ptr.len() != session.market.n_bars + 1
-        || codes_shape.len() != 2
+) -> Result<quantbt_engine::StaticTapeOutput, String> {
+    let profile = if audit {
+        quantbt_engine::StaticOutputProfile::Audit
+    } else {
+        quantbt_engine::StaticOutputProfile::Score
+    };
+    run_full_tape_profile(
+        session,
+        ptr,
+        codes,
+        codes_shape,
+        values,
+        values_shape,
+        expiry,
+        profile,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_full_tape_profile(
+    session: &mut FullSession,
+    ptr: &[i64],
+    codes: &[i64],
+    codes_shape: &[usize],
+    values: &[f64],
+    values_shape: &[usize],
+    expiry: &[i64],
+    profile: quantbt_engine::StaticOutputProfile,
+) -> Result<quantbt_engine::StaticTapeOutput, String> {
+    if codes_shape.len() != 2
         || codes_shape[1] != full::CODE_WIDTH
         || values_shape.len() != 2
         || values_shape[0] != codes_shape[0]
         || values_shape[1] != full::VALUE_WIDTH
+        || codes.len() != codes_shape[0] * full::CODE_WIDTH
+        || values.len() != values_shape[0] * full::VALUE_WIDTH
         || expiry.len() != codes_shape[0]
     {
         return Err("invalid full tape shapes".to_owned());
     }
-    let n_commands = codes_shape[0] as i64;
-    if ptr.first().copied().unwrap_or(-1) != 0
-        || ptr.last().copied().unwrap_or(-1) != n_commands
-        || ptr
-            .windows(2)
-            .any(|pair| pair[1] < pair[0] || pair[1] > n_commands)
-    {
-        return Err("command_ptr must be monotonic and bounded".to_owned());
-    }
-    if codes.len() != codes_shape[0] * full::CODE_WIDTH
-        || values.len() != values_shape[0] * full::VALUE_WIDTH
-    {
-        return Err("full command buffers are not contiguous".to_owned());
-    }
-    let n_bars = session.market.n_bars;
-    let mut output = FullTapeOutput {
-        equity: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        positions: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        fees: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        turnover: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        funding: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        initial_margin: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        maintenance_margin: if audit {
-            Vec::with_capacity(n_bars)
-        } else {
-            Vec::new()
-        },
-        fill_bar: Vec::new(),
-        fill_order_id: Vec::new(),
-        fill_symbol: Vec::new(),
-        fill_side: Vec::new(),
-        fill_qty: Vec::new(),
-        fill_price: Vec::new(),
-        fill_fee: Vec::new(),
-        fill_reason: Vec::new(),
-        fill_ambiguity: Vec::new(),
-        event_bar: Vec::new(),
-        event_kind: Vec::new(),
-        event_status: Vec::new(),
-        event_order_id: Vec::new(),
-        event_target_id: Vec::new(),
-        event_symbol: Vec::new(),
-        event_reject_code: Vec::new(),
-        final_equity: session.equity,
-        final_positions: session.positions.clone(),
-        total_fee: 0.0,
-        total_turnover: 0.0,
-        total_funding: 0.0,
-        fill_count: 0,
-        event_count: 0,
-        rejected_count: 0,
-        canceled_count: 0,
-        max_initial_margin: 0.0,
-        max_maintenance_margin: 0.0,
-        liquidated: false,
-        liquidation_bar: -1,
-        liquidation_reason: full::LIQ_NONE,
-    };
-    let mut step_buffers = full::StepBuffers::default();
-    for bar in 0..n_bars {
-        // Bar zero is the immutable initial-state snapshot in the Python
-        // oracle. Explicit commands mapped to bar zero are outside the
-        // executable tape and must not mutate Rust state either.
-        let (start, end) = if bar == 0 {
-            let after_bar_zero = ptr[1] as usize;
-            (after_bar_zero, after_bar_zero)
-        } else {
-            (ptr[bar] as usize, ptr[bar + 1] as usize)
-        };
-        let step = session.step_with_buffers(
-            bar,
-            &codes[start * full::CODE_WIDTH..end * full::CODE_WIDTH],
-            &values[start * full::VALUE_WIDTH..end * full::VALUE_WIDTH],
-            &expiry[start..end],
-            end - start,
-            if audit {
-                full::OUTPUT_POSITIONS | full::OUTPUT_FILLS | full::OUTPUT_EVENTS
-            } else {
-                0
-            },
-            false,
-            &mut step_buffers,
-        )?;
-        if audit {
-            output.equity.push(step.equity);
-            output.positions.push(step.positions.clone());
-            output.fees.push(step.fee);
-            output.turnover.push(step.turnover);
-            output.funding.push(step.funding);
-            output.initial_margin.push(step.initial_margin);
-            output.maintenance_margin.push(step.maintenance_margin);
+    match profile {
+        quantbt_engine::StaticOutputProfile::Score => {
+            session.run_static_score(ptr, codes, values, expiry, codes_shape[0])
         }
-        output.final_equity = step.equity;
-        output.final_positions = session.positions.clone();
-        output.total_fee += step.fee;
-        output.total_turnover += step.turnover;
-        output.total_funding += step.funding;
-        output.rejected_count += step.rejected_count;
-        output.canceled_count += step.canceled_count;
-        output.fill_count += step.fill_count;
-        output.event_count += step.event_count;
-        if audit {
-            for n in 0..step_buffers.fills.order_id.len() {
-                output.fill_bar.push(bar as i64);
-                output.fill_order_id.push(step_buffers.fills.order_id[n]);
-                output.fill_symbol.push(step_buffers.fills.symbol[n]);
-                output.fill_side.push(step_buffers.fills.side[n]);
-                output.fill_qty.push(step_buffers.fills.qty[n]);
-                output.fill_price.push(step_buffers.fills.price[n]);
-                output.fill_fee.push(step_buffers.fills.fee[n]);
-                output.fill_reason.push(step_buffers.fills.reason[n]);
-                output.fill_ambiguity.push(step_buffers.fills.ambiguity[n]);
-            }
-            for n in 0..step_buffers.events.kind.len() {
-                output.event_bar.push(bar as i64);
-                output.event_kind.push(step_buffers.events.kind[n]);
-                output.event_status.push(step_buffers.events.status[n]);
-                output.event_order_id.push(step_buffers.events.order_id[n]);
-                output
-                    .event_target_id
-                    .push(step_buffers.events.target_id[n]);
-                output.event_symbol.push(step_buffers.events.symbol[n]);
-                output
-                    .event_reject_code
-                    .push(step_buffers.events.reject_code[n]);
-            }
+        quantbt_engine::StaticOutputProfile::Compact => {
+            session.run_static_compact(ptr, codes, values, expiry, codes_shape[0])
         }
-        output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
-        output.max_maintenance_margin = output.max_maintenance_margin.max(step.maintenance_margin);
-        output.liquidated = step.liquidated;
-        output.liquidation_bar = step.liquidation_bar;
-        output.liquidation_reason = step.liquidation_reason;
+        quantbt_engine::StaticOutputProfile::Audit => {
+            session.run_static_audit(ptr, codes, values, expiry, codes_shape[0])
+        }
     }
-    Ok(output)
 }
 
 #[pymodule]
@@ -1884,6 +1795,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("__version__", VERSION)?;
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(api_version, module)?)?;
+    module.add_function(wrap_pyfunction!(core_abi_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
     module.add_function(wrap_pyfunction!(semantic_descriptor, module)?)?;
     module.add_function(wrap_pyfunction!(quantize_price_v1, module)?)?;

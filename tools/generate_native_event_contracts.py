@@ -12,7 +12,10 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "contracts" / "native_event_contract_registry.json"
 PYTHON_OUTPUT = ROOT / "src" / "quantbt" / "core" / "generated_native_event_contracts.py"
-RUST_OUTPUT = ROOT / "rust" / "native_event" / "src" / "generated_contracts.rs"
+# The pure domain crate is the single Rust source of contract constants. The
+# PyO3 crate consumes it as a dependency and must not keep a second generated
+# copy that could drift from the engine.
+RUST_OUTPUT = ROOT / "rust" / "crates" / "quantbt-domain" / "src" / "generated_contracts.rs"
 
 
 def canonical_payload() -> tuple[dict, str]:

@@ -1314,6 +1314,28 @@ class RustFullRunner:
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         return self._new_session().run_tape_score(ptr, codes, values, expiry)
 
+    def run_tape_compact(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
+        """Run one tape with dense account paths but without audit row ledgers.
+
+        This is an internal research/metrics helper. It preserves the same
+        matching and accounting path as score/audit while avoiding fill/event
+        materialization; endpoint report adaptation remains outside Rust.
+        """
+
+        ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
+        session = self._new_session()
+        if not hasattr(session, "run_tape_compact"):
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel does not expose the ABI 0.5 compact static-tape profile"
+            )
+        payload = dict(session.run_tape_compact(ptr, codes, values, expiry))
+        for key in (
+            "equity", "positions", "fees", "turnover", "funding", "initial_margin", "maintenance_margin",
+        ):
+            payload[key] = np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+        payload["positions"] = payload["positions"].reshape(len(self.idx), len(self.symbols))
+        return payload
+
     def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)

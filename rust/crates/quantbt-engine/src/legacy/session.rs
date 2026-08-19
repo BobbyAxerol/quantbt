@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::hash::{BuildHasherDefault, Hasher};
 use std::sync::Arc;
 
-use crate::accounting::{initial_margin, maintenance_margin, required_margin};
-use crate::matching::execution_price;
-use crate::types::{
+use super::accounting::{initial_margin, maintenance_margin, required_margin};
+use super::matching::execution_price;
+use super::types::{
     ACTION_AMEND, ACTION_CANCEL, ACTION_PLACE, ACTION_REPLACE, ActiveOrder, EVENT_AMEND,
     EVENT_CANCEL, EVENT_FILL, EVENT_PLACE, EVENT_REJECT, EVENT_REPLACE, FLAG_REDUCE_ONLY,
     MUTATE_PRICE, MUTATE_QTY, MUTATE_TRIGGER, ORDER_LIMIT, ORDER_MARKET, ORDER_STOP_LIMIT,
@@ -61,6 +61,11 @@ impl PreparedMarketData {
 
     pub fn len(&self) -> usize {
         self.closes.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.closes.is_empty()
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::types::{
+use super::types::{
     ActiveOrder, ORDER_LIMIT, ORDER_MARKET, ORDER_STOP_LIMIT, ORDER_STOP_MARKET, SIDE_BUY,
 };
 

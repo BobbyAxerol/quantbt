@@ -12,6 +12,9 @@ use std::sync::Arc;
 use crate::generated_contracts::{
     CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE, CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
 };
+use crate::orders::{IndexOrderState, LifecycleIndexes, OrderArena};
+use crate::output::{StaticOutputProfile, StaticTapeOutput};
+use quantbt_domain::ids::{ExternalOrderId, OrderHandle, SymbolId};
 
 const STATUS_PENDING: i64 = 0;
 const STATUS_FILLED: i64 = 1;
@@ -41,6 +44,8 @@ const ACTIVATION_IMMEDIATE: i64 = 0;
 const ACTIVATION_ON_PARENT_FIRST_FILL: i64 = 1;
 const ACTIVATION_ON_PARENT_FULL_FILL: i64 = 2;
 const FLAG_REDUCE_ONLY: u16 = 1 << 0;
+const DEFAULT_MAX_LIVE_ORDERS: usize = 1_000_000;
+const DEFAULT_MAX_TOTAL_ORDERS: u64 = 10_000_000;
 
 pub const FILL_REASON_NONE: i64 = 0;
 pub const FILL_REASON_NEXT_BAR_CLOSE: i64 = 1;
@@ -228,6 +233,7 @@ impl FillBuffer {
     }
 
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     pub fn push(
         &mut self,
         order_id: i64,
@@ -499,6 +505,7 @@ impl DetailSink<'_> {
     }
 
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     pub fn fill(
         &mut self,
         order_id: i64,
@@ -609,6 +616,7 @@ struct OrderState {
     waiting_parent: bool,
     status: i64,
     trigger_armed: bool,
+    sequence: u64,
 }
 
 impl OrderState {
@@ -666,12 +674,18 @@ pub struct FullSession {
     pub liquidated: bool,
     pub liquidation_bar: i64,
     pub liquidation_reason: i64,
-    orders: Vec<OrderState>,
+    // Generation-safe arena removes terminal slots immediately after their
+    // final event has reached the selected sink. It replaces the legacy
+    // Vec<OrderState> + hot compaction path.
+    orders: OrderArena<OrderState>,
     // The Python oracle resolves target_order_id through the latest command
     // slot, including the alias created by REPLACE. Keep that indirection
     // explicit so a later CANCEL/AMEND using the replaced target has the same
     // lifecycle result without changing insertion priority.
-    id_to_slot: HashMap<i64, usize>,
+    id_to_handle: HashMap<i64, OrderHandle>,
+    lifecycle_indexes: LifecycleIndexes,
+    next_order_sequence: u64,
+    matching_candidates: Vec<OrderHandle>,
     step_buffers: StepBuffers,
     margin_cache: MarginCache,
     margin_recompute_count: u64,
@@ -724,8 +738,11 @@ impl FullSession {
             liquidated: false,
             liquidation_bar: -1,
             liquidation_reason: LIQ_NONE,
-            orders: Vec::new(),
-            id_to_slot: HashMap::new(),
+            orders: OrderArena::new(DEFAULT_MAX_LIVE_ORDERS, DEFAULT_MAX_TOTAL_ORDERS),
+            id_to_handle: HashMap::new(),
+            lifecycle_indexes: LifecycleIndexes::with_symbols(n_symbols),
+            next_order_sequence: 0,
+            matching_candidates: Vec::new(),
             step_buffers: StepBuffers::default(),
             margin_cache: MarginCache::default(),
             margin_recompute_count: 0,
@@ -745,7 +762,10 @@ impl FullSession {
         self.liquidation_bar = -1;
         self.liquidation_reason = LIQ_NONE;
         self.orders.clear();
-        self.id_to_slot.clear();
+        self.id_to_handle.clear();
+        self.lifecycle_indexes.clear();
+        self.next_order_sequence = 0;
+        self.matching_candidates.clear();
         self.step_buffers.clear();
         self.margin_cache = MarginCache::default();
         self.margin_recompute_count = 0;
@@ -761,12 +781,10 @@ impl FullSession {
     /// public standard/audit report. This stays outside the per-bar hot path.
     pub fn terminal_active_order_rows(&self) -> Vec<Vec<f64>> {
         let mut buffer = ActiveOrderBuffer::default();
-        for order in self
-            .orders
-            .iter()
-            .filter(|order| order.status == STATUS_PENDING && (order.active || order.waiting_parent))
-        {
-            buffer.push(order);
+        for handle in self.lifecycle_indexes.live_priority_handles() {
+            if let Some(order) = self.orders.get(handle) {
+                buffer.push(order);
+            }
         }
         buffer.rows()
     }
@@ -791,7 +809,7 @@ impl FullSession {
     }
 
     pub fn orders_capacity(&self) -> usize {
-        self.orders.capacity()
+        self.orders.slot_capacity()
     }
 
     pub fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
@@ -911,59 +929,76 @@ impl FullSession {
         self.margin_cache.valid = false;
     }
 
-    fn find_pending(&self, order_id: i64) -> Option<usize> {
-        let slot = *self.id_to_slot.get(&order_id)?;
-        let order = self.orders.get(slot)?;
+    fn find_pending(&self, order_id: i64) -> Option<OrderHandle> {
+        let handle = *self.id_to_handle.get(&order_id)?;
+        let order = self.orders.get(handle)?;
         if (order.active || order.waiting_parent) && order.status == STATUS_PENDING {
-            Some(slot)
+            Some(handle)
         } else {
             None
         }
     }
 
-    /// Drop terminal lifecycle records once they dominate the order arena.
-    ///
-    /// Active insertion order and every replacement alias are preserved. The
-    /// conservative threshold keeps short tapes cheap while preventing a
-    /// long reactive/Grid tape from retaining one heap record per command.
-    fn compact_terminal_orders(&mut self) {
-        let old_len = self.orders.len();
-        if old_len < 64 {
-            return;
+    fn order_index_state(order: &OrderState) -> IndexOrderState {
+        IndexOrderState {
+            symbol: SymbolId(order.symbol),
+            active: order.active && order.status == STATUS_PENDING,
+            waiting_parent: order.waiting_parent && order.status == STATUS_PENDING,
+            sequence: order.sequence,
+            parent_id: ExternalOrderId(order.parent_id),
+            oco_id: order.oco_id,
+            expire_bar: (order.expires_bar >= 0).then_some(order.expires_bar as u32),
         }
-        let active_len = self
-            .orders
-            .iter()
-            .filter(|order| {
-                order.status == STATUS_PENDING && (order.active || order.waiting_parent)
-            })
-            .count();
-        let terminal_len = old_len.saturating_sub(active_len);
-        if terminal_len < 64 || terminal_len * 2 < old_len {
-            return;
-        }
+    }
 
-        let old_orders = std::mem::take(&mut self.orders);
-        let old_map = std::mem::take(&mut self.id_to_slot);
-        let mut remap = vec![usize::MAX; old_len];
-        let mut orders = Vec::with_capacity(active_len);
-        for (old_slot, order) in old_orders.into_iter().enumerate() {
-            if order.status == STATUS_PENDING && (order.active || order.waiting_parent) {
-                remap[old_slot] = orders.len();
-                orders.push(order);
+    fn insert_order(
+        &mut self,
+        mut order: OrderState,
+        aliases: &[i64],
+    ) -> Result<OrderHandle, String> {
+        order.sequence = self.next_order_sequence;
+        self.next_order_sequence = self.next_order_sequence.wrapping_add(1);
+        let handle = self
+            .orders
+            .insert(order)
+            .map_err(|error| error.to_string())?;
+        let state = self
+            .orders
+            .get(handle)
+            .map(Self::order_index_state)
+            .ok_or_else(|| "arena lost freshly inserted order".to_owned())?;
+        self.lifecycle_indexes.insert(handle, state);
+        for &alias in aliases {
+            if alias >= 0 {
+                self.id_to_handle.insert(alias, handle);
             }
         }
-        let mut id_to_slot = HashMap::with_capacity(old_map.len());
-        for (order_id, old_slot) in old_map {
-            let new_slot = remap.get(old_slot).copied().unwrap_or(usize::MAX);
-            if new_slot != usize::MAX {
-                id_to_slot.insert(order_id, new_slot);
+        Ok(handle)
+    }
+
+    /// Terminal records are emitted before this function. Releasing a slot is
+    /// O(1), updates every lifecycle index, and invalidates stale handles by
+    /// incrementing its generation. There is no hot compaction pass.
+    fn release_order(&mut self, handle: OrderHandle) -> Option<OrderState> {
+        let order = self.orders.remove(handle).ok()?;
+        self.lifecycle_indexes.remove(handle);
+        self.id_to_handle.retain(|_, mapped| *mapped != handle);
+        self.terminal_orders_removed += 1;
+        Some(order)
+    }
+
+    /// Test/debug-only invariant validator. It is intentionally absent from
+    /// the hot path but is run by the pure Rust arena/index tests.
+    pub fn validate_lifecycle_indexes(&self) -> Result<(), String> {
+        self.lifecycle_indexes
+            .validate(|handle| self.orders.get(handle).map(Self::order_index_state))
+            .map_err(str::to_owned)?;
+        for handle in self.id_to_handle.values() {
+            if !self.orders.contains(*handle) {
+                return Err("external order ID resolves to a stale handle".to_owned());
             }
         }
-        self.orders = orders;
-        self.id_to_slot = id_to_slot;
-        self.compaction_count += 1;
-        self.terminal_orders_removed += terminal_len as u64;
+        Ok(())
     }
 
     fn valid_order(code: &[i64], values: &[f64]) -> bool {
@@ -983,6 +1018,32 @@ impl FullSession {
             ORDER_STOP_MARKET => values[2] > 0.0,
             ORDER_STOP_LIMIT => values[1] > 0.0 && values[2] > 0.0,
             _ => false,
+        }
+    }
+
+    fn build_order(code: &[i64], values: &[f64], expires_bar: i64) -> OrderState {
+        let active = code[11] == ACTIVATION_IMMEDIATE;
+        OrderState {
+            command_index: code[12].max(0) as usize,
+            order_id: code[6],
+            symbol: code[1] as u32,
+            side: code[2] as i8,
+            order_type: code[3] as u8,
+            tif: code[4] as u8,
+            flags: if code[5] != 0 { FLAG_REDUCE_ONLY } else { 0 },
+            qty: values[0],
+            price: values[1],
+            trigger: values[2],
+            parent_id: code[8],
+            group_id: code[9],
+            oco_id: code[10],
+            activation: code[11] as u8,
+            expires_bar,
+            active,
+            waiting_parent: !active,
+            status: STATUS_PENDING,
+            trigger_armed: false,
+            sequence: 0,
         }
     }
 
@@ -1258,16 +1319,26 @@ impl FullSession {
         }
     }
 
-    fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) {
-        self.relationship_scan_count += self.orders.len() as u64;
-        for child in &mut self.orders {
+    fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) -> Vec<OrderHandle> {
+        let handles = self
+            .lifecycle_indexes
+            .children_of(ExternalOrderId(parent_id));
+        self.relationship_scan_count += handles.len() as u64;
+        let mut activated = Vec::with_capacity(handles.len());
+        for handle in handles {
+            let Some(child) = self.orders.get(handle).copied() else {
+                continue;
+            };
             if child.waiting_parent
                 && child.parent_id == parent_id
                 && (child.activation as i64 == ACTIVATION_ON_PARENT_FIRST_FILL
                     || child.activation as i64 == ACTIVATION_ON_PARENT_FULL_FILL)
             {
-                child.waiting_parent = false;
-                child.active = true;
+                if let Some(child_mut) = self.orders.get_mut(handle) {
+                    child_mut.waiting_parent = false;
+                    child_mut.active = true;
+                }
+                self.lifecycle_indexes.set_activation(handle, true, false);
                 Self::add_event(
                     sink,
                     EVENT_ACTIVATE,
@@ -1276,8 +1347,10 @@ impl FullSession {
                     parent_id,
                     child.symbol as i64,
                 );
+                activated.push(handle);
             }
         }
+        activated
     }
 
     fn cancel_oco_siblings(
@@ -1289,17 +1362,19 @@ impl FullSession {
         if oco_id < 0 {
             return 0;
         }
-        self.relationship_scan_count += self.orders.len() as u64;
+        let handles = self.lifecycle_indexes.oco_members(oco_id);
+        self.relationship_scan_count += handles.len() as u64;
         let mut canceled = 0;
-        for sibling in &mut self.orders {
+        for handle in handles {
+            let Some(sibling) = self.orders.get(handle).copied() else {
+                continue;
+            };
             if sibling.order_id != filled_order_id
                 && sibling.oco_id == oco_id
                 && sibling.status == STATUS_PENDING
                 && (sibling.active || sibling.waiting_parent)
             {
-                sibling.active = false;
-                sibling.waiting_parent = false;
-                sibling.status = STATUS_CANCELED;
+                self.release_order(handle);
                 canceled += 1;
                 Self::add_event(
                     sink,
@@ -1498,17 +1573,20 @@ impl FullSession {
         let mut rejected = 0_i64;
         let mut canceled = 0_i64;
 
-        // GTD expiry precedes commands at the current bar.
-        self.expiry_scan_count += self.orders.len() as u64;
-        for order in &mut self.orders {
+        // GTD expiry precedes commands at the current bar. The timing index
+        // visits due handles only; historical terminal orders are not scanned.
+        let due_expiry = self.lifecycle_indexes.due_expiry_handles(bar as u32);
+        self.expiry_scan_count += due_expiry.len() as u64;
+        for handle in due_expiry {
+            let Some(order) = self.orders.get(handle).copied() else {
+                continue;
+            };
             if order.status == STATUS_PENDING
                 && (order.active || order.waiting_parent)
                 && order.expires_bar >= 0
                 && bar as i64 >= order.expires_bar
             {
-                order.active = false;
-                order.waiting_parent = false;
-                order.status = STATUS_CANCELED;
+                self.release_order(handle);
                 canceled += 1;
                 Self::add_event(
                     &mut sink,
@@ -1545,51 +1623,79 @@ impl FullSession {
                         );
                         continue;
                     }
-                    let active = code[11] == ACTIVATION_IMMEDIATE;
-                    self.orders.push(OrderState {
-                        command_index: code[12].max(0) as usize,
-                        order_id,
-                        symbol: code[1] as u32,
-                        side: code[2] as i8,
-                        order_type: code[3] as u8,
-                        tif: code[4] as u8,
-                        flags: if code[5] != 0 { FLAG_REDUCE_ONLY } else { 0 },
-                        qty: value[0],
-                        price: value[1],
-                        trigger: value[2],
-                        parent_id: code[8],
-                        group_id: code[9],
-                        oco_id: code[10],
-                        activation: code[11] as u8,
-                        expires_bar: expiry[command_index],
-                        active,
-                        waiting_parent: !active,
-                        status: STATUS_PENDING,
-                        trigger_armed: false,
-                    });
-                    if order_id >= 0 {
-                        self.id_to_slot.insert(order_id, self.orders.len() - 1);
+                    match self.insert_order(
+                        Self::build_order(code, value, expiry[command_index]),
+                        &[order_id],
+                    ) {
+                        Ok(_) => Self::add_event(
+                            &mut sink,
+                            EVENT_PLACE,
+                            STATUS_PENDING,
+                            order_id,
+                            -1,
+                            code[1],
+                        ),
+                        Err(_) => {
+                            rejected += 1;
+                            Self::add_event_with_reject(
+                                &mut sink,
+                                EVENT_REJECT,
+                                STATUS_REJECTED,
+                                order_id,
+                                -1,
+                                code[1],
+                                REJECT_INSUFFICIENT_MARGIN,
+                            );
+                        }
                     }
-                    Self::add_event(
-                        &mut sink,
-                        EVENT_PLACE,
-                        STATUS_PENDING,
-                        order_id,
-                        -1,
-                        code[1],
-                    );
                 }
                 ACTION_CANCEL => {
-                    if let Some(slot) = self.find_pending(target_id) {
-                        let symbol = self.orders[slot].symbol as i64;
-                        let resolved_target_id = self.orders[slot].order_id;
-                        self.orders[slot].active = false;
-                        self.orders[slot].waiting_parent = false;
-                        self.orders[slot].status = STATUS_CANCELED;
+                    if let Some(handle) = self.find_pending(target_id) {
+                        let Some(order) = self.release_order(handle) else {
+                            continue;
+                        };
                         canceled += 1;
                         Self::add_event(
                             &mut sink,
                             EVENT_CANCEL,
+                            STATUS_FILLED,
+                            -1,
+                            order.order_id,
+                            order.symbol as i64,
+                        );
+                    } else {
+                        rejected += 1;
+                        Self::add_event_with_reject(
+                            &mut sink,
+                            EVENT_REJECT,
+                            STATUS_REJECTED,
+                            -1,
+                            target_id,
+                            code[1],
+                            REJECT_UNKNOWN_ORDER,
+                        );
+                    }
+                }
+                ACTION_AMEND => {
+                    if let Some(handle) = self.find_pending(target_id) {
+                        let (resolved_target_id, symbol) = {
+                            let order = self.orders.get_mut(handle).ok_or_else(|| {
+                                "order handle became stale during amend".to_owned()
+                            })?;
+                            if value[0] > 0.0 {
+                                order.qty = value[0];
+                            }
+                            if value[1] > 0.0 {
+                                order.price = value[1];
+                            }
+                            if value[2] > 0.0 {
+                                order.trigger = value[2];
+                            }
+                            (order.order_id, order.symbol as i64)
+                        };
+                        Self::add_event(
+                            &mut sink,
+                            EVENT_AMEND,
                             STATUS_FILLED,
                             -1,
                             resolved_target_id,
@@ -1608,44 +1714,9 @@ impl FullSession {
                         );
                     }
                 }
-                ACTION_AMEND => {
-                    if let Some(slot) = self.find_pending(target_id) {
-                        let resolved_target_id = self.orders[slot].order_id;
-                        if value[0] > 0.0 {
-                            self.orders[slot].qty = value[0];
-                        }
-                        if value[1] > 0.0 {
-                            self.orders[slot].price = value[1];
-                        }
-                        if value[2] > 0.0 {
-                            self.orders[slot].trigger = value[2];
-                        }
-                        Self::add_event(
-                            &mut sink,
-                            EVENT_AMEND,
-                            STATUS_FILLED,
-                            -1,
-                            resolved_target_id,
-                            self.orders[slot].symbol as i64,
-                        );
-                    } else {
-                        rejected += 1;
-                        Self::add_event_with_reject(
-                            &mut sink,
-                            EVENT_REJECT,
-                            STATUS_REJECTED,
-                            -1,
-                            target_id,
-                            code[1],
-                            REJECT_UNKNOWN_ORDER,
-                        );
-                    }
-                }
                 ACTION_REPLACE => {
-                    if let Some(slot) = self.find_pending(target_id) {
-                        self.orders[slot].active = false;
-                        self.orders[slot].waiting_parent = false;
-                        self.orders[slot].status = STATUS_CANCELED;
+                    if let Some(handle) = self.find_pending(target_id) {
+                        self.release_order(handle);
                         if !Self::valid_order(code, value)
                             || code[1] < 0
                             || code[1] >= self.market.n_symbols as i64
@@ -1661,43 +1732,31 @@ impl FullSession {
                                 REJECT_UNSUPPORTED_ORDER_TYPE,
                             );
                         } else {
-                            let active = code[11] == ACTIVATION_IMMEDIATE;
-                            self.orders.push(OrderState {
-                                command_index: code[12].max(0) as usize,
-                                order_id,
-                                symbol: code[1] as u32,
-                                side: code[2] as i8,
-                                order_type: code[3] as u8,
-                                tif: code[4] as u8,
-                                flags: if code[5] != 0 { FLAG_REDUCE_ONLY } else { 0 },
-                                qty: value[0],
-                                price: value[1],
-                                trigger: value[2],
-                                parent_id: code[8],
-                                group_id: code[9],
-                                oco_id: code[10],
-                                activation: code[11] as u8,
-                                expires_bar: expiry[command_index],
-                                active,
-                                waiting_parent: !active,
-                                status: STATUS_PENDING,
-                                trigger_armed: false,
-                            });
-                            let new_slot = self.orders.len() - 1;
-                            if target_id >= 0 {
-                                self.id_to_slot.insert(target_id, new_slot);
+                            match self.insert_order(
+                                Self::build_order(code, value, expiry[command_index]),
+                                &[target_id, order_id],
+                            ) {
+                                Ok(_) => Self::add_event(
+                                    &mut sink,
+                                    EVENT_REPLACE,
+                                    STATUS_PENDING,
+                                    order_id,
+                                    target_id,
+                                    code[1],
+                                ),
+                                Err(_) => {
+                                    rejected += 1;
+                                    Self::add_event_with_reject(
+                                        &mut sink,
+                                        EVENT_REJECT,
+                                        STATUS_REJECTED,
+                                        order_id,
+                                        target_id,
+                                        code[1],
+                                        REJECT_INSUFFICIENT_MARGIN,
+                                    );
+                                }
                             }
-                            if order_id >= 0 {
-                                self.id_to_slot.insert(order_id, new_slot);
-                            }
-                            Self::add_event(
-                                &mut sink,
-                                EVENT_REPLACE,
-                                STATUS_PENDING,
-                                order_id,
-                                target_id,
-                                code[1],
-                            );
                         }
                     } else {
                         rejected += 1;
@@ -1713,8 +1772,13 @@ impl FullSession {
                     }
                 }
                 ACTION_CANCEL_ALL => {
-                    self.relationship_scan_count += self.orders.len() as u64;
-                    for order in &mut self.orders {
+                    let handles = self.lifecycle_indexes.live_priority_handles();
+                    self.relationship_scan_count += handles.len() as u64;
+                    let mut to_cancel = Vec::new();
+                    for handle in handles {
+                        let Some(order) = self.orders.get(handle) else {
+                            continue;
+                        };
                         let matches = (order.active || order.waiting_parent)
                             && order.status == STATUS_PENDING
                             && (code[1] < 0 || code[1] == order.symbol as i64)
@@ -1724,9 +1788,11 @@ impl FullSession {
                             && (code[9] < 0 || code[9] == order.group_id)
                             && (code[10] < 0 || code[10] == order.oco_id);
                         if matches {
-                            order.active = false;
-                            order.waiting_parent = false;
-                            order.status = STATUS_CANCELED;
+                            to_cancel.push(handle);
+                        }
+                    }
+                    for handle in to_cancel {
+                        if self.release_order(handle).is_some() {
                             canceled += 1;
                         }
                     }
@@ -1756,22 +1822,28 @@ impl FullSession {
 
         let mut fee_total = 0.0;
         let mut turnover = 0.0;
-        // Stable insertion order is the priority order. Children activated by
-        // an earlier fill are appended before the next scan reaches them.
+        // Stable monotonic sequence is priority. The index contains only
+        // active orders; terminal history never participates in matching.
+        self.matching_candidates = self.lifecycle_indexes.active_priority_handles();
         let mut cursor = 0;
-        while cursor < self.orders.len() {
+        while cursor < self.matching_candidates.len() {
+            let handle = self.matching_candidates[cursor];
             self.matching_scan_count += 1;
-            if !self.orders[cursor].active || self.orders[cursor].status != STATUS_PENDING {
+            let Some(order) = self.orders.get(handle).copied() else {
+                cursor += 1;
+                continue;
+            };
+            if !order.active || order.status != STATUS_PENDING {
                 cursor += 1;
                 continue;
             }
-            let order = self.orders[cursor];
             let decision = self.fill_decision(&order, bar);
-            self.orders[cursor].trigger_armed = decision.triggered;
+            if let Some(order_mut) = self.orders.get_mut(handle) {
+                order_mut.trigger_armed = decision.triggered;
+            }
             let Some(exec_price) = decision.price else {
                 if order.tif as i64 != TIF_GTC && order.tif as i64 != TIF_GTD {
-                    self.orders[cursor].active = false;
-                    self.orders[cursor].status = STATUS_CANCELED;
+                    self.release_order(handle);
                     canceled += 1;
                     Self::add_event(
                         &mut sink,
@@ -1792,8 +1864,7 @@ impl FullSession {
                     || (current > 0.0 && order.side as i64 == SIDE_BUY)
                     || (current < 0.0 && order.side as i64 == SIDE_SELL)
                 {
-                    self.orders[cursor].active = false;
-                    self.orders[cursor].status = STATUS_CANCELED;
+                    self.release_order(handle);
                     canceled += 1;
                     Self::add_event_with_reject(
                         &mut sink,
@@ -1820,8 +1891,7 @@ impl FullSession {
             let new_initial = (current + delta).abs() * exec_price * cs / self.leverages[symbol];
             let required = fee + (new_initial - old_initial).max(0.0);
             if required > self.equity - cur_initial {
-                self.orders[cursor].active = false;
-                self.orders[cursor].status = STATUS_REJECTED;
+                self.release_order(handle);
                 rejected += 1;
                 Self::add_event_with_reject(
                     &mut sink,
@@ -1839,8 +1909,6 @@ impl FullSession {
             let new_position = current + delta;
             self.positions[symbol] = new_position;
             self.update_margin_cache_after_fill(bar, symbol, current, new_position);
-            self.orders[cursor].active = false;
-            self.orders[cursor].status = STATUS_FILLED;
             fee_total += fee;
             turnover += notional;
             sink.fill(
@@ -1861,8 +1929,10 @@ impl FullSession {
                 -1,
                 order.symbol as i64,
             );
-            self.activate_children(order.order_id, &mut sink);
+            let activated = self.activate_children(order.order_id, &mut sink);
             canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut sink);
+            self.release_order(handle);
+            self.matching_candidates.extend(activated);
             cursor += 1;
         }
 
@@ -1870,14 +1940,11 @@ impl FullSession {
         if maintenance_margin > 0.0 && self.equity <= maintenance_margin {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
-        self.compact_terminal_orders();
         if output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
-            for order in self
-                .orders
-                .iter()
-                .filter(|o| o.status == STATUS_PENDING && (o.active || o.waiting_parent))
-            {
-                buffers.active_orders.push(order);
+            for handle in self.lifecycle_indexes.live_priority_handles() {
+                if let Some(order) = self.orders.get(handle) {
+                    buffers.active_orders.push(order);
+                }
             }
         }
         counters.rejected_count = rejected;
@@ -1927,6 +1994,207 @@ impl FullSession {
             fill_count,
             event_count,
         })
+    }
+
+    /// Run a prepared static command tape without constructing Python objects.
+    /// Audit positions are written directly into one bar-major flat buffer;
+    /// score mode leaves all path/detail buffers empty by contract.
+    pub fn run_static_tape(
+        &mut self,
+        ptr: &[i64],
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+        audit: bool,
+    ) -> Result<StaticTapeOutput, String> {
+        let profile = if audit {
+            StaticOutputProfile::Audit
+        } else {
+            StaticOutputProfile::Score
+        };
+        self.run_static_profile(ptr, codes, values, expiry, command_count, profile)
+    }
+
+    /// Score entry point: retain only scalar terminal accounting.
+    pub fn run_static_score(
+        &mut self,
+        ptr: &[i64],
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+    ) -> Result<StaticTapeOutput, String> {
+        self.run_static_profile(
+            ptr,
+            codes,
+            values,
+            expiry,
+            command_count,
+            StaticOutputProfile::Score,
+        )
+    }
+
+    /// Compact entry point: retain dense accounting paths without detail rows.
+    pub fn run_static_compact(
+        &mut self,
+        ptr: &[i64],
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+    ) -> Result<StaticTapeOutput, String> {
+        self.run_static_profile(
+            ptr,
+            codes,
+            values,
+            expiry,
+            command_count,
+            StaticOutputProfile::Compact,
+        )
+    }
+
+    /// Audit entry point: retain dense accounting and typed fill/event columns.
+    pub fn run_static_audit(
+        &mut self,
+        ptr: &[i64],
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+    ) -> Result<StaticTapeOutput, String> {
+        self.run_static_profile(
+            ptr,
+            codes,
+            values,
+            expiry,
+            command_count,
+            StaticOutputProfile::Audit,
+        )
+    }
+
+    fn run_static_profile(
+        &mut self,
+        ptr: &[i64],
+        codes: &[i64],
+        values: &[f64],
+        expiry: &[i64],
+        command_count: usize,
+        profile: StaticOutputProfile,
+    ) -> Result<StaticTapeOutput, String> {
+        if ptr.len() != self.market.n_bars + 1
+            || ptr.first().copied().unwrap_or(-1) != 0
+            || ptr.last().copied().unwrap_or(-1) != command_count as i64
+            || ptr
+                .windows(2)
+                .any(|pair| pair[1] < pair[0] || pair[1] > command_count as i64)
+            || codes.len() != command_count * CODE_WIDTH
+            || values.len() != command_count * VALUE_WIDTH
+            || expiry.len() != command_count
+        {
+            return Err("invalid full command tape ABI 0.4 input".to_owned());
+        }
+        let n_bars = self.market.n_bars;
+        let n_symbols = self.market.n_symbols;
+        let retain_paths = profile.retains_paths();
+        let retain_detail = profile.retains_detail();
+        let path_capacity = if retain_paths { n_bars } else { 0 };
+        let mut output = StaticTapeOutput {
+            equity: Vec::with_capacity(path_capacity),
+            positions: Vec::with_capacity(path_capacity * n_symbols),
+            fees: Vec::with_capacity(path_capacity),
+            turnover: Vec::with_capacity(path_capacity),
+            funding: Vec::with_capacity(path_capacity),
+            initial_margin: Vec::with_capacity(path_capacity),
+            maintenance_margin: Vec::with_capacity(path_capacity),
+            final_equity: self.equity,
+            final_positions: self.positions.clone(),
+            liquidation_bar: -1,
+            liquidation_reason: LIQ_NONE,
+            ..StaticTapeOutput::default()
+        };
+        let mut step_buffers = StepBuffers::default();
+        for bar in 0..n_bars {
+            // Bar zero is the initial snapshot. Commands mapped there are
+            // intentionally outside the executable event tape, matching P0.
+            let (start, end) = if bar == 0 {
+                let after_bar_zero = ptr[1] as usize;
+                (after_bar_zero, after_bar_zero)
+            } else {
+                (ptr[bar] as usize, ptr[bar + 1] as usize)
+            };
+            let step = self.step_with_buffers(
+                bar,
+                &codes[start * CODE_WIDTH..end * CODE_WIDTH],
+                &values[start * VALUE_WIDTH..end * VALUE_WIDTH],
+                &expiry[start..end],
+                end - start,
+                if retain_detail {
+                    OUTPUT_FILLS | OUTPUT_EVENTS
+                } else {
+                    0
+                },
+                false,
+                &mut step_buffers,
+            )?;
+            if retain_paths {
+                output.equity.push(step.equity);
+                output.positions.extend_from_slice(&self.positions);
+                output.fees.push(step.fee);
+                output.turnover.push(step.turnover);
+                output.funding.push(step.funding);
+                output.initial_margin.push(step.initial_margin);
+                output.maintenance_margin.push(step.maintenance_margin);
+            }
+            output.final_equity = step.equity;
+            output.final_positions.clone_from(&self.positions);
+            output.total_fee += step.fee;
+            output.total_turnover += step.turnover;
+            output.total_funding += step.funding;
+            output.rejected_count += step.rejected_count;
+            output.canceled_count += step.canceled_count;
+            output.fill_count += step.fill_count;
+            output.event_count += step.event_count;
+            if retain_detail {
+                for index in 0..step_buffers.fills.order_id.len() {
+                    output.fill_bar.push(bar as i64);
+                    output
+                        .fill_order_id
+                        .push(step_buffers.fills.order_id[index]);
+                    output.fill_symbol.push(step_buffers.fills.symbol[index]);
+                    output.fill_side.push(step_buffers.fills.side[index]);
+                    output.fill_qty.push(step_buffers.fills.qty[index]);
+                    output.fill_price.push(step_buffers.fills.price[index]);
+                    output.fill_fee.push(step_buffers.fills.fee[index]);
+                    output.fill_reason.push(step_buffers.fills.reason[index]);
+                    output
+                        .fill_ambiguity
+                        .push(step_buffers.fills.ambiguity[index]);
+                }
+                for index in 0..step_buffers.events.kind.len() {
+                    output.event_bar.push(bar as i64);
+                    output.event_kind.push(step_buffers.events.kind[index]);
+                    output.event_status.push(step_buffers.events.status[index]);
+                    output
+                        .event_order_id
+                        .push(step_buffers.events.order_id[index]);
+                    output
+                        .event_target_id
+                        .push(step_buffers.events.target_id[index]);
+                    output.event_symbol.push(step_buffers.events.symbol[index]);
+                    output
+                        .event_reject_code
+                        .push(step_buffers.events.reject_code[index]);
+                }
+            }
+            output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
+            output.max_maintenance_margin =
+                output.max_maintenance_margin.max(step.maintenance_margin);
+            output.liquidated = step.liquidated;
+            output.liquidation_bar = step.liquidation_bar;
+            output.liquidation_reason = step.liquidation_reason;
+        }
+        Ok(output)
     }
 }
 
@@ -1981,7 +2249,47 @@ mod tests {
             waiting_parent: false,
             status: STATUS_PENDING,
             trigger_armed: false,
+            sequence: 0,
         }
+    }
+
+    fn multi_bar_session(n_bars: usize) -> FullSession {
+        let prices: Vec<f64> = (0..n_bars).map(|index| 100.0 + index as f64).collect();
+        let market = FullMarketData::new(
+            (0..n_bars as i64).collect(),
+            prices.clone(),
+            prices.iter().map(|price| price + 1.0).collect(),
+            prices.iter().map(|price| price - 1.0).collect(),
+            prices,
+            vec![1_000.0; n_bars],
+            vec![0.0; n_bars],
+            vec![false; n_bars],
+            1,
+        )
+        .unwrap();
+        FullSession::new(
+            Arc::new(market),
+            vec![1.0],
+            vec![5.0],
+            vec![0.0002],
+            10_000.0,
+            0.005,
+            0.0001,
+            false,
+        )
+        .unwrap()
+    }
+
+    fn place_market(order_id: i64, side: i64) -> ([i64; CODE_WIDTH], [f64; VALUE_WIDTH]) {
+        let mut code = [0_i64; CODE_WIDTH];
+        code[0] = ACTION_PLACE;
+        code[1] = 0;
+        code[2] = side;
+        code[3] = ORDER_MARKET;
+        code[4] = TIF_GTC;
+        code[6] = order_id;
+        code[11] = ACTIVATION_IMMEDIATE;
+        (code, [1.0, 0.0, 0.0])
     }
 
     #[test]
@@ -2046,5 +2354,95 @@ mod tests {
                 .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
                 .is_err()
         );
+    }
+
+    #[test]
+    fn arena_and_indexes_release_high_churn_orders_without_hot_compaction() {
+        let mut engine = multi_bar_session(96);
+        for bar in 0..96 {
+            let (codes, values) = place_market(
+                bar as i64 + 1,
+                if bar % 2 == 0 { SIDE_BUY } else { SIDE_SELL },
+            );
+            engine
+                .step_with_output(bar, &codes, &values, &[-1], 1, false)
+                .unwrap();
+            engine.validate_lifecycle_indexes().unwrap();
+        }
+        assert_eq!(engine.orders_len(), 0);
+        assert_eq!(engine.compaction_count, 0);
+        assert_eq!(engine.terminal_orders_removed, 96);
+        assert!(engine.orders_capacity() <= 4);
+        assert!(engine.matching_scan_count <= 96);
+    }
+
+    #[test]
+    fn parent_index_activates_child_and_releases_it_by_cancel() {
+        let mut engine = multi_bar_session(3);
+        let (parent_code, parent_values) = place_market(1, SIDE_BUY);
+        let mut child_code = [0_i64; CODE_WIDTH];
+        child_code[0] = ACTION_PLACE;
+        child_code[1] = 0;
+        child_code[2] = SIDE_SELL;
+        child_code[3] = ORDER_LIMIT;
+        child_code[4] = TIF_GTC;
+        child_code[6] = 2;
+        child_code[8] = 1;
+        child_code[10] = 17;
+        child_code[11] = ACTIVATION_ON_PARENT_FIRST_FILL;
+        let mut codes = Vec::from(parent_code);
+        codes.extend_from_slice(&child_code);
+        let mut values = Vec::from(parent_values);
+        values.extend_from_slice(&[1.0, 10_000.0, 0.0]);
+        engine
+            .step_with_output(0, &codes, &values, &[-1, -1], 2, false)
+            .unwrap();
+        engine.validate_lifecycle_indexes().unwrap();
+        assert_eq!(engine.orders_len(), 1);
+        assert_eq!(engine.terminal_active_order_rows().len(), 1);
+
+        let mut cancel_code = [0_i64; CODE_WIDTH];
+        cancel_code[0] = ACTION_CANCEL;
+        cancel_code[1] = 0;
+        cancel_code[7] = 2;
+        engine
+            .step_with_output(1, &cancel_code, &[0.0; VALUE_WIDTH], &[-1], 1, false)
+            .unwrap();
+        engine.validate_lifecycle_indexes().unwrap();
+        assert_eq!(engine.orders_len(), 0);
+    }
+
+    #[test]
+    fn static_tape_audit_positions_are_flat_bar_major_columns() {
+        let mut engine = multi_bar_session(2);
+        let (codes, values) = place_market(1, SIDE_BUY);
+        let output = engine
+            .run_static_tape(&[0, 0, 1], &codes, &values, &[-1], 1, true)
+            .unwrap();
+        assert_eq!(output.equity.len(), 2);
+        assert_eq!(output.positions.len(), 2);
+        assert_eq!(output.positions[0], 0.0);
+        assert_eq!(output.positions[1], 1.0);
+        assert_eq!(output.fill_count, 1);
+    }
+
+    #[test]
+    fn static_tape_compact_keeps_paths_but_not_detail_rows() {
+        let mut compact_engine = multi_bar_session(2);
+        let mut audit_engine = multi_bar_session(2);
+        let (codes, values) = place_market(1, SIDE_BUY);
+        let compact = compact_engine
+            .run_static_compact(&[0, 0, 1], &codes, &values, &[-1], 1)
+            .unwrap();
+        let audit = audit_engine
+            .run_static_audit(&[0, 0, 1], &codes, &values, &[-1], 1)
+            .unwrap();
+        assert_eq!(compact.equity, audit.equity);
+        assert_eq!(compact.positions, audit.positions);
+        assert_eq!(compact.final_equity, audit.final_equity);
+        assert!(compact.fill_bar.is_empty());
+        assert!(compact.event_bar.is_empty());
+        assert_eq!(compact.fill_count, audit.fill_count);
+        assert_eq!(compact.event_count, audit.event_count);
     }
 }

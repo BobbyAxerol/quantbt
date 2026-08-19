@@ -346,7 +346,10 @@ def test_one_bar_and_empty_tape_boundaries_are_deterministic() -> None:
     ("backend", "expected"),
     [
         ("python", (4, 4, 1)),
-        ("rust", (3, 4, 1)),
+        # Phase 53A's Rust arena indexes count only handles actually visited:
+        # no GTD order is due, one market order is matched, and no parent/OCO
+        # relationship is traversed. Accounting/output parity is checked above.
+        ("rust", (0, 1, 0)),
     ],
 )
 def test_engine_diagnostics_have_exact_tiny_fixture_scan_counts(backend: str, expected) -> None:
