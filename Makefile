@@ -13,6 +13,7 @@ NATIVE_DIST ?= dist/native
 	test-binding test-installed test-all fuzz-smoke bench-smoke bench-native \
 	bench-facade bench-release build-core-wheel build-native-wheel stage-wheels \
 	verify-wheels verify-staged-wheels supply-chain-report sbom release-manifest benchmark-governance \
+	release-manifest-staged \
 	docs-check
 
 docs-check:
@@ -87,6 +88,9 @@ sbom:
 
 release-manifest: supply-chain-report sbom
 	$(PYTHON) tools/create_release_manifest.py --dist $(CORE_DIST) --output release-manifest.json --supply-chain-report release-evidence/supply-chain.json --sbom release-evidence/sbom.cdx.json --require-clean
+
+release-manifest-staged: stage-wheels supply-chain-report sbom
+	$(PYTHON) tools/create_release_manifest.py --dist dist/staged --output release-manifest-staged.json --supply-chain-report release-evidence/supply-chain.json --sbom release-evidence/sbom.cdx.json --require-clean
 
 bench-release: bench-smoke
 

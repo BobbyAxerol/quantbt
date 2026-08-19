@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 import hashlib
 import json
 import os
@@ -74,15 +75,45 @@ def _normalized_distribution(name: str) -> str:
     return re.sub(r"[-_.]+", "_", name).lower()
 
 
-def _artifact_kind(path: Path, metadata: dict) -> str:
-    normalized = _normalized_distribution(metadata["distribution"])
-    version = metadata["version"]
-    if path.suffix == ".whl" and path.name.startswith(f"{normalized}-{version}-"):
-        return "wheel"
-    if path.name == f"{normalized}-{version}.tar.gz":
-        return "sdist"
+def _product_distributions() -> tuple[dict, dict]:
+    """Return the release core and its declared staged native companion.
+
+    The core package metadata remains the public-release authority.  The
+    product registry supplies the native companion because it is a separately
+    versioned distribution, even while its ``published`` flag is false.
+    Keeping this lookup here prevents a combined local evidence bundle from
+    silently accepting a wheel that is not in the exact product pair.
+    """
+
+    core = _project_metadata()
+    product = json.loads(PRODUCT_REGISTRY.read_text(encoding="utf-8"))
+    versions = product["versions"]
+    declared_core = versions["core_package"]
+    native = versions["native_package"]
+    if (
+        core["distribution"] != str(declared_core["distribution"])
+        or core["version"] != str(declared_core["version"])
+        or core["python_requires"] != str(declared_core["python_requires"])
+    ):
+        raise RuntimeError("core package metadata differs from the product registry")
+    return core, {
+        "distribution": str(native["distribution"]),
+        "version": str(native["version"]),
+        "published": bool(native.get("published", False)),
+        "release_policy": str(native.get("release_policy", "unspecified")),
+    }
+
+
+def _artifact_kind(path: Path, distributions: tuple[dict, ...]) -> tuple[str, dict]:
+    for metadata in distributions:
+        normalized = _normalized_distribution(str(metadata["distribution"]))
+        version = str(metadata["version"])
+        if path.suffix == ".whl" and path.name.startswith(f"{normalized}-{version}-"):
+            return "wheel", metadata
+        if path.name == f"{normalized}-{version}.tar.gz":
+            return "sdist", metadata
     raise RuntimeError(
-        "artifact name does not match the current distribution/version: "
+        "artifact name does not match a declared product distribution/version: "
         f"{path.name}"
     )
 
@@ -94,27 +125,34 @@ def build_manifest(
     supply_chain_report: Path | None = None,
     sbom: Path | None = None,
 ) -> dict:
-    metadata = _project_metadata()
+    metadata, native_metadata = _product_distributions()
+    distributions = (metadata, native_metadata)
     status = _run_git("status", "--porcelain")
     if require_clean and status:
         raise RuntimeError("release manifest requires a clean Git worktree")
 
     artifacts = []
+    kinds_by_distribution: dict[str, set[str]] = defaultdict(set)
     for path in sorted((*dist.glob("*.whl"), *dist.glob("*.tar.gz"))):
-        kind = _artifact_kind(path, metadata)
+        kind, artifact_metadata = _artifact_kind(path, distributions)
+        distribution = str(artifact_metadata["distribution"])
+        kinds_by_distribution[distribution].add(kind)
         artifacts.append(
             {
                 "name": path.name,
                 "kind": kind,
+                "distribution": distribution,
+                "version": str(artifact_metadata["version"]),
                 "bytes": path.stat().st_size,
                 "sha256": _sha256(path),
             }
         )
     if not artifacts:
         raise RuntimeError(f"no release artifacts found in {dist}")
-    kinds = {item["kind"] for item in artifacts}
-    if not {"wheel", "sdist"}.issubset(kinds):
-        raise RuntimeError("release manifest requires both a wheel and an sdist")
+    if not {"wheel", "sdist"}.issubset(kinds_by_distribution[metadata["distribution"]]):
+        raise RuntimeError("release manifest requires both a core wheel and a core sdist")
+    if native_metadata["distribution"] in kinds_by_distribution and "wheel" not in kinds_by_distribution[native_metadata["distribution"]]:
+        raise RuntimeError("a staged native artifact set requires at least one native wheel")
 
     supply_chain_evidence = None
     if supply_chain_report is not None:
@@ -172,6 +210,23 @@ def build_manifest(
             "product_registry_fingerprint": _canonical_json_fingerprint(PRODUCT_REGISTRY),
             "lifecycle_registry": str(LIFECYCLE_REGISTRY.relative_to(PROJECT_ROOT)),
             "lifecycle_registry_fingerprint": _canonical_json_fingerprint(LIFECYCLE_REGISTRY),
+            "declared_core_native_pair": {
+                "core_distribution": metadata["distribution"],
+                "core_version": metadata["version"],
+                "native_distribution": native_metadata["distribution"],
+                "native_version": native_metadata["version"],
+                "native_published": native_metadata["published"],
+                "native_release_policy": native_metadata["release_policy"],
+            },
+        },
+        "artifact_sets": {
+            distribution: {
+                "version": str(next(item["version"] for item in distributions if item["distribution"] == distribution)),
+                "kinds": sorted(kinds),
+                "artifact_count": sum(1 for item in artifacts if item["distribution"] == distribution),
+                "published": bool(next(item.get("published", True) for item in distributions if item["distribution"] == distribution)),
+            }
+            for distribution, kinds in sorted(kinds_by_distribution.items())
         },
         "artifacts": artifacts,
         "benchmark_evidence": benchmark_files,

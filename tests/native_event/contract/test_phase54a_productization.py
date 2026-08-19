@@ -177,6 +177,10 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
         pass
     with tarfile.open(dist / "quantbt_engine-1.0.8.tar.gz", "w:gz"):
         pass
+    with zipfile.ZipFile(
+        dist / "quantbt_native-0.4.0-cp312-cp312-manylinux_2_17_x86_64.whl", "w"
+    ):
+        pass
     supply = tmp_path / "supply-chain.json"
     supply.write_text(json.dumps(build_supply_chain_report()), encoding="utf-8")
     sbom = tmp_path / "sbom.cdx.json"
@@ -196,6 +200,24 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
         "bom_format": "CycloneDX",
         "spec_version": "1.5",
     }
+    assert manifest["artifact_sets"]["quantbt-engine"] == {
+        "version": "1.0.8",
+        "kinds": ["sdist", "wheel"],
+        "artifact_count": 2,
+        "published": True,
+    }
+    assert manifest["artifact_sets"]["quantbt-native"] == {
+        "version": "0.4.0",
+        "kinds": ["wheel"],
+        "artifact_count": 1,
+        "published": False,
+    }
+
+    (dist / "quantbt_native-0.4.1-cp312-cp312-manylinux_2_17_x86_64.whl").write_bytes(
+        b"wrong native version"
+    )
+    with pytest.raises(RuntimeError, match="does not match a declared product"):
+        build_manifest(dist, supply_chain_report=supply, sbom=sbom)
 
 
 def test_p3_workflows_execute_generated_and_staged_wheel_gates() -> None:

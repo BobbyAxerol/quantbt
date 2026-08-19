@@ -12660,7 +12660,8 @@ Implemented:
   inventory, documentation map, generated capability table, native install and
   troubleshooting documentation, and a stable Makefile command surface.
 - Added core/native wheel source-hash verification, native artifact allowlist,
-  exact staged-pair verification, release manifest binding, CycloneDX SBOM,
+  exact staged-pair verification, a release manifest that distinguishes core
+  artifacts from an optional exact staged-native companion, CycloneDX SBOM,
   supply-chain/unsafe inventory/provenance evidence, scheduled `cargo audit`,
   PR/main/release source gates, and a non-promoting nightly E0/E3/E6 evidence
   workflow.

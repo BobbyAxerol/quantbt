@@ -41,6 +41,19 @@ The staged verifier creates clean environments, checks source-to-wheel module
 hashes, rejects source-tree import leakage, and requires an exact pair declared
 by the generated product registry.
 
+For a local evidence bundle containing both the public core artifacts and the
+unpublished staged native wheel, run:
+
+```bash
+make release-manifest-staged
+```
+
+The manifest records each distribution separately and accepts a native wheel
+only when its exact version matches the product registry's declared companion.
+This is local evidence only: the normal TestPyPI/PyPI workflows intentionally
+build and publish `quantbt-engine` alone until the native release gate is
+separately promoted.
+
 ## Package Contract
 
 - PyPI distribution: `quantbt-engine`.
