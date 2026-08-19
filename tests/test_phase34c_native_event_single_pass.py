@@ -90,7 +90,7 @@ def test_single_pass_minimal_skips_static_replay_but_matches_replay_certified_ac
     assert single.metadata["emitted_command_tape"] == ()
 
 
-def test_single_pass_audit_uses_replay_oracle_and_keeps_fill_bar_ledger():
+def test_single_pass_audit_uses_primary_trace_and_keeps_fill_bar_ledger():
     df = _bars()
     result = QuantBTEndpoint.native_event_strategy(
         initial_capital=10_000,
@@ -103,13 +103,14 @@ def test_single_pass_audit_uses_replay_oracle_and_keeps_fill_bar_ledger():
     ).simulate(data=df, strategy=EnterExitStrategy(entry_bar=0, exit_bar=6), symbols=["BTC"])
 
     ledger = result.metadata["compact_fill_ledger"]
-    assert result.metadata["single_pass_replay_certified"] is True
-    assert result.metadata["static_replay_available"] is True
-    assert result.metadata["reactive_static_replay_count"] == 1
+    assert result.metadata["single_pass_replay_certified"] is False
+    assert result.metadata["static_replay_available"] is False
+    assert result.metadata["reactive_static_replay_count"] == 0
+    assert result.metadata["audit_mode"] == "native_trace"
+    assert result.metadata["primary_engine_runs"] == 1
+    assert result.metadata["oracle_engine_runs"] == 0
     assert result.metadata["command_report"].shape[0] == 2
     assert tuple(ledger.bar.tolist()) == (1, 7)
-    assert result.metadata["reactive_audit"]["final_equity_diff"] == 0.0
-    assert result.metadata["reactive_audit"]["final_position_diff"]["BTC"] == 0.0
 
 
 def test_prepared_native_event_score_uses_single_pass_and_keeps_public_run_parity():

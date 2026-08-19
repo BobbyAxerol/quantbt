@@ -33,6 +33,7 @@ MIRROR_ENTRIES = (
     "preparation",
     "engine_spi",
     "results",
+    "strategies",
     "reporting",
     "sizing",
     "viz",

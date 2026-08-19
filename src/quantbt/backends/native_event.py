@@ -129,6 +129,7 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
+from ..strategies import PreparedStrategyAdapter, resolve_strategy_requirements
 from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
@@ -293,25 +294,18 @@ class NativeEventScoreRequirements:
     ) -> "NativeEventScoreRequirements":
         """Apply an optional strategy context declaration to a base contract."""
         requirements = base or cls.scalar_score_contract()
-        declaration = getattr(strategy, "native_context_requirements", None)
-        if declaration is None:
-            return requirements
-        if not isinstance(declaration, Mapping):
-            raise TypeError("native_context_requirements must be a mapping")
-        aliases = {
-            "fills": "need_context_fills",
-            "events": "need_context_events",
-            "active_orders": "need_context_active_orders",
-            "positions": "need_context_positions",
-            "margin": "need_context_margin",
-        }
-        valid = set(aliases) | set(aliases.values())
-        updates = {}
-        for key, value in declaration.items():
-            if key not in valid:
-                raise ValueError(f"unsupported native context requirement: {key!r}")
-            updates[aliases.get(key, key)] = bool(value)
-        return replace(requirements, **updates)
+        declaration = resolve_strategy_requirements(strategy)
+        return replace(
+            requirements,
+            need_context_fills=declaration.fills != "none",
+            need_context_events=declaration.events != "none",
+            need_context_active_orders=declaration.active_orders != "none",
+            need_context_positions=bool(declaration.positions),
+            need_context_margin=bool(
+                {"initial_margin", "maintenance_margin", "available_equity"}
+                & set(declaration.account)
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -871,6 +865,7 @@ class _NativeEventReactiveSession:
         self.members_by_oco_group: Dict[str, List[_ReactiveOrderState]] = {}
         self.expiry_by_bar: Dict[int, List[_ReactiveOrderState]] = {}
         self.processed_bar = -1
+        self.generation = 0
         self.last_initial_margin = 0.0
         self.last_maintenance_margin = 0.0
         self.margin_bar = -1
@@ -2327,9 +2322,8 @@ class NativeEventBackend:
         Run a reactive strategy against native-event v2 lifecycle semantics.
 
         Strategy callbacks observe post-bar engine state and may emit commands
-        for the next bar. The emitted tape is replayed once at the end through
-        `run_order_commands`, making the final result reproducible by static
-        lifecycle replay.
+        for the next bar. ``replay_certified`` remains the explicit oracle
+        mode; ordinary single-pass runs report from their primary engine.
         """
         if strategy is None:
             raise ValueError("run_strategy requires a strategy object")
@@ -2437,6 +2431,7 @@ class NativeEventBackend:
         constraints_enabled = bool(getattr(session, "constraints_enabled", constraints.enabled))
         if getattr(session, "online_score", None) is not None:
             session.online_score.trading_days = int(_trading_days)
+        strategy_adapter = PreparedStrategyAdapter.prepare(strategy)
 
         # Keep execution and audit tape distinct: next-bar semantics prohibit
         # executing a final-close command, while audit still needs to preserve
@@ -2464,8 +2459,16 @@ class NativeEventBackend:
             if not _return_score:
                 emitted_audit_tape.extend(commands)
 
-        initial_context = session.context(0)
-        last_context = initial_context
+        session.process_bar(0)
+
+        def expand_scoped(commands: Sequence[OrderCommand], bar: int) -> tuple[OrderCommand, ...]:
+            rows = tuple(commands or ())
+            if not any(
+                command.action is OrderAction.CANCEL_ALL and self._has_string_cancel_scope(command)
+                for command in rows
+            ):
+                return rows
+            return self._expand_scoped_cancel_all_commands(rows, session.context(int(bar)))
 
         def quantize_reactive_schedule(commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
             if not commands:
@@ -2512,10 +2515,7 @@ class NativeEventBackend:
                 session.schedule(effective_bar, quantize_reactive_schedule(scheduled))
             return scheduled, ignored
 
-        initial_commands = self._expand_scoped_cancel_all_commands(
-            self._call_strategy_callback(strategy, "initialize", initial_context),
-            initial_context,
-        )
+        initial_commands = expand_scoped(strategy_adapter.call(session, "initialize", 0), 0)
         scheduled, ignored = schedule_reactive_batch(initial_commands, 1)
         ignored_commands_after_end += ignored
         if ignored:
@@ -2528,16 +2528,13 @@ class NativeEventBackend:
             )
 
         for bar in range(len(idx)):
-            context = session.context(bar)
-            last_context = context
-            callback_count += 1
-            if context.liquidated:
+            session.process_bar(bar)
+            if session.liquidated:
                 session.release_bar_payload(bar)
                 break
-            commands = self._expand_scoped_cancel_all_commands(
-                self._call_strategy_callback(strategy, "on_bar_close", context),
-                context,
-            )
+            before_callbacks = strategy_adapter.callback_count
+            commands = expand_scoped(strategy_adapter.call(session, "on_bar_close", bar), bar)
+            callback_count += strategy_adapter.callback_count - before_callbacks
             session.release_bar_payload(bar)
             scheduled, ignored = schedule_reactive_batch(commands, bar + 1)
             ignored_commands_after_end += ignored
@@ -2550,11 +2547,9 @@ class NativeEventBackend:
                     )
                 )
 
-        if last_context is not None and not last_context.liquidated:
-            final_commands = self._expand_scoped_cancel_all_commands(
-                self._call_strategy_callback(strategy, "finalize", last_context),
-                last_context,
-            )
+        last_bar = max(0, min(len(idx) - 1, int(session.processed_bar)))
+        if not session.liquidated:
+            final_commands = expand_scoped(strategy_adapter.call(session, "finalize", last_bar), last_bar)
             if final_commands:
                 if execution_counters:
                     execution_counters["bars_with_commands"] += 1
@@ -2578,7 +2573,7 @@ class NativeEventBackend:
                     )
                 )
 
-        replay_required = kernel_mode == "replay_certified" or level in {"standard", "audit"} or execution_mode == "audit"
+        replay_required = kernel_mode == "replay_certified"
         if _return_score:
             return self._reactive_session_score_result(
                 session=session,
@@ -2606,6 +2601,7 @@ class NativeEventBackend:
                     "reactive_session_liquidated": bool(session.liquidated),
                     "reactive_session_liquidation_bar": int(session.liquidation_bar),
                     "execution_counters": dict(getattr(session, "execution_counters", {})),
+                    "strategy_boundary": strategy_adapter.diagnostics,
                     **self._backend_selection_metadata(),
                 },
             )
@@ -2656,6 +2652,7 @@ class NativeEventBackend:
                 report_level=level,
                 plan=plan,
                 replay_result=replay_result,
+                primary_commands=tuple(emitted_audit_tape),
                 audit_sink=audit_sink,
                 audit_sink_path=audit_sink_path,
             )
@@ -2681,6 +2678,10 @@ class NativeEventBackend:
                 "reactive_incremental_compile_replays": 0,
                 "reactive_session_liquidated": bool(session.liquidated),
                 "reactive_session_liquidation_bar": int(session.liquidation_bar),
+                "strategy_boundary": strategy_adapter.diagnostics,
+                "audit_mode": "verify_against_oracle" if replay_required else "native_trace",
+                "primary_engine_runs": 1,
+                "oracle_engine_runs": int(replay_required),
             }
         )
         if backend_selection.resolved == "rust":
@@ -2691,9 +2692,9 @@ class NativeEventBackend:
                 symbol: float(replay_result.positions[f"Position_{symbol}"].iloc[-1])
                 for symbol in symbol_list
             }
-            session_last_pos = {symbol: float(last_context.positions[symbol]) for symbol in symbol_list}
+            session_last_pos = {symbol: float(session.current_pos[col]) for col, symbol in enumerate(symbol_list)}
             final_result.metadata["reactive_audit"] = {
-                "final_equity_diff": float(abs(float(replay_result.equity.iloc[-1]) - float(last_context.equity))),
+                "final_equity_diff": float(abs(float(replay_result.equity.iloc[-1]) - float(session.equity))),
                 "final_position_diff": {
                     symbol: float(abs(replay_last_pos.get(symbol, 0.0) - session_last_pos.get(symbol, 0.0)))
                     for symbol in symbol_list
@@ -3392,6 +3393,7 @@ class NativeEventBackend:
         report_level: str,
         plan: NativeEventArtifactPlan,
         replay_result: Optional[BacktestResultV2],
+        primary_commands: Sequence[OrderCommand],
         audit_sink: Optional[str],
         audit_sink_path: Optional[str],
     ) -> BacktestResultV2:
@@ -3452,6 +3454,12 @@ class NativeEventBackend:
             compact_order_event_ledger = replay_result.metadata.get("compact_order_event_ledger")
             audit_artifacts = replay_result.metadata.get("audit_artifacts", {})
             quantity_preflight = replay_result.metadata.get("quantity_preflight", quantity_preflight)
+        elif report_level in {"standard", "audit"}:
+            command_report, order_events, active_orders = self._native_reactive_reports(
+                session=session,
+                commands=primary_commands,
+                include_events=report_level == "audit",
+            )
 
         metadata = {
             "backend": "native_event",
@@ -3499,6 +3507,91 @@ class NativeEventBackend:
             diagnostics=diagnostics,
             metadata=metadata,
         )
+
+    @staticmethod
+    def _native_reactive_reports(
+        *,
+        session,
+        commands: Sequence[OrderCommand],
+        include_events: bool,
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """Build public tables from the primary reactive lifecycle trace."""
+
+        fills_by_id = {fill.order_id: fill for fill in session.fills if fill.order_id is not None}
+        latest_event = {}
+        for event in session.events:
+            key = event.order_id or event.target_order_id
+            if key is not None:
+                latest_event[key] = event
+        active = {snapshot.order_id: snapshot for snapshot in getattr(session, "_active_snapshot_cache", ())}
+        rows = []
+        for original_index, command in enumerate(commands):
+            fill = fills_by_id.get(command.order_id)
+            event = latest_event.get(command.order_id or command.target_order_id)
+            snapshot = active.get(command.order_id)
+            status = (
+                ORDER_STATUS_FILLED if fill is not None else
+                int(event.status) if event is not None else
+                ORDER_STATUS_PENDING if snapshot is not None else
+                0
+            )
+            rows.append(
+                {
+                    "original_index": int(original_index),
+                    "sorted_index": int(original_index),
+                    "timestamp": command.timestamp,
+                    "action": command.action.value,
+                    "symbol": command.symbol,
+                    "side": None if command.side is None else command.side.value,
+                    "order_type": None if command.order_type is None else command.order_type.value,
+                    "order_id": command.order_id,
+                    "target_order_id": command.target_order_id,
+                    "parent_order_id": command.parent_order_id,
+                    "group_id": command.group_id,
+                    "oco_group_id": command.oco_group_id,
+                    "status": int(status),
+                    "reject_code": int((event.metadata or {}).get("reject_code", 0)) if event is not None else 0,
+                    "fill_bar": -1 if fill is None else int(session.idx.searchsorted(fill.timestamp)),
+                    "fill_qty": 0.0 if fill is None else float(fill.qty),
+                    "fill_price": 0.0 if fill is None else float(fill.price),
+                    "fill_fee": 0.0 if fill is None else float(fill.fee),
+                    "active": snapshot is not None,
+                    "reduce_only": bool(command.reduce_only),
+                    "tag": command.tag,
+                }
+            )
+        command_report = pd.DataFrame(rows)
+        if include_events:
+            event_rows = [
+                {
+                    "timestamp": event.timestamp,
+                    "bar": int(event.bar),
+                    "event_name": event.event_name,
+                    "status": int(event.status),
+                    "order_id": event.order_id,
+                    "target_order_id": event.target_order_id,
+                    "reject_code": int((event.metadata or {}).get("reject_code", 0)),
+                }
+                for event in session.events
+            ]
+            order_events = pd.DataFrame(event_rows)
+        else:
+            order_events = pd.DataFrame()
+        active_rows = [
+            {
+                "order_id": snapshot.order_id,
+                "symbol": snapshot.symbol,
+                "side": snapshot.side,
+                "order_type": snapshot.order_type,
+                "status": int(snapshot.status),
+                "remaining_qty": float(snapshot.remaining_qty),
+                "price": float(snapshot.price),
+                "trigger_price": float(snapshot.trigger_price),
+                "reduce_only": bool(snapshot.reduce_only),
+            }
+            for snapshot in getattr(session, "_active_snapshot_cache", ())
+        ]
+        return command_report, order_events, pd.DataFrame(active_rows)
 
     @staticmethod
     def _fills_from_reactive_session(session: _NativeEventReactiveSession) -> tuple[Fill, ...]:

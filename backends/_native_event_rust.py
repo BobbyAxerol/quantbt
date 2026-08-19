@@ -1756,6 +1756,7 @@ class RustReactiveSessionAdapter:
         self.last_initial_margin = 0.0
         self.last_maintenance_margin = 0.0
         self.processed_bar = -1
+        self.generation = 0
         n_bars = len(idx)
         self.equity_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
         self.pos_path = None if self.scalar_score else np.zeros((n_bars, len(self.symbols)), dtype=np.float64)
