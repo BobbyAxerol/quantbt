@@ -132,6 +132,13 @@ from ..core.schema import (
 )
 from ..strategies import PreparedStrategyAdapter, resolve_strategy_requirements
 from ..preparation.cache import CachePolicy, PreparedObjectCache
+from ..planning import (
+    BacktestRequest,
+    RunProfile,
+    StrategyMode,
+    WorkloadClass,
+    resolve_execution_plan,
+)
 from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
@@ -2412,6 +2419,38 @@ class NativeEventBackend:
         else:
             score_requirements = None
 
+        strategy_prepare_started_ns = perf_counter_ns()
+        strategy_adapter = PreparedStrategyAdapter.prepare(strategy)
+        strategy_prepare_ns = perf_counter_ns() - strategy_prepare_started_ns
+        planning_started_ns = perf_counter_ns()
+        planned_symbols = tuple(symbols or tuple(closes.keys()))
+        execution_plan = resolve_execution_plan(
+            BacktestRequest(
+                endpoint_mode="native_event_strategy",
+                input_mode="strategy",
+                requested_backend=backend_selection.requested,
+                execution_contract_id=get_event_clock_contract(self.config.execution_contract).contract_id,
+                strategy_mode=StrategyMode.PYTHON_CALLBACK_COMPAT,
+                workload=WorkloadClass.PYTHON_CALLBACK,
+                profile=RunProfile(level),
+                report_level=level,
+                audit_sink=self.config.audit_sink if audit_sink is None else str(audit_sink),
+                symbols=planned_symbols,
+                trace_requested=level == "audit",
+                public_result=not _return_score,
+                declared_strategy_requirements=bool(
+                    hasattr(strategy, "quantbt_requirements")
+                    or hasattr(strategy, "native_context_requirements")
+                ),
+                required_capabilities=("native_event_v2_full_contract",),
+                metadata=(
+                    ("context_mode", strategy_adapter.requirements.context_mode),
+                    ("strategy_id", strategy_adapter.strategy_id),
+                ),
+            )
+        )
+        planning_ns = perf_counter_ns() - planning_started_ns
+
         market_prepare_started_ns = perf_counter_ns()
         idx = validate_datetime(datetime_index)
         if len(idx) == 0:
@@ -2497,9 +2536,6 @@ class NativeEventBackend:
         if getattr(session, "online_score", None) is not None:
             session.online_score.trading_days = int(_trading_days)
         engine_prepare_ns = perf_counter_ns() - engine_prepare_started_ns
-        strategy_prepare_started_ns = perf_counter_ns()
-        strategy_adapter = PreparedStrategyAdapter.prepare(strategy)
-        strategy_prepare_ns = perf_counter_ns() - strategy_prepare_started_ns
         engine_run_started_ns = perf_counter_ns()
 
         # Keep execution and audit tape distinct: next-bar semantics prohibit
@@ -2659,7 +2695,7 @@ class NativeEventBackend:
             "result_adapt_ns": 0,
             "report_build_ns": 0,
             "oracle_verify_ns": 0,
-            "planning_ns": 0,
+            "planning_ns": int(planning_ns),
             "total_ns": int(perf_counter_ns() - run_started_ns),
         }
         if _return_score:
@@ -2691,6 +2727,8 @@ class NativeEventBackend:
                     "execution_counters": dict(getattr(session, "execution_counters", {})),
                     "strategy_boundary": strategy_adapter.diagnostics,
                     "observability": observability,
+                    "execution_plan_fingerprint": execution_plan.plan_fingerprint,
+                    "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
                     **self._backend_selection_metadata(),
                 },
             )
@@ -2777,6 +2815,8 @@ class NativeEventBackend:
                 "authoritative_mutable_state_count": 1,
                 "python_shadow_accounting": False,
                 "observability": observability,
+                "execution_plan_fingerprint": execution_plan.plan_fingerprint,
+                "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
             }
         )
         observability["oracle_verify_ns"] = int(oracle_verify_ns)
