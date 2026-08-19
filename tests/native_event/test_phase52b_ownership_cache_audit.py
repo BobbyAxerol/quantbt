@@ -83,6 +83,30 @@ def test_rust_is_single_authoritative_state_and_matches_python_primary_trace():
     assert counters["callback_projection_bytes"] > 0
 
 
+def test_rust_numeric_minimal_uses_primitive_writer_without_order_objects():
+    python = _prepared("python").run(NumericRoundTrip(), report_level="minimal")
+    rust = _prepared("rust").run(NumericRoundTrip(), report_level="minimal")
+
+    np.testing.assert_allclose(rust.equity, python.equity, rtol=0.0, atol=1e-9)
+    np.testing.assert_allclose(rust.positions, python.positions, rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(rust.fees, python.fees, rtol=0.0, atol=1e-12)
+    boundary = rust.metadata["strategy_boundary"]
+    counters = rust.metadata["execution_counters"]
+    assert boundary["writer_command_rows"] == 2
+    assert boundary["writer_materialized_command_objects"] == 0
+    assert counters["primitive_command_batches"] == 2
+    assert counters["primitive_command_rows"] == 2
+    assert counters["writer_python_command_objects"] == 0
+
+
+def test_rust_numeric_standard_materializes_only_the_requested_public_report():
+    result = _prepared("rust").run(NumericRoundTrip(), report_level="standard")
+
+    assert len(result.metadata["command_report"]) == 2
+    assert result.metadata["strategy_boundary"]["writer_materialized_command_objects"] == 2
+    assert result.metadata["execution_counters"]["primitive_command_rows"] == 2
+
+
 def test_rust_adapter_source_has_no_python_account_or_order_shadow_assignment():
     source = inspect.getsource(RustReactiveSessionAdapter)
     forbidden = (
@@ -144,6 +168,18 @@ def test_prepared_market_cache_is_bounded_content_addressed_and_reused():
     assert cache.put(("b",), object(), size_bytes=8)
     assert cache.diagnostics["entry_count"] == 1
     assert cache.diagnostics["eviction_count"] == 1
+
+
+def test_prepared_cache_pin_prevents_eviction_until_release():
+    cache = PreparedObjectCache(CachePolicy(max_bytes=8, max_entries=1))
+    first = object()
+    assert cache.put(("first",), first, size_bytes=8)
+    assert cache.get(("first",), pin=True) is first
+    assert cache.put(("second",), object(), size_bytes=8) is False
+    assert cache.diagnostics["pinned_entries"] == 1
+    cache.release(("first",))
+    assert cache.put(("second",), object(), size_bytes=8)
+    assert cache.diagnostics["entry_count"] == 1
 
 
 def test_oracle_verifier_is_explicit_and_never_replaces_primary_result(monkeypatch):

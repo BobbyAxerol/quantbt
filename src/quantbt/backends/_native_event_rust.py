@@ -29,8 +29,9 @@ from ..core.native_event_capabilities import (
     normalize_native_event_capabilities,
     validate_native_event_semantic_descriptor,
 )
-from ..errors import EngineErrorContext, NativeProtocolError
+from ..errors import CommandValidationError, EngineErrorContext, NativeProtocolError
 from ..preparation.cache import ResetScope
+from ..strategies.commands import CommandBatchView
 
 
 RUST_NATIVE_API_VERSION = "0.4"
@@ -73,6 +74,16 @@ def _step_has(payload, key: str) -> bool:
 
 class NativeEventRustBackendError(NativeProtocolError):
     """Raised when an explicitly requested Rust backend cannot be used."""
+
+
+@dataclass(slots=True)
+class _ScheduledPrimitiveBatch:
+    """Owned primitive callback batch awaiting its effective market bar."""
+
+    codes: np.ndarray
+    values: np.ndarray
+    expiry: np.ndarray
+    command_count: int
 
 
 @dataclass(frozen=True)
@@ -1757,8 +1768,13 @@ class RustReactiveSessionAdapter:
             "result_bytes_copied": 0,
             "position_delta_rows": 0,
             "order_delta_rows": 0,
+            "primitive_command_batches": 0,
+            "primitive_command_rows": 0,
+            "writer_python_command_objects": 0,
         }
         self.scheduled: dict[int, list[OrderCommand]] = {}
+        self._scheduled_primitive: dict[int, list[_ScheduledPrimitiveBatch]] = {}
+        self._writer_order_handles: set[int] = set()
         self.fills: list[NativeFillEvent] = []
         self.events: list[NativeOrderEvent] = []
         self.fills_by_bar: dict[int, list[NativeFillEvent]] = {}
@@ -2015,6 +2031,116 @@ class RustReactiveSessionAdapter:
         if commands and int(bar) < len(self.idx):
             self.scheduled.setdefault(int(bar), []).extend(commands)
 
+    def schedule_command_batch(self, bar: int, batch: CommandBatchView) -> dict[str, int]:
+        """Compile a numeric writer batch without allocating ``OrderCommand``.
+
+        The arrays become session-owned because the strategy writer is reused
+        on the next callback. Quantity filters execute at the same effective
+        bar as the compatibility command path.
+        """
+
+        if not self._full_contract:
+            raise NativeEventRustBackendError(
+                "numeric command batches require native_event_v2_full_contract"
+            )
+        batch._check()
+        n_rows = int(batch.length)
+        if n_rows == 0 or int(bar) >= len(self.idx):
+            return {"changed_count": 0, "dropped_count": 0, "accepted_count": 0}
+        writer = batch.writer
+        actions = np.asarray(writer.action[:n_rows], dtype=np.int64)
+        symbol_ids = np.asarray(writer.symbol_id[:n_rows], dtype=np.int64)
+        sides = np.asarray(writer.side[:n_rows], dtype=np.int64)
+        order_types = np.asarray(writer.order_type[:n_rows], dtype=np.int64)
+        quantities = np.asarray(writer.qty[:n_rows], dtype=np.float64).copy()
+        prices = np.asarray(writer.price[:n_rows], dtype=np.float64)
+        place_like = np.isin(actions, (0, 2))
+        if np.any(place_like & ((symbol_ids < 0) | (symbol_ids >= len(self.symbols)))):
+            raise CommandValidationError("numeric PLACE/REPLACE requires a valid symbol_id")
+        if np.any(place_like & (sides == 0)):
+            raise CommandValidationError("numeric PLACE/REPLACE requires a non-zero side")
+        if np.any(place_like & ((order_types < 0) | (order_types > 3))):
+            raise CommandValidationError("numeric PLACE/REPLACE requires a supported order type")
+        if np.any(place_like & (~np.isfinite(quantities) | (quantities <= 0.0))):
+            raise CommandValidationError("numeric PLACE/REPLACE requires qty > 0")
+        for source_row in np.flatnonzero(place_like):
+            order_handle = int(writer.order_handle[source_row])
+            if order_handle in self._writer_order_handles:
+                raise CommandValidationError(f"duplicate numeric order_handle={order_handle}")
+            self._writer_order_handles.add(order_handle)
+
+        accepted = np.ones(n_rows, dtype=np.bool_)
+        changed_count = 0
+        dropped_count = 0
+        if self.constraints.enabled:
+            self.execution_counters["constraint_preflight_calls"] += 1
+            for row in np.flatnonzero(place_like):
+                symbol_id = int(symbol_ids[row])
+                reference_price = (
+                    float(prices[row])
+                    if np.isfinite(prices[row]) and float(prices[row]) > 0.0
+                    else float(self.market_arrays.closes[int(bar), symbol_id])
+                )
+                original = float(quantities[row])
+                quantized = abs(
+                    quantize_signed_quantity(
+                        original * int(sides[row]),
+                        reference_price,
+                        float(self.contract_sizes[symbol_id]),
+                        float(self.constraints.qty_step[symbol_id]),
+                        float(self.constraints.min_qty[symbol_id]),
+                        float(self.constraints.min_notional[symbol_id]),
+                    )
+                )
+                if quantized <= 0.0:
+                    accepted[row] = False
+                    dropped_count += 1
+                else:
+                    quantities[row] = quantized
+                    changed_count += int(abs(quantized - original) > 1e-12)
+            self.execution_counters["commands_quantized"] += n_rows
+        else:
+            self.execution_counters["constraint_preflight_skipped"] += 1
+
+        rows = np.flatnonzero(accepted)
+        codes = np.full((len(rows), _FULL_CODE_WIDTH), -1, dtype=np.int64)
+        values = np.zeros((len(rows), _FULL_VALUE_WIDTH), dtype=np.float64)
+        expiry = np.full(len(rows), -1, dtype=np.int64)
+        for out_row, source_row in enumerate(rows):
+            action = int(actions[source_row])
+            codes[out_row, 0] = action
+            codes[out_row, 1] = int(symbol_ids[source_row])
+            codes[out_row, 2] = int(sides[source_row])
+            codes[out_row, 3] = int(order_types[source_row])
+            codes[out_row, 4] = int(writer.tif[source_row])
+            codes[out_row, 5] = int(writer.flags[source_row] & 1)
+            for target_col, handle_array in (
+                (6, writer.order_handle),
+                (7, writer.target_handle),
+                (8, writer.parent_handle),
+                (9, writer.group_handle),
+                (10, writer.oco_handle),
+            ):
+                handle = int(handle_array[source_row])
+                codes[out_row, target_col] = self._intern_id(f"qbt-{handle}") if handle >= 0 else -1
+            codes[out_row, 11] = int(writer.activation[source_row])
+            codes[out_row, 12] = int(source_row)
+            values[out_row, 0] = 0.0 if np.isnan(quantities[source_row]) else float(quantities[source_row])
+            values[out_row, 1] = 0.0 if np.isnan(writer.price[source_row]) else float(writer.price[source_row])
+            values[out_row, 2] = (
+                0.0 if np.isnan(writer.trigger_price[source_row]) else float(writer.trigger_price[source_row])
+            )
+        self._scheduled_primitive.setdefault(int(bar), []).append(
+            _ScheduledPrimitiveBatch(codes, values, expiry, len(rows))
+        )
+        self.execution_counters["primitive_command_batches"] += 1
+        self.execution_counters["primitive_command_rows"] += len(rows)
+        return {
+            "changed_count": int(changed_count),
+            "dropped_count": int(dropped_count),
+            "accepted_count": int(len(rows)),
+        }
+
     def release_bar_payload(self, bar: int) -> None:
         self.fills_by_bar.pop(int(bar), None)
         self.events_by_bar.pop(int(bar), None)
@@ -2034,16 +2160,47 @@ class RustReactiveSessionAdapter:
             return
         for current_bar in range(self.processed_bar + 1, int(bar) + 1):
             step_started_ns = perf_counter_ns()
+            primitive_batches = self._scheduled_primitive.pop(current_bar, ())
             commands = self._quantize_r2_commands(current_bar, self.scheduled.pop(current_bar, ()))
             self._require_r2_for_commands(commands)
-            if self._full_contract:
-                full_codes, full_values, full_expiry = compile_rust_full_reactive_batch(
-                    commands,
-                    symbols=self.symbols,
-                    intern_id=self._intern_id,
-                    idx=self.idx,
-                    buffer=self._full_command_buffer,
+            if primitive_batches and commands:
+                raise NativeProtocolError(
+                    "one Rust bar cannot mix primitive-writer and legacy-object command batches",
+                    context=EngineErrorContext(
+                        NativeProtocolError.error_code,
+                        "command_compile",
+                        bar_index=int(current_bar),
+                    ),
                 )
+            if self._full_contract:
+                if primitive_batches:
+                    if len(primitive_batches) == 1:
+                        primitive = primitive_batches[0]
+                        full_codes, full_values, full_expiry = (
+                            primitive.codes,
+                            primitive.values,
+                            primitive.expiry,
+                        )
+                    else:
+                        full_codes = np.ascontiguousarray(
+                            np.concatenate([item.codes for item in primitive_batches], axis=0)
+                        )
+                        full_values = np.ascontiguousarray(
+                            np.concatenate([item.values for item in primitive_batches], axis=0)
+                        )
+                        full_expiry = np.ascontiguousarray(
+                            np.concatenate([item.expiry for item in primitive_batches], axis=0)
+                        )
+                    command_count = int(sum(item.command_count for item in primitive_batches))
+                else:
+                    full_codes, full_values, full_expiry = compile_rust_full_reactive_batch(
+                        commands,
+                        symbols=self.symbols,
+                        intern_id=self._intern_id,
+                        idx=self.idx,
+                        buffer=self._full_command_buffer,
+                    )
+                    command_count = len(commands)
                 batch = None
             else:
                 batch = compile_rust_r1_command_batch(
@@ -2052,6 +2209,7 @@ class RustReactiveSessionAdapter:
                     intern_id=self._intern_id,
                     buffer=self._command_buffer,
                 )
+                command_count = len(commands)
             try:
                 if self._full_contract:
                     for command in commands:
@@ -2078,7 +2236,7 @@ class RustReactiveSessionAdapter:
             self._consume_step(current_bar, payload)
             self.processed_bar = current_bar
             self.execution_counters["bars_processed"] += 1
-            self.execution_counters["commands_compiled"] += len(commands)
+            self.execution_counters["commands_compiled"] += int(command_count)
             self.execution_counters["command_buffer_growths"] = self._full_command_buffer.growth_count
             self.execution_counters["bytes_copied_to_rust"] += int(
                 full_codes.nbytes + full_values.nbytes + full_expiry.nbytes
@@ -2313,6 +2471,8 @@ class RustReactiveSessionAdapter:
             if array is not None:
                 array.fill(0)
         self.scheduled.clear()
+        self._scheduled_primitive.clear()
+        self._writer_order_handles.clear()
         self.fills.clear()
         self.events.clear()
         self.fills_by_bar.clear()
@@ -2336,6 +2496,7 @@ class RustReactiveSessionAdapter:
         self.closed = True
         self.generation += 1
         self.scheduled.clear()
+        self._scheduled_primitive.clear()
         self.fills_by_bar.clear()
         self.events_by_bar.clear()
 

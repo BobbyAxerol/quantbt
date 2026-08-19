@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from time import perf_counter_ns
 
 from ..core.reactive import NativeEventStrategyError
-from .commands import CommandWriter
+from .commands import CommandBatchView, CommandWriter
 from .context import StrategyContextView
 from .requirements import StrategyContextRequirements, resolve_strategy_requirements
 
@@ -21,6 +21,7 @@ class PreparedStrategyAdapter:
     skipped_callback_count: int = 0
     legacy_command_objects: int = 0
     writer_command_rows: int = 0
+    writer_materialized_command_objects: int = 0
     context_projection_bytes: int = 0
     callback_ns: int = 0
 
@@ -62,12 +63,11 @@ class PreparedStrategyAdapter:
                 if result is not None:
                     raise TypeError("numeric strategy callbacks must write to CommandWriter and return None")
                 batch = self.writer.finish()
-                commands = batch.to_order_commands(timestamp=session.idx[int(bar)], symbols=session.symbols)
-                self.writer_command_rows += len(commands)
+                self.writer_command_rows += len(batch)
                 self.context_projection_bytes += sum(
                     int(getattr(view, f"{name}_values").nbytes) for name in self.requirements.market
                 )
-                return commands
+                return batch
             except Exception as exc:
                 if hasattr(session, "poisoned"):
                     session.poisoned = True
@@ -108,11 +108,19 @@ class PreparedStrategyAdapter:
             "skipped_callbacks": int(self.skipped_callback_count),
             "legacy_command_objects": int(self.legacy_command_objects),
             "writer_command_rows": int(self.writer_command_rows),
+            "writer_materialized_command_objects": int(self.writer_materialized_command_objects),
             "command_buffer_grows": int(self.writer.growth_count),
             "command_buffer_high_water": int(self.writer.high_water_mark),
             "callback_projection_bytes": int(self.context_projection_bytes),
             "callback_ns": int(self.callback_ns),
         }
+
+    def materialize_batch(self, batch: CommandBatchView, *, session, bar: int):
+        """Materialize only for compatibility engines or requested reports."""
+
+        commands = batch.to_order_commands(timestamp=session.idx[int(bar)], symbols=session.symbols)
+        self.writer_materialized_command_objects += len(commands)
+        return commands
 
 
 __all__ = ["PreparedStrategyAdapter"]

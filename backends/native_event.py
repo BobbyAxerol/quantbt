@@ -133,7 +133,7 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
-from ..strategies import PreparedStrategyAdapter, resolve_strategy_requirements
+from ..strategies import CommandBatchView, PreparedStrategyAdapter, resolve_strategy_requirements
 from ..preparation.cache import CachePolicy, PreparedObjectCache
 from ..planning import (
     BacktestRequest,
@@ -2589,27 +2589,30 @@ class NativeEventBackend:
         emitted_command_count = 0
         emitted_executable_command_count = 0
         callback_count = 0
+        command_compile_ns = 0
         ignored_commands_after_end = 0
         quantity_preflight_summary = {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
 
-        def record_scheduled(commands: Sequence[OrderCommand]) -> None:
+        def record_scheduled(commands: Sequence[OrderCommand] = (), *, count: Optional[int] = None) -> None:
             nonlocal emitted_command_count, emitted_executable_command_count
-            count = len(commands)
-            emitted_command_count += count
-            emitted_executable_command_count += count
+            command_count = len(commands) if count is None else int(count)
+            emitted_command_count += command_count
+            emitted_executable_command_count += command_count
             if not _return_score:
                 emitted.extend(commands)
                 emitted_audit_tape.extend(commands)
 
-        def record_outside_tape(commands: Sequence[OrderCommand]) -> None:
+        def record_outside_tape(commands: Sequence[OrderCommand], *, count: Optional[int] = None) -> None:
             nonlocal emitted_command_count
-            emitted_command_count += len(commands)
+            emitted_command_count += len(commands) if count is None else int(count)
             if not _return_score:
                 emitted_audit_tape.extend(commands)
 
         session.process_bar(0)
 
-        def expand_scoped(commands: Sequence[OrderCommand], bar: int) -> tuple[OrderCommand, ...]:
+        def expand_scoped(commands, bar: int):
+            if isinstance(commands, CommandBatchView):
+                return commands
             rows = tuple(commands or ())
             if not any(
                 command.action is OrderAction.CANCEL_ALL and self._has_string_cancel_scope(command)
@@ -2645,16 +2648,56 @@ class NativeEventBackend:
             return effective
 
         def schedule_reactive_batch(
-            commands: Sequence[OrderCommand],
+            commands,
             effective_bar: int,
         ) -> tuple[tuple[OrderCommand, ...], int]:
+            nonlocal command_compile_ns
+            compile_started_ns = perf_counter_ns()
             if not commands:
                 if execution_counters:
                     execution_counters["empty_command_batches_skipped"] += 1
+                command_compile_ns += perf_counter_ns() - compile_started_ns
                 return (), 0
             if execution_counters:
                 execution_counters["bars_with_commands"] += 1
                 execution_counters["commands_retimed"] += 1
+            if isinstance(commands, CommandBatchView) and hasattr(session, "schedule_command_batch"):
+                if effective_bar >= len(idx):
+                    command_compile_ns += perf_counter_ns() - compile_started_ns
+                    return (), len(commands)
+                materialized = ()
+                needs_public_commands = bool(
+                    level in {"standard", "audit"}
+                    or kernel_mode == "replay_certified"
+                    or plan.keep_command_tape
+                )
+                if needs_public_commands:
+                    materialized = strategy_adapter.materialize_batch(
+                        commands,
+                        session=session,
+                        bar=max(0, effective_bar - 1),
+                    )
+                    materialized, ignored = self._retime_reactive_commands(
+                        commands=materialized,
+                        effective_bar=effective_bar,
+                        idx=idx,
+                        emitted_order_ids=emitted_order_ids,
+                    )
+                    if ignored:
+                        command_compile_ns += perf_counter_ns() - compile_started_ns
+                        return (), ignored
+                preflight = session.schedule_command_batch(effective_bar, commands)
+                quantity_preflight_summary["changed_count"] += int(preflight["changed_count"])
+                quantity_preflight_summary["dropped_count"] += int(preflight["dropped_count"])
+                record_scheduled(materialized, count=int(preflight["accepted_count"]))
+                command_compile_ns += perf_counter_ns() - compile_started_ns
+                return tuple(materialized), 0
+            if isinstance(commands, CommandBatchView):
+                commands = strategy_adapter.materialize_batch(
+                    commands,
+                    session=session,
+                    bar=max(0, effective_bar - 1),
+                )
             scheduled, ignored = self._retime_reactive_commands(
                 commands=commands,
                 effective_bar=effective_bar,
@@ -2664,7 +2707,19 @@ class NativeEventBackend:
             if scheduled:
                 record_scheduled(scheduled)
                 session.schedule(effective_bar, quantize_reactive_schedule(scheduled))
+            command_compile_ns += perf_counter_ns() - compile_started_ns
             return scheduled, ignored
+
+        def materialize_outside_tape(commands, callback_bar: int) -> tuple[OrderCommand, ...]:
+            if isinstance(commands, CommandBatchView):
+                if not plan.keep_command_tape:
+                    return ()
+                return strategy_adapter.materialize_batch(
+                    commands,
+                    session=session,
+                    bar=int(callback_bar),
+                )
+            return tuple(commands or ())
 
         initial_commands = expand_scoped(strategy_adapter.call(session, "initialize", 0), 0)
         scheduled, ignored = schedule_reactive_batch(initial_commands, 1)
@@ -2672,10 +2727,11 @@ class NativeEventBackend:
         if ignored:
             record_outside_tape(
                 self._record_reactive_commands_outside_tape(
-                    commands=initial_commands,
+                    commands=materialize_outside_tape(initial_commands, 0),
                     effective_bar=1,
                     emitted_order_ids=emitted_order_ids,
-                )
+                ),
+                count=ignored,
             )
 
         for bar in range(len(idx)):
@@ -2692,36 +2748,26 @@ class NativeEventBackend:
             if ignored:
                 record_outside_tape(
                     self._record_reactive_commands_outside_tape(
-                        commands=commands,
+                        commands=materialize_outside_tape(commands, bar),
                         effective_bar=bar + 1,
                         emitted_order_ids=emitted_order_ids,
-                    )
+                    ),
+                    count=ignored,
                 )
 
         last_bar = max(0, min(len(idx) - 1, int(session.processed_bar)))
         if not session.liquidated:
             final_commands = expand_scoped(strategy_adapter.call(session, "finalize", last_bar), last_bar)
-            if final_commands:
-                if execution_counters:
-                    execution_counters["bars_with_commands"] += 1
-                    execution_counters["commands_retimed"] += 1
-                scheduled, ignored = self._retime_reactive_commands(
-                    commands=final_commands,
-                    effective_bar=len(idx),
-                    idx=idx,
-                    emitted_order_ids=emitted_order_ids,
-                )
-            else:
-                scheduled, ignored = (), 0
-            record_scheduled(scheduled)
+            scheduled, ignored = schedule_reactive_batch(final_commands, len(idx))
             ignored_commands_after_end += ignored
             if ignored:
                 record_outside_tape(
                     self._record_reactive_commands_outside_tape(
-                        commands=final_commands,
+                        commands=materialize_outside_tape(final_commands, last_bar),
                         effective_bar=len(idx),
                         emitted_order_ids=emitted_order_ids,
-                    )
+                    ),
+                    count=ignored,
                 )
 
         replay_required = kernel_mode == "replay_certified"
@@ -2731,7 +2777,7 @@ class NativeEventBackend:
             "market_prepare_ns": int(market_prepare_ns),
             "instrument_prepare_ns": 0,
             "strategy_prepare_ns": int(strategy_prepare_ns),
-            "command_compile_ns": 0,
+            "command_compile_ns": int(command_compile_ns),
             "engine_prepare_ns": int(engine_prepare_ns),
             "engine_run_ns": int(engine_run_ns),
             "result_adapt_ns": 0,
@@ -2812,6 +2858,7 @@ class NativeEventBackend:
         if replay_result is not None:
             self._assert_reactive_session_replay_parity(session, replay_result)
         oracle_verify_ns = perf_counter_ns() - oracle_verify_started_ns if replay_result is not None else 0
+        report_build_started_ns = perf_counter_ns()
         final_result = self._reactive_session_result(
             session=session,
             symbol_list=symbol_list,
@@ -2825,6 +2872,7 @@ class NativeEventBackend:
             audit_sink=audit_sink,
             audit_sink_path=audit_sink_path,
         )
+        observability["report_build_ns"] = int(perf_counter_ns() - report_build_started_ns)
         engine_name = _event_engine_name(clock, "reactive_single_pass")
         final_result.metadata.update(
             {

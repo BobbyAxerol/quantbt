@@ -44,6 +44,10 @@ class CommandBatchView:
         if self.generation != self.writer.generation:
             raise RuntimeError("CommandBatchView is stale after writer reuse")
 
+    def __len__(self) -> int:
+        self._check()
+        return int(self.length)
+
     def to_order_commands(self, *, timestamp, symbols: Sequence[str]) -> tuple[OrderCommand, ...]:
         """Materialize the compatibility command contract outside the writer."""
 

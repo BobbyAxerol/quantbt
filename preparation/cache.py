@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from threading import RLock
@@ -22,6 +23,7 @@ class CachePolicy:
     max_entries: int = 8
     eviction: str = "lru"
     pin_during_run: bool = True
+    weak_result_owners: bool = True
 
     def __post_init__(self) -> None:
         if self.max_bytes < 0 or self.max_entries < 0:
@@ -50,7 +52,7 @@ class PreparedObjectCache:
         self._misses = 0
         self._evictions = 0
 
-    def get(self, key: tuple[str, ...]):
+    def get(self, key: tuple[str, ...], *, pin: bool = False):
         with self._lock:
             entry = self._entries.get(tuple(key))
             if entry is None:
@@ -58,13 +60,43 @@ class PreparedObjectCache:
                 return None
             self._hits += 1
             entry.reuse_count += 1
+            if pin and self.policy.pin_during_run:
+                entry.pins += 1
             self._entries.move_to_end(tuple(key))
             return entry.value
+
+    def release(self, key: tuple[str, ...]) -> None:
+        """Release one explicit pin and immediately enforce cache budgets."""
+
+        with self._lock:
+            entry = self._entries.get(tuple(key))
+            if entry is None:
+                return
+            if entry.pins <= 0:
+                raise RuntimeError("prepared cache entry is not pinned")
+            entry.pins -= 1
+            self._evict()
+
+    @contextmanager
+    def borrow(self, key: tuple[str, ...]):
+        """Pin an existing entry for a run and release it deterministically."""
+
+        value = self.get(key, pin=True)
+        try:
+            yield value
+        finally:
+            if value is not None and self.policy.pin_during_run:
+                self.release(key)
 
     def put(self, key: tuple[str, ...], value, *, size_bytes: int) -> bool:
         key = tuple(str(part) for part in key)
         size_bytes = max(0, int(size_bytes))
         with self._lock:
+            old = self._entries.get(key)
+            if old is not None and old.pins:
+                if old.value is value:
+                    return True
+                raise RuntimeError("cannot replace a pinned prepared cache entry")
             old = self._entries.pop(key, None)
             if old is not None:
                 self._resident_bytes -= old.size_bytes
@@ -102,6 +134,7 @@ class PreparedObjectCache:
                 "entry_count": int(len(self._entries)),
                 "eviction_count": int(self._evictions),
                 "reuse_count": int(sum(entry.reuse_count for entry in self._entries.values())),
+                "pinned_entries": int(sum(entry.pins > 0 for entry in self._entries.values())),
             }
 
 
