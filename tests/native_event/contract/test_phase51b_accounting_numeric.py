@@ -17,6 +17,7 @@ from quantbt import (
     OrderSide,
     OrderType,
     assert_native_accounting_invariants,
+    build_forced_close_liquidation_attribution,
     compile_instrument_table,
     quantize_order_value,
 )
@@ -106,6 +107,85 @@ def test_accounting_funding_sign_and_empty_tape_metamorphic():
     assert empty.equity.eq(empty.initial_capital).all()
     assert empty.fees.eq(0.0).all()
     assert empty.funding.eq(0.0).all()
+
+
+def test_forced_close_reference_attributes_every_symbol_and_flattens_units():
+    report = build_forced_close_liquidation_attribution(
+        symbols=["BTC", "ETH"], positions=[2.0, -3.0], average_entries=[100.0, 50.0],
+        liquidation_prices=[80.0, 60.0], contract_sizes=[1.0, 10.0], fee_rates=0.001,
+    )
+    np.testing.assert_array_equal(report["position_after"], [0.0, 0.0])
+    np.testing.assert_allclose(report["realized_pnl"], [-40.0, -300.0])
+    np.testing.assert_allclose(report["liquidation_fee"], [0.16, 1.8])
+    assert report["canceled_active_orders"].all()
+
+
+def test_multisymbol_gross_net_and_python_rust_accounting_parity():
+    index, frame = _market()
+    eth = frame.copy()
+    eth[["open", "high", "low", "close"]] *= 0.5
+    commands = (
+        OrderCommand(timestamp=index[1], symbol="BTC", side=OrderSide.BUY, order_type=OrderType.MARKET, qty=2, order_id="btc"),
+        OrderCommand(timestamp=index[1], symbol="ETH", side=OrderSide.SELL, order_type=OrderType.MARKET, qty=3, order_id="eth"),
+    )
+
+    def execute(backend):
+        engine = NativeEventBackend(
+            NativeEventConfig(
+                account=AccountConfig(initial_capital=20_000.0, leverage=5.0),
+                execution=ExecutionConfig(), fee_rate=0.0002,
+                report_level="audit", native_backend=backend,
+                execution_contract=EVENT_LIFECYCLE_V3_NEXT_OPEN,
+            )
+        )
+        return engine.run_order_commands(
+            index, commands,
+            closes={"BTC": frame.close, "ETH": eth.close},
+            highs={"BTC": frame.high, "ETH": eth.high},
+            lows={"BTC": frame.low, "ETH": eth.low},
+            opens={"BTC": frame.open, "ETH": eth.open},
+            symbols=["BTC", "ETH"], contract_size={"BTC": 1.0, "ETH": 2.0},
+        )
+
+    python, rust = execute("python"), execute("rust")
+    for result in (python, rust):
+        ledger = result.metadata["accounting_ledger_v1"]
+        np.testing.assert_allclose(
+            ledger["gross_notional"], ledger["long_notional"] + ledger["short_notional"],
+            rtol=0.0, atol=1e-12,
+        )
+        np.testing.assert_allclose(
+            ledger["net_notional"], ledger["long_notional"] - ledger["short_notional"],
+            rtol=0.0, atol=1e-12,
+        )
+        assert result.metadata["accounting_invariants_v1"]["passed"] is True
+    np.testing.assert_allclose(python.equity, rust.equity, rtol=0.0, atol=1e-12)
+
+
+def test_legacy_zero_equity_liquidation_has_explicit_terminal_attribution():
+    index, frame = _market()
+    frame.loc[index[2], "low"] = 1.0
+    frame.loc[index[2], "close"] = 5.0
+    engine = NativeEventBackend(
+        NativeEventConfig(
+            account=AccountConfig(initial_capital=1_000.0, leverage=10.0, maintenance_ratio=0.005),
+            execution=ExecutionConfig(), fee_rate=0.0,
+            report_level="audit", native_backend="python",
+            execution_contract=EVENT_LIFECYCLE_V3_NEXT_OPEN,
+        )
+    )
+    result = engine.run_order_commands(
+        index,
+        (OrderCommand(timestamp=index[1], symbol="BTC", side=OrderSide.BUY, order_type=OrderType.MARKET, qty=20, order_id="levered"),),
+        closes={"BTC": frame.close}, highs={"BTC": frame.high}, lows={"BTC": frame.low},
+        opens={"BTC": frame.open}, symbols=["BTC"],
+    )
+    assert result.liquidated is True
+    report = result.metadata["liquidation_attribution_v1"]
+    assert len(report) == 1
+    assert report.iloc[0]["model"] == "zero_equity_legacy"
+    assert report.iloc[0]["attribution_kind"] == "legacy_terminal_equity_allocation"
+    assert result.metadata["accounting_invariants_v1"]["passed"] is True
 
 
 def test_prepared_instrument_table_is_contiguous_readonly_and_fail_fast():

@@ -24,7 +24,10 @@ from ..core.order_compiler import CompiledOrderCommandArrays, command_tape_finge
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOrderEvent, NativeStrategyContext
 from ..core.schema import OrderSide, OrderType, TimeInForce
-from ..core.native_event_capabilities import normalize_native_event_capabilities
+from ..core.native_event_capabilities import (
+    normalize_native_event_capabilities,
+    validate_native_event_semantic_descriptor,
+)
 
 
 RUST_NATIVE_API_VERSION = "0.4"
@@ -81,6 +84,7 @@ class NativeEventRustExtensionStatus:
     capabilities: Mapping[str, bool]
     reason: Optional[str] = None
     canonical_capabilities: Mapping[str, bool] = field(default_factory=dict)
+    semantic_descriptor: Mapping[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -631,6 +635,7 @@ def _empty_status(reason: str) -> NativeEventRustExtensionStatus:
         capabilities={},
         reason=reason,
         canonical_capabilities={},
+        semantic_descriptor={},
     )
 
 
@@ -668,6 +673,7 @@ def probe_native_event_rust_extension(
         api_value = _read_native_value(module, "api_version")
         api_version = str(api_value) if api_value is not None else None
         raw_capabilities = _read_native_value(module, "capabilities")
+        raw_descriptor = _read_native_value(module, "semantic_descriptor")
     except Exception as exc:  # pragma: no cover - protects optional binary imports.
         return _empty_status(f"failed to query _quantbt_native metadata: {exc}")
 
@@ -675,9 +681,17 @@ def probe_native_event_rust_extension(
         raw_capabilities = {}
     capabilities = {str(name): bool(enabled) for name, enabled in raw_capabilities.items()}
     canonical_capabilities = normalize_native_event_capabilities(capabilities)
+    semantic_descriptor = dict(raw_descriptor) if isinstance(raw_descriptor, Mapping) else {}
     # 0.3 remains readable for the legacy R1/R2 classes. Full V2 capability
     # is gated independently by the explicit 0.4 capability keys below.
     compatible = api_version in {"0.3", RUST_NATIVE_API_VERSION}
+    descriptor_error = None
+    if compatible and api_version == RUST_NATIVE_API_VERSION:
+        try:
+            validate_native_event_semantic_descriptor(semantic_descriptor)
+        except (TypeError, ValueError) as exc:
+            compatible = False
+            descriptor_error = str(exc)
     if not compatible:
         return NativeEventRustExtensionStatus(
             available=True,
@@ -687,10 +701,15 @@ def probe_native_event_rust_extension(
             api_version=api_version,
             capabilities=capabilities,
             reason=(
-                "_quantbt_native API version mismatch: "
-                f"expected {RUST_NATIVE_API_VERSION!r}, received {api_version!r}"
+                descriptor_error
+                if descriptor_error is not None
+                else (
+                    "_quantbt_native API version mismatch: "
+                    f"expected {RUST_NATIVE_API_VERSION!r}, received {api_version!r}"
+                )
             ),
             canonical_capabilities=canonical_capabilities,
+            semantic_descriptor=semantic_descriptor,
         )
 
     executable = bool(capabilities.get("reactive_session", False))
@@ -704,6 +723,7 @@ def probe_native_event_rust_extension(
         capabilities=capabilities,
         reason=reason,
         canonical_capabilities=canonical_capabilities,
+        semantic_descriptor=semantic_descriptor,
     )
 
 

@@ -278,6 +278,55 @@ def attach_native_accounting_audit(result, **kwargs):
     return result
 
 
+def build_forced_close_liquidation_attribution(
+    *,
+    symbols: Sequence[str],
+    positions: Sequence[float],
+    average_entries: Sequence[float],
+    liquidation_prices: Sequence[float],
+    contract_sizes: float | Sequence[float] = 1.0,
+    fee_rates: float | Sequence[float] = 0.0,
+) -> pd.DataFrame:
+    """Build auditable forced-close rows without changing legacy execution.
+
+    This reference model freezes the future ``forced_close_bar_worst`` ledger
+    semantics.  The default backend remains ``zero_equity_legacy`` until an
+    explicit execution contract selects and implements forced-close fills.
+    """
+
+    symbol_values = tuple(map(str, symbols))
+    qty = _per_symbol_values(positions, symbol_values, default=0.0)
+    entries = _per_symbol_values(average_entries, symbol_values, default=0.0)
+    prices = _per_symbol_values(liquidation_prices, symbol_values, default=0.0)
+    sizes = _per_symbol_values(contract_sizes, symbol_values, default=1.0)
+    rates = _per_symbol_values(fee_rates, symbol_values, default=0.0)
+    if np.any(~np.isfinite(qty)) or np.any(~np.isfinite(entries)) or np.any(~np.isfinite(prices)):
+        raise ValueError("forced-close inputs must be finite")
+    if np.any(prices <= 0.0) or np.any(sizes <= 0.0) or np.any(rates < 0.0):
+        raise ValueError("liquidation prices/sizes must be > 0 and fee rates >= 0")
+    rows = []
+    for col, symbol in enumerate(symbol_values):
+        close_qty = -qty[col]
+        realized = qty[col] * (prices[col] - entries[col]) * sizes[col]
+        fee = abs(qty[col]) * prices[col] * sizes[col] * rates[col]
+        rows.append(
+            {
+                "model": "forced_close_bar_worst",
+                "symbol": symbol,
+                "position_before": qty[col],
+                "signed_fill_qty": close_qty,
+                "position_after": 0.0,
+                "average_entry": entries[col],
+                "liquidation_price": prices[col],
+                "realized_pnl": realized,
+                "liquidation_fee": fee,
+                "canceled_active_orders": True,
+                "residual_equity_impact": realized - fee,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _apply_linear_fill(
     position: float,
     average_entry: float,
@@ -384,4 +433,5 @@ __all__ = [
     "assert_native_accounting_invariants",
     "attach_native_accounting_audit",
     "build_native_accounting_audit",
+    "build_forced_close_liquidation_attribution",
 ]

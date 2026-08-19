@@ -1619,6 +1619,8 @@ class NativeEventBackend:
             "native_event_rust_compatible": bool(selection.extension.compatible),
             "native_event_rust_capabilities": dict(selection.extension.capabilities),
             "native_event_rust_canonical_capabilities": dict(selection.extension.canonical_capabilities),
+            "native_event_rust_semantic_descriptor": dict(selection.extension.semantic_descriptor),
+            "native_event_rust_fallback_reason": selection.extension.reason,
         }
 
     def prepare_market_arrays(

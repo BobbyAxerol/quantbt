@@ -65,7 +65,213 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("event_lifecycle_v3_next_open", true)?;
     values.set_item("bar_fill_reason_v1", true)?;
     values.set_item("lifecycle_transition_schema_v1", true)?;
+    values.set_item("semantic_descriptor_v1", true)?;
+    values.set_item("deterministic_quantization_v1", true)?;
     Ok(values)
+}
+
+#[pyfunction]
+fn semantic_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
+    let descriptor = PyDict::new(py);
+    descriptor.set_item("descriptor_version", "native-event-semantics-v1")?;
+    descriptor.set_item("native_api", API_VERSION)?;
+    descriptor.set_item("core_protocol_min", 1)?;
+    descriptor.set_item("core_protocol_max", 1)?;
+    descriptor.set_item(
+        "contract_registry_fingerprint",
+        generated_contracts::CONTRACT_REGISTRY_FINGERPRINT,
+    )?;
+    descriptor.set_item("trace_schema", "canonical-execution-trace-v1")?;
+    descriptor.set_item("command_abi", "full-command-v1")?;
+    descriptor.set_item(
+        "contracts",
+        vec![
+            generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+            generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V3_NEXT_OPEN,
+        ],
+    )?;
+
+    let orders = PyDict::new(py);
+    orders.set_item(
+        "types",
+        vec!["market", "limit", "stop_market", "stop_limit"],
+    )?;
+    orders.set_item("partial_fill", false)?;
+    orders.set_item("volume_model", "infinite_bar_liquidity")?;
+    orders.set_item(
+        "gap_policy",
+        vec!["legacy_trigger", "open_worse_than_trigger"],
+    )?;
+    descriptor.set_item("orders", orders)?;
+
+    let account = PyDict::new(py);
+    account.set_item("pnl_models", vec!["linear_quote_settled"])?;
+    account.set_item("margin_models", vec!["gross_cross"])?;
+    account.set_item("liquidation_models", vec!["zero_equity_legacy"])?;
+    descriptor.set_item("account", account)?;
+
+    let portfolio = PyDict::new(py);
+    portfolio.set_item("target_execution", false)?;
+    portfolio.set_item("package_atomicity", "python_reference_only")?;
+    descriptor.set_item("portfolio", portfolio)?;
+    Ok(descriptor)
+}
+
+fn integer_units(value: f64, increment: f64, ceil_mode: bool) -> i64 {
+    if increment <= 0.0 {
+        return 0;
+    }
+    let scaled = value / increment;
+    if ceil_mode {
+        (scaled - 1e-12).ceil() as i64
+    } else {
+        (scaled + 1e-12).floor() as i64
+    }
+}
+
+#[pyfunction]
+fn quantize_price_v1(
+    price: f64,
+    tick_size: f64,
+    side: i64,
+    order_type: i64,
+) -> PyResult<(f64, i64)> {
+    if !price.is_finite() || !tick_size.is_finite() || price <= 0.0 || tick_size < 0.0 {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "price/tick_size are invalid",
+        ));
+    }
+    if tick_size == 0.0 {
+        return Ok((price, 0));
+    }
+    let is_limit_price = order_type == types::ORDER_LIMIT || order_type == types::ORDER_STOP_LIMIT;
+    let ceil_mode = if is_limit_price { side < 0 } else { side > 0 };
+    let ticks = integer_units(price, tick_size, ceil_mode);
+    Ok((ticks as f64 * tick_size, ticks))
+}
+
+#[pyfunction]
+#[pyo3(signature = (qty, price, qty_step, min_qty=0.0, max_qty=0.0, min_notional=0.0, contract_size=1.0))]
+fn quantize_quantity_v1(
+    qty: f64,
+    price: f64,
+    qty_step: f64,
+    min_qty: f64,
+    max_qty: f64,
+    min_notional: f64,
+    contract_size: f64,
+) -> PyResult<(f64, i64, i64)> {
+    let values = [
+        qty,
+        price,
+        qty_step,
+        min_qty,
+        max_qty,
+        min_notional,
+        contract_size,
+    ];
+    if values.iter().any(|value| !value.is_finite())
+        || qty <= 0.0
+        || price <= 0.0
+        || qty_step < 0.0
+        || contract_size <= 0.0
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "quantity constraint values are invalid",
+        ));
+    }
+    Ok(quantize_quantity_values(
+        qty,
+        price,
+        qty_step,
+        min_qty,
+        max_qty,
+        min_notional,
+        contract_size,
+    ))
+}
+
+#[pyfunction]
+#[pyo3(signature = (price, qty, tick_size, qty_step, side, order_type, min_qty=0.0, max_qty=0.0, min_notional=0.0, contract_size=1.0))]
+fn quantize_order_value_v1(
+    price: f64,
+    qty: f64,
+    tick_size: f64,
+    qty_step: f64,
+    side: i64,
+    order_type: i64,
+    min_qty: f64,
+    max_qty: f64,
+    min_notional: f64,
+    contract_size: f64,
+) -> (f64, f64, i64, i64, i64) {
+    let values = [
+        price,
+        qty,
+        tick_size,
+        qty_step,
+        min_qty,
+        max_qty,
+        min_notional,
+        contract_size,
+    ];
+    if values.iter().any(|value| !value.is_finite())
+        || price <= 0.0
+        || qty <= 0.0
+        || tick_size < 0.0
+        || qty_step < 0.0
+        || contract_size <= 0.0
+    {
+        return (0.0, 0.0, 0, 0, 1);
+    }
+    let is_limit_price = order_type == types::ORDER_LIMIT || order_type == types::ORDER_STOP_LIMIT;
+    let ceil_mode = if is_limit_price { side < 0 } else { side > 0 };
+    let ticks = integer_units(price, tick_size, ceil_mode);
+    let quantized_price = if tick_size > 0.0 {
+        ticks as f64 * tick_size
+    } else {
+        price
+    };
+    let (quantized_qty, lots, mut reject_code) = quantize_quantity_values(
+        qty,
+        quantized_price.max(f64::MIN_POSITIVE),
+        qty_step,
+        min_qty,
+        max_qty,
+        min_notional,
+        contract_size,
+    );
+    if quantized_price <= 0.0 {
+        reject_code = 1;
+    }
+    (quantized_price, quantized_qty, ticks, lots, reject_code)
+}
+
+fn quantize_quantity_values(
+    qty: f64,
+    price: f64,
+    qty_step: f64,
+    min_qty: f64,
+    max_qty: f64,
+    min_notional: f64,
+    contract_size: f64,
+) -> (f64, i64, i64) {
+    let lots = integer_units(qty, qty_step, false);
+    let quantized = if qty_step > 0.0 {
+        lots as f64 * qty_step
+    } else {
+        qty
+    };
+    let reject_code = if quantized <= 0.0 || quantized + 1e-12 < min_qty {
+        2
+    } else if max_qty > 0.0 && quantized - 1e-12 > max_qty {
+        3
+    } else if min_notional > 0.0 && quantized * price * contract_size + 1e-12 < min_notional {
+        4
+    } else {
+        0
+    };
+    (quantized, lots, reject_code)
 }
 
 #[pyclass]
@@ -1548,6 +1754,10 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(api_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
+    module.add_function(wrap_pyfunction!(semantic_descriptor, module)?)?;
+    module.add_function(wrap_pyfunction!(quantize_price_v1, module)?)?;
+    module.add_function(wrap_pyfunction!(quantize_quantity_v1, module)?)?;
+    module.add_function(wrap_pyfunction!(quantize_order_value_v1, module)?)?;
     module.add_function(wrap_pyfunction!(contract_registry_fingerprint, module)?)?;
     module.add_function(wrap_pyfunction!(event_contract_ids, module)?)?;
     module.add_class::<PreparedMarketCore>()?;
@@ -1557,4 +1767,37 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<FullPreparedMarketCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod phase51b_property_tests {
+    use super::{integer_units, quantize_quantity_values};
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn quantity_quantization_never_increases_requested_lots(
+            raw_qty in 1u64..1_000_000u64,
+            step_code in 1u64..10_000u64,
+        ) {
+            let qty = raw_qty as f64 / 1_000.0;
+            let step = step_code as f64 / 1_000_000.0;
+            let lots = integer_units(qty, step, false);
+            let quantized = lots as f64 * step;
+            prop_assert!(quantized <= qty + 1e-12);
+            prop_assert!(quantized >= 0.0);
+        }
+
+        #[test]
+        fn quantity_preflight_is_deterministic(
+            raw_qty in 1u64..100_000u64,
+            raw_price in 1u64..10_000_000u64,
+        ) {
+            let qty = raw_qty as f64 / 10_000.0;
+            let price = raw_price as f64 / 100.0;
+            let left = quantize_quantity_values(qty, price, 0.001, 0.001, 1_000.0, 5.0, 1.0);
+            let right = quantize_quantity_values(qty, price, 0.001, 0.001, 1_000.0, 5.0, 1.0);
+            prop_assert_eq!(left, right);
+        }
+    }
 }

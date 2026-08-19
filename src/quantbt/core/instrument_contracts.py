@@ -212,7 +212,9 @@ def quantize_order_value(
     qty_lots = _integer_units(float(qty), float(qty_step), "floor")
     quantized_price = float(price) if tick_size <= 0.0 else price_ticks * float(tick_size)
     quantized_qty = float(qty) if qty_step <= 0.0 else qty_lots * float(qty_step)
-    if quantized_qty <= 0.0 or quantized_qty + 1e-12 < min_qty:
+    if quantized_price <= 0.0:
+        code = InstrumentRejectCode.INVALID_VALUE
+    elif quantized_qty <= 0.0 or quantized_qty + 1e-12 < min_qty:
         code = InstrumentRejectCode.MIN_QTY
     elif max_qty > 0.0 and quantized_qty - 1e-12 > max_qty:
         code = InstrumentRejectCode.MAX_QTY

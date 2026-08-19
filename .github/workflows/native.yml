@@ -77,6 +77,10 @@ jobs:
           import _quantbt_native
 
           assert _quantbt_native.api_version() == "0.4"
+          descriptor = _quantbt_native.semantic_descriptor()
+          assert descriptor["trace_schema"] == "canonical-execution-trace-v1"
+          assert descriptor["command_abi"] == "full-command-v1"
+          assert descriptor["core_protocol_min"] <= 1 <= descriptor["core_protocol_max"]
           required = {
               "native_event_v2_full_contract",
               "native_event_v2_multisymbol",
@@ -95,6 +99,14 @@ jobs:
           print(QuantBTEndpoint)
           print("Native Event API 0.4 capabilities: PASS")
           PY
+
+      - name: P0 ledger, numeric, trace, and transaction contracts
+        run: |
+          .venv/bin/python -m pytest -q \
+            tests/native_event/contract/test_phase51b_accounting_numeric.py \
+            tests/native_event/contract/test_phase51b_trace_replay.py \
+            tests/native_event/contract/test_phase51b_portfolio_package.py \
+            tests/native_event/contract/test_phase51b_capability_wheel.py
 
       - name: Install native wheel into core test environment
         run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl

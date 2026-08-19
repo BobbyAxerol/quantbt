@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -109,3 +112,15 @@ def test_sequential_and_hedge_after_primary_have_explicit_state_sequences():
     assert PackageState.COMMITTING.value in set(sequential.transitions["state"])
     assert hedge_failure.final_state is PackageState.PARTIAL
     assert PackageState.COMPENSATING.value in set(hedge_failure.transitions["state"])
+
+
+def test_minimized_atomic_rollback_regression_corpus():
+    path = Path(__file__).resolve().parents[2] / "corpus/regressions/phase51b/reversal_and_atomic_rollback.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))["package"]
+    legs = tuple(PackageLegRequest(**values) for values in payload["legs"])
+    result = execute_package_transaction_reference(
+        "corpus-package", legs, available_equity=payload["available_equity"],
+        policy=payload["policy"], max_staleness_ns=payload["max_staleness_ns"],
+    )
+    assert result.final_state.value == payload["expected_final_state"]
+    assert len(result.fills) == payload["expected_fill_count"]
