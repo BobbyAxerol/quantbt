@@ -11980,7 +11980,7 @@ Completion evidence:
 
 ### Phase 51B - P0 Ledger, Numeric, Trace, Portfolio/Package, And Wheel Certification
 
-**Status: planned.**
+**Status: completed.**
 
 Detailed guide:
 
@@ -12049,6 +12049,45 @@ Exit gate:
 All items in the blueprint [P0 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p011--p0-exit-checklist)
 must pass. P1 cannot start if the trace tooling cannot identify the first
 divergent bar, phase, event, status, reason, or ledger component.
+
+Completion evidence:
+
+- Native-event audit runs now attach an independently reconstructed canonical
+  accounting ledger and per-symbol ledger. Every bar checks equity,
+  position/fill, gross/net exposure, fee, funding, margin, and attribution
+  invariants for the versioned linear quote-settled model.
+- Instrument constraints compile into immutable contiguous tables. Python and
+  Rust apply identical side/order-aware tick and lot quantization and
+  post-quantization minimum checks. Inverse, quanto, and option formulas fail
+  fast rather than using an uncertified linear approximation.
+- `canonical-execution-trace-v1` provides materialized and hash-only sinks,
+  deterministic SHA-256 fingerprints, first-divergence diagnostics, and an
+  independent terminal-state replayer. Python/Rust exact-match on the P0 audit
+  fixture.
+- Portfolio target allocation and package transaction behavior are frozen as
+  reference semantics for sequential, pro-rata, all-or-none,
+  reduce-first-then-increase, atomic, best-effort, sequential-leg, and
+  hedge-after-primary policies. This checkpoint does not claim Rust
+  portfolio/package execution.
+- Native API `0.4` now requires a structured semantic descriptor covering the
+  core protocol range, registry fingerprint, trace schema, command ABI, order
+  semantics, and account model. A mismatch fails before expensive
+  preparation; legacy `0.3` probes remain readable but are not accepted as the
+  current certified contract.
+- Hypothesis, Rust proptest, metamorphic cases, and the minimized regression
+  corpus cover numeric monotonicity, deterministic replay, reversals, and
+  package rollback. Full `cargo-fuzz` soak remains intentionally downstream of
+  pure-core extraction and is not claimed here.
+- Focused evidence passed: 72 native-event contract tests, 20
+  portfolio/arbitrage reference tests, and 10 Rust unit/property tests. The
+  clean CPython 3.12 Linux installation of `quantbt-engine 1.0.8` plus
+  `quantbt-native 0.4.0` passed import isolation, semantic handshake,
+  accounting, trace parity, and replay. CI repeats the Phase 51B contract gate
+  on CPython 3.11-3.13.
+- The reproducible wheel gate is
+  `tools/certify_phase51b_wheel.py`; detailed semantics and hashes are archived
+  in `docs/contracts/p0_accounting_trace.md` and
+  `docs/contracts/phase51b_certification.json`.
 
 ---
 
