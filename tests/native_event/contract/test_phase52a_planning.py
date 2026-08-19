@@ -89,13 +89,18 @@ def test_auto_does_not_probe_rust_and_explicit_rust_fails_before_preparation():
 
 
 def test_output_projection_compiles_once_for_score_and_audit():
-    score = compile_output_requirements(profile="score")
+    score = compile_output_requirements(profile="score", public_result=False)
+    public_score = compile_output_requirements(profile="score", public_result=True)
     audit = compile_output_requirements(profile="audit")
 
     assert score.dense_paths is PathMask.NONE
     assert score.fill_detail is DetailLevel.COUNT
     assert score.event_detail is DetailLevel.COUNT
     assert score.materialize_pandas is False
+    assert public_score.dense_paths & PathMask.EQUITY
+    assert public_score.fill_detail is DetailLevel.COUNT
+    assert public_score.event_detail is DetailLevel.COUNT
+    assert public_score.materialize_pandas is True
     assert audit.dense_paths & PathMask.EQUITY
     assert audit.fill_detail is DetailLevel.FULL
     assert audit.event_detail is DetailLevel.FULL

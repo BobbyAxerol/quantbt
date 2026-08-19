@@ -16,14 +16,6 @@ import numpy as np
 import pandas as pd
 
 from ..core.event import (
-    ACTIVATION_IMMEDIATE,
-    ACTIVATION_ON_PARENT_FIRST_FILL,
-    ACTIVATION_ON_PARENT_FULL_FILL,
-    COMMAND_ACTION_AMEND,
-    COMMAND_ACTION_CANCEL,
-    COMMAND_ACTION_CANCEL_ALL,
-    COMMAND_ACTION_PLACE,
-    COMMAND_ACTION_REPLACE,
     FILL_REASON_LIMIT_OPEN_IMPROVEMENT,
     FILL_REASON_LIMIT_TRIGGER,
     FILL_REASON_NEXT_BAR_CLOSE,
@@ -59,9 +51,6 @@ from ..core.event import (
     ORDER_TYPE_STOP_MARKET,
     REJECT_INSUFFICIENT_MARGIN,
     REJECT_REDUCE_ONLY_NO_POSITION,
-    REJECT_UNKNOWN_ORDER,
-    SIDE_BUY,
-    SIDE_SELL,
     TIF_FOK,
     TIF_GTC,
     TIF_GTD,
@@ -143,7 +132,6 @@ from ..core.schema import (
 from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
-    RustBatchedRunner,
     RustFullRunner,
     RustReactiveSessionAdapter,
     resolve_native_event_backend,
@@ -1782,6 +1770,7 @@ class NativeEventBackend:
         audit_sink: Optional[str] = None,
         audit_sink_path: Optional[str] = None,
         opens: Optional[Dict[str, pd.Series]] = None,
+        _prepared_opens_arr: Optional[np.ndarray] = None,
         execution_contract: Optional[Union[str, EventClockContract]] = None,
         diagnostics_enabled: Optional[bool] = None,
         _force_python_backend: bool = False,
@@ -1820,7 +1809,11 @@ class NativeEventBackend:
             )
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
-        if opens is None:
+        if _prepared_opens_arr is not None:
+            opens_arr = np.asarray(_prepared_opens_arr, dtype=np.float64)
+            if opens_arr.shape != market_arrays.closes.shape or not opens_arr.flags.c_contiguous:
+                raise ValueError("prepared open prices must be contiguous and match prepared market shape")
+        elif opens is None:
             if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
                 raise ValueError(
                     "event_lifecycle_v3_next_open requires explicit open prices; "

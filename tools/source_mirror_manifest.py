@@ -28,6 +28,7 @@ MIRROR_ENTRIES = (
     "metrics",
     "optimization",
     "options",
+    "api",
     "planning",
     "preparation",
     "engine_spi",

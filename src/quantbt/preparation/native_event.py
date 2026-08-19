@@ -195,6 +195,8 @@ class NativeEventPreparation:
     effective_commands: tuple[OrderCommand, ...]
     quantity_preflight: Mapping[str, object]
     datetime_index: pd.DatetimeIndex
+    compiled_commands: CompiledOrderCommandArrays
+    legacy_market_arrays: object
 
 
 def prepare_native_event_lifecycle(
@@ -386,6 +388,8 @@ def prepare_native_event_lifecycle(
         effective_commands=effective_commands,
         quantity_preflight=preflight,
         datetime_index=index,
+        compiled_commands=compiled,
+        legacy_market_arrays=market_arrays,
     )
 
 
