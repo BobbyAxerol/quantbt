@@ -1,5 +1,6 @@
 mod accounting;
 mod full;
+mod generated_contracts;
 mod matching;
 mod session;
 mod types;
@@ -23,6 +24,19 @@ fn version() -> &'static str {
 #[pyfunction]
 fn api_version() -> &'static str {
     API_VERSION
+}
+
+#[pyfunction]
+fn contract_registry_fingerprint() -> &'static str {
+    generated_contracts::CONTRACT_REGISTRY_FINGERPRINT
+}
+
+#[pyfunction]
+fn event_contract_ids() -> Vec<&'static str> {
+    vec![
+        generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+        generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V3_NEXT_OPEN,
+    ]
 }
 
 #[pyfunction]
@@ -1499,6 +1513,8 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(api_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
+    module.add_function(wrap_pyfunction!(contract_registry_fingerprint, module)?)?;
+    module.add_function(wrap_pyfunction!(event_contract_ids, module)?)?;
     module.add_class::<PreparedMarketCore>()?;
     module.add_class::<BatchedScoreResultCore>()?;
     module.add_class::<ReactiveSessionCore>()?;
