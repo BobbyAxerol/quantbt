@@ -51,7 +51,10 @@ from ..core.event import (
     ORDER_TYPE_STOP_LIMIT,
     ORDER_TYPE_STOP_MARKET,
     REJECT_INSUFFICIENT_MARGIN,
+    REJECT_NONE,
     REJECT_REDUCE_ONLY_NO_POSITION,
+    REJECT_UNKNOWN_ORDER,
+    REJECT_UNSUPPORTED_ACTION,
     TIF_FOK,
     TIF_GTC,
     TIF_GTD,
@@ -1066,7 +1069,14 @@ class _NativeEventReactiveSession:
         elif action is OrderAction.REPLACE:
             target = self._lookup_pending(command.target_order_id)
             if target is None:
-                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+                self._event(
+                    bar,
+                    command,
+                    "reject",
+                    ORDER_STATUS_REJECTED,
+                    target_order_id=command.target_order_id,
+                    reject_code=REJECT_UNKNOWN_ORDER,
+                )
             else:
                 self._cancel_state(bar, target, "replace", ORDER_STATUS_CANCELED, command)
                 replacement = self._place_order(bar, command, "replace")
@@ -1075,13 +1085,27 @@ class _NativeEventReactiveSession:
         elif action is OrderAction.CANCEL:
             target = self._lookup_pending(command.target_order_id)
             if target is None:
-                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+                self._event(
+                    bar,
+                    command,
+                    "reject",
+                    ORDER_STATUS_REJECTED,
+                    target_order_id=command.target_order_id,
+                    reject_code=REJECT_UNKNOWN_ORDER,
+                )
             else:
                 self._cancel_state(bar, target, "cancel", ORDER_STATUS_FILLED, command)
         elif action is OrderAction.AMEND:
             target = self._lookup_pending(command.target_order_id)
             if target is None:
-                self._event(bar, command, "reject", ORDER_STATUS_REJECTED, target_order_id=command.target_order_id)
+                self._event(
+                    bar,
+                    command,
+                    "reject",
+                    ORDER_STATUS_REJECTED,
+                    target_order_id=command.target_order_id,
+                    reject_code=REJECT_UNKNOWN_ORDER,
+                )
             else:
                 if command.qty is not None and command.qty > 0.0:
                     target.working_qty = float(command.qty)
@@ -1097,7 +1121,13 @@ class _NativeEventReactiveSession:
                     self._cancel_state(bar, target, "cancel", ORDER_STATUS_CANCELED, command)
             self._event(bar, command, "cancel", ORDER_STATUS_FILLED)
         else:
-            self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+            self._event(
+                bar,
+                command,
+                "reject",
+                ORDER_STATUS_REJECTED,
+                reject_code=REJECT_UNSUPPORTED_ACTION,
+            )
 
     def _place_order(self, bar: int, command: OrderCommand, event_name: str) -> Optional[_ReactiveOrderState]:
         if command.symbol is None or command.symbol not in self.symbol_to_col:
@@ -1176,7 +1206,13 @@ class _NativeEventReactiveSession:
             if required > self.equity - cur_im:
                 state.status = ORDER_STATUS_REJECTED
                 state.reject_code = REJECT_INSUFFICIENT_MARGIN
-                self._event(bar, command, "reject", ORDER_STATUS_REJECTED)
+                self._event(
+                    bar,
+                    command,
+                    "reject",
+                    ORDER_STATUS_REJECTED,
+                    reject_code=state.reject_code,
+                )
                 self._terminalize_state(state)
                 continue
 
@@ -1290,6 +1326,7 @@ class _NativeEventReactiveSession:
         *,
         target_order_id: Optional[str] = None,
         related_order_id: Optional[str] = None,
+        reject_code: int = REJECT_NONE,
     ) -> None:
         if event_name == "reject":
             self.rejected_count += 1
@@ -1314,6 +1351,7 @@ class _NativeEventReactiveSession:
                 level_id=command.metadata.get("level_id"),
                 original_index=-1,
                 related_original_index=-1,
+                metadata={"reject_code": int(reject_code)},
             )
         if self.emit_context_events and event is not None:
             self.events_by_bar.setdefault(bar, []).append(event)
@@ -2442,7 +2480,11 @@ class NativeEventBackend:
                     hasattr(strategy, "quantbt_requirements")
                     or hasattr(strategy, "native_context_requirements")
                 ),
-                required_capabilities=("native_event_v2_full_contract",),
+                required_capabilities=(
+                    ("native_event_v2_full_contract",)
+                    if backend_selection.extension.capabilities.get("native_event_v2_full_contract", False)
+                    else ()
+                ),
                 metadata=(
                     ("context_mode", strategy_adapter.requirements.context_mode),
                     ("strategy_id", strategy_adapter.strategy_id),
@@ -3669,22 +3711,38 @@ class NativeEventBackend:
 
         fills_by_id = {fill.order_id: fill for fill in session.fills if fill.order_id is not None}
         latest_event = {}
+        target_events = {}
+        canceled_ids = set()
+        rejected_ids = set()
         for event in session.events:
-            key = event.order_id or event.target_order_id
-            if key is not None:
-                latest_event[key] = event
+            if event.order_id is not None:
+                latest_event[event.order_id] = event
+            if event.target_order_id is not None:
+                target_events.setdefault(event.target_order_id, []).append(event)
+                if event.event_name in {"cancel", "replace"}:
+                    canceled_ids.add(event.target_order_id)
+            if event.event_name == "reject":
+                rejected_ids.add(event.order_id or event.target_order_id)
         active = {snapshot.order_id: snapshot for snapshot in getattr(session, "_active_snapshot_cache", ())}
         rows = []
         for original_index, command in enumerate(commands):
             fill = fills_by_id.get(command.order_id)
-            event = latest_event.get(command.order_id or command.target_order_id)
+            event = latest_event.get(command.order_id)
             snapshot = active.get(command.order_id)
-            status = (
-                ORDER_STATUS_FILLED if fill is not None else
-                int(event.status) if event is not None else
-                ORDER_STATUS_PENDING if snapshot is not None else
-                0
-            )
+            target_matches = target_events.get(command.target_order_id, ())
+            action_succeeded = any(match.event_name == command.action.value for match in target_matches)
+            if command.action in {OrderAction.CANCEL, OrderAction.AMEND}:
+                status = ORDER_STATUS_FILLED if action_succeeded else ORDER_STATUS_REJECTED
+            elif command.order_id in rejected_ids:
+                status = ORDER_STATUS_REJECTED
+            elif fill is not None:
+                status = ORDER_STATUS_FILLED
+            elif command.order_id in canceled_ids:
+                status = ORDER_STATUS_CANCELED
+            elif snapshot is not None or command.action in {OrderAction.PLACE, OrderAction.REPLACE}:
+                status = ORDER_STATUS_PENDING
+            else:
+                status = int(event.status) if event is not None else ORDER_STATUS_PENDING
             rows.append(
                 {
                     "original_index": int(original_index),
@@ -3700,7 +3758,11 @@ class NativeEventBackend:
                     "group_id": command.group_id,
                     "oco_group_id": command.oco_group_id,
                     "status": int(status),
-                    "reject_code": int((event.metadata or {}).get("reject_code", 0)) if event is not None else 0,
+                    "reject_code": (
+                        int((event.metadata or {}).get("reject_code", 0))
+                        if event is not None and event.event_name == "reject" and int(status) == ORDER_STATUS_REJECTED
+                        else 0
+                    ),
                     "fill_bar": -1 if fill is None else int(session.idx.searchsorted(fill.timestamp)),
                     "fill_qty": 0.0 if fill is None else float(fill.qty),
                     "fill_price": 0.0 if fill is None else float(fill.price),
@@ -3720,7 +3782,11 @@ class NativeEventBackend:
                     "status": int(event.status),
                     "order_id": event.order_id,
                     "target_order_id": event.target_order_id,
-                    "reject_code": int((event.metadata or {}).get("reject_code", 0)),
+                    "reject_code": (
+                        int((event.metadata or {}).get("reject_code", 0))
+                        if event.event_name == "reject"
+                        else 0
+                    ),
                 }
                 for event in session.events
             ]
