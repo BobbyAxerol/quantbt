@@ -7,6 +7,7 @@ Native event-driven backend using a Numba matching kernel.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, replace
+import hashlib
 import math
 from pathlib import Path
 from time import perf_counter_ns
@@ -130,6 +131,7 @@ from ..core.schema import (
     InstrumentSpec,
 )
 from ..strategies import PreparedStrategyAdapter, resolve_strategy_requirements
+from ..preparation.cache import CachePolicy, PreparedObjectCache
 from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
@@ -182,6 +184,8 @@ class NativeEventConfig:
     native_backend: Optional[str] = None
     execution_contract: Union[str, EventClockContract] = EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
     diagnostics: bool = False
+    prepared_cache_max_bytes: int = 256 * 1024 * 1024
+    prepared_cache_max_entries: int = 8
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -200,6 +204,8 @@ class NativeEventConfig:
                     "native_backend must be one of: auto, python, replay_certified, rust"
                 )
             object.__setattr__(self, "native_backend", selected)
+        if self.prepared_cache_max_bytes < 0 or self.prepared_cache_max_entries < 0:
+            raise ValueError("prepared cache budgets must be >= 0")
 
 
 @dataclass(frozen=True)
@@ -923,10 +929,14 @@ class _NativeEventReactiveSession:
     def process_bar(self, bar: int) -> None:
         if bar <= self.processed_bar:
             return
+        started_ns = perf_counter_ns()
         for i in range(self.processed_bar + 1, int(bar) + 1):
             self._process_single_bar(i)
             self.processed_bar = i
             self.execution_counters["bars_processed"] += 1
+        self.execution_counters["native_step_ns"] = self.execution_counters.get("native_step_ns", 0) + (
+            perf_counter_ns() - started_ns
+        )
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
@@ -1568,7 +1578,48 @@ class NativeEventBackend:
         # signature: open/volume are callback-visible and are not part of the
         # OHLC/funding signature. Reuse is therefore safe only for the exact
         # prepared arrays owned by one prepared runner.
-        self._rust_prepared_market_cores: Dict[tuple, object] = {}
+        self._rust_prepared_market_cores = PreparedObjectCache(
+            CachePolicy(
+                max_bytes=int(config.prepared_cache_max_bytes),
+                max_entries=int(config.prepared_cache_max_entries),
+            )
+        )
+
+    @staticmethod
+    def _reactive_market_cache_key(kwargs) -> tuple[str, ...]:
+        """Content key for immutable market ownership; never object identity."""
+
+        market_arrays = kwargs["market_arrays"]
+        digest = hashlib.sha256()
+        for array in (
+            market_arrays.idx.asi8,
+            kwargs["opens_arr"],
+            market_arrays.highs,
+            market_arrays.lows,
+            market_arrays.closes,
+            kwargs["volumes_arr"],
+            market_arrays.funding,
+            market_arrays.is_funding_bar,
+        ):
+            contiguous = np.ascontiguousarray(array)
+            digest.update(str(contiguous.dtype).encode("ascii"))
+            digest.update(str(contiguous.shape).encode("ascii"))
+            digest.update(contiguous.tobytes())
+        return (
+            "reactive-market-v2",
+            str(market_arrays.signature),
+            digest.hexdigest(),
+        )
+
+    @staticmethod
+    def _reactive_market_bytes(kwargs) -> int:
+        market_arrays = kwargs["market_arrays"]
+        arrays = (
+            kwargs["opens_arr"], kwargs["volumes_arr"], market_arrays.highs,
+            market_arrays.lows, market_arrays.closes, market_arrays.funding,
+            market_arrays.is_funding_bar,
+        )
+        return int(sum(np.asarray(array).nbytes for array in arrays))
 
     def _create_reactive_session(
         self,
@@ -1583,13 +1634,17 @@ class NativeEventBackend:
         silently switching domain behavior.
         """
         if backend_selection.resolved == "rust":
-            market_arrays = kwargs["market_arrays"]
-            key = (market_arrays.signature, id(kwargs["opens_arr"]), id(kwargs["volumes_arr"]))
-            kwargs["prepared_market_core"] = self._rust_prepared_market_cores.get(key)
+            key = self._reactive_market_cache_key(kwargs)
+            cached_core = self._rust_prepared_market_cores.get(key)
+            kwargs["prepared_market_core"] = cached_core
             session = RustReactiveSessionAdapter(**kwargs)
             prepared_core = getattr(session, "prepared_market_core", None)
-            if prepared_core is not None:
-                self._rust_prepared_market_cores.setdefault(key, prepared_core)
+            if cached_core is None and prepared_core is not None:
+                self._rust_prepared_market_cores.put(
+                    key,
+                    prepared_core,
+                    size_bytes=self._reactive_market_bytes(kwargs),
+                )
             return session
         return _NativeEventReactiveSession(**kwargs)
 
@@ -1604,7 +1659,13 @@ class NativeEventBackend:
             "native_event_rust_canonical_capabilities": dict(selection.extension.canonical_capabilities),
             "native_event_rust_semantic_descriptor": dict(selection.extension.semantic_descriptor),
             "native_event_rust_fallback_reason": selection.extension.reason,
+            "prepared_market_cache": self._rust_prepared_market_cores.diagnostics,
         }
+
+    def clear_prepared_caches(self) -> None:
+        """Release backend-owned prepared objects without mutating results."""
+
+        self._rust_prepared_market_cores.clear()
 
     def prepare_market_arrays(
         self,
@@ -2325,6 +2386,7 @@ class NativeEventBackend:
         for the next bar. ``replay_certified`` remains the explicit oracle
         mode; ordinary single-pass runs report from their primary engine.
         """
+        run_started_ns = perf_counter_ns()
         if strategy is None:
             raise ValueError("run_strategy requires a strategy object")
         if str(command_effective_phase).lower().strip() != "next_bar":
@@ -2350,6 +2412,7 @@ class NativeEventBackend:
         else:
             score_requirements = None
 
+        market_prepare_started_ns = perf_counter_ns()
         idx = validate_datetime(datetime_index)
         if len(idx) == 0:
             raise ValueError("native-event strategy execution requires at least one market bar")
@@ -2385,6 +2448,7 @@ class NativeEventBackend:
             raise ValueError("prepared opens/volumes arrays must match market array shape")
         opens_arr.setflags(write=False)
         volumes_arr.setflags(write=False)
+        market_prepare_ns = perf_counter_ns() - market_prepare_started_ns
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
@@ -2406,6 +2470,7 @@ class NativeEventBackend:
             symbol_list,
             default=0.0,
         )
+        engine_prepare_started_ns = perf_counter_ns()
         session = self._create_reactive_session(
             backend_selection=backend_selection,
             idx=idx,
@@ -2431,7 +2496,11 @@ class NativeEventBackend:
         constraints_enabled = bool(getattr(session, "constraints_enabled", constraints.enabled))
         if getattr(session, "online_score", None) is not None:
             session.online_score.trading_days = int(_trading_days)
+        engine_prepare_ns = perf_counter_ns() - engine_prepare_started_ns
+        strategy_prepare_started_ns = perf_counter_ns()
         strategy_adapter = PreparedStrategyAdapter.prepare(strategy)
+        strategy_prepare_ns = perf_counter_ns() - strategy_prepare_started_ns
+        engine_run_started_ns = perf_counter_ns()
 
         # Keep execution and audit tape distinct: next-bar semantics prohibit
         # executing a final-close command, while audit still needs to preserve
@@ -2443,6 +2512,7 @@ class NativeEventBackend:
         emitted_executable_command_count = 0
         callback_count = 0
         ignored_commands_after_end = 0
+        quantity_preflight_summary = {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
 
         def record_scheduled(commands: Sequence[OrderCommand]) -> None:
             nonlocal emitted_command_count, emitted_executable_command_count
@@ -2481,7 +2551,7 @@ class NativeEventBackend:
                 return tuple(commands)
             if execution_counters:
                 execution_counters["constraint_preflight_calls"] += 1
-            effective, _ = self._apply_command_quantity_constraints(
+            effective, preflight = self._apply_command_quantity_constraints(
                 idx=idx,
                 commands=commands,
                 closes=market_arrays.closes,
@@ -2491,6 +2561,9 @@ class NativeEventBackend:
             )
             if execution_counters:
                 execution_counters["commands_quantized"] += len(commands)
+            quantity_preflight_summary["changed_count"] += int(preflight["changed_count"])
+            quantity_preflight_summary["dropped_count"] += int(preflight["dropped_count"])
+            quantity_preflight_summary["dropped_orders"].extend(preflight["dropped_orders"])
             return effective
 
         def schedule_reactive_batch(
@@ -2574,6 +2647,21 @@ class NativeEventBackend:
                 )
 
         replay_required = kernel_mode == "replay_certified"
+        engine_run_ns = perf_counter_ns() - engine_run_started_ns
+        observability = {
+            "schema_version": "p1-boundary-diagnostics-v1",
+            "market_prepare_ns": int(market_prepare_ns),
+            "instrument_prepare_ns": 0,
+            "strategy_prepare_ns": int(strategy_prepare_ns),
+            "command_compile_ns": 0,
+            "engine_prepare_ns": int(engine_prepare_ns),
+            "engine_run_ns": int(engine_run_ns),
+            "result_adapt_ns": 0,
+            "report_build_ns": 0,
+            "oracle_verify_ns": 0,
+            "planning_ns": 0,
+            "total_ns": int(perf_counter_ns() - run_started_ns),
+        }
         if _return_score:
             return self._reactive_session_score_result(
                 session=session,
@@ -2602,9 +2690,11 @@ class NativeEventBackend:
                     "reactive_session_liquidation_bar": int(session.liquidation_bar),
                     "execution_counters": dict(getattr(session, "execution_counters", {})),
                     "strategy_boundary": strategy_adapter.diagnostics,
+                    "observability": observability,
                     **self._backend_selection_metadata(),
                 },
             )
+        result_adapt_started_ns = perf_counter_ns()
         replay_result = None
         if replay_required:
             replay_opens = opens
@@ -2638,25 +2728,24 @@ class NativeEventBackend:
                 execution_contract=clock,
                 _force_python_backend=True,
             )
-        if kernel_mode == "replay_certified":
-            final_result = replay_result
-            engine_name = _event_engine_name(clock, "reactive_incremental")
-        else:
-            if replay_result is not None:
-                self._assert_reactive_session_replay_parity(session, replay_result)
-            final_result = self._reactive_session_result(
-                session=session,
-                symbol_list=symbol_list,
-                market_arrays=market_arrays,
-                leverages=leverages,
-                report_level=level,
-                plan=plan,
-                replay_result=replay_result,
-                primary_commands=tuple(emitted_audit_tape),
-                audit_sink=audit_sink,
-                audit_sink_path=audit_sink_path,
-            )
-            engine_name = _event_engine_name(clock, "reactive_single_pass")
+        oracle_verify_started_ns = perf_counter_ns()
+        if replay_result is not None:
+            self._assert_reactive_session_replay_parity(session, replay_result)
+        oracle_verify_ns = perf_counter_ns() - oracle_verify_started_ns if replay_result is not None else 0
+        final_result = self._reactive_session_result(
+            session=session,
+            symbol_list=symbol_list,
+            market_arrays=market_arrays,
+            leverages=leverages,
+            report_level=level,
+            plan=plan,
+            replay_result=None,
+            primary_commands=tuple(emitted_audit_tape),
+            quantity_preflight=quantity_preflight_summary,
+            audit_sink=audit_sink,
+            audit_sink_path=audit_sink_path,
+        )
+        engine_name = _event_engine_name(clock, "reactive_single_pass")
         final_result.metadata.update(
             {
                 "engine": engine_name,
@@ -2682,8 +2771,19 @@ class NativeEventBackend:
                 "audit_mode": "verify_against_oracle" if replay_required else "native_trace",
                 "primary_engine_runs": 1,
                 "oracle_engine_runs": int(replay_required),
+                "oracle_verified": bool(replay_result is not None),
+                "oracle_backend": "python_static_lifecycle" if replay_result is not None else None,
+                "state_owner": "rust" if backend_selection.resolved == "rust" else "python",
+                "authoritative_mutable_state_count": 1,
+                "python_shadow_accounting": False,
+                "observability": observability,
             }
         )
+        observability["oracle_verify_ns"] = int(oracle_verify_ns)
+        if replay_result is not None:
+            final_result.metadata["single_pass_replay_certified"] = True
+        observability["result_adapt_ns"] = int(perf_counter_ns() - result_adapt_started_ns)
+        observability["total_ns"] = int(perf_counter_ns() - run_started_ns)
         if backend_selection.resolved == "rust":
             final_result.metadata["rust_r1_session_fills"] = tuple(session.fills) if plan.materialize_python_objects else ()
             final_result.metadata["rust_r1_session_events"] = tuple(session.events) if plan.keep_event_ledger else ()
@@ -2700,6 +2800,12 @@ class NativeEventBackend:
                     for symbol in symbol_list
                 },
             }
+        if level == "audit" and _normalize_native_event_audit_sink(
+            self.config.audit_sink if audit_sink is None else audit_sink
+        ) == "memory":
+            from ..core.execution_trace import attach_canonical_execution_trace
+
+            attach_canonical_execution_trace(final_result)
         return final_result
 
     def run_strategy_score(
@@ -3293,7 +3399,7 @@ class NativeEventBackend:
             "rejected_count": int(session.rejected_count),
             "canceled_count": int(session.canceled_count),
             "filled_command_count": int(session.fill_count),
-            "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
+            "pending_command_count": int(len(getattr(session, "_active_snapshot_cache", ())),),
             "expired_event_count": int(getattr(session, "expired_count", 0)),
         }
         score_metadata = {
@@ -3394,6 +3500,7 @@ class NativeEventBackend:
         plan: NativeEventArtifactPlan,
         replay_result: Optional[BacktestResultV2],
         primary_commands: Sequence[OrderCommand],
+        quantity_preflight: Optional[Mapping[str, object]],
         audit_sink: Optional[str],
         audit_sink_path: Optional[str],
     ) -> BacktestResultV2:
@@ -3432,7 +3539,7 @@ class NativeEventBackend:
             "rejected_count": int(np.sum(session.rejected_bar)),
             "canceled_count": int(np.sum(session.canceled_bar)),
             "filled_command_count": int(len(session_fills)),
-            "pending_command_count": int(sum(1 for state in session.pending if session._is_pending(state))),
+            "pending_command_count": int(len(getattr(session, "_active_snapshot_cache", ())),),
             "expired_event_count": int(sum(1 for event in session.events if event.event_name == "expire")),
         }
         command_report = pd.DataFrame()
@@ -3443,7 +3550,10 @@ class NativeEventBackend:
         compact_command_ledger = None
         compact_order_event_ledger = None
         audit_artifacts = {}
-        quantity_preflight = {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
+        quantity_preflight = dict(
+            quantity_preflight
+            or {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
+        )
         if replay_result is not None:
             command_report = replay_result.metadata.get("command_report", pd.DataFrame())
             order_events = replay_result.metadata.get("order_events", pd.DataFrame())

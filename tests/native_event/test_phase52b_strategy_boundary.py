@@ -11,6 +11,7 @@ from quantbt import (
     OrderSide,
     OrderType,
     QuantBTEndpoint,
+    ResourceLimitError,
     StaleStrategyContextError,
     StrategyContextRequirements,
     TimeInForce,
@@ -154,10 +155,17 @@ def test_command_writer_reuses_capacity_and_enforces_limit():
     writer.limit(0, -1, 1.0, 101.0)
     writer.stop_market(0, -1, 1.0, 99.0)
     assert writer.growth_count == 2
-    with pytest.raises(ResourceWarning):
+    with pytest.raises(ResourceLimitError):
         writer.market(0, 1, 1.0)
     with pytest.raises(RuntimeError, match="stale"):
         first.to_order_commands(timestamp=pd.Timestamp("2026-01-01", tz="UTC"), symbols=("BTC",))
+
+    malformed = CommandWriter()
+    malformed.market(0, 1, -1.0)
+    with pytest.raises(ValueError, match="qty > 0"):
+        malformed.finish().to_order_commands(
+            timestamp=pd.Timestamp("2026-01-01", tz="UTC"), symbols=("BTC",)
+        )
 
 
 def test_numeric_callback_exception_contains_strategy_location():

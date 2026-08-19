@@ -15,6 +15,7 @@ import pandas as pd
 
 from .orders import OrderCommand
 from .schema import OrderSide
+from ..errors import EngineErrorContext, StrategyCallbackError
 
 
 @dataclass(frozen=True)
@@ -122,7 +123,7 @@ class NativeStrategyContext:
     size_order: Callable[..., float] = field(default=lambda **_: 0.0, repr=False, compare=False)
 
 
-class NativeEventStrategyError(RuntimeError):
+class NativeEventStrategyError(StrategyCallbackError):
     """Raised when a reactive strategy callback fails."""
 
     def __init__(self, callback: str, bar_index: int, timestamp: pd.Timestamp, original: Exception):
@@ -130,9 +131,16 @@ class NativeEventStrategyError(RuntimeError):
         self.bar_index = int(bar_index)
         self.timestamp = timestamp
         self.original = original
+        timestamp_ns = int(pd.Timestamp(timestamp).value)
         super().__init__(
             f"native-event strategy callback {callback!r} failed at "
-            f"bar_index={bar_index}, timestamp={timestamp}: {type(original).__name__}: {original}"
+            f"bar_index={bar_index}, timestamp={timestamp}: {type(original).__name__}: {original}",
+            context=EngineErrorContext(
+                StrategyCallbackError.error_code,
+                "strategy_callback",
+                bar_index=int(bar_index),
+                timestamp_ns=timestamp_ns,
+            ),
         )
 
 

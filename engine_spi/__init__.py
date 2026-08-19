@@ -7,9 +7,37 @@ from .protocol import (
     PreparedEngineSession,
     ResetRequest,
 )
+from .errors import (
+    AuditMismatchError,
+    CapabilityError,
+    CommandValidationError,
+    ConfigurationError,
+    ContractMismatchError,
+    EngineErrorCode,
+    EngineErrorContext,
+    ExecutionInvariantError,
+    NativeProtocolError,
+    PreparationError,
+    QuantBTEngineError,
+    ResourceLimitError,
+    StrategyCallbackError,
+)
 from .registry import create_backend, registered_backends
 
 __all__ = [
+    "AuditMismatchError",
+    "CapabilityError",
+    "CommandValidationError",
+    "ConfigurationError",
+    "ContractMismatchError",
+    "EngineErrorCode",
+    "EngineErrorContext",
+    "ExecutionInvariantError",
+    "NativeProtocolError",
+    "PreparationError",
+    "QuantBTEngineError",
+    "ResourceLimitError",
+    "StrategyCallbackError",
     "BackendDescriptor",
     "EngineBackend",
     "EngineRunRequest",

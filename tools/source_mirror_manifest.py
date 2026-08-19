@@ -20,6 +20,7 @@ MIRROR_ENTRIES = (
     "backtester.py",
     "endpoint.py",
     "engines.py",
+    "errors.py",
     "portfolio.py",
     "walkforward.py",
     "adapters",

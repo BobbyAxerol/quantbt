@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from time import perf_counter_ns
 
 from ..core.reactive import NativeEventStrategyError
 from .commands import CommandWriter
@@ -21,6 +22,7 @@ class PreparedStrategyAdapter:
     legacy_command_objects: int = 0
     writer_command_rows: int = 0
     context_projection_bytes: int = 0
+    callback_ns: int = 0
 
     @classmethod
     def prepare(cls, strategy, *, writer_capacity: int = 8, writer_hard_limit: int = 65_536):
@@ -54,7 +56,9 @@ class PreparedStrategyAdapter:
             view = StrategyContextView(session, bar, self.requirements, session.generation)
             self.writer.reset()
             try:
+                started = perf_counter_ns()
                 result = fn(view, self.writer)
+                self.callback_ns += perf_counter_ns() - started
                 if result is not None:
                     raise TypeError("numeric strategy callbacks must write to CommandWriter and return None")
                 batch = self.writer.finish()
@@ -65,6 +69,8 @@ class PreparedStrategyAdapter:
                 )
                 return commands
             except Exception as exc:
+                if hasattr(session, "poisoned"):
+                    session.poisoned = True
                 if isinstance(exc, NativeEventStrategyError):
                     raise
                 raise NativeEventStrategyError(callback, bar, session.idx[int(bar)], exc) from exc
@@ -72,8 +78,12 @@ class PreparedStrategyAdapter:
                 view.invalidate()
         context = session.context(bar)
         try:
+            started = perf_counter_ns()
             result = fn(context)
+            self.callback_ns += perf_counter_ns() - started
         except Exception as exc:
+            if hasattr(session, "poisoned"):
+                session.poisoned = True
             raise NativeEventStrategyError(callback, bar, context.timestamp, exc) from exc
         if result is None:
             return ()
@@ -101,6 +111,7 @@ class PreparedStrategyAdapter:
             "command_buffer_grows": int(self.writer.growth_count),
             "command_buffer_high_water": int(self.writer.high_water_mark),
             "callback_projection_bytes": int(self.context_projection_bytes),
+            "callback_ns": int(self.callback_ns),
         }
 
 

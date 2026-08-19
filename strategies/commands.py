@@ -9,6 +9,7 @@ import numpy as np
 
 from ..core.orders import OrderAction, OrderActivationPolicy, OrderCommand
 from ..core.schema import OrderSide, OrderType, TimeInForce
+from ..errors import EngineErrorContext, ResourceLimitError
 
 
 _ACTION = {
@@ -129,7 +130,10 @@ class CommandWriter:
 
     def _reserve_row(self) -> int:
         if self.length >= self.hard_limit:
-            raise ResourceWarning(f"command writer hard limit exceeded: {self.hard_limit}")
+            raise ResourceLimitError(
+                f"command writer hard limit exceeded: {self.hard_limit}",
+                context=EngineErrorContext(ResourceLimitError.error_code, "strategy_callback"),
+            )
         if self.length >= self.capacity:
             self._allocate(min(self.hard_limit, max(self.capacity * 2, self.length + 1)))
             self.growth_count += 1

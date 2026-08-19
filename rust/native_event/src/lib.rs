@@ -1058,6 +1058,16 @@ struct FullStepResultCore {
     #[pyo3(get)]
     maintenance_margin: f64,
     #[pyo3(get)]
+    total_fee: f64,
+    #[pyo3(get)]
+    total_turnover: f64,
+    #[pyo3(get)]
+    total_funding: f64,
+    #[pyo3(get)]
+    total_rejected: i64,
+    #[pyo3(get)]
+    total_canceled: i64,
+    #[pyo3(get)]
     fill_count: i64,
     #[pyo3(get)]
     event_count: i64,
@@ -1079,10 +1089,43 @@ struct FullStepResultCore {
     events: Option<Vec<Vec<i64>>>,
     #[pyo3(get)]
     active_orders: Option<Vec<Vec<f64>>>,
+    #[pyo3(get)]
+    fill_begin: u64,
+    #[pyo3(get)]
+    fill_end: u64,
+    #[pyo3(get)]
+    event_begin: u64,
+    #[pyo3(get)]
+    event_end: u64,
+    #[pyo3(get)]
+    order_delta_begin: u64,
+    #[pyo3(get)]
+    order_delta_end: u64,
+    #[pyo3(get)]
+    position_delta_begin: u64,
+    #[pyo3(get)]
+    position_delta_end: u64,
 }
 
 impl FullStepResultCore {
-    fn from_result(result: full::FullStepResult, output_mask: u8) -> Self {
+    #[allow(clippy::too_many_arguments)]
+    fn from_result(
+        result: full::FullStepResult,
+        output_mask: u8,
+        total_fee: f64,
+        total_turnover: f64,
+        total_funding: f64,
+        total_rejected: i64,
+        total_canceled: i64,
+        fill_begin: u64,
+        event_begin: u64,
+        order_delta_begin: u64,
+        position_delta_begin: u64,
+        position_delta_count: u64,
+    ) -> Self {
+        let fill_end = fill_begin + result.fill_count.max(0) as u64;
+        let event_end = event_begin + result.event_count.max(0) as u64;
+        let order_delta_end = order_delta_begin + result.event_count.max(0) as u64;
         Self {
             equity: result.equity,
             fee: result.fee,
@@ -1090,6 +1133,11 @@ impl FullStepResultCore {
             funding: result.funding,
             initial_margin: result.initial_margin,
             maintenance_margin: result.maintenance_margin,
+            total_fee,
+            total_turnover,
+            total_funding,
+            total_rejected,
+            total_canceled,
             fill_count: result.fill_count,
             event_count: result.event_count,
             rejected_count: result.rejected_count,
@@ -1102,6 +1150,14 @@ impl FullStepResultCore {
             events: (output_mask & full::OUTPUT_EVENTS != 0).then_some(result.events),
             active_orders: (output_mask & full::OUTPUT_ACTIVE_ORDERS != 0)
                 .then_some(result.active_orders),
+            fill_begin,
+            fill_end,
+            event_begin,
+            event_end,
+            order_delta_begin,
+            order_delta_end,
+            position_delta_begin,
+            position_delta_end: position_delta_begin + position_delta_count,
         }
     }
 }
@@ -1172,6 +1228,35 @@ impl FullPreparedMarketCore {
 #[pyclass]
 struct FullReactiveSessionCore {
     inner: FullSession,
+    total_fee: f64,
+    total_turnover: f64,
+    total_funding: f64,
+    total_rejected: i64,
+    total_canceled: i64,
+    fill_cursor: u64,
+    event_cursor: u64,
+    order_delta_cursor: u64,
+    position_delta_cursor: u64,
+    last_positions: Vec<f64>,
+}
+
+impl FullReactiveSessionCore {
+    fn wrap(inner: FullSession) -> Self {
+        let last_positions = vec![0.0; inner.market.n_symbols];
+        Self {
+            inner,
+            total_fee: 0.0,
+            total_turnover: 0.0,
+            total_funding: 0.0,
+            total_rejected: 0,
+            total_canceled: 0,
+            fill_cursor: 0,
+            event_cursor: 0,
+            order_delta_cursor: 0,
+            position_delta_cursor: 0,
+            last_positions,
+        }
+    }
 }
 
 #[pymethods]
@@ -1216,7 +1301,7 @@ impl FullReactiveSessionCore {
             use_funding,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self::wrap(inner))
     }
 
     #[classmethod]
@@ -1245,7 +1330,7 @@ impl FullReactiveSessionCore {
             use_funding,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self::wrap(inner))
     }
 
     fn set_event_contract(&mut self, contract_code: i64) -> PyResult<()> {
@@ -1344,7 +1429,38 @@ impl FullReactiveSessionCore {
                 mask,
             )
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Py::new(py, FullStepResultCore::from_result(result, mask))
+        let changed_positions = self
+            .inner
+            .positions
+            .iter()
+            .zip(self.last_positions.iter())
+            .filter(|(current, previous)| (*current - *previous).abs() > 1e-15)
+            .count() as u64;
+        self.last_positions.clone_from(&self.inner.positions);
+        self.total_fee += result.fee;
+        self.total_turnover += result.turnover;
+        self.total_funding += result.funding;
+        self.total_rejected += result.rejected_count;
+        self.total_canceled += result.canceled_count;
+        let projected = FullStepResultCore::from_result(
+            result,
+            mask,
+            self.total_fee,
+            self.total_turnover,
+            self.total_funding,
+            self.total_rejected,
+            self.total_canceled,
+            self.fill_cursor,
+            self.event_cursor,
+            self.order_delta_cursor,
+            self.position_delta_cursor,
+            changed_positions,
+        );
+        self.fill_cursor = projected.fill_end;
+        self.event_cursor = projected.event_end;
+        self.order_delta_cursor = projected.order_delta_end;
+        self.position_delta_cursor = projected.position_delta_end;
+        Py::new(py, projected)
     }
 
     /// Set reactive projection requirements without changing the stable
@@ -1362,6 +1478,16 @@ impl FullReactiveSessionCore {
 
     fn reset(&mut self) {
         self.inner.reset();
+        self.total_fee = 0.0;
+        self.total_turnover = 0.0;
+        self.total_funding = 0.0;
+        self.total_rejected = 0;
+        self.total_canceled = 0;
+        self.fill_cursor = 0;
+        self.event_cursor = 0;
+        self.order_delta_cursor = 0;
+        self.position_delta_cursor = 0;
+        self.last_positions.fill(0.0);
     }
 
     fn order_arena_counters(&self) -> (usize, usize, u64, u64) {

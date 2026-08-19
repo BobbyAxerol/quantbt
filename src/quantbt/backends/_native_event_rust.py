@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import importlib
 import os
+from time import perf_counter_ns
 from types import ModuleType
 from typing import Callable, Mapping, Optional, Sequence
 
@@ -28,6 +29,8 @@ from ..core.native_event_capabilities import (
     normalize_native_event_capabilities,
     validate_native_event_semantic_descriptor,
 )
+from ..errors import EngineErrorContext, NativeProtocolError
+from ..preparation.cache import ResetScope
 
 
 RUST_NATIVE_API_VERSION = "0.4"
@@ -68,7 +71,7 @@ def _step_has(payload, key: str) -> bool:
     return hasattr(payload, key)
 
 
-class NativeEventRustBackendError(RuntimeError):
+class NativeEventRustBackendError(NativeProtocolError):
     """Raised when an explicitly requested Rust backend cannot be used."""
 
 
@@ -614,15 +617,28 @@ class RustFullCommandBuffer:
         self.commands_compiled = 0
 
 
-@dataclass(frozen=True)
-class _RustPendingOrder:
-    order_id: Optional[str]
-    side: OrderSide
-    order_type: OrderType
-    qty: float
-    price: float
-    trigger_price: float
-    reduce_only: bool
+@dataclass(slots=True)
+class _RustNativeProjection:
+    """Compact callback projection copied from authoritative Rust state."""
+
+    positions: np.ndarray
+    equity: float
+    initial_margin: float = 0.0
+    maintenance_margin: float = 0.0
+    total_fee: float = 0.0
+    total_funding: float = 0.0
+    total_turnover: float = 0.0
+    fill_count: int = 0
+    event_count: int = 0
+    rejected_count: int = 0
+    canceled_count: int = 0
+    liquidated: bool = False
+    liquidation_bar: int = -1
+    liquidation_reason: int = 0
+    fill_cursor: tuple[int, int] = (0, 0)
+    event_cursor: tuple[int, int] = (0, 0)
+    order_delta_cursor: tuple[int, int] = (0, 0)
+    position_delta_cursor: tuple[int, int] = (0, 0)
 
 
 def _empty_status(reason: str) -> NativeEventRustExtensionStatus:
@@ -1733,30 +1749,29 @@ class RustReactiveSessionAdapter:
             "constraint_preflight_skipped": 0,
             "commands_retimed": 0,
             "commands_quantized": 0,
+            "pyo3_calls": 0,
+            "gil_reacquisitions": 0,
+            "callback_projection_bytes": 0,
+            "market_bytes_copied": 0,
+            "command_bytes_copied": 0,
+            "result_bytes_copied": 0,
+            "position_delta_rows": 0,
+            "order_delta_rows": 0,
         }
         self.scheduled: dict[int, list[OrderCommand]] = {}
-        self.pending: list[_RustPendingOrder] = []
-        self.orders: list[_RustPendingOrder] = []
         self.fills: list[NativeFillEvent] = []
         self.events: list[NativeOrderEvent] = []
-        self.fill_count = 0
-        self.event_count = 0
-        self.rejected_count = 0
-        self.canceled_count = 0
-        self.total_fee = 0.0
-        self.total_funding = 0.0
-        self.total_turnover = 0.0
         self.fills_by_bar: dict[int, list[NativeFillEvent]] = {}
         self.events_by_bar: dict[int, list[NativeOrderEvent]] = {}
-        self.current_pos = np.zeros(len(self.symbols), dtype=np.float64)
-        self.equity = float(initial_capital)
-        self.liquidated = False
-        self.liquidation_bar = -1
-        self.liquidation_reason = 0
-        self.last_initial_margin = 0.0
-        self.last_maintenance_margin = 0.0
+        self._projection = _RustNativeProjection(
+            positions=np.zeros(len(self.symbols), dtype=np.float64),
+            equity=float(initial_capital),
+        )
         self.processed_bar = -1
         self.generation = 0
+        self.closed = False
+        self.poisoned = False
+        self.reset_count = 0
         n_bars = len(idx)
         self.equity_path = None if self.scalar_score else np.zeros(n_bars, dtype=np.float64)
         self.pos_path = None if self.scalar_score else np.zeros((n_bars, len(self.symbols)), dtype=np.float64)
@@ -1861,6 +1876,62 @@ class RustReactiveSessionAdapter:
             )
         self.size_helper = self._size_order
 
+    @property
+    def current_pos(self) -> np.ndarray:
+        return self._projection.positions
+
+    @property
+    def equity(self) -> float:
+        return self._projection.equity
+
+    @property
+    def last_initial_margin(self) -> float:
+        return self._projection.initial_margin
+
+    @property
+    def last_maintenance_margin(self) -> float:
+        return self._projection.maintenance_margin
+
+    @property
+    def total_fee(self) -> float:
+        return self._projection.total_fee
+
+    @property
+    def total_funding(self) -> float:
+        return self._projection.total_funding
+
+    @property
+    def total_turnover(self) -> float:
+        return self._projection.total_turnover
+
+    @property
+    def fill_count(self) -> int:
+        return self._projection.fill_count
+
+    @property
+    def event_count(self) -> int:
+        return self._projection.event_count
+
+    @property
+    def rejected_count(self) -> int:
+        return self._projection.rejected_count
+
+    @property
+    def canceled_count(self) -> int:
+        return self._projection.canceled_count
+
+    @property
+    def liquidated(self) -> bool:
+        return self._projection.liquidated
+
+    @property
+    def liquidation_bar(self) -> int:
+        return self._projection.liquidation_bar
+
+    @property
+    def liquidation_reason(self) -> int:
+        return self._projection.liquidation_reason
+
     def _intern_id(self, value: Optional[str]) -> int:
         if value is None:
             return -1
@@ -1949,9 +2020,20 @@ class RustReactiveSessionAdapter:
         self.events_by_bar.pop(int(bar), None)
 
     def process_bar(self, bar: int) -> None:
+        if self.closed:
+            raise NativeProtocolError(
+                "Rust reactive session is closed",
+                context=EngineErrorContext(NativeProtocolError.error_code, "engine_run", bar_index=int(bar)),
+            )
+        if self.poisoned:
+            raise NativeProtocolError(
+                "Rust reactive session is poisoned after a prior native failure",
+                context=EngineErrorContext(NativeProtocolError.error_code, "engine_run", bar_index=int(bar)),
+            )
         if bar <= self.processed_bar:
             return
         for current_bar in range(self.processed_bar + 1, int(bar) + 1):
+            step_started_ns = perf_counter_ns()
             commands = self._quantize_r2_commands(current_bar, self.scheduled.pop(current_bar, ()))
             self._require_r2_for_commands(commands)
             if self._full_contract:
@@ -1970,17 +2052,29 @@ class RustReactiveSessionAdapter:
                     intern_id=self._intern_id,
                     buffer=self._command_buffer,
                 )
-            if self._full_contract:
-                for command in commands:
-                    if command.order_id:
-                        self._commands_by_id[command.order_id] = command
-                step_method = getattr(self._core, "step_typed", self._core.step)
-                payload = step_method(current_bar, full_codes, full_values, full_expiry)
-            else:
-                for command in batch.commands:
-                    if command.order_id:
-                        self._commands_by_id[command.order_id] = command
-                payload = self._core.step(current_bar, batch.codes, batch.values, batch.expiry)
+            try:
+                if self._full_contract:
+                    for command in commands:
+                        if command.order_id:
+                            self._commands_by_id[command.order_id] = command
+                    step_method = getattr(self._core, "step_typed", self._core.step)
+                    payload = step_method(current_bar, full_codes, full_values, full_expiry)
+                else:
+                    for command in batch.commands:
+                        if command.order_id:
+                            self._commands_by_id[command.order_id] = command
+                    payload = self._core.step(current_bar, batch.codes, batch.values, batch.expiry)
+            except Exception as exc:
+                self.poisoned = True
+                raise NativeProtocolError(
+                    f"Rust reactive step failed: {type(exc).__name__}: {exc}",
+                    context=EngineErrorContext(
+                        NativeProtocolError.error_code,
+                        "engine_run",
+                        bar_index=int(current_bar),
+                        timestamp_ns=int(self.idx.asi8[current_bar]),
+                    ),
+                ) from exc
             self._consume_step(current_bar, payload)
             self.processed_bar = current_bar
             self.execution_counters["bars_processed"] += 1
@@ -1991,29 +2085,36 @@ class RustReactiveSessionAdapter:
                 if self._full_contract
                 else batch.codes.nbytes + batch.values.nbytes + batch.expiry.nbytes
             )
+            self.execution_counters["pyo3_calls"] += 1
+            self.execution_counters["gil_reacquisitions"] += 1
+            self.execution_counters["command_bytes_copied"] = self.execution_counters["bytes_copied_to_rust"]
+            self.execution_counters["native_step_ns"] = self.execution_counters.get("native_step_ns", 0) + (
+                perf_counter_ns() - step_started_ns
+            )
 
     def _consume_step(self, bar: int, payload) -> None:
-        self.equity = float(_step_value(payload, "equity", 0.0))
+        projection = self._projection
+        projection.equity = float(_step_value(payload, "equity", 0.0))
         if self._full_contract:
             positions = _step_value(payload, "positions")
             if positions is not None:
-                self.current_pos[:] = np.asarray(positions, dtype=np.float64)
+                projection.positions[:] = np.asarray(positions, dtype=np.float64)
         else:
-            self.current_pos[0] = float(_step_value(payload, "position", 0.0))
+            projection.positions[0] = float(_step_value(payload, "position", 0.0))
         fee = float(_step_value(payload, "fee", 0.0))
         turnover = float(_step_value(payload, "turnover", 0.0))
         funding = float(_step_value(payload, "funding", 0.0)) if self._full_contract else 0.0
         initial_margin = float(_step_value(payload, "initial_margin", 0.0))
         maintenance_margin = float(_step_value(payload, "maintenance_margin", 0.0))
-        self.last_initial_margin = initial_margin
-        self.last_maintenance_margin = maintenance_margin
-        self.total_fee += fee
-        self.total_turnover += turnover
-        self.total_funding += funding
+        projection.initial_margin = initial_margin
+        projection.maintenance_margin = maintenance_margin
+        projection.total_fee = float(_step_value(payload, "total_fee", projection.total_fee + fee))
+        projection.total_turnover = float(_step_value(payload, "total_turnover", projection.total_turnover + turnover))
+        projection.total_funding = float(_step_value(payload, "total_funding", projection.total_funding + funding))
         if self.equity_path is not None:
-            self.equity_path[bar] = self.equity
+            self.equity_path[bar] = projection.equity
         if self.pos_path is not None:
-            self.pos_path[bar, :] = self.current_pos
+            self.pos_path[bar, :] = projection.positions
         if self.fee_path is not None:
             self.fee_path[bar] = fee
         if self.turnover_path is not None:
@@ -2024,27 +2125,27 @@ class RustReactiveSessionAdapter:
             self.initial_margin_path[bar] = initial_margin
         if self.maintenance_margin_path is not None:
             self.maintenance_margin_path[bar] = maintenance_margin
-        self.liquidated = bool(_step_value(payload, "liquidated", False))
-        self.liquidation_bar = int(_step_value(payload, "liquidation_bar", -1))
-        self.liquidation_reason = int(_step_value(payload, "liquidation_reason", 0))
+        projection.liquidated = bool(_step_value(payload, "liquidated", False))
+        projection.liquidation_bar = int(_step_value(payload, "liquidation_bar", -1))
+        projection.liquidation_reason = int(_step_value(payload, "liquidation_reason", 0))
         if self.online_score is not None:
             self.online_score.observe(
                 self.idx.asi8[bar],
-                self.equity,
-                self.current_pos,
+                projection.equity,
+                projection.positions,
                 initial_margin,
                 maintenance_margin,
             )
         reported_fill_count = _step_has(payload, "fill_count")
         reported_event_counts = _step_has(payload, "event_count")
         if reported_fill_count:
-            self.fill_count += int(_step_value(payload, "fill_count", 0))
+            projection.fill_count = int(_step_value(payload, "fill_end", projection.fill_count + int(_step_value(payload, "fill_count", 0))))
         if reported_event_counts:
-            self.event_count += int(_step_value(payload, "event_count", 0))
+            projection.event_count = int(_step_value(payload, "event_end", projection.event_count + int(_step_value(payload, "event_count", 0))))
             rejected = int(_step_value(payload, "rejected_count", 0))
             canceled = int(_step_value(payload, "canceled_count", 0))
-            self.rejected_count += rejected
-            self.canceled_count += canceled
+            projection.rejected_count = int(_step_value(payload, "total_rejected", projection.rejected_count + rejected))
+            projection.canceled_count = int(_step_value(payload, "total_canceled", projection.canceled_count + canceled))
             if self.rejected_bar is not None:
                 self.rejected_bar[bar] += rejected
             if self.canceled_bar is not None:
@@ -2072,7 +2173,7 @@ class RustReactiveSessionAdapter:
             )
             fills.append(fill)
             if not reported_fill_count:
-                self.fill_count += 1
+                projection.fill_count += 1
             if self.retain_fill_ledger:
                 self.fills.append(fill)
         if fills:
@@ -2101,20 +2202,19 @@ class RustReactiveSessionAdapter:
             )
             events.append(event)
             if not reported_event_counts:
-                self.event_count += 1
+                projection.event_count += 1
                 if name == "reject":
                     if self.rejected_bar is not None:
                         self.rejected_bar[bar] += 1
-                    self.rejected_count += 1
+                    projection.rejected_count += 1
                 if name == "cancel":
                     if self.canceled_bar is not None:
                         self.canceled_bar[bar] += 1
-                    self.canceled_count += 1
+                    projection.canceled_count += 1
             if self.retain_event_ledger:
                 self.events.append(event)
         if events:
             self.events_by_bar[bar] = events
-        pending = []
         snapshots = []
         for active_row in (_step_value(payload, "active_orders") or ()):
             if self._full_contract:
@@ -2139,17 +2239,6 @@ class RustReactiveSessionAdapter:
                 _R2_ORDER_STOP_LIMIT: OrderType.STOP_LIMIT,
             }.get(int(order_type), OrderType.MARKET)
             reduce_only = bool(int(flags) & _R2_FLAG_REDUCE_ONLY)
-            pending.append(
-                _RustPendingOrder(
-                    order_id=order_id,
-                    side=side,
-                    order_type=kind,
-                    qty=float(qty),
-                    price=float(price),
-                    trigger_price=float(trigger_price),
-                    reduce_only=reduce_only,
-                )
-            )
             snapshots.append(
                 NativeActiveOrderSnapshot(
                     order_id=order_id,
@@ -2170,16 +2259,85 @@ class RustReactiveSessionAdapter:
                     level_id=None if command is None else command.metadata.get("level_id"),
                 )
             )
-        self.pending = pending
         if self.emit_context_active_orders:
             self._active_snapshot_cache = tuple(snapshots)
             self.execution_counters["active_snapshot_materializations"] += 1
         else:
             self._active_snapshot_cache = self.empty_active_orders
+        projection.fill_cursor = (
+            int(_step_value(payload, "fill_begin", max(0, projection.fill_count - len(fills)))),
+            int(_step_value(payload, "fill_end", projection.fill_count)),
+        )
+        projection.event_cursor = (
+            int(_step_value(payload, "event_begin", max(0, projection.event_count - len(events)))),
+            int(_step_value(payload, "event_end", projection.event_count)),
+        )
+        projection.order_delta_cursor = (
+            int(_step_value(payload, "order_delta_begin", projection.event_cursor[0])),
+            int(_step_value(payload, "order_delta_end", projection.event_cursor[1])),
+        )
+        projection.position_delta_cursor = (
+            int(_step_value(payload, "position_delta_begin", 0)),
+            int(_step_value(payload, "position_delta_end", 0)),
+        )
+        self.execution_counters["order_delta_rows"] += projection.order_delta_cursor[1] - projection.order_delta_cursor[0]
+        self.execution_counters["position_delta_rows"] += projection.position_delta_cursor[1] - projection.position_delta_cursor[0]
+        projection_bytes = int(projection.positions.nbytes)
+        projection_bytes += len(fills) * 48 + len(events) * 48 + len(snapshots) * 96
+        self.execution_counters["callback_projection_bytes"] += projection_bytes
+        self.execution_counters["result_bytes_copied"] += projection_bytes
 
-    @staticmethod
-    def _is_pending(state: _RustPendingOrder) -> bool:
-        return True
+    def reset(self, scope: ResetScope | str = ResetScope.ACCOUNT_AND_ORDERS) -> None:
+        """Reset mutable native state while retaining immutable market/capacity."""
+
+        if self.closed:
+            raise NativeProtocolError("cannot reset a closed Rust reactive session")
+        scope = scope if isinstance(scope, ResetScope) else ResetScope(str(scope).lower().strip())
+        if scope in {ResetScope.ACCOUNT_ONLY, ResetScope.RESULT_BUFFERS}:
+            raise NotImplementedError(
+                f"Rust reactive session does not support isolated {scope.value!r}; "
+                "use account_and_orders, scenario_state, or full_rebuild"
+            )
+        if scope is ResetScope.FULL_REBUILD:
+            raise NotImplementedError("full_rebuild must be performed by the backend preparation layer")
+        self._core.reset()
+        self._projection = _RustNativeProjection(
+            positions=np.zeros(len(self.symbols), dtype=np.float64),
+            equity=float(self.initial_capital),
+        )
+        for array in (
+            self.equity_path, self.pos_path, self.fee_path, self.turnover_path,
+            self.funding_path, self.initial_margin_path, self.maintenance_margin_path,
+            self.rejected_bar, self.canceled_bar,
+        ):
+            if array is not None:
+                array.fill(0)
+        self.scheduled.clear()
+        self.fills.clear()
+        self.events.clear()
+        self.fills_by_bar.clear()
+        self.events_by_bar.clear()
+        self._commands_by_id.clear()
+        self._id_to_code.clear()
+        self._id_values.clear()
+        self._active_snapshot_cache = self.empty_active_orders
+        self.processed_bar = -1
+        self.generation += 1
+        self.poisoned = False
+        self.reset_count += 1
+        if self.online_score is not None:
+            from .native_event import _OnlineScoreState
+
+            trading_days = int(self.online_score.trading_days)
+            self.online_score = _OnlineScoreState(self.initial_capital, len(self.symbols))
+            self.online_score.trading_days = trading_days
+
+    def close(self) -> None:
+        self.closed = True
+        self.generation += 1
+        self.scheduled.clear()
+        self.fills_by_bar.clear()
+        self.events_by_bar.clear()
 
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
