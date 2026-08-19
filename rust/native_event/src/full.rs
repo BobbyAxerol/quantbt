@@ -757,6 +757,20 @@ impl FullSession {
         self.terminal_orders_removed = 0;
     }
 
+    /// Materialize only the terminal active-order artifact requested by a
+    /// public standard/audit report. This stays outside the per-bar hot path.
+    pub fn terminal_active_order_rows(&self) -> Vec<Vec<f64>> {
+        let mut buffer = ActiveOrderBuffer::default();
+        for order in self
+            .orders
+            .iter()
+            .filter(|order| order.status == STATUS_PENDING && (order.active || order.waiting_parent))
+        {
+            buffer.push(order);
+        }
+        buffer.rows()
+    }
+
     pub fn set_event_contract(&mut self, contract_code: i64) -> Result<(), String> {
         if contract_code != CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
             && contract_code != CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN

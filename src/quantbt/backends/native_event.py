@@ -1491,6 +1491,11 @@ class _NativeEventReactiveSession:
         self._active_snapshot_dirty = False
         return self._active_snapshot_cache
 
+    def materialize_terminal_active_orders(self) -> tuple[NativeActiveOrderSnapshot, ...]:
+        """Build the public terminal active-order artifact once after a run."""
+
+        return self._active_snapshots()
+
     def _refresh_close_margin(self, bar: int) -> tuple[float, float]:
         bar = int(bar)
         if not self.margin_dirty and self.margin_bar == bar:
@@ -2526,10 +2531,7 @@ class NativeEventBackend:
             )
             score_requirements = replace(
                 score_requirements,
-                need_context_active_orders=bool(
-                    strategy_adapter.requirements.active_orders != "none"
-                    or plan.materialize_active_orders
-                ),
+                need_context_active_orders=bool(strategy_adapter.requirements.active_orders != "none"),
             )
         planning_started_ns = perf_counter_ns()
         planned_symbols = tuple(symbols or tuple(closes.keys()))
@@ -2681,7 +2683,7 @@ class NativeEventBackend:
 
         session.process_bar(0)
 
-        def expand_scoped(commands, bar: int):
+        def expand_scoped(commands, bar: int, *, context=None):
             if isinstance(commands, CommandBatchView):
                 return commands
             rows = tuple(commands or ())
@@ -2690,7 +2692,8 @@ class NativeEventBackend:
                 for command in rows
             ):
                 return rows
-            return self._expand_scoped_cancel_all_commands(rows, session.context(int(bar)))
+            scope_context = context if context is not None else session.context(int(bar))
+            return self._expand_scoped_cancel_all_commands(rows, scope_context)
 
         def quantize_reactive_schedule(commands: Sequence[OrderCommand]) -> tuple[OrderCommand, ...]:
             if not commands:
@@ -2807,7 +2810,18 @@ class NativeEventBackend:
                 )
             return tuple(commands or ())
 
-        initial_commands = expand_scoped(strategy_adapter.call(session, "initialize", 0), 0)
+        # Compatibility callbacks retain the public lifecycle behavior: one
+        # initial context, one context per processed bar, then ``finalize``
+        # receives the already-projected final bar. Numeric callbacks use
+        # guarded views and do not need a Python context object here.
+        compatibility_context = strategy_adapter.requirements.context_mode == "compatibility"
+        initial_context = session.context(0) if compatibility_context else None
+        last_context = initial_context
+        initial_commands = expand_scoped(
+            strategy_adapter.call(session, "initialize", 0, context=initial_context),
+            0,
+            context=initial_context,
+        )
         scheduled, ignored = schedule_reactive_batch(initial_commands, 1)
         ignored_commands_after_end += ignored
         if ignored:
@@ -2825,8 +2839,14 @@ class NativeEventBackend:
             if session.liquidated:
                 session.release_bar_payload(bar)
                 break
+            bar_context = session.context(bar) if compatibility_context else None
+            last_context = bar_context
             before_callbacks = strategy_adapter.callback_count
-            commands = expand_scoped(strategy_adapter.call(session, "on_bar_close", bar), bar)
+            commands = expand_scoped(
+                strategy_adapter.call(session, "on_bar_close", bar, context=bar_context),
+                bar,
+                context=bar_context,
+            )
             callback_count += strategy_adapter.callback_count - before_callbacks
             session.release_bar_payload(bar)
             scheduled, ignored = schedule_reactive_batch(commands, bar + 1)
@@ -2843,7 +2863,11 @@ class NativeEventBackend:
 
         last_bar = max(0, min(len(idx) - 1, int(session.processed_bar)))
         if not session.liquidated:
-            final_commands = expand_scoped(strategy_adapter.call(session, "finalize", last_bar), last_bar)
+            final_commands = expand_scoped(
+                strategy_adapter.call(session, "finalize", last_bar, context=last_context),
+                last_bar,
+                context=last_context,
+            )
             scheduled, ignored = schedule_reactive_batch(final_commands, len(idx))
             ignored_commands_after_end += ignored
             if ignored:
@@ -2855,6 +2879,14 @@ class NativeEventBackend:
                     ),
                     count=ignored,
                 )
+
+        # Standard/audit reports retain a terminal active-order artifact even
+        # when the strategy does not consume active-order projections. Build it
+        # once after execution rather than on every hot-path bar.
+        if plan.materialize_python_objects:
+            materialize_terminal_active_orders = getattr(session, "materialize_terminal_active_orders", None)
+            if callable(materialize_terminal_active_orders):
+                materialize_terminal_active_orders()
 
         requested_audit_mode = self.config.audit_mode
         if requested_audit_mode is None:

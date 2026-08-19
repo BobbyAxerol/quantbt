@@ -2357,13 +2357,22 @@ class RustReactiveSessionAdapter:
             name = ({0: "place", 1: "cancel", 2: "replace", 3: "amend", 4: "fill", 5: "expire", 6: "activate", 7: "reject"} if self._full_contract else {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}).get(
                 int(event_kind), "reject"
             )
+            # The public Python ledger identifies an OCO cancellation by the
+            # filled order (the initiating action) and stores the canceled
+            # sibling in ``target_order_id``. Rust keeps the reverse relation
+            # internally to make sibling mutation direct. Normalize only at
+            # the boundary so both backends expose one stable event contract.
+            public_order_code = int(order_code)
+            public_target_code = int(target_code)
+            if name == "cancel" and public_order_code >= 0 and public_target_code >= 0:
+                public_order_code, public_target_code = public_target_code, public_order_code
             event = NativeOrderEvent(
                 timestamp=self.idx[bar],
                 bar=bar,
                 event_name=name,
                 status=int(status),
-                order_id=self._id_from_code(int(order_code)),
-                target_order_id=self._id_from_code(int(target_code)),
+                order_id=self._id_from_code(public_order_code),
+                target_order_id=self._id_from_code(public_target_code),
                 metadata={"reject_code": reject_code},
             )
             events.append(event)
@@ -2381,8 +2390,40 @@ class RustReactiveSessionAdapter:
                 self.events.append(event)
         if events:
             self.events_by_bar[bar] = events
+        snapshots = self._decode_active_order_rows(_step_value(payload, "active_orders") or ())
+        if self.emit_context_active_orders:
+            self._active_snapshot_cache = snapshots
+            self.execution_counters["active_snapshot_materializations"] += 1
+        else:
+            self._active_snapshot_cache = self.empty_active_orders
+        projection.fill_cursor = (
+            int(_step_value(payload, "fill_begin", max(0, projection.fill_count - len(fills)))),
+            int(_step_value(payload, "fill_end", projection.fill_count)),
+        )
+        projection.event_cursor = (
+            int(_step_value(payload, "event_begin", max(0, projection.event_count - len(events)))),
+            int(_step_value(payload, "event_end", projection.event_count)),
+        )
+        projection.order_delta_cursor = (
+            int(_step_value(payload, "order_delta_begin", projection.event_cursor[0])),
+            int(_step_value(payload, "order_delta_end", projection.event_cursor[1])),
+        )
+        projection.position_delta_cursor = (
+            int(_step_value(payload, "position_delta_begin", 0)),
+            int(_step_value(payload, "position_delta_end", 0)),
+        )
+        self.execution_counters["order_delta_rows"] += projection.order_delta_cursor[1] - projection.order_delta_cursor[0]
+        self.execution_counters["position_delta_rows"] += projection.position_delta_cursor[1] - projection.position_delta_cursor[0]
+        projection_bytes = int(projection.positions.nbytes)
+        projection_bytes += len(fills) * 48 + len(events) * 48 + len(snapshots) * 96
+        self.execution_counters["callback_projection_bytes"] += projection_bytes
+        self.execution_counters["result_bytes_copied"] += projection_bytes
+
+    def _decode_active_order_rows(self, rows) -> tuple[NativeActiveOrderSnapshot, ...]:
+        """Convert Rust active-order rows only when a consumer requests them."""
+
         snapshots = []
-        for active_row in (_step_value(payload, "active_orders") or ()):
+        for active_row in rows:
             if self._full_contract:
                 order_code, symbol_code, side_sign, order_type, qty, price, trigger_price, tif, flags, parent, group, oco, activation, waiting_parent = active_row
                 active_symbol = self.symbols[int(symbol_code)]
@@ -2425,33 +2466,18 @@ class RustReactiveSessionAdapter:
                     level_id=None if command is None else command.metadata.get("level_id"),
                 )
             )
+        return tuple(snapshots) if snapshots else self.empty_active_orders
+
+    def materialize_terminal_active_orders(self) -> tuple[NativeActiveOrderSnapshot, ...]:
+        """Fetch the terminal active-order report without another native step."""
+
         if self.emit_context_active_orders:
-            self._active_snapshot_cache = tuple(snapshots)
-            self.execution_counters["active_snapshot_materializations"] += 1
-        else:
-            self._active_snapshot_cache = self.empty_active_orders
-        projection.fill_cursor = (
-            int(_step_value(payload, "fill_begin", max(0, projection.fill_count - len(fills)))),
-            int(_step_value(payload, "fill_end", projection.fill_count)),
-        )
-        projection.event_cursor = (
-            int(_step_value(payload, "event_begin", max(0, projection.event_count - len(events)))),
-            int(_step_value(payload, "event_end", projection.event_count)),
-        )
-        projection.order_delta_cursor = (
-            int(_step_value(payload, "order_delta_begin", projection.event_cursor[0])),
-            int(_step_value(payload, "order_delta_end", projection.event_cursor[1])),
-        )
-        projection.position_delta_cursor = (
-            int(_step_value(payload, "position_delta_begin", 0)),
-            int(_step_value(payload, "position_delta_end", 0)),
-        )
-        self.execution_counters["order_delta_rows"] += projection.order_delta_cursor[1] - projection.order_delta_cursor[0]
-        self.execution_counters["position_delta_rows"] += projection.position_delta_cursor[1] - projection.position_delta_cursor[0]
-        projection_bytes = int(projection.positions.nbytes)
-        projection_bytes += len(fills) * 48 + len(events) * 48 + len(snapshots) * 96
-        self.execution_counters["callback_projection_bytes"] += projection_bytes
-        self.execution_counters["result_bytes_copied"] += projection_bytes
+            return self._active_snapshot_cache
+        if not self._full_contract or not hasattr(self._core, "terminal_active_orders"):
+            return self._active_snapshot_cache
+        self._active_snapshot_cache = self._decode_active_order_rows(self._core.terminal_active_orders())
+        self.execution_counters["active_snapshot_materializations"] += 1
+        return self._active_snapshot_cache
 
     def reset(self, scope: ResetScope | str = ResetScope.ACCOUNT_AND_ORDERS) -> None:
         """Reset mutable native state while retaining immutable market/capacity."""

@@ -1476,6 +1476,11 @@ impl FullReactiveSessionCore {
         Ok(())
     }
 
+    /// Return terminal active orders without advancing the market clock.
+    fn terminal_active_orders(&self) -> Vec<Vec<f64>> {
+        self.inner.terminal_active_order_rows()
+    }
+
     fn reset(&mut self) {
         self.inner.reset();
         self.total_fee = 0.0;

@@ -44,7 +44,16 @@ class PreparedStrategyAdapter:
             int(bar), has_fill=fills, has_order_event=events, liquidated=bool(session.liquidated)
         )
 
-    def call(self, session, callback: str, bar: int):
+    def call(self, session, callback: str, bar: int, *, context=None):
+        """Invoke one strategy callback using an optional retained context.
+
+        Compatibility strategies historically receive the same last-bar
+        context in ``finalize`` rather than forcing another session projection.
+        Keeping that behavior avoids a duplicate timestamp/context allocation
+        and, more importantly, preserves the public lifecycle contract.
+        Numeric strategies always receive a fresh guarded array view.
+        """
+
         fn = getattr(self.strategy, callback, None)
         if fn is None:
             return ()
@@ -82,10 +91,10 @@ class PreparedStrategyAdapter:
                 ) from exc
             finally:
                 view.invalidate()
-        context = session.context(bar)
+        callback_context = context if context is not None else session.context(bar)
         try:
             started = perf_counter_ns()
-            result = fn(context)
+            result = fn(callback_context)
             self.callback_ns += perf_counter_ns() - started
         except Exception as exc:
             if hasattr(session, "poisoned"):
@@ -93,7 +102,7 @@ class PreparedStrategyAdapter:
             raise NativeEventStrategyError(
                 callback,
                 bar,
-                context.timestamp,
+                callback_context.timestamp,
                 exc,
                 strategy_id=self.strategy_id,
             ) from exc

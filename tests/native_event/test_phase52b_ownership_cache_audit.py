@@ -10,6 +10,9 @@ import pytest
 
 from quantbt import (
     AuditMismatchError,
+    OrderCommand,
+    OrderSide,
+    OrderType,
     QuantBTEndpoint,
     StrategyContextRequirements,
     TimeInForce,
@@ -65,6 +68,54 @@ class NumericConstrainedEntry:
     def on_bar_close(self, context, out):
         if context.bar_index == 2:
             out.market(0, 1, 1.13, order_handle=9, tif=TimeInForce.IOC)
+
+
+class NumericTerminalLimit:
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",),
+        account=("equity",),
+        positions=(),
+        fills="none",
+        events="none",
+        active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_bar_close(self, context, out):
+        if context.bar_index == 2:
+            # Deliberately outside the fixture's low range, so it remains a
+            # terminal active order and exercises public report retention.
+            out.limit(0, 1, 1.0, 50.0, order_handle=11, tif=TimeInForce.GTC)
+
+
+class OcoSiblingLifecycle:
+    """Compatibility strategy locking public OCO event identity semantics."""
+
+    def initialize(self, context):
+        return (
+            OrderCommand(
+                timestamp=context.timestamp,
+                symbol="BTC",
+                side=OrderSide.BUY,
+                order_type=OrderType.LIMIT,
+                qty=1.0,
+                price=100.0,
+                tif=TimeInForce.GTC,
+                order_id="oco-fill",
+                oco_group_id="oco-group",
+            ),
+            OrderCommand(
+                timestamp=context.timestamp,
+                symbol="BTC",
+                side=OrderSide.BUY,
+                order_type=OrderType.LIMIT,
+                qty=1.0,
+                price=50.0,
+                tif=TimeInForce.GTC,
+                order_id="oco-cancel",
+                oco_group_id="oco-group",
+            ),
+        )
 
 
 def _prepared(backend: str):
@@ -157,6 +208,29 @@ def test_rust_numeric_constraint_preflight_matches_python_and_keeps_drop_audit()
     assert rust.metadata["quantity_preflight"] == python.metadata["quantity_preflight"]
     assert rust.metadata["emitted_command_count"] == python.metadata["emitted_command_count"] == 1
     assert rust.metadata["execution_counters"]["primitive_command_rows"] == 0
+
+
+@pytest.mark.parametrize("backend", ("python", "rust"))
+def test_public_standard_report_gets_one_terminal_active_snapshot(backend):
+    result = _prepared(backend).run(NumericTerminalLimit(), report_level="standard")
+
+    active = result.metadata["active_orders"]
+    assert active["order_id"].tolist() == ["qbt-11"]
+    assert active["remaining_qty"].tolist() == pytest.approx([1.0])
+    assert result.metadata["strategy_context_requirements"]["active_orders"] == "none"
+    assert result.metadata["execution_counters"]["active_snapshot_materializations"] == 1
+
+
+def test_rust_oco_event_identity_matches_python_public_ledger():
+    python = _prepared("python").run(OcoSiblingLifecycle(), report_level="audit")
+    rust = _prepared("rust").run(OcoSiblingLifecycle(), report_level="audit")
+
+    python_events = python.metadata["order_events"].reset_index(drop=True)
+    rust_events = rust.metadata["order_events"].reset_index(drop=True)
+    pd.testing.assert_frame_equal(python_events, rust_events, check_dtype=False)
+    cancel = rust_events.loc[rust_events["event_name"] == "cancel"].iloc[0]
+    assert cancel["order_id"] == "oco-fill"
+    assert cancel["target_order_id"] == "oco-cancel"
 
 
 def test_rust_adapter_source_has_no_python_account_or_order_shadow_assignment():
