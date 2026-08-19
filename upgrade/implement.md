@@ -11759,3 +11759,685 @@ Deliberate non-goals retained after Phase 50:
   full-sample calibration without their own causal contracts;
 - a `flatten` boundary policy without dedicated accounting semantics and tests;
 - proving arbitrary user strategy code free of internal look-ahead.
+
+---
+
+## Phase 51-54 - Rust Production Execution Core Upgrade
+
+**Status: planned. No implementation phase has started.**
+
+The authoritative detailed guide for this roadmap is:
+
+- [`quantbt_p0_p3_native_rust_upgrade_blueprint.md`](quantbt_p0_p3_native_rust_upgrade_blueprint.md)
+
+Every agent implementing any phase below must first read:
+
+1. the blueprint [executive summary](quantbt_p0_p3_native_rust_upgrade_blueprint.md#0-executive-summary);
+2. the [confirmed findings and must-prove risks](quantbt_p0_p3_native_rust_upgrade_blueprint.md#2-chẩn-đoán-trạng-thái-hiện-tại);
+3. the detailed P0, P1, P2, or P3 sections linked by that phase;
+4. the [architecture invariants](quantbt_p0_p3_native_rust_upgrade_blueprint.md#10-architecture-invariants-that-must-remain-true);
+5. the [final acceptance matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#15-final-acceptance-matrix).
+
+The condensed plan below is a tracking and delivery contract. It does not
+replace the algorithms, state machines, schemas, fixtures, workload taxonomy,
+or acceptance guidance in the linked blueprint.
+
+### Adjusted End State
+
+This roadmap deliberately tightens the original dual-backend promotion policy.
+The intended production architecture is:
+
+```text
+Python
+  public API + request planning + preparation + research integration
+  executable semantic oracle + certification tools + result/report adapters
+
+Rust
+  canonical production execution/order/account/risk core
+  native strategy runtime + scenario batch execution
+  shared event, portfolio, and package/arbitrage primitives
+
+PyO3
+  thin typed transport with amortized run/chunk/batch calls
+```
+
+The distinction is mandatory:
+
+- Rust replaces Python as the normal production execution core only after the
+  relevant contract/workload passes exact certification.
+- Python remains runnable, readable, and independently testable as the oracle,
+  historical reproducer, emergency fallback, and explicit debug backend.
+- Python is not deleted and must not become stale or unexecutable.
+- A production run has exactly one authoritative mutable execution state.
+- A Rust run must not maintain Python shadow orders, positions, equity, margin,
+  fill history, or lifecycle state.
+- A normal Rust run must not replay the Python engine to construct reports.
+- Explicit Rust never silently falls back. Automatic routing may fall back only
+  for an unavailable, incompatible, uncertified, or deliberately unsupported
+  contract, and must record a structured reason.
+- After the final release gate, `auto` resolves to Rust for every certified
+  production execution workload. Python becomes the documented oracle/fallback
+  route rather than an equal default production choice.
+
+This is a replacement of the production **core**, not a claim that all Python
+objects disappear. Arbitrary Python strategy callbacks remain a hybrid driver
+unless migrated to a static command tape, sparse wake protocol, or validated
+strategy IR. In every case, order/account state remains owned by Rust once the
+Rust backend is selected.
+
+### Non-Negotiable Program Rules
+
+- Implement from a new feature branch created from the latest `dev`; suggested
+  branch name: `feat/51-native-rust-production-core`.
+- Pin the exact starting SHA, package versions, toolchains, wheel hashes, test
+  corpus, and E0-E6 benchmark manifests before behavior changes.
+- Correctness gates always precede optimization and backend promotion.
+- Preserve public imports and stable endpoint signatures through compatibility
+  facades unless a separately approved deprecation record exists.
+- Never change fill/account/output semantics inside a performance-only commit.
+- Keep current behavior reproducible under an explicitly named legacy contract.
+- Use one machine-readable contract/capability/trace registry to generate
+  Python and Rust artifacts and conformance parameters.
+- Numeric parity means exact discrete lifecycle agreement and audited numeric
+  agreement. Tolerance must never hide a different fill, phase, reason, order
+  transition, or liquidation decision.
+- Benchmark end-to-end workload classes, not only Rust kernel microbenchmarks.
+- Do not compare static Rust tape with arbitrary Python callbacks as equivalent
+  workloads.
+- Do not use `fast-math`, public-wheel `target-cpu=native`, unchecked indexing,
+  custom allocators, SIMD, PGO, or unsafe code without profile evidence and the
+  blueprint's proof gates.
+- Commit each coherent contract, architecture, optimization, or packaging
+  change separately with its tests and evidence.
+
+### Current-Code Findings To Lock Before Refactoring
+
+The Phase 51 baseline must reproduce and classify these observed conditions:
+
+- `ExecutionContract.event_lifecycle()` declares `NEXT_OPEN`, while the current
+  Rust full-session market matcher uses the execution bar close.
+- The current Rust reactive adapter retains Python scheduled/pending orders,
+  positions, dense paths, fill/event maps, and lifecycle projections alongside
+  Rust state.
+- The Rust full engine still scans `orders` for several expiry, parent, OCO,
+  cancel, matching, and active-output operations.
+- Current storage uses a `Vec<OrderState>` plus compaction and slot remapping,
+  rather than generation-safe handles and active lifecycle indexes.
+- Compatibility output still has nested row materialization and conditional
+  full-position cloning.
+- `endpoint.py`, Python native-event backend, Rust adapter, and Rust full engine
+  remain broad modules with mixed planning/execution/report responsibilities.
+
+These findings are baseline inputs, not permission to rewrite immediately.
+Each must first receive a fixture, counter, trace, or architecture test.
+
+---
+
+### Phase 51A - P0 Contract Baseline, Event Clock, Fill, And Lifecycle Lock
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P0.0 - Pin baseline and classify contracts](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p00--pin-baseline-và-phân-loại-contract)
+- [P0.1 - Version event clock and bar timeline](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p01--version-hóa-event-clock-và-bar-timeline)
+- [P0.2 - Fill, gap, and intrabar ambiguity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p02--fill-policy-gap-policy-và-intrabar-ambiguity)
+- [P0.3 - Order lifecycle state machine](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p03--order-lifecycle-state-machine)
+- [Wave 0 and PR-00 through PR-04](quantbt_p0_p3_native_rust_upgrade_blueprint.md#53-wave-0--baseline-và-guardrails)
+
+Goal:
+
+Freeze what the current engines actually do, separate legacy behavior from the
+correct next-open contract, and establish one versioned event/lifecycle model
+before changing ownership or data structures.
+
+Scope:
+
+- Archive the exact baseline SHA, Python/Rust/compiler/package versions,
+  installed-wheel hashes, native descriptor, current parity corpus, and E0/E1
+  cold/warm benchmarks.
+- Add low-overhead `EngineDiagnosticsV1` counters needed to locate preparation,
+  callback, PyO3, engine, output, scan, copy, allocation, and report costs.
+- Introduce a machine-readable execution contract registry and generated
+  Python/Rust IDs/fingerprints.
+- Freeze current event behavior as a clearly named legacy
+  `event_v2_next_bar_close` contract without changing historical results.
+- Implement `event_v3_next_open` first in the readable Python oracle and then
+  in Rust, using actual `open[t]`, explicit gap handling, bar-zero/last-bar
+  behavior, and exact phase trace.
+- Version market, limit, stop-market, stop-limit, gap, same-bar ambiguity,
+  child activation, and contingent-order priority policies.
+- Split command outcome, order status, and lifecycle event kind into different
+  typed concepts.
+- Define generated transition tables for place, activate, amend, replace,
+  cancel, expire, fill, reject, liquidate, parent/child, OCO, IOC/FOK/GTD, and
+  invalid terminal transitions.
+- Preserve legacy aliases only through an explicit compatibility translator and
+  deprecation manifest; no alias may silently point to new semantics.
+
+Required tests and evidence:
+
+- Python/Rust exact phase and discrete trace for V2 historical fixtures.
+- V3 actual-next-open tests proving the `open` array affects execution.
+- Long/short golden matrix for market, limit, stop-market, stop-limit, gaps,
+  same-bar SL/TP, child activation, OCO, replace, IOC/FOK/GTD, bar zero, final
+  bar, duplicate timestamps, timezone, and multi-symbol clock ordering.
+- Generated lifecycle transition tests run against both languages.
+- Invalid transition and malformed command fixtures fail before mutation with
+  the same structured reason code.
+- Diagnostics counter values are exact on tiny fixtures and disabled overhead
+  stays within the frozen budget.
+- Installed editable/core/native wheel routes reproduce the same contract and
+  trace fingerprints as source runs.
+
+Exit gate:
+
+```text
+baseline and manifests archived;
+V2 behavior is reproducible under an honest next-bar-close name;
+V3 uses real next-open and passes Python/Rust parity;
+all fill/gap/ambiguity policies have versioned IDs;
+lifecycle state transitions and reasons exact-match;
+no P1 ownership refactor has started.
+```
+
+---
+
+### Phase 51B - P0 Ledger, Numeric, Trace, Portfolio/Package, And Wheel Certification
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P0.4 - Accounting ledger and invariants](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p04--accounting-ledger-và-invariants)
+- [P0.5 - Instrument and deterministic numeric policy](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p05--instrument-constraints-và-deterministic-numeric-policy)
+- [P0.6 - Canonical trace and replay](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p06--canonical-execution-trace-và-replay-fingerprint)
+- [P0.7 - Property, model, and fuzz testing](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p07--differential-property-model-based-và-fuzz-testing)
+- [P0.8 through P0.11](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p08--portfolio-correctness-foundation)
+- [PR-05 through PR-09 and P0 checkpoint](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-05--accounting-ledgerinvariants)
+
+Goal:
+
+Build independently auditable accounting, deterministic numeric behavior, one
+canonical trace, and reference semantics for portfolio and package execution so
+Rust can later replace Python without changing financial meaning.
+
+Scope:
+
+- Define canonical collateral, realized/unrealized PnL, fee, funding, carry,
+  slippage, liquidation cost, position, average entry, initial/maintenance/
+  reserved margin, and available-equity ledger components.
+- Check equity, per-bar delta, position-fill, gross/net exposure, portfolio
+  attribution, and package-leg reconciliation invariants.
+- Version fee currency, funding event phase/sign/price, margin, and liquidation
+  models. Legacy zero-equity liquidation remains reproducible; auditable forced
+  close emits decision, fill, fee, cancellation, and residual-equity records.
+- Compile instrument constraints into contiguous IDs/tables with tick size,
+  quantity step, min/max quantity, min notional, contract size, settlement,
+  fee model, and margin model.
+- Quantize price and quantity in the same phase and direction in Python/Rust;
+  reject inverse/quanto/options formulas unless the selected model is certified.
+- Add canonical trace schema, streaming/hash sinks, normalized rolling
+  fingerprint, and a replay verifier that reconstructs state from trace without
+  invoking the matcher.
+- Add Hypothesis, proptest, model-based, metamorphic, minimized regression
+  corpus, and scheduled fuzz foundations.
+- Freeze portfolio allocator versus execution boundaries and policies including
+  sequential legacy, pro-rata margin scaling, all-or-none target, and
+  reduce-first-then-increase.
+- Freeze arbitrage/package planned/preflight/reserved/commit/abort/compensate
+  transitions and atomic, best-effort, sequential, and hedge-after-primary
+  semantics, including cross-venue staleness and reservation rollback.
+- Replace flat capability booleans with a structured semantic descriptor and
+  runtime protocol/contract/trace/ABI handshake.
+- Certify core-only, explicit Rust unavailable/mismatch, automatic fallback,
+  and clean installed-wheel behavior on supported CPython versions.
+
+Required tests and evidence:
+
+- Every golden scenario passes ledger identities on every bar, not only final
+  equity.
+- Scale, reduce, close, reverse, fee, funding, slippage, margin rejection, and
+  liquidation attribution parity.
+- Exact tick/step vectors and rejection reasons across Python/Rust.
+- Audit trace exact-match in discrete fields; hash-only and full-trace
+  fingerprints agree; replayer reconstructs terminal state.
+- Randomized and minimized corpus produces no panic, invalid transition,
+  unexplained accounting residual, or cross-run nondeterminism.
+- Portfolio target/accepted/cost/attribution reconciliation and package
+  rollback/residual exposure tests pass.
+- Clean wheel matrix validates native availability, incompatibility, explicit
+  failure, and structured fallback before expensive preparation.
+
+Exit gate:
+
+All items in the blueprint [P0 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p011--p0-exit-checklist)
+must pass. P1 cannot start if the trace tooling cannot identify the first
+divergent bar, phase, event, status, reason, or ledger component.
+
+---
+
+### Phase 52A - P1 Immutable Planning, Preparation, Backend SPI, And Output Contract
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P1 objective and dependency rules](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p1--tái-kiến-trúc-endpoint-và-pythonrust-boundary)
+- [P1.1 - Endpoint resolver, planner, and executor](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p11--tách-quantbtendpoint-thành-resolver-planner-và-executor)
+- [P1.2 - Equal backend SPI](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p12--thiết-kế-backend-spi-ngang-hàng)
+- [P1.3 - OutputRequirements](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p13--resolve-outputrequirements-một-lần)
+- [PR-10 through PR-13](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-10--immutable-executionplan)
+
+Goal:
+
+Make the public endpoint a stable facade over one immutable plan, one
+preparation pass, one selected backend, one raw result contract, and one result
+adaptation pass without changing public behavior or P0 fingerprints.
+
+Scope:
+
+- Enforce dependency direction before moving code: planning cannot import
+  reporting, backend cannot import endpoint/report builders, result adapters
+  cannot resolve a backend, and Rust adapters cannot invoke the Python oracle.
+- Introduce immutable, serializable `BacktestRequest`, resolved
+  `ExecutionPlan`, `PreparedRun`, `EngineRunRequest`, and `RawEngineResult`.
+- Resolve aliases, contract, strategy mode, workload class, output/profile,
+  numeric policy, capabilities, backend decision, and fingerprints exactly once.
+- Move DataFrame/index/market/instrument/command normalization into preparation;
+  engines receive contiguous typed data, never pandas.
+- Implement one backend SPI for Python and Rust with prepare/run/reset/close and
+  structured descriptor/error contracts.
+- Compile `OutputRequirements` once from strategy context, public output,
+  metrics, and trace needs. Distinguish scalar aggregation, dense paths,
+  streamed audit, and callback-only projections.
+- Keep existing imports and endpoint methods as compatibility facades while
+  progressively moving responsibilities into planning, preparation, engines,
+  results, and reporting modules.
+- Lazy-load the native module only for explicit Rust, automatic capability
+  resolution, or explicit diagnostics.
+
+Required tests and evidence:
+
+- One plan fingerprint, normalization, instrument preparation, capability
+  resolution, and output projection per run.
+- Python and Rust consume the same plan/prepared inputs and pass the same
+  backend contract fixtures.
+- Backend cannot mutate the plan or construct pandas/report objects.
+- Score path allocates no fill/event rows; count-only counters remain exact.
+- Import-boundary, circular-import, cold-import, lazy-native, and source/wheel
+  module-path tests.
+- All P0 traces, public results, metadata compatibility fields, and historical
+  endpoints remain parity-locked.
+
+Exit gate:
+
+The public API is unchanged, but execution is reachable only through the
+planner/preparation/backend/result pipeline. No backend-specific execution
+branch may remain in the endpoint outside the registry/decision layer.
+
+---
+
+### Phase 52B - P1 Strategy Boundary, Rust Ownership, Audit, Cache, And Observability
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P1.4 - Context compatibility, numeric view, and projection](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p14--strategy-context-protocol-compatibility-view-và-projection)
+- [P1.5 - Reusable command writer](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p15--reusable-command-writer-thay-listordercommand)
+- [P1.6 through P1.11](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p16--xóa-python-shadow-state-trong-rust-adapter)
+- [P1.12 through P1.14](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p112--kế-hoạch-tách-file-cụ-thể-từ-code-hiện-tại)
+- [PR-14 through PR-18](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-14--numeric-context-view--command-writer)
+
+Goal:
+
+Eliminate duplicate Python execution state and unnecessary Python/Rust traffic.
+Rust becomes the sole owner of order/account state whenever selected, while
+legacy callback code remains compatible through an explicit adapter.
+
+Scope:
+
+- Keep the existing materialized strategy context as compatibility mode.
+- Add a numeric `StrategyContextView` using interned IDs, integer timestamps,
+  array/delta views, explicit lifetime generation, and declared requirements.
+- Add a reusable preallocated SoA `CommandWriter`; legacy command objects
+  compile into the same canonical command trace outside the native hot path.
+- Add static command-tape and sparse run-until-wake drivers. Arbitrary every-bar
+  callbacks remain supported but are labelled hybrid compatibility workload.
+- Add native fill/event/order/position cursor ranges and compact projection so
+  callbacks receive only requested changes.
+- Remove Python scheduled/pending/order/account/position/path/metric mirrors
+  from the Rust adapter after all consumers use authoritative native state.
+- Separate `native_trace`, `verify_against_oracle`, and sampled dual-run audit.
+  Normal Rust audit must use one primary engine run and report from its trace.
+- Introduce layered prepared cache keys, byte/entry budgets, LRU/pinning rules,
+  explicit reset scopes, result ownership, generation, and session poisoning.
+- Add structured cross-language errors and fail-fast ordering before expensive
+  market preparation.
+- Emit versioned phase, boundary, copy, callback, scan, allocation, output, and
+  memory diagnostics needed for P2 profiling.
+- Complete the module split described by the blueprint while retaining tested
+  temporary compatibility imports with owners and removal deadlines.
+
+Required tests and evidence:
+
+- Compatibility context and numeric view create identical canonical commands.
+- Writer reuse, growth, capacity limit, stale context, callback exception, and
+  malformed command tests.
+- Static path uses O(1) PyO3 calls; sparse callback calls equal wake schedule;
+  arbitrary callbacks have no hidden additional calls.
+- Rust adapter has one authoritative mutable state and performs no Python-side
+  cash, equity, margin, or order transition calculation.
+- Native audit runs one engine; optional oracle verifier detects injected
+  divergence without replacing the primary result.
+- Run/reset/rerun equals fresh session; result lifetime/GC and retained-result
+  tests have no stale view or use-after-reset.
+- Thousands of prepared resets/runs reach bounded RSS; cache collisions,
+  mutation, cross-run contamination, and thread-safety tests pass.
+- Per-phase timings answer whether cost lies in callback, boundary, kernel,
+  output, adaptation, or report construction.
+
+Exit gate:
+
+All blueprint [P1 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p114--p1-exit-checklist)
+items pass, all P0 fingerprints remain unchanged, and Python/Rust switching
+within one run is architecturally impossible.
+
+---
+
+### Phase 53A - P2 Pure Rust Core, ABI 0.5, Arena, Indexes, Account, And Output
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P2 benchmark taxonomy E0-E6](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p20--freeze-benchmark-taxonomy-trước-khi-sửa-kernel)
+- [P2.1 through P2.5](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p21--chuyển-thành-rust-workspace-pyo3-chỉ-ở-outer-crate)
+- [P2.6 through P2.9](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p26--specialized-execution-kernels-không-dùng-một-universal-hot-loop)
+- [PR-19 through PR-27](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-19--rust-workspace-extraction)
+
+Goal:
+
+Create a pure, independently testable Rust execution engine and replace the
+current history-scaled order/output/account hot structures without changing the
+certified semantics.
+
+Scope:
+
+- Freeze E0-E6 fixture manifests, phase timings, cold/warm methodology, RSS,
+  allocation, copy, callback, PyO3, and lifecycle counters before optimization.
+- Extract a Rust workspace with domain, engine, strategy-IR, batch, portfolio,
+  package, and outer PyO3 crates. The domain/engine crates cannot depend on
+  PyO3, NumPy, pandas, Python exceptions, or report models.
+- Preserve native API 0.4 through a translator while adding typed ABI 0.5 IDs,
+  enums, generation-safe handles, command offsets, instrument tables, and
+  structured errors.
+- Keep Rust-owned immutable prepared market tapes, record all copies, and reuse
+  them across scenarios. Do not introduce unsafe long-lived NumPy borrowing.
+- Replace `Vec<OrderState>` plus hot compaction with a generation-safe arena,
+  free list, monotonic priority sequence, resource limits, and terminal-event
+  emission before slot release.
+- Add active-by-symbol, expiry, parent-child, OCO, waiting-parent, and optional
+  group/tag indexes. Matching cost must follow relevant active orders rather
+  than all historical orders.
+- Use adaptive candidate matching and deterministic deferred mutation for
+  market, limit, stop, stop-limit, IOC/FOK, reduce-only, and relationship flows.
+- Implement incremental positions, PnL, fee, funding, margin, dirty-symbol MTM,
+  active-position indexes, and auditable liquidation over the shared ledger.
+- Separate specialized score, compact, and audit kernels/output sinks. Replace
+  nested rows and per-step position clones with flat typed SoA buffers, online
+  metrics, move/view ownership, and chunked audit streaming.
+
+Required tests and evidence:
+
+- Pure Rust unit/proptest/bench works without Python headers.
+- API 0.4 translation produces the exact P0 canonical trace.
+- Stale handle, slot reuse, priority, resource-limit, and malformed ABI fuzz
+  tests pass without panic or out-of-bounds mutation.
+- Debug index validator remains consistent after every generated transition.
+- Accounting, margin, liquidation, output profile, and result-lifetime parity.
+- High-churn memory scales with peak live orders plus requested output, not
+  historical order count.
+- E0 score/compact/audit end-to-end gates include preparation and adaptation;
+  low-churn small workloads cannot regress outside the documented budget.
+
+Exit gate:
+
+The production Rust event engine has no PyO3 dependency internally, no hot
+order compaction, no mandatory full-order scans, no score-via-audit path, and no
+unrequested dense or nested result materialization.
+
+---
+
+### Phase 53B - P2 Native Strategy IR, Batch/WFO, Portfolio, Package, And Performance Gate
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P2.10 - Native strategy hierarchy and IR](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p210--native-strategy-execution-hierarchy)
+- [P2.11 - Scenario batch for optimizer/WFO](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p211--scenario-batch-engine-cho-optimizer-và-walk-forward)
+- [P2.12 and P2.13 - Portfolio and package cores](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p212--rust-portfolio-execution-core-dùng-chung-accountorder-engine)
+- [P2.14 through P2.20](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p214--parallelism-đúng-tầng-deterministic-và-không-oversubscribe)
+- [P2 performance promotion gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+
+Goal:
+
+Move common deterministic strategy and repeated-scenario workloads fully into
+Rust, then extend the same certified order/account/risk core to portfolio and
+arbitrage packages without creating separate engines.
+
+Scope:
+
+- Preserve four explicit strategy levels: legacy Python objects, numeric
+  Python view/writer, sparse Python callback, and fully native strategy IR.
+- Implement a bounded, validated IR v1 plus readable Python reference
+  interpreter for market reads, parameters, state, arithmetic/comparison,
+  branch/control, order/bracket/cancel/amend, and scheduled wake operations.
+- Prove IR with Grid, DCA, bracket/OCO, rebalance, and selected signal-tape
+  strategies. Do not build a general-purpose Python VM.
+- Add one-call scenario batch execution using shared prepared market/strategy,
+  worker-local mutable state, deterministic reset, compact scalar metric rows,
+  stable top-K, and selected-candidate audit reruns.
+- Integrate batch execution with optimization and WFO without changing existing
+  objective, split, schedule, seed, candidate-selection, or accounting rules.
+- Parallelize independent scenario/fold work only; prevent nested Optuna/Rayon/
+  BLAS/Numba oversubscription and preserve exact results at 1/2/4/8 workers.
+- Add Rust portfolio target execution over the shared account/order engine;
+  keep allocator/risk-estimation research in Python until independently worth
+  porting. Support versioned rebalance/margin/rejection/attribution policies.
+- Add Rust package/arbitrage preflight, reserve, commit, abort, compensate, and
+  residual-risk execution over the same core. Atomicity remains explicitly a
+  bar-simulation transaction, not exchange atomicity.
+- Detach the interpreter for Rust-only run/chunk/batch work and minimize typed
+  arrays/handles crossing PyO3.
+- Evaluate compiler, PGO, SIMD, allocator, hashing, or unsafe changes only after
+  profile evidence across representative E0-E6 workloads and exact parity.
+
+Required tests and evidence:
+
+- Python IR interpreter and Rust runtime exact trace for Grid/DCA/bracket
+  fixtures, including state reset and malformed-program rejection.
+- Scenario `i` equals standalone scenario `i`; worker counts are exact and
+  deterministic; cancellation leaves reusable sessions healthy.
+- Zero market copy per trial after prepare and bounded RSS over large batches.
+- Existing WFO modes/schedules retain params, objective, fold, stitched target,
+  and final account parity on the compatibility path.
+- Portfolio target/accepted/cost/PnL attribution parity against certified
+  Python/Numba reference.
+- Package reservation, rollback, actual-fill hedge sizing, staleness, and
+  residual exposure parity.
+- E0-E6 performance and memory matrix reports honest boundary calls, callbacks,
+  copies, engine time, adaptation, reports, peak/steady RSS, and fingerprints.
+
+Exit gate:
+
+All blueprint [P2 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p220--p2-exit-checklist)
+items pass. Rust must be demonstrably faster end to end for its promoted native
+workloads, while callback compatibility remains correctly labelled rather than
+used to hide boundary overhead.
+
+---
+
+### Phase 54A - P3 Source, Registry, Packaging, CI, Security, And Documentation
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P3.0 through P3.4](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p30--một-source-tree-python-duy-nhất)
+- [P3.6 through P3.10](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [Target repository structure](quantbt_p0_p3_native_rust_upgrade_blueprint.md#6-target-repository-structure-after-p0p3)
+- [Test and CI command contract](quantbt_p0_p3_native_rust_upgrade_blueprint.md#8-test-and-ci-command-contract)
+
+Goal:
+
+Turn the certified engines into reproducible source and installed products with
+one source of truth, generated contracts, exact core/native compatibility,
+stable diagnostics, governed benchmarks, and supply-chain evidence.
+
+Scope:
+
+- Complete migration to `src/quantbt` as the only authoritative Python source.
+  A transitional root mirror may exist only as generated/read-only with byte
+  identity CI, then is removed under an approved cleanup release.
+- Split large modules according to ownership boundaries; enforce import rules,
+  internal visibility, public API inventory, and ADRs for contract/backend/
+  arena/IR/batch/portfolio/package/package-compatibility decisions.
+- Generate Python/Rust enums, schemas, capability descriptors, docs tables,
+  conformance cases, ABI fingerprints, and release manifests from one versioned
+  contract registry.
+- Maintain independent package, native protocol, command ABI, result ABI,
+  execution contract, trace schema, and IR versions with a machine-readable
+  compatibility/deprecation matrix.
+- Build `quantbt-engine` core and lockstep `quantbt-native` wheels from the same
+  release ref. Keep core-only functional and enable the native extra only after
+  clean-index compatibility gates pass.
+- Test CPython 3.11/3.12/3.13 and supported manylinux targets from staged wheels,
+  with no repository path leakage or undeclared shared libraries.
+- Establish PR, main, nightly, and release CI layers for generated files,
+  differential/property/fuzz corpus, lifetime, memory plateau, E0-E6 benchmark,
+  clean wheels, mismatch, and rollback gates.
+- Add signed/checksummed provenance, SBOM, dependency/license/vulnerability
+  review, unsafe inventory, fuzz/sanitizer evidence, and portable CPU metadata.
+- Publish versioned diagnostics/counter schemas and complete architecture,
+  contract, native install/capability/troubleshooting, performance, and strategy
+  migration documentation with executable examples.
+
+Required tests and evidence:
+
+- Source, editable install, core wheel, and native wheel production module
+  hashes and behavior agree.
+- Generated artifacts are clean and Python/Rust registry fingerprints match.
+- Core-only, core+native, exact compatible pair, mismatched pair, missing native,
+  and unsupported platform matrix behaves as documented.
+- All docs examples run in CI; capability claims are generated from installed
+  descriptors rather than handwritten marketing text.
+- Benchmark baselines are immutable, reproducible, tied to release/toolchain/
+  hardware, and cannot pass by changing outputs or semantics.
+- Supply-chain and unsafe reports are release artifacts.
+
+Exit gate:
+
+Installed wheels, not source-tree tests, are the authority for release support.
+No production capability may be advertised without a clean-wheel trace,
+accounting, performance, RSS, compatibility, and rollback result.
+
+---
+
+### Phase 54B - P3 Rust-First Promotion, Migration, Cleanup, And Final Release
+
+**Status: planned.**
+
+Detailed guide:
+
+- [P3.5 - Workload-aware backend promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.11 and P3.12 - Cleanup and exit](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p311--cleanupdeletion-plan)
+- [Definition of dual native backend](quantbt_p0_p3_native_rust_upgrade_blueprint.md#14-definition-of-dual-native-backend-cho-quantbt)
+- [Final acceptance matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#15-final-acceptance-matrix)
+- [Recommended promotion order](quantbt_p0_p3_native_rust_upgrade_blueprint.md#16-recommended-promotion-order)
+- [Immediate implementation backlog](quantbt_p0_p3_native_rust_upgrade_blueprint.md#17-immediate-implementation-backlog)
+
+Goal:
+
+Promote Rust from an explicit experimental accelerator to the canonical
+production execution core for every certified workload, retain Python as the
+executable oracle/fallback, remove obsolete duplicate hot paths, and publish a
+reversible release with no ambiguous backend behavior.
+
+Scope:
+
+- Replace the original equal-default dual-backend policy with a versioned
+  Rust-first production promotion table:
+  - certified static tape, strategy IR, and batch/WFO resolve to Rust;
+  - certified portfolio target modes resolve to Rust;
+  - certified package/arbitrage policies resolve to Rust;
+  - hybrid Python callback drivers still use Rust-owned execution state;
+  - uncertified or unavailable routes fall back to Python only with explicit
+    structured reason and declared maturity.
+- Preserve `backend="python"` as explicit oracle, debugging, historical replay,
+  and emergency operation. Preserve `backend="rust"` as strict fail-fast.
+- Make automatic decisions deterministic from contract, workload, profile,
+  scale, account model, installed descriptor, platform, and versioned promotion
+  table. Record selection and rejected-candidate reasons in every result.
+- Add tested emergency disable/rollback controls without remote nondeterminism.
+- Run full differential, installed-wheel, corpus, fuzz smoke, lifetime, memory,
+  E0-E6, public endpoint, WFO, portfolio, arbitrage, and report regression gates.
+- Run real representative alpha/service workloads and archive stakeholder
+  bundles containing configs, plan/trace fingerprints, performance phase data,
+  metrics, fills/orders/accounting, and backend evidence.
+- Remove only paths proven unused by counters/import graph and protected by
+  migration tests: manual root mirror, Python shadow-state, nested Rust rows,
+  score-via-audit, forced production replay, expired compatibility shims, and
+  monolithic duplicate execution branches.
+- Do not remove the readable Python oracle, canonical conformance corpus,
+  explicit Python backend, or historical contract translators.
+- Publish release notes that distinguish native execution, hybrid callbacks,
+  unsupported contracts, OHLC intrabar limitations, package atomicity model,
+  platform coverage, and rollback procedure.
+
+Required tests and evidence:
+
+- Same certified request under `auto` resolves to Rust deterministically and
+  produces the same canonical trace/accounting as explicit Rust and the Python
+  oracle.
+- Missing/mismatched/disabled native routes resolve exactly as policy states;
+  internal Rust invariant failures never silently rerun Python.
+- Public score/research/audit results, metrics, quick plots, reports, fills,
+  diagnostics, metadata, and retained-result lifetimes remain compatible.
+- Static/IR/batch production paths have O(1) Python/Rust calls; sparse paths
+  call only at wake points; arbitrary callback costs are reported honestly.
+- Final release tests pass from clean published-candidate wheels on all declared
+  Python/platform combinations.
+- Deletion manifest proves every removed path has a replacement, migration
+  test, rollback ref, and no public import consumer.
+
+Final release gate:
+
+```text
+P0 semantics, trace, ledger, numeric, portfolio, and package gates PASS;
+P1 plan, preparation, ownership, boundary, audit, cache, and lifetime gates PASS;
+P2 Rust engine, IR, batch, portfolio/package, performance, and RSS gates PASS;
+P3 source, registry, wheel, CI, security, docs, migration, and cleanup gates PASS;
+
+Rust is the canonical production execution core for certified workloads;
+Python remains a first-class executable oracle and emergency fallback;
+no normal run switches mutable execution ownership between languages;
+no capability or speed claim exceeds installed-wheel evidence.
+```
+
+### Phase 51-54 Deferred Scope
+
+These items require separate contracts and are not silently implied by this
+roadmap:
+
+- venue-exact L2 queue simulation where only OHLCV is available;
+- universal exchange portfolio-margin clones without venue specifications;
+- unbounded arbitrary Python execution compiled automatically into Rust;
+- inverse/quanto/options accounting without certified instrument models;
+- platform expansion beyond the release matrix without wheel and parity gates;
+- removing the Python oracle or historical execution contracts.
+
+Any deferred item must fail closed or route through an explicitly documented
+fallback. It must not be represented as certified native support.
