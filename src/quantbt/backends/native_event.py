@@ -4228,7 +4228,7 @@ class NativeEventBackend:
                 outcome = CommandOutcome.OUTSIDE_TAPE
             elif status == ORDER_STATUS_REJECTED:
                 outcome = CommandOutcome.REJECTED
-            elif command.action is OrderAction.PLACE or status == ORDER_STATUS_FILLED:
+            elif command.action in {OrderAction.PLACE, OrderAction.REPLACE} or status == ORDER_STATUS_FILLED:
                 outcome = CommandOutcome.ACCEPTED
             else:
                 outcome = CommandOutcome.NOOP
@@ -4343,6 +4343,12 @@ class NativeEventBackend:
             OrderAction.AMEND: ORDER_EVENT_AMEND,
             OrderAction.CANCEL_ALL: ORDER_EVENT_CANCEL,
         }
+        cancel_all_commands = [
+            (int(compiled_commands.command_bar[other_idx]), other_idx, other_command)
+            for other_idx, (_, other_command) in enumerate(compiled_commands.sorted_commands)
+            if other_command.action is OrderAction.CANCEL_ALL
+            and 0 < int(compiled_commands.command_bar[other_idx]) < n_bars
+        ]
         rows = []
         for sorted_idx, (_, command) in enumerate(compiled_commands.sorted_commands):
             command_bar = int(compiled_commands.command_bar[sorted_idx])
@@ -4376,6 +4382,7 @@ class NativeEventBackend:
                         if command.activation_policy is OrderActivationPolicy.IMMEDIATE
                         else LifecycleOrderStatus.WAITING_PARENT
                     )
+                    terminal_bar = -1
                     for event_idx in events_by_order_id.get(command.order_id or "", ()):
                         if int(event_bars[event_idx]) < command_bar:
                             continue
@@ -4386,19 +4393,36 @@ class NativeEventBackend:
                         targets_order = same_id(event_target_id, command.order_id)
                         if kind == ORDER_EVENT_FILL and owns_order:
                             order_status = LifecycleOrderStatus.FILLED
+                            terminal_bar = int(event_bars[event_idx])
                         elif kind == ORDER_EVENT_EXPIRE and owns_order:
                             order_status = LifecycleOrderStatus.EXPIRED
+                            terminal_bar = int(event_bars[event_idx])
                         elif kind == ORDER_EVENT_REJECT and owns_order:
                             order_status = LifecycleOrderStatus.REJECTED
+                            terminal_bar = int(event_bars[event_idx])
                         elif kind == ORDER_EVENT_CANCEL and (
                             targets_order
                             or (owns_order and int(event_statuses[event_idx]) == ORDER_STATUS_CANCELED)
                         ):
                             order_status = LifecycleOrderStatus.CANCELED
+                            terminal_bar = int(event_bars[event_idx])
                         elif kind == ORDER_EVENT_REPLACE and targets_order:
                             order_status = LifecycleOrderStatus.CANCELED
+                            terminal_bar = int(event_bars[event_idx])
                         elif kind in {ORDER_EVENT_ACTIVATE, ORDER_EVENT_AMEND} and owns_order:
                             order_status = LifecycleOrderStatus.ACTIVE
+                    for cancel_bar, cancel_idx, cancel_command in cancel_all_commands:
+                        occurs_after_creation = cancel_bar > command_bar or (
+                            cancel_bar == command_bar and cancel_idx > sorted_idx
+                        )
+                        precedes_terminal = terminal_bar < 0 or cancel_bar <= terminal_bar
+                        if (
+                            occurs_after_creation
+                            and precedes_terminal
+                            and _NativeEventReactiveSession._cancel_all_matches(cancel_command, command)
+                        ):
+                            order_status = LifecycleOrderStatus.CANCELED
+                            terminal_bar = cancel_bar
 
             if outcome is CommandOutcome.REJECTED:
                 legacy_status = ORDER_STATUS_REJECTED

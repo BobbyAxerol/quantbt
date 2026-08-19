@@ -283,6 +283,45 @@ def test_python_and_rust_command_outcomes_have_identical_canonical_projection() 
     )
 
 
+def test_python_and_rust_command_outcomes_cover_replace_cancel_all_and_reject() -> None:
+    index = pd.date_range("2026-02-01", periods=9, freq="1h", tz="UTC")
+    frame = pd.DataFrame(
+        {name: 100.0 for name in ("open", "high", "low", "close")},
+        index=index,
+    )
+    commands = (
+        OrderCommand(
+            timestamp=index[1], symbol="TEST", side=OrderSide.BUY,
+            order_type=OrderType.LIMIT, qty=1.0, price=50.0, order_id="a",
+        ),
+        OrderCommand(timestamp=index[2], action="amend", target_order_id="a", price=49.0),
+        OrderCommand(
+            timestamp=index[3], action="replace", target_order_id="a",
+            symbol="TEST", side=OrderSide.BUY, order_type=OrderType.LIMIT,
+            qty=1.0, price=48.0, order_id="b",
+        ),
+        OrderCommand(timestamp=index[4], action="cancel", target_order_id="b"),
+        OrderCommand(timestamp=index[4], action="cancel", target_order_id="missing"),
+        OrderCommand(
+            timestamp=index[5], symbol="TEST", side=OrderSide.BUY,
+            order_type=OrderType.LIMIT, qty=1.0, price=50.0, order_id="c",
+        ),
+        OrderCommand(timestamp=index[6], action="cancel_all", order_id="all"),
+    )
+    python = _run("python", EVENT_LIFECYCLE_V3_NEXT_OPEN, commands, frame=frame)
+    rust = _run("rust", EVENT_LIFECYCLE_V3_NEXT_OPEN, commands, frame=frame)
+    columns = [
+        "original_index", "sorted_index", "action", "order_id", "target_order_id",
+        "command_outcome_code", "command_outcome", "order_status_code", "order_status",
+        "legacy_status_code",
+    ]
+    python_outcomes = python.metadata["command_outcome_report_v1"][columns]
+    rust_outcomes = rust.metadata["command_outcome_report_v1"][columns]
+    pd.testing.assert_frame_equal(python_outcomes, rust_outcomes, check_dtype=False)
+    assert python_outcomes.loc[python_outcomes["action"] == "replace", "command_outcome"].iloc[0] == "ACCEPTED"
+    assert python_outcomes.loc[python_outcomes["order_id"] == "c", "order_status"].iloc[0] == "CANCELED"
+
+
 def test_one_bar_and_empty_tape_boundaries_are_deterministic() -> None:
     index, frame = _market()
     one = frame.iloc[:1]
