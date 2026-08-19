@@ -446,7 +446,7 @@ facade; it is not a universal Rust speed claim.
 
 Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
 reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
-validated Rust order state, and reset/compaction parity. `auto` remains Python;
+validated Rust order state, and reset/lifecycle parity. `auto` remains Python;
 the native extra remains empty until the CPython 3.11/3.12/3.13 manylinux
 clean-install workflow passes.
 

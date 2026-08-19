@@ -12311,7 +12311,7 @@ Performance interpretation:
 
 ### Phase 53A - P2 Pure Rust Core, ABI 0.5, Arena, Indexes, Account, And Output
 
-**Status: planned.**
+**Status: completed (2026-08-19).**
 
 Detailed guide:
 
@@ -12368,8 +12368,56 @@ Required tests and evidence:
 Exit gate:
 
 The production Rust event engine has no PyO3 dependency internally, no hot
-order compaction, no mandatory full-order scans, no score-via-audit path, and no
-unrequested dense or nested result materialization.
+order compaction, no scan of terminal/historical orders in the execution loop,
+no score-via-audit path, and no unrequested dense or nested result
+materialization on the static-tape route. Stable-priority matching still visits
+the relevant live book; a price/type candidate specialization must prove exact
+trace parity before it replaces that conservative route.
+
+Implementation completed:
+
+- Extracted the Cargo workspace into `quantbt-domain`, `quantbt-engine`,
+  `quantbt-strategy-ir`, `quantbt-batch`, `quantbt-portfolio`,
+  `quantbt-package`, and the outer `native_event` PyO3 binding. The domain and
+  engine dependency trees contain no PyO3 or NumPy dependency.
+- Preserved public Native Event API `0.4` and introduced the internal ABI
+  `0.5` contract: typed IDs/enums, generation-safe `OrderHandle`, immutable
+  command-tape validation/translation, structured domain errors, and a
+  bar-major prepared market/instrument boundary. The P0-compatible static
+  reader continues consuming the established API-0.4 wire tape until the full
+  typed SoA reader migration receives its own trace certification.
+- Replaced full-session terminal compaction with an arena/free list plus
+  monotonic lifecycle indexes for active priority, symbol, GTD expiry,
+  parent-child, and OCO relationships. Terminal events are emitted before slot
+  release and index invariants are checked by generated-transition tests.
+- Added score, compact, and audit static-tape sinks. Score retains terminal
+  scalars only; compact retains account paths without detail rows; audit adds
+  typed fill/event columns. All use the same matching/accounting path and flat
+  bar-major position storage.
+- Added the frozen E0-E6 taxonomy and an E0 profile benchmark. The strategy
+  IR, batch/WFO, portfolio, and package crates deliberately expose typed
+  contracts only in this phase; executable semantics are Phase 53B scope and
+  are not advertised through a public endpoint.
+- Kept the P0-compatible API-0.4 reader and verified account loop as the live
+  static execution path. Full ABI-0.5 tape consumption, price/type candidate
+  specialization, and adoption of the new account primitives remain explicit
+  Phase 53B promotion work, each gated by canonical trace and accounting
+  parity rather than silently replacing the certified path.
+
+Evidence:
+
+- `cargo fmt --all -- --check`, `cargo test --offline --workspace`, and
+  `cargo clippy --offline --workspace --all-targets -- -D warnings` pass.
+- Full Python native-event contract/regression suite: `182 passed, 2 skipped`.
+- Repository regression after the extracted workspace and rebuilt local
+  extension: `848 passed, 3 skipped`.
+- E0 static command-tape profile benchmark at 2,000 bars and five warm
+  repeats verifies exact score/compact/audit terminal accounting parity and
+  compact/audit path parity for low and high churn. See
+  [`e0_profiles.json`](../benchmarks/native_event/results/phase53a/e0_profiles.json).
+- The artifact records score at 8.19M/2.15M bars/s, compact at 1.56M/1.04M
+  bars/s, and audit at 655k/81k bars/s for low/high churn. These are E0-only,
+  machine-local measurements rather than a promotion claim for E1-E6.
 
 ---
 
@@ -12393,6 +12441,10 @@ arbitrage packages without creating separate engines.
 
 Scope:
 
+- Promote the typed ABI-0.5 reader, specialized live-order candidate sets, and
+  incremental account primitives only after isolated P0 trace/accounting
+  parity gates. The Phase 53A live-priority scan is the conservative baseline,
+  not a hidden performance claim.
 - Preserve four explicit strategy levels: legacy Python objects, numeric
   Python view/writer, sparse Python callback, and fully native strategy IR.
 - Implement a bounded, validated IR v1 plus readable Python reference

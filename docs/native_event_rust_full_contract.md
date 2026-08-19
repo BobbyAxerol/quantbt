@@ -5,6 +5,69 @@ single-symbol slice to the public Native Event V2 contract. Python/replay
 remains the correctness oracle and `auto` remains Python until the later Grid
 workload and release gates pass.
 
+## Phase 53A Pure Rust Core
+
+Phase 53A keeps the **public** extension contract at API `0.4`, moves the full
+static-tape engine into a pure Rust crate, and introduces a typed internal ABI
+`0.5` alongside the P0-compatible wire-tape reader. The separation is
+deliberate:
+
+```text
+quantbt-domain -> quantbt-engine -> native_event (PyO3 only)
+```
+
+`quantbt-domain` and `quantbt-engine` have no PyO3, NumPy, pandas, Python
+exception, or report-model dependency. They can therefore run unit tests and
+fuzz/property checks without Python headers. `quantbt-domain` owns the pure
+API-0.4-to-ABI-0.5 translator; the static execution reader still consumes the
+certified API-0.4 wire tape during this staged migration, so its P0 trace does
+not change merely because storage moved crates. The compatibility binding owns
+Python conversion and calls the pure engine.
+
+The internal engine now uses typed IDs, generation-safe order handles, a free
+list arena, lifecycle indexes for active/expiry/parent/OCO relationships, and
+flat bar-major static-tape output. Terminal lifecycle events are emitted before
+their slot is released; history-scaled hot compaction is no longer part of the
+execution loop. API-0.4 callers still receive the same endpoint and report
+surface.
+
+The workspace also reserves pure-Rust boundaries for native strategy IR,
+scenario batch/WFO, portfolio targets, and package execution. They intentionally
+do not advertise execution capability yet; their executable semantics remain
+Phase 53B work. See
+[`phase53a/benchmark_taxonomy.json`](../benchmarks/native_event/results/phase53a/benchmark_taxonomy.json)
+for the frozen E0-E6 benchmark taxonomy.
+
+### Static output profiles and E0 evidence
+
+The static command-tape core resolves its retention profile before execution;
+the lifecycle, fill, accounting, and liquidation path is identical for all
+three profiles:
+
+| Profile | Retained result | Intended use |
+| --- | --- | --- |
+| `score` | scalar terminal accounting only | large optimization/scoring loops |
+| `compact` | dense account/position/cost/margin paths, no fill/event rows | metrics and research paths |
+| `audit` | compact paths plus typed fill/event columns | replay, reconciliation, and reporting |
+
+`benchmark_phase53a_e0_profiles.py` measures a prepared one-symbol explicit
+command tape with one PyO3 call and no Python callback per run. On the frozen
+2,000-bar fixture (median of five warm runs), all three profiles had identical
+terminal accounting; `score` ran at 8.19M / 2.15M bars/s and `compact` at
+1.56M / 1.04M bars/s for low/high churn respectively. `audit` retained the
+requested ledger and ran at 655k / 81k bars/s. These are machine-specific E0
+kernel measurements, not a claim about Python-callback, Grid IR, portfolio,
+package, or WFO workloads. The complete reproducible artifact is
+[`e0_profiles.json`](../benchmarks/native_event/results/phase53a/e0_profiles.json).
+
+Reproduce the same core-level evidence with:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run python \
+  benchmarks/native_event/benchmark_phase53a_e0_profiles.py \
+  --bars 2000 --repeats 5
+```
+
 ## Capability boundary
 
 The explicit selector is:
@@ -161,11 +224,16 @@ Prepared market arrays use immutable fixed-length Rust storage shared through
 `i64`. Internal side/order-type/TIF values are validated and stored in compact
 integer representations; no public command field changes.
 
-The existing terminal-order compaction runs only after a bar lifecycle is
-complete. It preserves replacement aliases, parent activation, OCO cancellation,
-GTD expiry and insertion priority. Reset clears logical state while retaining
-capacity, and `release_step_buffer_capacity()` is an explicit maintenance
-operation rather than a per-trial shrink.
+Phase 53A replaces terminal-order compaction in the full static-tape engine
+with generation-safe arena release after the terminal lifecycle event has been
+emitted. Slot reuse comes from a free list, stale handles cannot alias a new
+order, and active/expiry/parent/OCO indexes contain live handles only. Stable
+monotonic insertion sequence preserves replacement aliases, parent activation,
+OCO cancellation, GTD expiry, and matching priority. `compaction_count` remains
+as a compatibility diagnostic and stays zero on the arena path. Reset clears
+logical state while retaining reusable capacity, and
+`release_step_buffer_capacity()` remains an explicit maintenance operation
+rather than a per-trial shrink.
 
 Close-price margin accounting uses a per-bar cache. The first lookup computes
 the complete symbol aggregate; a fill then updates the affected symbol's
