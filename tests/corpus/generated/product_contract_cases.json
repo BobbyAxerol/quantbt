@@ -1,0 +1,29 @@
+{
+  "cases": [
+    {
+      "core_version": "1.0.8",
+      "expected": "compatible",
+      "id": "exact_staged_core_native_pair",
+      "native_version": "0.4.0"
+    },
+    {
+      "core_version": "1.0.8",
+      "expected": "incompatible",
+      "id": "native_version_mismatch",
+      "native_version": "0.0.0"
+    },
+    {
+      "expected": "not_promoted",
+      "id": "auto_routing_remains_python",
+      "workloads": [
+        "event_static_tape_v2_v3",
+        "event_python_callback_v2_v3",
+        "native_strategy_ir_v1",
+        "portfolio_target_preflight_v1",
+        "package_transaction_preflight_v1"
+      ]
+    }
+  ],
+  "registry_fingerprint": "952f61bec823e64e2f3117662c305633b4969d3d486b387aeb4c14f4e3feb751",
+  "schema": "quantbt-product-contract-corpus-v1"
+}

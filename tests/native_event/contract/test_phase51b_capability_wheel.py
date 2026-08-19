@@ -18,6 +18,7 @@ from quantbt.backends._native_event_rust import (
     probe_native_event_rust_extension,
     resolve_native_event_backend,
 )
+from quantbt.core.product_contracts import native_runtime_product_descriptor
 
 
 def test_installed_native_extension_passes_structured_semantic_handshake():
@@ -25,6 +26,7 @@ def test_installed_native_extension_passes_structured_semantic_handshake():
     assert status.available and status.compatible and status.executable
     assert status.reason is None
     assert status.semantic_descriptor == native_event_semantic_descriptor()
+    assert status.product_descriptor == native_runtime_product_descriptor()
     assert status.semantic_descriptor["trace_schema"] == TRACE_SCHEMA_VERSION
     assert status.semantic_descriptor["command_abi"] == NATIVE_EVENT_COMMAND_ABI_VERSION
     assert status.semantic_descriptor["core_protocol_min"] <= NATIVE_EVENT_CORE_PROTOCOL_VERSION

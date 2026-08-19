@@ -4,7 +4,7 @@ use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
 use quantbt_batch as batch;
-use quantbt_domain::generated_contracts;
+use quantbt_domain::{generated_contracts, generated_product_contracts};
 use quantbt_engine as full;
 use quantbt_engine::legacy::types;
 use quantbt_engine::legacy::{PreparedMarketData, ReactiveSession};
@@ -13,8 +13,8 @@ use quantbt_package as package;
 use quantbt_portfolio as portfolio;
 use quantbt_strategy_ir as strategy_ir;
 
-const VERSION: &str = "0.4.0";
-const API_VERSION: &str = "0.4";
+const VERSION: &str = generated_product_contracts::NATIVE_PACKAGE_VERSION;
+const API_VERSION: &str = generated_product_contracts::NATIVE_API_VERSION;
 const INTERNAL_ABI_VERSION: &str = "0.5";
 
 #[pyfunction]
@@ -41,102 +41,143 @@ fn contract_registry_fingerprint() -> &'static str {
 
 #[pyfunction]
 fn event_contract_ids() -> Vec<&'static str> {
-    vec![
-        generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
-        generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V3_NEXT_OPEN,
-    ]
+    generated_product_contracts::RUNTIME_CONTRACT_IDS.to_vec()
 }
 
 #[pyfunction]
 fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     let values = PyDict::new(py);
-    values.set_item("r0_import_smoke", true)?;
-    values.set_item("reactive_session", true)?;
-    values.set_item("r1_single_symbol", true)?;
-    values.set_item("r1_place_cancel_market_limit_gtc", true)?;
-    values.set_item("r2_stop_amend_replace_reduce_only_constraints", true)?;
-    values.set_item("prepared_market_core", true)?;
-    values.set_item("rust_batched_tape", true)?;
-    values.set_item("rust_batched_tape_score", true)?;
-    values.set_item("rust_batched_tape_audit", true)?;
-    values.set_item("rust_batched_tape_sparse", true)?;
-    values.set_item("native_event_v2_full_contract", true)?;
-    values.set_item("native_event_v2_multisymbol", true)?;
-    values.set_item("native_event_v2_funding", true)?;
-    values.set_item("native_event_v2_liquidation", true)?;
-    values.set_item("native_event_v2_cancel_all_oco", true)?;
-    values.set_item("native_event_v2_tif_expiry", true)?;
-    values.set_item("native_event_v2_relationships", true)?;
-    values.set_item("native_event_v2_quantity_preflight", true)?;
-    values.set_item("event_contract_registry_v1", true)?;
-    values.set_item("event_lifecycle_v2_next_bar_close", true)?;
-    values.set_item("event_lifecycle_v3_next_open", true)?;
-    values.set_item("bar_fill_reason_v1", true)?;
-    values.set_item("lifecycle_transition_schema_v1", true)?;
-    values.set_item("semantic_descriptor_v1", true)?;
-    values.set_item("deterministic_quantization_v1", true)?;
-    values.set_item("core_abi_0_5", true)?;
-    values.set_item("generation_safe_order_arena", true)?;
-    values.set_item("flat_static_tape_output", true)?;
-    values.set_item("static_tape_compact", true)?;
-    values.set_item("native_strategy_ir_v1", true)?;
-    values.set_item("native_strategy_ir_signal_target", true)?;
-    values.set_item("native_strategy_ir_grid_level", true)?;
-    values.set_item("native_strategy_ir_dca_periodic", true)?;
-    values.set_item("native_strategy_ir_fixed_bracket", true)?;
-    values.set_item("native_strategy_ir_batch_v1", true)?;
-    values.set_item("native_portfolio_target_preflight_v1", true)?;
-    values.set_item("native_package_transaction_preflight_v1", true)?;
+    for capability in generated_product_contracts::NATIVE_EXTENSION_CAPABILITIES {
+        values.set_item(*capability, true)?;
+    }
     Ok(values)
 }
 
 #[pyfunction]
 fn semantic_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     let descriptor = PyDict::new(py);
-    descriptor.set_item("descriptor_version", "native-event-semantics-v1")?;
+    descriptor.set_item(
+        "descriptor_version",
+        generated_product_contracts::SEMANTIC_DESCRIPTOR_VERSION,
+    )?;
     descriptor.set_item("native_api", API_VERSION)?;
-    descriptor.set_item("core_protocol_min", 1)?;
-    descriptor.set_item("core_protocol_max", 1)?;
+    descriptor.set_item(
+        "core_protocol_min",
+        generated_product_contracts::CORE_PROTOCOL_MIN,
+    )?;
+    descriptor.set_item(
+        "core_protocol_max",
+        generated_product_contracts::CORE_PROTOCOL_MAX,
+    )?;
     descriptor.set_item(
         "contract_registry_fingerprint",
         generated_contracts::CONTRACT_REGISTRY_FINGERPRINT,
     )?;
-    descriptor.set_item("trace_schema", "canonical-execution-trace-v1")?;
-    descriptor.set_item("command_abi", "full-command-v1")?;
+    descriptor.set_item(
+        "trace_schema",
+        generated_product_contracts::TRACE_SCHEMA_VERSION,
+    )?;
+    descriptor.set_item(
+        "command_abi",
+        generated_product_contracts::COMMAND_ABI_VERSION,
+    )?;
     descriptor.set_item(
         "contracts",
-        vec![
-            generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
-            generated_contracts::CONTRACT_ID_EVENT_LIFECYCLE_V3_NEXT_OPEN,
-        ],
+        generated_product_contracts::RUNTIME_CONTRACT_IDS.to_vec(),
     )?;
 
     let orders = PyDict::new(py);
     orders.set_item(
         "types",
-        vec!["market", "limit", "stop_market", "stop_limit"],
+        generated_product_contracts::RUNTIME_ORDER_TYPES.to_vec(),
     )?;
-    orders.set_item("partial_fill", false)?;
-    orders.set_item("volume_model", "infinite_bar_liquidity")?;
+    orders.set_item(
+        "partial_fill",
+        generated_product_contracts::RUNTIME_PARTIAL_FILL,
+    )?;
+    orders.set_item(
+        "volume_model",
+        generated_product_contracts::RUNTIME_VOLUME_MODEL,
+    )?;
     orders.set_item(
         "gap_policy",
-        vec!["legacy_trigger", "open_worse_than_trigger"],
+        generated_product_contracts::RUNTIME_GAP_POLICIES.to_vec(),
     )?;
     descriptor.set_item("orders", orders)?;
 
     let account = PyDict::new(py);
-    account.set_item("pnl_models", vec!["linear_quote_settled"])?;
-    account.set_item("margin_models", vec!["gross_cross"])?;
-    account.set_item("liquidation_models", vec!["zero_equity_legacy"])?;
+    account.set_item(
+        "pnl_models",
+        generated_product_contracts::RUNTIME_PNL_MODELS.to_vec(),
+    )?;
+    account.set_item(
+        "margin_models",
+        generated_product_contracts::RUNTIME_MARGIN_MODELS.to_vec(),
+    )?;
+    account.set_item(
+        "liquidation_models",
+        generated_product_contracts::RUNTIME_LIQUIDATION_MODELS.to_vec(),
+    )?;
     descriptor.set_item("account", account)?;
 
     let portfolio = PyDict::new(py);
     // API 0.4 semantic descriptor is a compatibility lock. P2 planning
     // primitives advertise only through additive raw capabilities until their
     // own public contract/version is promoted.
-    portfolio.set_item("target_execution", false)?;
-    portfolio.set_item("package_atomicity", "python_reference_only")?;
+    portfolio.set_item(
+        "target_execution",
+        generated_product_contracts::RUNTIME_PORTFOLIO_TARGET_EXECUTION,
+    )?;
+    portfolio.set_item(
+        "package_atomicity",
+        generated_product_contracts::RUNTIME_PACKAGE_ATOMICITY,
+    )?;
     descriptor.set_item("portfolio", portfolio)?;
+    Ok(descriptor)
+}
+
+/// Product ABI metadata, separate from the frozen API 0.4 semantics.
+#[pyfunction]
+fn product_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
+    let descriptor = PyDict::new(py);
+    descriptor.set_item("descriptor_version", "native-event-product-v1")?;
+    descriptor.set_item(
+        "product_registry_fingerprint",
+        generated_product_contracts::PRODUCT_CONTRACT_REGISTRY_FINGERPRINT,
+    )?;
+    descriptor.set_item(
+        "lifecycle_registry_fingerprint",
+        generated_product_contracts::LIFECYCLE_REGISTRY_FINGERPRINT,
+    )?;
+    descriptor.set_item(
+        "core_package_version",
+        generated_product_contracts::CORE_PACKAGE_VERSION,
+    )?;
+    descriptor.set_item("native_package_version", VERSION)?;
+    descriptor.set_item(
+        "native_protocol_min",
+        generated_product_contracts::CORE_PROTOCOL_MIN,
+    )?;
+    descriptor.set_item(
+        "native_protocol_max",
+        generated_product_contracts::CORE_PROTOCOL_MAX,
+    )?;
+    descriptor.set_item(
+        "command_abi",
+        generated_product_contracts::COMMAND_ABI_VERSION,
+    )?;
+    descriptor.set_item(
+        "result_abi",
+        generated_product_contracts::RESULT_ABI_VERSION,
+    )?;
+    descriptor.set_item(
+        "trace_schema",
+        generated_product_contracts::TRACE_SCHEMA_VERSION,
+    )?;
+    descriptor.set_item(
+        "strategy_ir",
+        generated_product_contracts::STRATEGY_IR_VERSION,
+    )?;
     Ok(descriptor)
 }
 
@@ -2616,6 +2657,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(core_abi_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
     module.add_function(wrap_pyfunction!(semantic_descriptor, module)?)?;
+    module.add_function(wrap_pyfunction!(product_descriptor, module)?)?;
     module.add_function(wrap_pyfunction!(native_portfolio_target_preflight, module)?)?;
     module.add_function(wrap_pyfunction!(
         native_package_transaction_preflight,

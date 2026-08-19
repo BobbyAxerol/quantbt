@@ -29,6 +29,12 @@ from ..core.native_event_capabilities import (
     normalize_native_event_capabilities,
     validate_native_event_semantic_descriptor,
 )
+from ..core.generated_product_contracts import NATIVE_EVENT_CORE_PACKAGE_VERSION
+from ..core.product_contracts import (
+    NativePackageCompatibilityError,
+    require_native_package_pair,
+    validate_native_runtime_product_descriptor,
+)
 from ..errors import CommandValidationError, EngineErrorContext, NativeProtocolError
 from ..preparation.cache import ResetScope
 from ..strategies.commands import CommandBatchView
@@ -99,6 +105,7 @@ class NativeEventRustExtensionStatus:
     reason: Optional[str] = None
     canonical_capabilities: Mapping[str, bool] = field(default_factory=dict)
     semantic_descriptor: Mapping[str, object] = field(default_factory=dict)
+    product_descriptor: Mapping[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -663,6 +670,7 @@ def _empty_status(reason: str) -> NativeEventRustExtensionStatus:
         reason=reason,
         canonical_capabilities={},
         semantic_descriptor={},
+        product_descriptor={},
     )
 
 
@@ -701,6 +709,7 @@ def probe_native_event_rust_extension(
         api_version = str(api_value) if api_value is not None else None
         raw_capabilities = _read_native_value(module, "capabilities")
         raw_descriptor = _read_native_value(module, "semantic_descriptor")
+        raw_product_descriptor = _read_native_value(module, "product_descriptor")
     except Exception as exc:  # pragma: no cover - protects optional binary imports.
         return _empty_status(f"failed to query _quantbt_native metadata: {exc}")
 
@@ -709,6 +718,7 @@ def probe_native_event_rust_extension(
     capabilities = {str(name): bool(enabled) for name, enabled in raw_capabilities.items()}
     canonical_capabilities = normalize_native_event_capabilities(capabilities)
     semantic_descriptor = dict(raw_descriptor) if isinstance(raw_descriptor, Mapping) else {}
+    product_descriptor = dict(raw_product_descriptor) if isinstance(raw_product_descriptor, Mapping) else {}
     # 0.3 remains readable for the legacy R1/R2 classes. Full V2 capability
     # is gated independently by the explicit 0.4 capability keys below.
     compatible = api_version in {"0.3", RUST_NATIVE_API_VERSION}
@@ -716,7 +726,16 @@ def probe_native_event_rust_extension(
     if compatible and api_version == RUST_NATIVE_API_VERSION:
         try:
             validate_native_event_semantic_descriptor(semantic_descriptor)
+            if version is None:
+                raise NativePackageCompatibilityError(
+                    "_quantbt_native did not report a native package version"
+                )
+            pair = require_native_package_pair(NATIVE_EVENT_CORE_PACKAGE_VERSION, version)
+            validate_native_runtime_product_descriptor(product_descriptor, pair=pair)
         except (TypeError, ValueError) as exc:
+            compatible = False
+            descriptor_error = str(exc)
+        except NativePackageCompatibilityError as exc:
             compatible = False
             descriptor_error = str(exc)
     if not compatible:
@@ -737,6 +756,7 @@ def probe_native_event_rust_extension(
             ),
             canonical_capabilities=canonical_capabilities,
             semantic_descriptor=semantic_descriptor,
+            product_descriptor=product_descriptor,
         )
 
     executable = bool(capabilities.get("reactive_session", False))
@@ -751,6 +771,7 @@ def probe_native_event_rust_extension(
         reason=reason,
         canonical_capabilities=canonical_capabilities,
         semantic_descriptor=semantic_descriptor,
+        product_descriptor=product_descriptor,
     )
 
 

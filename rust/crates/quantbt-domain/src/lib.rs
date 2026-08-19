@@ -10,6 +10,7 @@ pub mod commands;
 pub mod enums;
 pub mod errors;
 pub mod generated_contracts;
+pub mod generated_product_contracts;
 pub mod ids;
 pub mod numeric;
 

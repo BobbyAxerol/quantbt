@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,12 +47,26 @@ def rust_name(value: str) -> str:
     return value.replace("-", "_").upper()
 
 
+def rust_string_constant(name: str, value: str) -> list[str]:
+    """Render the small subset of rustfmt wrapping used by this artifact.
+
+    ``--check`` is intentionally runnable from the Python-only CI job.  The
+    generated source must therefore already be rustfmt-stable instead of
+    relying on a locally installed Rust toolchain to normalize it after write.
+    """
+
+    inline = f'pub const {name}: &str = "{value}";'
+    if len(inline) <= 100:
+        return [inline]
+    return [f"pub const {name}: &str =", f'    "{value}";']
+
+
 def render_rust(payload: dict, fingerprint: str) -> str:
     lines = [
         "//! Generated from contracts/native_event_contract_registry.json; do not edit.",
         "#![allow(dead_code)]",
         "",
-        f'pub const CONTRACT_REGISTRY_FINGERPRINT: &str = "{fingerprint}";',
+        *rust_string_constant("CONTRACT_REGISTRY_FINGERPRINT", fingerprint),
     ]
     for contract in payload["contracts"]:
         name = rust_name(contract["contract_id"])
@@ -80,11 +96,16 @@ def render_rust(payload: dict, fingerprint: str) -> str:
     )
     for item in payload["transitions"]:
         outcome = f'COMMAND_OUTCOME_{item["outcome"]}'
-        lines.append(
-            "    LifecycleTransition { "
-            f'action: "{item["action"]}", from_status: "{item["from"]}", '
-            f'to_status: "{item["to"]}", outcome: {outcome}, reason: "{item["reason"]}" '
-            "},"
+        lines.extend(
+            (
+                "    LifecycleTransition {",
+                f'        action: "{item["action"]}",',
+                f'        from_status: "{item["from"]}",',
+                f'        to_status: "{item["to"]}",',
+                f"        outcome: {outcome},",
+                f'        reason: "{item["reason"]}",',
+                "    },",
+            )
         )
     lines.extend(
         [
@@ -117,15 +138,36 @@ def render_rust(payload: dict, fingerprint: str) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
+def generated_outputs() -> dict[Path, str]:
     payload, fingerprint = canonical_payload()
-    PYTHON_OUTPUT.write_text(render_python(payload, fingerprint), encoding="utf-8")
-    RUST_OUTPUT.write_text(render_rust(payload, fingerprint), encoding="utf-8")
+    return {
+        PYTHON_OUTPUT: render_python(payload, fingerprint),
+        RUST_OUTPUT: render_rust(payload, fingerprint),
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="fail when generated contract constants are stale")
+    args = parser.parse_args(argv)
+    outputs = generated_outputs()
+    if args.check:
+        stale = [path for path, content in outputs.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
+        if stale:
+            print("stale native-event generated artifacts:", file=sys.stderr)
+            print("\n".join(str(path.relative_to(ROOT)) for path in stale), file=sys.stderr)
+            return 1
+        print("native-event contract generation check: PASS")
+        return 0
+
+    for path, content in outputs.items():
+        path.write_text(content, encoding="utf-8")
     rustfmt = shutil.which("rustfmt")
     if rustfmt is not None:
         subprocess.run([rustfmt, str(RUST_OUTPUT)], check=True)
-    print(fingerprint)
+    print("native-event contracts generated: PASS")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
