@@ -287,6 +287,36 @@ class NativeEventScoreRequirements:
         )
 
     @classmethod
+    def public_reactive_contract(
+        cls,
+        plan: "NativeEventArtifactPlan",
+    ) -> "NativeEventScoreRequirements":
+        """Return public reactive retention without forcing callback projections.
+
+        Public ``run_strategy`` results always expose the accounting arrays and
+        diagnostics promised by their report level.  Callback projections are
+        deliberately left to :meth:`from_strategy`: a numeric strategy which
+        declares ``active_orders='none'`` must not pay to materialize an
+        active-order snapshot on every bar merely because its final result is
+        public.
+        """
+        return cls(
+            need_equity_path=bool(plan.keep_equity_path),
+            need_position_path=bool(plan.keep_position_path),
+            need_fee_path=bool(plan.keep_fee_path),
+            need_funding_path=bool(plan.keep_funding_path),
+            need_margin_path=bool(plan.keep_margin_path),
+            need_turnover_path=True,
+            need_rejection_path=True,
+            need_cancellation_path=True,
+            need_trade_stats=False,
+            need_fill_ledger=bool(plan.keep_fill_ledger),
+            need_event_ledger=bool(plan.keep_event_ledger),
+            need_terminal_orders=bool(plan.keep_command_terminal_state),
+            need_command_tape=bool(plan.keep_command_tape),
+        )
+
+    @classmethod
     def scalar_score_contract(cls) -> "NativeEventScoreRequirements":
         """Return the low-retention contract used by prepared optimization."""
         return cls(
@@ -2483,6 +2513,24 @@ class NativeEventBackend:
         strategy_prepare_started_ns = perf_counter_ns()
         strategy_adapter = PreparedStrategyAdapter.prepare(strategy)
         strategy_prepare_ns = perf_counter_ns() - strategy_prepare_started_ns
+        if not _return_score:
+            # Keep public accounting/report retention stable while deriving
+            # ephemeral callback payloads exclusively from the declared
+            # strategy contract.  This avoids retaining active-order snapshots
+            # for numeric strategies that never inspect them. Audit is the
+            # deliberate exception: it requests a full active-order artifact,
+            # so its terminal report remains complete.
+            score_requirements = NativeEventScoreRequirements.from_strategy(
+                strategy,
+                base=NativeEventScoreRequirements.public_reactive_contract(plan),
+            )
+            score_requirements = replace(
+                score_requirements,
+                need_context_active_orders=bool(
+                    strategy_adapter.requirements.active_orders != "none"
+                    or plan.materialize_active_orders
+                ),
+            )
         planning_started_ns = perf_counter_ns()
         planned_symbols = tuple(symbols or tuple(closes.keys()))
         execution_plan = resolve_execution_plan(
@@ -2712,7 +2760,22 @@ class NativeEventBackend:
                 preflight = session.schedule_command_batch(effective_bar, commands)
                 quantity_preflight_summary["changed_count"] += int(preflight["changed_count"])
                 quantity_preflight_summary["dropped_count"] += int(preflight["dropped_count"])
-                record_scheduled(materialized, count=int(preflight["accepted_count"]))
+                # Numeric batches keep their data primitive through Rust, but
+                # the public audit still needs the same dropped-order evidence
+                # as the compatibility ``OrderCommand`` path.
+                for source_row in preflight.get("dropped_rows", ()):
+                    row = int(source_row)
+                    symbol_id = int(commands.writer.symbol_id[row])
+                    quantity_preflight_summary["dropped_orders"].append(
+                        {
+                            "original_index": row,
+                            "symbol": symbol_list[symbol_id] if 0 <= symbol_id < len(symbol_list) else None,
+                            "requested_qty": float(commands.writer.qty[row]),
+                        }
+                    )
+                # Match the compatibility path: counts describe emitted
+                # commands before venue constraints potentially drop a row.
+                record_scheduled(materialized, count=len(commands))
                 command_compile_ns += perf_counter_ns() - compile_started_ns
                 return tuple(materialized), 0
             if isinstance(commands, CommandBatchView):
@@ -2853,6 +2916,7 @@ class NativeEventBackend:
                     "reactive_session_liquidation_bar": int(session.liquidation_bar),
                     "execution_counters": dict(getattr(session, "execution_counters", {})),
                     "strategy_boundary": strategy_adapter.diagnostics,
+                    "strategy_context_requirements": asdict(strategy_adapter.requirements),
                     "observability": observability,
                     "execution_plan_fingerprint": execution_plan.plan_fingerprint,
                     "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
@@ -2935,6 +2999,8 @@ class NativeEventBackend:
                 "reactive_session_liquidated": bool(session.liquidated),
                 "reactive_session_liquidation_bar": int(session.liquidation_bar),
                 "strategy_boundary": strategy_adapter.diagnostics,
+                "strategy_context_requirements": asdict(strategy_adapter.requirements),
+                "reactive_retention_requirements": asdict(score_requirements),
                 "audit_mode": effective_audit_mode,
                 "audit_mode_requested": requested_audit_mode or (
                     "verify_against_oracle" if kernel_mode == "replay_certified" else "native_trace"

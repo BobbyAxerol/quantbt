@@ -40,7 +40,7 @@ class NumericRoundTrip:
         positions=("qty",),
         fills="new_only",
         events="new_only",
-        active_orders="snapshot",
+        active_orders="none",
         context_mode="numeric",
     )
 
@@ -49,6 +49,22 @@ class NumericRoundTrip:
             out.market(0, 1, 1.0, order_handle=1, tif=TimeInForce.IOC)
         elif context.bar_index == 18:
             out.market(0, -1, 1.0, order_handle=2, tif=TimeInForce.IOC, reduce_only=True)
+
+
+class NumericConstrainedEntry:
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",),
+        account=("equity",),
+        positions=("qty",),
+        fills="none",
+        events="none",
+        active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_bar_close(self, context, out):
+        if context.bar_index == 2:
+            out.market(0, 1, 1.13, order_handle=9, tif=TimeInForce.IOC)
 
 
 def _prepared(backend: str):
@@ -100,6 +116,7 @@ def test_rust_numeric_minimal_uses_primitive_writer_without_order_objects():
     assert counters["primitive_command_batches"] == 2
     assert counters["primitive_command_rows"] == 2
     assert counters["writer_python_command_objects"] == 0
+    assert counters["active_snapshot_materializations"] == 0
 
 
 def test_rust_numeric_standard_materializes_only_the_requested_public_report():
@@ -108,6 +125,38 @@ def test_rust_numeric_standard_materializes_only_the_requested_public_report():
     assert len(result.metadata["command_report"]) == 2
     assert result.metadata["strategy_boundary"]["writer_materialized_command_objects"] == 2
     assert result.metadata["execution_counters"]["primitive_command_rows"] == 2
+
+
+def test_rust_numeric_constraint_preflight_matches_python_and_keeps_drop_audit():
+    kwargs = {"qty_step": {"BTC": 0.25}, "min_qty": {"BTC": 1.25}}
+    python_endpoint = QuantBTEndpoint.native_event_strategy(
+        initial_capital=10_000.0,
+        leverage=5.0,
+        fee_rate=0.0002,
+        use_funding=False,
+        native_backend="python",
+        reactive_kernel_mode="single_pass",
+        report_level="audit",
+        **kwargs,
+    )
+    rust_endpoint = QuantBTEndpoint.native_event_strategy(
+        initial_capital=10_000.0,
+        leverage=5.0,
+        fee_rate=0.0002,
+        use_funding=False,
+        native_backend="rust",
+        reactive_kernel_mode="single_pass",
+        report_level="audit",
+        **kwargs,
+    )
+    python = python_endpoint.simulate(data=_bars(), strategy=NumericConstrainedEntry(), symbols=["BTC"])
+    rust = rust_endpoint.simulate(data=_bars(), strategy=NumericConstrainedEntry(), symbols=["BTC"])
+
+    np.testing.assert_allclose(rust.equity, python.equity, rtol=0.0, atol=1e-9)
+    np.testing.assert_allclose(rust.positions, python.positions, rtol=0.0, atol=1e-12)
+    assert rust.metadata["quantity_preflight"] == python.metadata["quantity_preflight"]
+    assert rust.metadata["emitted_command_count"] == python.metadata["emitted_command_count"] == 1
+    assert rust.metadata["execution_counters"]["primitive_command_rows"] == 0
 
 
 def test_rust_adapter_source_has_no_python_account_or_order_shadow_assignment():

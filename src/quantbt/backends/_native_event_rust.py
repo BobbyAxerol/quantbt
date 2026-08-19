@@ -2031,7 +2031,7 @@ class RustReactiveSessionAdapter:
         if commands and int(bar) < len(self.idx):
             self.scheduled.setdefault(int(bar), []).extend(commands)
 
-    def schedule_command_batch(self, bar: int, batch: CommandBatchView) -> dict[str, int]:
+    def schedule_command_batch(self, bar: int, batch: CommandBatchView) -> dict[str, object]:
         """Compile a numeric writer batch without allocating ``OrderCommand``.
 
         The arrays become session-owned because the strategy writer is reused
@@ -2046,7 +2046,12 @@ class RustReactiveSessionAdapter:
         batch._check()
         n_rows = int(batch.length)
         if n_rows == 0 or int(bar) >= len(self.idx):
-            return {"changed_count": 0, "dropped_count": 0, "accepted_count": 0}
+            return {
+                "changed_count": 0,
+                "dropped_count": 0,
+                "accepted_count": 0,
+                "dropped_rows": (),
+            }
         writer = batch.writer
         actions = np.asarray(writer.action[:n_rows], dtype=np.int64)
         symbol_ids = np.asarray(writer.symbol_id[:n_rows], dtype=np.int64)
@@ -2072,6 +2077,7 @@ class RustReactiveSessionAdapter:
         accepted = np.ones(n_rows, dtype=np.bool_)
         changed_count = 0
         dropped_count = 0
+        dropped_rows: list[int] = []
         if self.constraints.enabled:
             self.execution_counters["constraint_preflight_calls"] += 1
             for row in np.flatnonzero(place_like):
@@ -2095,6 +2101,7 @@ class RustReactiveSessionAdapter:
                 if quantized <= 0.0:
                     accepted[row] = False
                     dropped_count += 1
+                    dropped_rows.append(int(row))
                 else:
                     quantities[row] = quantized
                     changed_count += int(abs(quantized - original) > 1e-12)
@@ -2139,6 +2146,7 @@ class RustReactiveSessionAdapter:
             "changed_count": int(changed_count),
             "dropped_count": int(dropped_count),
             "accepted_count": int(len(rows)),
+            "dropped_rows": tuple(dropped_rows),
         }
 
     def release_bar_payload(self, bar: int) -> None:
