@@ -228,7 +228,7 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine==1.0.8` wheel/sdist | release-ready after local/TestPyPI approval | Python canonical; all existing endpoints remain available |
+| `quantbt-engine==1.0.8` wheel/sdist | published on PyPI (2026-08-13) | Python canonical; all existing endpoints remain available |
 | `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
