@@ -14,6 +14,7 @@ use crate::generated_contracts::{
 };
 use crate::orders::{IndexOrderState, LifecycleIndexes, OrderArena};
 use crate::output::{StaticOutputProfile, StaticTapeOutput};
+use quantbt_domain::commands::{CommandTapeV5, OrderCommandV5};
 use quantbt_domain::ids::{ExternalOrderId, OrderHandle, SymbolId};
 
 const STATUS_PENDING: i64 = 0;
@@ -417,6 +418,38 @@ pub struct StepBuffers {
     pub active_orders: ActiveOrderBuffer,
 }
 
+/// Reusable ABI-0.5 to lifecycle-buffer adapter.
+///
+/// Typed strategy, portfolio, and package drivers own this scratch object for
+/// the duration of a run.  It keeps their commands on the certified engine
+/// path without allocating a Python-visible whole-tape representation.
+#[derive(Default)]
+pub struct TypedCommandScratch {
+    codes: Vec<i64>,
+    values: Vec<f64>,
+    expiry: Vec<i64>,
+}
+
+impl TypedCommandScratch {
+    #[must_use]
+    pub fn with_capacity(max_commands_per_bar: usize) -> Self {
+        Self {
+            codes: Vec::with_capacity(max_commands_per_bar * CODE_WIDTH),
+            values: Vec::with_capacity(max_commands_per_bar * VALUE_WIDTH),
+            expiry: Vec::with_capacity(max_commands_per_bar),
+        }
+    }
+
+    fn encode(&mut self, commands: &[OrderCommandV5]) {
+        self.codes.clear();
+        self.values.clear();
+        self.expiry.clear();
+        for command in commands {
+            encode_typed_command(command, &mut self.codes, &mut self.values, &mut self.expiry);
+        }
+    }
+}
+
 impl StepBuffers {
     #[inline]
     pub fn clear(&mut self) {
@@ -586,6 +619,29 @@ impl FullMarketData {
             n_bars,
             n_symbols,
         })
+    }
+
+    /// Materialize one contiguous execution window once per fold, never once
+    /// per scenario. The source tape remains immutable and can therefore be
+    /// shared by ordinary batch runs; this explicit copy is reserved for a
+    /// fold that needs its own bar-zero/account reset semantics.
+    pub fn window(&self, start: usize, end: usize) -> Result<Self, String> {
+        if start >= end || end > self.n_bars {
+            return Err("prepared market window is outside source tape".to_owned());
+        }
+        let width_start = start * self.n_symbols;
+        let width_end = end * self.n_symbols;
+        Self::new(
+            self.timestamps_ns[start..end].to_vec(),
+            self.opens[width_start..width_end].to_vec(),
+            self.highs[width_start..width_end].to_vec(),
+            self.lows[width_start..width_end].to_vec(),
+            self.closes[width_start..width_end].to_vec(),
+            self.volumes[width_start..width_end].to_vec(),
+            self.funding[width_start..width_end].to_vec(),
+            self.funding_mask[start..end].to_vec(),
+            self.n_symbols,
+        )
     }
 
     #[inline]
@@ -1996,6 +2052,35 @@ impl FullSession {
         })
     }
 
+    /// Submit a bounded ABI-0.5 command slice for one canonical bar.
+    ///
+    /// This is intentionally the only typed-command entry point used by the
+    /// strategy IR, portfolio target, and package drivers.  It preserves the
+    /// same event clock, fill model, fee/slippage, margin, liquidation and
+    /// lifecycle indexes as the API-0.4 compatibility path.
+    #[allow(clippy::too_many_arguments)]
+    pub fn step_typed_with_buffers(
+        &mut self,
+        bar: usize,
+        commands: &[OrderCommandV5],
+        output_mask: u8,
+        materialize_rows: bool,
+        buffers: &mut StepBuffers,
+        scratch: &mut TypedCommandScratch,
+    ) -> Result<FullStepResult, String> {
+        scratch.encode(commands);
+        self.step_with_buffers(
+            bar,
+            &scratch.codes,
+            &scratch.values,
+            &scratch.expiry,
+            scratch.expiry.len(),
+            output_mask,
+            materialize_rows,
+            buffers,
+        )
+    }
+
     /// Run a prepared static command tape without constructing Python objects.
     /// Audit positions are written directly into one bar-major flat buffer;
     /// score mode leaves all path/detail buffers empty by contract.
@@ -2195,6 +2280,162 @@ impl FullSession {
             output.liquidation_reason = step.liquidation_reason;
         }
         Ok(output)
+    }
+
+    /// Execute a validated ABI-0.5 typed tape through the same lifecycle and
+    /// accounting loop as the API-0.4 static path. The small raw scratch
+    /// buffers are reused per bar: typed commands never need a Python-owned
+    /// whole-tape conversion and no behavior is delegated to a second engine.
+    pub fn run_typed_score(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
+        self.run_typed_profile(tape, StaticOutputProfile::Score)
+    }
+
+    /// Typed ABI-0.5 compact run with dense account paths and no detail rows.
+    pub fn run_typed_compact(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
+        self.run_typed_profile(tape, StaticOutputProfile::Compact)
+    }
+
+    /// Typed ABI-0.5 audit run with the same typed fill/event columns as the
+    /// API-0.4 static audit sink.
+    pub fn run_typed_audit(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
+        self.run_typed_profile(tape, StaticOutputProfile::Audit)
+    }
+
+    fn run_typed_profile(
+        &mut self,
+        tape: &CommandTapeV5,
+        profile: StaticOutputProfile,
+    ) -> Result<StaticTapeOutput, String> {
+        if tape.bars() != self.market.n_bars {
+            return Err("typed command tape bars do not match prepared market".to_owned());
+        }
+        let n_bars = self.market.n_bars;
+        let n_symbols = self.market.n_symbols;
+        let retain_paths = profile.retains_paths();
+        let retain_detail = profile.retains_detail();
+        let path_capacity = if retain_paths { n_bars } else { 0 };
+        let mut output = StaticTapeOutput {
+            equity: Vec::with_capacity(path_capacity),
+            positions: Vec::with_capacity(path_capacity * n_symbols),
+            fees: Vec::with_capacity(path_capacity),
+            turnover: Vec::with_capacity(path_capacity),
+            funding: Vec::with_capacity(path_capacity),
+            initial_margin: Vec::with_capacity(path_capacity),
+            maintenance_margin: Vec::with_capacity(path_capacity),
+            final_equity: self.equity,
+            final_positions: self.positions.clone(),
+            liquidation_bar: -1,
+            liquidation_reason: LIQ_NONE,
+            ..StaticTapeOutput::default()
+        };
+        let mut step_buffers = StepBuffers::default();
+        let mut typed_scratch = TypedCommandScratch::with_capacity(8);
+
+        for bar in 0..n_bars {
+            // Preserve the frozen P0 bar-zero behavior: it is an initial
+            // snapshot, not an executable command phase.
+            let commands = if bar > 0 { tape.commands_at(bar) } else { &[] };
+            let step = self.step_typed_with_buffers(
+                bar,
+                commands,
+                if retain_detail {
+                    OUTPUT_FILLS | OUTPUT_EVENTS
+                } else {
+                    0
+                },
+                false,
+                &mut step_buffers,
+                &mut typed_scratch,
+            )?;
+            if retain_paths {
+                output.equity.push(step.equity);
+                output.positions.extend_from_slice(&self.positions);
+                output.fees.push(step.fee);
+                output.turnover.push(step.turnover);
+                output.funding.push(step.funding);
+                output.initial_margin.push(step.initial_margin);
+                output.maintenance_margin.push(step.maintenance_margin);
+            }
+            output.final_equity = step.equity;
+            output.final_positions.clone_from(&self.positions);
+            output.total_fee += step.fee;
+            output.total_turnover += step.turnover;
+            output.total_funding += step.funding;
+            output.rejected_count += step.rejected_count;
+            output.canceled_count += step.canceled_count;
+            output.fill_count += step.fill_count;
+            output.event_count += step.event_count;
+            if retain_detail {
+                append_step_details(&mut output, &step_buffers, bar);
+            }
+            output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
+            output.max_maintenance_margin =
+                output.max_maintenance_margin.max(step.maintenance_margin);
+            output.liquidated = step.liquidated;
+            output.liquidation_bar = step.liquidation_bar;
+            output.liquidation_reason = step.liquidation_reason;
+        }
+        Ok(output)
+    }
+}
+
+fn encode_typed_command(
+    command: &OrderCommandV5,
+    codes: &mut Vec<i64>,
+    values: &mut Vec<f64>,
+    expiry: &mut Vec<i64>,
+) {
+    let code_start = codes.len();
+    codes.resize(code_start + CODE_WIDTH, -1);
+    let value_start = values.len();
+    values.resize(value_start + VALUE_WIDTH, 0.0);
+    let code = &mut codes[code_start..code_start + CODE_WIDTH];
+    let value = &mut values[value_start..value_start + VALUE_WIDTH];
+    code[0] = command.action as u8 as i64;
+    code[1] = command.symbol.map_or(-1, |symbol| i64::from(symbol.0));
+    code[2] = command.side.map_or(0, |side| side as i8 as i64);
+    code[3] = command
+        .order_type
+        .map_or(-1, |order_type| order_type as u8 as i64);
+    code[4] = command.tif.map_or(TIF_GTC, |tif| tif as u8 as i64);
+    code[5] = if command.reduce_only { 1 } else { 0 };
+    code[6] = command.external_id.0;
+    code[7] = command.target_id.0;
+    code[8] = command.parent_id.0;
+    code[9] = command.group_id;
+    code[10] = command.oco_id;
+    code[11] = command
+        .activation
+        .map_or(ACTIVATION_IMMEDIATE, |policy| policy as u8 as i64);
+    code[12] = i64::from(command.command_index);
+    value[0] = command.qty;
+    value[1] = command.limit_price;
+    value[2] = command.stop_price;
+    expiry.push(command.expire_bar.map_or(-1, i64::from));
+}
+
+fn append_step_details(output: &mut StaticTapeOutput, buffers: &StepBuffers, bar: usize) {
+    for index in 0..buffers.fills.order_id.len() {
+        output.fill_bar.push(bar as i64);
+        output.fill_order_id.push(buffers.fills.order_id[index]);
+        output.fill_symbol.push(buffers.fills.symbol[index]);
+        output.fill_side.push(buffers.fills.side[index]);
+        output.fill_qty.push(buffers.fills.qty[index]);
+        output.fill_price.push(buffers.fills.price[index]);
+        output.fill_fee.push(buffers.fills.fee[index]);
+        output.fill_reason.push(buffers.fills.reason[index]);
+        output.fill_ambiguity.push(buffers.fills.ambiguity[index]);
+    }
+    for index in 0..buffers.events.kind.len() {
+        output.event_bar.push(bar as i64);
+        output.event_kind.push(buffers.events.kind[index]);
+        output.event_status.push(buffers.events.status[index]);
+        output.event_order_id.push(buffers.events.order_id[index]);
+        output.event_target_id.push(buffers.events.target_id[index]);
+        output.event_symbol.push(buffers.events.symbol[index]);
+        output
+            .event_reject_code
+            .push(buffers.events.reject_code[index]);
     }
 }
 

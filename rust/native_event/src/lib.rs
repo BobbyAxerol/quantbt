@@ -3,11 +3,15 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
+use quantbt_batch as batch;
 use quantbt_domain::generated_contracts;
 use quantbt_engine as full;
 use quantbt_engine::legacy::types;
 use quantbt_engine::legacy::{PreparedMarketData, ReactiveSession};
 use quantbt_engine::{FullMarketData, FullSession};
+use quantbt_package as package;
+use quantbt_portfolio as portfolio;
+use quantbt_strategy_ir as strategy_ir;
 
 const VERSION: &str = "0.4.0";
 const API_VERSION: &str = "0.4";
@@ -75,6 +79,14 @@ fn capabilities(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     values.set_item("generation_safe_order_arena", true)?;
     values.set_item("flat_static_tape_output", true)?;
     values.set_item("static_tape_compact", true)?;
+    values.set_item("native_strategy_ir_v1", true)?;
+    values.set_item("native_strategy_ir_signal_target", true)?;
+    values.set_item("native_strategy_ir_grid_level", true)?;
+    values.set_item("native_strategy_ir_dca_periodic", true)?;
+    values.set_item("native_strategy_ir_fixed_bracket", true)?;
+    values.set_item("native_strategy_ir_batch_v1", true)?;
+    values.set_item("native_portfolio_target_preflight_v1", true)?;
+    values.set_item("native_package_transaction_preflight_v1", true)?;
     Ok(values)
 }
 
@@ -119,10 +131,219 @@ fn semantic_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     descriptor.set_item("account", account)?;
 
     let portfolio = PyDict::new(py);
+    // API 0.4 semantic descriptor is a compatibility lock. P2 planning
+    // primitives advertise only through additive raw capabilities until their
+    // own public contract/version is promoted.
     portfolio.set_item("target_execution", false)?;
     portfolio.set_item("package_atomicity", "python_reference_only")?;
     descriptor.set_item("portfolio", portfolio)?;
     Ok(descriptor)
+}
+
+/// Native implementation of the frozen portfolio target preflight contract.
+/// It is intentionally a planning call: accepted deltas must still travel
+/// through the canonical event engine to receive fills, fees and lifecycle.
+#[pyfunction]
+#[pyo3(signature = (previous_units, requested_units, prices, equity, contract_sizes, leverages, fee_rates, slippage_rates, tradable, stale, min_qty, min_notional, reserved_margin=0.0, policy=0))]
+#[allow(clippy::too_many_arguments)]
+fn native_portfolio_target_preflight(
+    py: Python<'_>,
+    previous_units: PyReadonlyArray1<'_, f64>,
+    requested_units: PyReadonlyArray1<'_, f64>,
+    prices: PyReadonlyArray1<'_, f64>,
+    equity: f64,
+    contract_sizes: PyReadonlyArray1<'_, f64>,
+    leverages: PyReadonlyArray1<'_, f64>,
+    fee_rates: PyReadonlyArray1<'_, f64>,
+    slippage_rates: PyReadonlyArray1<'_, f64>,
+    tradable: PyReadonlyArray1<'_, bool>,
+    stale: PyReadonlyArray1<'_, bool>,
+    min_qty: PyReadonlyArray1<'_, f64>,
+    min_notional: PyReadonlyArray1<'_, f64>,
+    reserved_margin: f64,
+    policy: u8,
+) -> PyResult<Py<PyDict>> {
+    let policy = portfolio::PortfolioMarginAllocationPolicy::try_from(policy)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let result = portfolio::execute_portfolio_target(portfolio::PortfolioTargetRequest {
+        previous_units: previous_units.as_slice()?,
+        requested_units: requested_units.as_slice()?,
+        prices: prices.as_slice()?,
+        equity,
+        contract_sizes: contract_sizes.as_slice()?,
+        leverages: leverages.as_slice()?,
+        fee_rates: fee_rates.as_slice()?,
+        slippage_rates: slippage_rates.as_slice()?,
+        tradable: tradable.as_slice()?,
+        stale: stale.as_slice()?,
+        min_qty: min_qty.as_slice()?,
+        min_notional: min_notional.as_slice()?,
+        reserved_margin,
+        policy,
+    })
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let rejection_codes = result.rejection_codes();
+    let rejection_names = result
+        .rejection_reasons
+        .iter()
+        .map(|reason| reason.name())
+        .collect::<Vec<_>>();
+    let invariants_pass = result.invariant_passes(1e-12);
+    let available_equity_after = result.available_equity_after;
+    let payload = PyDict::new(py);
+    payload.set_item(
+        "requested_units",
+        PyArray1::from_vec(py, result.requested_units),
+    )?;
+    payload.set_item(
+        "accepted_units",
+        PyArray1::from_vec(py, result.accepted_units),
+    )?;
+    payload.set_item("delta_qty", PyArray1::from_vec(py, result.delta_qty))?;
+    payload.set_item(
+        "traded_notional",
+        PyArray1::from_vec(py, result.traded_notional),
+    )?;
+    payload.set_item("fees", PyArray1::from_vec(py, result.fees))?;
+    payload.set_item("slippage", PyArray1::from_vec(py, result.slippage))?;
+    payload.set_item(
+        "initial_margin",
+        PyArray1::from_vec(py, result.initial_margin),
+    )?;
+    payload.set_item("rejection_code", PyArray1::from_vec(py, rejection_codes))?;
+    payload.set_item("rejection_reason", rejection_names)?;
+    payload.set_item("available_equity_after", available_equity_after)?;
+    payload.set_item("policy", policy as u8)?;
+    payload.set_item("invariants_pass", invariants_pass)?;
+    payload.set_item("native_contract", "portfolio-target-execution-v1")?;
+    Ok(payload.unbind())
+}
+
+/// Native implementation of the deterministic package preflight/reservation
+/// contract. Atomicity is explicitly a bar-transaction simulation model; this
+/// function never claims venue-native all-or-none execution.
+#[pyfunction]
+#[pyo3(signature = (package_id, order_ids, symbol_ids, signed_qty, prices, initial_margin, fee_rates, source_age_ns, venue_codes, venue_sequence, min_qty, min_notional, contract_sizes, available_equity, policy=2, max_staleness_ns=0))]
+#[allow(clippy::too_many_arguments)]
+fn native_package_transaction_preflight(
+    py: Python<'_>,
+    package_id: u64,
+    order_ids: PyReadonlyArray1<'_, i64>,
+    symbol_ids: PyReadonlyArray1<'_, u32>,
+    signed_qty: PyReadonlyArray1<'_, f64>,
+    prices: PyReadonlyArray1<'_, f64>,
+    initial_margin: PyReadonlyArray1<'_, f64>,
+    fee_rates: PyReadonlyArray1<'_, f64>,
+    source_age_ns: PyReadonlyArray1<'_, i64>,
+    venue_codes: PyReadonlyArray1<'_, u16>,
+    venue_sequence: PyReadonlyArray1<'_, u32>,
+    min_qty: PyReadonlyArray1<'_, f64>,
+    min_notional: PyReadonlyArray1<'_, f64>,
+    contract_sizes: PyReadonlyArray1<'_, f64>,
+    available_equity: f64,
+    policy: u8,
+    max_staleness_ns: i64,
+) -> PyResult<Py<PyDict>> {
+    let order_ids = order_ids.as_slice()?;
+    let symbol_ids = symbol_ids.as_slice()?;
+    let signed_qty = signed_qty.as_slice()?;
+    let prices = prices.as_slice()?;
+    let initial_margin = initial_margin.as_slice()?;
+    let fee_rates = fee_rates.as_slice()?;
+    let source_age_ns = source_age_ns.as_slice()?;
+    let venue_codes = venue_codes.as_slice()?;
+    let venue_sequence = venue_sequence.as_slice()?;
+    let min_qty = min_qty.as_slice()?;
+    let min_notional = min_notional.as_slice()?;
+    let contract_sizes = contract_sizes.as_slice()?;
+    let count = order_ids.len();
+    if [
+        symbol_ids.len(),
+        signed_qty.len(),
+        prices.len(),
+        initial_margin.len(),
+        fee_rates.len(),
+        source_age_ns.len(),
+        venue_codes.len(),
+        venue_sequence.len(),
+        min_qty.len(),
+        min_notional.len(),
+        contract_sizes.len(),
+    ]
+    .iter()
+    .any(|length| *length != count)
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "native package preflight arrays must have equal one-dimensional length",
+        ));
+    }
+    let legs = (0..count)
+        .map(|index| package::PackageLegRequest {
+            order_id: quantbt_domain::ids::ExternalOrderId(order_ids[index]),
+            symbol: quantbt_domain::ids::SymbolId(symbol_ids[index]),
+            signed_qty: signed_qty[index],
+            price: prices[index],
+            initial_margin: initial_margin[index],
+            fee_rate: fee_rates[index],
+            source_age_ns: source_age_ns[index],
+            venue_code: venue_codes[index],
+            venue_sequence: venue_sequence[index],
+            min_qty: min_qty[index],
+            min_notional: min_notional[index],
+            contract_size: contract_sizes[index],
+        })
+        .collect::<Vec<_>>();
+    let policy = package::PackagePolicy::try_from(policy)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let result = package::execute_package_transaction(
+        package::PackageId(package_id),
+        &legs,
+        available_equity,
+        policy,
+        max_staleness_ns,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let payload = PyDict::new(py);
+    payload.set_item("accepted", PyArray1::from_vec(py, result.accepted.clone()))?;
+    payload.set_item(
+        "rejection_code",
+        PyArray1::from_vec(
+            py,
+            result
+                .rejection_reasons
+                .iter()
+                .map(|reason| *reason as u8)
+                .collect::<Vec<_>>(),
+        ),
+    )?;
+    payload.set_item(
+        "rejection_reason",
+        result
+            .rejection_reasons
+            .iter()
+            .map(|reason| reason.name())
+            .collect::<Vec<_>>(),
+    )?;
+    payload.set_item("final_state", result.final_state as u8)?;
+    payload.set_item(
+        "transitions",
+        PyArray1::from_vec(
+            py,
+            result
+                .transitions
+                .iter()
+                .map(|event| *event as u8)
+                .collect::<Vec<_>>(),
+        ),
+    )?;
+    payload.set_item("reserved_margin", result.reserved_margin)?;
+    payload.set_item("released_margin", result.released_margin)?;
+    payload.set_item("package_fee", result.package_fee)?;
+    payload.set_item("residual_notional", result.residual_notional)?;
+    payload.set_item("invariants_pass", result.invariants_pass(1e-12))?;
+    payload.set_item("atomicity_model", "bar_transaction")?;
+    payload.set_item("native_contract", "package-transaction-v1")?;
+    Ok(payload.unbind())
 }
 
 fn integer_units(value: f64, increment: f64, ceil_mode: bool) -> i64 {
@@ -1234,6 +1455,97 @@ impl FullPreparedMarketCore {
     }
 }
 
+/// Immutable, validated native strategy IR. It contains no Python callback or
+/// object reference and may therefore be cloned into a detached Rust run.
+#[pyclass]
+struct NativeStrategyProgramCore {
+    inner: strategy_ir::StrategyProgram,
+}
+
+#[pymethods]
+impl NativeStrategyProgramCore {
+    #[new]
+    #[pyo3(signature = (
+        kind,
+        symbol_id=0,
+        quantity=1.0,
+        threshold=0.0,
+        take_profit_pct=0.0,
+        stop_loss_pct=0.0,
+        dca_period=1,
+        max_levels=1,
+        max_instructions_per_bar=16,
+        max_commands_per_bar=8,
+        state_slots=3,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        kind: u8,
+        symbol_id: u32,
+        quantity: f64,
+        threshold: f64,
+        take_profit_pct: f64,
+        stop_loss_pct: f64,
+        dca_period: u32,
+        max_levels: u32,
+        max_instructions_per_bar: u16,
+        max_commands_per_bar: u16,
+        state_slots: u16,
+    ) -> PyResult<Self> {
+        let kind = strategy_ir::StrategyKind::try_from(kind)
+            .map_err(|error| pyo3::exceptions::PyValueError::new_err(error.to_string()))?;
+        let inner = strategy_ir::StrategyProgram::new(
+            strategy_ir::STRATEGY_IR_VERSION,
+            kind,
+            quantbt_domain::ids::SymbolId(symbol_id),
+            strategy_ir::StrategyParameters {
+                quantity,
+                threshold,
+                take_profit_pct,
+                stop_loss_pct,
+                dca_period,
+                max_levels,
+            },
+            strategy_ir::ProgramLimits {
+                max_instructions_per_bar,
+                max_commands_per_bar,
+                state_slots,
+            },
+        )
+        .map_err(|error| pyo3::exceptions::PyValueError::new_err(error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    #[getter]
+    fn version(&self) -> u16 {
+        self.inner.version()
+    }
+
+    #[getter]
+    fn kind(&self) -> &'static str {
+        self.inner.kind().name()
+    }
+
+    #[getter]
+    fn symbol_id(&self) -> u32 {
+        self.inner.symbol().0
+    }
+
+    #[getter]
+    fn parameter_width(&self) -> usize {
+        strategy_ir::PARAMETER_WIDTH
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    fn disassemble(&self) -> Vec<String> {
+        self.inner.disassemble()
+    }
+}
+
 #[pyclass]
 struct FullReactiveSessionCore {
     inner: FullSession,
@@ -1700,6 +2012,512 @@ impl FullReactiveSessionCore {
         payload.set_item("bars", self.inner.market.n_bars)?;
         Ok(payload.unbind())
     }
+
+    /// Execute a bounded, declarative native strategy in one detached call.
+    /// Python supplies only an immutable signal array and optional parameter
+    /// row; the program compiles a typed ABI-0.5 command tape inside Rust.
+    #[pyo3(signature = (program, signal, parameters=None))]
+    fn run_ir_score(
+        &mut self,
+        py: Python<'_>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signal: PyReadonlyArray1<'_, f64>,
+        parameters: Option<PyReadonlyArray1<'_, f64>>,
+    ) -> PyResult<Py<PyDict>> {
+        let signal = signal.as_slice()?.to_vec();
+        let parameters = match parameters {
+            Some(values) => Some(values.as_slice()?.to_vec()),
+            None => None,
+        };
+        let program = program.inner.clone();
+        let fingerprint = program.fingerprint_hex();
+        let kind = program.kind().name();
+        let closes = ir_close_column(&self.inner.market, program.symbol().0)?;
+        let (output, command_count) = py
+            .detach(|| {
+                let tape = program
+                    .compile_tape(&signal, &closes, parameters.as_deref())
+                    .map_err(|error| error.to_string())?;
+                let command_count = tape.command_count();
+                let output = self.inner.run_typed_score(&tape)?;
+                Ok::<_, String>((output, command_count))
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        score_output_payload(
+            py,
+            output,
+            self.inner.market.n_bars,
+            &fingerprint,
+            kind,
+            command_count,
+        )
+    }
+
+    /// Native IR compact profile. It shares the exact command compiler and
+    /// lifecycle/accounting path with score/audit while retaining only paths.
+    #[pyo3(signature = (program, signal, parameters=None))]
+    fn run_ir_compact(
+        &mut self,
+        py: Python<'_>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signal: PyReadonlyArray1<'_, f64>,
+        parameters: Option<PyReadonlyArray1<'_, f64>>,
+    ) -> PyResult<Py<PyDict>> {
+        let signal = signal.as_slice()?.to_vec();
+        let parameters = match parameters {
+            Some(values) => Some(values.as_slice()?.to_vec()),
+            None => None,
+        };
+        let program = program.inner.clone();
+        let fingerprint = program.fingerprint_hex();
+        let kind = program.kind().name();
+        let closes = ir_close_column(&self.inner.market, program.symbol().0)?;
+        let (output, command_count) = py
+            .detach(|| {
+                let tape = program
+                    .compile_tape(&signal, &closes, parameters.as_deref())
+                    .map_err(|error| error.to_string())?;
+                let command_count = tape.command_count();
+                let output = self.inner.run_typed_compact(&tape)?;
+                Ok::<_, String>((output, command_count))
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        compact_output_payload(
+            py,
+            output,
+            self.inner.market.n_bars,
+            &fingerprint,
+            kind,
+            command_count,
+        )
+    }
+
+    /// Native IR audit profile. Only this explicit route materializes the
+    /// typed fill/event columns required for detailed trace comparison.
+    #[pyo3(signature = (program, signal, parameters=None))]
+    fn run_ir_audit(
+        &mut self,
+        py: Python<'_>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signal: PyReadonlyArray1<'_, f64>,
+        parameters: Option<PyReadonlyArray1<'_, f64>>,
+    ) -> PyResult<Py<PyDict>> {
+        let signal = signal.as_slice()?.to_vec();
+        let parameters = match parameters {
+            Some(values) => Some(values.as_slice()?.to_vec()),
+            None => None,
+        };
+        let program = program.inner.clone();
+        let fingerprint = program.fingerprint_hex();
+        let kind = program.kind().name();
+        let closes = ir_close_column(&self.inner.market, program.symbol().0)?;
+        let (output, command_count) = py
+            .detach(|| {
+                let tape = program
+                    .compile_tape(&signal, &closes, parameters.as_deref())
+                    .map_err(|error| error.to_string())?;
+                let command_count = tape.command_count();
+                let output = self.inner.run_typed_audit(&tape)?;
+                Ok::<_, String>((output, command_count))
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        audit_output_payload(
+            py,
+            output,
+            self.inner.market.n_bars,
+            &fingerprint,
+            kind,
+            command_count,
+        )
+    }
+
+    /// Score a matrix of independent native-IR scenarios through one prepared
+    /// immutable market. This is deliberately a scalar-only optimizer path:
+    /// selected candidates are re-run through `run_ir_audit` after stable
+    /// ranking instead of retaining fill/event rows for every trial.
+    #[pyo3(signature = (program, signals, parameters=None, workers=1, chunk_size=256, fail_fast=false))]
+    #[allow(clippy::too_many_arguments)]
+    fn run_ir_batch_score(
+        &self,
+        py: Python<'_>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signals: PyReadonlyArray2<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+        workers: usize,
+        chunk_size: usize,
+        fail_fast: bool,
+    ) -> PyResult<Py<PyDict>> {
+        let signal_shape = signals.shape();
+        if signal_shape.len() != 2 || signal_shape[1] != self.inner.market.n_bars {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native IR signal matrix must have shape (scenarios, prepared_market_bars)",
+            ));
+        }
+        let scenario_count = signal_shape[0];
+        let signal_values = signals.as_slice()?.to_vec();
+        let parameter_values = match parameters {
+            Some(values) => {
+                let shape = values.shape();
+                if shape.len() != 2
+                    || shape[0] != scenario_count
+                    || shape[1] != strategy_ir::PARAMETER_WIDTH
+                {
+                    return Err(pyo3::exceptions::PyValueError::new_err(
+                        "native IR parameter matrix must have shape (scenarios, 4)",
+                    ));
+                }
+                Some(values.as_slice()?.to_vec())
+            }
+            None => None,
+        };
+        let program = Arc::new(program.inner.clone());
+        let fingerprint = program.fingerprint_hex();
+        let kind = program.kind().name();
+        let template = batch::BatchTemplate::from_session(&self.inner, program)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let market_bytes = template.market_bytes();
+        let bars = self.inner.market.n_bars;
+        let plan = batch::BatchPlan {
+            workers,
+            chunk_size,
+            failure_policy: if fail_fast {
+                batch::ScenarioFailurePolicy::FailFast
+            } else {
+                batch::ScenarioFailurePolicy::CollectPerScenarioErrors
+            },
+        };
+        let result = py
+            .detach(move || {
+                let inputs = (0..scenario_count)
+                    .map(|scenario| batch::ScenarioInput {
+                        scenario: batch::ScenarioId(scenario as u32),
+                        signal: &signal_values[scenario * bars..(scenario + 1) * bars],
+                        parameters: parameter_values.as_ref().map(|values| {
+                            &values[scenario * strategy_ir::PARAMETER_WIDTH
+                                ..(scenario + 1) * strategy_ir::PARAMETER_WIDTH]
+                        }),
+                    })
+                    .collect::<Vec<_>>();
+                template.score_batch(&inputs, plan)
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let actual_workers = workers.min(scenario_count).max(1);
+        let payload =
+            batch_output_payload(py, result, scenario_count, &fingerprint, kind, market_bytes)?;
+        let bound = payload.bind(py);
+        bound.set_item("requested_workers", workers)?;
+        bound.set_item("actual_workers", actual_workers)?;
+        bound.set_item("chunk_size", chunk_size)?;
+        Ok(payload)
+    }
+
+    /// Score independent native-IR scenarios on one causal walk-forward OOS
+    /// window. The supplied signals remain aligned to the full prepared tape;
+    /// only ``test_start..test_end`` is sliced for execution and every
+    /// scenario starts with a fresh account. This is a batch execution
+    /// primitive, not a parameter-selection policy.
+    #[pyo3(signature = (
+        program,
+        signals,
+        fold_id,
+        warmup_start,
+        train_start,
+        train_end,
+        test_start,
+        test_end,
+        parameters=None,
+        workers=1,
+        chunk_size=256,
+        fail_fast=false
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn run_ir_fold_batch_score(
+        &self,
+        py: Python<'_>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signals: PyReadonlyArray2<'_, f64>,
+        fold_id: u32,
+        warmup_start: u32,
+        train_start: u32,
+        train_end: u32,
+        test_start: u32,
+        test_end: u32,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+        workers: usize,
+        chunk_size: usize,
+        fail_fast: bool,
+    ) -> PyResult<Py<PyDict>> {
+        let signal_shape = signals.shape();
+        if signal_shape.len() != 2 || signal_shape[1] != self.inner.market.n_bars {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native IR fold signal matrix must have shape (scenarios, prepared_market_bars)",
+            ));
+        }
+        let fold = batch::FoldPlan {
+            fold_id,
+            warmup_start,
+            train_start,
+            train_end,
+            test_start,
+            test_end,
+        }
+        .validate(self.inner.market.n_bars)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let scenario_count = signal_shape[0];
+        let signal_values = signals.as_slice()?.to_vec();
+        let parameter_values = match parameters {
+            Some(values) => {
+                let shape = values.shape();
+                if shape.len() != 2
+                    || shape[0] != scenario_count
+                    || shape[1] != strategy_ir::PARAMETER_WIDTH
+                {
+                    return Err(pyo3::exceptions::PyValueError::new_err(
+                        "native IR fold parameter matrix must have shape (scenarios, 4)",
+                    ));
+                }
+                Some(values.as_slice()?.to_vec())
+            }
+            None => None,
+        };
+        let program = Arc::new(program.inner.clone());
+        let fingerprint = program.fingerprint_hex();
+        let kind = program.kind().name();
+        let template = batch::BatchTemplate::from_session(&self.inner, program)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let parent_market_bytes = template.market_bytes();
+        let bars = self.inner.market.n_bars;
+        let plan = batch::BatchPlan {
+            workers,
+            chunk_size,
+            failure_policy: if fail_fast {
+                batch::ScenarioFailurePolicy::FailFast
+            } else {
+                batch::ScenarioFailurePolicy::CollectPerScenarioErrors
+            },
+        };
+        let result = py
+            .detach(move || {
+                let inputs = (0..scenario_count)
+                    .map(|scenario| batch::ScenarioInput {
+                        scenario: batch::ScenarioId(scenario as u32),
+                        signal: &signal_values[scenario * bars..(scenario + 1) * bars],
+                        parameters: parameter_values.as_ref().map(|values| {
+                            &values[scenario * strategy_ir::PARAMETER_WIDTH
+                                ..(scenario + 1) * strategy_ir::PARAMETER_WIDTH]
+                        }),
+                    })
+                    .collect::<Vec<_>>();
+                template.score_fold_batch(&inputs, fold, plan)
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let market_window_bytes = result.market_window_bytes;
+        let execution_bars = result.execution_bars;
+        let payload = batch_output_payload(
+            py,
+            result.rows,
+            scenario_count,
+            &fingerprint,
+            kind,
+            parent_market_bytes,
+        )?;
+        let bound = payload.bind(py);
+        bound.set_item("fold_id", fold.fold_id)?;
+        bound.set_item("warmup_start", fold.warmup_start)?;
+        bound.set_item("train_start", fold.train_start)?;
+        bound.set_item("train_end", fold.train_end)?;
+        bound.set_item("test_start", fold.test_start)?;
+        bound.set_item("test_end", fold.test_end)?;
+        bound.set_item("execution_bars", execution_bars)?;
+        bound.set_item("market_windows_created", 1)?;
+        bound.set_item("fold_market_window_bytes", market_window_bytes)?;
+        bound.set_item("requested_workers", workers)?;
+        bound.set_item("actual_workers", workers.min(scenario_count).max(1))?;
+        bound.set_item("chunk_size", chunk_size)?;
+        Ok(payload)
+    }
+}
+
+fn ir_close_column(market: &FullMarketData, symbol: u32) -> PyResult<Vec<f64>> {
+    let symbol = symbol as usize;
+    if symbol >= market.n_symbols {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "native strategy IR symbol_id is outside prepared market",
+        ));
+    }
+    Ok((0..market.n_bars)
+        .map(|bar| market.closes[bar * market.n_symbols + symbol])
+        .collect())
+}
+
+fn add_ir_metadata(
+    payload: &Bound<'_, PyDict>,
+    fingerprint: &str,
+    kind: &str,
+    command_count: usize,
+) -> PyResult<()> {
+    payload.set_item("strategy_ir_version", strategy_ir::STRATEGY_IR_VERSION)?;
+    payload.set_item("strategy_ir_fingerprint", fingerprint)?;
+    payload.set_item("strategy_ir_kind", kind)?;
+    payload.set_item("strategy_ir_command_count", command_count)?;
+    payload.set_item("python_callbacks", 0)?;
+    payload.set_item("boundary_calls", 1)?;
+    Ok(())
+}
+
+fn score_output_payload(
+    py: Python<'_>,
+    output: quantbt_engine::StaticTapeOutput,
+    bars: usize,
+    fingerprint: &str,
+    kind: &str,
+    command_count: usize,
+) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    payload.set_item("final_equity", output.final_equity)?;
+    payload.set_item("final_positions", output.final_positions)?;
+    payload.set_item("total_fee", output.total_fee)?;
+    payload.set_item("total_turnover", output.total_turnover)?;
+    payload.set_item("total_funding", output.total_funding)?;
+    payload.set_item("fill_count", output.fill_count)?;
+    payload.set_item("event_count", output.event_count)?;
+    payload.set_item("rejected_count", output.rejected_count)?;
+    payload.set_item("canceled_count", output.canceled_count)?;
+    payload.set_item("max_initial_margin", output.max_initial_margin)?;
+    payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+    payload.set_item("liquidated", output.liquidated)?;
+    payload.set_item("liquidation_bar", output.liquidation_bar)?;
+    payload.set_item("liquidation_reason", output.liquidation_reason)?;
+    payload.set_item("bars", bars)?;
+    add_ir_metadata(&payload, fingerprint, kind, command_count)?;
+    Ok(payload.unbind())
+}
+
+fn compact_output_payload(
+    py: Python<'_>,
+    output: quantbt_engine::StaticTapeOutput,
+    bars: usize,
+    fingerprint: &str,
+    kind: &str,
+    command_count: usize,
+) -> PyResult<Py<PyDict>> {
+    let payload = score_output_payload(py, output.clone(), bars, fingerprint, kind, command_count)?;
+    let bound = payload.bind(py);
+    bound.set_item("equity", output.equity)?;
+    bound.set_item("positions", output.positions)?;
+    bound.set_item("fees", output.fees)?;
+    bound.set_item("turnover", output.turnover)?;
+    bound.set_item("funding", output.funding)?;
+    bound.set_item("initial_margin", output.initial_margin)?;
+    bound.set_item("maintenance_margin", output.maintenance_margin)?;
+    Ok(payload)
+}
+
+fn batch_output_payload(
+    py: Python<'_>,
+    result: batch::BatchResult,
+    scenario_count: usize,
+    fingerprint: &str,
+    kind: &str,
+    market_bytes: usize,
+) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    let scenario_id = result
+        .rows
+        .iter()
+        .map(|row| row.score.scenario.0)
+        .collect::<Vec<_>>();
+    let status = result
+        .rows
+        .iter()
+        .map(|row| row.status.code())
+        .collect::<Vec<_>>();
+    let final_equity = result
+        .rows
+        .iter()
+        .map(|row| row.score.final_equity)
+        .collect::<Vec<_>>();
+    let total_fee = result
+        .rows
+        .iter()
+        .map(|row| row.score.total_fee)
+        .collect::<Vec<_>>();
+    let total_funding = result
+        .rows
+        .iter()
+        .map(|row| row.score.total_funding)
+        .collect::<Vec<_>>();
+    let turnover = result
+        .rows
+        .iter()
+        .map(|row| row.score.turnover)
+        .collect::<Vec<_>>();
+    let fill_count = result
+        .rows
+        .iter()
+        .map(|row| row.score.fill_count)
+        .collect::<Vec<_>>();
+    let rejected_count = result
+        .rows
+        .iter()
+        .map(|row| row.score.rejected_count)
+        .collect::<Vec<_>>();
+    let liquidated = result
+        .rows
+        .iter()
+        .map(|row| row.score.liquidated)
+        .collect::<Vec<_>>();
+    let errors = result
+        .rows
+        .iter()
+        .map(|row| row.error.clone())
+        .collect::<Vec<_>>();
+    payload.set_item("scenario_id", PyArray1::from_vec(py, scenario_id))?;
+    payload.set_item("status", PyArray1::from_vec(py, status))?;
+    payload.set_item("final_equity", PyArray1::from_vec(py, final_equity))?;
+    payload.set_item("total_fee", PyArray1::from_vec(py, total_fee))?;
+    payload.set_item("total_funding", PyArray1::from_vec(py, total_funding))?;
+    payload.set_item("turnover", PyArray1::from_vec(py, turnover))?;
+    payload.set_item("fill_count", PyArray1::from_vec(py, fill_count))?;
+    payload.set_item("rejected_count", PyArray1::from_vec(py, rejected_count))?;
+    payload.set_item("liquidated", PyArray1::from_vec(py, liquidated))?;
+    payload.set_item("error", errors)?;
+    payload.set_item("scenario_count", scenario_count)?;
+    payload.set_item("shared_market_copies_per_scenario", 0)?;
+    payload.set_item("shared_market_bytes", market_bytes)?;
+    payload.set_item("audit_materialized", false)?;
+    add_ir_metadata(&payload, fingerprint, kind, 0)?;
+    Ok(payload.unbind())
+}
+
+fn audit_output_payload(
+    py: Python<'_>,
+    output: quantbt_engine::StaticTapeOutput,
+    bars: usize,
+    fingerprint: &str,
+    kind: &str,
+    command_count: usize,
+) -> PyResult<Py<PyDict>> {
+    let payload =
+        compact_output_payload(py, output.clone(), bars, fingerprint, kind, command_count)?;
+    let bound = payload.bind(py);
+    bound.set_item("fill_bar", output.fill_bar)?;
+    bound.set_item("fill_order_id", output.fill_order_id)?;
+    bound.set_item("fill_symbol", output.fill_symbol)?;
+    bound.set_item("fill_side", output.fill_side)?;
+    bound.set_item("fill_qty", output.fill_qty)?;
+    bound.set_item("fill_price", output.fill_price)?;
+    bound.set_item("fill_fee", output.fill_fee)?;
+    bound.set_item("fill_reason", output.fill_reason)?;
+    bound.set_item("fill_ambiguity", output.fill_ambiguity)?;
+    bound.set_item("event_bar", output.event_bar)?;
+    bound.set_item("event_kind", output.event_kind)?;
+    bound.set_item("event_status", output.event_status)?;
+    bound.set_item("event_order_id", output.event_order_id)?;
+    bound.set_item("event_target_id", output.event_target_id)?;
+    bound.set_item("event_symbol", output.event_symbol)?;
+    bound.set_item("event_reject_code", output.event_reject_code)?;
+    Ok(payload)
 }
 
 fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<Py<PyDict>> {
@@ -1798,6 +2616,11 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(core_abi_version, module)?)?;
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
     module.add_function(wrap_pyfunction!(semantic_descriptor, module)?)?;
+    module.add_function(wrap_pyfunction!(native_portfolio_target_preflight, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        native_package_transaction_preflight,
+        module
+    )?)?;
     module.add_function(wrap_pyfunction!(quantize_price_v1, module)?)?;
     module.add_function(wrap_pyfunction!(quantize_quantity_v1, module)?)?;
     module.add_function(wrap_pyfunction!(quantize_order_value_v1, module)?)?;
@@ -1808,6 +2631,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ReactiveSessionCore>()?;
     module.add_class::<FullStepResultCore>()?;
     module.add_class::<FullPreparedMarketCore>()?;
+    module.add_class::<NativeStrategyProgramCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
     Ok(())
 }

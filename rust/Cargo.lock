@@ -308,8 +308,12 @@ dependencies = [
  "numpy",
  "proptest",
  "pyo3",
+ "quantbt-batch",
  "quantbt-domain",
  "quantbt-engine",
+ "quantbt-package",
+ "quantbt-portfolio",
+ "quantbt-strategy-ir",
 ]
 
 [[package]]
