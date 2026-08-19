@@ -73,6 +73,9 @@ class BacktestEngineV2:
         execution_contract=None,
         reactive_execution_mode: str = "fast",
         reactive_kernel_mode: str = "replay_certified",
+        audit_mode: Optional[str] = None,
+        oracle_sample_rate: float = 0.0,
+        oracle_sample_seed: int = 0,
         report_level: str = "audit",
         audit_sink: str = "memory",
         audit_sink_path: Optional[str] = None,
@@ -119,6 +122,9 @@ class BacktestEngineV2:
         self.execution_contract = execution_contract
         self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
         self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
+        self.audit_mode = audit_mode
+        self.oracle_sample_rate = float(oracle_sample_rate)
+        self.oracle_sample_seed = int(oracle_sample_seed)
         self.report_level = str(report_level)
         self.audit_sink = str(audit_sink)
         self.audit_sink_path = audit_sink_path
@@ -224,6 +230,9 @@ class BacktestEngineV2:
                     audit_sink=self.audit_sink,
                     audit_sink_path=self.audit_sink_path,
                     reactive_kernel_mode=self.reactive_kernel_mode,
+                    audit_mode=self.audit_mode,
+                    oracle_sample_rate=self.oracle_sample_rate,
+                    oracle_sample_seed=self.oracle_sample_seed,
                     native_backend=self.native_backend,
                     execution_contract=(
                         self.execution_contract

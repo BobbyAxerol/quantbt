@@ -299,6 +299,9 @@ class EndpointConfig:
     execution_contract: object = None
     reactive_execution_mode: str = "fast"
     reactive_kernel_mode: str = "replay_certified"
+    audit_mode: Optional[str] = None
+    oracle_sample_rate: float = 0.0
+    oracle_sample_seed: int = 0
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -699,6 +702,9 @@ class QuantBTEndpoint:
                 audit_sink=config.audit_sink,
                 audit_sink_path=config.audit_sink_path,
                 reactive_kernel_mode=config.reactive_kernel_mode,
+                audit_mode=config.audit_mode,
+                oracle_sample_rate=config.oracle_sample_rate,
+                oracle_sample_seed=config.oracle_sample_seed,
                 native_backend=config.native_backend,
                 execution_contract=(
                     config.execution_contract
@@ -2289,6 +2295,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -2336,6 +2345,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2375,6 +2387,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         self._store_result(self.engine.result)
         return self.result

@@ -133,6 +133,7 @@ from ..core.schema import (
     TimeInForce,
     InstrumentSpec,
 )
+from ..errors import AuditMismatchError, EngineErrorContext
 from ..strategies import CommandBatchView, PreparedStrategyAdapter, resolve_strategy_requirements
 from ..preparation.cache import CachePolicy, PreparedObjectCache
 from ..planning import (
@@ -192,6 +193,9 @@ class NativeEventConfig:
     audit_sink_path: Optional[str] = None
     reactive_kernel_mode: str = "replay_certified"
     native_backend: Optional[str] = None
+    audit_mode: Optional[str] = None
+    oracle_sample_rate: float = 0.0
+    oracle_sample_seed: int = 0
     execution_contract: Union[str, EventClockContract] = EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
     diagnostics: bool = False
     prepared_cache_max_bytes: int = 256 * 1024 * 1024
@@ -206,6 +210,11 @@ class NativeEventConfig:
         object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
         object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
         object.__setattr__(self, "reactive_kernel_mode", _normalize_reactive_kernel_mode(self.reactive_kernel_mode))
+        object.__setattr__(self, "audit_mode", _normalize_reactive_audit_mode(self.audit_mode))
+        if not 0.0 <= float(self.oracle_sample_rate) <= 1.0:
+            raise ValueError("oracle_sample_rate must be between 0 and 1")
+        object.__setattr__(self, "oracle_sample_rate", float(self.oracle_sample_rate))
+        object.__setattr__(self, "oracle_sample_seed", int(self.oracle_sample_seed))
         object.__setattr__(self, "execution_contract", get_event_clock_contract(self.execution_contract))
         if self.native_backend is not None:
             selected = str(self.native_backend).lower().strip()
@@ -406,6 +415,20 @@ def _normalize_reactive_kernel_mode(reactive_kernel_mode: str) -> str:
     mode = aliases.get(mode, mode)
     if mode not in {"replay_certified", "single_pass"}:
         raise ValueError("reactive_kernel_mode must be replay_certified or single_pass")
+    return mode
+
+
+def _normalize_reactive_audit_mode(audit_mode: Optional[str]) -> Optional[str]:
+    if audit_mode is None:
+        return None
+    mode = str(audit_mode).lower().strip()
+    mode = {"trace": "native_trace", "verify": "verify_against_oracle", "sampled": "dual_run_sampled"}.get(
+        mode, mode
+    )
+    if mode not in {"native_trace", "verify_against_oracle", "dual_run_sampled"}:
+        raise ValueError(
+            "audit_mode must be native_trace, verify_against_oracle, or dual_run_sampled"
+        )
     return mode
 
 
@@ -2770,7 +2793,23 @@ class NativeEventBackend:
                     count=ignored,
                 )
 
-        replay_required = kernel_mode == "replay_certified"
+        requested_audit_mode = self.config.audit_mode
+        if requested_audit_mode is None:
+            replay_required = kernel_mode == "replay_certified"
+            effective_audit_mode = "verify_against_oracle" if replay_required else "native_trace"
+        elif requested_audit_mode == "verify_against_oracle":
+            replay_required = True
+            effective_audit_mode = requested_audit_mode
+        elif requested_audit_mode == "native_trace":
+            replay_required = False
+            effective_audit_mode = requested_audit_mode
+        else:
+            sample_material = (
+                f"{execution_plan.plan_fingerprint}:{self.config.oracle_sample_seed}".encode("ascii")
+            )
+            sample_value = int.from_bytes(hashlib.sha256(sample_material).digest()[:8], "big") / float(2**64)
+            replay_required = sample_value < self.config.oracle_sample_rate
+            effective_audit_mode = "verify_against_oracle" if replay_required else "native_trace"
         engine_run_ns = perf_counter_ns() - engine_run_started_ns
         observability = {
             "schema_version": "p1-boundary-diagnostics-v1",
@@ -2896,7 +2935,14 @@ class NativeEventBackend:
                 "reactive_session_liquidated": bool(session.liquidated),
                 "reactive_session_liquidation_bar": int(session.liquidation_bar),
                 "strategy_boundary": strategy_adapter.diagnostics,
-                "audit_mode": "verify_against_oracle" if replay_required else "native_trace",
+                "audit_mode": effective_audit_mode,
+                "audit_mode_requested": requested_audit_mode or (
+                    "verify_against_oracle" if kernel_mode == "replay_certified" else "native_trace"
+                ),
+                "oracle_sample_rate": float(self.config.oracle_sample_rate),
+                "oracle_sampled": bool(
+                    requested_audit_mode == "dual_run_sampled" and replay_required
+                ),
                 "primary_engine_runs": 1,
                 "oracle_engine_runs": int(replay_required),
                 "oracle_verified": bool(replay_result is not None),
@@ -3994,11 +4040,20 @@ class NativeEventBackend:
         for name, (left, right) in checks.items():
             if not np.allclose(left, right, rtol=0.0, atol=atol, equal_nan=True):
                 diff = float(np.nanmax(np.abs(left - right)))
-                raise AssertionError(f"reactive single-pass replay parity failed for {name}: max_diff={diff}")
+                raise AuditMismatchError(
+                    f"reactive single-pass replay parity failed for {name}: max_diff={diff}",
+                    context=EngineErrorContext(AuditMismatchError.error_code, "oracle_diff"),
+                )
         if bool(session.liquidated) != bool(replay_result.liquidated):
-            raise AssertionError("reactive single-pass replay parity failed for liquidated flag")
+            raise AuditMismatchError(
+                "reactive single-pass replay parity failed for liquidated flag",
+                context=EngineErrorContext(AuditMismatchError.error_code, "oracle_diff"),
+            )
         if int(session.liquidation_bar) != int(replay_result.liquidation_bar):
-            raise AssertionError("reactive single-pass replay parity failed for liquidation_bar")
+            raise AuditMismatchError(
+                "reactive single-pass replay parity failed for liquidation_bar",
+                context=EngineErrorContext(AuditMismatchError.error_code, "oracle_diff"),
+            )
 
     def _reactive_replay(
         self,

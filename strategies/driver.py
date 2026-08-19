@@ -73,7 +73,13 @@ class PreparedStrategyAdapter:
                     session.poisoned = True
                 if isinstance(exc, NativeEventStrategyError):
                     raise
-                raise NativeEventStrategyError(callback, bar, session.idx[int(bar)], exc) from exc
+                raise NativeEventStrategyError(
+                    callback,
+                    bar,
+                    session.idx[int(bar)],
+                    exc,
+                    strategy_id=self.strategy_id,
+                ) from exc
             finally:
                 view.invalidate()
         context = session.context(bar)
@@ -84,7 +90,13 @@ class PreparedStrategyAdapter:
         except Exception as exc:
             if hasattr(session, "poisoned"):
                 session.poisoned = True
-            raise NativeEventStrategyError(callback, bar, context.timestamp, exc) from exc
+            raise NativeEventStrategyError(
+                callback,
+                bar,
+                context.timestamp,
+                exc,
+                strategy_id=self.strategy_id,
+            ) from exc
         if result is None:
             return ()
         commands = tuple(result)

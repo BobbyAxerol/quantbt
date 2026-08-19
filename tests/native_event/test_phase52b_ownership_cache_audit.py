@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import inspect
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from quantbt import (
+    AuditMismatchError,
     QuantBTEndpoint,
     StrategyContextRequirements,
     TimeInForce,
@@ -182,6 +185,44 @@ def test_prepared_cache_pin_prevents_eviction_until_release():
     assert cache.diagnostics["entry_count"] == 1
 
 
+def test_prepared_market_key_changes_with_volume_and_funding(monkeypatch):
+    prepared = _prepared("rust")
+    captured = []
+    original = prepared.backend._create_reactive_session
+
+    def capture(**kwargs):
+        captured.append(kwargs)
+        return original(**kwargs)
+
+    monkeypatch.setattr(prepared.backend, "_create_reactive_session", capture)
+    prepared.run(NumericRoundTrip(), report_level="minimal")
+    kwargs = dict(captured[-1])
+    base_key = prepared.backend._reactive_market_cache_key(kwargs)
+
+    volume_changed = dict(kwargs)
+    volume_changed["volumes_arr"] = np.asarray(kwargs["volumes_arr"]).copy()
+    volume_changed["volumes_arr"][0, 0] += 1.0
+    assert prepared.backend._reactive_market_cache_key(volume_changed) != base_key
+
+    market = kwargs["market_arrays"]
+    funding = np.asarray(market.funding).copy()
+    funding[0, 0] += 0.0001
+    funding_changed = dict(kwargs)
+    funding_changed["market_arrays"] = replace(market, funding=funding)
+    assert prepared.backend._reactive_market_cache_key(funding_changed) != base_key
+
+
+def test_prepared_cache_parallel_reads_are_consistent():
+    cache = PreparedObjectCache(CachePolicy(max_bytes=1_024, max_entries=4))
+    value = object()
+    assert cache.put(("shared",), value, size_bytes=64)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        observed = list(executor.map(lambda _: cache.get(("shared",)), range(1_000)))
+    assert all(item is value for item in observed)
+    assert cache.diagnostics["cache_hit"] == 1_000
+
+
 def test_oracle_verifier_is_explicit_and_never_replaces_primary_result(monkeypatch):
     prepared = _prepared("replay_certified")
     result = prepared.run(NumericRoundTrip(), report_level="audit")
@@ -192,8 +233,37 @@ def test_oracle_verifier_is_explicit_and_never_replaces_primary_result(monkeypat
     assert result.metadata["single_pass_accounting_source"] == "reactive_session_state"
 
     def divergence(*args, **kwargs):
-        raise AssertionError("injected oracle divergence")
+        raise AuditMismatchError("injected oracle divergence")
 
     monkeypatch.setattr(prepared.backend, "_assert_reactive_session_replay_parity", divergence)
-    with pytest.raises(AssertionError, match="injected oracle divergence"):
+    with pytest.raises(AuditMismatchError, match="injected oracle divergence"):
         prepared.run(NumericRoundTrip(), report_level="audit")
+
+
+@pytest.mark.parametrize(
+    ("sample_rate", "expected_mode", "expected_oracle_runs"),
+    ((0.0, "native_trace", 0), (1.0, "verify_against_oracle", 1)),
+)
+def test_sampled_audit_is_deterministic_and_keeps_primary_result(
+    sample_rate, expected_mode, expected_oracle_runs
+):
+    endpoint = QuantBTEndpoint.native_event_strategy(
+        initial_capital=10_000.0,
+        leverage=5.0,
+        fee_rate=0.0002,
+        use_funding=False,
+        native_backend="rust",
+        reactive_kernel_mode="single_pass",
+        audit_mode="dual_run_sampled",
+        oracle_sample_rate=sample_rate,
+        oracle_sample_seed=52,
+        report_level="audit",
+        audit_sink="memory",
+    )
+    result = endpoint.simulate(data=_bars(), strategy=NumericRoundTrip(), symbols=["BTC"])
+
+    assert result.metadata["audit_mode_requested"] == "dual_run_sampled"
+    assert result.metadata["audit_mode"] == expected_mode
+    assert result.metadata["oracle_engine_runs"] == expected_oracle_runs
+    assert result.metadata["primary_engine_runs"] == 1
+    assert result.metadata["single_pass_accounting_source"] == "reactive_session_state"

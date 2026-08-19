@@ -126,20 +126,32 @@ class NativeStrategyContext:
 class NativeEventStrategyError(StrategyCallbackError):
     """Raised when a reactive strategy callback fails."""
 
-    def __init__(self, callback: str, bar_index: int, timestamp: pd.Timestamp, original: Exception):
+    def __init__(
+        self,
+        callback: str,
+        bar_index: int,
+        timestamp: pd.Timestamp,
+        original: Exception,
+        *,
+        strategy_id: Optional[str] = None,
+    ):
         self.callback = callback
         self.bar_index = int(bar_index)
         self.timestamp = timestamp
         self.original = original
+        self.strategy_id = strategy_id
         timestamp_ns = int(pd.Timestamp(timestamp).value)
+        strategy_detail = "" if strategy_id is None else f", strategy_id={strategy_id!r}"
         super().__init__(
             f"native-event strategy callback {callback!r} failed at "
-            f"bar_index={bar_index}, timestamp={timestamp}: {type(original).__name__}: {original}",
+            f"bar_index={bar_index}, timestamp={timestamp}{strategy_detail}: "
+            f"{type(original).__name__}: {original}",
             context=EngineErrorContext(
                 StrategyCallbackError.error_code,
                 "strategy_callback",
                 bar_index=int(bar_index),
                 timestamp_ns=timestamp_ns,
+                strategy_id=strategy_id,
             ),
         )
 

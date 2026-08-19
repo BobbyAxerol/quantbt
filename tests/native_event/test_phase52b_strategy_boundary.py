@@ -175,5 +175,6 @@ def test_numeric_callback_exception_contains_strategy_location():
         def on_bar_close(self, context, out):
             raise ValueError("bad alpha command")
 
-    with pytest.raises(RuntimeError, match=r"bar_index=0.*bad alpha command"):
+    with pytest.raises(RuntimeError, match=r"bar_index=0.*strategy_id='.*Broken'.*bad alpha command") as caught:
         _endpoint().simulate(data=_bars(4), strategy=Broken(), symbols=["BTC"])
+    assert caught.value.context.strategy_id.endswith("Broken")
