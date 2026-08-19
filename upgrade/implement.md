@@ -12093,7 +12093,7 @@ Completion evidence:
 
 ### Phase 52A - P1 Immutable Planning, Preparation, Backend SPI, And Output Contract
 
-**Status: planned.**
+**Status: completed (2026-08-19).**
 
 Detailed guide:
 
@@ -12149,6 +12149,44 @@ Exit gate:
 The public API is unchanged, but execution is reachable only through the
 planner/preparation/backend/result pipeline. No backend-specific execution
 branch may remain in the endpoint outside the registry/decision layer.
+
+Completion evidence:
+
+- Added frozen, slot-based, deterministic `BacktestRequest`, `ExecutionPlan`,
+  `OutputRequirements`, and trace/numeric/backend policy models under
+  `quantbt.planning`.
+- Added one-pass lifecycle preparation with read-only contiguous OHLCV,
+  funding, instrument, account, and command buffers. Plan, market,
+  instruments, commands, account, and combined preparation identities are
+  SHA-256 fingerprinted.
+- Added equal Python/Rust `EngineBackend` and `PreparedEngineSession` SPI plus
+  pandas-free struct-of-arrays `RawEngineResult`. Both implementations consume
+  the same plan and prepared tape; exact path/fill/summary parity passed on the
+  certified fixture.
+- Routed public static lifecycle runs through the immutable planner and
+  preparation layer. The P0 public adapter remains after execution so existing
+  `BacktestResultV2`, accounting ledger, trace, and report behavior stay
+  unchanged. Reactive callbacks, baskets, and event v1 remain explicitly out
+  of this phase and are carried by Phase 52B.
+- Public score runs preserve the historical result surface while retaining no
+  fill/event detail rows in the projection. Internal score SPI runs retain
+  scalar summaries and exact counts with zero dense/fill/event buffers.
+- AST/import gates prove no forbidden planning/SPI/raw-result dependencies,
+  no circular imports, and no eager `_quantbt_native` import under automatic
+  Python policy.
+- P0 oracle parity is exact for equity, positions, fees, funding, margin,
+  fills, accounting invariants, and canonical trace fingerprint. Quantity
+  preflight and command compilation each run once on the endpoint route.
+- Focused Phase 52A tests passed `16/16`; the lifecycle, grid, event-driven,
+  P0 contract, and Python/Rust regression gate passed `129/129` with no skips.
+- A clean `quantbt-engine 1.0.8` wheel included every P1 module and passed the
+  installed-wheel gate. Median cold import was `1383.989 ms` versus
+  `1307.411 ms` at the pre-route baseline (`+5.857%`, eight isolated runs),
+  within the 10% architecture budget and without importing the native module.
+- Detailed semantics and repeatable evidence are in
+  [P1 planning/backend SPI](../docs/contracts/p1_planning_backend_spi.md),
+  [Phase 52A certification](../docs/contracts/phase52a_certification.json), and
+  `tools/certify_phase52a_wheel.py`.
 
 ---
 

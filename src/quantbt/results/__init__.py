@@ -1,4 +1,4 @@
-"""Raw engine results and public result adapters."""
+"""Backend-neutral raw engine result contracts."""
 
 from .raw import (
     RawCommandStateBuffer,

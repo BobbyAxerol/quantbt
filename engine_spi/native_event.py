@@ -72,7 +72,7 @@ def _summary(
 
 
 def _project_paths(request: EngineRunRequest, values) -> RawEnginePaths | None:
-    if request.output.dense_paths is PathMask.NONE:
+    if request.output.dense_paths == PathMask.NONE:
         return None
     return RawEnginePaths(*values)
 
@@ -384,7 +384,7 @@ class _RustNativeEventSession:
         if request.output.fingerprint != self.plan.output.fingerprint:
             raise ValueError("EngineRunRequest output differs from the immutable execution plan")
         ptr, codes, values, expiry = self._command_arrays
-        score_only = request.output.dense_paths is PathMask.NONE
+        score_only = request.output.dense_paths == PathMask.NONE
         if score_only:
             payload = self._session.run_tape_score(ptr, codes, values, expiry)
             summary = RawEngineSummary(
