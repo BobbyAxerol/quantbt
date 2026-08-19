@@ -107,6 +107,16 @@ from .instrument_contracts import (
     compile_instrument_table,
     quantize_order_value,
 )
+from .execution_trace import (
+    TRACE_FIELDS,
+    TRACE_SCHEMA_VERSION,
+    CanonicalTraceArtifact,
+    TraceReplayResult,
+    TraceReplayer,
+    build_canonical_execution_trace,
+    canonical_trace_fingerprint,
+    compare_canonical_traces,
+)
 from .orders       import (
     BasketIntent,
     Fill,
@@ -384,4 +394,12 @@ __all__ = [
     "get_event_clock_contract",
     "lifecycle_transitions",
     "validate_lifecycle_transition",
+    "TRACE_FIELDS",
+    "TRACE_SCHEMA_VERSION",
+    "CanonicalTraceArtifact",
+    "TraceReplayResult",
+    "TraceReplayer",
+    "build_canonical_execution_trace",
+    "canonical_trace_fingerprint",
+    "compare_canonical_traces",
 ]

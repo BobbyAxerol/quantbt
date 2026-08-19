@@ -1988,8 +1988,10 @@ class NativeEventBackend:
                 ).to_metadata()
             if level == "audit" and sink == "memory":
                 from ..core.accounting_contracts import attach_native_accounting_audit
+                from ..core.execution_trace import attach_canonical_execution_trace
 
                 attach_native_accounting_audit(result, contract_sizes=contract_sizes)
+                attach_canonical_execution_trace(result)
             return result
 
         leverages = self._per_symbol_array(
@@ -2287,8 +2289,10 @@ class NativeEventBackend:
         )
         if level == "audit" and sink == "memory":
             from ..core.accounting_contracts import attach_native_accounting_audit
+            from ..core.execution_trace import attach_canonical_execution_trace
 
             attach_native_accounting_audit(result, contract_sizes=contract_sizes)
+            attach_canonical_execution_trace(result)
         return result
 
     def run_strategy(
