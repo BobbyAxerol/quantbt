@@ -65,6 +65,7 @@ bt = QuantBTEndpoint.event_driven(
     input_mode="strategy",   # strategy | orders
     profile="research",      # research | optimize | audit
     backend="auto",          # auto | python | rust
+    execution_contract="event_lifecycle_v3_next_open",
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0005,          # one-way fee per fill
@@ -82,6 +83,14 @@ event artifacts. For an upstream order planner, switch to
 `input_mode="orders"` and pass `order_commands=[...]`. The default `auto`
 backend follows the release policy; `rust` is an explicit request for the
 optional capability-gated native wheel.
+
+The compatibility default is the frozen
+`event_lifecycle_v2_next_bar_close` behavior. Select
+`event_lifecycle_v3_next_open` for real next-open market fills, favorable
+limit-gap improvement, adverse stop-gap execution, and conservative flagged
+stop-limit ambiguity. V3 requires an `open` column and is parity-tested across
+the Python and Rust backends. The machine-readable registry and audit fields
+are documented in [Native Event Contract Registry](docs/contracts/contract_registry.md).
 
 The strategy owns signal generation and look-ahead control. QuantBT owns the
 causal order lifecycle and accounting. Advanced users can still call

@@ -100,6 +100,7 @@ bt = QuantBTEndpoint.event_driven(
     input_mode="strategy",
     profile="research",
     backend="auto",
+    execution_contract="event_lifecycle_v3_next_open",
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0005,       # canonical one-way fee
@@ -201,6 +202,37 @@ remain available as normal shared endpoint parameters. See
 [`execution_contracts.md`](execution_contracts.md) for exact fill policy and
 [`release_packaging.md`](release_packaging.md) for backend capability and
 wheel-release policy.
+
+### Event clock contracts
+
+The compatibility default remains `event_lifecycle_v2_next_bar_close`: a
+command effective on bar `t` executes a market order at `close[t]`. New causal
+close-to-next-open research should request
+`execution_contract="event_lifecycle_v3_next_open"`; this fills market orders
+at the real `open[t]`, applies explicit limit/stop gap rules, and rejects data
+without an `open` column. Both Python and Rust routes consume the same generated
+contract fingerprint.
+
+For explicit tapes, a command timestamp denotes its effective execution bar.
+Bar zero is the immutable initial snapshot and is reported as outside tape;
+the final explicit bar remains executable. For reactive strategies, commands
+emitted after observing close `t` are retimed to the next bar, while finalize
+commands after the last bar are retained only as outside-tape audit intent.
+
+With `profile="audit"`, inspect:
+
+```python
+phase_trace = result.metadata["event_phase_trace_v1"]
+outcomes = result.metadata["command_outcome_report_v1"]
+lifecycle = result.metadata["lifecycle_event_report_v1"]
+fill_policy = result.metadata.get("fill_policy_diagnostics")  # Python oracle
+rust_fill_reasons = result.metadata["fills_report"]  # reason/ambiguity codes
+```
+
+These typed artifacts coexist with legacy `command_report` and `order_events`
+so existing services continue to run. See
+[`contracts/contract_registry.md`](contracts/contract_registry.md) for the
+versioned clock, fill, gap, ambiguity, and lifecycle definitions.
 
 `native_vectorized` is explicitly the `close_target_v2` execution contract:
 signals are interpreted as target exposure at the same bar close, with no

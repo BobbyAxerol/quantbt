@@ -34,6 +34,21 @@ bar, and uses the actual `open[t+1]` for market execution. Favorable limit gaps
 receive open-price improvement. Adverse stop gaps execute at the worse open.
 An unarmed stop-limit whose trigger and limit are both crossed without known
 intrabar path is flagged and conservatively remains armed for a later bar.
+The route rejects missing open data; it never substitutes close prices while
+claiming next-open semantics.
+
+The stable endpoint keeps V2 as the compatibility default. Select V3
+explicitly:
+
+```python
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="python",  # or explicit "rust" with a compatible native wheel
+    execution_contract="event_lifecycle_v3_next_open",
+)
+result = bt.simulate(data=ohlcv, order_commands=commands, symbols=["BTCUSDT"])
+```
 
 ## Clock Order
 
@@ -50,6 +65,12 @@ Both contracts freeze the existing account phase order:
 9. Evaluate post-order liquidation.
 10. Record the post-bar snapshot.
 
+Bar zero is the immutable initial-state snapshot. An explicit command mapped
+to bar zero is retained as `CommandOutcome.OUTSIDE_TAPE` and does not mutate
+the account. An explicit tape command mapped to the final market bar may
+execute on that bar; a command emitted by a reactive strategy after the final
+callback has no next bar and is retained as outside-tape intent.
+
 The sequence is a deterministic research contract. It is not advertised as a
 clone of every venue's matching engine.
 
@@ -60,6 +81,23 @@ A successful cancel command is `CommandOutcome.ACCEPTED`; it is never described
 as a filled order. Partial fill is reserved in the state model but remains a
 capability-gated feature. The registry transition table is executable test
 input in both Python and Rust.
+
+Audit results expose `command_outcome_report_v1`,
+`lifecycle_event_report_v1`, and `event_phase_trace_v1`. Every phase-trace row
+carries `bar`, `timestamp_ns`, `phase`, and a deterministic global `sequence`.
+The Python oracle also exposes per-command `fill_policy_diagnostics`; Rust
+records fill reason and ambiguity codes on `fills_report`. Both routes publish
+the selected policy IDs in `event_clock_contract`. Legacy reports remain
+present for compatibility and are not silently reinterpreted.
+
+Python and Rust build the command-outcome projection from the same immutable
+compiled command tape and the backend lifecycle stream. Report construction is
+outside the execution hot path and does not mutate matcher or account state.
+
+`EngineDiagnosticsV1` is opt-in through `diagnostics=True`. It reports exact
+bar/symbol/command/fill/event counts, implementation scan counts, retained
+output bytes, and prepare/engine/report timing. Enabling diagnostics must not
+change positions, fills, equity, fees, funding, margin, or lifecycle events.
 
 ## Compatibility
 

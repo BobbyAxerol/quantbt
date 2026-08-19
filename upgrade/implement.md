@@ -11875,7 +11875,7 @@ Each must first receive a fixture, counter, trace, or architecture test.
 
 ### Phase 51A - P0 Contract Baseline, Event Clock, Fill, And Lifecycle Lock
 
-**Status: planned.**
+**Status: completed on `feat/51-native-rust-production-core` (2026-08-19).**
 
 Detailed guide:
 
@@ -11940,6 +11940,41 @@ all fill/gap/ambiguity policies have versioned IDs;
 lifecycle state transitions and reasons exact-match;
 no P1 ownership refactor has started.
 ```
+
+Completion evidence:
+
+- Baseline SHA, environment, wheel hash, fixture hashes, and E0/E1 evidence are
+  frozen under `docs/contracts/baseline_manifest.json`,
+  `tests/corpus/p0_baseline/`, and
+  `benchmarks/native_event/results/p0_baseline/`.
+- `contracts/native_event_contract_registry.json` is the canonical source for
+  generated Python/Rust contract, command-outcome, order-status, lifecycle,
+  transition, and fingerprint constants.
+- V2 is frozen under the honest
+  `event_lifecycle_v2_next_bar_close` ID. V3 uses actual open prices and has
+  explicit market, limit-gap, stop-gap, and conservative stop-limit ambiguity
+  semantics.
+- Python, prepared, reactive replay, public facade, Rust full-tape, and the
+  installed editable native extension consume the same contract ID and
+  registry fingerprint.
+- Audit outputs now separate command outcome, lifecycle order status, and
+  lifecycle event kind on both Python and Rust; phase trace rows carry bar,
+  UTC nanosecond timestamp, phase, and deterministic sequence. Legacy reports
+  remain unchanged.
+- Bar zero is an immutable initial snapshot in both Python and Rust. Explicit
+  final-bar commands remain executable; reactive post-finalize intent remains
+  outside tape.
+- `EngineDiagnosticsV1` has exact tiny-fixture scan counters. The 2,000-bar
+  public audit benchmark in
+  `benchmarks/native_event/results/phase51a/contracts.json` observed no output
+  drift and at most 7.0% positive diagnostics overhead (negative samples are
+  timing noise).
+- Certification: 43 Phase 51A contract tests, 90 focused contract/lifecycle
+  tests, 113 native-event tests, 8 Rust unit tests, and the full release
+  profile passed with 779 passed / 3 skipped / 0 failed.
+  Evidence is archived in `docs/contracts/phase51a_certification.json`.
+- P1 state-ownership, arena/index, and module-boundary refactors have not
+  started in this phase.
 
 ---
 
