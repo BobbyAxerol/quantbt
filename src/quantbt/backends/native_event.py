@@ -1986,6 +1986,10 @@ class NativeEventBackend:
                     engine_ns=engine_finished_ns - engine_started_ns,
                     report_ns=report_finished_ns - engine_finished_ns,
                 ).to_metadata()
+            if level == "audit" and sink == "memory":
+                from ..core.accounting_contracts import attach_native_accounting_audit
+
+                attach_native_accounting_audit(result, contract_sizes=contract_sizes)
             return result
 
         leverages = self._per_symbol_array(
@@ -2257,7 +2261,7 @@ class NativeEventBackend:
                 report_ns=report_finished_ns - engine_finished_ns,
             ).to_metadata()
 
-        return BacktestResultV2(
+        result = BacktestResultV2(
             equity=equity,
             returns=equity.pct_change().fillna(0.0),
             positions=positions,
@@ -2281,6 +2285,11 @@ class NativeEventBackend:
             diagnostics=diagnostics,
             metadata=metadata,
         )
+        if level == "audit" and sink == "memory":
+            from ..core.accounting_contracts import attach_native_accounting_audit
+
+            attach_native_accounting_audit(result, contract_sizes=contract_sizes)
+        return result
 
     def run_strategy(
         self,
