@@ -4290,6 +4290,21 @@ class NativeEventBackend:
 
         events = order_events.reset_index(drop=True)
         used = np.zeros(len(events), dtype=bool)
+        event_bars = events["bar"].to_numpy(dtype=np.int64, copy=False)
+        event_kinds = events["event_kind"].to_numpy(dtype=np.int64, copy=False)
+        event_statuses = events["event_status"].to_numpy(dtype=np.int64, copy=False)
+        event_order_ids = events["order_id"].tolist()
+        event_target_ids = events["target_order_id"].tolist()
+        events_by_bar: Dict[int, List[int]] = {}
+        events_by_order_id: Dict[str, List[int]] = {}
+        for event_idx in range(len(events)):
+            events_by_bar.setdefault(int(event_bars[event_idx]), []).append(event_idx)
+            order_id = event_order_ids[event_idx]
+            target_id = event_target_ids[event_idx]
+            if order_id is not None and not pd.isna(order_id):
+                events_by_order_id.setdefault(str(order_id), []).append(event_idx)
+            if target_id is not None and not pd.isna(target_id) and target_id != order_id:
+                events_by_order_id.setdefault(str(target_id), []).append(event_idx)
 
         def same_id(value, expected) -> bool:
             if expected is None:
@@ -4298,25 +4313,25 @@ class NativeEventBackend:
                 return False
             return value == expected
 
-        def event_matches(row: pd.Series, command: OrderCommand, expected_kind: int) -> bool:
-            kind = int(row["event_kind"])
+        def event_matches(event_idx: int, command: OrderCommand, expected_kind: int) -> bool:
+            kind = int(event_kinds[event_idx])
             if kind not in {expected_kind, ORDER_EVENT_REJECT}:
                 return False
             if command.action is OrderAction.PLACE:
-                return same_id(row["order_id"], command.order_id)
+                return same_id(event_order_ids[event_idx], command.order_id)
             if command.action is OrderAction.REPLACE:
-                return same_id(row["order_id"], command.order_id) and same_id(
-                    row["target_order_id"], command.target_order_id
+                return same_id(event_order_ids[event_idx], command.order_id) and same_id(
+                    event_target_ids[event_idx], command.target_order_id
                 )
             if command.action in {OrderAction.CANCEL, OrderAction.AMEND}:
-                return same_id(row["target_order_id"], command.target_order_id)
+                return same_id(event_target_ids[event_idx], command.target_order_id)
             if command.action is OrderAction.CANCEL_ALL:
                 return (
                     kind == ORDER_EVENT_CANCEL
-                    and int(row["event_status"]) == ORDER_STATUS_FILLED
+                    and int(event_statuses[event_idx]) == ORDER_STATUS_FILLED
                     and (
                         command.order_id is None
-                        or same_id(row["order_id"], command.order_id)
+                        or same_id(event_order_ids[event_idx], command.order_id)
                     )
                 )
             return False
@@ -4334,17 +4349,17 @@ class NativeEventBackend:
             matched_event = None
             if 0 < command_bar < n_bars:
                 expected_kind = expected_kinds[command.action]
-                for event_idx, event in events.iterrows():
-                    if used[event_idx] or int(event["bar"]) != command_bar:
+                for event_idx in events_by_bar.get(command_bar, ()):
+                    if used[event_idx]:
                         continue
-                    if event_matches(event, command, expected_kind):
+                    if event_matches(event_idx, command, expected_kind):
                         used[event_idx] = True
-                        matched_event = event
+                        matched_event = event_idx
                         break
 
             if command_bar <= 0 or command_bar >= n_bars:
                 outcome = CommandOutcome.OUTSIDE_TAPE
-            elif matched_event is not None and int(matched_event["event_kind"]) == ORDER_EVENT_REJECT:
+            elif matched_event is not None and int(event_kinds[matched_event]) == ORDER_EVENT_REJECT:
                 outcome = CommandOutcome.REJECTED
             elif matched_event is not None:
                 outcome = CommandOutcome.ACCEPTED
@@ -4361,12 +4376,12 @@ class NativeEventBackend:
                         if command.activation_policy is OrderActivationPolicy.IMMEDIATE
                         else LifecycleOrderStatus.WAITING_PARENT
                     )
-                    for _, event in events.iterrows():
-                        if int(event["bar"]) < command_bar:
+                    for event_idx in events_by_order_id.get(command.order_id or "", ()):
+                        if int(event_bars[event_idx]) < command_bar:
                             continue
-                        kind = int(event["event_kind"])
-                        event_order_id = event["order_id"]
-                        event_target_id = event["target_order_id"]
+                        kind = int(event_kinds[event_idx])
+                        event_order_id = event_order_ids[event_idx]
+                        event_target_id = event_target_ids[event_idx]
                         owns_order = same_id(event_order_id, command.order_id)
                         targets_order = same_id(event_target_id, command.order_id)
                         if kind == ORDER_EVENT_FILL and owns_order:
@@ -4377,7 +4392,7 @@ class NativeEventBackend:
                             order_status = LifecycleOrderStatus.REJECTED
                         elif kind == ORDER_EVENT_CANCEL and (
                             targets_order
-                            or (owns_order and int(event["event_status"]) == ORDER_STATUS_CANCELED)
+                            or (owns_order and int(event_statuses[event_idx]) == ORDER_STATUS_CANCELED)
                         ):
                             order_status = LifecycleOrderStatus.CANCELED
                         elif kind == ORDER_EVENT_REPLACE and targets_order:

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "contract_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workload": "public run_order_commands end-to-end; warm JIT; audit report",
+  "results": [
+    {
+      "backend": "python",
+      "contract": "event_lifecycle_v2_next_bar_close",
+      "diagnostics": false,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.19651679322123528,
+      "bars_per_second": 10177.247283637658,
+      "final_equity": 19996.32334887193,
+      "fills": 200
+    },
+    {
+      "backend": "python",
+      "contract": "event_lifecycle_v2_next_bar_close",
+      "diagnostics": true,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.21134890243411064,
+      "bars_per_second": 9463.025248609998,
+      "final_equity": 19996.32334887193,
+      "fills": 200
+    },
+    {
+      "backend": "python",
+      "contract": "event_lifecycle_v3_next_open",
+      "diagnostics": false,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.20290080830454826,
+      "bars_per_second": 9857.033181445278,
+      "final_equity": 19996.32185490478,
+      "fills": 200
+    },
+    {
+      "backend": "python",
+      "contract": "event_lifecycle_v3_next_open",
+      "diagnostics": true,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.20012672245502472,
+      "bars_per_second": 9993.667889351798,
+      "final_equity": 19996.32185490478,
+      "fills": 200
+    },
+    {
+      "backend": "rust",
+      "contract": "event_lifecycle_v2_next_bar_close",
+      "diagnostics": false,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.1749016074463725,
+      "bars_per_second": 11435.000679529092,
+      "final_equity": 19996.32334887193,
+      "fills": 200
+    },
+    {
+      "backend": "rust",
+      "contract": "event_lifecycle_v2_next_bar_close",
+      "diagnostics": true,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.1688004331663251,
+      "bars_per_second": 11848.310827670262,
+      "final_equity": 19996.32334887193,
+      "fills": 200
+    },
+    {
+      "backend": "rust",
+      "contract": "event_lifecycle_v3_next_open",
+      "diagnostics": false,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.16468863189220428,
+      "bars_per_second": 12144.129057487617,
+      "final_equity": 19996.32185490478,
+      "fills": 200
+    },
+    {
+      "backend": "rust",
+      "contract": "event_lifecycle_v3_next_open",
+      "diagnostics": true,
+      "bars": 2000,
+      "commands": 200,
+      "median_seconds": 0.17216268926858902,
+      "bars_per_second": 11616.918906743047,
+      "final_equity": 19996.32185490478,
+      "fills": 200
+    }
+  ],
+  "diagnostics_overhead_ratio": {
+    "python:event_lifecycle_v2_next_bar_close": 0.07547502159867636,
+    "python:event_lifecycle_v3_next_open": -0.013672128133465744,
+    "rust:event_lifecycle_v2_next_bar_close": -0.034883466019133835,
+    "rust:event_lifecycle_v3_next_open": 0.045382958680941776
+  }
+}
