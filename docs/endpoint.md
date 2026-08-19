@@ -1183,17 +1183,32 @@ Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
 retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
 strategy just observed.
 
-`reactive_kernel_mode="replay_certified"` is the conservative default. It uses
-the incremental callback session to build state and then runs one certified
-static event-v2 replay for the final public result. Use it for stakeholder
-reports, debugging, and migration validation.
+`reactive_kernel_mode="replay_certified"` is the legacy conservative mode. It
+uses the incremental callback session to build the causal command tape and
+then verifies it with the static Python lifecycle oracle. It is useful during a
+migration, but is intentionally not the fast production path.
 
-`reactive_kernel_mode="single_pass"` materializes accounting directly from the
-incremental reactive session for `report_level="minimal"` and score paths,
-skipping the final static replay. For `report_level="standard"`,
-`report_level="audit"`, or `reactive_execution_mode="audit"`, QuantBT still
-runs the replay oracle and asserts accounting parity before returning the
-single-pass result.
+`reactive_kernel_mode="single_pass"` returns accounting directly from the
+incremental primary session at every public report level. Its audit behavior is
+selected explicitly rather than inferred from `report_level`:
+
+```python
+bt = QuantBTEndpoint.native_event_strategy(
+    native_backend="rust",             # explicit Rust; never silently falls back
+    reactive_kernel_mode="single_pass",
+    audit_mode="native_trace",         # one primary engine run, primary trace/report
+    # audit_mode="verify_against_oracle"  # one primary run + Python oracle diff
+    # audit_mode="dual_run_sampled"       # deterministic sampled oracle verification
+    oracle_sample_rate=0.05,
+    oracle_sample_seed=52,
+)
+```
+
+`native_trace` is the normal single-run audit policy. `verify_against_oracle`
+is a certification/debug policy: it keeps the primary result and raises an
+`AuditMismatchError` on divergence; it never replaces the primary result with
+the oracle. `dual_run_sampled` derives a deterministic sample decision from the
+immutable execution-plan fingerprint and the supplied seed.
 
 Reactive metadata:
 
@@ -1202,7 +1217,48 @@ result.metadata["reactive_context_builder"]       # "incremental_session_v1"
 result.metadata["reactive_incremental_compile_replays"]  # 0
 result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/score
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
+result.metadata["strategy_context_requirements"]  # declared callback projection
+result.metadata["reactive_retention_requirements"]  # public paths/ledgers retained
 ```
+
+### Typed numeric reactive strategy
+
+Existing callbacks which return `OrderCommand` objects remain fully supported.
+For high-frequency research or a sparse reactive controller, a strategy may
+declare the exact context it consumes and write primitive rows to a reusable
+struct-of-arrays command writer:
+
+```python
+from quantbt import StrategyContextRequirements, TimeInForce
+
+class NumericRebalance:
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",),
+        account=("equity",),
+        positions=("qty",),
+        fills="none",
+        events="none",
+        active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_bar_close(self, context, out):
+        if context.bar_index == 20 and context.position_qty(0) == 0.0:
+            out.market(0, 1, 0.25, order_handle=1, tif=TimeInForce.IOC)
+```
+
+`context` is ephemeral: retain scalar values, not the context object, after a
+callback returns. Numeric commands stay primitive through the Rust full-
+contract adapter for `report_level="minimal"`; `standard` and `audit`
+materialize `OrderCommand` objects only when their public reports require
+them. The declaration changes only callback projection/retention. It does not
+change timing, matching, fees, funding, margin, liquidation, or accounting.
+
+For `standard` and `audit`, QuantBT deliberately retains one terminal
+active-order artifact even if the strategy declares `active_orders="none"`.
+This preserves the public report contract without forcing a per-bar snapshot.
+`minimal` omits it; all report levels take per-bar snapshots only when the
+strategy explicitly requests active orders.
 
 ### Native-event backend selector (Phase 46E)
 

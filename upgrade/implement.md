@@ -12192,7 +12192,7 @@ Completion evidence:
 
 ### Phase 52B - P1 Strategy Boundary, Rust Ownership, Audit, Cache, And Observability
 
-**Status: planned.**
+**Status: complete (2026-08-19).**
 
 Detailed guide:
 
@@ -12255,6 +12255,57 @@ Exit gate:
 All blueprint [P1 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p114--p1-exit-checklist)
 items pass, all P0 fingerprints remain unchanged, and Python/Rust switching
 within one run is architecturally impossible.
+
+Implementation and certification:
+
+- `quantbt.strategies` now owns the declared context requirements, generation-
+  guarded numeric view, reusable struct-of-arrays command writer, sparse wake
+  schedule, and legacy callback adapter. Legacy strategies remain conservative
+  and compatible; declared numeric strategies keep commands primitive through
+  the Rust full-contract adapter for `minimal` reports.
+- Rust is the sole mutable owner for a Rust reactive run. The adapter exposes
+  compact cursor/projection data only, maintains no Python account, position,
+  pending-order, lifecycle, or metric shadow state, and supports explicit
+  account-and-orders reset/replay.
+- Public retention is resolved after the strategy declaration: accounting paths
+  and report-level artifacts remain compatible, while unrequested fills,
+  events, and active-order callback snapshots are not built. `standard` and
+  `audit` materialize exactly one terminal active-order artifact when needed,
+  preserving the historical report surface without per-bar snapshot cost.
+- Numeric quantity preflight now preserves Python/Rust parity for accepted,
+  rounded, and dropped rows, including public drop metadata and emitted-command
+  counters. `native_trace`, `verify_against_oracle`, and deterministic
+  `dual_run_sampled` audit policies are explicit; an oracle never replaces the
+  primary result.
+- Prepared cache identity includes market timestamps, OHLC, volume, funding,
+  funding mask, symbols, and relevant constraints. It is bounded LRU with
+  pin/release diagnostics; session reset and result ownership are covered by
+  focused tests.
+- Versioned observability records preparation, callback, command compilation,
+  engine, report, oracle, allocation/copy, boundary, PyO3, and RSS counters.
+
+Evidence:
+
+- Focused strategy/cache/audit plus lifecycle parity: `33 passed`.
+- Full repository regression gate: `844 passed, 3 skipped`.
+- Rust unit suite: `10 passed`.
+- Source certification: 2,000 bars, exact Python/Rust equity/position/fee/
+  funding/margin/trace parity; zero numeric `OrderCommand` objects and zero
+  active snapshots for the declared minimal workload; 2,000 reset/reruns with
+  zero RSS growth.
+- Installed-wheel smoke certification passed from an isolated target site.
+  See [P1 strategy/Rust ownership contract](../docs/contracts/p1_strategy_rust_ownership.md)
+  and [machine-readable Phase 52B evidence](../docs/contracts/phase52b_certification.json).
+
+Performance interpretation:
+
+- The exact 2,000-bar every-bar numeric Python callback fixture records
+  Python median `49.913 ms` and Rust median `210.527 ms`. This is expected for
+  a callback-bound workload with 2,000 controlled PyO3/GIL transitions; it is
+  not an accounting or parity regression. Static command tapes and sparse
+  schedules already avoid this boundary. Fully native strategy IR, chunking,
+  and batched execution belong to the explicitly planned P2 phases below, not
+  an untracked Phase 52B defect.
 
 ---
 

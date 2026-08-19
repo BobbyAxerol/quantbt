@@ -1,0 +1,101 @@
+{
+  "bars": 2000,
+  "boundary": {
+    "callback_ns": 2660700,
+    "callback_projection_bytes": 16000,
+    "callback_schedule": {
+      "every_n_bars": 1,
+      "explicit_bars": [],
+      "on_fill": true,
+      "on_liquidation": true,
+      "on_order_event": true
+    },
+    "command_buffer_grows": 0,
+    "command_buffer_high_water": 1,
+    "context_mode": "numeric",
+    "legacy_command_objects": 0,
+    "projection_mask": 1,
+    "python_callbacks": 2000,
+    "skipped_callbacks": 0,
+    "strategy_id": "NumericRoundTrip",
+    "writer_command_rows": 2,
+    "writer_materialized_command_objects": 0
+  },
+  "certification": "phase52b-strategy-rust-ownership-v1",
+  "checks": {
+    "native_audit_single_primary_run": true,
+    "numeric_minimal_no_active_snapshots": true,
+    "numeric_writer_zero_order_objects": true,
+    "phase_timings_present": true,
+    "python_rust_exact_parity": true,
+    "reset_rerun_exact": true,
+    "reset_rss_plateau": true,
+    "rust_single_authoritative_state": true,
+    "sparse_callback_schedule": true
+  },
+  "execution_counters": {
+    "active_snapshot_materializations": 0,
+    "bars_processed": 2000,
+    "bars_with_commands": 2,
+    "bytes_copied_to_rust": 320,
+    "callback_projection_bytes": 16096,
+    "command_buffer_growths": 0,
+    "command_bytes_copied": 320,
+    "commands_compiled": 2,
+    "commands_quantized": 0,
+    "commands_retimed": 2,
+    "constraint_preflight_calls": 0,
+    "constraint_preflight_skipped": 2,
+    "contexts_materialized": 0,
+    "empty_command_batches_skipped": 2000,
+    "gil_reacquisitions": 2000,
+    "market_bytes_copied": 0,
+    "native_step_ns": 160610053,
+    "order_delta_rows": 4,
+    "position_delta_rows": 2,
+    "primitive_command_batches": 2,
+    "primitive_command_rows": 2,
+    "pyo3_calls": 2000,
+    "result_bytes_copied": 16096,
+    "timestamp_objects_materialized": 0,
+    "writer_python_command_objects": 0
+  },
+  "memory": {
+    "reset_runs": 2000,
+    "rss_budget_bytes": 33554432,
+    "rss_end_bytes": 203898880,
+    "rss_growth_bytes": 0,
+    "rss_start_bytes": 203898880,
+    "warmup_runs": 100
+  },
+  "observability_ns": {
+    "command_compile_ns": 2300230,
+    "engine_prepare_ns": 914855,
+    "engine_run_ns": 194700357,
+    "instrument_prepare_ns": 0,
+    "market_prepare_ns": 457754,
+    "oracle_verify_ns": 0,
+    "planning_ns": 912716,
+    "report_build_ns": 2858477,
+    "result_adapt_ns": 2968887,
+    "schema_version": "p1-boundary-diagnostics-v1",
+    "strategy_prepare_ns": 83049,
+    "total_ns": 200202918
+  },
+  "parity": {
+    "equity": true,
+    "fees": true,
+    "funding": true,
+    "margin": true,
+    "positions": true,
+    "trace_fingerprint": true
+  },
+  "passed": true,
+  "quantbt_path": "/root/bobby/pool_alpha/quantbt/src/quantbt/__init__.py",
+  "timing_ms": {
+    "python_median": 49.912835,
+    "runs": 7,
+    "rust_median": 210.526797,
+    "workload": "2,000-bar every-bar numeric Python callback"
+  }
+}
