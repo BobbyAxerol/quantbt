@@ -302,6 +302,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "quantbt-execution"
+version = "0.5.0"
+dependencies = [
+ "quantbt-domain",
+ "quantbt-engine",
+ "quantbt-package",
+ "quantbt-portfolio",
+ "quantbt-strategy-ir",
+]
+
+[[package]]
 name = "quantbt-native"
 version = "0.4.0"
 dependencies = [

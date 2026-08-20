@@ -3,6 +3,7 @@ members = [
     "native_event",
     "crates/quantbt-domain",
     "crates/quantbt-engine",
+    "crates/quantbt-execution",
     "crates/quantbt-strategy-ir",
     "crates/quantbt-batch",
     "crates/quantbt-portfolio",
