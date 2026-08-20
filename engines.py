@@ -57,6 +57,7 @@ class BacktestEngineV2:
         signals: Optional[Union[pd.Series, SeriesMap]] = None,
         backend: str = "native_vectorized",
         native_backend: Optional[str] = None,
+        backend_policy: Optional[str] = None,
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: float = 0.0,
@@ -105,6 +106,7 @@ class BacktestEngineV2:
 
         self.data = data
         self.native_backend = native_backend
+        self.backend_policy = backend_policy
         self.signals = signals
         self.account = account or AccountConfig(initial_capital=100_000.0)
         self.execution = execution or ExecutionConfig()
@@ -234,6 +236,7 @@ class BacktestEngineV2:
                     oracle_sample_rate=self.oracle_sample_rate,
                     oracle_sample_seed=self.oracle_sample_seed,
                     native_backend=self.native_backend,
+                    backend_policy=self.backend_policy,
                     execution_contract=(
                         self.execution_contract
                         if self.execution_contract is not None
@@ -353,6 +356,7 @@ class BacktestEngineV2:
                 account=self.account,
                 execution=self.execution,
                 native_backend=self.native_backend,
+                backend_policy=self.backend_policy,
                 execution_contract=(
                     self.execution_contract
                     if self.execution_contract is not None

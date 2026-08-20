@@ -13,8 +13,10 @@
       "native_version": "0.0.0"
     },
     {
+      "default_stage": "explicit_only",
       "expected": "not_promoted",
       "id": "auto_routing_remains_python",
+      "promotion_table_version": "native-event-promotion-v1",
       "workloads": [
         "event_static_tape_v2_v3",
         "event_python_callback_v2_v3",
@@ -24,6 +26,6 @@
       ]
     }
   ],
-  "registry_fingerprint": "952f61bec823e64e2f3117662c305633b4969d3d486b387aeb4c14f4e3feb751",
+  "registry_fingerprint": "fce9035fa4979c5ab58157eed4a8add1628768ca8eaf18b1b5cc518cbf553ede",
   "schema": "quantbt-product-contract-corpus-v1"
 }

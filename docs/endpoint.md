@@ -1260,7 +1260,7 @@ This preserves the public report contract without forcing a per-bar snapshot.
 `minimal` omits it; all report levels take per-bar snapshots only when the
 strategy explicitly requests active orders.
 
-### Native-event backend selector (Phase 46E)
+### Native-event backend selector and promotion policy (Phase 54B.1)
 
 Native-event endpoints accept the optional `native_backend` selector:
 
@@ -1268,6 +1268,7 @@ Native-event endpoints accept the optional `native_backend` selector:
 bt = QuantBTEndpoint.orders(
     backend="native_event",
     native_backend="python",  # python | rust | auto | replay_certified
+    backend_policy="certified_only",  # certified_only | prefer_native | prefer_compatibility
     initial_capital=20_000,
     leverage=5,
     maintenance_ratio=0.0,
@@ -1282,7 +1283,26 @@ multi-symbol tapes, funding, maintenance/liquidation, quantity preflight,
 MARKET/LIMIT/STOP orders, GTC/GTD/IOC/FOK, amend/replace/cancel-all, and
 parent/group/OCO relationships. A wheel without the required capability keys
 raises a capability error; it is never silently downgraded to Python.
-`auto` remains Python for the release policy and does not activate Rust yet.
+`auto` is resolved by a generated, versioned promotion table rather than by
+whether `_quantbt_native` happens to import. `certified_only` is the default;
+`prefer_native` may choose Rust only after the exact workload row has been
+promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
+these policies can bypass a missing capability, mismatched wheel, unsupported
+contract/profile/account model, or an emergency rollback switch.
+
+At the current `explicit_only` promotion stage, `auto` remains Python for every
+public workload. This is deliberate: Phase 54B.1 adds deterministic routing and
+evidence before Phase 54B.2 enables any static/IR/batch row. `rust` remains an
+explicit, fail-fast request and `python` remains the executable oracle.
+
+For a local emergency rollback, set `QUANTBT_DISABLE_NATIVE=1`. To cap a future
+promotion table without changing source, set
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only|static_ir|portfolio|package`.
+Every native-event result records `native_event_promotion_v1`, including the
+policy/table version, matched rule, contract, decision reason, and deterministic
+fingerprint. These controls never alter fees, fills, lifecycle timing, or
+accounting semantics.
+
 `replay_certified` is the deterministic audit oracle. Rust audit results are
 adapted to `BacktestResultV2`, so the normal `show_metrics()`, `full_report()`,
 `quick_plot()`, and `tearsheet()` helpers remain available. The score path

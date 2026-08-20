@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Mapping
 
 from .capabilities import CapabilitySnapshot, load_rust_capability_snapshot, python_capability_snapshot
 from .models import (
@@ -14,6 +14,13 @@ from .models import (
     TraceRequirements,
 )
 from .output import compile_output_requirements
+from ..core.native_event_promotion import (
+    NativePromotionContext,
+    NativePromotionDecision,
+    NativePromotionError,
+    native_event_workload_id,
+    resolve_native_event_promotion,
+)
 
 
 class PlanningError(RuntimeError):
@@ -34,40 +41,87 @@ def _resolved_profile(request: BacktestRequest) -> RunProfile:
     return _REPORT_ALIASES.get(report, RunProfile(report)) if report not in _REPORT_ALIASES else _REPORT_ALIASES[report]
 
 
+def _promotion_context(
+    request: BacktestRequest,
+    *,
+    profile: RunProfile,
+    capability: CapabilitySnapshot | None = None,
+) -> NativePromotionContext:
+    """Translate immutable planner input into the pure promotion contract."""
+
+    return NativePromotionContext(
+        requested_backend=str(request.requested_backend or "auto"),
+        backend_policy=request.backend_policy,
+        workload_id=native_event_workload_id(
+            workload=request.workload.value,
+            strategy_mode=request.strategy_mode.value,
+        ),
+        execution_contract_id=request.execution_contract_id,
+        strategy_mode=request.strategy_mode.value,
+        profile=profile.value,
+        account_model=request.account_model.value,
+        bars=0,
+        symbol_count=len(request.symbols),
+        required_capabilities=tuple(request.required_capabilities),
+        native_available=None if capability is None else capability.available,
+        native_compatible=None if capability is None else capability.compatible,
+        native_executable=None if capability is None else capability.executable,
+        native_capabilities=(
+            ()
+            if capability is None
+            else tuple(name for name, enabled in capability.capabilities if enabled)
+        ),
+        native_reason=None if capability is None else capability.reason,
+        native_version=None if capability is None else capability.version,
+        native_api_version=None if capability is None else capability.api_version,
+        native_capability_fingerprint=None if capability is None else capability.fingerprint,
+    )
+
+
+def _backend_decision_reason(decision: NativePromotionDecision) -> BackendDecisionReason:
+    """Map stable promotion codes to the existing planner enum surface."""
+
+    try:
+        return BackendDecisionReason(decision.reason)
+    except ValueError:
+        return BackendDecisionReason.AUTO_PYTHON_RELEASE_POLICY
+
+
 def resolve_execution_plan(
     request: BacktestRequest,
     *,
     rust_capability_loader: Callable[[], CapabilitySnapshot] = load_rust_capability_snapshot,
+    environment: Mapping[str, str] | None = None,
 ) -> ExecutionPlan:
     profile = _resolved_profile(request)
     requested = str(request.requested_backend or "auto").lower().strip()
-
-    if requested == "rust":
-        capability = rust_capability_loader()
-        if not (capability.available and capability.compatible and capability.executable):
-            raise PlanningError(
-                "native_backend='rust' failed before preparation: "
-                + str(capability.reason or "native extension is unavailable or incompatible")
-            )
-        if not capability.supports(request.required_capabilities):
-            missing = sorted(set(request.required_capabilities) - {name for name, value in capability.capabilities if value})
-            raise PlanningError("native_backend='rust' lacks capabilities: " + ", ".join(missing))
-        backend = BackendKind.RUST
-        reason = BackendDecisionReason.EXPLICIT_RUST_CERTIFIED
-    elif requested in {"python", "replay_certified"}:
-        capability = python_capability_snapshot()
-        backend = BackendKind.PYTHON
-        reason = (
-            BackendDecisionReason.REPLAY_CERTIFIED_COMPATIBILITY
-            if requested == "replay_certified"
-            else BackendDecisionReason.EXPLICIT_PYTHON
+    try:
+        decision = resolve_native_event_promotion(
+            _promotion_context(request, profile=profile),
+            environment=environment,
         )
-    elif requested == "auto":
-        capability = python_capability_snapshot()
-        backend = BackendKind.PYTHON
-        reason = BackendDecisionReason.AUTO_PYTHON_RELEASE_POLICY
-    else:
-        raise PlanningError("requested_backend must be auto, python, replay_certified, or rust")
+        native_capability: CapabilitySnapshot | None = None
+        if decision.native_probe_required:
+            native_capability = rust_capability_loader()
+            decision = resolve_native_event_promotion(
+                _promotion_context(request, profile=profile, capability=native_capability),
+                environment=environment,
+            )
+    except NativePromotionError as exc:
+        raise PlanningError(str(exc)) from exc
+
+    if requested == "rust" and decision.resolved_backend != "rust":
+        detail = decision.native_reason or decision.reason
+        if decision.reason == "native_missing_capabilities":
+            available = set(() if native_capability is None else (name for name, enabled in native_capability.capabilities if enabled))
+            missing = sorted(set(request.required_capabilities) - available)
+            if missing:
+                detail = "native_backend='rust' lacks capabilities: " + ", ".join(missing)
+        raise PlanningError("native_backend='rust' failed before preparation: " + str(detail))
+
+    capability = native_capability if decision.resolved_backend == "rust" and native_capability is not None else python_capability_snapshot()
+    backend = BackendKind.RUST if decision.resolved_backend == "rust" else BackendKind.PYTHON
+    reason = _backend_decision_reason(decision)
 
     output = compile_output_requirements(
         profile=profile,
@@ -95,6 +149,11 @@ def resolve_execution_plan(
         capability_fingerprint=capability.fingerprint,
         request_fingerprint=request.fingerprint,
         projection_fingerprint=output.fingerprint,
+        backend_policy=decision.backend_policy,
+        promotion_reason=decision.reason,
+        promotion_table_version=decision.promotion_table_version,
+        promotion_rule_id=decision.matched_rule_id,
+        promotion_fingerprint=decision.fingerprint,
     )
     return plan.with_fingerprint()
 

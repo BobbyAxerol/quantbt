@@ -51,6 +51,7 @@ def execute_native_event_lifecycle(
     account: AccountConfig,
     execution: ExecutionConfig,
     native_backend: str | None,
+    backend_policy: str | None,
     execution_contract,
     report_level: str,
     audit_sink: str,
@@ -100,6 +101,7 @@ def execute_native_event_lifecycle(
         endpoint_mode="orders",
         input_mode="orders",
         requested_backend=requested_backend,
+        backend_policy=backend_policy or "certified_only",
         execution_contract_id=clock.contract_id,
         strategy_mode=StrategyMode.STATIC_COMMANDS,
         workload=WorkloadClass.STATIC_COMMAND_TAPE,
@@ -149,6 +151,7 @@ def execute_native_event_lifecycle(
             audit_sink=audit_sink,
             audit_sink_path=audit_sink_path,
             native_backend=plan.backend.value,
+            backend_policy=plan.backend_policy,
             execution_contract=clock,
             diagnostics=diagnostics,
         )
@@ -201,6 +204,13 @@ def execute_native_event_lifecycle(
             "p1_execution_route": "plan_prepare_legacy_public_adapter_v1",
             "native_event_backend_requested": requested_backend,
             "native_event_backend_resolved": plan.backend.value,
+            "native_event_promotion_v1": {
+                "backend_policy": plan.backend_policy,
+                "reason": plan.promotion_reason,
+                "table_version": plan.promotion_table_version,
+                "rule_id": plan.promotion_rule_id,
+                "fingerprint": plan.promotion_fingerprint,
+            },
         }
     )
     return NativeEventLifecycleOutcome(result=result, engine=engine, preparation=preparation)

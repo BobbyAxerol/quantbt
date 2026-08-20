@@ -22,6 +22,14 @@ from .models import (
 )
 from .output import compile_output_requirements
 from .resolve import PlanningError, resolve_execution_plan
+from ..core.native_event_promotion import (
+    NativeBackendPolicy,
+    NativePromotionContext,
+    NativePromotionDecision,
+    NativePromotionError,
+    NativePromotionStage,
+    resolve_native_event_promotion,
+)
 
 __all__ = [
     "AccountModelRef",
@@ -33,6 +41,11 @@ __all__ = [
     "ExecutionPlan",
     "MarketLayout",
     "MetricMask",
+    "NativeBackendPolicy",
+    "NativePromotionContext",
+    "NativePromotionDecision",
+    "NativePromotionError",
+    "NativePromotionStage",
     "NumericPolicy",
     "OutputRequirements",
     "PathMask",
@@ -45,4 +58,5 @@ __all__ = [
     "WorkloadClass",
     "compile_output_requirements",
     "resolve_execution_plan",
+    "resolve_native_event_promotion",
 ]

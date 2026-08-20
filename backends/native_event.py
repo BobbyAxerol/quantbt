@@ -76,6 +76,7 @@ from ..core.event_contracts import (
     decide_bar_fill,
 )
 from ..core.constraints import build_quantity_constraints, quantize_signed_quantity
+from ..core.native_event_promotion import NativeBackendPolicy
 from ..core.arbitrage import (
     ArbitrageSpec,
     ArbitragePlan,
@@ -193,6 +194,7 @@ class NativeEventConfig:
     audit_sink_path: Optional[str] = None
     reactive_kernel_mode: str = "replay_certified"
     native_backend: Optional[str] = None
+    backend_policy: Optional[str] = None
     audit_mode: Optional[str] = None
     oracle_sample_rate: float = 0.0
     oracle_sample_seed: int = 0
@@ -223,6 +225,13 @@ class NativeEventConfig:
                     "native_backend must be one of: auto, python, replay_certified, rust"
                 )
             object.__setattr__(self, "native_backend", selected)
+        if self.backend_policy is not None:
+            try:
+                selected_policy = NativeBackendPolicy(str(self.backend_policy).lower().strip()).value
+            except ValueError as exc:
+                valid = ", ".join(item.value for item in NativeBackendPolicy)
+                raise ValueError(f"backend_policy must be one of: {valid}") from exc
+            object.__setattr__(self, "backend_policy", selected_policy)
         if self.prepared_cache_max_bytes < 0 or self.prepared_cache_max_entries < 0:
             raise ValueError("prepared cache budgets must be >= 0")
 
@@ -1676,7 +1685,10 @@ class NativeEventBackend:
         # Phase 46E: selection is explicit and capability-gated. ``auto``
         # remains Python for the release; direct Rust is limited to the
         # certified single-symbol batched tape path.
-        self._backend_selection = resolve_native_event_backend(requested=config.native_backend)
+        self._backend_selection = resolve_native_event_backend(
+            requested=config.native_backend,
+            backend_policy=config.backend_policy,
+        )
         # Keys use object identity in addition to the immutable market
         # signature: open/volume are callback-visible and are not part of the
         # OHLC/funding signature. Reuse is therefore safe only for the exact
@@ -1762,6 +1774,7 @@ class NativeEventBackend:
             "native_event_rust_canonical_capabilities": dict(selection.extension.canonical_capabilities),
             "native_event_rust_semantic_descriptor": dict(selection.extension.semantic_descriptor),
             "native_event_rust_fallback_reason": selection.extension.reason,
+            "native_event_promotion_v1": selection.promotion.to_dict(),
             "prepared_market_cache": self._rust_prepared_market_cores.diagnostics,
         }
 
@@ -2541,6 +2554,7 @@ class NativeEventBackend:
                 endpoint_mode="native_event_strategy",
                 input_mode="strategy",
                 requested_backend=backend_selection.requested,
+                backend_policy=self.config.backend_policy or "certified_only",
                 execution_contract_id=get_event_clock_contract(self.config.execution_contract).contract_id,
                 strategy_mode=StrategyMode.PYTHON_CALLBACK_COMPAT,
                 workload=WorkloadClass.PYTHON_CALLBACK,

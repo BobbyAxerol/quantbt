@@ -204,6 +204,10 @@ class EndpointConfig:
         Native-event implementation selector: `python`, `rust`, `auto`, or
         `replay_certified`. It is only consulted by native-event backends;
         omitted means preserve the environment/default selection policy.
+    backend_policy:
+        Native-event auto-routing policy: `certified_only` (default),
+        `prefer_native`, or `prefer_compatibility`. It cannot bypass product
+        certification, extension compatibility, or emergency rollback gates.
     sizing:
         Position sizing contract for signal modes. Examples: `%_equity`,
         `signal_notional`, `notional`, `unit`, `dca_ladder`.
@@ -271,6 +275,7 @@ class EndpointConfig:
     mode: str = "single_signal"
     backend: str = "auto"
     native_backend: Optional[str] = None
+    backend_policy: Optional[str] = None
     sizing: str = "signal_notional"
     account: AccountConfig = field(default_factory=lambda: AccountConfig(initial_capital=100_000.0))
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
@@ -706,6 +711,7 @@ class QuantBTEndpoint:
                 oracle_sample_rate=config.oracle_sample_rate,
                 oracle_sample_seed=config.oracle_sample_seed,
                 native_backend=config.native_backend,
+                backend_policy=config.backend_policy,
                 execution_contract=(
                     config.execution_contract
                     if config.execution_contract is not None
@@ -2275,6 +2281,7 @@ class QuantBTEndpoint:
             symbols=symbol_list,
             backend=backend,
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2325,6 +2332,7 @@ class QuantBTEndpoint:
             symbols=list(symbols or self.config.symbols or ["asset"]),
             backend=backend,
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
@@ -2367,6 +2375,7 @@ class QuantBTEndpoint:
             symbols=symbol_list,
             backend="native_event",
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             strategy=strategy,
             event_engine_version="v2",
             execution_contract=self.config.execution_contract,
@@ -2426,6 +2435,7 @@ class QuantBTEndpoint:
                 symbols=[spec.symbol],
                 backend="native_event",
                 native_backend=self.config.native_backend,
+                backend_policy=self.config.backend_policy,
                 order_commands=commands,
                 event_engine_version="v2",
                 execution_contract=self.config.execution_contract,
@@ -2513,6 +2523,7 @@ class QuantBTEndpoint:
         self.engine = BacktestEngineV2(
             backend="native_event",
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             basket=spec,
             signal=sig,
             closes=close_map,
@@ -2592,6 +2603,7 @@ class QuantBTEndpoint:
                     audit_sink=self.config.audit_sink,
                     audit_sink_path=self.config.audit_sink_path,
                     native_backend=self.config.native_backend,
+                    backend_policy=self.config.backend_policy,
                 )
             )
         else:

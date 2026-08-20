@@ -173,6 +173,31 @@ This remains an experimental lower-level preparation surface. Existing
 endpoints and `backend="auto"` behavior are unchanged; higher-level
 prepared-batch promotion has its own parity and release gate.
 
+### Phase 54B.1 versioned promotion policy
+
+Rust availability is now separated from Rust promotion. The generated product
+registry owns a policy table with ordered stages: `explicit_only`, `static_ir`,
+`portfolio`, and `package`. A pure resolver evaluates the requested backend,
+user policy, workload, lifecycle contract, output profile, account model,
+symbol count, platform tags, extension capability snapshot, and local rollback
+environment before any market preparation occurs.
+
+`native_backend="python"` remains the oracle. `native_backend="rust"` remains
+strict and fails before execution if the installed wheel is unavailable,
+incompatible, non-executable, or missing a required capability. Only
+`native_backend="auto"` is eligible for promotion. `backend_policy` accepts
+`certified_only`, `prefer_native`, and `prefer_compatibility`; neither of the
+first two can override an unpromoted registry row. At this release's
+`explicit_only` stage all public `auto` requests still resolve to Python.
+
+The local emergency controls are deterministic and require no network service:
+`QUANTBT_DISABLE_NATIVE=1` disables native routing, while
+`QUANTBT_NATIVE_PROMOTION_MAX` caps the highest eligible stage. The result
+metadata stores `native_event_promotion_v1`, including the table and registry
+fingerprints, contract, matched rule, wheel/API/capability evidence when probed,
+fallback code, and exact rollback state. This metadata is diagnostic only; it
+does not change matching, accounting, fees, funding, margin, or liquidation.
+
 ### Phase 54A.5.6 differential corpus and exit evidence
 
 Phase 54A.5.6 adds a small, deterministic execution corpus rather than relying

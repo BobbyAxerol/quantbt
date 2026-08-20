@@ -18,6 +18,13 @@ class BackendDecisionReason(str, Enum):
     EXPLICIT_PYTHON = "explicit_python"
     EXPLICIT_RUST_CERTIFIED = "explicit_rust_certified"
     AUTO_PYTHON_RELEASE_POLICY = "auto_python_release_policy"
+    AUTO_RUST_CERTIFIED = "auto_rust_certified"
+    AUTO_PYTHON_PREFER_COMPATIBILITY = "policy_prefer_compatibility"
+    AUTO_PYTHON_EMERGENCY_DISABLED = "emergency_native_disabled"
+    AUTO_PYTHON_CAPABILITY_UNAVAILABLE = "native_unavailable"
+    AUTO_PYTHON_WORKLOAD_NOT_PROMOTED = "workload_not_promoted"
+    AUTO_PYTHON_STAGE_LIMITED = "promotion_stage_limited"
+    AUTO_PYTHON_WORKLOAD_SHAPE = "workload_shape_not_certified"
     REPLAY_CERTIFIED_COMPATIBILITY = "replay_certified_compatibility"
 
 
@@ -163,6 +170,7 @@ class BacktestRequest:
     declared_strategy_requirements: bool = True
     required_capabilities: tuple[str, ...] = ()
     metadata: tuple[tuple[str, str], ...] = ()
+    backend_policy: str = "certified_only"
 
     def __post_init__(self) -> None:
         if not self.endpoint_mode.strip():
@@ -206,6 +214,11 @@ class ExecutionPlan:
         ("output", 1),
         ("profile", 1),
     )
+    backend_policy: str = "certified_only"
+    promotion_reason: str = ""
+    promotion_table_version: str = ""
+    promotion_rule_id: str | None = None
+    promotion_fingerprint: str = ""
 
     def __post_init__(self) -> None:
         if not self.contract_id:

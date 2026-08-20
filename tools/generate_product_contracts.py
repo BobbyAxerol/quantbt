@@ -70,7 +70,7 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
         (
             "schema_version", "registry_id", "lifecycle_registry", "versions",
             "runtime_descriptor", "stable_capability_matrix", "extension_capabilities",
-            "capability_normalization", "workloads", "compatibility", "deprecations",
+            "capability_normalization", "promotion_policy", "workloads", "compatibility", "deprecations",
         ),
         label="product registry",
     )
@@ -145,8 +145,64 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
             raise ValueError(f"workload {workload['id']} references an unknown lifecycle contract")
         if workload["maturity"] not in {"experimental", "certified", "promoted"}:
             raise ValueError(f"workload {workload['id']} has invalid maturity")
-        if bool(workload["auto_promotion"]):
-            raise ValueError("Phase 54A registry must not promote Rust auto routing")
+    promotion = product["promotion_policy"]
+    _require_keys(
+        promotion,
+        (
+            "schema_version", "table_version", "default_backend_policy", "default_stage",
+            "stages", "rules",
+        ),
+        label="native promotion policy",
+    )
+    if int(promotion["schema_version"]) != 1:
+        raise ValueError("unsupported native promotion policy schema_version")
+    if not isinstance(promotion["table_version"], str) or not promotion["table_version"].strip():
+        raise ValueError("native promotion policy table_version must be a non-empty string")
+    if promotion["default_backend_policy"] not in {
+        "certified_only", "prefer_native", "prefer_compatibility",
+    }:
+        raise ValueError("native promotion policy has an invalid default_backend_policy")
+    stages = tuple(str(stage) for stage in promotion["stages"])
+    if stages != ("explicit_only", "static_ir", "portfolio", "package"):
+        raise ValueError("native promotion policy stages must be explicit_only, static_ir, portfolio, package")
+    if promotion["default_stage"] not in stages:
+        raise ValueError("native promotion policy default_stage is not declared")
+    rule_ids: set[str] = set()
+    enabled_workloads: set[str] = set()
+    for rule in promotion["rules"]:
+        _require_keys(
+            rule,
+            ("id", "workload_id", "stage", "enabled", "required_capabilities"),
+            label="native promotion rule",
+        )
+        rule_id = str(rule["id"])
+        if not rule_id or rule_id in rule_ids:
+            raise ValueError("native promotion rules require unique non-empty ids")
+        rule_ids.add(rule_id)
+        if str(rule["workload_id"]) not in workload_ids:
+            raise ValueError(f"native promotion rule {rule_id} references an unknown workload")
+        if str(rule["stage"]) not in stages or str(rule["stage"]) == "explicit_only":
+            raise ValueError(f"native promotion rule {rule_id} has an invalid promotion stage")
+        if not isinstance(rule["enabled"], bool):
+            raise ValueError(f"native promotion rule {rule_id} enabled must be boolean")
+        capabilities_required = tuple(str(item) for item in rule["required_capabilities"])
+        if not capabilities_required or len(set(capabilities_required)) != len(capabilities_required):
+            raise ValueError(f"native promotion rule {rule_id} requires unique native capabilities")
+        unknown_capabilities = sorted(set(capabilities_required) - raw_capabilities)
+        if unknown_capabilities:
+            raise ValueError(
+                f"native promotion rule {rule_id} references unknown capabilities: {unknown_capabilities}"
+            )
+        if bool(rule["enabled"]):
+            enabled_workloads.add(str(rule["workload_id"]))
+    for workload in product["workloads"]:
+        auto_promoted = bool(workload["auto_promotion"])
+        if auto_promoted != (str(workload["id"]) in enabled_workloads):
+            raise ValueError(
+                f"workload {workload['id']} auto_promotion must exactly match an enabled promotion rule"
+            )
+        if auto_promoted and workload["maturity"] != "promoted":
+            raise ValueError(f"auto-promoted workload {workload['id']} must have maturity='promoted'")
     if not product["compatibility"]:
         raise ValueError("product compatibility matrix cannot be empty")
     for pair in product["compatibility"]:
@@ -169,6 +225,7 @@ def _python_literal(payload: Any) -> str:
 def render_python(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     runtime = deepcopy(product["runtime_descriptor"])
     versions = product["versions"]
+    promotion = product["promotion_policy"]
     return "\n".join(
         (
             '"""Generated from contracts/native_event_product_registry.json; do not edit."""',
@@ -187,6 +244,8 @@ def render_python(product: dict[str, Any], product_fingerprint: str, lifecycle_f
             "NATIVE_EVENT_STABLE_CAPABILITIES = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"stable_capability_matrix\"][\"capabilities\"])",
             "NATIVE_EVENT_EXTENSION_CAPABILITIES = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"extension_capabilities\"])",
             "NATIVE_EVENT_CAPABILITY_NORMALIZATION = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"capability_normalization\"])",
+            "NATIVE_EVENT_PROMOTION_POLICY = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"promotion_policy\"])",
+            f'NATIVE_EVENT_PROMOTION_TABLE_VERSION = "{promotion["table_version"]}"',
             "WORKLOAD_CAPABILITY_DESCRIPTORS = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"workloads\"])",
             "NATIVE_EVENT_COMPATIBILITY_MATRIX = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"compatibility\"])",
             "NATIVE_EVENT_DEPRECATION_MATRIX = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"deprecations\"])",
@@ -223,6 +282,7 @@ def _rust_string_constant(name: str, value: str) -> list[str]:
 def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     versions = product["versions"]
     runtime = product["runtime_descriptor"]
+    promotion = product["promotion_policy"]
     lines = [
         "//! Generated from contracts/native_event_product_registry.json; do not edit.",
         "#![allow(dead_code)]",
@@ -239,6 +299,9 @@ def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         f'pub const RESULT_ABI_VERSION: &str = "{versions["result_abi"]["current"]}";',
         f'pub const TRACE_SCHEMA_VERSION: &str = "{versions["trace_schema"]["current"]}";',
         f'pub const STRATEGY_IR_VERSION: &str = "{versions["strategy_ir"]["current"]}";',
+        f'pub const PROMOTION_POLICY_TABLE_VERSION: &str = "{promotion["table_version"]}";',
+        f'pub const PROMOTION_POLICY_DEFAULT_STAGE: &str = "{promotion["default_stage"]}";',
+        f'pub const PROMOTION_POLICY_DEFAULT_BACKEND_POLICY: &str = "{promotion["default_backend_policy"]}";',
         "",
     ]
     lines.extend(_rust_string_list("NATIVE_EXTENSION_CAPABILITIES", list(product["extension_capabilities"])))
@@ -262,13 +325,14 @@ def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
 
 def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     versions = product["versions"]
+    promotion = product["promotion_policy"]
     lines = [
         "# Generated Native Product Compatibility",
         "",
         "> Generated by `tools/generate_product_contracts.py`; do not edit by hand.",
         "",
         "This table is the release-facing contract for the optional Rust companion. "
-        "It does not promote `backend=\"auto\"`; the current core release remains Python-first.",
+        "Automatic routing is controlled by the versioned promotion policy below, not merely by extension import success.",
         "",
         "## Registry",
         "",
@@ -278,6 +342,29 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         f"- Core distribution: `{versions['core_package']['distribution']}=={versions['core_package']['version']}`",
         f"- Native distribution: `{versions['native_package']['distribution']}=={versions['native_package']['version']}` (published: `{str(bool(versions['native_package']['published'])).lower()}`)",
         "",
+        "## Promotion Policy",
+        "",
+        f"- Table version: `{promotion['table_version']}` (schema `{promotion['schema_version']}`)",
+        f"- Default user policy: `{promotion['default_backend_policy']}`",
+        f"- Configured automatic stage: `{promotion['default_stage']}`",
+        "- Emergency controls: `QUANTBT_DISABLE_NATIVE=1` and `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`.",
+        "",
+        "| Rule | Workload | Stage | Enabled | Required capabilities |",
+        "|---|---|---|---|---|",
+    ]
+    for rule in promotion["rules"]:
+        lines.append(
+            "| `{id}` | `{workload}` | `{stage}` | `{enabled}` | `{capabilities}` |".format(
+                id=rule["id"],
+                workload=rule["workload_id"],
+                stage=rule["stage"],
+                enabled=str(bool(rule["enabled"])).lower(),
+                capabilities=", ".join(rule["required_capabilities"]),
+            )
+        )
+    lines.extend(
+        (
+            "",
         "## Version Matrix",
         "",
         "| Contract | Current | Compatibility policy |",
@@ -292,7 +379,8 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         "",
         "| Workload | Contracts | Strategy mode | Profiles | Maturity | Auto |",
         "|---|---|---|---|---|---|",
-    ]
+        )
+    )
     for workload in product["workloads"]:
         lines.append(
             "| `{id}` | `{contracts}` | `{strategy}` | `{profiles}` | `{maturity}` | `{auto}` |".format(
@@ -320,6 +408,7 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
 
 def render_corpus(product: dict[str, Any], product_fingerprint: str) -> str:
     first_pair = product["compatibility"][0]
+    promotion = product["promotion_policy"]
     payload = {
         "schema": "quantbt-product-contract-corpus-v1",
         "registry_fingerprint": product_fingerprint,
@@ -339,6 +428,8 @@ def render_corpus(product: dict[str, Any], product_fingerprint: str) -> str:
             {
                 "id": "auto_routing_remains_python",
                 "workloads": [item["id"] for item in product["workloads"]],
+                "promotion_table_version": promotion["table_version"],
+                "default_stage": promotion["default_stage"],
                 "expected": "not_promoted",
             },
         ],

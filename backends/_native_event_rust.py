@@ -27,7 +27,14 @@ from ..core.reactive import NativeActiveOrderSnapshot, NativeFillEvent, NativeOr
 from ..core.schema import OrderSide, OrderType, TimeInForce
 from ..core.native_event_capabilities import (
     normalize_native_event_capabilities,
+    semantic_descriptor_fingerprint,
     validate_native_event_semantic_descriptor,
+)
+from ..core.native_event_promotion import (
+    NativePromotionContext,
+    NativePromotionDecision,
+    NativePromotionError,
+    resolve_native_event_promotion,
 )
 from ..core.generated_product_contracts import NATIVE_EVENT_CORE_PACKAGE_VERSION
 from ..core.product_contracts import (
@@ -115,6 +122,7 @@ class NativeEventBackendSelection:
     requested: str
     resolved: str
     extension: NativeEventRustExtensionStatus
+    promotion: NativePromotionDecision
 
 
 @dataclass(frozen=True)
@@ -779,30 +787,75 @@ def resolve_native_event_backend(
     requested: Optional[str] = None,
     *,
     extension_status: Optional[NativeEventRustExtensionStatus] = None,
+    backend_policy: Optional[str] = None,
+    workload_id: str = "event_python_callback_v2_v3",
+    execution_contract_id: str = "event_lifecycle_v2_next_bar_close",
+    strategy_mode: str = "python_callback_compat",
+    profile: str = "audit",
+    account_model: str = "linear_quote_settled_gross_cross",
+    bars: int = 0,
+    symbol_count: int = 1,
+    required_capabilities: Sequence[str] = (),
+    environment: Optional[Mapping[str, str]] = None,
 ) -> NativeEventBackendSelection:
-    """Resolve the native-event selector under the release rollout policy.
+    """Resolve native-event routing through the versioned product policy.
 
-    ``auto`` intentionally resolves to Python for the first dual-backend
-    release, even with the wheel installed. ``rust`` is explicit and fails
-    loudly unless the installed extension advertises the required capability.
+    The function remains the compatibility seam for direct backend users.  It
+    keeps the old ``auto`` behavior until an enabled registry rule is promoted,
+    and it probes the extension only when a request can actually use Rust.
     """
-    selected = str(requested or os.getenv("QUANTBT_NATIVE_BACKEND", "auto")).lower().strip()
-    if selected not in _VALID_BACKENDS:
-        valid = ", ".join(sorted(_VALID_BACKENDS))
-        raise ValueError(f"QUANTBT_NATIVE_BACKEND must be one of: {valid}")
 
+    environment = os.environ if environment is None else environment
+    selected = str(requested or environment.get("QUANTBT_NATIVE_BACKEND", "auto")).lower().strip()
     status = extension_status
-    if selected == "rust":
-        status = status or probe_native_event_rust_extension()
-        if not status.available or not status.compatible or not status.executable:
-            detail = status.reason or "unknown native extension state"
-            raise NativeEventRustBackendError(f"native-event backend='rust' is unavailable: {detail}")
-        return NativeEventBackendSelection(requested=selected, resolved="rust", extension=status)
 
-    # R0 rollout contract: never auto-enable a just-built extension.
+    def context(current: Optional[NativeEventRustExtensionStatus]) -> NativePromotionContext:
+        return NativePromotionContext(
+            requested_backend=selected,
+            backend_policy=backend_policy,
+            workload_id=workload_id,
+            execution_contract_id=execution_contract_id,
+            strategy_mode=strategy_mode,
+            profile=profile,
+            account_model=account_model,
+            bars=int(bars),
+            symbol_count=int(symbol_count),
+            required_capabilities=tuple(str(item) for item in required_capabilities),
+            native_available=None if current is None else current.available,
+            native_compatible=None if current is None else current.compatible,
+            native_executable=None if current is None else current.executable,
+            native_capabilities=(
+                () if current is None else tuple(name for name, enabled in current.capabilities.items() if enabled)
+            ),
+            native_reason=None if current is None else current.reason,
+            native_version=None if current is None else current.version,
+            native_api_version=None if current is None else current.api_version,
+            native_capability_fingerprint=(
+                None
+                if current is None or not current.semantic_descriptor
+                else semantic_descriptor_fingerprint(current.semantic_descriptor)
+            ),
+        )
+
+    try:
+        decision = resolve_native_event_promotion(context(status), environment=environment)
+        if decision.native_probe_required:
+            status = status or probe_native_event_rust_extension()
+            decision = resolve_native_event_promotion(context(status), environment=environment)
+    except NativePromotionError as exc:
+        raise NativeEventRustBackendError(str(exc)) from exc
+
+    if selected == "rust" and decision.resolved_backend != "rust":
+        detail = decision.native_reason or decision.reason
+        raise NativeEventRustBackendError(f"native-event backend='rust' is unavailable: {detail}")
+
     status = status or _empty_status("Rust extension was not queried because the Python backend was selected")
-    resolved = "replay_certified" if selected == "replay_certified" else "python"
-    return NativeEventBackendSelection(requested=selected, resolved=resolved, extension=status)
+    return NativeEventBackendSelection(
+        requested=selected,
+        resolved=decision.resolved_backend,
+        extension=status,
+        promotion=decision,
+    )
 
 
 def _require_r1_extension() -> ModuleType:
@@ -2390,13 +2443,11 @@ class RustReactiveSessionAdapter:
         events = []
         for event_row in (_step_value(payload, "events") or ()):
             if self._full_contract:
-                event_kind, status, order_code, target_code, symbol_code = event_row[:5]
+                event_kind, status, order_code, target_code = event_row[:4]
                 reject_code = int(event_row[5]) if len(event_row) > 5 else 0
-                event_symbol = None if int(symbol_code) < 0 else self.symbols[int(symbol_code)]
             else:
                 event_kind, status, order_code, target_code = event_row
                 reject_code = 0
-                event_symbol = None
             name = ({0: "place", 1: "cancel", 2: "replace", 3: "amend", 4: "fill", 5: "expire", 6: "activate", 7: "reject"} if self._full_contract else {0: "place", 1: "cancel", 2: "fill", 3: "reject", 4: "amend", 5: "replace"}).get(
                 int(event_kind), "reject"
             )

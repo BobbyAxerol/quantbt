@@ -13198,7 +13198,7 @@ installed-wheel, performance, RSS, rollback, and public endpoint gates pass.
 
 ### Phase 54B - P3 Rust-First Promotion, Migration, Cleanup, And Final Release
 
-**Status: planned.**
+**Status: in progress.**
 
 Detailed guide:
 
@@ -13286,7 +13286,7 @@ no capability or speed claim exceeds installed-wheel evidence.
 
 #### 54B.1 - Versioned Promotion Policy, Deterministic Routing, And Rollback
 
-**Status: planned.**
+**Status: complete (2026-08-20).**
 
 Detailed guide to read before every implementation decision:
 
@@ -13349,6 +13349,32 @@ Promotion decision is deterministic, versioned, observable, and fail-closed.
 No public workload is promoted by this phase alone.
 Python remains the unchanged default until its route passes Phase 54B.2/54B.3.
 ```
+
+Completion evidence:
+
+- Added generated `promotion_policy` table `native-event-promotion-v1` to the
+  native product registry. It declares staged candidates for static tape,
+  native IR, portfolio target, and package transaction, but every rule remains
+  disabled and every workload remains non-promoted in this phase.
+- Added one pure, dependency-light resolver shared by planning and the legacy
+  native backend selector. It evaluates requested backend, user policy,
+  workload/contract/profile/account shape, platform, capability snapshot,
+  `QUANTBT_DISABLE_NATIVE`, and `QUANTBT_NATIVE_PROMOTION_MAX` before market
+  preparation. `auto` does not probe Rust while the table is locked.
+- Added optional `backend_policy` propagation through endpoint, V2 facade,
+  static lifecycle API, native-event config, plan fingerprint, and result
+  metadata. Existing callers retain `auto -> python`; explicit Rust remains
+  fail-fast and no internal failure silently reruns Python.
+- Added `native_event_promotion_v1` provenance with policy/table/registry
+  fingerprints, contract, workload maturity, rule ID, rollback state, and
+  wheel/API/capability evidence when a native probe occurs.
+- Rebuilt the local API-0.4 wheel after the product-registry fingerprint change
+  and refreshed checked benchmark-manifest registry references without changing
+  the measured baselines.
+- Tests passed: `34` focused promotion/planning/product/dual-backend checks;
+  `235 passed, 2 skipped` native-event regression; Rust workspace fmt/clippy
+  and `48` unit tests; full `PYTHONPATH=. poetry run pytest -q` result
+  `901 passed, 3 skipped`.
 
 #### 54B.2 - Static, Native-IR, And Batch Rust-First Public Routes
 

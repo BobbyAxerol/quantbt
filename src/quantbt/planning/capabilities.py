@@ -21,6 +21,8 @@ class CapabilitySnapshot:
     semantic_descriptor: tuple[tuple[str, object], ...]
     fingerprint: str
     reason: str | None = None
+    version: str | None = None
+    api_version: str | None = None
 
     def supports(self, required: tuple[str, ...]) -> bool:
         values = dict(self.capabilities)
@@ -58,6 +60,8 @@ def load_rust_capability_snapshot() -> CapabilitySnapshot:
         semantic_descriptor=tuple(sorted(descriptor.items())),
         fingerprint=fingerprint,
         reason=status.reason,
+        version=status.version,
+        api_version=status.api_version,
     )
 
 

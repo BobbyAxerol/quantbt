@@ -161,6 +161,67 @@
     "liquidation": ["native_event_v2_full_contract"],
     "multi_symbol": ["native_event_v2_full_contract"]
   },
+  "promotion_policy": {
+    "schema_version": 1,
+    "table_version": "native-event-promotion-v1",
+    "default_backend_policy": "certified_only",
+    "default_stage": "explicit_only",
+    "stages": [
+      "explicit_only",
+      "static_ir",
+      "portfolio",
+      "package"
+    ],
+    "rules": [
+      {
+        "id": "static_tape_rust_stage_b",
+        "workload_id": "event_static_tape_v2_v3",
+        "stage": "static_ir",
+        "enabled": false,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_event_v2_multisymbol",
+          "native_event_v2_funding",
+          "native_event_v2_liquidation",
+          "native_event_v2_cancel_all_oco",
+          "native_event_v2_tif_expiry",
+          "native_event_v2_relationships"
+        ]
+      },
+      {
+        "id": "native_ir_rust_stage_b",
+        "workload_id": "native_strategy_ir_v1",
+        "stage": "static_ir",
+        "enabled": false,
+        "required_capabilities": [
+          "native_strategy_ir_v1",
+          "native_strategy_ir_signal_target",
+          "native_strategy_ir_grid_level",
+          "native_strategy_ir_dca_periodic",
+          "native_strategy_ir_fixed_bracket",
+          "native_strategy_ir_batch_v1"
+        ]
+      },
+      {
+        "id": "portfolio_target_rust_stage_c",
+        "workload_id": "portfolio_target_preflight_v1",
+        "stage": "portfolio",
+        "enabled": false,
+        "required_capabilities": [
+          "native_portfolio_target_preflight_v1"
+        ]
+      },
+      {
+        "id": "package_transaction_rust_stage_d",
+        "workload_id": "package_transaction_preflight_v1",
+        "stage": "package",
+        "enabled": false,
+        "required_capabilities": [
+          "native_package_transaction_preflight_v1"
+        ]
+      }
+    ]
+  },
   "extension_capabilities": [
     "r0_import_smoke",
     "reactive_session",
