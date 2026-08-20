@@ -8,6 +8,7 @@ use quantbt_domain::{generated_contracts, generated_product_contracts};
 use quantbt_engine as full;
 use quantbt_engine::legacy::types;
 use quantbt_engine::{FullMarketData, FullSession};
+use quantbt_execution as execution;
 use quantbt_package as package;
 use quantbt_portfolio as portfolio;
 use quantbt_strategy_ir as strategy_ir;
@@ -1794,6 +1795,197 @@ impl FullPreparedMarketCore {
     }
 }
 
+/// Immutable internal ABI-0.5 request.  It is intentionally additive to the
+/// frozen API-0.4 session classes: old callers keep their array/session
+/// signatures, while typed static and IR workloads can be prepared once and
+/// execute through one fresh Rust-owned `FullSession` per request run.
+#[pyclass]
+struct NativeExecutionRequestCore {
+    inner: execution::NativeExecutionRequestV1,
+}
+
+#[pymethods]
+impl NativeExecutionRequestCore {
+    /// Construct a typed request from the legacy flat ABI at the compatibility
+    /// ingress.  The arrays are translated once to `CommandTapeV5`; the
+    /// mutable lifecycle/account state is not created until `execute()`.
+    #[classmethod]
+    #[pyo3(signature = (
+        prepared,
+        command_ptr,
+        command_codes,
+        command_values,
+        command_expiry,
+        contract_sizes,
+        leverages,
+        fee_rates,
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+        event_contract_code=generated_contracts::CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+        output_profile=0,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_command_tape(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<FullPreparedMarketCore>,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+        contract_sizes: PyReadonlyArray1<'_, f64>,
+        leverages: PyReadonlyArray1<'_, f64>,
+        fee_rates: PyReadonlyArray1<'_, f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+        event_contract_code: i64,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let inner = build_command_request(
+            market,
+            command_ptr.as_slice()?,
+            command_codes.as_slice()?,
+            command_codes.shape(),
+            command_values.as_slice()?,
+            command_values.shape(),
+            command_expiry.as_slice()?,
+            contract_sizes.as_slice()?.to_vec(),
+            leverages.as_slice()?.to_vec(),
+            fee_rates.as_slice()?.to_vec(),
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+            event_contract_code,
+            output_profile,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    /// Build a one-call native strategy-IR request.  The signal/parameter
+    /// buffers are copied into immutable Rust ownership during construction;
+    /// `execute()` has no Python callback or per-bar boundary.
+    #[classmethod]
+    #[pyo3(signature = (
+        prepared,
+        program,
+        signal,
+        contract_sizes,
+        leverages,
+        fee_rates,
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+        parameters=None,
+        event_contract_code=generated_contracts::CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+        output_profile=0,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_strategy_ir(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<FullPreparedMarketCore>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signal: PyReadonlyArray1<'_, f64>,
+        contract_sizes: PyReadonlyArray1<'_, f64>,
+        leverages: PyReadonlyArray1<'_, f64>,
+        fee_rates: PyReadonlyArray1<'_, f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+        parameters: Option<PyReadonlyArray1<'_, f64>>,
+        event_contract_code: i64,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let instruments = execution::InstrumentTableV1::sequential(
+            contract_sizes.as_slice()?.to_vec(),
+            leverages.as_slice()?.to_vec(),
+            fee_rates.as_slice()?.to_vec(),
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let account = execution::AccountModelV1::new(
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let contract = execution::ExecutionContractV1::new(event_contract_code)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::NativeExecutionRequestV1::from_strategy_ir(
+            market,
+            instruments,
+            account,
+            contract,
+            output,
+            program.inner.clone(),
+            signal.as_slice()?.to_vec(),
+            parameters
+                .map(|values| values.as_slice().map(|slice| slice.to_vec()))
+                .transpose()?,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        self.inner.request_version()
+    }
+
+    #[getter]
+    fn protocol_version(&self) -> u16 {
+        self.inner.protocol_version()
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn workload_kind(&self) -> &'static str {
+        self.inner.workload_kind().name()
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.inner.output_profile().name()
+    }
+
+    #[getter]
+    fn command_count(&self) -> usize {
+        self.inner.command_count()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.market().n_bars
+    }
+
+    /// Execute the immutable request with a fresh Rust-owned account/order
+    /// state.  The dict is a transitional cold-path adapter; Phase 54A.5.4
+    /// replaces it with typed score/compact/audit PyO3 output buffers.
+    fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let request = self.inner.clone();
+        let result = py
+            .detach(move || request.execute())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        native_request_output_payload(py, result)
+    }
+}
+
 /// Immutable, validated native strategy IR. It contains no Python callback or
 /// object reference and may therefore be cloned into a detached Rust run.
 #[pyclass]
@@ -2881,6 +3073,151 @@ fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<P
     Ok(payload.unbind())
 }
 
+#[allow(clippy::too_many_arguments)]
+fn build_command_request(
+    market: Arc<FullMarketData>,
+    ptr: &[i64],
+    codes: &[i64],
+    codes_shape: &[usize],
+    values: &[f64],
+    values_shape: &[usize],
+    expiry: &[i64],
+    contract_sizes: Vec<f64>,
+    leverages: Vec<f64>,
+    fee_rates: Vec<f64>,
+    initial_capital: f64,
+    maintenance_ratio: f64,
+    slippage_rate: f64,
+    use_funding: bool,
+    event_contract_code: i64,
+    output_profile: u8,
+) -> Result<execution::NativeExecutionRequestV1, String> {
+    let tape = translate_full_command_tape(
+        &market,
+        ptr,
+        codes,
+        codes_shape,
+        values,
+        values_shape,
+        expiry,
+    )?;
+    let instruments =
+        execution::InstrumentTableV1::sequential(contract_sizes, leverages, fee_rates)?;
+    let account = execution::AccountModelV1::new(
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+    )?;
+    let contract = execution::ExecutionContractV1::new(event_contract_code)?;
+    let output = execution::NativeOutputProfileV1::try_from(output_profile)?;
+    execution::NativeExecutionRequestV1::new(
+        market,
+        instruments,
+        account,
+        contract,
+        output,
+        execution::WorkloadPayloadV1::CommandTape(tape),
+    )
+}
+
+fn native_request_output_payload(
+    py: Python<'_>,
+    result: execution::NativeExecutionResultV1,
+) -> PyResult<Py<PyDict>> {
+    let profile = result.output_profile;
+    let workload = result.workload_kind;
+    let fingerprint = result.fingerprint_hex();
+    let output = result.output;
+    let payload = PyDict::new(py);
+    payload.set_item("final_equity", output.final_equity)?;
+    payload.set_item("final_positions", output.final_positions)?;
+    payload.set_item("total_fee", output.total_fee)?;
+    payload.set_item("total_turnover", output.total_turnover)?;
+    payload.set_item("total_funding", output.total_funding)?;
+    payload.set_item("fill_count", output.fill_count)?;
+    payload.set_item("event_count", output.event_count)?;
+    payload.set_item("rejected_count", output.rejected_count)?;
+    payload.set_item("canceled_count", output.canceled_count)?;
+    payload.set_item("max_initial_margin", output.max_initial_margin)?;
+    payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+    payload.set_item("liquidated", output.liquidated)?;
+    payload.set_item("liquidation_bar", output.liquidation_bar)?;
+    payload.set_item("liquidation_reason", output.liquidation_reason)?;
+    payload.set_item("native_execution_request_version", result.request_version)?;
+    payload.set_item("native_execution_protocol_version", result.protocol_version)?;
+    payload.set_item("native_execution_request_fingerprint", fingerprint)?;
+    payload.set_item("native_execution_workload", workload.name())?;
+    payload.set_item("native_execution_output_profile", profile.name())?;
+    payload.set_item("native_execution_command_count", result.command_count)?;
+    payload.set_item("python_callbacks", 0)?;
+    payload.set_item("boundary_calls", 1)?;
+
+    if matches!(
+        profile,
+        execution::NativeOutputProfileV1::Compact | execution::NativeOutputProfileV1::Audit
+    ) {
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("fees", output.fees)?;
+        payload.set_item("turnover", output.turnover)?;
+        payload.set_item("funding", output.funding)?;
+        payload.set_item("initial_margin", output.initial_margin)?;
+        payload.set_item("maintenance_margin", output.maintenance_margin)?;
+    }
+    if matches!(profile, execution::NativeOutputProfileV1::Audit) {
+        payload.set_item("fill_bar", output.fill_bar)?;
+        payload.set_item("fill_order_id", output.fill_order_id)?;
+        payload.set_item("fill_symbol", output.fill_symbol)?;
+        payload.set_item("fill_side", output.fill_side)?;
+        payload.set_item("fill_qty", output.fill_qty)?;
+        payload.set_item("fill_price", output.fill_price)?;
+        payload.set_item("fill_fee", output.fill_fee)?;
+        payload.set_item("fill_reason", output.fill_reason)?;
+        payload.set_item("fill_ambiguity", output.fill_ambiguity)?;
+        payload.set_item("event_bar", output.event_bar)?;
+        payload.set_item("event_kind", output.event_kind)?;
+        payload.set_item("event_status", output.event_status)?;
+        payload.set_item("event_order_id", output.event_order_id)?;
+        payload.set_item("event_target_id", output.event_target_id)?;
+        payload.set_item("event_symbol", output.event_symbol)?;
+        payload.set_item("event_reject_code", output.event_reject_code)?;
+    }
+    Ok(payload.unbind())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn translate_full_command_tape(
+    market: &FullMarketData,
+    ptr: &[i64],
+    codes: &[i64],
+    codes_shape: &[usize],
+    values: &[f64],
+    values_shape: &[usize],
+    expiry: &[i64],
+) -> Result<quantbt_domain::CommandTapeV5, String> {
+    if codes_shape.len() != 2
+        || codes_shape[1] != full::CODE_WIDTH
+        || values_shape.len() != 2
+        || values_shape[0] != codes_shape[0]
+        || values_shape[1] != full::VALUE_WIDTH
+        || codes.len() != codes_shape[0] * full::CODE_WIDTH
+        || values.len() != values_shape[0] * full::VALUE_WIDTH
+        || expiry.len() != codes_shape[0]
+    {
+        return Err("invalid full tape shapes".to_owned());
+    }
+    quantbt_domain::LegacyCommandTapeV4 {
+        offsets_by_bar: ptr,
+        codes,
+        values,
+        expiry,
+        n_bars: market.n_bars,
+    }
+    .translate(market.n_symbols)
+    .map_err(|error| error.to_string())
+}
+
 /// API 0.4 adapter: validate public matrix dimensions once, then delegate the
 /// complete run to the pure Rust engine. The engine returns flat SoA columns;
 /// this binding no longer constructs nested rows or owns execution state.
@@ -2923,27 +3260,22 @@ fn run_full_tape_profile(
     expiry: &[i64],
     profile: quantbt_engine::StaticOutputProfile,
 ) -> Result<quantbt_engine::StaticTapeOutput, String> {
-    if codes_shape.len() != 2
-        || codes_shape[1] != full::CODE_WIDTH
-        || values_shape.len() != 2
-        || values_shape[0] != codes_shape[0]
-        || values_shape[1] != full::VALUE_WIDTH
-        || codes.len() != codes_shape[0] * full::CODE_WIDTH
-        || values.len() != values_shape[0] * full::VALUE_WIDTH
-        || expiry.len() != codes_shape[0]
-    {
-        return Err("invalid full tape shapes".to_owned());
-    }
+    // API 0.4 remains a compatibility wire format only.  Translate once at
+    // ingress so every static full-tape run shares the ABI-0.5 `CommandTapeV5`
+    // lifecycle path used by typed requests, IR, portfolio and packages.
+    let tape = translate_full_command_tape(
+        &session.market,
+        ptr,
+        codes,
+        codes_shape,
+        values,
+        values_shape,
+        expiry,
+    )?;
     match profile {
-        quantbt_engine::StaticOutputProfile::Score => {
-            session.run_static_score(ptr, codes, values, expiry, codes_shape[0])
-        }
-        quantbt_engine::StaticOutputProfile::Compact => {
-            session.run_static_compact(ptr, codes, values, expiry, codes_shape[0])
-        }
-        quantbt_engine::StaticOutputProfile::Audit => {
-            session.run_static_audit(ptr, codes, values, expiry, codes_shape[0])
-        }
+        quantbt_engine::StaticOutputProfile::Score => session.run_typed_score(&tape),
+        quantbt_engine::StaticOutputProfile::Compact => session.run_typed_compact(&tape),
+        quantbt_engine::StaticOutputProfile::Audit => session.run_typed_audit(&tape),
     }
 }
 
@@ -2971,6 +3303,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ReactiveSessionCore>()?;
     module.add_class::<FullStepResultCore>()?;
     module.add_class::<FullPreparedMarketCore>()?;
+    module.add_class::<NativeExecutionRequestCore>()?;
     module.add_class::<NativeStrategyProgramCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
     Ok(())

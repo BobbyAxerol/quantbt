@@ -14,6 +14,7 @@ pyo3 = { version = "0.29", features = ["extension-module"] }
 quantbt-domain = { path = "../crates/quantbt-domain" }
 quantbt-batch = { path = "../crates/quantbt-batch" }
 quantbt-engine = { path = "../crates/quantbt-engine" }
+quantbt-execution = { path = "../crates/quantbt-execution" }
 quantbt-package = { path = "../crates/quantbt-package" }
 quantbt-portfolio = { path = "../crates/quantbt-portfolio" }
 quantbt-strategy-ir = { path = "../crates/quantbt-strategy-ir" }

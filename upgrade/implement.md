@@ -12695,7 +12695,7 @@ Boundary after Phase 54A:
 
 ### Phase 54A.5 - Rust Execution Ownership Completion, Typed Request, And Boundary Collapse
 
-**Status: planned. Must complete before any Phase 54B auto-promotion work.**
+**Status: in progress. Must complete before any Phase 54B auto-promotion work.**
 
 Detailed guide:
 
@@ -12814,6 +12814,64 @@ Requirements:
   lifecycle without direct position mutation or a separate account loop.
 - The request has a deterministic fingerprint covering market, instruments,
   contract, workload tape, output profile, and native protocol/ABI versions.
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added the pure-Rust `quantbt-execution` workspace crate and its immutable,
+  versioned `NativeExecutionRequestV1` contract. A request contains exactly one
+  prepared `FullMarketData`, normalized `InstrumentTableV1`, `AccountModelV1`,
+  fail-closed `ExecutionContractV1`, output profile, typed workload payload,
+  and deterministic request/protocol provenance.
+- `CommandTapeV5` is now the canonical static representation. The API-0.4
+  16-column arrays are translated once at the PyO3 compatibility ingress, then
+  `FullSession::run_typed_score`, `run_typed_compact`, or `run_typed_audit`
+  executes that tape. No second array-driven lifecycle/accounting loop remains
+  on the full static route.
+- Implemented typed `CommandTapeV5`, `StrategyIrWorkloadV1`,
+  `PortfolioTargetWorkloadV1`, and `PackageTapeV1` variants. Strategy IR
+  compiles to its immutable canonical tape at request construction. Portfolio
+  and package variants retain preflight/planning provenance and lower only to
+  the shared session tape; neither may mutate positions or run a separate
+  account loop.
+- Each `execute()` creates one fresh Rust-owned `FullSession`. Therefore a
+  reusable request never retains account/order/lifecycle state across runs.
+  The fingerprint covers timestamps, OHLCV, volume, funding rate/mask,
+  instrument sizing/leverage/fee, account model, contract, output profile,
+  exact workload data/provenance, and generated ABI/registry versions.
+- Added additive `NativeExecutionRequestCore` PyO3 construction for static
+  command tapes and declarative strategy IR. It crosses Python-to-Rust once per
+  `execute()` and has no callback or per-bar Python boundary. Existing public
+  API-0.4 session classes and endpoint routing are unchanged.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_typed_execution_request.py`.
+  It locks typed request versus API-0.4 full-session parity for equity,
+  positions, fees, turnover, funding, margin, fill/event trace, scalar
+  accounting, fresh-account repeated execution, score-output materialization,
+  strategy-IR compilation, bad contract/tape rejection, and API-0.4 translator
+  use.
+- Pure Rust request tests lock static score/compact/audit parity, fingerprint
+  invalidation for market/instrument/contract/output changes, one-time IR tape
+  compilation, portfolio/package shared-session entry, and pre-execution
+  rejection of invalid tape/contract mappings.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, and `cargo test --workspace` passed (`45` Rust unit tests).
+- Fresh editable extension build passed via `maturin develop --release`.
+  Focused Phase 54A.5 tests passed: `8 passed`. Full native-event regression
+  passed: `216 passed, 2 skipped`.
+
+Boundary:
+
+- This is an internal ABI-0.5 substrate, not a backend promotion. `auto`
+  remains Python-first and no existing endpoint changes its public signature or
+  execution route.
+- The new PyO3 request currently adapts result data into a cold-path `PyDict`.
+  Versioned typed SoA score/compact/audit buffers, cache ownership/budgets,
+  batch public ingress, and public portfolio/package typed routes remain the
+  explicit work of 54A.5.3 through 54A.5.6; they are not silently claimed here.
 
 #### 54A.5.3 - Rust-Owned State Across Static, IR, Batch, Portfolio, And Package
 

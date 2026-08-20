@@ -322,6 +322,7 @@ dependencies = [
  "quantbt-batch",
  "quantbt-domain",
  "quantbt-engine",
+ "quantbt-execution",
  "quantbt-package",
  "quantbt-portfolio",
  "quantbt-strategy-ir",
