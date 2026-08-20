@@ -39,7 +39,10 @@ quantbt-native (PyO3 extension)
 ## Current release status
 
 The staged pair is `quantbt-engine==1.0.8` with
-`quantbt-native==0.4.0`. It is an exact staged pair only. The native package
-is not published and `auto` does not select it. Consult the generated
+`quantbt-native==0.4.0`. It is an exact staged pair only, and the native
+package is not published. On the certified local Linux/CPython evidence matrix,
+`auto` promotes static command tapes at 10,000+ bars and bounded Native
+Strategy IR/batch requests at 2,000+ bars. All callback, reactive, portfolio,
+and package routes remain Python. Consult the generated
 [compatibility matrix](../contracts/generated_product_compatibility.md) rather
 than assuming that an installed extension supports a workload.

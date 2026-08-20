@@ -413,6 +413,163 @@ class RustFullAuditResult:
     def final_equity(self) -> float:
         return float(self.equity[-1]) if len(self.equity) else 0.0
 
+    @classmethod
+    def from_compact_payload(
+        cls,
+        payload: Mapping[str, object],
+        *,
+        n_bars: int,
+        n_symbols: int,
+        id_values: tuple[str, ...] = (),
+        command_report: Optional[pd.DataFrame] = None,
+        command_metadata: Optional[Mapping[str, Mapping[str, object]]] = None,
+    ) -> "RustFullAuditResult":
+        """Adapt a dense Rust compact payload without fabricating audit rows.
+
+        Compact execution retains account paths and scalar lifecycle counters,
+        but intentionally omits fill/event ledgers.  This cold-path adapter
+        keeps that retention boundary visible on the common result surface;
+        it never replays the execution tape in Python.
+        """
+
+        float_keys = (
+            "equity",
+            "positions",
+            "fees",
+            "turnover",
+            "funding",
+            "initial_margin",
+            "maintenance_margin",
+        )
+        arrays = {
+            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            for key in float_keys
+        }
+        if arrays["equity"].shape != (int(n_bars),):
+            raise NativeEventRustBackendError("compact Rust equity shape does not match prepared market bars")
+        arrays["positions"] = np.ascontiguousarray(
+            arrays["positions"].reshape(int(n_bars), int(n_symbols)), dtype=np.float64
+        )
+        for key in float_keys:
+            if key == "positions":
+                continue
+            if arrays[key].shape != (int(n_bars),):
+                raise NativeEventRustBackendError(
+                    f"compact Rust {key} shape does not match prepared market bars"
+                )
+        empty_i64 = np.empty(0, dtype=np.int64)
+        empty_f64 = np.empty(0, dtype=np.float64)
+        return cls(
+            **arrays,
+            fill_bar=empty_i64,
+            fill_order_id=empty_i64.copy(),
+            fill_symbol=empty_i64.copy(),
+            fill_side=empty_i64.copy(),
+            fill_qty=empty_f64,
+            fill_price=empty_f64.copy(),
+            fill_fee=empty_f64.copy(),
+            fill_reason=empty_i64.copy(),
+            fill_ambiguity=empty_i64.copy(),
+            event_bar=empty_i64.copy(),
+            event_kind=empty_i64.copy(),
+            event_status=empty_i64.copy(),
+            event_order_id=empty_i64.copy(),
+            event_target_id=empty_i64.copy(),
+            event_symbol=empty_i64.copy(),
+            event_reject_code=empty_i64.copy(),
+            total_fee=float(payload["total_fee"]),
+            total_turnover=float(payload["total_turnover"]),
+            total_funding=float(payload["total_funding"]),
+            fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]),
+            rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]),
+            max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]),
+            liquidated=bool(payload["liquidated"]),
+            liquidation_bar=int(payload["liquidation_bar"]),
+            liquidation_reason=int(payload["liquidation_reason"]),
+            id_values=tuple(id_values),
+            command_report=command_report,
+            command_metadata={} if command_metadata is None else command_metadata,
+        )
+
+    @classmethod
+    def from_audit_payload(
+        cls,
+        payload: Mapping[str, object],
+        *,
+        n_bars: int,
+        n_symbols: int,
+        id_values: tuple[str, ...] = (),
+        command_report: Optional[pd.DataFrame] = None,
+        command_metadata: Optional[Mapping[str, Mapping[str, object]]] = None,
+    ) -> "RustFullAuditResult":
+        """Adapt one typed audit payload with no Python execution replay."""
+
+        float_keys = (
+            "equity",
+            "positions",
+            "fees",
+            "turnover",
+            "funding",
+            "initial_margin",
+            "maintenance_margin",
+            "fill_qty",
+            "fill_price",
+            "fill_fee",
+        )
+        int_keys = (
+            "fill_bar",
+            "fill_order_id",
+            "fill_symbol",
+            "fill_side",
+            "event_bar",
+            "event_kind",
+            "event_status",
+            "event_order_id",
+            "event_target_id",
+            "event_symbol",
+            "event_reject_code",
+        )
+        arrays = {
+            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            for key in float_keys
+        }
+        arrays.update(
+            {
+                key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.int64)
+                for key in int_keys
+            }
+        )
+        arrays["fill_reason"] = np.ascontiguousarray(
+            np.asarray(payload.get("fill_reason", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
+        )
+        arrays["fill_ambiguity"] = np.ascontiguousarray(
+            np.asarray(payload.get("fill_ambiguity", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
+        )
+        arrays["positions"] = np.ascontiguousarray(
+            np.asarray(arrays["positions"], dtype=np.float64).reshape(int(n_bars), int(n_symbols))
+        )
+        return cls(
+            **arrays,
+            total_fee=float(payload["total_fee"]),
+            total_turnover=float(payload["total_turnover"]),
+            total_funding=float(payload["total_funding"]),
+            fill_count=int(payload["fill_count"]),
+            event_count=int(payload["event_count"]),
+            rejected_count=int(payload["rejected_count"]),
+            canceled_count=int(payload["canceled_count"]),
+            max_initial_margin=float(payload["max_initial_margin"]),
+            max_maintenance_margin=float(payload["max_maintenance_margin"]),
+            liquidated=bool(payload["liquidated"]),
+            liquidation_bar=int(payload["liquidation_bar"]),
+            liquidation_reason=int(payload["liquidation_reason"]),
+            id_values=tuple(id_values),
+            command_report=command_report,
+            command_metadata={} if command_metadata is None else command_metadata,
+        )
+
     def to_backtest_result(
         self,
         *,
@@ -797,6 +954,7 @@ def resolve_native_event_backend(
     symbol_count: int = 1,
     required_capabilities: Sequence[str] = (),
     environment: Optional[Mapping[str, str]] = None,
+    defer_explicit_error: bool = False,
 ) -> NativeEventBackendSelection:
     """Resolve native-event routing through the versioned product policy.
 
@@ -845,7 +1003,7 @@ def resolve_native_event_backend(
     except NativePromotionError as exc:
         raise NativeEventRustBackendError(str(exc)) from exc
 
-    if selected == "rust" and decision.resolved_backend != "rust":
+    if selected == "rust" and decision.resolved_backend != "rust" and not defer_explicit_error:
         detail = decision.native_reason or decision.reason
         raise NativeEventRustBackendError(f"native-event backend='rust' is unavailable: {detail}")
 
@@ -1235,6 +1393,9 @@ class RustFullRunner:
     ) -> None:
         self.idx = pd.DatetimeIndex(idx)
         self.symbols = tuple(symbols)
+        # Retain an immutable Python view for cold-path result adaptation and
+        # native-IR provenance only. The Rust session owns execution state.
+        self.market_arrays = market_arrays
         self.contract_sizes = np.ascontiguousarray(contract_sizes, dtype=np.float64)
         self.leverages = np.ascontiguousarray(leverages, dtype=np.float64)
         self.fee_rates = np.ascontiguousarray(fee_rates, dtype=np.float64)
@@ -1413,40 +1574,10 @@ class RustFullRunner:
     def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
-        float_keys = (
-            "equity", "positions", "fees", "turnover", "funding", "initial_margin",
-            "maintenance_margin", "fill_qty", "fill_price", "fill_fee",
-        )
-        int_keys = (
-            "fill_bar", "fill_order_id", "fill_symbol", "fill_side", "event_bar",
-            "event_kind", "event_status", "event_order_id", "event_target_id",
-            "event_symbol", "event_reject_code",
-        )
-        arrays = {
-            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
-            for key in float_keys
-        }
-        arrays.update(
-            {
-                key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.int64)
-                for key in int_keys
-            }
-        )
-        arrays["fill_reason"] = np.ascontiguousarray(
-            np.asarray(payload.get("fill_reason", np.zeros(len(arrays["fill_bar"]), dtype=np.int64)))
-        )
-        arrays["fill_ambiguity"] = np.ascontiguousarray(
-            np.asarray(payload.get("fill_ambiguity", np.zeros(len(arrays["fill_bar"]), dtype=np.int64)))
-        )
-        arrays["positions"] = np.asarray(arrays["positions"], dtype=np.float64).reshape(len(self.idx), len(self.symbols))
-        return RustFullAuditResult(
-            **arrays,
-            total_fee=float(payload["total_fee"]), total_turnover=float(payload["total_turnover"]),
-            total_funding=float(payload["total_funding"]), fill_count=int(payload["fill_count"]),
-            event_count=int(payload["event_count"]), rejected_count=int(payload["rejected_count"]),
-            canceled_count=int(payload["canceled_count"]), max_initial_margin=float(payload["max_initial_margin"]),
-            max_maintenance_margin=float(payload["max_maintenance_margin"]), liquidated=bool(payload["liquidated"]),
-            liquidation_bar=int(payload["liquidation_bar"]), liquidation_reason=int(payload["liquidation_reason"]),
+        return RustFullAuditResult.from_audit_payload(
+            payload,
+            n_bars=len(self.idx),
+            n_symbols=len(self.symbols),
             id_values=tuple(compiled_commands.id_values),
             command_report=_build_rust_command_intent_report(compiled_commands),
             command_metadata={

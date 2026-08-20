@@ -60,7 +60,7 @@ def _promotion_context(
         strategy_mode=request.strategy_mode.value,
         profile=profile.value,
         account_model=request.account_model.value,
-        bars=0,
+        bars=int(request.bars),
         symbol_count=len(request.symbols),
         required_capabilities=tuple(request.required_capabilities),
         native_available=None if capability is None else capability.available,
@@ -153,6 +153,7 @@ def resolve_execution_plan(
         promotion_reason=decision.reason,
         promotion_table_version=decision.promotion_table_version,
         promotion_rule_id=decision.matched_rule_id,
+        promotion_minimum_bars=decision.minimum_bars,
         promotion_fingerprint=decision.fingerprint,
     )
     return plan.with_fingerprint()

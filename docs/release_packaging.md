@@ -21,9 +21,12 @@ make release-manifest
 
 `release-manifest.json` records artifact checksums, product/lifecycle registry
 fingerprints, benchmark references, and hashes of the supply-chain report and
-CycloneDX SBOM. The core release remains Python-first. A locally built
-`quantbt-native` wheel is an exact staged companion only; it is not bundled in
-the core PyPI artifact and it does not make `backend="auto"` select Rust.
+CycloneDX SBOM. The core PyPI release remains usable without native code. A
+locally built exact-pair `quantbt-native` wheel is not bundled in the core PyPI
+artifact; when installed, it enables the bounded Stage-B `backend="auto"`
+policy only for certified static command tapes and Native Strategy IR/batch
+rows. It does not promote callbacks, reactive strategies, portfolio, or
+package/arbitrage execution.
 
 The supply-chain report also records source/ref cleanliness, Python/Rust
 toolchain and target metadata, native build profile/features, the Cargo lock
@@ -295,10 +298,12 @@ from quantbt import QuantBTEndpoint
 
 ## Native Package Note
 
-`quantbt-native` is not published in the current Phase 48F core release. Its current Rust crate version
-and native API version are separate from the core package version. Rust remains
-available only through an explicitly installed local wheel and an explicit
-`native_backend="rust"` request.
+`quantbt-native` is not published in the current Phase 48F core release. Its
+current Rust crate version and native API version are separate from the core
+package version. Rust remains available only through an explicitly installed
+local wheel. With that exact local pair, `native_backend="auto"` follows the
+generated Stage-B policy; `native_backend="rust"` remains explicit and
+fail-fast.
 
 Historical Phase 46F rerun evidence retained for comparison is:
 
@@ -310,7 +315,7 @@ Historical Phase 46F rerun evidence retained for comparison is:
 | Absolute peak RSS | pass (`184.11 MB < 512 MB`) |
 | 100-run RSS plateau | pass |
 | Prepared RSS reduction >= 40% | fail (`-26.1%` / `-7.6%`) |
-| Automatic Rust routing | disabled |
+| Automatic Rust routing | local Stage-B static/IR/batch rows only; core-only installs remain Python |
 | Non-empty `quantbt-engine[native]` extra | not released |
 
 Consequently the core package can be released independently, while the native
@@ -325,8 +330,9 @@ distribution version is currently `0.4.0` and its executable native API is
 `0.4`; these are separate version contracts.
 
 `native_backend="rust"` is explicit and fail-fast. It does not silently
-downgrade to Python. `native_backend="auto"` remains Python in
-`quantbt-engine 1.0.8` until the public wheel matrix and release gates pass.
+downgrade to Python. With a matching local API-0.4 companion,
+`native_backend="auto"` uses the generated Stage-B static/IR/batch policy;
+without that companion, the published core-only install remains Python.
 
 The API 0.4 capability contract covers:
 
@@ -356,11 +362,13 @@ cargo test
 maturin build --release
 ```
 
-`QUANTBT_NATIVE_BACKEND=auto` and `python` continue using the existing Python
-Native Event implementation. `rust` is explicit and is capability-gated at
-API 0.4 before execution. A missing or incomplete native wheel fails clearly;
-it never falls back silently. Public native installation remains a separate
-manylinux CPython 3.11–3.13 release gate.
+`QUANTBT_NATIVE_BACKEND=python` forces the existing Python Native Event
+implementation. `auto` follows the generated Stage-B policy only when the
+matching local companion is installed; otherwise it remains Python. `rust` is
+explicit and capability-gated at API 0.4 before execution. A missing or
+incomplete native wheel fails clearly for an explicit Rust request; automatic
+fallback records a structured reason. Public native installation remains a
+separate manylinux CPython 3.11-3.13 release gate.
 
 Native publishing must wait until the API 0.4 package builds for every
 advertised wheel target, installs beside the matching `quantbt-engine` wheel,
@@ -452,8 +460,9 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
    archive the wheel, sdist, test output, and release manifest.
 
 Do not publish `quantbt-native` in this flow. It has a separate future release
-when its wheel matrix and RSS gates pass. Until then, `auto` remains Python and
-the native extra remains empty.
+when its wheel matrix and RSS gates pass. Until then, the PyPI core-only
+install uses Python; the local exact-pair Stage-B policy is documented in the
+generated compatibility table, and the native extra remains empty.
 
 ## Benchmark Evidence And Open Optimization Scope
 

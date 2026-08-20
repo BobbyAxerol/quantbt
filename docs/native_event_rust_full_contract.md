@@ -187,8 +187,9 @@ strict and fails before execution if the installed wheel is unavailable,
 incompatible, non-executable, or missing a required capability. Only
 `native_backend="auto"` is eligible for promotion. `backend_policy` accepts
 `certified_only`, `prefer_native`, and `prefer_compatibility`; neither of the
-first two can override an unpromoted registry row. At this release's
-`explicit_only` stage all public `auto` requests still resolve to Python.
+first two can override an unpromoted registry row. The Phase 54B.1
+`explicit_only` behavior was the intentional baseline before the
+route-specific Phase 54B.2 evidence below.
 
 The local emergency controls are deterministic and require no network service:
 `QUANTBT_DISABLE_NATIVE=1` disables native routing, while
@@ -197,6 +198,28 @@ metadata stores `native_event_promotion_v1`, including the table and registry
 fingerprints, contract, matched rule, wheel/API/capability evidence when probed,
 fallback code, and exact rollback state. This metadata is diagnostic only; it
 does not change matching, accounting, fees, funding, margin, or liquidation.
+
+### Phase 54B.2 static/IR/batch public promotion
+
+The generated `native-event-promotion-v2` table now enables only Stage-B E0,
+E3, and E6 rows. A public static V2/V3 command-tape request resolves
+`native_backend="auto"` to Rust at 10,000 or more bars. A bounded
+`NativeStrategyIR` v1 run, its shared batch scorer, or a causal
+`NativeIRFold` batch resolves to Rust at 2,000 or more bars. Both routes use a
+single Rust execution session and one Python-to-Rust boundary per run or batch.
+
+The public `NativeIRExecutionRunner` and order-command facades adapt typed
+Rust outputs only after execution. Score/compact paths do not create audit rows
+or replay Python accounting; audit paths adapt the Rust lifecycle,
+command-outcome, fill, and canonical trace buffers directly. The matching
+Python route remains an explicit oracle and parity comparator.
+
+All remaining routes are deliberately non-promoted: arbitrary callback and
+reactive strategies, portfolio targets, package/arbitrage execution, and any
+unsupported lifecycle/program/account/profile combination stay Python with
+versioned decision metadata. `QUANTBT_DISABLE_NATIVE=1` or
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` supplies deterministic local
+rollback without altering domain semantics.
 
 ### Phase 54A.5.6 differential corpus and exit evidence
 

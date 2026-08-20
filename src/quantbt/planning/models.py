@@ -25,6 +25,7 @@ class BackendDecisionReason(str, Enum):
     AUTO_PYTHON_WORKLOAD_NOT_PROMOTED = "workload_not_promoted"
     AUTO_PYTHON_STAGE_LIMITED = "promotion_stage_limited"
     AUTO_PYTHON_WORKLOAD_SHAPE = "workload_shape_not_certified"
+    AUTO_PYTHON_BELOW_PROMOTION_MIN_BARS = "below_promotion_min_bars"
     REPLAY_CERTIFIED_COMPATIBILITY = "replay_certified_compatibility"
 
 
@@ -40,6 +41,7 @@ class StrategyMode(str, Enum):
     STATIC_COMMANDS = "static_commands"
     PYTHON_CALLBACK_COMPAT = "python_callback_compat"
     SIGNAL = "signal"
+    NATIVE_IR = "ir_v1"
     PORTFOLIO = "portfolio"
     PACKAGE = "package"
 
@@ -162,6 +164,7 @@ class BacktestRequest:
     audit_sink: str
     symbols: tuple[str, ...]
     command_count: int = 0
+    bars: int = 0
     market_layout: MarketLayout = MarketLayout.ALIGNED_OHLCV
     account_model: AccountModelRef = AccountModelRef.LINEAR_QUOTE_SETTLED_GROSS_CROSS
     numeric: NumericPolicy = field(default_factory=NumericPolicy)
@@ -179,6 +182,8 @@ class BacktestRequest:
             raise ValueError("BacktestRequest requires at least one symbol")
         if self.command_count < 0:
             raise ValueError("command_count must be >= 0")
+        if self.bars < 0:
+            raise ValueError("bars must be >= 0")
         if len(set(self.symbols)) != len(self.symbols):
             raise ValueError("symbols must be unique and ordered")
 
@@ -218,6 +223,7 @@ class ExecutionPlan:
     promotion_reason: str = ""
     promotion_table_version: str = ""
     promotion_rule_id: str | None = None
+    promotion_minimum_bars: int = 0
     promotion_fingerprint: str = ""
 
     def __post_init__(self) -> None:

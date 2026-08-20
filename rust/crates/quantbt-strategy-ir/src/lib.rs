@@ -357,8 +357,16 @@ impl StrategyProgram {
                 if delta.abs() > EPSILON {
                     let parent_id = next_id;
                     next_id += 1;
+                    // Match the Python reference's ``np.sign`` semantics:
+                    // zero is neutral, not positive. A transition from a
+                    // desired long/short target to flat must remain a normal
+                    // market delta when no parent ever filled; marking it
+                    // reduce-only would reject the command and leave Rust's
+                    // lifecycle path divergent from the canonical tape.
+                    let same_nonzero_side = (target > 0.0 && state.target > 0.0)
+                        || (target < 0.0 && state.target < 0.0);
                     let reduce_only = matches!(self.kind, StrategyKind::FixedBracket)
-                        && target.signum() == state.target.signum()
+                        && same_nonzero_side
                         && target.abs() < state.target.abs();
                     commands.push(market_command(self.symbol, delta, parent_id, reduce_only));
                     if matches!(self.kind, StrategyKind::FixedBracket) && target.abs() > EPSILON {
@@ -837,5 +845,23 @@ mod tests {
             tape.commands_at(1)[0].external_id.0
         );
         assert_eq!(tape.commands_at(1)[1].oco_id, tape.commands_at(1)[2].oco_id);
+    }
+
+    #[test]
+    fn fixed_bracket_target_to_flat_is_not_reduce_only() {
+        let program = StrategyProgram::new(
+            STRATEGY_IR_VERSION,
+            StrategyKind::FixedBracket,
+            SymbolId(0),
+            defaults(),
+            ProgramLimits::default(),
+        )
+        .unwrap();
+        let tape = program
+            .compile_tape(&[1.0, 0.0], &[100.0, 100.0], None)
+            .unwrap();
+        let commands = tape.commands_at(1);
+        assert_eq!(commands.len(), 3);
+        assert!(!commands[2].reduce_only);
     }
 }

@@ -7,22 +7,22 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `fce9035fa4979c5ab58157eed4a8add1628768ca8eaf18b1b5cc518cbf553ede`
+- Product fingerprint: `15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
 - Core distribution: `quantbt-engine==1.0.8`
 - Native distribution: `quantbt-native==0.4.0` (published: `false`)
 
 ## Promotion Policy
 
-- Table version: `native-event-promotion-v1` (schema `1`)
+- Table version: `native-event-promotion-v2` (schema `1`)
 - Default user policy: `certified_only`
-- Configured automatic stage: `explicit_only`
+- Configured automatic stage: `static_ir`
 - Emergency controls: `QUANTBT_DISABLE_NATIVE=1` and `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`.
 
 | Rule | Workload | Stage | Enabled | Required capabilities |
 |---|---|---|---|---|
-| `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `false` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships` |
-| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `false` | `native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
+| `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `true` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships, native_event_v2_quantity_preflight` |
+| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `true` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
 | `portfolio_target_rust_stage_c` | `portfolio_target_preflight_v1` | `portfolio` | `false` | `native_portfolio_target_preflight_v1` |
 | `package_transaction_rust_stage_d` | `package_transaction_preflight_v1` | `package` | `false` | `native_package_transaction_preflight_v1` |
 
@@ -40,9 +40,9 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 | Workload | Contracts | Strategy mode | Profiles | Maturity | Auto |
 |---|---|---|---|---|---|
-| `event_static_tape_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `static_commands` | `score, minimal, standard, audit` | `certified` | `false` |
+| `event_static_tape_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `static_commands` | `score, minimal, standard, audit` | `promoted` | `true` |
 | `event_python_callback_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_compat` | `score, minimal, standard, audit` | `experimental` | `false` |
-| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, compact, audit` | `experimental` | `false` |
+| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, minimal, standard, audit` | `promoted` | `true` |
 | `portfolio_target_preflight_v1` | `event_lifecycle_v3_next_open` | `portfolio_target_preflight` | `score, audit` | `experimental` | `false` |
 | `package_transaction_preflight_v1` | `event_lifecycle_v3_next_open` | `package_transaction_preflight` | `score, audit` | `experimental` | `false` |
 
@@ -50,7 +50,7 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 | Core | Native | Protocol | Status | Fallback |
 |---|---|---|---|---|
-| `1.0.8` | `0.4.0` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_uses_python |
+| `1.0.8` | `0.4.0` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason |
 
 ## Deprecations
 

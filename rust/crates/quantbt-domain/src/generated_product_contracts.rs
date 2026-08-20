@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 pub const PRODUCT_CONTRACT_REGISTRY_FINGERPRINT: &str =
-    "fce9035fa4979c5ab58157eed4a8add1628768ca8eaf18b1b5cc518cbf553ede";
+    "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2";
 pub const LIFECYCLE_REGISTRY_FINGERPRINT: &str =
     "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d";
 pub const CORE_PACKAGE_VERSION: &str = "1.0.8";
@@ -15,8 +15,8 @@ pub const COMMAND_ABI_VERSION: &str = "full-command-v1";
 pub const RESULT_ABI_VERSION: &str = "native-event-result-v1";
 pub const TRACE_SCHEMA_VERSION: &str = "canonical-execution-trace-v1";
 pub const STRATEGY_IR_VERSION: &str = "native-strategy-ir-v1";
-pub const PROMOTION_POLICY_TABLE_VERSION: &str = "native-event-promotion-v1";
-pub const PROMOTION_POLICY_DEFAULT_STAGE: &str = "explicit_only";
+pub const PROMOTION_POLICY_TABLE_VERSION: &str = "native-event-promotion-v2";
+pub const PROMOTION_POLICY_DEFAULT_STAGE: &str = "static_ir";
 pub const PROMOTION_POLICY_DEFAULT_BACKEND_POLICY: &str = "certified_only";
 
 pub const NATIVE_EXTENSION_CAPABILITIES: &[&str] = &[

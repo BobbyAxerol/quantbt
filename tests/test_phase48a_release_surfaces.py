@@ -70,7 +70,8 @@ def test_release_packaging_docs_describe_current_api_04_policy():
 
     assert "public Native Event V2" in current_section
     assert "native_backend=\"rust\"` is explicit and fail-fast" in current_section
-    assert "native_backend=\"auto\"` remains Python" in current_section
+    assert "native_backend=\"auto\"` uses the generated Stage-B static/IR/batch policy" in current_section
+    assert "published core-only install remains Python" in current_section
     assert "one symbol, GTC, no funding" not in current_section
     assert "Parent/child, OCO, expiry, IOC/FOK" not in current_section
     assert "single- and multi-symbol execution" in current_section

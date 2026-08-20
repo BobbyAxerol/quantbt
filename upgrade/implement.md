@@ -13378,7 +13378,7 @@ Completion evidence:
 
 #### 54B.2 - Static, Native-IR, And Batch Rust-First Public Routes
 
-**Status: planned.**
+**Status: completed (2026-08-20) on `feat/51-native-rust-production-core`.**
 
 Detailed guide to read before every implementation decision:
 
@@ -13436,6 +13436,81 @@ Only certified E0/E3/E6 public requests may resolve Rust-first under auto.
 All non-certified callback and domain routes remain Python, with explicit
 decision metadata. No portfolio/package endpoint is promoted in this phase.
 ```
+
+Completion evidence:
+
+- Promoted the generated `native-event-promotion-v2` Stage-B rows only:
+  - static V2/V3 command tapes at `>= 10,000` bars;
+  - bounded `NativeStrategyIR` v1 and shared batch/fold scoring at `>= 2,000`
+    bars.
+  The resolver records `minimum_bars`, matched rule, exact table fingerprint,
+  and a stable fallback reason such as `below_promotion_min_bars` in
+  `native_event_promotion_v1` and the immutable execution plan.
+- Kept `native_backend="python"` as the executable oracle and
+  `native_backend="rust"` as strict fail-fast. `auto` uses Rust only on a
+  certified row with an executable exact-pair wheel. Callback/reactive,
+  portfolio, and package/arbitrage routes remain Python by policy, never by a
+  silent partial fallback. `QUANTBT_DISABLE_NATIVE=1` and
+  `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` deterministically roll a local
+  run back to Python.
+- Added the stable `NativeIRExecutionRunner` public facade via
+  `NativeEventBackend.prepare_native_strategy_ir(...)`. It performs one native
+  run/batch with Rust as the only mutable lifecycle/accounting owner. Score and
+  compact output do not replay audit; public results adapt typed Rust buffers on
+  the cold path. The full audit path projects command identity and lifecycle
+  ledgers without rerunning execution.
+- Fixed an actual full-contract IR drift discovered by the new corpus:
+  `fixed_bracket` target-to-flat transitions must not be emitted as
+  `reduce_only` because Python `sign(0) == 0`; Rust now matches that contract.
+  The generic native-event parity normalizer also resolves cancel/reject target
+  identities from the immutable source command, so raw event ledgers and
+  canonical traces compare consistently.
+- Added public differential coverage for static V2/V3 (including
+  multi-symbol funding and quantity constraints), Grid/DCA/fixed-bracket IR,
+  score/compact/audit profiles, selected audit rerun, batch worker determinism,
+  and causal-fold fresh-state behavior. Exact `auto == explicit Rust == Python`
+  accounting/lifecycle/canonical-trace parity passed.
+- Added the reproducible public-route benchmark and governed manifest:
+  `benchmarks/native_event/benchmark_phase54b2_public_routes.py`,
+  `benchmarks/native_event/results/phase54b2/public_routes.json`, and
+  `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json`.
+  Five warmed local repetitions recorded `0.741 ms / 2.70M bars/s` for a
+  2,000-bar IR score versus Python `31.565 ms / 63,361 bars/s`; the 64-scenario
+  batch reached `11.25M bars/s` with one boundary call and zero shared-market
+  copies per scenario. Static public facade timing is intentionally reported
+  separately and is not claimed as a generic Rust speedup because common
+  pandas/report adaptation dominates it.
+- Updated endpoint, capability, install, architecture, release, IR, README,
+  public inventory, and benchmark-governance documentation to distinguish the
+  local Stage-B policy from the core-only PyPI fallback policy.
+
+Certification commands passed:
+
+```bash
+UV_CACHE_DIR=/tmp/quantbt-uv-cache poetry run maturin develop --release \
+  --manifest-path rust/native_event/Cargo.toml
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
+  tests/native_event tests/native_event/contract
+cargo fmt --manifest-path rust/Cargo.toml --all --check
+cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+cargo test --manifest-path rust/Cargo.toml --workspace
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q
+```
+
+Results: `245 passed, 2 skipped` native-event; Rust fmt/clippy plus all
+workspace tests passed; full QuantBT regression `911 passed, 3 skipped`.
+
+Boundary after Phase 54B.2:
+
+- No correctness debt remains inside the promoted E0/E3/E6 rows under the
+  declared local Linux/CPython exact-pair evidence.
+- Static public audit/report construction remains a cold Python adaptation
+  cost; it is transparent in the benchmark and is not used to claim a generic
+  facade speedup. Any further report/trace optimization must retain the exact
+  canonical-trace contract.
+- Clean manylinux wheel matrix, published companion decision, and any
+  portfolio/package Rust promotion remain explicit Phase 54B.3/B.4 work, not
+  implied by this local Stage-B promotion.
 
 #### 54B.3 - Portfolio/Package Domain Promotion And Institutional Certification
 

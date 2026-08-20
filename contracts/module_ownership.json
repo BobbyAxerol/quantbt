@@ -111,6 +111,12 @@
       "review_target": "Phase 54B cleanup release"
     },
     {
+      "path": "src/quantbt/backends/native_strategy_ir.py",
+      "owner": "strategy-ir",
+      "reason": "Stage-B stable IR facade currently keeps bounded-program compilation, Rust/Python routing, batch/fold adapters, and cold public-result conversion together so promoted paths preserve one execution owner.",
+      "review_target": "Phase 54B.3/B.4 native IR facade extraction"
+    },
+    {
       "path": "src/quantbt/backends/_native_event_rust.py",
       "owner": "native-core",
       "reason": "PyO3 compatibility adapter is retained until a promoted native package has a stable public handshake.",

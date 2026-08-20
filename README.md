@@ -229,18 +229,37 @@ selection semantics inside `walkforward.py`. Read
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
 
-### Phase 53B native IR and batch evidence
+### Phase 54B.2 Rust-first static, IR, and batch routes
 
-The opt-in bounded Rust strategy IR now covers precomputed signal targets,
-structural Grid levels, periodic DCA, and fixed bracket/OCO transitions. It is
-separate from arbitrary Python callbacks and does not change the default event
-endpoint. On the committed 2,000-bar Grid fixture, the Python reference oracle
-measured **4.778 ms / 418,613 bars/s** while one-call Rust IR score measured
-**0.333 ms / 5.997M bars/s** with exact audit parity. A 64-scenario batch
-reached **21.41M simulated bars/s** at four workers, with zero prepared-market
-copies per scenario and selected-candidate audit reruns only. These are
-machine-local E3/E6 measurements, not a universal callback or portfolio claim;
-the reproducible artifact and capability boundary are in
+The bounded Rust strategy IR covers precomputed signal targets, structural
+Grid levels, periodic DCA, and fixed bracket/OCO transitions. The current
+generated Stage-B policy routes only certified static command tapes at 10,000+
+bars and bounded IR/batch requests at 2,000+ bars to Rust under
+`native_backend="auto"`. Python callbacks, reactive strategies, portfolio, and
+package/arbitrage execution remain Python compatibility routes.
+
+The local five-repeat public-route evidence below passed exact Python/Rust
+canonical-trace and accounting parity before timing. It is deliberately not a
+universal Rust speed claim: static public facade time is dominated by common
+Python preparation/report adaptation, while typed IR score and shared batch
+avoid those per-scenario costs.
+
+| Workload | Bars | Rust median | Rust throughput | Python median | Python throughput |
+|---|---:|---:|---:|---:|---:|
+| Static public compact | 10,000 | 63.612 ms | 157,203 bars/s | 53.606 ms | 186,545 bars/s |
+| Static public audit | 10,000 | 6.024 s | 1,660 bars/s | 5.924 s | 1,688 bars/s |
+| Native IR score | 2,000 | 0.741 ms | 2.70M bars/s | 31.565 ms | 63,361 bars/s |
+| Native IR batch, 64 scenarios | 128,000 | 11.379 ms | 11.25M bars/s | - | - |
+| Native IR causal fold, 64 scenarios | 64,000 | 7.386 ms | 8.67M bars/s | - | - |
+
+The Rust IR score has one boundary call, zero Python callbacks, and no audit
+replay. Batch/fold execution has one boundary call and zero prepared-market
+copies per scenario; its repeated-run RSS delta was 8-16 KiB on this host. An
+audit result is intentionally a cold reporting path: its typed Rust output is
+adapted to the normal `BacktestResultV2` without rerunning execution. Full
+evidence is in
+[`phase54b2/public_routes.md`](benchmarks/native_event/results/phase54b2/public_routes.md)
+and the support boundary is in
 [`docs/native_strategy_ir.md`](docs/native_strategy_ir.md).
 
 ### Phase 46F package and dual-backend release evidence
@@ -252,7 +271,7 @@ wheel:
 | Release artifact | Current status | Backend policy |
 |---|---|---|
 | `quantbt-engine==1.0.8` wheel/sdist | published on PyPI (2026-08-13) | Python canonical; all existing endpoints remain available |
-| `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
+| `quantbt-native` PyO3 wheel | staged, not published | local Stage-B `auto` only for certified static/IR/batch rows |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
 The committed Phase 46F rerun compares the same prepared static tape and keeps
@@ -428,8 +447,10 @@ Phase 48E also reduced the static explicit Rust score to `0.000302s`
 scalar Rust output contract and prepared command-tape reuse, so they are
 reported separately from callback execution. Rust and Python fingerprints,
 fees, positions, fills, events, rejection counters, and final equity passed.
-`backend="auto"` remains Python and `[native]` remains empty until the public
-`quantbt-native` wheel matrix is clean-install certified.
+At Phase 48E this historical benchmark had `auto` pinned to Python. The later
+Phase 54B.2 local Stage-B policy promotes only the certified static/IR/batch
+rows documented above; `[native]` remains empty until a public native-wheel
+matrix is clean-install certified.
 
 ### Phase 48E.1 native production-closure evidence
 
@@ -460,9 +481,10 @@ facade; it is not a universal Rust speed claim.
 
 Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
 reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
-validated Rust order state, and reset/lifecycle parity. `auto` remains Python;
-the native extra remains empty until the CPython 3.11/3.12/3.13 manylinux
-clean-install workflow passes.
+validated Rust order state, and reset/lifecycle parity. This paragraph records
+the historical pre-promotion state; the current Stage-B local policy is the
+bounded static/IR/batch policy above. The native extra remains empty until the
+CPython 3.11/3.12/3.13 manylinux clean-install workflow passes.
 
 Ecosystem positioning:
 

@@ -79,23 +79,25 @@ def execute_native_event_lifecycle(
     symbol_values = tuple(symbols)
     clock = get_event_clock_contract(execution_contract or "event_lifecycle_v2_next_bar_close")
     requested_backend = str(native_backend or "auto").lower().strip()
-    required = ()
-    if requested_backend == "rust":
-        required = (
-            "native_event_v2_full_contract",
-            "native_event_v2_multisymbol",
-            "native_event_v2_funding",
-            "native_event_v2_liquidation",
-            "native_event_v2_cancel_all_oco",
-            "native_event_v2_tif_expiry",
-            "native_event_v2_relationships",
+    # Declare the complete static-command capability shape for every backend
+    # request.  Stage-B ``auto`` must validate the same V2/V3 contract as an
+    # explicit Rust request before it can promote a route.
+    required = (
+        "native_event_v2_full_contract",
+        "native_event_v2_multisymbol",
+        "native_event_v2_funding",
+        "native_event_v2_liquidation",
+        "native_event_v2_cancel_all_oco",
+        "native_event_v2_tif_expiry",
+        "native_event_v2_relationships",
+        "native_event_v2_quantity_preflight",
+    )
+    if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+        required += (
+            "event_contract_registry_v1",
+            "event_lifecycle_v3_next_open",
+            "bar_fill_reason_v1",
         )
-        if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
-            required += (
-                "event_contract_registry_v1",
-                "event_lifecycle_v3_next_open",
-                "bar_fill_reason_v1",
-            )
     profile = _profile(report_level)
     request = BacktestRequest(
         endpoint_mode="orders",
@@ -110,6 +112,7 @@ def execute_native_event_lifecycle(
         audit_sink=str(audit_sink),
         symbols=symbol_values,
         command_count=len(commands),
+        bars=len(datetime_index),
         trace_requested=profile is RunProfile.AUDIT,
         # The stable facade always returns BacktestResultV2. Internal score
         # sessions set this false and retain scalar counters only.
@@ -209,6 +212,7 @@ def execute_native_event_lifecycle(
                 "reason": plan.promotion_reason,
                 "table_version": plan.promotion_table_version,
                 "rule_id": plan.promotion_rule_id,
+                "minimum_bars": plan.promotion_minimum_bars,
                 "fingerprint": plan.promotion_fingerprint,
             },
         }

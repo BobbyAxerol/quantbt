@@ -3,7 +3,7 @@
   "manifest_id": "native-event-e0-e3-e6-v1",
   "owner": "performance",
   "promotion_policy": "informational_only_until_installed_wheel_thresholds_and_rollback_are_certified",
-  "product_registry_fingerprint": "fce9035fa4979c5ab58157eed4a8add1628768ca8eaf18b1b5cc518cbf553ede",
+  "product_registry_fingerprint": "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2",
   "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
   "workloads": [
     {

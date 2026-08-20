@@ -112,6 +112,7 @@ class NativePromotionDecision:
     promotion_max_stage: str
     emergency_native_disabled: bool
     matched_rule_id: str | None
+    minimum_bars: int
     native_probe_required: bool
     native_available: bool | None
     native_compatible: bool | None
@@ -161,6 +162,7 @@ def native_event_workload_id(*, workload: str, strategy_mode: str) -> str:
         ("static_command_tape", "static_commands"): "event_static_tape_v2_v3",
         ("python_callback", "python_callback_compat"): "event_python_callback_v2_v3",
         ("signal_tape", "signal"): "native_strategy_ir_v1",
+        ("signal_tape", "ir_v1"): "native_strategy_ir_v1",
         ("portfolio_target", "portfolio"): "portfolio_target_preflight_v1",
         ("package_transaction", "package"): "package_transaction_preflight_v1",
     }
@@ -287,6 +289,7 @@ def _decision(
     promotion_max_stage: str,
     emergency_native_disabled: bool = False,
     matched_rule_id: str | None = None,
+    minimum_bars: int = 0,
     probe_required: bool = False,
 ) -> NativePromotionDecision:
     return NativePromotionDecision(
@@ -304,6 +307,7 @@ def _decision(
         promotion_max_stage=promotion_max_stage,
         emergency_native_disabled=emergency_native_disabled,
         matched_rule_id=matched_rule_id,
+        minimum_bars=int(minimum_bars),
         native_probe_required=probe_required,
         native_available=context.native_available,
         native_compatible=context.native_compatible,
@@ -325,6 +329,7 @@ def _native_status_decision(
     effective_stage: str,
     promotion_max_stage: str,
     matched_rule_id: str | None,
+    minimum_bars: int = 0,
     required_capabilities: tuple[str, ...],
 ) -> NativePromotionDecision:
     if context.native_available is None:
@@ -339,6 +344,7 @@ def _native_status_decision(
             effective_stage=effective_stage,
             promotion_max_stage=promotion_max_stage,
             matched_rule_id=matched_rule_id,
+            minimum_bars=minimum_bars,
             probe_required=True,
         )
     if not context.native_available:
@@ -353,6 +359,7 @@ def _native_status_decision(
             effective_stage=effective_stage,
             promotion_max_stage=promotion_max_stage,
             matched_rule_id=matched_rule_id,
+            minimum_bars=minimum_bars,
         )
     if not context.native_compatible:
         return _decision(
@@ -366,6 +373,7 @@ def _native_status_decision(
             effective_stage=effective_stage,
             promotion_max_stage=promotion_max_stage,
             matched_rule_id=matched_rule_id,
+            minimum_bars=minimum_bars,
         )
     if not context.native_executable:
         return _decision(
@@ -379,6 +387,7 @@ def _native_status_decision(
             effective_stage=effective_stage,
             promotion_max_stage=promotion_max_stage,
             matched_rule_id=matched_rule_id,
+            minimum_bars=minimum_bars,
         )
     missing = sorted(set(required_capabilities) - set(context.native_capabilities))
     if missing:
@@ -393,6 +402,7 @@ def _native_status_decision(
             effective_stage=effective_stage,
             promotion_max_stage=promotion_max_stage,
             matched_rule_id=matched_rule_id,
+            minimum_bars=minimum_bars,
         )
     return _decision(
         context,
@@ -405,6 +415,7 @@ def _native_status_decision(
         effective_stage=effective_stage,
         promotion_max_stage=promotion_max_stage,
         matched_rule_id=matched_rule_id,
+        minimum_bars=minimum_bars,
     )
 
 
@@ -559,6 +570,21 @@ def resolve_native_event_promotion(
             promotion_max_stage=promotion_max_stage,
         )
     rule = eligible_rules[0]
+    minimum_bars = int(rule["min_bars"])
+    if context.bars < minimum_bars:
+        return _decision(
+            context,
+            workload=workload,
+            policy=policy,
+            resolved="python",
+            reason="below_promotion_min_bars",
+            policy_table=policy_table,
+            configured_stage=configured_stage,
+            effective_stage=effective_stage,
+            promotion_max_stage=promotion_max_stage,
+            matched_rule_id=str(rule["id"]),
+            minimum_bars=minimum_bars,
+        )
     required = tuple(sorted(set(required) | {str(item) for item in rule["required_capabilities"]}))
     return _native_status_decision(
         context,
@@ -569,6 +595,7 @@ def resolve_native_event_promotion(
         effective_stage=effective_stage,
         promotion_max_stage=promotion_max_stage,
         matched_rule_id=str(rule["id"]),
+        minimum_bars=minimum_bars,
         required_capabilities=required,
     )
 

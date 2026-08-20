@@ -7,8 +7,9 @@ pip install quantbt-engine
 ```
 
 `quantbt-native` is currently a staged, unpublished companion. It is built and
-verified from the exact release source only. Do not assume a locally compiled
-extension is portable or eligible for `backend="auto"`.
+verified from the exact release source only. A locally compiled extension is
+eligible for `backend="auto"` only for the certified Stage-B rows in the
+generated compatibility table; it is not a portable blanket acceleration.
 
 ## Local staged verification
 
@@ -30,6 +31,12 @@ imports, and checks the exact core/native mapping from the product registry.
 - `backend="python"`: always selects the reference implementation.
 - `backend="rust"`: verifies the extension descriptor and fails clearly when
   the pair or workload is not compatible.
-- `backend="auto"`: remains Python-first in version 1.0.8.
+- `backend="auto"`: selects Rust only for certified static command tapes at
+  10,000+ bars and bounded Native Strategy IR/batch runs at 2,000+ bars; all
+  other workloads stay Python with a structured decision reason.
+
+Set `QUANTBT_DISABLE_NATIVE=1` to force the Python route, or
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` to cap local automatic promotion
+without changing code. Explicit `backend="rust"` remains fail-fast.
 
 See [Capabilities](capabilities.md) and [Troubleshooting](troubleshooting.md).

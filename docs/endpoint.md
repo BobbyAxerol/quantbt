@@ -1290,18 +1290,27 @@ promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
 these policies can bypass a missing capability, mismatched wheel, unsupported
 contract/profile/account model, or an emergency rollback switch.
 
-At the current `explicit_only` promotion stage, `auto` remains Python for every
-public workload. This is deliberate: Phase 54B.1 adds deterministic routing and
-evidence before Phase 54B.2 enables any static/IR/batch row. `rust` remains an
-explicit, fail-fast request and `python` remains the executable oracle.
+At the current Stage-B `static_ir` promotion stage, `auto` selects Rust only
+for certified bounded workloads on the declared local wheel/platform matrix:
 
-For a local emergency rollback, set `QUANTBT_DISABLE_NATIVE=1`. To cap a future
+| Workload | Automatic Rust condition |
+|---|---|
+| Static V2/V3 command tape | at least 10,000 bars |
+| Native Strategy IR v1 and its shared batch/fold scorer | at least 2,000 bars |
+| Python callback/reactive strategy, portfolio, package/arbitrage | Python compatibility route |
+
+Below a workload threshold, with an unsupported program/profile/contract, or
+when the wheel/capabilities do not match, `auto` uses Python and records a
+stable reason such as `below_promotion_min_bars`. `rust` remains an explicit,
+fail-fast request and `python` remains the executable oracle.
+
+For a local emergency rollback, set `QUANTBT_DISABLE_NATIVE=1`. To cap the
 promotion table without changing source, set
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only|static_ir|portfolio|package`.
 Every native-event result records `native_event_promotion_v1`, including the
-policy/table version, matched rule, contract, decision reason, and deterministic
-fingerprint. These controls never alter fees, fills, lifecycle timing, or
-accounting semantics.
+policy/table version, matched rule, minimum bar threshold, contract, decision
+reason, and deterministic fingerprint. These controls never alter fees, fills,
+lifecycle timing, or accounting semantics.
 
 `replay_certified` is the deterministic audit oracle. Rust audit results are
 adapted to `BacktestResultV2`, so the normal `show_metrics()`, `full_report()`,

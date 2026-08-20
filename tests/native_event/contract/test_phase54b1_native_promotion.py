@@ -39,6 +39,7 @@ _STATIC_CAPABILITIES = (
     "native_event_v2_cancel_all_oco",
     "native_event_v2_tif_expiry",
     "native_event_v2_relationships",
+    "native_event_v2_quantity_preflight",
 )
 
 
@@ -51,7 +52,7 @@ def _context(**updates) -> NativePromotionContext:
         "strategy_mode": "static_commands",
         "profile": "audit",
         "account_model": "linear_quote_settled_gross_cross",
-        "bars": 2_000,
+        "bars": 10_000,
         "symbol_count": 1,
         "required_capabilities": (),
         "platform_tags": ("cpython-3.12+", "linux-x86_64-local"),
@@ -97,21 +98,22 @@ def _request(**updates) -> BacktestRequest:
         "audit_sink": "memory",
         "symbols": ("BTCUSDT",),
         "command_count": 2,
+        "bars": 10_000,
         "trace_requested": True,
     }
     values.update(updates)
     return BacktestRequest(**values)
 
 
-def test_phase54b1_registry_is_versioned_and_auto_remains_release_locked():
+def test_phase54b1_registry_is_versioned_and_auto_requires_one_native_probe_when_promoted():
     decision = resolve_native_event_promotion(_context(), environment={})
 
     assert NATIVE_EVENT_PROMOTION_POLICY["table_version"] == NATIVE_EVENT_PROMOTION_TABLE_VERSION
     assert decision.resolved_backend == "python"
-    assert decision.reason == "auto_python_release_policy"
-    assert decision.native_probe_required is False
-    assert decision.configured_stage == "explicit_only"
-    assert decision.effective_stage == "explicit_only"
+    assert decision.reason == "native_probe_required"
+    assert decision.native_probe_required is True
+    assert decision.configured_stage == "static_ir"
+    assert decision.effective_stage == "static_ir"
     assert decision.to_dict()["fingerprint"] == decision.fingerprint
 
 
@@ -207,7 +209,7 @@ def test_phase54b1_decision_fingerprint_changes_only_with_routing_inputs():
     assert first.fingerprint != policy_changed.fingerprint
 
 
-def test_phase54b1_planner_keeps_auto_lazy_and_records_promotion_provenance():
+def test_phase54b1_planner_probes_promoted_auto_route_and_records_provenance():
     calls = 0
 
     def unexpected_probe() -> CapabilitySnapshot:
@@ -224,11 +226,11 @@ def test_phase54b1_planner_keeps_auto_lazy_and_records_promotion_provenance():
 
     plan = resolve_execution_plan(_request(), rust_capability_loader=unexpected_probe, environment={})
 
-    assert calls == 0
-    assert plan.backend is BackendKind.PYTHON
-    assert plan.promotion_reason == "auto_python_release_policy"
+    assert calls == 1
+    assert plan.backend is BackendKind.RUST
+    assert plan.promotion_reason == "auto_rust_certified"
     assert plan.promotion_table_version == NATIVE_EVENT_PROMOTION_TABLE_VERSION
-    assert plan.promotion_rule_id is None
+    assert plan.promotion_rule_id == "static_tape_rust_stage_b"
     assert len(plan.promotion_fingerprint) == 64
     assert plan.to_dict()["backend_policy"] == "certified_only"
 

@@ -1,10 +1,17 @@
 # Native Strategy IR and Scenario Batch
 
-Phase 53B adds an **opt-in, experimental** native route for deterministic
-event strategies that can be expressed as a bounded declarative program. It
-does not replace `QuantBTEndpoint.event_driven()`, callback strategies, or the
-existing walk-forward engine. Those public compatibility routes remain the
-canonical default until each workload has its own promotion evidence.
+Native Strategy IR is the bounded, declarative route for deterministic event
+strategies. Phase 54B.2 promotes the certified Stage-B subset to Rust-first
+under `native_backend="auto"`: a supported IR program with at least 2,000 bars
+uses one Rust-owned execution session. Python remains the public facade, the
+explicit oracle (`native_backend="python"`), and the compatibility path for
+arbitrary callbacks.
+
+This promotion does **not** turn every event strategy into native code.
+`QuantBTEndpoint.event_driven()` callback strategies and ordinary
+`QuantBTEndpoint.walk_forward()` callbacks remain Python compatibility routes.
+They may still use the normal event lifecycle engine, but they are not counted
+as native-IR throughput and are never silently compiled into IR.
 
 ## Why This Route Exists
 
@@ -38,6 +45,24 @@ All templates have bounded instructions and commands per bar. The signal
 generator stays in the strategy/research layer, where warm-up and look-ahead
 control belong. Native IR never invokes a Python callback while it runs.
 
+## Stage-B Route Policy
+
+Use the stable `NativeEventBackend.prepare_native_strategy_ir(...)` facade.
+It resolves a typed, versioned execution plan before market execution:
+
+| Request | Result |
+|---|---|
+| `native_backend="auto"`, supported v1 template, certified API-0.4 wheel, Linux local CPython evidence, `bars >= 2,000` | Rust-first |
+| `native_backend="auto"` below 2,000 bars or outside the capability row | Python with a structured `native_event_promotion_v1.reason` |
+| `native_backend="python"` | Python oracle explicitly |
+| `native_backend="rust"` | Rust strictly, or a clear pre-execution error |
+
+The promotion threshold is deliberately a routing/evidence threshold, not a
+trading rule. It never changes a signal, fill, fee, funding, margin, or
+liquidation calculation. `QUANTBT_DISABLE_NATIVE=1` forces Python; setting
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` caps automatic promotion locally.
+Portfolio and package routes are not covered by this Stage-B policy.
+
 ## Single-Run Use
 
 ```python
@@ -49,7 +74,6 @@ from quantbt import (
     NativeStrategyIR,
     NativeStrategyKind,
     NativeStrategyParameters,
-    RustNativeIRRunner,
 )
 
 backend = NativeEventBackend(
@@ -60,24 +84,25 @@ backend = NativeEventBackend(
         use_funding=False,
     )
 )
-prepared = backend.prepare_rust_batched_runner(
-    frame.index,
-    closes={"BTC": frame["close"]},
-    highs={"BTC": frame["high"]},
-    lows={"BTC": frame["low"]},
-    symbols=["BTC"],
-)
 program = NativeStrategyIR(
     NativeStrategyKind.GRID_LEVEL,
     "BTC",
     parameters=NativeStrategyParameters(quantity=0.01),
 )
-runner = RustNativeIRRunner(prepared, program)
+runner = backend.prepare_native_strategy_ir(
+    frame.index,
+    closes={"BTC": frame["close"]},
+    highs={"BTC": frame["high"]},
+    lows={"BTC": frame["low"]},
+    opens={"BTC": frame["open"]},
+    program=program,
+    symbols=["BTC"],
+)
 
 # `grid_signal` is a finite, integer-valued structural-level Series/array.
 score = runner.run_score(grid_signal)
-audit = runner.run_audit(grid_signal)  # rerun only selected candidates
-print(score.final_equity, audit.payload["strategy_ir_fingerprint"])
+audit = runner.backtest(grid_signal, report_level="audit")  # selected candidate only
+print(score.final_equity, audit.metadata["strategy_ir_fingerprint"])
 ```
 
 `run_score()` retains terminal accounting only. `run_compact()` retains dense
@@ -89,10 +114,10 @@ At the lower ABI-0.5 request boundary, the same profiles are available as
 `NativeScoreOutputV1`, `NativeCompactOutputV1`, and `NativeAuditOutputV1` via
 `NativeExecutionRequestCore.execute_typed()`. These objects own contiguous
 NumPy columns transferred from Rust and expose `as_dict()` only for an explicit
-cold-path compatibility conversion. The stable `RustNativeIRRunner` facade
-continues to preserve its existing mapping-based return contract until its own
-public promotion gate; neither route replays Python accounting to construct an
-audit result.
+cold-path compatibility conversion. `NativeIRExecutionRunner` is the stable
+public facade. It preserves the existing score/compact/audit return contracts
+while routing a certified request to Rust. Neither route replays Python
+accounting to construct an audit result.
 
 For repeated native IR runs, `NativeExecutionPreparationCache` can reuse one
 immutable `NativeExecutionTemplateCore` and cache the IR request by the full
@@ -147,11 +172,11 @@ window for the batch and starts a fresh account for every scenario. It is an
 execution primitive only: it does not select parameters, alter Optuna seeds,
 change a WFO objective, or make OOS observations available to a selector.
 
-The normal `QuantBTEndpoint.walk_forward()` and its `global`,
-`per_fold_decay`, and `per_fold_causal` schedules remain the canonical WFO
-orchestration routes. They deliberately do not auto-switch to native IR in
-this phase, because arbitrary strategy callback compatibility and full WFO
-objective parity are separate promotion gates.
+The normal `QuantBTEndpoint.walk_forward()` schedules (`global`,
+`per_fold_decay`, and `per_fold_causal`) remain callback-oriented Python
+orchestration routes. `NativeIRFold` is instead a Rust-first execution
+primitive for a precomputed bounded IR signal matrix; it does not select
+parameters or make OOS data available to a selector.
 
 ## Portfolio and Package Boundary
 
@@ -195,7 +220,7 @@ The benchmark labels E3 and E6 only. It does not generalize its numbers to
 arbitrary Python callbacks, full portfolio execution, or package/arbitrage
 production certification.
 
-### Committed local evidence
+### Historical Phase 53B evidence
 
 The committed 2,000-bar Grid-level fixture at
 [`native_drivers.json`](../benchmarks/native_event/results/phase53b/native_drivers.json)
@@ -216,7 +241,8 @@ cargo test --offline -p quantbt-engine -p quantbt-batch \
   -p quantbt-portfolio -p quantbt-package -p quantbt-native
 
 MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
-  tests/native_event/contract/test_phase53b_native_drivers.py
+  tests/native_event/contract/test_phase53b_native_drivers.py \
+  tests/native_event/contract/test_phase54b2_rust_first_routes.py
 ```
 
 The second suite checks Python-reference versus Rust trace/accounting parity

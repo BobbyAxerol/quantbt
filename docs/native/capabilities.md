@@ -17,12 +17,16 @@ list of booleans such as “supports limit orders”.
   evidence. It is not automatically promoted unless the table says so.
 - **Experimental**: available for explicit validation only. It must not be used
   to imply generic endpoint or venue support.
-- **Promoted**: reserved for a future release after clean wheel, parity, RSS,
-  performance, and rollback gates.
+- **Promoted**: eligible for `native_backend="auto"` only when its generated
+  row, installed-wheel handshake, scale threshold, and local rollback policy
+  all pass.
 
-Version 1.0.8 declares no promoted Rust workload. The extension's raw feature
-map is an implementation probe; it is normalized by the core's generated
-descriptor before public routing decisions are made.
+The current Stage-B table promotes only the bounded E0/E3/E6 families: static
+command tapes at 10,000 or more bars, and Native Strategy IR/batch requests at
+2,000 or more bars. Arbitrary callbacks, reactive strategies, portfolio, and
+package/arbitrage routes remain Python. The extension's raw feature map is an
+implementation probe; it is normalized by the core's generated descriptor
+before public routing decisions are made.
 
 At native probe time QuantBT validates two distinct descriptors:
 
@@ -32,4 +36,7 @@ At native probe time QuantBT validates two distinct descriptors:
   result ABI, trace schema, strategy IR, and registry fingerprints.
 
 An explicit Rust request fails before market preparation if either descriptor
-drifts. `backend="auto"` remains Python-first in this release.
+drifts. `backend="auto"` follows the generated promotion table and records a
+structured fallback reason when a request is below its threshold or outside a
+certified row. `QUANTBT_DISABLE_NATIVE=1` and
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` deterministically force Python.

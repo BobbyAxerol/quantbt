@@ -163,9 +163,9 @@
   },
   "promotion_policy": {
     "schema_version": 1,
-    "table_version": "native-event-promotion-v1",
+    "table_version": "native-event-promotion-v2",
     "default_backend_policy": "certified_only",
-    "default_stage": "explicit_only",
+    "default_stage": "static_ir",
     "stages": [
       "explicit_only",
       "static_ir",
@@ -177,7 +177,8 @@
         "id": "static_tape_rust_stage_b",
         "workload_id": "event_static_tape_v2_v3",
         "stage": "static_ir",
-        "enabled": false,
+        "enabled": true,
+        "min_bars": 10000,
         "required_capabilities": [
           "native_event_v2_full_contract",
           "native_event_v2_multisymbol",
@@ -185,15 +186,18 @@
           "native_event_v2_liquidation",
           "native_event_v2_cancel_all_oco",
           "native_event_v2_tif_expiry",
-          "native_event_v2_relationships"
+          "native_event_v2_relationships",
+          "native_event_v2_quantity_preflight"
         ]
       },
       {
         "id": "native_ir_rust_stage_b",
         "workload_id": "native_strategy_ir_v1",
         "stage": "static_ir",
-        "enabled": false,
+        "enabled": true,
+        "min_bars": 2000,
         "required_capabilities": [
+          "native_event_v2_full_contract",
           "native_strategy_ir_v1",
           "native_strategy_ir_signal_target",
           "native_strategy_ir_grid_level",
@@ -207,6 +211,7 @@
         "workload_id": "portfolio_target_preflight_v1",
         "stage": "portfolio",
         "enabled": false,
+        "min_bars": 0,
         "required_capabilities": [
           "native_portfolio_target_preflight_v1"
         ]
@@ -216,6 +221,7 @@
         "workload_id": "package_transaction_preflight_v1",
         "stage": "package",
         "enabled": false,
+        "min_bars": 0,
         "required_capabilities": [
           "native_package_transaction_preflight_v1"
         ]
@@ -275,9 +281,9 @@
       "portfolio_modes": [],
       "package_policies": [],
       "trace_schemas": ["canonical-execution-trace-v1"],
-      "maturity": "certified",
+      "maturity": "promoted",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
-      "auto_promotion": false
+      "auto_promotion": true
     },
     {
       "id": "event_python_callback_v2_v3",
@@ -303,15 +309,15 @@
         "event_lifecycle_v3_next_open"
       ],
       "strategy_modes": ["ir_v1"],
-      "profiles": ["score", "compact", "audit"],
+      "profiles": ["score", "minimal", "standard", "audit"],
       "max_symbols": 1,
       "account_models": ["linear_quote_settled_gross_cross"],
       "portfolio_modes": [],
       "package_policies": [],
       "trace_schemas": ["canonical-execution-trace-v1"],
-      "maturity": "experimental",
+      "maturity": "promoted",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
-      "auto_promotion": false
+      "auto_promotion": true
     },
     {
       "id": "portfolio_target_preflight_v1",
@@ -351,7 +357,7 @@
       "command_abis": ["full-command-v1"],
       "result_abis": ["native-event-result-v1"],
       "status": "exact_staged_pair",
-      "fallback": "explicit_rust_fails_fast; auto_uses_python"
+      "fallback": "explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason"
     }
   ],
   "deprecations": [

@@ -2,7 +2,13 @@ from .native_event import NativeEventBackend, NativeEventConfig, NativeEventScor
 from .native_option import NativeOptionBackend, NativeOptionConfig, OptionSettlementEvent
 from .native_portfolio import NativePortfolioBackend, NativePortfolioConfig
 from .native_vectorized import NativeVectorizedBackend, NativeVectorizedConfig
-from .native_strategy_ir import NativeIRBatchResult, NativeIRFold, NativeIRRunResult, RustNativeIRRunner
+from .native_strategy_ir import (
+    NativeIRBatchResult,
+    NativeIRExecutionRunner,
+    NativeIRFold,
+    NativeIRRunResult,
+    RustNativeIRRunner,
+)
 from ._native_event_rust import (
     RustBatchedAuditResult,
     RustBatchedChunkResult,
@@ -16,6 +22,7 @@ __all__ = [
     "NativeEventConfig",
     "NativeEventScoreRequirements",
     "NativeIRBatchResult",
+    "NativeIRExecutionRunner",
     "NativeIRFold",
     "NativeIRRunResult",
     "NativeOptionBackend",

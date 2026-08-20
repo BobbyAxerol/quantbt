@@ -104,6 +104,7 @@
     "NativeEventConfig",
     "NativeEventScoreRequirements",
     "NativeIRBatchResult",
+    "NativeIRExecutionRunner",
     "NativeIRFold",
     "NativeIRRunResult",
     "NativeAccountingArrays",
@@ -538,5 +539,5 @@
   ],
   "schema": "quantbt-public-api-inventory-v1",
   "source": "src/quantbt/__init__.py",
-  "source_sha256": "efac58f046fecc013a70ab4ad7023307797752a496adec6ae8a987b2456d9e00"
+  "source_sha256": "2a23c0bc4e77538c2a915ace5c3aaf7b161cac6dd233971339a2bc511b3ad8dc"
 }

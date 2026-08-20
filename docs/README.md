@@ -31,7 +31,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Migrate a callback toward a command writer or bounded IR | [Strategy boundary migration](migration/context-writer-ir.md) |
 | Inspect the Rust Native Event V2 full contract and conformance gate | [Rust full contract](native_event_rust_full_contract.md) |
 | Understand the pure Rust ABI 0.5 core, arena, and output ownership | [Rust full contract: Phase 53A](native_event_rust_full_contract.md#phase-53a-pure-rust-core) |
-| Use the opt-in bounded native strategy IR, batch score, or causal fold primitive | [Native strategy IR and batch](native_strategy_ir.md) |
+| Use the bounded native strategy IR, batch score, or causal fold primitive | [Native strategy IR and batch](native_strategy_ir.md) |
 | Certify the external Grid alpha on Python/Rust with 2,000-bar parity, RSS, and optimizer evidence | [Grid Phase 47C/47D](grid_native_event_phase47c.md) |
 
 ## Strategy Route Map
@@ -75,7 +75,8 @@ For production-like research:
 
 `src/quantbt` is the authoritative Python source tree. The root mirror is a
 checked compatibility mirror during the transition and must be synchronized by
-the repository tool, never edited independently. The optional Rust companion is
-currently an explicit staged implementation; `backend="auto"` remains
-Python-first until a workload is promoted through installed-wheel parity and
-performance gates. See [Native capabilities](native/capabilities.md).
+the repository tool, never edited independently. The optional Rust companion
+has a bounded local Stage-B promotion policy: `backend="auto"` selects Rust
+only for certified static command tapes and bounded Native Strategy IR/batch
+rows. Callback, reactive, portfolio, and package routes remain Python. See
+[Native capabilities](native/capabilities.md).

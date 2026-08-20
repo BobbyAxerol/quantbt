@@ -93,8 +93,15 @@ def test_product_registry_has_exact_pairing_and_generated_corpus() -> None:
         require_native_package_pair("1.0.8", "0.4.1")
 
     workloads = {str(item["id"]): item for item in workload_capabilities()}
-    assert workloads["event_static_tape_v2_v3"]["maturity"] == "certified"
-    assert all(not bool(item["auto_promotion"]) for item in workloads.values())
+    assert workloads["event_static_tape_v2_v3"]["maturity"] == "promoted"
+    assert workloads["native_strategy_ir_v1"]["maturity"] == "promoted"
+    assert workloads["event_static_tape_v2_v3"]["auto_promotion"] is True
+    assert workloads["native_strategy_ir_v1"]["auto_promotion"] is True
+    assert all(
+        not bool(item["auto_promotion"])
+        for workload_id, item in workloads.items()
+        if workload_id not in {"event_static_tape_v2_v3", "native_strategy_ir_v1"}
+    )
 
 
 def test_supply_chain_report_records_locked_sources_and_forbidden_unsafe_code() -> None:

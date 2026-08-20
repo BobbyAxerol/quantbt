@@ -147,6 +147,7 @@ from ..planning import (
 from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
+    RustFullAuditResult,
     RustFullRunner,
     RustReactiveSessionAdapter,
     resolve_native_event_backend,
@@ -1682,12 +1683,15 @@ class NativeEventBackend:
 
     def __init__(self, config: NativeEventConfig):
         self.config = config
-        # Phase 46E: selection is explicit and capability-gated. ``auto``
-        # remains Python for the release; direct Rust is limited to the
-        # certified single-symbol batched tape path.
+        # A backend instance may serve several workload classes.  Defer an
+        # explicit-Rust failure until the public route knows its tape shape,
+        # contract, and required capabilities; static and Native-IR routes can
+        # then make their own certified decision instead of being misclassified
+        # as the legacy Python-callback workload at construction time.
         self._backend_selection = resolve_native_event_backend(
             requested=config.native_backend,
             backend_policy=config.backend_policy,
+            defer_explicit_error=True,
         )
         # Keys use object identity in addition to the immutable market
         # signature: open/volume are callback-visible and are not part of the
@@ -1763,8 +1767,19 @@ class NativeEventBackend:
             return session
         return _NativeEventReactiveSession(**kwargs)
 
-    def _backend_selection_metadata(self) -> dict:
-        selection = self._backend_selection
+    def _backend_selection_metadata(
+        self,
+        selection: Optional[NativeEventBackendSelection] = None,
+    ) -> dict:
+        """Return one immutable routing decision as result provenance.
+
+        Callback execution keeps the backend-wide compatibility selection. A
+        static tape can resolve more precisely after its clock, bar count,
+        symbol count, and output profile are known, so callers may supply that
+        per-run selection instead.
+        """
+
+        selection = self._backend_selection if selection is None else selection
         return {
             "native_event_backend_requested": selection.requested,
             "native_event_backend_resolved": selection.resolved,
@@ -1821,6 +1836,7 @@ class NativeEventBackend:
         closes: Dict[str, pd.Series],
         highs: Optional[Dict[str, pd.Series]] = None,
         lows: Optional[Dict[str, pd.Series]] = None,
+        opens: Optional[Dict[str, pd.Series]] = None,
         funding_rate: Union[float, pd.Series, Dict] = 0.0,
         *,
         symbols: Optional[Sequence[str]] = None,
@@ -1830,6 +1846,7 @@ class NativeEventBackend:
         initial_capital: Optional[float] = None,
         maintenance_ratio: Optional[float] = None,
         slippage: Optional[float] = None,
+        execution_contract: Optional[Union[str, EventClockContract]] = None,
         prepared_market_core=None,
     ) -> RustFullRunner:
         """Prepare the explicit experimental Rust full-tape runner.
@@ -1841,6 +1858,7 @@ class NativeEventBackend:
         crossing the boundary.
         """
         idx = validate_datetime(datetime_index)
+        clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
         market_arrays = self.prepare_market_arrays(
             datetime_index=idx,
@@ -1850,6 +1868,17 @@ class NativeEventBackend:
             funding_rate=funding_rate if self.config.use_funding else 0.0,
             symbols=symbol_list,
         )
+        if opens is None:
+            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                raise ValueError(
+                    "event_lifecycle_v3_next_open requires explicit open prices for a Rust prepared runner"
+                )
+            opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        else:
+            open_map = align_series(opens, symbol_list, idx)
+            opens_arr = np.ascontiguousarray(
+                np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
+            )
         configured_fee = self.config.fee_rate
         if isinstance(configured_fee, dict):
             configured_fee = configured_fee.get(symbol_list[0], 0.0)
@@ -1872,7 +1901,94 @@ class NativeEventBackend:
             ),
             slippage=float(self.config.execution.slippage_rate if slippage is None else slippage),
             use_funding=bool(self.config.use_funding),
+            opens_arr=opens_arr,
+            event_contract=clock,
             prepared_market_core=prepared_market_core,
+        )
+
+    def prepare_native_strategy_ir(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        closes: Dict[str, pd.Series],
+        program,
+        highs: Optional[Dict[str, pd.Series]] = None,
+        lows: Optional[Dict[str, pd.Series]] = None,
+        opens: Optional[Dict[str, pd.Series]] = None,
+        funding_rate: Union[float, pd.Series, Dict] = 0.0,
+        *,
+        symbols: Optional[Sequence[str]] = None,
+        contract_size: Union[float, Dict[str, float]] = 1.0,
+        leverage: Optional[Union[float, Dict[str, float]]] = None,
+        fee_rate: Optional[Union[float, Dict[str, float]]] = None,
+        execution_contract: Optional[Union[str, EventClockContract]] = None,
+        market_arrays: Optional[PreparedMarketArrays] = None,
+        prepared_opens_arr: Optional[np.ndarray] = None,
+    ):
+        """Prepare the stable bounded Native-IR facade over one market tape.
+
+        The strategy program is declarative, not a Python callback.  The
+        returned runner resolves ``auto`` through the Stage-B product policy on
+        every output profile: certified medium/large IR work uses one Rust run
+        or batch boundary; unsupported/small/native-unavailable work remains
+        on the canonical Python command-tape route with explicit provenance.
+
+        ``market_arrays`` and ``prepared_opens_arr`` let WFO/service code reuse
+        immutable normalized data. They are validated against the same index
+        and symbol layout and are never copied per scenario.
+        """
+
+        from .native_strategy_ir import NativeIRExecutionRunner
+        from ..strategies.native_ir import NativeStrategyIR
+
+        if not isinstance(program, NativeStrategyIR):
+            raise TypeError("program must be a NativeStrategyIR")
+        idx = validate_datetime(datetime_index)
+        symbol_list = list(symbols) if symbols is not None else list(closes.keys())
+        if not symbol_list:
+            raise ValueError("native IR preparation requires at least one symbol")
+        if int(program.symbol_id) >= len(symbol_list) or symbol_list[int(program.symbol_id)] != program.symbol:
+            raise ValueError("NativeStrategyIR symbol/symbol_id must match the prepared symbol order")
+        clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
+        if market_arrays is None:
+            market_arrays = self.prepare_market_arrays(
+                datetime_index=idx,
+                closes=closes,
+                highs=highs,
+                lows=lows,
+                funding_rate=funding_rate if self.config.use_funding else 0.0,
+                symbols=symbol_list,
+            )
+        elif market_arrays.signature != self._market_signature(idx, symbol_list):
+            raise ValueError("prepared market arrays do not match native IR datetime_index/symbols")
+        if prepared_opens_arr is not None:
+            opens_arr = np.ascontiguousarray(np.asarray(prepared_opens_arr, dtype=np.float64))
+            if opens_arr.shape != market_arrays.closes.shape:
+                raise ValueError("prepared native IR open prices do not match the market shape")
+        elif opens is None:
+            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                raise ValueError("event_lifecycle_v3_next_open requires explicit open prices for native IR")
+            opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        else:
+            open_map = align_series(opens, symbol_list, idx)
+            opens_arr = np.ascontiguousarray(
+                np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
+            )
+        configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
+        return NativeIRExecutionRunner(
+            backend=self,
+            program=program,
+            datetime_index=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0),
+            leverages=self._per_symbol_array(
+                self.config.account.leverage if leverage is None else leverage,
+                symbol_list,
+                default=self.config.account.leverage,
+            ),
+            fee_rates=self._per_symbol_array(configured_fee, symbol_list, default=0.0),
+            execution_contract=clock,
         )
 
     @staticmethod
@@ -2009,25 +2125,37 @@ class NativeEventBackend:
             min_qty=min_qty,
             min_notional=min_notional,
         )
-        if self._backend_selection.resolved == "rust" and not _force_python_backend:
-            status = self._backend_selection.extension
-            required = {
-                "native_event_v2_full_contract",
-                "native_event_v2_multisymbol",
-                "native_event_v2_funding",
-                "native_event_v2_liquidation",
-                "native_event_v2_cancel_all_oco",
-                "native_event_v2_tif_expiry",
-                "native_event_v2_relationships",
-            }
-            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
-                required.update(
-                    {
-                        "event_contract_registry_v1",
-                        "event_lifecycle_v3_next_open",
-                        "bar_fill_reason_v1",
-                    }
-                )
+        required = {
+            "native_event_v2_full_contract",
+            "native_event_v2_multisymbol",
+            "native_event_v2_funding",
+            "native_event_v2_liquidation",
+            "native_event_v2_cancel_all_oco",
+            "native_event_v2_tif_expiry",
+            "native_event_v2_relationships",
+            "native_event_v2_quantity_preflight",
+        }
+        if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+            required.update(
+                {
+                    "event_contract_registry_v1",
+                    "event_lifecycle_v3_next_open",
+                    "bar_fill_reason_v1",
+                }
+            )
+        static_selection = resolve_native_event_backend(
+            requested=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
+            workload_id="event_static_tape_v2_v3",
+            execution_contract_id=clock.contract_id,
+            strategy_mode="static_commands",
+            profile=level,
+            bars=len(idx),
+            symbol_count=len(symbol_list),
+            required_capabilities=tuple(sorted(required)),
+        )
+        if static_selection.resolved == "rust" and not _force_python_backend:
+            status = static_selection.extension
             missing = sorted(name for name in required if not status.capabilities.get(name, False))
             if missing:
                 raise NativeEventRustBackendError(
@@ -2059,7 +2187,7 @@ class NativeEventBackend:
         ):
             raise ValueError("compiled commands do not match prepared market arrays")
 
-        if self._backend_selection.resolved == "rust" and not _force_python_backend:
+        if static_selection.resolved == "rust" and not _force_python_backend:
             contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
             leverages = self._per_symbol_array(
                 self.config.account.leverage if leverage is None else leverage,
@@ -2083,7 +2211,21 @@ class NativeEventBackend:
                 event_contract=clock,
             )
             engine_started_ns = perf_counter_ns() if diagnostics_requested else 0
-            audit = runner.run_tape_audit(compiled_commands)
+            # A public ``score`` request still needs dense account paths for a
+            # BacktestResultV2, but it must not materialize audit ledgers or
+            # replay the tape. Compact is the single Rust execution pass for
+            # that retention profile; standard/audit retain typed ledgers.
+            rust_output_profile = "compact" if level == "score" else "audit"
+            if rust_output_profile == "compact":
+                compact_payload = runner.run_tape_compact(compiled_commands)
+                audit = RustFullAuditResult.from_compact_payload(
+                    compact_payload,
+                    n_bars=len(idx),
+                    n_symbols=len(symbol_list),
+                    id_values=tuple(compiled_commands.id_values),
+                )
+            else:
+                audit = runner.run_tape_audit(compiled_commands)
             engine_finished_ns = perf_counter_ns() if diagnostics_requested else 0
             result = audit.to_backtest_result(
                 datetime_index=idx,
@@ -2092,7 +2234,7 @@ class NativeEventBackend:
                 initial_capital=float(self.config.account.initial_capital),
                 leverage=float(np.mean(leverages)),
                 metadata={
-                    **self._backend_selection_metadata(),
+                    **self._backend_selection_metadata(static_selection),
                     "quantity_preflight": quantity_preflight,
                     "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
                     "slippage_bps": self.config.execution.slippage_bps,
@@ -2102,19 +2244,21 @@ class NativeEventBackend:
                         else "native_event_v3_full_contract"
                     ),
                     "use_funding": bool(self.config.use_funding),
+                    "rust_output_profile": rust_output_profile,
+                    "rust_audit_replay": False,
                     "event_clock_contract": clock.to_metadata(),
                     "execution_contract_id": clock.contract_id,
                 },
             )
-            rust_events = result.metadata.get("order_report", pd.DataFrame())
-            rust_command_report = result.metadata.get("command_report", pd.DataFrame())
-            result.metadata["command_outcome_report_v1"] = self._build_rust_command_outcome_report(
-                command_report=rust_command_report,
-                compiled_commands=compiled_commands,
-                n_bars=len(idx),
-                order_events=rust_events,
-            )
-            result.metadata["lifecycle_event_report_v1"] = self._build_lifecycle_event_report(rust_events)
+            if rust_output_profile == "audit":
+                self._project_rust_lifecycle_audit(
+                    result=result,
+                    compiled_commands=compiled_commands,
+                    n_bars=len(idx),
+                )
+            else:
+                result.metadata["command_outcome_report_v1"] = pd.DataFrame()
+                result.metadata["lifecycle_event_report_v1"] = pd.DataFrame()
             result.metadata["event_phase_trace_v1"] = (
                 self._build_event_phase_trace(idx, clock, int(audit.liquidation_bar), int(audit.liquidation_reason))
                 if level == "audit" and sink == "memory"
@@ -2378,7 +2522,7 @@ class NativeEventBackend:
         metadata = {
             "backend": "native_event",
             "engine": _event_engine_name(clock, "lifecycle"),
-            **self._backend_selection_metadata(),
+            **self._backend_selection_metadata(static_selection),
             "report_level": level,
             "report_level_requested": str(requested_report_level),
             "artifact_plan": asdict(plan),
@@ -4990,6 +5134,60 @@ class NativeEventBackend:
                 }
             )
         return pd.DataFrame(rows).sort_values("original_index", kind="stable").reset_index(drop=True)
+
+    @classmethod
+    def _project_rust_lifecycle_audit(
+        cls,
+        *,
+        result: BacktestResultV2,
+        compiled_commands: CompiledOrderCommandArrays,
+        n_bars: int,
+    ) -> None:
+        """Complete Rust audit provenance without replaying execution.
+
+        The Rust core owns matching, accounting, and its typed fill/event
+        ledgers.  Python only joins those immutable ledgers to the canonical
+        compiled command identity table so the public audit surface exposes
+        the same terminal command counters as the Python oracle.  This is a
+        cold-path projection, never a second market pass.
+        """
+
+        order_events = result.metadata.get("order_report", pd.DataFrame())
+        command_report = result.metadata.get("command_report", pd.DataFrame())
+        if not isinstance(order_events, pd.DataFrame):
+            raise TypeError("Rust audit order_report must be a DataFrame")
+        if not isinstance(command_report, pd.DataFrame):
+            raise TypeError("Rust audit command_report must be a DataFrame")
+
+        command_outcomes = cls._build_rust_command_outcome_report(
+            command_report=command_report,
+            compiled_commands=compiled_commands,
+            n_bars=n_bars,
+            order_events=order_events,
+        )
+        lifecycle_events = cls._build_lifecycle_event_report(order_events)
+        result.metadata["command_outcome_report_v1"] = command_outcomes
+        result.metadata["lifecycle_event_report_v1"] = lifecycle_events
+
+        counters = dict(result.metadata.get("lifecycle_counters", {}))
+        status = (
+            command_outcomes["legacy_status_code"].to_numpy(dtype=np.int64, copy=False)
+            if not command_outcomes.empty
+            else np.empty(0, dtype=np.int64)
+        )
+        event_kinds = (
+            order_events["event_kind"].to_numpy(dtype=np.int64, copy=False)
+            if not order_events.empty
+            else np.empty(0, dtype=np.int64)
+        )
+        counters.update(
+            {
+                "filled_command_count": int(np.sum(status == ORDER_STATUS_FILLED)),
+                "pending_command_count": int(np.sum(status == ORDER_STATUS_PENDING)),
+                "expired_event_count": int(np.sum(event_kinds == ORDER_EVENT_EXPIRE)),
+            }
+        )
+        result.metadata["lifecycle_counters"] = counters
 
     @staticmethod
     def _build_lifecycle_event_report(order_events: pd.DataFrame) -> pd.DataFrame:

@@ -211,13 +211,21 @@ def _event_records(result: object) -> list[tuple[object, ...]] | None:
             code = int(np.asarray(commands.order_id_code)[index])
             return id_values[code] if 0 <= code < len(id_values) else None
 
+        def command_target_id(value: object) -> object:
+            index = int(value)
+            if index < 0 or commands is None or not hasattr(commands, "target_order_id_code"):
+                return None
+            code = int(np.asarray(commands.target_order_id_code)[index])
+            return id_values[code] if 0 <= code < len(id_values) else None
+
         return [
             (
                 arrays["bar"][idx].item(),
                 arrays["event_type"][idx].item(),
                 arrays["status"][idx].item(),
                 command_id(arrays["command_index"][idx]),
-                command_id(arrays["related_command_index"][idx]),
+                command_id(arrays["related_command_index"][idx])
+                or command_target_id(arrays["command_index"][idx]),
             )
             for idx in range(len(arrays["bar"]))
         ]

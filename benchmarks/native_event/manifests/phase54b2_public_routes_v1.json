@@ -1,0 +1,73 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase54b2-public-routes-v1",
+  "owner": "performance",
+  "promotion_policy": "stage_b_local_static_ir_only_with_explicit_python_oracle_and_rollback",
+  "product_registry_fingerprint": "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "E0_STAGE_B_PUBLIC_STATIC",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "static_commands",
+      "profiles": [
+        "score",
+        "compact",
+        "audit"
+      ],
+      "fixture": "deterministic 10,000-bar one-symbol public command-tape facade",
+      "baseline_path": "benchmarks/native_event/results/phase54b2/public_routes.json",
+      "baseline_sha256": "ab1ef7603ed4f0068d5d040ba163c72ed5b501cbd8a2157d2699c8977fbb516c",
+      "required_result_fields": [
+        "median_seconds",
+        "bars_per_second",
+        "rss_peak_process_bytes",
+        "boundary_calls",
+        "canonical_trace_fingerprint"
+      ]
+    },
+    {
+      "id": "E3_STAGE_B_PUBLIC_NATIVE_IR",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "native_strategy_ir_v1",
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "fixture": "deterministic 2,000-bar one-symbol Grid-level Native Strategy IR",
+      "baseline_path": "benchmarks/native_event/results/phase54b2/public_routes.json",
+      "baseline_sha256": "ab1ef7603ed4f0068d5d040ba163c72ed5b501cbd8a2157d2699c8977fbb516c",
+      "required_result_fields": [
+        "median_seconds",
+        "bars_per_second",
+        "cold_report_adaptation_included",
+        "boundary_calls",
+        "canonical_trace_fingerprint"
+      ]
+    },
+    {
+      "id": "E6_STAGE_B_PUBLIC_NATIVE_IR_BATCH",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "native_strategy_ir_v1_batch",
+      "profiles": [
+        "score"
+      ],
+      "fixture": "64 deterministic 2,000-bar Grid IR scenarios and fresh causal half-window fold",
+      "baseline_path": "benchmarks/native_event/results/phase54b2/public_routes.json",
+      "baseline_sha256": "ab1ef7603ed4f0068d5d040ba163c72ed5b501cbd8a2157d2699c8977fbb516c",
+      "required_result_fields": [
+        "median_seconds",
+        "bars_per_second",
+        "boundary_calls",
+        "shared_market_copies_per_scenario",
+        "fresh_state_per_scenario"
+      ]
+    }
+  ]
+}

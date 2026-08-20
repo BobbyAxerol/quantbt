@@ -172,7 +172,7 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
     for rule in promotion["rules"]:
         _require_keys(
             rule,
-            ("id", "workload_id", "stage", "enabled", "required_capabilities"),
+            ("id", "workload_id", "stage", "enabled", "min_bars", "required_capabilities"),
             label="native promotion rule",
         )
         rule_id = str(rule["id"])
@@ -185,6 +185,14 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
             raise ValueError(f"native promotion rule {rule_id} has an invalid promotion stage")
         if not isinstance(rule["enabled"], bool):
             raise ValueError(f"native promotion rule {rule_id} enabled must be boolean")
+        if (
+            not isinstance(rule["min_bars"], int)
+            or isinstance(rule["min_bars"], bool)
+            or rule["min_bars"] < 0
+        ):
+            raise ValueError(
+                f"native promotion rule {rule_id} min_bars must be a non-negative integer"
+            )
         capabilities_required = tuple(str(item) for item in rule["required_capabilities"])
         if not capabilities_required or len(set(capabilities_required)) != len(capabilities_required):
             raise ValueError(f"native promotion rule {rule_id} requires unique native capabilities")
