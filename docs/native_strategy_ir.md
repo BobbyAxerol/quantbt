@@ -94,6 +94,15 @@ continues to preserve its existing mapping-based return contract until its own
 public promotion gate; neither route replays Python accounting to construct an
 audit result.
 
+For repeated native IR runs, `NativeExecutionPreparationCache` can reuse one
+immutable `NativeExecutionTemplateCore` and cache the IR request by the full
+signal/program/parameter fingerprint. `cache.strategy_ir_request(...)` keeps
+market, instrument, account, and contract preparation outside each run;
+`cache.new_runner(request)` creates a separate mutable Rust session whose
+account/order state resets between scenarios. A template window has a local
+bar clock and shares only immutable market storage, so it is suitable for
+causal fold-local requests without carrying positions or orders across folds.
+
 ## Batch and Fold Use
 
 Use batch scoring when signal rows and the four-column parameter matrix are

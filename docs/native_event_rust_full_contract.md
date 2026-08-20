@@ -124,6 +124,55 @@ Pandas, `BacktestResultV2`, plots, reports, and stakeholder tables are created
 only by their explicit report/adaptation path. No endpoint is silently promoted
 to this ABI-0.5 surface in the current release.
 
+### Prepared ownership, cache, and reset
+
+The additive ABI-0.5 preparation helper is available for static tapes and
+native strategy IR:
+
+```python
+from quantbt.preparation import CachePolicy, NativeExecutionPreparationCache
+
+cache = NativeExecutionPreparationCache(CachePolicy(max_bytes=256 * 1024 * 1024))
+market = cache.prepare_market(..., symbols=["ETHUSDT"])
+template = cache.prepare_template(
+    market,
+    contract_sizes=contract_sizes,
+    leverages=leverages,
+    fee_rates=fee_rates,
+    initial_capital=20_000.0,
+    maintenance_ratio=0.005,
+    slippage_rate=0.0002,
+    use_funding=True,
+    event_contract_code=3,
+)
+request = cache.command_request(template, ... , output_profile=0)
+runner = cache.new_runner(request)
+score = runner.execute_typed()
+```
+
+The cache has three bounded, content-addressed tiers: L2 market (60% of the
+declared budget), L3 output-independent template (15%), and L4 immutable
+request tape (25%). Keys include timestamps, symbols, open/high/low/close,
+volume, funding, funding mask, instrument/account values, event contract, and
+all request arrays. Object identity is never a cache key. `cache.diagnostics`
+reports hits, misses, resident bytes, tier budgets, ingress copies, and cache
+generation; `cache.clear()` refuses a pinned active entry unless explicitly
+forced.
+
+`NativeExecutionTemplateCore.window(start, end)` creates a zero-copy causal
+market view with a local bar clock. Each `NativeExecutionRunnerCore` owns one
+mutable Rust session, resets account/orders/indexes before every independent
+run, and exposes monotonic generation/counter diagnostics even after an
+explicit `full_rebuild`. `account_only` reset is
+intentionally unsupported because retaining active lifecycle state while
+resetting account state would be ambiguous. `result_buffers` only releases
+reusable scratch capacity; it cannot invalidate a typed output because its
+NumPy columns own moved Rust buffers.
+
+This remains an experimental lower-level preparation surface. Existing
+endpoints and `backend="auto"` behavior are unchanged; higher-level
+prepared-batch promotion has its own parity and release gate.
+
 ## Capability boundary
 
 The explicit selector is:

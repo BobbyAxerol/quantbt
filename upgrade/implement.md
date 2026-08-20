@@ -13028,6 +13028,66 @@ Boundary:
   call per run/batch; sparse callbacks cross once per wake chunk; arbitrary
   every-bar callbacks report their crossing count honestly.
 
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added `NativeExecutionTemplateCore` as the output-independent ABI-0.5
+  immutable owner for prepared market, instrument, account, and event-contract
+  state. It exposes a zero-copy `window(start, end)` whose local bar clock is
+  independent of the source tape, preventing a fold-local command tape from
+  accidentally using global bar offsets. The immutable tape stays in one Rust
+  `Arc`; no market arrays are rebuilt for a cached template/window.
+- Added `NativeExecutionRunnerCore` over one `NativeExecutionRunnerV1` and an
+  immutable request. Every execution resets account/orders/indexes/cursors
+  before running, tracks native generation and run count, releases the GIL for
+  Rust-only execution, and produces one typed output in one boundary call.
+  `account_and_orders`, `scenario_state`, `result_buffers`, and `full_rebuild`
+  are explicit scopes. `account_only` fails closed because it would leave an
+  ambiguous active-order/lifecycle state.
+- Added `NativeExecutionPreparationCache` in `quantbt.preparation`: L2 market,
+  L3 template, and L4 immutable static/IR request tiers use SHA-256 content
+  signatures and bounded LRU budgets split 60%/15%/25%. Keys include all market
+  arrays (timestamps, OHLCV, funding, event mask), symbols, instrument/account
+  values, contract, program/signal/parameter or command-tape data, and output
+  profile. Cache diagnostics report hits/misses, resident bytes, eviction/reuse,
+  ingress copies, tier budgets, and generation. Object identity is never used.
+- Strengthened `PreparedObjectCache.clear(force=False)` so a normal clear
+  refuses pinned entries and returns deterministic released-byte/generation
+  provenance. Results own detached NumPy output buffers, therefore clearing a
+  cache or releasing runner scratch capacity cannot invalidate an earlier
+  result. Source-tree and temporary local-package mirrors are kept identical
+  for the preparation modules while both import paths remain supported.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_prepared_cache_boundary.py`:
+  market/template/request hit reuse; invalidation for volume, funding, close,
+  fee, contract, and output profile; cached-versus-direct typed-output parity;
+  bounded tier diagnostics; pin/clear behavior; zero-copy local window; runner
+  generation/reset/no-state-leak behavior; result lifetime after cache clear;
+  and static/IR one-boundary-call assertions.
+- Added a pure Rust `quantbt-execution` test for local window tape layout,
+  shared market ownership, repeated runner parity, and explicit reset
+  generation. It caught and fixed a real window bug: typed command translation
+  now uses the template's local bar count rather than the source market's full
+  length.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, `cargo test --workspace`, a fresh release `maturin develop`, and
+  the focused ABI-0.5 Python suite passed after the change.
+
+Boundary:
+
+- Static/IR requests and reusable runners now meet the one Python-to-Rust call
+  per run boundary. Sparse callbacks and arbitrary every-bar callback drivers
+  retain their separate published boundary counters; this phase does not make
+  an unsupported callback look fully native.
+- Cache budget is for cache-owned resident entries. Explicitly retained Python
+  market/template/request handles may correctly outlive an LRU eviction, and
+  diagnostics never pretend they were freed. Audit streaming/chunk limits,
+  shared public prepared-batch ingress, and endpoint-level portfolio/package
+  promotion remain 54A.5.6/54B work, not hidden behavior changes here.
+
 #### 54A.5.6 - Differential Corpus, Performance Baseline, And Exit Gate
 
 The canonical corpus must compare the Python oracle, legacy compatibility

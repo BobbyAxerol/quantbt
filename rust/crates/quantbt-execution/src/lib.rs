@@ -626,12 +626,81 @@ impl NativeExecutionTemplateV1 {
 pub struct NativeExecutionRunnerV1 {
     template: Arc<NativeExecutionTemplateV1>,
     session: FullSession,
+    generation: u64,
+    run_count: u64,
+    explicit_reset_count: u64,
 }
 
 impl NativeExecutionRunnerV1 {
     pub fn new(template: Arc<NativeExecutionTemplateV1>) -> Result<Self, String> {
+        Self::new_with_generation(template, 0)
+    }
+
+    /// Construct a fresh mutable session while preserving a caller-owned
+    /// lifecycle generation. This is used by explicit full rebuilds so result
+    /// provenance never moves backward merely because capacities were dropped.
+    pub fn new_with_generation(
+        template: Arc<NativeExecutionTemplateV1>,
+        generation: u64,
+    ) -> Result<Self, String> {
         let session = template.fresh_session()?;
-        Ok(Self { template, session })
+        Ok(Self {
+            template,
+            session,
+            generation,
+            run_count: 0,
+            explicit_reset_count: 0,
+        })
+    }
+
+    /// Reset the mutable account, orders, indexes, and session cursors for an
+    /// independent scenario. Immutable market and instrument preparation is
+    /// retained through the template `Arc`.
+    pub fn reset_account_and_orders(&mut self) -> Result<(), String> {
+        self.reset_for_execution()?;
+        self.explicit_reset_count = self
+            .explicit_reset_count
+            .checked_add(1)
+            .ok_or_else(|| "native execution runner reset count overflow".to_owned())?;
+        Ok(())
+    }
+
+    fn reset_for_execution(&mut self) -> Result<(), String> {
+        self.session.reset();
+        self.session
+            .set_event_contract(self.template.contract.event_contract_code)?;
+        self.generation = self
+            .generation
+            .checked_add(1)
+            .ok_or_else(|| "native execution runner generation overflow".to_owned())?;
+        Ok(())
+    }
+
+    /// Release reusable per-step scratch capacity above the requested bound.
+    /// Results are never retained by this runner, so this cannot invalidate a
+    /// previously returned typed output.
+    pub fn release_transient_buffers(&mut self, max_capacity: usize) {
+        self.session.release_step_buffer_capacity(max_capacity);
+    }
+
+    #[must_use]
+    pub fn step_buffer_capacities(&self) -> (usize, usize, usize) {
+        self.session.step_buffer_capacities()
+    }
+
+    #[must_use]
+    pub const fn generation(&self) -> u64 {
+        self.generation
+    }
+
+    #[must_use]
+    pub const fn run_count(&self) -> u64 {
+        self.run_count
+    }
+
+    #[must_use]
+    pub const fn explicit_reset_count(&self) -> u64 {
+        self.explicit_reset_count
     }
 
     pub fn execute_request(
@@ -646,10 +715,13 @@ impl NativeExecutionRunnerV1 {
             request_version: request.request_version(),
             protocol_version: request.protocol_version(),
             request_fingerprint: request.fingerprint,
+            template_fingerprint: self.template.fingerprint,
             workload_kind: request.workload.kind(),
             output_profile: request.output,
             command_count: request.workload.command_tape().command_count(),
             bar_count: self.template.bar_count(),
+            execution_generation: self.generation,
+            runner_run_count: self.run_count,
             output,
         })
     }
@@ -663,11 +735,9 @@ impl NativeExecutionRunnerV1 {
         workload: &WorkloadPayloadV1,
     ) -> Result<NativeExecutionOutputV1, String> {
         validate_workload(&self.template, workload)?;
-        self.session.reset();
-        self.session
-            .set_event_contract(self.template.contract.event_contract_code)?;
+        self.reset_for_execution()?;
         let tape = workload.command_tape();
-        match output {
+        let result = match output {
             NativeOutputProfileV1::Score => self
                 .session
                 .run_typed_score_v1(tape)
@@ -680,7 +750,14 @@ impl NativeExecutionRunnerV1 {
                 .session
                 .run_typed_audit_v1(tape)
                 .map(|output| NativeExecutionOutputV1::Audit(Box::new(output))),
+        };
+        if result.is_ok() {
+            self.run_count = self
+                .run_count
+                .checked_add(1)
+                .ok_or_else(|| "native execution runner run count overflow".to_owned())?;
         }
+        result
     }
 }
 
@@ -825,10 +902,13 @@ pub struct NativeExecutionResultV1 {
     pub request_version: u16,
     pub protocol_version: u16,
     pub request_fingerprint: [u8; 32],
+    pub template_fingerprint: [u8; 32],
     pub workload_kind: NativeWorkloadKindV1,
     pub output_profile: NativeOutputProfileV1,
     pub command_count: usize,
     pub bar_count: usize,
+    pub execution_generation: u64,
+    pub runner_run_count: u64,
     pub output: NativeExecutionOutputV1,
 }
 
@@ -836,6 +916,11 @@ impl NativeExecutionResultV1 {
     #[must_use]
     pub fn fingerprint_hex(&self) -> String {
         hex_fingerprint(self.request_fingerprint)
+    }
+
+    #[must_use]
+    pub fn template_fingerprint_hex(&self) -> String {
+        hex_fingerprint(self.template_fingerprint)
     }
 
     #[must_use]
@@ -1381,6 +1466,69 @@ mod tests {
             assert_eq!(actual.output_profile, profile);
             assert_output_eq(&actual.output.clone().into_legacy_static(), &expected);
         }
+    }
+
+    #[test]
+    fn windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage() {
+        let source = market();
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(source.clone(), instruments(), account(), contract())
+                .unwrap(),
+        );
+        let window = Arc::new(template.window(1, 4).unwrap());
+        assert!(Arc::ptr_eq(template.market(), window.market()));
+        assert_eq!(window.bar_count(), 3);
+
+        let tape = CommandTapeV5::new(
+            vec![0, 1, 1, 1],
+            vec![quantbt_domain::OrderCommandV5 {
+                action: CommandAction::Place,
+                symbol: Some(SymbolId(0)),
+                side: Some(Side::Buy),
+                order_type: Some(OrderType::Market),
+                tif: Some(TimeInForce::Gtc),
+                reduce_only: false,
+                external_id: ExternalOrderId(41),
+                target_id: ExternalOrderId(-1),
+                parent_id: ExternalOrderId(-1),
+                group_id: -1,
+                oco_id: -1,
+                activation: Some(ActivationPolicy::Immediate),
+                command_index: 0,
+                qty: 1.0,
+                limit_price: 0.0,
+                stop_price: 0.0,
+                expire_bar: None,
+            }],
+        )
+        .unwrap();
+        let request = NativeExecutionRequestV1::from_template(
+            window.clone(),
+            NativeOutputProfileV1::Audit,
+            WorkloadPayloadV1::CommandTape(tape),
+        )
+        .unwrap();
+        let expected = {
+            let mut session = request.fresh_session().unwrap();
+            session
+                .run_typed_audit(request.workload.command_tape())
+                .unwrap()
+        };
+        let mut runner = request.new_runner().unwrap();
+        let first = runner.execute_request(&request).unwrap();
+        let second = runner.execute_request(&request).unwrap();
+        assert_eq!(first.execution_generation, 1);
+        assert_eq!(second.execution_generation, 2);
+        assert_eq!(second.runner_run_count, 2);
+        assert_output_eq(&first.output.clone().into_legacy_static(), &expected);
+        assert_output_eq(&second.output.clone().into_legacy_static(), &expected);
+
+        runner.reset_account_and_orders().unwrap();
+        assert_eq!(runner.generation(), 3);
+        assert_eq!(runner.explicit_reset_count(), 1);
+        let third = runner.execute_request(&request).unwrap();
+        assert_eq!(third.execution_generation, 4);
+        assert_output_eq(&third.output.into_legacy_static(), &expected);
     }
 
     #[test]

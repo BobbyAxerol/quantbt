@@ -1793,6 +1793,28 @@ impl FullPreparedMarketCore {
     fn symbols(&self) -> usize {
         self.inner.n_symbols
     }
+
+    /// Native-owned immutable tape bytes. This excludes transient NumPy
+    /// ingress buffers and output buffers, which have separate ownership.
+    #[getter]
+    fn prepared_bytes(&self) -> usize {
+        self.inner.timestamps_ns.len() * std::mem::size_of::<i64>()
+            + self.inner.opens.len() * std::mem::size_of::<f64>()
+            + self.inner.highs.len() * std::mem::size_of::<f64>()
+            + self.inner.lows.len() * std::mem::size_of::<f64>()
+            + self.inner.closes.len() * std::mem::size_of::<f64>()
+            + self.inner.volumes.len() * std::mem::size_of::<f64>()
+            + self.inner.funding.len() * std::mem::size_of::<f64>()
+            + self.inner.funding_mask.len() * std::mem::size_of::<bool>()
+    }
+
+    /// Number of native `Arc` owners for the immutable market tape. It is a
+    /// lifetime diagnostic only; callers must not infer cache correctness from
+    /// this count.
+    #[getter]
+    fn reference_count(&self) -> usize {
+        Arc::strong_count(&self.inner)
+    }
 }
 
 /// One native result object's immutable execution provenance. Python owns the
@@ -1804,10 +1826,13 @@ struct NativeOutputMetadataCore {
     request_version: u16,
     protocol_version: u16,
     request_fingerprint: String,
+    template_fingerprint: String,
     workload_kind: &'static str,
     output_profile: &'static str,
     command_count: usize,
     bars: usize,
+    execution_generation: u64,
+    runner_run_count: u64,
     output_bytes: usize,
 }
 
@@ -1818,10 +1843,13 @@ impl NativeOutputMetadataCore {
             request_version: result.request_version,
             protocol_version: result.protocol_version,
             request_fingerprint: result.fingerprint_hex(),
+            template_fingerprint: result.template_fingerprint_hex(),
             workload_kind: result.workload_kind.name(),
             output_profile: result.output_profile.name(),
             command_count: result.command_count,
             bars: result.bar_count,
+            execution_generation: result.execution_generation,
+            runner_run_count: result.runner_run_count,
             output_bytes,
         }
     }
@@ -2001,10 +2029,19 @@ fn add_typed_output_metadata(
         "native_execution_request_fingerprint",
         &metadata.request_fingerprint,
     )?;
+    payload.set_item(
+        "native_execution_template_fingerprint",
+        &metadata.template_fingerprint,
+    )?;
     payload.set_item("native_execution_workload", metadata.workload_kind)?;
     payload.set_item("native_execution_output_profile", metadata.output_profile)?;
     payload.set_item("native_execution_command_count", metadata.command_count)?;
     payload.set_item("bars", metadata.bars)?;
+    payload.set_item("native_execution_generation", metadata.execution_generation)?;
+    payload.set_item(
+        "native_execution_runner_run_count",
+        metadata.runner_run_count,
+    )?;
     payload.set_item("native_execution_output_bytes", metadata.output_bytes)?;
     payload.set_item(
         "native_execution_buffer_transfer",
@@ -2109,6 +2146,11 @@ impl NativeScoreOutputCore {
     }
 
     #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.metadata.template_fingerprint.clone()
+    }
+
+    #[getter]
     fn workload_kind(&self) -> &'static str {
         self.metadata.workload_kind
     }
@@ -2126,6 +2168,16 @@ impl NativeScoreOutputCore {
     #[getter]
     fn bars(&self) -> usize {
         self.metadata.bars
+    }
+
+    #[getter]
+    fn execution_generation(&self) -> u64 {
+        self.metadata.execution_generation
+    }
+
+    #[getter]
+    fn runner_run_count(&self) -> u64 {
+        self.metadata.runner_run_count
     }
 
     #[getter]
@@ -2245,6 +2297,11 @@ impl NativeCompactOutputCore {
     }
 
     #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.metadata.template_fingerprint.clone()
+    }
+
+    #[getter]
     fn workload_kind(&self) -> &'static str {
         self.metadata.workload_kind
     }
@@ -2262,6 +2319,16 @@ impl NativeCompactOutputCore {
     #[getter]
     fn bars(&self) -> usize {
         self.metadata.bars
+    }
+
+    #[getter]
+    fn execution_generation(&self) -> u64 {
+        self.metadata.execution_generation
+    }
+
+    #[getter]
+    fn runner_run_count(&self) -> u64 {
+        self.metadata.runner_run_count
     }
 
     #[getter]
@@ -2417,6 +2484,11 @@ impl NativeAuditOutputCore {
     }
 
     #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.metadata.template_fingerprint.clone()
+    }
+
+    #[getter]
     fn workload_kind(&self) -> &'static str {
         self.metadata.workload_kind
     }
@@ -2434,6 +2506,16 @@ impl NativeAuditOutputCore {
     #[getter]
     fn bars(&self) -> usize {
         self.metadata.bars
+    }
+
+    #[getter]
+    fn execution_generation(&self) -> u64 {
+        self.metadata.execution_generation
+    }
+
+    #[getter]
+    fn runner_run_count(&self) -> u64 {
+        self.metadata.runner_run_count
     }
 
     #[getter]
@@ -2637,10 +2719,111 @@ impl NativeAuditOutputCore {
     }
 }
 
-/// Immutable internal ABI-0.5 request.  It is intentionally additive to the
+/// Immutable native template for a prepared market plus instrument/account
+/// model. The template is output-independent and shares the market through an
+/// `Arc`, so static, IR, fold-window, portfolio, and package requests can use
+/// one validated native tape without Python dataframe normalization per run.
+#[pyclass]
+struct NativeExecutionTemplateCore {
+    inner: Arc<execution::NativeExecutionTemplateV1>,
+}
+
+#[pymethods]
+impl NativeExecutionTemplateCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        prepared,
+        contract_sizes,
+        leverages,
+        fee_rates,
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+        event_contract_code=generated_contracts::CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_prepared(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<FullPreparedMarketCore>,
+        contract_sizes: PyReadonlyArray1<'_, f64>,
+        leverages: PyReadonlyArray1<'_, f64>,
+        fee_rates: PyReadonlyArray1<'_, f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+        event_contract_code: i64,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let inner = build_execution_template(
+            market,
+            contract_sizes.as_slice()?.to_vec(),
+            leverages.as_slice()?.to_vec(),
+            fee_rates.as_slice()?.to_vec(),
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            use_funding,
+            event_contract_code,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    /// Return a zero-copy market window with a fresh local bar clock. The new
+    /// template has no mutable account/order state and cannot carry a prior
+    /// fold's positions or orders into the next fold.
+    fn window(&self, start: usize, end: usize) -> PyResult<Self> {
+        self.inner
+            .window(start, end)
+            .map(|inner| Self {
+                inner: Arc::new(inner),
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.bar_count()
+    }
+
+    #[getter]
+    fn symbols(&self) -> usize {
+        self.inner.n_symbols()
+    }
+
+    #[getter]
+    fn source_market_bytes(&self) -> usize {
+        self.inner.source_market_bytes()
+    }
+
+    #[getter]
+    fn view_bytes(&self) -> usize {
+        self.inner.view_bytes()
+    }
+
+    #[getter]
+    fn market_reference_count(&self) -> usize {
+        Arc::strong_count(self.inner.market())
+    }
+
+    #[getter]
+    fn template_reference_count(&self) -> usize {
+        Arc::strong_count(&self.inner)
+    }
+}
+
+/// Immutable internal ABI-0.5 request. It is intentionally additive to the
 /// frozen API-0.4 session classes: old callers keep their array/session
-/// signatures, while typed static and IR workloads can be prepared once and
-/// execute through one fresh Rust-owned `FullSession` per request run.
+/// signatures, while typed static and IR workloads can reuse one prepared
+/// native template and choose either fresh or reusable runner ownership.
 #[pyclass]
 struct NativeExecutionRequestCore {
     inner: execution::NativeExecutionRequestV1,
@@ -2704,6 +2887,45 @@ impl NativeExecutionRequestCore {
             slippage_rate,
             use_funding,
             event_contract_code,
+            output_profile,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    /// Build an immutable command request from an already validated native
+    /// template. This is the prepared ingress for repeated static runs: market
+    /// and account/instrument tables are not rebuilt, while the command tape
+    /// remains part of the request fingerprint.
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        command_ptr,
+        command_codes,
+        command_values,
+        command_expiry,
+        output_profile=0,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template_command_tape(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        command_ptr: PyReadonlyArray1<'_, i64>,
+        command_codes: PyReadonlyArray2<'_, i64>,
+        command_values: PyReadonlyArray2<'_, f64>,
+        command_expiry: PyReadonlyArray1<'_, i64>,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let inner = build_command_request_from_template(
+            template,
+            command_ptr.as_slice()?,
+            command_codes.as_slice()?,
+            command_codes.shape(),
+            command_values.as_slice()?,
+            command_values.shape(),
+            command_expiry.as_slice()?,
             output_profile,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
@@ -2781,6 +3003,43 @@ impl NativeExecutionRequestCore {
         Ok(Self { inner })
     }
 
+    /// Build a one-call strategy-IR request from an existing native template.
+    /// Signal and optional parameter vectors are copied once into immutable
+    /// Rust-owned request storage; market/account/instrument ownership is
+    /// reused from the template.
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        program,
+        signal,
+        parameters=None,
+        output_profile=0,
+    ))]
+    fn from_template_strategy_ir(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        signal: PyReadonlyArray1<'_, f64>,
+        parameters: Option<PyReadonlyArray1<'_, f64>>,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::NativeExecutionRequestV1::from_strategy_ir_template(
+            template,
+            output,
+            program.inner.clone(),
+            signal.as_slice()?.to_vec(),
+            parameters
+                .map(|values| values.as_slice().map(|slice| slice.to_vec()))
+                .transpose()?,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
     #[getter]
     fn request_version(&self) -> u16 {
         self.inner.request_version()
@@ -2794,6 +3053,11 @@ impl NativeExecutionRequestCore {
     #[getter]
     fn fingerprint(&self) -> String {
         self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.inner.template().fingerprint_hex()
     }
 
     #[getter]
@@ -2813,7 +3077,17 @@ impl NativeExecutionRequestCore {
 
     #[getter]
     fn bars(&self) -> usize {
-        self.inner.market().n_bars
+        self.inner.template().bar_count()
+    }
+
+    #[getter]
+    fn prepared_market_bytes(&self) -> usize {
+        self.inner.template().source_market_bytes()
+    }
+
+    #[getter]
+    fn prepared_view_bytes(&self) -> usize {
+        self.inner.template().view_bytes()
     }
 
     /// Execute the immutable request through the typed output route. One
@@ -2837,6 +3111,198 @@ impl NativeExecutionRequestCore {
             .detach(move || request.execute())
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
         native_request_output_payload(py, result)
+    }
+
+    /// Open a reusable Rust-owned runner for repeated independent scenarios.
+    /// The runner resets account/orders before every execution and does not
+    /// share mutable state with this immutable request or other runners.
+    fn new_runner(&self) -> PyResult<NativeExecutionRunnerCore> {
+        let runner = self
+            .inner
+            .new_runner()
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(NativeExecutionRunnerCore {
+            request: self.inner.clone(),
+            runner: Some(runner),
+            boundary_calls: 0,
+            full_rebuilds: 0,
+            closed: false,
+        })
+    }
+}
+
+/// Mutable, non-thread-shareable native scenario runner. It owns one
+/// `FullSession` and one immutable request template; every execution begins
+/// from a deterministic account/order reset, so folds and optimizer scenarios
+/// cannot leak lifecycle state into one another.
+#[pyclass(unsendable)]
+struct NativeExecutionRunnerCore {
+    request: execution::NativeExecutionRequestV1,
+    runner: Option<execution::NativeExecutionRunnerV1>,
+    boundary_calls: u64,
+    full_rebuilds: u64,
+    closed: bool,
+}
+
+impl NativeExecutionRunnerCore {
+    fn take_runner(&mut self) -> PyResult<execution::NativeExecutionRunnerV1> {
+        if self.closed {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(
+                "native execution runner is closed",
+            ));
+        }
+        self.runner.take().ok_or_else(|| {
+            pyo3::exceptions::PyRuntimeError::new_err("native execution runner is unavailable")
+        })
+    }
+
+    fn restore_runner(&mut self, runner: execution::NativeExecutionRunnerV1) {
+        self.runner = Some(runner);
+    }
+
+    fn execute_result(&mut self, py: Python<'_>) -> PyResult<execution::NativeExecutionResultV1> {
+        let mut runner = self.take_runner()?;
+        let request = self.request.clone();
+        let (runner, result) = py.detach(move || {
+            let result = runner.execute_request(&request);
+            (runner, result)
+        });
+        self.restore_runner(runner);
+        self.boundary_calls = self
+            .boundary_calls
+            .checked_add(1)
+            .ok_or_else(|| pyo3::exceptions::PyRuntimeError::new_err("boundary call overflow"))?;
+        result.map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+}
+
+#[pymethods]
+impl NativeExecutionRunnerCore {
+    /// Execute once and return profile-specific typed SoA output. The Python
+    /// boundary is one detached call; no callback or result replay occurs.
+    fn execute_typed(&mut self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        let result = self.execute_result(py)?;
+        native_request_typed_output(py, result)
+    }
+
+    /// Explicit legacy cold-path adaptation for clients still expecting the
+    /// historical dictionary surface.
+    fn execute(&mut self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let result = self.execute_result(py)?;
+        native_request_output_payload(py, result)
+    }
+
+    /// Reset scope is explicit. `account_only` is intentionally unsupported:
+    /// retaining order/lifecycle state while resetting account would create an
+    /// ambiguous scenario. Result buffers are already detached into output
+    /// owners, so releasing scratch capacity cannot invalidate past results.
+    #[pyo3(signature = (scope="account_and_orders", max_capacity=0))]
+    fn reset(&mut self, scope: &str, max_capacity: usize) -> PyResult<()> {
+        if self.closed {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(
+                "native execution runner is closed",
+            ));
+        }
+        match scope {
+            "account_and_orders" | "scenario_state" => {
+                let runner = self.runner.as_mut().ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err(
+                        "native execution runner is unavailable",
+                    )
+                })?;
+                runner
+                    .reset_account_and_orders()
+                    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+            }
+            "result_buffers" => {
+                let runner = self.runner.as_mut().ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err(
+                        "native execution runner is unavailable",
+                    )
+                })?;
+                runner.release_transient_buffers(max_capacity);
+            }
+            "full_rebuild" => {
+                let next_generation = self
+                    .runner
+                    .as_ref()
+                    .ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "native execution runner is unavailable",
+                        )
+                    })?
+                    .generation()
+                    .checked_add(1)
+                    .ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "native execution runner generation overflow",
+                        )
+                    })?;
+                self.runner = Some(
+                    execution::NativeExecutionRunnerV1::new_with_generation(
+                        self.request.template().clone(),
+                        next_generation,
+                    )
+                    .map_err(pyo3::exceptions::PyValueError::new_err)?,
+                );
+                self.full_rebuilds = self.full_rebuilds.checked_add(1).ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err("full rebuild count overflow")
+                })?;
+            }
+            "account_only" => {
+                return Err(pyo3::exceptions::PyNotImplementedError::new_err(
+                    "account_only reset is unsupported for full native execution; use account_and_orders",
+                ));
+            }
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "reset scope must be account_and_orders, scenario_state, result_buffers, or full_rebuild",
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    /// Drop native runner state while retaining no hidden Python callback or
+    /// result reference. A closed runner cannot be reused.
+    fn close(&mut self) {
+        self.runner = None;
+        self.closed = true;
+    }
+
+    #[getter]
+    fn closed(&self) -> bool {
+        self.closed
+    }
+
+    /// Cold-path lifecycle and boundary observability. This dictionary is
+    /// never materialized by `execute_typed()` in the execution hot path.
+    fn diagnostics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        payload.set_item("request_fingerprint", self.request.fingerprint_hex())?;
+        payload.set_item(
+            "template_fingerprint",
+            self.request.template().fingerprint_hex(),
+        )?;
+        payload.set_item("boundary_calls", self.boundary_calls)?;
+        payload.set_item("python_callbacks", 0)?;
+        payload.set_item("full_rebuilds", self.full_rebuilds)?;
+        payload.set_item("closed", self.closed)?;
+        payload.set_item(
+            "market_bytes",
+            self.request.template().source_market_bytes(),
+        )?;
+        payload.set_item("view_bytes", self.request.template().view_bytes())?;
+        if let Some(runner) = self.runner.as_ref() {
+            let (fills, events, active) = runner.step_buffer_capacities();
+            payload.set_item("generation", runner.generation())?;
+            payload.set_item("run_count", runner.run_count())?;
+            payload.set_item("explicit_reset_count", runner.explicit_reset_count())?;
+            payload.set_item("step_fill_buffer_capacity", fills)?;
+            payload.set_item("step_event_buffer_capacity", events)?;
+            payload.set_item("step_active_order_buffer_capacity", active)?;
+        }
+        Ok(payload.unbind())
     }
 }
 
@@ -3936,6 +4402,64 @@ fn full_step_payload(py: Python<'_>, result: full::FullStepResult) -> PyResult<P
 }
 
 #[allow(clippy::too_many_arguments)]
+fn build_execution_template(
+    market: Arc<FullMarketData>,
+    contract_sizes: Vec<f64>,
+    leverages: Vec<f64>,
+    fee_rates: Vec<f64>,
+    initial_capital: f64,
+    maintenance_ratio: f64,
+    slippage_rate: f64,
+    use_funding: bool,
+    event_contract_code: i64,
+) -> Result<Arc<execution::NativeExecutionTemplateV1>, String> {
+    let instruments =
+        execution::InstrumentTableV1::sequential(contract_sizes, leverages, fee_rates)?;
+    let account = execution::AccountModelV1::new(
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+    )?;
+    let contract = execution::ExecutionContractV1::new(event_contract_code)?;
+    Ok(Arc::new(execution::NativeExecutionTemplateV1::new(
+        market,
+        instruments,
+        account,
+        contract,
+    )?))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_command_request_from_template(
+    template: Arc<execution::NativeExecutionTemplateV1>,
+    ptr: &[i64],
+    codes: &[i64],
+    codes_shape: &[usize],
+    values: &[f64],
+    values_shape: &[usize],
+    expiry: &[i64],
+    output_profile: u8,
+) -> Result<execution::NativeExecutionRequestV1, String> {
+    let tape = translate_full_command_tape(
+        template.bar_count(),
+        template.n_symbols(),
+        ptr,
+        codes,
+        codes_shape,
+        values,
+        values_shape,
+        expiry,
+    )?;
+    let output = execution::NativeOutputProfileV1::try_from(output_profile)?;
+    execution::NativeExecutionRequestV1::from_template(
+        template,
+        output,
+        execution::WorkloadPayloadV1::CommandTape(tape),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
 fn build_command_request(
     market: Arc<FullMarketData>,
     ptr: &[i64],
@@ -3954,32 +4478,26 @@ fn build_command_request(
     event_contract_code: i64,
     output_profile: u8,
 ) -> Result<execution::NativeExecutionRequestV1, String> {
-    let tape = translate_full_command_tape(
-        &market,
+    let template = build_execution_template(
+        market,
+        contract_sizes,
+        leverages,
+        fee_rates,
+        initial_capital,
+        maintenance_ratio,
+        slippage_rate,
+        use_funding,
+        event_contract_code,
+    )?;
+    build_command_request_from_template(
+        template,
         ptr,
         codes,
         codes_shape,
         values,
         values_shape,
         expiry,
-    )?;
-    let instruments =
-        execution::InstrumentTableV1::sequential(contract_sizes, leverages, fee_rates)?;
-    let account = execution::AccountModelV1::new(
-        initial_capital,
-        maintenance_ratio,
-        slippage_rate,
-        use_funding,
-    )?;
-    let contract = execution::ExecutionContractV1::new(event_contract_code)?;
-    let output = execution::NativeOutputProfileV1::try_from(output_profile)?;
-    execution::NativeExecutionRequestV1::new(
-        market,
-        instruments,
-        account,
-        contract,
-        output,
-        execution::WorkloadPayloadV1::CommandTape(tape),
+        output_profile,
     )
 }
 
@@ -3990,6 +4508,9 @@ fn native_request_output_payload(
     let profile = result.output_profile;
     let workload = result.workload_kind;
     let fingerprint = result.fingerprint_hex();
+    let template_fingerprint = result.template_fingerprint_hex();
+    let execution_generation = result.execution_generation;
+    let runner_run_count = result.runner_run_count;
     // The frozen `execute()` API remains a cold-path mapping adapter. Moving
     // the typed SoA result into this legacy shape never reruns the engine.
     let output = result.output.into_legacy_static();
@@ -4011,9 +4532,15 @@ fn native_request_output_payload(
     payload.set_item("native_execution_request_version", result.request_version)?;
     payload.set_item("native_execution_protocol_version", result.protocol_version)?;
     payload.set_item("native_execution_request_fingerprint", fingerprint)?;
+    payload.set_item(
+        "native_execution_template_fingerprint",
+        template_fingerprint,
+    )?;
     payload.set_item("native_execution_workload", workload.name())?;
     payload.set_item("native_execution_output_profile", profile.name())?;
     payload.set_item("native_execution_command_count", result.command_count)?;
+    payload.set_item("native_execution_generation", execution_generation)?;
+    payload.set_item("native_execution_runner_run_count", runner_run_count)?;
     payload.set_item("python_callbacks", 0)?;
     payload.set_item("boundary_calls", 1)?;
 
@@ -4108,7 +4635,8 @@ fn native_request_typed_output(
 
 #[allow(clippy::too_many_arguments)]
 fn translate_full_command_tape(
-    market: &FullMarketData,
+    n_bars: usize,
+    n_symbols: usize,
     ptr: &[i64],
     codes: &[i64],
     codes_shape: &[usize],
@@ -4132,9 +4660,9 @@ fn translate_full_command_tape(
         codes,
         values,
         expiry,
-        n_bars: market.n_bars,
+        n_bars,
     }
-    .translate(market.n_symbols)
+    .translate(n_symbols)
     .map_err(|error| error.to_string())
 }
 
@@ -4184,7 +4712,8 @@ fn run_full_tape_profile(
     // ingress so every static full-tape run shares the ABI-0.5 `CommandTapeV5`
     // lifecycle path used by typed requests, IR, portfolio and packages.
     let tape = translate_full_command_tape(
-        &session.market,
+        session.n_bars(),
+        session.market.n_symbols,
         ptr,
         codes,
         codes_shape,
@@ -4226,7 +4755,9 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeScoreOutputCore>()?;
     module.add_class::<NativeCompactOutputCore>()?;
     module.add_class::<NativeAuditOutputCore>()?;
+    module.add_class::<NativeExecutionTemplateCore>()?;
     module.add_class::<NativeExecutionRequestCore>()?;
+    module.add_class::<NativeExecutionRunnerCore>()?;
     module.add_class::<NativeStrategyProgramCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
     Ok(())

@@ -51,6 +51,8 @@ class PreparedObjectCache:
         self._hits = 0
         self._misses = 0
         self._evictions = 0
+        self._clears = 0
+        self._generation = 0
 
     def get(self, key: tuple[str, ...], *, pin: bool = False):
         with self._lock:
@@ -119,10 +121,30 @@ class PreparedObjectCache:
             self._resident_bytes -= entry.size_bytes
             self._evictions += 1
 
-    def clear(self) -> None:
+    def clear(self, *, force: bool = False) -> dict[str, int]:
+        """Clear resident entries with explicit pinned-entry semantics.
+
+        A normal clear refuses to silently discard an entry borrowed by an
+        active run. ``force=True`` is reserved for process teardown or an
+        explicitly abandoned run; external owners may still keep a value alive
+        after cache eviction, but no cache reference remains.
+        """
+
         with self._lock:
+            pinned = sum(entry.pins for entry in self._entries.values())
+            if pinned and not force:
+                raise RuntimeError("cannot clear prepared cache while entries are pinned")
+            released_bytes = int(self._resident_bytes)
+            released_entries = int(len(self._entries))
             self._entries.clear()
             self._resident_bytes = 0
+            self._clears += 1
+            self._generation += 1
+            return {
+                "released_entries": released_entries,
+                "released_bytes": released_bytes,
+                "generation": int(self._generation),
+            }
 
     @property
     def diagnostics(self) -> dict[str, int]:
@@ -135,6 +157,8 @@ class PreparedObjectCache:
                 "eviction_count": int(self._evictions),
                 "reuse_count": int(sum(entry.reuse_count for entry in self._entries.values())),
                 "pinned_entries": int(sum(entry.pins > 0 for entry in self._entries.values())),
+                "clear_count": int(self._clears),
+                "generation": int(self._generation),
             }
 
 
