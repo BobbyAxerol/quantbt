@@ -8,6 +8,7 @@ that same path for immutable static and strategy-IR workloads.
 
 from __future__ import annotations
 
+import gc
 import importlib.util
 from pathlib import Path
 
@@ -310,3 +311,166 @@ def test_api04_static_route_is_locked_to_the_typed_command_tape_translator():
     assert "session.run_typed_score(&tape)" in source
     assert "session.run_typed_compact(&tape)" in source
     assert "session.run_typed_audit(&tape)" in source
+
+
+def test_typed_outputs_are_profiled_soa_and_match_the_legacy_cold_adapter():
+    import _quantbt_native
+
+    shared_score_keys = (
+        "final_equity",
+        "total_fee",
+        "total_turnover",
+        "total_funding",
+        "fill_count",
+        "event_count",
+        "rejected_count",
+        "canceled_count",
+        "max_initial_margin",
+        "max_maintenance_margin",
+        "liquidated",
+        "liquidation_bar",
+        "liquidation_reason",
+    )
+    path_keys = (
+        "equity",
+        "positions",
+        "fees",
+        "turnover",
+        "funding",
+        "initial_margin",
+        "maintenance_margin",
+    )
+    detail_keys = (
+        "fill_bar",
+        "fill_order_id",
+        "fill_symbol",
+        "fill_side",
+        "fill_qty",
+        "fill_price",
+        "fill_fee",
+        "fill_reason",
+        "fill_ambiguity",
+        "event_bar",
+        "event_kind",
+        "event_status",
+        "event_order_id",
+        "event_target_id",
+        "event_symbol",
+        "event_reject_code",
+    )
+
+    score_request = _request(_prepared()[0], output_profile=0)
+    score = score_request.execute_typed()
+    score_legacy = score_request.execute()
+    assert isinstance(score, _quantbt_native.NativeScoreOutputV1)
+    assert not isinstance(score, dict)
+    assert score.output_version == 1
+    assert score.output_profile == "score"
+    assert score.bars == 6
+    assert not hasattr(score, "equity")
+    assert score.final_positions.dtype == np.float64
+    assert score.final_positions.flags.c_contiguous
+    assert score.output_bytes == score.final_positions.nbytes
+    score_dict = score.as_dict()
+    assert score_dict["native_execution_passes"] == 1
+    assert score_dict["native_execution_buffer_transfer"] == "rust_vec_to_numpy_zero_copy"
+    for key in shared_score_keys:
+        assert getattr(score, key) == score_legacy[key]
+        assert score_dict[key] == score_legacy[key]
+    np.testing.assert_allclose(score.final_positions, score_legacy["final_positions"])
+
+    compact_request = _request(_prepared()[0], output_profile=1)
+    compact = compact_request.execute_typed()
+    compact_legacy = compact_request.execute()
+    assert isinstance(compact, _quantbt_native.NativeCompactOutputV1)
+    assert compact.output_profile == "compact"
+    assert not hasattr(compact, "fill_bar")
+    for key in path_keys:
+        value = getattr(compact, key)
+        assert isinstance(value, np.ndarray)
+        assert value.flags.c_contiguous
+        np.testing.assert_allclose(value, compact_legacy[key], rtol=0.0, atol=1e-12)
+    compact_dict = compact.as_dict()
+    for key in shared_score_keys:
+        assert getattr(compact, key) == compact_legacy[key]
+        assert compact_dict[key] == compact_legacy[key]
+    assert compact.output_bytes == sum(
+        getattr(compact, key).nbytes for key in ("final_positions", *path_keys)
+    )
+
+    audit_request = _request(_prepared()[0], output_profile=2)
+    audit = audit_request.execute_typed()
+    audit_legacy = audit_request.execute()
+    assert isinstance(audit, _quantbt_native.NativeAuditOutputV1)
+    assert audit.output_profile == "audit"
+    for key in (*path_keys, *detail_keys):
+        value = getattr(audit, key)
+        assert isinstance(value, np.ndarray)
+        assert value.flags.c_contiguous
+        np.testing.assert_allclose(value, audit_legacy[key], rtol=0.0, atol=1e-12)
+    for key in ("fill_bar", "fill_order_id", "event_bar", "event_kind"):
+        assert getattr(audit, key).dtype == np.int64
+    audit_dict = audit.as_dict()
+    for key in shared_score_keys:
+        assert getattr(audit, key) == audit_legacy[key]
+        assert audit_dict[key] == audit_legacy[key]
+    assert audit.output_bytes == sum(
+        getattr(audit, key).nbytes
+        for key in ("final_positions", *path_keys, *detail_keys)
+    )
+
+
+def test_typed_output_numpy_owners_survive_request_gc_and_runner_reuse():
+    request = _request(_prepared()[0], output_profile=2)
+    first = request.execute_typed()
+    first_equity = first.equity
+    first_fills = first.fill_price
+    expected_equity = first_equity.copy()
+    expected_fills = first_fills.copy()
+
+    # A repeated request run creates a fresh Rust session. Its output must not
+    # mutate arrays already transferred into the first NumPy-owned result.
+    second = request.execute_typed()
+    np.testing.assert_allclose(first_equity, expected_equity, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(first_fills, expected_fills, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(second.equity, expected_equity, rtol=0.0, atol=1e-12)
+
+    del request
+    gc.collect()
+    np.testing.assert_allclose(first_equity, expected_equity, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(first_fills, expected_fills, rtol=0.0, atol=0.0)
+
+
+def test_typed_audit_empty_columns_are_typed_and_do_not_require_rows():
+    prepared, _ = _prepared()
+    ptr = np.zeros(7, dtype=np.int64)
+    codes = np.empty((0, 16), dtype=np.int64)
+    values = np.empty((0, 3), dtype=np.float64)
+    expiry = np.empty(0, dtype=np.int64)
+    contract_sizes, leverages, fee_rates = _account_arrays()
+
+    import _quantbt_native
+
+    request = _quantbt_native.NativeExecutionRequestCore.from_command_tape(
+        prepared,
+        ptr,
+        codes,
+        values,
+        expiry,
+        contract_sizes,
+        leverages,
+        fee_rates,
+        10_000.0,
+        0.005,
+        0.0001,
+        False,
+        output_profile=2,
+    )
+    output = request.execute_typed()
+    assert isinstance(output, _quantbt_native.NativeAuditOutputV1)
+    assert output.fill_bar.dtype == np.int64
+    assert output.event_kind.dtype == np.int64
+    assert output.fill_bar.size == 0
+    assert output.event_kind.size == 0
+    assert output.fill_count == 0
+    assert output.event_count == 0

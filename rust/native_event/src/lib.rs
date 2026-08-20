@@ -1795,6 +1795,848 @@ impl FullPreparedMarketCore {
     }
 }
 
+/// One native result object's immutable execution provenance. Python owns the
+/// NumPy arrays after the Rust vectors have moved across the cold boundary.
+/// The metadata is intentionally scalar so score requests never construct a
+/// dictionary just to return a score.
+struct NativeOutputMetadataCore {
+    output_version: u16,
+    request_version: u16,
+    protocol_version: u16,
+    request_fingerprint: String,
+    workload_kind: &'static str,
+    output_profile: &'static str,
+    command_count: usize,
+    bars: usize,
+    output_bytes: usize,
+}
+
+impl NativeOutputMetadataCore {
+    fn from_result(result: &execution::NativeExecutionResultV1, output_bytes: usize) -> Self {
+        Self {
+            output_version: result.output.score().output_version,
+            request_version: result.request_version,
+            protocol_version: result.protocol_version,
+            request_fingerprint: result.fingerprint_hex(),
+            workload_kind: result.workload_kind.name(),
+            output_profile: result.output_profile.name(),
+            command_count: result.command_count,
+            bars: result.bar_count,
+            output_bytes,
+        }
+    }
+}
+
+/// Scalar columns shared by score, compact, and audit outputs. The final
+/// position array moves directly from Rust-owned `Vec<f64>` into its NumPy
+/// owner, preserving the result after the request/session is dropped.
+struct NativeScoreFieldsCore {
+    final_equity: f64,
+    final_positions: Py<PyArray1<f64>>,
+    total_fee: f64,
+    total_turnover: f64,
+    total_funding: f64,
+    fill_count: i64,
+    event_count: i64,
+    rejected_count: i64,
+    canceled_count: i64,
+    max_initial_margin: f64,
+    max_maintenance_margin: f64,
+    liquidated: bool,
+    liquidation_bar: i64,
+    liquidation_reason: i64,
+}
+
+impl NativeScoreFieldsCore {
+    fn from_native(py: Python<'_>, output: quantbt_engine::NativeScoreOutputV1) -> Self {
+        Self {
+            final_equity: output.final_equity,
+            final_positions: PyArray1::from_vec(py, output.final_positions).unbind(),
+            total_fee: output.total_fee,
+            total_turnover: output.total_turnover,
+            total_funding: output.total_funding,
+            fill_count: output.fill_count,
+            event_count: output.event_count,
+            rejected_count: output.rejected_count,
+            canceled_count: output.canceled_count,
+            max_initial_margin: output.max_initial_margin,
+            max_maintenance_margin: output.max_maintenance_margin,
+            liquidated: output.liquidated,
+            liquidation_bar: output.liquidation_bar,
+            liquidation_reason: output.liquidation_reason,
+        }
+    }
+}
+
+/// Dense account arrays carried by compact/audit profiles only.
+struct NativePathFieldsCore {
+    equity: Py<PyArray1<f64>>,
+    positions: Py<PyArray1<f64>>,
+    fees: Py<PyArray1<f64>>,
+    turnover: Py<PyArray1<f64>>,
+    funding: Py<PyArray1<f64>>,
+    initial_margin: Py<PyArray1<f64>>,
+    maintenance_margin: Py<PyArray1<f64>>,
+}
+
+impl NativePathFieldsCore {
+    fn from_native(py: Python<'_>, output: quantbt_engine::NativePathOutputV1) -> Self {
+        Self {
+            equity: PyArray1::from_vec(py, output.equity).unbind(),
+            positions: PyArray1::from_vec(py, output.positions).unbind(),
+            fees: PyArray1::from_vec(py, output.fees).unbind(),
+            turnover: PyArray1::from_vec(py, output.turnover).unbind(),
+            funding: PyArray1::from_vec(py, output.funding).unbind(),
+            initial_margin: PyArray1::from_vec(py, output.initial_margin).unbind(),
+            maintenance_margin: PyArray1::from_vec(py, output.maintenance_margin).unbind(),
+        }
+    }
+}
+
+/// Audit-only typed fill/event SoA columns. IDs remain `int64` rather than
+/// being silently coerced into floating-point values.
+struct NativeAuditFieldsCore {
+    fill_bar: Py<PyArray1<i64>>,
+    fill_order_id: Py<PyArray1<i64>>,
+    fill_symbol: Py<PyArray1<i64>>,
+    fill_side: Py<PyArray1<i64>>,
+    fill_qty: Py<PyArray1<f64>>,
+    fill_price: Py<PyArray1<f64>>,
+    fill_fee: Py<PyArray1<f64>>,
+    fill_reason: Py<PyArray1<i64>>,
+    fill_ambiguity: Py<PyArray1<i64>>,
+    event_bar: Py<PyArray1<i64>>,
+    event_kind: Py<PyArray1<i64>>,
+    event_status: Py<PyArray1<i64>>,
+    event_order_id: Py<PyArray1<i64>>,
+    event_target_id: Py<PyArray1<i64>>,
+    event_symbol: Py<PyArray1<i64>>,
+    event_reject_code: Py<PyArray1<i64>>,
+}
+
+impl NativeAuditFieldsCore {
+    fn from_native(
+        py: Python<'_>,
+        fills: quantbt_engine::NativeFillOutputV1,
+        events: quantbt_engine::NativeEventOutputV1,
+    ) -> Self {
+        Self {
+            fill_bar: PyArray1::from_vec(py, fills.bar).unbind(),
+            fill_order_id: PyArray1::from_vec(py, fills.order_id).unbind(),
+            fill_symbol: PyArray1::from_vec(py, fills.symbol).unbind(),
+            fill_side: PyArray1::from_vec(py, fills.side).unbind(),
+            fill_qty: PyArray1::from_vec(py, fills.qty).unbind(),
+            fill_price: PyArray1::from_vec(py, fills.price).unbind(),
+            fill_fee: PyArray1::from_vec(py, fills.fee).unbind(),
+            fill_reason: PyArray1::from_vec(py, fills.reason).unbind(),
+            fill_ambiguity: PyArray1::from_vec(py, fills.ambiguity).unbind(),
+            event_bar: PyArray1::from_vec(py, events.bar).unbind(),
+            event_kind: PyArray1::from_vec(py, events.kind).unbind(),
+            event_status: PyArray1::from_vec(py, events.status).unbind(),
+            event_order_id: PyArray1::from_vec(py, events.order_id).unbind(),
+            event_target_id: PyArray1::from_vec(py, events.target_id).unbind(),
+            event_symbol: PyArray1::from_vec(py, events.symbol).unbind(),
+            event_reject_code: PyArray1::from_vec(py, events.reject_code).unbind(),
+        }
+    }
+}
+
+fn bytes_f64(values: &[f64]) -> usize {
+    values.len().saturating_mul(std::mem::size_of::<f64>())
+}
+
+fn bytes_i64(values: &[i64]) -> usize {
+    values.len().saturating_mul(std::mem::size_of::<i64>())
+}
+
+fn score_output_bytes(output: &quantbt_engine::NativeScoreOutputV1) -> usize {
+    bytes_f64(&output.final_positions)
+}
+
+fn compact_output_bytes(output: &quantbt_engine::NativeCompactOutputV1) -> usize {
+    let paths = &output.paths;
+    score_output_bytes(&output.score)
+        .saturating_add(bytes_f64(&paths.equity))
+        .saturating_add(bytes_f64(&paths.positions))
+        .saturating_add(bytes_f64(&paths.fees))
+        .saturating_add(bytes_f64(&paths.turnover))
+        .saturating_add(bytes_f64(&paths.funding))
+        .saturating_add(bytes_f64(&paths.initial_margin))
+        .saturating_add(bytes_f64(&paths.maintenance_margin))
+}
+
+fn audit_output_bytes(output: &quantbt_engine::NativeAuditOutputV1) -> usize {
+    let fills = &output.fills;
+    let events = &output.events;
+    compact_output_bytes(&output.compact)
+        .saturating_add(bytes_i64(&fills.bar))
+        .saturating_add(bytes_i64(&fills.order_id))
+        .saturating_add(bytes_i64(&fills.symbol))
+        .saturating_add(bytes_i64(&fills.side))
+        .saturating_add(bytes_f64(&fills.qty))
+        .saturating_add(bytes_f64(&fills.price))
+        .saturating_add(bytes_f64(&fills.fee))
+        .saturating_add(bytes_i64(&fills.reason))
+        .saturating_add(bytes_i64(&fills.ambiguity))
+        .saturating_add(bytes_i64(&events.bar))
+        .saturating_add(bytes_i64(&events.kind))
+        .saturating_add(bytes_i64(&events.status))
+        .saturating_add(bytes_i64(&events.order_id))
+        .saturating_add(bytes_i64(&events.target_id))
+        .saturating_add(bytes_i64(&events.symbol))
+        .saturating_add(bytes_i64(&events.reject_code))
+}
+
+fn add_typed_output_metadata(
+    payload: &Bound<'_, PyDict>,
+    metadata: &NativeOutputMetadataCore,
+) -> PyResult<()> {
+    payload.set_item("native_execution_output_version", metadata.output_version)?;
+    payload.set_item("native_execution_request_version", metadata.request_version)?;
+    payload.set_item(
+        "native_execution_protocol_version",
+        metadata.protocol_version,
+    )?;
+    payload.set_item(
+        "native_execution_request_fingerprint",
+        &metadata.request_fingerprint,
+    )?;
+    payload.set_item("native_execution_workload", metadata.workload_kind)?;
+    payload.set_item("native_execution_output_profile", metadata.output_profile)?;
+    payload.set_item("native_execution_command_count", metadata.command_count)?;
+    payload.set_item("bars", metadata.bars)?;
+    payload.set_item("native_execution_output_bytes", metadata.output_bytes)?;
+    payload.set_item(
+        "native_execution_buffer_transfer",
+        "rust_vec_to_numpy_zero_copy",
+    )?;
+    payload.set_item("native_execution_passes", 1)?;
+    payload.set_item("python_callbacks", 0)?;
+    payload.set_item("boundary_calls", 1)?;
+    Ok(())
+}
+
+fn add_score_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    score: &NativeScoreFieldsCore,
+) -> PyResult<()> {
+    payload.set_item("final_equity", score.final_equity)?;
+    payload.set_item("final_positions", score.final_positions.clone_ref(py))?;
+    payload.set_item("total_fee", score.total_fee)?;
+    payload.set_item("total_turnover", score.total_turnover)?;
+    payload.set_item("total_funding", score.total_funding)?;
+    payload.set_item("fill_count", score.fill_count)?;
+    payload.set_item("event_count", score.event_count)?;
+    payload.set_item("rejected_count", score.rejected_count)?;
+    payload.set_item("canceled_count", score.canceled_count)?;
+    payload.set_item("max_initial_margin", score.max_initial_margin)?;
+    payload.set_item("max_maintenance_margin", score.max_maintenance_margin)?;
+    payload.set_item("liquidated", score.liquidated)?;
+    payload.set_item("liquidation_bar", score.liquidation_bar)?;
+    payload.set_item("liquidation_reason", score.liquidation_reason)?;
+    Ok(())
+}
+
+fn add_path_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    paths: &NativePathFieldsCore,
+) -> PyResult<()> {
+    payload.set_item("equity", paths.equity.clone_ref(py))?;
+    payload.set_item("positions", paths.positions.clone_ref(py))?;
+    payload.set_item("fees", paths.fees.clone_ref(py))?;
+    payload.set_item("turnover", paths.turnover.clone_ref(py))?;
+    payload.set_item("funding", paths.funding.clone_ref(py))?;
+    payload.set_item("initial_margin", paths.initial_margin.clone_ref(py))?;
+    payload.set_item("maintenance_margin", paths.maintenance_margin.clone_ref(py))?;
+    Ok(())
+}
+
+fn add_audit_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    audit: &NativeAuditFieldsCore,
+) -> PyResult<()> {
+    payload.set_item("fill_bar", audit.fill_bar.clone_ref(py))?;
+    payload.set_item("fill_order_id", audit.fill_order_id.clone_ref(py))?;
+    payload.set_item("fill_symbol", audit.fill_symbol.clone_ref(py))?;
+    payload.set_item("fill_side", audit.fill_side.clone_ref(py))?;
+    payload.set_item("fill_qty", audit.fill_qty.clone_ref(py))?;
+    payload.set_item("fill_price", audit.fill_price.clone_ref(py))?;
+    payload.set_item("fill_fee", audit.fill_fee.clone_ref(py))?;
+    payload.set_item("fill_reason", audit.fill_reason.clone_ref(py))?;
+    payload.set_item("fill_ambiguity", audit.fill_ambiguity.clone_ref(py))?;
+    payload.set_item("event_bar", audit.event_bar.clone_ref(py))?;
+    payload.set_item("event_kind", audit.event_kind.clone_ref(py))?;
+    payload.set_item("event_status", audit.event_status.clone_ref(py))?;
+    payload.set_item("event_order_id", audit.event_order_id.clone_ref(py))?;
+    payload.set_item("event_target_id", audit.event_target_id.clone_ref(py))?;
+    payload.set_item("event_symbol", audit.event_symbol.clone_ref(py))?;
+    payload.set_item("event_reject_code", audit.event_reject_code.clone_ref(py))?;
+    Ok(())
+}
+
+/// Typed score result for ABI-0.5 requests. It contains scalar accounting and
+/// final positions only. Use `as_dict()` only when a legacy/cold-path consumer
+/// explicitly requires a mapping.
+#[pyclass(name = "NativeScoreOutputV1", module = "_quantbt_native")]
+struct NativeScoreOutputCore {
+    metadata: NativeOutputMetadataCore,
+    score: NativeScoreFieldsCore,
+}
+
+#[pymethods]
+impl NativeScoreOutputCore {
+    #[getter]
+    fn output_version(&self) -> u16 {
+        self.metadata.output_version
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        self.metadata.request_version
+    }
+
+    #[getter]
+    fn protocol_version(&self) -> u16 {
+        self.metadata.protocol_version
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.metadata.request_fingerprint.clone()
+    }
+
+    #[getter]
+    fn workload_kind(&self) -> &'static str {
+        self.metadata.workload_kind
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.metadata.output_profile
+    }
+
+    #[getter]
+    fn command_count(&self) -> usize {
+        self.metadata.command_count
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.metadata.bars
+    }
+
+    #[getter]
+    fn output_bytes(&self) -> usize {
+        self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn final_equity(&self) -> f64 {
+        self.score.final_equity
+    }
+
+    #[getter]
+    fn final_positions(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.score.final_positions.clone_ref(py)
+    }
+
+    #[getter]
+    fn total_fee(&self) -> f64 {
+        self.score.total_fee
+    }
+
+    #[getter]
+    fn total_turnover(&self) -> f64 {
+        self.score.total_turnover
+    }
+
+    #[getter]
+    fn total_funding(&self) -> f64 {
+        self.score.total_funding
+    }
+
+    #[getter]
+    fn fill_count(&self) -> i64 {
+        self.score.fill_count
+    }
+
+    #[getter]
+    fn event_count(&self) -> i64 {
+        self.score.event_count
+    }
+
+    #[getter]
+    fn rejected_count(&self) -> i64 {
+        self.score.rejected_count
+    }
+
+    #[getter]
+    fn canceled_count(&self) -> i64 {
+        self.score.canceled_count
+    }
+
+    #[getter]
+    fn max_initial_margin(&self) -> f64 {
+        self.score.max_initial_margin
+    }
+
+    #[getter]
+    fn max_maintenance_margin(&self) -> f64 {
+        self.score.max_maintenance_margin
+    }
+
+    #[getter]
+    fn liquidated(&self) -> bool {
+        self.score.liquidated
+    }
+
+    #[getter]
+    fn liquidation_bar(&self) -> i64 {
+        self.score.liquidation_bar
+    }
+
+    #[getter]
+    fn liquidation_reason(&self) -> i64 {
+        self.score.liquidation_reason
+    }
+
+    /// Explicit cold-path compatibility conversion. It creates one mapping
+    /// after execution; the score run itself never allocated a `PyDict`.
+    fn as_dict(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        add_typed_output_metadata(&payload, &self.metadata)?;
+        add_score_fields(py, &payload, &self.score)?;
+        Ok(payload.unbind())
+    }
+}
+
+/// Typed compact result with scalar accounting and contiguous dense account
+/// paths. It intentionally has no fill/event attributes.
+#[pyclass(name = "NativeCompactOutputV1", module = "_quantbt_native")]
+struct NativeCompactOutputCore {
+    metadata: NativeOutputMetadataCore,
+    score: NativeScoreFieldsCore,
+    paths: NativePathFieldsCore,
+}
+
+#[pymethods]
+impl NativeCompactOutputCore {
+    #[getter]
+    fn output_version(&self) -> u16 {
+        self.metadata.output_version
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        self.metadata.request_version
+    }
+
+    #[getter]
+    fn protocol_version(&self) -> u16 {
+        self.metadata.protocol_version
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.metadata.request_fingerprint.clone()
+    }
+
+    #[getter]
+    fn workload_kind(&self) -> &'static str {
+        self.metadata.workload_kind
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.metadata.output_profile
+    }
+
+    #[getter]
+    fn command_count(&self) -> usize {
+        self.metadata.command_count
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.metadata.bars
+    }
+
+    #[getter]
+    fn output_bytes(&self) -> usize {
+        self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn final_equity(&self) -> f64 {
+        self.score.final_equity
+    }
+
+    #[getter]
+    fn final_positions(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.score.final_positions.clone_ref(py)
+    }
+
+    #[getter]
+    fn total_fee(&self) -> f64 {
+        self.score.total_fee
+    }
+
+    #[getter]
+    fn total_turnover(&self) -> f64 {
+        self.score.total_turnover
+    }
+
+    #[getter]
+    fn total_funding(&self) -> f64 {
+        self.score.total_funding
+    }
+
+    #[getter]
+    fn fill_count(&self) -> i64 {
+        self.score.fill_count
+    }
+
+    #[getter]
+    fn event_count(&self) -> i64 {
+        self.score.event_count
+    }
+
+    #[getter]
+    fn rejected_count(&self) -> i64 {
+        self.score.rejected_count
+    }
+
+    #[getter]
+    fn canceled_count(&self) -> i64 {
+        self.score.canceled_count
+    }
+
+    #[getter]
+    fn max_initial_margin(&self) -> f64 {
+        self.score.max_initial_margin
+    }
+
+    #[getter]
+    fn max_maintenance_margin(&self) -> f64 {
+        self.score.max_maintenance_margin
+    }
+
+    #[getter]
+    fn liquidated(&self) -> bool {
+        self.score.liquidated
+    }
+
+    #[getter]
+    fn liquidation_bar(&self) -> i64 {
+        self.score.liquidation_bar
+    }
+
+    #[getter]
+    fn liquidation_reason(&self) -> i64 {
+        self.score.liquidation_reason
+    }
+
+    #[getter]
+    fn equity(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.equity.clone_ref(py)
+    }
+
+    #[getter]
+    fn positions(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.positions.clone_ref(py)
+    }
+
+    #[getter]
+    fn fees(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.fees.clone_ref(py)
+    }
+
+    #[getter]
+    fn turnover(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.turnover.clone_ref(py)
+    }
+
+    #[getter]
+    fn funding(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.funding.clone_ref(py)
+    }
+
+    #[getter]
+    fn initial_margin(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.initial_margin.clone_ref(py)
+    }
+
+    #[getter]
+    fn maintenance_margin(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.maintenance_margin.clone_ref(py)
+    }
+
+    /// Explicit cold-path compatibility conversion after a compact run.
+    fn as_dict(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        add_typed_output_metadata(&payload, &self.metadata)?;
+        add_score_fields(py, &payload, &self.score)?;
+        add_path_fields(py, &payload, &self.paths)?;
+        Ok(payload.unbind())
+    }
+}
+
+/// Typed audit result with compact accounting paths and typed fill/event
+/// columns. It is the only native route that retains detail by default.
+#[pyclass(name = "NativeAuditOutputV1", module = "_quantbt_native")]
+struct NativeAuditOutputCore {
+    metadata: NativeOutputMetadataCore,
+    score: NativeScoreFieldsCore,
+    paths: NativePathFieldsCore,
+    audit: NativeAuditFieldsCore,
+}
+
+#[pymethods]
+impl NativeAuditOutputCore {
+    #[getter]
+    fn output_version(&self) -> u16 {
+        self.metadata.output_version
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        self.metadata.request_version
+    }
+
+    #[getter]
+    fn protocol_version(&self) -> u16 {
+        self.metadata.protocol_version
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.metadata.request_fingerprint.clone()
+    }
+
+    #[getter]
+    fn workload_kind(&self) -> &'static str {
+        self.metadata.workload_kind
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.metadata.output_profile
+    }
+
+    #[getter]
+    fn command_count(&self) -> usize {
+        self.metadata.command_count
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.metadata.bars
+    }
+
+    #[getter]
+    fn output_bytes(&self) -> usize {
+        self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn final_equity(&self) -> f64 {
+        self.score.final_equity
+    }
+
+    #[getter]
+    fn final_positions(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.score.final_positions.clone_ref(py)
+    }
+
+    #[getter]
+    fn total_fee(&self) -> f64 {
+        self.score.total_fee
+    }
+
+    #[getter]
+    fn total_turnover(&self) -> f64 {
+        self.score.total_turnover
+    }
+
+    #[getter]
+    fn total_funding(&self) -> f64 {
+        self.score.total_funding
+    }
+
+    #[getter]
+    fn fill_count(&self) -> i64 {
+        self.score.fill_count
+    }
+
+    #[getter]
+    fn event_count(&self) -> i64 {
+        self.score.event_count
+    }
+
+    #[getter]
+    fn rejected_count(&self) -> i64 {
+        self.score.rejected_count
+    }
+
+    #[getter]
+    fn canceled_count(&self) -> i64 {
+        self.score.canceled_count
+    }
+
+    #[getter]
+    fn max_initial_margin(&self) -> f64 {
+        self.score.max_initial_margin
+    }
+
+    #[getter]
+    fn max_maintenance_margin(&self) -> f64 {
+        self.score.max_maintenance_margin
+    }
+
+    #[getter]
+    fn liquidated(&self) -> bool {
+        self.score.liquidated
+    }
+
+    #[getter]
+    fn liquidation_bar(&self) -> i64 {
+        self.score.liquidation_bar
+    }
+
+    #[getter]
+    fn liquidation_reason(&self) -> i64 {
+        self.score.liquidation_reason
+    }
+
+    #[getter]
+    fn equity(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.equity.clone_ref(py)
+    }
+
+    #[getter]
+    fn positions(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.positions.clone_ref(py)
+    }
+
+    #[getter]
+    fn fees(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.fees.clone_ref(py)
+    }
+
+    #[getter]
+    fn turnover(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.turnover.clone_ref(py)
+    }
+
+    #[getter]
+    fn funding(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.funding.clone_ref(py)
+    }
+
+    #[getter]
+    fn initial_margin(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.initial_margin.clone_ref(py)
+    }
+
+    #[getter]
+    fn maintenance_margin(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.paths.maintenance_margin.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_bar(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_bar.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_order_id(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_order_id.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_symbol(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_symbol.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_side(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_side.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_qty(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.audit.fill_qty.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_price(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.audit.fill_price.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_fee(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.audit.fill_fee.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_reason(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_reason.clone_ref(py)
+    }
+
+    #[getter]
+    fn fill_ambiguity(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_ambiguity.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_bar(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_bar.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_kind(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_kind.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_status(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_status.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_order_id(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_order_id.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_target_id(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_target_id.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_symbol(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_symbol.clone_ref(py)
+    }
+
+    #[getter]
+    fn event_reject_code(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.event_reject_code.clone_ref(py)
+    }
+
+    /// Explicit cold-path compatibility conversion after an audit run.
+    fn as_dict(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        add_typed_output_metadata(&payload, &self.metadata)?;
+        add_score_fields(py, &payload, &self.score)?;
+        add_path_fields(py, &payload, &self.paths)?;
+        add_audit_fields(py, &payload, &self.audit)?;
+        Ok(payload.unbind())
+    }
+}
+
 /// Immutable internal ABI-0.5 request.  It is intentionally additive to the
 /// frozen API-0.4 session classes: old callers keep their array/session
 /// signatures, while typed static and IR workloads can be prepared once and
@@ -1974,9 +2816,21 @@ impl NativeExecutionRequestCore {
         self.inner.market().n_bars
     }
 
-    /// Execute the immutable request with a fresh Rust-owned account/order
-    /// state.  The dict is a transitional cold-path adapter; Phase 54A.5.4
-    /// replaces it with typed score/compact/audit PyO3 output buffers.
+    /// Execute the immutable request through the typed output route. One
+    /// Rust-only pass produces a score, compact, or audit object according to
+    /// the request profile; no Python dictionary, DataFrame, or replay is
+    /// required for the execution itself.
+    fn execute_typed(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        let request = self.inner.clone();
+        let result = py
+            .detach(move || request.execute())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        native_request_typed_output(py, result)
+    }
+
+    /// API-0.5 compatibility adapter. The authoritative Rust result is first
+    /// produced once, then moved into the historical dictionary shape for
+    /// callers that have not migrated to `execute_typed()`.
     fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
         let request = self.inner.clone();
         let result = py
@@ -3136,7 +3990,9 @@ fn native_request_output_payload(
     let profile = result.output_profile;
     let workload = result.workload_kind;
     let fingerprint = result.fingerprint_hex();
-    let output = result.output;
+    // The frozen `execute()` API remains a cold-path mapping adapter. Moving
+    // the typed SoA result into this legacy shape never reruns the engine.
+    let output = result.output.into_legacy_static();
     let payload = PyDict::new(py);
     payload.set_item("final_equity", output.final_equity)?;
     payload.set_item("final_positions", output.final_positions)?;
@@ -3192,6 +4048,62 @@ fn native_request_output_payload(
         payload.set_item("event_reject_code", output.event_reject_code)?;
     }
     Ok(payload.unbind())
+}
+
+/// Move the authoritative typed Rust result into one profile-specific PyO3
+/// object. `PyArray1::from_vec` transfers each Vec allocation to NumPy, so
+/// output buffers remain valid after the request/session goes out of scope and
+/// no per-row Python object is created.
+fn native_request_typed_output(
+    py: Python<'_>,
+    result: execution::NativeExecutionResultV1,
+) -> PyResult<Py<PyAny>> {
+    let output_bytes = match &result.output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => score_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => compact_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => audit_output_bytes(output),
+    };
+    let metadata = NativeOutputMetadataCore::from_result(&result, output_bytes);
+    match result.output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => Py::new(
+            py,
+            NativeScoreOutputCore {
+                metadata,
+                score: NativeScoreFieldsCore::from_native(py, output),
+            },
+        )
+        .map(|output| output.into_any()),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => {
+            let quantbt_engine::NativeCompactOutputV1 { score, paths } = *output;
+            Py::new(
+                py,
+                NativeCompactOutputCore {
+                    metadata,
+                    score: NativeScoreFieldsCore::from_native(py, score),
+                    paths: NativePathFieldsCore::from_native(py, paths),
+                },
+            )
+            .map(|output| output.into_any())
+        }
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => {
+            let quantbt_engine::NativeAuditOutputV1 {
+                compact,
+                fills,
+                events,
+            } = *output;
+            let quantbt_engine::NativeCompactOutputV1 { score, paths } = compact;
+            Py::new(
+                py,
+                NativeAuditOutputCore {
+                    metadata,
+                    score: NativeScoreFieldsCore::from_native(py, score),
+                    paths: NativePathFieldsCore::from_native(py, paths),
+                    audit: NativeAuditFieldsCore::from_native(py, fills, events),
+                },
+            )
+            .map(|output| output.into_any())
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -3311,6 +4223,9 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ReactiveSessionCore>()?;
     module.add_class::<FullStepResultCore>()?;
     module.add_class::<FullPreparedMarketCore>()?;
+    module.add_class::<NativeScoreOutputCore>()?;
+    module.add_class::<NativeCompactOutputCore>()?;
+    module.add_class::<NativeAuditOutputCore>()?;
     module.add_class::<NativeExecutionRequestCore>()?;
     module.add_class::<NativeStrategyProgramCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;

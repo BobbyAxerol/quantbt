@@ -18,7 +18,9 @@ use quantbt_domain::generated_product_contracts::{
     COMMAND_ABI_VERSION, CORE_PROTOCOL_MAX, CORE_PROTOCOL_MIN, RESULT_ABI_VERSION,
 };
 use quantbt_domain::ids::SymbolId;
-use quantbt_engine::{FullMarketData, FullSession, StaticOutputProfile, StaticTapeOutput};
+use quantbt_engine::{
+    FullMarketData, FullSession, NativeExecutionOutputV1, NativeScoreOutputV1, StaticTapeOutput,
+};
 use quantbt_package::{PackageEventKind, PackageExecutionResult, PackagePlan, PackageState};
 use quantbt_portfolio::{PortfolioMarginAllocationPolicy, PortfolioTargetTape};
 use quantbt_strategy_ir::{PARAMETER_WIDTH, StrategyProgram};
@@ -61,15 +63,6 @@ impl NativeOutputProfileV1 {
             Self::Score => "score",
             Self::Compact => "compact",
             Self::Audit => "audit",
-        }
-    }
-
-    #[must_use]
-    const fn engine_profile(self) -> StaticOutputProfile {
-        match self {
-            Self::Score => StaticOutputProfile::Score,
-            Self::Compact => StaticOutputProfile::Compact,
-            Self::Audit => StaticOutputProfile::Audit,
         }
     }
 }
@@ -656,6 +649,7 @@ impl NativeExecutionRunnerV1 {
             workload_kind: request.workload.kind(),
             output_profile: request.output,
             command_count: request.workload.command_tape().command_count(),
+            bar_count: self.template.bar_count(),
             output,
         })
     }
@@ -667,16 +661,25 @@ impl NativeExecutionRunnerV1 {
         &mut self,
         output: NativeOutputProfileV1,
         workload: &WorkloadPayloadV1,
-    ) -> Result<StaticTapeOutput, String> {
+    ) -> Result<NativeExecutionOutputV1, String> {
         validate_workload(&self.template, workload)?;
         self.session.reset();
         self.session
             .set_event_contract(self.template.contract.event_contract_code)?;
         let tape = workload.command_tape();
-        match output.engine_profile() {
-            StaticOutputProfile::Score => self.session.run_typed_score(tape),
-            StaticOutputProfile::Compact => self.session.run_typed_compact(tape),
-            StaticOutputProfile::Audit => self.session.run_typed_audit(tape),
+        match output {
+            NativeOutputProfileV1::Score => self
+                .session
+                .run_typed_score_v1(tape)
+                .map(NativeExecutionOutputV1::Score),
+            NativeOutputProfileV1::Compact => self
+                .session
+                .run_typed_compact_v1(tape)
+                .map(|output| NativeExecutionOutputV1::Compact(Box::new(output))),
+            NativeOutputProfileV1::Audit => self
+                .session
+                .run_typed_audit_v1(tape)
+                .map(|output| NativeExecutionOutputV1::Audit(Box::new(output))),
         }
     }
 }
@@ -825,13 +828,27 @@ pub struct NativeExecutionResultV1 {
     pub workload_kind: NativeWorkloadKindV1,
     pub output_profile: NativeOutputProfileV1,
     pub command_count: usize,
-    pub output: StaticTapeOutput,
+    pub bar_count: usize,
+    pub output: NativeExecutionOutputV1,
 }
 
 impl NativeExecutionResultV1 {
     #[must_use]
     pub fn fingerprint_hex(&self) -> String {
         hex_fingerprint(self.request_fingerprint)
+    }
+
+    #[must_use]
+    pub const fn score(&self) -> &NativeScoreOutputV1 {
+        self.output.score()
+    }
+
+    /// Explicit compatibility adapter for callers still pinned to the
+    /// API-0.4 `StaticTapeOutput` shape. It moves flat buffers and never
+    /// replays the authoritative native execution.
+    #[must_use]
+    pub fn into_legacy_static(self) -> StaticTapeOutput {
+        self.output.into_legacy_static()
     }
 }
 
@@ -1362,7 +1379,7 @@ mod tests {
             let actual = request.execute().unwrap();
             assert_eq!(actual.workload_kind, NativeWorkloadKindV1::CommandTape);
             assert_eq!(actual.output_profile, profile);
-            assert_output_eq(&actual.output, &expected);
+            assert_output_eq(&actual.output.clone().into_legacy_static(), &expected);
         }
     }
 
@@ -1462,12 +1479,12 @@ mod tests {
         let expected = session
             .run_typed_audit(request.workload.command_tape())
             .unwrap();
-        assert_output_eq(&actual.output, &expected);
+        assert_output_eq(&actual.output.clone().into_legacy_static(), &expected);
         let mut runner = request.new_runner().unwrap();
         let first = runner.execute_request(&request).unwrap();
         let second = runner.execute_request(&request).unwrap();
-        assert_output_eq(&first.output, &expected);
-        assert_output_eq(&second.output, &expected);
+        assert_output_eq(&first.output.clone().into_legacy_static(), &expected);
+        assert_output_eq(&second.output.clone().into_legacy_static(), &expected);
     }
 
     #[test]
@@ -1560,8 +1577,8 @@ mod tests {
         .unwrap();
         let mut runner = NativeExecutionRunnerV1::new(template.clone()).unwrap();
         let portfolio_output = runner.execute_request(&portfolio_request).unwrap().output;
-        assert_eq!(portfolio_output.final_positions, vec![1.0]);
-        assert_eq!(portfolio_output.fill_count, 1);
+        assert_eq!(portfolio_output.score().final_positions, vec![1.0]);
+        assert_eq!(portfolio_output.score().fill_count, 1);
 
         let legs = [PackageLegRequest {
             order_id: ExternalOrderId(77),
@@ -1612,10 +1629,13 @@ mod tests {
         // from a clean account/order/lifecycle state. If reset were omitted,
         // the package short would net against the portfolio long above.
         let package_output = runner.execute_request(&package_request).unwrap().output;
-        assert_eq!(package_output.final_positions, vec![-1.0]);
-        assert_eq!(package_output.fill_count, 1);
+        assert_eq!(package_output.score().final_positions, vec![-1.0]);
+        assert_eq!(package_output.score().fill_count, 1);
         let portfolio_replay = runner.execute_request(&portfolio_request).unwrap().output;
-        assert_output_eq(&portfolio_replay, &portfolio_output);
+        assert_output_eq(
+            &portfolio_replay.clone().into_legacy_static(),
+            &portfolio_output.clone().into_legacy_static(),
+        );
     }
 
     #[test]

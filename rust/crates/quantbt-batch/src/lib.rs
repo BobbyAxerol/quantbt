@@ -310,20 +310,23 @@ impl BatchTemplate {
             NativeOutputProfileV1::Score,
             &WorkloadPayloadV1::StrategyIr(workload),
         ) {
-            Ok(output) => ScenarioOutcome {
-                score: ScenarioScore {
-                    scenario: input.scenario,
-                    final_equity: output.final_equity,
-                    total_fee: output.total_fee,
-                    total_funding: output.total_funding,
-                    turnover: output.total_turnover,
-                    fill_count: output.fill_count.max(0) as u64,
-                    rejected_count: output.rejected_count.max(0) as u64,
-                    liquidated: output.liquidated,
-                },
-                status: ScenarioStatus::Complete,
-                error: None,
-            },
+            Ok(output) => {
+                let score = output.score();
+                ScenarioOutcome {
+                    score: ScenarioScore {
+                        scenario: input.scenario,
+                        final_equity: score.final_equity,
+                        total_fee: score.total_fee,
+                        total_funding: score.total_funding,
+                        turnover: score.total_turnover,
+                        fill_count: score.fill_count.max(0) as u64,
+                        rejected_count: score.rejected_count.max(0) as u64,
+                        liquidated: score.liquidated,
+                    },
+                    status: ScenarioStatus::Complete,
+                    error: None,
+                }
+            }
             Err(error) => ScenarioOutcome {
                 score: zero,
                 status: ScenarioStatus::ExecutionError,
@@ -443,10 +446,12 @@ impl BatchTemplate {
     ) -> Result<quantbt_engine::StaticTapeOutput, String> {
         let workload = self.workload_for_input(input)?;
         let mut runner = self.new_runner()?;
-        runner.execute_workload(
-            NativeOutputProfileV1::Audit,
-            &WorkloadPayloadV1::StrategyIr(workload),
-        )
+        runner
+            .execute_workload(
+                NativeOutputProfileV1::Audit,
+                &WorkloadPayloadV1::StrategyIr(workload),
+            )
+            .map(quantbt_engine::NativeExecutionOutputV1::into_legacy_static)
     }
 }
 

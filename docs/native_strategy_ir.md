@@ -85,6 +85,15 @@ account paths without fill/event rows. `run_audit()` retains the typed fill and
 lifecycle ledger. The execution semantics are identical; only retained output
 changes.
 
+At the lower ABI-0.5 request boundary, the same profiles are available as
+`NativeScoreOutputV1`, `NativeCompactOutputV1`, and `NativeAuditOutputV1` via
+`NativeExecutionRequestCore.execute_typed()`. These objects own contiguous
+NumPy columns transferred from Rust and expose `as_dict()` only for an explicit
+cold-path compatibility conversion. The stable `RustNativeIRRunner` facade
+continues to preserve its existing mapping-based return contract until its own
+public promotion gate; neither route replays Python accounting to construct an
+audit result.
+
 ## Batch and Fold Use
 
 Use batch scoring when signal rows and the four-column parameter matrix are

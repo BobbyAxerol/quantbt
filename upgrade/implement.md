@@ -12956,6 +12956,62 @@ Boundary:
 - The Rust audit result is the production artifact. Python oracle comparison
   is an optional verifier/sampled test path, never an implicit second run.
 
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added versioned pure-Rust `NativeScoreOutputV1`, `NativeCompactOutputV1`,
+  `NativeAuditOutputV1`, and `NativeExecutionOutputV1`. Output requirements
+  are resolved once from the profile before the canonical typed session loop;
+  profile selection changes only retention, never lifecycle, fill, accounting,
+  funding, margin, or liquidation semantics.
+- `score` now retains only scalar terminal accounting plus one final-position
+  vector. It allocates neither dense paths nor fill/event columns and copies
+  final positions only once after the last bar rather than cloning positions on
+  every bar. `compact` retains flat bar-major account columns, while `audit`
+  adds typed `i64` lifecycle IDs and `f64` fill columns with no nested rows.
+- `NativeExecutionRunnerV1` and static/IR/batch/portfolio/package typed
+  workloads consume the new output family. API-0.4 `StaticTapeOutput` is now a
+  move-only compatibility adapter from the authoritative typed result; it does
+  not replay the engine or clone result vectors in production paths.
+- Added additive PyO3 `NativeScoreOutputV1`, `NativeCompactOutputV1`, and
+  `NativeAuditOutputV1` objects behind
+  `NativeExecutionRequestCore.execute_typed()`. Rust `Vec` buffers move
+  directly into NumPy-owned contiguous arrays through `PyArray1::from_vec`.
+  Each object exposes deterministic request/output provenance, retained payload
+  bytes, one-pass boundary metadata, scalar fields, and only the columns its
+  profile declares. `as_dict()` and the retained `execute()` method are explicit
+  cold-path compatibility adapters.
+- Documented the ABI-0.5 typed output boundary in
+  `docs/native_event_rust_full_contract.md` and `docs/native_strategy_ir.md`.
+  Result/report construction remains explicit; no public endpoint or
+  `backend="auto"` route changed in this phase.
+
+Evidence:
+
+- Extended `tests/native_event/test_phase54a5_typed_execution_request.py` to
+  lock score/compact/audit typed-class selection, profile-specific retention,
+  `float64`/`int64` SoA dtypes, byte accounting, cold `as_dict()` parity,
+  legacy `execute()` parity, empty audit columns, request-GC lifetime, and
+  repeated-run/session-reset immutability.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, and `cargo test --workspace` passed (`47` Rust tests).
+- Fresh `maturin develop --release` passed. Focused typed-request tests passed
+  (`8 passed`), full native-event regression passed (`219 passed, 2 skipped`),
+  and the full QuantBT suite passed (`885 passed, 3 skipped`).
+
+Boundary:
+
+- This is an additive ABI-0.5 request/result surface, not a silent public
+  backend promotion. Existing API-0.4 dictionary/session methods and the
+  stable mapping-based `RustNativeIRRunner` facade remain compatibility paths
+  until their own public promotion gates.
+- `native_execution_output_bytes` measures retained numeric payload bytes, not
+  Python object overhead or allocator capacity. Audit streaming/chunk limits,
+  prepared-cache budgeting, public prepared batch ingress, and endpoint-level
+  portfolio/package promotion remain the explicit next work of 54A.5.5 and
+  54B; no Python execution replay was introduced here.
+
 #### 54A.5.5 - Prepared Ownership, Cache, Reset, And Boundary Budget
 
 - `PreparedMarketCore` owns one immutable, contiguous market tape and a

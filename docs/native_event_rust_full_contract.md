@@ -91,6 +91,39 @@ MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run python \
   --bars 2000 --repeats 5
 ```
 
+### ABI-0.5 typed native outputs
+
+The additive `NativeExecutionRequestCore` boundary also exposes a typed result
+route for prepared static tapes and bounded strategy IR:
+
+```python
+# Low-level ABI-0.5 / experimental surface in _quantbt_native.
+typed = request.execute_typed()
+```
+
+The request profile determines the concrete result object:
+
+| Profile | Object | Retained data |
+| --- | --- | --- |
+| `score` | `NativeScoreOutputV1` | scalar accounting and final positions only |
+| `compact` | `NativeCompactOutputV1` | score plus flat dense account paths |
+| `audit` | `NativeAuditOutputV1` | compact data plus typed `int64`/`float64` fill and lifecycle columns |
+
+Each result carries the request fingerprint, request/protocol/output versions,
+workload kind, command count, bar count, retained payload bytes, and one-pass
+boundary metadata. Rust vectors move directly into NumPy-owned contiguous
+arrays, so result arrays remain valid after the native request/session is
+released. `score` has no `equity`, fill, or event attributes; `compact` has no
+fill/event attributes. Integer identifiers remain integer arrays.
+
+`request.execute()` is intentionally retained as the frozen compatibility
+adapter and returns the historical dictionary shape. It moves the authoritative
+typed output into that shape without a second engine run. Calling
+`typed.as_dict()` is likewise an explicit cold-path conversion for legacy code.
+Pandas, `BacktestResultV2`, plots, reports, and stakeholder tables are created
+only by their explicit report/adaptation path. No endpoint is silently promoted
+to this ABI-0.5 surface in the current release.
+
 ## Capability boundary
 
 The explicit selector is:

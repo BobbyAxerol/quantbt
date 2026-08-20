@@ -13,7 +13,11 @@ use crate::generated_contracts::{
     CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE, CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
 };
 use crate::orders::{IndexOrderState, LifecycleIndexes, OrderArena};
-use crate::output::{StaticOutputProfile, StaticTapeOutput};
+use crate::output::{
+    NativeAuditOutputV1, NativeCompactOutputV1, NativeEventOutputV1, NativeExecutionOutputV1,
+    NativeFillOutputV1, NativePathOutputV1, NativeScoreOutputV1, OutputRequirementsV1,
+    StaticOutputProfile, StaticTapeOutput,
+};
 use quantbt_domain::commands::{CommandTapeV5, OrderCommandV5};
 use quantbt_domain::ids::{ExternalOrderId, OrderHandle, SymbolId};
 
@@ -2402,52 +2406,96 @@ impl FullSession {
         Ok(output)
     }
 
-    /// Execute a validated ABI-0.5 typed tape through the same lifecycle and
-    /// accounting loop as the API-0.4 static path. The small raw scratch
-    /// buffers are reused per bar: typed commands never need a Python-owned
-    /// whole-tape conversion and no behavior is delegated to a second engine.
+    /// Compatibility score entry point. ABI-0.5 callers should prefer
+    /// [`Self::run_typed_score_v1`] so their hot path retains the typed scalar
+    /// result rather than adapting it to the API-0.4 static shape.
     pub fn run_typed_score(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
-        self.run_typed_profile(tape, StaticOutputProfile::Score)
+        self.run_typed_score_v1(tape)
+            .map(|output| StaticTapeOutput::from(NativeExecutionOutputV1::Score(output)))
     }
 
-    /// Typed ABI-0.5 compact run with dense account paths and no detail rows.
+    /// Compatibility compact entry point. It moves typed buffers into the
+    /// legacy static shape without replaying execution.
     pub fn run_typed_compact(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
-        self.run_typed_profile(tape, StaticOutputProfile::Compact)
+        self.run_typed_compact_v1(tape).map(|output| {
+            StaticTapeOutput::from(NativeExecutionOutputV1::Compact(Box::new(output)))
+        })
     }
 
-    /// Typed ABI-0.5 audit run with the same typed fill/event columns as the
-    /// API-0.4 static audit sink.
+    /// Compatibility audit entry point. The native audit trace remains the
+    /// production artifact; this method only adapts its flat columns.
     pub fn run_typed_audit(&mut self, tape: &CommandTapeV5) -> Result<StaticTapeOutput, String> {
-        self.run_typed_profile(tape, StaticOutputProfile::Audit)
+        self.run_typed_audit_v1(tape)
+            .map(|output| StaticTapeOutput::from(NativeExecutionOutputV1::Audit(Box::new(output))))
     }
 
-    fn run_typed_profile(
+    /// Score-only ABI-0.5 execution. It retains scalar accounting and final
+    /// positions only; neither paths nor audit columns are allocated.
+    pub fn run_typed_score_v1(
+        &mut self,
+        tape: &CommandTapeV5,
+    ) -> Result<NativeScoreOutputV1, String> {
+        match self.run_typed_output_v1(tape, StaticOutputProfile::Score)? {
+            NativeExecutionOutputV1::Score(output) => Ok(output),
+            output => Err(format!(
+                "typed score output profile mismatch: {:?}",
+                output.profile()
+            )),
+        }
+    }
+
+    /// Compact ABI-0.5 execution. It retains the dense account paths but no
+    /// fill/event trace.
+    pub fn run_typed_compact_v1(
+        &mut self,
+        tape: &CommandTapeV5,
+    ) -> Result<NativeCompactOutputV1, String> {
+        match self.run_typed_output_v1(tape, StaticOutputProfile::Compact)? {
+            NativeExecutionOutputV1::Compact(output) => Ok(*output),
+            output => Err(format!(
+                "typed compact output profile mismatch: {:?}",
+                output.profile()
+            )),
+        }
+    }
+
+    /// Audit ABI-0.5 execution. It retains the compact account output plus
+    /// typed fill/event columns in the same authoritative pass.
+    pub fn run_typed_audit_v1(
+        &mut self,
+        tape: &CommandTapeV5,
+    ) -> Result<NativeAuditOutputV1, String> {
+        match self.run_typed_output_v1(tape, StaticOutputProfile::Audit)? {
+            NativeExecutionOutputV1::Audit(output) => Ok(*output),
+            output => Err(format!(
+                "typed audit output profile mismatch: {:?}",
+                output.profile()
+            )),
+        }
+    }
+
+    /// Execute a validated ABI-0.5 typed tape through the canonical lifecycle
+    /// and accounting loop. Output retention is resolved once before the loop;
+    /// no profile replays the tape or invokes Python while executing.
+    pub fn run_typed_output_v1(
         &mut self,
         tape: &CommandTapeV5,
         profile: StaticOutputProfile,
-    ) -> Result<StaticTapeOutput, String> {
+    ) -> Result<NativeExecutionOutputV1, String> {
         if tape.bars() != self.n_bars() {
             return Err("typed command tape bars do not match prepared market".to_owned());
         }
         let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
-        let retain_paths = profile.retains_paths();
-        let retain_detail = profile.retains_detail();
-        let path_capacity = if retain_paths { n_bars } else { 0 };
-        let mut output = StaticTapeOutput {
-            equity: Vec::with_capacity(path_capacity),
-            positions: Vec::with_capacity(path_capacity * n_symbols),
-            fees: Vec::with_capacity(path_capacity),
-            turnover: Vec::with_capacity(path_capacity),
-            funding: Vec::with_capacity(path_capacity),
-            initial_margin: Vec::with_capacity(path_capacity),
-            maintenance_margin: Vec::with_capacity(path_capacity),
-            final_equity: self.equity,
-            final_positions: self.positions.clone(),
-            liquidation_bar: -1,
-            liquidation_reason: LIQ_NONE,
-            ..StaticTapeOutput::default()
-        };
+        let requirements = OutputRequirementsV1::resolve(profile);
+        let mut score = NativeScoreOutputV1::new(self.equity);
+        let mut paths = requirements
+            .retain_paths
+            .then(|| NativePathOutputV1::with_capacity(n_bars, n_symbols));
+        let mut fills = requirements.retain_detail.then(NativeFillOutputV1::default);
+        let mut events = requirements
+            .retain_detail
+            .then(NativeEventOutputV1::default);
         let mut step_buffers = StepBuffers::default();
         let mut typed_scratch = TypedCommandScratch::with_capacity(8);
 
@@ -2458,7 +2506,7 @@ impl FullSession {
             let step = self.step_typed_with_buffers(
                 bar,
                 commands,
-                if retain_detail {
+                if requirements.retain_detail {
                     OUTPUT_FILLS | OUTPUT_EVENTS
                 } else {
                     0
@@ -2467,35 +2515,55 @@ impl FullSession {
                 &mut step_buffers,
                 &mut typed_scratch,
             )?;
-            if retain_paths {
-                output.equity.push(step.equity);
-                output.positions.extend_from_slice(&self.positions);
-                output.fees.push(step.fee);
-                output.turnover.push(step.turnover);
-                output.funding.push(step.funding);
-                output.initial_margin.push(step.initial_margin);
-                output.maintenance_margin.push(step.maintenance_margin);
+            if let Some(paths) = paths.as_mut() {
+                paths.equity.push(step.equity);
+                paths.positions.extend_from_slice(&self.positions);
+                paths.fees.push(step.fee);
+                paths.turnover.push(step.turnover);
+                paths.funding.push(step.funding);
+                paths.initial_margin.push(step.initial_margin);
+                paths.maintenance_margin.push(step.maintenance_margin);
             }
-            output.final_equity = step.equity;
-            output.final_positions.clone_from(&self.positions);
-            output.total_fee += step.fee;
-            output.total_turnover += step.turnover;
-            output.total_funding += step.funding;
-            output.rejected_count += step.rejected_count;
-            output.canceled_count += step.canceled_count;
-            output.fill_count += step.fill_count;
-            output.event_count += step.event_count;
-            if retain_detail {
-                append_step_details(&mut output, &step_buffers, bar);
+            score.final_equity = step.equity;
+            score.total_fee += step.fee;
+            score.total_turnover += step.turnover;
+            score.total_funding += step.funding;
+            score.rejected_count += step.rejected_count;
+            score.canceled_count += step.canceled_count;
+            score.fill_count += step.fill_count;
+            score.event_count += step.event_count;
+            if let (Some(fills), Some(events)) = (fills.as_mut(), events.as_mut()) {
+                append_step_details_v1(fills, events, &step_buffers, bar);
             }
-            output.max_initial_margin = output.max_initial_margin.max(step.initial_margin);
-            output.max_maintenance_margin =
-                output.max_maintenance_margin.max(step.maintenance_margin);
-            output.liquidated = step.liquidated;
-            output.liquidation_bar = step.liquidation_bar;
-            output.liquidation_reason = step.liquidation_reason;
+            score.max_initial_margin = score.max_initial_margin.max(step.initial_margin);
+            score.max_maintenance_margin =
+                score.max_maintenance_margin.max(step.maintenance_margin);
+            score.liquidated = step.liquidated;
+            score.liquidation_bar = step.liquidation_bar;
+            score.liquidation_reason = step.liquidation_reason;
         }
-        Ok(output)
+        // This is the only final-position copy in a typed run. In particular,
+        // score workloads no longer clone position state once per bar.
+        score.final_positions = self.positions.clone();
+        match requirements.profile {
+            StaticOutputProfile::Score => Ok(NativeExecutionOutputV1::Score(score)),
+            StaticOutputProfile::Compact => Ok(NativeExecutionOutputV1::Compact(Box::new(
+                NativeCompactOutputV1 {
+                    score,
+                    paths: paths.expect("compact output requires dense paths"),
+                },
+            ))),
+            StaticOutputProfile::Audit => Ok(NativeExecutionOutputV1::Audit(Box::new(
+                NativeAuditOutputV1 {
+                    compact: NativeCompactOutputV1 {
+                        score,
+                        paths: paths.expect("audit output requires dense paths"),
+                    },
+                    fills: fills.expect("audit output requires fill columns"),
+                    events: events.expect("audit output requires event columns"),
+                },
+            ))),
+        }
     }
 }
 
@@ -2534,28 +2602,31 @@ fn encode_typed_command(
     expiry.push(command.expire_bar.map_or(-1, i64::from));
 }
 
-fn append_step_details(output: &mut StaticTapeOutput, buffers: &StepBuffers, bar: usize) {
+fn append_step_details_v1(
+    fills: &mut NativeFillOutputV1,
+    events: &mut NativeEventOutputV1,
+    buffers: &StepBuffers,
+    bar: usize,
+) {
     for index in 0..buffers.fills.order_id.len() {
-        output.fill_bar.push(bar as i64);
-        output.fill_order_id.push(buffers.fills.order_id[index]);
-        output.fill_symbol.push(buffers.fills.symbol[index]);
-        output.fill_side.push(buffers.fills.side[index]);
-        output.fill_qty.push(buffers.fills.qty[index]);
-        output.fill_price.push(buffers.fills.price[index]);
-        output.fill_fee.push(buffers.fills.fee[index]);
-        output.fill_reason.push(buffers.fills.reason[index]);
-        output.fill_ambiguity.push(buffers.fills.ambiguity[index]);
+        fills.bar.push(bar as i64);
+        fills.order_id.push(buffers.fills.order_id[index]);
+        fills.symbol.push(buffers.fills.symbol[index]);
+        fills.side.push(buffers.fills.side[index]);
+        fills.qty.push(buffers.fills.qty[index]);
+        fills.price.push(buffers.fills.price[index]);
+        fills.fee.push(buffers.fills.fee[index]);
+        fills.reason.push(buffers.fills.reason[index]);
+        fills.ambiguity.push(buffers.fills.ambiguity[index]);
     }
     for index in 0..buffers.events.kind.len() {
-        output.event_bar.push(bar as i64);
-        output.event_kind.push(buffers.events.kind[index]);
-        output.event_status.push(buffers.events.status[index]);
-        output.event_order_id.push(buffers.events.order_id[index]);
-        output.event_target_id.push(buffers.events.target_id[index]);
-        output.event_symbol.push(buffers.events.symbol[index]);
-        output
-            .event_reject_code
-            .push(buffers.events.reject_code[index]);
+        events.bar.push(bar as i64);
+        events.kind.push(buffers.events.kind[index]);
+        events.status.push(buffers.events.status[index]);
+        events.order_id.push(buffers.events.order_id[index]);
+        events.target_id.push(buffers.events.target_id[index]);
+        events.symbol.push(buffers.events.symbol[index]);
+        events.reject_code.push(buffers.events.reject_code[index]);
     }
 }
 
