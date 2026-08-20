@@ -12693,6 +12693,191 @@ Boundary after Phase 54A:
 
 ---
 
+### Phase 54A.5 - Rust Execution Ownership Completion, Typed Request, And Boundary Collapse
+
+**Status: planned. Must complete before any Phase 54B auto-promotion work.**
+
+Detailed guide:
+
+- [P1.3 - Resolve output requirements once](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p13--resolve-outputrequirements-một-lần)
+- [P1.6 through P1.9 - Remove shadow state, reduce transitions, primary audit, and prepared cache](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p16--xóa-python-shadow-state-trong-rust-adapter)
+- [P2.2 and P2.3 - Typed ABI 0.5 and market ownership](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p22--chuyển-thành-rust-workspace-pyo3-chỉ-ở-outer-crate)
+- [P2.9 - Flat SoA output and online metrics](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p29--output-architecture-flat-soa-online-metrics-và-zero-unnecessary-materialization)
+- [P2.10 through P2.13 - Strategy hierarchy, batch/WFO, portfolio, and package execution](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p210--native-strategy-execution-hierarchy)
+- [P2.15 - Correct PyO3 boundary optimization](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p215--pyo3-boundary-tối-ưu-đúng-cách)
+- [P2.19 - Performance promotion gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+- [P3.7 - Generated conformance corpus and test matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+
+Goal:
+
+Finish the shared Rust execution substrate before promotion. Rust must own one
+authoritative market/account/order/lifecycle state for every native-event
+workload that will later be eligible for Rust-first routing. Python remains the
+public facade, strategy-research layer, report adapter, and executable oracle;
+it must not retain a competing execution state or force an execution replay.
+
+This phase is intentionally a **completion and conformance phase**, not an
+automatic-backend-promotion phase. `backend="auto"` remains Python-first until
+the individual Phase 54B workload gates pass.
+
+#### 54A.5.1 - One Rust Execution Core And Compatibility Adapters
+
+- Make `quantbt_engine::FullSession` the sole Rust owner of market state,
+  instrument constraints, positions, cash/equity, fees, funding, margin,
+  liquidation, order lifecycle, trace counters, and terminal state for every
+  native execution route eligible for promotion.
+- Collapse the old R1/R2 `legacy::ReactiveSession` runtime into a compatibility
+  adapter over `FullSession`, or retire it only after exact transition,
+  accounting, sparse-wake, and lifetime parity proves that no public consumer
+  depends on its independent state machine.
+- Preserve legacy Python endpoint signatures and historical contract
+  translators. A legacy input may be translated at the ingress boundary, but
+  it must not cause a second Rust lifecycle implementation or a Python shadow
+  accounting loop.
+- Keep all execution contracts versioned. The complete resolved contract,
+  including event clock, fill/gap/ambiguity policy, funding phase,
+  quantization, liquidation priority, and close policy, must travel into the
+  Rust request as one immutable value; unsupported fields fail closed.
+
+#### 54A.5.2 - Typed Native Execution Request And Workload Tapes
+
+Introduce one versioned internal request family, conceptually:
+
+```text
+PreparedMarketCore + InstrumentTable + AccountModel + ExecutionContract
+    + OutputProfile + WorkloadPayload
+    -> NativeExecutionRequestV1
+```
+
+`WorkloadPayload` is a tagged typed payload, never a Python callback hidden in
+an untyped dictionary:
+
+- `CommandTapeV5` for explicit static orders;
+- `StrategyIRV1` plus immutable numeric signal/parameter tape;
+- `PortfolioTargetTapeV1` for prepared target-unit rebalances;
+- `PackageTapeV1` for prepared multi-leg transaction intent.
+
+Requirements:
+
+- The API-0.4 flat-array translator remains a compatibility ingress only.
+  `CommandTapeV5` becomes the canonical execution representation consumed by
+  the shared engine.
+- String IDs, symbols, order IDs, policy enums, timestamps, quantity/price
+  constraints, and contract settings are normalized once before the hot loop.
+- Portfolio and package tapes must be able to enter the same `FullSession`
+  lifecycle without direct position mutation or a separate account loop.
+- The request has a deterministic fingerprint covering market, instruments,
+  contract, workload tape, output profile, and native protocol/ABI versions.
+
+#### 54A.5.3 - Rust-Owned State Across Static, IR, Batch, Portfolio, And Package
+
+- Static tape: one prepared Rust session executes the entire tape; no Python
+  per-bar transition, no Python ledger recomputation, and no audit replay.
+- Strategy IR: compile supported declarative strategies inside Rust from a
+  bounded program and numeric signal tape. The existing templates
+  (`signal_target`, grid level, periodic DCA, fixed bracket) remain bounded
+  and inspectable; arbitrary Python callbacks are not falsely represented as
+  native programs.
+- Batch/WFO: one Rust-owned prepared market is shared across scenarios/folds;
+  score batches retain scalar columns only, while selected candidates are
+  explicitly rerun in compact/audit mode.
+- Portfolio/package: implement the shared tape/session entry point and state
+  ownership now, but keep policy-by-policy public certification and promotion
+  for Phase 54B.3/54B.4. This prevents those phases from creating another
+  bridge or another accounting loop.
+- A Python callback remains a compatibility workload. It may cross the
+  boundary only at declared callback or sparse-wake points. An every-bar
+  callback cannot honestly be described as fully native and must retain that
+  classification in metadata and benchmarks.
+
+#### 54A.5.4 - Flat Output, Cold-Path Adaptation, And No Replay
+
+- Replace hot-path `PyDict`, nested row vectors, per-fill Python objects, and
+  unconditional pandas construction with versioned typed native outputs:
+  `NativeScoreOutputV1`, `NativeCompactOutputV1`, and
+  `NativeAuditOutputV1`.
+- Score output contains only scalar/online metrics required by the caller. It
+  must not materialize equity paths, audit rows, `DataFrame`s, or a Python
+  dictionary merely to calculate a score.
+- Compact/audit output uses contiguous typed SoA buffers with explicit owner
+  lifetime. Python adapts those buffers into `BacktestResultV2`, plots, and
+  reports only after execution, and only for the report level requested.
+- The Rust audit result is the production artifact. Python oracle comparison
+  is an optional verifier/sampled test path, never an implicit second run.
+
+#### 54A.5.5 - Prepared Ownership, Cache, Reset, And Boundary Budget
+
+- `PreparedMarketCore` owns one immutable, contiguous market tape and a
+  validated instrument table per content fingerprint. Its lifetime is explicit
+  and independent of transient Python `DataFrame`s.
+- Reuse prepared market/instrument state across static reruns, IR scenarios,
+  WFO folds, and service loops without duplicate pandas normalization or
+  market-array packing per trial. Fold-local account reset/window semantics
+  remain causal and must not leak positions/orders across folds.
+- Cache entries have byte budgets, ref/lifetime diagnostics, deterministic
+  clear/reset behavior, and signatures covering all result-affecting arrays
+  and constraints. No cache uses object identity as a correctness substitute.
+- Define and test a boundary budget: static/IR/full batch is one Python-to-Rust
+  call per run/batch; sparse callbacks cross once per wake chunk; arbitrary
+  every-bar callbacks report their crossing count honestly.
+
+#### 54A.5.6 - Differential Corpus, Performance Baseline, And Exit Gate
+
+The canonical corpus must compare the Python oracle, legacy compatibility
+adapter, typed Rust request, and prepared Rust reuse path for the same
+contract. It must lock:
+
+- accepted/rejected commands and rejection reasons;
+- fill time, price, quantity, reason, ambiguity, parent/OCO/TIF transitions;
+- position, cash/equity, fee, slippage, funding, margin, liquidation, and
+  per-symbol/package attribution where the workload supports them;
+- trace/fingerprint determinism, reset/lifetime behavior, and legacy endpoint
+  result/report compatibility;
+- score/compact/audit accounting parity, including the absence of a hidden
+  audit replay;
+- prepared versus non-prepared, single versus batch, and repeated-run cache
+  parity.
+
+Benchmark evidence must separately record E0 static, E1 callback, E2 sparse
+callback, E3 IR, E4 portfolio, E5 package, and E6 batch/WFO workloads with
+Python/Rust call counts, copies, engine time, adaptation time, peak/steady RSS,
+and result fingerprints. No speed claim or promotion is permitted until the
+corresponding parity and installed-wheel gate passes.
+
+Exit gate:
+
+```text
+One authoritative Rust execution/accounting state exists for the promotable
+native-event workload family;
+typed request/output contracts are versioned and fingerprinted;
+legacy compatibility is adapter-only and parity-locked;
+static/IR/batch have no per-bar Python execution boundary;
+portfolio/package enter the shared Rust session through typed tapes;
+score has no dictionary/dataframe/audit materialization or forced replay;
+prepared ownership/cache/reset is deterministic and bounded;
+the full Python-oracle/legacy/typed/prepared differential corpus passes.
+```
+
+Non-goals and fail-closed scope:
+
+- This phase does not auto-promote any workload and does not remove the Python
+  oracle, historical translators, or public endpoint compatibility.
+- It does not claim arbitrary Python strategy code is compilable to Rust.
+- It does not certify venue-exact L2/queue/partial-fill simulation,
+  inverse/quanto/options accounting, universal portfolio margin, or Nautilus
+  execution. Those require separate contracts and must remain explicitly
+  unsupported/fallback paths.
+- Native intrabar, vectorized, options, and Nautilus backends retain their own
+  contracts. They are not silently redirected into the Rust native-event core.
+
+Dependency for Phase 54B:
+
+Phase 54B may promote only a workload whose typed request/output path is
+complete under this phase and whose domain-specific Phase 54B parity,
+installed-wheel, performance, RSS, rollback, and public endpoint gates pass.
+
+---
+
 ### Phase 54B - P3 Rust-First Promotion, Migration, Cleanup, And Final Release
 
 **Status: planned.**
@@ -12712,6 +12897,13 @@ Promote Rust from an explicit experimental accelerator to the canonical
 production execution core for every certified workload, retain Python as the
 executable oracle/fallback, remove obsolete duplicate hot paths, and publish a
 reversible release with no ambiguous backend behavior.
+
+Prerequisite:
+
+Phase 54A.5 must be complete. Promotion is prohibited while a candidate route
+still depends on an independent legacy Rust state machine, Python execution
+shadow state, untyped request/dictionary hot path, forced audit replay, or an
+uncertified portfolio/package bridge.
 
 Scope:
 
