@@ -173,6 +173,60 @@ This remains an experimental lower-level preparation surface. Existing
 endpoints and `backend="auto"` behavior are unchanged; higher-level
 prepared-batch promotion has its own parity and release gate.
 
+### Phase 54A.5.6 differential corpus and exit evidence
+
+Phase 54A.5.6 adds a small, deterministic execution corpus rather than relying
+on one happy-path benchmark. Each case is executed through four representations
+of the same contract:
+
+1. the public Python replay oracle;
+2. the public API-0.4 Rust compatibility adapter;
+3. a direct ABI-0.5 typed `NativeExecutionRequestCore`; and
+4. the same ABI-0.5 request rebuilt from `NativeExecutionPreparationCache` and
+   executed by a reusable native runner.
+
+The checked corpus includes multi-symbol funding plus parent/OCO transitions,
+and IOC/GTD/cancel-all/reduce-only rejection behavior. It locks accepted and
+rejected commands, terminal reasons, fill rows, positions, equity, fee,
+funding, margin, lifecycle trace, request/output provenance, reset behavior,
+and result lifetime after cache cleanup. It also checks score/compact/audit
+retention parity, without turning a score run into a hidden audit replay.
+
+Canonical trace identity deliberately follows the public `1e-12` numerical
+parity contract. Only the trace fingerprint projection rounds floating fields
+to 12 decimal places, so harmless Python/Rust f64 accumulation-order noise
+does not look like a lifecycle mismatch. Raw equity, position, fee, funding,
+margin, fill, and accounting arrays are never rounded or overwritten by this
+projection; their differential checks remain raw with `atol=1e-12`.
+
+Run the differential corpus after building the local extension:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
+  tests/native_event/test_phase54a5_differential_corpus.py \
+  tests/native_event/contract/test_phase51b_trace_replay.py
+```
+
+The reproducible performance artifact keeps engine time separate from explicit
+cold Python adaptation time (`as_dict`, report construction), records current
+and process-peak RSS, boundary/callback/copy counters, and output
+fingerprints. It measures only the current one-boundary native paths:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run python \
+  benchmarks/native_event/benchmark_phase54a5_exit_gate.py \
+  --bars 2000 --scenarios 64 --repeats 5
+```
+
+E0 static command tapes, E3 bounded native strategy IR, and E6 shared-market
+batch/WFO are measured. E1 arbitrary callbacks, E2 sparse reactive callbacks,
+E4 full portfolio endpoints, and E5 full package endpoints are explicitly
+recorded as non-promotion scope rather than being given misleading synthetic
+speed claims. The artifact is machine-specific evidence only: Phase 54A.5.6
+does not change `backend="auto"`, remove the Python oracle, or promote Rust as
+the default public backend. Those require the workload-specific Phase 54B
+parity, installed-wheel, RSS, rollback, and public-endpoint gates.
+
 ## Capability boundary
 
 The explicit selector is:

@@ -2312,6 +2312,7 @@ class NativeEventBackend:
                 event_type=event_type,
                 event_status=event_status,
                 event_related_command=event_related_command,
+                reject_code=reject_code,
             )
         else:
             order_events = pd.DataFrame()
@@ -5082,6 +5083,7 @@ class NativeEventBackend:
         event_type: np.ndarray,
         event_status: np.ndarray,
         event_related_command: np.ndarray,
+        reject_code: np.ndarray,
     ) -> pd.DataFrame:
         rows = []
         for n in range(event_count):
@@ -5096,14 +5098,29 @@ class NativeEventBackend:
             if 0 <= related_idx < len(compiled_commands.sorted_commands):
                 related_original_idx = int(compiled_commands.sorted_commands[related_idx][0])
             bar = int(event_bar[n])
+            event_code = int(event_type[n])
+            command_reject_code = (
+                int(reject_code[command_idx])
+                if 0 <= command_idx < len(reject_code)
+                else 0
+            )
+            # A command-level rejection reason belongs to the terminal event,
+            # not its earlier PLACE/ACTIVATE lifecycle rows. This matches the
+            # Rust SoA ledger and keeps canonical traces event-specific.
+            event_reject_code = (
+                command_reject_code
+                if event_code == ORDER_EVENT_REJECT
+                or (event_code == ORDER_EVENT_CANCEL and command_reject_code != 0)
+                else 0
+            )
             rows.append(
                 {
                     "timestamp": idx[bar] if 0 <= bar < len(idx) else pd.NaT,
                     "bar": bar,
                     "sorted_index": command_idx,
                     "original_index": original_idx,
-                    "event_type": int(event_type[n]),
-                    "event_name": _event_type_name(int(event_type[n])),
+                    "event_type": event_code,
+                    "event_name": _event_type_name(event_code),
                     "status": int(event_status[n]),
                     "related_sorted_index": related_idx,
                     "related_original_index": related_original_idx,
@@ -5115,6 +5132,7 @@ class NativeEventBackend:
                     "campaign_id": None if command is None else command.metadata.get("campaign_id"),
                     "cycle_id": None if command is None else command.metadata.get("cycle_id"),
                     "level_id": None if command is None else command.metadata.get("level_id"),
+                    "reject_code": event_reject_code,
                 }
             )
         return pd.DataFrame(rows)

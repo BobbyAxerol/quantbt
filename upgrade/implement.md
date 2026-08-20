@@ -13137,6 +13137,57 @@ Non-goals and fail-closed scope:
 - Native intrabar, vectorized, options, and Nautilus backends retain their own
   contracts. They are not silently redirected into the Rust native-event core.
 
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added the versioned corpus at
+  `tests/corpus/native_event/phase54a5_full_session.json` and the four-route
+  differential harness at
+  `tests/native_event/test_phase54a5_differential_corpus.py`. The harness
+  compares Python oracle, public API-0.4 Rust compatibility, direct ABI-0.5
+  typed request, and prepared ABI-0.5 reusable runner for deterministic
+  multi-symbol/OCO/funding and IOC/GTD/reduce-only lifecycle cases.
+- The corpus locks raw accounting paths, fill/event SoA columns, accepted and
+  rejected command outcomes, canonical trace/fingerprint, reset/lifetime
+  behavior, score/compact/audit no-replay parity, static/IR/batch boundary
+  counts, and typed portfolio/package preflight parity.
+- Fixed three exposed cold-path projection mismatches without changing engine
+  accounting: semantic order-ID decoding in event parity, relationship/reason
+  fallback from immutable command metadata into the canonical trace, and
+  event-specific rejection reasons on Python lifecycle events. The canonical
+  trace fingerprint now uses a 12-decimal projection to absorb equivalent f64
+  accumulation-order artifacts under the public parity contract; raw accounting
+  data remains unrounded and parity-checked at `1e-12`.
+- Added
+  `benchmarks/native_event/benchmark_phase54a5_exit_gate.py`. It emits
+  reproducible E0/E3/E6 engine-time versus cold-adaptation-time, current/peak
+  RSS, call/callback/copy counters, output fingerprints, and an explicit
+  non-promotion record for E1/E2/E4/E5.
+
+Evidence:
+
+- Focused trace plus four-route corpus: `11 passed`; full native-event suite:
+  `229 passed, 2 skipped`; complete QuantBT suite: `895 passed, 3 skipped`.
+- `cargo fmt --all -- --check`, strict `cargo clippy`, and `cargo test
+  --workspace` passed (`48` Rust unit tests); a fresh release
+  `maturin develop` installed the ABI-0.5 extension before Python regression.
+- The frozen 2,000-bar / 64-scenario artifact at
+  `benchmarks/native_event/results/phase54a5/exit_gate.json` and its checksum
+  manifest record machine-specific medians: prepared E0 score `6.57M` bars/s
+  low churn and `1.20M` high churn, E3 IR score `5.99M` bars/s, and E6 shared
+  batch `10.93M` simulated bars/s. All measured rows passed their documented
+  parity checks; these are not universal endpoint speed claims.
+
+Boundary:
+
+- This phase is a certification lock, not a default-backend promotion. Rust
+  stays explicit/experimental and `backend="auto"` behavior remains unchanged.
+- E1 arbitrary callbacks, E2 sparse reactive callbacks, E4 full portfolio
+  endpoints, and E5 full package endpoints have no synthetic performance
+  claim. Their Phase 54B domain-specific endpoint, installed-wheel, rollback,
+  and RSS gates are still mandatory.
+
 Dependency for Phase 54B:
 
 Phase 54B may promote only a workload whose typed request/output path is

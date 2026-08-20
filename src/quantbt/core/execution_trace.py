@@ -13,6 +13,7 @@ import pandas as pd
 
 
 TRACE_SCHEMA_VERSION = "canonical-execution-trace-v1"
+TRACE_FLOAT_CANONICAL_DECIMALS = 12
 TRACE_FIELDS = (
     "trace_schema_version", "run_id", "bar", "timestamp_ns", "phase", "sequence",
     "event_kind", "command_id", "order_id", "order_generation", "parent_id",
@@ -179,8 +180,10 @@ def build_canonical_execution_trace(
                 _row(
                     run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase="LIFECYCLE",
                     sequence=sequence, event_kind="LIFECYCLE", command_id=order_id,
-                    order_id=order_id, parent_id=_text(source.get("parent_order_id")),
-                    group_id=_text(detail.get("group_id")), oco_id=_text(source.get("oco_group_id")),
+                    order_id=order_id,
+                    parent_id=_text(_first_present(source.get("parent_order_id"), detail.get("parent_order_id"))),
+                    group_id=_text(_first_present(source.get("group_id"), detail.get("group_id"))),
+                    oco_id=_text(_first_present(source.get("oco_group_id"), detail.get("oco_group_id"))),
                     package_id=_text(detail.get("package_id")), symbol_code=symbol_codes.get(_text(detail.get("symbol")), -1),
                     venue_code=0, side=_text(detail.get("side")), order_type=_text(detail.get("order_type")),
                     # TIF is intentionally blank until both backend audit
@@ -188,7 +191,7 @@ def build_canonical_execution_trace(
                     # the versioned schema and cannot silently disagree.
                     tif="", command_outcome=_text(detail.get("command_outcome")),
                     order_status=_text(source.get("lifecycle_order_status", source.get("status"))),
-                    reason_code=_reason_code(detail.get("reject_code", "OK")),
+                    reason_code=_reason_code(_first_present(source.get("reject_code"), detail.get("reject_code", "OK"))),
                 )
             )
             sequence += 1
@@ -335,6 +338,15 @@ def _normalized_value_bytes(field: str, value: object) -> bytes:
         numeric = float(value) if value is not None else math.nan
         if math.isnan(numeric):
             return struct.pack("<Q", 0x7FF8000000000000)
+        # Python and Rust both use IEEE-754 f64 but may accumulate equivalent
+        # multi-symbol margin values in a different order. Canonical trace
+        # identity uses a 12-decimal projection derived from the public
+        # native-event parity precision, rather than treating harmless f64
+        # accumulation-order artifacts as lifecycle divergence. Raw accounting
+        # arrays are never rounded here.
+        numeric = round(numeric, TRACE_FLOAT_CANONICAL_DECIMALS)
+        if numeric == 0.0:
+            numeric = 0.0  # normalize a possible negative zero before packing
         return struct.pack("<d", numeric)
     if field in _INT_FIELDS:
         return struct.pack("<q", int(value if value is not None else -1))
@@ -373,6 +385,21 @@ def _text(value: object) -> str:
     if isinstance(value, float) and math.isnan(value):
         return ""
     return str(getattr(value, "value", value))
+
+
+def _first_present(*values: object) -> object:
+    """Return the first non-null trace source without truthiness coercion.
+
+    Rust lifecycle rows own terminal status/rejection values, while relationship
+    metadata remains immutable on the originating command.  This lets the
+    canonical trace project both sources without losing an explicit numeric
+    zero or treating a NumPy NaN as meaningful data.
+    """
+
+    for value in values:
+        if _text(value) != "":
+            return value
+    return None
 
 
 def _reason_code(value: object) -> str:

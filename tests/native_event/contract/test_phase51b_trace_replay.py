@@ -107,6 +107,27 @@ def test_trace_diff_reports_first_bar_phase_event_and_field():
     assert report["field"] == "qty_delta"
 
 
+def test_trace_fingerprint_only_normalizes_sub_tolerance_float_artifacts():
+    """Trace identity follows the documented 1e-12 parity tolerance only."""
+
+    result = _run("python", _commands())
+    left = result.metadata["canonical_trace_v1"].copy(deep=True)
+    right = left.copy(deep=True)
+    row = right.index[right["event_kind"] == "ACCOUNT_SNAPSHOT"][0]
+
+    # Use a simple representable base so this locks the projection boundary,
+    # not an incidental f64 representation from the execution engine.
+    left.loc[row, "initial_margin_after"] = 1.0
+    right.loc[row, "initial_margin_after"] = 1.0 + 4e-13
+    assert compare_canonical_traces(left, right)["passed"] is True
+    assert canonical_trace_fingerprint(left) == canonical_trace_fingerprint(right)
+
+    right.loc[row, "initial_margin_after"] = 1.0 + 2e-12
+    report = compare_canonical_traces(left, right)
+    assert report["passed"] is False
+    assert report["field"] == "initial_margin_after"
+
+
 def test_trace_replayer_rejects_corrupt_position_transition():
     result = _run("python", _commands())
     trace = result.metadata["canonical_trace_v1"].copy(deep=True)
