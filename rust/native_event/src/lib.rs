@@ -7,7 +7,6 @@ use quantbt_batch as batch;
 use quantbt_domain::{generated_contracts, generated_product_contracts};
 use quantbt_engine as full;
 use quantbt_engine::legacy::types;
-use quantbt_engine::legacy::{PreparedMarketData, ReactiveSession};
 use quantbt_engine::{FullMarketData, FullSession};
 use quantbt_package as package;
 use quantbt_portfolio as portfolio;
@@ -547,7 +546,13 @@ fn quantize_quantity_values(
 
 #[pyclass]
 struct PreparedMarketCore {
-    inner: Arc<PreparedMarketData>,
+    /// API-0.3/legacy compatibility facade over the one native market owner.
+    ///
+    /// The historical R1/R2 public constructor accepts one-dimensional
+    /// arrays.  It is translated to a one-symbol `FullMarketData` at the
+    /// boundary, so retaining this class never creates a second Rust market
+    /// representation or lifecycle runtime.
+    inner: Arc<FullMarketData>,
 }
 
 #[pyclass(frozen)]
@@ -588,7 +593,7 @@ impl PreparedMarketCore {
         funding: PyReadonlyArray1<'_, f64>,
         funding_mask: PyReadonlyArray1<'_, bool>,
     ) -> PyResult<Self> {
-        let market = PreparedMarketData::new(
+        let market = FullMarketData::new(
             timestamps_ns.as_slice()?.to_vec(),
             opens.as_slice()?.to_vec(),
             highs.as_slice()?.to_vec(),
@@ -597,6 +602,7 @@ impl PreparedMarketCore {
             volumes.as_slice()?.to_vec(),
             funding.as_slice()?.to_vec(),
             funding_mask.as_slice()?.to_vec(),
+            1,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(Self {
@@ -632,9 +638,301 @@ impl PreparedMarketCore {
     }
 }
 
+/// Compatibility-only owner for the API-0.3/R1/R2 primitive command ABI.
+///
+/// It deliberately contains no account, order, lifecycle, fill, or market
+/// state of its own.  The only mutable execution state is `FullSession`.
+/// Legacy eight-column rows are translated at ingress and output is projected
+/// back to the frozen legacy row schemas at egress.
+struct LegacyFullSessionAdapter {
+    inner: FullSession,
+}
+
+impl LegacyFullSessionAdapter {
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        market: Arc<FullMarketData>,
+        contract_size: f64,
+        leverage: f64,
+        fee_rate: f64,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage_rate: f64,
+        use_funding: bool,
+    ) -> Result<Self, String> {
+        // R1/R2 never certified these fields.  Keeping the historical
+        // constructor while failing closed is safer than silently changing a
+        // legacy run to FullSession funding/liquidation semantics.
+        if use_funding {
+            return Err("Rust R1 does not support funding".to_owned());
+        }
+        if maintenance_ratio != 0.0 {
+            return Err(
+                "Rust R2 does not support liquidation semantics; set maintenance_ratio=0.0 or use FullReactiveSessionCore"
+                    .to_owned(),
+            );
+        }
+        let inner = FullSession::new(
+            market,
+            vec![contract_size],
+            vec![leverage],
+            vec![fee_rate],
+            initial_capital,
+            maintenance_ratio,
+            slippage_rate,
+            false,
+        )?;
+        Ok(Self { inner })
+    }
+
+    #[inline]
+    fn market_len(&self) -> usize {
+        self.inner.market.n_bars
+    }
+
+    #[inline]
+    fn next_bar(&self) -> usize {
+        self.inner.next_bar()
+    }
+
+    fn reset(&mut self) {
+        self.inner.reset();
+    }
+
+    fn step_with_output(
+        &mut self,
+        bar: usize,
+        legacy_codes: &[i64],
+        legacy_values: &[f64],
+        legacy_expiry: &[i64],
+        command_count: usize,
+        materialize: bool,
+    ) -> Result<types::StepResult, String> {
+        let translated = translate_legacy_command_batch(
+            legacy_codes,
+            legacy_values,
+            legacy_expiry,
+            command_count,
+        )?;
+        let output_mask = if materialize { full::OUTPUT_ALL } else { 0 };
+        let result = self.inner.step_with_mask(
+            bar,
+            &translated.codes,
+            &translated.values,
+            &translated.expiry,
+            command_count,
+            output_mask,
+        )?;
+        Ok(project_legacy_step_result(&self.inner, result, materialize))
+    }
+
+    fn step(
+        &mut self,
+        bar: usize,
+        legacy_codes: &[i64],
+        legacy_values: &[f64],
+        legacy_expiry: &[i64],
+        command_count: usize,
+    ) -> Result<types::StepResult, String> {
+        self.step_with_output(
+            bar,
+            legacy_codes,
+            legacy_values,
+            legacy_expiry,
+            command_count,
+            true,
+        )
+    }
+}
+
+struct LegacyTranslatedBatch {
+    codes: Vec<i64>,
+    values: Vec<f64>,
+    expiry: Vec<i64>,
+}
+
+/// Translate the frozen R1/R2 row ABI into the API-0.4 full command ABI.
+///
+/// The translation is intentionally mechanical: the legacy ABI has no
+/// multi-symbol, contingent, or non-GTC fields, so every such full-contract
+/// field is set to an explicit inert value.  Unsupported expiry/funding/
+/// liquidation combinations fail before a FullSession transition occurs.
+fn translate_legacy_command_batch(
+    legacy_codes: &[i64],
+    legacy_values: &[f64],
+    legacy_expiry: &[i64],
+    command_count: usize,
+) -> Result<LegacyTranslatedBatch, String> {
+    if legacy_codes.len() != command_count * types::COMMAND_CODE_WIDTH
+        || legacy_values.len() != command_count * types::COMMAND_VALUE_WIDTH
+        || legacy_expiry.len() != command_count
+    {
+        return Err("legacy command batch buffer shape does not match command count".to_owned());
+    }
+    if legacy_expiry.iter().any(|value| *value != -1) {
+        return Err("Rust batched tape does not support expiry".to_owned());
+    }
+
+    let mut codes = Vec::with_capacity(command_count * full::CODE_WIDTH);
+    let mut values = Vec::with_capacity(command_count * full::VALUE_WIDTH);
+    let mut expiry = Vec::with_capacity(command_count);
+    for row in 0..command_count {
+        let legacy_code =
+            &legacy_codes[row * types::COMMAND_CODE_WIDTH..(row + 1) * types::COMMAND_CODE_WIDTH];
+        let legacy_value = &legacy_values
+            [row * types::COMMAND_VALUE_WIDTH..(row + 1) * types::COMMAND_VALUE_WIDTH];
+        let legacy_action = legacy_code[0];
+        let full_action = match legacy_action {
+            types::ACTION_PLACE => 0,
+            types::ACTION_CANCEL => 1,
+            types::ACTION_AMEND => 3,
+            types::ACTION_REPLACE => 2,
+            _ => legacy_action,
+        };
+        let mut full_code = [-1_i64; full::CODE_WIDTH];
+        full_code[0] = full_action;
+        // Legacy R1/R2 was exactly one immediate, GTC symbol.  Values which
+        // are irrelevant to cancel/amend remain inert and FullSession only
+        // reads their explicit action fields.
+        full_code[1] = if matches!(legacy_action, types::ACTION_PLACE | types::ACTION_REPLACE) {
+            0
+        } else {
+            -1
+        };
+        full_code[2] = legacy_code[1];
+        full_code[3] = legacy_code[2];
+        full_code[4] = 0; // GTC
+        full_code[5] = if legacy_code[3] & types::FLAG_REDUCE_ONLY != 0 {
+            1
+        } else {
+            0
+        };
+        full_code[6] = legacy_code[4];
+        full_code[7] = legacy_code[5];
+        full_code[8] = -1; // parent
+        full_code[9] = -1; // group
+        full_code[10] = -1; // OCO
+        full_code[11] = 0; // immediate activation
+        full_code[12] = legacy_code[7].max(0); // trace-only compiler order
+
+        let mut full_value = [legacy_value[0], legacy_value[1], legacy_value[2]];
+        if legacy_action == types::ACTION_AMEND {
+            // The legacy mutability mask is not part of the full ABI.  Zero
+            // fields are intentionally inert for full-contract AMEND, so
+            // clearing unselected values retains exact R2 amend semantics.
+            let mask = legacy_code[6];
+            if mask & types::MUTATE_QTY == 0 {
+                full_value[0] = 0.0;
+            }
+            if mask & types::MUTATE_PRICE == 0 {
+                full_value[1] = 0.0;
+            }
+            if mask & types::MUTATE_TRIGGER == 0 {
+                full_value[2] = 0.0;
+            }
+        }
+        codes.extend_from_slice(&full_code);
+        values.extend_from_slice(&full_value);
+        expiry.push(-1);
+    }
+    Ok(LegacyTranslatedBatch {
+        codes,
+        values,
+        expiry,
+    })
+}
+
+fn legacy_event_kind(full_kind: i64) -> Option<i64> {
+    match full_kind {
+        full::EVENT_PLACE => Some(types::EVENT_PLACE),
+        full::EVENT_CANCEL => Some(types::EVENT_CANCEL),
+        full::EVENT_REPLACE => Some(types::EVENT_REPLACE),
+        full::EVENT_AMEND => Some(types::EVENT_AMEND),
+        full::EVENT_FILL => Some(types::EVENT_FILL),
+        full::EVENT_REJECT => Some(types::EVENT_REJECT),
+        // R1/R2 rejects expiry/contingent commands at ingress, therefore
+        // their generated lifecycle events must never leak through this
+        // compatibility surface.
+        _ => None,
+    }
+}
+
+fn project_legacy_step_result(
+    session: &FullSession,
+    result: full::FullStepResult,
+    materialize: bool,
+) -> types::StepResult {
+    let fills = if materialize {
+        result
+            .fills
+            .into_iter()
+            .filter(|row| row.len() >= 6)
+            .map(|row| vec![row[0], row[2], row[3], row[4], row[5]])
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let events = if materialize {
+        result
+            .events
+            .into_iter()
+            .flat_map(|row| {
+                if row.len() < 4 {
+                    return Vec::new();
+                }
+                if row[0] == full::EVENT_REPLACE {
+                    // R1/R2 exposed replacement as a canceled old state
+                    // followed by the newly pending replacement. The full
+                    // engine has one canonical REPLACE transition, so this
+                    // is egress-only compatibility projection, not a second
+                    // lifecycle mutation.
+                    return vec![
+                        vec![types::EVENT_REPLACE, types::STATUS_CANCELED, row[2], row[3]],
+                        vec![types::EVENT_REPLACE, row[1], row[2], row[3]],
+                    ];
+                }
+                legacy_event_kind(row[0])
+                    .map(|kind| vec![vec![kind, row[1], row[2], row[3]]])
+                    .unwrap_or_default()
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let active_orders = if materialize {
+        result
+            .active_orders
+            .into_iter()
+            .filter(|row| row.len() >= 9)
+            .map(|row| vec![row[0], row[2], row[3], row[4], row[5], row[6], row[8]])
+            .collect()
+    } else {
+        Vec::new()
+    };
+    types::StepResult {
+        equity: result.equity,
+        position: session.positions.first().copied().unwrap_or(0.0),
+        fee: result.fee,
+        turnover: result.turnover,
+        initial_margin: result.initial_margin,
+        maintenance_margin: result.maintenance_margin,
+        fills,
+        events,
+        active_orders,
+        fill_count: result.fill_count,
+        // A successful historical REPLACE projected to two rows above while
+        // FullSession intentionally owns one canonical transition.
+        event_count: result.event_count + result.replace_count,
+        rejected_count: result.rejected_count,
+        canceled_count: result.canceled_count,
+    }
+}
+
 #[pyclass]
 struct ReactiveSessionCore {
-    inner: ReactiveSession,
+    /// Historical API-0.3 binding name. The execution owner is always the
+    /// API-0.4 `FullSession` behind `LegacyFullSessionAdapter`.
+    inner: LegacyFullSessionAdapter,
 }
 
 #[pymethods]
@@ -668,7 +966,7 @@ impl ReactiveSessionCore {
             funding,
             funding_mask,
         )?;
-        let inner = ReactiveSession::new(
+        let inner = LegacyFullSessionAdapter::new(
             prepared.inner,
             contract_size,
             leverage,
@@ -697,7 +995,7 @@ impl ReactiveSessionCore {
         use_funding: bool,
     ) -> PyResult<Self> {
         let market = prepared.borrow(py).inner.clone();
-        let inner = ReactiveSession::new(
+        let inner = LegacyFullSessionAdapter::new(
             market,
             contract_size,
             leverage,
@@ -1021,7 +1319,7 @@ fn validate_tape_arrays(
 }
 
 fn run_tape(
-    session: &mut ReactiveSession,
+    session: &mut LegacyFullSessionAdapter,
     command_ptr: &[i64],
     codes: &[i64],
     values: &[f64],
@@ -1163,7 +1461,7 @@ fn run_tape(
 
 #[allow(clippy::too_many_arguments)]
 fn run_sparse_range(
-    session: &mut ReactiveSession,
+    session: &mut LegacyFullSessionAdapter,
     start_bar: usize,
     stop_bar: usize,
     command_ptr: &[i64],

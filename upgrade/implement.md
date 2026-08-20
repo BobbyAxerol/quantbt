@@ -12722,6 +12722,52 @@ the individual Phase 54B workload gates pass.
 
 #### 54A.5.1 - One Rust Execution Core And Compatibility Adapters
 
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Retired the compiled `legacy::ReactiveSession` / `PreparedMarketData`
+  runtime. The legacy module now retains only frozen R1/R2 integer ABI
+  constants; its former accounting, matching, and session state machines are
+  removed from the Rust build.
+- Kept public PyO3 `PreparedMarketCore` and `ReactiveSessionCore` names and
+  eight-column input shape stable. They are now compatibility facades over a
+  one-symbol `FullMarketData` and `LegacyFullSessionAdapter`, whose only
+  mutable execution state is `FullSession`.
+- Added a mechanical R1/R2-to-API-0.4 command translator at the binding
+  ingress. It preserves action remapping, GTC/immediate constraints,
+  reduce-only, command order, and mask-aware `AMEND`; unsupported expiry,
+  funding, and legacy liquidation semantics fail closed rather than silently
+  acquiring different full-contract behavior.
+- Added legacy output projection at the binding egress. Historical scalar,
+  fill, event, and active-order schemas remain compatible while all lifecycle
+  mutation, margin, fee, fill, and position work occurs in `FullSession`.
+- Fixed a core replacement-chain defect uncovered by the adapter migration:
+  `REPLACE a -> b -> c` now keeps all existing external aliases, so a later
+  `CANCEL a` resolves the live `c` order. The fix lives in `FullSession`, not
+  in an adapter-side alias table.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_one_rust_execution_core.py`:
+  direct 8-column compatibility versus 16-column `FullReactiveSessionCore`
+  parity covers bar zero, amend-mask handling, replace, reduce-only exit,
+  active-order projection, reset, and fail-closed funding/liquidation inputs.
+- Added a pure Rust replacement-chain alias invariant to
+  `quantbt-engine::session` tests.
+- `cargo test --workspace` passed: 40 Rust tests.
+- `cargo clippy --workspace --all-targets -- -D warnings` passed.
+- Fresh editable native wheel build passed via `maturin develop --release`.
+- Focused native regressions passed: `53 passed`.
+- Full native-event suite passed: `211 passed, 2 skipped`.
+
+Boundary:
+
+- This completes the one-runtime ownership lock. It does **not** yet define
+  the versioned typed `NativeExecutionRequestV1`, common portfolio/package
+  tape ingress, or zero-Python-object score output. Those remain the explicit
+  work of 54A.5.2 through 54A.5.6.
+
 - Make `quantbt_engine::FullSession` the sole Rust owner of market state,
   instrument constraints, positions, cash/equity, fees, funding, margin,
   liquidation, order lifecycle, trace counters, and terminal state for every

@@ -204,6 +204,10 @@ pub const OUTPUT_ALL: u8 = OUTPUT_POSITIONS | OUTPUT_FILLS | OUTPUT_EVENTS | OUT
 pub struct StepCounters {
     pub fill_count: i64,
     pub event_count: i64,
+    /// Kept separate from generic event count so a legacy compatibility
+    /// projection can retain its historical two-row REPLACE artifact without
+    /// reconstructing lifecycle state outside the engine.
+    pub replace_count: i64,
     pub rejected_count: i64,
     pub canceled_count: i64,
 }
@@ -527,9 +531,17 @@ impl DetailSink<'_> {
         reject_code: i64,
     ) {
         match self {
-            Self::CountOnly(counters) => counters.event_count += 1,
+            Self::CountOnly(counters) => {
+                counters.event_count += 1;
+                if kind == EVENT_REPLACE {
+                    counters.replace_count += 1;
+                }
+            }
             Self::Collect { counters, buffers } => {
                 counters.event_count += 1;
+                if kind == EVENT_REPLACE {
+                    counters.replace_count += 1;
+                }
                 buffers
                     .events
                     .push(kind, status, order_id, target_id, symbol, reject_code);
@@ -701,6 +713,7 @@ pub struct FullStepResult {
     pub canceled_count: i64,
     pub fill_count: i64,
     pub event_count: i64,
+    pub replace_count: i64,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -831,6 +844,17 @@ impl FullSession {
         self.last_bar = None;
         self.compaction_count = 0;
         self.terminal_orders_removed = 0;
+    }
+
+    /// Return the next canonical bar accepted by the stateful session.
+    ///
+    /// Compatibility adapters may retain a caller-visible continuation cursor,
+    /// but the execution clock itself remains owned by this session. Keeping
+    /// the accessor here prevents a second lifecycle implementation from
+    /// reconstructing the cursor outside the engine.
+    #[inline]
+    pub fn next_bar(&self) -> usize {
+        self.last_bar.map(|bar| bar + 1).unwrap_or(0)
     }
 
     /// Materialize only the terminal active-order artifact requested by a
@@ -1772,6 +1796,22 @@ impl FullSession {
                 }
                 ACTION_REPLACE => {
                     if let Some(handle) = self.find_pending(target_id) {
+                        // Preserve every historical external ID resolving to
+                        // the target before terminal release removes stale
+                        // map entries. Replacement chains therefore retain
+                        // `a -> b -> c` alias semantics without keeping a
+                        // second order table or a Python-side resolver.
+                        let mut aliases = self
+                            .id_to_handle
+                            .iter()
+                            .filter_map(|(alias, mapped)| (*mapped == handle).then_some(*alias))
+                            .collect::<Vec<_>>();
+                        if !aliases.contains(&target_id) {
+                            aliases.push(target_id);
+                        }
+                        if !aliases.contains(&order_id) {
+                            aliases.push(order_id);
+                        }
                         self.release_order(handle);
                         if !Self::valid_order(code, value)
                             || code[1] < 0
@@ -1790,7 +1830,7 @@ impl FullSession {
                         } else {
                             match self.insert_order(
                                 Self::build_order(code, value, expiry[command_index]),
-                                &[target_id, order_id],
+                                &aliases,
                             ) {
                                 Ok(_) => Self::add_event(
                                     &mut sink,
@@ -2049,6 +2089,7 @@ impl FullSession {
             canceled_count: canceled,
             fill_count,
             event_count,
+            replace_count: counters.replace_count,
         })
     }
 
@@ -2651,6 +2692,50 @@ mod tests {
             .unwrap();
         engine.validate_lifecycle_indexes().unwrap();
         assert_eq!(engine.orders_len(), 0);
+    }
+
+    #[test]
+    fn replacement_chain_preserves_all_external_aliases() {
+        let mut engine = multi_bar_session(4);
+        let mut place = [0_i64; CODE_WIDTH];
+        place[0] = ACTION_PLACE;
+        place[1] = 0;
+        place[2] = SIDE_BUY;
+        place[3] = ORDER_LIMIT;
+        place[4] = TIF_GTC;
+        place[6] = 11;
+        place[11] = ACTIVATION_IMMEDIATE;
+        engine
+            .step_with_output(0, &place, &[1.0, 50.0, 0.0], &[-1], 1, false)
+            .unwrap();
+
+        for (bar, order_id, target_id, price) in [(1, 12, 11, 51.0), (2, 13, 12, 52.0)] {
+            let mut replace = [0_i64; CODE_WIDTH];
+            replace[0] = ACTION_REPLACE;
+            replace[1] = 0;
+            replace[2] = SIDE_BUY;
+            replace[3] = ORDER_LIMIT;
+            replace[4] = TIF_GTC;
+            replace[6] = order_id;
+            replace[7] = target_id;
+            replace[11] = ACTIVATION_IMMEDIATE;
+            engine
+                .step_with_output(bar, &replace, &[1.0, price, 0.0], &[-1], 1, false)
+                .unwrap();
+            engine.validate_lifecycle_indexes().unwrap();
+        }
+
+        // `11` must still resolve to the most recent replacement `13`.
+        let mut cancel = [0_i64; CODE_WIDTH];
+        cancel[0] = ACTION_CANCEL;
+        cancel[1] = 0;
+        cancel[7] = 11;
+        let result = engine
+            .step_with_output(3, &cancel, &[0.0; VALUE_WIDTH], &[-1], 1, false)
+            .unwrap();
+        assert_eq!(result.canceled_count, 1);
+        assert_eq!(engine.orders_len(), 0);
+        engine.validate_lifecycle_indexes().unwrap();
     }
 
     #[test]

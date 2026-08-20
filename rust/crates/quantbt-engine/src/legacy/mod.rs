@@ -1,11 +1,10 @@
-//! API 0.4 reactive compatibility primitives.
+//! Frozen API-0.3/R1/R2 compatibility constants.
 //!
-//! They remain pure Rust and are re-exported only for the legacy PyO3 facade.
-//! New full-contract execution uses [`crate::session::FullSession`].
+//! The historical R1/R2 session implementation is deliberately no longer a
+//! compiled execution route. The PyO3 compatibility facade translates this
+//! ABI into [`crate::session::FullSession`], which is the single Rust owner of
+//! market/account/order/lifecycle state. Keeping the integer constants here
+//! avoids breaking the legacy public row layout while preventing a second
+//! state machine from entering a native build.
 
-pub mod accounting;
-pub mod matching;
-pub mod session;
 pub mod types;
-
-pub use session::{PreparedMarketData, ReactiveSession};
