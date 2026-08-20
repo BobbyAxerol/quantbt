@@ -503,6 +503,204 @@ class NativeExecutionPreparationCache:
             self._ingress_copied_bytes += signal_bytes + parameter_bytes
             return record
 
+    def portfolio_target_market_request(
+        self,
+        template: NativePreparedTemplate,
+        *,
+        target_units: object,
+        tradable: object,
+        stale: object,
+        min_qty: object,
+        min_notional: object,
+        external_id_start: int = 1,
+        output_profile: int = 2,
+    ) -> NativePreparedRequest:
+        """Prepare a bounded Rust-owned ``target_units`` market request.
+
+        This is intentionally not a replacement for the general portfolio
+        allocator.  It accepts only the promoted V2 target-units contract:
+        bar-major targets, per-bar tradability/staleness masks, and atomic
+        all-or-none admission.  Rust owns the causal account projection,
+        command generation, execution, costs, margin, lifecycle and audit.
+        """
+
+        targets, target_copies, target_bytes = _normalise_array(
+            target_units, dtype=np.dtype(np.float64), ndim=2, name="target_units"
+        )
+        tradable_array, tradable_copies, tradable_bytes = _normalise_array(
+            tradable, dtype=np.dtype(np.bool_), ndim=2, name="tradable"
+        )
+        stale_array, stale_copies, stale_bytes = _normalise_array(
+            stale, dtype=np.dtype(np.bool_), ndim=2, name="stale"
+        )
+        min_qty_array, min_qty_copies, min_qty_bytes = _normalise_array(
+            min_qty, dtype=np.dtype(np.float64), ndim=1, name="min_qty"
+        )
+        min_notional_array, min_notional_copies, min_notional_bytes = _normalise_array(
+            min_notional, dtype=np.dtype(np.float64), ndim=1, name="min_notional"
+        )
+        expected_shape = (int(template.core.bars), int(template.core.symbols))
+        if (
+            targets.shape != expected_shape
+            or tradable_array.shape != expected_shape
+            or stale_array.shape != expected_shape
+            or min_qty_array.shape != (expected_shape[1],)
+            or min_notional_array.shape != (expected_shape[1],)
+        ):
+            raise ValueError("portfolio target market arrays must match template bars and symbols")
+        signature = _digest(
+            _REQUEST_SCHEMA,
+            _PREPARATION_SCHEMA,
+            template.signature,
+            "portfolio_target_market_v1",
+            int(output_profile),
+            int(external_id_start),
+            targets,
+            tradable_array,
+            stale_array,
+            min_qty_array,
+            min_notional_array,
+        )
+        key = (_REQUEST_SCHEMA, signature)
+        with self._lock:
+            cached = self._request_cache.get(key)
+            if cached is not None:
+                return cached
+            native = self._native()
+            core = native.NativeExecutionRequestCore.from_template_portfolio_target_market(
+                template.core,
+                targets,
+                tradable_array,
+                stale_array,
+                min_qty_array,
+                min_notional_array,
+                external_id_start=int(external_id_start),
+                output_profile=int(output_profile),
+            )
+            request_bytes = int(
+                targets.nbytes
+                + tradable_array.nbytes
+                + stale_array.nbytes
+                + min_qty_array.nbytes
+                + min_notional_array.nbytes
+            )
+            record = NativePreparedRequest(
+                core=core,
+                template=template,
+                signature=str(core.fingerprint),
+                workload="portfolio_target_market_v1",
+                request_bytes=request_bytes,
+            )
+            self._request_cache.put(key, record, size_bytes=request_bytes)
+            self._ingress_copy_count += (
+                target_copies
+                + tradable_copies
+                + stale_copies
+                + min_qty_copies
+                + min_notional_copies
+            )
+            self._ingress_copied_bytes += (
+                target_bytes
+                + tradable_bytes
+                + stale_bytes
+                + min_qty_bytes
+                + min_notional_bytes
+            )
+            return record
+
+    def package_atomic_market_request(
+        self,
+        template: NativePreparedTemplate,
+        *,
+        command_bar: int,
+        package_id: int,
+        order_ids: object,
+        symbol_ids: object,
+        signed_qty: object,
+        source_age_ns: object,
+        venue_codes: object,
+        venue_sequence: object,
+        min_qty: object,
+        min_notional: object,
+        max_staleness_ns: int = 0,
+        output_profile: int = 2,
+    ) -> NativePreparedRequest:
+        """Prepare one same-bar Rust ``all_or_none`` package transaction.
+
+        The contract is a deterministic bar transaction, not exchange-native
+        atomicity.  It intentionally rejects sequential, best-effort and
+        hedge-after-primary policies so automatic promotion cannot silently
+        overclaim their semantics.
+        """
+
+        fields = (
+            ("order_ids", order_ids, np.dtype(np.int64)),
+            ("symbol_ids", symbol_ids, np.dtype(np.uint32)),
+            ("signed_qty", signed_qty, np.dtype(np.float64)),
+            ("source_age_ns", source_age_ns, np.dtype(np.int64)),
+            ("venue_codes", venue_codes, np.dtype(np.uint16)),
+            ("venue_sequence", venue_sequence, np.dtype(np.uint32)),
+            ("min_qty", min_qty, np.dtype(np.float64)),
+            ("min_notional", min_notional, np.dtype(np.float64)),
+        )
+        arrays: dict[str, np.ndarray] = {}
+        copy_count = 0
+        copied_bytes = 0
+        for name, value, dtype in fields:
+            array, count, byte_count = _normalise_array(value, dtype=dtype, ndim=1, name=name)
+            arrays[name] = array
+            copy_count += count
+            copied_bytes += byte_count
+        count = len(arrays["order_ids"])
+        if count == 0 or any(len(array) != count for array in arrays.values()):
+            raise ValueError("native atomic package arrays must be non-empty and equal length")
+        if int(command_bar) <= 0 or int(command_bar) >= int(template.core.bars):
+            raise ValueError("command_bar must be in 1..template.bars - 1")
+        signature = _digest(
+            _REQUEST_SCHEMA,
+            _PREPARATION_SCHEMA,
+            template.signature,
+            "package_atomic_market_v1",
+            int(command_bar),
+            int(package_id),
+            int(max_staleness_ns),
+            int(output_profile),
+            *(arrays[name] for name, _, _ in fields),
+        )
+        key = (_REQUEST_SCHEMA, signature)
+        with self._lock:
+            cached = self._request_cache.get(key)
+            if cached is not None:
+                return cached
+            native = self._native()
+            core = native.NativeExecutionRequestCore.from_template_package_atomic_market(
+                template.core,
+                command_bar=int(command_bar),
+                package_id=int(package_id),
+                order_ids=arrays["order_ids"],
+                symbol_ids=arrays["symbol_ids"],
+                signed_qty=arrays["signed_qty"],
+                source_age_ns=arrays["source_age_ns"],
+                venue_codes=arrays["venue_codes"],
+                venue_sequence=arrays["venue_sequence"],
+                min_qty=arrays["min_qty"],
+                min_notional=arrays["min_notional"],
+                max_staleness_ns=int(max_staleness_ns),
+                output_profile=int(output_profile),
+            )
+            request_bytes = int(sum(array.nbytes for array in arrays.values()))
+            record = NativePreparedRequest(
+                core=core,
+                template=template,
+                signature=str(core.fingerprint),
+                workload="package_atomic_market_v1",
+                request_bytes=request_bytes,
+            )
+            self._request_cache.put(key, record, size_bytes=request_bytes)
+            self._ingress_copy_count += copy_count
+            self._ingress_copied_bytes += copied_bytes
+            return record
+
     def new_runner(self, request: NativePreparedRequest) -> Any:
         """Create a fresh mutable runner from one immutable cached request."""
 

@@ -1290,14 +1290,15 @@ promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
 these policies can bypass a missing capability, mismatched wheel, unsupported
 contract/profile/account model, or an emergency rollback switch.
 
-At the current Stage-B `static_ir` promotion stage, `auto` selects Rust only
-for certified bounded workloads on the declared local wheel/platform matrix:
+At the current automatic Stage-B promotion level, `auto` selects Rust only for
+certified bounded static/IR workloads on the declared local wheel/platform
+matrix:
 
 | Workload | Automatic Rust condition |
 |---|---|
 | Static V2/V3 command tape | at least 10,000 bars |
 | Native Strategy IR v1 and its shared batch/fold scorer | at least 2,000 bars |
-| Python callback/reactive strategy, portfolio, package/arbitrage | Python compatibility route |
+| Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
 
 Below a workload threshold, with an unsupported program/profile/contract, or
 when the wheel/capabilities do not match, `auto` uses Python and records a
@@ -1333,6 +1334,29 @@ matching, fees, funding, margin, liquidation, or terminal accounting. A
 diagnostics-off strategy cannot build the stakeholder audit frame; rerun the
 candidate with the default audit policy for `build_output_frame()`, plots, and
 full reports.
+
+### Bounded native portfolio/package helpers
+
+The normal `QuantBTEndpoint.portfolio()` and `QuantBTEndpoint.arbitrage()` APIs
+retain their existing Python/native-portfolio contracts. For the separately
+certified V2 execution rows, import the explicit helpers:
+
+```python
+from quantbt.backends import run_atomic_package_market, run_portfolio_target_market
+```
+
+They accept prepared-array-style OHLCV/funding data and return a
+`RustNativeMarketExecution`. `report_level="score"` keeps only terminal
+accounting; rerun a selected candidate with `report_level="audit"` and call
+`.to_audit_result()` for the common report surface. The supported rows are
+linear quote-settled gross-cross `target_units` with all-or-none admission and
+one ordered same-bar `AtomicBarSimulation` market package only. Every other
+portfolio sizing, allocator, package policy, cross-venue, and partial-fill
+case remains on the existing Python route by design. Input package legs must
+already be in the intended deterministic venue/leg order; the helper preserves
+that order rather than inferring venue precedence. The full contract and
+example shape are in
+[`native_event_rust_full_contract.md`](native_event_rust_full_contract.md#phase-54b3-bounded-portfoliopackage-market-routes).
 
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving

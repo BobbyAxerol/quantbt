@@ -235,8 +235,21 @@ The bounded Rust strategy IR covers precomputed signal targets, structural
 Grid levels, periodic DCA, and fixed bracket/OCO transitions. The current
 generated Stage-B policy routes only certified static command tapes at 10,000+
 bars and bounded IR/batch requests at 2,000+ bars to Rust under
-`native_backend="auto"`. Python callbacks, reactive strategies, portfolio, and
-package/arbitrage execution remain Python compatibility routes.
+`native_backend="auto"`. Python callbacks, reactive strategies, and generic
+portfolio/package/arbitrage execution remain Python compatibility routes.
+
+Phase 54B.3 also certifies two intentionally explicit Rust helpers,
+`run_portfolio_target_market(...)` and `run_atomic_package_market(...)`, for
+linear quote-settled gross-cross `target_units` and one ordered same-bar
+all-or-none market package respectively. They do not change generic endpoint
+routing or claim venue-native multi-leg execution; the bounded contract,
+parity corpus, and benchmark evidence are documented in
+[`docs/native_event_rust_full_contract.md`](docs/native_event_rust_full_contract.md).
+On the governed 2,000-bar x 8-symbol fixture, their Rust score paths measured
+3.594 ms (556,551 bars/s) for target units and 3.512 ms (569,514 bars/s) for
+the atomic package, versus Python event-oracle score paths of 33.493 ms and
+19.735 ms respectively. These are bounded direct-route measurements; audit
+report adaptation is intentionally timed and reported separately.
 
 The local five-repeat public-route evidence below passed exact Python/Rust
 canonical-trace and accounting parity before timing. It is deliberately not a

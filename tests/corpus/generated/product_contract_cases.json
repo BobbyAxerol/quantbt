@@ -22,10 +22,12 @@
         "event_python_callback_v2_v3",
         "native_strategy_ir_v1",
         "portfolio_target_preflight_v1",
-        "package_transaction_preflight_v1"
+        "package_transaction_preflight_v1",
+        "portfolio_target_market_v1",
+        "package_atomic_market_v1"
       ]
     }
   ],
-  "registry_fingerprint": "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2",
+  "registry_fingerprint": "9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8",
   "schema": "quantbt-product-contract-corpus-v1"
 }

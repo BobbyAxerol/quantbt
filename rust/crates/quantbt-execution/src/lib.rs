@@ -19,9 +19,13 @@ use quantbt_domain::generated_product_contracts::{
 };
 use quantbt_domain::ids::SymbolId;
 use quantbt_engine::{
-    FullMarketData, FullSession, NativeExecutionOutputV1, NativeScoreOutputV1, StaticTapeOutput,
+    FullMarketData, FullSession, NativeExecutionOutputV1, NativeScoreOutputV1, StaticOutputProfile,
+    StaticTapeOutput,
 };
-use quantbt_package::{PackageEventKind, PackageExecutionResult, PackagePlan, PackageState};
+use quantbt_package::{
+    PackageEventKind, PackageExecutionResult, PackageLegRequest, PackagePlan, PackagePolicy,
+    PackageState,
+};
 use quantbt_portfolio::{PortfolioMarginAllocationPolicy, PortfolioTargetTape};
 use quantbt_strategy_ir::{PARAMETER_WIDTH, StrategyProgram};
 
@@ -215,6 +219,8 @@ pub enum NativeWorkloadKindV1 {
     StrategyIr = 1,
     PortfolioTarget = 2,
     Package = 3,
+    PortfolioTargetMarket = 4,
+    PackageAtomicMarket = 5,
 }
 
 impl NativeWorkloadKindV1 {
@@ -225,6 +231,8 @@ impl NativeWorkloadKindV1 {
             Self::StrategyIr => "strategy_ir_v1",
             Self::PortfolioTarget => "portfolio_target_tape_v1",
             Self::Package => "package_tape_v1",
+            Self::PortfolioTargetMarket => "portfolio_target_market_v1",
+            Self::PackageAtomicMarket => "package_atomic_market_v1",
         }
     }
 }
@@ -362,6 +370,82 @@ impl PortfolioTargetWorkloadV1 {
     }
 }
 
+/// Rust-owned target-units workload for the promoted market route.
+///
+/// The target matrix is research output. At execution time the shared session
+/// projects the actual account state before each bar, this workload performs
+/// an all-or-none acceptance decision, then emits canonical market commands
+/// into the same `FullSession` lifecycle. No Python account/position state is
+/// retained or replayed.
+#[derive(Clone, Debug)]
+pub struct PortfolioTargetMarketWorkloadV1 {
+    pub targets: PortfolioTargetTape,
+    pub tradable: Box<[bool]>,
+    pub stale: Box<[bool]>,
+    pub min_qty: Box<[f64]>,
+    pub min_notional: Box<[f64]>,
+    pub external_id_start: i64,
+    empty_tape: CommandTapeV5,
+}
+
+impl PortfolioTargetMarketWorkloadV1 {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        targets: PortfolioTargetTape,
+        tradable: Vec<bool>,
+        stale: Vec<bool>,
+        min_qty: Vec<f64>,
+        min_notional: Vec<f64>,
+        external_id_start: i64,
+    ) -> Result<Self, String> {
+        let width = targets
+            .n_bars()
+            .checked_mul(targets.n_symbols())
+            .ok_or_else(|| "portfolio target market dimensions overflow".to_owned())?;
+        if tradable.len() != width
+            || stale.len() != width
+            || min_qty.len() != targets.n_symbols()
+            || min_notional.len() != targets.n_symbols()
+            || min_qty
+                .iter()
+                .any(|value| !value.is_finite() || *value < 0.0)
+            || min_notional
+                .iter()
+                .any(|value| !value.is_finite() || *value < 0.0)
+        {
+            return Err("portfolio target market workload has invalid constraints".to_owned());
+        }
+        let empty_tape = CommandTapeV5::new(vec![0; targets.n_bars() + 1], Vec::new())
+            .map_err(|error| error.to_string())?;
+        Ok(Self {
+            targets,
+            tradable: tradable.into_boxed_slice(),
+            stale: stale.into_boxed_slice(),
+            min_qty: min_qty.into_boxed_slice(),
+            min_notional: min_notional.into_boxed_slice(),
+            external_id_start,
+            empty_tape,
+        })
+    }
+
+    #[must_use]
+    pub fn command_tape(&self) -> &CommandTapeV5 {
+        &self.empty_tape
+    }
+
+    #[must_use]
+    pub fn tradable_at(&self, bar: usize) -> &[bool] {
+        let start = bar * self.targets.n_symbols();
+        &self.tradable[start..start + self.targets.n_symbols()]
+    }
+
+    #[must_use]
+    pub fn stale_at(&self, bar: usize) -> &[bool] {
+        let start = bar * self.targets.n_symbols();
+        &self.stale[start..start + self.targets.n_symbols()]
+    }
+}
+
 /// Prepared multi-leg package intent plus its accepted canonical commands.
 /// Preflight and reservation provenance stays immutable here; execution fills,
 /// costs, lifecycle, and terminal account state are still owned solely by the
@@ -399,6 +483,56 @@ impl PackageTapeV1 {
     }
 }
 
+/// One exact same-bar atomic package request. Any unsupported package policy
+/// remains outside this promoted workload and must use the Python reference
+/// route with an explicit capability reason.
+#[derive(Clone, Debug)]
+pub struct PackageAtomicMarketWorkloadV1 {
+    pub plan: PackagePlan,
+    pub legs: Box<[PackageLegRequest]>,
+    pub command_bar: usize,
+    pub max_staleness_ns: i64,
+    empty_tape: CommandTapeV5,
+}
+
+impl PackageAtomicMarketWorkloadV1 {
+    pub fn new(
+        n_bars: usize,
+        plan: PackagePlan,
+        legs: Vec<PackageLegRequest>,
+        command_bar: usize,
+        max_staleness_ns: i64,
+    ) -> Result<Self, String> {
+        if n_bars == 0
+            || command_bar == 0
+            || command_bar >= n_bars
+            || plan.policy != PackagePolicy::AtomicBarSimulation
+            || plan.legs.len() != legs.len()
+            || plan
+                .legs
+                .iter()
+                .zip(legs.iter())
+                .any(|(reference, leg)| reference.order_id != leg.order_id)
+        {
+            return Err("native atomic package workload has invalid immutable plan".to_owned());
+        }
+        let empty_tape = CommandTapeV5::new(vec![0; n_bars + 1], Vec::new())
+            .map_err(|error| error.to_string())?;
+        Ok(Self {
+            plan,
+            legs: legs.into_boxed_slice(),
+            command_bar,
+            max_staleness_ns,
+            empty_tape,
+        })
+    }
+
+    #[must_use]
+    pub fn command_tape(&self) -> &CommandTapeV5 {
+        &self.empty_tape
+    }
+}
+
 /// Tagged immutable workload family.  None of these variants stores a Python
 /// callback or a second mutable execution state.
 #[derive(Clone, Debug)]
@@ -407,6 +541,8 @@ pub enum WorkloadPayloadV1 {
     StrategyIr(StrategyIrWorkloadV1),
     PortfolioTarget(PortfolioTargetWorkloadV1),
     Package(PackageTapeV1),
+    PortfolioTargetMarket(PortfolioTargetMarketWorkloadV1),
+    PackageAtomicMarket(PackageAtomicMarketWorkloadV1),
 }
 
 impl WorkloadPayloadV1 {
@@ -417,6 +553,8 @@ impl WorkloadPayloadV1 {
             Self::StrategyIr(_) => NativeWorkloadKindV1::StrategyIr,
             Self::PortfolioTarget(_) => NativeWorkloadKindV1::PortfolioTarget,
             Self::Package(_) => NativeWorkloadKindV1::Package,
+            Self::PortfolioTargetMarket(_) => NativeWorkloadKindV1::PortfolioTargetMarket,
+            Self::PackageAtomicMarket(_) => NativeWorkloadKindV1::PackageAtomicMarket,
         }
     }
 
@@ -427,6 +565,8 @@ impl WorkloadPayloadV1 {
             Self::StrategyIr(workload) => workload.command_tape(),
             Self::PortfolioTarget(workload) => workload.command_tape(),
             Self::Package(workload) => workload.command_tape(),
+            Self::PortfolioTargetMarket(workload) => workload.command_tape(),
+            Self::PackageAtomicMarket(workload) => workload.command_tape(),
         }
     }
 }
@@ -444,6 +584,42 @@ pub struct NativeExecutionTemplateV1 {
     account: AccountModelV1,
     contract: ExecutionContractV1,
     fingerprint: [u8; 32],
+}
+
+/// Cold-path provenance for a dynamic workload. Score and compact profiles
+/// retain only the scalar counters; audit profile retains flat decision rows.
+/// This is intentionally separate from the canonical fill/event output so it
+/// cannot become a second execution ledger.
+#[derive(Clone, Debug, Default)]
+pub struct PortfolioTargetAuditV1 {
+    pub bar: Vec<i64>,
+    pub requested_units: Vec<f64>,
+    pub accepted_units: Vec<f64>,
+    pub rejection_code: Vec<i64>,
+    pub decision_count: usize,
+    pub rejected_decision_count: usize,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct PackageAtomicAuditV1 {
+    pub command_bar: i64,
+    pub package_id: u64,
+    pub accepted: Vec<bool>,
+    pub rejection_code: Vec<i64>,
+    pub transition_code: Vec<i64>,
+    pub reserved_margin: f64,
+    pub released_margin: f64,
+    pub package_fee: f64,
+    pub residual_notional: f64,
+    pub attempted: bool,
+}
+
+#[derive(Clone, Debug, Default)]
+pub enum NativeWorkloadAuditV1 {
+    #[default]
+    None,
+    PortfolioTarget(PortfolioTargetAuditV1),
+    PackageAtomic(PackageAtomicAuditV1),
 }
 
 impl NativeExecutionTemplateV1 {
@@ -710,7 +886,8 @@ impl NativeExecutionRunnerV1 {
         if self.template.fingerprint != request.template.fingerprint {
             return Err("native execution runner/template mismatch".to_owned());
         }
-        let output = self.execute_workload(request.output, &request.workload)?;
+        let (output, command_count, workload_audit) =
+            self.execute_workload_detailed(request.output, &request.workload)?;
         Ok(NativeExecutionResultV1 {
             request_version: request.request_version(),
             protocol_version: request.protocol_version(),
@@ -718,11 +895,12 @@ impl NativeExecutionRunnerV1 {
             template_fingerprint: self.template.fingerprint,
             workload_kind: request.workload.kind(),
             output_profile: request.output,
-            command_count: request.workload.command_tape().command_count(),
+            command_count,
             bar_count: self.template.bar_count(),
             execution_generation: self.generation,
             runner_run_count: self.run_count,
             output,
+            workload_audit,
         })
     }
 
@@ -734,8 +912,40 @@ impl NativeExecutionRunnerV1 {
         output: NativeOutputProfileV1,
         workload: &WorkloadPayloadV1,
     ) -> Result<NativeExecutionOutputV1, String> {
+        self.execute_workload_detailed(output, workload)
+            .map(|(result, _, _)| result)
+    }
+
+    fn execute_workload_detailed(
+        &mut self,
+        output: NativeOutputProfileV1,
+        workload: &WorkloadPayloadV1,
+    ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         validate_workload(&self.template, workload)?;
         self.reset_for_execution()?;
+        let result = match workload {
+            WorkloadPayloadV1::PortfolioTargetMarket(workload) => {
+                self.execute_portfolio_target_market(output, workload)
+            }
+            WorkloadPayloadV1::PackageAtomicMarket(workload) => {
+                self.execute_package_atomic_market(output, workload)
+            }
+            _ => self.execute_static_workload(output, workload),
+        };
+        if result.is_ok() {
+            self.run_count = self
+                .run_count
+                .checked_add(1)
+                .ok_or_else(|| "native execution runner run count overflow".to_owned())?;
+        }
+        result
+    }
+
+    fn execute_static_workload(
+        &mut self,
+        output: NativeOutputProfileV1,
+        workload: &WorkloadPayloadV1,
+    ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         let tape = workload.command_tape();
         let result = match output {
             NativeOutputProfileV1::Score => self
@@ -745,19 +955,215 @@ impl NativeExecutionRunnerV1 {
             NativeOutputProfileV1::Compact => self
                 .session
                 .run_typed_compact_v1(tape)
-                .map(|output| NativeExecutionOutputV1::Compact(Box::new(output))),
+                .map(|value| NativeExecutionOutputV1::Compact(Box::new(value))),
             NativeOutputProfileV1::Audit => self
                 .session
                 .run_typed_audit_v1(tape)
-                .map(|output| NativeExecutionOutputV1::Audit(Box::new(output))),
+                .map(|value| NativeExecutionOutputV1::Audit(Box::new(value))),
         };
-        if result.is_ok() {
-            self.run_count = self
-                .run_count
-                .checked_add(1)
-                .ok_or_else(|| "native execution runner run count overflow".to_owned())?;
-        }
-        result
+        result.map(|value| (value, tape.command_count(), NativeWorkloadAuditV1::None))
+    }
+
+    fn execute_portfolio_target_market(
+        &mut self,
+        output: NativeOutputProfileV1,
+        workload: &PortfolioTargetMarketWorkloadV1,
+    ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
+        let n_symbols = self.template.n_symbols();
+        let symbol_ids = self.template.instruments.symbol_ids.to_vec();
+        let contract_sizes = self.template.instruments.contract_sizes.to_vec();
+        let leverages = self.template.instruments.leverages.to_vec();
+        let fee_rates = self.template.instruments.fee_rates.to_vec();
+        let slippage_rate = self.template.account.slippage_rate;
+        let slippage_rates = vec![slippage_rate; n_symbols];
+        let mut prices = vec![0.0; n_symbols];
+        let mut audit = PortfolioTargetAuditV1::default();
+        let retain_audit = output == NativeOutputProfileV1::Audit;
+        let profile = static_profile(output);
+        let (native_output, command_count) =
+            self.session
+                .run_typed_dynamic_output_v1(profile, |bar, session, commands| {
+                    let requested = workload.targets.targets_at(bar);
+                    let changed = requested
+                        .iter()
+                        .zip(session.positions.iter())
+                        .any(|(target, current)| (target - current).abs() > 1e-12);
+                    if !changed {
+                        return Ok(());
+                    }
+                    let projection = session.project_pre_command_account_v1(bar)?;
+                    if projection.liquidated {
+                        audit.decision_count += 1;
+                        audit.rejected_decision_count += 1;
+                        if retain_audit {
+                            for (index, target) in requested.iter().copied().enumerate() {
+                                audit.bar.push(bar as i64);
+                                audit.requested_units.push(target);
+                                audit.accepted_units.push(session.positions[index]);
+                                audit.rejection_code.push(
+                                    quantbt_portfolio::PortfolioTargetRejectReason::PostCostMargin
+                                        as i64,
+                                );
+                            }
+                        }
+                        return Ok(());
+                    }
+                    for (symbol, price) in prices.iter_mut().enumerate() {
+                        *price = session.close_price_at(bar, symbol)?;
+                    }
+                    let execution = quantbt_portfolio::execute_portfolio_target_market_all_or_none(
+                        quantbt_portfolio::PortfolioTargetRequest {
+                            previous_units: &session.positions,
+                            requested_units: requested,
+                            prices: &prices,
+                            equity: projection.equity,
+                            contract_sizes: &contract_sizes,
+                            leverages: &leverages,
+                            fee_rates: &fee_rates,
+                            slippage_rates: &slippage_rates,
+                            tradable: workload.tradable_at(bar),
+                            stale: workload.stale_at(bar),
+                            min_qty: &workload.min_qty,
+                            min_notional: &workload.min_notional,
+                            reserved_margin: 0.0,
+                            policy: PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+                        },
+                    )?;
+                    audit.decision_count += 1;
+                    if execution.rejection_reasons.iter().any(|reason| {
+                        *reason != quantbt_portfolio::PortfolioTargetRejectReason::Accepted
+                    }) {
+                        audit.rejected_decision_count += 1;
+                    }
+                    if retain_audit {
+                        for (index, requested_units) in requested.iter().copied().enumerate() {
+                            audit.bar.push(bar as i64);
+                            audit.requested_units.push(requested_units);
+                            audit.accepted_units.push(execution.accepted_units[index]);
+                            audit
+                                .rejection_code
+                                .push(execution.rejection_reasons[index] as i64);
+                        }
+                    }
+                    let bar_offset = i64::try_from(bar)
+                        .ok()
+                        .and_then(|value| value.checked_mul(n_symbols as i64))
+                        .ok_or_else(|| "portfolio target external id range overflow".to_owned())?;
+                    let external_id_start = workload
+                        .external_id_start
+                        .checked_add(bar_offset)
+                        .ok_or_else(|| "portfolio target external id range overflow".to_owned())?;
+                    commands.extend(quantbt_portfolio::compile_target_delta_commands(
+                        &symbol_ids,
+                        &session.positions,
+                        &execution,
+                        external_id_start,
+                    )?);
+                    Ok(())
+                })?;
+        Ok((
+            native_output,
+            command_count,
+            NativeWorkloadAuditV1::PortfolioTarget(audit),
+        ))
+    }
+
+    fn execute_package_atomic_market(
+        &mut self,
+        output: NativeOutputProfileV1,
+        workload: &PackageAtomicMarketWorkloadV1,
+    ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
+        let n_symbols = self.template.n_symbols();
+        let contract_sizes = self.template.instruments.contract_sizes.to_vec();
+        let leverages = self.template.instruments.leverages.to_vec();
+        let fee_rates = self.template.instruments.fee_rates.to_vec();
+        let slippage_rate = self.template.account.slippage_rate;
+        let mut prices = vec![0.0; n_symbols];
+        let mut resolved_legs = workload.legs.to_vec();
+        let mut audit = PackageAtomicAuditV1 {
+            command_bar: workload.command_bar as i64,
+            package_id: workload.plan.id.0,
+            ..PackageAtomicAuditV1::default()
+        };
+        let profile = static_profile(output);
+        let (native_output, command_count) =
+            self.session
+                .run_typed_dynamic_output_v1(profile, |bar, session, commands| {
+                    if bar != workload.command_bar {
+                        return Ok(());
+                    }
+                    audit.attempted = true;
+                    let projection = session.project_pre_command_account_v1(bar)?;
+                    if projection.liquidated {
+                        audit.accepted = vec![false; workload.legs.len()];
+                        audit.rejection_code = vec![
+                            quantbt_package::PackageRejectReason::PostCostMargin
+                                as i64;
+                            workload.legs.len()
+                        ];
+                        return Ok(());
+                    }
+                    for (symbol, price) in prices.iter_mut().enumerate() {
+                        *price = session.close_price_at(bar, symbol)?;
+                    }
+                    for leg in &mut resolved_legs {
+                        let symbol = leg.symbol.0 as usize;
+                        leg.price = prices[symbol];
+                        leg.contract_size = contract_sizes[symbol];
+                        leg.fee_rate = fee_rates[symbol];
+                        leg.initial_margin = leg.signed_qty.abs() * leg.price * leg.contract_size
+                            / leverages[symbol];
+                    }
+                    let result = quantbt_package::execute_package_market_atomic(
+                        quantbt_package::PackageMarketExecutionRequest {
+                            package_id: workload.plan.id,
+                            legs: &resolved_legs,
+                            previous_units: &session.positions,
+                            close_prices: &prices,
+                            contract_sizes: &contract_sizes,
+                            leverages: &leverages,
+                            fee_rates: &fee_rates,
+                            slippage_rate,
+                            equity: projection.equity,
+                            policy: PackagePolicy::AtomicBarSimulation,
+                            max_staleness_ns: workload.max_staleness_ns,
+                        },
+                    )?;
+                    audit.accepted = result.accepted.clone();
+                    audit.rejection_code = result
+                        .rejection_reasons
+                        .iter()
+                        .map(|reason| *reason as i64)
+                        .collect();
+                    audit.transition_code = result
+                        .transitions
+                        .iter()
+                        .map(|event| package_event_code(*event) as i64)
+                        .collect();
+                    audit.reserved_margin = result.reserved_margin;
+                    audit.released_margin = result.released_margin;
+                    audit.package_fee = result.package_fee;
+                    audit.residual_notional = result.residual_notional;
+                    commands.extend(quantbt_package::compile_package_commands(
+                        workload.plan.id,
+                        &resolved_legs,
+                        &result,
+                    )?);
+                    Ok(())
+                })?;
+        Ok((
+            native_output,
+            command_count,
+            NativeWorkloadAuditV1::PackageAtomic(audit),
+        ))
+    }
+}
+
+const fn static_profile(output: NativeOutputProfileV1) -> StaticOutputProfile {
+    match output {
+        NativeOutputProfileV1::Score => StaticOutputProfile::Score,
+        NativeOutputProfileV1::Compact => StaticOutputProfile::Compact,
+        NativeOutputProfileV1::Audit => StaticOutputProfile::Audit,
     }
 }
 
@@ -836,6 +1242,75 @@ impl NativeExecutionRequestV1 {
         Self::from_template(template, output, WorkloadPayloadV1::StrategyIr(workload))
     }
 
+    /// Build the bounded Rust-owned portfolio target route.  Allocation stays
+    /// outside this type; the immutable input is a bar-major target-units
+    /// matrix plus per-bar tradability/staleness masks. At run time Rust
+    /// resolves each accepted delta from the live session projection.
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_template_portfolio_target_market(
+        template: Arc<NativeExecutionTemplateV1>,
+        output: NativeOutputProfileV1,
+        target_units: Vec<f64>,
+        tradable: Vec<bool>,
+        stale: Vec<bool>,
+        min_qty: Vec<f64>,
+        min_notional: Vec<f64>,
+        external_id_start: i64,
+    ) -> Result<Self, String> {
+        if template.contract.event_contract_code != CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE {
+            return Err(
+                "native portfolio target market route requires event_lifecycle_v2_next_bar_close"
+                    .to_owned(),
+            );
+        }
+        let targets =
+            PortfolioTargetTape::new(template.bar_count(), template.n_symbols(), target_units)?;
+        let workload = PortfolioTargetMarketWorkloadV1::new(
+            targets,
+            tradable,
+            stale,
+            min_qty,
+            min_notional,
+            external_id_start,
+        )?;
+        Self::from_template(
+            template,
+            output,
+            WorkloadPayloadV1::PortfolioTargetMarket(workload),
+        )
+    }
+
+    /// Build the bounded same-bar atomic package route. Only the policy that
+    /// is modeled end-to-end (`AtomicBarSimulation`) is accepted here; every
+    /// other package policy remains an explicit Python-reference route.
+    pub fn from_template_package_atomic_market(
+        template: Arc<NativeExecutionTemplateV1>,
+        output: NativeOutputProfileV1,
+        plan: PackagePlan,
+        legs: Vec<PackageLegRequest>,
+        command_bar: usize,
+        max_staleness_ns: i64,
+    ) -> Result<Self, String> {
+        if template.contract.event_contract_code != CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE {
+            return Err(
+                "native atomic package market route requires event_lifecycle_v2_next_bar_close"
+                    .to_owned(),
+            );
+        }
+        let workload = PackageAtomicMarketWorkloadV1::new(
+            template.bar_count(),
+            plan,
+            legs,
+            command_bar,
+            max_staleness_ns,
+        )?;
+        Self::from_template(
+            template,
+            output,
+            WorkloadPayloadV1::PackageAtomicMarket(workload),
+        )
+    }
+
     #[must_use]
     pub const fn request_version(&self) -> u16 {
         NATIVE_EXECUTION_REQUEST_VERSION_V1
@@ -910,6 +1385,7 @@ pub struct NativeExecutionResultV1 {
     pub execution_generation: u64,
     pub runner_run_count: u64,
     pub output: NativeExecutionOutputV1,
+    pub workload_audit: NativeWorkloadAuditV1,
 }
 
 impl NativeExecutionResultV1 {
@@ -964,6 +1440,29 @@ fn validate_workload(
             {
                 return Err(
                     "portfolio target tape does not match prepared market layout".to_owned(),
+                );
+            }
+        }
+        WorkloadPayloadV1::PortfolioTargetMarket(portfolio) => {
+            if portfolio.targets.n_bars() != template.bar_count()
+                || portfolio.targets.n_symbols() != template.n_symbols()
+                || portfolio.tradable.len() != template.bar_count() * template.n_symbols()
+                || portfolio.stale.len() != template.bar_count() * template.n_symbols()
+            {
+                return Err(
+                    "portfolio target market workload does not match prepared market layout"
+                        .to_owned(),
+                );
+            }
+        }
+        WorkloadPayloadV1::PackageAtomicMarket(package) => {
+            if package.command_bar == 0
+                || package.command_bar >= template.bar_count()
+                || package.plan.policy != PackagePolicy::AtomicBarSimulation
+            {
+                return Err(
+                    "native atomic package workload is outside the prepared market clock"
+                        .to_owned(),
                 );
             }
         }
@@ -1179,6 +1678,47 @@ fn fingerprint_workload(hash: &mut FingerprintWriter, workload: &WorkloadPayload
             hash.f64(package.preflight.package_fee);
             hash.f64(package.preflight.residual_notional);
             fingerprint_command_tape(hash, package.command_tape());
+        }
+        WorkloadPayloadV1::PortfolioTargetMarket(portfolio) => {
+            hash.bytes(b"portfolio-target-market-v1");
+            hash.i64(portfolio.external_id_start);
+            hash.usize(portfolio.targets.n_bars());
+            hash.usize(portfolio.targets.n_symbols());
+            for bar in 0..portfolio.targets.n_bars() {
+                for target in portfolio.targets.targets_at(bar).iter().copied() {
+                    hash.f64(target);
+                }
+                for value in portfolio.tradable_at(bar).iter().copied() {
+                    hash.bool(value);
+                }
+                for value in portfolio.stale_at(bar).iter().copied() {
+                    hash.bool(value);
+                }
+            }
+            for value in portfolio.min_qty.iter().copied() {
+                hash.f64(value);
+            }
+            for value in portfolio.min_notional.iter().copied() {
+                hash.f64(value);
+            }
+        }
+        WorkloadPayloadV1::PackageAtomicMarket(package) => {
+            hash.bytes(b"package-atomic-market-v1");
+            hash.u64(package.plan.id.0);
+            hash.u8(package.plan.policy as u8);
+            hash.usize(package.command_bar);
+            hash.i64(package.max_staleness_ns);
+            hash.usize(package.legs.len());
+            for leg in package.legs.iter() {
+                hash.i64(leg.order_id.0);
+                hash.u32(leg.symbol.0);
+                hash.f64(leg.signed_qty);
+                hash.i64(leg.source_age_ns);
+                hash.u16(leg.venue_code);
+                hash.u32(leg.venue_sequence);
+                hash.f64(leg.min_qty);
+                hash.f64(leg.min_notional);
+            }
         }
     }
 }
@@ -1784,6 +2324,221 @@ mod tests {
             &portfolio_replay.clone().into_legacy_static(),
             &portfolio_output.clone().into_legacy_static(),
         );
+    }
+
+    #[test]
+    fn market_target_workload_is_causal_reversal_safe_and_runner_reset_safe() {
+        let source = market();
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                source,
+                instruments(),
+                account(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        let request = NativeExecutionRequestV1::from_template_portfolio_target_market(
+            template,
+            NativeOutputProfileV1::Audit,
+            vec![0.0, 1.0, -1.0, 0.0],
+            vec![true; 4],
+            vec![false; 4],
+            vec![0.0],
+            vec![0.0],
+            1_000,
+        )
+        .unwrap();
+        let first = request.execute().unwrap();
+        assert_eq!(
+            first.workload_kind,
+            NativeWorkloadKindV1::PortfolioTargetMarket
+        );
+        assert_eq!(first.command_count, 3);
+        assert_eq!(first.output.score().final_positions, vec![0.0]);
+        assert_eq!(first.output.score().fill_count, 3);
+        assert_ne!(first.output.score().total_funding, 0.0);
+        let NativeWorkloadAuditV1::PortfolioTarget(audit) = &first.workload_audit else {
+            panic!("portfolio target workload must emit portfolio audit")
+        };
+        assert_eq!(audit.decision_count, 3);
+        assert_eq!(audit.rejected_decision_count, 0);
+        assert_eq!(audit.bar, vec![1, 2, 3]);
+
+        let mut runner = request.new_runner().unwrap();
+        let second = runner.execute_request(&request).unwrap();
+        let third = runner.execute_request(&request).unwrap();
+        assert_output_eq(
+            &first.output.into_legacy_static(),
+            &second.output.clone().into_legacy_static(),
+        );
+        assert_output_eq(
+            &second.output.into_legacy_static(),
+            &third.output.into_legacy_static(),
+        );
+    }
+
+    #[test]
+    fn market_target_rejects_post_cost_margin_without_partial_position_mutation() {
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                market(),
+                InstrumentTableV1::sequential(vec![1.0], vec![1.0], vec![0.001]).unwrap(),
+                AccountModelV1::new(10.0, 0.005, 0.001, false).unwrap(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        let request = NativeExecutionRequestV1::from_template_portfolio_target_market(
+            template,
+            NativeOutputProfileV1::Audit,
+            vec![0.0, 1.0, 1.0, 1.0],
+            vec![true; 4],
+            vec![false; 4],
+            vec![0.0],
+            vec![0.0],
+            1,
+        )
+        .unwrap();
+        let result = request.execute().unwrap();
+        assert_eq!(result.output.score().final_positions, vec![0.0]);
+        assert_eq!(result.output.score().fill_count, 0);
+        let NativeWorkloadAuditV1::PortfolioTarget(audit) = result.workload_audit else {
+            panic!("portfolio target workload must emit portfolio audit")
+        };
+        assert!(audit.rejected_decision_count >= 1);
+        assert!(audit.rejection_code.iter().any(|code| {
+            *code == quantbt_portfolio::PortfolioTargetRejectReason::PostCostMargin as i64
+        }));
+    }
+
+    #[test]
+    fn market_target_stale_row_is_atomic_then_can_retry_on_a_later_tradable_bar() {
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                market(),
+                instruments(),
+                account(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        let request = NativeExecutionRequestV1::from_template_portfolio_target_market(
+            template,
+            NativeOutputProfileV1::Audit,
+            vec![0.0, 1.0, 1.0, 1.0],
+            vec![true; 4],
+            vec![false, true, false, false],
+            vec![0.0],
+            vec![0.0],
+            1,
+        )
+        .unwrap();
+        let result = request.execute().unwrap();
+        assert_eq!(result.output.score().fill_count, 1);
+        let NativeWorkloadAuditV1::PortfolioTarget(audit) = result.workload_audit else {
+            panic!("portfolio target workload must emit portfolio audit")
+        };
+        assert_eq!(audit.bar, vec![1, 2]);
+        assert_eq!(
+            audit.rejection_code[0],
+            quantbt_portfolio::PortfolioTargetRejectReason::StalePrice as i64
+        );
+        assert_eq!(
+            audit.rejection_code[1],
+            quantbt_portfolio::PortfolioTargetRejectReason::Accepted as i64
+        );
+    }
+
+    #[test]
+    fn atomic_market_package_has_no_orphan_leg_after_stale_or_margin_rejection() {
+        let source = Arc::new(
+            FullMarketData::new(
+                vec![0, 1, 2],
+                vec![100.0, 50.0, 100.0, 50.0, 100.0, 50.0],
+                vec![101.0, 51.0, 101.0, 51.0, 101.0, 51.0],
+                vec![99.0, 49.0, 99.0, 49.0, 99.0, 49.0],
+                vec![100.0, 50.0, 100.0, 50.0, 100.0, 50.0],
+                vec![1_000.0; 6],
+                vec![0.0; 6],
+                vec![false; 3],
+                2,
+            )
+            .unwrap(),
+        );
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                source,
+                InstrumentTableV1::sequential(vec![1.0, 1.0], vec![5.0, 5.0], vec![0.0002, 0.0002])
+                    .unwrap(),
+                account(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        let legs = vec![
+            PackageLegRequest {
+                order_id: ExternalOrderId(91),
+                symbol: SymbolId(0),
+                signed_qty: 1.0,
+                price: 1.0,
+                initial_margin: 0.0,
+                fee_rate: 0.0,
+                source_age_ns: 0,
+                venue_code: 1,
+                venue_sequence: 0,
+                min_qty: 0.0,
+                min_notional: 0.0,
+                contract_size: 1.0,
+            },
+            PackageLegRequest {
+                order_id: ExternalOrderId(92),
+                symbol: SymbolId(1),
+                signed_qty: -1.0,
+                price: 1.0,
+                initial_margin: 0.0,
+                fee_rate: 0.0,
+                source_age_ns: 10,
+                venue_code: 1,
+                venue_sequence: 1,
+                min_qty: 0.0,
+                min_notional: 0.0,
+                contract_size: 1.0,
+            },
+        ];
+        let request = NativeExecutionRequestV1::from_template_package_atomic_market(
+            template,
+            NativeOutputProfileV1::Audit,
+            PackagePlan {
+                id: PackageId(91),
+                policy: PackagePolicy::AtomicBarSimulation,
+                legs: vec![
+                    PackageLegRef {
+                        order_id: ExternalOrderId(91),
+                    },
+                    PackageLegRef {
+                        order_id: ExternalOrderId(92),
+                    },
+                ]
+                .into_boxed_slice(),
+            },
+            legs,
+            1,
+            0,
+        )
+        .unwrap();
+        let result = request.execute().unwrap();
+        assert_eq!(result.output.score().fill_count, 0);
+        assert_eq!(result.output.score().final_positions, vec![0.0, 0.0]);
+        let NativeWorkloadAuditV1::PackageAtomic(audit) = result.workload_audit else {
+            panic!("atomic package workload must emit package audit")
+        };
+        assert_eq!(audit.accepted, vec![false, false]);
+        assert_eq!(
+            audit.rejection_code[1],
+            quantbt_package::PackageRejectReason::StaleMarket as i64
+        );
+        assert_eq!(audit.reserved_margin, audit.released_margin);
     }
 
     #[test]

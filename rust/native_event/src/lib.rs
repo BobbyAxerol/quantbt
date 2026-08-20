@@ -121,9 +121,9 @@ fn semantic_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     descriptor.set_item("account", account)?;
 
     let portfolio = PyDict::new(py);
-    // API 0.4 semantic descriptor is a compatibility lock. P2 planning
-    // primitives advertise only through additive raw capabilities until their
-    // own public contract/version is promoted.
+    // The semantic descriptor is generated from the versioned product
+    // registry. It must preserve scalar types exactly so Python and Rust
+    // reject a mismatched core/native pair before any execution state exists.
     portfolio.set_item(
         "target_execution",
         generated_product_contracts::RUNTIME_PORTFOLIO_TARGET_EXECUTION,
@@ -3040,6 +3040,174 @@ impl NativeExecutionRequestCore {
         Ok(Self { inner })
     }
 
+    /// Build a bounded multi-symbol target-units request that resolves target
+    /// acceptance and canonical market commands inside Rust for every bar.
+    ///
+    /// The route is intentionally narrow: V2 next-bar-close, linear quote
+    /// settled gross-cross account semantics, target units, and all-or-none
+    /// rebalance acceptance. Research allocation remains outside the engine.
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        target_units,
+        tradable,
+        stale,
+        min_qty,
+        min_notional,
+        external_id_start=1,
+        output_profile=2,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template_portfolio_target_market(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        target_units: PyReadonlyArray2<'_, f64>,
+        tradable: PyReadonlyArray2<'_, bool>,
+        stale: PyReadonlyArray2<'_, bool>,
+        min_qty: PyReadonlyArray1<'_, f64>,
+        min_notional: PyReadonlyArray1<'_, f64>,
+        external_id_start: i64,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let target_shape = target_units.shape();
+        let flag_shape = tradable.shape();
+        let stale_shape = stale.shape();
+        if target_shape != [template.bar_count(), template.n_symbols()]
+            || flag_shape != target_shape
+            || stale_shape != target_shape
+            || min_qty.len() != template.n_symbols()
+            || min_notional.len() != template.n_symbols()
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "portfolio target market arrays must match template (bars, symbols)",
+            ));
+        }
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::NativeExecutionRequestV1::from_template_portfolio_target_market(
+            template,
+            output,
+            target_units.as_slice()?.to_vec(),
+            tradable.as_slice()?.to_vec(),
+            stale.as_slice()?.to_vec(),
+            min_qty.as_slice()?.to_vec(),
+            min_notional.as_slice()?.to_vec(),
+            external_id_start,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    /// Build one Rust-owned same-bar atomic package request.  The output
+    /// records a bar-transaction audit; it never claims exchange-native OCO,
+    /// partial-fill, queue, or cross-venue settlement semantics.
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        command_bar,
+        package_id,
+        order_ids,
+        symbol_ids,
+        signed_qty,
+        source_age_ns,
+        venue_codes,
+        venue_sequence,
+        min_qty,
+        min_notional,
+        max_staleness_ns=0,
+        output_profile=2,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template_package_atomic_market(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        command_bar: usize,
+        package_id: u64,
+        order_ids: PyReadonlyArray1<'_, i64>,
+        symbol_ids: PyReadonlyArray1<'_, u32>,
+        signed_qty: PyReadonlyArray1<'_, f64>,
+        source_age_ns: PyReadonlyArray1<'_, i64>,
+        venue_codes: PyReadonlyArray1<'_, u16>,
+        venue_sequence: PyReadonlyArray1<'_, u32>,
+        min_qty: PyReadonlyArray1<'_, f64>,
+        min_notional: PyReadonlyArray1<'_, f64>,
+        max_staleness_ns: i64,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let order_ids = order_ids.as_slice()?;
+        let symbol_ids = symbol_ids.as_slice()?;
+        let signed_qty = signed_qty.as_slice()?;
+        let source_age_ns = source_age_ns.as_slice()?;
+        let venue_codes = venue_codes.as_slice()?;
+        let venue_sequence = venue_sequence.as_slice()?;
+        let min_qty = min_qty.as_slice()?;
+        let min_notional = min_notional.as_slice()?;
+        let count = order_ids.len();
+        if count == 0
+            || [
+                symbol_ids.len(),
+                signed_qty.len(),
+                source_age_ns.len(),
+                venue_codes.len(),
+                venue_sequence.len(),
+                min_qty.len(),
+                min_notional.len(),
+            ]
+            .iter()
+            .any(|length| *length != count)
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native atomic package arrays must be non-empty and equal length",
+            ));
+        }
+        let legs = (0..count)
+            .map(|index| package::PackageLegRequest {
+                order_id: quantbt_domain::ids::ExternalOrderId(order_ids[index]),
+                symbol: quantbt_domain::ids::SymbolId(symbol_ids[index]),
+                signed_qty: signed_qty[index],
+                // Dynamic execution replaces these planner placeholders with
+                // the prepared market/account values at command_bar.
+                price: 1.0,
+                initial_margin: 0.0,
+                fee_rate: 0.0,
+                source_age_ns: source_age_ns[index],
+                venue_code: venue_codes[index],
+                venue_sequence: venue_sequence[index],
+                min_qty: min_qty[index],
+                min_notional: min_notional[index],
+                contract_size: 1.0,
+            })
+            .collect::<Vec<_>>();
+        let plan = package::PackagePlan {
+            id: package::PackageId(package_id),
+            policy: package::PackagePolicy::AtomicBarSimulation,
+            legs: order_ids
+                .iter()
+                .copied()
+                .map(|order_id| package::PackageLegRef {
+                    order_id: quantbt_domain::ids::ExternalOrderId(order_id),
+                })
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+        };
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::NativeExecutionRequestV1::from_template_package_atomic_market(
+            template,
+            output,
+            plan,
+            legs,
+            command_bar,
+            max_staleness_ns,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
     #[getter]
     fn request_version(&self) -> u16 {
         self.inner.request_version()
@@ -4252,6 +4420,69 @@ fn score_output_payload(
     Ok(payload.unbind())
 }
 
+/// Cold-path serialization for bounded dynamic workload provenance.  The
+/// native fill/event output remains the authoritative execution trace; these
+/// arrays explain target/package admission and never reconstruct execution in
+/// Python.
+fn add_native_workload_audit_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    audit: &execution::NativeWorkloadAuditV1,
+) -> PyResult<()> {
+    match audit {
+        execution::NativeWorkloadAuditV1::None => {
+            payload.set_item("native_workload_audit_kind", "none")?;
+        }
+        execution::NativeWorkloadAuditV1::PortfolioTarget(audit) => {
+            payload.set_item("native_workload_audit_kind", "portfolio_target_market_v1")?;
+            payload.set_item("portfolio_target_decision_count", audit.decision_count)?;
+            payload.set_item(
+                "portfolio_target_rejected_decision_count",
+                audit.rejected_decision_count,
+            )?;
+            payload.set_item(
+                "portfolio_target_decision_bar",
+                PyArray1::from_vec(py, audit.bar.clone()),
+            )?;
+            payload.set_item(
+                "portfolio_target_requested_units",
+                PyArray1::from_vec(py, audit.requested_units.clone()),
+            )?;
+            payload.set_item(
+                "portfolio_target_accepted_units",
+                PyArray1::from_vec(py, audit.accepted_units.clone()),
+            )?;
+            payload.set_item(
+                "portfolio_target_rejection_code",
+                PyArray1::from_vec(py, audit.rejection_code.clone()),
+            )?;
+        }
+        execution::NativeWorkloadAuditV1::PackageAtomic(audit) => {
+            payload.set_item("native_workload_audit_kind", "package_atomic_market_v1")?;
+            payload.set_item("package_command_bar", audit.command_bar)?;
+            payload.set_item("package_id", audit.package_id)?;
+            payload.set_item("package_attempted", audit.attempted)?;
+            payload.set_item(
+                "package_accepted",
+                PyArray1::from_vec(py, audit.accepted.clone()),
+            )?;
+            payload.set_item(
+                "package_rejection_code",
+                PyArray1::from_vec(py, audit.rejection_code.clone()),
+            )?;
+            payload.set_item(
+                "package_transition_code",
+                PyArray1::from_vec(py, audit.transition_code.clone()),
+            )?;
+            payload.set_item("package_reserved_margin", audit.reserved_margin)?;
+            payload.set_item("package_released_margin", audit.released_margin)?;
+            payload.set_item("package_fee", audit.package_fee)?;
+            payload.set_item("package_residual_notional", audit.residual_notional)?;
+        }
+    }
+    Ok(())
+}
+
 fn compact_output_payload(
     py: Python<'_>,
     output: quantbt_engine::StaticTapeOutput,
@@ -4543,6 +4774,7 @@ fn native_request_output_payload(
     payload.set_item("native_execution_runner_run_count", runner_run_count)?;
     payload.set_item("python_callbacks", 0)?;
     payload.set_item("boundary_calls", 1)?;
+    add_native_workload_audit_fields(py, &payload, &result.workload_audit)?;
 
     if matches!(
         profile,

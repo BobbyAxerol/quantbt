@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 pub const PRODUCT_CONTRACT_REGISTRY_FINGERPRINT: &str =
-    "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2";
+    "9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8";
 pub const LIFECYCLE_REGISTRY_FINGERPRINT: &str =
     "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d";
 pub const CORE_PACKAGE_VERSION: &str = "1.0.8";
@@ -57,6 +57,8 @@ pub const NATIVE_EXTENSION_CAPABILITIES: &[&str] = &[
     "native_strategy_ir_batch_v1",
     "native_portfolio_target_preflight_v1",
     "native_package_transaction_preflight_v1",
+    "native_portfolio_target_market_v1",
+    "native_package_atomic_market_v1",
 ];
 
 pub const RUNTIME_CONTRACT_IDS: &[&str] = &[
@@ -76,5 +78,5 @@ pub const RUNTIME_LIQUIDATION_MODELS: &[&str] = &["zero_equity_legacy"];
 
 pub const RUNTIME_PARTIAL_FILL: bool = false;
 pub const RUNTIME_VOLUME_MODEL: &str = "infinite_bar_liquidity";
-pub const RUNTIME_PORTFOLIO_TARGET_EXECUTION: bool = false;
-pub const RUNTIME_PACKAGE_ATOMICITY: &str = "python_reference_only";
+pub const RUNTIME_PORTFOLIO_TARGET_EXECUTION: &str = "target_units_market_v1_all_or_none_v2";
+pub const RUNTIME_PACKAGE_ATOMICITY: &str = "bar_transaction_atomic_market_v1";

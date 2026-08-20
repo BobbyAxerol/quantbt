@@ -146,6 +146,25 @@ pub struct PackageExecutionResult {
     pub residual_notional: f64,
 }
 
+/// Exact, bounded market-order request used by the promoted native atomic
+/// package route.  The caller supplies close valuation prices from the shared
+/// `FullSession` and the current account position vector; this crate performs
+/// no account mutation and never owns a second ledger.
+#[derive(Clone, Debug)]
+pub struct PackageMarketExecutionRequest<'a> {
+    pub package_id: PackageId,
+    pub legs: &'a [PackageLegRequest],
+    pub previous_units: &'a [f64],
+    pub close_prices: &'a [f64],
+    pub contract_sizes: &'a [f64],
+    pub leverages: &'a [f64],
+    pub fee_rates: &'a [f64],
+    pub slippage_rate: f64,
+    pub equity: f64,
+    pub policy: PackagePolicy,
+    pub max_staleness_ns: i64,
+}
+
 impl PackageExecutionResult {
     #[must_use]
     pub fn invariants_pass(&self, tolerance: f64) -> bool {
@@ -283,6 +302,198 @@ pub fn execute_package_transaction(
         package_fee,
         residual_notional,
     })
+}
+
+/// Resolve one same-bar all-or-none package against the exact sequential
+/// market-order margin gate used by the native event engine.
+///
+/// Atomicity here is explicitly *bar-transaction atomicity*: all legs are
+/// accepted and submitted together, or no leg is submitted. It is not a claim
+/// of exchange-native order-list atomicity, partial fills, queue priority, or
+/// cross-venue settlement guarantees.
+pub fn execute_package_market_atomic(
+    request: PackageMarketExecutionRequest<'_>,
+) -> Result<PackageExecutionResult, String> {
+    if request.policy != PackagePolicy::AtomicBarSimulation {
+        return Err(
+            "native market package execution supports only atomic_bar_simulation".to_owned(),
+        );
+    }
+    let n_symbols = request.previous_units.len();
+    if request.legs.is_empty()
+        || request.close_prices.len() != n_symbols
+        || request.contract_sizes.len() != n_symbols
+        || request.leverages.len() != n_symbols
+        || request.fee_rates.len() != n_symbols
+        || !request.equity.is_finite()
+        || request.equity <= 0.0
+        || !request.slippage_rate.is_finite()
+        || request.slippage_rate < 0.0
+    {
+        return Err("native market package request has invalid account dimensions".to_owned());
+    }
+    if request
+        .previous_units
+        .iter()
+        .any(|value| !value.is_finite())
+        || request
+            .close_prices
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 0.0)
+        || request
+            .contract_sizes
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 0.0)
+        || request
+            .leverages
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 0.0)
+        || request
+            .fee_rates
+            .iter()
+            .any(|value| !value.is_finite() || *value < 0.0)
+    {
+        return Err("native market package request has invalid instrument inputs".to_owned());
+    }
+    if request
+        .legs
+        .iter()
+        .any(|leg| leg.symbol.0 as usize >= n_symbols)
+        || request
+            .legs
+            .windows(2)
+            .any(|pair| pair[0].venue_sequence > pair[1].venue_sequence)
+    {
+        return Err(
+            "native atomic package legs must use known symbols and deterministic sequence"
+                .to_owned(),
+        );
+    }
+
+    let mut reasons = request
+        .legs
+        .iter()
+        .map(|leg| validate_leg(leg, request.max_staleness_ns))
+        .collect::<Vec<_>>();
+    let valid = reasons
+        .iter()
+        .map(|reason| *reason == PackageRejectReason::Accepted)
+        .collect::<Vec<_>>();
+    if !valid.iter().all(|accepted| *accepted) {
+        for (index, reason) in reasons.iter_mut().enumerate() {
+            if valid[index] {
+                *reason = PackageRejectReason::SiblingPreflightRejected;
+            }
+        }
+        return Ok(rejected_market_package(request.package_id, reasons));
+    }
+
+    let mut units = request.previous_units.to_vec();
+    let mut equity = request.equity;
+    let mut fees = 0.0;
+    for leg in request.legs {
+        let symbol = leg.symbol.0 as usize;
+        let close = request.close_prices[symbol];
+        let execution_price = if leg.signed_qty > 0.0 {
+            close * (1.0 + request.slippage_rate)
+        } else {
+            close * (1.0 - request.slippage_rate)
+        };
+        if !execution_price.is_finite() || execution_price <= 0.0 {
+            return Err("native market package execution price is invalid".to_owned());
+        }
+        let contract_size = request.contract_sizes[symbol];
+        let old_initial = units[symbol].abs() * close * contract_size / request.leverages[symbol];
+        let new_initial = (units[symbol] + leg.signed_qty).abs() * execution_price * contract_size
+            / request.leverages[symbol];
+        let fee =
+            leg.signed_qty.abs() * execution_price * contract_size * request.fee_rates[symbol];
+        let current_initial = total_initial_margin(
+            &units,
+            request.close_prices,
+            request.contract_sizes,
+            request.leverages,
+        );
+        if fee + (new_initial - old_initial).max(0.0) > equity - current_initial + EPSILON {
+            reasons.fill(PackageRejectReason::PostCostMargin);
+            return Ok(rejected_market_package(request.package_id, reasons));
+        }
+        equity += leg.signed_qty * (close - execution_price) * contract_size - fee;
+        units[symbol] += leg.signed_qty;
+        fees += fee;
+    }
+    let reserved_margin = total_initial_margin(
+        &units,
+        request.close_prices,
+        request.contract_sizes,
+        request.leverages,
+    );
+    let residual_notional = request
+        .legs
+        .iter()
+        .map(|leg| {
+            leg.signed_qty
+                * request.close_prices[leg.symbol.0 as usize]
+                * request.contract_sizes[leg.symbol.0 as usize]
+        })
+        .sum();
+    Ok(PackageExecutionResult {
+        package_id: request.package_id,
+        policy: request.policy,
+        final_state: PackageState::Filled,
+        accepted: vec![true; request.legs.len()],
+        rejection_reasons: vec![PackageRejectReason::Accepted; request.legs.len()],
+        transitions: vec![
+            PackageEventKind::Plan,
+            PackageEventKind::PreflightAccepted,
+            PackageEventKind::Reserve,
+            PackageEventKind::Commit,
+            PackageEventKind::Filled,
+            PackageEventKind::Release,
+        ],
+        reserved_margin,
+        released_margin: reserved_margin,
+        package_fee: fees,
+        residual_notional,
+    })
+}
+
+fn rejected_market_package(
+    package_id: PackageId,
+    reasons: Vec<PackageRejectReason>,
+) -> PackageExecutionResult {
+    PackageExecutionResult {
+        package_id,
+        policy: PackagePolicy::AtomicBarSimulation,
+        final_state: PackageState::Aborted,
+        accepted: vec![false; reasons.len()],
+        rejection_reasons: reasons,
+        transitions: vec![
+            PackageEventKind::Plan,
+            PackageEventKind::PreflightRejected,
+            PackageEventKind::Abort,
+            PackageEventKind::Release,
+        ],
+        reserved_margin: 0.0,
+        released_margin: 0.0,
+        package_fee: 0.0,
+        residual_notional: 0.0,
+    }
+}
+
+fn total_initial_margin(
+    units: &[f64],
+    close_prices: &[f64],
+    contract_sizes: &[f64],
+    leverages: &[f64],
+) -> f64 {
+    units
+        .iter()
+        .enumerate()
+        .map(|(symbol, units)| {
+            units.abs() * close_prices[symbol] * contract_sizes[symbol] / leverages[symbol]
+        })
+        .sum()
 }
 
 /// Compile only accepted preflight legs to canonical market commands. The

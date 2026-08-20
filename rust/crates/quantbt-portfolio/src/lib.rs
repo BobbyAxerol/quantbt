@@ -262,6 +262,20 @@ pub fn execute_portfolio_target(
     let mut reasons = (0..n)
         .map(|index| validation_reason(&request, index))
         .collect::<Vec<_>>();
+    // A market sell with an invalidly large slippage rate could otherwise
+    // create a non-positive fill price after the ordinary target validation.
+    // Treat that as an invalid target row and preserve all-or-none admission
+    // rather than letting a later arithmetic error partially escape the gate.
+    for (index, reason) in reasons.iter_mut().enumerate() {
+        let delta = request.requested_units[index] - request.previous_units[index];
+        if *reason == PortfolioTargetRejectReason::Accepted && delta.abs() > EPSILON {
+            let execution_price =
+                market_execution_price(request.prices[index], delta, request.slippage_rates[index]);
+            if !execution_price.is_finite() || execution_price <= 0.0 {
+                *reason = PortfolioTargetRejectReason::InvalidTarget;
+            }
+        }
+    }
     let valid = reasons
         .iter()
         .map(|reason| *reason == PortfolioTargetRejectReason::Accepted)
@@ -417,6 +431,205 @@ pub fn execute_portfolio_target(
         policy: request.policy,
         available_equity_after,
     })
+}
+
+/// Resolve one all-or-none target row against the exact market-order cost and
+/// margin gate used by `quantbt-engine::FullSession`.
+///
+/// Unlike [`execute_portfolio_target`], this bounded execution helper models
+/// the actual V2 market fill price (`close * (1 +/- slippage)`), fee charged at
+/// that fill price, and the engine's sequential free-margin check.  It is the
+/// Rust-owned bridge for the promoted `target_units` route; legacy planner
+/// policies intentionally keep their historical arithmetic unchanged.
+///
+/// The result is still only an immutable acceptance decision.  Accepted deltas
+/// must be compiled into canonical commands and executed by `FullSession`;
+/// this function never changes positions or cash itself.
+pub fn execute_portfolio_target_market_all_or_none(
+    request: PortfolioTargetRequest<'_>,
+) -> Result<PortfolioTargetExecution, String> {
+    if request.policy != PortfolioMarginAllocationPolicy::AllOrNoneTarget {
+        return Err("market target execution supports only all_or_none_target policy".to_owned());
+    }
+    let n = request.previous_units.len();
+    let vectors = [
+        request.requested_units.len(),
+        request.prices.len(),
+        request.contract_sizes.len(),
+        request.leverages.len(),
+        request.fee_rates.len(),
+        request.slippage_rates.len(),
+        request.tradable.len(),
+        request.stale.len(),
+        request.min_qty.len(),
+        request.min_notional.len(),
+    ];
+    if n == 0 || vectors.iter().any(|length| *length != n) {
+        return Err("portfolio target vectors must be non-empty and equal length".to_owned());
+    }
+    if !request.equity.is_finite() || request.equity <= 0.0 || request.reserved_margin < 0.0 {
+        return Err("portfolio target equity/reserved margin is invalid".to_owned());
+    }
+    if request
+        .previous_units
+        .iter()
+        .any(|value| !value.is_finite())
+        || request
+            .contract_sizes
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 0.0)
+        || request
+            .leverages
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 0.0)
+        || request
+            .fee_rates
+            .iter()
+            .any(|value| !value.is_finite() || *value < 0.0)
+        || request
+            .slippage_rates
+            .iter()
+            .any(|value| !value.is_finite() || *value < 0.0)
+        || request
+            .min_qty
+            .iter()
+            .any(|value| !value.is_finite() || *value < 0.0)
+        || request
+            .min_notional
+            .iter()
+            .any(|value| !value.is_finite() || *value < 0.0)
+    {
+        return Err("portfolio target constraints are invalid".to_owned());
+    }
+
+    let mut reasons = (0..n)
+        .map(|index| validation_reason(&request, index))
+        .collect::<Vec<_>>();
+    let valid = reasons
+        .iter()
+        .map(|reason| *reason == PortfolioTargetRejectReason::Accepted)
+        .collect::<Vec<_>>();
+    if !valid.iter().all(|value| *value) {
+        for (index, reason) in reasons.iter_mut().enumerate() {
+            if valid[index] {
+                *reason = PortfolioTargetRejectReason::AtomicRollback;
+            }
+        }
+        return Ok(rejected_market_target_execution(&request, reasons));
+    }
+
+    let mut simulated_units = request.previous_units.to_vec();
+    let mut equity = request.equity - request.reserved_margin;
+    let mut traded_notional = vec![0.0; n];
+    let mut fees = vec![0.0; n];
+    let mut slippage = vec![0.0; n];
+    for index in 0..n {
+        let delta = request.requested_units[index] - simulated_units[index];
+        if delta.abs() <= EPSILON {
+            continue;
+        }
+        let close = request.prices[index];
+        let execution_price = market_execution_price(close, delta, request.slippage_rates[index]);
+        let contract_size = request.contract_sizes[index];
+        let old_initial =
+            simulated_units[index].abs() * close * contract_size / request.leverages[index];
+        let new_initial = (simulated_units[index] + delta).abs() * execution_price * contract_size
+            / request.leverages[index];
+        let notional = delta.abs() * execution_price * contract_size;
+        let fee = notional * request.fee_rates[index];
+        let current_initial = total_initial_margin(
+            &simulated_units,
+            request.prices,
+            request.contract_sizes,
+            request.leverages,
+        );
+        let required = fee + (new_initial - old_initial).max(0.0);
+        if required > equity - current_initial + EPSILON {
+            for reason in &mut reasons {
+                if *reason == PortfolioTargetRejectReason::Accepted {
+                    *reason = PortfolioTargetRejectReason::PostCostMargin;
+                }
+            }
+            return Ok(rejected_market_target_execution(&request, reasons));
+        }
+        equity += delta * (close - execution_price) * contract_size - fee;
+        simulated_units[index] += delta;
+        traded_notional[index] = notional;
+        fees[index] = fee;
+        slippage[index] = delta.abs() * (execution_price - close).abs() * contract_size;
+    }
+
+    let initial_margin = margin_vector(
+        &simulated_units,
+        request.prices,
+        request.contract_sizes,
+        request.leverages,
+    );
+    // Maintenance is enforced by FullSession after commands. The target
+    // contract deliberately leaves that canonical runtime gate in the engine
+    // rather than inventing a second maintenance-ratio input here.
+    let delta_qty = subtract(&simulated_units, request.previous_units);
+    Ok(PortfolioTargetExecution {
+        requested_units: request.requested_units.to_vec(),
+        accepted_units: simulated_units,
+        delta_qty,
+        traded_notional,
+        fees,
+        slippage,
+        initial_margin,
+        rejection_reasons: reasons,
+        policy: request.policy,
+        available_equity_after: equity
+            - sum(&margin_vector(
+                request.requested_units,
+                request.prices,
+                request.contract_sizes,
+                request.leverages,
+            )),
+    })
+}
+
+fn rejected_market_target_execution(
+    request: &PortfolioTargetRequest<'_>,
+    reasons: Vec<PortfolioTargetRejectReason>,
+) -> PortfolioTargetExecution {
+    let initial_margin = margin_vector(
+        request.previous_units,
+        request.prices,
+        request.contract_sizes,
+        request.leverages,
+    );
+    PortfolioTargetExecution {
+        requested_units: request.requested_units.to_vec(),
+        accepted_units: request.previous_units.to_vec(),
+        delta_qty: vec![0.0; request.previous_units.len()],
+        traded_notional: vec![0.0; request.previous_units.len()],
+        fees: vec![0.0; request.previous_units.len()],
+        slippage: vec![0.0; request.previous_units.len()],
+        initial_margin: initial_margin.clone(),
+        rejection_reasons: reasons,
+        policy: request.policy,
+        available_equity_after: request.equity - request.reserved_margin - sum(&initial_margin),
+    }
+}
+
+fn total_initial_margin(
+    units: &[f64],
+    prices: &[f64],
+    contract_sizes: &[f64],
+    leverages: &[f64],
+) -> f64 {
+    margin_vector(units, prices, contract_sizes, leverages)
+        .iter()
+        .sum()
+}
+
+fn market_execution_price(close: f64, delta: f64, slippage_rate: f64) -> f64 {
+    if delta > 0.0 {
+        close * (1.0 + slippage_rate)
+    } else {
+        close * (1.0 - slippage_rate)
+    }
 }
 
 /// Compile an accepted target result into canonical event commands. Direct

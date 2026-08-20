@@ -13514,7 +13514,8 @@ Boundary after Phase 54B.2:
 
 #### 54B.3 - Portfolio/Package Domain Promotion And Institutional Certification
 
-**Status: planned.**
+**Status: completed (certified explicit E4/E5 contracts; generic endpoint
+auto-promotion intentionally remains out of scope).**
 
 Detailed guide to read before every implementation decision:
 
@@ -13569,6 +13570,88 @@ Exit gate:
 Portfolio/package promotion is per exact registry row, never blanket.
 Any incomplete domain semantics remains routed to Python with a stable reason.
 ```
+
+Implementation and evidence:
+
+- Added two immutable typed Rust requests backed by the shared
+  `FullSession`, never by a second Python accounting state:
+  `portfolio_target_market_v1` for bar-major `target_units`, and
+  `package_atomic_market_v1` for one same-bar `AtomicBarSimulation` market
+  package. Both are exposed explicitly through
+  `run_portfolio_target_market(...)` and `run_atomic_package_market(...)`.
+- The target contract is deliberately narrow: V2 next-bar-close, linear
+  quote-settled gross-cross, finite `target_units`, canonical market price and
+  one-way fee, target-row all-or-none admission, per-bar tradability/staleness,
+  min quantity/notional, sequential post-cost free-margin checks, funding,
+  intrabar/close liquidation, and canonical fill lifecycle. A rejected row
+  retains all prior units; malformed non-finite target tape input fails before
+  any session/account state is created.
+- The package contract is deliberately narrow: one non-empty ordered package,
+  known symbols, nondecreasing `venue_sequence`, exact market cost/margin
+  preflight, and all-or-none bar-transaction rollback. It records
+  `package_accepted`, rejection/transition codes, reservation/release, fee,
+  and residual notional. It does not claim exchange-native order-list
+  atomicity, queue/depth, partial fills, cross-venue settlement, sequential,
+  best-effort, or hedge-after-primary semantics.
+- `NativeExecutionPreparationCache` now content-signs the target/package tape
+  together with every result-affecting prepared market/template array. A
+  cached typed request is immutable, a fresh runner resets its state for every
+  run, and a score/compact result cannot be silently converted into audit
+  output. Audit adaptation is a cold `RustFullAuditResult` conversion and
+  never replays Python execution.
+- The product registry adds two `certified`, `auto_promotion=false` workload
+  rows. Automatic routing remains `static_ir`; generic
+  `QuantBTEndpoint.portfolio()` and `QuantBTEndpoint.arbitrage()` preserve
+  their Python/native-portfolio behavior. The registry generator was also
+  tightened so Rust preserves JSON scalar types in the semantic descriptor;
+  the installed wheel and core now fail closed on any descriptor drift.
+- Added the B3 contract suite and governed E4/E5 benchmark artifact:
+  `tests/native_event/contract/test_phase54b3_portfolio_package_promotion.py`,
+  `benchmarks/native_event/benchmark_phase54b3_portfolio_package.py`, and
+  `benchmarks/native_event/results/phase54b3/portfolio_package.json`.
+  It covers reversal, stale retry, post-cost rejection, invalid-input
+  fail-fast, target/package all-or-none rollback, no orphan leg, funding,
+  prepared versus direct parity, signature invalidation, score/compact/audit
+  retention, direct audit-report adaptation, explicit/auto promotion policy,
+  and native semantic-descriptor parity.
+- The committed five-warm-run E4/E5 evidence is exact to `atol=1e-12` against
+  the Python event oracle for equity, positions, fees, and funding. At
+  2,000 bars x 8 symbols it records Rust score execution of 3.594 ms
+  (556,551 bars/s) for target units and 3.512 ms (569,514 bars/s) for the
+  atomic package; cold audit adaptation is reported separately. Both routes
+  use one PyO3 boundary call, zero Python callbacks, zero ingress copies on
+  reused contiguous arrays, and no steady-run RSS growth in the recorded
+  artifact.
+
+Certification commands passed after the final descriptor rebuild:
+
+```bash
+cargo fmt --manifest-path rust/Cargo.toml --all -- --check
+cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+cargo test --manifest-path rust/Cargo.toml --workspace
+UV_CACHE_DIR=/tmp/quantbt-uv-cache poetry run maturin develop --release \
+  --manifest-path rust/native_event/Cargo.toml
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
+  tests/native_event tests/native_event/contract
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q
+```
+
+Results: Rust fmt/clippy and all workspace tests passed; native-event regression
+passed `251 passed, 2 skipped`; full QuantBT regression passed
+`917 passed, 3 skipped`. Source-mirror, generated-contract, API inventory,
+module-boundary, benchmark-governance, documentation-link, and Ruff gates also
+passed.
+
+Remaining boundary, not a hidden B3 correctness debt:
+
+- A generic portfolio endpoint adapter with exact Python fallback must be
+  certified before any Stage-C automatic route is enabled.
+- `target_weight`, `target_notional`, `%_equity`, risk parity, cross-currency,
+  isolated/venue-specific margin, and shared cross-margin need individual
+  contracts and parity corpora.
+- Sequential, best-effort, hedge-after-primary, cross-exchange, partial-fill,
+  queue/depth, and delivery/inverse/quanto package semantics remain Python or
+  future specialized native contracts.
 
 #### 54B.4 - Installed-Wheel Release Gate, Migration Audit, And Final Handoff
 

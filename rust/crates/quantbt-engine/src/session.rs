@@ -720,6 +720,25 @@ pub struct FullStepResult {
     pub replace_count: i64,
 }
 
+/// Read-only account state immediately before the command phase of one bar.
+///
+/// A dynamic workload (for example a target-units portfolio or an atomic
+/// package) must make its acceptance decision against this exact state rather
+/// than against a stale Python-side account snapshot.  The projection mirrors
+/// the canonical bar ordering in [`FullSession::step_with_buffers`]:
+/// mark-to-close PnL, intrabar liquidation, funding, then maintenance-margin
+/// liquidation.  It deliberately performs no mutation; the subsequent
+/// `step_*` call remains the only execution/accounting owner.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PreCommandAccountProjectionV1 {
+    pub equity: f64,
+    pub funding: f64,
+    pub initial_margin: f64,
+    pub maintenance_margin: f64,
+    pub liquidated: bool,
+    pub liquidation_reason: i64,
+}
+
 #[derive(Clone, Copy, Default)]
 struct MarginCache {
     bar: usize,
@@ -1004,6 +1023,118 @@ impl FullSession {
     #[inline]
     fn has_funding_event(&self, bar: usize) -> bool {
         self.market.funding_mask[self.market_start + bar]
+    }
+
+    /// Return one close used by the canonical local-bar clock.
+    ///
+    /// This intentionally exposes valuation only.  Dynamic workload planners
+    /// cannot mutate the market or bypass the session's fill logic through
+    /// this accessor.
+    pub fn close_price_at(&self, bar: usize, symbol: usize) -> Result<f64, String> {
+        if bar >= self.n_bars() || symbol >= self.market.n_symbols {
+            return Err("native execution close projection is outside prepared market".to_owned());
+        }
+        Ok(self.close(bar, symbol))
+    }
+
+    /// Project the account immediately before commands for `bar` without
+    /// changing position, cash, order, cursor, or margin-cache state.
+    ///
+    /// The caller must invoke this only from a consecutive dynamic runner. A
+    /// separate caller cannot use the projection to skip the event clock.
+    pub fn project_pre_command_account_v1(
+        &self,
+        bar: usize,
+    ) -> Result<PreCommandAccountProjectionV1, String> {
+        if bar >= self.n_bars() {
+            return Err("bar_index is outside the full prepared market tape".to_owned());
+        }
+        if self
+            .last_bar
+            .map(|last| bar != last + 1)
+            .unwrap_or(bar != 0)
+        {
+            return Err(
+                "pre-command projection must follow the native consecutive bar clock".to_owned(),
+            );
+        }
+        if self.liquidated {
+            return Ok(PreCommandAccountProjectionV1 {
+                equity: 0.0,
+                funding: 0.0,
+                initial_margin: 0.0,
+                maintenance_margin: 0.0,
+                liquidated: true,
+                liquidation_reason: self.liquidation_reason,
+            });
+        }
+
+        let mut equity = self.equity;
+        if bar > 0 {
+            for symbol in 0..self.market.n_symbols {
+                equity += self.positions[symbol]
+                    * (self.close(bar, symbol) - self.close(bar - 1, symbol))
+                    * self.contract_sizes[symbol];
+            }
+        }
+        let mut worst_equity = equity;
+        let mut worst_maintenance = 0.0;
+        for symbol in 0..self.market.n_symbols {
+            let position = self.positions[symbol];
+            if position == 0.0 {
+                continue;
+            }
+            let worst_price = if position > 0.0 {
+                self.low(bar, symbol)
+            } else {
+                self.high(bar, symbol)
+            };
+            worst_equity +=
+                position * (worst_price - self.close(bar, symbol)) * self.contract_sizes[symbol];
+            worst_maintenance +=
+                position.abs() * worst_price * self.contract_sizes[symbol] * self.maintenance_ratio;
+        }
+        if worst_maintenance > 0.0 && worst_equity <= worst_maintenance {
+            return Ok(PreCommandAccountProjectionV1 {
+                equity: 0.0,
+                funding: 0.0,
+                initial_margin: 0.0,
+                maintenance_margin: 0.0,
+                liquidated: true,
+                liquidation_reason: LIQ_INTRABAR,
+            });
+        }
+
+        let mut funding_total = 0.0;
+        if self.use_funding && self.has_funding_event(bar) {
+            for symbol in 0..self.market.n_symbols {
+                let cost = self.positions[symbol]
+                    * self.close(bar, symbol)
+                    * self.contract_sizes[symbol]
+                    * self.funding(bar, symbol);
+                equity -= cost;
+                funding_total += cost;
+            }
+        }
+        let (initial_margin, maintenance_margin) = self.compute_close_margin(bar);
+        if maintenance_margin > 0.0 && equity <= maintenance_margin {
+            return Ok(PreCommandAccountProjectionV1 {
+                equity: 0.0,
+                funding: funding_total,
+                initial_margin: 0.0,
+                maintenance_margin: 0.0,
+                liquidated: true,
+                liquidation_reason: LIQ_AFTER_FUNDING,
+            });
+        }
+        Ok(PreCommandAccountProjectionV1 {
+            equity,
+            funding: funding_total,
+            initial_margin,
+            maintenance_margin,
+            liquidated: false,
+            liquidation_reason: LIQ_NONE,
+        })
     }
 
     fn compute_close_margin(&self, bar: usize) -> (f64, f64) {
@@ -2564,6 +2695,109 @@ impl FullSession {
                 },
             ))),
         }
+    }
+
+    /// Execute a typed workload whose command slice is resolved causally by
+    /// Rust immediately before each bar's canonical command phase.
+    ///
+    /// This is deliberately additive to the static tape route.  It retains
+    /// the same output profile, `step_typed_with_buffers` lifecycle, fee,
+    /// funding, margin, liquidation and trace sink; only command *planning*
+    /// varies per bar.  The closure is Rust-only and receives a read-only
+    /// session, so no Python callback or duplicate mutable ledger can enter
+    /// the hot loop.
+    pub fn run_typed_dynamic_output_v1<F>(
+        &mut self,
+        profile: StaticOutputProfile,
+        mut command_provider: F,
+    ) -> Result<(NativeExecutionOutputV1, usize), String>
+    where
+        F: FnMut(usize, &FullSession, &mut Vec<OrderCommandV5>) -> Result<(), String>,
+    {
+        let n_bars = self.n_bars();
+        let n_symbols = self.market.n_symbols;
+        let requirements = OutputRequirementsV1::resolve(profile);
+        let mut score = NativeScoreOutputV1::new(self.equity);
+        let mut paths = requirements
+            .retain_paths
+            .then(|| NativePathOutputV1::with_capacity(n_bars, n_symbols));
+        let mut fills = requirements.retain_detail.then(NativeFillOutputV1::default);
+        let mut events = requirements
+            .retain_detail
+            .then(NativeEventOutputV1::default);
+        let mut step_buffers = StepBuffers::default();
+        let mut typed_scratch = TypedCommandScratch::with_capacity(8);
+        let mut commands = Vec::with_capacity(8);
+        let mut command_count = 0_usize;
+
+        for bar in 0..n_bars {
+            commands.clear();
+            if bar > 0 {
+                command_provider(bar, self, &mut commands)?;
+                command_count = command_count
+                    .checked_add(commands.len())
+                    .ok_or_else(|| "dynamic native command count overflow".to_owned())?;
+            }
+            let step = self.step_typed_with_buffers(
+                bar,
+                &commands,
+                if requirements.retain_detail {
+                    OUTPUT_FILLS | OUTPUT_EVENTS
+                } else {
+                    0
+                },
+                false,
+                &mut step_buffers,
+                &mut typed_scratch,
+            )?;
+            if let Some(paths) = paths.as_mut() {
+                paths.equity.push(step.equity);
+                paths.positions.extend_from_slice(&self.positions);
+                paths.fees.push(step.fee);
+                paths.turnover.push(step.turnover);
+                paths.funding.push(step.funding);
+                paths.initial_margin.push(step.initial_margin);
+                paths.maintenance_margin.push(step.maintenance_margin);
+            }
+            score.final_equity = step.equity;
+            score.total_fee += step.fee;
+            score.total_turnover += step.turnover;
+            score.total_funding += step.funding;
+            score.rejected_count += step.rejected_count;
+            score.canceled_count += step.canceled_count;
+            score.fill_count += step.fill_count;
+            score.event_count += step.event_count;
+            if let (Some(fills), Some(events)) = (fills.as_mut(), events.as_mut()) {
+                append_step_details_v1(fills, events, &step_buffers, bar);
+            }
+            score.max_initial_margin = score.max_initial_margin.max(step.initial_margin);
+            score.max_maintenance_margin =
+                score.max_maintenance_margin.max(step.maintenance_margin);
+            score.liquidated = step.liquidated;
+            score.liquidation_bar = step.liquidation_bar;
+            score.liquidation_reason = step.liquidation_reason;
+        }
+        score.final_positions = self.positions.clone();
+        let output = match requirements.profile {
+            StaticOutputProfile::Score => NativeExecutionOutputV1::Score(score),
+            StaticOutputProfile::Compact => {
+                NativeExecutionOutputV1::Compact(Box::new(NativeCompactOutputV1 {
+                    score,
+                    paths: paths.expect("compact output requires dense paths"),
+                }))
+            }
+            StaticOutputProfile::Audit => {
+                NativeExecutionOutputV1::Audit(Box::new(NativeAuditOutputV1 {
+                    compact: NativeCompactOutputV1 {
+                        score,
+                        paths: paths.expect("audit output requires dense paths"),
+                    },
+                    fills: fills.expect("audit output requires fill columns"),
+                    events: events.expect("audit output requires event columns"),
+                }))
+            }
+        };
+        Ok((output, command_count))
     }
 }
 

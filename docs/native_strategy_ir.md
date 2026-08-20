@@ -189,10 +189,14 @@ The Phase 53B Rust portfolio and package modules have a narrower role:
 4. send that tape through the shared event/account lifecycle.
 
 This means allocation, covariance/risk estimation, and public arbitrage plan
-construction remain Python research-layer concerns. It also means the current
-feature is **not** a promoted general Rust portfolio/arbitrage endpoint yet.
-Atomic package behavior is a deterministic OHLC bar-transaction simulation,
-not a claim of exchange-native atomicity.
+construction remain Python research-layer concerns. Phase 54B.3 additionally
+exposes two explicit native market helpers for a V2 `target_units` all-or-none
+row and a same-bar atomic market package. They share `FullSession` with the IR
+routes but are not a promoted general Rust portfolio/arbitrage endpoint. See
+[Rust full contract](native_event_rust_full_contract.md#phase-54b3-bounded-portfoliopackage-market-routes)
+for their exact input, accounting, and failure boundary. Atomic package
+behavior is a deterministic OHLC bar-transaction simulation, not a claim of
+exchange-native atomicity.
 
 ## Observability and Performance Contract
 

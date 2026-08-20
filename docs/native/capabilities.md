@@ -23,10 +23,14 @@ list of booleans such as “supports limit orders”.
 
 The current Stage-B table promotes only the bounded E0/E3/E6 families: static
 command tapes at 10,000 or more bars, and Native Strategy IR/batch requests at
-2,000 or more bars. Arbitrary callbacks, reactive strategies, portfolio, and
-package/arbitrage routes remain Python. The extension's raw feature map is an
-implementation probe; it is normalized by the core's generated descriptor
-before public routing decisions are made.
+2,000 or more bars. Arbitrary callbacks, reactive strategies, and generic
+portfolio/package/arbitrage endpoints remain Python. Phase 54B.3 additionally
+certifies two explicit, bounded Rust helpers for `target_units` market targets
+and same-bar all-or-none market packages; their rows are intentionally not
+auto-promoted until a generic endpoint route has an equally exact fallback
+contract. The extension's raw feature map is an implementation probe; it is
+normalized by the core's generated descriptor before public routing decisions
+are made.
 
 At native probe time QuantBT validates two distinct descriptors:
 

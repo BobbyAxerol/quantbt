@@ -1,13 +1,13 @@
 {
   "generated": {
-    "docs/contracts/generated_product_compatibility.md": "01cf38cb7aa5b62c524b7ada8c4e137e47c9cc76ed18bdee53669ddd44fd5cf6",
-    "rust/crates/quantbt-domain/src/generated_product_contracts.rs": "fab9f205a712e1f790d69db322f74bfa8db23a5603b040062432f5a49883adba",
-    "src/quantbt/core/generated_product_contracts.py": "b2171165d1bcef2ca591d28558c3bf9746946aa64c0d019ff4f8cd68f02f829b",
-    "tests/corpus/generated/product_contract_cases.json": "dcd1b71471357dcc5f8dd0904e469b99e736de8044c24a201e231cb9d911272f"
+    "docs/contracts/generated_product_compatibility.md": "69acdb507a1cf11ce5b07e88ae7ed24a6ad8ef9616b1b3db88c92e5bf74ecf42",
+    "rust/crates/quantbt-domain/src/generated_product_contracts.rs": "854607077f35aa80479a9c68880bf83674787722396252ad8cfd73e4bd225a54",
+    "src/quantbt/core/generated_product_contracts.py": "27f0c365a146b6839cc9074501f3e7ffe2552a0d2bf5865241f26a99f830d6fa",
+    "tests/corpus/generated/product_contract_cases.json": "e75c6f568bd950f11ac928de01b336885be2485190f2741bf5f7abf143d83789"
   },
   "lifecycle_registry": "contracts/native_event_contract_registry.json",
   "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
   "product_registry": "contracts/native_event_product_registry.json",
-  "product_registry_fingerprint": "15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2",
+  "product_registry_fingerprint": "9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8",
   "schema": "quantbt-generated-product-manifest-v1"
 }

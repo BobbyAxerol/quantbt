@@ -7,7 +7,7 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `15fc23f252cebee3b274abce0b7b6222fa128c26ca817a12d61dbbe9fc4170a2`
+- Product fingerprint: `9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
 - Core distribution: `quantbt-engine==1.0.8`
 - Native distribution: `quantbt-native==0.4.0` (published: `false`)
@@ -23,8 +23,8 @@ This table is the release-facing contract for the optional Rust companion. Autom
 |---|---|---|---|---|
 | `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `true` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships, native_event_v2_quantity_preflight` |
 | `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `true` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
-| `portfolio_target_rust_stage_c` | `portfolio_target_preflight_v1` | `portfolio` | `false` | `native_portfolio_target_preflight_v1` |
-| `package_transaction_rust_stage_d` | `package_transaction_preflight_v1` | `package` | `false` | `native_package_transaction_preflight_v1` |
+| `portfolio_target_rust_stage_c` | `portfolio_target_market_v1` | `portfolio` | `false` | `native_event_v2_full_contract, native_portfolio_target_market_v1` |
+| `package_transaction_rust_stage_d` | `package_atomic_market_v1` | `package` | `false` | `native_event_v2_full_contract, native_package_atomic_market_v1` |
 
 ## Version Matrix
 
@@ -45,6 +45,8 @@ This table is the release-facing contract for the optional Rust companion. Autom
 | `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, minimal, standard, audit` | `promoted` | `true` |
 | `portfolio_target_preflight_v1` | `event_lifecycle_v3_next_open` | `portfolio_target_preflight` | `score, audit` | `experimental` | `false` |
 | `package_transaction_preflight_v1` | `event_lifecycle_v3_next_open` | `package_transaction_preflight` | `score, audit` | `experimental` | `false` |
+| `portfolio_target_market_v1` | `event_lifecycle_v2_next_bar_close` | `portfolio_target_market` | `score, minimal, standard, audit` | `certified` | `false` |
+| `package_atomic_market_v1` | `event_lifecycle_v2_next_bar_close` | `package_atomic_market` | `score, minimal, standard, audit` | `certified` | `false` |
 
 ## Exact Package Pairs
 

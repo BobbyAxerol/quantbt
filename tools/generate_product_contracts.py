@@ -106,6 +106,23 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
 
     runtime = product["runtime_descriptor"]
     _require_keys(runtime, ("descriptor_version", "native_api", "contracts", "orders", "account", "portfolio"), label="runtime descriptor")
+    portfolio_runtime = runtime["portfolio"]
+    if not isinstance(portfolio_runtime, dict):
+        raise ValueError("runtime descriptor portfolio must be an object")
+    _require_keys(
+        portfolio_runtime,
+        ("target_execution", "package_atomicity"),
+        label="runtime descriptor portfolio",
+    )
+    target_execution = portfolio_runtime["target_execution"]
+    if not isinstance(target_execution, (bool, str)) or (
+        isinstance(target_execution, str) and not target_execution.strip()
+    ):
+        raise ValueError("runtime descriptor portfolio target_execution must be boolean or non-empty string")
+    if not isinstance(portfolio_runtime["package_atomicity"], str) or not portfolio_runtime[
+        "package_atomicity"
+    ].strip():
+        raise ValueError("runtime descriptor portfolio package_atomicity must be a non-empty string")
     contract_ids = {str(item["contract_id"]) for item in lifecycle["contracts"]}
     unknown_contracts = sorted(set(runtime["contracts"]) - contract_ids)
     if unknown_contracts:
@@ -287,6 +304,16 @@ def _rust_string_constant(name: str, value: str) -> list[str]:
     return [f"pub const {name}: &str =", f'    "{value}";']
 
 
+def _rust_bool_or_string_constant(name: str, value: Any) -> list[str]:
+    """Render a JSON scalar without changing its semantic type at the ABI boundary."""
+
+    if isinstance(value, bool):
+        return [f"pub const {name}: bool = {str(value).lower()};"]
+    if isinstance(value, str) and value:
+        return _rust_string_constant(name, value)
+    raise ValueError(f"{name} must be a non-empty string or boolean")
+
+
 def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     versions = product["versions"]
     runtime = product["runtime_descriptor"]
@@ -323,7 +350,10 @@ def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         (
             f'pub const RUNTIME_PARTIAL_FILL: bool = {str(bool(runtime["orders"]["partial_fill"])).lower()};',
             f'pub const RUNTIME_VOLUME_MODEL: &str = "{runtime["orders"]["volume_model"]}";',
-            f'pub const RUNTIME_PORTFOLIO_TARGET_EXECUTION: bool = {str(bool(runtime["portfolio"]["target_execution"])).lower()};',
+            *_rust_bool_or_string_constant(
+                "RUNTIME_PORTFOLIO_TARGET_EXECUTION",
+                runtime["portfolio"]["target_execution"],
+            ),
             f'pub const RUNTIME_PACKAGE_ATOMICITY: &str = "{runtime["portfolio"]["package_atomicity"]}";',
             "",
         )

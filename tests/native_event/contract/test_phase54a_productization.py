@@ -72,8 +72,8 @@ def test_product_registry_preserves_the_frozen_api_04_semantic_descriptor() -> N
             "liquidation_models": ["zero_equity_legacy"],
         },
         "portfolio": {
-            "target_execution": False,
-            "package_atomicity": "python_reference_only",
+            "target_execution": "target_units_market_v1_all_or_none_v2",
+            "package_atomicity": "bar_transaction_atomic_market_v1",
         },
     }
 
@@ -97,11 +97,12 @@ def test_product_registry_has_exact_pairing_and_generated_corpus() -> None:
     assert workloads["native_strategy_ir_v1"]["maturity"] == "promoted"
     assert workloads["event_static_tape_v2_v3"]["auto_promotion"] is True
     assert workloads["native_strategy_ir_v1"]["auto_promotion"] is True
-    assert all(
-        not bool(item["auto_promotion"])
-        for workload_id, item in workloads.items()
-        if workload_id not in {"event_static_tape_v2_v3", "native_strategy_ir_v1"}
-    )
+    assert workloads["portfolio_target_market_v1"]["maturity"] == "certified"
+    assert workloads["package_atomic_market_v1"]["maturity"] == "certified"
+    assert workloads["portfolio_target_market_v1"]["auto_promotion"] is False
+    assert workloads["package_atomic_market_v1"]["auto_promotion"] is False
+    assert workloads["portfolio_target_preflight_v1"]["auto_promotion"] is False
+    assert workloads["package_transaction_preflight_v1"]["auto_promotion"] is False
 
 
 def test_supply_chain_report_records_locked_sources_and_forbidden_unsafe_code() -> None:

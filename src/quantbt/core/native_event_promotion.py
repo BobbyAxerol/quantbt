@@ -165,6 +165,8 @@ def native_event_workload_id(*, workload: str, strategy_mode: str) -> str:
         ("signal_tape", "ir_v1"): "native_strategy_ir_v1",
         ("portfolio_target", "portfolio"): "portfolio_target_preflight_v1",
         ("package_transaction", "package"): "package_transaction_preflight_v1",
+        ("portfolio_target", "portfolio_target_market"): "portfolio_target_market_v1",
+        ("package_transaction", "package_atomic_market"): "package_atomic_market_v1",
     }
     try:
         return mapping[key]

@@ -406,6 +406,7 @@ class RustFullAuditResult:
     liquidation_bar: int
     liquidation_reason: int
     id_values: tuple[str, ...] = ()
+    external_id_values: Mapping[int, str] = field(default_factory=dict)
     command_report: Optional[pd.DataFrame] = None
     command_metadata: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
 
@@ -421,6 +422,7 @@ class RustFullAuditResult:
         n_bars: int,
         n_symbols: int,
         id_values: tuple[str, ...] = (),
+        external_id_values: Optional[Mapping[int, str]] = None,
         command_report: Optional[pd.DataFrame] = None,
         command_metadata: Optional[Mapping[str, Mapping[str, object]]] = None,
     ) -> "RustFullAuditResult":
@@ -490,6 +492,7 @@ class RustFullAuditResult:
             liquidation_bar=int(payload["liquidation_bar"]),
             liquidation_reason=int(payload["liquidation_reason"]),
             id_values=tuple(id_values),
+            external_id_values={} if external_id_values is None else dict(external_id_values),
             command_report=command_report,
             command_metadata={} if command_metadata is None else command_metadata,
         )
@@ -502,6 +505,7 @@ class RustFullAuditResult:
         n_bars: int,
         n_symbols: int,
         id_values: tuple[str, ...] = (),
+        external_id_values: Optional[Mapping[int, str]] = None,
         command_report: Optional[pd.DataFrame] = None,
         command_metadata: Optional[Mapping[str, Mapping[str, object]]] = None,
     ) -> "RustFullAuditResult":
@@ -566,6 +570,7 @@ class RustFullAuditResult:
             liquidation_bar=int(payload["liquidation_bar"]),
             liquidation_reason=int(payload["liquidation_reason"]),
             id_values=tuple(id_values),
+            external_id_values={} if external_id_values is None else dict(external_id_values),
             command_report=command_report,
             command_metadata={} if command_metadata is None else command_metadata,
         )
@@ -597,6 +602,9 @@ class RustFullAuditResult:
         )
 
         def order_id(code: int) -> Optional[str]:
+            mapped = self.external_id_values.get(int(code))
+            if mapped is not None:
+                return mapped
             return self.id_values[int(code)] if 0 <= int(code) < len(self.id_values) else None
 
         fill_meta = [

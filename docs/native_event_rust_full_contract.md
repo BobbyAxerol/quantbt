@@ -215,11 +215,84 @@ command-outcome, fill, and canonical trace buffers directly. The matching
 Python route remains an explicit oracle and parity comparator.
 
 All remaining routes are deliberately non-promoted: arbitrary callback and
-reactive strategies, portfolio targets, package/arbitrage execution, and any
-unsupported lifecycle/program/account/profile combination stay Python with
-versioned decision metadata. `QUANTBT_DISABLE_NATIVE=1` or
+reactive strategies, generic portfolio targets, generic package/arbitrage
+execution, and any unsupported lifecycle/program/account/profile combination
+stay Python with versioned decision metadata. The narrower explicit B3 routes
+below do not change that automatic policy. `QUANTBT_DISABLE_NATIVE=1` or
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` supplies deterministic local
 rollback without altering domain semantics.
+
+### Phase 54B.3 bounded portfolio/package market routes
+
+Phase 54B.3 adds two **explicit** Rust-owned market routes. They are narrow
+execution contracts, not a replacement for `QuantBTEndpoint.portfolio()` or
+the general basket/arbitrage endpoint:
+
+```python
+from quantbt.backends import (
+    run_atomic_package_market,
+    run_portfolio_target_market,
+)
+```
+
+`run_portfolio_target_market(...)` accepts a bar-major `target_units` matrix
+for a linear, quote-settled, gross-cross account under the V2
+`event_lifecycle_v2_next_bar_close` clock. At each changed target row Rust
+projects the pre-command account, validates tradeability/staleness/minimum
+quantity/minimum notional, uses the canonical market fill price and one-way
+fee, applies the post-cost margin gate, and either submits every target delta
+or keeps every prior unit. Funding, intrabar/close liquidation, fill lifecycle,
+and account paths remain in the same `FullSession`; Python does not retain a
+second position or cash ledger.
+The target tape must be finite and have exactly `(bars, symbols)` shape;
+malformed input fails during typed-request preparation before an account is
+created, rather than being treated as a zero/no-change target.
+
+`run_atomic_package_market(...)` accepts one ordered same-bar market package.
+It implements only `AtomicBarSimulation`: every leg is preflighted for
+staleness, constraints, fill cost and margin, then all legs are submitted or
+none are submitted. `package_accepted`, rejection codes, reservation/release,
+fee and residual-notional provenance are returned with the native audit. This
+is deterministic OHLC bar-transaction atomicity, **not** exchange-native OCO
+lists, partial fills, queue priority, cross-venue settlement, sequential,
+best-effort, or hedge-after-primary execution.
+Input legs are kept in caller order and must have nondecreasing
+`venue_sequence`; QuantBT does not infer a venue precedence rule.
+
+Both helpers use one typed Python-to-Rust call per run and support retention
+without execution replay:
+
+| `report_level` | Retention |
+| --- | --- |
+| `score` or `minimal` | terminal scalar accounting and final positions |
+| `compact` or `standard` | scalar accounting plus dense paths |
+| `audit` | dense paths plus native fill/event and target/package admission SoA |
+
+Only `audit` can be adapted through `to_audit_result()` into a common
+`BacktestResultV2` report surface. Rerun the selected score candidate with
+`report_level="audit"`; QuantBT never replays Python execution to fabricate
+the ledger. The direct helper is intentionally Rust explicit in this release.
+Its registry row is `certified`, not auto-promoted: only a future generic
+endpoint adapter with an exact Python fallback and public-result parity may
+enable Stage C/D automatic routing.
+Generic portfolio, risk-parity, target-weight/notional, multi-currency,
+cross-margin, package policies other than atomic-bar, and arbitrage domain
+plans remain on their existing Python routes until each has a separate
+contract, oracle corpus, and promotion row.
+
+Reproduce the bounded E4/E5 evidence after building the local wheel:
+
+```bash
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run python \
+  benchmarks/native_event/benchmark_phase54b3_portfolio_package.py \
+  --bars 2000 --symbols 8 --repeats 5
+```
+
+The artifact records one same-process Python oracle parity check before timing,
+engine-only versus cold adaptation time, boundaries/callbacks, retained output,
+and current/peak RSS. Its numbers are local evidence for these two contracts
+only; they do not generalize to the legacy portfolio engine or arbitrary
+multi-leg strategies.
 
 ### Phase 54A.5.6 differential corpus and exit evidence
 

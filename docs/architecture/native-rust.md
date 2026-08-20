@@ -23,8 +23,8 @@ quantbt-native (PyO3 extension)
 | `quantbt-engine` | Rust execution core and account/lifecycle state |
 | `quantbt-strategy-ir` | Bounded strategy IR v1 |
 | `quantbt-batch` | Shared-market batch execution |
-| `quantbt-portfolio` | Target preflight primitives |
-| `quantbt-package` | Package transaction preflight primitives |
+| `quantbt-portfolio` | Target preflight plus bounded all-or-none market target resolution |
+| `quantbt-package` | Package preflight plus bounded same-bar atomic market package resolution |
 | `native_event` | Thin PyO3 extension `_quantbt_native` |
 
 ## Ownership rules
@@ -42,7 +42,8 @@ The staged pair is `quantbt-engine==1.0.8` with
 `quantbt-native==0.4.0`. It is an exact staged pair only, and the native
 package is not published. On the certified local Linux/CPython evidence matrix,
 `auto` promotes static command tapes at 10,000+ bars and bounded Native
-Strategy IR/batch requests at 2,000+ bars. All callback, reactive, portfolio,
-and package routes remain Python. Consult the generated
+Strategy IR/batch requests at 2,000+ bars. Two bounded portfolio/package market
+helpers are certified as explicit Rust routes, while all callback, reactive,
+and generic portfolio/package routes remain Python. Consult the generated
 [compatibility matrix](../contracts/generated_product_compatibility.md) rather
 than assuming that an installed extension supports a workload.

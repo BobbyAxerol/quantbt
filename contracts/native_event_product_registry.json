@@ -61,8 +61,8 @@
       "liquidation_models": ["zero_equity_legacy"]
     },
     "portfolio": {
-      "target_execution": false,
-      "package_atomicity": "python_reference_only"
+      "target_execution": "target_units_market_v1_all_or_none_v2",
+      "package_atomicity": "bar_transaction_atomic_market_v1"
     }
   },
   "stable_capability_matrix": {
@@ -208,22 +208,24 @@
       },
       {
         "id": "portfolio_target_rust_stage_c",
-        "workload_id": "portfolio_target_preflight_v1",
+        "workload_id": "portfolio_target_market_v1",
         "stage": "portfolio",
         "enabled": false,
-        "min_bars": 0,
+        "min_bars": 2000,
         "required_capabilities": [
-          "native_portfolio_target_preflight_v1"
+          "native_event_v2_full_contract",
+          "native_portfolio_target_market_v1"
         ]
       },
       {
         "id": "package_transaction_rust_stage_d",
-        "workload_id": "package_transaction_preflight_v1",
+        "workload_id": "package_atomic_market_v1",
         "stage": "package",
         "enabled": false,
-        "min_bars": 0,
+        "min_bars": 1,
         "required_capabilities": [
-          "native_package_transaction_preflight_v1"
+          "native_event_v2_full_contract",
+          "native_package_atomic_market_v1"
         ]
       }
     ]
@@ -265,7 +267,9 @@
     "native_strategy_ir_fixed_bracket",
     "native_strategy_ir_batch_v1",
     "native_portfolio_target_preflight_v1",
-    "native_package_transaction_preflight_v1"
+    "native_package_transaction_preflight_v1",
+    "native_portfolio_target_market_v1",
+    "native_package_atomic_market_v1"
   ],
   "workloads": [
     {
@@ -344,6 +348,34 @@
       "package_policies": ["all_or_none", "best_effort", "sequential", "hedge_after_primary"],
       "trace_schemas": ["canonical-execution-trace-v1"],
       "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "portfolio_target_market_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["portfolio_target_market"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_units"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "package_atomic_market_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["package_atomic_market"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": ["all_or_none"],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
       "auto_promotion": false
     }

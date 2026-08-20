@@ -1,0 +1,175 @@
+{
+  "fingerprint": "1a615eaf89184d8345653cb95c4f9363c782ed03f4335566a77942962ebb2760",
+  "fixture": {
+    "bars": 2000,
+    "repeats": 5,
+    "symbols": [
+      "ASSET00",
+      "ASSET01",
+      "ASSET02",
+      "ASSET03",
+      "ASSET04",
+      "ASSET05",
+      "ASSET06",
+      "ASSET07"
+    ]
+  },
+  "parity": {
+    "package_atomic": {
+      "boundary_calls": 1,
+      "fill_count": 8,
+      "final_equity": 100000.44403938696,
+      "package_atomicity_model": "bar_transaction",
+      "parity": "exact_atol_1e-12",
+      "python_callbacks": 0,
+      "total_fee": 0.06739275862496649,
+      "total_funding": -0.02789100713545985
+    },
+    "portfolio_target": {
+      "boundary_calls": 1,
+      "fill_count": 197,
+      "final_equity": 99995.65339329287,
+      "parity": "exact_atol_1e-12",
+      "python_callbacks": 0,
+      "total_fee": 3.1270815595967996,
+      "total_funding": 0.00026297838068151027
+    }
+  },
+  "performance": {
+    "e4_portfolio_target_audit": {
+      "adaptation_median_seconds": 0.01406056433916092,
+      "bars_per_second": 359176.86706073006,
+      "boundary_calls": 1,
+      "cold_report_adaptation_included": true,
+      "engine_median_seconds": 0.005568287335336208,
+      "profile": "audit",
+      "python_callbacks": 0,
+      "rss_before_bytes": 309506048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 308482048
+    },
+    "e4_portfolio_target_score": {
+      "adaptation_median_seconds": 1.0812655091285706e-06,
+      "bars_per_second": 556550.683299128,
+      "boundary_calls": 1,
+      "engine_median_seconds": 0.003593563102185726,
+      "profile": "score",
+      "python_callbacks": 0,
+      "rss_before_bytes": 309506048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 309506048
+    },
+    "e4_python_event_oracle_score": {
+      "adaptation_median_seconds": 1.016072928905487e-06,
+      "bars_per_second": 59713.42033679682,
+      "engine_median_seconds": 0.03349330835044384,
+      "profile": "score",
+      "rss_before_bytes": 308482048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 308482048
+    },
+    "e5_package_atomic_audit": {
+      "adaptation_median_seconds": 0.006889081560075283,
+      "bars_per_second": 424861.4907360695,
+      "boundary_calls": 1,
+      "cold_report_adaptation_included": true,
+      "engine_median_seconds": 0.004707416519522667,
+      "profile": "audit",
+      "python_callbacks": 0,
+      "rss_before_bytes": 308482048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 308482048
+    },
+    "e5_package_atomic_score": {
+      "adaptation_median_seconds": 7.897615432739258e-07,
+      "bars_per_second": 569514.4856681484,
+      "boundary_calls": 1,
+      "engine_median_seconds": 0.0035117631778120995,
+      "profile": "score",
+      "python_callbacks": 0,
+      "rss_before_bytes": 308482048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 308482048
+    },
+    "e5_python_event_oracle_score": {
+      "adaptation_median_seconds": 1.2060627341270447e-06,
+      "bars_per_second": 101341.32807276207,
+      "engine_median_seconds": 0.019735285080969334,
+      "profile": "score",
+      "rss_before_bytes": 308482048,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 351432704,
+      "rss_steady_bytes": 308482048
+    }
+  },
+  "prepared_cache": {
+    "cache_hit": 66,
+    "cache_miss": 6,
+    "entry_count": 6,
+    "eviction_count": 0,
+    "generation": 0,
+    "ingress_copied_bytes": 0,
+    "ingress_copy_count": 0,
+    "resident_bytes": 1107248,
+    "reuse_count": 66,
+    "schema": "native-execution-preparation-v1",
+    "tier_budgets": {
+      "market": 80530636,
+      "request": 33554432,
+      "template": 20132659
+    },
+    "tiers": {
+      "market": {
+        "cache_hit": 23,
+        "cache_miss": 1,
+        "clear_count": 0,
+        "entry_count": 1,
+        "eviction_count": 0,
+        "generation": 0,
+        "pinned_entries": 0,
+        "resident_bytes": 786000,
+        "reuse_count": 23
+      },
+      "request": {
+        "cache_hit": 20,
+        "cache_miss": 4,
+        "clear_count": 0,
+        "entry_count": 4,
+        "eviction_count": 0,
+        "generation": 0,
+        "pinned_entries": 0,
+        "resident_bytes": 321056,
+        "reuse_count": 20
+      },
+      "template": {
+        "cache_hit": 23,
+        "cache_miss": 1,
+        "clear_count": 0,
+        "entry_count": 1,
+        "eviction_count": 0,
+        "generation": 0,
+        "pinned_entries": 0,
+        "resident_bytes": 192,
+        "reuse_count": 23
+      }
+    }
+  },
+  "schema": "quantbt-native-phase54b3-benchmark-v1",
+  "scope": {
+    "not_claimed": [
+      "generic_native_portfolio",
+      "target_weight_or_notional",
+      "risk_parity",
+      "cross_currency_or_cross_margin",
+      "sequential_best_effort_or_hedge_after_primary",
+      "partial_fill_or_l2_queue"
+    ],
+    "package": "same_bar_atomic_market bar_transaction V2",
+    "portfolio": "linear_quote_settled_gross_cross target_units all_or_none V2 market"
+  }
+}
