@@ -13284,6 +13284,254 @@ no normal run switches mutable execution ownership between languages;
 no capability or speed claim exceeds installed-wheel evidence.
 ```
 
+#### 54B.1 - Versioned Promotion Policy, Deterministic Routing, And Rollback
+
+**Status: planned.**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 - Workload-aware auto promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.8 - Stable diagnostics and observability](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+- [P3.6 - Benchmark governance](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P2.19 - Correctness before performance promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+
+Goal:
+
+Replace the current binary selector (`auto` always Python, `rust` explicit) with
+a versioned, data-driven decision contract. The policy must know a workload,
+event contract, output profile, account model, platform/wheel descriptor,
+symbol count, and declared strategy mode. It must never infer promotion merely
+from a native extension being importable.
+
+Implementation scope:
+
+- Add a single machine-readable promotion table and typed resolver result. A
+  decision contains requested backend, `backend_policy`, resolved backend,
+  workload ID, matched rule ID/table version, maturity, fallback/rejection
+  code, exact wheel/ABI/contract fingerprints, and emergency-switch state.
+- Preserve stable explicit behavior: `backend="python"` is the executable
+  oracle; `backend="rust"` is strict fail-fast; `backend="auto"` is the only
+  promotion candidate. A Rust internal invariant failure must propagate and
+  must never re-run Python silently.
+- Support deterministic local rollback only: an explicit config policy plus
+  `QUANTBT_DISABLE_NATIVE=1` and bounded
+  `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`. No remote flag, wall-clock choice,
+  benchmark auto-calibration, random routing, or network telemetry is allowed.
+- Publish the resolved decision in every eligible result as a versioned
+  diagnostics object. Diagnostics are structured data, not log parsing, and
+  default logging remains one summary per run rather than per-bar output.
+- Start from conservative Stage B candidates only: static command tapes, native
+  IR v1, and shared native batch/WFO requests. Python callback/replay,
+  unsupported contracts, unavailable/mismatched wheels, non-certified account
+  models, and E4/E5 endpoint routes stay Python with an explicit reason.
+- Keep product registry generation as the only source for capability/maturity
+  metadata; promotion table updates must be checked into the same review as
+  their differential and benchmark evidence.
+
+Required tests and evidence:
+
+- Exhaustive decision snapshot matrix for explicit Python/Rust/auto,
+  disabled/missing/mismatched extensions, platform mismatch, unsupported
+  contract/profile/account model, threshold boundary, and environment rollback.
+- Same request/config/environment always produces the same resolved backend,
+  plan fingerprint, and decision metadata. Changing a relevant capability,
+  promotion table version, or rollback input changes the decision fingerprint.
+- Explicit Rust failure proves no Python execution occurred; auto fallback
+  carries a stable reason code; `QUANTBT_DISABLE_NATIVE=1` wins over every
+  promotable rule.
+- Existing endpoint arguments remain source-compatible and default to the
+  previous Python behavior until the later route-specific promotion phase.
+
+Exit gate:
+
+```text
+Promotion decision is deterministic, versioned, observable, and fail-closed.
+No public workload is promoted by this phase alone.
+Python remains the unchanged default until its route passes Phase 54B.2/54B.3.
+```
+
+#### 54B.2 - Static, Native-IR, And Batch Rust-First Public Routes
+
+**Status: planned.**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 Stage B - Auto static/IR](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.7 - Generated conformance corpus](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+- [P3.8 - Result diagnostics](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+- [P3.9 - User migration and capability documentation](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+
+Goal:
+
+Promote only the certified E0 static, E3 native-IR, and E6 batch/WFO workload
+families through stable public facades. The Rust execution session remains the
+only mutable lifecycle/accounting owner for a promoted run; Python adapts typed
+output only on the requested cold report path.
+
+Implementation scope:
+
+- Wire the Phase 54B.1 resolver into the existing order-command and native-IR
+  facades without renaming or removing current endpoints. Existing callers that
+  omit new policy parameters retain their current compatible behavior.
+- Promote static tape only for contract/profile/account/platform rows proven by
+  the 54A.5 corpus and installed-wheel matrix. Resolve every other static row
+  to Python with a structured reason rather than a partial Rust route.
+- Promote bounded `NativeStrategyIR` score/compact/audit and shared batch/WFO
+  only when the program, signal/parameter matrix, causal fold window, and
+  output profile are supported by the typed request contract. One run/batch
+  has one Python-to-Rust boundary, zero audit replay for score, and zero market
+  copies per batch scenario.
+- Preserve reporting behavior: `show_metrics`, reports, plots, fills, order
+  ledgers, trace, result lifetime, and metadata use the typed Rust output for
+  promoted audit/compact runs. Python oracle execution is optional verifier
+  sampling only, never a normal second run.
+- Keep arbitrary Python callback and reactive execution on the explicitly
+  labeled compatibility route. Do not force callbacks into IR, and do not claim
+  their bars are native throughput.
+
+Required tests and evidence:
+
+- For each promoted static/IR/batch request: auto == explicit Rust == Python
+  oracle on canonical trace, accepted/rejected lifecycle, accounting, report
+  outputs, and retained-result lifetime.
+- Public endpoint and low-level runner parity cover score, compact, audit,
+  V2/V3 clocks, one/multi-symbol static tape where certified, Grid/DCA/bracket
+  IR, batch worker counts, causal fold reset, and selected audit rerun.
+- Cold adaptation is benchmarked separately from engine time. Boundary/copy
+  counters, score no-replay, and RSS plateau gates are checked on installed
+  extension artifacts, not only the source tree.
+- Run complete API compatibility regression so unsupported user code keeps the
+  old Python route and all historical endpoint imports/options remain valid.
+
+Exit gate:
+
+```text
+Only certified E0/E3/E6 public requests may resolve Rust-first under auto.
+All non-certified callback and domain routes remain Python, with explicit
+decision metadata. No portfolio/package endpoint is promoted in this phase.
+```
+
+#### 54B.3 - Portfolio/Package Domain Promotion And Institutional Certification
+
+**Status: planned.**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 Stage C and Stage D](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P2.19 E4/E5 gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+- [P3.7 generated corpus requirements](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+- [P3.8 observability contract](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+
+Goal:
+
+Turn Phase 54A.5 portfolio-target and package typed tapes into either complete
+Rust-first endpoint routes or explicit non-promotion results. Preflight parity
+alone is not treated as full execution certification.
+
+Implementation scope:
+
+- Establish a shared native market/account/target/package request contract for
+  each candidate E4/E5 endpoint. Rust must own target delta, constraints,
+  fee/slippage, funding, margin, lifecycle, reservation/rollback, output, and
+  trace for a promoted route; Python may only adapt cold outputs.
+- Promote portfolio target modes individually, beginning with certified
+  linear-quote-settled gross-cross `target_units` only. Each added sizing,
+  rebalance, missing-price, funding, or margin mode gets its own registry row,
+  corpus, parity profile, and rollback reason.
+- Promote package/arbitrage policies individually, starting only with policies
+  whose atomicity/reservation/hedge-after-primary semantics are fully modeled
+  by the native session. Cross-exchange, inverse/quanto, venue-specific
+  portfolio margin, and actual partial-fill dynamic hedging remain fail-closed
+  unless a dedicated domain contract exists.
+- Reconcile symbol and portfolio/package accounting: accepted targets/legs,
+  turnover, fee, slippage, funding, margin, cash/equity, residual exposure,
+  rejection/rollback state, and canonical trace must agree exactly with the
+  Python oracle at the published tolerance.
+
+Required tests and evidence:
+
+- Generated/minimized corpus covers reversal, post-cost margin reject,
+  stale/missing asynchronous prices, funding, liquidation, all-or-none
+  rollback, sequential/best-effort/hedge-after-primary policy boundaries, and
+  failure-to-no-orphan invariant.
+- Native endpoint, typed request, prepared/non-prepared, and Python oracle
+  match accounting and trace. Public reports reconcile per-symbol attribution
+  to portfolio/package totals.
+- E4/E5 benchmarks report engine and report-inclusive timing separately,
+  active-position/order scaling, output retained bytes, peak/steady RSS, and
+  no hidden Python replay. A candidate may be promoted only after its own
+  installed-wheel correctness/performance budget passes.
+
+Exit gate:
+
+```text
+Portfolio/package promotion is per exact registry row, never blanket.
+Any incomplete domain semantics remains routed to Python with a stable reason.
+```
+
+#### 54B.4 - Installed-Wheel Release Gate, Migration Audit, And Final Handoff
+
+**Status: planned.**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.6 - Three-tier benchmark and regression CI](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P3.9 - Docs, compatibility, migration](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+- [P3.10 - Supply chain and release integrity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p310--rust-supply-chain-safety-và-release-integrity)
+- [P3.11/P3.12 - Cleanup and final exit](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p311--cleanupdeletion-plan)
+
+Goal:
+
+Produce a reversible release candidate whose installed core/native wheels,
+promotion policy, conformance corpus, diagnostics, benchmark evidence, docs,
+and release artifacts all describe exactly the same support surface.
+
+Implementation scope:
+
+- Extend CI into PR smoke, nightly evidence, and release certification lanes.
+  Release lane builds clean core/native wheels, installs only those artifacts in
+  isolated environments, verifies the exact package handshake and source/wheel
+  module identity, then runs promotion matrix, corpus, public API, report,
+  WFO, portfolio/package, memory, and benchmark governance gates.
+- Add versioned capability/maturity table and migration guide: auto choice,
+  explicit Python/Rust behavior, rollback commands, contract clocks, OHLC
+  limitations, native IR boundaries, package atomicity scope, unsupported
+  domains, and reproduction instructions. Examples are executable in CI.
+- Produce release evidence: build provenance, lockfile/registry fingerprints,
+  wheel checksums, platform/python matrix, benchmark manifest references,
+  performance/RSS summaries, native disable proof, and rollback test results.
+- Maintain a deletion manifest for shadow state, nested-row conversion,
+  score-via-audit, forced replay, root mirror, aliases, and duplicate paths.
+  This phase may remove only a candidate whose replacement, migration test,
+  public-import audit, compatibility window, and rollback archival all pass.
+  The root mirror is explicitly **not deleted** in this release without a
+  separate approved breaking-cleanup decision; it remains byte-identity gated.
+- Do not publish, tag, force-push, or delete public/source surfaces as part of
+  the implementation phase. Those are explicit release-owner actions after the
+  release candidate passes.
+
+Required tests and evidence:
+
+- Clean installed-wheel tests across every declared CPython/platform row;
+  extension unavailable/mismatched/disabled tests; signed deterministic
+  decision snapshots; no repository-root import leakage.
+- Full differential corpus, native-event suite, complete QuantBT suite,
+  benchmark governance, fuzz/security smoke, and release bundle integrity all
+  pass. Benchmark promotion table is generated/validated from passed evidence,
+  never hand-waved by a README claim.
+- Deletion manifest has a replacement, test, migration note, and rollback
+  status for every candidate; no deletion is justified merely because a newer
+  module exists.
+
+Final exit gate:
+
+```text
+Rust is canonical only for registry rows that pass installed-wheel correctness,
+RSS, benchmark, public-result, and rollback gates. Python remains the explicit
+oracle and emergency fallback. The release capability table is the source of
+truth; unsupported workloads fail closed or stay on Python by design.
+```
+
 ### Phase 51-54 Deferred Scope
 
 These items require separate contracts and are not silently implied by this
