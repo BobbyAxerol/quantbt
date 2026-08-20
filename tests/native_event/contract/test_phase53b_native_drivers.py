@@ -237,7 +237,11 @@ def test_native_ir_fold_batch_executes_only_causal_oos_with_fresh_account_parity
         assert folded.final_equity[scenario] == pytest.approx(single.final_equity, abs=1e-12)
     assert folded.metadata["fold_id"] == fold.fold_id
     assert folded.metadata["execution_bars"] == fold.test_end - fold.test_start
-    assert folded.metadata["market_windows_created"] == 1
+    assert folded.metadata["market_windows_created"] == 0
+    assert folded.metadata["fold_market_window_bytes"] == 0
+    assert folded.metadata["fold_market_view_bytes"] > 0
+    assert folded.metadata["source_market_bytes"] > folded.metadata["fold_market_view_bytes"]
+    assert folded.metadata["market_view_shared"] is True
     assert folded.metadata["shared_market_copies_per_scenario"] == 0
 
 

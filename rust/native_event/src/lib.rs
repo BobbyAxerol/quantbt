@@ -2843,6 +2843,8 @@ impl FullReactiveSessionCore {
             })
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
         let market_window_bytes = result.market_window_bytes;
+        let market_view_bytes = result.market_view_bytes;
+        let source_market_bytes = result.source_market_bytes;
         let execution_bars = result.execution_bars;
         let payload = batch_output_payload(
             py,
@@ -2860,8 +2862,14 @@ impl FullReactiveSessionCore {
         bound.set_item("test_start", fold.test_start)?;
         bound.set_item("test_end", fold.test_end)?;
         bound.set_item("execution_bars", execution_bars)?;
-        bound.set_item("market_windows_created", 1)?;
+        // Fold execution uses a local bar clock over the same immutable Rust
+        // market allocation. The old materialized fold market is deliberately
+        // not created here.
+        bound.set_item("market_windows_created", 0)?;
         bound.set_item("fold_market_window_bytes", market_window_bytes)?;
+        bound.set_item("fold_market_view_bytes", market_view_bytes)?;
+        bound.set_item("source_market_bytes", source_market_bytes)?;
+        bound.set_item("market_view_shared", true)?;
         bound.set_item("requested_workers", workers)?;
         bound.set_item("actual_workers", workers.min(scenario_count).max(1))?;
         bound.set_item("chunk_size", chunk_size)?;

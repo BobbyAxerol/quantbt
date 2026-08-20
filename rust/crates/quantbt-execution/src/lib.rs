@@ -236,7 +236,29 @@ impl NativeWorkloadKindV1 {
     }
 }
 
-/// Fully prepared native strategy payload.  The program/signal/parameters are
+/// Immutable close projection prepared from one exact template/symbol pair.
+/// It lets batch callers reuse the strategy-IR input without accepting a raw
+/// close slice from another market view by accident.
+#[derive(Clone, Debug)]
+pub struct StrategyIrCloseProjectionV1 {
+    template_fingerprint: [u8; 32],
+    symbol: usize,
+    closes: Arc<[f64]>,
+}
+
+impl StrategyIrCloseProjectionV1 {
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.closes.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.closes.is_empty()
+    }
+}
+
+/// Fully prepared native strategy payload. The program/signal/parameters are
 /// retained for provenance, while `command_tape` is compiled once at request
 /// construction and is the only object consumed by `FullSession`.
 #[derive(Clone, Debug)]
@@ -249,17 +271,47 @@ pub struct StrategyIrWorkloadV1 {
 
 impl StrategyIrWorkloadV1 {
     pub fn new(
-        market: &FullMarketData,
+        template: &NativeExecutionTemplateV1,
         program: StrategyProgram,
         signal: Vec<f64>,
         parameters: Option<Vec<f64>>,
     ) -> Result<Self, String> {
         let symbol = program.symbol().0 as usize;
-        if symbol >= market.n_symbols {
+        if symbol >= template.n_symbols() {
             return Err("native strategy IR symbol is outside prepared market".to_owned());
         }
-        if signal.len() != market.n_bars || signal.iter().any(|value| !value.is_finite()) {
+        let projection = template.strategy_ir_close_projection(symbol)?;
+        Self::new_with_projection(template, program, signal, parameters, &projection)
+    }
+
+    /// Compile against a typed close projection prepared from `template`.
+    /// Batch and walk-forward callers retain that projection once per immutable
+    /// market view, rather than allocating it again for every scenario.
+    pub fn new_with_projection(
+        template: &NativeExecutionTemplateV1,
+        program: StrategyProgram,
+        signal: Vec<f64>,
+        parameters: Option<Vec<f64>>,
+        projection: &StrategyIrCloseProjectionV1,
+    ) -> Result<Self, String> {
+        let symbol = program.symbol().0 as usize;
+        if symbol >= template.n_symbols() {
+            return Err("native strategy IR symbol is outside prepared market".to_owned());
+        }
+        if projection.template_fingerprint != template.fingerprint || projection.symbol != symbol {
+            return Err(
+                "native strategy IR close projection belongs to another prepared market".to_owned(),
+            );
+        }
+        if signal.len() != template.bar_count() || signal.iter().any(|value| !value.is_finite()) {
             return Err("native strategy IR signal must match prepared market bars".to_owned());
+        }
+        if projection.closes.len() != template.bar_count()
+            || projection.closes.iter().any(|value| !value.is_finite())
+        {
+            return Err(
+                "native strategy IR close projection must match prepared market bars".to_owned(),
+            );
         }
         let parameters = parameters.map(Vec::into_boxed_slice);
         if let Some(values) = parameters.as_deref()
@@ -267,11 +319,8 @@ impl StrategyIrWorkloadV1 {
         {
             return Err("native strategy IR parameters have an unsupported shape".to_owned());
         }
-        let closes = (0..market.n_bars)
-            .map(|bar| market.closes[bar * market.n_symbols + symbol])
-            .collect::<Vec<_>>();
         let command_tape = program
-            .compile_tape(&signal, &closes, parameters.as_deref())
+            .compile_tape(&signal, &projection.closes, parameters.as_deref())
             .map_err(|error| error.to_string())?;
         Ok(Self {
             program,
@@ -389,24 +438,261 @@ impl WorkloadPayloadV1 {
     }
 }
 
-/// Immutable request passed to a single fresh `FullSession` run.
-///
-/// Construction resolves and validates all enum/ID/account/tape boundaries.
-/// Execution only chooses the requested result sink; it cannot rebuild a
-/// parallel Python ledger or alter the immutable execution contract.
+/// Immutable native preparation shared by static, IR, batch, portfolio, and
+/// package workloads. It owns no account/order/lifecycle state; it only fixes
+/// the market view, instrument/account/contract configuration, and its content
+/// fingerprint once before execution begins.
 #[derive(Clone)]
-pub struct NativeExecutionRequestV1 {
+pub struct NativeExecutionTemplateV1 {
     market: Arc<FullMarketData>,
+    market_start: usize,
+    market_end: usize,
     instruments: InstrumentTableV1,
     account: AccountModelV1,
     contract: ExecutionContractV1,
+    fingerprint: [u8; 32],
+}
+
+impl NativeExecutionTemplateV1 {
+    pub fn new(
+        market: Arc<FullMarketData>,
+        instruments: InstrumentTableV1,
+        account: AccountModelV1,
+        contract: ExecutionContractV1,
+    ) -> Result<Self, String> {
+        let market_end = market.n_bars;
+        Self::new_window(market, 0, market_end, instruments, account, contract)
+    }
+
+    /// Create a zero-copy local market view. The source tape remains owned by
+    /// the same `Arc`; local bar zero is the frozen snapshot of this view.
+    pub fn new_window(
+        market: Arc<FullMarketData>,
+        market_start: usize,
+        market_end: usize,
+        instruments: InstrumentTableV1,
+        account: AccountModelV1,
+        contract: ExecutionContractV1,
+    ) -> Result<Self, String> {
+        if market_start >= market_end
+            || market_end > market.n_bars
+            || market.n_symbols != instruments.len()
+        {
+            return Err(
+                "native execution template does not match the prepared market view".to_owned(),
+            );
+        }
+        let fingerprint = fingerprint_template(
+            &market,
+            market_start,
+            market_end,
+            &instruments,
+            account,
+            contract,
+        );
+        Ok(Self {
+            market,
+            market_start,
+            market_end,
+            instruments,
+            account,
+            contract,
+            fingerprint,
+        })
+    }
+
+    /// Reconstruct an immutable template from the one authoritative Rust
+    /// session configuration. This is used by compatibility batch APIs and
+    /// does not import mutable session state.
+    pub fn from_session(session: &FullSession) -> Result<Self, String> {
+        let (market_start, market_end) = session.market_range();
+        Self::new_window(
+            session.market.clone(),
+            market_start,
+            market_end,
+            InstrumentTableV1::sequential(
+                session.contract_sizes.to_vec(),
+                session.leverages.to_vec(),
+                session.fee_rates.to_vec(),
+            )?,
+            AccountModelV1::new(
+                session.initial_capital,
+                session.maintenance_ratio,
+                session.slippage,
+                session.use_funding,
+            )?,
+            ExecutionContractV1::new(session.event_contract_code)?,
+        )
+    }
+
+    /// Make a no-copy subrange relative to this template's local bar clock.
+    pub fn window(&self, start: usize, end: usize) -> Result<Self, String> {
+        if start >= end || end > self.bar_count() {
+            return Err("native execution template window is outside the prepared view".to_owned());
+        }
+        Self::new_window(
+            self.market.clone(),
+            self.market_start + start,
+            self.market_start + end,
+            self.instruments.clone(),
+            self.account,
+            self.contract,
+        )
+    }
+
+    #[must_use]
+    pub const fn bar_count(&self) -> usize {
+        self.market_end - self.market_start
+    }
+
+    #[must_use]
+    pub fn n_symbols(&self) -> usize {
+        self.market.n_symbols
+    }
+
+    #[must_use]
+    pub const fn market_range(&self) -> (usize, usize) {
+        (self.market_start, self.market_end)
+    }
+
+    #[must_use]
+    pub fn market(&self) -> &Arc<FullMarketData> {
+        &self.market
+    }
+
+    #[must_use]
+    pub const fn fingerprint(&self) -> [u8; 32] {
+        self.fingerprint
+    }
+
+    #[must_use]
+    pub fn fingerprint_hex(&self) -> String {
+        hex_fingerprint(self.fingerprint)
+    }
+
+    #[must_use]
+    pub fn source_market_bytes(&self) -> usize {
+        self.market.timestamps_ns.len() * std::mem::size_of::<i64>()
+            + self.market.opens.len() * std::mem::size_of::<f64>()
+            + self.market.highs.len() * std::mem::size_of::<f64>()
+            + self.market.lows.len() * std::mem::size_of::<f64>()
+            + self.market.closes.len() * std::mem::size_of::<f64>()
+            + self.market.volumes.len() * std::mem::size_of::<f64>()
+            + self.market.funding.len() * std::mem::size_of::<f64>()
+            + self.market.funding_mask.len() * std::mem::size_of::<bool>()
+    }
+
+    #[must_use]
+    pub fn view_bytes(&self) -> usize {
+        let bars = self.bar_count();
+        bars * std::mem::size_of::<i64>()
+            + bars * self.n_symbols() * (6 * std::mem::size_of::<f64>())
+            + bars * std::mem::size_of::<bool>()
+    }
+
+    pub fn strategy_ir_close_projection(
+        &self,
+        symbol: usize,
+    ) -> Result<StrategyIrCloseProjectionV1, String> {
+        if symbol >= self.n_symbols() {
+            return Err("native strategy IR symbol is outside prepared market".to_owned());
+        }
+        Ok(StrategyIrCloseProjectionV1 {
+            template_fingerprint: self.fingerprint,
+            symbol,
+            closes: (0..self.bar_count())
+                .map(|bar| {
+                    self.market.closes[(self.market_start + bar) * self.n_symbols() + symbol]
+                })
+                .collect::<Vec<_>>()
+                .into(),
+        })
+    }
+
+    fn fresh_session(&self) -> Result<FullSession, String> {
+        let mut session = FullSession::new_window(
+            self.market.clone(),
+            self.market_start,
+            self.market_end,
+            self.instruments.contract_sizes.to_vec(),
+            self.instruments.leverages.to_vec(),
+            self.instruments.fee_rates.to_vec(),
+            self.account.initial_capital,
+            self.account.maintenance_ratio,
+            self.account.slippage_rate,
+            self.account.use_funding,
+        )?;
+        session.set_event_contract(self.contract.event_contract_code)?;
+        Ok(session)
+    }
+}
+
+/// The only reusable mutable native state for prepared workloads. It is Rust
+/// owned, reset between independent scenarios, and never shares an account or
+/// lifecycle across workers/folds.
+pub struct NativeExecutionRunnerV1 {
+    template: Arc<NativeExecutionTemplateV1>,
+    session: FullSession,
+}
+
+impl NativeExecutionRunnerV1 {
+    pub fn new(template: Arc<NativeExecutionTemplateV1>) -> Result<Self, String> {
+        let session = template.fresh_session()?;
+        Ok(Self { template, session })
+    }
+
+    pub fn execute_request(
+        &mut self,
+        request: &NativeExecutionRequestV1,
+    ) -> Result<NativeExecutionResultV1, String> {
+        if self.template.fingerprint != request.template.fingerprint {
+            return Err("native execution runner/template mismatch".to_owned());
+        }
+        let output = self.execute_workload(request.output, &request.workload)?;
+        Ok(NativeExecutionResultV1 {
+            request_version: request.request_version(),
+            protocol_version: request.protocol_version(),
+            request_fingerprint: request.fingerprint,
+            workload_kind: request.workload.kind(),
+            output_profile: request.output,
+            command_count: request.workload.command_tape().command_count(),
+            output,
+        })
+    }
+
+    /// Execute one already validated native workload using the same Rust-owned
+    /// session buffer after a deterministic account/order reset. Batch callers
+    /// use this to avoid allocating a full session per scenario.
+    pub fn execute_workload(
+        &mut self,
+        output: NativeOutputProfileV1,
+        workload: &WorkloadPayloadV1,
+    ) -> Result<StaticTapeOutput, String> {
+        validate_workload(&self.template, workload)?;
+        self.session.reset();
+        self.session
+            .set_event_contract(self.template.contract.event_contract_code)?;
+        let tape = workload.command_tape();
+        match output.engine_profile() {
+            StaticOutputProfile::Score => self.session.run_typed_score(tape),
+            StaticOutputProfile::Compact => self.session.run_typed_compact(tape),
+            StaticOutputProfile::Audit => self.session.run_typed_audit(tape),
+        }
+    }
+}
+
+/// Immutable request passed to one shared Rust execution runner. Construction
+/// resolves all workload data before the hot loop; execution cannot create a
+/// second Python ledger or mutate the immutable contract.
+#[derive(Clone)]
+pub struct NativeExecutionRequestV1 {
+    template: Arc<NativeExecutionTemplateV1>,
     output: NativeOutputProfileV1,
     workload: WorkloadPayloadV1,
     fingerprint: [u8; 32],
 }
 
 impl NativeExecutionRequestV1 {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         market: Arc<FullMarketData>,
         instruments: InstrumentTableV1,
@@ -415,19 +701,24 @@ impl NativeExecutionRequestV1 {
         output: NativeOutputProfileV1,
         workload: WorkloadPayloadV1,
     ) -> Result<Self, String> {
-        if market.n_symbols != instruments.len() {
-            return Err(
-                "native execution instrument table does not match market symbols".to_owned(),
-            );
-        }
-        validate_workload(&market, &workload)?;
-        let fingerprint =
-            fingerprint_request(&market, &instruments, account, contract, output, &workload);
-        Ok(Self {
+        let template = Arc::new(NativeExecutionTemplateV1::new(
             market,
             instruments,
             account,
             contract,
+        )?);
+        Self::from_template(template, output, workload)
+    }
+
+    pub fn from_template(
+        template: Arc<NativeExecutionTemplateV1>,
+        output: NativeOutputProfileV1,
+        workload: WorkloadPayloadV1,
+    ) -> Result<Self, String> {
+        validate_workload(&template, &workload)?;
+        let fingerprint = fingerprint_request(&template, output, &workload);
+        Ok(Self {
+            template,
             output,
             workload,
             fingerprint,
@@ -445,15 +736,24 @@ impl NativeExecutionRequestV1 {
         signal: Vec<f64>,
         parameters: Option<Vec<f64>>,
     ) -> Result<Self, String> {
-        let workload = StrategyIrWorkloadV1::new(&market, program, signal, parameters)?;
-        Self::new(
+        let template = Arc::new(NativeExecutionTemplateV1::new(
             market,
             instruments,
             account,
             contract,
-            output,
-            WorkloadPayloadV1::StrategyIr(workload),
-        )
+        )?);
+        Self::from_strategy_ir_template(template, output, program, signal, parameters)
+    }
+
+    pub fn from_strategy_ir_template(
+        template: Arc<NativeExecutionTemplateV1>,
+        output: NativeOutputProfileV1,
+        program: StrategyProgram,
+        signal: Vec<f64>,
+        parameters: Option<Vec<f64>>,
+    ) -> Result<Self, String> {
+        let workload = StrategyIrWorkloadV1::new(&template, program, signal, parameters)?;
+        Self::from_template(template, output, WorkloadPayloadV1::StrategyIr(workload))
     }
 
     #[must_use]
@@ -483,7 +783,12 @@ impl NativeExecutionRequestV1 {
 
     #[must_use]
     pub fn market(&self) -> &Arc<FullMarketData> {
-        &self.market
+        self.template.market()
+    }
+
+    #[must_use]
+    pub fn template(&self) -> &Arc<NativeExecutionTemplateV1> {
+        &self.template
     }
 
     #[must_use]
@@ -496,40 +801,18 @@ impl NativeExecutionRequestV1 {
         hex_fingerprint(self.fingerprint)
     }
 
-    /// Build a fresh stateful session.  The request itself has no mutable
-    /// lifecycle state and is therefore safe to reuse for independent runs.
+    /// Build a fresh Rust-owned session from the immutable preparation.
     pub fn fresh_session(&self) -> Result<FullSession, String> {
-        let mut session = FullSession::new(
-            self.market.clone(),
-            self.instruments.contract_sizes.to_vec(),
-            self.instruments.leverages.to_vec(),
-            self.instruments.fee_rates.to_vec(),
-            self.account.initial_capital,
-            self.account.maintenance_ratio,
-            self.account.slippage_rate,
-            self.account.use_funding,
-        )?;
-        session.set_event_contract(self.contract.event_contract_code)?;
-        Ok(session)
+        self.template.fresh_session()
+    }
+
+    pub fn new_runner(&self) -> Result<NativeExecutionRunnerV1, String> {
+        NativeExecutionRunnerV1::new(self.template.clone())
     }
 
     pub fn execute(&self) -> Result<NativeExecutionResultV1, String> {
-        let mut session = self.fresh_session()?;
-        let tape = self.workload.command_tape();
-        let output = match self.output.engine_profile() {
-            StaticOutputProfile::Score => session.run_typed_score(tape)?,
-            StaticOutputProfile::Compact => session.run_typed_compact(tape)?,
-            StaticOutputProfile::Audit => session.run_typed_audit(tape)?,
-        };
-        Ok(NativeExecutionResultV1 {
-            request_version: self.request_version(),
-            protocol_version: self.protocol_version(),
-            request_fingerprint: self.fingerprint,
-            workload_kind: self.workload.kind(),
-            output_profile: self.output,
-            command_count: tape.command_count(),
-            output,
-        })
+        let mut runner = self.new_runner()?;
+        runner.execute_request(self)
     }
 }
 
@@ -552,27 +835,30 @@ impl NativeExecutionResultV1 {
     }
 }
 
-fn validate_workload(market: &FullMarketData, workload: &WorkloadPayloadV1) -> Result<(), String> {
+fn validate_workload(
+    template: &NativeExecutionTemplateV1,
+    workload: &WorkloadPayloadV1,
+) -> Result<(), String> {
     let tape = workload.command_tape();
-    if tape.bars() != market.n_bars {
+    if tape.bars() != template.bar_count() {
         return Err(
             "native execution workload tape does not match prepared market bars".to_owned(),
         );
     }
     match workload {
         WorkloadPayloadV1::StrategyIr(strategy) => {
-            if strategy.signal.len() != market.n_bars {
+            if strategy.signal.len() != template.bar_count() {
                 return Err(
                     "native strategy IR signal does not match prepared market bars".to_owned(),
                 );
             }
-            if strategy.program.symbol().0 as usize >= market.n_symbols {
+            if strategy.program.symbol().0 as usize >= template.n_symbols() {
                 return Err("native strategy IR symbol is outside prepared market".to_owned());
             }
         }
         WorkloadPayloadV1::PortfolioTarget(portfolio) => {
-            if portfolio.targets.n_bars() != market.n_bars
-                || portfolio.targets.n_symbols() != market.n_symbols
+            if portfolio.targets.n_bars() != template.bar_count()
+                || portfolio.targets.n_symbols() != template.n_symbols()
             {
                 return Err(
                     "portfolio target tape does not match prepared market layout".to_owned(),
@@ -581,7 +867,7 @@ fn validate_workload(market: &FullMarketData, workload: &WorkloadPayloadV1) -> R
         }
         WorkloadPayloadV1::CommandTape(_) | WorkloadPayloadV1::Package(_) => {}
     }
-    validate_command_tape(tape, market.n_symbols)
+    validate_command_tape(tape, template.n_symbols())
 }
 
 fn validate_command_tape(tape: &CommandTapeV5, n_symbols: usize) -> Result<(), String> {
@@ -636,11 +922,34 @@ fn validate_command_tape(tape: &CommandTapeV5, n_symbols: usize) -> Result<(), S
     Ok(())
 }
 
-fn fingerprint_request(
+fn fingerprint_template(
     market: &FullMarketData,
+    market_start: usize,
+    market_end: usize,
     instruments: &InstrumentTableV1,
     account: AccountModelV1,
     contract: ExecutionContractV1,
+) -> [u8; 32] {
+    let mut hash = FingerprintWriter::new();
+    hash.bytes(b"native-execution-template-v1");
+    hash.u16(NATIVE_EXECUTION_PROTOCOL_VERSION_V1);
+    hash.i64(CORE_PROTOCOL_MIN);
+    hash.i64(CORE_PROTOCOL_MAX);
+    hash.bytes(CONTRACT_REGISTRY_FINGERPRINT.as_bytes());
+    hash.bytes(COMMAND_ABI_VERSION.as_bytes());
+    hash.bytes(RESULT_ABI_VERSION.as_bytes());
+    fingerprint_market_window(&mut hash, market, market_start, market_end);
+    fingerprint_instruments(&mut hash, instruments);
+    hash.f64(account.initial_capital);
+    hash.f64(account.maintenance_ratio);
+    hash.f64(account.slippage_rate);
+    hash.bool(account.use_funding);
+    hash.i64(contract.event_contract_code);
+    hash.finish()
+}
+
+fn fingerprint_request(
+    template: &NativeExecutionTemplateV1,
     output: NativeOutputProfileV1,
     workload: &WorkloadPayloadV1,
 ) -> [u8; 32] {
@@ -648,45 +957,49 @@ fn fingerprint_request(
     hash.bytes(NATIVE_EXECUTION_REQUEST_SCHEMA_V1.as_bytes());
     hash.u16(NATIVE_EXECUTION_REQUEST_VERSION_V1);
     hash.u16(NATIVE_EXECUTION_PROTOCOL_VERSION_V1);
-    hash.i64(CORE_PROTOCOL_MIN);
-    hash.i64(CORE_PROTOCOL_MAX);
-    hash.bytes(CONTRACT_REGISTRY_FINGERPRINT.as_bytes());
-    hash.bytes(COMMAND_ABI_VERSION.as_bytes());
-    hash.bytes(RESULT_ABI_VERSION.as_bytes());
-    fingerprint_market(&mut hash, market);
-    fingerprint_instruments(&mut hash, instruments);
-    hash.f64(account.initial_capital);
-    hash.f64(account.maintenance_ratio);
-    hash.f64(account.slippage_rate);
-    hash.bool(account.use_funding);
-    hash.i64(contract.event_contract_code);
+    hash.bytes(&template.fingerprint());
     hash.u8(output as u8);
     fingerprint_workload(&mut hash, workload);
     hash.finish()
 }
 
-fn fingerprint_market(hash: &mut FingerprintWriter, market: &FullMarketData) {
-    hash.bytes(b"market-v1");
-    hash.usize(market.n_bars);
+fn fingerprint_market_window(
+    hash: &mut FingerprintWriter,
+    market: &FullMarketData,
+    market_start: usize,
+    market_end: usize,
+) {
+    hash.bytes(b"market-window-v1");
+    hash.usize(market_start);
+    hash.usize(market_end);
+    hash.usize(market_end - market_start);
     hash.usize(market.n_symbols);
-    for timestamp in market.timestamps_ns.iter().copied() {
+    for timestamp in market.timestamps_ns[market_start..market_end]
+        .iter()
+        .copied()
+    {
         hash.i64(timestamp);
     }
+    let width_start = market_start * market.n_symbols;
+    let width_end = market_end * market.n_symbols;
     for field in [
-        market.opens.as_ref(),
-        market.highs.as_ref(),
-        market.lows.as_ref(),
-        market.closes.as_ref(),
-        market.volumes.as_ref(),
-        market.funding.as_ref(),
+        &market.opens[width_start..width_end],
+        &market.highs[width_start..width_end],
+        &market.lows[width_start..width_end],
+        &market.closes[width_start..width_end],
+        &market.volumes[width_start..width_end],
+        &market.funding[width_start..width_end],
     ] {
         hash.usize(field.len());
         for value in field.iter().copied() {
             hash.f64(value);
         }
     }
-    hash.usize(market.funding_mask.len());
-    for value in market.funding_mask.iter().copied() {
+    hash.usize(market_end - market_start);
+    for value in market.funding_mask[market_start..market_end]
+        .iter()
+        .copied()
+    {
         hash.bool(value);
     }
 }
@@ -1150,11 +1463,65 @@ mod tests {
             .run_typed_audit(request.workload.command_tape())
             .unwrap();
         assert_output_eq(&actual.output, &expected);
+        let mut runner = request.new_runner().unwrap();
+        let first = runner.execute_request(&request).unwrap();
+        let second = runner.execute_request(&request).unwrap();
+        assert_output_eq(&first.output, &expected);
+        assert_output_eq(&second.output, &expected);
+    }
+
+    #[test]
+    fn strategy_ir_projection_cannot_cross_prepared_market_boundaries() {
+        let source = market();
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(source.clone(), instruments(), account(), contract())
+                .unwrap(),
+        );
+        let mut changed_market = (*source).clone();
+        changed_market.closes[0] += 1.0;
+        let changed_template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                Arc::new(changed_market),
+                instruments(),
+                account(),
+                contract(),
+            )
+            .unwrap(),
+        );
+        let program = StrategyProgram::new(
+            STRATEGY_IR_VERSION,
+            StrategyKind::SignalTarget,
+            SymbolId(0),
+            StrategyParameters {
+                quantity: 1.0,
+                threshold: 0.0,
+                take_profit_pct: 0.0,
+                stop_loss_pct: 0.0,
+                dca_period: 1,
+                max_levels: 1,
+            },
+            ProgramLimits::default(),
+        )
+        .unwrap();
+        let projection = template.strategy_ir_close_projection(0).unwrap();
+        let error = StrategyIrWorkloadV1::new_with_projection(
+            &changed_template,
+            program,
+            vec![0.0; 4],
+            None,
+            &projection,
+        )
+        .unwrap_err();
+        assert!(error.contains("another prepared market"));
     }
 
     #[test]
     fn prepared_portfolio_and_package_workloads_enter_the_same_session_without_position_mutation() {
         let market = market();
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(market.clone(), instruments(), account(), contract())
+                .unwrap(),
+        );
         let target_result = execute_portfolio_target(PortfolioTargetRequest {
             previous_units: &[0.0],
             requested_units: &[1.0],
@@ -1178,11 +1545,8 @@ mod tests {
         let targets =
             PortfolioTargetTape::new(market.n_bars, market.n_symbols, vec![0.0, 1.0, 1.0, 1.0])
                 .unwrap();
-        let portfolio_request = NativeExecutionRequestV1::new(
-            market.clone(),
-            instruments(),
-            account(),
-            contract(),
+        let portfolio_request = NativeExecutionRequestV1::from_template(
+            template.clone(),
             NativeOutputProfileV1::Audit,
             WorkloadPayloadV1::PortfolioTarget(
                 PortfolioTargetWorkloadV1::new(
@@ -1194,7 +1558,8 @@ mod tests {
             ),
         )
         .unwrap();
-        let portfolio_output = portfolio_request.execute().unwrap().output;
+        let mut runner = NativeExecutionRunnerV1::new(template.clone()).unwrap();
+        let portfolio_output = runner.execute_request(&portfolio_request).unwrap().output;
         assert_eq!(portfolio_output.final_positions, vec![1.0]);
         assert_eq!(portfolio_output.fill_count, 1);
 
@@ -1223,11 +1588,8 @@ mod tests {
         .unwrap();
         let package_tape =
             compile_package_tape(market.n_bars, 1, package_id, &legs, &preflight).unwrap();
-        let package_request = NativeExecutionRequestV1::new(
-            market,
-            instruments(),
-            account(),
-            contract(),
+        let package_request = NativeExecutionRequestV1::from_template(
+            template,
             NativeOutputProfileV1::Audit,
             WorkloadPayloadV1::Package(
                 PackageTapeV1::new(
@@ -1246,9 +1608,14 @@ mod tests {
             ),
         )
         .unwrap();
-        let package_output = package_request.execute().unwrap().output;
+        // The same mutable FullSession is reused, but each workload starts
+        // from a clean account/order/lifecycle state. If reset were omitted,
+        // the package short would net against the portfolio long above.
+        let package_output = runner.execute_request(&package_request).unwrap().output;
         assert_eq!(package_output.final_positions, vec![-1.0]);
         assert_eq!(package_output.fill_count, 1);
+        let portfolio_replay = runner.execute_request(&portfolio_request).unwrap().output;
+        assert_output_eq(&portfolio_replay, &portfolio_output);
     }
 
     #[test]

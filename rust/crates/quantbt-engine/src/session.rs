@@ -633,10 +633,10 @@ impl FullMarketData {
         })
     }
 
-    /// Materialize one contiguous execution window once per fold, never once
-    /// per scenario. The source tape remains immutable and can therefore be
-    /// shared by ordinary batch runs; this explicit copy is reserved for a
-    /// fold that needs its own bar-zero/account reset semantics.
+    /// Materialize a contiguous execution window for compatibility callers or
+    /// reference comparisons. New prepared/batch paths should prefer
+    /// [`FullSession::new_window`], which preserves identical local bar-zero
+    /// semantics while retaining one shared immutable source tape.
     pub fn window(&self, start: usize, end: usize) -> Result<Self, String> {
         if start >= end || end > self.n_bars {
             return Err("prepared market window is outside source tape".to_owned());
@@ -729,6 +729,11 @@ pub struct FullSession {
     /// from one prepared PyO3 market object. Account and order state remain
     /// session-local.
     pub market: Arc<FullMarketData>,
+    // A session may execute a local causal window over one immutable prepared
+    // market tape. The underlying arrays stay shared through `Arc`; local bar
+    // zero is still the frozen account snapshot for that window.
+    market_start: usize,
+    market_end: usize,
     pub contract_sizes: Box<[f64]>,
     pub leverages: Box<[f64]>,
     pub fee_rates: Box<[f64]>,
@@ -778,8 +783,42 @@ impl FullSession {
         slippage: f64,
         use_funding: bool,
     ) -> Result<Self, String> {
+        let market_end = market.n_bars;
+        Self::new_window(
+            market,
+            0,
+            market_end,
+            contract_sizes,
+            leverages,
+            fee_rates,
+            initial_capital,
+            maintenance_ratio,
+            slippage,
+            use_funding,
+        )
+    }
+
+    /// Create one stateful session over `market_start..market_end` without
+    /// copying OHLCV/funding arrays. The execution clock is local to the
+    /// window, so bar zero retains the same frozen-snapshot semantics as a
+    /// standalone market tape.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_window(
+        market: Arc<FullMarketData>,
+        market_start: usize,
+        market_end: usize,
+        contract_sizes: Vec<f64>,
+        leverages: Vec<f64>,
+        fee_rates: Vec<f64>,
+        initial_capital: f64,
+        maintenance_ratio: f64,
+        slippage: f64,
+        use_funding: bool,
+    ) -> Result<Self, String> {
         let n_symbols = market.n_symbols;
-        if contract_sizes.len() != n_symbols
+        if market_start >= market_end
+            || market_end > market.n_bars
+            || contract_sizes.len() != n_symbols
             || leverages.len() != n_symbols
             || fee_rates.len() != n_symbols
             || initial_capital <= 0.0
@@ -793,6 +832,8 @@ impl FullSession {
         }
         Ok(Self {
             market,
+            market_start,
+            market_end,
             contract_sizes: contract_sizes.into_boxed_slice(),
             leverages: leverages.into_boxed_slice(),
             fee_rates: fee_rates.into_boxed_slice(),
@@ -822,6 +863,20 @@ impl FullSession {
             compaction_count: 0,
             terminal_orders_removed: 0,
         })
+    }
+
+    /// Number of local bars visible to this session. A windowed session does
+    /// not expose or execute bars outside this range.
+    #[must_use]
+    pub const fn n_bars(&self) -> usize {
+        self.market_end - self.market_start
+    }
+
+    /// Immutable source-tape range used by this session. This is provenance,
+    /// not a mutable cursor or account state.
+    #[must_use]
+    pub const fn market_range(&self) -> (usize, usize) {
+        (self.market_start, self.market_end)
     }
 
     pub fn reset(&mut self) {
@@ -914,7 +969,37 @@ impl FullSession {
 
     #[inline]
     fn close(&self, bar: usize, symbol: usize) -> f64 {
-        self.market.at(&self.market.closes, bar, symbol)
+        self.market
+            .at(&self.market.closes, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn open(&self, bar: usize, symbol: usize) -> f64 {
+        self.market
+            .at(&self.market.opens, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn high(&self, bar: usize, symbol: usize) -> f64 {
+        self.market
+            .at(&self.market.highs, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn low(&self, bar: usize, symbol: usize) -> f64 {
+        self.market
+            .at(&self.market.lows, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn funding(&self, bar: usize, symbol: usize) -> f64 {
+        self.market
+            .at(&self.market.funding, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn has_funding_event(&self, bar: usize) -> bool {
+        self.market.funding_mask[self.market_start + bar]
     }
 
     fn compute_close_margin(&self, bar: usize) -> (f64, f64) {
@@ -988,9 +1073,9 @@ impl FullSession {
                 continue;
             }
             let worst_price = if position > 0.0 {
-                self.market.at(&self.market.lows, bar, symbol)
+                self.low(bar, symbol)
             } else {
-                self.market.at(&self.market.highs, bar, symbol)
+                self.high(bar, symbol)
             };
             worst_equity +=
                 position * (worst_price - self.close(bar, symbol)) * self.contract_sizes[symbol];
@@ -1151,15 +1236,9 @@ impl FullSession {
     }
 
     fn fill_decision(&self, order: &OrderState, bar: usize) -> FillDecision {
-        let open = self
-            .market
-            .at(&self.market.opens, bar, order.symbol as usize);
-        let high = self
-            .market
-            .at(&self.market.highs, bar, order.symbol as usize);
-        let low = self
-            .market
-            .at(&self.market.lows, bar, order.symbol as usize);
+        let open = self.open(bar, order.symbol as usize);
+        let high = self.high(bar, order.symbol as usize);
+        let low = self.low(bar, order.symbol as usize);
         let close = self.close(bar, order.symbol as usize);
         let side = order.side as i64;
         let slipped = |price: f64| {
@@ -1564,7 +1643,7 @@ impl FullSession {
         } else {
             DetailSink::CountOnly(&mut counters)
         };
-        if bar >= self.market.n_bars {
+        if bar >= self.n_bars() {
             return Err("bar_index is outside the full prepared market tape".to_owned());
         }
         if self
@@ -1621,12 +1700,12 @@ impl FullSession {
             });
         }
         let mut funding_total = 0.0;
-        if self.use_funding && self.market.funding_mask[bar] {
+        if self.use_funding && self.has_funding_event(bar) {
             for symbol in 0..self.market.n_symbols {
                 let cost = self.positions[symbol]
                     * self.close(bar, symbol)
                     * self.contract_sizes[symbol]
-                    * self.market.at(&self.market.funding, bar, symbol);
+                    * self.funding(bar, symbol);
                 self.equity -= cost;
                 funding_total += cost;
             }
@@ -2208,7 +2287,7 @@ impl FullSession {
         command_count: usize,
         profile: StaticOutputProfile,
     ) -> Result<StaticTapeOutput, String> {
-        if ptr.len() != self.market.n_bars + 1
+        if ptr.len() != self.n_bars() + 1
             || ptr.first().copied().unwrap_or(-1) != 0
             || ptr.last().copied().unwrap_or(-1) != command_count as i64
             || ptr
@@ -2220,7 +2299,7 @@ impl FullSession {
         {
             return Err("invalid full command tape ABI 0.4 input".to_owned());
         }
-        let n_bars = self.market.n_bars;
+        let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
         let retain_paths = profile.retains_paths();
         let retain_detail = profile.retains_detail();
@@ -2347,10 +2426,10 @@ impl FullSession {
         tape: &CommandTapeV5,
         profile: StaticOutputProfile,
     ) -> Result<StaticTapeOutput, String> {
-        if tape.bars() != self.market.n_bars {
+        if tape.bars() != self.n_bars() {
             return Err("typed command tape bars do not match prepared market".to_owned());
         }
-        let n_bars = self.market.n_bars;
+        let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
         let retain_paths = profile.retains_paths();
         let retain_detail = profile.retains_detail();
@@ -2572,6 +2651,122 @@ mod tests {
         code[6] = order_id;
         code[11] = ACTIVATION_IMMEDIATE;
         (code, [1.0, 0.0, 0.0])
+    }
+
+    #[test]
+    fn zero_copy_market_window_matches_materialized_fold_reference() {
+        let parent = Arc::new(
+            FullMarketData::new(
+                vec![0, 1, 2, 3, 4],
+                vec![100.0, 101.0, 102.0, 103.0, 104.0],
+                vec![101.0, 102.0, 103.0, 104.0, 105.0],
+                vec![99.0, 100.0, 101.0, 102.0, 103.0],
+                vec![100.0, 101.0, 102.0, 103.0, 104.0],
+                vec![10.0; 5],
+                vec![0.0, 0.0, 0.0, 0.0, 0.0001],
+                vec![false, false, false, false, true],
+                1,
+            )
+            .unwrap(),
+        );
+        let copied = Arc::new(parent.window(2, 5).unwrap());
+        let mut copied_session = FullSession::new(
+            copied,
+            vec![1.0],
+            vec![5.0],
+            vec![0.0002],
+            10_000.0,
+            0.005,
+            0.0001,
+            true,
+        )
+        .unwrap();
+        let mut shared_session = FullSession::new_window(
+            parent.clone(),
+            2,
+            5,
+            vec![1.0],
+            vec![5.0],
+            vec![0.0002],
+            10_000.0,
+            0.005,
+            0.0001,
+            true,
+        )
+        .unwrap();
+        copied_session
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+        shared_session
+            .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+            .unwrap();
+
+        let (codes, values) = place_market(42, SIDE_BUY);
+        let ptr = [0_i64, 0, 1, 1];
+        let expiry = [-1_i64];
+        let copied_output = copied_session
+            .run_static_audit(&ptr, &codes, &values, &expiry, 1)
+            .unwrap();
+        let shared_output = shared_session
+            .run_static_audit(&ptr, &codes, &values, &expiry, 1)
+            .unwrap();
+
+        assert_eq!(shared_session.n_bars(), 3);
+        assert_eq!(shared_session.market_range(), (2, 5));
+        assert!(Arc::ptr_eq(&shared_session.market, &parent));
+        assert_eq!(shared_output.final_equity, copied_output.final_equity);
+        assert_eq!(shared_output.final_positions, copied_output.final_positions);
+        assert_eq!(shared_output.total_fee, copied_output.total_fee);
+        assert_eq!(shared_output.total_turnover, copied_output.total_turnover);
+        assert_eq!(shared_output.total_funding, copied_output.total_funding);
+        assert_ne!(shared_output.total_funding, 0.0);
+        assert_eq!(shared_output.fill_count, copied_output.fill_count);
+        assert_eq!(shared_output.event_count, copied_output.event_count);
+        assert_eq!(shared_output.rejected_count, copied_output.rejected_count);
+        assert_eq!(shared_output.canceled_count, copied_output.canceled_count);
+        assert_eq!(
+            shared_output.max_initial_margin,
+            copied_output.max_initial_margin
+        );
+        assert_eq!(
+            shared_output.max_maintenance_margin,
+            copied_output.max_maintenance_margin
+        );
+        assert_eq!(shared_output.liquidated, copied_output.liquidated);
+        assert_eq!(shared_output.liquidation_bar, copied_output.liquidation_bar);
+        assert_eq!(
+            shared_output.liquidation_reason,
+            copied_output.liquidation_reason
+        );
+        assert_eq!(shared_output.equity, copied_output.equity);
+        assert_eq!(shared_output.positions, copied_output.positions);
+        assert_eq!(shared_output.fees, copied_output.fees);
+        assert_eq!(shared_output.turnover, copied_output.turnover);
+        assert_eq!(shared_output.funding, copied_output.funding);
+        assert_eq!(shared_output.initial_margin, copied_output.initial_margin);
+        assert_eq!(
+            shared_output.maintenance_margin,
+            copied_output.maintenance_margin
+        );
+        assert_eq!(shared_output.fill_bar, copied_output.fill_bar);
+        assert_eq!(shared_output.fill_order_id, copied_output.fill_order_id);
+        assert_eq!(shared_output.fill_symbol, copied_output.fill_symbol);
+        assert_eq!(shared_output.fill_side, copied_output.fill_side);
+        assert_eq!(shared_output.fill_qty, copied_output.fill_qty);
+        assert_eq!(shared_output.fill_price, copied_output.fill_price);
+        assert_eq!(shared_output.fill_fee, copied_output.fill_fee);
+        assert_eq!(shared_output.fill_reason, copied_output.fill_reason);
+        assert_eq!(shared_output.fill_ambiguity, copied_output.fill_ambiguity);
+        assert_eq!(shared_output.event_bar, copied_output.event_bar);
+        assert_eq!(shared_output.event_kind, copied_output.event_kind);
+        assert_eq!(shared_output.event_status, copied_output.event_status);
+        assert_eq!(shared_output.event_order_id, copied_output.event_order_id);
+        assert_eq!(shared_output.event_target_id, copied_output.event_target_id);
+        assert_eq!(shared_output.event_symbol, copied_output.event_symbol);
+        assert_eq!(
+            shared_output.event_reject_code,
+            copied_output.event_reject_code
+        );
     }
 
     #[test]

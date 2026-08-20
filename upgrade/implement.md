@@ -12875,6 +12875,8 @@ Boundary:
 
 #### 54A.5.3 - Rust-Owned State Across Static, IR, Batch, Portfolio, And Package
 
+**Status: completed on `feat/51-native-rust-production-core`.**
+
 - Static tape: one prepared Rust session executes the entire tape; no Python
   per-bar transition, no Python ledger recomputation, and no audit replay.
 - Strategy IR: compile supported declarative strategies inside Rust from a
@@ -12893,6 +12895,51 @@ Boundary:
   boundary only at declared callback or sparse-wake points. An every-bar
   callback cannot honestly be described as fully native and must retain that
   classification in metadata and benchmarks.
+
+Implementation completed:
+
+- Added `NativeExecutionTemplateV1`: one immutable Rust owner for the prepared
+  market view, instruments, account model, execution contract, and content
+  fingerprint. `NativeExecutionRunnerV1` owns the only mutable `FullSession`
+  buffer and deterministically resets account, order, lifecycle, margin, and
+  trace state before every independent workload.
+- Added `FullSession::new_window(...)`. An OOS fold now has a local bar clock
+  and fresh account snapshot over a shared `Arc<FullMarketData>` range. It is
+  bit-for-bit parity-tested against the former materialized `FullMarketData`
+  window, including fills, fee, funding, paths, and events, while avoiding the
+  OHLCV/funding copy.
+- `BatchTemplate` now owns the execution template rather than duplicate market
+  and account fields. Each batch worker creates one runner and reuses it across
+  scenarios; Strategy IR close projections are materialized once per template
+  or fold, not once per scenario. The typed projection is bound to the exact
+  template fingerprint and symbol, so a projection from another market view is
+  rejected before command compilation. `score_fold_batch` reports
+  `market_windows_created=0`, logical view bytes, physical source bytes, and
+  `market_view_shared=true` so no-copy behavior is observable.
+- Static, strategy-IR, portfolio-target, and package workloads all enter the
+  same typed request/runner/session path. A shared-runner conformance test
+  proves that a portfolio target cannot leak its long position into a following
+  package short, and that a replay starts from the same clean state.
+
+Evidence:
+
+- `cargo fmt --all`, `cargo test --workspace`, and
+  `cargo clippy --workspace --all-targets -- -D warnings` passed (`47` Rust
+  unit tests).
+- Fresh editable extension build passed through `maturin develop --release`.
+  Focused typed-request, compatibility-core, and fold-batch Python regressions
+  passed: `24 passed`. Full native-event regression passed: `216 passed, 2
+  skipped`; full QuantBT suite passed: `882 passed, 3 skipped`.
+
+Boundary:
+
+- This completes shared native ownership and no-copy fold preparation only.
+  It does not promote any public endpoint, change `backend="auto"`, or claim
+  arbitrary Python callbacks are native workloads.
+- Typed SoA result ownership, cache budgets/lifetime controls, public prepared
+  batch ingress, and endpoint-level portfolio/package promotion remain the
+  explicit work of 54A.5.4 through 54B. No Python execution replay is added by
+  this phase.
 
 #### 54A.5.4 - Flat Output, Cold-Path Adaptation, And No Replay
 

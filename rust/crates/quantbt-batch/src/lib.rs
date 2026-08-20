@@ -9,6 +9,10 @@ use std::sync::Arc;
 
 use quantbt_domain::ids::SymbolId;
 use quantbt_engine::{FullMarketData, FullSession};
+use quantbt_execution::{
+    NativeExecutionRunnerV1, NativeExecutionTemplateV1, NativeOutputProfileV1,
+    StrategyIrCloseProjectionV1, StrategyIrWorkloadV1, WorkloadPayloadV1,
+};
 use quantbt_strategy_ir::StrategyProgram;
 
 #[repr(transparent)]
@@ -146,17 +150,9 @@ pub struct ScenarioInput<'a> {
 /// scenario or worker.
 #[derive(Clone)]
 pub struct BatchTemplate {
-    pub market: Arc<FullMarketData>,
+    execution_template: Arc<NativeExecutionTemplateV1>,
     pub strategy_program: Arc<StrategyProgram>,
-    pub contract_sizes: Arc<[f64]>,
-    pub leverages: Arc<[f64]>,
-    pub fee_rates: Arc<[f64]>,
-    pub initial_capital: f64,
-    pub maintenance_ratio: f64,
-    pub slippage: f64,
-    pub use_funding: bool,
-    pub event_contract_code: i64,
-    closes_for_program: Arc<[f64]>,
+    close_projection: StrategyIrCloseProjectionV1,
     market_key: SharedMarketKey,
 }
 
@@ -174,36 +170,53 @@ impl BatchTemplate {
         use_funding: bool,
         event_contract_code: i64,
     ) -> Result<Self, String> {
-        let symbol = strategy_program.symbol();
-        if symbol.0 as usize >= market.n_symbols {
-            return Err("strategy program symbol is outside prepared market".to_owned());
-        }
-        if contract_sizes.len() != market.n_symbols
-            || leverages.len() != market.n_symbols
-            || fee_rates.len() != market.n_symbols
-        {
-            return Err("batch account vectors do not match prepared market".to_owned());
-        }
-        let closes_for_program = (0..market.n_bars)
-            .map(|bar| market.closes[bar * market.n_symbols + symbol.0 as usize])
-            .collect::<Vec<_>>()
-            .into();
-        Ok(Self {
-            market_key: SharedMarketKey {
-                symbol,
-                market_fingerprint: fingerprint_market(&market),
-            },
-            market,
-            strategy_program,
-            contract_sizes,
-            leverages,
-            fee_rates,
+        let instruments = quantbt_execution::InstrumentTableV1::sequential(
+            contract_sizes.to_vec(),
+            leverages.to_vec(),
+            fee_rates.to_vec(),
+        )?;
+        let account = quantbt_execution::AccountModelV1::new(
             initial_capital,
             maintenance_ratio,
             slippage,
             use_funding,
-            event_contract_code,
-            closes_for_program,
+        )?;
+        let contract = quantbt_execution::ExecutionContractV1::new(event_contract_code)?;
+        Self::from_execution_template(
+            Arc::new(NativeExecutionTemplateV1::new(
+                market,
+                instruments,
+                account,
+                contract,
+            )?),
+            strategy_program,
+        )
+    }
+
+    fn from_execution_template(
+        execution_template: Arc<NativeExecutionTemplateV1>,
+        strategy_program: Arc<StrategyProgram>,
+    ) -> Result<Self, String> {
+        let symbol = strategy_program.symbol();
+        if symbol.0 as usize >= execution_template.n_symbols() {
+            return Err("strategy program symbol is outside prepared market".to_owned());
+        }
+        let close_projection =
+            execution_template.strategy_ir_close_projection(symbol.0 as usize)?;
+        let fingerprint = execution_template.fingerprint();
+        let market_fingerprint = u64::from_le_bytes(
+            fingerprint[..8]
+                .try_into()
+                .expect("native execution fingerprint prefix has fixed width"),
+        );
+        Ok(Self {
+            market_key: SharedMarketKey {
+                symbol,
+                market_fingerprint,
+            },
+            execution_template,
+            strategy_program,
+            close_projection,
         })
     }
 
@@ -211,38 +224,21 @@ impl BatchTemplate {
         session: &FullSession,
         strategy_program: Arc<StrategyProgram>,
     ) -> Result<Self, String> {
-        Self::new(
-            session.market.clone(),
+        Self::from_execution_template(
+            Arc::new(NativeExecutionTemplateV1::from_session(session)?),
             strategy_program,
-            Arc::from(session.contract_sizes.to_vec()),
-            Arc::from(session.leverages.to_vec()),
-            Arc::from(session.fee_rates.to_vec()),
-            session.initial_capital,
-            session.maintenance_ratio,
-            session.slippage,
-            session.use_funding,
-            session.event_contract_code,
         )
     }
 
-    /// Build a one-time market window for an isolated OOS fold. This preserves
-    /// zero market copies per *scenario* while making the fold/account reset
-    /// explicit instead of accidentally carrying earlier fold positions.
+    /// Build an isolated OOS view with a local account/bar-zero reset. The
+    /// underlying OHLCV/funding tape remains one shared `Arc`; no fold market
+    /// copy is materialized.
     pub fn for_fold(&self, fold: FoldPlan) -> Result<Self, String> {
-        let fold = fold.validate(self.market.n_bars)?;
+        let fold = fold.validate(self.execution_template.bar_count())?;
         let range = fold.test_range();
-        let market = Arc::new(self.market.window(range.start, range.end)?);
-        Self::new(
-            market,
+        Self::from_execution_template(
+            Arc::new(self.execution_template.window(range.start, range.end)?),
             self.strategy_program.clone(),
-            self.contract_sizes.clone(),
-            self.leverages.clone(),
-            self.fee_rates.clone(),
-            self.initial_capital,
-            self.maintenance_ratio,
-            self.slippage,
-            self.use_funding,
-            self.event_contract_code,
         )
     }
 
@@ -253,39 +249,43 @@ impl BatchTemplate {
 
     #[must_use]
     pub fn market_bytes(&self) -> usize {
-        self.market.timestamps_ns.len() * std::mem::size_of::<i64>()
-            + self.market.opens.len() * std::mem::size_of::<f64>()
-            + self.market.highs.len() * std::mem::size_of::<f64>()
-            + self.market.lows.len() * std::mem::size_of::<f64>()
-            + self.market.closes.len() * std::mem::size_of::<f64>()
-            + self.market.volumes.len() * std::mem::size_of::<f64>()
-            + self.market.funding.len() * std::mem::size_of::<f64>()
-            + self.market.funding_mask.len() * std::mem::size_of::<bool>()
+        self.execution_template.source_market_bytes()
     }
 
-    fn new_session(&self) -> Result<FullSession, String> {
-        let mut session = FullSession::new(
-            self.market.clone(),
-            self.contract_sizes.to_vec(),
-            self.leverages.to_vec(),
-            self.fee_rates.to_vec(),
-            self.initial_capital,
-            self.maintenance_ratio,
-            self.slippage,
-            self.use_funding,
-        )?;
-        session.set_event_contract(self.event_contract_code)?;
-        Ok(session)
+    #[must_use]
+    pub fn market_view_bytes(&self) -> usize {
+        self.execution_template.view_bytes()
+    }
+
+    fn new_runner(&self) -> Result<NativeExecutionRunnerV1, String> {
+        NativeExecutionRunnerV1::new(self.execution_template.clone())
     }
 
     fn validate_input(&self, input: ScenarioInput<'_>) -> Result<(), String> {
-        self.strategy_program
-            .compile_tape(input.signal, &self.closes_for_program, input.parameters)
-            .map(|_| ())
-            .map_err(|error| error.to_string())
+        self.workload_for_input(input).map(|_| ())
     }
 
-    fn run_one(&self, session: &mut FullSession, input: ScenarioInput<'_>) -> ScenarioOutcome {
+    fn workload_for_input(&self, input: ScenarioInput<'_>) -> Result<StrategyIrWorkloadV1, String> {
+        // This close projection is materialized once per immutable template or
+        // fold, not once per scenario. It is derived from the same template
+        // passed to the workload and therefore retains the local OOS bar clock.
+        if input.signal.len() != self.close_projection.len() {
+            return Err("native strategy IR signal must match prepared market bars".to_owned());
+        }
+        StrategyIrWorkloadV1::new_with_projection(
+            &self.execution_template,
+            (*self.strategy_program).clone(),
+            input.signal.to_vec(),
+            input.parameters.map(ToOwned::to_owned),
+            &self.close_projection,
+        )
+    }
+
+    fn run_one(
+        &self,
+        runner: &mut NativeExecutionRunnerV1,
+        input: ScenarioInput<'_>,
+    ) -> ScenarioOutcome {
         let zero = ScenarioScore {
             scenario: input.scenario,
             final_equity: f64::NAN,
@@ -296,12 +296,8 @@ impl BatchTemplate {
             rejected_count: 0,
             liquidated: false,
         };
-        let tape = match self.strategy_program.compile_tape(
-            input.signal,
-            &self.closes_for_program,
-            input.parameters,
-        ) {
-            Ok(tape) => tape,
+        let workload = match self.workload_for_input(input) {
+            Ok(workload) => workload,
             Err(error) => {
                 return ScenarioOutcome {
                     score: zero,
@@ -310,15 +306,10 @@ impl BatchTemplate {
                 };
             }
         };
-        session.reset();
-        if let Err(error) = session.set_event_contract(self.event_contract_code) {
-            return ScenarioOutcome {
-                score: zero,
-                status: ScenarioStatus::ExecutionError,
-                error: Some(error),
-            };
-        }
-        match session.run_typed_score(&tape) {
+        match runner.execute_workload(
+            NativeOutputProfileV1::Score,
+            &WorkloadPayloadV1::StrategyIr(workload),
+        ) {
             Ok(output) => ScenarioOutcome {
                 score: ScenarioScore {
                     scenario: input.scenario,
@@ -371,11 +362,11 @@ impl BatchTemplate {
                 let worker_inputs = &inputs[start..end];
                 handles.push(
                     scope.spawn(move || -> Result<Vec<ScenarioOutcome>, String> {
-                        let mut session = template.new_session()?;
+                        let mut runner = template.new_runner()?;
                         let mut outcomes = Vec::with_capacity(worker_inputs.len());
                         for chunk in worker_inputs.chunks(plan.chunk_size) {
                             for input in chunk {
-                                outcomes.push(template.run_one(&mut session, *input));
+                                outcomes.push(template.run_one(&mut runner, *input));
                             }
                         }
                         Ok(outcomes)
@@ -413,10 +404,10 @@ impl BatchTemplate {
         fold: FoldPlan,
         plan: BatchPlan,
     ) -> Result<FoldBatchResult, String> {
-        let fold = fold.validate(self.market.n_bars)?;
+        let fold = fold.validate(self.execution_template.bar_count())?;
         if inputs
             .iter()
-            .any(|input| input.signal.len() != self.market.n_bars)
+            .any(|input| input.signal.len() != self.execution_template.bar_count())
         {
             return Err("fold batch signals must align to the parent prepared market".to_owned());
         }
@@ -435,7 +426,11 @@ impl BatchTemplate {
             fold,
             rows,
             execution_bars: range.end - range.start,
-            market_window_bytes: folded.market_bytes(),
+            // A fold owns only its template/close projection. Market OHLCV,
+            // volume, funding, and timestamps remain in the parent `Arc`.
+            market_window_bytes: 0,
+            market_view_bytes: folded.market_view_bytes(),
+            source_market_bytes: folded.market_bytes(),
         })
     }
 
@@ -446,12 +441,12 @@ impl BatchTemplate {
         &self,
         input: ScenarioInput<'_>,
     ) -> Result<quantbt_engine::StaticTapeOutput, String> {
-        let tape = self
-            .strategy_program
-            .compile_tape(input.signal, &self.closes_for_program, input.parameters)
-            .map_err(|error| error.to_string())?;
-        let mut session = self.new_session()?;
-        session.run_typed_audit(&tape)
+        let workload = self.workload_for_input(input)?;
+        let mut runner = self.new_runner()?;
+        runner.execute_workload(
+            NativeOutputProfileV1::Audit,
+            &WorkloadPayloadV1::StrategyIr(workload),
+        )
     }
 }
 
@@ -465,7 +460,15 @@ pub struct FoldBatchResult {
     pub fold: FoldPlan,
     pub rows: BatchResult,
     pub execution_bars: usize,
+    /// Always zero for the shared-view implementation. Retained as an
+    /// observable compatibility diagnostic so callers can prove no materialized
+    /// fold tape was allocated.
     pub market_window_bytes: usize,
+    /// Logical bytes visible to the OOS execution view.
+    pub market_view_bytes: usize,
+    /// Physical bytes owned by the immutable source tape shared with the
+    /// parent template. It is not charged once per fold or scenario.
+    pub source_market_bytes: usize,
 }
 
 impl BatchResult {
@@ -490,19 +493,6 @@ impl BatchResult {
             .map(|row| row.score.scenario)
             .collect()
     }
-}
-
-fn fingerprint_market(market: &FullMarketData) -> u64 {
-    let mut hash = 0xcbf2_9ce4_8422_2325_u64;
-    for timestamp in market.timestamps_ns.iter().copied() {
-        hash ^= timestamp as u64;
-        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    for close in market.closes.iter().copied() {
-        hash ^= close.to_bits();
-        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    hash ^ (market.n_symbols as u64)
 }
 
 #[cfg(test)]
@@ -626,7 +616,7 @@ mod tests {
     }
 
     #[test]
-    fn fold_batch_is_causal_and_reuses_one_oos_window_for_all_scenarios() {
+    fn fold_batch_is_causal_and_reuses_one_shared_oos_view_for_all_scenarios() {
         let template = template();
         let signal = [0.0, 1.0, 1.0, 0.0, -1.0];
         let params = [1.0, 0.0, 0.0, 0.0];
@@ -661,7 +651,23 @@ mod tests {
             .unwrap();
         assert_eq!(result.execution_bars, 3);
         assert_eq!(result.rows.rows.len(), 2);
-        assert!(result.market_window_bytes > 0);
+        assert_eq!(result.market_window_bytes, 0);
+        assert!(result.market_view_bytes > 0);
+        assert_eq!(result.source_market_bytes, template.market_bytes());
+        let folded = template
+            .for_fold(FoldPlan {
+                fold_id: 7,
+                warmup_start: 0,
+                train_start: 0,
+                train_end: 2,
+                test_start: 2,
+                test_end: 5,
+            })
+            .unwrap();
+        assert!(Arc::ptr_eq(
+            template.execution_template.market(),
+            folded.execution_template.market()
+        ));
         assert!(
             template
                 .for_fold(FoldPlan {

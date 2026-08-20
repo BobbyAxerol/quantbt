@@ -9,6 +9,7 @@ publish = false
 [dependencies]
 quantbt-domain = { path = "../quantbt-domain" }
 quantbt-engine = { path = "../quantbt-engine" }
+quantbt-execution = { path = "../quantbt-execution" }
 quantbt-strategy-ir = { path = "../quantbt-strategy-ir" }
 
 [lints]
