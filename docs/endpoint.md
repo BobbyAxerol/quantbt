@@ -1300,6 +1300,27 @@ matrix:
 | Native Strategy IR v1 and its shared batch/fold scorer | at least 2,000 bars |
 | Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
 
+### Choosing a stable event route
+
+Choose the route from the strategy's execution shape, not from a preference
+for a particular implementation language:
+
+| Need | Public route | Current execution authority |
+|---|---|---|
+| Arbitrary per-bar Python logic or dynamic reactive state | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Python |
+| Pre-built deterministic order timeline | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Rust only for a matching static tape at 10,000+ bars; otherwise Python |
+| Signal target, structural grid level, periodic DCA, or fixed bracket template | `NativeEventBackend.prepare_native_strategy_ir(...)` | Rust only for matching bounded IR at 2,000+ bars; otherwise Python |
+| Generic portfolio, basket, or arbitrage plan | Existing portfolio/arbitrage endpoint | Python/native-portfolio contract |
+| Linear `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
+
+The core PyPI package runs every row through Python without a native companion.
+When a compatible local companion is present, inspect
+`result.metadata["native_event_promotion_v1"]` rather than inferring the
+backend from whether `_quantbt_native` imports. It records the requested and
+resolved backend, policy-table version, matched rule, threshold, and fallback
+reason. This decision changes no fills, fees, funding, margin, or accounting
+semantics.
+
 Below a workload threshold, with an unsupported program/profile/contract, or
 when the wheel/capabilities do not match, `auto` uses Python and records a
 stable reason such as `below_promotion_min_bars`. `rust` remains an explicit,

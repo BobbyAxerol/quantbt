@@ -29,7 +29,7 @@ historical reproduction.
 - One public API for notebooks, services, portfolio research, and validation.
 - Native vectorized engines for fast sweeps and large parameter grids.
 - Native event-driven engines for market/limit orders, fills, baskets, and
-  arbitrage package execution.
+  package execution, with Rust auto-promotion limited to certified workloads.
 - Prepared service contexts for repeated signal/portfolio replays on the same
   market tape without re-normalizing pandas data each run.
 - Native portfolio engine with target weights, target notionals, target units,
@@ -83,6 +83,13 @@ event artifacts. For an upstream order planner, switch to
 `input_mode="orders"` and pass `order_commands=[...]`. The default `auto`
 backend follows the release policy; `rust` is an explicit request for the
 optional capability-gated native wheel.
+
+An arbitrary `strategy=...` callback remains a Python-authoritative route,
+including when `backend="auto"` and a local native wheel is installed. The
+current automatic Rust routes are a pre-built static V2/V3 command tape with
+at least 10,000 bars, or a bounded `NativeStrategyIR` request with at least
+2,000 bars. Inspect `result.metadata["native_event_promotion_v1"]` to see the
+resolved backend, threshold, policy rule, and fallback reason for every run.
 
 The compatibility default is the frozen
 `event_lifecycle_v2_next_bar_close` behavior. Select
@@ -229,14 +236,24 @@ selection semantics inside `walkforward.py`. Read
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
 
-### Phase 54B.2 Rust-first static, IR, and batch routes
+### Current governed Rust routes and benchmark evidence
+
+Rust is execution-authoritative only where the public request, accounting
+contract, installed-wheel parity corpus, and promotion policy have all been
+certified. The generated Stage-B policy has this deliberately narrow scope:
+
+| Route | Rust behavior with a matching local companion | Public default elsewhere |
+|---|---|---|
+| Static V2/V3 `OrderCommand` tape | `auto` at 10,000+ bars | Python |
+| Bounded Native Strategy IR, batch, causal-fold scorer | `auto` at 2,000+ bars | Python |
+| `run_portfolio_target_market(...)` | explicit Rust helper | no generic endpoint promotion |
+| `run_atomic_package_market(...)` | explicit Rust helper | no generic endpoint promotion |
+| Python callback/reactive, generic portfolio/basket/arbitrage/options | not promoted | Python |
 
 The bounded Rust strategy IR covers precomputed signal targets, structural
-Grid levels, periodic DCA, and fixed bracket/OCO transitions. The current
-generated Stage-B policy routes only certified static command tapes at 10,000+
-bars and bounded IR/batch requests at 2,000+ bars to Rust under
-`native_backend="auto"`. Python callbacks, reactive strategies, and generic
-portfolio/package/arbitrage execution remain Python compatibility routes.
+Grid levels, periodic DCA, and fixed bracket/OCO transitions. Python callbacks,
+reactive strategies, and generic portfolio/package/arbitrage execution remain
+Python compatibility routes by design.
 
 Phase 54B.3 also certifies two intentionally explicit Rust helpers,
 `run_portfolio_target_market(...)` and `run_atomic_package_market(...)`, for
@@ -275,7 +292,14 @@ evidence is in
 and the support boundary is in
 [`docs/native_strategy_ir.md`](docs/native_strategy_ir.md).
 
-### Phase 46F package and dual-backend release evidence
+Phase 54B.4 adds an installed-wheel release gate, rather than a new speed
+claim. It proves clean core-only fallback, exact core/native-pair handshake,
+promotion decisions, and Python/Rust accounting parity for every governed
+route. The public `quantbt-engine` wheel remains core-only until a separately
+approved native wheel release; see the
+[native release handoff](docs/migration/native_release_handoff.md).
+
+### Historical Phase 46F package and dual-backend release evidence
 
 The core distribution is packaged as `quantbt-engine` and imports as
 `quantbt`. Its release gate is independent from the optional experimental Rust

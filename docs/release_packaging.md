@@ -66,6 +66,34 @@ This is local evidence only: the normal TestPyPI/PyPI workflows intentionally
 build and publish `quantbt-engine` alone until the native release gate is
 separately promoted.
 
+## Release-Preparation Checklist
+
+Prepare every new core version in one small, reviewable release commit before
+creating its tag. Do not reuse an existing PyPI version or Git tag.
+
+1. Set the new version in `pyproject.toml`.
+2. Update the core version and exact-pair mapping in
+   `contracts/native_event_product_registry.json` when the staged native
+   companion remains part of local certification.
+3. Add the release entry to `CHANGELOG.md`.
+4. Regenerate committed product artifacts:
+
+   ```bash
+   poetry run python tools/generate_product_contracts.py
+   poetry run python tools/check_release_version.py
+   poetry run python tools/check_docs_links.py
+   ```
+
+5. Run the clean release gate from that exact commit, merge it to `main`, then
+   create the matching `vX.Y.Z` tag. The tag triggers **Native Release
+   Certification**; create the GitHub Release and approve PyPI publishing only
+   after its artifacts pass review.
+
+The normal public release remains core-only. A successful exact-pair
+certificate proves the companion's bounded local contract; it does not publish
+`quantbt-native`, enable generic endpoint auto-routing, or remove the Python
+oracle.
+
 ## Package Contract
 
 - PyPI distribution: `quantbt-engine`.
