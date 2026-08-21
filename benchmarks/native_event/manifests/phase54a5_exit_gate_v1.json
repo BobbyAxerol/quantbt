@@ -1,0 +1,74 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase54a5-exit-gate-v1",
+  "owner": "performance",
+  "promotion_policy": "informational_only_until_phase54b_workload_specific_installed_wheel_rss_and_rollback_gates_pass",
+  "product_registry_fingerprint": "9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "E0_TYPED_STATIC_DIRECT_AND_PREPARED",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "static_commands",
+      "profiles": [
+        "score"
+      ],
+      "fixture": "deterministic 2,000-bar one-symbol low/high-churn command tapes",
+      "baseline_path": "benchmarks/native_event/results/phase54a5/exit_gate.json",
+      "baseline_sha256": "508d13de3547b5556323f0f25f1d3c87ffc7e69c601af7a8e9ede4c130e93ddc",
+      "required_result_fields": [
+        "engine_median_seconds",
+        "adaptation_median_seconds",
+        "rss_steady_bytes",
+        "python_to_rust_calls_per_run",
+        "fingerprint",
+        "parity"
+      ]
+    },
+    {
+      "id": "E3_TYPED_NATIVE_IR",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "native_strategy_ir_v1",
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "fixture": "deterministic 2,000-bar one-symbol Grid IR signal",
+      "baseline_path": "benchmarks/native_event/results/phase54a5/exit_gate.json",
+      "baseline_sha256": "508d13de3547b5556323f0f25f1d3c87ffc7e69c601af7a8e9ede4c130e93ddc",
+      "required_result_fields": [
+        "engine_median_seconds",
+        "adaptation_median_seconds",
+        "rss_peak_process_bytes",
+        "python_to_rust_calls_per_run",
+        "fingerprint",
+        "parity"
+      ]
+    },
+    {
+      "id": "E6_TYPED_SHARED_BATCH",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "native_strategy_ir_v1_batch",
+      "profiles": [
+        "score"
+      ],
+      "fixture": "64 deterministic 2,000-bar Grid IR scenarios sharing one prepared market",
+      "baseline_path": "benchmarks/native_event/results/phase54a5/exit_gate.json",
+      "baseline_sha256": "508d13de3547b5556323f0f25f1d3c87ffc7e69c601af7a8e9ede4c130e93ddc",
+      "required_result_fields": [
+        "engine_median_seconds",
+        "rss_steady_bytes",
+        "python_to_rust_calls_per_batch",
+        "shared_market_copies_per_scenario",
+        "fingerprint",
+        "parity"
+      ]
+    }
+  ]
+}

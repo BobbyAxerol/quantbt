@@ -23,6 +23,7 @@ from .backends import (
     NativeVectorizedBackend,
     NativeVectorizedConfig,
 )
+from .api import execute_native_event_lifecycle
 from .core.orders import OrderAction, OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
@@ -56,6 +57,7 @@ class BacktestEngineV2:
         signals: Optional[Union[pd.Series, SeriesMap]] = None,
         backend: str = "native_vectorized",
         native_backend: Optional[str] = None,
+        backend_policy: Optional[str] = None,
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: float = 0.0,
@@ -69,8 +71,12 @@ class BacktestEngineV2:
         order_commands: Optional[Sequence[OrderCommand]] = None,
         strategy=None,
         event_engine_version: str = "v1",
+        execution_contract=None,
         reactive_execution_mode: str = "fast",
         reactive_kernel_mode: str = "replay_certified",
+        audit_mode: Optional[str] = None,
+        oracle_sample_rate: float = 0.0,
+        oracle_sample_seed: int = 0,
         report_level: str = "audit",
         audit_sink: str = "memory",
         audit_sink_path: Optional[str] = None,
@@ -100,6 +106,7 @@ class BacktestEngineV2:
 
         self.data = data
         self.native_backend = native_backend
+        self.backend_policy = backend_policy
         self.signals = signals
         self.account = account or AccountConfig(initial_capital=100_000.0)
         self.execution = execution or ExecutionConfig()
@@ -114,8 +121,12 @@ class BacktestEngineV2:
         self.order_commands = tuple(order_commands or ())
         self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
+        self.execution_contract = execution_contract
         self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
         self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
+        self.audit_mode = audit_mode
+        self.oracle_sample_rate = float(oracle_sample_rate)
+        self.oracle_sample_seed = int(oracle_sample_seed)
         self.report_level = str(report_level)
         self.audit_sink = str(audit_sink)
         self.audit_sink_path = audit_sink_path
@@ -209,21 +220,33 @@ class BacktestEngineV2:
 
     def _run_native_event(self) -> BacktestResultV2:
         idx, closes, highs, lows, symbols = self._market_data()
-        backend = NativeEventBackend(
-            NativeEventConfig(
-                account=self.account,
-                execution=self.execution,
-                fee_rate=self.fee_rate,
-                use_funding=self.use_funding,
-                report_level=self.report_level,
-                audit_sink=self.audit_sink,
-                audit_sink_path=self.audit_sink_path,
-                reactive_kernel_mode=self.reactive_kernel_mode,
-                native_backend=self.native_backend,
+
+        def make_compatibility_backend() -> NativeEventBackend:
+            return NativeEventBackend(
+                NativeEventConfig(
+                    account=self.account,
+                    execution=self.execution,
+                    fee_rate=self.fee_rate,
+                    use_funding=self.use_funding,
+                    report_level=self.report_level,
+                    audit_sink=self.audit_sink,
+                    audit_sink_path=self.audit_sink_path,
+                    reactive_kernel_mode=self.reactive_kernel_mode,
+                    audit_mode=self.audit_mode,
+                    oracle_sample_rate=self.oracle_sample_rate,
+                    oracle_sample_seed=self.oracle_sample_seed,
+                    native_backend=self.native_backend,
+                    backend_policy=self.backend_policy,
+                    execution_contract=(
+                        self.execution_contract
+                        if self.execution_contract is not None
+                        else "event_lifecycle_v2_next_bar_close"
+                    ),
+                )
             )
-        )
 
         if self.strategy is not None:
+            backend = make_compatibility_backend()
             opens, volumes = _market_open_volume(
                 data=self.data,
                 datetime_index=idx,
@@ -257,6 +280,7 @@ class BacktestEngineV2:
             )
 
         if self.basket is not None:
+            backend = make_compatibility_backend()
             basket_signal = self.signal if self.signal is not None else _first_signal(self.signals)
             if basket_signal is None:
                 raise ValueError("basket event backtest requires signal or signals")
@@ -280,7 +304,17 @@ class BacktestEngineV2:
                 min_notional=self.min_notional,
             )
 
-        if self.order_commands or self.event_engine_version in {"v2", "event_v2", "lifecycle", "lifecycle_v2"}:
+        if self.order_commands or self.event_engine_version in {
+            "v2",
+            "event_v2",
+            "lifecycle",
+            "lifecycle_v2",
+            "v3",
+            "event_v3",
+            "lifecycle_v3",
+            "event_lifecycle_v2_next_bar_close",
+            "event_lifecycle_v3_next_open",
+        }:
             commands = self.order_commands
             if not commands and self.orders:
                 commands = order_intents_to_lifecycle_commands(self.orders)
@@ -300,28 +334,52 @@ class BacktestEngineV2:
                     )
                 )
                 commands = order_intents_to_lifecycle_commands(generated_orders)
-            return backend.run_order_commands(
+            opens, volumes = _market_open_volume(
+                data=self.data,
+                datetime_index=idx,
+                closes=closes,
+                symbols=symbols,
+            )
+            outcome = execute_native_event_lifecycle(
                 datetime_index=idx,
                 commands=commands,
                 closes=closes,
                 highs=highs,
                 lows=lows,
+                opens=opens,
+                volumes=volumes,
                 funding_rate=self.funding_rate,
                 contract_size=self.contract_size,
                 leverage=self.leverage,
+                fee_rate=self.fee_rate,
                 symbols=symbols,
+                account=self.account,
+                execution=self.execution,
+                native_backend=self.native_backend,
+                backend_policy=self.backend_policy,
+                execution_contract=(
+                    self.execution_contract
+                    if self.execution_contract is not None
+                    else "event_lifecycle_v2_next_bar_close"
+                ),
+                report_level=self.report_level,
+                audit_sink=self.audit_sink,
+                audit_sink_path=self.audit_sink_path,
+                use_funding=self.use_funding,
                 instruments=self.instruments,
                 qty_step=self.qty_step,
                 lot_size=self.lot_size,
                 slot_size=self.slot_size,
                 min_qty=self.min_qty,
                 min_notional=self.min_notional,
-                report_level=self.report_level,
-                audit_sink=self.audit_sink,
-                audit_sink_path=self.audit_sink_path,
             )
+            self.execution_plan = outcome.preparation.prepared.plan
+            self.prepared_run = outcome.preparation.prepared
+            self.native_event_backend = outcome.engine
+            return outcome.result
 
         orders = self.orders
+        backend = make_compatibility_backend()
         if not orders:
             raw_positions = self.positions if self.positions is not None else self.signals
             if raw_positions is None:

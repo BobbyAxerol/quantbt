@@ -1,0 +1,110 @@
+{
+  "method": "warm prepared static tape; one PyO3 call per run; median wall time",
+  "phase": "53A",
+  "profiles": [
+    "score",
+    "compact",
+    "audit"
+  ],
+  "results": [
+    {
+      "bars": 2000,
+      "churn": "low",
+      "commands": 20,
+      "parity": {
+        "compact_audit_paths": true,
+        "score_compact_audit_accounting": true
+      },
+      "profiles": {
+        "audit": {
+          "bars_per_second": 655055.1418788558,
+          "event_count": 40,
+          "fill_count": 20,
+          "final_equity": 20000.848616866388,
+          "median_seconds": 0.0030531780794262886,
+          "profile": "audit",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 115040,
+          "rss_delta_bytes": 0
+        },
+        "compact": {
+          "bars_per_second": 1560006.8924135505,
+          "event_count": 40,
+          "fill_count": 20,
+          "final_equity": 20000.848616866388,
+          "median_seconds": 0.001282045617699623,
+          "profile": "compact",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 112000,
+          "rss_delta_bytes": 0
+        },
+        "score": {
+          "bars_per_second": 8187471.254989726,
+          "event_count": 40,
+          "fill_count": 20,
+          "final_equity": 20000.848616866388,
+          "median_seconds": 0.00024427566677331924,
+          "profile": "score",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 0,
+          "rss_delta_bytes": 0
+        }
+      },
+      "symbols": 1,
+      "workload": "E0_STATIC_EXPLICIT_COMMAND_TAPE"
+    },
+    {
+      "bars": 2000,
+      "churn": "high",
+      "commands": 1999,
+      "parity": {
+        "compact_audit_paths": true,
+        "score_compact_audit_accounting": true
+      },
+      "profiles": {
+        "audit": {
+          "bars_per_second": 81336.0055933843,
+          "event_count": 3998,
+          "fill_count": 1999,
+          "final_equity": 19992.15266350299,
+          "median_seconds": 0.024589356034994125,
+          "profile": "audit",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 415848,
+          "rss_delta_bytes": 1089536
+        },
+        "compact": {
+          "bars_per_second": 1044893.8715473841,
+          "event_count": 3998,
+          "fill_count": 1999,
+          "final_equity": 19992.15266350299,
+          "median_seconds": 0.0019140699878335,
+          "profile": "compact",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 112000,
+          "rss_delta_bytes": 0
+        },
+        "score": {
+          "bars_per_second": 2148059.327899877,
+          "event_count": 3998,
+          "fill_count": 1999,
+          "final_equity": 19992.15266350299,
+          "median_seconds": 0.0009310729801654816,
+          "profile": "score",
+          "pyo3_calls_per_run": 1,
+          "python_callbacks_per_run": 0,
+          "retained_output_bytes": 0,
+          "rss_delta_bytes": 0
+        }
+      },
+      "symbols": 1,
+      "workload": "E0_STATIC_EXPLICIT_COMMAND_TAPE"
+    }
+  ],
+  "schema_version": 1
+}

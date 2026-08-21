@@ -1,0 +1,62 @@
+{
+  "schema_version": "quantbt-native-execution-differential-corpus-v1",
+  "contract": "full-session-v1",
+  "description": "Deterministic lifecycle cases shared by the Python oracle, API 0.4 adapter, ABI 0.5 typed request, and prepared runner.",
+  "cases": [
+    {
+      "id": "multisymbol_parent_oco_funding",
+      "market": {
+        "start": "2026-01-01T00:00:00Z",
+        "frequency": "1h",
+        "bars": 16,
+        "symbols": [
+          {"symbol": "BTC", "base": 100.0, "step": 0.25, "open_offset": -0.10, "high_spread": 2.0, "low_spread": 2.0, "funding": [{"bar": 8, "rate": 0.001}]},
+          {"symbol": "ETH", "base": 200.0, "step": -0.10, "open_offset": 0.10, "high_spread": 2.0, "low_spread": 2.0, "funding": [{"bar": 8, "rate": 0.001}]}
+        ]
+      },
+      "account": {
+        "initial_capital": 10000.0,
+        "leverage": 5.0,
+        "maintenance_ratio": 0.005,
+        "fee_rate": 0.0002,
+        "slippage_bps": 2.0,
+        "use_funding": true,
+        "event_contract": "event_lifecycle_v3_next_open"
+      },
+      "commands": [
+        {"bar": 1, "symbol": "BTC", "side": "buy", "order_type": "market", "qty": 2.0, "order_id": "entry-btc"},
+        {"bar": 1, "symbol": "ETH", "side": "sell", "order_type": "market", "qty": 1.0, "order_id": "entry-eth"},
+        {"bar": 1, "symbol": "BTC", "side": "sell", "order_type": "limit", "qty": 2.0, "price": 100.25, "reduce_only": true, "order_id": "tp-btc", "parent_order_id": "entry-btc", "activation_policy": "on_parent_first_fill", "oco_group_id": "exit-btc"},
+        {"bar": 1, "symbol": "BTC", "side": "sell", "order_type": "stop_market", "qty": 2.0, "trigger_price": 99.0, "reduce_only": true, "order_id": "sl-btc", "parent_order_id": "entry-btc", "activation_policy": "on_parent_first_fill", "oco_group_id": "exit-btc"}
+      ],
+      "expect": {"minimum_fills": 3, "minimum_events": 9, "minimum_canceled": 1, "minimum_rejected": 0, "funding_nonzero": true}
+    },
+    {
+      "id": "ioc_gtd_cancel_and_reduce_only_rejection",
+      "market": {
+        "start": "2026-02-01T00:00:00Z",
+        "frequency": "1h",
+        "bars": 12,
+        "symbols": [
+          {"symbol": "BTC", "base": 100.0, "step": 0.20, "open_offset": -0.05, "high_spread": 1.5, "low_spread": 1.5, "funding": []}
+        ]
+      },
+      "account": {
+        "initial_capital": 1000.0,
+        "leverage": 2.0,
+        "maintenance_ratio": 0.005,
+        "fee_rate": 0.0005,
+        "slippage_bps": 1.0,
+        "use_funding": false,
+        "event_contract": "event_lifecycle_v3_next_open"
+      },
+      "commands": [
+        {"bar": 1, "symbol": "BTC", "side": "buy", "order_type": "limit", "qty": 1.0, "price": 1.0, "tif": "ioc", "order_id": "ioc-unfilled"},
+        {"bar": 1, "symbol": "BTC", "side": "buy", "order_type": "limit", "qty": 1.0, "price": 1.0, "tif": "gtd", "expires_bar": 5, "order_id": "gtd-expire"},
+        {"bar": 2, "symbol": "BTC", "side": "sell", "order_type": "market", "qty": 1.0, "reduce_only": true, "order_id": "bad-reduce"},
+        {"bar": 3, "action": "cancel_all", "symbol": "BTC", "order_id": "cancel-all"}
+      ],
+      "expect": {"minimum_fills": 0, "minimum_events": 6, "minimum_canceled": 2, "minimum_rejected": 0, "nonzero_reject_code": true, "funding_nonzero": false}
+    }
+  ]
+}

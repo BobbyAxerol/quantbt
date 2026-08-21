@@ -1,0 +1,64 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-e0-e3-e6-v1",
+  "owner": "performance",
+  "promotion_policy": "informational_only_until_installed_wheel_thresholds_and_rollback_are_certified",
+  "product_registry_fingerprint": "9f8e00ed6c6034de820859f39d82226bff36d297dde0fa2d53f060a71a1a7cc8",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "E0_NATIVE_STATIC_TAPE",
+      "contract_ids": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "static_commands",
+      "profiles": ["score", "compact", "audit"],
+      "fixture": "deterministic 2,000-bar one-symbol tape",
+      "baseline_path": "benchmarks/native_event/results/phase53a/e0_profiles.json",
+      "baseline_sha256": "4efac30681c99d3ad289df59926bb551de0f28a53a29f34a77312820efd175da",
+      "required_result_fields": [
+        "bars_per_second",
+        "event_count",
+        "fill_count",
+        "parity"
+      ]
+    },
+    {
+      "id": "E3_NATIVE_STRATEGY_IR",
+      "contract_ids": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "ir_v1",
+      "profiles": ["score", "audit"],
+      "fixture": "deterministic 2,000-bar one-symbol IR tape",
+      "baseline_path": "benchmarks/native_event/results/phase53b/native_drivers.json",
+      "baseline_sha256": "599ee8b75a7fe74f80a3d955da9c5cf408533e8b77360f4ee6a4b9d60cca41bd",
+      "required_result_fields": [
+        "median_seconds",
+        "bars_per_second",
+        "pyo3_calls_per_run",
+        "parity"
+      ]
+    },
+    {
+      "id": "E6_BATCH_OPTIMIZER_WFO",
+      "contract_ids": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "ir_v1_batch",
+      "profiles": ["score", "audit"],
+      "fixture": "64 deterministic 2,000-bar IR scenarios sharing one prepared market",
+      "baseline_path": "benchmarks/native_event/results/phase53b/native_drivers.json",
+      "baseline_sha256": "599ee8b75a7fe74f80a3d955da9c5cf408533e8b77360f4ee6a4b9d60cca41bd",
+      "required_result_fields": [
+        "simulated_bars_per_second",
+        "pyo3_calls_per_batch",
+        "shared_market_copies_per_scenario",
+        "parity"
+      ]
+    }
+  ]
+}

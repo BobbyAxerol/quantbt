@@ -4,6 +4,11 @@ Phase 46D follows sections 6–9 and patches F4/F5 of the dual-backend guide.
 It reduces avoidable allocation and ownership overhead without changing the
 public event contract or silently changing execution semantics.
 
+> Historical implementation note: this document describes the R2 reactive
+> order table. Phase 53A supersedes its terminal tombstone-compaction mechanism
+> for the full static-tape engine with a generation-safe arena and lifecycle
+> indexes. The public API 0.4 contract remains unchanged.
+
 ## Ownership contract
 
 `PreparedMarketCore` copies the validated NumPy inputs exactly once into

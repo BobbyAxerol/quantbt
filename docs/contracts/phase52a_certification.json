@@ -1,0 +1,68 @@
+{
+  "baseline_commit": "bc75fbf",
+  "certification": "phase52a-planning-preparation-spi-v1",
+  "cold_import": {
+    "baseline_median_ms": 1307.411,
+    "phase52a_median_ms": 1383.989,
+    "regression_pct": 5.857,
+    "runs_per_variant": 8,
+    "scope": "quantbt.planning + quantbt.engine_spi.protocol + quantbt.results.raw"
+  },
+  "dependency_contract": {
+    "circular_imports": 0,
+    "engine_spi_pandas_imports": 0,
+    "lazy_native_auto": true,
+    "planning_forbidden_imports": 0,
+    "raw_results_pandas_imports": 0
+  },
+  "installed_wheel": {
+    "accounting_audit_passed": true,
+    "auto_native_lazy": true,
+    "command_compilations": 1,
+    "instrument_normalizations": 1,
+    "market_normalizations": 1,
+    "output_projections": 1,
+    "passed": true,
+    "trace_replay_passed": true,
+    "wheel_module_path_passed": true
+  },
+  "parity": {
+    "accounting_invariants": "pass",
+    "canonical_trace_fingerprint": "exact",
+    "equity": "exact",
+    "fees": "exact",
+    "fills": "exact",
+    "funding": "exact",
+    "margin": "exact",
+    "positions": "exact",
+    "python_rust_raw_spi": "exact"
+  },
+  "phase_scope": {
+    "included": [
+      "immutable BacktestRequest and ExecutionPlan",
+      "one-pass static lifecycle preparation",
+      "equal Python/Rust backend SPI",
+      "pandas-free RawEngineResult",
+      "one compiled OutputRequirements projection",
+      "static lifecycle endpoint compatibility route"
+    ],
+    "remaining_for_phase52b": [
+      "reactive callback context projection",
+      "reusable command writer",
+      "Rust authoritative callback state",
+      "streaming audit ownership",
+      "prepared session cache and reset lifetime",
+      "basket and package planning migration"
+    ]
+  },
+  "tests": {
+    "phase52a_focused": {
+      "passed": 16,
+      "skipped": 0
+    },
+    "phase52a_regression_gate": {
+      "passed": 129,
+      "skipped": 0
+    }
+  }
+}

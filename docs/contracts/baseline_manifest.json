@@ -1,0 +1,51 @@
+{
+  "manifest_version": 1,
+  "captured_at_utc": "2026-08-19T00:00:00Z",
+  "p0_baseline_sha": "16fc4fe830c749330c3dce3d7de5f8a8975c6f43",
+  "branch": "feat/51-native-rust-production-core",
+  "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+  "python": "3.12.13",
+  "numpy": "2.2.6",
+  "pandas": "2.3.3",
+  "numba": "0.65.1",
+  "rustc": "1.97.1",
+  "cargo": "1.97.1",
+  "poetry": "2.3.4",
+  "quantbt_engine": "1.0.8",
+  "native_package": "0.4.0",
+  "native_api": "0.4",
+  "native_extension_sha256": "da0435d334430b6bdbf585e428bc0f2417f67d16c36ca84ba0eecfe96999ec4f",
+  "native_extension_bytes": 731592,
+  "capability_fingerprint": "108743a04b970e01531487ad907e87367d3510f0c9fa9f2acf03e3ea214a2835",
+  "contract_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "contract_ids": [
+    "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v3_next_open"
+  ],
+  "baseline_tests": {
+    "release_shards": {
+      "passed": 745,
+      "skipped": 3,
+      "failed": 0,
+      "command": "poetry run python tools/run_test_shards.py --profile release --max-files-per-shard 8"
+    },
+    "rust_unit": {
+      "passed": 0,
+      "failed": 0,
+      "note": "The baseline crate contained no Rust unit tests; Phase 51A adds generated-contract and fill-policy tests."
+    }
+  },
+  "fixture_hashes": {
+    "market_single_symbol.json": "3d4ae1b56acecd023170d292aa740d1381cbb62f5b9b95e78451e7755867f906",
+    "commands_single_symbol.json": "781beb0e6c209d6934de673e1ccb08dcd42cbfddcdc1cc8caf4af30dbbac59bd",
+    "native_event_contract_registry.json": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa"
+  },
+  "archived_benchmark": {
+    "source": "benchmarks/native_event/results/pre48e/after.json",
+    "bars": 2000,
+    "explicit_python_score_bars_per_second": 106475.29401101783,
+    "explicit_rust_score_bars_per_second": 2075634.5212303507,
+    "explicit_python_audit_bars_per_second": 256878.50798084837,
+    "explicit_rust_audit_bars_per_second": 821591.0209269148
+  }
+}

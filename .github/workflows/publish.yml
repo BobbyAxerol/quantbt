@@ -41,6 +41,17 @@ jobs:
       - name: Test
         run: .venv/bin/python tools/run_test_shards.py --profile ci-core
 
+      - name: P3 source, registry, and public API gates
+        if: matrix.python-version == '3.12'
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_module_architecture.py
+          .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/check_docs_links.py
+
       - name: Build
         run: uv build
 
@@ -71,7 +82,7 @@ jobs:
 
       - name: Build package
         run: |
-          rm -rf dist release-manifest.json
+          rm -rf dist release-manifest.json release-evidence
           uv build
 
       - name: Validate distribution metadata
@@ -90,11 +101,15 @@ jobs:
           python "$GITHUB_WORKSPACE/tools/check_release_artifacts.py" --dist "$GITHUB_WORKSPACE/dist"
 
       - name: Create release manifest
-        run: >-
-          uv run python tools/create_release_manifest.py
-          --dist dist
-          --output release-manifest.json
-          --require-clean
+        run: |
+          uv run python tools/create_supply_chain_report.py --output release-evidence/supply-chain.json
+          uv run python tools/create_sbom.py --output release-evidence/sbom.cdx.json
+          uv run python tools/create_release_manifest.py \
+            --dist dist \
+            --output release-manifest.json \
+            --supply-chain-report release-evidence/supply-chain.json \
+            --sbom release-evidence/sbom.cdx.json \
+            --require-clean
 
       - name: Clean wheel install smoke
         shell: bash
@@ -142,6 +157,13 @@ jobs:
         with:
           name: pypi-release-manifest
           path: release-manifest.json
+          if-no-files-found: error
+
+      - name: Upload supply-chain evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-supply-chain-evidence
+          path: release-evidence/*
           if-no-files-found: error
 
   publish:

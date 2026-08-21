@@ -1,0 +1,107 @@
+{
+  "schema": "quantbt-native-deletion-manifest-v1",
+  "phase": "54B.4",
+  "root_source_policy": "retained_byte_identity_gated_until_separate_approved_breaking_cleanup",
+  "candidates": [
+    {
+      "id": "root_python_mirror",
+      "paths": [
+        "__init__.py",
+        "endpoint.py",
+        "walkforward.py",
+        "backends",
+        "core"
+      ],
+      "state": "retained",
+      "deletion_approved": false,
+      "replacement": "src/quantbt is the authoritative wheel source; the root tree remains a checked Pool Alpha compatibility mirror.",
+      "replacement_paths": [
+        "src/quantbt"
+      ],
+      "migration_docs": [
+        "docs/release_packaging.md",
+        "docs/migration/native_release_handoff.md"
+      ],
+      "tests": [
+        "tests/test_phase42_packaging_layout.py",
+        "tests/test_phase45a_source_tree_sync.py"
+      ],
+      "compatibility_window": "Until a separately approved breaking cleanup validates editable, wheel, and Pool Alpha path-import migration.",
+      "rollback": "tools/sync_source_mirror.py --src-to-root restores the checked compatibility mirror; never merge both trees automatically.",
+      "owner": "packaging"
+    },
+    {
+      "id": "legacy_rust_abi_constants",
+      "paths": [
+        "rust/crates/quantbt-engine/src/legacy"
+      ],
+      "state": "retained",
+      "deletion_approved": false,
+      "replacement": "FullSession and typed ABI-0.5 execution own runtime state; legacy.rs retains only frozen compatibility constants for the documented API window.",
+      "replacement_paths": [
+        "rust/crates/quantbt-engine/src/session.rs"
+      ],
+      "migration_docs": [
+        "docs/architecture/native-rust.md",
+        "docs/migration/native_release_handoff.md"
+      ],
+      "tests": [
+        "tests/native_event/test_phase54a5_one_rust_execution_core.py",
+        "tests/native_event/contract/test_phase54b2_rust_first_routes.py"
+      ],
+      "compatibility_window": "Retain through the API-0.4 translator window and remove only with an explicit ABI deprecation release.",
+      "rollback": "Use the documented Python oracle or the retained translator constants; do not remove the module while any public adapter imports it.",
+      "owner": "native-event"
+    },
+    {
+      "id": "python_event_oracle_and_public_adapters",
+      "paths": [
+        "src/quantbt/backends/native_event.py",
+        "src/quantbt/backends/_native_event_rust.py"
+      ],
+      "state": "retained",
+      "deletion_approved": false,
+      "replacement": "Rust FullSession is authoritative only for certified native requests; the Python event backend remains the explicit oracle, fallback, and compatibility route.",
+      "replacement_paths": [
+        "rust/crates/quantbt-engine/src/session.rs",
+        "rust/crates/quantbt-execution/src/lib.rs"
+      ],
+      "migration_docs": [
+        "docs/native/capabilities.md",
+        "docs/migration/native_release_handoff.md"
+      ],
+      "tests": [
+        "tests/native_event/contract/test_phase54b2_rust_first_routes.py",
+        "tests/native_event/test_phase54a5_differential_corpus.py"
+      ],
+      "compatibility_window": "Indefinite while Python is the required executable oracle and emergency rollback route.",
+      "rollback": "Set native_backend='python' or QUANTBT_DISABLE_NATIVE=1; no execution contract or accounting policy changes.",
+      "owner": "correctness"
+    },
+    {
+      "id": "generic_portfolio_and_package_python_routes",
+      "paths": [
+        "src/quantbt/backends/native_portfolio.py",
+        "src/quantbt/backends/native_portfolio_package.py"
+      ],
+      "state": "deferred",
+      "deletion_approved": false,
+      "replacement": "Only bounded target_units and same-bar atomic package helpers have a Rust contract. Generic allocation, risk parity, cross-margin, and non-atomic package policies remain Python by design.",
+      "replacement_paths": [
+        "src/quantbt/backends/native_portfolio_package.py"
+      ],
+      "migration_docs": [
+        "docs/endpoint.md",
+        "docs/native_event_rust_full_contract.md",
+        "docs/migration/native_release_handoff.md"
+      ],
+      "tests": [
+        "tests/native_event/contract/test_phase54b3_portfolio_package_promotion.py",
+        "tests/test_phase11_native_portfolio_full_surface.py"
+      ],
+      "compatibility_window": "No deletion candidate until each generic portfolio/package policy has its own Rust request, Python oracle corpus, public-result parity, and rollback evidence.",
+      "rollback": "Keep the existing endpoint route on Python; the bounded Rust helpers are explicit and do not change generic endpoint defaults.",
+      "owner": "portfolio-package"
+    }
+  ]
+}

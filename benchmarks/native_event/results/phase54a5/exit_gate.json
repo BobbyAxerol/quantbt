@@ -1,0 +1,206 @@
+{
+  "e0": {
+    "high_churn": {
+      "bars": 2000,
+      "churn": "high",
+      "commands": 1999,
+      "direct_typed_score": {
+        "adaptation_median_seconds": 2.588331699371338e-05,
+        "bars_per_second": 1070559.5856317098,
+        "canceled_count": 0,
+        "engine_median_seconds": 0.001868181861937046,
+        "event_count": 3998,
+        "fill_count": 1999,
+        "final_equity": 19992.149810966308,
+        "fingerprint": "1cfe8372453ed64467ddf3367787c3f7508aa039f685859a3be417c7439aac5d",
+        "input_copies_per_run": 0,
+        "python_callbacks_per_run": 0,
+        "python_to_rust_calls_per_run": 1,
+        "rejected_count": 0,
+        "rss_before_bytes": 196706304,
+        "rss_delta_bytes": 0,
+        "rss_peak_process_bytes": 196706304,
+        "rss_steady_bytes": 196706304,
+        "total_fee": 4.3982021449726805,
+        "total_turnover": 21991.010724863445
+      },
+      "parity": {
+        "audit_replay_forced": false,
+        "direct_vs_prepared_score_exact": true
+      },
+      "prepared_runner_score": {
+        "adaptation_median_seconds": 2.443511039018631e-05,
+        "bars_per_second": 1200541.854086793,
+        "cache_ingress_copy_count": 0,
+        "cache_resident_bytes": 449872,
+        "canceled_count": 0,
+        "engine_median_seconds": 0.0016659144312143326,
+        "event_count": 3998,
+        "fill_count": 1999,
+        "final_equity": 19992.149810966308,
+        "fingerprint": "1cfe8372453ed64467ddf3367787c3f7508aa039f685859a3be417c7439aac5d",
+        "input_copies_per_run": 0,
+        "python_callbacks_per_run": 0,
+        "python_to_rust_calls_per_run": 1,
+        "rejected_count": 0,
+        "rss_before_bytes": 196976640,
+        "rss_delta_bytes": 0,
+        "rss_peak_process_bytes": 196976640,
+        "rss_steady_bytes": 196976640,
+        "total_fee": 4.3982021449726805,
+        "total_turnover": 21991.010724863445
+      },
+      "symbols": 1,
+      "workload": "E0_STATIC_EXPLICIT_COMMAND_TAPE"
+    },
+    "low_churn": {
+      "bars": 2000,
+      "churn": "low",
+      "commands": 20,
+      "direct_typed_score": {
+        "adaptation_median_seconds": 8.897855877876282e-06,
+        "bars_per_second": 6365404.092860023,
+        "canceled_count": 0,
+        "engine_median_seconds": 0.00031419843435287476,
+        "event_count": 40,
+        "fill_count": 20,
+        "final_equity": 20000.845087854395,
+        "fingerprint": "74d215c9c428517b40fc35cdc5e08ef47db1bba1c1977a9ff9d6e89412837fa0",
+        "input_copies_per_run": 0,
+        "python_callbacks_per_run": 0,
+        "python_to_rust_calls_per_run": 1,
+        "rejected_count": 0,
+        "rss_before_bytes": 194482176,
+        "rss_delta_bytes": 0,
+        "rss_peak_process_bytes": 194482176,
+        "rss_steady_bytes": 194482176,
+        "total_fee": 0.04376024572675423,
+        "total_turnover": 218.80122863377113
+      },
+      "parity": {
+        "audit_replay_forced": false,
+        "direct_vs_prepared_score_exact": true
+      },
+      "prepared_runner_score": {
+        "adaptation_median_seconds": 5.2480027079582214e-06,
+        "bars_per_second": 6569538.66956269,
+        "cache_ingress_copy_count": 0,
+        "cache_resident_bytes": 133232,
+        "canceled_count": 0,
+        "engine_median_seconds": 0.0003044353798031807,
+        "event_count": 40,
+        "fill_count": 20,
+        "final_equity": 20000.845087854395,
+        "fingerprint": "74d215c9c428517b40fc35cdc5e08ef47db1bba1c1977a9ff9d6e89412837fa0",
+        "input_copies_per_run": 0,
+        "python_callbacks_per_run": 0,
+        "python_to_rust_calls_per_run": 1,
+        "rejected_count": 0,
+        "rss_before_bytes": 194482176,
+        "rss_delta_bytes": 0,
+        "rss_peak_process_bytes": 194482176,
+        "rss_steady_bytes": 194482176,
+        "total_fee": 0.04376024572675423,
+        "total_turnover": 218.80122863377113
+      },
+      "symbols": 1,
+      "workload": "E0_STATIC_EXPLICIT_COMMAND_TAPE"
+    }
+  },
+  "e3": {
+    "bars": 2000,
+    "commands": 87,
+    "parity": {
+      "audit_replay_forced": false,
+      "python_oracle_vs_rust_audit": true
+    },
+    "python_reference": {
+      "adaptation_median_seconds": 0.0016714902594685555,
+      "bars_per_second": 422026.6884045639,
+      "engine_median_seconds": 0.004739036783576012,
+      "python_callbacks_per_run": 0,
+      "python_to_rust_calls_per_run": 0,
+      "result_fingerprint": "3be65ace8dbd943d61f73a64942a3dc0c2e75e15f0e9b070890e054b9c1d956a",
+      "rss_before_bytes": 254693376,
+      "rss_delta_bytes": 1064960,
+      "rss_peak_process_bytes": 255758336,
+      "rss_steady_bytes": 255758336
+    },
+    "rust_ir_score": {
+      "adaptation_median_seconds": 3.818422555923462e-07,
+      "bars_per_second": 5991478.359368679,
+      "engine_median_seconds": 0.00033380743116140366,
+      "final_equity": 19993.645627525602,
+      "fingerprint": "8c0b743e68a82133be22f09076a3830915be06cec0e8936517cfbb66fc362266",
+      "input_copies_per_run": 0,
+      "python_callbacks_per_run": 0,
+      "python_to_rust_calls_per_run": 1,
+      "rss_before_bytes": 255758336,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 255758336,
+      "rss_steady_bytes": 255758336,
+      "total_fee": 0.8979657773796897
+    },
+    "strategy_kind": "grid_level",
+    "workload": "E3_NATIVE_STRATEGY_IR"
+  },
+  "e6": {
+    "bars": 2000,
+    "parity": {
+      "selected_audit_deferred": true,
+      "serial_vs_shared_batch_exact": true
+    },
+    "scenarios": 64,
+    "serial_native_scenarios": {
+      "adaptation_median_seconds": 5.153939127922058e-06,
+      "engine_median_seconds": 0.02308413665741682,
+      "python_callbacks_per_run": 0,
+      "python_to_rust_calls_per_batch": 64,
+      "result_fingerprint": "dd72059202d3b820f2c36be053944bea54948bd5967c3e214b16cd661a534304",
+      "rss_before_bytes": 257798144,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 258785280,
+      "rss_steady_bytes": 257798144,
+      "simulated_bars_per_second": 5544933.384323656
+    },
+    "shared_native_batch": {
+      "actual_workers": 2,
+      "adaptation_median_seconds": 1.5393830835819244e-05,
+      "engine_median_seconds": 0.01171256322413683,
+      "python_callbacks_per_run": 0,
+      "python_to_rust_calls_per_batch": 1,
+      "requested_workers": 2,
+      "result_fingerprint": "dd72059202d3b820f2c36be053944bea54948bd5967c3e214b16cd661a534304",
+      "rss_before_bytes": 258539520,
+      "rss_delta_bytes": 0,
+      "rss_peak_process_bytes": 258785280,
+      "rss_steady_bytes": 258539520,
+      "shared_market_copies_per_scenario": 0,
+      "simulated_bars_per_second": 10928436.205682306
+    },
+    "workload": "E6_BATCH_OPTIMIZER_WFO"
+  },
+  "method": "warm prepared native workloads; median wall time; engine and explicit cold adaptation recorded separately",
+  "not_promoted_workloads": {
+    "E1_CALLBACK": {
+      "measurement_status": "not_native_promotion_scope",
+      "reason": "Arbitrary every-bar Python callbacks retain an intentional Python callback boundary."
+    },
+    "E2_SPARSE_CALLBACK": {
+      "measurement_status": "not_native_promotion_scope",
+      "reason": "Sparse callback/session behavior is compatibility infrastructure, not a one-call typed score route."
+    },
+    "E4_PORTFOLIO": {
+      "measurement_status": "not_native_promotion_scope",
+      "reason": "Typed portfolio preflight has parity tests, but no promoted endpoint-level full native portfolio execution benchmark."
+    },
+    "E5_PACKAGE": {
+      "measurement_status": "not_native_promotion_scope",
+      "reason": "Typed package preflight has parity tests, but no promoted endpoint-level package execution benchmark."
+    }
+  },
+  "phase": "54A.5.6",
+  "promotion_eligible": false,
+  "promotion_reason": "Phase 54A.5.6 closes differential evidence only; workload-specific Phase 54B promotion gates remain required.",
+  "schema_version": 1
+}

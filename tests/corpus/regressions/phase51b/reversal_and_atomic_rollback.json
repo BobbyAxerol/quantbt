@@ -1,0 +1,24 @@
+{
+  "schema_version": "phase51b-regression-corpus-v1",
+  "accounting": {
+    "initial_position": 2.0,
+    "average_entry": 100.0,
+    "signed_fill_qty": -3.0,
+    "fill_price": 110.0,
+    "contract_size": 10.0,
+    "expected_position": -1.0,
+    "expected_average_entry": 110.0,
+    "expected_realized_pnl": 200.0
+  },
+  "package": {
+    "policy": "atomic_all_or_none",
+    "available_equity": 1000.0,
+    "max_staleness_ns": 100,
+    "legs": [
+      {"leg_id": "primary", "symbol": "BTC-PERP", "signed_qty": 1.0, "price": 100.0, "initial_margin": 50.0, "source_age_ns": 0},
+      {"leg_id": "hedge", "symbol": "BTC-QUARTER", "signed_qty": -1.0, "price": 102.0, "initial_margin": 50.0, "source_age_ns": 101}
+    ],
+    "expected_final_state": "ABORTED",
+    "expected_fill_count": 0
+  }
+}

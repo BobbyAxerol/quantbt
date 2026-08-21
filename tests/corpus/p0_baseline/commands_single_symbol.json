@@ -1,0 +1,16 @@
+{
+  "commands": [
+    {"bar": 1, "action": "PLACE", "order_id": "market-buy", "side": "BUY", "order_type": "MARKET", "qty": 1.0, "tif": "GTC"},
+    {"bar": 2, "action": "PLACE", "order_id": "limit-sell", "side": "SELL", "order_type": "LIMIT", "qty": 0.25, "price": 113.0, "tif": "GTC"},
+    {"bar": 3, "action": "PLACE", "order_id": "stop-sell", "side": "SELL", "order_type": "STOP_MARKET", "qty": 0.25, "trigger_price": 95.0, "tif": "GTC"},
+    {"bar": 4, "action": "CANCEL", "target_order_id": "stop-sell"}
+  ],
+  "account": {
+    "initial_capital": 10000.0,
+    "leverage": 5.0,
+    "maintenance_ratio": 0.005,
+    "fee_rate_one_way": 0.0005,
+    "slippage_rate": 0.001,
+    "contract_size": 1.0
+  }
+}

@@ -40,6 +40,17 @@ jobs:
         # matrix; it has its own gate and creates avoidable RSS pressure.
         run: uv sync --locked --extra optimization --extra reports --extra viz --dev
 
+      - name: P3 source, registry, and public API gates
+        if: matrix.python-version == '3.12'
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_module_architecture.py
+          .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/check_docs_links.py
+
       - name: Test
         run: .venv/bin/python tools/run_test_shards.py --profile ci-core
 
@@ -76,6 +87,9 @@ jobs:
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
           /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
+
+      - name: Verify source-to-wheel module parity
+        run: .venv/bin/python tools/verify_wheels.py --dist dist
 
       - name: Pool Alpha import compatibility smoke
         run: uv run python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"

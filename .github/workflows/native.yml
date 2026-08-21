@@ -43,6 +43,16 @@ jobs:
         # every CPython matrix job.
         run: uv sync --locked --extra optimization --dev
 
+      - name: P3 source, registry, and public API gates
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_module_architecture.py
+          .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/check_docs_links.py
+
       - name: Rust format, lint, and tests
         working-directory: rust/native_event
         run: |
@@ -77,6 +87,13 @@ jobs:
           import _quantbt_native
 
           assert _quantbt_native.api_version() == "0.4"
+          descriptor = _quantbt_native.semantic_descriptor()
+          product = _quantbt_native.product_descriptor()
+          assert descriptor["trace_schema"] == "canonical-execution-trace-v1"
+          assert descriptor["command_abi"] == "full-command-v1"
+          assert descriptor["core_protocol_min"] <= 1 <= descriptor["core_protocol_max"]
+          assert product["result_abi"] == "native-event-result-v1"
+          assert product["strategy_ir"] == "native-strategy-ir-v1"
           required = {
               "native_event_v2_full_contract",
               "native_event_v2_multisymbol",
@@ -96,8 +113,25 @@ jobs:
           print("Native Event API 0.4 capabilities: PASS")
           PY
 
+      - name: Verify staged core/native pair and source parity
+        shell: bash
+        run: |
+          mkdir -p dist/staged
+          cp dist/core/*.whl dist/core/*.tar.gz dist/native/*.whl dist/staged/
+          .venv/bin/python tools/verify_wheels.py --dist dist/staged --require-native
+
+      # The P0 contracts execute explicit-Rust oracle paths. Keep this clean
+      # CI environment aligned with the staged-pair gate before running them.
       - name: Install native wheel into core test environment
         run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+
+      - name: P0 ledger, numeric, trace, and transaction contracts
+        run: |
+          .venv/bin/python -m pytest -q \
+            tests/native_event/contract/test_phase51b_accounting_numeric.py \
+            tests/native_event/contract/test_phase51b_trace_replay.py \
+            tests/native_event/contract/test_phase51b_portfolio_package.py \
+            tests/native_event/contract/test_phase51b_capability_wheel.py
 
       - name: Native Event full suite
         run: .venv/bin/python -m pytest -q tests/native_event

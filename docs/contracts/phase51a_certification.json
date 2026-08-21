@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "phase": "51A",
+  "branch": "feat/51-native-rust-production-core",
+  "baseline_sha": "16fc4fe830c749330c3dce3d7de5f8a8975c6f43",
+  "baseline_contract_commit": "6ad91e9",
+  "execution_contract_commit": "21ce4df",
+  "audit_outcome_commit": "aca6e55",
+  "audit_projection_optimization_commit": "1bdd454",
+  "lifecycle_transition_commit": "30c7cb4",
+  "contract_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "native_extension": {
+    "package_version": "0.4.0",
+    "api_version": "0.4",
+    "cpython": "3.12.13",
+    "bytes": 739936,
+    "sha256": "ecc01d857d1b3451c687530d4a194595dcb3dce8c9a4230836bf704dc6997702"
+  },
+  "clean_installed_wheels": {
+    "core": {
+      "filename": "quantbt_engine-1.0.8-py3-none-any.whl",
+      "sha256": "fbcd95ee307412690d9bd53aedd480998bff752e4dee84c44a6db682cc976d55"
+    },
+    "native": {
+      "filename": "quantbt_native-0.4.0-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "b0eee224deca3b807ef09896f2cafae17470f43fdc1a5b1456e3d36e1d34ea4f"
+    },
+    "isolated_import_and_v2_v3_python_rust_smoke": "PASS",
+    "isolated_command_outcome_parity": "PASS"
+  },
+  "contracts": {
+    "event_lifecycle_v2_next_bar_close": "LEGACY_FROZEN",
+    "event_lifecycle_v3_next_open": "CERTIFIED_CURRENT"
+  },
+  "targeted_tests": {
+    "phase51a_contract_tree": {"passed": 43, "failed": 0},
+    "phase51a_and_lifecycle_focus": {"passed": 90, "failed": 0},
+    "native_event_tree": {"passed": 113, "skipped": 2, "failed": 0},
+    "phase30_and_phase34": {"passed": 47, "failed": 0},
+    "grid_and_zero_object": {"passed": 14, "failed": 0},
+    "facade_and_release": {"passed": 29, "failed": 0},
+    "rust_unit": {"passed": 8, "failed": 0},
+    "release_shards": {"passed": 779, "skipped": 3, "failed": 0}
+  },
+  "benchmark": "../../benchmarks/native_event/results/phase51a/contracts.json",
+  "claims": [
+    "V2 preserves effective-bar close execution and ignores open for fill decisions.",
+    "V3 reads actual open prices and has Python/Rust parity for market, limit-gap, stop-gap, and conservative stop-limit behavior.",
+    "Bar zero is an immutable initial snapshot in both backends.",
+    "Audit exposes versioned phase, fill-policy, command-outcome, order-status, and lifecycle-event artifacts.",
+    "Python and Rust command outcomes and terminal order-status projections exact-match on the canonical audit fixture.",
+    "P1 ownership or storage refactoring has not started."
+  ]
+}

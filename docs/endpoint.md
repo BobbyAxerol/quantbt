@@ -100,6 +100,7 @@ bt = QuantBTEndpoint.event_driven(
     input_mode="strategy",
     profile="research",
     backend="auto",
+    execution_contract="event_lifecycle_v3_next_open",
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0005,       # canonical one-way fee
@@ -201,6 +202,37 @@ remain available as normal shared endpoint parameters. See
 [`execution_contracts.md`](execution_contracts.md) for exact fill policy and
 [`release_packaging.md`](release_packaging.md) for backend capability and
 wheel-release policy.
+
+### Event clock contracts
+
+The compatibility default remains `event_lifecycle_v2_next_bar_close`: a
+command effective on bar `t` executes a market order at `close[t]`. New causal
+close-to-next-open research should request
+`execution_contract="event_lifecycle_v3_next_open"`; this fills market orders
+at the real `open[t]`, applies explicit limit/stop gap rules, and rejects data
+without an `open` column. Both Python and Rust routes consume the same generated
+contract fingerprint.
+
+For explicit tapes, a command timestamp denotes its effective execution bar.
+Bar zero is the immutable initial snapshot and is reported as outside tape;
+the final explicit bar remains executable. For reactive strategies, commands
+emitted after observing close `t` are retimed to the next bar, while finalize
+commands after the last bar are retained only as outside-tape audit intent.
+
+With `profile="audit"`, inspect:
+
+```python
+phase_trace = result.metadata["event_phase_trace_v1"]
+outcomes = result.metadata["command_outcome_report_v1"]
+lifecycle = result.metadata["lifecycle_event_report_v1"]
+fill_policy = result.metadata.get("fill_policy_diagnostics")  # Python oracle
+rust_fill_reasons = result.metadata["fills_report"]  # reason/ambiguity codes
+```
+
+These typed artifacts coexist with legacy `command_report` and `order_events`
+so existing services continue to run. See
+[`contracts/contract_registry.md`](contracts/contract_registry.md) for the
+versioned clock, fill, gap, ambiguity, and lifecycle definitions.
 
 `native_vectorized` is explicitly the `close_target_v2` execution contract:
 signals are interpreted as target exposure at the same bar close, with no
@@ -1151,17 +1183,32 @@ Reactive timing is causal: commands returned by `on_bar_close(context_t)` are
 retimed to bar `t+1`, so they cannot fill inside the same OHLC bar that the
 strategy just observed.
 
-`reactive_kernel_mode="replay_certified"` is the conservative default. It uses
-the incremental callback session to build state and then runs one certified
-static event-v2 replay for the final public result. Use it for stakeholder
-reports, debugging, and migration validation.
+`reactive_kernel_mode="replay_certified"` is the legacy conservative mode. It
+uses the incremental callback session to build the causal command tape and
+then verifies it with the static Python lifecycle oracle. It is useful during a
+migration, but is intentionally not the fast production path.
 
-`reactive_kernel_mode="single_pass"` materializes accounting directly from the
-incremental reactive session for `report_level="minimal"` and score paths,
-skipping the final static replay. For `report_level="standard"`,
-`report_level="audit"`, or `reactive_execution_mode="audit"`, QuantBT still
-runs the replay oracle and asserts accounting parity before returning the
-single-pass result.
+`reactive_kernel_mode="single_pass"` returns accounting directly from the
+incremental primary session at every public report level. Its audit behavior is
+selected explicitly rather than inferred from `report_level`:
+
+```python
+bt = QuantBTEndpoint.native_event_strategy(
+    native_backend="rust",             # explicit Rust; never silently falls back
+    reactive_kernel_mode="single_pass",
+    audit_mode="native_trace",         # one primary engine run, primary trace/report
+    # audit_mode="verify_against_oracle"  # one primary run + Python oracle diff
+    # audit_mode="dual_run_sampled"       # deterministic sampled oracle verification
+    oracle_sample_rate=0.05,
+    oracle_sample_seed=52,
+)
+```
+
+`native_trace` is the normal single-run audit policy. `verify_against_oracle`
+is a certification/debug policy: it keeps the primary result and raises an
+`AuditMismatchError` on divergence; it never replaces the primary result with
+the oracle. `dual_run_sampled` derives a deterministic sample decision from the
+immutable execution-plan fingerprint and the supplied seed.
 
 Reactive metadata:
 
@@ -1170,9 +1217,50 @@ result.metadata["reactive_context_builder"]       # "incremental_session_v1"
 result.metadata["reactive_incremental_compile_replays"]  # 0
 result.metadata["reactive_static_replay_count"]   # 0 for single_pass minimal/score
 result.metadata["emitted_command_tape"]           # replayable OrderCommand tape
+result.metadata["strategy_context_requirements"]  # declared callback projection
+result.metadata["reactive_retention_requirements"]  # public paths/ledgers retained
 ```
 
-### Native-event backend selector (Phase 46E)
+### Typed numeric reactive strategy
+
+Existing callbacks which return `OrderCommand` objects remain fully supported.
+For high-frequency research or a sparse reactive controller, a strategy may
+declare the exact context it consumes and write primitive rows to a reusable
+struct-of-arrays command writer:
+
+```python
+from quantbt import StrategyContextRequirements, TimeInForce
+
+class NumericRebalance:
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",),
+        account=("equity",),
+        positions=("qty",),
+        fills="none",
+        events="none",
+        active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_bar_close(self, context, out):
+        if context.bar_index == 20 and context.position_qty(0) == 0.0:
+            out.market(0, 1, 0.25, order_handle=1, tif=TimeInForce.IOC)
+```
+
+`context` is ephemeral: retain scalar values, not the context object, after a
+callback returns. Numeric commands stay primitive through the Rust full-
+contract adapter for `report_level="minimal"`; `standard` and `audit`
+materialize `OrderCommand` objects only when their public reports require
+them. The declaration changes only callback projection/retention. It does not
+change timing, matching, fees, funding, margin, liquidation, or accounting.
+
+For `standard` and `audit`, QuantBT deliberately retains one terminal
+active-order artifact even if the strategy declares `active_orders="none"`.
+This preserves the public report contract without forcing a per-bar snapshot.
+`minimal` omits it; all report levels take per-bar snapshots only when the
+strategy explicitly requests active orders.
+
+### Native-event backend selector and promotion policy (Phase 54B.1)
 
 Native-event endpoints accept the optional `native_backend` selector:
 
@@ -1180,6 +1268,7 @@ Native-event endpoints accept the optional `native_backend` selector:
 bt = QuantBTEndpoint.orders(
     backend="native_event",
     native_backend="python",  # python | rust | auto | replay_certified
+    backend_policy="certified_only",  # certified_only | prefer_native | prefer_compatibility
     initial_capital=20_000,
     leverage=5,
     maintenance_ratio=0.0,
@@ -1194,7 +1283,57 @@ multi-symbol tapes, funding, maintenance/liquidation, quantity preflight,
 MARKET/LIMIT/STOP orders, GTC/GTD/IOC/FOK, amend/replace/cancel-all, and
 parent/group/OCO relationships. A wheel without the required capability keys
 raises a capability error; it is never silently downgraded to Python.
-`auto` remains Python for the release policy and does not activate Rust yet.
+`auto` is resolved by a generated, versioned promotion table rather than by
+whether `_quantbt_native` happens to import. `certified_only` is the default;
+`prefer_native` may choose Rust only after the exact workload row has been
+promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
+these policies can bypass a missing capability, mismatched wheel, unsupported
+contract/profile/account model, or an emergency rollback switch.
+
+At the current automatic Stage-B promotion level, `auto` selects Rust only for
+certified bounded static/IR workloads on the declared local wheel/platform
+matrix:
+
+| Workload | Automatic Rust condition |
+|---|---|
+| Static V2/V3 command tape | at least 10,000 bars |
+| Native Strategy IR v1 and its shared batch/fold scorer | at least 2,000 bars |
+| Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
+
+### Choosing a stable event route
+
+Choose the route from the strategy's execution shape, not from a preference
+for a particular implementation language:
+
+| Need | Public route | Current execution authority |
+|---|---|---|
+| Arbitrary per-bar Python logic or dynamic reactive state | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Python |
+| Pre-built deterministic order timeline | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Rust only for a matching static tape at 10,000+ bars; otherwise Python |
+| Signal target, structural grid level, periodic DCA, or fixed bracket template | `NativeEventBackend.prepare_native_strategy_ir(...)` | Rust only for matching bounded IR at 2,000+ bars; otherwise Python |
+| Generic portfolio, basket, or arbitrage plan | Existing portfolio/arbitrage endpoint | Python/native-portfolio contract |
+| Linear `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
+
+The core PyPI package runs every row through Python without a native companion.
+When a compatible local companion is present, inspect
+`result.metadata["native_event_promotion_v1"]` rather than inferring the
+backend from whether `_quantbt_native` imports. It records the requested and
+resolved backend, policy-table version, matched rule, threshold, and fallback
+reason. This decision changes no fills, fees, funding, margin, or accounting
+semantics.
+
+Below a workload threshold, with an unsupported program/profile/contract, or
+when the wheel/capabilities do not match, `auto` uses Python and records a
+stable reason such as `below_promotion_min_bars`. `rust` remains an explicit,
+fail-fast request and `python` remains the executable oracle.
+
+For a local emergency rollback, set `QUANTBT_DISABLE_NATIVE=1`. To cap the
+promotion table without changing source, set
+`QUANTBT_NATIVE_PROMOTION_MAX=explicit_only|static_ir|portfolio|package`.
+Every native-event result records `native_event_promotion_v1`, including the
+policy/table version, matched rule, minimum bar threshold, contract, decision
+reason, and deterministic fingerprint. These controls never alter fees, fills,
+lifecycle timing, or accounting semantics.
+
 `replay_certified` is the deterministic audit oracle. Rust audit results are
 adapted to `BacktestResultV2`, so the normal `show_metrics()`, `full_report()`,
 `quick_plot()`, and `tearsheet()` helpers remain available. The score path
@@ -1216,6 +1355,29 @@ matching, fees, funding, margin, liquidation, or terminal accounting. A
 diagnostics-off strategy cannot build the stakeholder audit frame; rerun the
 candidate with the default audit policy for `build_output_frame()`, plots, and
 full reports.
+
+### Bounded native portfolio/package helpers
+
+The normal `QuantBTEndpoint.portfolio()` and `QuantBTEndpoint.arbitrage()` APIs
+retain their existing Python/native-portfolio contracts. For the separately
+certified V2 execution rows, import the explicit helpers:
+
+```python
+from quantbt.backends import run_atomic_package_market, run_portfolio_target_market
+```
+
+They accept prepared-array-style OHLCV/funding data and return a
+`RustNativeMarketExecution`. `report_level="score"` keeps only terminal
+accounting; rerun a selected candidate with `report_level="audit"` and call
+`.to_audit_result()` for the common report surface. The supported rows are
+linear quote-settled gross-cross `target_units` with all-or-none admission and
+one ordered same-bar `AtomicBarSimulation` market package only. Every other
+portfolio sizing, allocator, package policy, cross-venue, and partial-fill
+case remains on the existing Python route by design. Input package legs must
+already be in the intended deterministic venue/leg order; the helper preserves
+that order rather than inferring venue precedence. The full contract and
+example shape are in
+[`native_event_rust_full_contract.md`](native_event_rust_full_contract.md#phase-54b3-bounded-portfoliopackage-market-routes).
 
 For reactive strategies, `report_level="minimal"` intentionally omits
 `emitted_command_tape` from metadata while preserving

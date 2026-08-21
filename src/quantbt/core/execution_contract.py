@@ -29,6 +29,7 @@ class MarketFillPolicy(str, Enum):
     CLOSE = "close"
     OPEN = "open"
     NEXT_OPEN = "next_open"
+    NEXT_CLOSE = "next_close"
 
 
 class StopGapPolicy(str, Enum):
@@ -143,8 +144,27 @@ class ExecutionContract:
 
     @classmethod
     def event_lifecycle(cls) -> "ExecutionContract":
+        """Return the frozen legacy lifecycle contract.
+
+        The historical method name remains source compatible. Its semantics
+        are now named honestly: commands active on the next bar match market
+        orders at that bar's close.
+        """
+        return cls.event_lifecycle_v2_next_bar_close()
+
+    @classmethod
+    def event_lifecycle_v2_next_bar_close(cls) -> "ExecutionContract":
         return cls(
-            engine_id="event_lifecycle_v2",
+            engine_id="event_lifecycle_v2_next_bar_close",
+            signal_phase=SignalPhase.BAR_CLOSE,
+            entry_fill_phase=FillPhase.NEXT_CLOSE,
+            market_fill_policy=MarketFillPolicy.NEXT_CLOSE,
+        )
+
+    @classmethod
+    def event_lifecycle_v3_next_open(cls) -> "ExecutionContract":
+        return cls(
+            engine_id="event_lifecycle_v3_next_open",
             signal_phase=SignalPhase.BAR_CLOSE,
             entry_fill_phase=FillPhase.NEXT_OPEN,
             market_fill_policy=MarketFillPolicy.NEXT_OPEN,
@@ -186,12 +206,24 @@ EXECUTION_CONTRACT_REGISTRY: Dict[str, ExecutionContract] = {
     "next_open_v1": ExecutionContract.next_open(),
     "intrabar_bracket_v1": ExecutionContract.intrabar_bracket(),
     "fill_replay_v1": ExecutionContract.fill_replay(),
-    "event_lifecycle_v2": ExecutionContract.event_lifecycle(),
+    "event_lifecycle_v2_next_bar_close": ExecutionContract.event_lifecycle_v2_next_bar_close(),
+    "event_lifecycle_v3_next_open": ExecutionContract.event_lifecycle_v3_next_open(),
+}
+
+EXECUTION_CONTRACT_ALIASES = {
+    "event_lifecycle": "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v2": "event_lifecycle_v2_next_bar_close",
+    "event_v2": "event_lifecycle_v2_next_bar_close",
+    "lifecycle": "event_lifecycle_v2_next_bar_close",
+    "lifecycle_v2": "event_lifecycle_v2_next_bar_close",
+    "event_v3": "event_lifecycle_v3_next_open",
+    "lifecycle_v3": "event_lifecycle_v3_next_open",
 }
 
 
 def get_execution_contract(engine_id: str) -> ExecutionContract:
     key = str(engine_id).lower().strip()
+    key = EXECUTION_CONTRACT_ALIASES.get(key, key)
     if key not in EXECUTION_CONTRACT_REGISTRY:
         raise KeyError(f"unknown execution contract {engine_id!r}")
     return EXECUTION_CONTRACT_REGISTRY[key]

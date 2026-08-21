@@ -19,7 +19,7 @@ The existing Grid adapter accepts four values in `GridExecutionConfig`:
 | `python` | Canonical full reactive implementation and default. |
 | `rust` | Explicit capability-gated Rust V2. Failure is raised; no fallback. |
 | `replay_certified` | Python replay oracle used for audit evidence. |
-| `auto` | Resolves to Python until every release gate is certified. |
+| `auto` | Historical Phase 47C result: Python. Current Stage-B auto policy only promotes bounded static/IR rows, not reactive Grid callbacks. |
 
 The public endpoint remains:
 
@@ -191,19 +191,20 @@ Current scalar benchmark evidence after the patch:
 | Long-only | 0.850 s | 1.086 s | 265.4 MB | 271.2 MB | pass |
 | Long-short | 1.412 s | 1.831 s | 291.0 MB | 293.6 MB | pass |
 
-The repeated-run RSS gates pass with no positive tail slope. Rust remains an
-explicit, correctness-certified experimental backend for this workload and
-`auto` remains Python. The reactive callback itself is still the dominant
-runtime owner; this phase does not claim a new Numba/Rust optimization of the
-Python Grid callback or portfolio/arbitrage/options parity. Raw benchmark
-artifacts are stored under
+The repeated-run RSS gates pass with no positive tail slope. For this reactive
+Grid callback, `auto` remains Python under the current Stage-B policy: the
+callback itself is still the dominant runtime owner. This phase does not claim
+a new Numba/Rust optimization of the Python Grid callback or
+portfolio/arbitrage/options parity. Raw benchmark artifacts are stored under
 `benchmarks/native_event/results/phase47d/`.
 
 ## Certification boundary
 
 After Phase 47D, Python/replay/Rust are certified for this single-symbol Grid
-workload on the tested full Native Event V2 contract. Rust is still explicit;
-`auto` remains Python. Portfolio, arbitrage, options, L2 depth, and venue-
-specific cross-margin behavior are outside this certificate. The remaining
+workload on the tested full Native Event V2 contract. The current Stage-B
+policy still keeps reactive Grid callbacks on Python; bounded declarative
+`NativeStrategyIR` Grid is a separate promoted route. Portfolio, arbitrage,
+options, L2 depth, and venue-specific cross-margin behavior are outside this
+certificate. The remaining
 performance debt is deeper callback-level optimization, which requires a new
 parity-first phase rather than an indicator cache based on this profile.

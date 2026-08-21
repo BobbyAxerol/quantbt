@@ -11759,3 +11759,2022 @@ Deliberate non-goals retained after Phase 50:
   full-sample calibration without their own causal contracts;
 - a `flatten` boundary policy without dedicated accounting semantics and tests;
 - proving arbitrary user strategy code free of internal look-ahead.
+
+---
+
+## Phase 51-54 - Rust Production Execution Core Upgrade
+
+**Status: planned. No implementation phase has started.**
+
+The authoritative detailed guide for this roadmap is:
+
+- [`quantbt_p0_p3_native_rust_upgrade_blueprint.md`](quantbt_p0_p3_native_rust_upgrade_blueprint.md)
+
+Every agent implementing any phase below must first read:
+
+1. the blueprint [executive summary](quantbt_p0_p3_native_rust_upgrade_blueprint.md#0-executive-summary);
+2. the [confirmed findings and must-prove risks](quantbt_p0_p3_native_rust_upgrade_blueprint.md#2-chẩn-đoán-trạng-thái-hiện-tại);
+3. the detailed P0, P1, P2, or P3 sections linked by that phase;
+4. the [architecture invariants](quantbt_p0_p3_native_rust_upgrade_blueprint.md#10-architecture-invariants-that-must-remain-true);
+5. the [final acceptance matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#15-final-acceptance-matrix).
+
+The condensed plan below is a tracking and delivery contract. It does not
+replace the algorithms, state machines, schemas, fixtures, workload taxonomy,
+or acceptance guidance in the linked blueprint.
+
+### Adjusted End State
+
+This roadmap deliberately tightens the original dual-backend promotion policy.
+The intended production architecture is:
+
+```text
+Python
+  public API + request planning + preparation + research integration
+  executable semantic oracle + certification tools + result/report adapters
+
+Rust
+  canonical production execution/order/account/risk core
+  native strategy runtime + scenario batch execution
+  shared event, portfolio, and package/arbitrage primitives
+
+PyO3
+  thin typed transport with amortized run/chunk/batch calls
+```
+
+The distinction is mandatory:
+
+- Rust replaces Python as the normal production execution core only after the
+  relevant contract/workload passes exact certification.
+- Python remains runnable, readable, and independently testable as the oracle,
+  historical reproducer, emergency fallback, and explicit debug backend.
+- Python is not deleted and must not become stale or unexecutable.
+- A production run has exactly one authoritative mutable execution state.
+- A Rust run must not maintain Python shadow orders, positions, equity, margin,
+  fill history, or lifecycle state.
+- A normal Rust run must not replay the Python engine to construct reports.
+- Explicit Rust never silently falls back. Automatic routing may fall back only
+  for an unavailable, incompatible, uncertified, or deliberately unsupported
+  contract, and must record a structured reason.
+- After the final release gate, `auto` resolves to Rust for every certified
+  production execution workload. Python becomes the documented oracle/fallback
+  route rather than an equal default production choice.
+
+This is a replacement of the production **core**, not a claim that all Python
+objects disappear. Arbitrary Python strategy callbacks remain a hybrid driver
+unless migrated to a static command tape, sparse wake protocol, or validated
+strategy IR. In every case, order/account state remains owned by Rust once the
+Rust backend is selected.
+
+### Non-Negotiable Program Rules
+
+- Implement from a new feature branch created from the latest `dev`; suggested
+  branch name: `feat/51-native-rust-production-core`.
+- Pin the exact starting SHA, package versions, toolchains, wheel hashes, test
+  corpus, and E0-E6 benchmark manifests before behavior changes.
+- Correctness gates always precede optimization and backend promotion.
+- Preserve public imports and stable endpoint signatures through compatibility
+  facades unless a separately approved deprecation record exists.
+- Never change fill/account/output semantics inside a performance-only commit.
+- Keep current behavior reproducible under an explicitly named legacy contract.
+- Use one machine-readable contract/capability/trace registry to generate
+  Python and Rust artifacts and conformance parameters.
+- Numeric parity means exact discrete lifecycle agreement and audited numeric
+  agreement. Tolerance must never hide a different fill, phase, reason, order
+  transition, or liquidation decision.
+- Benchmark end-to-end workload classes, not only Rust kernel microbenchmarks.
+- Do not compare static Rust tape with arbitrary Python callbacks as equivalent
+  workloads.
+- Do not use `fast-math`, public-wheel `target-cpu=native`, unchecked indexing,
+  custom allocators, SIMD, PGO, or unsafe code without profile evidence and the
+  blueprint's proof gates.
+- Commit each coherent contract, architecture, optimization, or packaging
+  change separately with its tests and evidence.
+
+### Current-Code Findings To Lock Before Refactoring
+
+The Phase 51 baseline must reproduce and classify these observed conditions:
+
+- `ExecutionContract.event_lifecycle()` declares `NEXT_OPEN`, while the current
+  Rust full-session market matcher uses the execution bar close.
+- The current Rust reactive adapter retains Python scheduled/pending orders,
+  positions, dense paths, fill/event maps, and lifecycle projections alongside
+  Rust state.
+- The Rust full engine still scans `orders` for several expiry, parent, OCO,
+  cancel, matching, and active-output operations.
+- Current storage uses a `Vec<OrderState>` plus compaction and slot remapping,
+  rather than generation-safe handles and active lifecycle indexes.
+- Compatibility output still has nested row materialization and conditional
+  full-position cloning.
+- `endpoint.py`, Python native-event backend, Rust adapter, and Rust full engine
+  remain broad modules with mixed planning/execution/report responsibilities.
+
+These findings are baseline inputs, not permission to rewrite immediately.
+Each must first receive a fixture, counter, trace, or architecture test.
+
+---
+
+### Phase 51A - P0 Contract Baseline, Event Clock, Fill, And Lifecycle Lock
+
+**Status: completed on `feat/51-native-rust-production-core` (2026-08-19).**
+
+Detailed guide:
+
+- [P0.0 - Pin baseline and classify contracts](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p00--pin-baseline-và-phân-loại-contract)
+- [P0.1 - Version event clock and bar timeline](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p01--version-hóa-event-clock-và-bar-timeline)
+- [P0.2 - Fill, gap, and intrabar ambiguity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p02--fill-policy-gap-policy-và-intrabar-ambiguity)
+- [P0.3 - Order lifecycle state machine](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p03--order-lifecycle-state-machine)
+- [Wave 0 and PR-00 through PR-04](quantbt_p0_p3_native_rust_upgrade_blueprint.md#53-wave-0--baseline-và-guardrails)
+
+Goal:
+
+Freeze what the current engines actually do, separate legacy behavior from the
+correct next-open contract, and establish one versioned event/lifecycle model
+before changing ownership or data structures.
+
+Scope:
+
+- Archive the exact baseline SHA, Python/Rust/compiler/package versions,
+  installed-wheel hashes, native descriptor, current parity corpus, and E0/E1
+  cold/warm benchmarks.
+- Add low-overhead `EngineDiagnosticsV1` counters needed to locate preparation,
+  callback, PyO3, engine, output, scan, copy, allocation, and report costs.
+- Introduce a machine-readable execution contract registry and generated
+  Python/Rust IDs/fingerprints.
+- Freeze current event behavior as a clearly named legacy
+  `event_v2_next_bar_close` contract without changing historical results.
+- Implement `event_v3_next_open` first in the readable Python oracle and then
+  in Rust, using actual `open[t]`, explicit gap handling, bar-zero/last-bar
+  behavior, and exact phase trace.
+- Version market, limit, stop-market, stop-limit, gap, same-bar ambiguity,
+  child activation, and contingent-order priority policies.
+- Split command outcome, order status, and lifecycle event kind into different
+  typed concepts.
+- Define generated transition tables for place, activate, amend, replace,
+  cancel, expire, fill, reject, liquidate, parent/child, OCO, IOC/FOK/GTD, and
+  invalid terminal transitions.
+- Preserve legacy aliases only through an explicit compatibility translator and
+  deprecation manifest; no alias may silently point to new semantics.
+
+Required tests and evidence:
+
+- Python/Rust exact phase and discrete trace for V2 historical fixtures.
+- V3 actual-next-open tests proving the `open` array affects execution.
+- Long/short golden matrix for market, limit, stop-market, stop-limit, gaps,
+  same-bar SL/TP, child activation, OCO, replace, IOC/FOK/GTD, bar zero, final
+  bar, duplicate timestamps, timezone, and multi-symbol clock ordering.
+- Generated lifecycle transition tests run against both languages.
+- Invalid transition and malformed command fixtures fail before mutation with
+  the same structured reason code.
+- Diagnostics counter values are exact on tiny fixtures and disabled overhead
+  stays within the frozen budget.
+- Installed editable/core/native wheel routes reproduce the same contract and
+  trace fingerprints as source runs.
+
+Exit gate:
+
+```text
+baseline and manifests archived;
+V2 behavior is reproducible under an honest next-bar-close name;
+V3 uses real next-open and passes Python/Rust parity;
+all fill/gap/ambiguity policies have versioned IDs;
+lifecycle state transitions and reasons exact-match;
+no P1 ownership refactor has started.
+```
+
+Completion evidence:
+
+- Baseline SHA, environment, wheel hash, fixture hashes, and E0/E1 evidence are
+  frozen under `docs/contracts/baseline_manifest.json`,
+  `tests/corpus/p0_baseline/`, and
+  `benchmarks/native_event/results/p0_baseline/`.
+- `contracts/native_event_contract_registry.json` is the canonical source for
+  generated Python/Rust contract, command-outcome, order-status, lifecycle,
+  transition, and fingerprint constants.
+- V2 is frozen under the honest
+  `event_lifecycle_v2_next_bar_close` ID. V3 uses actual open prices and has
+  explicit market, limit-gap, stop-gap, and conservative stop-limit ambiguity
+  semantics.
+- Python, prepared, reactive replay, public facade, Rust full-tape, and the
+  installed editable native extension consume the same contract ID and
+  registry fingerprint.
+- Audit outputs now separate command outcome, lifecycle order status, and
+  lifecycle event kind on both Python and Rust; phase trace rows carry bar,
+  UTC nanosecond timestamp, phase, and deterministic sequence. Legacy reports
+  remain unchanged.
+- Bar zero is an immutable initial snapshot in both Python and Rust. Explicit
+  final-bar commands remain executable; reactive post-finalize intent remains
+  outside tape.
+- `EngineDiagnosticsV1` has exact tiny-fixture scan counters. The 2,000-bar
+  public audit benchmark in
+  `benchmarks/native_event/results/phase51a/contracts.json` observed no output
+  drift and at most 7.0% positive diagnostics overhead (negative samples are
+  timing noise).
+- Certification: 43 Phase 51A contract tests, 90 focused contract/lifecycle
+  tests, 113 native-event tests, 8 Rust unit tests, and the full release
+  profile passed with 779 passed / 3 skipped / 0 failed.
+  Evidence is archived in `docs/contracts/phase51a_certification.json`.
+- P1 state-ownership, arena/index, and module-boundary refactors have not
+  started in this phase.
+
+---
+
+### Phase 51B - P0 Ledger, Numeric, Trace, Portfolio/Package, And Wheel Certification
+
+**Status: completed.**
+
+Detailed guide:
+
+- [P0.4 - Accounting ledger and invariants](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p04--accounting-ledger-và-invariants)
+- [P0.5 - Instrument and deterministic numeric policy](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p05--instrument-constraints-và-deterministic-numeric-policy)
+- [P0.6 - Canonical trace and replay](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p06--canonical-execution-trace-và-replay-fingerprint)
+- [P0.7 - Property, model, and fuzz testing](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p07--differential-property-model-based-và-fuzz-testing)
+- [P0.8 through P0.11](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p08--portfolio-correctness-foundation)
+- [PR-05 through PR-09 and P0 checkpoint](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-05--accounting-ledgerinvariants)
+
+Goal:
+
+Build independently auditable accounting, deterministic numeric behavior, one
+canonical trace, and reference semantics for portfolio and package execution so
+Rust can later replace Python without changing financial meaning.
+
+Scope:
+
+- Define canonical collateral, realized/unrealized PnL, fee, funding, carry,
+  slippage, liquidation cost, position, average entry, initial/maintenance/
+  reserved margin, and available-equity ledger components.
+- Check equity, per-bar delta, position-fill, gross/net exposure, portfolio
+  attribution, and package-leg reconciliation invariants.
+- Version fee currency, funding event phase/sign/price, margin, and liquidation
+  models. Legacy zero-equity liquidation remains reproducible; auditable forced
+  close emits decision, fill, fee, cancellation, and residual-equity records.
+- Compile instrument constraints into contiguous IDs/tables with tick size,
+  quantity step, min/max quantity, min notional, contract size, settlement,
+  fee model, and margin model.
+- Quantize price and quantity in the same phase and direction in Python/Rust;
+  reject inverse/quanto/options formulas unless the selected model is certified.
+- Add canonical trace schema, streaming/hash sinks, normalized rolling
+  fingerprint, and a replay verifier that reconstructs state from trace without
+  invoking the matcher.
+- Add Hypothesis, proptest, model-based, metamorphic, minimized regression
+  corpus, and scheduled fuzz foundations.
+- Freeze portfolio allocator versus execution boundaries and policies including
+  sequential legacy, pro-rata margin scaling, all-or-none target, and
+  reduce-first-then-increase.
+- Freeze arbitrage/package planned/preflight/reserved/commit/abort/compensate
+  transitions and atomic, best-effort, sequential, and hedge-after-primary
+  semantics, including cross-venue staleness and reservation rollback.
+- Replace flat capability booleans with a structured semantic descriptor and
+  runtime protocol/contract/trace/ABI handshake.
+- Certify core-only, explicit Rust unavailable/mismatch, automatic fallback,
+  and clean installed-wheel behavior on supported CPython versions.
+
+Required tests and evidence:
+
+- Every golden scenario passes ledger identities on every bar, not only final
+  equity.
+- Scale, reduce, close, reverse, fee, funding, slippage, margin rejection, and
+  liquidation attribution parity.
+- Exact tick/step vectors and rejection reasons across Python/Rust.
+- Audit trace exact-match in discrete fields; hash-only and full-trace
+  fingerprints agree; replayer reconstructs terminal state.
+- Randomized and minimized corpus produces no panic, invalid transition,
+  unexplained accounting residual, or cross-run nondeterminism.
+- Portfolio target/accepted/cost/attribution reconciliation and package
+  rollback/residual exposure tests pass.
+- Clean wheel matrix validates native availability, incompatibility, explicit
+  failure, and structured fallback before expensive preparation.
+
+Exit gate:
+
+All items in the blueprint [P0 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p011--p0-exit-checklist)
+must pass. P1 cannot start if the trace tooling cannot identify the first
+divergent bar, phase, event, status, reason, or ledger component.
+
+Completion evidence:
+
+- Native-event audit runs now attach an independently reconstructed canonical
+  accounting ledger and per-symbol ledger. Every bar checks equity,
+  position/fill, gross/net exposure, fee, funding, margin, and attribution
+  invariants for the versioned linear quote-settled model.
+- Instrument constraints compile into immutable contiguous tables. Python and
+  Rust apply identical side/order-aware tick and lot quantization and
+  post-quantization minimum checks. Inverse, quanto, and option formulas fail
+  fast rather than using an uncertified linear approximation.
+- `canonical-execution-trace-v1` provides materialized and hash-only sinks,
+  deterministic SHA-256 fingerprints, first-divergence diagnostics, and an
+  independent terminal-state replayer. Python/Rust exact-match on the P0 audit
+  fixture.
+- Portfolio target allocation and package transaction behavior are frozen as
+  reference semantics for sequential, pro-rata, all-or-none,
+  reduce-first-then-increase, atomic, best-effort, sequential-leg, and
+  hedge-after-primary policies. This checkpoint does not claim Rust
+  portfolio/package execution.
+- Native API `0.4` now requires a structured semantic descriptor covering the
+  core protocol range, registry fingerprint, trace schema, command ABI, order
+  semantics, and account model. A mismatch fails before expensive
+  preparation; legacy `0.3` probes remain readable but are not accepted as the
+  current certified contract.
+- Hypothesis, Rust proptest, metamorphic cases, and the minimized regression
+  corpus cover numeric monotonicity, deterministic replay, reversals, and
+  package rollback. Full `cargo-fuzz` soak remains intentionally downstream of
+  pure-core extraction and is not claimed here.
+- Focused evidence passed: 72 native-event contract tests, 20
+  portfolio/arbitrage reference tests, and 10 Rust unit/property tests. The
+  clean CPython 3.12 Linux installation of `quantbt-engine 1.0.8` plus
+  `quantbt-native 0.4.0` passed import isolation, semantic handshake,
+  accounting, trace parity, and replay. CI repeats the Phase 51B contract gate
+  on CPython 3.11-3.13.
+- The reproducible wheel gate is
+  `tools/certify_phase51b_wheel.py`; detailed semantics and hashes are archived
+  in `docs/contracts/p0_accounting_trace.md` and
+  `docs/contracts/phase51b_certification.json`.
+
+---
+
+### Phase 52A - P1 Immutable Planning, Preparation, Backend SPI, And Output Contract
+
+**Status: completed (2026-08-19).**
+
+Detailed guide:
+
+- [P1 objective and dependency rules](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p1--tái-kiến-trúc-endpoint-và-pythonrust-boundary)
+- [P1.1 - Endpoint resolver, planner, and executor](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p11--tách-quantbtendpoint-thành-resolver-planner-và-executor)
+- [P1.2 - Equal backend SPI](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p12--thiết-kế-backend-spi-ngang-hàng)
+- [P1.3 - OutputRequirements](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p13--resolve-outputrequirements-một-lần)
+- [PR-10 through PR-13](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-10--immutable-executionplan)
+
+Goal:
+
+Make the public endpoint a stable facade over one immutable plan, one
+preparation pass, one selected backend, one raw result contract, and one result
+adaptation pass without changing public behavior or P0 fingerprints.
+
+Scope:
+
+- Enforce dependency direction before moving code: planning cannot import
+  reporting, backend cannot import endpoint/report builders, result adapters
+  cannot resolve a backend, and Rust adapters cannot invoke the Python oracle.
+- Introduce immutable, serializable `BacktestRequest`, resolved
+  `ExecutionPlan`, `PreparedRun`, `EngineRunRequest`, and `RawEngineResult`.
+- Resolve aliases, contract, strategy mode, workload class, output/profile,
+  numeric policy, capabilities, backend decision, and fingerprints exactly once.
+- Move DataFrame/index/market/instrument/command normalization into preparation;
+  engines receive contiguous typed data, never pandas.
+- Implement one backend SPI for Python and Rust with prepare/run/reset/close and
+  structured descriptor/error contracts.
+- Compile `OutputRequirements` once from strategy context, public output,
+  metrics, and trace needs. Distinguish scalar aggregation, dense paths,
+  streamed audit, and callback-only projections.
+- Keep existing imports and endpoint methods as compatibility facades while
+  progressively moving responsibilities into planning, preparation, engines,
+  results, and reporting modules.
+- Lazy-load the native module only for explicit Rust, automatic capability
+  resolution, or explicit diagnostics.
+
+Required tests and evidence:
+
+- One plan fingerprint, normalization, instrument preparation, capability
+  resolution, and output projection per run.
+- Python and Rust consume the same plan/prepared inputs and pass the same
+  backend contract fixtures.
+- Backend cannot mutate the plan or construct pandas/report objects.
+- Score path allocates no fill/event rows; count-only counters remain exact.
+- Import-boundary, circular-import, cold-import, lazy-native, and source/wheel
+  module-path tests.
+- All P0 traces, public results, metadata compatibility fields, and historical
+  endpoints remain parity-locked.
+
+Exit gate:
+
+The public API is unchanged, but execution is reachable only through the
+planner/preparation/backend/result pipeline. No backend-specific execution
+branch may remain in the endpoint outside the registry/decision layer.
+
+Completion evidence:
+
+- Added frozen, slot-based, deterministic `BacktestRequest`, `ExecutionPlan`,
+  `OutputRequirements`, and trace/numeric/backend policy models under
+  `quantbt.planning`.
+- Added one-pass lifecycle preparation with read-only contiguous OHLCV,
+  funding, instrument, account, and command buffers. Plan, market,
+  instruments, commands, account, and combined preparation identities are
+  SHA-256 fingerprinted.
+- Added equal Python/Rust `EngineBackend` and `PreparedEngineSession` SPI plus
+  pandas-free struct-of-arrays `RawEngineResult`. Both implementations consume
+  the same plan and prepared tape; exact path/fill/summary parity passed on the
+  certified fixture.
+- Routed public static lifecycle runs through the immutable planner and
+  preparation layer. The P0 public adapter remains after execution so existing
+  `BacktestResultV2`, accounting ledger, trace, and report behavior stay
+  unchanged. Reactive callbacks, baskets, and event v1 remain explicitly out
+  of this phase and are carried by Phase 52B.
+- Public score runs preserve the historical result surface while retaining no
+  fill/event detail rows in the projection. Internal score SPI runs retain
+  scalar summaries and exact counts with zero dense/fill/event buffers.
+- AST/import gates prove no forbidden planning/SPI/raw-result dependencies,
+  no circular imports, and no eager `_quantbt_native` import under automatic
+  Python policy.
+- P0 oracle parity is exact for equity, positions, fees, funding, margin,
+  fills, accounting invariants, and canonical trace fingerprint. Quantity
+  preflight and command compilation each run once on the endpoint route.
+- Focused Phase 52A tests passed `16/16`; the lifecycle, grid, event-driven,
+  P0 contract, and Python/Rust regression gate passed `129/129` with no skips.
+- A clean `quantbt-engine 1.0.8` wheel included every P1 module and passed the
+  installed-wheel gate. Median cold import was `1383.989 ms` versus
+  `1307.411 ms` at the pre-route baseline (`+5.857%`, eight isolated runs),
+  within the 10% architecture budget and without importing the native module.
+- Detailed semantics and repeatable evidence are in
+  [P1 planning/backend SPI](../docs/contracts/p1_planning_backend_spi.md),
+  [Phase 52A certification](../docs/contracts/phase52a_certification.json), and
+  `tools/certify_phase52a_wheel.py`.
+
+---
+
+### Phase 52B - P1 Strategy Boundary, Rust Ownership, Audit, Cache, And Observability
+
+**Status: complete (2026-08-19).**
+
+Detailed guide:
+
+- [P1.4 - Context compatibility, numeric view, and projection](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p14--strategy-context-protocol-compatibility-view-và-projection)
+- [P1.5 - Reusable command writer](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p15--reusable-command-writer-thay-listordercommand)
+- [P1.6 through P1.11](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p16--xóa-python-shadow-state-trong-rust-adapter)
+- [P1.12 through P1.14](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p112--kế-hoạch-tách-file-cụ-thể-từ-code-hiện-tại)
+- [PR-14 through PR-18](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-14--numeric-context-view--command-writer)
+
+Goal:
+
+Eliminate duplicate Python execution state and unnecessary Python/Rust traffic.
+Rust becomes the sole owner of order/account state whenever selected, while
+legacy callback code remains compatible through an explicit adapter.
+
+Scope:
+
+- Keep the existing materialized strategy context as compatibility mode.
+- Add a numeric `StrategyContextView` using interned IDs, integer timestamps,
+  array/delta views, explicit lifetime generation, and declared requirements.
+- Add a reusable preallocated SoA `CommandWriter`; legacy command objects
+  compile into the same canonical command trace outside the native hot path.
+- Add static command-tape and sparse run-until-wake drivers. Arbitrary every-bar
+  callbacks remain supported but are labelled hybrid compatibility workload.
+- Add native fill/event/order/position cursor ranges and compact projection so
+  callbacks receive only requested changes.
+- Remove Python scheduled/pending/order/account/position/path/metric mirrors
+  from the Rust adapter after all consumers use authoritative native state.
+- Separate `native_trace`, `verify_against_oracle`, and sampled dual-run audit.
+  Normal Rust audit must use one primary engine run and report from its trace.
+- Introduce layered prepared cache keys, byte/entry budgets, LRU/pinning rules,
+  explicit reset scopes, result ownership, generation, and session poisoning.
+- Add structured cross-language errors and fail-fast ordering before expensive
+  market preparation.
+- Emit versioned phase, boundary, copy, callback, scan, allocation, output, and
+  memory diagnostics needed for P2 profiling.
+- Complete the module split described by the blueprint while retaining tested
+  temporary compatibility imports with owners and removal deadlines.
+
+Required tests and evidence:
+
+- Compatibility context and numeric view create identical canonical commands.
+- Writer reuse, growth, capacity limit, stale context, callback exception, and
+  malformed command tests.
+- Static path uses O(1) PyO3 calls; sparse callback calls equal wake schedule;
+  arbitrary callbacks have no hidden additional calls.
+- Rust adapter has one authoritative mutable state and performs no Python-side
+  cash, equity, margin, or order transition calculation.
+- Native audit runs one engine; optional oracle verifier detects injected
+  divergence without replacing the primary result.
+- Run/reset/rerun equals fresh session; result lifetime/GC and retained-result
+  tests have no stale view or use-after-reset.
+- Thousands of prepared resets/runs reach bounded RSS; cache collisions,
+  mutation, cross-run contamination, and thread-safety tests pass.
+- Per-phase timings answer whether cost lies in callback, boundary, kernel,
+  output, adaptation, or report construction.
+
+Exit gate:
+
+All blueprint [P1 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p114--p1-exit-checklist)
+items pass, all P0 fingerprints remain unchanged, and Python/Rust switching
+within one run is architecturally impossible.
+
+Implementation and certification:
+
+- `quantbt.strategies` now owns the declared context requirements, generation-
+  guarded numeric view, reusable struct-of-arrays command writer, sparse wake
+  schedule, and legacy callback adapter. Legacy strategies remain conservative
+  and compatible; declared numeric strategies keep commands primitive through
+  the Rust full-contract adapter for `minimal` reports.
+- Rust is the sole mutable owner for a Rust reactive run. The adapter exposes
+  compact cursor/projection data only, maintains no Python account, position,
+  pending-order, lifecycle, or metric shadow state, and supports explicit
+  account-and-orders reset/replay.
+- Public retention is resolved after the strategy declaration: accounting paths
+  and report-level artifacts remain compatible, while unrequested fills,
+  events, and active-order callback snapshots are not built. `standard` and
+  `audit` materialize exactly one terminal active-order artifact when needed,
+  preserving the historical report surface without per-bar snapshot cost.
+- Numeric quantity preflight now preserves Python/Rust parity for accepted,
+  rounded, and dropped rows, including public drop metadata and emitted-command
+  counters. `native_trace`, `verify_against_oracle`, and deterministic
+  `dual_run_sampled` audit policies are explicit; an oracle never replaces the
+  primary result.
+- Prepared cache identity includes market timestamps, OHLC, volume, funding,
+  funding mask, symbols, and relevant constraints. It is bounded LRU with
+  pin/release diagnostics; session reset and result ownership are covered by
+  focused tests.
+- Versioned observability records preparation, callback, command compilation,
+  engine, report, oracle, allocation/copy, boundary, PyO3, and RSS counters.
+
+Evidence:
+
+- Focused strategy/cache/audit plus lifecycle parity: `33 passed`.
+- Full repository regression gate: `844 passed, 3 skipped`.
+- Rust unit suite: `10 passed`.
+- Source certification: 2,000 bars, exact Python/Rust equity/position/fee/
+  funding/margin/trace parity; zero numeric `OrderCommand` objects and zero
+  active snapshots for the declared minimal workload; 2,000 reset/reruns with
+  zero RSS growth.
+- Installed-wheel smoke certification passed from an isolated target site.
+  See [P1 strategy/Rust ownership contract](../docs/contracts/p1_strategy_rust_ownership.md)
+  and [machine-readable Phase 52B evidence](../docs/contracts/phase52b_certification.json).
+
+Performance interpretation:
+
+- The exact 2,000-bar every-bar numeric Python callback fixture records
+  Python median `49.913 ms` and Rust median `210.527 ms`. This is expected for
+  a callback-bound workload with 2,000 controlled PyO3/GIL transitions; it is
+  not an accounting or parity regression. Static command tapes and sparse
+  schedules already avoid this boundary. Fully native strategy IR, chunking,
+  and batched execution belong to the explicitly planned P2 phases below, not
+  an untracked Phase 52B defect.
+
+---
+
+### Phase 53A - P2 Pure Rust Core, ABI 0.5, Arena, Indexes, Account, And Output
+
+**Status: completed (2026-08-19).**
+
+Detailed guide:
+
+- [P2 benchmark taxonomy E0-E6](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p20--freeze-benchmark-taxonomy-trước-khi-sửa-kernel)
+- [P2.1 through P2.5](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p21--chuyển-thành-rust-workspace-pyo3-chỉ-ở-outer-crate)
+- [P2.6 through P2.9](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p26--specialized-execution-kernels-không-dùng-một-universal-hot-loop)
+- [PR-19 through PR-27](quantbt_p0_p3_native_rust_upgrade_blueprint.md#pr-19--rust-workspace-extraction)
+
+Goal:
+
+Create a pure, independently testable Rust execution engine and replace the
+current history-scaled order/output/account hot structures without changing the
+certified semantics.
+
+Scope:
+
+- Freeze E0-E6 fixture manifests, phase timings, cold/warm methodology, RSS,
+  allocation, copy, callback, PyO3, and lifecycle counters before optimization.
+- Extract a Rust workspace with domain, engine, strategy-IR, batch, portfolio,
+  package, and outer PyO3 crates. The domain/engine crates cannot depend on
+  PyO3, NumPy, pandas, Python exceptions, or report models.
+- Preserve native API 0.4 through a translator while adding typed ABI 0.5 IDs,
+  enums, generation-safe handles, command offsets, instrument tables, and
+  structured errors.
+- Keep Rust-owned immutable prepared market tapes, record all copies, and reuse
+  them across scenarios. Do not introduce unsafe long-lived NumPy borrowing.
+- Replace `Vec<OrderState>` plus hot compaction with a generation-safe arena,
+  free list, monotonic priority sequence, resource limits, and terminal-event
+  emission before slot release.
+- Add active-by-symbol, expiry, parent-child, OCO, waiting-parent, and optional
+  group/tag indexes. Matching cost must follow relevant active orders rather
+  than all historical orders.
+- Use adaptive candidate matching and deterministic deferred mutation for
+  market, limit, stop, stop-limit, IOC/FOK, reduce-only, and relationship flows.
+- Implement incremental positions, PnL, fee, funding, margin, dirty-symbol MTM,
+  active-position indexes, and auditable liquidation over the shared ledger.
+- Separate specialized score, compact, and audit kernels/output sinks. Replace
+  nested rows and per-step position clones with flat typed SoA buffers, online
+  metrics, move/view ownership, and chunked audit streaming.
+
+Required tests and evidence:
+
+- Pure Rust unit/proptest/bench works without Python headers.
+- API 0.4 translation produces the exact P0 canonical trace.
+- Stale handle, slot reuse, priority, resource-limit, and malformed ABI fuzz
+  tests pass without panic or out-of-bounds mutation.
+- Debug index validator remains consistent after every generated transition.
+- Accounting, margin, liquidation, output profile, and result-lifetime parity.
+- High-churn memory scales with peak live orders plus requested output, not
+  historical order count.
+- E0 score/compact/audit end-to-end gates include preparation and adaptation;
+  low-churn small workloads cannot regress outside the documented budget.
+
+Exit gate:
+
+The production Rust event engine has no PyO3 dependency internally, no hot
+order compaction, no scan of terminal/historical orders in the execution loop,
+no score-via-audit path, and no unrequested dense or nested result
+materialization on the static-tape route. Stable-priority matching still visits
+the relevant live book; a price/type candidate specialization must prove exact
+trace parity before it replaces that conservative route.
+
+Implementation completed:
+
+- Extracted the Cargo workspace into `quantbt-domain`, `quantbt-engine`,
+  `quantbt-strategy-ir`, `quantbt-batch`, `quantbt-portfolio`,
+  `quantbt-package`, and the outer `native_event` PyO3 binding. The domain and
+  engine dependency trees contain no PyO3 or NumPy dependency.
+- Preserved public Native Event API `0.4` and introduced the internal ABI
+  `0.5` contract: typed IDs/enums, generation-safe `OrderHandle`, immutable
+  command-tape validation/translation, structured domain errors, and a
+  bar-major prepared market/instrument boundary. The P0-compatible static
+  reader continues consuming the established API-0.4 wire tape until the full
+  typed SoA reader migration receives its own trace certification.
+- Replaced full-session terminal compaction with an arena/free list plus
+  monotonic lifecycle indexes for active priority, symbol, GTD expiry,
+  parent-child, and OCO relationships. Terminal events are emitted before slot
+  release and index invariants are checked by generated-transition tests.
+- Added score, compact, and audit static-tape sinks. Score retains terminal
+  scalars only; compact retains account paths without detail rows; audit adds
+  typed fill/event columns. All use the same matching/accounting path and flat
+  bar-major position storage.
+- Added the frozen E0-E6 taxonomy and an E0 profile benchmark. The strategy
+  IR, batch/WFO, portfolio, and package crates deliberately expose typed
+  contracts only in this phase; executable semantics are Phase 53B scope and
+  are not advertised through a public endpoint.
+- Kept the P0-compatible API-0.4 reader and verified account loop as the live
+  static execution path. Full ABI-0.5 tape consumption, price/type candidate
+  specialization, and adoption of the new account primitives remain explicit
+  Phase 53B promotion work, each gated by canonical trace and accounting
+  parity rather than silently replacing the certified path.
+
+Evidence:
+
+- `cargo fmt --all -- --check`, `cargo test --offline --workspace`, and
+  `cargo clippy --offline --workspace --all-targets -- -D warnings` pass.
+- Full Python native-event contract/regression suite: `182 passed, 2 skipped`.
+- Repository regression after the extracted workspace and rebuilt local
+  extension: `848 passed, 3 skipped`.
+- E0 static command-tape profile benchmark at 2,000 bars and five warm
+  repeats verifies exact score/compact/audit terminal accounting parity and
+  compact/audit path parity for low and high churn. See
+  [`e0_profiles.json`](../benchmarks/native_event/results/phase53a/e0_profiles.json).
+- The artifact records score at 8.19M/2.15M bars/s, compact at 1.56M/1.04M
+  bars/s, and audit at 655k/81k bars/s for low/high churn. These are E0-only,
+  machine-local measurements rather than a promotion claim for E1-E6.
+
+---
+
+### Phase 53B - P2 Native Strategy IR, Batch/WFO, Portfolio, Package, And Performance Gate
+
+**Status: completed (scoped native-driver certification; no default endpoint promotion).**
+
+Detailed guide:
+
+- [P2.10 - Native strategy hierarchy and IR](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p210--native-strategy-execution-hierarchy)
+- [P2.11 - Scenario batch for optimizer/WFO](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p211--scenario-batch-engine-cho-optimizer-và-walk-forward)
+- [P2.12 and P2.13 - Portfolio and package cores](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p212--rust-portfolio-execution-core-dùng-chung-accountorder-engine)
+- [P2.14 through P2.20](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p214--parallelism-đúng-tầng-deterministic-và-không-oversubscribe)
+- [P2 performance promotion gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+
+Goal:
+
+Move common deterministic strategy and repeated-scenario workloads fully into
+Rust, then extend the same certified order/account/risk core to portfolio and
+arbitrage packages without creating separate engines.
+
+Scope:
+
+- Promote the typed ABI-0.5 reader, specialized live-order candidate sets, and
+  incremental account primitives only after isolated P0 trace/accounting
+  parity gates. The Phase 53A live-priority scan is the conservative baseline,
+  not a hidden performance claim.
+- Preserve four explicit strategy levels: legacy Python objects, numeric
+  Python view/writer, sparse Python callback, and fully native strategy IR.
+- Implement a bounded, validated IR v1 plus readable Python reference
+  interpreter for market reads, parameters, state, arithmetic/comparison,
+  branch/control, order/bracket/cancel/amend, and scheduled wake operations.
+- Prove IR with Grid, DCA, bracket/OCO, rebalance, and selected signal-tape
+  strategies. Do not build a general-purpose Python VM.
+- Add one-call scenario batch execution using shared prepared market/strategy,
+  worker-local mutable state, deterministic reset, compact scalar metric rows,
+  stable top-K, and selected-candidate audit reruns.
+- Integrate batch execution with optimization and WFO without changing existing
+  objective, split, schedule, seed, candidate-selection, or accounting rules.
+- Parallelize independent scenario/fold work only; prevent nested Optuna/Rayon/
+  BLAS/Numba oversubscription and preserve exact results at 1/2/4/8 workers.
+- Add Rust portfolio target execution over the shared account/order engine;
+  keep allocator/risk-estimation research in Python until independently worth
+  porting. Support versioned rebalance/margin/rejection/attribution policies.
+- Add Rust package/arbitrage preflight, reserve, commit, abort, compensate, and
+  residual-risk execution over the same core. Atomicity remains explicitly a
+  bar-simulation transaction, not exchange atomicity.
+- Detach the interpreter for Rust-only run/chunk/batch work and minimize typed
+  arrays/handles crossing PyO3.
+- Evaluate compiler, PGO, SIMD, allocator, hashing, or unsafe changes only after
+  profile evidence across representative E0-E6 workloads and exact parity.
+
+Required tests and evidence:
+
+- Python IR interpreter and Rust runtime exact trace for Grid/DCA/bracket
+  fixtures, including state reset and malformed-program rejection.
+- Scenario `i` equals standalone scenario `i`; worker counts are exact and
+  deterministic; cancellation leaves reusable sessions healthy.
+- Zero market copy per trial after prepare and bounded RSS over large batches.
+- Existing WFO modes/schedules retain params, objective, fold, stitched target,
+  and final account parity on the compatibility path.
+- Portfolio target/accepted/cost/PnL attribution parity against certified
+  Python/Numba reference.
+- Package reservation, rollback, actual-fill hedge sizing, staleness, and
+  residual exposure parity.
+- E0-E6 performance and memory matrix reports honest boundary calls, callbacks,
+  copies, engine time, adaptation, reports, peak/steady RSS, and fingerprints.
+
+Phase 53B exit gate:
+
+The scoped native IR and batch drivers must pass the reference trace,
+single/batch, worker-count, prepared-market reuse, selected-audit, and
+installed-extension gates before they are documented. Portfolio/package drivers
+must retain reference-preflight and typed-tape lifecycle parity. The full
+blueprint [P2 exit checklist](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p220--p2-exit-checklist)
+remains a wider production-promotion horizon; it is **not** silently marked
+passed until generic WFO, portfolio, package, and E0--E6 endpoint paths have
+their own evidence. Rust must be demonstrably faster end to end only for the
+native workloads actually promoted, while callback compatibility remains
+correctly labelled rather than used to hide boundary overhead.
+
+Implementation slices and evidence discipline:
+
+1. **Native Strategy IR v1:** add a bounded declarative Python compiler,
+   deterministic reference interpreter, Rust instruction/runtime contract, a
+   human-readable disassembler and stable program fingerprint. Promote only
+   precomputed-signal strategies whose command tape matches the reference
+   trace exactly; Grid/DCA/bracket fixtures are mandatory.
+2. **Batch and WFO bridge:** run independent parameter rows over one shared
+   prepared market with scalar score rows, stable top-K and selected audit
+   reruns. Existing Optuna/WFO scheduling, objectives, splits and defaults
+   remain compatibility routes until direct batch parity is demonstrated.
+3. **Portfolio and package drivers:** compile approved target and package
+   plans into immutable native tapes. Every target/package action must pass
+   through the certified event/account lifecycle; Python remains the reference
+   oracle for rejection, reservation, rollback and attribution reconciliation.
+4. **Promotion gate:** test reference/Rust traces, single/batch and
+   worker-count determinism, prepared-market reuse, selected audit equality,
+   portfolio/package accounting and bounded RSS. Publish E0--E6 evidence only
+   for workload routes that actually use the new runtime. Unsupported strategy
+   constructs continue to raise a capability error on explicit Rust selection
+   and retain their existing Python path.
+
+Delivered:
+
+- Added the bounded Strategy IR v1 and a pure Python reference compiler for
+  `signal_target`, `grid_level`, `dca_periodic`, and `fixed_bracket`. Rust
+  compiles the same immutable ABI-0.5 tape, exposes a human-readable
+  disassembly and cross-language fingerprint, and executes with zero Python
+  callbacks after the boundary call.
+- Added a prepared scenario batch runtime with immutable shared market/program,
+  worker-local `FullSession` state, stable ID order/top-K tie-breaks, score-only
+  retention, selected audit reruns, and explicit `NativeIRFold` OOS windows.
+  This is intentionally a low-level execution bridge: existing Optuna/WFO
+  objectives, schedules, seeds, folds, stitching, and endpoint defaults are
+  unchanged.
+- Added Rust portfolio target and package preflight drivers that preserve the
+  certified Python reference contracts, compile approved deltas/legs into
+  typed ABI-0.5 tapes, and prove those tapes run through the shared event,
+  fill, fee, slippage, margin, and lifecycle core.
+- Added [`docs/native_strategy_ir.md`](../docs/native_strategy_ir.md), the
+  [`Phase 53B certification`](../docs/contracts/phase53b_certification.json),
+  and reproducible E3/E6 evidence at
+  [`native_drivers.json`](../benchmarks/native_event/results/phase53b/native_drivers.json).
+
+Evidence:
+
+- Focused native-driver differential suite: `16 passed`.
+- Full native-event regression: `197 passed, 2 skipped`; WFO compatibility
+  regression: `75 passed`.
+- Repository regression excluding the two external real-data tests: `864
+  passed, 3 skipped`.
+- `cargo test --offline --workspace` passed (`39` Rust tests), and
+  `cargo clippy --offline --workspace --all-targets -- -D warnings` passed.
+- On the committed 2,000-bar/64-scenario fixture, native Grid IR score ran at
+  `5.997M bars/s` versus `418,613 bars/s` for the Python reference command
+  route with exact audit parity. Four-worker batch reached `21.41M` simulated
+  bars/s, zero prepared-market copies per scenario, and an observed incremental
+  RSS delta of `1.16 MiB`. This is E3/E6 local evidence only, not a universal
+  callback/portfolio/arbitrage claim.
+
+Remaining P2 scope is intentionally explicit rather than silently claimed:
+
+- Native IR v1 is bounded templates, not a general strategy VM, dynamic
+  trailing/amend runtime, or arbitrary Python callback replacement.
+- `NativeIRFold` is not wired as an automatic `WalkForwardEngine`/Optuna
+  backend until full strategy/objective/fold-accounting parity is separately
+  demonstrated.
+- Portfolio/package native support is a replayable preflight-to-typed-tape
+  driver. General Rust portfolio reports, cross-currency accounting, actual
+  fill-derived dynamic hedging/unwind, and venue-native atomicity remain future
+  capabilities, not current endpoint claims.
+- E4/E5 full endpoint performance promotion and the broader E0-E6 production
+  matrix remain a later promotion decision. The current tests prove accounting
+  and lifecycle reuse, not generic endpoint speed.
+
+---
+
+### Phase 54A - P3 Source, Registry, Packaging, CI, Security, And Documentation
+
+**Status: complete (Phase 54A scope).**
+
+Detailed guide:
+
+- [P3.0 through P3.4](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p30--một-source-tree-python-duy-nhất)
+- [P3.6 through P3.10](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [Target repository structure](quantbt_p0_p3_native_rust_upgrade_blueprint.md#6-target-repository-structure-after-p0p3)
+- [Test and CI command contract](quantbt_p0_p3_native_rust_upgrade_blueprint.md#8-test-and-ci-command-contract)
+
+Goal:
+
+Turn the certified engines into reproducible source and installed products with
+one source of truth, generated contracts, exact core/native compatibility,
+stable diagnostics, governed benchmarks, and supply-chain evidence.
+
+Scope:
+
+- Complete migration to `src/quantbt` as the only authoritative Python source.
+  A transitional root mirror may exist only as generated/read-only with byte
+  identity CI, then is removed under an approved cleanup release.
+- Split large modules according to ownership boundaries; enforce import rules,
+  internal visibility, public API inventory, and ADRs for contract/backend/
+  arena/IR/batch/portfolio/package/package-compatibility decisions.
+- Generate Python/Rust enums, schemas, capability descriptors, docs tables,
+  conformance cases, ABI fingerprints, and release manifests from one versioned
+  contract registry.
+- Maintain independent package, native protocol, command ABI, result ABI,
+  execution contract, trace schema, and IR versions with a machine-readable
+  compatibility/deprecation matrix.
+- Build `quantbt-engine` core and lockstep `quantbt-native` wheels from the same
+  release ref. Keep core-only functional and enable the native extra only after
+  clean-index compatibility gates pass.
+- Test CPython 3.11/3.12/3.13 and supported manylinux targets from staged wheels,
+  with no repository path leakage or undeclared shared libraries.
+- Establish PR, main, nightly, and release CI layers for generated files,
+  differential/property/fuzz corpus, lifetime, memory plateau, E0-E6 benchmark,
+  clean wheels, mismatch, and rollback gates.
+- Add signed/checksummed provenance, SBOM, dependency/license/vulnerability
+  review, unsafe inventory, fuzz/sanitizer evidence, and portable CPU metadata.
+- Publish versioned diagnostics/counter schemas and complete architecture,
+  contract, native install/capability/troubleshooting, performance, and strategy
+  migration documentation with executable examples.
+
+Required tests and evidence:
+
+- Source, editable install, core wheel, and native wheel production module
+  hashes and behavior agree.
+- Generated artifacts are clean and Python/Rust registry fingerprints match.
+- Core-only, core+native, exact compatible pair, mismatched pair, missing native,
+  and unsupported platform matrix behaves as documented.
+- All docs examples run in CI; capability claims are generated from installed
+  descriptors rather than handwritten marketing text.
+- Benchmark baselines are immutable, reproducible, tied to release/toolchain/
+  hardware, and cannot pass by changing outputs or semantics.
+- Supply-chain and unsafe reports are release artifacts.
+
+Exit gate:
+
+Installed wheels, not source-tree tests, are the authority for release support.
+No production capability may be advertised without a clean-wheel trace,
+accounting, performance, RSS, compatibility, and rollback result.
+
+Implemented:
+
+- `src/quantbt` is the single authoritative Python tree. The temporary root
+  mirror is generated only through `tools/sync_source_mirror.py`; byte identity
+  is checked in local and CI contract gates. It remains intentionally present
+  until the separately approved Phase 54B deletion/migration release.
+- Added the versioned product registry
+  `contracts/native_event_product_registry.json`. It generates Python/Rust
+  product constants, exact core/native pairing, workload maturity records,
+  public API inventory, compatibility documentation, and a generated product
+  conformance corpus. The frozen lifecycle registry remains unchanged.
+- Rust now builds its API version, capabilities, semantic descriptor, and
+  separate product ABI descriptor from generated contract values. The Python
+  probe validates semantic behavior plus product fingerprint, exact package
+  pair, protocol range, command/result ABI, trace schema, and strategy-IR
+  version before any explicit Rust execution.
+- Added ownership/import-boundary review gates, CODEOWNERS, ADRs, public API
+  inventory, documentation map, generated capability table, native install and
+  troubleshooting documentation, and a stable Makefile command surface.
+- Added core/native wheel source-hash verification, native artifact allowlist,
+  exact staged-pair verification, a release manifest that distinguishes core
+  artifacts from an optional exact staged-native companion, CycloneDX SBOM,
+  supply-chain/unsafe inventory/provenance evidence, scheduled `cargo audit`,
+  PR/main/release source gates, and a non-promoting nightly E0/E3/E6 evidence
+  workflow.
+
+Evidence:
+
+- `874 passed, 3 skipped` for the full Python suite excluding only the two
+  repository-local real-data scripts.
+- `206 passed, 2 skipped` for `tests/native_event`; product/release focused
+  tests and legacy release-surface coverage pass.
+- Rust workspace `fmt`, tests, and `clippy -D warnings` pass.
+- Built `quantbt-engine==1.0.8` wheel/sdist and
+  `quantbt-native==0.4.0` local wheel: artifact allowlist, source-to-wheel hash
+  parity, generated registry checks, exact staged pairing, runtime extension
+  import, semantic descriptor, and product descriptor all pass.
+- Full dependency-resolving clean-install verification remains an installed
+  wheel CI gate. The local sandbox cannot resolve the package index; a
+  no-repository-path wheel smoke with the already provisioned dependency set
+  passed, so this is an environment limitation rather than a fallback claim.
+
+Boundary after Phase 54A:
+
+- `backend="auto"` remains Python-first; `backend="rust"` is explicit and
+  fail-closed. No workload was silently promoted.
+- Phase 54B owns workload-aware Rust promotion, rollback controls, real
+  installed-wheel performance certification, and deletion of the generated root
+  mirror/shadow compatibility paths. Those are deliberate promotion/cleanup
+  scope, not unresolved Phase 54A correctness defects.
+
+---
+
+### Phase 54A.5 - Rust Execution Ownership Completion, Typed Request, And Boundary Collapse
+
+**Status: in progress. Must complete before any Phase 54B auto-promotion work.**
+
+Detailed guide:
+
+- [P1.3 - Resolve output requirements once](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p13--resolve-outputrequirements-một-lần)
+- [P1.6 through P1.9 - Remove shadow state, reduce transitions, primary audit, and prepared cache](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p16--xóa-python-shadow-state-trong-rust-adapter)
+- [P2.2 and P2.3 - Typed ABI 0.5 and market ownership](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p22--chuyển-thành-rust-workspace-pyo3-chỉ-ở-outer-crate)
+- [P2.9 - Flat SoA output and online metrics](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p29--output-architecture-flat-soa-online-metrics-và-zero-unnecessary-materialization)
+- [P2.10 through P2.13 - Strategy hierarchy, batch/WFO, portfolio, and package execution](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p210--native-strategy-execution-hierarchy)
+- [P2.15 - Correct PyO3 boundary optimization](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p215--pyo3-boundary-tối-ưu-đúng-cách)
+- [P2.19 - Performance promotion gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+- [P3.7 - Generated conformance corpus and test matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+
+Goal:
+
+Finish the shared Rust execution substrate before promotion. Rust must own one
+authoritative market/account/order/lifecycle state for every native-event
+workload that will later be eligible for Rust-first routing. Python remains the
+public facade, strategy-research layer, report adapter, and executable oracle;
+it must not retain a competing execution state or force an execution replay.
+
+This phase is intentionally a **completion and conformance phase**, not an
+automatic-backend-promotion phase. `backend="auto"` remains Python-first until
+the individual Phase 54B workload gates pass.
+
+#### 54A.5.1 - One Rust Execution Core And Compatibility Adapters
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Retired the compiled `legacy::ReactiveSession` / `PreparedMarketData`
+  runtime. The legacy module now retains only frozen R1/R2 integer ABI
+  constants; its former accounting, matching, and session state machines are
+  removed from the Rust build.
+- Kept public PyO3 `PreparedMarketCore` and `ReactiveSessionCore` names and
+  eight-column input shape stable. They are now compatibility facades over a
+  one-symbol `FullMarketData` and `LegacyFullSessionAdapter`, whose only
+  mutable execution state is `FullSession`.
+- Added a mechanical R1/R2-to-API-0.4 command translator at the binding
+  ingress. It preserves action remapping, GTC/immediate constraints,
+  reduce-only, command order, and mask-aware `AMEND`; unsupported expiry,
+  funding, and legacy liquidation semantics fail closed rather than silently
+  acquiring different full-contract behavior.
+- Added legacy output projection at the binding egress. Historical scalar,
+  fill, event, and active-order schemas remain compatible while all lifecycle
+  mutation, margin, fee, fill, and position work occurs in `FullSession`.
+- Fixed a core replacement-chain defect uncovered by the adapter migration:
+  `REPLACE a -> b -> c` now keeps all existing external aliases, so a later
+  `CANCEL a` resolves the live `c` order. The fix lives in `FullSession`, not
+  in an adapter-side alias table.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_one_rust_execution_core.py`:
+  direct 8-column compatibility versus 16-column `FullReactiveSessionCore`
+  parity covers bar zero, amend-mask handling, replace, reduce-only exit,
+  active-order projection, reset, and fail-closed funding/liquidation inputs.
+- Added a pure Rust replacement-chain alias invariant to
+  `quantbt-engine::session` tests.
+- `cargo test --workspace` passed: 40 Rust tests.
+- `cargo clippy --workspace --all-targets -- -D warnings` passed.
+- Fresh editable native wheel build passed via `maturin develop --release`.
+- Focused native regressions passed: `53 passed`.
+- Full native-event suite passed: `211 passed, 2 skipped`.
+
+Boundary:
+
+- This completes the one-runtime ownership lock. It does **not** yet define
+  the versioned typed `NativeExecutionRequestV1`, common portfolio/package
+  tape ingress, or zero-Python-object score output. Those remain the explicit
+  work of 54A.5.2 through 54A.5.6.
+
+- Make `quantbt_engine::FullSession` the sole Rust owner of market state,
+  instrument constraints, positions, cash/equity, fees, funding, margin,
+  liquidation, order lifecycle, trace counters, and terminal state for every
+  native execution route eligible for promotion.
+- Collapse the old R1/R2 `legacy::ReactiveSession` runtime into a compatibility
+  adapter over `FullSession`, or retire it only after exact transition,
+  accounting, sparse-wake, and lifetime parity proves that no public consumer
+  depends on its independent state machine.
+- Preserve legacy Python endpoint signatures and historical contract
+  translators. A legacy input may be translated at the ingress boundary, but
+  it must not cause a second Rust lifecycle implementation or a Python shadow
+  accounting loop.
+- Keep all execution contracts versioned. The complete resolved contract,
+  including event clock, fill/gap/ambiguity policy, funding phase,
+  quantization, liquidation priority, and close policy, must travel into the
+  Rust request as one immutable value; unsupported fields fail closed.
+
+#### 54A.5.2 - Typed Native Execution Request And Workload Tapes
+
+Introduce one versioned internal request family, conceptually:
+
+```text
+PreparedMarketCore + InstrumentTable + AccountModel + ExecutionContract
+    + OutputProfile + WorkloadPayload
+    -> NativeExecutionRequestV1
+```
+
+`WorkloadPayload` is a tagged typed payload, never a Python callback hidden in
+an untyped dictionary:
+
+- `CommandTapeV5` for explicit static orders;
+- `StrategyIRV1` plus immutable numeric signal/parameter tape;
+- `PortfolioTargetTapeV1` for prepared target-unit rebalances;
+- `PackageTapeV1` for prepared multi-leg transaction intent.
+
+Requirements:
+
+- The API-0.4 flat-array translator remains a compatibility ingress only.
+  `CommandTapeV5` becomes the canonical execution representation consumed by
+  the shared engine.
+- String IDs, symbols, order IDs, policy enums, timestamps, quantity/price
+  constraints, and contract settings are normalized once before the hot loop.
+- Portfolio and package tapes must be able to enter the same `FullSession`
+  lifecycle without direct position mutation or a separate account loop.
+- The request has a deterministic fingerprint covering market, instruments,
+  contract, workload tape, output profile, and native protocol/ABI versions.
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added the pure-Rust `quantbt-execution` workspace crate and its immutable,
+  versioned `NativeExecutionRequestV1` contract. A request contains exactly one
+  prepared `FullMarketData`, normalized `InstrumentTableV1`, `AccountModelV1`,
+  fail-closed `ExecutionContractV1`, output profile, typed workload payload,
+  and deterministic request/protocol provenance.
+- `CommandTapeV5` is now the canonical static representation. The API-0.4
+  16-column arrays are translated once at the PyO3 compatibility ingress, then
+  `FullSession::run_typed_score`, `run_typed_compact`, or `run_typed_audit`
+  executes that tape. No second array-driven lifecycle/accounting loop remains
+  on the full static route.
+- Implemented typed `CommandTapeV5`, `StrategyIrWorkloadV1`,
+  `PortfolioTargetWorkloadV1`, and `PackageTapeV1` variants. Strategy IR
+  compiles to its immutable canonical tape at request construction. Portfolio
+  and package variants retain preflight/planning provenance and lower only to
+  the shared session tape; neither may mutate positions or run a separate
+  account loop.
+- Each `execute()` creates one fresh Rust-owned `FullSession`. Therefore a
+  reusable request never retains account/order/lifecycle state across runs.
+  The fingerprint covers timestamps, OHLCV, volume, funding rate/mask,
+  instrument sizing/leverage/fee, account model, contract, output profile,
+  exact workload data/provenance, and generated ABI/registry versions.
+- Added additive `NativeExecutionRequestCore` PyO3 construction for static
+  command tapes and declarative strategy IR. It crosses Python-to-Rust once per
+  `execute()` and has no callback or per-bar Python boundary. Existing public
+  API-0.4 session classes and endpoint routing are unchanged.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_typed_execution_request.py`.
+  It locks typed request versus API-0.4 full-session parity for equity,
+  positions, fees, turnover, funding, margin, fill/event trace, scalar
+  accounting, fresh-account repeated execution, score-output materialization,
+  strategy-IR compilation, bad contract/tape rejection, and API-0.4 translator
+  use.
+- Pure Rust request tests lock static score/compact/audit parity, fingerprint
+  invalidation for market/instrument/contract/output changes, one-time IR tape
+  compilation, portfolio/package shared-session entry, and pre-execution
+  rejection of invalid tape/contract mappings.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, and `cargo test --workspace` passed (`45` Rust unit tests).
+- Fresh editable extension build passed via `maturin develop --release`.
+  Focused Phase 54A.5 tests passed: `8 passed`. Full native-event regression
+  passed: `216 passed, 2 skipped`.
+
+Boundary:
+
+- This is an internal ABI-0.5 substrate, not a backend promotion. `auto`
+  remains Python-first and no existing endpoint changes its public signature or
+  execution route.
+- The new PyO3 request currently adapts result data into a cold-path `PyDict`.
+  Versioned typed SoA score/compact/audit buffers, cache ownership/budgets,
+  batch public ingress, and public portfolio/package typed routes remain the
+  explicit work of 54A.5.3 through 54A.5.6; they are not silently claimed here.
+
+#### 54A.5.3 - Rust-Owned State Across Static, IR, Batch, Portfolio, And Package
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+- Static tape: one prepared Rust session executes the entire tape; no Python
+  per-bar transition, no Python ledger recomputation, and no audit replay.
+- Strategy IR: compile supported declarative strategies inside Rust from a
+  bounded program and numeric signal tape. The existing templates
+  (`signal_target`, grid level, periodic DCA, fixed bracket) remain bounded
+  and inspectable; arbitrary Python callbacks are not falsely represented as
+  native programs.
+- Batch/WFO: one Rust-owned prepared market is shared across scenarios/folds;
+  score batches retain scalar columns only, while selected candidates are
+  explicitly rerun in compact/audit mode.
+- Portfolio/package: implement the shared tape/session entry point and state
+  ownership now, but keep policy-by-policy public certification and promotion
+  for Phase 54B.3/54B.4. This prevents those phases from creating another
+  bridge or another accounting loop.
+- A Python callback remains a compatibility workload. It may cross the
+  boundary only at declared callback or sparse-wake points. An every-bar
+  callback cannot honestly be described as fully native and must retain that
+  classification in metadata and benchmarks.
+
+Implementation completed:
+
+- Added `NativeExecutionTemplateV1`: one immutable Rust owner for the prepared
+  market view, instruments, account model, execution contract, and content
+  fingerprint. `NativeExecutionRunnerV1` owns the only mutable `FullSession`
+  buffer and deterministically resets account, order, lifecycle, margin, and
+  trace state before every independent workload.
+- Added `FullSession::new_window(...)`. An OOS fold now has a local bar clock
+  and fresh account snapshot over a shared `Arc<FullMarketData>` range. It is
+  bit-for-bit parity-tested against the former materialized `FullMarketData`
+  window, including fills, fee, funding, paths, and events, while avoiding the
+  OHLCV/funding copy.
+- `BatchTemplate` now owns the execution template rather than duplicate market
+  and account fields. Each batch worker creates one runner and reuses it across
+  scenarios; Strategy IR close projections are materialized once per template
+  or fold, not once per scenario. The typed projection is bound to the exact
+  template fingerprint and symbol, so a projection from another market view is
+  rejected before command compilation. `score_fold_batch` reports
+  `market_windows_created=0`, logical view bytes, physical source bytes, and
+  `market_view_shared=true` so no-copy behavior is observable.
+- Static, strategy-IR, portfolio-target, and package workloads all enter the
+  same typed request/runner/session path. A shared-runner conformance test
+  proves that a portfolio target cannot leak its long position into a following
+  package short, and that a replay starts from the same clean state.
+
+Evidence:
+
+- `cargo fmt --all`, `cargo test --workspace`, and
+  `cargo clippy --workspace --all-targets -- -D warnings` passed (`47` Rust
+  unit tests).
+- Fresh editable extension build passed through `maturin develop --release`.
+  Focused typed-request, compatibility-core, and fold-batch Python regressions
+  passed: `24 passed`. Full native-event regression passed: `216 passed, 2
+  skipped`; full QuantBT suite passed: `882 passed, 3 skipped`.
+
+Boundary:
+
+- This completes shared native ownership and no-copy fold preparation only.
+  It does not promote any public endpoint, change `backend="auto"`, or claim
+  arbitrary Python callbacks are native workloads.
+- Typed SoA result ownership, cache budgets/lifetime controls, public prepared
+  batch ingress, and endpoint-level portfolio/package promotion remain the
+  explicit work of 54A.5.4 through 54B. No Python execution replay is added by
+  this phase.
+
+#### 54A.5.4 - Flat Output, Cold-Path Adaptation, And No Replay
+
+- Replace hot-path `PyDict`, nested row vectors, per-fill Python objects, and
+  unconditional pandas construction with versioned typed native outputs:
+  `NativeScoreOutputV1`, `NativeCompactOutputV1`, and
+  `NativeAuditOutputV1`.
+- Score output contains only scalar/online metrics required by the caller. It
+  must not materialize equity paths, audit rows, `DataFrame`s, or a Python
+  dictionary merely to calculate a score.
+- Compact/audit output uses contiguous typed SoA buffers with explicit owner
+  lifetime. Python adapts those buffers into `BacktestResultV2`, plots, and
+  reports only after execution, and only for the report level requested.
+- The Rust audit result is the production artifact. Python oracle comparison
+  is an optional verifier/sampled test path, never an implicit second run.
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added versioned pure-Rust `NativeScoreOutputV1`, `NativeCompactOutputV1`,
+  `NativeAuditOutputV1`, and `NativeExecutionOutputV1`. Output requirements
+  are resolved once from the profile before the canonical typed session loop;
+  profile selection changes only retention, never lifecycle, fill, accounting,
+  funding, margin, or liquidation semantics.
+- `score` now retains only scalar terminal accounting plus one final-position
+  vector. It allocates neither dense paths nor fill/event columns and copies
+  final positions only once after the last bar rather than cloning positions on
+  every bar. `compact` retains flat bar-major account columns, while `audit`
+  adds typed `i64` lifecycle IDs and `f64` fill columns with no nested rows.
+- `NativeExecutionRunnerV1` and static/IR/batch/portfolio/package typed
+  workloads consume the new output family. API-0.4 `StaticTapeOutput` is now a
+  move-only compatibility adapter from the authoritative typed result; it does
+  not replay the engine or clone result vectors in production paths.
+- Added additive PyO3 `NativeScoreOutputV1`, `NativeCompactOutputV1`, and
+  `NativeAuditOutputV1` objects behind
+  `NativeExecutionRequestCore.execute_typed()`. Rust `Vec` buffers move
+  directly into NumPy-owned contiguous arrays through `PyArray1::from_vec`.
+  Each object exposes deterministic request/output provenance, retained payload
+  bytes, one-pass boundary metadata, scalar fields, and only the columns its
+  profile declares. `as_dict()` and the retained `execute()` method are explicit
+  cold-path compatibility adapters.
+- Documented the ABI-0.5 typed output boundary in
+  `docs/native_event_rust_full_contract.md` and `docs/native_strategy_ir.md`.
+  Result/report construction remains explicit; no public endpoint or
+  `backend="auto"` route changed in this phase.
+
+Evidence:
+
+- Extended `tests/native_event/test_phase54a5_typed_execution_request.py` to
+  lock score/compact/audit typed-class selection, profile-specific retention,
+  `float64`/`int64` SoA dtypes, byte accounting, cold `as_dict()` parity,
+  legacy `execute()` parity, empty audit columns, request-GC lifetime, and
+  repeated-run/session-reset immutability.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, and `cargo test --workspace` passed (`47` Rust tests).
+- Fresh `maturin develop --release` passed. Focused typed-request tests passed
+  (`8 passed`), full native-event regression passed (`219 passed, 2 skipped`),
+  and the full QuantBT suite passed (`885 passed, 3 skipped`).
+
+Boundary:
+
+- This is an additive ABI-0.5 request/result surface, not a silent public
+  backend promotion. Existing API-0.4 dictionary/session methods and the
+  stable mapping-based `RustNativeIRRunner` facade remain compatibility paths
+  until their own public promotion gates.
+- `native_execution_output_bytes` measures retained numeric payload bytes, not
+  Python object overhead or allocator capacity. Audit streaming/chunk limits,
+  prepared-cache budgeting, public prepared batch ingress, and endpoint-level
+  portfolio/package promotion remain the explicit next work of 54A.5.5 and
+  54B; no Python execution replay was introduced here.
+
+#### 54A.5.5 - Prepared Ownership, Cache, Reset, And Boundary Budget
+
+- `PreparedMarketCore` owns one immutable, contiguous market tape and a
+  validated instrument table per content fingerprint. Its lifetime is explicit
+  and independent of transient Python `DataFrame`s.
+- Reuse prepared market/instrument state across static reruns, IR scenarios,
+  WFO folds, and service loops without duplicate pandas normalization or
+  market-array packing per trial. Fold-local account reset/window semantics
+  remain causal and must not leak positions/orders across folds.
+- Cache entries have byte budgets, ref/lifetime diagnostics, deterministic
+  clear/reset behavior, and signatures covering all result-affecting arrays
+  and constraints. No cache uses object identity as a correctness substitute.
+- Define and test a boundary budget: static/IR/full batch is one Python-to-Rust
+  call per run/batch; sparse callbacks cross once per wake chunk; arbitrary
+  every-bar callbacks report their crossing count honestly.
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added `NativeExecutionTemplateCore` as the output-independent ABI-0.5
+  immutable owner for prepared market, instrument, account, and event-contract
+  state. It exposes a zero-copy `window(start, end)` whose local bar clock is
+  independent of the source tape, preventing a fold-local command tape from
+  accidentally using global bar offsets. The immutable tape stays in one Rust
+  `Arc`; no market arrays are rebuilt for a cached template/window.
+- Added `NativeExecutionRunnerCore` over one `NativeExecutionRunnerV1` and an
+  immutable request. Every execution resets account/orders/indexes/cursors
+  before running, tracks native generation and run count, releases the GIL for
+  Rust-only execution, and produces one typed output in one boundary call.
+  `account_and_orders`, `scenario_state`, `result_buffers`, and `full_rebuild`
+  are explicit scopes. `account_only` fails closed because it would leave an
+  ambiguous active-order/lifecycle state.
+- Added `NativeExecutionPreparationCache` in `quantbt.preparation`: L2 market,
+  L3 template, and L4 immutable static/IR request tiers use SHA-256 content
+  signatures and bounded LRU budgets split 60%/15%/25%. Keys include all market
+  arrays (timestamps, OHLCV, funding, event mask), symbols, instrument/account
+  values, contract, program/signal/parameter or command-tape data, and output
+  profile. Cache diagnostics report hits/misses, resident bytes, eviction/reuse,
+  ingress copies, tier budgets, and generation. Object identity is never used.
+- Strengthened `PreparedObjectCache.clear(force=False)` so a normal clear
+  refuses pinned entries and returns deterministic released-byte/generation
+  provenance. Results own detached NumPy output buffers, therefore clearing a
+  cache or releasing runner scratch capacity cannot invalidate an earlier
+  result. Source-tree and temporary local-package mirrors are kept identical
+  for the preparation modules while both import paths remain supported.
+
+Evidence:
+
+- Added `tests/native_event/test_phase54a5_prepared_cache_boundary.py`:
+  market/template/request hit reuse; invalidation for volume, funding, close,
+  fee, contract, and output profile; cached-versus-direct typed-output parity;
+  bounded tier diagnostics; pin/clear behavior; zero-copy local window; runner
+  generation/reset/no-state-leak behavior; result lifetime after cache clear;
+  and static/IR one-boundary-call assertions.
+- Added a pure Rust `quantbt-execution` test for local window tape layout,
+  shared market ownership, repeated runner parity, and explicit reset
+  generation. It caught and fixed a real window bug: typed command translation
+  now uses the template's local bar count rather than the source market's full
+  length.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D
+  warnings`, `cargo test --workspace`, a fresh release `maturin develop`, and
+  the focused ABI-0.5 Python suite passed after the change.
+
+Boundary:
+
+- Static/IR requests and reusable runners now meet the one Python-to-Rust call
+  per run boundary. Sparse callbacks and arbitrary every-bar callback drivers
+  retain their separate published boundary counters; this phase does not make
+  an unsupported callback look fully native.
+- Cache budget is for cache-owned resident entries. Explicitly retained Python
+  market/template/request handles may correctly outlive an LRU eviction, and
+  diagnostics never pretend they were freed. Audit streaming/chunk limits,
+  shared public prepared-batch ingress, and endpoint-level portfolio/package
+  promotion remain 54A.5.6/54B work, not hidden behavior changes here.
+
+#### 54A.5.6 - Differential Corpus, Performance Baseline, And Exit Gate
+
+The canonical corpus must compare the Python oracle, legacy compatibility
+adapter, typed Rust request, and prepared Rust reuse path for the same
+contract. It must lock:
+
+- accepted/rejected commands and rejection reasons;
+- fill time, price, quantity, reason, ambiguity, parent/OCO/TIF transitions;
+- position, cash/equity, fee, slippage, funding, margin, liquidation, and
+  per-symbol/package attribution where the workload supports them;
+- trace/fingerprint determinism, reset/lifetime behavior, and legacy endpoint
+  result/report compatibility;
+- score/compact/audit accounting parity, including the absence of a hidden
+  audit replay;
+- prepared versus non-prepared, single versus batch, and repeated-run cache
+  parity.
+
+Benchmark evidence must separately record E0 static, E1 callback, E2 sparse
+callback, E3 IR, E4 portfolio, E5 package, and E6 batch/WFO workloads with
+Python/Rust call counts, copies, engine time, adaptation time, peak/steady RSS,
+and result fingerprints. No speed claim or promotion is permitted until the
+corresponding parity and installed-wheel gate passes.
+
+Exit gate:
+
+```text
+One authoritative Rust execution/accounting state exists for the promotable
+native-event workload family;
+typed request/output contracts are versioned and fingerprinted;
+legacy compatibility is adapter-only and parity-locked;
+static/IR/batch have no per-bar Python execution boundary;
+portfolio/package enter the shared Rust session through typed tapes;
+score has no dictionary/dataframe/audit materialization or forced replay;
+prepared ownership/cache/reset is deterministic and bounded;
+the full Python-oracle/legacy/typed/prepared differential corpus passes.
+```
+
+Non-goals and fail-closed scope:
+
+- This phase does not auto-promote any workload and does not remove the Python
+  oracle, historical translators, or public endpoint compatibility.
+- It does not claim arbitrary Python strategy code is compilable to Rust.
+- It does not certify venue-exact L2/queue/partial-fill simulation,
+  inverse/quanto/options accounting, universal portfolio margin, or Nautilus
+  execution. Those require separate contracts and must remain explicitly
+  unsupported/fallback paths.
+- Native intrabar, vectorized, options, and Nautilus backends retain their own
+  contracts. They are not silently redirected into the Rust native-event core.
+
+**Status: completed on `feat/51-native-rust-production-core`.**
+
+Implementation:
+
+- Added the versioned corpus at
+  `tests/corpus/native_event/phase54a5_full_session.json` and the four-route
+  differential harness at
+  `tests/native_event/test_phase54a5_differential_corpus.py`. The harness
+  compares Python oracle, public API-0.4 Rust compatibility, direct ABI-0.5
+  typed request, and prepared ABI-0.5 reusable runner for deterministic
+  multi-symbol/OCO/funding and IOC/GTD/reduce-only lifecycle cases.
+- The corpus locks raw accounting paths, fill/event SoA columns, accepted and
+  rejected command outcomes, canonical trace/fingerprint, reset/lifetime
+  behavior, score/compact/audit no-replay parity, static/IR/batch boundary
+  counts, and typed portfolio/package preflight parity.
+- Fixed three exposed cold-path projection mismatches without changing engine
+  accounting: semantic order-ID decoding in event parity, relationship/reason
+  fallback from immutable command metadata into the canonical trace, and
+  event-specific rejection reasons on Python lifecycle events. The canonical
+  trace fingerprint now uses a 12-decimal projection to absorb equivalent f64
+  accumulation-order artifacts under the public parity contract; raw accounting
+  data remains unrounded and parity-checked at `1e-12`.
+- Added
+  `benchmarks/native_event/benchmark_phase54a5_exit_gate.py`. It emits
+  reproducible E0/E3/E6 engine-time versus cold-adaptation-time, current/peak
+  RSS, call/callback/copy counters, output fingerprints, and an explicit
+  non-promotion record for E1/E2/E4/E5.
+
+Evidence:
+
+- Focused trace plus four-route corpus: `11 passed`; full native-event suite:
+  `229 passed, 2 skipped`; complete QuantBT suite: `895 passed, 3 skipped`.
+- `cargo fmt --all -- --check`, strict `cargo clippy`, and `cargo test
+  --workspace` passed (`48` Rust unit tests); a fresh release
+  `maturin develop` installed the ABI-0.5 extension before Python regression.
+- The frozen 2,000-bar / 64-scenario artifact at
+  `benchmarks/native_event/results/phase54a5/exit_gate.json` and its checksum
+  manifest record machine-specific medians: prepared E0 score `6.57M` bars/s
+  low churn and `1.20M` high churn, E3 IR score `5.99M` bars/s, and E6 shared
+  batch `10.93M` simulated bars/s. All measured rows passed their documented
+  parity checks; these are not universal endpoint speed claims.
+
+Boundary:
+
+- This phase is a certification lock, not a default-backend promotion. Rust
+  stays explicit/experimental and `backend="auto"` behavior remains unchanged.
+- E1 arbitrary callbacks, E2 sparse reactive callbacks, E4 full portfolio
+  endpoints, and E5 full package endpoints have no synthetic performance
+  claim. Their Phase 54B domain-specific endpoint, installed-wheel, rollback,
+  and RSS gates are still mandatory.
+
+Dependency for Phase 54B:
+
+Phase 54B may promote only a workload whose typed request/output path is
+complete under this phase and whose domain-specific Phase 54B parity,
+installed-wheel, performance, RSS, rollback, and public endpoint gates pass.
+
+---
+
+### Phase 54B - P3 Rust-First Promotion, Migration, Cleanup, And Final Release
+
+**Status: complete (54B.1 through 54B.4).**
+
+Detailed guide:
+
+- [P3.5 - Workload-aware backend promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.11 and P3.12 - Cleanup and exit](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p311--cleanupdeletion-plan)
+- [Definition of dual native backend](quantbt_p0_p3_native_rust_upgrade_blueprint.md#14-definition-of-dual-native-backend-cho-quantbt)
+- [Final acceptance matrix](quantbt_p0_p3_native_rust_upgrade_blueprint.md#15-final-acceptance-matrix)
+- [Recommended promotion order](quantbt_p0_p3_native_rust_upgrade_blueprint.md#16-recommended-promotion-order)
+- [Immediate implementation backlog](quantbt_p0_p3_native_rust_upgrade_blueprint.md#17-immediate-implementation-backlog)
+
+Goal:
+
+Promote Rust from an explicit experimental accelerator to the canonical
+production execution core for every certified workload, retain Python as the
+executable oracle/fallback, remove obsolete duplicate hot paths, and publish a
+reversible release with no ambiguous backend behavior.
+
+Prerequisite:
+
+Phase 54A.5 must be complete. Promotion is prohibited while a candidate route
+still depends on an independent legacy Rust state machine, Python execution
+shadow state, untyped request/dictionary hot path, forced audit replay, or an
+uncertified portfolio/package bridge.
+
+Scope:
+
+- Replace the original equal-default dual-backend policy with a versioned
+  Rust-first production promotion table:
+  - certified static tape, strategy IR, and batch/WFO resolve to Rust;
+  - certified portfolio target modes resolve to Rust;
+  - certified package/arbitrage policies resolve to Rust;
+  - hybrid Python callback drivers still use Rust-owned execution state;
+  - uncertified or unavailable routes fall back to Python only with explicit
+    structured reason and declared maturity.
+- Preserve `backend="python"` as explicit oracle, debugging, historical replay,
+  and emergency operation. Preserve `backend="rust"` as strict fail-fast.
+- Make automatic decisions deterministic from contract, workload, profile,
+  scale, account model, installed descriptor, platform, and versioned promotion
+  table. Record selection and rejected-candidate reasons in every result.
+- Add tested emergency disable/rollback controls without remote nondeterminism.
+- Run full differential, installed-wheel, corpus, fuzz smoke, lifetime, memory,
+  E0-E6, public endpoint, WFO, portfolio, arbitrage, and report regression gates.
+- Run real representative alpha/service workloads and archive stakeholder
+  bundles containing configs, plan/trace fingerprints, performance phase data,
+  metrics, fills/orders/accounting, and backend evidence.
+- Remove only paths proven unused by counters/import graph and protected by
+  migration tests: manual root mirror, Python shadow-state, nested Rust rows,
+  score-via-audit, forced production replay, expired compatibility shims, and
+  monolithic duplicate execution branches.
+- Do not remove the readable Python oracle, canonical conformance corpus,
+  explicit Python backend, or historical contract translators.
+- Publish release notes that distinguish native execution, hybrid callbacks,
+  unsupported contracts, OHLC intrabar limitations, package atomicity model,
+  platform coverage, and rollback procedure.
+
+Required tests and evidence:
+
+- Same certified request under `auto` resolves to Rust deterministically and
+  produces the same canonical trace/accounting as explicit Rust and the Python
+  oracle.
+- Missing/mismatched/disabled native routes resolve exactly as policy states;
+  internal Rust invariant failures never silently rerun Python.
+- Public score/research/audit results, metrics, quick plots, reports, fills,
+  diagnostics, metadata, and retained-result lifetimes remain compatible.
+- Static/IR/batch production paths have O(1) Python/Rust calls; sparse paths
+  call only at wake points; arbitrary callback costs are reported honestly.
+- Final release tests pass from clean published-candidate wheels on all declared
+  Python/platform combinations.
+- Deletion manifest proves every removed path has a replacement, migration
+  test, rollback ref, and no public import consumer.
+
+Final release gate:
+
+```text
+P0 semantics, trace, ledger, numeric, portfolio, and package gates PASS;
+P1 plan, preparation, ownership, boundary, audit, cache, and lifetime gates PASS;
+P2 Rust engine, IR, batch, portfolio/package, performance, and RSS gates PASS;
+P3 source, registry, wheel, CI, security, docs, migration, and cleanup gates PASS;
+
+Rust is the canonical production execution core for certified workloads;
+Python remains a first-class executable oracle and emergency fallback;
+no normal run switches mutable execution ownership between languages;
+no capability or speed claim exceeds installed-wheel evidence.
+```
+
+#### 54B.1 - Versioned Promotion Policy, Deterministic Routing, And Rollback
+
+**Status: complete (2026-08-20).**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 - Workload-aware auto promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.8 - Stable diagnostics and observability](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+- [P3.6 - Benchmark governance](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P2.19 - Correctness before performance promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+
+Goal:
+
+Replace the current binary selector (`auto` always Python, `rust` explicit) with
+a versioned, data-driven decision contract. The policy must know a workload,
+event contract, output profile, account model, platform/wheel descriptor,
+symbol count, and declared strategy mode. It must never infer promotion merely
+from a native extension being importable.
+
+Implementation scope:
+
+- Add a single machine-readable promotion table and typed resolver result. A
+  decision contains requested backend, `backend_policy`, resolved backend,
+  workload ID, matched rule ID/table version, maturity, fallback/rejection
+  code, exact wheel/ABI/contract fingerprints, and emergency-switch state.
+- Preserve stable explicit behavior: `backend="python"` is the executable
+  oracle; `backend="rust"` is strict fail-fast; `backend="auto"` is the only
+  promotion candidate. A Rust internal invariant failure must propagate and
+  must never re-run Python silently.
+- Support deterministic local rollback only: an explicit config policy plus
+  `QUANTBT_DISABLE_NATIVE=1` and bounded
+  `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`. No remote flag, wall-clock choice,
+  benchmark auto-calibration, random routing, or network telemetry is allowed.
+- Publish the resolved decision in every eligible result as a versioned
+  diagnostics object. Diagnostics are structured data, not log parsing, and
+  default logging remains one summary per run rather than per-bar output.
+- Start from conservative Stage B candidates only: static command tapes, native
+  IR v1, and shared native batch/WFO requests. Python callback/replay,
+  unsupported contracts, unavailable/mismatched wheels, non-certified account
+  models, and E4/E5 endpoint routes stay Python with an explicit reason.
+- Keep product registry generation as the only source for capability/maturity
+  metadata; promotion table updates must be checked into the same review as
+  their differential and benchmark evidence.
+
+Required tests and evidence:
+
+- Exhaustive decision snapshot matrix for explicit Python/Rust/auto,
+  disabled/missing/mismatched extensions, platform mismatch, unsupported
+  contract/profile/account model, threshold boundary, and environment rollback.
+- Same request/config/environment always produces the same resolved backend,
+  plan fingerprint, and decision metadata. Changing a relevant capability,
+  promotion table version, or rollback input changes the decision fingerprint.
+- Explicit Rust failure proves no Python execution occurred; auto fallback
+  carries a stable reason code; `QUANTBT_DISABLE_NATIVE=1` wins over every
+  promotable rule.
+- Existing endpoint arguments remain source-compatible and default to the
+  previous Python behavior until the later route-specific promotion phase.
+
+Exit gate:
+
+```text
+Promotion decision is deterministic, versioned, observable, and fail-closed.
+No public workload is promoted by this phase alone.
+Python remains the unchanged default until its route passes Phase 54B.2/54B.3.
+```
+
+Completion evidence:
+
+- Added generated `promotion_policy` table `native-event-promotion-v1` to the
+  native product registry. It declares staged candidates for static tape,
+  native IR, portfolio target, and package transaction, but every rule remains
+  disabled and every workload remains non-promoted in this phase.
+- Added one pure, dependency-light resolver shared by planning and the legacy
+  native backend selector. It evaluates requested backend, user policy,
+  workload/contract/profile/account shape, platform, capability snapshot,
+  `QUANTBT_DISABLE_NATIVE`, and `QUANTBT_NATIVE_PROMOTION_MAX` before market
+  preparation. `auto` does not probe Rust while the table is locked.
+- Added optional `backend_policy` propagation through endpoint, V2 facade,
+  static lifecycle API, native-event config, plan fingerprint, and result
+  metadata. Existing callers retain `auto -> python`; explicit Rust remains
+  fail-fast and no internal failure silently reruns Python.
+- Added `native_event_promotion_v1` provenance with policy/table/registry
+  fingerprints, contract, workload maturity, rule ID, rollback state, and
+  wheel/API/capability evidence when a native probe occurs.
+- Rebuilt the local API-0.4 wheel after the product-registry fingerprint change
+  and refreshed checked benchmark-manifest registry references without changing
+  the measured baselines.
+- Tests passed: `34` focused promotion/planning/product/dual-backend checks;
+  `235 passed, 2 skipped` native-event regression; Rust workspace fmt/clippy
+  and `48` unit tests; full `PYTHONPATH=. poetry run pytest -q` result
+  `901 passed, 3 skipped`.
+
+#### 54B.2 - Static, Native-IR, And Batch Rust-First Public Routes
+
+**Status: completed (2026-08-20) on `feat/51-native-rust-production-core`.**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 Stage B - Auto static/IR](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.7 - Generated conformance corpus](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+- [P3.8 - Result diagnostics](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+- [P3.9 - User migration and capability documentation](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+
+Goal:
+
+Promote only the certified E0 static, E3 native-IR, and E6 batch/WFO workload
+families through stable public facades. The Rust execution session remains the
+only mutable lifecycle/accounting owner for a promoted run; Python adapts typed
+output only on the requested cold report path.
+
+Implementation scope:
+
+- Wire the Phase 54B.1 resolver into the existing order-command and native-IR
+  facades without renaming or removing current endpoints. Existing callers that
+  omit new policy parameters retain their current compatible behavior.
+- Promote static tape only for contract/profile/account/platform rows proven by
+  the 54A.5 corpus and installed-wheel matrix. Resolve every other static row
+  to Python with a structured reason rather than a partial Rust route.
+- Promote bounded `NativeStrategyIR` score/compact/audit and shared batch/WFO
+  only when the program, signal/parameter matrix, causal fold window, and
+  output profile are supported by the typed request contract. One run/batch
+  has one Python-to-Rust boundary, zero audit replay for score, and zero market
+  copies per batch scenario.
+- Preserve reporting behavior: `show_metrics`, reports, plots, fills, order
+  ledgers, trace, result lifetime, and metadata use the typed Rust output for
+  promoted audit/compact runs. Python oracle execution is optional verifier
+  sampling only, never a normal second run.
+- Keep arbitrary Python callback and reactive execution on the explicitly
+  labeled compatibility route. Do not force callbacks into IR, and do not claim
+  their bars are native throughput.
+
+Required tests and evidence:
+
+- For each promoted static/IR/batch request: auto == explicit Rust == Python
+  oracle on canonical trace, accepted/rejected lifecycle, accounting, report
+  outputs, and retained-result lifetime.
+- Public endpoint and low-level runner parity cover score, compact, audit,
+  V2/V3 clocks, one/multi-symbol static tape where certified, Grid/DCA/bracket
+  IR, batch worker counts, causal fold reset, and selected audit rerun.
+- Cold adaptation is benchmarked separately from engine time. Boundary/copy
+  counters, score no-replay, and RSS plateau gates are checked on installed
+  extension artifacts, not only the source tree.
+- Run complete API compatibility regression so unsupported user code keeps the
+  old Python route and all historical endpoint imports/options remain valid.
+
+Exit gate:
+
+```text
+Only certified E0/E3/E6 public requests may resolve Rust-first under auto.
+All non-certified callback and domain routes remain Python, with explicit
+decision metadata. No portfolio/package endpoint is promoted in this phase.
+```
+
+Completion evidence:
+
+- Promoted the generated `native-event-promotion-v2` Stage-B rows only:
+  - static V2/V3 command tapes at `>= 10,000` bars;
+  - bounded `NativeStrategyIR` v1 and shared batch/fold scoring at `>= 2,000`
+    bars.
+  The resolver records `minimum_bars`, matched rule, exact table fingerprint,
+  and a stable fallback reason such as `below_promotion_min_bars` in
+  `native_event_promotion_v1` and the immutable execution plan.
+- Kept `native_backend="python"` as the executable oracle and
+  `native_backend="rust"` as strict fail-fast. `auto` uses Rust only on a
+  certified row with an executable exact-pair wheel. Callback/reactive,
+  portfolio, and package/arbitrage routes remain Python by policy, never by a
+  silent partial fallback. `QUANTBT_DISABLE_NATIVE=1` and
+  `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` deterministically roll a local
+  run back to Python.
+- Added the stable `NativeIRExecutionRunner` public facade via
+  `NativeEventBackend.prepare_native_strategy_ir(...)`. It performs one native
+  run/batch with Rust as the only mutable lifecycle/accounting owner. Score and
+  compact output do not replay audit; public results adapt typed Rust buffers on
+  the cold path. The full audit path projects command identity and lifecycle
+  ledgers without rerunning execution.
+- Fixed an actual full-contract IR drift discovered by the new corpus:
+  `fixed_bracket` target-to-flat transitions must not be emitted as
+  `reduce_only` because Python `sign(0) == 0`; Rust now matches that contract.
+  The generic native-event parity normalizer also resolves cancel/reject target
+  identities from the immutable source command, so raw event ledgers and
+  canonical traces compare consistently.
+- Added public differential coverage for static V2/V3 (including
+  multi-symbol funding and quantity constraints), Grid/DCA/fixed-bracket IR,
+  score/compact/audit profiles, selected audit rerun, batch worker determinism,
+  and causal-fold fresh-state behavior. Exact `auto == explicit Rust == Python`
+  accounting/lifecycle/canonical-trace parity passed.
+- Added the reproducible public-route benchmark and governed manifest:
+  `benchmarks/native_event/benchmark_phase54b2_public_routes.py`,
+  `benchmarks/native_event/results/phase54b2/public_routes.json`, and
+  `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json`.
+  Five warmed local repetitions recorded `0.741 ms / 2.70M bars/s` for a
+  2,000-bar IR score versus Python `31.565 ms / 63,361 bars/s`; the 64-scenario
+  batch reached `11.25M bars/s` with one boundary call and zero shared-market
+  copies per scenario. Static public facade timing is intentionally reported
+  separately and is not claimed as a generic Rust speedup because common
+  pandas/report adaptation dominates it.
+- Updated endpoint, capability, install, architecture, release, IR, README,
+  public inventory, and benchmark-governance documentation to distinguish the
+  local Stage-B policy from the core-only PyPI fallback policy.
+
+Certification commands passed:
+
+```bash
+UV_CACHE_DIR=/tmp/quantbt-uv-cache poetry run maturin develop --release \
+  --manifest-path rust/native_event/Cargo.toml
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
+  tests/native_event tests/native_event/contract
+cargo fmt --manifest-path rust/Cargo.toml --all --check
+cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+cargo test --manifest-path rust/Cargo.toml --workspace
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q
+```
+
+Results: `245 passed, 2 skipped` native-event; Rust fmt/clippy plus all
+workspace tests passed; full QuantBT regression `911 passed, 3 skipped`.
+
+Boundary after Phase 54B.2:
+
+- No correctness debt remains inside the promoted E0/E3/E6 rows under the
+  declared local Linux/CPython exact-pair evidence.
+- Static public audit/report construction remains a cold Python adaptation
+  cost; it is transparent in the benchmark and is not used to claim a generic
+  facade speedup. Any further report/trace optimization must retain the exact
+  canonical-trace contract.
+- Clean manylinux wheel matrix, published companion decision, and any
+  portfolio/package Rust promotion remain explicit Phase 54B.3/B.4 work, not
+  implied by this local Stage-B promotion.
+
+#### 54B.3 - Portfolio/Package Domain Promotion And Institutional Certification
+
+**Status: completed (certified explicit E4/E5 contracts; generic endpoint
+auto-promotion intentionally remains out of scope).**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.5 Stage C and Stage D](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P2.19 E4/E5 gates](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p219--recommended-performance-promotion-gates)
+- [P3.7 generated corpus requirements](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p37--generated-conformance-corpus-và-test-matrix-control)
+- [P3.8 observability contract](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p38--stable-diagnostics-và-observability-contract)
+
+Goal:
+
+Turn Phase 54A.5 portfolio-target and package typed tapes into either complete
+Rust-first endpoint routes or explicit non-promotion results. Preflight parity
+alone is not treated as full execution certification.
+
+Implementation scope:
+
+- Establish a shared native market/account/target/package request contract for
+  each candidate E4/E5 endpoint. Rust must own target delta, constraints,
+  fee/slippage, funding, margin, lifecycle, reservation/rollback, output, and
+  trace for a promoted route; Python may only adapt cold outputs.
+- Promote portfolio target modes individually, beginning with certified
+  linear-quote-settled gross-cross `target_units` only. Each added sizing,
+  rebalance, missing-price, funding, or margin mode gets its own registry row,
+  corpus, parity profile, and rollback reason.
+- Promote package/arbitrage policies individually, starting only with policies
+  whose atomicity/reservation/hedge-after-primary semantics are fully modeled
+  by the native session. Cross-exchange, inverse/quanto, venue-specific
+  portfolio margin, and actual partial-fill dynamic hedging remain fail-closed
+  unless a dedicated domain contract exists.
+- Reconcile symbol and portfolio/package accounting: accepted targets/legs,
+  turnover, fee, slippage, funding, margin, cash/equity, residual exposure,
+  rejection/rollback state, and canonical trace must agree exactly with the
+  Python oracle at the published tolerance.
+
+Required tests and evidence:
+
+- Generated/minimized corpus covers reversal, post-cost margin reject,
+  stale/missing asynchronous prices, funding, liquidation, all-or-none
+  rollback, sequential/best-effort/hedge-after-primary policy boundaries, and
+  failure-to-no-orphan invariant.
+- Native endpoint, typed request, prepared/non-prepared, and Python oracle
+  match accounting and trace. Public reports reconcile per-symbol attribution
+  to portfolio/package totals.
+- E4/E5 benchmarks report engine and report-inclusive timing separately,
+  active-position/order scaling, output retained bytes, peak/steady RSS, and
+  no hidden Python replay. A candidate may be promoted only after its own
+  installed-wheel correctness/performance budget passes.
+
+Exit gate:
+
+```text
+Portfolio/package promotion is per exact registry row, never blanket.
+Any incomplete domain semantics remains routed to Python with a stable reason.
+```
+
+Implementation and evidence:
+
+- Added two immutable typed Rust requests backed by the shared
+  `FullSession`, never by a second Python accounting state:
+  `portfolio_target_market_v1` for bar-major `target_units`, and
+  `package_atomic_market_v1` for one same-bar `AtomicBarSimulation` market
+  package. Both are exposed explicitly through
+  `run_portfolio_target_market(...)` and `run_atomic_package_market(...)`.
+- The target contract is deliberately narrow: V2 next-bar-close, linear
+  quote-settled gross-cross, finite `target_units`, canonical market price and
+  one-way fee, target-row all-or-none admission, per-bar tradability/staleness,
+  min quantity/notional, sequential post-cost free-margin checks, funding,
+  intrabar/close liquidation, and canonical fill lifecycle. A rejected row
+  retains all prior units; malformed non-finite target tape input fails before
+  any session/account state is created.
+- The package contract is deliberately narrow: one non-empty ordered package,
+  known symbols, nondecreasing `venue_sequence`, exact market cost/margin
+  preflight, and all-or-none bar-transaction rollback. It records
+  `package_accepted`, rejection/transition codes, reservation/release, fee,
+  and residual notional. It does not claim exchange-native order-list
+  atomicity, queue/depth, partial fills, cross-venue settlement, sequential,
+  best-effort, or hedge-after-primary semantics.
+- `NativeExecutionPreparationCache` now content-signs the target/package tape
+  together with every result-affecting prepared market/template array. A
+  cached typed request is immutable, a fresh runner resets its state for every
+  run, and a score/compact result cannot be silently converted into audit
+  output. Audit adaptation is a cold `RustFullAuditResult` conversion and
+  never replays Python execution.
+- The product registry adds two `certified`, `auto_promotion=false` workload
+  rows. Automatic routing remains `static_ir`; generic
+  `QuantBTEndpoint.portfolio()` and `QuantBTEndpoint.arbitrage()` preserve
+  their Python/native-portfolio behavior. The registry generator was also
+  tightened so Rust preserves JSON scalar types in the semantic descriptor;
+  the installed wheel and core now fail closed on any descriptor drift.
+- Added the B3 contract suite and governed E4/E5 benchmark artifact:
+  `tests/native_event/contract/test_phase54b3_portfolio_package_promotion.py`,
+  `benchmarks/native_event/benchmark_phase54b3_portfolio_package.py`, and
+  `benchmarks/native_event/results/phase54b3/portfolio_package.json`.
+  It covers reversal, stale retry, post-cost rejection, invalid-input
+  fail-fast, target/package all-or-none rollback, no orphan leg, funding,
+  prepared versus direct parity, signature invalidation, score/compact/audit
+  retention, direct audit-report adaptation, explicit/auto promotion policy,
+  and native semantic-descriptor parity.
+- The committed five-warm-run E4/E5 evidence is exact to `atol=1e-12` against
+  the Python event oracle for equity, positions, fees, and funding. At
+  2,000 bars x 8 symbols it records Rust score execution of 3.594 ms
+  (556,551 bars/s) for target units and 3.512 ms (569,514 bars/s) for the
+  atomic package; cold audit adaptation is reported separately. Both routes
+  use one PyO3 boundary call, zero Python callbacks, zero ingress copies on
+  reused contiguous arrays, and no steady-run RSS growth in the recorded
+  artifact.
+
+Certification commands passed after the final descriptor rebuild:
+
+```bash
+cargo fmt --manifest-path rust/Cargo.toml --all -- --check
+cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+cargo test --manifest-path rust/Cargo.toml --workspace
+UV_CACHE_DIR=/tmp/quantbt-uv-cache poetry run maturin develop --release \
+  --manifest-path rust/native_event/Cargo.toml
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q \
+  tests/native_event tests/native_event/contract
+MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run pytest -q
+```
+
+Results: Rust fmt/clippy and all workspace tests passed; native-event regression
+passed `251 passed, 2 skipped`; full QuantBT regression passed
+`917 passed, 3 skipped`. Source-mirror, generated-contract, API inventory,
+module-boundary, benchmark-governance, documentation-link, and Ruff gates also
+passed.
+
+Remaining boundary, not a hidden B3 correctness debt:
+
+- A generic portfolio endpoint adapter with exact Python fallback must be
+  certified before any Stage-C automatic route is enabled.
+- `target_weight`, `target_notional`, `%_equity`, risk parity, cross-currency,
+  isolated/venue-specific margin, and shared cross-margin need individual
+  contracts and parity corpora.
+- Sequential, best-effort, hedge-after-primary, cross-exchange, partial-fill,
+  queue/depth, and delivery/inverse/quanto package semantics remain Python or
+  future specialized native contracts.
+
+#### 54B.4 - Installed-Wheel Release Gate, Migration Audit, And Final Handoff
+
+**Status: complete (installed-wheel release gate and handoff).**
+
+Detailed guide to read before every implementation decision:
+
+- [P3.6 - Three-tier benchmark and regression CI](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P3.9 - Docs, compatibility, migration](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+- [P3.10 - Supply chain and release integrity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p310--rust-supply-chain-safety-và-release-integrity)
+- [P3.11/P3.12 - Cleanup and final exit](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p311--cleanupdeletion-plan)
+
+Goal:
+
+Produce a reversible release candidate whose installed core/native wheels,
+promotion policy, conformance corpus, diagnostics, benchmark evidence, docs,
+and release artifacts all describe exactly the same support surface.
+
+Implementation scope:
+
+- Extend CI into PR smoke, nightly evidence, and release certification lanes.
+  Release lane builds clean core/native wheels, installs only those artifacts in
+  isolated environments, verifies the exact package handshake and source/wheel
+  module identity, then runs promotion matrix, corpus, public API, report,
+  WFO, portfolio/package, memory, and benchmark governance gates.
+- Add versioned capability/maturity table and migration guide: auto choice,
+  explicit Python/Rust behavior, rollback commands, contract clocks, OHLC
+  limitations, native IR boundaries, package atomicity scope, unsupported
+  domains, and reproduction instructions. Examples are executable in CI.
+- Produce release evidence: build provenance, lockfile/registry fingerprints,
+  wheel checksums, platform/python matrix, benchmark manifest references,
+  performance/RSS summaries, native disable proof, and rollback test results.
+- Maintain a deletion manifest for shadow state, nested-row conversion,
+  score-via-audit, forced replay, root mirror, aliases, and duplicate paths.
+  This phase may remove only a candidate whose replacement, migration test,
+  public-import audit, compatibility window, and rollback archival all pass.
+  The root mirror is explicitly **not deleted** in this release without a
+  separate approved breaking-cleanup decision; it remains byte-identity gated.
+- Do not publish, tag, force-push, or delete public/source surfaces as part of
+  the implementation phase. Those are explicit release-owner actions after the
+  release candidate passes.
+
+Required tests and evidence:
+
+- Clean installed-wheel tests across every declared CPython/platform row;
+  extension unavailable/mismatched/disabled tests; signed deterministic
+  decision snapshots; no repository-root import leakage.
+- Full differential corpus, native-event suite, complete QuantBT suite,
+  benchmark governance, fuzz/security smoke, and release bundle integrity all
+  pass. Benchmark promotion table is generated/validated from passed evidence,
+  never hand-waved by a README claim.
+- Deletion manifest has a replacement, test, migration note, and rollback
+  status for every candidate; no deletion is justified merely because a newer
+  module exists.
+
+Final exit gate:
+
+```text
+Rust is canonical only for registry rows that pass installed-wheel correctness,
+RSS, benchmark, public-result, and rollback gates. Python remains the explicit
+oracle and emergency fallback. The release capability table is the source of
+truth; unsupported workloads fail closed or stay on Python by design.
+```
+
+Completion evidence:
+
+- Added `tools/certify_native_release.py`, a release-candidate gate that builds
+  its proof from installed artifacts only. It creates independent core-only and
+  exact core/native virtual environments with `PYTHONPATH`, user-site, Poetry,
+  Conda, and active-venv leakage removed. The exact-pair probe verifies the
+  core/native version and API-0.4 handshake, installed module paths, generated
+  promotion decisions, explicit rollback/fail-closed behavior, public static
+  execution, native-IR batch/fold scoring, and bounded E4/E5 helper parity
+  against the installed Python event oracle at `atol=1e-12`.
+- Added a tagged `Native Release Certification` workflow for CPython 3.11,
+  3.12, and 3.13. It builds a manylinux core/native pair, verifies every clean
+  pair, runs the full release shard plus governed B2/B3 benchmarks on 3.12,
+  emits supply-chain/SBOM evidence, and archives certificates and staged
+  artifacts. The regular PyPI workflow remains core-only and no native upload
+  is introduced.
+- Added nightly E4/E5 evidence alongside the existing E0/E3/E6 artifacts,
+  a versioned deletion/migration manifest, `make migration-audit`, and
+  `make certify-native-release`. The manifest is deliberately conservative:
+  root-level Pool Alpha compatibility modules, the Python oracle/adapters, and
+  legacy ABI compatibility all remain retained; generic portfolio/package
+  routes are explicitly deferred. Nothing was deleted in this phase.
+- Added the user-facing [native release handoff](../docs/migration/native_release_handoff.md)
+  and linked it from the packaging, native installation/capability, Rust
+  contract, README, and docs index surfaces. It explains the narrow automatic
+  Stage-B rows, explicit-only E4/E5 helpers, rollback, reproduction, and the
+  release-owner sequence without over-claiming generic endpoint support.
+- Local evidence passed on Linux x86_64 / CPython 3.12: the staged wheel
+  certificate, artifact allowlist and Twine checks, migration audit, generated
+  registry/API/module/doc/benchmark gates, Ruff, Rust fmt/clippy/workspace
+  tests, `cargo audit`, `255 passed, 2 skipped` native-event tests,
+  `921 passed, 3 skipped` full QuantBT tests, and all 19 isolated release test
+  shards. The tagged CI workflow remains the required platform-matrix evidence
+  for CPython 3.11/3.12/3.13 and manylinux before any public native claim.
+
+Certified release boundary:
+
+- Core-only `quantbt-engine` remains a fully functional Python distribution;
+  `auto` resolves Python when no native companion exists.
+- With a matching local companion, `auto` may select Rust only for the
+  generated Stage-B static command and bounded native-IR/batch rows. Direct
+  `target_units` and same-bar atomic market package helpers are certified but
+  remain explicit-only. Generic portfolio, basket, arbitrage, callback, and
+  reactive routes remain Python by policy.
+- `quantbt-native` remains unpublished. Its future public release needs the
+  tagged installed-wheel matrix and an explicit distribution decision; this is
+  a release boundary, not a hidden correctness defect in the certified rows.
+
+### Phase 51-54 Deferred Scope
+
+These items require separate contracts and are not silently implied by this
+roadmap:
+
+- venue-exact L2 queue simulation where only OHLCV is available;
+- universal exchange portfolio-margin clones without venue specifications;
+- unbounded arbitrary Python execution compiled automatically into Rust;
+- inverse/quanto/options accounting without certified instrument models;
+- platform expansion beyond the release matrix without wheel and parity gates;
+- removing the Python oracle or historical execution contracts.
+
+Any deferred item must fail closed or route through an explicitly documented
+fallback. It must not be represented as certified native support.

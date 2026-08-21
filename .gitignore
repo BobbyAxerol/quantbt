@@ -78,12 +78,17 @@ downloads/private/
 *.memray
 *.flamegraph.svg
 release-manifest*.json
+release-evidence/
 artifacts/local/
 artifacts/tmp/
 benchmarks/**/local/
 benchmarks/**/tmp/
 benchmarks/**/.cache/
 benchmarks/**/profiles/
+benchmarks/out/
+benchmarks/native_event/reactive_session_r1_*.json
+benchmarks/native_event/reactive_session_r1_*.md
+benchmarks/native_event/results/phase47d_profile_after.json
 
 # Private planning only; public plans remain visible and trackable.
 upgrade/private/

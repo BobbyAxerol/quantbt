@@ -200,7 +200,7 @@ def test_phase48e_context_projection_mask_does_not_materialize_unused_state():
     assert score.metadata["score_primitive_order_state"] is True
 
 
-def test_phase48e_terminal_compaction_preserves_full_contract_parity():
+def test_phase53a_terminal_arena_release_preserves_full_contract_parity():
     frame = _bars(192)
     commands = tuple(
         OrderCommand(
@@ -250,5 +250,46 @@ def test_phase48e_terminal_compaction_preserves_full_contract_parity():
     )
     np.testing.assert_allclose(rust.fees, python.fees.to_numpy(), rtol=0.0, atol=1e-12)
     assert rust.fill_count == len(commands)
-    assert arena["order_compactions"] >= 1
-    assert arena["terminal_orders_removed"] >= 64
+    # Phase 53A replaces history-scaled compaction with generation-safe slot
+    # release. The live book stays empty and the arena capacity plateaus even
+    # though this tape created nearly two hundred terminal orders.
+    assert arena["order_compactions"] == 0
+    assert arena["terminal_orders_removed"] == len(commands)
+    assert arena["order_arena_slots"] == 0
+    assert arena["order_arena_capacity"] <= 4
+
+
+def test_phase53a_score_compact_and_audit_profiles_preserve_accounting():
+    frame = _bars(12)
+    commands = (
+        OrderCommand(
+            timestamp=frame.index[1],
+            symbol="BTC",
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            qty=1.0,
+            tif=TimeInForce.GTC,
+            order_id="entry",
+        ),
+        OrderCommand(
+            timestamp=frame.index[4],
+            symbol="BTC",
+            side=OrderSide.SELL,
+            order_type=OrderType.MARKET,
+            qty=1.0,
+            tif=TimeInForce.GTC,
+            order_id="exit",
+        ),
+    )
+    runner, compiled = _runner(frame, commands)
+    score = runner.run_tape_score(compiled)
+    compact = runner.run_tape_compact(compiled)
+    audit = runner.run_tape_audit(compiled)
+
+    assert "fill_bar" not in compact
+    assert "event_bar" not in compact
+    np.testing.assert_allclose(compact["equity"], audit.equity, rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(compact["positions"], audit.positions, rtol=0.0, atol=1e-12)
+    assert float(compact["final_equity"]) == float(score["final_equity"])
+    assert int(compact["fill_count"]) == int(audit.fill_count)
+    assert int(compact["event_count"]) == int(audit.event_count)

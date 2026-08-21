@@ -1,0 +1,20 @@
+{
+  "baseline_sha": "16fc4fe830c749330c3dce3d7de5f8a8975c6f43",
+  "contract_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "source_benchmark": "../pre48e/after.json",
+  "workload": "explicit lifecycle tape",
+  "bars": 2000,
+  "score": {
+    "python_bars_per_second": 106475.29401101783,
+    "rust_bars_per_second": 2075634.5212303507,
+    "python_peak_rss_mb": 180.80859375,
+    "rust_peak_rss_mb": 182.76953125
+  },
+  "audit": {
+    "python_bars_per_second": 256878.50798084837,
+    "rust_bars_per_second": 821591.0209269148,
+    "python_peak_rss_mb": 239.47265625,
+    "rust_peak_rss_mb": 182.93359375
+  },
+  "note": "Frozen E0/E1 evidence predates the Phase 51A contract split; V2 must reproduce it and V3 receives separate evidence."
+}

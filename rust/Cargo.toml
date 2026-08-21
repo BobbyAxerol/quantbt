@@ -1,0 +1,28 @@
+[workspace]
+members = [
+    "native_event",
+    "crates/quantbt-domain",
+    "crates/quantbt-engine",
+    "crates/quantbt-execution",
+    "crates/quantbt-strategy-ir",
+    "crates/quantbt-batch",
+    "crates/quantbt-portfolio",
+    "crates/quantbt-package",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/BobbyAxerol/quantbt"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+debug = 0
+overflow-checks = false
