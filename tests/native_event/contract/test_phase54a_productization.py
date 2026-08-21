@@ -26,6 +26,15 @@ from quantbt.core.product_contracts import (
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def _declared_product_versions() -> tuple[str, str]:
+    registry = json.loads((ROOT / "contracts" / "native_event_product_registry.json").read_text())
+    versions = registry["versions"]
+    return (
+        str(versions["core_package"]["version"]),
+        str(versions["native_package"]["version"]),
+    )
+
+
 def _run_tool(name: str, *arguments: str) -> None:
     completed = subprocess.run(
         [sys.executable, str(ROOT / "tools" / name), *arguments],
@@ -87,10 +96,12 @@ def test_product_registry_has_exact_pairing_and_generated_corpus() -> None:
     assert manifest["product_registry_fingerprint"] == hashlib.sha256(canonical).hexdigest()
     assert manifest["lifecycle_registry_fingerprint"] == registry["lifecycle_registry"]["fingerprint"]
     assert corpus["registry_fingerprint"] == manifest["product_registry_fingerprint"]
-    assert require_native_package_pair("1.0.8", "0.4.0").status == "exact_staged_pair"
-    assert find_native_package_pair("1.0.8", "0.4.1") is None
+    core_version, native_version = _declared_product_versions()
+    unsupported_native_version = f"{native_version}.unsupported"
+    assert require_native_package_pair(core_version, native_version).status == "exact_staged_pair"
+    assert find_native_package_pair(core_version, unsupported_native_version) is None
     with pytest.raises(NativePackageCompatibilityError, match="unsupported quantbt-engine/quantbt-native pair"):
-        require_native_package_pair("1.0.8", "0.4.1")
+        require_native_package_pair(core_version, unsupported_native_version)
 
     workloads = {str(item["id"]): item for item in workload_capabilities()}
     assert workloads["event_static_tape_v2_v3"]["maturity"] == "promoted"
@@ -168,8 +179,9 @@ def test_api_04_probe_rejects_a_pair_without_the_product_abi_descriptor() -> Non
 
 def test_runtime_product_descriptor_has_one_exact_staged_pair() -> None:
     descriptor = native_runtime_product_descriptor()
-    assert descriptor["core_package_version"] == "1.0.8"
-    assert descriptor["native_package_version"] == "0.4.0"
+    core_version, native_version = _declared_product_versions()
+    assert descriptor["core_package_version"] == core_version
+    assert descriptor["native_package_version"] == native_version
     assert descriptor["command_abi"] == "full-command-v1"
     assert descriptor["result_abi"] == "native-event-result-v1"
 
@@ -181,12 +193,13 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
 
     dist = tmp_path / "dist"
     dist.mkdir()
-    with zipfile.ZipFile(dist / "quantbt_engine-1.0.8-py3-none-any.whl", "w"):
+    core_version, native_version = _declared_product_versions()
+    with zipfile.ZipFile(dist / f"quantbt_engine-{core_version}-py3-none-any.whl", "w"):
         pass
-    with tarfile.open(dist / "quantbt_engine-1.0.8.tar.gz", "w:gz"):
+    with tarfile.open(dist / f"quantbt_engine-{core_version}.tar.gz", "w:gz"):
         pass
     with zipfile.ZipFile(
-        dist / "quantbt_native-0.4.0-cp312-cp312-manylinux_2_17_x86_64.whl", "w"
+        dist / f"quantbt_native-{native_version}-cp312-cp312-manylinux_2_17_x86_64.whl", "w"
     ):
         pass
     supply = tmp_path / "supply-chain.json"
@@ -209,13 +222,13 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
         "spec_version": "1.5",
     }
     assert manifest["artifact_sets"]["quantbt-engine"] == {
-        "version": "1.0.8",
+        "version": core_version,
         "kinds": ["sdist", "wheel"],
         "artifact_count": 2,
         "published": True,
     }
     assert manifest["artifact_sets"]["quantbt-native"] == {
-        "version": "0.4.0",
+        "version": native_version,
         "kinds": ["wheel"],
         "artifact_count": 1,
         "published": False,

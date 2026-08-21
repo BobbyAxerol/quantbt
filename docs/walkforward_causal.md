@@ -14,7 +14,7 @@ The base package can run ordinary backtests. Parameter search requires the
 declared optional dependency group:
 
 ```bash
-pip install "quantbt-engine[optimization]==1.0.8"
+pip install "quantbt-engine[optimization]==1.0.9"
 ```
 
 The public import remains unchanged:

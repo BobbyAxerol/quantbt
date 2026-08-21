@@ -8,15 +8,15 @@ and released while `quantbt-native` remains experimental.
 
 1. Work from a release commit, not `dev`.
 2. Set `project.version` in `pyproject.toml` to an unused RC version, for
-   example `1.0.8rc1`.
+   example `1.0.9rc1`.
 3. Keep `CHANGELOG.md` and the release notes aligned with that version.
-4. Create the matching tag, for example `v1.0.8rc1`.
+4. Create the matching tag, for example `v1.0.9rc1`.
 5. Configure the pending TestPyPI publisher:
    `BobbyAxerol/quantbt`, workflow `publish-testpypi.yml`, environment
    `testpypi`.
 
 The workflow refuses a tag that does not equal `v{project.version}`. Do not
-upload a final `1.0.8` artifact under an RC tag.
+upload a final `1.0.9` artifact under an RC tag.
 
 ## Workflow Gate
 
@@ -64,7 +64,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  "quantbt-engine[optimization]==1.0.8rc1"
+  "quantbt-engine[optimization]==1.0.9rc1"
 smoke_dir="$(mktemp -d)"
 (cd "$smoke_dir" && /tmp/quantbt-testpypi-smoke/bin/python -c \
   "import optuna, quantbt; from quantbt.walkforward import WalkForwardConfig; print(quantbt.__file__, WalkForwardConfig)")

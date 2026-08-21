@@ -2,6 +2,29 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
+## [1.0.9] - 2026-08-21
+
+### Added
+
+- Direct PyPI discovery and installation guidance in the repository README.
+- Release-preparation guidance for the governed Rust-first routes, exact
+  installed-wheel certification, and the matching core/native compatibility
+  contract.
+
+### Changed
+
+- Promoted the bounded Rust-first public policy for certified static command
+  tapes, Native Strategy IR, batch, and causal-fold workloads while preserving
+  Python authority for callbacks, reactive strategies, generic portfolio,
+  basket, arbitrage, and options routes.
+- Updated the core product registry to the `1.0.9` release line. The staged
+  `quantbt-native` companion remains unpublished and capability-gated.
+
+### Verification
+
+- Source-mirror, generated-product-contract, documentation-link, build, and
+  installed-wheel release checks are required from the final tagged commit.
+
 ## [1.0.8] - 2026-08-12
 
 ### Changed

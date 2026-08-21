@@ -17,14 +17,23 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def _write_core_artifacts(dist: Path) -> None:
+def _declared_product_versions() -> tuple[str, str]:
+    registry = json.loads((ROOT / "contracts" / "native_event_product_registry.json").read_text())
+    versions = registry["versions"]
+    return (
+        str(versions["core_package"]["version"]),
+        str(versions["native_package"]["version"]),
+    )
+
+
+def _write_core_artifacts(dist: Path, core_version: str) -> None:
     """Create structurally sufficient artifacts for manifest-only tests."""
 
-    with zipfile.ZipFile(dist / "quantbt_engine-1.0.8-py3-none-any.whl", "w"):
+    with zipfile.ZipFile(dist / f"quantbt_engine-{core_version}-py3-none-any.whl", "w"):
         pass
-    with tarfile.open(dist / "quantbt_engine-1.0.8.tar.gz", "w:gz") as archive:
-        member = tarfile.TarInfo("quantbt_engine-1.0.8/pyproject.toml")
-        payload = b"[project]\nname = 'quantbt-engine'\nversion = '1.0.8'\n"
+    with tarfile.open(dist / f"quantbt_engine-{core_version}.tar.gz", "w:gz") as archive:
+        member = tarfile.TarInfo(f"quantbt_engine-{core_version}/pyproject.toml")
+        payload = f"[project]\nname = 'quantbt-engine'\nversion = '{core_version}'\n".encode()
         member.size = len(payload)
         archive.addfile(member, io.BytesIO(payload))
 
@@ -51,9 +60,10 @@ def test_phase54b4_release_manifest_derives_native_surface_from_registry(tmp_pat
 
     dist = tmp_path / "dist"
     dist.mkdir()
-    _write_core_artifacts(dist)
+    core_version, native_version = _declared_product_versions()
+    _write_core_artifacts(dist, core_version)
     with zipfile.ZipFile(
-        dist / "quantbt_native-0.4.0-cp312-cp312-manylinux_2_17_x86_64.whl", "w"
+        dist / f"quantbt_native-{native_version}-cp312-cp312-manylinux_2_17_x86_64.whl", "w"
     ):
         pass
 

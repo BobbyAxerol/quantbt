@@ -1,6 +1,7 @@
 # QuantBT
 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+[![PyPI](https://img.shields.io/pypi/v/quantbt-engine.svg?label=PyPI)](https://pypi.org/project/quantbt-engine/)
 ![Numba](https://img.shields.io/badge/core-numba-00A86B)
 ![Backtesting](https://img.shields.io/badge/backtesting-vectorized%20%7C%20event--driven-black)
 ![Nautilus](https://img.shields.io/badge/nautilus-optional-6f42c1)
@@ -17,6 +18,10 @@ optional NautilusTrader validation for third-party execution/accounting checks.
 The goal is simple: make alpha research fast enough for iteration, strict
 enough for institutional-style review, and readable enough that stakeholders can
 audit how a result was produced.
+
+QuantBT is published on [PyPI as `quantbt-engine`](https://pypi.org/project/quantbt-engine/).
+Install the current public release with `pip install --upgrade quantbt-engine`;
+the import remains `from quantbt import QuantBTEndpoint`.
 
 Current portfolio status: `native_portfolio` is the default multi-symbol
 backend. It supports long/short, market-neutral, directional, equal-weight,
@@ -307,7 +312,7 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine==1.0.8` wheel/sdist | published on PyPI (2026-08-13) | Python canonical; all existing endpoints remain available |
+| `quantbt-engine` wheel/sdist | published on PyPI | Python canonical; all existing endpoints remain available |
 | `quantbt-native` PyO3 wheel | staged, not published | local Stage-B `auto` only for certified static/IR/batch rows |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
@@ -689,13 +694,13 @@ fills, positions, account state, and performance report.
 Install the released core package:
 
 ```bash
-pip install quantbt-engine==1.0.8
+pip install --upgrade quantbt-engine
 ```
 
 Optional optimization, reports, and third-party validation:
 
 ```bash
-pip install "quantbt-engine[optimization,reports,validation]==1.0.8"
+pip install --upgrade "quantbt-engine[optimization,reports,validation]"
 ```
 
 Walk-forward parameter search specifically requires the `optimization` extra.
@@ -725,8 +730,8 @@ feature is under development:
 pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
-After the release is approved, downstream services should use
-`pip install quantbt-engine==1.0.8` and keep the unchanged import
+For reproducible deployments, pin a published version such as
+`pip install quantbt-engine==1.0.9` and keep the unchanged import
 `from quantbt import QuantBTEndpoint`.
 
 ## Quick Start
