@@ -120,6 +120,11 @@ jobs:
           cp dist/core/*.whl dist/core/*.tar.gz dist/native/*.whl dist/staged/
           .venv/bin/python tools/verify_wheels.py --dist dist/staged --require-native
 
+      # The P0 contracts execute explicit-Rust oracle paths. Keep this clean
+      # CI environment aligned with the staged-pair gate before running them.
+      - name: Install native wheel into core test environment
+        run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+
       - name: P0 ledger, numeric, trace, and transaction contracts
         run: |
           .venv/bin/python -m pytest -q \
@@ -127,9 +132,6 @@ jobs:
             tests/native_event/contract/test_phase51b_trace_replay.py \
             tests/native_event/contract/test_phase51b_portfolio_package.py \
             tests/native_event/contract/test_phase51b_capability_wheel.py
-
-      - name: Install native wheel into core test environment
-        run: uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
 
       - name: Native Event full suite
         run: .venv/bin/python -m pytest -q tests/native_event
