@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "phase": "51B",
+  "branch": "feat/51-native-rust-production-core",
+  "commits": {
+    "accounting_numeric": "ba72fa8",
+    "trace_replay": "963861b",
+    "portfolio_package": "341c481",
+    "capability_property": "55be4cd",
+    "wheel_certifier": "26dd3da"
+  },
+  "contract_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "native_extension": {
+    "package_version": "0.4.0",
+    "api_version": "0.4",
+    "cpython": "3.12.13",
+    "semantic_descriptor": "PASS"
+  },
+  "clean_installed_wheels": {
+    "core": {
+      "filename": "quantbt_engine-1.0.8-py3-none-any.whl",
+      "sha256": "2c340872117a36cb36c3d8581c721fd56d4f6de66f601515424fd9e2d9c066ba"
+    },
+    "native": {
+      "filename": "quantbt_native-0.4.0-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "6b54fea00642848a320f2bc2ed01c800e587e604356749ccbb5f7233e4bf2617"
+    },
+    "isolated_import": "PASS",
+    "accounting_python_rust": "PASS",
+    "canonical_trace_python_rust": "PASS",
+    "trace_replay_python_rust": "PASS",
+    "trace_fingerprint": "ba59b42ca8cb0b590f8f00e7d3cdcd66968b835381873e5266f6299fc66f7e94"
+  },
+  "targeted_tests": {
+    "native_event_contract_tree": {"passed": 72, "failed": 0},
+    "portfolio_arbitrage_reference": {"passed": 20, "failed": 0},
+    "rust_unit_and_proptest": {"passed": 10, "failed": 0},
+    "phase51b_focused": {"passed": 27, "failed": 0}
+  },
+  "property_and_corpus": {
+    "hypothesis": "PASS",
+    "proptest": "PASS",
+    "minimized_regression_corpus": "tests/corpus/regressions/phase51b/reversal_and_atomic_rollback.json"
+  },
+  "claims": [
+    "The linear quote-settled native-event ledger reconciles every bar for Python and Rust audit runs.",
+    "Python and Rust deterministic tick/lot quantization exact-match on fixed and generated vectors.",
+    "Canonical traces exact-match and replay terminal positions and equity without invoking the matcher.",
+    "Portfolio and package policies are frozen Python reference semantics; Rust portfolio/package execution is not claimed.",
+    "Local installed-wheel evidence is CPython 3.12 Linux; CI is configured to repeat the contract gate on CPython 3.11, 3.12, and 3.13.",
+    "P1 ownership and storage refactoring has not started."
+  ]
+}

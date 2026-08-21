@@ -65,6 +65,7 @@ bt = QuantBTEndpoint.event_driven(
     input_mode="strategy",   # strategy | orders
     profile="research",      # research | optimize | audit
     backend="auto",          # auto | python | rust
+    execution_contract="event_lifecycle_v3_next_open",
     initial_capital=20_000,
     leverage=5,
     fee_rate=0.0005,          # one-way fee per fill
@@ -82,6 +83,14 @@ event artifacts. For an upstream order planner, switch to
 `input_mode="orders"` and pass `order_commands=[...]`. The default `auto`
 backend follows the release policy; `rust` is an explicit request for the
 optional capability-gated native wheel.
+
+The compatibility default is the frozen
+`event_lifecycle_v2_next_bar_close` behavior. Select
+`event_lifecycle_v3_next_open` for real next-open market fills, favorable
+limit-gap improvement, adverse stop-gap execution, and conservative flagged
+stop-limit ambiguity. V3 requires an `open` column and is parity-tested across
+the Python and Rust backends. The machine-readable registry and audit fields
+are documented in [Native Event Contract Registry](docs/contracts/contract_registry.md).
 
 The strategy owns signal generation and look-ahead control. QuantBT owns the
 causal order lifecycle and accounting. Advanced users can still call
@@ -220,6 +229,52 @@ selection semantics inside `walkforward.py`. Read
 `benchmarks/results/optimization_overhead.md` for signal, intrabar, portfolio,
 arbitrage/grid/options fallback examples and benchmark details.
 
+### Phase 54B.2 Rust-first static, IR, and batch routes
+
+The bounded Rust strategy IR covers precomputed signal targets, structural
+Grid levels, periodic DCA, and fixed bracket/OCO transitions. The current
+generated Stage-B policy routes only certified static command tapes at 10,000+
+bars and bounded IR/batch requests at 2,000+ bars to Rust under
+`native_backend="auto"`. Python callbacks, reactive strategies, and generic
+portfolio/package/arbitrage execution remain Python compatibility routes.
+
+Phase 54B.3 also certifies two intentionally explicit Rust helpers,
+`run_portfolio_target_market(...)` and `run_atomic_package_market(...)`, for
+linear quote-settled gross-cross `target_units` and one ordered same-bar
+all-or-none market package respectively. They do not change generic endpoint
+routing or claim venue-native multi-leg execution; the bounded contract,
+parity corpus, and benchmark evidence are documented in
+[`docs/native_event_rust_full_contract.md`](docs/native_event_rust_full_contract.md).
+On the governed 2,000-bar x 8-symbol fixture, their Rust score paths measured
+3.594 ms (556,551 bars/s) for target units and 3.512 ms (569,514 bars/s) for
+the atomic package, versus Python event-oracle score paths of 33.493 ms and
+19.735 ms respectively. These are bounded direct-route measurements; audit
+report adaptation is intentionally timed and reported separately.
+
+The local five-repeat public-route evidence below passed exact Python/Rust
+canonical-trace and accounting parity before timing. It is deliberately not a
+universal Rust speed claim: static public facade time is dominated by common
+Python preparation/report adaptation, while typed IR score and shared batch
+avoid those per-scenario costs.
+
+| Workload | Bars | Rust median | Rust throughput | Python median | Python throughput |
+|---|---:|---:|---:|---:|---:|
+| Static public compact | 10,000 | 63.612 ms | 157,203 bars/s | 53.606 ms | 186,545 bars/s |
+| Static public audit | 10,000 | 6.024 s | 1,660 bars/s | 5.924 s | 1,688 bars/s |
+| Native IR score | 2,000 | 0.741 ms | 2.70M bars/s | 31.565 ms | 63,361 bars/s |
+| Native IR batch, 64 scenarios | 128,000 | 11.379 ms | 11.25M bars/s | - | - |
+| Native IR causal fold, 64 scenarios | 64,000 | 7.386 ms | 8.67M bars/s | - | - |
+
+The Rust IR score has one boundary call, zero Python callbacks, and no audit
+replay. Batch/fold execution has one boundary call and zero prepared-market
+copies per scenario; its repeated-run RSS delta was 8-16 KiB on this host. An
+audit result is intentionally a cold reporting path: its typed Rust output is
+adapted to the normal `BacktestResultV2` without rerunning execution. Full
+evidence is in
+[`phase54b2/public_routes.md`](benchmarks/native_event/results/phase54b2/public_routes.md)
+and the support boundary is in
+[`docs/native_strategy_ir.md`](docs/native_strategy_ir.md).
+
 ### Phase 46F package and dual-backend release evidence
 
 The core distribution is packaged as `quantbt-engine` and imports as
@@ -229,7 +284,7 @@ wheel:
 | Release artifact | Current status | Backend policy |
 |---|---|---|
 | `quantbt-engine==1.0.8` wheel/sdist | published on PyPI (2026-08-13) | Python canonical; all existing endpoints remain available |
-| `quantbt-native` PyO3 wheel | experimental, not published | explicit `native_backend="rust"` only |
+| `quantbt-native` PyO3 wheel | staged, not published | local Stage-B `auto` only for certified static/IR/batch rows |
 | `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
 
 The committed Phase 46F rerun compares the same prepared static tape and keeps
@@ -337,7 +392,10 @@ The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
 OIDC, then publish the final core package through the protected PyPI
-environment. The exact handoff fields and artifact-hash procedure are in
+environment. The native companion scope, rollback controls, and installed-wheel
+certification handoff are in
+[`docs/migration/native_release_handoff.md`](docs/migration/native_release_handoff.md).
+The exact handoff fields and artifact-hash procedure are in
 [`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
 No long-lived token is required. Native optimization remains an
 open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,
@@ -405,8 +463,10 @@ Phase 48E also reduced the static explicit Rust score to `0.000302s`
 scalar Rust output contract and prepared command-tape reuse, so they are
 reported separately from callback execution. Rust and Python fingerprints,
 fees, positions, fills, events, rejection counters, and final equity passed.
-`backend="auto"` remains Python and `[native]` remains empty until the public
-`quantbt-native` wheel matrix is clean-install certified.
+At Phase 48E this historical benchmark had `auto` pinned to Python. The later
+Phase 54B.2 local Stage-B policy promotes only the certified static/IR/batch
+rows documented above; `[native]` remains empty until a public native-wheel
+matrix is clean-install certified.
 
 ### Phase 48E.1 native production-closure evidence
 
@@ -437,9 +497,10 @@ facade; it is not a universal Rust speed claim.
 
 Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
 reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
-validated Rust order state, and reset/compaction parity. `auto` remains Python;
-the native extra remains empty until the CPython 3.11/3.12/3.13 manylinux
-clean-install workflow passes.
+validated Rust order state, and reset/lifecycle parity. This paragraph records
+the historical pre-promotion state; the current Stage-B local policy is the
+bounded static/IR/batch policy above. The native extra remains empty until the
+CPython 3.11/3.12/3.13 manylinux clean-install workflow passes.
 
 Ecosystem positioning:
 
@@ -848,6 +909,11 @@ backend, endpoint, or strategy route to use.
 | Pair, basket, hedge-ratio package behavior | [Pair and basket guide](docs/pair_basket_guide.md) |
 | Causal WFO schedules, outer-OOS claims, and audit metadata | [Causal WFO guide](docs/walkforward_causal.md) |
 | Walk-forward methodology and anti-leakage scoring | [Walk-forward methodology](docs/walkforward_methodology_vi.md) |
+| Opt-in Rust strategy templates, batch scoring, and causal OOS batch folds | [Native strategy IR and batch](docs/native_strategy_ir.md) |
+| Python/Rust plan ownership and backend routing | [Execution-plan architecture](docs/architecture/execution-plan.md) |
+| Exact staged core/native pair and maturity matrix | [Generated native compatibility](docs/contracts/generated_product_compatibility.md) |
+| Build, clean-install, and verify local native wheels | [Native companion installation](docs/native/install.md) |
+| Workload-scoped benchmark methodology | [Benchmarking governance](docs/performance/benchmarking.md) |
 | Runnable smoke templates | [Examples index](examples/README.md) |
 
 Key examples:

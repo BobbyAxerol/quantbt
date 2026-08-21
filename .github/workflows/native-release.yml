@@ -1,0 +1,142 @@
+name: Native Release Certification
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Matching release tag or commit, for example v1.0.8"
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  certify-native-pair:
+    name: Native pair / CPython ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout release candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install certification environment
+        run: uv sync --locked --extra optimization --extra reports --extra viz --dev
+
+      - name: Verify release tag/version contract
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
+        run: .venv/bin/python tools/check_release_version.py
+
+      - name: Source, registry, migration, and governance gates
+        if: matrix.python-version == '3.12'
+        run: |
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_module_architecture.py
+          .venv/bin/python tools/check_native_release_handoff.py
+          .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/check_docs_links.py
+
+      - name: Rust format, lint, and workspace tests
+        run: |
+          cargo fmt --manifest-path rust/Cargo.toml --all --check
+          cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings
+          cargo test --manifest-path rust/Cargo.toml --workspace
+
+      - name: Build core wheel and sdist
+        run: uv build --out-dir dist/core
+
+      - name: Build native wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out dist/native
+          manylinux: "2014"
+
+      - name: Stage exact pair
+        shell: bash
+        run: |
+          mkdir -p dist/staged native-release-evidence
+          cp dist/core/*.whl dist/core/*.tar.gz dist/native/*.whl dist/staged/
+          .venv/bin/python tools/check_release_artifacts.py --dist dist/staged
+
+      - name: Certify installed core/native pair without repository imports
+        run: |
+          .venv/bin/python tools/certify_native_release.py \
+            --dist dist/staged \
+            --output native-release-evidence/cpython-${{ matrix.python-version }}.json
+
+      - name: Full source regression and certified workload benchmarks
+        if: matrix.python-version == '3.12'
+        env:
+          MPLCONFIGDIR: /tmp
+        run: |
+          uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+          .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8
+          .venv/bin/python benchmarks/native_event/benchmark_phase54b2_public_routes.py \
+            --static-bars 10000 --ir-bars 2000 --scenarios 64 --repeats 5 \
+            --output native-release-evidence/phase54b2-public-routes.json
+          .venv/bin/python benchmarks/native_event/benchmark_phase54b3_portfolio_package.py \
+            --bars 2000 --symbols 8 --repeats 5 \
+            --output native-release-evidence/phase54b3-portfolio-package.json
+          .venv/bin/python tools/create_supply_chain_report.py \
+            --output native-release-evidence/supply-chain.json
+          .venv/bin/python tools/create_sbom.py \
+            --output native-release-evidence/sbom.cdx.json
+
+      - name: Upload release certification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-release-certification-cpython-${{ matrix.python-version }}
+          path: |
+            native-release-evidence/*
+            dist/staged/*
+          if-no-files-found: error
+
+  supply-chain:
+    name: Native release supply-chain audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Audit locked Rust dependencies
+        working-directory: rust
+        run: cargo audit

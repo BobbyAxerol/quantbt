@@ -1,0 +1,417 @@
+{
+  "schema_version": 1,
+  "registry_id": "quantbt-native-event-product-v1",
+  "lifecycle_registry": {
+    "path": "contracts/native_event_contract_registry.json",
+    "schema_version": 1,
+    "fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d"
+  },
+  "versions": {
+    "core_package": {
+      "distribution": "quantbt-engine",
+      "version": "1.0.8",
+      "python_requires": ">=3.11,<3.14"
+    },
+    "native_package": {
+      "distribution": "quantbt-native",
+      "version": "0.4.0",
+      "published": false,
+      "release_policy": "staged_local_only"
+    },
+    "native_protocol": {
+      "minimum": 1,
+      "maximum": 1
+    },
+    "command_abi": {
+      "current": "full-command-v1",
+      "accepted": ["full-command-v1"]
+    },
+    "result_abi": {
+      "current": "native-event-result-v1",
+      "accepted": ["native-event-result-v1"]
+    },
+    "trace_schema": {
+      "current": "canonical-execution-trace-v1",
+      "readable_release_lines": 2
+    },
+    "strategy_ir": {
+      "current": "native-strategy-ir-v1",
+      "accepted": ["native-strategy-ir-v1"]
+    },
+    "capability_descriptor": {
+      "current": "workload-capability-v1"
+    }
+  },
+  "runtime_descriptor": {
+    "descriptor_version": "native-event-semantics-v1",
+    "native_api": "0.4",
+    "contracts": [
+      "event_lifecycle_v2_next_bar_close",
+      "event_lifecycle_v3_next_open"
+    ],
+    "orders": {
+      "types": ["market", "limit", "stop_market", "stop_limit"],
+      "partial_fill": false,
+      "volume_model": "infinite_bar_liquidity",
+      "gap_policy": ["legacy_trigger", "open_worse_than_trigger"]
+    },
+    "account": {
+      "pnl_models": ["linear_quote_settled"],
+      "margin_models": ["gross_cross"],
+      "liquidation_models": ["zero_equity_legacy"]
+    },
+    "portfolio": {
+      "target_execution": "target_units_market_v1_all_or_none_v2",
+      "package_atomicity": "bar_transaction_atomic_market_v1"
+    }
+  },
+  "stable_capability_matrix": {
+    "version": "full-contract-v2-0.4",
+    "capabilities": {
+      "single_symbol": true,
+      "market": true,
+      "limit": true,
+      "stop_market": true,
+      "stop_limit": true,
+      "place": true,
+      "cancel": true,
+      "amend": true,
+      "replace": true,
+      "reduce_only": true,
+      "quantity_constraints": true,
+      "gtc": true,
+      "gtd": true,
+      "ioc": true,
+      "fok": true,
+      "parent_child": true,
+      "oco": true,
+      "funding": true,
+      "liquidation": true,
+      "multi_symbol": true
+    }
+  },
+  "capability_normalization": {
+    "single_symbol": [
+      "native_event_v2_full_contract",
+      "reactive_session",
+      "r1_single_symbol",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "market": [
+      "native_event_v2_full_contract",
+      "r1_place_cancel_market_limit_gtc",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "limit": [
+      "native_event_v2_full_contract",
+      "r1_place_cancel_market_limit_gtc",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "stop_market": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "stop_limit": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "place": [
+      "native_event_v2_full_contract",
+      "r1_place_cancel_market_limit_gtc",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "cancel": [
+      "native_event_v2_full_contract",
+      "r1_place_cancel_market_limit_gtc",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "amend": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "replace": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "reduce_only": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "quantity_constraints": [
+      "native_event_v2_full_contract",
+      "r2_stop_amend_replace_reduce_only_constraints"
+    ],
+    "gtc": [
+      "native_event_v2_full_contract",
+      "r1_place_cancel_market_limit_gtc",
+      "rust_batched_tape",
+      "rust_batched_tape_audit"
+    ],
+    "gtd": ["native_event_v2_full_contract"],
+    "ioc": ["native_event_v2_full_contract"],
+    "fok": ["native_event_v2_full_contract"],
+    "parent_child": ["native_event_v2_full_contract"],
+    "oco": ["native_event_v2_full_contract"],
+    "funding": ["native_event_v2_full_contract"],
+    "liquidation": ["native_event_v2_full_contract"],
+    "multi_symbol": ["native_event_v2_full_contract"]
+  },
+  "promotion_policy": {
+    "schema_version": 1,
+    "table_version": "native-event-promotion-v2",
+    "default_backend_policy": "certified_only",
+    "default_stage": "static_ir",
+    "stages": [
+      "explicit_only",
+      "static_ir",
+      "portfolio",
+      "package"
+    ],
+    "rules": [
+      {
+        "id": "static_tape_rust_stage_b",
+        "workload_id": "event_static_tape_v2_v3",
+        "stage": "static_ir",
+        "enabled": true,
+        "min_bars": 10000,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_event_v2_multisymbol",
+          "native_event_v2_funding",
+          "native_event_v2_liquidation",
+          "native_event_v2_cancel_all_oco",
+          "native_event_v2_tif_expiry",
+          "native_event_v2_relationships",
+          "native_event_v2_quantity_preflight"
+        ]
+      },
+      {
+        "id": "native_ir_rust_stage_b",
+        "workload_id": "native_strategy_ir_v1",
+        "stage": "static_ir",
+        "enabled": true,
+        "min_bars": 2000,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_strategy_ir_v1",
+          "native_strategy_ir_signal_target",
+          "native_strategy_ir_grid_level",
+          "native_strategy_ir_dca_periodic",
+          "native_strategy_ir_fixed_bracket",
+          "native_strategy_ir_batch_v1"
+        ]
+      },
+      {
+        "id": "portfolio_target_rust_stage_c",
+        "workload_id": "portfolio_target_market_v1",
+        "stage": "portfolio",
+        "enabled": false,
+        "min_bars": 2000,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_portfolio_target_market_v1"
+        ]
+      },
+      {
+        "id": "package_transaction_rust_stage_d",
+        "workload_id": "package_atomic_market_v1",
+        "stage": "package",
+        "enabled": false,
+        "min_bars": 1,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_package_atomic_market_v1"
+        ]
+      }
+    ]
+  },
+  "extension_capabilities": [
+    "r0_import_smoke",
+    "reactive_session",
+    "r1_single_symbol",
+    "r1_place_cancel_market_limit_gtc",
+    "r2_stop_amend_replace_reduce_only_constraints",
+    "prepared_market_core",
+    "rust_batched_tape",
+    "rust_batched_tape_score",
+    "rust_batched_tape_audit",
+    "rust_batched_tape_sparse",
+    "native_event_v2_full_contract",
+    "native_event_v2_multisymbol",
+    "native_event_v2_funding",
+    "native_event_v2_liquidation",
+    "native_event_v2_cancel_all_oco",
+    "native_event_v2_tif_expiry",
+    "native_event_v2_relationships",
+    "native_event_v2_quantity_preflight",
+    "event_contract_registry_v1",
+    "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v3_next_open",
+    "bar_fill_reason_v1",
+    "lifecycle_transition_schema_v1",
+    "semantic_descriptor_v1",
+    "deterministic_quantization_v1",
+    "core_abi_0_5",
+    "generation_safe_order_arena",
+    "flat_static_tape_output",
+    "static_tape_compact",
+    "native_strategy_ir_v1",
+    "native_strategy_ir_signal_target",
+    "native_strategy_ir_grid_level",
+    "native_strategy_ir_dca_periodic",
+    "native_strategy_ir_fixed_bracket",
+    "native_strategy_ir_batch_v1",
+    "native_portfolio_target_preflight_v1",
+    "native_package_transaction_preflight_v1",
+    "native_portfolio_target_market_v1",
+    "native_package_atomic_market_v1"
+  ],
+  "workloads": [
+    {
+      "id": "event_static_tape_v2_v3",
+      "contracts": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_modes": ["static_commands"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "promoted",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": true
+    },
+    {
+      "id": "event_python_callback_v2_v3",
+      "contracts": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_modes": ["python_callback_compat"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "native_strategy_ir_v1",
+      "contracts": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_modes": ["ir_v1"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": 1,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "promoted",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": true
+    },
+    {
+      "id": "portfolio_target_preflight_v1",
+      "contracts": ["event_lifecycle_v3_next_open"],
+      "strategy_modes": ["portfolio_target_preflight"],
+      "profiles": ["score", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_units"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "package_transaction_preflight_v1",
+      "contracts": ["event_lifecycle_v3_next_open"],
+      "strategy_modes": ["package_transaction_preflight"],
+      "profiles": ["score", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": ["all_or_none", "best_effort", "sequential", "hedge_after_primary"],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "portfolio_target_market_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["portfolio_target_market"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_units"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "package_atomic_market_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["package_atomic_market"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": ["all_or_none"],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    }
+  ],
+  "compatibility": [
+    {
+      "core_version": "1.0.8",
+      "native_version": "0.4.0",
+      "native_protocol_min": 1,
+      "native_protocol_max": 1,
+      "command_abis": ["full-command-v1"],
+      "result_abis": ["native-event-result-v1"],
+      "status": "exact_staged_pair",
+      "fallback": "explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason"
+    }
+  ],
+  "deprecations": [
+    {
+      "feature": "event_lifecycle aliases",
+      "introduced": "1.0.7",
+      "replacement": "explicit event_lifecycle_v2_next_bar_close or event_lifecycle_v3_next_open",
+      "warning_from": "1.0.8",
+      "error_from": null,
+      "removal_target": null,
+      "owner": "correctness",
+      "migration_doc": "docs/contracts/contract_registry.md"
+    },
+    {
+      "feature": "Native StrategyContext legacy materialization",
+      "introduced": "1.0.8",
+      "replacement": "StrategyContextView plus CommandWriter",
+      "warning_from": null,
+      "error_from": null,
+      "removal_target": "2.0",
+      "owner": "strategy-ir",
+      "migration_doc": "docs/native_strategy_ir.md"
+    }
+  ]
+}

@@ -163,8 +163,10 @@ def test_phase48e1_reset_and_compaction_relationships_keep_fresh_parity():
     second = runner.run_tape_audit(compiled)
     assert (second.final_equity, second.fill_count, second.event_count) == first_fingerprint
     info = runner.cache_info()
-    assert info["order_compactions"] >= 1
+    assert info["order_compactions"] == 0
     assert info["terminal_orders_removed"] >= 64
+    assert info["order_arena_slots"] == 0
+    assert info["order_arena_capacity"] <= 4
 
 
 def test_phase48e1_score_reset_has_bounded_reuse_for_100_runs():

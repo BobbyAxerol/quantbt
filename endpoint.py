@@ -204,6 +204,10 @@ class EndpointConfig:
         Native-event implementation selector: `python`, `rust`, `auto`, or
         `replay_certified`. It is only consulted by native-event backends;
         omitted means preserve the environment/default selection policy.
+    backend_policy:
+        Native-event auto-routing policy: `certified_only` (default),
+        `prefer_native`, or `prefer_compatibility`. It cannot bypass product
+        certification, extension compatibility, or emergency rollback gates.
     sizing:
         Position sizing contract for signal modes. Examples: `%_equity`,
         `signal_notional`, `notional`, `unit`, `dca_ladder`.
@@ -271,6 +275,7 @@ class EndpointConfig:
     mode: str = "single_signal"
     backend: str = "auto"
     native_backend: Optional[str] = None
+    backend_policy: Optional[str] = None
     sizing: str = "signal_notional"
     account: AccountConfig = field(default_factory=lambda: AccountConfig(initial_capital=100_000.0))
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
@@ -296,8 +301,12 @@ class EndpointConfig:
     arbitrage_spec: object = None
     structured_order_spec: object = None
     event_engine_version: str = "v1"
+    execution_contract: object = None
     reactive_execution_mode: str = "fast"
     reactive_kernel_mode: str = "replay_certified"
+    audit_mode: Optional[str] = None
+    oracle_sample_rate: float = 0.0
+    oracle_sample_seed: int = 0
     symbols: Optional[Sequence[str]] = None
     dca_kwargs: Dict = field(default_factory=dict)
     nautilus_config: object = None
@@ -698,7 +707,16 @@ class QuantBTEndpoint:
                 audit_sink=config.audit_sink,
                 audit_sink_path=config.audit_sink_path,
                 reactive_kernel_mode=config.reactive_kernel_mode,
+                audit_mode=config.audit_mode,
+                oracle_sample_rate=config.oracle_sample_rate,
+                oracle_sample_seed=config.oracle_sample_seed,
                 native_backend=config.native_backend,
+                backend_policy=config.backend_policy,
+                execution_contract=(
+                    config.execution_contract
+                    if config.execution_contract is not None
+                    else "event_lifecycle_v2_next_bar_close"
+                ),
             )
         )
         market = backend.prepare_market_arrays(
@@ -2263,6 +2281,7 @@ class QuantBTEndpoint:
             symbols=symbol_list,
             backend=backend,
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2283,6 +2302,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -2310,9 +2332,11 @@ class QuantBTEndpoint:
             symbols=list(symbols or self.config.symbols or ["asset"]),
             backend=backend,
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
+            execution_contract=self.config.execution_contract,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2329,6 +2353,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2348,8 +2375,10 @@ class QuantBTEndpoint:
             symbols=symbol_list,
             backend="native_event",
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             strategy=strategy,
             event_engine_version="v2",
+            execution_contract=self.config.execution_contract,
             reactive_execution_mode=self.config.reactive_execution_mode,
             account=self.config.account,
             execution=self.config.execution,
@@ -2367,6 +2396,9 @@ class QuantBTEndpoint:
             audit_sink=self.config.audit_sink,
             audit_sink_path=self.config.audit_sink_path,
             reactive_kernel_mode=self.config.reactive_kernel_mode,
+            audit_mode=self.config.audit_mode,
+            oracle_sample_rate=self.config.oracle_sample_rate,
+            oracle_sample_seed=self.config.oracle_sample_seed,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2403,8 +2435,10 @@ class QuantBTEndpoint:
                 symbols=[spec.symbol],
                 backend="native_event",
                 native_backend=self.config.native_backend,
+                backend_policy=self.config.backend_policy,
                 order_commands=commands,
                 event_engine_version="v2",
+                execution_contract=self.config.execution_contract,
                 account=self.config.account,
                 execution=self.config.execution,
                 fee_rate=self.config.v2_fee_rate,
@@ -2489,6 +2523,7 @@ class QuantBTEndpoint:
         self.engine = BacktestEngineV2(
             backend="native_event",
             native_backend=self.config.native_backend,
+            backend_policy=self.config.backend_policy,
             basket=spec,
             signal=sig,
             closes=close_map,
@@ -2568,6 +2603,7 @@ class QuantBTEndpoint:
                     audit_sink=self.config.audit_sink,
                     audit_sink_path=self.config.audit_sink_path,
                     native_backend=self.config.native_backend,
+                    backend_policy=self.config.backend_policy,
                 )
             )
         else:
@@ -3167,6 +3203,8 @@ def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
     payload = {
         "mode": config.mode,
         "backend": config.backend,
+        "event_engine_version": config.event_engine_version,
+        "execution_contract": _jsonable(config.execution_contract),
         "portfolio_mode": config.portfolio_mode,
         "asset_type": config.asset_type,
         "account": _jsonable(asdict(config.account)),

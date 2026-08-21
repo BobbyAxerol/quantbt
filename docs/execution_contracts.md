@@ -25,7 +25,8 @@ their domain.
 | `next_open_v1` | reserved / event routes | bar close | next bar open | entry/exit only | future specialized route |
 | `intrabar_bracket_v1` | `intrabar_bracket`, `intrabar_bracket_reference` | bar close | next bar open, then high/low path | SL/TP/trailing/reversal | Level 2 now, Level 3+ with parity bundle |
 | `fill_replay_v1` | `fill_replay` | explicit fills supplied | explicit fill tape | alpha-owned | Level 1 accounting replay |
-| `event_lifecycle_v2` | `orders`, `basket`, `arbitrage`, DCA/grid routes | command/event driven | market/limit/stop lifecycle | order-owned | Level 2-4 depending parity |
+| `event_lifecycle_v2_next_bar_close` | native-event compatibility routes | command/event driven | market at effective-bar close; legacy OHLC triggers | order-owned, legacy frozen | reproducibility contract |
+| `event_lifecycle_v3_next_open` | `event_driven`, explicit lifecycle, reactive strategy | prior close observation or explicit tape | actual effective-bar open plus versioned gap rules | order-owned, ambiguity flagged | Level 2 with Python/Rust parity |
 | `nautilus` | `nautilus_validation`, order/package validation | event driven | Nautilus simulation | external engine | Level 4 route when configured |
 
 ## Close Target
@@ -103,6 +104,12 @@ lifecycle requirements:
 These routes are broader but slower than the narrow intrabar kernel. They are
 the right place for order/package semantics that cannot be reduced to a compact
 single-symbol bracket tape.
+
+V2 is retained under its honest next-bar-close name for historical replay.
+V3 is the causal close-to-next-open contract and requires real open prices.
+The two IDs never alias to each other. Exact clock, gap, stop-limit ambiguity,
+bar-zero, final-bar, and typed lifecycle semantics are maintained in the
+[native-event contract registry](contracts/contract_registry.md).
 
 ## Certification Levels
 

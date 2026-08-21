@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "phase": "53A",
+  "status": "frozen-workload-taxonomy",
+  "contract": [
+    "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v3_next_open"
+  ],
+  "measurement": {
+    "cold_and_warm_separate": true,
+    "summary": "median_with_robust_spread",
+    "required_fields": [
+      "prepare_market_ns",
+      "compile_commands_ns",
+      "native_engine_ns",
+      "boundary_in_ns",
+      "boundary_out_ns",
+      "adapt_ns",
+      "total_ns",
+      "peak_rss_bytes",
+      "steady_rss_bytes",
+      "bytes_copied",
+      "pyo3_calls",
+      "callbacks",
+      "output_rows"
+    ]
+  },
+  "workloads": [
+    {
+      "id": "E0_STATIC_EXPLICIT_COMMAND_TAPE",
+      "phase_53a_gate": true,
+      "profiles": ["score", "compact", "audit"],
+      "fixtures": ["single_multi_symbol", "low_high_churn"]
+    },
+    {
+      "id": "E1_ARBITRARY_EVERY_BAR_PYTHON_CALLBACK",
+      "phase_53a_gate": false,
+      "profiles": ["compatibility"],
+      "fixtures": ["legacy_context"]
+    },
+    {
+      "id": "E2_DECLARED_SPARSE_PYTHON_CALLBACK",
+      "phase_53a_gate": false,
+      "profiles": ["numeric_context"],
+      "fixtures": ["wake_on_event"]
+    },
+    {
+      "id": "E3_NATIVE_STRATEGY_IR",
+      "phase_53a_gate": false,
+      "profiles": ["score", "audit"],
+      "fixtures": ["grid", "dca", "bracket"]
+    },
+    {
+      "id": "E4_PORTFOLIO_TARGET_TAPE",
+      "phase_53a_gate": false,
+      "profiles": ["score", "compact", "audit"],
+      "fixtures": ["rebalance", "margin"]
+    },
+    {
+      "id": "E5_ARBITRAGE_PACKAGE_TAPE",
+      "phase_53a_gate": false,
+      "profiles": ["audit"],
+      "fixtures": ["atomic", "best_effort", "residual"]
+    },
+    {
+      "id": "E6_BATCH_OPTIMIZER_WFO",
+      "phase_53a_gate": false,
+      "profiles": ["score", "top_k_audit"],
+      "fixtures": ["shared_market", "reset_reuse"]
+    }
+  ]
+}

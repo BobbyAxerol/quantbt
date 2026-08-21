@@ -1,0 +1,40 @@
+name: Native Supply Chain Evidence
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build supply-chain and unsafe inventory evidence
+        run: |
+          python tools/create_supply_chain_report.py --output supply-chain-report.json
+          python tools/create_sbom.py --output sbom.cdx.json
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Audit Rust dependency lock
+        working-directory: rust
+        run: cargo audit
+
+      - name: Upload security evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-supply-chain-evidence
+          path: |
+            supply-chain-report.json
+            sbom.cdx.json
+          if-no-files-found: error

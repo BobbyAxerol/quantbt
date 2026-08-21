@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "contracts": [
+    {
+      "contract_id": "event_lifecycle_v2_next_bar_close",
+      "contract_code": 2,
+      "contract_version": 2,
+      "classification": "LEGACY_FROZEN",
+      "bar_timestamp_semantics": "close",
+      "observation_phase": "post_execution_bar_close",
+      "command_activation_phase": "next_bar_close",
+      "phase_sequence": [
+        "MARK_TO_CLOSE",
+        "INTRABAR_LIQUIDATION",
+        "FUNDING_AT_CLOSE",
+        "CLOSE_MARGIN_LIQUIDATION",
+        "GTD_EXPIRY",
+        "COMMANDS",
+        "MATCH_NEXT_BAR_CLOSE",
+        "RELATIONSHIPS",
+        "POST_ORDER_LIQUIDATION",
+        "SNAPSHOT"
+      ],
+      "last_bar_policy": "commands_outside_tape",
+      "fill_policy": {
+        "market": "market_next_bar_close_v1",
+        "limit": "limit_at_trigger_legacy_v1",
+        "stop_market": "stop_at_trigger_legacy_v1",
+        "stop_limit": "stop_limit_unordered_ohlc_legacy_v1",
+        "limit_gap": "limit_at_trigger_legacy_v1",
+        "stop_gap": "trigger_price_legacy_v1",
+        "ambiguity": "unordered_range_legacy_v1",
+        "contingent_priority": "activation_then_order_sequence_v1"
+      }
+    },
+    {
+      "contract_id": "event_lifecycle_v3_next_open",
+      "contract_code": 3,
+      "contract_version": 3,
+      "classification": "CERTIFIED_CURRENT",
+      "bar_timestamp_semantics": "close",
+      "observation_phase": "post_execution_bar_close",
+      "command_activation_phase": "next_bar_open",
+      "phase_sequence": [
+        "MARK_TO_CLOSE",
+        "INTRABAR_LIQUIDATION",
+        "FUNDING_AT_CLOSE",
+        "CLOSE_MARGIN_LIQUIDATION",
+        "GTD_EXPIRY",
+        "COMMANDS",
+        "MATCH_NEXT_BAR_OPEN_AND_INTRABAR",
+        "RELATIONSHIPS",
+        "POST_ORDER_LIQUIDATION",
+        "SNAPSHOT"
+      ],
+      "last_bar_policy": "commands_outside_tape",
+      "fill_policy": {
+        "market": "market_next_open_slippage_v1",
+        "limit": "limit_open_improvement_v1",
+        "stop_market": "stop_open_worse_v1",
+        "stop_limit": "stop_limit_conservative_path_v1",
+        "limit_gap": "open_price_improvement_v1",
+        "stop_gap": "open_worse_than_trigger_v1",
+        "ambiguity": "flag_and_conservative_v1",
+        "contingent_priority": "activation_then_order_sequence_v1"
+      }
+    }
+  ],
+  "aliases": {
+    "event_lifecycle": "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v2": "event_lifecycle_v2_next_bar_close",
+    "event_v2": "event_lifecycle_v2_next_bar_close",
+    "lifecycle": "event_lifecycle_v2_next_bar_close",
+    "lifecycle_v2": "event_lifecycle_v2_next_bar_close",
+    "event_v3": "event_lifecycle_v3_next_open",
+    "lifecycle_v3": "event_lifecycle_v3_next_open"
+  },
+  "deprecations": {
+    "event_lifecycle": "Use event_lifecycle_v2_next_bar_close for reproducibility or event_lifecycle_v3_next_open for true next-open fills.",
+    "event_lifecycle_v2": "Use the honest event_lifecycle_v2_next_bar_close contract ID.",
+    "event_v2": "Use event_lifecycle_v2_next_bar_close.",
+    "lifecycle": "Use an explicit versioned event lifecycle contract.",
+    "lifecycle_v2": "Use event_lifecycle_v2_next_bar_close."
+  },
+  "command_outcomes": {
+    "ACCEPTED": 0,
+    "REJECTED": 1,
+    "NOOP": 2,
+    "OUTSIDE_TAPE": 3
+  },
+  "order_statuses": {
+    "CREATED": 0,
+    "WAITING_PARENT": 1,
+    "ACTIVE": 2,
+    "PARTIALLY_FILLED": 3,
+    "FILLED": 4,
+    "CANCELED": 5,
+    "EXPIRED": 6,
+    "REJECTED": 7,
+    "LIQUIDATED": 8
+  },
+  "lifecycle_event_kinds": {
+    "PLACE": 0,
+    "ACTIVATE": 1,
+    "AMEND": 2,
+    "REPLACE": 3,
+    "CANCEL": 4,
+    "EXPIRE": 5,
+    "FILL": 6,
+    "REJECT": 7,
+    "LIQUIDATE": 8,
+    "PACKAGE_COMMIT": 9,
+    "PACKAGE_ABORT": 10
+  },
+  "transitions": [
+    {"action": "PLACE", "from": "NONE", "to": "ACTIVE", "outcome": "ACCEPTED", "reason": "PLACED_ACTIVE"},
+    {"action": "PLACE", "from": "NONE", "to": "WAITING_PARENT", "outcome": "ACCEPTED", "reason": "PLACED_WAITING_PARENT"},
+    {"action": "PLACE", "from": "ACTIVE", "to": "ACTIVE", "outcome": "REJECTED", "reason": "DUPLICATE_ORDER_ID"},
+    {"action": "ACTIVATE", "from": "WAITING_PARENT", "to": "ACTIVE", "outcome": "ACCEPTED", "reason": "PARENT_FILLED"},
+    {"action": "AMEND", "from": "ACTIVE", "to": "ACTIVE", "outcome": "ACCEPTED", "reason": "AMENDED"},
+    {"action": "AMEND", "from": "WAITING_PARENT", "to": "WAITING_PARENT", "outcome": "ACCEPTED", "reason": "AMENDED"},
+    {"action": "REPLACE", "from": "ACTIVE", "to": "CANCELED", "outcome": "ACCEPTED", "reason": "REPLACED"},
+    {"action": "REPLACE", "from": "WAITING_PARENT", "to": "CANCELED", "outcome": "ACCEPTED", "reason": "REPLACED"},
+    {"action": "CANCEL", "from": "ACTIVE", "to": "CANCELED", "outcome": "ACCEPTED", "reason": "CANCELED"},
+    {"action": "CANCEL", "from": "WAITING_PARENT", "to": "CANCELED", "outcome": "ACCEPTED", "reason": "CANCELED"},
+    {"action": "CANCEL", "from": "PARTIALLY_FILLED", "to": "CANCELED", "outcome": "ACCEPTED", "reason": "CANCELED_REMAINDER"},
+    {"action": "EXPIRE", "from": "ACTIVE", "to": "EXPIRED", "outcome": "ACCEPTED", "reason": "TIME_IN_FORCE_EXPIRED"},
+    {"action": "EXPIRE", "from": "WAITING_PARENT", "to": "EXPIRED", "outcome": "ACCEPTED", "reason": "TIME_IN_FORCE_EXPIRED"},
+    {"action": "FILL", "from": "ACTIVE", "to": "FILLED", "outcome": "ACCEPTED", "reason": "FULL_FILL"},
+    {"action": "FILL", "from": "ACTIVE", "to": "PARTIALLY_FILLED", "outcome": "ACCEPTED", "reason": "PARTIAL_FILL"},
+    {"action": "FILL", "from": "PARTIALLY_FILLED", "to": "FILLED", "outcome": "ACCEPTED", "reason": "FULL_FILL"},
+    {"action": "FILL", "from": "PARTIALLY_FILLED", "to": "PARTIALLY_FILLED", "outcome": "ACCEPTED", "reason": "PARTIAL_FILL"},
+    {"action": "REJECT", "from": "CREATED", "to": "REJECTED", "outcome": "REJECTED", "reason": "VALIDATION_REJECTED"},
+    {"action": "REJECT", "from": "ACTIVE", "to": "REJECTED", "outcome": "REJECTED", "reason": "EXECUTION_REJECTED"},
+    {"action": "REJECT", "from": "WAITING_PARENT", "to": "REJECTED", "outcome": "REJECTED", "reason": "RELATIONSHIP_REJECTED"},
+    {"action": "LIQUIDATE", "from": "ACTIVE", "to": "LIQUIDATED", "outcome": "ACCEPTED", "reason": "ACCOUNT_LIQUIDATED"},
+    {"action": "LIQUIDATE", "from": "PARTIALLY_FILLED", "to": "LIQUIDATED", "outcome": "ACCEPTED", "reason": "ACCOUNT_LIQUIDATED"},
+    {"action": "PACKAGE_COMMIT", "from": "NONE", "to": "NONE", "outcome": "ACCEPTED", "reason": "PACKAGE_COMMITTED"},
+    {"action": "PACKAGE_ABORT", "from": "NONE", "to": "NONE", "outcome": "REJECTED", "reason": "PACKAGE_ABORTED"},
+    {"action": "CANCEL", "from": "FILLED", "to": "FILLED", "outcome": "REJECTED", "reason": "ORDER_TERMINAL"},
+    {"action": "CANCEL", "from": "CANCELED", "to": "CANCELED", "outcome": "REJECTED", "reason": "ORDER_TERMINAL"},
+    {"action": "CANCEL", "from": "EXPIRED", "to": "EXPIRED", "outcome": "REJECTED", "reason": "ORDER_TERMINAL"},
+    {"action": "CANCEL", "from": "REJECTED", "to": "REJECTED", "outcome": "REJECTED", "reason": "ORDER_TERMINAL"},
+    {"action": "CANCEL", "from": "LIQUIDATED", "to": "LIQUIDATED", "outcome": "REJECTED", "reason": "ORDER_TERMINAL"}
+  ]
+}

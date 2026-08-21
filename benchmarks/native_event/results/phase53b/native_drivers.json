@@ -1,0 +1,101 @@
+{
+  "e3": {
+    "bars": 2000,
+    "commands": 87,
+    "fingerprint": "d48fd3d1862a42a1a9c9971b74afd2d794b0931b45b5c9a834d669f97cfa769c",
+    "parity": {
+      "fill_count": 86,
+      "final_equity": 19993.645627525602,
+      "python_reference_vs_rust_audit": true
+    },
+    "python_reference_oracle": {
+      "bars_per_second": 418613.44968959014,
+      "median_seconds": 0.004777677357196808,
+      "pyo3_calls_per_run": 0,
+      "python_callbacks_per_run": 0
+    },
+    "rust_native_ir_score": {
+      "bars_per_second": 5997100.280099529,
+      "boundary_calls": 1,
+      "median_seconds": 0.00033349450677633286,
+      "pyo3_calls_per_run": 1,
+      "python_callbacks_per_run": 0
+    },
+    "speedup_python_reference_over_rust": 14.326105108535076,
+    "strategy_kind": "grid_level",
+    "workload": "E3_NATIVE_STRATEGY_IR"
+  },
+  "e6": {
+    "bars": 2000,
+    "parameter_width": 4,
+    "parity": {
+      "selected_audit_is_deferred": true,
+      "single_vs_batch_exact": true,
+      "worker_counts_exact": true
+    },
+    "rows": {
+      "batch_workers_1": {
+        "actual_workers": 1,
+        "audit_materialized": false,
+        "median_seconds": 0.018630921840667725,
+        "pyo3_calls_per_batch": 1,
+        "requested_workers": 1,
+        "scenario_runs_per_second": 3435.1494009437733,
+        "shared_market_copies_per_scenario": 0,
+        "simulated_bars_per_second": 6870298.801887547,
+        "speedup_vs_single_boundary": 1.257977485403503
+      },
+      "batch_workers_2": {
+        "actual_workers": 2,
+        "audit_materialized": false,
+        "median_seconds": 0.010906428098678589,
+        "pyo3_calls_per_batch": 1,
+        "requested_workers": 2,
+        "scenario_runs_per_second": 5868.0990165565,
+        "shared_market_copies_per_scenario": 0,
+        "simulated_bars_per_second": 11736198.033112999,
+        "speedup_vs_single_boundary": 2.148941889665236
+      },
+      "batch_workers_4": {
+        "actual_workers": 4,
+        "audit_materialized": false,
+        "median_seconds": 0.005977923050522804,
+        "pyo3_calls_per_batch": 1,
+        "requested_workers": 4,
+        "scenario_runs_per_second": 10706.05952252979,
+        "shared_market_copies_per_scenario": 0,
+        "simulated_bars_per_second": 21412119.04505958,
+        "speedup_vs_single_boundary": 3.920639327370175
+      },
+      "batch_workers_8": {
+        "actual_workers": 8,
+        "audit_materialized": false,
+        "median_seconds": 0.007331835106015205,
+        "pyo3_calls_per_batch": 1,
+        "requested_workers": 8,
+        "scenario_runs_per_second": 8729.056105952646,
+        "shared_market_copies_per_scenario": 0,
+        "simulated_bars_per_second": 17458112.211905293,
+        "speedup_vs_single_boundary": 3.1966458422726816
+      },
+      "single_call_per_scenario": {
+        "median_seconds": 0.02343728020787239,
+        "pyo3_calls_per_batch": 64,
+        "scenario_runs_per_second": 2730.692274545701,
+        "simulated_bars_per_second": 5461384.549091402
+      }
+    },
+    "rss_delta_bytes": 1220608,
+    "scenarios": 64,
+    "workload": "E6_BATCH_OPTIMIZER_WFO"
+  },
+  "method": "warm prepared market; median wall time; direct native IR only",
+  "non_claims": [
+    "No arbitrary Python callback speed claim.",
+    "No full generic portfolio/arbitrage endpoint promotion claim.",
+    "Portfolio/package accounting parity is a separate contract-test artifact."
+  ],
+  "phase": "53B",
+  "promotion_scope": "opt-in experimental native strategy IR and batch driver",
+  "schema_version": 1
+}

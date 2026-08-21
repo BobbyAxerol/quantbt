@@ -172,26 +172,60 @@ def _event_records(result: object) -> list[tuple[object, ...]] | None:
             tuple(np.asarray(arrays[name])[idx].item() for name in arrays)
             for idx in range(length)
         ]
-    ledger = _metadata(result).get("compact_order_event_ledger")
+    metadata = _metadata(result)
+    ledger = metadata.get("compact_order_event_ledger")
     if ledger is None:
-        ledger = _metadata(result).get("event_ledger")
+        ledger = metadata.get("event_ledger")
     if ledger is None:
         return None
     if isinstance(ledger, Mapping):
         names = ("bar", "kind", "status", "order_id", "target_id")
         if all(name in ledger for name in names):
             arrays = {name: np.asarray(ledger[name]) for name in names}
-            return [tuple(arrays[name][idx].item() for name in names) for idx in range(len(arrays["bar"]))]
+            id_values = tuple(metadata.get("id_values", ()))
+
+            def decoded_id(value: object) -> object:
+                code = int(value)
+                return id_values[code] if 0 <= code < len(id_values) else None
+
+            return [
+                (
+                    arrays["bar"][idx].item(),
+                    arrays["kind"][idx].item(),
+                    arrays["status"][idx].item(),
+                    decoded_id(arrays["order_id"][idx]),
+                    decoded_id(arrays["target_id"][idx]),
+                )
+                for idx in range(len(arrays["bar"]))
+            ]
     names = ("bar", "event_type", "status", "command_index", "related_command_index")
     if all(hasattr(ledger, name) for name in names):
         arrays = {name: np.asarray(getattr(ledger, name)) for name in names}
+        commands = metadata.get("compact_command_ledger")
+        id_values = tuple(metadata.get("id_values", ()))
+
+        def command_id(value: object) -> object:
+            index = int(value)
+            if index < 0 or commands is None or not hasattr(commands, "order_id_code"):
+                return None
+            code = int(np.asarray(commands.order_id_code)[index])
+            return id_values[code] if 0 <= code < len(id_values) else None
+
+        def command_target_id(value: object) -> object:
+            index = int(value)
+            if index < 0 or commands is None or not hasattr(commands, "target_order_id_code"):
+                return None
+            code = int(np.asarray(commands.target_order_id_code)[index])
+            return id_values[code] if 0 <= code < len(id_values) else None
+
         return [
             (
                 arrays["bar"][idx].item(),
                 arrays["event_type"][idx].item(),
                 arrays["status"][idx].item(),
-                arrays["command_index"][idx].item(),
-                arrays["related_command_index"][idx].item(),
+                command_id(arrays["command_index"][idx]),
+                command_id(arrays["related_command_index"][idx])
+                or command_target_id(arrays["command_index"][idx]),
             )
             for idx in range(len(arrays["bar"]))
         ]

@@ -13,6 +13,9 @@ PACKAGING_DOC = PROJECT_ROOT / "docs" / "release_packaging.md"
 NATIVE_CARGO = PROJECT_ROOT / "rust" / "native_event" / "Cargo.toml"
 NATIVE_PYPROJECT = PROJECT_ROOT / "rust" / "native_event" / "pyproject.toml"
 NATIVE_LIB = PROJECT_ROOT / "rust" / "native_event" / "src" / "lib.rs"
+NATIVE_GENERATED_CONTRACTS = (
+    PROJECT_ROOT / "rust" / "crates" / "quantbt-domain" / "src" / "generated_product_contracts.rs"
+)
 
 
 REQUIRED_CAPABILITIES = (
@@ -44,11 +47,14 @@ def test_native_distribution_metadata_matches_executable_version():
     cargo = NATIVE_CARGO.read_text()
     native_pyproject = NATIVE_PYPROJECT.read_text()
     native_lib = NATIVE_LIB.read_text()
+    generated_contracts = NATIVE_GENERATED_CONTRACTS.read_text()
 
     assert re.search(r'^version\s*=\s*"0\.4\.0"', cargo, re.MULTILINE)
     assert re.search(r'^version\s*=\s*"0\.4\.0"', native_pyproject, re.MULTILINE)
-    assert 'const VERSION: &str = "0.4.0";' in native_lib
-    assert 'const API_VERSION: &str = "0.4";' in native_lib
+    assert 'pub const NATIVE_PACKAGE_VERSION: &str = "0.4.0";' in generated_contracts
+    assert 'pub const NATIVE_API_VERSION: &str = "0.4";' in generated_contracts
+    assert "const VERSION: &str = generated_product_contracts::NATIVE_PACKAGE_VERSION;" in native_lib
+    assert "const API_VERSION: &str = generated_product_contracts::NATIVE_API_VERSION;" in native_lib
 
 
 def test_release_packaging_docs_describe_current_api_04_policy():
@@ -64,7 +70,8 @@ def test_release_packaging_docs_describe_current_api_04_policy():
 
     assert "public Native Event V2" in current_section
     assert "native_backend=\"rust\"` is explicit and fail-fast" in current_section
-    assert "native_backend=\"auto\"` remains Python" in current_section
+    assert "native_backend=\"auto\"` uses the generated Stage-B static/IR/batch policy" in current_section
+    assert "published core-only install remains Python" in current_section
     assert "one symbol, GTC, no funding" not in current_section
     assert "Parent/child, OCO, expiry, IOC/FOK" not in current_section
     assert "single- and multi-symbol execution" in current_section

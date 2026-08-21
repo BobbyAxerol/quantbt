@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from types import ModuleType
 import tomllib
@@ -41,9 +42,12 @@ def test_native_event_r1_crate_declares_reactive_session_capability() -> None:
     assert 'name = "_quantbt_native"' in cargo
     assert metadata["project"]["name"] == "quantbt-native"
     assert metadata["tool"]["maturin"]["module-name"] == "_quantbt_native"
-    assert '"r0_import_smoke", true' in source
-    assert '"reactive_session", true' in source
-    assert '"r2_stop_amend_replace_reduce_only_constraints", true' in source
+    # Product-level capabilities are generated from the canonical JSON
+    # registry; Rust must consume that registry rather than duplicate strings.
+    assert "generated_product_contracts::NATIVE_EXTENSION_CAPABILITIES" in source
+    product = json.loads((PROJECT_ROOT / "contracts" / "native_event_product_registry.json").read_text())
+    capabilities = set(product["extension_capabilities"])
+    assert {"r0_import_smoke", "reactive_session", "r2_stop_amend_replace_reduce_only_constraints"} <= capabilities
     assert "ReactiveSessionCore" in source
 
 

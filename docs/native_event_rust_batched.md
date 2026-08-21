@@ -2,7 +2,7 @@
 
 > Phase 47B adds the API `0.4` `RustFullRunner` contract. Read
 > [`native_event_rust_full_contract.md`](native_event_rust_full_contract.md)
-> for the current explicit `native_backend="rust"` path. This document
+> for the current Stage-B promotion policy. This document
 > describes the earlier `RustBatchedRunner` compatibility surface below; it
 > remains intentionally single-symbol and fail-fast.
 
@@ -77,10 +77,11 @@ liquidation, quantity constraints, OCO/parent packages, expiry, IOC/FOK/GTD,
 and multi-symbol input raise explicitly. Use the Python/replay-certified
 backend for those semantics.
 
-`auto` never selects this runner, and no public endpoint default changes. The
-replay-certified Python/Numba engine remains the domain oracle. Rust can only be
-promoted after the isolated benchmark, RSS and installed-wheel gates in
-`upgrade/implement.md` Phase 45F pass.
+This section records the historical Phase 47B runner. The current policy is
+defined by the generated registry: `auto` may select the later full-contract
+static/IR routes only when their Stage-B row passes; this legacy compatibility
+runner is not independently selected. The replay-certified Python/Numba engine
+remains the domain oracle.
 
 ## Phase45F certification evidence
 

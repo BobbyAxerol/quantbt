@@ -1,0 +1,15 @@
+# Phase 54A ownership map. One maintainer currently holds the listed roles;
+# keeping paths explicit makes future review delegation mechanical.
+* @BobbyAxerol
+
+/contracts/ @BobbyAxerol
+/src/quantbt/core/ @BobbyAxerol
+/src/quantbt/planning/ @BobbyAxerol
+/src/quantbt/preparation/ @BobbyAxerol
+/src/quantbt/engine_spi/ @BobbyAxerol
+/src/quantbt/strategies/ @BobbyAxerol
+/src/quantbt/backends/ @BobbyAxerol
+/rust/ @BobbyAxerol
+/benchmarks/ @BobbyAxerol
+/docs/ @BobbyAxerol
+/.github/workflows/ @BobbyAxerol
