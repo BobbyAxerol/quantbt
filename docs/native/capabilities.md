@@ -44,3 +44,7 @@ drifts. `backend="auto"` follows the generated promotion table and records a
 structured fallback reason when a request is below its threshold or outside a
 certified row. `QUANTBT_DISABLE_NATIVE=1` and
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` deterministically force Python.
+
+For the exact installed-wheel release gate, core-only fallback behavior,
+rollback procedure, and release-owner checklist, read the
+[native release handoff](../migration/native_release_handoff.md).

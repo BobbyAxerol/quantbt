@@ -72,9 +72,10 @@ def _registry_pair(core_version: str, native_version: str) -> dict[str, Any] | N
 
 def _clean_env() -> dict[str, str]:
     env = dict(os.environ)
-    env.pop("PYTHONPATH", None)
-    env.pop("VIRTUAL_ENV", None)
+    for name in ("PYTHONPATH", "VIRTUAL_ENV", "CONDA_PREFIX", "POETRY_ACTIVE"):
+        env.pop(name, None)
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env["PYTHONNOUSERSITE"] = "1"
     return env
 
 
@@ -96,6 +97,8 @@ def _installed_script(core_version: str, expect_native: bool) -> str:
         native_check = """
 import _quantbt_native
 from quantbt.core.product_contracts import require_native_package_pair
+native_path = pathlib.Path(_quantbt_native.__file__).resolve()
+assert "site-packages" in native_path.parts or "dist-packages" in native_path.parts, native_path
 pair = require_native_package_pair(
     metadata.version("quantbt-engine"),
     _quantbt_native.version(),

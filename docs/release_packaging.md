@@ -38,11 +38,20 @@ To inspect a staged core/native pair locally:
 ```bash
 make build-native-wheel
 make verify-staged-wheels
+make migration-audit
+make certify-native-release
 ```
 
 The staged verifier creates clean environments, checks source-to-wheel module
 hashes, rejects source-tree import leakage, and requires an exact pair declared
 by the generated product registry.
+
+`make certify-native-release` adds the native release-candidate proof: it
+creates a core-only environment and an exact core/native-pair environment,
+checks the version/API handshake and generated promotion decisions, exercises
+static/IR public routes plus the bounded target/package helpers, and writes a
+checksum-bearing JSON certificate. It does not publish or authorize publication
+of `quantbt-native`; see the [native release handoff](migration/native_release_handoff.md).
 
 For a local evidence bundle containing both the public core artifacts and the
 unpublished staged native wheel, run:
@@ -150,6 +159,12 @@ smoke steps are maintained in the
 `quantbt-release-manifest-v1` JSON artifact containing the release commit,
 version, wheel/sdist SHA256 values, benchmark evidence hashes and backend
 policy. The manifest is evidence only; it is never uploaded to PyPI.
+
+For a tagged release candidate with a local native companion, trigger the
+**Native Release Certification** workflow before creating a public native
+claim. It builds Linux manylinux core/native artifacts for CPython 3.11, 3.12,
+and 3.13, performs the installed-wheel gate per row, and archives certificates
+and staged artifacts. The existing core PyPI workflow remains core-only.
 
 ## Trusted Publishing
 
@@ -449,20 +464,25 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 1. Merge the verified release commit to protected `main`.
 2. Set the final version, for example `1.0.8`, and add the changelog entry.
 3. Create and push the matching protected tag `v1.0.8`.
-4. Create a GitHub Release from that tag and mark it published.
-5. The production workflow runs the matrix regression, builds the core wheel
+4. Run **Native Release Certification** for the matching tag and archive its
+   artifacts. This is required before any native capability claim; it does not
+   publish `quantbt-native`.
+5. Create a GitHub Release from that tag and mark it published.
+6. The production workflow runs the matrix regression, builds the core wheel
    and sdist, runs metadata and clean-install checks, then pauses at the
    protected `pypi` environment reviewer gate.
-6. Approve only after the artifact name, version, and release notes have been
+7. Approve only after the artifact name, version, and release notes have been
    checked. The workflow publishes through OIDC; no long-lived API token is
    needed.
-7. Verify `pip install quantbt-engine==1.0.8` from a fresh environment and
+8. Verify `pip install quantbt-engine==1.0.8` from a fresh environment and
    archive the wheel, sdist, test output, and release manifest.
 
 Do not publish `quantbt-native` in this flow. It has a separate future release
 when its wheel matrix and RSS gates pass. Until then, the PyPI core-only
 install uses Python; the local exact-pair Stage-B policy is documented in the
-generated compatibility table, and the native extra remains empty.
+generated compatibility table, and the native extra remains empty. The
+[native release handoff](migration/native_release_handoff.md) lists the
+bounded E4/E5 helper scope and rollback requirements.
 
 ## Benchmark Evidence And Open Optimization Scope
 

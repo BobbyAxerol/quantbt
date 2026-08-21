@@ -294,6 +294,28 @@ and current/peak RSS. Its numbers are local evidence for these two contracts
 only; they do not generalize to the legacy portfolio engine or arbitrary
 multi-leg strategies.
 
+### Phase 54B.4 installed-wheel release gate
+
+Phase 54B.4 turns the local contract evidence into a release-candidate gate
+without changing any generic endpoint default. The gate builds the core wheel,
+core sdist, and matching native wheel from one ref, then proves behavior in
+fresh virtual environments that have no repository `PYTHONPATH` or user-site
+imports. It verifies both:
+
+1. a core-only install, where `auto` deterministically remains Python; and
+2. an exact core/native pair, where only generated Stage-B static/IR rows
+   auto-promote and the bounded E4/E5 helpers remain explicit-only.
+
+The exact-pair probe runs static public execution, IR batch/fold scoring, and
+target/package helper accounting against the installed Python event oracle. It
+also proves emergency disable and strict explicit-Rust failure behavior. The
+certificate carries artifact checksums, product/lifecycle fingerprints,
+benchmark evidence hashes, migration-audit hash, and supply-chain/SBOM
+fingerprints. It is not a native publication authorization.
+
+Use the [native release handoff](migration/native_release_handoff.md) for the
+reproducible commands and release-owner process.
+
 ### Phase 54A.5.6 differential corpus and exit evidence
 
 Phase 54A.5.6 adds a small, deterministic execution corpus rather than relying

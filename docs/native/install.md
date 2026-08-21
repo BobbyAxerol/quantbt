@@ -35,8 +35,14 @@ imports, and checks the exact core/native mapping from the product registry.
   10,000+ bars and bounded Native Strategy IR/batch runs at 2,000+ bars; all
   other workloads stay Python with a structured decision reason.
 
+The direct `run_portfolio_target_market(...)` and
+`run_atomic_package_market(...)` helpers are separately certified bounded Rust
+contracts. They remain explicit-only: installing the companion does **not**
+change the generic portfolio, basket, or arbitrage endpoint route.
+
 Set `QUANTBT_DISABLE_NATIVE=1` to force the Python route, or
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` to cap local automatic promotion
 without changing code. Explicit `backend="rust"` remains fail-fast.
 
-See [Capabilities](capabilities.md) and [Troubleshooting](troubleshooting.md).
+See [Capabilities](capabilities.md), the [native release handoff](../migration/native_release_handoff.md),
+and [Troubleshooting](troubleshooting.md).

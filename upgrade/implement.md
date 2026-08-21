@@ -13198,7 +13198,7 @@ installed-wheel, performance, RSS, rollback, and public endpoint gates pass.
 
 ### Phase 54B - P3 Rust-First Promotion, Migration, Cleanup, And Final Release
 
-**Status: in progress.**
+**Status: complete (54B.1 through 54B.4).**
 
 Detailed guide:
 
@@ -13655,7 +13655,7 @@ Remaining boundary, not a hidden B3 correctness debt:
 
 #### 54B.4 - Installed-Wheel Release Gate, Migration Audit, And Final Handoff
 
-**Status: planned.**
+**Status: complete (installed-wheel release gate and handoff).**
 
 Detailed guide to read before every implementation decision:
 
@@ -13715,6 +13715,54 @@ RSS, benchmark, public-result, and rollback gates. Python remains the explicit
 oracle and emergency fallback. The release capability table is the source of
 truth; unsupported workloads fail closed or stay on Python by design.
 ```
+
+Completion evidence:
+
+- Added `tools/certify_native_release.py`, a release-candidate gate that builds
+  its proof from installed artifacts only. It creates independent core-only and
+  exact core/native virtual environments with `PYTHONPATH`, user-site, Poetry,
+  Conda, and active-venv leakage removed. The exact-pair probe verifies the
+  core/native version and API-0.4 handshake, installed module paths, generated
+  promotion decisions, explicit rollback/fail-closed behavior, public static
+  execution, native-IR batch/fold scoring, and bounded E4/E5 helper parity
+  against the installed Python event oracle at `atol=1e-12`.
+- Added a tagged `Native Release Certification` workflow for CPython 3.11,
+  3.12, and 3.13. It builds a manylinux core/native pair, verifies every clean
+  pair, runs the full release shard plus governed B2/B3 benchmarks on 3.12,
+  emits supply-chain/SBOM evidence, and archives certificates and staged
+  artifacts. The regular PyPI workflow remains core-only and no native upload
+  is introduced.
+- Added nightly E4/E5 evidence alongside the existing E0/E3/E6 artifacts,
+  a versioned deletion/migration manifest, `make migration-audit`, and
+  `make certify-native-release`. The manifest is deliberately conservative:
+  root-level Pool Alpha compatibility modules, the Python oracle/adapters, and
+  legacy ABI compatibility all remain retained; generic portfolio/package
+  routes are explicitly deferred. Nothing was deleted in this phase.
+- Added the user-facing [native release handoff](../docs/migration/native_release_handoff.md)
+  and linked it from the packaging, native installation/capability, Rust
+  contract, README, and docs index surfaces. It explains the narrow automatic
+  Stage-B rows, explicit-only E4/E5 helpers, rollback, reproduction, and the
+  release-owner sequence without over-claiming generic endpoint support.
+- Local evidence passed on Linux x86_64 / CPython 3.12: the staged wheel
+  certificate, artifact allowlist and Twine checks, migration audit, generated
+  registry/API/module/doc/benchmark gates, Ruff, Rust fmt/clippy/workspace
+  tests, `cargo audit`, `255 passed, 2 skipped` native-event tests,
+  `921 passed, 3 skipped` full QuantBT tests, and all 19 isolated release test
+  shards. The tagged CI workflow remains the required platform-matrix evidence
+  for CPython 3.11/3.12/3.13 and manylinux before any public native claim.
+
+Certified release boundary:
+
+- Core-only `quantbt-engine` remains a fully functional Python distribution;
+  `auto` resolves Python when no native companion exists.
+- With a matching local companion, `auto` may select Rust only for the
+  generated Stage-B static command and bounded native-IR/batch rows. Direct
+  `target_units` and same-bar atomic market package helpers are certified but
+  remain explicit-only. Generic portfolio, basket, arbitrage, callback, and
+  reactive routes remain Python by policy.
+- `quantbt-native` remains unpublished. Its future public release needs the
+  tagged installed-wheel matrix and an explicit distribution decision; this is
+  a release boundary, not a hidden correctness defect in the certified rows.
 
 ### Phase 51-54 Deferred Scope
 

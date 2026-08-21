@@ -245,5 +245,6 @@ def test_p3_workflows_execute_generated_and_staged_wheel_gates() -> None:
     assert "tools/verify_wheels.py --dist dist/staged --require-native" in native
     assert "benchmark_phase53a_e0_profiles.py" in nightly
     assert "benchmark_phase53b_native_drivers.py" in nightly
-    assert "native-nightly-e0-e3-e6" in nightly
+    assert "benchmark_phase54b3_portfolio_package.py" in nightly
+    assert "native-nightly-e0-e5-e6" in nightly
     assert "cargo audit" in security

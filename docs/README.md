@@ -26,6 +26,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
+| Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |
 | Troubleshoot a native descriptor or wheel mismatch | [Native troubleshooting](native/troubleshooting.md) |
 | Reproduce native-event performance claims | [Benchmarking governance](performance/benchmarking.md) |
 | Migrate a callback toward a command writer or bounded IR | [Strategy boundary migration](migration/context-writer-ir.md) |

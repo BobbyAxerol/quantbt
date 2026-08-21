@@ -392,7 +392,10 @@ The release workflow is documented in
 [`docs/release_packaging.md`](docs/release_packaging.md): build and inspect
 wheel/sdist, run clean-install and `pip check`, publish an RC to TestPyPI with
 OIDC, then publish the final core package through the protected PyPI
-environment. The exact handoff fields and artifact-hash procedure are in
+environment. The native companion scope, rollback controls, and installed-wheel
+certification handoff are in
+[`docs/migration/native_release_handoff.md`](docs/migration/native_release_handoff.md).
+The exact handoff fields and artifact-hash procedure are in
 [`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
 No long-lived token is required. Native optimization remains an
 open, domain-preserving roadmap for portfolio, arbitrage, options, vectorized,

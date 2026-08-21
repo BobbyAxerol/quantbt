@@ -64,11 +64,13 @@ jobs:
             --bars 2000 --repeats 5 --output native-nightly-evidence/e0.json
           .venv/bin/python benchmarks/native_event/benchmark_phase53b_native_drivers.py \
             --bars 2000 --scenarios 64 --repeats 5 --output native-nightly-evidence/e3-e6.json
+          .venv/bin/python benchmarks/native_event/benchmark_phase54b3_portfolio_package.py \
+            --bars 2000 --symbols 8 --repeats 5 --output native-nightly-evidence/e4-e5.json
           cp /tmp/phase54a-rss.json native-nightly-evidence/rss.json
 
       - name: Upload nightly evidence
         uses: actions/upload-artifact@v4
         with:
-          name: native-nightly-e0-e3-e6
+          name: native-nightly-e0-e5-e6
           path: native-nightly-evidence/*
           if-no-files-found: error

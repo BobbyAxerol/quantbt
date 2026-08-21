@@ -13,7 +13,7 @@ NATIVE_DIST ?= dist/native
 	test-binding test-installed test-all fuzz-smoke bench-smoke bench-native \
 	bench-facade bench-release build-core-wheel build-native-wheel stage-wheels \
 	verify-wheels verify-staged-wheels supply-chain-report sbom release-manifest benchmark-governance \
-	release-manifest-staged \
+	release-manifest-staged migration-audit certify-native-release \
 	docs-check
 
 docs-check:
@@ -79,6 +79,12 @@ stage-wheels:
 
 verify-staged-wheels: stage-wheels
 	$(PYTHON) tools/verify_wheels.py --dist dist/staged --require-native
+
+migration-audit:
+	$(PYTHON) tools/check_native_release_handoff.py
+
+certify-native-release: verify-staged-wheels migration-audit
+	$(PYTHON) tools/certify_native_release.py --dist dist/staged --output release-evidence/native-release-certification.json
 
 supply-chain-report:
 	$(PYTHON) tools/create_supply_chain_report.py --output release-evidence/supply-chain.json

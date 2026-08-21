@@ -104,6 +104,50 @@ def _product_distributions() -> tuple[dict, dict]:
     }
 
 
+def _native_product_surface(product: dict, native_metadata: dict) -> dict:
+    """Summarize the generated native routing contract without over-claiming it.
+
+    A core-only PyPI wheel still resolves ``auto`` to Python because the
+    companion wheel is absent.  The release manifest nevertheless records the
+    exact staged companion rows so a release reviewer can distinguish
+    automatic Stage-B workloads from explicit-only certified helpers.
+    """
+
+    rules = {
+        str(item["workload_id"]): item
+        for item in product["promotion_policy"]["rules"]
+        if bool(item["enabled"])
+    }
+    auto_rows: list[dict[str, object]] = []
+    explicit_rows: list[str] = []
+    for workload in sorted(product["workloads"], key=lambda item: str(item["id"])):
+        identifier = str(workload["id"])
+        if bool(workload["auto_promotion"]):
+            rule = rules[identifier]
+            auto_rows.append(
+                {
+                    "workload": identifier,
+                    "stage": str(rule["stage"]),
+                    "minimum_bars": int(rule["min_bars"]),
+                }
+            )
+        elif str(workload["maturity"]) == "certified":
+            explicit_rows.append(identifier)
+    return {
+        "core_only_auto_backend": "python",
+        "native_companion_published": bool(native_metadata["published"]),
+        "promotion_table_version": str(product["promotion_policy"]["table_version"]),
+        "default_stage": str(product["promotion_policy"]["default_stage"]),
+        "automatic_rust_workloads_with_exact_companion": auto_rows,
+        "explicit_certified_native_workloads": explicit_rows,
+        "rollback_controls": [
+            "native_backend='python'",
+            "QUANTBT_DISABLE_NATIVE=1",
+            "QUANTBT_NATIVE_PROMOTION_MAX=explicit_only",
+        ],
+    }
+
+
 def _artifact_kind(path: Path, distributions: tuple[dict, ...]) -> tuple[str, dict]:
     for metadata in distributions:
         normalized = _normalized_distribution(str(metadata["distribution"]))
@@ -126,6 +170,7 @@ def build_manifest(
     sbom: Path | None = None,
 ) -> dict:
     metadata, native_metadata = _product_distributions()
+    product = json.loads(PRODUCT_REGISTRY.read_text(encoding="utf-8"))
     distributions = (metadata, native_metadata)
     status = _run_git("status", "--porcelain")
     if require_clean and status:
@@ -186,6 +231,9 @@ def build_manifest(
     for relative in (
         "benchmarks/native_event/results/phase48e1/after.json",
         "benchmarks/native_event/results/phase48e1/after.md",
+        "benchmarks/native_event/results/phase54a5/exit_gate.json",
+        "benchmarks/native_event/results/phase54b2/public_routes.json",
+        "benchmarks/native_event/results/phase54b3/portfolio_package.json",
     ):
         path = PROJECT_ROOT / relative
         if path.is_file():
@@ -205,6 +253,7 @@ def build_manifest(
             "native_extra": "empty",
             "rust": "explicit_experimental",
         },
+        "native_product_surface": _native_product_surface(product, native_metadata),
         "product_contract": {
             "registry": str(PRODUCT_REGISTRY.relative_to(PROJECT_ROOT)),
             "product_registry_fingerprint": _canonical_json_fingerprint(PRODUCT_REGISTRY),
