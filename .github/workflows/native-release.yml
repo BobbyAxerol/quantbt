@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Matching release tag or commit, for example v1.0.8"
+        description: "Matching release tag or commit, for example v1.0.9"
         required: true
         type: string
   push:
