@@ -76,6 +76,8 @@ def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder
     assert "PyO3/maturin-action@v1" in text
     assert "--manifest-path rust/native_event/Cargo.toml" in text
     assert '--interpreter python${{ matrix.python-version }}' in text
+    assert "--out native-smoke" in text
+    assert "native-smoke/quantbt_native-*.whl" in text
     assert 'manylinux: "2014"' in text
     assert "pip wheel --no-deps --wheel-dir" not in text
 

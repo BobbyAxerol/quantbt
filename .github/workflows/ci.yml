@@ -70,7 +70,7 @@ jobs:
             --release
             --manifest-path rust/native_event/Cargo.toml
             --interpreter python${{ matrix.python-version }}
-            --out /tmp/quantbt-ci-native
+            --out native-smoke
           manylinux: "2014"
 
       - name: Validate distribution metadata
@@ -87,7 +87,7 @@ jobs:
         run: |
           python -m venv /tmp/quantbt-wheel-smoke
           /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
-          /tmp/quantbt-wheel-smoke/bin/python -m pip install /tmp/quantbt-ci-native/quantbt_native-*.whl
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install native-smoke/quantbt_native-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
@@ -98,7 +98,7 @@ jobs:
         run: |
           python -m venv /tmp/quantbt-sdist-smoke
           /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
-          /tmp/quantbt-sdist-smoke/bin/python -m pip install /tmp/quantbt-ci-native/quantbt_native-*.whl
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install native-smoke/quantbt_native-*.whl
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
