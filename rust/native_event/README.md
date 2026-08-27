@@ -2,7 +2,7 @@
 
 `quantbt-native` is the PyO3/Rust accelerator companion to `quantbt-engine`.
 The governed `0.4.1` release is a wheel-only Linux companion for
-`quantbt-engine==1.0.10`. Its native-first OIDC publish flow and Poetry
+`quantbt-engine==1.1.0`. Its native-first OIDC publish flow and Poetry
 consumer proof are documented in `docs/testpypi_release_checklist.md`.
 
 ## Scope

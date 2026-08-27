@@ -6,7 +6,7 @@ them.
 
 ## Phase 55B Public Native Pair
 
-`quantbt-engine==1.0.10` declares `quantbt-native==0.4.1` as a direct runtime
+`quantbt-engine==1.1.0` declares `quantbt-native==0.4.1` as a direct runtime
 dependency only on Linux x86_64 / glibc / CPython 3.11-3.13. The native package
 is wheel-only: supported users receive a pre-built manylinux artifact from a
 normal `pip install quantbt-engine` or `poetry add quantbt-engine`, while all
@@ -109,7 +109,7 @@ creating its tag. Do not reuse an existing PyPI version or Git tag.
    Certification**; create the GitHub Release and approve PyPI publishing only
    after its artifacts pass review.
 
-The `1.0.10` release is the exact public-pair release line. A local certificate
+The `1.1.0` release is the exact public-pair release line. A local certificate
 does not by itself publish `quantbt-native`, enable generic endpoint auto
 routing, or remove the Python oracle. The Phase 55B TestPyPI/PyPI consumer
 proof is the additional release authorization.
@@ -127,16 +127,16 @@ from quantbt import QuantBTEndpoint
 - Source layout is `src/quantbt`.
 - Root source is retained during migration until later compatibility gates
   explicitly remove it.
-- The current package release line is `1.0.x`, continuing the existing GitHub
+- The current package release line is `1.1.x`, continuing the existing GitHub
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
 - Phase 48F TestPyPI artifact and functional endpoint gates passed for the
   historical `1.0.7rc2` candidate. Phase 55B adds native-first public upload
-  and Poetry consumer proof for the `1.0.10` governed-native patch release.
+  and Poetry consumer proof for the `1.1.0` governed-native patch release.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native` is the exact wheel-only Linux x86_64 dependency for
-  `1.0.10`; its native-first OIDC upload and consumer proof are mandatory
+  `1.1.0`; its native-first OIDC upload and consumer proof are mandatory
   before a release is represented as publicly available.
 
 Phase 45C keeps the root source mirror temporarily for rollback and editable
@@ -260,8 +260,8 @@ release tag.
 Example:
 
 ```text
-pyproject.toml version = 1.0.9
-required release tag  = v1.0.9
+pyproject.toml version = 1.1.0
+required release tag  = v1.1.0
 ```
 
 The publish workflow fails if the tag does not match.
@@ -359,7 +359,7 @@ quantbt = { path = "../quantbt", develop = true }
 After the governed public-pair release:
 
 ```toml
-quantbt-engine = "^1.0.10"
+quantbt-engine = "^1.1.0"
 ```
 
 Alpha/notebook imports do not change:
@@ -370,7 +370,7 @@ from quantbt import QuantBTEndpoint
 
 ## Native Package Note
 
-`quantbt-native==0.4.1` is the exact wheel-only companion for core `1.0.10`;
+`quantbt-native==0.4.1` is the exact wheel-only companion for core `1.1.0`;
 its Rust distribution version and Native Event API version remain separate
 contracts. The core declares it directly for Linux x86_64 CPython 3.11-3.13,
 so normal supported installs resolve a pre-built wheel. `native_backend="auto"`
@@ -536,7 +536,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
    archive the wheel, sdist, test output, and release manifest.
 
 This numbered flow documents the historical core-only release process. Do not
-reuse it for pending `1.0.10`: Phase 55B publishes the validated native wheel
+reuse it for pending `1.1.0`: Phase 55B publishes the validated native wheel
 matrix first, then the core wheel that declares its exact platform-marked
 dependency. Until that separate public consumer proof completes, PyPI `1.0.9`
 uses Python; the local exact-pair Stage-B policy is documented in the generated

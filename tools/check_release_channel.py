@@ -48,7 +48,7 @@ def validate_release_channel(
     is_rc = "rc" in reference.lower()
     expected_branch = "dev" if channel == "testpypi" else "main"
     if channel == "testpypi" and not is_rc:
-        raise ValueError("TestPyPI releases require an RC tag from dev, for example v1.0.11rc1")
+        raise ValueError("TestPyPI releases require an RC tag from dev, for example v1.1.0rc1")
     if channel == "pypi" and is_rc:
         raise ValueError("PyPI releases require a final non-RC tag from main")
     if release_commit != branch_commit:

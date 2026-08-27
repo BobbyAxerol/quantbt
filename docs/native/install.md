@@ -6,7 +6,7 @@ The Python core is sufficient for all public QuantBT endpoints:
 pip install quantbt-engine
 ```
 
-The governed public pair is `quantbt-engine==1.0.10` with
+The governed public pair is `quantbt-engine==1.1.0` with
 `quantbt-native==0.4.1`. The core declares the companion as a direct,
 platform-marked dependency, so a normal supported consumer command remains:
 

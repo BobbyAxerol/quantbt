@@ -1511,7 +1511,7 @@ wheels = [
 
 [[package]]
 name = "quantbt-engine"
-version = "1.0.10"
+version = "1.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "numba" },

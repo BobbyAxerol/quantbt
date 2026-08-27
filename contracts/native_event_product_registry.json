@@ -9,7 +9,7 @@
   "versions": {
     "core_package": {
       "distribution": "quantbt-engine",
-      "version": "1.0.10",
+      "version": "1.1.0",
       "python_requires": ">=3.11,<3.14"
     },
     "native_package": {
@@ -382,7 +382,7 @@
   ],
   "compatibility": [
     {
-      "core_version": "1.0.10",
+      "core_version": "1.1.0",
       "native_version": "0.4.1",
       "native_protocol_min": 1,
       "native_protocol_max": 1,

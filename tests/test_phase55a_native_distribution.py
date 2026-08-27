@@ -67,7 +67,9 @@ def test_phase55a_core_declares_exact_linux_native_dependency() -> None:
     core_version, native_version = _native_versions()
     requirement = next(item for item in core["project"]["dependencies"] if item.startswith("quantbt-native=="))
 
-    assert core["project"]["version"] == core_version == "1.0.10"
+    assert core["project"]["version"] == core_version == "1.1.0"
+    runtime_source = (ROOT / "src" / "quantbt" / "__init__.py").read_text(encoding="utf-8")
+    assert f'__version__ = "{core_version}"' in runtime_source
     assert requirement.startswith(f"quantbt-native=={native_version};")
     for marker in ("sys_platform == 'linux'", "platform_machine == 'x86_64'", "implementation_name == 'cpython'"):
         assert marker in requirement
@@ -162,7 +164,7 @@ def test_phase55a_certifier_keeps_the_core_only_probe_native_free(monkeypatch, t
     monkeypatch.setattr(certification, "_run", fake_run)
     monkeypatch.setattr(certification, "_venv_python", lambda target: target / "bin" / "python")
     interpreter = tmp_path / "python"
-    core = tmp_path / "quantbt_engine-1.0.10-py3-none-any.whl"
+    core = tmp_path / "quantbt_engine-1.1.0-py3-none-any.whl"
     native = tmp_path / "quantbt_native-0.4.1-cp312-cp312-manylinux_2_17_x86_64.whl"
 
     certification._build_venv(interpreter, tmp_path / "core-only", core=core, native=None)

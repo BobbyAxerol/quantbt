@@ -2,10 +2,10 @@
 #![allow(dead_code)]
 
 pub const PRODUCT_CONTRACT_REGISTRY_FINGERPRINT: &str =
-    "009ca52a27d2d974a8acc76d2729f0fbd8e80b7baaeeadac627298dad5060571";
+    "ee8cfc3b99fcad075cd215e9aadcbc2467eb2eaf44f55720f9a4c810149bbdba";
 pub const LIFECYCLE_REGISTRY_FINGERPRINT: &str =
     "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d";
-pub const CORE_PACKAGE_VERSION: &str = "1.0.10";
+pub const CORE_PACKAGE_VERSION: &str = "1.1.0";
 pub const NATIVE_PACKAGE_VERSION: &str = "0.4.1";
 pub const NATIVE_API_VERSION: &str = "0.4";
 pub const SEMANTIC_DESCRIPTOR_VERSION: &str = "native-event-semantics-v1";
