@@ -46,9 +46,10 @@ jobs:
         run: uv sync --locked --extra optimization --extra reports --extra viz --dev
 
       - name: Verify release tag/version contract
-        env:
-          GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
-        run: .venv/bin/python tools/check_release_version.py
+        # See publish-native.yml: workflow_dispatch keeps the branch ref in
+        # GitHub's protected default variable, so scope the requested tag to
+        # the checker process itself.
+        run: GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" .venv/bin/python tools/check_release_version.py
 
       - name: Verify release-channel provenance
         env:

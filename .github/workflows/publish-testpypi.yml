@@ -47,9 +47,7 @@ jobs:
         run: uv run python tools/check_release_channel.py --channel testpypi --release-ref "$RELEASE_REF"
 
       - name: Check RC version against tag
-        env:
-          GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
-        run: uv run python tools/check_release_version.py
+        run: GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" uv run python tools/check_release_version.py
 
       - name: Run regression
         run: >-
@@ -152,9 +150,8 @@ jobs:
           PY
 
       - name: Create release manifest
-        env:
-          GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
         run: |
+          export GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}"
           uv run python tools/create_supply_chain_report.py --output release-evidence/supply-chain.json
           uv run python tools/create_sbom.py --output release-evidence/sbom.cdx.json
           uv run python tools/create_release_manifest.py \

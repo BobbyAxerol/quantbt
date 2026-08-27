@@ -46,10 +46,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Verify release tag and public Poetry resolution
-        env:
-          GITHUB_REF_NAME: ${{ inputs.ref }}
         run: |
-          python tools/check_release_version.py
+          GITHUB_REF_NAME="${{ inputs.ref }}" python tools/check_release_version.py
           poetry --version
           python tools/verify_public_native_consumer.py \
             --index "${{ inputs.index }}" \
