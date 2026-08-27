@@ -2,10 +2,25 @@
 
 Use this page as the first stop when deciding which QuantBT document to read.
 
+## Package At A Glance
+
+| Public surface | Contract |
+|---|---|
+| Install | `pip install quantbt-engine` or `poetry add quantbt-engine` |
+| Import | `from quantbt import QuantBTEndpoint` |
+| Core release | `quantbt-engine==1.1.0` |
+| Native companion | `quantbt-native==0.4.1`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
+| Native policy | capability-gated Rust for certified static/IR workloads; structured Python fallback elsewhere |
+
+The companion is an internal implementation package. Users do not import it
+or choose a second public API. Start with [Native installation](native/install.md)
+to verify the pair and [Endpoint contract](endpoint.md) to select a route.
+
 ## Start Here
 
 | Need | Read |
 |---|---|
+| Install the package and understand the core/native pair | [Native companion installation](native/install.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
 | Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |
@@ -41,12 +56,15 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|---|
 | Single-symbol signal research | `QuantBTEndpoint.signal_notional(...)` or `.pct_equity(...)` | Fast scalar signal backtests with stable notebook API |
 | Single-symbol SL/TP/trailing | `QuantBTEndpoint.intrabar_bracket(...)` | Strict next-open entry with high/low intrabar exit semantics |
+| Stateful event callback | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Stable callback facade with explicit research/optimize/audit profiles |
+| Canonical command tape | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Full lifecycle contract with capability-gated Rust/Python routing |
 | Existing explicit fill tape | `QuantBTEndpoint.fill_replay(...)` | Accounting replay for old alphas before causal migration |
 | Explicit orders | `QuantBTEndpoint.orders(...)` | Market/limit/stop order lifecycle and fill reports |
 | DCA/grid | `QuantBTEndpoint.dca_ladder(...)` | Structural levels, high/low touch detection, trigger-price fills |
 | Portfolio matrix | `QuantBTEndpoint.portfolio(...)` | Multi-symbol positions with portfolio-level accounting |
 | Pair/basket | `QuantBTEndpoint.basket(...)` | Frozen hedge-ratio units and package diagnostics |
 | Arbitrage | `QuantBTEndpoint.arbitrage(...)` | Domain specs for basis, stat-arb, funding, carry, and index-basket routes |
+| Options | `QuantBTEndpoint.options(...)` | Option contracts, multi-leg packages, delta hedging, and gamma-scalping adapters |
 | Walk-forward optimization | `QuantBTEndpoint.walk_forward(...)` | Folded OOS stitching, anti-leakage candidate selection, and full-sample robust calibration |
 | Single holdout train/test | `QuantBTEndpoint.train_test_split(...)` | One train period and one test period using the WFO scoring stack |
 | Standalone Optuna optimization | `OptunaOptimizer` + evaluator adapters | Prepared signal/intrabar/portfolio tuning or generic endpoint fallback |
@@ -82,3 +100,9 @@ rows under `backend="auto"`. It also exposes explicit bounded V2
 `target_units` and same-bar atomic package market helpers; generic callback,
 reactive, portfolio, and package/arbitrage routes remain Python. See [Native
 capabilities](native/capabilities.md) and [Rust full contract](native_event_rust_full_contract.md).
+
+The release benchmark is summarized in the repository [README](../README.md#release-benchmark).
+The current governed evidence reaches 2.70M bars/s for a 2,000-bar Native
+Strategy IR score and 11.25M bars/s for a shared 64-scenario batch, after exact
+trace/accounting parity. These numbers are workload-scoped; see
+[Benchmarking governance](performance/benchmarking.md) before comparing them.

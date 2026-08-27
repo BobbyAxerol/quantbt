@@ -47,6 +47,20 @@ Ubuntu 22.04/24.04 Poetry consumer matrix. See the
 [release checklist](../testpypi_release_checklist.md) for the immutable
 artifact order and exact proof output.
 
+## Performance Boundary
+
+On the committed release fixtures, the promoted Native Strategy IR score path
+processed 2,000 bars in 0.741 ms (2.70M bars/s), versus 31.565 ms for the
+Python oracle, with exact trace/accounting parity. A shared 64-scenario IR
+batch processed 128,000 simulated bars in 11.379 ms (11.25M bars/s).
+
+The explicit bounded portfolio-target and atomic-package helpers measured
+3.594 ms and 3.512 ms on their 2,000-bar x 8-symbol fixtures, 9.3x and 5.6x
+faster than the corresponding Python event oracles. These are score hot-path
+results. They do not imply the same speedup for callback strategies or full
+audit/report construction. Read [Benchmarking governance](../performance/benchmarking.md)
+for evidence links and interpretation rules.
+
 At native probe time QuantBT validates two distinct descriptors:
 
 - the frozen API 0.4 semantic descriptor for event-clock, fill, and account

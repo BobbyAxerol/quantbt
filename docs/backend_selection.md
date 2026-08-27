@@ -1,73 +1,117 @@
 # Backend Selection
 
-QuantBT now has two native engines plus an optional Nautilus adapter. The
-public V2 facade keeps selection explicit:
+Choose a QuantBT backend from the execution behavior the strategy requires.
+The public endpoint is stable; implementation language is a governed runtime
+decision beneath it.
+
+## Decision Table
+
+| Requirement | Preferred endpoint | Engine | Why |
+|---|---|---|---|
+| Fast target-signal research | `signal_notional()` | native vectorized / Numba | fixed units between target transitions, low orchestration cost |
+| Live-equity signal sizing | `pct_equity()` | compatibility engine | preserves established `%_equity` behavior |
+| Causal next-open entry plus SL/TP/trailing | `intrabar_bracket()` | native intrabar / Numba | explicit OHLC path policy and Python oracle parity |
+| Stateful strategy callback | `event_driven(input_mode="strategy")` | Python native event | callback can react to account and lifecycle state |
+| Pre-built canonical command tape | `event_driven(input_mode="orders")` | auto Rust/Python | typed lifecycle execution with capability-gated promotion |
+| Existing `OrderIntent` replay | `orders()` | native event | compatibility route for explicit orders |
+| Multi-symbol target matrix | `portfolio()` | native portfolio / Numba | portfolio sizing, margin, exposure, attribution |
+| Pair, basket, or arbitrage package | `basket()` / `arbitrage()` | native event package | coordinated legs and package diagnostics |
+| Option contract or strategy package | `options()` | native options | option marks, Greeks, legs, and hedge workflow |
+| Parameter stability over time | `walk_forward()` | WFO orchestration | fold-local selection, OOS stitching, audit metadata |
+| Independent execution validation | `nautilus_validation()` | NautilusTrader | third-party event/accounting evidence |
+
+## Vectorized Research
+
+Use `signal_notional()` when a strategy has already produced a target signal
+and order lifecycle is not part of the alpha.
+
+Best fit:
+
+- many bars, symbols, or parameter combinations;
+- target exposure changes are sufficient to describe execution;
+- close-target or documented OHLC rules are acceptable;
+- optimizer throughput matters.
+
+Do not use it to claim limit-order waiting, TIF, OCO, stop-gap, or queue
+semantics. Use an event or intrabar contract instead.
+
+## Fast Intrabar
+
+Use `intrabar_bracket()` for single-symbol strategies where entry timing,
+stop-loss, take-profit, trailing updates, gap handling, reversal costs, and
+same-bar ambiguity matter, but a general order book is unnecessary.
+
+The fast Numba kernel and readable Python reference share one execution
+contract. This route is not a generic portfolio, grid, DCA, or L2 simulator.
+
+## Native Event
+
+Use `event_driven()` when orders and lifecycle transitions are part of the
+strategy definition.
 
 ```python
-from quantbt import BacktestEngineV2
-
-engine = BacktestEngineV2(
-    data=data,
-    signals=signals,
-    backend="native_vectorized",  # native_vectorized | native_event | nautilus
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="auto",
+    execution_contract="event_lifecycle_v3_next_open",
 )
-result = engine.result
+result = bt.simulate(data=df, order_commands=commands, symbols=["BTCUSDT"])
 ```
 
-## native_vectorized
+`profile` controls retention:
 
-Use this as the default research and optimizer path.
+- `optimize`: scalar/compact output;
+- `research`: ordinary result and metrics;
+- `audit`: full lifecycle and accounting evidence.
 
-Best fit:
+`backend` controls implementation:
 
-- signal already means target exposure or structural target;
-- many symbols, many bars, many parameter combinations;
-- deterministic close/high/low rules are acceptable;
-- result speed matters more than exchange-like object lifecycle.
+- `auto`: Rust only for a certified workload at its release threshold;
+- `python`: portable canonical implementation;
+- `rust`: explicit capability-gated request; incompatible requests fail fast.
 
-Current strengths:
+An arbitrary callback is always Python-authoritative. Static command tapes and
+bounded Native Strategy IR can be Rust-authoritative because they cross the
+Python/Rust boundary once and carry a complete typed execution request.
 
-- Numba hot loops;
-- multi-symbol arrays;
-- margin, fee, funding, liquidation diagnostics;
-- target-unit and `signal_notional` sizing through `BacktestEngineV2`.
+## Native Portfolio
 
-Avoid it when:
+Use `portfolio()` for target matrices and portfolio-level accounting. The
+generic route supports long/short, market-neutral, directional, equal-weight,
+risk-parity, beta-neutral, target-weight, target-notional, target-units, and
+gross/net exposure contracts.
 
-- exact order lifecycle, TIF, limit waiting, or rejection status is part of the alpha;
-- pair/basket orders must be treated as a coordinated event;
-- you need a production-like report from a trading engine.
+The generic portfolio endpoint is Python/Numba. The Rust companion currently
+has a separate explicit bounded helper for linear quote-settled `target_units`
+market execution; installing it does not silently replace the generic route.
 
-## native_event
+## Nautilus Validation
 
-Use this when order domain matters but the run still needs to be fast.
+Use Nautilus for representative execution validation, not broad optimizer
+sweeps. It is most useful when instrument precision, venue-style order/fill
+reports, and an independent event/accounting implementation are needed.
 
-Best fit:
+The adapter remains bar-data dependent. Market orders on hourly OHLC cannot
+recover one-minute or L2 microstructure that was not supplied.
 
-- single order backtests;
-- limit and IOC/GTC behavior;
-- grid/DCA order plans;
-- pair/basket entry and exit with frozen hedge ratios;
-- validation of order status, fill price, fee, margin rejection.
+## Rust Promotion Is Workload-Scoped
 
-Execution model:
+For `quantbt-engine==1.1.0` and `quantbt-native==0.4.1`, `auto` can promote:
 
-- market orders fill at bar close with configured slippage;
-- limit orders fill at the order price when `low <= price <= high`;
-- IOC limit orders cancel when not touched on the order bar;
-- GTC limit orders remain active until touched;
-- insufficient margin rejects the order.
+- static V2/V3 command tapes at 10,000+ bars;
+- bounded Native Strategy IR and batch/fold workloads at 2,000+ bars.
 
-## nautilus
+Explicit bounded portfolio-target and atomic-package helpers are certified but
+not auto-promoted through generic endpoints. Callback, reactive, generic
+portfolio, basket, arbitrage, options, vectorized, and intrabar routes retain
+their existing Python/Numba authority.
 
-Use this as a high-fidelity validation oracle, not as the optimizer hot path.
+Always inspect:
 
-Best fit:
+```python
+result.metadata.get("native_event_promotion_v1")
+```
 
-- checking native behavior against a production-grade event model;
-- instrument precision and exchange-style reports;
-- lower-volume validation runs;
-- experiments where the extra dependency and callback overhead are acceptable.
-
-The Nautilus adapter is optional. Importing `quantbt` does not require
-`nautilus_trader`; the adapter raises a clear install error only when selected.
+The generated [native compatibility matrix](contracts/generated_product_compatibility.md)
+is the release-facing source of truth.

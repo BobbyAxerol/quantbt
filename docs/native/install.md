@@ -1,5 +1,12 @@
 # Native Companion Installation
 
+QuantBT has one public Python API and two release artifacts:
+
+| Distribution | Imported by users | Responsibility |
+|---|---|---|
+| `quantbt-engine` | `quantbt` | endpoint, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-native` | never directly | internal `_quantbt_native` PyO3 extension for certified workloads |
+
 The Python core is sufficient for all public QuantBT endpoints:
 
 ```bash
@@ -30,6 +37,36 @@ installs for this release line. Their public endpoint behavior is unchanged.
 | Linux x86_64 glibc, CPython 3.11-3.13 | core plus exact pre-built `quantbt-native` wheel | Rust only for governed static/IR rows; Python otherwise |
 | macOS, Windows, Linux ARM64/musl, PyPy, unsupported Python | core only | Python/Numba fallback |
 
+## Verify A Consumer Install
+
+Run this outside the repository so a local checkout cannot shadow the wheel:
+
+```bash
+python - <<'PY'
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+import quantbt
+
+print("quantbt-engine:", version("quantbt-engine"))
+print("quantbt import:", Path(quantbt.__file__).resolve())
+try:
+    print("quantbt-native:", version("quantbt-native"))
+except PackageNotFoundError:
+    print("quantbt-native: not installed; Python/Numba fallback is expected")
+PY
+```
+
+Supported Linux output for this release pair contains:
+
+```text
+quantbt-engine: 1.1.0
+quantbt-native: 0.4.1
+```
+
+The native package being installed does not mean every endpoint executes in
+Rust. Promotion is decided per workload after version, ABI, capability,
+contract, and scale checks.
+
 ## Local staged verification
 
 From a clean release ref:
@@ -58,6 +95,18 @@ The direct `run_portfolio_target_market(...)` and
 `run_atomic_package_market(...)` helpers are separately certified bounded Rust
 contracts. They remain explicit-only: installing the companion does **not**
 change the generic portfolio, basket, or arbitrage endpoint route.
+
+For a public event-driven run, inspect the routing evidence rather than
+inferring the backend from package presence:
+
+```python
+decision = result.metadata.get("native_event_promotion_v1", {})
+resolved = result.metadata.get("native_event_backend_resolved")
+if resolved is None:
+    resolved = result.metadata.get("native_strategy_ir_execution_v1", {}).get("backend")
+print(resolved)
+print(decision.get("reason"))
+```
 
 Set `QUANTBT_DISABLE_NATIVE=1` to force the Python route, or
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` to cap local automatic promotion

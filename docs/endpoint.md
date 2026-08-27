@@ -8,6 +8,11 @@ internal engines directly.
 from quantbt import QuantBTEndpoint
 ```
 
+The package distribution is `quantbt-engine`; the import namespace is
+`quantbt`. On supported Linux x86_64 CPython 3.11-3.13 installations, the
+matching `quantbt-native` wheel is an internal execution companion. It does not
+introduce another public endpoint or import path.
+
 The endpoint separates two responsibilities:
 
 - factory/constructor: declares account, backend, sizing, execution, and strategy
@@ -50,22 +55,28 @@ bt.metrics      # alias for bt.full_report()
 
 ## Factories And Routes
 
-| Factory | Mode | Default backend | Main use case |
-|---|---|---|---|
-| `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | legacy `%_equity` signal where notional is recomputed from live equity |
-| `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | fast single-symbol signal research with fixed units between signal changes |
-| `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | fast Phase 31C Numba kernel for next-open SL/TP/trailing/reversal semantics |
-| `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | readable Phase 31B oracle for next-open SL/TP/trailing/reversal semantics |
-| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | fast accounting replay from explicit fills |
-| `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | structural DCA/grid levels with high/low limit-touch simulation |
-| `QuantBTEndpoint.orders()` | `orders` | `native_event` | explicit `OrderIntent` market/limit/stop simulation |
-| `QuantBTEndpoint.event_driven()` | `native_event_strategy` or `orders` | `auto` | stable facade for reactive strategies or explicit lifecycle commands |
-| `QuantBTEndpoint.basket()` | `basket` | `native_event` | pair/basket entry with frozen hedge-ratio units |
-| `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | package-style arbitrage specs and validation |
-| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | split/stitch OOS signals then route into existing endpoints |
-| `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | single train/test holdout using the same WFO optimization modes |
-| `QuantBTEndpoint.portfolio()` | `portfolio` | `native_portfolio` | multi-symbol position matrix portfolio backtest |
-| `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | optional NautilusTrader validation for smaller runs |
+| Factory | Mode | Default backend | Runtime authority | Main use case |
+|---|---|---|---|---|
+| `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | Python | legacy `%_equity` signal where notional is recomputed from live equity |
+| `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | Numba | fast single-symbol signal research with fixed units between signal changes |
+| `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | Numba | fast next-open SL/TP/trailing/reversal semantics |
+| `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | Python oracle | readable oracle for the fast intrabar contract |
+| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | Numba | fast accounting replay from explicit fills |
+| `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | Python | structural DCA/grid levels with high/low limit-touch simulation |
+| `QuantBTEndpoint.orders()` | `orders` | `native_event` | Python compatibility | explicit `OrderIntent` market/limit/stop simulation |
+| `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | callback: Python; certified static/IR: Rust eligible | stable facade for reactive strategies or explicit lifecycle commands |
+| `QuantBTEndpoint.basket()` | `basket` | `native_event` | Python package | pair/basket entry with frozen hedge-ratio units |
+| `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | Python package | package-style arbitrage specs and validation |
+| `QuantBTEndpoint.options()` | `options` | `native_option` | Python | option contracts, multi-leg packages, and delta-hedged workflows |
+| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | Python orchestration; bounded IR scorer can use Rust | folded parameter selection and OOS stitching |
+| `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | Python orchestration | single train/test holdout using the WFO scoring stack |
+| `QuantBTEndpoint.portfolio()` | `portfolio` | `native_portfolio` | Numba | multi-symbol position matrix portfolio backtest |
+| `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | NautilusTrader | optional third-party execution validation |
+
+Runtime authority is workload-scoped. `quantbt-native` being installed does not
+move generic portfolio, basket, arbitrage, options, callback, vectorized, or
+intrabar endpoints to Rust. The current promotion rules are documented in
+[`native/capabilities.md`](native/capabilities.md).
 
 Manual construction is also supported:
 
@@ -1316,11 +1327,13 @@ for a particular implementation language:
 On supported Linux, the core PyPI package resolves its matching pre-built
 native companion automatically. On every other platform, and when a governed
 route is not eligible, it runs through Python. Inspect
-`result.metadata["native_event_promotion_v1"]` rather than inferring the
-backend from whether `_quantbt_native` imports. It records the requested and
-resolved backend, policy-table version, matched rule, threshold, and fallback
-reason. This decision changes no fills, fees, funding, margin, or accounting
-semantics.
+`result.metadata["native_event_backend_resolved"]` rather than inferring the
+backend from whether `_quantbt_native` imports. The adjacent
+`native_event_promotion_v1` record contains the policy-table version, matched
+rule, threshold, deterministic fingerprint, and fallback reason. Native IR
+runs expose the authority under
+`native_strategy_ir_execution_v1["backend"]`. These decisions change no fills,
+fees, funding, margin, or accounting semantics.
 
 Below a workload threshold, with an unsupported program/profile/contract, or
 when the wheel/capabilities do not match, `auto` uses Python and records a
