@@ -13778,3 +13778,124 @@ roadmap:
 
 Any deferred item must fail closed or route through an explicitly documented
 fallback. It must not be represented as certified native support.
+
+## Phase 55 - Public Rust Companion Distribution And Consumer Install Closure
+
+**Status: planned.**
+
+This follow-up closes the public packaging gap discovered after `v1.0.9`:
+the governed Rust routes are certified from a matching local/CI companion, but
+the public core wheel does not yet install that companion. This is a packaging
+and delivery task only. It must not change endpoint signatures, event-domain
+semantics, promotion thresholds, or Python-oracle fallback behavior.
+
+Read before implementation:
+
+- [P3.4 - dual-package architecture](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p34--dual-package-architecture-core-python--native-rust)
+- [P3.5 - workload-based `auto` promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.6 - benchmark and release certification](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P3.9/P3.10 - documentation and supply-chain release integrity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+- [Release packaging contract](../docs/release_packaging.md)
+- [Native companion installation contract](../docs/native/install.md)
+- [Native capability and fallback matrix](../docs/native/capabilities.md)
+
+### Public platform policy
+
+Initial public native support is deliberately limited to pre-built
+`manylinux_2_17_x86_64` / `manylinux2014_x86_64` wheels for CPython 3.11, 3.12,
+and 3.13. This covers the current Ubuntu 22.04 x86_64 VPS and mainstream
+glibc-based Linux servers. It is not an Ubuntu-specific wheel.
+
+ARM64/aarch64, Alpine/musl, PyPy, and 32-bit Linux are outside this release.
+Those platforms retain the fully supported Python/Numba core fallback. No
+public consumer should be required to install Cargo, Rust, or Maturin.
+
+`quantbt-engine==1.0.9` is immutable once published. The public dependency
+wiring therefore lands in the next core patch release, not by mutating `1.0.9`.
+
+### Phase 55A - Native Distribution And Core Dependency Wiring
+
+**Goal:** make a matching Rust companion resolvable by a normal Linux consumer
+without source compilation.
+
+Implementation:
+
+- Produce a versioned `quantbt-native` PyO3 distribution from the exact release
+  ref, with ABI/product-registry mapping locked to the next `quantbt-engine`
+  patch version.
+- Build wheel-only native artifacts for Linux x86_64 / CPython 3.11, 3.12, and
+  3.13 using the declared manylinux baseline. Do not use a native source
+  distribution as a fallback that could trigger an accidental local compile.
+- Change the next core release metadata so a normal
+  `poetry add quantbt-engine` resolves the matching `quantbt-native` wheel on
+  the supported Linux marker. Unsupported platforms must resolve core-only and
+  retain the existing structured Python fallback.
+- Keep `backend="python"`, `backend="auto"`, and `backend="rust"` semantics
+  unchanged. `auto` may promote only the already-certified Stage-B static/IR/
+  batch routes; all other routes remain Python by policy.
+- Regenerate product contracts, release manifests, package metadata, and user
+  docs so they state the public installation behavior accurately.
+
+Focused acceptance only (do not re-run already-certified domain regressions):
+
+- inspect native wheel tags, metadata, hashes, ABI descriptor, and exact
+  core/native compatibility mapping;
+- clean installed-wheel import/status checks for CPython 3.11, 3.12, and 3.13;
+- verify a certified Rust route is selectable through `backend="auto"` on the
+  supported Linux pair, while a missing/unsupported companion selects Python
+  or fails fast for explicit Rust;
+- retain source-mirror and generated-contract checks.
+
+Exit condition:
+
+```text
+On supported Linux, a normal core install has a matching pre-built native
+companion available without a Rust toolchain. On every other platform, the
+same core package remains installable and deterministic on Python.
+```
+
+### Phase 55B - Public Publish, Poetry Consumer Proof, And Release Handoff
+
+**Goal:** prove the public index behavior that users actually receive, then
+publish in dependency-safe order.
+
+Implementation:
+
+- Configure/verify trusted publishing for the separate `quantbt-native`
+  distribution and its Linux wheel artifacts.
+- Publish the matching native release first: TestPyPI consumer proof, then
+  production PyPI after approval. Only then publish the next core patch release
+  that declares the native dependency.
+- In an isolated Ubuntu 22.04 and Ubuntu 24.04 consumer environment, install
+  the released package with exactly:
+
+  ```bash
+  poetry add quantbt-engine
+  ```
+
+  Confirm that the resolver installs the matching native wheel, native status
+  is compatible/executable, and a certified auto-promoted static/IR route
+  actually selects Rust.
+- Prove the complementary contracts: `backend="python"` remains forced Python;
+  unsupported/missing native environments keep Python fallback; explicit
+  `backend="rust"` fails with an actionable compatibility error rather than
+  silently replaying Python.
+- Update README, installation, capability, troubleshooting, release handoff,
+  and changelog pages with the exact platform matrix and the fact that Rust is
+  pre-built rather than compiled at install time.
+
+Focused release gate:
+
+- `twine check`, artifact allowlist, hash/registry checks, package install,
+  `pip check`, Poetry resolution, native import, status probe, and one
+  certified public-route smoke per declared CPython/platform row;
+- no full domain/parity suite rerun unless packaging changes a domain surface.
+
+Exit condition:
+
+```text
+`poetry add quantbt-engine` on supported Linux installs and uses the certified
+Rust companion automatically for its governed routes. The next public release
+states this boundary truthfully, and unsupported platforms remain safe on the
+Python backend.
+```
