@@ -6,11 +6,15 @@ All notable changes to `quantbt-engine` are documented here.
 
 ### Changed
 
-- Prepared the public `quantbt-native==0.4.1` companion contract for the
-  next Linux x86_64 release line. The core declares an exact, platform-marked
-  dependency for CPython 3.11-3.13; unsupported platforms keep Python/Numba.
-- Added a wheel-only manylinux artifact gate. Public publishing remains blocked
-  until the Phase 55B TestPyPI/PyPI consumer-install proof completes.
+- Prepared the governed public `quantbt-native==0.4.1` companion contract for
+  Linux x86_64 / CPython 3.11-3.13. The core declares an exact,
+  platform-marked dependency; unsupported platforms keep Python/Numba.
+- Added a native-first, wheel-only manylinux OIDC release workflow and a six-row
+  Ubuntu 22.04/24.04 Poetry consumer proof. The core release preflights the
+  matching public native artifact before it can publish.
+- Updated release, install, capability, troubleshooting, and handoff docs to
+  state that supported users receive a pre-built wheel rather than compiling
+  Rust locally.
 
 ### Compatibility
 

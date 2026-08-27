@@ -623,8 +623,8 @@ def certify_release(
             ).hexdigest(),
         },
         "release_decision": {
-            "core_pypi_release": "eligible only as core-only Python distribution after its separate release workflow passes",
-            "native_distribution": "unpublished staged companion; this certificate is prerequisite evidence, not a publish authorization",
+            "core_pypi_release": "eligible after the matching native wheels are public and the core release workflow passes",
+            "native_distribution": "wheel-only public-release candidate; trusted publishing and public consumer proof remain mandatory",
             "generic_portfolio_package_auto_promotion": "not enabled",
         },
     }

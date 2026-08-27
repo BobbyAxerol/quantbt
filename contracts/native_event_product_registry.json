@@ -15,8 +15,8 @@
     "native_package": {
       "distribution": "quantbt-native",
       "version": "0.4.1",
-      "published": false,
-      "release_policy": "public_linux_wheel_candidate_phase55a"
+      "published": true,
+      "release_policy": "public_manylinux_x86_64_cpython_311_313_phase55b"
     },
     "native_protocol": {
       "minimum": 1,

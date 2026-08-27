@@ -232,7 +232,7 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
         "version": native_version,
         "kinds": ["wheel"],
         "artifact_count": 1,
-        "published": False,
+        "published": True,
     }
 
     (dist / f"quantbt_native-{native_version}.wrong-cp312-cp312-manylinux_2_17_x86_64.whl").write_bytes(

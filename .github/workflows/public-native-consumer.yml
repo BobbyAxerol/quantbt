@@ -1,0 +1,65 @@
+name: Public Native Consumer Proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Matching release tag, for example v1.0.10"
+        required: true
+        type: string
+      index:
+        description: "Public index to prove after both distributions are available"
+        required: true
+        default: testpypi
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+
+jobs:
+  poetry-consumer:
+    name: ${{ matrix.runner }} / CPython ${{ matrix.python-version }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry consumer tool
+        run: |
+          pipx install "poetry==2.3.4"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify release tag and public Poetry resolution
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref }}
+        run: |
+          python tools/check_release_version.py
+          poetry --version
+          python tools/verify_public_native_consumer.py \
+            --index "${{ inputs.index }}" \
+            --poetry poetry \
+            --python "$(command -v python)" \
+            --output "public-native-consumer-${{ matrix.runner }}-cp${{ matrix.python-version }}.json"
+
+      - name: Upload consumer evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-native-consumer-${{ inputs.index }}-${{ matrix.runner }}-cp${{ matrix.python-version }}
+          path: public-native-consumer-*.json
+          if-no-files-found: error

@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -69,6 +72,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -87,6 +93,15 @@ jobs:
 
       - name: Validate distribution metadata
         run: uv run twine check --strict dist/*
+
+      - name: Verify matching native companion is already public
+        shell: bash
+        run: |
+          native_version="$(.venv/bin/python -c 'import json; from pathlib import Path; p=json.loads(Path("contracts/native_event_product_registry.json").read_text()); print(p["versions"]["native_package"]["version"])')"
+          python -m venv /tmp/quantbt-native-pypi-preflight
+          /tmp/quantbt-native-pypi-preflight/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-native-pypi-preflight/bin/python -m pip install --only-binary=:all: "quantbt-native==${native_version}"
+          /tmp/quantbt-native-pypi-preflight/bin/python -m pip check
 
       - name: Inspect release surfaces
         run: |
@@ -114,8 +129,10 @@ jobs:
       - name: Clean wheel install smoke
         shell: bash
         run: |
+          native_version="$(.venv/bin/python -c 'import json; from pathlib import Path; p=json.loads(Path("contracts/native_event_product_registry.json").read_text()); print(p["versions"]["native_package"]["version"])')"
           python -m venv /tmp/quantbt-wheel-smoke
           /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install --only-binary=:all: "quantbt-native==${native_version}"
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
@@ -131,8 +148,10 @@ jobs:
       - name: Clean sdist install smoke
         shell: bash
         run: |
+          native_version="$(.venv/bin/python -c 'import json; from pathlib import Path; p=json.loads(Path("contracts/native_event_product_registry.json").read_text()); print(p["versions"]["native_package"]["version"])')"
           python -m venv /tmp/quantbt-sdist-smoke
           /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install --only-binary=:all: "quantbt-native==${native_version}"
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd "$(mktemp -d)"

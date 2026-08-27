@@ -78,11 +78,9 @@ def _normalized_distribution(name: str) -> str:
 def _product_distributions() -> tuple[dict, dict]:
     """Return the release core and its declared staged native companion.
 
-    The core package metadata remains the public-release authority.  The
-    product registry supplies the native companion because it is a separately
-    versioned distribution, even while its ``published`` flag is false.
-    Keeping this lookup here prevents a combined local evidence bundle from
-    silently accepting a wheel that is not in the exact product pair.
+    The core package metadata remains the public-release authority. The product
+    registry supplies the separately versioned native companion, preserving an
+    exact-pair check for both local evidence and public release artifacts.
     """
 
     core = _project_metadata()
@@ -107,10 +105,9 @@ def _product_distributions() -> tuple[dict, dict]:
 def _native_product_surface(product: dict, native_metadata: dict) -> dict:
     """Summarize the generated native routing contract without over-claiming it.
 
-    A core-only PyPI wheel still resolves ``auto`` to Python because the
-    companion wheel is absent.  The release manifest nevertheless records the
-    exact staged companion rows so a release reviewer can distinguish
-    automatic Stage-B workloads from explicit-only certified helpers.
+    A deliberately core-only fallback still resolves ``auto`` to Python. A
+    normal supported Linux installation resolves the direct native dependency
+    and may auto-promote only the recorded Stage-B workload rows.
     """
 
     rules = {
@@ -135,6 +132,7 @@ def _native_product_surface(product: dict, native_metadata: dict) -> dict:
             explicit_rows.append(identifier)
     return {
         "core_only_auto_backend": "python",
+        "supported_linux_auto_backend": "certified_rust_with_exact_companion",
         "native_companion_published": bool(native_metadata["published"]),
         "promotion_table_version": str(product["promotion_policy"]["table_version"]),
         "default_stage": str(product["promotion_policy"]["default_stage"]),
@@ -249,9 +247,9 @@ def build_manifest(
         "release_ref": os.environ.get("GITHUB_REF_NAME") or None,
         "working_tree_clean": not bool(status),
         "backend_policy": {
-            "auto": "python",
-            "native_extra": "empty",
-            "rust": "explicit_experimental",
+            "auto": "certified_rust_with_exact_linux_companion; python_fallback_elsewhere",
+            "native_extra": "compatibility_alias; direct_platform_dependency",
+            "rust": "explicit_capability_gated",
         },
         "native_product_surface": _native_product_surface(product, native_metadata),
         "product_contract": {

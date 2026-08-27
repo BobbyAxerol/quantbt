@@ -13781,8 +13781,9 @@ fallback. It must not be represented as certified native support.
 
 ## Phase 55 - Public Rust Companion Distribution And Consumer Install Closure
 
-**Status: in progress. Phase 55A complete locally; Phase 55B remains the
-public-index and multi-environment release gate.**
+**Status: Phase 55A is complete. Phase 55B implementation and local release
+locks are complete; its immutable public-index/OIDC execution remains a
+release-owner gate.**
 
 This follow-up closes the public packaging gap discovered after `v1.0.9`:
 the governed Rust routes are certified from a matching local/CI companion, but
@@ -13883,7 +13884,7 @@ Completion evidence:
   changed or re-certified in this packaging-only phase.
 
 Phase 55A does not satisfy the public-install exit condition alone: the
-unpublished native wheel must be published and resolved by a real package
+not-yet-uploaded native wheel must be published and resolved by a real package
 manager in Phase 55B before any public Rust-install claim is made.
 
 ### Phase 55B - Public Publish, Poetry Consumer Proof, And Release Handoff
@@ -13895,9 +13896,9 @@ Implementation:
 
 - Configure/verify trusted publishing for the separate `quantbt-native`
   distribution and its Linux wheel artifacts.
-- Publish the matching native release first: TestPyPI consumer proof, then
-  production PyPI after approval. Only then publish the next core patch release
-  that declares the native dependency.
+- Publish the matching native wheel matrix first on TestPyPI, then publish the
+  core candidate and run the TestPyPI consumer proof. Repeat native-first on
+  production PyPI after approval, then publish the matching core release.
 - In an isolated Ubuntu 22.04 and Ubuntu 24.04 consumer environment, install
   the released package with exactly:
 
@@ -13931,3 +13932,47 @@ Rust companion automatically for its governed routes. The next public release
 states this boundary truthfully, and unsupported platforms remain safe on the
 Python backend.
 ```
+
+Implementation and local release-lock evidence:
+
+- Added dispatch-only `publish-native.yml`. It builds the CPython
+  3.11/3.12/3.13 `manylinux2014` matrix, rejects non-wheel/non-manylinux
+  artifacts, aggregates the matrix, certifies an installed exact pair, and
+  only then exposes separate OIDC jobs for `testpypi` or `pypi`. It never
+  uploads the core distribution.
+- Added `public-native-consumer.yml`: a six-row matrix over Ubuntu 22.04 and
+  Ubuntu 24.04 / CPython 3.11-3.13. Its isolated consumer uses a fresh cache,
+  runs exactly `poetry add quantbt-engine`, verifies the package paths and
+  exact versions, then proves one governed 10,000-bar static route resolves to
+  Rust, forced Python remains Python, disabled-native auto falls back, and
+  explicit Rust fails closed.
+- Added `tools/verify_public_native_consumer.py`. The default uses TestPyPI or
+  PyPI; its optional TestPyPI-compatible index override exists only for
+  isolated tool testing and does not change the public workflow.
+- Updated core TestPyPI/PyPI workflows to install Rust for the local source
+  override, preflight the public matching native wheel before core upload, and
+  install the companion before clean wheel/sdist `pip check`. Main CI now builds
+  a temporary native wheel solely to satisfy this exact dependency during its
+  clean package smoke.
+- Promoted the product release metadata from the Phase 55A staged state to the
+  Phase 55B public-wheel policy, regenerated product contracts, and made
+  supply-chain/SBOM/release-manifest output report the same release state.
+- Updated README, release packaging, native installation/capability/
+  troubleshooting pages, native handoff, docs map, Rust package README, and
+  changelog. The canonical step-by-step owner guide is
+  [`docs/testpypi_release_checklist.md`](../docs/testpypi_release_checklist.md).
+- Focused packaging/release tests passed (`48 passed`), as did product contract
+  generation, source-mirror verification, documentation-link verification, and
+  a local Poetry source-configuration smoke. No execution-domain code,
+  endpoint signature, lifecycle semantics, or promotion threshold changed.
+
+External release-owner gate remaining before this phase can be marked fully
+public-complete:
+
+1. Configure the two `quantbt-native` trusted publishers for
+   `publish-native.yml` / `testpypi` and `publish-native.yml` / `pypi`.
+2. Run the documented native-first TestPyPI -> core TestPyPI -> public Poetry
+   consumer sequence from the exact `v1.0.10` release tag and archive its
+   artifacts.
+3. Repeat native-first on PyPI, publish the GitHub Release for the core, then
+   run and archive the PyPI consumer matrix.

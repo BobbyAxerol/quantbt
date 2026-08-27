@@ -4,6 +4,26 @@ This document records the Phase 48F final release contract for `quantbt-engine`.
 The older Phase 42C rules remain valid unless this document explicitly updates
 them.
 
+## Phase 55B Public Native Pair
+
+`quantbt-engine==1.0.10` declares `quantbt-native==0.4.1` as a direct runtime
+dependency only on Linux x86_64 / glibc / CPython 3.11-3.13. The native package
+is wheel-only: supported users receive a pre-built manylinux artifact from a
+normal `pip install quantbt-engine` or `poetry add quantbt-engine`, while all
+other platforms keep the Python/Numba core without a Rust compiler.
+
+The release cannot be a one-step core upload. It is a protected sequence:
+
+1. Build/certify the native CPython 3.11/3.12/3.13 manylinux matrix.
+2. Publish `quantbt-native` to TestPyPI through `publish-native.yml`.
+3. Publish the core to TestPyPI only after its native preflight passes.
+4. Run the Ubuntu 22.04/24.04 Poetry consumer proof.
+5. Repeat native-first on PyPI, then create the GitHub Release that publishes
+   the core, then archive the PyPI consumer proof.
+
+The exact OIDC configuration, manual dispatch inputs, consumer evidence, and
+rollback boundary are in the [TestPyPI release checklist](testpypi_release_checklist.md).
+
 ## P3 Product Evidence
 
 The shipped Python package is built from `src/quantbt`. The repository root
@@ -21,15 +41,11 @@ make release-manifest
 
 `release-manifest.json` records artifact checksums, product/lifecycle registry
 fingerprints, benchmark references, and hashes of the supply-chain report and
-CycloneDX SBOM. The core PyPI release remains usable without native code on
-platforms outside the declared native matrix. Phase 55A prepares an exact-pair
-`quantbt-native==0.4.1` companion for the next core patch: pre-built
-`manylinux_2_17_x86_64` wheels for CPython 3.11-3.13. Once Phase 55B publishes
-that companion, a normal Linux x86_64 core install will resolve it without
-compilation. It enables the bounded Stage-B `backend="auto"` policy only for
-certified static command tapes and Native Strategy IR/batch rows; it does not
-promote callbacks, reactive strategies, portfolio, or package/arbitrage
-execution.
+CycloneDX SBOM. The core remains usable without native code on platforms outside
+the declared matrix. On the supported matrix, the exact pre-built companion
+enables the bounded Stage-B `backend="auto"` policy only for certified static
+command tapes and Native Strategy IR/batch rows; it does not promote callbacks,
+reactive strategies, portfolio, or package/arbitrage execution.
 
 The supply-chain report also records source/ref cleanliness, Python/Rust
 toolchain and target metadata, native build profile/features, the Cargo lock
@@ -53,11 +69,11 @@ by the generated product registry.
 creates a core-only environment and an exact core/native-pair environment,
 checks the version/API handshake and generated promotion decisions, exercises
 static/IR public routes plus the bounded target/package helpers, and writes a
-checksum-bearing JSON certificate. It does not publish or authorize publication
-of `quantbt-native`; see the [native release handoff](migration/native_release_handoff.md).
+checksum-bearing JSON certificate. It is prerequisite evidence rather than an
+upload command; public publication additionally requires the native-first OIDC
+workflow and consumer proof. See the [native release handoff](migration/native_release_handoff.md).
 
-For a local evidence bundle containing both the public core artifacts and the
-unpublished staged native wheel, run:
+For a local evidence bundle containing both staged release artifacts, run:
 
 ```bash
 make release-manifest-staged
@@ -65,9 +81,9 @@ make release-manifest-staged
 
 The manifest records each distribution separately and accepts a native wheel
 only when its exact version matches the product registry's declared companion.
-This is local evidence only: the normal TestPyPI/PyPI workflows intentionally
-build and publish `quantbt-engine` alone until the native release gate is
-separately promoted.
+This is local evidence only. Public release follows the native-first workflow:
+publish the strict native wheel matrix, publish the matching core artifact, then
+prove `poetry add quantbt-engine` from a clean consumer environment.
 
 ## Release-Preparation Checklist
 
@@ -92,11 +108,10 @@ creating its tag. Do not reuse an existing PyPI version or Git tag.
    Certification**; create the GitHub Release and approve PyPI publishing only
    after its artifacts pass review.
 
-Version `1.0.9` remains the normal published core-only release. Phase 55A
-prepares the next `1.0.10` release as an exact-pair candidate; a successful
-local certificate still does not publish `quantbt-native`, enable generic
-endpoint auto-routing, or remove the Python oracle. Phase 55B must first prove
-a real consumer install from TestPyPI/PyPI.
+The `1.0.10` release is the exact public-pair release line. A local certificate
+does not by itself publish `quantbt-native`, enable generic endpoint auto
+routing, or remove the Python oracle. The Phase 55B TestPyPI/PyPI consumer
+proof is the additional release authorization.
 
 ## Package Contract
 
@@ -116,12 +131,12 @@ from quantbt import QuantBTEndpoint
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
 - Phase 48F TestPyPI artifact and functional endpoint gates passed for the
-  historical `1.0.7rc2` candidate. Phase 55A prepares `1.0.10` as the next
-  governed-native patch release; Phase 55B alone authorizes public upload.
+  historical `1.0.7rc2` candidate. Phase 55B adds native-first public upload
+  and Poetry consumer proof for the `1.0.10` governed-native patch release.
 - Python is the canonical/full-featured implementation for the first release.
-- `quantbt-native` is a pending exact Linux x86_64 dependency for `1.0.10`;
-  it is not yet advertised as public until Phase 55B completes the consumer
-  install proof.
+- `quantbt-native` is the exact wheel-only Linux x86_64 dependency for
+  `1.0.10`; its native-first OIDC upload and consumer proof are mandatory
+  before a release is represented as publicly available.
 
 Phase 45C keeps the root source mirror temporarily for rollback and editable
 compatibility. Distribution artifacts are built from `src/quantbt`, while the
@@ -334,10 +349,10 @@ Or a Poetry path dependency:
 quantbt = { path = "../quantbt", develop = true }
 ```
 
-After release:
+After the governed public-pair release:
 
 ```toml
-quantbt-engine = "^1.0.9"
+quantbt-engine = "^1.0.10"
 ```
 
 Alpha/notebook imports do not change:
@@ -348,12 +363,11 @@ from quantbt import QuantBTEndpoint
 
 ## Native Package Note
 
-`quantbt-native` is not part of the current published `1.0.9` core release.
-Phase 55A stages `quantbt-native==0.4.1` as the exact companion for pending
-core `1.0.10`; its Rust distribution version and native API version remain
-separate contracts. Until Phase 55B publishes the Linux wheel matrix, Rust is
-available only through an explicitly installed local wheel. With that exact
-local pair, `native_backend="auto"` follows the generated Stage-B policy;
+`quantbt-native==0.4.1` is the exact wheel-only companion for core `1.0.10`;
+its Rust distribution version and Native Event API version remain separate
+contracts. The core declares it directly for Linux x86_64 CPython 3.11-3.13,
+so normal supported installs resolve a pre-built wheel. `native_backend="auto"`
+follows the generated Stage-B policy only for its governed static/IR rows;
 `native_backend="rust"` remains explicit and fail-fast.
 
 Historical Phase 46F rerun evidence retained for comparison is:
@@ -366,26 +380,25 @@ Historical Phase 46F rerun evidence retained for comparison is:
 | Absolute peak RSS | pass (`184.11 MB < 512 MB`) |
 | 100-run RSS plateau | pass |
 | Prepared RSS reduction >= 40% | fail (`-26.1%` / `-7.6%`) |
-| Automatic Rust routing | local Stage-B static/IR/batch rows only; published `1.0.9` installs remain Python |
-| Native dependency contract | Phase 55A candidate: direct Linux x86_64 CPython 3.11-3.13 requirement; not public until Phase 55B |
+| Automatic Rust routing | governed Stage-B static/IR/batch rows only with the exact supported public pair |
+| Native dependency contract | direct Linux x86_64 CPython 3.11-3.13 requirement, published native-first with Poetry consumer proof |
 
-Consequently the core package can be released independently, while the native
-wheel remains behind its own manylinux CPython 3.11-3.13, parity, fallback,
-and incremental-RSS certification gate.
+The core package still has a full Python fallback, while the native wheel stays
+behind its own manylinux CPython 3.11-3.13, parity, fallback, and consumer
+certification gate.
 
 ## Native Event Rust API 0.4
 
-The optional `quantbt-native` package implements the public Native Event V2
+The governed `quantbt-native` companion implements the public Native Event V2
 contract certified by the shared Python/replay/Rust conformance suite. Its
-candidate distribution version is `0.4.1` and its executable native API is
-`0.4`; these are separate version contracts.
+distribution version is `0.4.1` and its executable native API is `0.4`; these
+are separate version contracts.
 
 `native_backend="rust"` is explicit and fail-fast. It does not silently
 downgrade to Python. With a matching API-0.4 companion,
 `native_backend="auto"` uses the generated Stage-B static/IR/batch policy;
-without that companion, the published core-only install remains Python
-(`1.0.9` today). The pending `1.0.10` pair is not a public claim until Phase
-55B.
+without that companion, the core fallback remains Python. The public pair is
+only released after Phase 55B's native-first and Poetry consumer gates.
 
 The API 0.4 capability contract covers:
 

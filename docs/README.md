@@ -21,7 +21,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
-| Prepare and inspect a TestPyPI RC | [TestPyPI release checklist](testpypi_release_checklist.md) |
+| Publish the governed native/core pair or inspect a TestPyPI proof | [TestPyPI release checklist](testpypi_release_checklist.md) |
 | Understand the Python/Rust execution boundary | [Execution-plan architecture](architecture/execution-plan.md) |
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
@@ -76,7 +76,7 @@ For production-like research:
 
 `src/quantbt` is the authoritative Python source tree. The root mirror is a
 checked compatibility mirror during the transition and must be synchronized by
-the repository tool, never edited independently. The optional Rust companion
+the repository tool, never edited independently. The platform-governed Rust companion
 promotes certified static command tapes and bounded Native Strategy IR/batch
 rows under `backend="auto"`. It also exposes explicit bounded V2
 `target_units` and same-bar atomic package market helpers; generic callback,

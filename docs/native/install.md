@@ -6,14 +6,29 @@ The Python core is sufficient for all public QuantBT endpoints:
 pip install quantbt-engine
 ```
 
-`quantbt-native` is in the Phase 55A public-release-candidate state. It is
-still unpublished until Phase 55B completes TestPyPI/PyPI consumer proof. The
-next core patch will resolve a matching **pre-built** companion automatically
-on Linux x86_64 / glibc / CPython 3.11-3.13. It is not a portable blanket
-acceleration, and users will never need Cargo, Rust, or Maturin to install it.
+The governed public pair is `quantbt-engine==1.0.10` with
+`quantbt-native==0.4.1`. The core declares the companion as a direct,
+platform-marked dependency, so a normal supported consumer command remains:
+
+```bash
+pip install quantbt-engine
+# or, in a fresh Poetry project:
+poetry add quantbt-engine
+```
+
+On Linux x86_64 / glibc / CPython 3.11-3.13, the resolver installs a matching
+**pre-built** manylinux wheel. It is not a portable blanket acceleration, and
+users never need Cargo, Rust, or Maturin to install it. The required release
+order and public-index proof are maintained in the
+[TestPyPI release checklist](../testpypi_release_checklist.md).
 
 ARM64/aarch64, Alpine/musl, PyPy, and 32-bit Linux remain core-only Python
 installs for this release line. Their public endpoint behavior is unchanged.
+
+| Consumer platform | Resolver behavior | Runtime policy |
+| --- | --- | --- |
+| Linux x86_64 glibc, CPython 3.11-3.13 | core plus exact pre-built `quantbt-native` wheel | Rust only for governed static/IR rows; Python otherwise |
+| macOS, Windows, Linux ARM64/musl, PyPy, unsupported Python | core only | Python/Numba fallback |
 
 ## Local staged verification
 

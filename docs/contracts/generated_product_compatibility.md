@@ -7,10 +7,10 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `98c885c1954739edd69d83a62c1cd5f03054ad73411269ac7eb41e60149288a1`
+- Product fingerprint: `009ca52a27d2d974a8acc76d2729f0fbd8e80b7baaeeadac627298dad5060571`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
 - Core distribution: `quantbt-engine==1.0.10`
-- Native distribution: `quantbt-native==0.4.1` (published: `false`)
+- Native distribution: `quantbt-native==0.4.1` (published: `true`)
 
 ## Promotion Policy
 

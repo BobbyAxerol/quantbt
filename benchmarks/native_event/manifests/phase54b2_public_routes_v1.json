@@ -3,7 +3,7 @@
   "manifest_id": "native-event-phase54b2-public-routes-v1",
   "owner": "performance",
   "promotion_policy": "stage_b_local_static_ir_only_with_explicit_python_oracle_and_rollback",
-  "product_registry_fingerprint": "98c885c1954739edd69d83a62c1cd5f03054ad73411269ac7eb41e60149288a1",
+  "product_registry_fingerprint": "009ca52a27d2d974a8acc76d2729f0fbd8e80b7baaeeadac627298dad5060571",
   "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
   "workloads": [
     {

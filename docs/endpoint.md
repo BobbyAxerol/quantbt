@@ -1313,8 +1313,9 @@ for a particular implementation language:
 | Generic portfolio, basket, or arbitrage plan | Existing portfolio/arbitrage endpoint | Python/native-portfolio contract |
 | Linear `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
 
-The core PyPI package runs every row through Python without a native companion.
-When a compatible local companion is present, inspect
+On supported Linux, the core PyPI package resolves its matching pre-built
+native companion automatically. On every other platform, and when a governed
+route is not eligible, it runs through Python. Inspect
 `result.metadata["native_event_promotion_v1"]` rather than inferring the
 backend from whether `_quantbt_native` imports. It records the requested and
 resolved backend, policy-table version, matched rule, threshold, and fallback
