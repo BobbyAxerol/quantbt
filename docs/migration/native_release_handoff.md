@@ -9,7 +9,7 @@ generated registry remains the executable source of truth.
 
 `quantbt-engine` is a complete Python package. It installs and runs every
 public endpoint without native code on unsupported platforms. The governed
-public pair is `quantbt-engine==1.0.10` and `quantbt-native==0.4.1`: supported
+public pair is `quantbt-engine==1.1.0` and `quantbt-native==0.4.1`: supported
 Linux x86_64 / glibc / CPython 3.11-3.13 consumers receive the exact pre-built
 companion through the core's direct platform dependency. No consumer compiles
 Rust during installation.

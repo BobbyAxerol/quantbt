@@ -38,7 +38,7 @@ quantbt-native (PyO3 extension)
 
 ## Current release status
 
-The governed public pair is `quantbt-engine==1.0.10` with
+The governed public pair is `quantbt-engine==1.1.0` with
 `quantbt-native==0.4.1`. It ships pre-built manylinux x86_64 wheels for
 CPython 3.11-3.13; other platforms keep Python/Numba behavior. With the exact
 pair, `auto` promotes static command tapes at 10,000+ bars and bounded Native

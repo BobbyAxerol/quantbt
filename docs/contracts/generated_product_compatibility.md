@@ -7,9 +7,9 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `009ca52a27d2d974a8acc76d2729f0fbd8e80b7baaeeadac627298dad5060571`
+- Product fingerprint: `ee8cfc3b99fcad075cd215e9aadcbc2467eb2eaf44f55720f9a4c810149bbdba`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
-- Core distribution: `quantbt-engine==1.0.10`
+- Core distribution: `quantbt-engine==1.1.0`
 - Native distribution: `quantbt-native==0.4.1` (published: `true`)
 
 ## Promotion Policy
@@ -52,7 +52,7 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 | Core | Native | Protocol | Status | Fallback |
 |---|---|---|---|---|
-| `1.0.10` | `0.4.1` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason |
+| `1.1.0` | `0.4.1` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason |
 
 ## Deprecations
 

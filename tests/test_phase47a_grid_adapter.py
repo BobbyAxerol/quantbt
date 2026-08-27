@@ -20,10 +20,17 @@ GRID_PATH = Path(
 )
 
 
+def _grid_fixture_is_readable() -> bool:
+    try:
+        return GRID_PATH.is_file()
+    except OSError:
+        return False
+
+
 @pytest.fixture(scope="module")
 def grid_module():
-    if not GRID_PATH.exists():
-        pytest.skip(f"external Grid module is not available: {GRID_PATH}")
+    if not _grid_fixture_is_readable():
+        pytest.skip(f"external Grid module is unavailable or unreadable: {GRID_PATH}")
 
     module_name = "phase47a_dynamic_grid_quantbt_native_event"
     spec = importlib.util.spec_from_file_location(module_name, GRID_PATH)

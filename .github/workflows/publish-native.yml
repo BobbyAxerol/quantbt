@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Matching RC or final release tag, for example v1.0.10rc1 or v1.0.10"
+        description: "Matching RC or final release tag, for example v1.1.0rc1 or v1.1.0"
         required: true
         type: string
       index:

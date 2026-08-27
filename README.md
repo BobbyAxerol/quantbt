@@ -300,7 +300,7 @@ and the support boundary is in
 Phase 54B.4 adds an installed-wheel release gate, rather than a new speed
 claim. It proves clean core-only fallback, exact core/native-pair handshake,
 promotion decisions, and Python/Rust accounting parity for every governed
-route. The `1.0.10` / `quantbt-native==0.4.1` release pair adds a pre-built
+route. The `1.1.0` / `quantbt-native==0.4.1` release pair adds a pre-built
 Linux x86_64 CPython 3.11-3.13 companion; it is published native-first and
 proved through a public Poetry consumer matrix. See the
 [native release handoff](docs/migration/native_release_handoff.md).
@@ -735,7 +735,7 @@ pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
 For reproducible deployments, pin the governed release, for example
-`pip install quantbt-engine==1.0.10`, and keep the unchanged import
+`pip install quantbt-engine==1.1.0`, and keep the unchanged import
 `from quantbt import QuantBTEndpoint`. On supported Linux, the exact pre-built
 native companion resolves automatically; it does not require a new import or
 endpoint API. The release order and Poetry proof are in the

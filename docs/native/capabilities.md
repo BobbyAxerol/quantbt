@@ -34,7 +34,7 @@ are made.
 
 ## Public Installation Boundary
 
-The public package pair is `quantbt-engine==1.0.10` and
+The public package pair is `quantbt-engine==1.1.0` and
 `quantbt-native==0.4.1`. The core declares the companion directly only for
 Linux x86_64 glibc / CPython 3.11-3.13. `pip install quantbt-engine` and
 `poetry add quantbt-engine` therefore install a pre-built wheel on that matrix;

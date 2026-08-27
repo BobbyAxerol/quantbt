@@ -3,7 +3,7 @@
 This is the release-owner handoff for the governed public pair:
 
 ```text
-quantbt-engine==1.0.10
+quantbt-engine==1.1.0
 quantbt-native==0.4.1
 ```
 
@@ -39,12 +39,12 @@ binary wheel.
 ## TestPyPI Sequence
 
 1. Work from the clean current `dev` commit and create a matching RC tag, for
-   example `v1.0.11rc1`. The RC tag must equal `project.version` and point to
+   example `v1.1.0rc1`. The RC tag must equal `project.version` and point to
    the exact current `dev` tip.
 2. Run **Publish quantbt-native** manually with:
 
    ```text
-   ref:   v1.0.11rc1
+   ref:   v1.1.0rc1
    index: testpypi
    ```
 
@@ -53,13 +53,13 @@ binary wheel.
    installed-pair certificate before the OIDC upload job.
 3. Inspect the uploaded certification artifact and confirm all three native
    wheels exist. Do not continue if a wheel is missing or an sdist appears.
-4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.0.11rc1`.
+4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.1.0rc1`.
    Its preflight resolves `quantbt-native==0.4.1` from TestPyPI before it can
    publish the core wheel/sdist.
 5. Run **Public Native Consumer Proof** with:
 
    ```text
-   ref:   v1.0.11rc1
+   ref:   v1.1.0rc1
    index: testpypi
    ```
 
@@ -95,7 +95,7 @@ import importlib.metadata as metadata
 import _quantbt_native
 from quantbt.backends._native_event_rust import probe_native_event_rust_extension
 
-assert metadata.version("quantbt-engine") == "1.0.10"
+assert metadata.version("quantbt-engine") == "1.1.0"
 assert metadata.version("quantbt-native") == "0.4.1"
 status = probe_native_event_rust_extension()
 assert status.compatible and status.executable, status.reason
@@ -109,13 +109,13 @@ For normal PyPI, omit the two `poetry source add` commands and run the same
 ## Production Sequence
 
 1. Work from the final clean current `main` commit and create the matching
-   final tag, for example `v1.0.10`. The tag must equal `project.version` and
+   final tag, for example `v1.1.0`. The tag must equal `project.version` and
    point to the exact current `main` tip.
-2. Run **Publish quantbt-native** with `ref: v1.0.10`, `index: pypi`; approve
+2. Run **Publish quantbt-native** with `ref: v1.1.0`, `index: pypi`; approve
    its protected `pypi` environment only after checking the wheel names and
    certificate.
 3. Verify `quantbt-native==0.4.1` is visible on PyPI for CPython 3.11-3.13.
-4. Create and publish the GitHub Release for `v1.0.10`. The existing
+4. Create and publish the GitHub Release for `v1.1.0`. The existing
    **Publish quantbt-engine** workflow preflights the public companion,
    performs core regression/build/install gates, and then waits for the
    protected PyPI approval before upload.

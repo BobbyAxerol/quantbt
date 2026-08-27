@@ -13,22 +13,22 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_release_channel_policy_requires_dev_rc_for_testpypi_and_main_final_for_pypi() -> None:
     from tools.check_release_channel import resolve_channel, validate_release_channel
 
-    assert resolve_channel("auto", "v1.0.11rc1") == "testpypi"
-    assert resolve_channel("auto", "v1.0.10") == "pypi"
+    assert resolve_channel("auto", "v1.1.0rc1") == "testpypi"
+    assert resolve_channel("auto", "v1.1.0") == "pypi"
 
     assert validate_release_channel(
-        "testpypi", "v1.0.11rc1", release_commit="dev-sha", branch_commit="dev-sha"
+        "testpypi", "v1.1.0rc1", release_commit="dev-sha", branch_commit="dev-sha"
     )["branch"] == "dev"
     assert validate_release_channel(
-        "pypi", "v1.0.10", release_commit="main-sha", branch_commit="main-sha"
+        "pypi", "v1.1.0", release_commit="main-sha", branch_commit="main-sha"
     )["branch"] == "main"
 
     with pytest.raises(ValueError, match="RC tag from dev"):
-        validate_release_channel("testpypi", "v1.0.10", release_commit="sha", branch_commit="sha")
+        validate_release_channel("testpypi", "v1.1.0", release_commit="sha", branch_commit="sha")
     with pytest.raises(ValueError, match="final non-RC tag from main"):
-        validate_release_channel("pypi", "v1.0.11rc1", release_commit="sha", branch_commit="sha")
+        validate_release_channel("pypi", "v1.1.0rc1", release_commit="sha", branch_commit="sha")
     with pytest.raises(ValueError, match="origin/main tip"):
-        validate_release_channel("pypi", "v1.0.10", release_commit="old", branch_commit="main")
+        validate_release_channel("pypi", "v1.1.0", release_commit="old", branch_commit="main")
 
 
 def test_release_workflows_invoke_the_channel_guard() -> None:

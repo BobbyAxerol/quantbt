@@ -91,7 +91,7 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
 
     spec = consumer.ConsumerProofSpec(
         index="testpypi",
-        core_version="1.0.10",
+        core_version="1.1.0",
         native_version="0.4.1",
         poetry="poetry",
         python=Path("/usr/bin/python3"),
@@ -108,13 +108,13 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
         command = tuple(command)
         seen.append(command)
         if command[1:3] == ("show", "quantbt-engine"):
-            return "quantbt-engine 1.0.10"
+            return "quantbt-engine 1.1.0"
         if command[1:3] == ("show", "quantbt-native"):
             return "quantbt-native 0.4.1"
         if command[1:3] == ("run", "python"):
             return json.dumps(
                 {
-                    "core_version": "1.0.10",
+                    "core_version": "1.1.0",
                     "native_version": "0.4.1",
                     "automatic_backend": "rust",
                     "explicit_disable_fails_closed": True,
@@ -128,7 +128,7 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
     assert report["probe"]["automatic_backend"] == "rust"
     assert any(command[1:3] == ("add", "quantbt-engine") for command in seen)
 
-    probe = consumer.public_probe_script("1.0.10", "0.4.1")
+    probe = consumer.public_probe_script("1.1.0", "0.4.1")
     for expected in (
         "automatic.resolved == \"rust\"",
         "forced_python.resolved == \"python\"",
