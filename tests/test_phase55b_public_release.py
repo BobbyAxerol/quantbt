@@ -80,6 +80,10 @@ def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder
     assert "native-smoke/quantbt_native-*.whl" in text
     assert 'manylinux: "2014"' in text
     assert "pip wheel --no-deps --wheel-dir" not in text
+    assert "tools/verify_wheels.py --dist dist --skip-install" in text
+    assert text.index("Verify source-to-wheel module parity") < text.index(
+        "Build local native companion for dependency smoke"
+    )
 
 
 def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch) -> None:
