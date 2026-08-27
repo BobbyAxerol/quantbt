@@ -289,6 +289,11 @@ poetry run python tools/create_release_manifest.py \
   --output /tmp/quantbt-release-manifest.json
 ```
 
+The `release` profile excludes real-data tests and the three Phase 47 Grid
+tests because they import a private, out-of-tree alpha fixture. Run those Grid
+integration tests separately on an authorized development host; they are not a
+reproducible public wheel certification gate.
+
 Inspect the artifacts before installing them:
 
 ```bash

@@ -236,6 +236,9 @@ def test_release_shard_runner_keeps_ci_selection_explicit_and_non_real_data_only
     assert "test_real.py" not in release
     assert "test_real_endpoints.py" not in release
     assert set(ci_core).issubset(set(release))
+    assert "test_phase47a_grid_adapter.py" not in release
+    assert "test_phase47c_grid_parity.py" not in release
+    assert "test_phase47d_grid_optimizer.py" not in release
     assert "test_phase47a_grid_adapter.py" not in ci_core
     assert "test_phase47c_grid_parity.py" not in ci_core
     assert "test_phase47d_grid_optimizer.py" not in ci_core

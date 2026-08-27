@@ -41,9 +41,14 @@ def _collect(profile: str) -> list[list[Path]]:
             for path in files
             if "native_event" not in path.parts and path.name not in GRID_EXTERNAL_TESTS
         ]
+    elif profile == "release":
+        # These integration tests load a private, out-of-tree alpha fixture.
+        # They belong to the local Grid validation workflow, not a wheel gate
+        # that must be reproducible on a public GitHub runner.
+        files = [path for path in files if path.name not in GRID_EXTERNAL_TESTS]
     elif profile == "native":
         files = [path for path in files if "native_event" in path.parts]
-    elif profile != "release":  # pragma: no cover - argparse guards this
+    else:  # pragma: no cover - argparse guards this
         raise ValueError(f"unsupported profile={profile!r}")
 
     grouped: dict[str, list[Path]] = {"core": [], "options": [], "native": []}

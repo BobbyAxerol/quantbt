@@ -20,10 +20,17 @@ GRID_PATH = Path(
 )
 
 
+def _grid_fixture_is_readable() -> bool:
+    try:
+        return GRID_PATH.is_file()
+    except OSError:
+        return False
+
+
 def _load_grid_module():
-    if not GRID_PATH.exists():
+    if not _grid_fixture_is_readable():
         pytest.skip(
-            f"external Grid fixture is unavailable: {GRID_PATH}",
+            f"external Grid fixture is unavailable or unreadable: {GRID_PATH}",
             allow_module_level=True,
         )
     spec = importlib.util.spec_from_file_location("phase47d_grid_alpha", GRID_PATH)
