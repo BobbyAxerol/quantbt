@@ -115,6 +115,8 @@ def build_supply_chain_report() -> dict[str, object]:
 
     core = _project(ROOT / "pyproject.toml")
     native = _project(ROOT / "rust" / "native_event" / "pyproject.toml")
+    product = json.loads(PRODUCT_REGISTRY.read_text(encoding="utf-8"))
+    native_release = product["versions"]["native_package"]
     cargo_workspace = tomllib.loads((ROOT / "rust" / "Cargo.toml").read_text(encoding="utf-8"))
     lockfiles = [ROOT / "uv.lock", ROOT / "rust" / "Cargo.lock"]
     unsafe_inventory = _unsafe_inventory()
@@ -133,7 +135,8 @@ def build_supply_chain_report() -> dict[str, object]:
             "distribution": str(native["name"]),
             "version": str(native["version"]),
             "license": str(native["license"]),
-            "published": False,
+            "published": bool(native_release["published"]),
+            "release_policy": str(native_release["release_policy"]),
         },
         "lockfiles": [
             {"path": str(path.relative_to(ROOT)), "sha256": _sha256(path)}

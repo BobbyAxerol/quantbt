@@ -1,5 +1,28 @@
 # Native Companion Troubleshooting
 
+## `poetry add quantbt-engine` did not install `quantbt-native`
+
+The companion is intentionally platform-marked. It resolves automatically only
+on Linux x86_64 glibc with CPython 3.11-3.13. Confirm the consumer environment
+first:
+
+```bash
+poetry run python - <<'PY'
+import importlib.metadata as metadata
+from quantbt.backends._native_event_rust import probe_native_event_rust_extension
+
+print(metadata.version("quantbt-engine"))
+print(metadata.version("quantbt-native"))
+print(probe_native_event_rust_extension())
+PY
+```
+
+On TestPyPI, configure TestPyPI as primary and PyPI as supplemental before
+running `poetry add quantbt-engine`; the full command sequence is in the
+[TestPyPI release checklist](../testpypi_release_checklist.md). On unsupported
+platforms, the absence of `quantbt-native` is expected and `backend="auto"`
+uses Python.
+
 ## `backend="rust"` fails before execution
 
 This is expected if the extension is missing, the core/native versions are not

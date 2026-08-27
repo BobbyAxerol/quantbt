@@ -92,9 +92,9 @@ def test_phase48f_release_manifest_contains_sha_and_backend_policy(tmp_path: Pat
     assert {item["kind"] for item in manifest["artifacts"]} == {"wheel", "sdist"}
     assert all(len(item["sha256"]) == 64 for item in manifest["artifacts"])
     assert manifest["backend_policy"] == {
-        "auto": "python",
-        "native_extra": "empty",
-        "rust": "explicit_experimental",
+        "auto": "certified_rust_with_exact_linux_companion; python_fallback_elsewhere",
+        "native_extra": "compatibility_alias; direct_platform_dependency",
+        "rust": "explicit_capability_gated",
     }
 
     (dist / "quantbt_engine-0.0.0-py3-none-any.whl").write_bytes(b"wrong version")

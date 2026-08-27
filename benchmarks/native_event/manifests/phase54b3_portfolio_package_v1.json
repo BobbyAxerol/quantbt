@@ -3,7 +3,7 @@
   "manifest_id": "native-event-phase54b3-portfolio-package-v1",
   "owner": "performance",
   "promotion_policy": "explicit_bounded_v2_target_units_and_atomic_package_with_python_event_oracle",
-  "product_registry_fingerprint": "8f56961b5ee41929d79f331bd0694d364770bb7f49aeb80d1c84deebd1bc774b",
+  "product_registry_fingerprint": "009ca52a27d2d974a8acc76d2729f0fbd8e80b7baaeeadac627298dad5060571",
   "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
   "workloads": [
     {

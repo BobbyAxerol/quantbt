@@ -38,10 +38,10 @@ quantbt-native (PyO3 extension)
 
 ## Current release status
 
-The staged pair is `quantbt-engine==1.0.9` with
-`quantbt-native==0.4.0`. It is an exact staged pair only, and the native
-package is not published. On the certified local Linux/CPython evidence matrix,
-`auto` promotes static command tapes at 10,000+ bars and bounded Native
+The governed public pair is `quantbt-engine==1.0.10` with
+`quantbt-native==0.4.1`. It ships pre-built manylinux x86_64 wheels for
+CPython 3.11-3.13; other platforms keep Python/Numba behavior. With the exact
+pair, `auto` promotes static command tapes at 10,000+ bars and bounded Native
 Strategy IR/batch requests at 2,000+ bars. Two bounded portfolio/package market
 helpers are certified as explicit Rust routes, while all callback, reactive,
 and generic portfolio/package routes remain Python. Consult the generated

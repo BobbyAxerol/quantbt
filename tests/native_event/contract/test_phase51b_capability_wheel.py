@@ -36,7 +36,7 @@ def test_installed_native_extension_passes_structured_semantic_handshake():
 
 def _mismatched_module() -> ModuleType:
     module = ModuleType("_quantbt_native")
-    module.version = lambda: "0.4.0"
+    module.version = lambda: str(native_runtime_product_descriptor()["native_package_version"])
     module.api_version = lambda: "0.4"
     module.capabilities = lambda: {"reactive_session": True, "semantic_descriptor_v1": True}
     descriptor = native_event_semantic_descriptor()

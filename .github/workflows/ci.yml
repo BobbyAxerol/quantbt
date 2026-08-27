@@ -29,6 +29,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -59,6 +62,23 @@ jobs:
           rm -rf dist
           uv build
 
+      - name: Verify source-to-wheel module parity
+        # This is a direct postcondition of the core build. Keep it before
+        # independent native-wheel and clean-install smoke steps so it always
+        # compares the exact source snapshot used by ``uv build``.
+        run: .venv/bin/python tools/verify_wheels.py --dist dist --skip-install
+
+      - name: Build local native companion for dependency smoke
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out native-smoke
+          manylinux: "2014"
+
       - name: Validate distribution metadata
         run: uv run twine check dist/*
 
@@ -73,6 +93,7 @@ jobs:
         run: |
           python -m venv /tmp/quantbt-wheel-smoke
           /tmp/quantbt-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-wheel-smoke/bin/python -m pip install native-smoke/quantbt_native-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip install dist/quantbt_engine-*.whl
           /tmp/quantbt-wheel-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
@@ -83,13 +104,11 @@ jobs:
         run: |
           python -m venv /tmp/quantbt-sdist-smoke
           /tmp/quantbt-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/quantbt-sdist-smoke/bin/python -m pip install native-smoke/quantbt_native-*.whl
           /tmp/quantbt-sdist-smoke/bin/python -m pip install dist/quantbt_engine-*.tar.gz
           /tmp/quantbt-sdist-smoke/bin/python -m pip check
           cd "$(mktemp -d)"
           /tmp/quantbt-sdist-smoke/bin/python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"
-
-      - name: Verify source-to-wheel module parity
-        run: .venv/bin/python tools/verify_wheels.py --dist dist
 
       - name: Pool Alpha import compatibility smoke
         run: uv run python -c "from quantbt import QuantBTEndpoint; print(QuantBTEndpoint)"

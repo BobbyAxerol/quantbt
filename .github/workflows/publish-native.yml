@@ -1,0 +1,208 @@
+name: Publish quantbt-native
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Matching final release tag, for example v1.0.10"
+        required: true
+        type: string
+      index:
+        description: "Publish target. TestPyPI must be completed before PyPI."
+        required: true
+        default: testpypi
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quantbt-native-publish-${{ inputs.index }}-${{ inputs.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-native:
+    name: Build native / CPython ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check release version
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref }}
+        run: python tools/check_release_version.py
+
+      - name: Build pre-built manylinux wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out dist/native
+          manylinux: "2014"
+
+      - name: Validate this native wheel row
+        run: |
+          python tools/check_native_wheels.py \
+            --dist dist/native \
+            --expected-python-version "${{ matrix.python-version }}" \
+            --json-out "native-release-evidence/native-wheel-cpython-${{ matrix.python-version }}.json"
+
+      - name: Upload wheel row
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-distribution-cpython-${{ matrix.python-version }}
+          path: dist/native/*.whl
+          if-no-files-found: error
+
+      - name: Upload row evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-wheel-evidence-cpython-${{ matrix.python-version }}
+          path: native-release-evidence/*.json
+          if-no-files-found: error
+
+  certify-pair:
+    name: Certify exact core/native release pair
+    needs: build-native
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install certification environment
+        run: uv sync --locked --dev
+
+      - name: Check release version and generated contracts
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref }}
+        run: |
+          .venv/bin/python tools/check_release_version.py
+          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/generate_native_event_contracts.py --check
+          .venv/bin/python tools/generate_product_contracts.py --check
+          .venv/bin/python tools/check_native_release_handoff.py
+
+      - name: Build exact core artifacts
+        run: uv build --out-dir dist/core
+
+      - name: Download native wheel matrix
+        uses: actions/download-artifact@v4
+        with:
+          pattern: native-distribution-cpython-*
+          path: dist/native
+          merge-multiple: true
+
+      - name: Validate the complete public wheel matrix and pair metadata
+        run: |
+          .venv/bin/python tools/check_native_wheels.py \
+            --dist dist/native \
+            --require-full-matrix \
+            --core-wheel dist/core/quantbt_engine-*.whl \
+            --json-out native-release-evidence/native-wheel-matrix.json
+
+      - name: Stage one exact installed pair for behavioral certification
+        shell: bash
+        run: |
+          mkdir -p dist/staged native-release-evidence
+          cp dist/core/*.whl dist/core/*.tar.gz dist/staged/
+          cp dist/native/*cp312-cp312-manylinux*.whl dist/staged/
+          .venv/bin/python tools/certify_native_release.py \
+            --dist dist/staged \
+            --output native-release-evidence/installed-pair-cpython-3.12.json
+
+      - name: Upload pair certification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-public-release-certification
+          path: |
+            native-release-evidence/*.json
+            dist/core/*
+          if-no-files-found: error
+
+  publish-testpypi:
+    name: Publish native wheels to TestPyPI
+    needs: certify-pair
+    if: ${{ inputs.index == 'testpypi' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download exact native wheel matrix
+        uses: actions/download-artifact@v4
+        with:
+          pattern: native-distribution-cpython-*
+          path: dist/native
+          merge-multiple: true
+
+      - name: Publish with TestPyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/native
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish native wheels to PyPI
+    needs: certify-pair
+    if: ${{ inputs.index == 'pypi' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download exact native wheel matrix
+        uses: actions/download-artifact@v4
+        with:
+          pattern: native-distribution-cpython-*
+          path: dist/native
+          merge-multiple: true
+
+      - name: Publish with PyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/native

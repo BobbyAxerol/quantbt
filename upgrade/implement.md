@@ -13778,3 +13778,201 @@ roadmap:
 
 Any deferred item must fail closed or route through an explicitly documented
 fallback. It must not be represented as certified native support.
+
+## Phase 55 - Public Rust Companion Distribution And Consumer Install Closure
+
+**Status: Phase 55A is complete. Phase 55B implementation and local release
+locks are complete; its immutable public-index/OIDC execution remains a
+release-owner gate.**
+
+This follow-up closes the public packaging gap discovered after `v1.0.9`:
+the governed Rust routes are certified from a matching local/CI companion, but
+the public core wheel does not yet install that companion. This is a packaging
+and delivery task only. It must not change endpoint signatures, event-domain
+semantics, promotion thresholds, or Python-oracle fallback behavior.
+
+Read before implementation:
+
+- [P3.4 - dual-package architecture](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p34--dual-package-architecture-core-python--native-rust)
+- [P3.5 - workload-based `auto` promotion](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p35--auto-backend-promotion-theo-workload)
+- [P3.6 - benchmark and release certification](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p36--benchmark-governance-và-regression-ci)
+- [P3.9/P3.10 - documentation and supply-chain release integrity](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p39--documentation-compatibility-table-và-user-migration)
+- [Release packaging contract](../docs/release_packaging.md)
+- [Native companion installation contract](../docs/native/install.md)
+- [Native capability and fallback matrix](../docs/native/capabilities.md)
+
+### Public platform policy
+
+Initial public native support is deliberately limited to pre-built
+`manylinux_2_17_x86_64` / `manylinux2014_x86_64` wheels for CPython 3.11, 3.12,
+and 3.13. This covers the current Ubuntu 22.04 x86_64 VPS and mainstream
+glibc-based Linux servers. It is not an Ubuntu-specific wheel.
+
+ARM64/aarch64, Alpine/musl, PyPy, and 32-bit Linux are outside this release.
+Those platforms retain the fully supported Python/Numba core fallback. No
+public consumer should be required to install Cargo, Rust, or Maturin.
+
+`quantbt-engine==1.0.9` is immutable once published. The public dependency
+wiring therefore lands in the next core patch release, not by mutating `1.0.9`.
+
+### Phase 55A - Native Distribution And Core Dependency Wiring
+
+**Status: complete (local implementation and artifact certification).**
+
+**Goal:** make a matching Rust companion resolvable by a normal Linux consumer
+without source compilation.
+
+Implementation:
+
+- Produce a versioned `quantbt-native` PyO3 distribution from the exact release
+  ref, with ABI/product-registry mapping locked to the next `quantbt-engine`
+  patch version.
+- Build wheel-only native artifacts for Linux x86_64 / CPython 3.11, 3.12, and
+  3.13 using the declared manylinux baseline. Do not use a native source
+  distribution as a fallback that could trigger an accidental local compile.
+- Change the next core release metadata so a normal
+  `poetry add quantbt-engine` resolves the matching `quantbt-native` wheel on
+  the supported Linux marker. Unsupported platforms must resolve core-only and
+  retain the existing structured Python fallback.
+- Keep `backend="python"`, `backend="auto"`, and `backend="rust"` semantics
+  unchanged. `auto` may promote only the already-certified Stage-B static/IR/
+  batch routes; all other routes remain Python by policy.
+- Regenerate product contracts, release manifests, package metadata, and user
+  docs so they state the public installation behavior accurately.
+
+Focused acceptance only (do not re-run already-certified domain regressions):
+
+- inspect native wheel tags, metadata, hashes, ABI descriptor, and exact
+  core/native compatibility mapping;
+- clean installed-wheel import/status checks for CPython 3.11, 3.12, and 3.13;
+- verify a certified Rust route is selectable through `backend="auto"` on the
+  supported Linux pair, while a missing/unsupported companion selects Python
+  or fails fast for explicit Rust;
+- retain source-mirror and generated-contract checks.
+
+Exit condition:
+
+```text
+On supported Linux, a normal core install has a matching pre-built native
+companion available without a Rust toolchain. On every other platform, the
+same core package remains installable and deterministic on Python.
+```
+
+Completion evidence:
+
+- Staged the exact candidate pair `quantbt-engine==1.0.10` and
+  `quantbt-native==0.4.1` in the product registry, generated contracts, Cargo
+  metadata, Maturin metadata, and `uv.lock`.
+- Added the direct PEP 508 Linux x86_64 / CPython 3.11-3.13 dependency to the
+  core wheel. The local `tool.uv.sources` override exists only to make the
+  unpublished candidate reproducible in this checkout; it is not emitted in
+  wheel metadata. A built core wheel was inspected and contains the exact
+  `Requires-Dist` marker requirement.
+- Added a wheel-only native artifact contract tool and CI gate. It rejects
+  native sdists and non-manylinux tags, verifies CPython/ABI/platform tags,
+  extension layout, wheel metadata, and the exact core-wheel dependency. The
+  native CI workflow builds one artifact per CPython 3.11/3.12/3.13 row with
+  `manylinux: "2014"` and uploads each verified wheel separately.
+- Locally built the CPython 3.12 native wheel and core wheel/sdist from the
+  same candidate, then passed artifact allowlist, source-to-wheel parity,
+  exact pair handshake, clean venv import, and `pip check`. The local native
+  artifact intentionally has the host-only `linux_x86_64` tag and is rejected
+  by the public manylinux gate; it is evidence only, never an upload artifact.
+- Focused packaging tests passed (`24 passed`), along with Ruff, Cargo locked
+  workspace check, source-mirror/product-contract/doc-link/benchmark-governance
+  checks. No endpoint, promotion, accounting, or execution-domain behavior was
+  changed or re-certified in this packaging-only phase.
+
+Phase 55A does not satisfy the public-install exit condition alone: the
+not-yet-uploaded native wheel must be published and resolved by a real package
+manager in Phase 55B before any public Rust-install claim is made.
+
+### Phase 55B - Public Publish, Poetry Consumer Proof, And Release Handoff
+
+**Goal:** prove the public index behavior that users actually receive, then
+publish in dependency-safe order.
+
+Implementation:
+
+- Configure/verify trusted publishing for the separate `quantbt-native`
+  distribution and its Linux wheel artifacts.
+- Publish the matching native wheel matrix first on TestPyPI, then publish the
+  core candidate and run the TestPyPI consumer proof. Repeat native-first on
+  production PyPI after approval, then publish the matching core release.
+- In an isolated Ubuntu 22.04 and Ubuntu 24.04 consumer environment, install
+  the released package with exactly:
+
+  ```bash
+  poetry add quantbt-engine
+  ```
+
+  Confirm that the resolver installs the matching native wheel, native status
+  is compatible/executable, and a certified auto-promoted static/IR route
+  actually selects Rust.
+- Prove the complementary contracts: `backend="python"` remains forced Python;
+  unsupported/missing native environments keep Python fallback; explicit
+  `backend="rust"` fails with an actionable compatibility error rather than
+  silently replaying Python.
+- Update README, installation, capability, troubleshooting, release handoff,
+  and changelog pages with the exact platform matrix and the fact that Rust is
+  pre-built rather than compiled at install time.
+
+Focused release gate:
+
+- `twine check`, artifact allowlist, hash/registry checks, package install,
+  `pip check`, Poetry resolution, native import, status probe, and one
+  certified public-route smoke per declared CPython/platform row;
+- no full domain/parity suite rerun unless packaging changes a domain surface.
+
+Exit condition:
+
+```text
+`poetry add quantbt-engine` on supported Linux installs and uses the certified
+Rust companion automatically for its governed routes. The next public release
+states this boundary truthfully, and unsupported platforms remain safe on the
+Python backend.
+```
+
+Implementation and local release-lock evidence:
+
+- Added dispatch-only `publish-native.yml`. It builds the CPython
+  3.11/3.12/3.13 `manylinux2014` matrix, rejects non-wheel/non-manylinux
+  artifacts, aggregates the matrix, certifies an installed exact pair, and
+  only then exposes separate OIDC jobs for `testpypi` or `pypi`. It never
+  uploads the core distribution.
+- Added `public-native-consumer.yml`: a six-row matrix over Ubuntu 22.04 and
+  Ubuntu 24.04 / CPython 3.11-3.13. Its isolated consumer uses a fresh cache,
+  runs exactly `poetry add quantbt-engine`, verifies the package paths and
+  exact versions, then proves one governed 10,000-bar static route resolves to
+  Rust, forced Python remains Python, disabled-native auto falls back, and
+  explicit Rust fails closed.
+- Added `tools/verify_public_native_consumer.py`. The default uses TestPyPI or
+  PyPI; its optional TestPyPI-compatible index override exists only for
+  isolated tool testing and does not change the public workflow.
+- Updated core TestPyPI/PyPI workflows to install Rust for the local source
+  override, preflight the public matching native wheel before core upload, and
+  install the companion before clean wheel/sdist `pip check`. Main CI now builds
+  a temporary native wheel solely to satisfy this exact dependency during its
+  clean package smoke.
+- Promoted the product release metadata from the Phase 55A staged state to the
+  Phase 55B public-wheel policy, regenerated product contracts, and made
+  supply-chain/SBOM/release-manifest output report the same release state.
+- Updated README, release packaging, native installation/capability/
+  troubleshooting pages, native handoff, docs map, Rust package README, and
+  changelog. The canonical step-by-step owner guide is
+  [`docs/testpypi_release_checklist.md`](../docs/testpypi_release_checklist.md).
+- Focused packaging/release tests passed (`48 passed`), as did product contract
+  generation, source-mirror verification, documentation-link verification, and
+  a local Poetry source-configuration smoke. No execution-domain code,
+  endpoint signature, lifecycle semantics, or promotion threshold changed.
+
+External release-owner gate remaining before this phase can be marked fully
+public-complete:
+
+1. Configure the two `quantbt-native` trusted publishers for
+   `publish-native.yml` / `testpypi` and `publish-native.yml` / `pypi`.
+2. Run the documented native-first TestPyPI -> core TestPyPI -> public Poetry
+   consumer sequence from the exact `v1.0.10` release tag and archive its
+   artifacts.
+3. Repeat native-first on PyPI, publish the GitHub Release for the core, then
+   run and archive the PyPI consumer matrix.

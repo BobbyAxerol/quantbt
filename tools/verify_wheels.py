@@ -129,11 +129,17 @@ def clean_install_smoke(core_artifact: Path, *, core_version: str, native_wheel:
         _run([sys.executable, "-m", "venv", str(venv)], cwd=root, env=env)
         python = _venv_python(venv)
         _run([str(python), "-m", "pip", "install", "--upgrade", "pip"], cwd=root, env=env)
-        install = [str(python), "-m", "pip", "install", str(core_artifact)]
         if native_wheel is not None:
-            install.append(str(native_wheel))
-        _run(install, cwd=root, env=env)
-        _run([str(python), "-m", "pip", "check"], cwd=root, env=env)
+            # Core metadata now requires the exact companion on supported Linux.
+            # Install the staged binary first so pip never attempts an index or
+            # source build during the consumer-pair proof.
+            _run([str(python), "-m", "pip", "install", str(native_wheel)], cwd=root, env=env)
+            _run([str(python), "-m", "pip", "install", str(core_artifact)], cwd=root, env=env)
+            _run([str(python), "-m", "pip", "check"], cwd=root, env=env)
+        else:
+            # This is only a core fallback import probe. The normal supported
+            # Linux consumer proof installs the exact native pair above.
+            _run([str(python), "-m", "pip", "install", "--no-deps", str(core_artifact)], cwd=root, env=env)
         _run([str(python), "-c", _installed_script(core_version, native_wheel is not None)], cwd=root, env=env)
 
 
@@ -163,7 +169,7 @@ def verify_staged_wheels(dist: Path, *, require_native: bool, install: bool) -> 
     if install:
         clean_install_smoke(core_wheel, core_version=str(core_metadata["version"]), native_wheel=native_wheel)
         sdist = find_artifact(dist, core_metadata["distribution"], ".tar.gz")
-        clean_install_smoke(sdist, core_version=str(core_metadata["version"]))
+        clean_install_smoke(sdist, core_version=str(core_metadata["version"]), native_wheel=native_wheel)
     return {
         "schema": "quantbt-staged-wheel-verification-v1",
         "core_wheel": core_wheel.name,

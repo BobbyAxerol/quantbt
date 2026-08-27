@@ -247,7 +247,7 @@ Rust is execution-authoritative only where the public request, accounting
 contract, installed-wheel parity corpus, and promotion policy have all been
 certified. The generated Stage-B policy has this deliberately narrow scope:
 
-| Route | Rust behavior with a matching local companion | Public default elsewhere |
+| Route | Rust behavior with a matching companion | Public default elsewhere |
 |---|---|---|
 | Static V2/V3 `OrderCommand` tape | `auto` at 10,000+ bars | Python |
 | Bounded Native Strategy IR, batch, causal-fold scorer | `auto` at 2,000+ bars | Python |
@@ -300,8 +300,9 @@ and the support boundary is in
 Phase 54B.4 adds an installed-wheel release gate, rather than a new speed
 claim. It proves clean core-only fallback, exact core/native-pair handshake,
 promotion decisions, and Python/Rust accounting parity for every governed
-route. The public `quantbt-engine` wheel remains core-only until a separately
-approved native wheel release; see the
+route. The `1.0.10` / `quantbt-native==0.4.1` release pair adds a pre-built
+Linux x86_64 CPython 3.11-3.13 companion; it is published native-first and
+proved through a public Poetry consumer matrix. See the
 [native release handoff](docs/migration/native_release_handoff.md).
 
 ### Historical Phase 46F package and dual-backend release evidence
@@ -312,9 +313,9 @@ wheel:
 
 | Release artifact | Current status | Backend policy |
 |---|---|---|
-| `quantbt-engine` wheel/sdist | published on PyPI | Python canonical; all existing endpoints remain available |
-| `quantbt-native` PyO3 wheel | staged, not published | local Stage-B `auto` only for certified static/IR/batch rows |
-| `quantbt-engine[native]` | intentionally empty | no dependency is advertised before native certification |
+| `quantbt-engine` wheel/sdist | governed core release | all existing endpoints remain available |
+| `quantbt-native` PyO3 wheel | exact Linux x86_64 CPython 3.11-3.13 companion | Stage-B `auto` only for certified static/IR/batch rows |
+| `quantbt-engine[native]` | compatibility alias | matching companion is a direct platform dependency |
 
 The committed Phase 46F rerun compares the same prepared static tape and keeps
 Python/Rust accounting parity at 100%:
@@ -386,8 +387,9 @@ and a SHA256 release manifest. The TestPyPI workflow is manual and OIDC
 protected; it must be run with an unused matching RC version/tag and reviewed
 before production PyPI publication. See
 [`docs/testpypi_release_checklist.md`](docs/testpypi_release_checklist.md).
-`quantbt-native` is intentionally excluded from this core upload, `auto`
-remains Python, and explicit Rust remains capability-gated.
+This historical `1.0.8` release evidence intentionally excluded
+`quantbt-native`; `auto` remained Python and explicit Rust remained
+capability-gated.
 
 ### Phase 48C stable event-driven facade evidence
 
@@ -527,9 +529,11 @@ facade; it is not a universal Rust speed claim.
 Phase 48E.1 also locks typed API 0.4 step results, count-only score sinks,
 reusable SoA audit buffers, separate command/lifecycle/fill reports, compact
 validated Rust order state, and reset/lifecycle parity. This paragraph records
-the historical pre-promotion state; the current Stage-B local policy is the
-bounded static/IR/batch policy above. The native extra remains empty until the
-CPython 3.11/3.12/3.13 manylinux clean-install workflow passes.
+the historical pre-promotion state; the current Stage-B policy is the bounded
+static/IR/batch policy above. The `native` extra remains a compatibility alias;
+Phase 55A instead prepares a direct, platform-marked dependency for the
+CPython 3.11/3.12/3.13 Linux x86_64 wheel matrix. It becomes public only after
+the Phase 55B clean-install workflow passes.
 
 Ecosystem positioning:
 
@@ -730,9 +734,12 @@ feature is under development:
 pip install -e /root/bobby/pool_alpha/quantbt
 ```
 
-For reproducible deployments, pin a published version such as
-`pip install quantbt-engine==1.0.9` and keep the unchanged import
-`from quantbt import QuantBTEndpoint`.
+For reproducible deployments, pin the governed release, for example
+`pip install quantbt-engine==1.0.10`, and keep the unchanged import
+`from quantbt import QuantBTEndpoint`. On supported Linux, the exact pre-built
+native companion resolves automatically; it does not require a new import or
+endpoint API. The release order and Poetry proof are in the
+[TestPyPI release checklist](docs/testpypi_release_checklist.md).
 
 ## Quick Start
 

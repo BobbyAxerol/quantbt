@@ -41,6 +41,8 @@ def build_sbom() -> dict[str, Any]:
 
     core = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     native = tomllib.loads((ROOT / "rust" / "native_event" / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    product = json.loads(PRODUCT_REGISTRY.read_text(encoding="utf-8"))
+    native_release = product["versions"]["native_package"]
     cargo_lock = tomllib.loads((ROOT / "rust" / "Cargo.lock").read_text(encoding="utf-8"))
     components: list[dict[str, Any]] = [
         {
@@ -54,7 +56,10 @@ def build_sbom() -> dict[str, Any]:
             "name": str(native["name"]),
             "version": str(native["version"]),
             "licenses": [{"license": {"id": str(native["license"])}}],
-            "properties": [{"name": "quantbt:published", "value": "false"}],
+            "properties": [
+                {"name": "quantbt:published", "value": str(bool(native_release["published"])).lower()},
+                {"name": "quantbt:release_policy", "value": str(native_release["release_policy"])},
+            ],
         },
     ]
     components.extend(_python_dependency_component(str(item)) for item in core.get("dependencies", []))

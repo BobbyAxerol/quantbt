@@ -69,7 +69,8 @@ def test_phase54b4_release_manifest_derives_native_surface_from_registry(tmp_pat
 
     surface = build_manifest(dist)["native_product_surface"]
     assert surface["core_only_auto_backend"] == "python"
-    assert surface["native_companion_published"] is False
+    assert surface["native_companion_published"] is True
+    assert surface["supported_linux_auto_backend"] == "certified_rust_with_exact_companion"
     assert {row["workload"] for row in surface["automatic_rust_workloads_with_exact_companion"]} == {
         "event_static_tape_v2_v3",
         "native_strategy_ir_v1",
