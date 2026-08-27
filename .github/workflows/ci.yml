@@ -63,10 +63,15 @@ jobs:
           uv build
 
       - name: Build local native companion for dependency smoke
-        run: |
-          rm -rf /tmp/quantbt-ci-native
-          mkdir -p /tmp/quantbt-ci-native
-          .venv/bin/python -m pip wheel --no-deps --wheel-dir /tmp/quantbt-ci-native rust/native_event
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out /tmp/quantbt-ci-native
+          manylinux: "2014"
 
       - name: Validate distribution metadata
         run: uv run twine check dist/*

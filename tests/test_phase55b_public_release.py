@@ -70,6 +70,16 @@ def test_phase55b_public_consumer_workflow_isolated_to_supported_linux_matrix() 
     assert "public-native-consumer-" in text
 
 
+def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder() -> None:
+    text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+    assert "PyO3/maturin-action@v1" in text
+    assert "--manifest-path rust/native_event/Cargo.toml" in text
+    assert '--interpreter python${{ matrix.python-version }}' in text
+    assert 'manylinux: "2014"' in text
+    assert "pip wheel --no-deps --wheel-dir" not in text
+
+
 def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch) -> None:
     from tools import verify_public_native_consumer as consumer
 
