@@ -70,6 +70,21 @@ def test_phase55b_public_consumer_workflow_isolated_to_supported_linux_matrix() 
     assert "public-native-consumer-" in text
 
 
+def test_phase55b_workflow_dispatch_version_checks_scope_the_requested_tag_to_the_process() -> None:
+    """Dispatch runs start from a branch, so protected GitHub env vars cannot be overridden via YAML ``env``."""
+
+    native_publish = (ROOT / ".github" / "workflows" / "publish-native.yml").read_text(encoding="utf-8")
+    native_certification = (ROOT / ".github" / "workflows" / "native-release.yml").read_text(encoding="utf-8")
+    testpypi = (ROOT / ".github" / "workflows" / "publish-testpypi.yml").read_text(encoding="utf-8")
+    consumer = (ROOT / ".github" / "workflows" / "public-native-consumer.yml").read_text(encoding="utf-8")
+
+    assert 'GITHUB_REF_NAME="${{ inputs.ref }}" python tools/check_release_version.py' in native_publish
+    assert 'GITHUB_REF_NAME="${{ inputs.ref }}" .venv/bin/python tools/check_release_version.py' in native_publish
+    assert 'GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" .venv/bin/python tools/check_release_version.py' in native_certification
+    assert 'GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" uv run python tools/check_release_version.py' in testpypi
+    assert 'GITHUB_REF_NAME="${{ inputs.ref }}" python tools/check_release_version.py' in consumer
+
+
 def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder() -> None:
     text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
