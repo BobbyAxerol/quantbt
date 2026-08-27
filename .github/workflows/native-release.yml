@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Matching release tag or commit, for example v1.0.9"
+        description: "Exact release tag: RC at dev tip or final tag at main tip, for example v1.0.10"
         required: true
         type: string
   push:
@@ -49,6 +49,11 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
         run: .venv/bin/python tools/check_release_version.py
+
+      - name: Verify release-channel provenance
+        env:
+          RELEASE_REF: ${{ inputs.ref || github.ref_name }}
+        run: .venv/bin/python tools/check_release_channel.py --channel auto --release-ref "$RELEASE_REF"
 
       - name: Source, registry, migration, and governance gates
         if: matrix.python-version == '3.12'

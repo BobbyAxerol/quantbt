@@ -11,9 +11,16 @@ The core remains a complete Python package. On Linux x86_64 with CPython
 3.11-3.13, its direct platform marker resolves a pre-built native wheel. No
 consumer compiles Rust. Other platforms resolve the Python/Numba core only.
 
-The order is mandatory: publish `quantbt-native` first, prove the public
-consumer, then publish `quantbt-engine`. A core wheel that declares a native
-dependency must never reach an index before that matching native matrix.
+The release channels are deliberately separate:
+
+| Channel | Branch tip | Tag shape | Index |
+| --- | --- | --- | --- |
+| Research candidate | `dev` | `vX.Y.ZrcN` | TestPyPI |
+| Public release | `main` | `vX.Y.Z` | PyPI |
+
+The workflows enforce this provenance. A final main tag does not go through
+TestPyPI, and an RC tag cannot publish to PyPI. Within either channel, publish
+`quantbt-native` first, prove the consumer, then publish `quantbt-engine`.
 
 ## One-Time Trusted Publishing Setup
 
@@ -31,14 +38,13 @@ binary wheel.
 
 ## TestPyPI Sequence
 
-1. Work from the final clean release commit on `main` and create the matching
-   tag, for example `v1.0.10`. The tag must equal `project.version`; final
-   versions may be tested on TestPyPI before PyPI because the indexes are
-   independent.
+1. Work from the clean current `dev` commit and create a matching RC tag, for
+   example `v1.0.11rc1`. The RC tag must equal `project.version` and point to
+   the exact current `dev` tip.
 2. Run **Publish quantbt-native** manually with:
 
    ```text
-   ref:   v1.0.10
+   ref:   v1.0.11rc1
    index: testpypi
    ```
 
@@ -47,13 +53,13 @@ binary wheel.
    installed-pair certificate before the OIDC upload job.
 3. Inspect the uploaded certification artifact and confirm all three native
    wheels exist. Do not continue if a wheel is missing or an sdist appears.
-4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.0.10`.
+4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.0.11rc1`.
    Its preflight resolves `quantbt-native==0.4.1` from TestPyPI before it can
    publish the core wheel/sdist.
 5. Run **Public Native Consumer Proof** with:
 
    ```text
-   ref:   v1.0.10
+   ref:   v1.0.11rc1
    index: testpypi
    ```
 
@@ -102,7 +108,9 @@ For normal PyPI, omit the two `poetry source add` commands and run the same
 
 ## Production Sequence
 
-1. Confirm the TestPyPI consumer matrix and evidence bundle are accepted.
+1. Work from the final clean current `main` commit and create the matching
+   final tag, for example `v1.0.10`. The tag must equal `project.version` and
+   point to the exact current `main` tip.
 2. Run **Publish quantbt-native** with `ref: v1.0.10`, `index: pypi`; approve
    its protected `pypi` environment only after checking the wheel names and
    certificate.

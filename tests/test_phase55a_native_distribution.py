@@ -148,3 +148,34 @@ def test_phase55a_native_release_workflow_builds_one_wheel_only_artifact_per_cpy
     assert 'manylinux: "2014"' in workflow
     assert "tools/check_native_wheels.py" in workflow
     assert "native-wheel-cpython-" in workflow
+
+
+def test_phase55a_certifier_keeps_the_core_only_probe_native_free(monkeypatch, tmp_path: Path) -> None:
+    from tools import certify_native_release as certification
+
+    calls: list[tuple[str, ...]] = []
+
+    def fake_run(command, **_kwargs):
+        calls.append(tuple(str(item) for item in command))
+        return None
+
+    monkeypatch.setattr(certification, "_run", fake_run)
+    monkeypatch.setattr(certification, "_venv_python", lambda target: target / "bin" / "python")
+    interpreter = tmp_path / "python"
+    core = tmp_path / "quantbt_engine-1.0.10-py3-none-any.whl"
+    native = tmp_path / "quantbt_native-0.4.1-cp312-cp312-manylinux_2_17_x86_64.whl"
+
+    certification._build_venv(interpreter, tmp_path / "core-only", core=core, native=None)
+
+    assert calls[2][2:] == ("pip", "install", "--no-deps", str(core))
+    assert calls[3][2:4] == ("pip", "install")
+    assert set(certification._core_non_native_dependencies()).issubset(calls[3])
+    assert not any("quantbt-native" in item for item in calls[3])
+    assert not any(call[2:] == ("pip", "check") for call in calls)
+
+    calls.clear()
+    certification._build_venv(interpreter, tmp_path / "exact-pair", core=core, native=native)
+
+    assert calls[2][2:] == ("pip", "install", str(native))
+    assert calls[3][2:] == ("pip", "install", str(core))
+    assert calls[4][2:] == ("pip", "check")
