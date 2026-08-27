@@ -111,8 +111,23 @@ def test_phase46c_lazy_export_access_is_thread_safe_after_resolution() -> None:
 def test_phase46c_dependency_ownership_is_explicit() -> None:
     metadata = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = metadata["project"]
-    core_dependencies = {item.split(">", 1)[0].split("=", 1)[0] for item in project["dependencies"]}
-    assert core_dependencies == {"numpy", "pandas", "numba"}
+    dependencies = list(project["dependencies"])
+    dependency_names = {
+        item.split(";", 1)[0].split(">", 1)[0].split("=", 1)[0].strip()
+        for item in dependencies
+    }
+    assert dependency_names == {"numpy", "pandas", "numba", "quantbt-native"}
+
+    native_dependency = next(item for item in dependencies if item.startswith("quantbt-native=="))
+    assert native_dependency.startswith("quantbt-native==0.4.1;")
+    for marker in (
+        "sys_platform == 'linux'",
+        "platform_machine == 'x86_64'",
+        "implementation_name == 'cpython'",
+        "python_version >= '3.11'",
+        "python_version < '3.14'",
+    ):
+        assert marker in native_dependency
 
     optional = project["optional-dependencies"]
     assert any(item.startswith("matplotlib") for item in optional["viz"])
