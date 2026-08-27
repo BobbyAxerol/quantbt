@@ -134,12 +134,13 @@ def test_supply_chain_report_records_locked_sources_and_forbidden_unsafe_code() 
 def test_native_wheel_allowlist_allows_only_extension_and_native_metadata(tmp_path: Path) -> None:
     from tools.check_release_artifacts import inspect_artifact
 
-    wheel = tmp_path / "quantbt_native-0.4.0-cp312-cp312-manylinux_2_17_x86_64.whl"
+    _, native_version = _declared_product_versions()
+    wheel = tmp_path / f"quantbt_native-{native_version}-cp312-cp312-manylinux_2_17_x86_64.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
         archive.writestr("_quantbt_native/__init__.py", "")
         archive.writestr("_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so", b"native")
-        archive.writestr("quantbt_native-0.4.0.dist-info/METADATA", "Name: quantbt-native\n")
-        archive.writestr("quantbt_native-0.4.0.dist-info/RECORD", "")
+        archive.writestr(f"quantbt_native-{native_version}.dist-info/METADATA", "Name: quantbt-native\n")
+        archive.writestr(f"quantbt_native-{native_version}.dist-info/RECORD", "")
     assert inspect_artifact(wheel) == []
 
 
@@ -164,7 +165,7 @@ def test_api_04_probe_rejects_a_pair_without_the_product_abi_descriptor() -> Non
     from quantbt.backends._native_event_rust import probe_native_event_rust_extension
 
     module = ModuleType("_quantbt_native")
-    module.version = lambda: "0.4.0"
+    module.version = lambda: _declared_product_versions()[1]
     module.api_version = lambda: "0.4"
     module.capabilities = lambda: {"reactive_session": True, "semantic_descriptor_v1": True}
     module.semantic_descriptor = native_event_semantic_descriptor
@@ -234,7 +235,7 @@ def test_release_manifest_binds_product_contract_and_supply_chain_evidence(tmp_p
         "published": False,
     }
 
-    (dist / "quantbt_native-0.4.1-cp312-cp312-manylinux_2_17_x86_64.whl").write_bytes(
+    (dist / f"quantbt_native-{native_version}.wrong-cp312-cp312-manylinux_2_17_x86_64.whl").write_bytes(
         b"wrong native version"
     )
     with pytest.raises(RuntimeError, match="does not match a declared product"):

@@ -13781,7 +13781,8 @@ fallback. It must not be represented as certified native support.
 
 ## Phase 55 - Public Rust Companion Distribution And Consumer Install Closure
 
-**Status: planned.**
+**Status: in progress. Phase 55A complete locally; Phase 55B remains the
+public-index and multi-environment release gate.**
 
 This follow-up closes the public packaging gap discovered after `v1.0.9`:
 the governed Rust routes are certified from a matching local/CI companion, but
@@ -13814,6 +13815,8 @@ public consumer should be required to install Cargo, Rust, or Maturin.
 wiring therefore lands in the next core patch release, not by mutating `1.0.9`.
 
 ### Phase 55A - Native Distribution And Core Dependency Wiring
+
+**Status: complete (local implementation and artifact certification).**
 
 **Goal:** make a matching Rust companion resolvable by a normal Linux consumer
 without source compilation.
@@ -13853,6 +13856,35 @@ On supported Linux, a normal core install has a matching pre-built native
 companion available without a Rust toolchain. On every other platform, the
 same core package remains installable and deterministic on Python.
 ```
+
+Completion evidence:
+
+- Staged the exact candidate pair `quantbt-engine==1.0.10` and
+  `quantbt-native==0.4.1` in the product registry, generated contracts, Cargo
+  metadata, Maturin metadata, and `uv.lock`.
+- Added the direct PEP 508 Linux x86_64 / CPython 3.11-3.13 dependency to the
+  core wheel. The local `tool.uv.sources` override exists only to make the
+  unpublished candidate reproducible in this checkout; it is not emitted in
+  wheel metadata. A built core wheel was inspected and contains the exact
+  `Requires-Dist` marker requirement.
+- Added a wheel-only native artifact contract tool and CI gate. It rejects
+  native sdists and non-manylinux tags, verifies CPython/ABI/platform tags,
+  extension layout, wheel metadata, and the exact core-wheel dependency. The
+  native CI workflow builds one artifact per CPython 3.11/3.12/3.13 row with
+  `manylinux: "2014"` and uploads each verified wheel separately.
+- Locally built the CPython 3.12 native wheel and core wheel/sdist from the
+  same candidate, then passed artifact allowlist, source-to-wheel parity,
+  exact pair handshake, clean venv import, and `pip check`. The local native
+  artifact intentionally has the host-only `linux_x86_64` tag and is rejected
+  by the public manylinux gate; it is evidence only, never an upload artifact.
+- Focused packaging tests passed (`24 passed`), along with Ruff, Cargo locked
+  workspace check, source-mirror/product-contract/doc-link/benchmark-governance
+  checks. No endpoint, promotion, accounting, or execution-domain behavior was
+  changed or re-certified in this packaging-only phase.
+
+Phase 55A does not satisfy the public-install exit condition alone: the
+unpublished native wheel must be published and resolved by a real package
+manager in Phase 55B before any public Rust-install claim is made.
 
 ### Phase 55B - Public Publish, Poetry Consumer Proof, And Release Handoff
 

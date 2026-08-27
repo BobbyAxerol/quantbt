@@ -63,9 +63,12 @@ def test_phase46f_production_publish_rejects_prereleases() -> None:
     assert "github.event.release.draft" in payload["jobs"]["publish"]["if"]
 
 
-def test_phase46f_native_extra_is_not_claimed_as_a_core_dependency() -> None:
+def test_phase55a_linux_native_companion_is_an_exact_core_dependency() -> None:
     metadata = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = metadata["project"]["dependencies"]
-    all_extra = metadata["project"]["optional-dependencies"]["all"]
-    assert not any("quantbt-native" in item for item in dependencies + all_extra)
+    native_dependency = next(item for item in dependencies if item.startswith("quantbt-native=="))
+    assert native_dependency.startswith("quantbt-native==0.4.1;")
+    assert "sys_platform == 'linux'" in native_dependency
+    assert "platform_machine == 'x86_64'" in native_dependency
+    assert "implementation_name == 'cpython'" in native_dependency
     assert metadata["project"]["optional-dependencies"]["native"] == []

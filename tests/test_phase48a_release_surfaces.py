@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import json
+import tomllib
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -48,10 +50,14 @@ def test_native_distribution_metadata_matches_executable_version():
     native_pyproject = NATIVE_PYPROJECT.read_text()
     native_lib = NATIVE_LIB.read_text()
     generated_contracts = NATIVE_GENERATED_CONTRACTS.read_text()
+    registry = json.loads((PROJECT_ROOT / "contracts" / "native_event_product_registry.json").read_text())
+    native_version = str(registry["versions"]["native_package"]["version"])
 
-    assert re.search(r'^version\s*=\s*"0\.4\.0"', cargo, re.MULTILINE)
-    assert re.search(r'^version\s*=\s*"0\.4\.0"', native_pyproject, re.MULTILINE)
-    assert 'pub const NATIVE_PACKAGE_VERSION: &str = "0.4.0";' in generated_contracts
+    assert tomllib.loads(NATIVE_CARGO.read_text())["package"]["version"] == native_version
+    assert tomllib.loads(NATIVE_PYPROJECT.read_text())["project"]["version"] == native_version
+    assert re.search(rf'^version\s*=\s*"{re.escape(native_version)}"', cargo, re.MULTILINE)
+    assert re.search(rf'^version\s*=\s*"{re.escape(native_version)}"', native_pyproject, re.MULTILINE)
+    assert f'pub const NATIVE_PACKAGE_VERSION: &str = "{native_version}";' in generated_contracts
     assert 'pub const NATIVE_API_VERSION: &str = "0.4";' in generated_contracts
     assert "const VERSION: &str = generated_product_contracts::NATIVE_PACKAGE_VERSION;" in native_lib
     assert "const API_VERSION: &str = generated_product_contracts::NATIVE_API_VERSION;" in native_lib

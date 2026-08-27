@@ -1,13 +1,13 @@
 {
   "cases": [
     {
-      "core_version": "1.0.9",
+      "core_version": "1.0.10",
       "expected": "compatible",
       "id": "exact_staged_core_native_pair",
-      "native_version": "0.4.0"
+      "native_version": "0.4.1"
     },
     {
-      "core_version": "1.0.9",
+      "core_version": "1.0.10",
       "expected": "incompatible",
       "id": "native_version_mismatch",
       "native_version": "0.0.0"
@@ -28,6 +28,6 @@
       ]
     }
   ],
-  "registry_fingerprint": "8f56961b5ee41929d79f331bd0694d364770bb7f49aeb80d1c84deebd1bc774b",
+  "registry_fingerprint": "98c885c1954739edd69d83a62c1cd5f03054ad73411269ac7eb41e60149288a1",
   "schema": "quantbt-product-contract-corpus-v1"
 }

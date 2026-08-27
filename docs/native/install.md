@@ -6,10 +6,14 @@ The Python core is sufficient for all public QuantBT endpoints:
 pip install quantbt-engine
 ```
 
-`quantbt-native` is currently a staged, unpublished companion. It is built and
-verified from the exact release source only. A locally compiled extension is
-eligible for `backend="auto"` only for the certified Stage-B rows in the
-generated compatibility table; it is not a portable blanket acceleration.
+`quantbt-native` is in the Phase 55A public-release-candidate state. It is
+still unpublished until Phase 55B completes TestPyPI/PyPI consumer proof. The
+next core patch will resolve a matching **pre-built** companion automatically
+on Linux x86_64 / glibc / CPython 3.11-3.13. It is not a portable blanket
+acceleration, and users will never need Cargo, Rust, or Maturin to install it.
+
+ARM64/aarch64, Alpine/musl, PyPy, and 32-bit Linux remain core-only Python
+installs for this release line. Their public endpoint behavior is unchanged.
 
 ## Local staged verification
 

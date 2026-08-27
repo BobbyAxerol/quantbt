@@ -82,6 +82,21 @@ jobs:
             --out dist/native
           manylinux: "2014"
 
+      - name: Verify wheel-only manylinux artifact
+        run: |
+          .venv/bin/python tools/check_native_wheels.py \
+            --dist dist/native \
+            --expected-python-version "${{ matrix.python-version }}" \
+            --core-wheel dist/core/quantbt_engine-*.whl \
+            --json-out "native-release-evidence/native-wheel-cpython-${{ matrix.python-version }}.json"
+
+      - name: Upload native wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-wheel-cpython-${{ matrix.python-version }}
+          path: dist/native/*.whl
+          if-no-files-found: error
+
       - name: Stage exact pair
         shell: bash
         run: |

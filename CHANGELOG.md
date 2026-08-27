@@ -2,6 +2,21 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
+## [1.0.10] - Unreleased
+
+### Changed
+
+- Prepared the public `quantbt-native==0.4.1` companion contract for the
+  next Linux x86_64 release line. The core declares an exact, platform-marked
+  dependency for CPython 3.11-3.13; unsupported platforms keep Python/Numba.
+- Added a wheel-only manylinux artifact gate. Public publishing remains blocked
+  until the Phase 55B TestPyPI/PyPI consumer-install proof completes.
+
+### Compatibility
+
+- No endpoint signature, execution policy, promotion threshold, or domain
+  accounting behavior changes in this packaging-only phase.
+
 ## [1.0.9] - 2026-08-21
 
 ### Added

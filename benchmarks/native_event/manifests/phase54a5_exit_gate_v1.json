@@ -3,7 +3,7 @@
   "manifest_id": "native-event-phase54a5-exit-gate-v1",
   "owner": "performance",
   "promotion_policy": "informational_only_until_phase54b_workload_specific_installed_wheel_rss_and_rollback_gates_pass",
-  "product_registry_fingerprint": "8f56961b5ee41929d79f331bd0694d364770bb7f49aeb80d1c84deebd1bc774b",
+  "product_registry_fingerprint": "98c885c1954739edd69d83a62c1cd5f03054ad73411269ac7eb41e60149288a1",
   "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
   "workloads": [
     {
