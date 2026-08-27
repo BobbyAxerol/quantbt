@@ -12,14 +12,15 @@ is wheel-only: supported users receive a pre-built manylinux artifact from a
 normal `pip install quantbt-engine` or `poetry add quantbt-engine`, while all
 other platforms keep the Python/Numba core without a Rust compiler.
 
-The release cannot be a one-step core upload. It is a protected sequence:
+The release cannot be a one-step core upload. It uses two protected channels:
 
-1. Build/certify the native CPython 3.11/3.12/3.13 manylinux matrix.
-2. Publish `quantbt-native` to TestPyPI through `publish-native.yml`.
-3. Publish the core to TestPyPI only after its native preflight passes.
-4. Run the Ubuntu 22.04/24.04 Poetry consumer proof.
-5. Repeat native-first on PyPI, then create the GitHub Release that publishes
-   the core, then archive the PyPI consumer proof.
+| Channel | Required provenance | Publication sequence |
+| --- | --- | --- |
+| TestPyPI | `vX.Y.ZrcN` at the exact current `dev` tip | Native first, then core, then public consumer proof. |
+| PyPI | final `vX.Y.Z` at the exact current `main` tip | Native first, then a published GitHub Release triggers the core upload, then public consumer proof. |
+
+The workflows reject a final tag on TestPyPI and reject an RC tag on PyPI. A
+final main tag is not retested through TestPyPI.
 
 The exact OIDC configuration, manual dispatch inputs, consumer evidence, and
 rollback boundary are in the [TestPyPI release checklist](testpypi_release_checklist.md).
@@ -190,10 +191,11 @@ Normal pushes to `main` or `dev` must never publish to PyPI.
 The intended branch flow is:
 
 ```text
-feature branches -> dev -> release branch -> main -> GitHub Release -> PyPI
+feature branches -> dev -> RC tag -> TestPyPI -> main -> final tag -> GitHub Release -> PyPI
 ```
 
-Do not tag from `dev`.
+Create an RC tag only at the current `dev` tip. Create a final tag only at the
+current `main` tip. Do not reuse a final tag for TestPyPI.
 
 Do not publish from an uncommitted local tree.
 

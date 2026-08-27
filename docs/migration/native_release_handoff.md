@@ -89,15 +89,13 @@ upload still requires the trusted-publishing and Poetry consumer gates.
 
 ## Release Owner Checklist
 
-1. Merge the verified release commit through the normal protected branch flow.
-2. Create a matching `vX.Y.Z` tag from the final `main` commit.
-3. Run **Publish quantbt-native** to TestPyPI, inspect its 3-wheel matrix and
-   installed-pair certificate, then publish the matching core to TestPyPI.
-4. Run **Public Native Consumer Proof** on TestPyPI. It must pass Ubuntu
-   22.04/24.04 across CPython 3.11-3.13 before production upload.
-5. Publish `quantbt-native` to protected PyPI first, then create the GitHub
+1. For TestPyPI, create a matching `vX.Y.ZrcN` tag at the current `dev` tip,
+   publish native then core, and inspect the 3-wheel matrix and consumer proof.
+2. Merge the verified final release commit through the normal protected branch
+   flow and create a matching final `vX.Y.Z` tag from the current `main` tip.
+3. Publish `quantbt-native` to protected PyPI first, then create the GitHub
    Release that triggers the protected core OIDC workflow.
-6. Run and archive the PyPI consumer proof, core manifest, native matrix, and
+4. Run and archive the PyPI consumer proof, core manifest, native matrix, and
    installed-pair certificate with the release notes.
 
 The companion does not enable generic portfolio/package auto routing or remove

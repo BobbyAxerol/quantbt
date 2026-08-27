@@ -22,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+import tomllib
 from typing import Any, Mapping
 
 
@@ -29,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRODUCT_REGISTRY = ROOT / "contracts" / "native_event_product_registry.json"
 LIFECYCLE_REGISTRY = ROOT / "contracts" / "native_event_contract_registry.json"
 MIGRATION_AUDIT = ROOT / "contracts" / "native_event_deletion_manifest.json"
+CORE_PYPROJECT = ROOT / "pyproject.toml"
 BENCHMARK_EVIDENCE = (
     "benchmarks/native_event/results/phase54a5/exit_gate.json",
     "benchmarks/native_event/results/phase54b2/public_routes.json",
@@ -81,6 +83,23 @@ def _clean_environment() -> dict[str, str]:
 
 def _venv_python(venv: Path) -> Path:
     return venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def _core_non_native_dependencies() -> tuple[str, ...]:
+    """Return the core runtime requirements without the Linux companion.
+
+    The core-only certificate intentionally proves the documented Python
+    fallback.  Its environment therefore installs the ordinary Python runtime
+    dependencies while deliberately omitting the platform-marked native wheel.
+    """
+
+    payload = tomllib.loads(CORE_PYPROJECT.read_text(encoding="utf-8"))
+    dependencies = payload["project"]["dependencies"]
+    return tuple(
+        str(requirement)
+        for requirement in dependencies
+        if not str(requirement).lower().startswith("quantbt-native")
+    )
 
 
 def _run(command: list[str], *, cwd: Path, environment: Mapping[str, str]) -> subprocess.CompletedProcess[str]:
@@ -467,10 +486,28 @@ def _build_venv(python: Path, target: Path, *, core: Path, native: Path | None) 
     _run([str(python), "-m", "venv", str(target)], cwd=target.parent, environment=environment)
     installed = _venv_python(target)
     _run([str(installed), "-m", "pip", "install", "--upgrade", "pip"], cwd=target.parent, environment=environment)
-    command = [str(installed), "-m", "pip", "install", str(core)]
-    if native is not None:
-        command.append(str(native))
-    _run(command, cwd=target.parent, environment=environment)
+    if native is None:
+        # The fallback probe cannot use a normal dependency solve: on supported
+        # Linux, the public core correctly requires quantbt-native. Install the
+        # core without that companion, then install its non-native runtime base
+        # explicitly. ``pip check`` is intentionally inapplicable here because
+        # this is the one controlled environment which omits the companion.
+        _run(
+            [str(installed), "-m", "pip", "install", "--no-deps", str(core)],
+            cwd=target.parent,
+            environment=environment,
+        )
+        _run(
+            [str(installed), "-m", "pip", "install", *_core_non_native_dependencies()],
+            cwd=target.parent,
+            environment=environment,
+        )
+        return installed
+
+    # Install the staged native wheel first so pip resolves the exact local
+    # companion rather than querying an index before it reaches the core.
+    _run([str(installed), "-m", "pip", "install", str(native)], cwd=target.parent, environment=environment)
+    _run([str(installed), "-m", "pip", "install", str(core)], cwd=target.parent, environment=environment)
     _run([str(installed), "-m", "pip", "check"], cwd=target.parent, environment=environment)
     return installed
 

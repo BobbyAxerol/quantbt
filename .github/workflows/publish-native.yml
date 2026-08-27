@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Matching final release tag, for example v1.0.10"
+        description: "Matching RC or final release tag, for example v1.0.10rc1 or v1.0.10"
         required: true
         type: string
       index:
-        description: "Publish target. TestPyPI must be completed before PyPI."
+        description: "Publish target: RC tag at dev tip -> TestPyPI; final tag at main tip -> PyPI."
         required: true
         default: testpypi
         type: choice
@@ -45,6 +45,9 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify release-channel provenance
+        run: python tools/check_release_channel.py --channel "${{ inputs.index }}" --release-ref "${{ inputs.ref }}"
 
       - name: Check release version
         env:

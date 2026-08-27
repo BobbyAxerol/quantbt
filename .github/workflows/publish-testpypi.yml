@@ -41,6 +41,11 @@ jobs:
       - name: Install core development environment
         run: uv sync --locked --extra optimization --extra reports --extra viz --dev
 
+      - name: Verify TestPyPI release-channel provenance
+        env:
+          RELEASE_REF: ${{ inputs.ref || github.ref_name }}
+        run: uv run python tools/check_release_channel.py --channel testpypi --release-ref "$RELEASE_REF"
+
       - name: Check RC version against tag
         env:
           GITHUB_REF_NAME: ${{ inputs.ref || github.ref_name }}
