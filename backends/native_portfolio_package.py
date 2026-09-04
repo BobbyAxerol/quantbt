@@ -20,6 +20,8 @@ from typing import Mapping, Sequence
 
 import numpy as np
 
+from ..core.instrument_registry_v2 import InstrumentRegistryV2
+from ..core.market_calendar_v2 import PreparedMarketHandleV2
 from ..preparation.native_execution import NativeExecutionPreparationCache
 from ._native_event_rust import RustFullAuditResult
 
@@ -328,8 +330,131 @@ def run_atomic_package_market(
     )
 
 
+def _v2_market_registry_inputs(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+) -> tuple[object, dict[str, np.ndarray]]:
+    """Lower an explicit V2 handle into the existing typed Rust request ABI.
+
+    The lowering is zero-copy for the prepared array views.  It only accepts a
+    fully observed execution view: current market helpers have no missing-bar
+    ABI, so union/primary-clock data must remain at the V2 planning boundary
+    rather than be silently forward-filled.
+    """
+    if market.symbols != instruments.symbols:
+        raise ValueError(
+            "V2 market/instrument symbols differ: "
+            f"market={market.symbols} instruments={instruments.symbols}"
+        )
+    return market.execution_view(), instruments.arrays()
+
+
+def run_portfolio_target_market_v2(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    target_units: object,
+    tradable: object | None = None,
+    stale: object | None = None,
+    external_id_start: int = 1,
+    report_level: str = "audit",
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Run target units using one canonical V2 market/instrument source."""
+    view, arrays = _v2_market_registry_inputs(market=market, instruments=instruments)
+    return run_portfolio_target_market(
+        timestamps_ns=view.timestamps_ns,
+        opens=view.opens,
+        highs=view.highs,
+        lows=view.lows,
+        closes=view.closes,
+        volumes=view.volumes,
+        funding=view.funding_rates,
+        funding_mask=view.funding_event_mask,
+        symbols=view.symbols,
+        contract_sizes=arrays["contract_size"],
+        leverages=arrays["leverage"],
+        fee_rates=arrays["fee_rate"],
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+        target_units=target_units,
+        tradable=view.tradable if tradable is None else tradable,
+        stale=view.stale if stale is None else stale,
+        min_qty=arrays["min_qty"],
+        min_notional=arrays["min_notional"],
+        external_id_start=external_id_start,
+        report_level=report_level,
+        cache=cache,
+    )
+
+
+def run_atomic_package_market_v2(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    command_bar: int,
+    package_id: int,
+    order_ids: object,
+    symbol_ids: object,
+    signed_qty: object,
+    source_age_ns: object,
+    venue_codes: object,
+    venue_sequence: object,
+    max_staleness_ns: int = 0,
+    report_level: str = "audit",
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Run an atomic market package from the same V2 source-of-truth pair."""
+    view, arrays = _v2_market_registry_inputs(market=market, instruments=instruments)
+    symbol_ids_array = np.ascontiguousarray(np.asarray(symbol_ids, dtype=np.uint32))
+    return run_atomic_package_market(
+        timestamps_ns=view.timestamps_ns,
+        opens=view.opens,
+        highs=view.highs,
+        lows=view.lows,
+        closes=view.closes,
+        volumes=view.volumes,
+        funding=view.funding_rates,
+        funding_mask=view.funding_event_mask,
+        symbols=view.symbols,
+        contract_sizes=arrays["contract_size"],
+        leverages=arrays["leverage"],
+        fee_rates=arrays["fee_rate"],
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+        command_bar=command_bar,
+        package_id=package_id,
+        order_ids=order_ids,
+        symbol_ids=symbol_ids_array,
+        signed_qty=signed_qty,
+        source_age_ns=source_age_ns,
+        venue_codes=venue_codes,
+        venue_sequence=venue_sequence,
+        min_qty=arrays["min_qty"][symbol_ids_array],
+        min_notional=arrays["min_notional"][symbol_ids_array],
+        max_staleness_ns=max_staleness_ns,
+        report_level=report_level,
+        cache=cache,
+    )
+
+
 __all__ = [
     "RustNativeMarketExecution",
     "run_atomic_package_market",
+    "run_atomic_package_market_v2",
     "run_portfolio_target_market",
+    "run_portfolio_target_market_v2",
 ]

@@ -56,6 +56,15 @@
     "portfolio": [
       "portfolio_generic"
     ],
+    "prepare_execution_plan": [
+      "prepare_execution_plan_v2"
+    ],
+    "prepare_instruments": [
+      "prepare_instruments_v2"
+    ],
+    "prepare_market": [
+      "prepare_market_v2"
+    ],
     "signal_notional": [
       "signal_notional_vectorized",
       "signal_notional_event"
@@ -111,6 +120,8 @@
     "BracketOrderSpec",
     "CANONICAL_OPTION_CHAIN_COLUMNS",
     "CONSTRAINTS_USER_ATTR",
+    "CalendarPlanV2",
+    "CalendarPolicyV2",
     "CalendarSpreadSpec",
     "CallbackSchedule",
     "CanonicalTraceArtifact",
@@ -167,8 +178,11 @@
     "ImpliedVolResult",
     "IndexBasketArbSpec",
     "InstrumentRegistrySignature",
+    "InstrumentRegistryV2",
     "InstrumentRejectCode",
+    "InstrumentRuleV2",
     "InstrumentSpec",
+    "InstrumentValidationCodeV2",
     "IntrabarEventFlag",
     "IntrabarFill",
     "IntrabarFillReason",
@@ -191,9 +205,11 @@
     "MarginMode",
     "MarginModel",
     "MarginModelKind",
+    "MarketExecutionViewV2",
     "MarketFillPolicy",
     "MarketValidationCertificate",
     "MaterializedStrategyContext",
+    "MissingObservationPolicyV1",
     "MultiSeedOptimization",
     "MultiSymbolPortfolio",
     "NATIVE_EVENT_CAPABILITY_MATRIX",
@@ -310,17 +326,22 @@
     "PortfolioTargetRejectReason",
     "PremiumConvention",
     "PreparationError",
+    "PreparedExecutionPlanV2",
     "PreparedInstrumentTable",
     "PreparedIntrabarRunner",
+    "PreparedMarketCacheV2",
+    "PreparedMarketHandleV2",
     "PreparedMarketTape",
     "PreparedNativeEventStrategyRunner",
     "PreparedOptionTape",
     "PreparedWalkForwardContext",
+    "PricePurposeV2",
     "ProtectiveExitReentryPolicy",
     "QuantBTEndpoint",
     "QuantBTEngineError",
     "QuantBTPreparedContext",
     "QuantityConstraints",
+    "QuantityPurposeV2",
     "QuantizedOrderValue",
     "ResourceLimitError",
     "RobustSelectionConfig",
@@ -352,6 +373,7 @@
     "StrategyContextView",
     "StructuredOrderPlan",
     "SurfaceDiagnostics",
+    "SymbolCalendarMapV2",
     "TRACE_FIELDS",
     "TRACE_SCHEMA_VERSION",
     "TakeProfitGapPolicy",
@@ -469,6 +491,9 @@
     "option_run_manifest",
     "order_intents_to_lifecycle_commands",
     "portfolio_capability_matrix",
+    "prepare_execution_plan_v2",
+    "prepare_instrument_registry_v2",
+    "prepare_market_handle_v2",
     "prepare_market_tape",
     "prepare_option_tape",
     "profit_factor",
@@ -1765,6 +1790,138 @@
     },
     {
       "authority": {
+        "accounting": "not applicable; no account state is created",
+        "control_flow": "Python V2 preparation and compatibility validation",
+        "execution": "not applicable; immutable request preparation only",
+        "metrics": "not applicable; no metrics are calculated",
+        "result": "immutable V2 market, instrument, or execution-plan handle",
+        "strategy": "caller-owned market data and instrument specification"
+      },
+      "endpoint": "QuantBTEndpoint.prepare_execution_plan",
+      "factory": "prepare_execution_plan",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "symbol/fingerprint mismatch fails before execution"
+      },
+      "id": "prepare_execution_plan_v2",
+      "input_mode": "matching_prepared_market_and_instrument_registry",
+      "maturity": "v1_1_certified_preparation",
+      "notes": [
+        "The plan binds V2 handles; it is not a second execution engine."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "prepare"
+      ],
+      "requested_backends": [
+        "python_preparation"
+      ],
+      "resolved_backend_baseline": "PreparedExecutionPlanV2 compatibility and provenance binder",
+      "runtime_class": "PreparedData",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.prepare_execution_plan"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "not applicable; no account state is created",
+        "control_flow": "Python V2 preparation and compatibility validation",
+        "execution": "not applicable; immutable request preparation only",
+        "metrics": "not applicable; no metrics are calculated",
+        "result": "immutable V2 market, instrument, or execution-plan handle",
+        "strategy": "caller-owned market data and instrument specification"
+      },
+      "endpoint": "QuantBTEndpoint.prepare_instruments",
+      "factory": "prepare_instruments",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "invalid venue constraints fail during preparation"
+      },
+      "id": "prepare_instruments_v2",
+      "input_mode": "instrument_specs_or_legacy_constraint_fields_to_registry",
+      "maturity": "v1_1_certified_preparation",
+      "notes": [
+        "Multiplier, leverage, fee, and quantity rules have one canonical V2 source."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "prepare"
+      ],
+      "requested_backends": [
+        "python_preparation"
+      ],
+      "resolved_backend_baseline": "InstrumentRegistryV2 with immutable normalized rule rows",
+      "runtime_class": "PreparedData",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.prepare_instruments"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "not applicable; no account state is created",
+        "control_flow": "Python V2 preparation and compatibility validation",
+        "execution": "not applicable; immutable request preparation only",
+        "metrics": "not applicable; no metrics are calculated",
+        "result": "immutable V2 market, instrument, or execution-plan handle",
+        "strategy": "caller-owned market data and instrument specification"
+      },
+      "endpoint": "QuantBTEndpoint.prepare_market",
+      "factory": "prepare_market",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "unsupported calendar/missing policies fail during preparation"
+      },
+      "id": "prepare_market_v2",
+      "input_mode": "single_or_multi_symbol_ohlcv_to_canonical_calendar",
+      "maturity": "v1_1_certified_preparation",
+      "notes": [
+        "Exact is the certified default; legacy row-count relabel is never selected here."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "prepare"
+      ],
+      "requested_backends": [
+        "python_preparation"
+      ],
+      "resolved_backend_baseline": "CalendarPlanV2 and PreparedMarketHandleV2",
+      "runtime_class": "PreparedData",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.prepare_market"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
         "accounting": "Python native-event ledger",
         "control_flow": "Python event lifecycle planner",
         "execution": "Python native-event lifecycle backend",
@@ -1952,9 +2109,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 202087,
+      "bytes": 206665,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "eb0fd05dbb766d8cc00fa8c24634f9a87d83544427035e2f335b1f865d790358"
+      "sha256": "598a8d9e0b284a481e4dbe9a96fbf807997af3a32239d47b0cfa7b56f1ffc09f"
     },
     "guide": {
       "bytes": 144542,
@@ -1972,9 +2129,9 @@
       "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
     },
     "public_api_inventory": {
-      "bytes": 15462,
+      "bytes": 15924,
       "path": "contracts/generated_public_api_inventory.json",
-      "sha256": "0c2edccc96fce49904fe5382168d9723f4812faad7c2b3d77fe31c964d020049"
+      "sha256": "9d481c588d6d3a8709166400e62ab24467ed468211cf57504bd799f4c0a4a588"
     }
   }
 }

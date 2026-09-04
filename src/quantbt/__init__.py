@@ -250,6 +250,28 @@ from .core.event_contracts import (
     validate_lifecycle_transition,
 )
 from .core.market_tape import MarketValidationCertificate, PreparedMarketTape, prepare_market_tape
+from .core.market_calendar_v2 import (
+    CalendarPlanV2,
+    CalendarPolicyV2,
+    MarketExecutionViewV2,
+    MissingObservationPolicyV1,
+    PreparedMarketCacheV2,
+    PreparedMarketHandleV2,
+    SymbolCalendarMapV2,
+    prepare_market_handle_v2,
+)
+from .core.instrument_registry_v2 import (
+    InstrumentRegistryV2,
+    InstrumentRuleV2,
+    InstrumentValidationCodeV2,
+    PricePurposeV2,
+    QuantityPurposeV2,
+    prepare_instrument_registry_v2,
+)
+from .core.prepared_execution_v2 import (
+    PreparedExecutionPlanV2,
+    prepare_execution_plan_v2,
+)
 from .core.intrabar_reference import (
     IntrabarEventFlag,
     IntrabarFill,
@@ -923,6 +945,13 @@ __all__ = [
     "MarginModelKind",
     "MarketFillPolicy",
     "MarketValidationCertificate",
+    "CalendarPlanV2",
+    "CalendarPolicyV2",
+    "MarketExecutionViewV2",
+    "MissingObservationPolicyV1",
+    "PreparedMarketCacheV2",
+    "PreparedMarketHandleV2",
+    "SymbolCalendarMapV2",
     "NativeFillReplayResult",
     "NativeIntrabarKernelResult",
     "OmsMode",
@@ -937,6 +966,11 @@ __all__ = [
     "PackageExecutionKind",
     "PackageRejection",
     "PreparedMarketTape",
+    "InstrumentRegistryV2",
+    "InstrumentRuleV2",
+    "InstrumentValidationCodeV2",
+    "PricePurposeV2",
+    "QuantityPurposeV2",
     "PreparedIntrabarRunner",
     "SameBarPolicy",
     "SignalModel",
@@ -968,6 +1002,10 @@ __all__ = [
     "get_execution_contract",
     "order_intents_to_lifecycle_commands",
     "prepare_market_tape",
+    "prepare_market_handle_v2",
+    "prepare_instrument_registry_v2",
+    "PreparedExecutionPlanV2",
+    "prepare_execution_plan_v2",
     "normalize_portfolio_mode",
     "normalize_portfolio_sizing_mode",
     "normalize_rebalance_policy",

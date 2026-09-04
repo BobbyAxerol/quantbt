@@ -20,6 +20,12 @@ The JSON artifacts are the machine-readable authority. Generated Markdown is a
 reader for those artifacts. `null` in a historical measurement means that the
 older artifact did not record a field; it never means a measured zero.
 
+`v1_1_installed_wheel_baseline.json` is immutable evidence for the released
+1.1.0 core/native pair. Its source hashes are intentionally pinned to that
+historical revision; later V1.1 development must not rewrite the record merely
+to match the working tree. A later release gate creates a separate fresh-wheel
+certificate and verifies current source/artifact parity in a clean environment.
+
 ## Regenerate And Check
 
 Run from the repository root:

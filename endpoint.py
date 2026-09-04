@@ -60,6 +60,15 @@ from .core.intrabar_reference import (
 from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
+from .core.market_calendar_v2 import (
+    CalendarPolicyV2,
+    MissingObservationPolicyV1,
+    PreparedMarketCacheV2,
+    PreparedMarketHandleV2,
+    prepare_market_handle_v2,
+)
+from .core.instrument_registry_v2 import InstrumentRegistryV2, prepare_instrument_registry_v2
+from .core.prepared_execution_v2 import PreparedExecutionPlanV2, prepare_execution_plan_v2
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import (
     BacktestResultV2,
@@ -558,6 +567,82 @@ class QuantBTEndpoint:
         self.config = config or _config_from_kwargs(**kwargs)
         self.result: Optional[Union[BacktestResult, BacktestResultV2]] = None
         self.engine = None
+
+    @classmethod
+    def prepare_market(
+        cls,
+        data,
+        *,
+        symbols: Optional[Sequence[str]] = None,
+        calendar_policy: CalendarPolicyV2 | str = "exact",
+        missing_policy: MissingObservationPolicyV1 | str = "no_observation",
+        primary_symbol: Optional[str] = None,
+        cutoff_timestamp=None,
+        cache: Optional[PreparedMarketCacheV2] = None,
+    ) -> PreparedMarketHandleV2:
+        """Prepare an immutable V2 canonical market clock.
+
+        This opt-in certified surface never aligns equal-length source frames
+        by row count.  ``exact`` is the default; ``intersection``, ``union``
+        and ``primary_clock`` preserve explicit per-symbol observation maps.
+        Existing endpoint methods retain their compatibility paths until they
+        are explicitly passed a prepared V2 handle.
+        """
+        return prepare_market_handle_v2(
+            data,
+            symbols=symbols,
+            calendar_policy=calendar_policy,
+            missing_policy=missing_policy,
+            primary_symbol=primary_symbol,
+            cutoff_timestamp=cutoff_timestamp,
+            cache=cache,
+        )
+
+    @classmethod
+    def prepare_instruments(
+        cls,
+        *,
+        specs: Optional[Union[Dict[str, InstrumentSpec], Sequence[InstrumentSpec]]] = None,
+        symbols: Optional[Sequence[str]] = None,
+        contract_size: Optional[Union[float, Dict[str, float]]] = None,
+        leverage: Union[float, Dict[str, float]] = 1.0,
+        fee_rate: Union[float, Dict[str, float]] = 0.0,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
+    ) -> InstrumentRegistryV2:
+        """Prepare one canonical V2 venue-rule registry for normalized symbols."""
+        return prepare_instrument_registry_v2(
+            specs=specs,
+            symbols=symbols,
+            contract_size=contract_size,
+            leverage=leverage,
+            fee_rate=fee_rate,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+
+    @classmethod
+    def prepare_execution_plan(
+        cls,
+        *,
+        market: PreparedMarketHandleV2,
+        instruments: InstrumentRegistryV2,
+        account_contract: str = "linear_gross_cross_v1",
+        timing_contract: str = "event_lifecycle_v3_next_open",
+        execution_model: Optional[Dict[str, object]] = None,
+        metric_contract: str = "standard_daily_v2",
+    ) -> PreparedExecutionPlanV2:
+        """Bind matching V2 market/instrument handles before execution."""
+        return prepare_execution_plan_v2(
+            market=market,
+            instruments=instruments,
+            account_contract=account_contract,
+            timing_contract=timing_contract,
+            execution_model=execution_model,
+            metric_contract=metric_contract,
+        )
 
     def prepare_service_context(
         self,
@@ -1431,6 +1516,7 @@ class QuantBTEndpoint:
         optimization_mode: str = "none",
         optimization_schedule: str = "global",
         fold_boundary_position_policy: str = "carry",
+        calendar_contract: str = "exact_v2",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1488,6 +1574,7 @@ class QuantBTEndpoint:
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
                 inner_min_folds=int(optimization_config.get("inner_min_folds", 2)),
+                calendar_contract=str(optimization_config.get("calendar_contract", calendar_contract)),
                 optuna_trials=optuna_trials,
                 optuna_early_stopping=optuna_early_stopping,
                 random_seed=random_seed,
@@ -1572,6 +1659,7 @@ class QuantBTEndpoint:
         optimization_mode: str = "none",
         optimization_schedule: str = "global",
         fold_boundary_position_policy: str = "carry",
+        calendar_contract: str = "exact_v2",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1603,6 +1691,7 @@ class QuantBTEndpoint:
             optimization_mode=optimization_mode,
             optimization_schedule=optimization_schedule,
             fold_boundary_position_policy=fold_boundary_position_policy,
+            calendar_contract=calendar_contract,
             optimization_config=optimization_config,
             optuna_trials=optuna_trials,
             optuna_early_stopping=optuna_early_stopping,
@@ -1644,6 +1733,9 @@ class QuantBTEndpoint:
         settlement_events: Optional[Sequence] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
         prepared_cache: Optional[OptionPreparedRunCache] = None,
+        prepared_market: Optional[PreparedMarketHandleV2] = None,
+        prepared_instruments: Optional[InstrumentRegistryV2] = None,
+        calendar_contract: str = "legacy_v1",
     ):
         """
         Run the configured backtest and store the result.
@@ -1754,6 +1846,9 @@ class QuantBTEndpoint:
                 order_commands=order_commands,
                 datetime_index=datetime_index,
                 symbols=symbols,
+                prepared_market=prepared_market,
+                prepared_instruments=prepared_instruments,
+                calendar_contract=calendar_contract,
             )
         if mode == "native_event_strategy":
             return self._run_native_event_strategy(
@@ -2319,10 +2414,30 @@ class QuantBTEndpoint:
         self._store_result(self.engine.result)
         return self.result
 
-    def _run_orders(self, data, orders, order_commands, datetime_index, symbols):
+    def _run_orders(
+        self,
+        data,
+        orders,
+        order_commands,
+        datetime_index,
+        symbols,
+        prepared_market: Optional[PreparedMarketHandleV2] = None,
+        prepared_instruments: Optional[InstrumentRegistryV2] = None,
+        calendar_contract: str = "legacy_v1",
+    ):
         if not orders and not order_commands:
             raise ValueError("orders endpoint requires orders=[OrderIntent(...)] or order_commands=[OrderCommand(...)]")
-        frame, idx, _ = _normalize_single_data(data=data, signal=pd.Series(0.0, index=_infer_index(data, datetime_index)), signal_col=None, datetime_index=datetime_index)
+        if prepared_market is not None:
+            prepared_market.require_open()
+            idx = prepared_market.datetime_index
+            frame = data
+        else:
+            frame, idx, _ = _normalize_single_data(
+                data=data,
+                signal=pd.Series(0.0, index=_infer_index(data, datetime_index)),
+                signal_col=None,
+                datetime_index=datetime_index,
+            )
         backend = _resolve_backend(self.config)
         event_version = str(self.config.event_engine_version).lower().strip()
         if order_commands is not None:
@@ -2356,6 +2471,9 @@ class QuantBTEndpoint:
             audit_mode=self.config.audit_mode,
             oracle_sample_rate=self.config.oracle_sample_rate,
             oracle_sample_seed=self.config.oracle_sample_seed,
+            prepared_market=prepared_market,
+            prepared_instruments=prepared_instruments,
+            calendar_contract=calendar_contract,
         )
         self._store_result(self.engine.result)
         return self.result

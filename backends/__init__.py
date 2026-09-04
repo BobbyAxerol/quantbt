@@ -4,7 +4,9 @@ from .native_portfolio import NativePortfolioBackend, NativePortfolioConfig
 from .native_portfolio_package import (
     RustNativeMarketExecution,
     run_atomic_package_market,
+    run_atomic_package_market_v2,
     run_portfolio_target_market,
+    run_portfolio_target_market_v2,
 )
 from .native_vectorized import NativeVectorizedBackend, NativeVectorizedConfig
 from .native_strategy_ir import (
@@ -45,5 +47,7 @@ __all__ = [
     "RustNativeIRRunner",
     "RustNativeMarketExecution",
     "run_atomic_package_market",
+    "run_atomic_package_market_v2",
     "run_portfolio_target_market",
+    "run_portfolio_target_market_v2",
 ]

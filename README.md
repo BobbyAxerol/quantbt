@@ -157,6 +157,48 @@ contract fingerprint, scale threshold, and parity gate all pass. Inspect
 `result.metadata["native_event_backend_resolved"]` for the selected backend
 and `result.metadata["native_event_promotion_v1"]` for the policy reason.
 
+## Canonical Multi-Symbol Market V2
+
+For an exact, reusable multi-symbol clock, prepare market data and venue rules
+once before running a static command tape. `exact` rejects equal-length but
+shifted source timestamps; it never relabels values by row count. The prepared
+route owns one immutable UTC clock, explicit observation flags, and one
+instrument registry for quantity, multiplier, leverage, and one-way fee rules.
+
+```python
+from quantbt import PreparedMarketCacheV2, QuantBTEndpoint
+
+cache = PreparedMarketCacheV2(max_entries=4)
+market = QuantBTEndpoint.prepare_market(
+    {"BTCUSDT": btc, "ETHUSDT": eth},
+    calendar_policy="exact",       # exact | intersection | union | primary_clock
+    cache=cache,
+)
+instruments = QuantBTEndpoint.prepare_instruments(
+    symbols=market.symbols,
+    contract_size={"BTCUSDT": 1.0, "ETHUSDT": 1.0},
+    leverage={"BTCUSDT": 3.0, "ETHUSDT": 2.0},
+    fee_rate=0.0005,
+)
+
+bt = QuantBTEndpoint.event_driven(input_mode="orders", backend="auto")
+result = bt.backtest(
+    data=None,
+    order_commands=commands,
+    symbols=list(market.symbols),
+    prepared_market=market,
+    prepared_instruments=instruments,
+)
+```
+
+The current V1.1 static event, bounded target, and atomic package adapters
+consume this contract. `union`/`primary_clock` data with missing observations
+is retained faithfully but fails closed when lowered to a current OHLC kernel;
+it is never fabricated through generic forward-fill. Legacy endpoints remain
+available for historical reproduction. Read the [market/calendar contract](docs/contracts/v1_1_market_calendar_v2.md)
+and [instrument registry contract](docs/contracts/v1_1_instrument_registry_v2.md)
+before certifying a multi-symbol run.
+
 ## Rust Acceleration
 
 Rust is an execution implementation behind the normal endpoint, not a second

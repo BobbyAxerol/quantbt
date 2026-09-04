@@ -14293,7 +14293,7 @@ Phase boundary:
 
 ### Phase 58 / Guide Phase 2 - Canonical Market, Calendar, And Instrument V2
 
-**Status: planned.**
+**Status: completed on 2026-09-04.**
 
 **Goal:** establish one canonical market clock and one instrument-rule source
 of truth for every certified multi-symbol route.
@@ -14347,6 +14347,69 @@ No-debt rule and rollback:
   not approximated by a generic `fillna` or hidden legacy fallback.
 - `calendar_contract="legacy_v1"` remains explicit for historical
   reproduction only; `Exact` is the certified default.
+
+Implementation evidence:
+
+- Added `CalendarPlanV2` and `SymbolCalendarMapV2` in
+  `quantbt.core.market_calendar_v2`. `exact`, `intersection`, `union`, and
+  `primary_clock` are explicit policy IDs; canonical/local mapping arrays,
+  observed/stale/tradable flags, raw missing OHLCV, separate mark prices,
+  funding event matrices, and a result-affecting fingerprint are immutable.
+  Exact reports the first divergent timestamp, including equal-length shifted
+  frames; it never relabels values by row count.
+- Added `PreparedMarketHandleV2` and `PreparedMarketCacheV2`: one canonical
+  timestamp allocation per handle, read-only contiguous arrays, bounded
+  content-addressed reuse, `close()`/`release()`, cutoff-stable fingerprints,
+  and a zero-copy finite execution view. Current V1 lowering rejects missing
+  observations or per-symbol funding clocks rather than fabricating a market.
+- `WalkForwardConfig.calendar_contract` defaults to `exact_v2`. The WFO
+  boundary now rejects duplicate/unsorted or equal-length shifted timelines
+  before strategy execution. `legacy_v1` retains the former row-count adapter
+  only when deliberately requested for historical reproduction.
+- Added `InstrumentRegistryV2`, purpose-specific price/quantity rounding,
+  canonical one-way fee, multiplier/leverage/minimum/settlement/funding rule
+  provenance, and `PreparedExecutionPlanV2`. New public helpers are
+  `QuantBTEndpoint.prepare_market`, `.prepare_instruments`, and
+  `.prepare_execution_plan`; their generated V1.1 inventory rows classify
+  them as preparation-only, not a hidden second execution engine.
+- The prepared static `event_driven(input_mode="orders")` route now bypasses
+  facade normalization and pandas open/volume reconstruction. Its Python and
+  Rust executions receive registry-resolved contract-size, leverage, and fee
+  arrays, while metadata records requested versus resolved calendar and
+  instrument fields. Bounded `run_portfolio_target_market_v2` and
+  `run_atomic_package_market_v2` lower the same handle/registry pair into the
+  existing Rust market helpers without execution replay.
+- Added matching typed Rust vocabulary in `quantbt-domain` and the
+  `InstrumentTableV1::from_registry_v2` compatibility lowering in
+  `quantbt-execution`. The pure-Python calendar and instrument oracles remain
+  standard-library-only under `reference/python`, outside production wheels.
+- Added the machine contract
+  [`contracts/v1_1_market_instrument_v2_contract.json`](../contracts/v1_1_market_instrument_v2_contract.json),
+  the [calendar](../docs/contracts/v1_1_market_calendar_v2.md) and
+  [instrument](../docs/contracts/v1_1_instrument_registry_v2.md) contracts,
+  public endpoint/README documentation, the `v1_1-phase58-check` Make target,
+  and a 16-case focused differential suite. The historical 1.1.0
+  installed-wheel record is now correctly treated as immutable evidence for
+  its own revision; a later release gate, rather than an arbitrary source
+  edit, is responsible for fresh current-wheel hash parity.
+- Verification on local CPython 3.12/Linux: focused Phase 58 suite (`16
+  passed`); native-event, WFO, and portfolio/package regression groups (`155
+  passed`); `make test-contracts` (`176 passed`); full Rust workspace
+  `fmt`/`clippy -D warnings`/unit-doc tests; and the full Python suite excluding
+  two local real-data scripts (`950 passed, 22 skipped`). Source/root mirror,
+  generated API inventory, V1.1 baseline artifacts, module architecture, and
+  documentation link gates all pass.
+
+Phase boundary:
+
+- V1.1-certified routes in this phase are prepared static command tapes and
+  the explicit bounded target/package adapters. Generic portfolio,
+  arbitrage/package, and stateful callback routes retain their published
+  compatibility contracts and do not claim V2 certification yet.
+- `union`/`primary_clock` with missing observations are represented faithfully
+  and fail at current execution lowering. A missing-data-aware execution model
+  is intentionally a later authority phase, not an approximation or hidden
+  fallback in this completed phase.
 
 ### Phase 59 / Guide Phase 3 - Linear Accounting Authority And FillReplay
 

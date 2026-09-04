@@ -29,6 +29,9 @@ artifact is [`v1_1_endpoint_inventory.json`](../../benchmarks/baselines/v1_1_end
 | `QuantBTEndpoint.orders` (orders_event_lifecycle) | explicit_order_intents | selected external or Python event lifecycle backend | `PythonCompatibility` | `stable` |
 | `QuantBTEndpoint.pct_equity` (pct_equity_legacy_signal) | signed_signal_or_target_weight | legacy pct_equity route | `PythonCompatibility` | `stable_compatibility` |
 | `QuantBTEndpoint.portfolio` (portfolio_generic) | multi_symbol_target_matrix | Python/NumPy/Numba native_portfolio backend | `PythonCompatibility` | `stable_default` |
+| `QuantBTEndpoint.prepare_execution_plan` (prepare_execution_plan_v2) | matching_prepared_market_and_instrument_registry | PreparedExecutionPlanV2 compatibility and provenance binder | `PreparedData` | `v1_1_certified_preparation` |
+| `QuantBTEndpoint.prepare_instruments` (prepare_instruments_v2) | instrument_specs_or_legacy_constraint_fields_to_registry | InstrumentRegistryV2 with immutable normalized rule rows | `PreparedData` | `v1_1_certified_preparation` |
+| `QuantBTEndpoint.prepare_market` (prepare_market_v2) | single_or_multi_symbol_ohlcv_to_canonical_calendar | CalendarPlanV2 and PreparedMarketHandleV2 | `PreparedData` | `v1_1_certified_preparation` |
 | `QuantBTEndpoint.signal_notional` (signal_notional_event) | signed_signal_to_market_rebalance | native_event Python lifecycle unless an explicit governed product route applies | `PythonCompatibility` | `stable_explicit_event` |
 | `QuantBTEndpoint.signal_notional` (signal_notional_vectorized) | signed_signal_or_target_notional | native_vectorized | `PythonCompatibility` | `stable` |
 | `QuantBTEndpoint.train_test_split` (train_test_split) | strategy_callback_or_prepared_signal_with_one_holdout | Python train/test wrapper over the WFO scoring stack | `PythonCompatibility` | `stable_holdout_contract` |

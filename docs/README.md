@@ -41,6 +41,8 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
 | Establish or inspect the V1.1 Rust-primary evidence baseline | [Rust-primary V1.1 baseline](architecture/rust_primary_v1_1_baseline.md) |
 | Review the V1.1 independent oracle, execution-clock, accounting, and trace foundation | [Canonical Trace V2](contracts/v1_1_canonical_trace_v2.md) |
+| Prepare a certified multi-symbol clock and immutable market handle | [Canonical Market And Calendar V2](contracts/v1_1_market_calendar_v2.md) |
+| Resolve tick, lot, multiplier, leverage, and fee rules once per market | [Instrument Registry V2](contracts/v1_1_instrument_registry_v2.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
 | Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |

@@ -2059,6 +2059,9 @@ class NativeEventBackend:
         audit_sink_path: Optional[str] = None,
         opens: Optional[Dict[str, pd.Series]] = None,
         _prepared_opens_arr: Optional[np.ndarray] = None,
+        _prepared_contract_sizes: Optional[np.ndarray] = None,
+        _prepared_leverages: Optional[np.ndarray] = None,
+        _prepared_fee_rates: Optional[np.ndarray] = None,
         execution_contract: Optional[Union[str, EventClockContract]] = None,
         diagnostics_enabled: Optional[bool] = None,
         _force_python_backend: bool = False,
@@ -2085,6 +2088,43 @@ class NativeEventBackend:
             symbol_list = list(closes.keys())
         else:
             symbol_list = list(symbols)
+
+        prepared_instrument_arrays = (
+            _prepared_contract_sizes,
+            _prepared_leverages,
+            _prepared_fee_rates,
+        )
+        if any(value is not None for value in prepared_instrument_arrays) and not all(
+            value is not None for value in prepared_instrument_arrays
+        ):
+            raise ValueError(
+                "prepared contract_sizes, leverages, and fee_rates must be supplied together"
+            )
+        if _prepared_contract_sizes is not None:
+            def _prepared_per_symbol(values: np.ndarray, label: str) -> np.ndarray:
+                array = np.asarray(values, dtype=np.float64)
+                if array.shape != (len(symbol_list),) or not array.flags.c_contiguous:
+                    raise ValueError(
+                        f"prepared {label} must be a contiguous array with one value per symbol"
+                    )
+                if not bool(np.isfinite(array).all()) or bool((array < 0.0).any()):
+                    raise ValueError(f"prepared {label} must be finite and non-negative")
+                return array
+
+            contract_sizes = _prepared_per_symbol(_prepared_contract_sizes, "contract_sizes")
+            leverages = _prepared_per_symbol(_prepared_leverages, "leverages")
+            fee_rates = _prepared_per_symbol(_prepared_fee_rates, "fee_rates")
+            if bool((contract_sizes <= 0.0).any()) or bool((leverages <= 0.0).any()):
+                raise ValueError("prepared contract_sizes and leverages must be > 0")
+        else:
+            contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+            leverages = self._per_symbol_array(
+                self.config.account.leverage if leverage is None else leverage,
+                symbol_list,
+                default=self.config.account.leverage,
+            )
+            configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
+            fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
 
         if market_arrays is None:
             market_arrays = self.prepare_market_arrays(
@@ -2115,7 +2155,6 @@ class NativeEventBackend:
             )
         prepare_finished_ns = perf_counter_ns() if diagnostics_requested else 0
 
-        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
             symbol_list,
             instruments=instruments,
@@ -2188,14 +2227,6 @@ class NativeEventBackend:
             raise ValueError("compiled commands do not match prepared market arrays")
 
         if static_selection.resolved == "rust" and not _force_python_backend:
-            contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
-            leverages = self._per_symbol_array(
-                self.config.account.leverage if leverage is None else leverage,
-                symbol_list,
-                default=self.config.account.leverage,
-            )
-            configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
-            fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
             runner = RustFullRunner(
                 idx=idx,
                 symbols=symbol_list,
@@ -2304,17 +2335,6 @@ class NativeEventBackend:
                 attach_native_accounting_audit(result, contract_sizes=contract_sizes)
                 attach_canonical_execution_trace(result)
             return result
-
-        leverages = self._per_symbol_array(
-            self.config.account.leverage if leverage is None else leverage,
-            symbol_list,
-            default=self.config.account.leverage,
-        )
-        fee_rates = self._per_symbol_array(
-            self.config.fee_rate if fee_rate is None else fee_rate,
-            symbol_list,
-            default=0.0,
-        )
 
         (
             equity_arr,

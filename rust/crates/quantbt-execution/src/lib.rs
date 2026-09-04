@@ -8,6 +8,7 @@
 
 use std::sync::Arc;
 
+use quantbt_domain::InstrumentRegistryV2;
 use quantbt_domain::commands::CommandTapeV5;
 use quantbt_domain::enums::{CommandAction, OrderType};
 use quantbt_domain::generated_contracts::{
@@ -124,6 +125,29 @@ pub struct InstrumentTableV1 {
 }
 
 impl InstrumentTableV1 {
+    /// Compatibility lowering from the canonical V2 registry.  The V1 full
+    /// session has not yet modeled venue minima/ticks itself, but it receives
+    /// its multiplier/leverage/fee arrays from the same immutable rule source
+    /// rather than a workload-local parallel table.
+    pub fn from_registry_v2(registry: &InstrumentRegistryV2) -> Result<Self, String> {
+        let contract_sizes = registry
+            .rules
+            .iter()
+            .map(|rule| rule.contract_multiplier)
+            .collect();
+        let leverages = registry
+            .rules
+            .iter()
+            .map(|rule| rule.leverage_limit)
+            .collect();
+        let fee_rates = registry
+            .rules
+            .iter()
+            .map(|rule| rule.one_way_fee_rate)
+            .collect();
+        Self::sequential(contract_sizes, leverages, fee_rates)
+    }
+
     pub fn new(
         symbol_ids: Vec<SymbolId>,
         contract_sizes: Vec<f64>,
@@ -1861,7 +1885,8 @@ fn hex_fingerprint(fingerprint: [u8; 32]) -> String {
 mod tests {
     use super::*;
     use quantbt_domain::enums::{ActivationPolicy, CommandAction, OrderType, Side, TimeInForce};
-    use quantbt_domain::ids::ExternalOrderId;
+    use quantbt_domain::ids::{CurrencyId, ExternalOrderId, VenueId};
+    use quantbt_domain::{InstrumentRegistryV2, InstrumentSpecV2};
     use quantbt_package::{
         PackageId, PackageLegRef, PackageLegRequest, PackagePolicy, compile_package_tape,
         execute_package_transaction,
@@ -1892,6 +1917,31 @@ mod tests {
 
     fn instruments() -> InstrumentTableV1 {
         InstrumentTableV1::sequential(vec![1.0], vec![5.0], vec![0.0002]).unwrap()
+    }
+
+    #[test]
+    fn v1_execution_table_lowers_only_from_the_canonical_v2_registry() {
+        let registry = InstrumentRegistryV2::new(vec![InstrumentSpecV2 {
+            symbol_id: SymbolId(0),
+            venue_id: VenueId(1),
+            instrument_kind: 1,
+            price_tick: 0.1,
+            quantity_step: 0.01,
+            min_quantity: 0.01,
+            max_quantity: None,
+            min_notional: 5.0,
+            contract_multiplier: 2.0,
+            leverage_limit: 4.0,
+            settlement_currency: CurrencyId(1),
+            fee_schedule_id: 1,
+            funding_schedule_id: Some(1),
+            one_way_fee_rate: 0.0005,
+        }])
+        .unwrap();
+        let table = InstrumentTableV1::from_registry_v2(&registry).unwrap();
+        assert_eq!(table.contract_sizes.as_ref(), &[2.0]);
+        assert_eq!(table.leverages.as_ref(), &[4.0]);
+        assert_eq!(table.fee_rates.as_ref(), &[0.0005]);
     }
 
     fn account() -> AccountModelV1 {

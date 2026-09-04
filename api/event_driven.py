@@ -7,6 +7,8 @@ from typing import Sequence
 
 from ..backends.native_event import NativeEventBackend, NativeEventConfig
 from ..core.event_contracts import EVENT_LIFECYCLE_V3_NEXT_OPEN, get_event_clock_contract
+from ..core.instrument_registry_v2 import InstrumentRegistryV2
+from ..core.market_calendar_v2 import PreparedMarketHandleV2
 from ..core.orders import OrderCommand
 from ..core.schema import AccountConfig, ExecutionConfig
 from ..planning import (
@@ -68,6 +70,9 @@ def execute_native_event_lifecycle(
     min_qty,
     min_notional,
     diagnostics: bool = False,
+    market_handle: PreparedMarketHandleV2 | None = None,
+    instrument_registry: InstrumentRegistryV2 | None = None,
+    calendar_contract: str = "legacy_v1",
 ) -> NativeEventLifecycleOutcome:
     """Execute the P1 static-command compatibility route.
 
@@ -76,6 +81,13 @@ def execute_native_event_lifecycle(
     trace, and metadata behavior stay exact while P1 ownership migrates.
     """
 
+    requested_calendar_contract = str(calendar_contract).lower().strip()
+    if requested_calendar_contract not in {"legacy_v1", "exact_v2"}:
+        raise ValueError("calendar_contract must be legacy_v1 or exact_v2")
+    # A V2 prepared market can only be consumed through its exact clock. This
+    # keeps direct callers consistent with the endpoint adapter and avoids a
+    # misleading legacy label on a no-relabel execution.
+    resolved_calendar_contract = "exact_v2" if market_handle is not None else requested_calendar_contract
     symbol_values = tuple(symbols)
     clock = get_event_clock_contract(execution_contract or "event_lifecycle_v2_next_bar_close")
     requested_backend = str(native_backend or "auto").lower().strip()
@@ -143,6 +155,9 @@ def execute_native_event_lifecycle(
         account=account,
         execution=execution,
         use_funding=use_funding,
+        market_handle=market_handle,
+        instrument_registry=instrument_registry,
+        calendar_contract=resolved_calendar_contract,
     )
     engine = NativeEventBackend(
         NativeEventConfig(
@@ -167,6 +182,9 @@ def execute_native_event_lifecycle(
         lows=lows,
         opens=opens,
         _prepared_opens_arr=preparation.prepared.market.opens,
+        _prepared_contract_sizes=preparation.prepared.instruments.table.contract_size,
+        _prepared_leverages=preparation.prepared.instruments.leverages,
+        _prepared_fee_rates=preparation.prepared.instruments.fee_rates,
         funding_rate=funding_rate,
         contract_size=contract_size,
         leverage=leverage,
@@ -194,6 +212,32 @@ def execute_native_event_lifecycle(
             "output_projection_fingerprint": plan.projection_fingerprint,
             "prepared_run_keys_v1": asdict(preparation.prepared.keys),
             "preparation_diagnostics_v1": asdict(preparation.prepared.diagnostics),
+            "calendar_contract": resolved_calendar_contract,
+            "calendar_contract_requested": requested_calendar_contract,
+            "calendar_contract_resolved": resolved_calendar_contract,
+            "prepared_market_v2": None if market_handle is None else market_handle.metadata(),
+            "instrument_registry_v2": None if instrument_registry is None else instrument_registry.metadata(),
+            "instrument_constraints_requested": {
+                "contract_size": contract_size,
+                "leverage": leverage,
+                "fee_rate": fee_rate,
+                "qty_step": qty_step,
+                "lot_size": lot_size,
+                "slot_size": slot_size,
+                "min_qty": min_qty,
+                "min_notional": min_notional,
+            },
+            "instrument_constraints_resolved": {
+                symbol: {
+                    "contract_size": float(preparation.prepared.instruments.table.contract_size[col]),
+                    "leverage": float(preparation.prepared.instruments.leverages[col]),
+                    "fee_rate": float(preparation.prepared.instruments.fee_rates[col]),
+                    "qty_step": float(preparation.prepared.instruments.table.qty_step[col]),
+                    "min_qty": float(preparation.prepared.instruments.table.min_qty[col]),
+                    "min_notional": float(preparation.prepared.instruments.table.min_notional[col]),
+                }
+                for col, symbol in enumerate(symbol_values)
+            },
             "quantity_constraints": {
                 symbol: {
                     "qty_step": float(preparation.prepared.instruments.table.qty_step[col]),

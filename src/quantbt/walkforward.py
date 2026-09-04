@@ -259,6 +259,11 @@ class WalkForwardConfig:
     inner_min_folds:
         Minimum valid nested inner folds required for each outer fold. The run
         raises if early history cannot satisfy this requirement.
+    calendar_contract:
+        ``"exact_v2"`` is the certified default and rejects an equal-length
+        source tape whose timestamps differ from the fold clock.  Explicit
+        ``"legacy_v1"`` preserves historical row-count relabel behavior for
+        reproduction only; it is never emitted as a certified calendar route.
     """
 
     split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022"
@@ -276,6 +281,7 @@ class WalkForwardConfig:
     inner_window_mode: Optional[str] = None
     inner_train_window: Optional[str] = None
     inner_min_folds: int = 2
+    calendar_contract: str = "exact_v2"
     optuna_trials: int = 0
     optuna_early_stopping: Optional[int] = None
     random_seed: int = 42
@@ -406,6 +412,11 @@ class WalkForwardConfig:
         if schedule != "global" and self.optuna_trials <= 0:
             raise ValueError("per-fold optimization schedules require optuna_trials > 0")
         object.__setattr__(self, "optimization_schedule", schedule)
+
+        calendar_contract = str(self.calendar_contract).lower().strip()
+        if calendar_contract not in {"exact_v2", "legacy_v1"}:
+            raise ValueError("calendar_contract must be exact_v2 or legacy_v1")
+        object.__setattr__(self, "calendar_contract", calendar_contract)
 
         boundary_policy = self.fold_boundary_position_policy.lower().strip()
         if boundary_policy != "carry":
@@ -728,7 +739,11 @@ class WalkForwardEngine:
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
         prepare_started = time.perf_counter()
         idx = _infer_datetime_index(data, datetime_index)
-        data_for_strategy = _align_data_to_datetime_index(data, idx)
+        data_for_strategy = _align_data_to_datetime_index(
+            data,
+            idx,
+            calendar_contract=self.config.calendar_contract,
+        )
         folds = self.build_folds(idx)
         use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
         prepared_context = (
@@ -3465,52 +3480,83 @@ def stitch_oos_outputs(
 
 def _infer_datetime_index(data, datetime_index) -> pd.DatetimeIndex:
     if datetime_index is not None:
-        return validate_datetime(datetime_index)
+        return _strict_wfo_datetime_index(datetime_index, label="datetime_index")
     if isinstance(data, pd.DataFrame):
-        return validate_datetime(data.index)
+        return _strict_wfo_datetime_index(data.index, label="data")
     if isinstance(data, dict):
         if not data:
             raise ValueError("walk-forward data dict is empty")
-        first = next(iter(data.values()))
+        first_key = sorted(data, key=str)[0]
+        first = data[first_key]
         if isinstance(first, pd.DataFrame) or isinstance(first, pd.Series):
-            return validate_datetime(first.index)
+            return _strict_wfo_datetime_index(first.index, label=f"data[{first_key!r}]")
     raise ValueError("datetime_index is required when data has no DatetimeIndex")
 
 
-def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex):
+def _strict_wfo_datetime_index(values, *, label: str) -> pd.DatetimeIndex:
+    """Normalize timezone without sorting, deduplicating, or relabeling rows."""
+    index = pd.DatetimeIndex(pd.to_datetime(values, utc=True, errors="raise"))
+    if len(index) == 0:
+        raise ValueError(f"walk-forward {label} calendar is empty")
+    if index.has_duplicates:
+        duplicate = index[index.duplicated()][0]
+        raise ValueError(f"walk-forward {label} calendar has duplicate timestamp {duplicate.isoformat()}")
+    if not index.is_monotonic_increasing:
+        raise ValueError(f"walk-forward {label} calendar must be strictly increasing")
+    return index
+
+
+def _first_wfo_calendar_divergence(reference: pd.DatetimeIndex, candidate: pd.DatetimeIndex):
+    shared = min(len(reference), len(candidate))
+    for row in range(shared):
+        if reference[row] != candidate[row]:
+            return row, reference[row], candidate[row]
+    if len(reference) != len(candidate):
+        row = shared
+        return row, reference[row] if row < len(reference) else "<end>", candidate[row] if row < len(candidate) else "<end>"
+    return None
+
+
+def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex, *, calendar_contract: str = "exact_v2"):
     """
     Return a data view/copy whose timestamp index matches WFO fold indices.
 
-    `validate_datetime` normalizes fold indices to UTC. Real research frames
-    are often tz-naive; passing them unchanged into a strategy makes common
-    code like `series.reindex(test_index)` silently return all NaN. Alignment is
-    length-preserving and does not inspect future values.
+    Real research frames are often tz-naive; passing them unchanged into a
+    strategy makes common code like ``series.reindex(test_index)`` silently
+    return all NaN.  The V2 contract normalizes only timezone representation,
+    then requires exact timestamps.  It never changes labels merely because a
+    source happens to have the same number of rows.
     """
+    legacy = str(calendar_contract).lower().strip() == "legacy_v1"
+
+    def normalize_item(value, label: str):
+        if not isinstance(value, (pd.DataFrame, pd.Series)) or not isinstance(value.index, pd.DatetimeIndex):
+            return value
+        source_index = _strict_wfo_datetime_index(value.index, label=label)
+        divergence = _first_wfo_calendar_divergence(idx, source_index)
+        if divergence is not None:
+            row, expected, actual = divergence
+            if not legacy:
+                raise ValueError(
+                    "walk-forward CalendarPlanV2 Exact mismatch: "
+                    f"{label} diverges from canonical clock at row {row}: {expected} != {actual}"
+                )
+            if len(value) != len(idx):
+                return value
+        # A shallow copy replaces only index metadata. Strategy isolation still
+        # occurs at the prepared-context slice boundary.
+        out = value.copy(deep=False)
+        out.index = idx
+        return out
+
     if isinstance(data, pd.DataFrame):
-        if len(data) != len(idx):
-            return data
-        out = data.copy()
-        out.index = idx
-        return out
+        return normalize_item(data, "data")
     if isinstance(data, pd.Series):
-        if len(data) != len(idx):
-            return data
-        out = data.copy()
-        out.index = idx
-        return out
+        return normalize_item(data, "data")
     if isinstance(data, dict):
         out = {}
         for key, value in data.items():
-            if isinstance(value, pd.DataFrame) and len(value) == len(idx):
-                item = value.copy()
-                item.index = idx
-                out[key] = item
-            elif isinstance(value, pd.Series) and len(value) == len(idx):
-                item = value.copy()
-                item.index = idx
-                out[key] = item
-            else:
-                out[key] = value
+            out[key] = normalize_item(value, f"data[{key!r}]")
         return out
     return data
 

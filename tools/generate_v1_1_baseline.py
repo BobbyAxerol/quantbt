@@ -181,8 +181,56 @@ NAUTILUS_AUTHORITY = _authority(
     "Python report bundle adapted from Nautilus artifacts",
 )
 
+PREPARATION_V2_AUTHORITY = _authority(
+    "caller-owned market data and instrument specification",
+    "Python V2 preparation and compatibility validation",
+    "not applicable; immutable request preparation only",
+    "not applicable; no account state is created",
+    "not applicable; no metrics are calculated",
+    "immutable V2 market, instrument, or execution-plan handle",
+)
+
 
 BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "prepare_market_v2",
+        "factory": "prepare_market",
+        "input_mode": "single_or_multi_symbol_ohlcv_to_canonical_calendar",
+        "profiles": ("prepare",),
+        "requested_backends": ("python_preparation",),
+        "resolved_backend_baseline": "CalendarPlanV2 and PreparedMarketHandleV2",
+        "authority": PREPARATION_V2_AUTHORITY,
+        "runtime_class": "PreparedData",
+        "maturity": "v1_1_certified_preparation",
+        "fallback": {"auto": "not applicable", "explicit": "unsupported calendar/missing policies fail during preparation"},
+        "notes": ("Exact is the certified default; legacy row-count relabel is never selected here.",),
+    },
+    {
+        "id": "prepare_instruments_v2",
+        "factory": "prepare_instruments",
+        "input_mode": "instrument_specs_or_legacy_constraint_fields_to_registry",
+        "profiles": ("prepare",),
+        "requested_backends": ("python_preparation",),
+        "resolved_backend_baseline": "InstrumentRegistryV2 with immutable normalized rule rows",
+        "authority": PREPARATION_V2_AUTHORITY,
+        "runtime_class": "PreparedData",
+        "maturity": "v1_1_certified_preparation",
+        "fallback": {"auto": "not applicable", "explicit": "invalid venue constraints fail during preparation"},
+        "notes": ("Multiplier, leverage, fee, and quantity rules have one canonical V2 source.",),
+    },
+    {
+        "id": "prepare_execution_plan_v2",
+        "factory": "prepare_execution_plan",
+        "input_mode": "matching_prepared_market_and_instrument_registry",
+        "profiles": ("prepare",),
+        "requested_backends": ("python_preparation",),
+        "resolved_backend_baseline": "PreparedExecutionPlanV2 compatibility and provenance binder",
+        "authority": PREPARATION_V2_AUTHORITY,
+        "runtime_class": "PreparedData",
+        "maturity": "v1_1_certified_preparation",
+        "fallback": {"auto": "not applicable", "explicit": "symbol/fingerprint mismatch fails before execution"},
+        "notes": ("The plan binds V2 handles; it is not a second execution engine.",),
+    },
     {
         "id": "pct_equity_legacy_signal",
         "factory": "pct_equity",

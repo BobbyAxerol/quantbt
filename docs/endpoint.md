@@ -214,6 +214,59 @@ remain available as normal shared endpoint parameters. See
 [`release_packaging.md`](release_packaging.md) for backend capability and
 wheel-release policy.
 
+### Canonical Market And Instrument Preparation V2
+
+Static multi-symbol command tapes can opt into the V1.1 prepared route. It
+creates a single immutable canonical clock and a single immutable venue-rule
+registry before execution. This prevents equal-length timestamp relabeling and
+prevents individual workloads from resolving multiplier, leverage, or fee
+rules differently.
+
+```python
+from quantbt import QuantBTEndpoint
+
+market = QuantBTEndpoint.prepare_market(
+    {"BTCUSDT": btc, "ETHUSDT": eth},
+    calendar_policy="exact",
+)
+instruments = QuantBTEndpoint.prepare_instruments(
+    symbols=market.symbols,
+    contract_size=1.0,
+    leverage={"BTCUSDT": 3.0, "ETHUSDT": 2.0},
+    fee_rate=0.0005,
+)
+plan = QuantBTEndpoint.prepare_execution_plan(
+    market=market,
+    instruments=instruments,
+    timing_contract="event_lifecycle_v3_next_open",
+)
+
+bt = QuantBTEndpoint.event_driven(input_mode="orders", backend="auto")
+result = bt.backtest(
+    data=None,
+    order_commands=commands,
+    symbols=list(market.symbols),
+    prepared_market=market,
+    prepared_instruments=instruments,
+)
+```
+
+`PreparedMarketHandleV2` is immutable and can be reused across static runs;
+`close()`/`release()` invalidates it deliberately. A supplied V2 handle always
+resolves `calendar_contract` to `exact_v2`, recorded together with the requested
+and resolved instrument constraints in result metadata. `union` and
+`primary_clock` preserve missing raw OHLCV as missing and record observation,
+stale, and tradability flags. Current static lowering accepts only an
+all-observed, shared-funding-clock execution view and fails closed otherwise.
+
+The V2 prepared route currently applies to explicit static command tapes and
+the promoted bounded target/package helper routes. Stateful Python callbacks,
+generic portfolio/arbitrage facades, and historical endpoint reproduction
+remain on their existing contracts until their later V1.1 promotion gates.
+See [Canonical Market And Calendar V2](contracts/v1_1_market_calendar_v2.md)
+and [Instrument Registry V2](contracts/v1_1_instrument_registry_v2.md) for
+the full policy and rounding rules.
+
 ### Event clock contracts
 
 The compatibility default remains `event_lifecycle_v2_next_bar_close`: a

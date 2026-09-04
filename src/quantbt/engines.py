@@ -25,6 +25,8 @@ from .backends import (
 )
 from .api import execute_native_event_lifecycle
 from .core.orders import OrderAction, OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
+from .core.instrument_registry_v2 import InstrumentRegistryV2
+from .core.market_calendar_v2 import PreparedMarketHandleV2
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
@@ -98,6 +100,9 @@ class BacktestEngineV2:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        prepared_market: Optional[PreparedMarketHandleV2] = None,
+        prepared_instruments: Optional[InstrumentRegistryV2] = None,
+        calendar_contract: str = "legacy_v1",
         auto_run: bool = True,
     ):
         self.backend = backend.lower().strip()
@@ -148,6 +153,18 @@ class BacktestEngineV2:
         self.slot_size = slot_size
         self.min_qty = min_qty
         self.min_notional = min_notional
+        self.prepared_market = prepared_market
+        self.prepared_instruments = prepared_instruments
+        self.calendar_contract = str(calendar_contract).lower().strip()
+        if self.calendar_contract not in {"legacy_v1", "exact_v2"}:
+            raise ValueError("calendar_contract must be legacy_v1 or exact_v2")
+        if (self.prepared_market is None) != (self.prepared_instruments is None):
+            raise ValueError("prepared_market and prepared_instruments must be supplied together")
+        # A V2 handle is intrinsically calendar-exact.  Keep the historical
+        # default for legacy callers, but never label a prepared V2 execution
+        # as legacy alignment in its audit metadata.
+        if self.prepared_market is not None:
+            self.calendar_contract = "exact_v2"
         self.result: Optional[BacktestResultV2] = None
 
         if auto_run:
@@ -219,7 +236,25 @@ class BacktestEngineV2:
         )
 
     def _run_native_event(self) -> BacktestResultV2:
-        idx, closes, highs, lows, symbols = self._market_data()
+        if self.prepared_market is not None:
+            if self.strategy is not None or self.basket is not None or not (self.order_commands or self.orders):
+                raise NotImplementedError(
+                    "PreparedMarketHandleV2 currently lowers explicit static order tapes only; "
+                    "reactive/basket/signal lowering remains on its certified route"
+                )
+            view = self.prepared_market.execution_view()
+            if tuple(self.symbols or view.symbols) != view.symbols:
+                raise ValueError("prepared market symbols must match normalized V2 symbol order")
+            idx = pd.to_datetime(view.timestamps_ns, utc=True)
+            symbols = list(view.symbols)
+            # Static V2 preparation consumes the handle's contiguous arrays.
+            # Empty compatibility maps ensure this dispatcher never normalizes
+            # or packs pandas inputs before the prepared lifecycle route.
+            closes: SeriesMap = {}
+            highs: SeriesMap = {}
+            lows: SeriesMap = {}
+        else:
+            idx, closes, highs, lows, symbols = self._market_data()
 
         def make_compatibility_backend() -> NativeEventBackend:
             return NativeEventBackend(
@@ -247,12 +282,15 @@ class BacktestEngineV2:
 
         if self.strategy is not None:
             backend = make_compatibility_backend()
-            opens, volumes = _market_open_volume(
-                data=self.data,
-                datetime_index=idx,
-                closes=closes,
-                symbols=symbols,
-            )
+            if self.prepared_market is not None:
+                opens, volumes = None, None
+            else:
+                opens, volumes = _market_open_volume(
+                    data=self.data,
+                    datetime_index=idx,
+                    closes=closes,
+                    symbols=symbols,
+                )
             return backend.run_strategy(
                 datetime_index=idx,
                 strategy=self.strategy,
@@ -334,12 +372,15 @@ class BacktestEngineV2:
                     )
                 )
                 commands = order_intents_to_lifecycle_commands(generated_orders)
-            opens, volumes = _market_open_volume(
-                data=self.data,
-                datetime_index=idx,
-                closes=closes,
-                symbols=symbols,
-            )
+            if self.prepared_market is not None:
+                opens, volumes = None, None
+            else:
+                opens, volumes = _market_open_volume(
+                    data=self.data,
+                    datetime_index=idx,
+                    closes=closes,
+                    symbols=symbols,
+                )
             outcome = execute_native_event_lifecycle(
                 datetime_index=idx,
                 commands=commands,
@@ -372,6 +413,9 @@ class BacktestEngineV2:
                 slot_size=self.slot_size,
                 min_qty=self.min_qty,
                 min_notional=self.min_notional,
+                market_handle=self.prepared_market,
+                instrument_registry=self.prepared_instruments,
+                calendar_contract=self.calendar_contract,
             )
             self.execution_plan = outcome.preparation.prepared.plan
             self.prepared_run = outcome.preparation.prepared

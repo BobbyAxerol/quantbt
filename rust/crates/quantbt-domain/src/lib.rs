@@ -12,6 +12,8 @@ pub mod errors;
 pub mod generated_contracts;
 pub mod generated_product_contracts;
 pub mod ids;
+pub mod instrument_v2;
+pub mod market_v2;
 pub mod numeric;
 pub mod trace_v2;
 
@@ -20,6 +22,13 @@ pub use enums::{ActivationPolicy, CommandAction, OrderStatus, OrderType, Side, T
 pub use errors::DomainError;
 pub use ids::{
     AccountId, BarIndex, ExternalOrderId, OrderHandle, PackageId, SymbolId, TimestampNs,
+};
+pub use instrument_v2::{
+    InstrumentRegistryV2, InstrumentSpecV2, InstrumentValidationCodeV2, PricePurposeV2,
+    QuantityPurposeV2,
+};
+pub use market_v2::{
+    CalendarPlanV2, CalendarPolicyV2, MissingObservationPolicyV1, SymbolCalendarMapV2,
 };
 pub use trace_v2::{
     CanonicalEventKindV2, CanonicalTraceRowV2, TerminalFingerprintV2, TraceHashV2,
