@@ -41,6 +41,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
 | Establish or inspect the V1.1 Rust-primary evidence baseline | [Rust-primary V1.1 baseline](architecture/rust_primary_v1_1_baseline.md) |
 | Review the V1.1 independent oracle, execution-clock, accounting, and trace foundation | [Canonical Trace V2](contracts/v1_1_canonical_trace_v2.md) |
+| Replay supplied fills with Rust-owned linear accounting, funding, margin, and liquidation evidence | [Linear Accounting And FillReplay V2](contracts/v1_1_linear_accounting_fill_replay_v2.md) |
 | Prepare a certified multi-symbol clock and immutable market handle | [Canonical Market And Calendar V2](contracts/v1_1_market_calendar_v2.md) |
 | Resolve tick, lot, multiplier, leverage, and fee rules once per market | [Instrument Registry V2](contracts/v1_1_instrument_registry_v2.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
@@ -62,7 +63,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Single-symbol SL/TP/trailing | `QuantBTEndpoint.intrabar_bracket(...)` | Strict next-open entry with high/low intrabar exit semantics |
 | Stateful event callback | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Stable callback facade with explicit research/optimize/audit profiles |
 | Canonical command tape | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Full lifecycle contract with capability-gated Rust/Python routing |
-| Existing explicit fill tape | `QuantBTEndpoint.fill_replay(...)` | Accounting replay for old alphas before causal migration |
+| Existing explicit fill tape | `QuantBTEndpoint.fill_replay(...)` | V1 compatibility replay or explicit Rust V2 linear-accounting audit of supplied fills |
 | Explicit orders | `QuantBTEndpoint.orders(...)` | Market/limit/stop order lifecycle and fill reports |
 | DCA/grid | `QuantBTEndpoint.dca_ladder(...)` | Structural levels, high/low touch detection, trigger-price fills |
 | Portfolio matrix | `QuantBTEndpoint.portfolio(...)` | Multi-symbol positions with portfolio-level accounting |

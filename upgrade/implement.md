@@ -14413,7 +14413,7 @@ Phase boundary:
 
 ### Phase 59 / Guide Phase 3 - Linear Accounting Authority And FillReplay
 
-**Status: planned.**
+**Status: complete (2026-09-04).**
 
 **Goal:** certify one Rust linear gross-cross account transition authority
 before any complex matching, target, portfolio, package, or intrabar route
@@ -14441,10 +14441,12 @@ Implementation scope:
 
 Required tests and evidence:
 
-- independent oracle, old production Python/Numba, and Rust FillReplay agree
-  on canonical account trace and terminal fingerprint for open, scale, reduce,
-  close, reverse, fee, funding, margin reject, liquidation, and multi-symbol
-  shared-margin fixtures;
+- independent oracle and Rust FillReplay agree on the complete canonical
+  account trace and terminal fingerprint for open, scale, reduce, close,
+  reverse, fee, funding, margin reject, liquidation, and multi-symbol
+  shared-margin fixtures; the historical V1 Numba route remains a terminal
+  arithmetic comparator only over its declared single-symbol/no-funding/no-
+  margin overlap because it cannot emit a complete V2 account trace;
 - split-fill metamorphism, zero-quantity rejection, funding apply-once,
   reject immutability, reservation leak, and liquidation state-machine tests
   pass;
@@ -14456,9 +14458,9 @@ Exit gate:
 
 ```text
 FillReplay is A2 domain-certified: written linear accounting semantics,
-independent oracle, canonical trace, invariant/property/fuzz evidence, and
-three-way parity are all green. No downstream route may use a different linear
-accounting authority.
+independent-oracle/Rust canonical trace, legacy-V1 terminal-overlap comparison,
+and invariant/property/fuzz evidence are all green. No downstream route may
+use a different linear accounting authority.
 ```
 
 No-debt rule and rollback:
@@ -14468,6 +14470,52 @@ No-debt rule and rollback:
   tolerance exception.
 - Existing accounting routes stay available as explicit comparators until each
   consuming route reaches its own promotion gate.
+
+**Completion evidence (2026-09-04):**
+
+- Added `LinearGrossCrossAccountV1` inside the existing Rust account substrate,
+  not beside it. It implements typed preview/reserve/commit/release, binds
+  reservations to the complete candidate fill, preserves raw IEEE transaction
+  fingerprints for staleness, exposes a normalized cross-language checkpoint,
+  applies funding once by event ID, and liquidates through deterministic
+  executable close fills.
+- Added whole-run Rust `FillReplayV2` with typed mark, fill, and funding tapes;
+  `score`, `compact`, and `audit` share one accounting run and terminal/trace
+  fingerprints. The PyO3 boundary makes one detached native call, and Python
+  only validates input and adapts cold-path buffers into `BacktestResultV2`.
+- `QuantBTEndpoint.fill_replay(accounting_backend="rust_v2")` is explicit and
+  fail-closed. It preserves `numba_v1` as the default compatibility comparator,
+  rejects conflicting metadata, accepts scheduled `funding_replay`, requires
+  close-timestamp bars, and records the resolved accounting/funding contract.
+  `FillReplayTapeV2`, `FundingReplayTapeV2`, the typed result, and V2 errors
+  are also exported from `quantbt` for reusable advanced tapes.
+- Added the machine contract, A2 accounting documentation, independent
+  standard-library-only oracle, phase checker, endpoint docs, generated V1.1
+  route inventory, and source/root mirror. The generated inventory now names
+  `fill_replay_v1_numba` as a legacy comparator and `fill_replay_v2_rust` as
+  the Rust accounting authority instead of presenting one ambiguous route.
+- Certification coverage includes scale/reduce/reverse, split-fill
+  metamorphism, zero quantity, invalid market atomicity, post-cost rejection,
+  reservation leak/mismatch, before/after-close funding, duplicate funding,
+  shared multi-symbol margin, liquidation, audit/compact/score fingerprints,
+  normal report surfaces, and randomized valid/invalid streams. Canonical
+  trace parity is exact between Rust and the independent oracle; V1 terminal
+  overlap is intentionally documented as narrower.
+- Local CPython 3.12/Linux verification: `tests/test_phase59_linear_accounting_fill_replay.py`
+  (`11 passed`); phase 56-59 plus native-contract group (`187 passed`);
+  full Python suite excluding the two local real-data scripts (`961 passed,
+  22 skipped`); `cargo fmt --check`, workspace `clippy -D warnings`, and all
+  workspace Rust unit/doc tests pass. Source mirror, generated public/product/
+  V1.1 inventory, module-architecture, documentation-link, and Phase 59
+  machine-contract checks all pass.
+
+Phase boundary and remaining work:
+
+- There is no unresolved accounting discrepancy in the declared Phase 59
+  linear gross-cross FillReplay scope. Matching/fill generation, slippage and
+  liquidity models, common metrics/result ownership, and migration of static
+  event/target/portfolio/package/intrabar consumers are deliberately Phase 60+
+  work, not hidden fallback or untracked Phase 59 debt.
 
 ### Phase 60 / Guide Phase 4 - Execution Model, Metrics, And Native Result Closure
 

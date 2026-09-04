@@ -59,6 +59,11 @@ from .core.intrabar_reference import (
 )
 from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
+from .core.fill_replay_v2 import (
+    FillReplayTapeV2,
+    FundingReplayTapeV2,
+    run_fill_replay_v2_native,
+)
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
 from .core.market_calendar_v2 import (
     CalendarPolicyV2,
@@ -954,17 +959,52 @@ class QuantBTEndpoint:
         )
 
     @classmethod
-    def fill_replay(cls, *, report_level: str = "audit", **kwargs) -> "QuantBTEndpoint":
+    def fill_replay(
+        cls,
+        *,
+        report_level: str = "audit",
+        accounting_backend: str = "numba_v1",
+        funding_phase: str = "after_fills_at_close",
+        liquidation_fee_rate: float = 0.0,
+        invariant_checks: Optional[bool] = None,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
         """
         Create a fast accounting replay endpoint for explicit fills.
 
         Use `backtest(data=df, fill_replay=FillReplayTape_or_DataFrame)`. This
         certifies accounting from supplied fills but does not certify how those
-        fills were generated.
+        fills were generated. `accounting_backend="numba_v1"` preserves the
+        historical single-symbol comparator. `"rust_v2"` selects the typed
+        linear gross-cross authority with explicit funding replay support.
         """
+        backend = str(accounting_backend).lower().strip()
+        if backend not in {"numba_v1", "rust_v2"}:
+            raise ValueError("accounting_backend must be numba_v1 or rust_v2")
+        phase = str(funding_phase).lower().strip()
+        if phase not in {"before_fills_at_close", "after_fills_at_close"}:
+            raise ValueError("funding_phase must be before_fills_at_close or after_fills_at_close")
+        if float(liquidation_fee_rate) < 0.0:
+            raise ValueError("liquidation_fee_rate must be >= 0")
         metadata = dict(kwargs.pop("metadata", {}))
-        metadata.setdefault("execution_contract_id", "fill_replay_v1")
-        metadata.setdefault("execution_contract", ExecutionContract.fill_replay().to_metadata())
+        contract = ExecutionContract.fill_replay_v2() if backend == "rust_v2" else ExecutionContract.fill_replay()
+        _require_matching_metadata(metadata, "execution_contract_id", contract.engine_id)
+        if "execution_contract" in metadata:
+            try:
+                supplied_contract = ExecutionContract.from_metadata(metadata["execution_contract"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError("metadata.execution_contract is not a valid ExecutionContract record") from exc
+            if supplied_contract != contract:
+                raise ValueError(
+                    f"metadata.execution_contract conflicts with fill replay {backend!r}; "
+                    f"expected {contract.engine_id!r}"
+                )
+        metadata["execution_contract"] = contract.to_metadata()
+        _require_matching_metadata(metadata, "fill_replay_accounting_backend", backend)
+        _require_matching_metadata(metadata, "fill_replay_funding_phase", phase)
+        _require_matching_metadata(metadata, "fill_replay_liquidation_fee_rate", float(liquidation_fee_rate))
+        if invariant_checks is not None:
+            _require_matching_metadata(metadata, "fill_replay_invariant_checks", bool(invariant_checks))
         return cls(
             _config_from_kwargs(
                 mode="fill_replay",
@@ -1726,7 +1766,8 @@ class QuantBTEndpoint:
         session_tape: Optional[IntrabarSessionTape] = None,
         funding_event_timestamps=None,
         funding_event_rates=None,
-        fill_replay: Optional[Union[FillReplayTape, pd.DataFrame]] = None,
+        fill_replay: Optional[Union[FillReplayTape, FillReplayTapeV2, pd.DataFrame]] = None,
+        funding_replay: Optional[Union[FundingReplayTapeV2, pd.DataFrame]] = None,
         underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
         hedge_policy: Optional[OptionHedgeConfig] = None,
         net_option_delta: Optional[pd.Series] = None,
@@ -1760,6 +1801,11 @@ class QuantBTEndpoint:
             Explicit per-symbol price series maps.
         datetime_index:
             Optional common datetime index. Defaults to data/signal index.
+        fill_replay/funding_replay:
+            Explicit accounting tape inputs for ``fill_replay``. The
+            compatibility V1 backend accepts only a single-symbol fill tape;
+            explicit ``accounting_backend="rust_v2"`` also accepts
+            multi-symbol signed fills and scheduled funding rows.
         symbols:
             Optional symbol override for this run.
         """
@@ -1836,6 +1882,7 @@ class QuantBTEndpoint:
                 datetime_index=datetime_index,
                 symbols=symbols,
                 fill_replay=fill_replay,
+                funding_replay=funding_replay,
             )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
@@ -2223,12 +2270,25 @@ class QuantBTEndpoint:
         self._store_result(result)
         return self.result
 
-    def _run_fill_replay(self, data, datetime_index, symbols, fill_replay):
+    def _run_fill_replay(self, data, datetime_index, symbols, fill_replay, funding_replay=None):
         if fill_replay is None:
             raise ValueError("fill_replay endpoint requires fill_replay=FillReplayTape or DataFrame")
         symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        backend = str(self.config.metadata.get("fill_replay_accounting_backend", "numba_v1")).lower().strip()
+        if backend == "rust_v2":
+            return self._run_fill_replay_v2(
+                data=data,
+                datetime_index=datetime_index,
+                symbols=symbol_list,
+                fill_replay=fill_replay,
+                funding_replay=funding_replay,
+            )
+        if backend != "numba_v1":
+            raise ValueError(f"unsupported fill replay accounting backend {backend!r}")
+        if funding_replay is not None:
+            raise ValueError("funding_replay requires accounting_backend='rust_v2'")
         if len(symbol_list) != 1:
-            raise ValueError("fill_replay currently supports exactly one symbol")
+            raise ValueError("fill_replay numba_v1 currently supports exactly one symbol")
         symbol = symbol_list[0]
         tape = prepare_market_tape(
             data=data,
@@ -2274,6 +2334,102 @@ class QuantBTEndpoint:
             leverage=float(self.config.account.leverage),
             fees=replay.fees,
             diagnostics=pd.DataFrame({"event_flags": replay.event_flags, "fees": replay.fees}, index=idx),
+            metadata=metadata,
+        )
+        self.engine = replay
+        self._store_result(result)
+        return self.result
+
+    def _run_fill_replay_v2(self, data, datetime_index, symbols, fill_replay, funding_replay):
+        if str(self.config.metadata.get("bar_timestamp_semantics", "close")).lower().strip() != "close":
+            raise NotImplementedError(
+                "fill_replay rust_v2 is certified for close-timestamp bars only"
+            )
+        tape = prepare_market_tape(
+            data=data,
+            datetime_index=datetime_index,
+            symbols=symbols,
+            funding_rate=0.0,
+            use_funding=False,
+            validation_mode="strict",
+            source_timezone=self.config.metadata.get("source_timezone"),
+            bar_timestamp_semantics="close",
+        )
+        contract_sizes = [_scalar_for_symbol(self.config.contract_size, symbol) for symbol in tape.symbols]
+        if isinstance(fill_replay, FillReplayTapeV2):
+            fill_tape = fill_replay
+        elif isinstance(fill_replay, FillReplayTape):
+            fill_tape = FillReplayTapeV2.from_legacy(fill_replay, symbols=tape.symbols)
+        elif isinstance(fill_replay, pd.DataFrame):
+            fill_tape = FillReplayTapeV2.from_frame(
+                fill_replay,
+                symbols=tape.symbols,
+                contract_sizes=contract_sizes,
+                fee_rate=self.config.v2_fee_rate,
+            )
+        else:
+            raise TypeError("fill_replay must be a FillReplayTapeV2, FillReplayTape, or pandas DataFrame")
+        if funding_replay is None:
+            funding_tape = FundingReplayTapeV2.empty()
+        elif isinstance(funding_replay, FundingReplayTapeV2):
+            funding_tape = funding_replay
+        elif isinstance(funding_replay, pd.DataFrame):
+            funding_tape = FundingReplayTapeV2.from_frame(funding_replay, symbols=tape.symbols)
+        else:
+            raise TypeError("funding_replay must be a FundingReplayTapeV2 or pandas DataFrame")
+        report_level = str(self.config.report_level).lower().strip()
+        profile_map = {
+            "minimal": "compact",
+            "standard": "compact",
+            "full": "audit",
+            "audit": "audit",
+        }
+        if report_level not in profile_map:
+            raise ValueError("FillReplay rust_v2 report_level must be minimal, standard, full, or audit")
+        replay = run_fill_replay_v2_native(
+            tape=tape,
+            fills=fill_tape,
+            funding=funding_tape,
+            account=self.config.account,
+            contract_sizes=contract_sizes,
+            leverages=[float(self.config.account.leverage)] * tape.n_symbols,
+            funding_phase=str(self.config.metadata.get("fill_replay_funding_phase", "after_fills_at_close")),
+            liquidation_fee_rate=float(self.config.metadata.get("fill_replay_liquidation_fee_rate", 0.0)),
+            output_profile=profile_map[report_level],
+            invariant_checks=bool(
+                self.config.metadata.get("fill_replay_invariant_checks", profile_map[report_level] == "audit")
+            ),
+        )
+        if replay.equity is None or replay.positions is None or replay.fees is None or replay.funding is None:
+            raise RuntimeError("FillReplay rust_v2 endpoint requires a compact or audit result path")
+        closes = pd.DataFrame(
+            {f"Close_{symbol}": tape.closes[:, column] for column, symbol in enumerate(tape.symbols)},
+            index=replay.equity.index,
+        )
+        metadata = {
+            **dict(self.config.metadata),
+            **dict(replay.metadata),
+            "symbol": tape.symbols[0] if len(tape.symbols) == 1 else None,
+            "symbols": list(tape.symbols),
+            "phase": "59_linear_accounting_fill_replay_v2",
+            "fill_replay_profile": replay.profile,
+            "fills_report": fill_tape.to_frame(tape.symbols),
+            "funding_report": funding_tape.to_frame(tape.symbols),
+            "canonical_trace_v2": replay.canonical_trace,
+        }
+        result = BacktestResultV2(
+            equity=replay.equity,
+            returns=replay.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0),
+            positions=replay.positions,
+            closes=closes,
+            symbols=list(tape.symbols),
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            liquidated=bool(replay.score["liquidated"]),
+            fees=replay.fees,
+            funding=replay.funding,
+            margin=replay.margin if replay.margin is not None else pd.DataFrame(index=replay.equity.index),
+            diagnostics=replay.diagnostics if replay.diagnostics is not None else pd.DataFrame(index=replay.equity.index),
             metadata=metadata,
         )
         self.engine = replay
@@ -3462,6 +3618,16 @@ def _fmt_int(value) -> str:
     if value is None or pd.isna(value):
         return f"{'n/a':>14}"
     return f"{int(value):>14,d}"
+
+
+def _require_matching_metadata(metadata: Dict, key: str, value: object) -> None:
+    """Set authoritative endpoint provenance without silently rewriting input."""
+
+    if key in metadata and metadata[key] != value:
+        raise ValueError(
+            f"metadata.{key}={metadata[key]!r} conflicts with the explicit endpoint value {value!r}"
+        )
+    metadata[key] = value
 
 
 def _config_from_kwargs(**kwargs) -> EndpointConfig:

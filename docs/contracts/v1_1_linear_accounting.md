@@ -68,3 +68,15 @@ No single global epsilon is a valid proof of accounting parity.
 The reference model supports linear quote settlement only. Inverse, quanto,
 multi-currency conservation, and option valuation must use their own future
 accounting contracts and fail closed rather than reuse this formula.
+
+## FillReplay V2 Authority
+
+The reference model above remains deliberately small and independent. Phase 59
+uses it as the starting point for the Rust-owned, explicit multi-symbol replay
+route. Its additional reservation, apply-once funding, deterministic
+liquidation, canonical-trace, output-profile, and certification rules are
+defined separately in
+[`v1_1_linear_accounting_fill_replay_v2_contract.json`](../../contracts/v1_1_linear_accounting_fill_replay_v2_contract.json)
+and [Linear Accounting And FillReplay V2](v1_1_linear_accounting_fill_replay_v2.md).
+The historical FillReplay V1 kernel remains a compatibility comparator rather
+than being silently reinterpreted as the V2 authority.

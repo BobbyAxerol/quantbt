@@ -93,6 +93,13 @@ from .intrabar_kernel import (
     run_intrabar_kernel,
     run_intrabar_session_kernel,
 )
+from .fill_replay_v2 import (
+    FillReplayTapeV2,
+    FillReplayV2Error,
+    FillReplayV2NativeUnavailable,
+    FundingReplayTapeV2,
+    NativeFillReplayV2Result,
+)
 from .certification import (
     AlphaExecutionClassification,
     CertificationLevel,
@@ -320,6 +327,7 @@ __all__ = [
     "FillPricePolicy",
     "FillPhase",
     "FundingPhase",
+    "FundingReplayTapeV2",
     "FundingArbitrageSpec",
     "FrozenBasketPlan",
     "HedgePolicy",
@@ -341,6 +349,9 @@ __all__ = [
     "SessionExecutionPolicy",
     "IntrabarSameBarPolicy",
     "FillReplayTape",
+    "FillReplayTapeV2",
+    "FillReplayV2Error",
+    "FillReplayV2NativeUnavailable",
     "LifecycleModel",
     "LifecycleModelKind",
     "LiquiditySide",
@@ -360,6 +371,7 @@ __all__ = [
     "SymbolCalendarMapV2",
     "NautilusExecutionDepthConfig",
     "NativeFillReplayResult",
+    "NativeFillReplayV2Result",
     "NativeIntrabarKernelResult",
     "NativeActiveOrderSnapshot",
     "NativeCommandBatch",

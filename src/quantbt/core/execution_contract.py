@@ -143,6 +143,25 @@ class ExecutionContract:
         )
 
     @classmethod
+    def fill_replay_v2(cls) -> "ExecutionContract":
+        """Contract for the Rust-owned explicit linear accounting replay.
+
+        V2 consumes already committed fills at explicit bar-close boundaries;
+        it does not derive an entry from a signal.  The separate V2 funding
+        phase metadata selects whether scheduled funding is applied before or
+        after the supplied close-boundary fill rows.
+        """
+
+        return cls(
+            engine_id="fill_replay_v2",
+            signal_phase=SignalPhase.BAR_CLOSE,
+            entry_fill_phase=FillPhase.SAME_CLOSE,
+            market_fill_policy=MarketFillPolicy.CLOSE,
+            funding_phase=FundingPhase.POSITION_AT_CLOSE,
+            close_on_last_bar=False,
+        )
+
+    @classmethod
     def event_lifecycle(cls) -> "ExecutionContract":
         """Return the frozen legacy lifecycle contract.
 
@@ -206,6 +225,7 @@ EXECUTION_CONTRACT_REGISTRY: Dict[str, ExecutionContract] = {
     "next_open_v1": ExecutionContract.next_open(),
     "intrabar_bracket_v1": ExecutionContract.intrabar_bracket(),
     "fill_replay_v1": ExecutionContract.fill_replay(),
+    "fill_replay_v2": ExecutionContract.fill_replay_v2(),
     "event_lifecycle_v2_next_bar_close": ExecutionContract.event_lifecycle_v2_next_bar_close(),
     "event_lifecycle_v3_next_open": ExecutionContract.event_lifecycle_v3_next_open(),
 }

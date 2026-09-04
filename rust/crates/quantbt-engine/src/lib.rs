@@ -7,6 +7,7 @@
 //! available while its complete ABI 0.5 execution migration is certified.
 
 pub mod account;
+pub mod fill_replay;
 pub mod legacy;
 pub mod market;
 pub mod orders;
@@ -17,6 +18,11 @@ pub mod generated_contracts {
     pub use quantbt_domain::generated_contracts::*;
 }
 
+pub use fill_replay::{
+    FillReplayAuditV2, FillReplayCompactV2, FillReplayConfigV2, FillReplayFillV2,
+    FillReplayFundingV2, FillReplayOutputProfileV2, FillReplayResultV2, FillReplayScoreV2,
+    FundingPhaseV1, run_fill_replay_v2,
+};
 pub use output::{
     NATIVE_EXECUTION_OUTPUT_VERSION_V1, NativeAuditOutputV1, NativeCompactOutputV1,
     NativeEventOutputV1, NativeExecutionOutputV1, NativeFillOutputV1, NativePathOutputV1,

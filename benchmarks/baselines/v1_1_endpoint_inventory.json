@@ -15,7 +15,8 @@
       "event_driven_strategy"
     ],
     "fill_replay": [
-      "fill_replay_accounting"
+      "fill_replay_v1_numba",
+      "fill_replay_v2_rust"
     ],
     "intrabar_bracket": [
       "intrabar_fast_numba"
@@ -165,9 +166,13 @@
     "FillPhase",
     "FillPricePolicy",
     "FillReplayTape",
+    "FillReplayTapeV2",
+    "FillReplayV2Error",
+    "FillReplayV2NativeUnavailable",
     "FrozenBasketPlan",
     "FundingArbitrageSpec",
     "FundingPhase",
+    "FundingReplayTapeV2",
     "GammaScalpingConfig",
     "HedgeDecision",
     "HedgePathResult",
@@ -239,6 +244,7 @@
     "NativeEventStrategyProtocol",
     "NativeFillEvent",
     "NativeFillReplayResult",
+    "NativeFillReplayV2Result",
     "NativeIRBatchResult",
     "NativeIRExecutionRunner",
     "NativeIRFold",
@@ -804,13 +810,13 @@
       "factory": "fill_replay",
       "fallback": {
         "auto": "not applicable",
-        "explicit": "fill replay is selected directly"
+        "explicit": "default accounting_backend='numba_v1' remains available"
       },
-      "id": "fill_replay_accounting",
+      "id": "fill_replay_v1_numba",
       "input_mode": "explicit_fill_tape",
-      "maturity": "certified_accounting_replay",
+      "maturity": "legacy_accounting_comparator",
       "notes": [
-        "It certifies accounting from supplied fills, not fill generation."
+        "Single-symbol V1 comparator; it certifies supplied-fill arithmetic, not fill generation."
       ],
       "package_versions": {
         "command_abi": "full-command-v1",
@@ -828,9 +834,57 @@
         "audit"
       ],
       "requested_backends": [
-        "native_intrabar"
+        "numba_v1"
       ],
-      "resolved_backend_baseline": "Numba fill-replay accounting kernel",
+      "resolved_backend_baseline": "legacy Numba fill-replay accounting comparator",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.fill_replay"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Rust LinearGrossCrossAccountV1",
+        "control_flow": "Python validates and packs one immutable replay request",
+        "execution": "Rust FillReplay V2 whole-run accounting executor",
+        "metrics": "Python standard metrics over Rust-owned accounting paths",
+        "result": "Rust score/compact/audit buffers adapted by Python on the cold path",
+        "strategy": "caller-owned explicit typed fill and funding tapes"
+      },
+      "endpoint": "QuantBTEndpoint.fill_replay",
+      "factory": "fill_replay",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "rust_v2 fails closed when the matching native wheel is unavailable"
+      },
+      "id": "fill_replay_v2_rust",
+      "input_mode": "typed_explicit_fill_and_funding_tapes",
+      "maturity": "a2_domain_certified",
+      "notes": [
+        "Accounting is certified from supplied fills and funding only; matching and fill generation remain out of scope.",
+        "Close-timestamp bars, one settlement currency, and linear gross-cross margin are required."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "full",
+        "audit"
+      ],
+      "requested_backends": [
+        "rust_v2"
+      ],
+      "resolved_backend_baseline": "explicit Rust FillReplay V2 with LinearGrossCrossAccountV1",
       "runtime_class": "WholeRunNative",
       "source_anchors": [
         "src/quantbt/endpoint.py#QuantBTEndpoint.fill_replay"
@@ -2109,9 +2163,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 206665,
+      "bytes": 215175,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "598a8d9e0b284a481e4dbe9a96fbf807997af3a32239d47b0cfa7b56f1ffc09f"
+      "sha256": "efd70e4fb4fbd40799873ae4e7f49d988e8962df79e216735f1324d0c1f02d16"
     },
     "guide": {
       "bytes": 144542,
@@ -2129,9 +2183,9 @@
       "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
     },
     "public_api_inventory": {
-      "bytes": 15924,
+      "bytes": 16103,
       "path": "contracts/generated_public_api_inventory.json",
-      "sha256": "9d481c588d6d3a8709166400e62ab24467ed468211cf57504bd799f4c0a4a588"
+      "sha256": "51cbb1247ffaffb93916beba8b7ae2b7e3c71f672bc2268ce7716f79e2d25911"
     }
   }
 }

@@ -61,7 +61,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | Numba | fast single-symbol signal research with fixed units between signal changes |
 | `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | Numba | fast next-open SL/TP/trailing/reversal semantics |
 | `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | Python oracle | readable oracle for the fast intrabar contract |
-| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | Numba | fast accounting replay from explicit fills |
+| `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | Numba V1 default; explicit Rust V2 | explicit-fill accounting replay; V2 adds multi-symbol funding, margin, liquidation, and canonical audit trace |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | Python | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | Python compatibility | explicit `OrderIntent` market/limit/stop simulation |
 | `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | callback: Python; certified static/IR: Rust eligible | stable facade for reactive strategies or explicit lifecycle commands |
@@ -807,6 +807,56 @@ price
 This route is Level 1 certification by design: QuantBT certifies accounting from
 the supplied fills, while the alpha or external system remains responsible for
 causal fill generation.
+
+### Rust Linear Accounting V2
+
+The default remains `accounting_backend="numba_v1"` for exact backward
+compatibility with historical single-symbol replay. Request `"rust_v2"`
+explicitly when the supplied tape needs shared gross-cross accounting,
+multi-symbol positions, scheduled funding, deterministic post-cost margin
+rejection, executable liquidation close fills, and a `canonical-trace-v2`
+audit artifact.
+
+```python
+bt = QuantBTEndpoint.fill_replay(
+    accounting_backend="rust_v2",
+    initial_capital=20_000,
+    leverage=5,
+    maintenance_ratio=0.005,
+    contract_size={"BTCUSDT": 1.0, "ETHUSDT": 1.0},
+    funding_phase="after_fills_at_close",
+    liquidation_fee_rate=0.0005,
+    report_level="audit",
+)
+
+result = bt.backtest(
+    data={"BTCUSDT": btc_ohlcv, "ETHUSDT": eth_ohlcv},
+    symbols=["BTCUSDT", "ETHUSDT"],
+    fill_replay=fills_df,
+    funding_replay=funding_df,
+)
+trace = result.metadata["canonical_trace_v2"]
+```
+
+V2 fill rows are already committed candidates and must be strictly sorted by
+`bar_index`, then `sequence`. They carry `event_id`, `symbol`, `signed_qty`,
+`price`, and explicit one-way `fee`; funding rows separately carry `event_id`,
+`symbol`, and `rate`. Empty DataFrames are valid zero-event tapes. V2 accepts
+only close-timestamp OHLC bars and fails instead of shifting a bar-open funding
+event. `funding_phase` is either `before_fills_at_close` or
+`after_fills_at_close`, recorded together with the resolved
+`execution_contract_id="fill_replay_v2"` in result metadata.
+
+For reusable typed tapes rather than DataFrames, import
+`FillReplayTapeV2` and `FundingReplayTapeV2` directly from `quantbt`.
+
+This is an A2 accounting certificate, not a matching engine: inverse/quanto,
+multi-currency, venue portfolio margin, queue/depth, order lifecycle, and fill
+generation remain outside the route. A missing or outdated `quantbt-native`
+wheel makes an explicit V2 request fail clearly; it never drops to V1 or a
+different Python accounting path. Read [Linear Accounting And FillReplay
+V2](contracts/v1_1_linear_accounting_fill_replay_v2.md) for the exact state,
+funding, liquidation, and trace contract.
 
 ## Alpha Execution Audit
 

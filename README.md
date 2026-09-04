@@ -105,6 +105,7 @@ implementation language.
 | Equity-relative single-symbol signals | `pct_equity(...)` | signal series | legacy-compatible Python |
 | Fast fixed-notional signals | `signal_notional(...)` | signal series | native vectorized / Numba |
 | Causal SL/TP/trailing | `intrabar_bracket(...)` | intent tape or columns | native intrabar / Numba |
+| Explicit fill/funding accounting audit | `fill_replay(accounting_backend="rust_v2")` | typed fill + funding tapes | Rust linear account authority |
 | Stateful event strategy | `event_driven(input_mode="strategy")` | strategy protocol | Python callback engine |
 | Canonical command tape | `event_driven(input_mode="orders")` | `OrderCommand` tape | auto: certified Rust or Python |
 | Legacy explicit orders | `orders(...)` | `OrderIntent` list | native event |
@@ -213,8 +214,16 @@ Current automatic Rust scope:
 
 Current explicit-only Rust scope:
 
+- linear quote-settled gross-cross FillReplay V2 from supplied fill/funding tapes;
 - linear quote-settled `target_units` portfolio market execution;
 - one ordered, same-bar, all-or-none atomic market package.
+
+FillReplay V2 is an accounting certificate for a close-timestamp explicit tape:
+it owns multi-symbol scale/reduce/reverse arithmetic, one-way fees, funding
+apply-once IDs, shared gross-cross margin, deterministic liquidation fills,
+and `canonical-trace-v2` evidence. It does not infer whether the supplied
+fills were obtainable. Read [Linear Accounting And FillReplay V2](docs/contracts/v1_1_linear_accounting_fill_replay_v2.md)
+before using it for an audit.
 
 Python remains authoritative for arbitrary callbacks, reactive strategies,
 generic portfolio/basket/arbitrage/options routes, complex cross-margin, and

@@ -74,6 +74,7 @@
       "NativeEventScalarScoreResult",
       "NativeEventScoreResult",
       "NativeFillReplayResult",
+      "NativeFillReplayV2Result",
       "NativeIRBatchResult",
       "NativeIRRunResult",
       "NativeIntrabarKernelResult",
@@ -377,9 +378,13 @@
     "FeeModel",
     "Fill",
     "FillReplayTape",
+    "FillReplayTapeV2",
+    "FillReplayV2Error",
+    "FillReplayV2NativeUnavailable",
     "FillPricePolicy",
     "FillPhase",
     "FundingPhase",
+    "FundingReplayTapeV2",
     "FundingArbitrageSpec",
     "FrozenBasketPlan",
     "HedgePolicy",
@@ -416,6 +421,7 @@
     "PreparedMarketHandleV2",
     "SymbolCalendarMapV2",
     "NativeFillReplayResult",
+    "NativeFillReplayV2Result",
     "NativeIntrabarKernelResult",
     "OmsMode",
     "OrderAction",
@@ -555,5 +561,5 @@
   ],
   "schema": "quantbt-public-api-inventory-v1",
   "source": "src/quantbt/__init__.py",
-  "source_sha256": "9e68035a36076b0b847ce4bca41f0157be4ddb96cd39ab5b94814fc5b7e361db"
+  "source_sha256": "a2a523f0c6f9979ed1137529a678e699807a937bc8e3d576c846a39903b27893"
 }

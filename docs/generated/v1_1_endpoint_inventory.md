@@ -15,7 +15,8 @@ artifact is [`v1_1_endpoint_inventory.json`](../../benchmarks/baselines/v1_1_end
 | `QuantBTEndpoint.dca_ladder` (dca_ladder_legacy) | structural_grid_level | legacy DCA/grid simulator | `PythonCompatibility` | `stable_compatibility` |
 | `QuantBTEndpoint.event_driven` (event_driven_orders) | canonical_order_command_tape | capability-gated Rust static tape at declared thresholds; Python otherwise | `WholeRunNative` | `promoted_bounded_static` |
 | `QuantBTEndpoint.event_driven` (event_driven_strategy) | stateful_python_reactive_strategy | Python reactive lifecycle | `PythonCompatibility` | `stable_python_reactive` |
-| `QuantBTEndpoint.fill_replay` (fill_replay_accounting) | explicit_fill_tape | Numba fill-replay accounting kernel | `WholeRunNative` | `certified_accounting_replay` |
+| `QuantBTEndpoint.fill_replay` (fill_replay_v1_numba) | explicit_fill_tape | legacy Numba fill-replay accounting comparator | `WholeRunNative` | `legacy_accounting_comparator` |
+| `QuantBTEndpoint.fill_replay` (fill_replay_v2_rust) | typed_explicit_fill_and_funding_tapes | explicit Rust FillReplay V2 with LinearGrossCrossAccountV1 | `WholeRunNative` | `a2_domain_certified` |
 | `QuantBTEndpoint.intrabar_bracket` (intrabar_fast_numba) | compact_entry_exit_stop_take_profit_trailing_intent | Numba intrabar kernel | `WholeRunNative` | `certified_numba` |
 | `QuantBTEndpoint.intrabar_bracket_reference` (intrabar_reference) | compact_entry_exit_stop_take_profit_trailing_intent | readable Python intrabar oracle | `PythonCompatibility` | `truth_model` |
 | `QuantBTEndpoint.native_event_bracket_orders` (native_event_bracket_orders) | BracketOrderSpec_to_order_commands | Python native-event structured-order route | `PythonCompatibility` | `controlled_research` |

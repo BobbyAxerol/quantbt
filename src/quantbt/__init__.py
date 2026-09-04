@@ -297,6 +297,13 @@ from .core.intrabar_kernel import (
     run_intrabar_kernel,
     run_intrabar_session_kernel,
 )
+from .core.fill_replay_v2 import (
+    FillReplayTapeV2,
+    FillReplayV2Error,
+    FillReplayV2NativeUnavailable,
+    FundingReplayTapeV2,
+    NativeFillReplayV2Result,
+)
 from .core.certification import (
     AlphaExecutionClassification,
     CertificationLevel,
@@ -914,9 +921,13 @@ __all__ = [
     "FeeModel",
     "Fill",
     "FillReplayTape",
+    "FillReplayTapeV2",
+    "FillReplayV2Error",
+    "FillReplayV2NativeUnavailable",
     "FillPricePolicy",
     "FillPhase",
     "FundingPhase",
+    "FundingReplayTapeV2",
     "FundingArbitrageSpec",
     "FrozenBasketPlan",
     "HedgePolicy",
@@ -953,6 +964,7 @@ __all__ = [
     "PreparedMarketHandleV2",
     "SymbolCalendarMapV2",
     "NativeFillReplayResult",
+    "NativeFillReplayV2Result",
     "NativeIntrabarKernelResult",
     "OmsMode",
     "OrderAction",

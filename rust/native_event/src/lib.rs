@@ -181,6 +181,415 @@ fn product_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     Ok(descriptor)
 }
 
+/// Execute a whole explicit-fill tape through the V1.1 linear accounting
+/// authority. This route has no matching logic: supplied fills, marks, and
+/// scheduled funding events are the complete typed input contract.
+#[pyfunction]
+#[pyo3(signature = (
+    timestamps_ns,
+    marks,
+    contract_sizes,
+    leverages,
+    initial_capital,
+    maintenance_ratio,
+    fill_bar,
+    fill_sequence,
+    fill_event_id,
+    fill_symbol,
+    fill_signed_qty,
+    fill_price,
+    fill_fee,
+    funding_bar,
+    funding_sequence,
+    funding_event_id,
+    funding_symbol,
+    funding_rate,
+    funding_phase=1,
+    liquidation_fee_rate=0.0,
+    output_profile=2,
+    invariant_checks=true
+))]
+#[allow(clippy::too_many_arguments)]
+fn run_fill_replay_v2_native(
+    py: Python<'_>,
+    timestamps_ns: PyReadonlyArray1<'_, i64>,
+    marks: PyReadonlyArray2<'_, f64>,
+    contract_sizes: PyReadonlyArray1<'_, f64>,
+    leverages: PyReadonlyArray1<'_, f64>,
+    initial_capital: f64,
+    maintenance_ratio: f64,
+    fill_bar: PyReadonlyArray1<'_, i64>,
+    fill_sequence: PyReadonlyArray1<'_, i64>,
+    fill_event_id: PyReadonlyArray1<'_, u64>,
+    fill_symbol: PyReadonlyArray1<'_, i64>,
+    fill_signed_qty: PyReadonlyArray1<'_, f64>,
+    fill_price: PyReadonlyArray1<'_, f64>,
+    fill_fee: PyReadonlyArray1<'_, f64>,
+    funding_bar: PyReadonlyArray1<'_, i64>,
+    funding_sequence: PyReadonlyArray1<'_, i64>,
+    funding_event_id: PyReadonlyArray1<'_, u64>,
+    funding_symbol: PyReadonlyArray1<'_, i64>,
+    funding_rate: PyReadonlyArray1<'_, f64>,
+    funding_phase: u8,
+    liquidation_fee_rate: f64,
+    output_profile: u8,
+    invariant_checks: bool,
+) -> PyResult<Py<PyDict>> {
+    let marks_shape = marks.shape().to_vec();
+    let timestamps = timestamps_ns.as_slice()?.to_vec();
+    if marks_shape.len() != 2
+        || marks_shape[0] != timestamps.len()
+        || marks_shape[1] == 0
+        || contract_sizes.len() != marks_shape[1]
+        || leverages.len() != marks_shape[1]
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "FillReplay V2 requires marks shaped (n_bars, n_symbols) and one contract/leverage per symbol",
+        ));
+    }
+    let marks = marks.as_slice()?.to_vec();
+    let contract_sizes = contract_sizes.as_slice()?.to_vec();
+    let leverages = leverages.as_slice()?.to_vec();
+    let fill_bar = fill_bar.as_slice()?;
+    let fill_sequence = fill_sequence.as_slice()?;
+    let fill_event_id = fill_event_id.as_slice()?;
+    let fill_symbol = fill_symbol.as_slice()?;
+    let fill_signed_qty = fill_signed_qty.as_slice()?;
+    let fill_price = fill_price.as_slice()?;
+    let fill_fee = fill_fee.as_slice()?;
+    let fill_count = fill_bar.len();
+    if [
+        fill_sequence.len(),
+        fill_event_id.len(),
+        fill_symbol.len(),
+        fill_signed_qty.len(),
+        fill_price.len(),
+        fill_fee.len(),
+    ]
+    .iter()
+    .any(|length| *length != fill_count)
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "FillReplay V2 fill arrays must have equal length",
+        ));
+    }
+    let mut fills = Vec::with_capacity(fill_count);
+    for index in 0..fill_count {
+        let bar_index = usize::try_from(fill_bar[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 fill bar_index must be >= 0")
+        })?;
+        let sequence = u64::try_from(fill_sequence[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 fill sequence must be >= 0")
+        })?;
+        let symbol = u32::try_from(fill_symbol[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 fill symbol must be >= 0")
+        })?;
+        fills.push(full::FillReplayFillV2 {
+            bar_index,
+            sequence,
+            event_id: fill_event_id[index],
+            symbol: quantbt_domain::ids::SymbolId(symbol),
+            signed_qty: fill_signed_qty[index],
+            price: fill_price[index],
+            fee: fill_fee[index],
+        });
+    }
+    let funding_bar = funding_bar.as_slice()?;
+    let funding_sequence = funding_sequence.as_slice()?;
+    let funding_event_id = funding_event_id.as_slice()?;
+    let funding_symbol = funding_symbol.as_slice()?;
+    let funding_rate = funding_rate.as_slice()?;
+    let funding_count = funding_bar.len();
+    if [
+        funding_sequence.len(),
+        funding_event_id.len(),
+        funding_symbol.len(),
+        funding_rate.len(),
+    ]
+    .iter()
+    .any(|length| *length != funding_count)
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "FillReplay V2 funding arrays must have equal length",
+        ));
+    }
+    let mut funding = Vec::with_capacity(funding_count);
+    for index in 0..funding_count {
+        let bar_index = usize::try_from(funding_bar[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 funding bar_index must be >= 0")
+        })?;
+        let sequence = u64::try_from(funding_sequence[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 funding sequence must be >= 0")
+        })?;
+        let symbol = u32::try_from(funding_symbol[index]).map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err("FillReplay V2 funding symbol must be >= 0")
+        })?;
+        funding.push(full::FillReplayFundingV2 {
+            bar_index,
+            sequence,
+            event_id: funding_event_id[index],
+            symbol: quantbt_domain::ids::SymbolId(symbol),
+            rate: funding_rate[index],
+        });
+    }
+    let funding_phase = full::FundingPhaseV1::try_from(funding_phase)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let output_profile = full::FillReplayOutputProfileV2::try_from(output_profile)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let config = full::FillReplayConfigV2::new(
+        initial_capital,
+        maintenance_ratio,
+        contract_sizes,
+        leverages,
+        liquidation_fee_rate,
+        funding_phase,
+    )
+    .map_err(|code| pyo3::exceptions::PyValueError::new_err(code.name()))?
+    .with_invariant_checks(invariant_checks);
+    let result = py
+        .detach(move || {
+            full::run_fill_replay_v2(
+                &timestamps,
+                &marks,
+                marks_shape[1],
+                &fills,
+                &funding,
+                config,
+                output_profile,
+            )
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    fill_replay_v2_output_payload(py, result)
+}
+
+fn add_fill_replay_v2_score(
+    payload: &Bound<'_, PyDict>,
+    score: &full::FillReplayScoreV2,
+) -> PyResult<()> {
+    payload.set_item("final_cash", score.final_cash)?;
+    payload.set_item("final_equity", score.final_equity)?;
+    payload.set_item("total_realized_pnl", score.total_realized_pnl)?;
+    payload.set_item("total_fees", score.total_fees)?;
+    payload.set_item("total_funding", score.total_funding)?;
+    payload.set_item("initial_margin", score.initial_margin)?;
+    payload.set_item("maintenance_margin", score.maintenance_margin)?;
+    payload.set_item("available_equity", score.available_equity)?;
+    payload.set_item("liquidated", score.liquidated)?;
+    payload.set_item("liquidation_state", score.liquidation_state)?;
+    payload.set_item("accepted_fill_count", score.accepted_fill_count)?;
+    payload.set_item("rejected_fill_count", score.rejected_fill_count)?;
+    payload.set_item("accepted_funding_count", score.accepted_funding_count)?;
+    payload.set_item("rejected_funding_count", score.rejected_funding_count)?;
+    payload.set_item("account_fingerprint", score.account_fingerprint.hex())?;
+    payload.set_item("trace_fingerprint", score.trace_fingerprint.hex())?;
+    Ok(())
+}
+
+fn add_fill_replay_v2_compact(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    compact: full::FillReplayCompactV2,
+) -> PyResult<()> {
+    let full::FillReplayCompactV2 {
+        score,
+        equity,
+        cash,
+        fees_paid,
+        funding_paid,
+        initial_margin,
+        maintenance_margin,
+        available_equity,
+        liquidation_state,
+        positions,
+        average_entries,
+        n_bars,
+        n_symbols,
+    } = compact;
+    add_fill_replay_v2_score(payload, &score)?;
+    payload.set_item("n_bars", n_bars)?;
+    payload.set_item("n_symbols", n_symbols)?;
+    payload.set_item("equity", PyArray1::from_vec(py, equity))?;
+    payload.set_item("cash", PyArray1::from_vec(py, cash))?;
+    payload.set_item("fees_paid", PyArray1::from_vec(py, fees_paid))?;
+    payload.set_item("funding_paid", PyArray1::from_vec(py, funding_paid))?;
+    payload.set_item(
+        "initial_margin_path",
+        PyArray1::from_vec(py, initial_margin),
+    )?;
+    payload.set_item(
+        "maintenance_margin_path",
+        PyArray1::from_vec(py, maintenance_margin),
+    )?;
+    payload.set_item(
+        "available_equity_path",
+        PyArray1::from_vec(py, available_equity),
+    )?;
+    payload.set_item(
+        "liquidation_state_path",
+        PyArray1::from_vec(py, liquidation_state),
+    )?;
+    payload.set_item("positions", PyArray1::from_vec(py, positions))?;
+    payload.set_item("average_entries", PyArray1::from_vec(py, average_entries))?;
+    Ok(())
+}
+
+fn add_fill_replay_v2_trace(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    rows: Vec<quantbt_domain::trace_v2::CanonicalTraceRowV2>,
+) -> PyResult<()> {
+    let count = rows.len();
+    let mut sequence = Vec::with_capacity(count);
+    let mut bar_index = Vec::with_capacity(count);
+    let mut event_timestamp_ns = Vec::with_capacity(count);
+    let mut effective_timestamp_ns = Vec::with_capacity(count);
+    let mut event_kind = Vec::with_capacity(count);
+    let mut symbol = Vec::with_capacity(count);
+    let mut reason_code = Vec::with_capacity(count);
+    let mut order_status_code = Vec::with_capacity(count);
+    let mut qty = Vec::with_capacity(count);
+    let mut price = Vec::with_capacity(count);
+    let mut fee = Vec::with_capacity(count);
+    let mut cash_before = Vec::with_capacity(count);
+    let mut cash_after = Vec::with_capacity(count);
+    let mut position_before = Vec::with_capacity(count);
+    let mut position_after = Vec::with_capacity(count);
+    let mut realized_pnl_before = Vec::with_capacity(count);
+    let mut realized_pnl_after = Vec::with_capacity(count);
+    let mut initial_margin_before = Vec::with_capacity(count);
+    let mut initial_margin_after = Vec::with_capacity(count);
+    let mut maintenance_margin_before = Vec::with_capacity(count);
+    let mut maintenance_margin_after = Vec::with_capacity(count);
+    let mut state_hash_before = Vec::with_capacity(count);
+    let mut state_hash_after = Vec::with_capacity(count);
+    let mut state_hash_before_present = Vec::with_capacity(count);
+    let mut state_hash_after_present = Vec::with_capacity(count);
+    for row in rows {
+        sequence.push(row.sequence);
+        bar_index.push(i64::from(row.bar_index.0));
+        event_timestamp_ns.push(row.event_timestamp_ns.0);
+        effective_timestamp_ns.push(row.effective_timestamp_ns.0);
+        event_kind.push(row.event_kind as u16);
+        symbol.push(row.symbol_id.map_or(-1_i64, |value| i64::from(value.0)));
+        reason_code.push(row.reason_code);
+        order_status_code.push(row.order_status_code);
+        qty.push(row.qty);
+        price.push(row.price);
+        fee.push(row.fee);
+        cash_before.push(row.cash_before);
+        cash_after.push(row.cash_after);
+        position_before.push(row.position_before);
+        position_after.push(row.position_after);
+        realized_pnl_before.push(row.realized_pnl_before);
+        realized_pnl_after.push(row.realized_pnl_after);
+        initial_margin_before.push(row.initial_margin_before);
+        initial_margin_after.push(row.initial_margin_after);
+        maintenance_margin_before.push(row.maintenance_margin_before);
+        maintenance_margin_after.push(row.maintenance_margin_after);
+        state_hash_before.push(row.state_hash_before.unwrap_or(0));
+        state_hash_after.push(row.state_hash_after.unwrap_or(0));
+        state_hash_before_present.push(row.state_hash_before.is_some());
+        state_hash_after_present.push(row.state_hash_after.is_some());
+    }
+    payload.set_item("trace_rows", count)?;
+    payload.set_item("trace_sequence", PyArray1::from_vec(py, sequence))?;
+    payload.set_item("trace_bar_index", PyArray1::from_vec(py, bar_index))?;
+    payload.set_item(
+        "trace_event_timestamp_ns",
+        PyArray1::from_vec(py, event_timestamp_ns),
+    )?;
+    payload.set_item(
+        "trace_effective_timestamp_ns",
+        PyArray1::from_vec(py, effective_timestamp_ns),
+    )?;
+    payload.set_item("trace_event_kind", PyArray1::from_vec(py, event_kind))?;
+    payload.set_item("trace_symbol", PyArray1::from_vec(py, symbol))?;
+    payload.set_item("trace_reason_code", PyArray1::from_vec(py, reason_code))?;
+    payload.set_item(
+        "trace_order_status_code",
+        PyArray1::from_vec(py, order_status_code),
+    )?;
+    payload.set_item("trace_qty", PyArray1::from_vec(py, qty))?;
+    payload.set_item("trace_price", PyArray1::from_vec(py, price))?;
+    payload.set_item("trace_fee", PyArray1::from_vec(py, fee))?;
+    payload.set_item("trace_cash_before", PyArray1::from_vec(py, cash_before))?;
+    payload.set_item("trace_cash_after", PyArray1::from_vec(py, cash_after))?;
+    payload.set_item(
+        "trace_position_before",
+        PyArray1::from_vec(py, position_before),
+    )?;
+    payload.set_item(
+        "trace_position_after",
+        PyArray1::from_vec(py, position_after),
+    )?;
+    payload.set_item(
+        "trace_realized_pnl_before",
+        PyArray1::from_vec(py, realized_pnl_before),
+    )?;
+    payload.set_item(
+        "trace_realized_pnl_after",
+        PyArray1::from_vec(py, realized_pnl_after),
+    )?;
+    payload.set_item(
+        "trace_initial_margin_before",
+        PyArray1::from_vec(py, initial_margin_before),
+    )?;
+    payload.set_item(
+        "trace_initial_margin_after",
+        PyArray1::from_vec(py, initial_margin_after),
+    )?;
+    payload.set_item(
+        "trace_maintenance_margin_before",
+        PyArray1::from_vec(py, maintenance_margin_before),
+    )?;
+    payload.set_item(
+        "trace_maintenance_margin_after",
+        PyArray1::from_vec(py, maintenance_margin_after),
+    )?;
+    payload.set_item(
+        "trace_state_hash_before",
+        PyArray1::from_vec(py, state_hash_before),
+    )?;
+    payload.set_item(
+        "trace_state_hash_after",
+        PyArray1::from_vec(py, state_hash_after),
+    )?;
+    payload.set_item(
+        "trace_state_hash_before_present",
+        PyArray1::from_vec(py, state_hash_before_present),
+    )?;
+    payload.set_item(
+        "trace_state_hash_after_present",
+        PyArray1::from_vec(py, state_hash_after_present),
+    )?;
+    Ok(())
+}
+
+fn fill_replay_v2_output_payload(
+    py: Python<'_>,
+    result: full::FillReplayResultV2,
+) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    payload.set_item("engine", "fill_replay_v2_rust")?;
+    payload.set_item("canonical_trace_schema", "canonical-trace-v2")?;
+    match result {
+        full::FillReplayResultV2::Score(score) => {
+            payload.set_item("output_profile", "score")?;
+            add_fill_replay_v2_score(&payload, &score)?;
+        }
+        full::FillReplayResultV2::Compact(compact) => {
+            payload.set_item("output_profile", "compact")?;
+            add_fill_replay_v2_compact(py, &payload, compact)?;
+        }
+        full::FillReplayResultV2::Audit(audit) => {
+            payload.set_item("output_profile", "audit")?;
+            add_fill_replay_v2_compact(py, &payload, audit.compact)?;
+            add_fill_replay_v2_trace(py, &payload, audit.trace)?;
+        }
+    }
+    Ok(payload.unbind())
+}
+
 /// Native implementation of the frozen portfolio target preflight contract.
 /// It is intentionally a planning call: accepted deltas must still travel
 /// through the canonical event engine to receive fills, fees and lifecycle.
@@ -4969,6 +5378,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(capabilities, module)?)?;
     module.add_function(wrap_pyfunction!(semantic_descriptor, module)?)?;
     module.add_function(wrap_pyfunction!(product_descriptor, module)?)?;
+    module.add_function(wrap_pyfunction!(run_fill_replay_v2_native, module)?)?;
     module.add_function(wrap_pyfunction!(native_portfolio_target_preflight, module)?)?;
     module.add_function(wrap_pyfunction!(
         native_package_transaction_preflight,

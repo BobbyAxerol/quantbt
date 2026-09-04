@@ -267,8 +267,12 @@ sequence optional
 fee optional
 ```
 
-Fill replay is Level 1 certification: accounting is tested, but fill generation
-is still owned by the alpha or external system that produced the tape.
+The default FillReplay V1 path is Level 1 certification: accounting is tested,
+but fill generation is still owned by the alpha or external system that
+produced the tape. For an explicit Rust-owned linear gross-cross account with
+multi-symbol funding, margin, liquidation, and canonical V2 trace evidence,
+request `accounting_backend="rust_v2"` and follow [Linear Accounting And
+FillReplay V2](contracts/v1_1_linear_accounting_fill_replay_v2.md).
 
 ## What This Does Not Claim
 

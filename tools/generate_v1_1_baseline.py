@@ -163,6 +163,15 @@ INTRABAR_AUTHORITY = _authority(
     "Python IntrabarReferenceResult/BacktestResult adapters",
 )
 
+RUST_FILL_REPLAY_V2_AUTHORITY = _authority(
+    "caller-owned explicit typed fill and funding tapes",
+    "Python validates and packs one immutable replay request",
+    "Rust FillReplay V2 whole-run accounting executor",
+    "Rust LinearGrossCrossAccountV1",
+    "Python standard metrics over Rust-owned accounting paths",
+    "Rust score/compact/audit buffers adapted by Python on the cold path",
+)
+
 PORTFOLIO_AUTHORITY = _authority(
     "external Python strategy/planner target matrix",
     "Python portfolio target planner",
@@ -297,17 +306,33 @@ BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
         "notes": ("Audit materialization is a bounded sparse second pass, not an execution replay.",),
     },
     {
-        "id": "fill_replay_accounting",
+        "id": "fill_replay_v1_numba",
         "factory": "fill_replay",
         "input_mode": "explicit_fill_tape",
         "profiles": ("minimal", "standard", "audit"),
-        "requested_backends": ("native_intrabar",),
-        "resolved_backend_baseline": "Numba fill-replay accounting kernel",
+        "requested_backends": ("numba_v1",),
+        "resolved_backend_baseline": "legacy Numba fill-replay accounting comparator",
         "authority": INTRABAR_AUTHORITY,
         "runtime_class": "WholeRunNative",
-        "maturity": "certified_accounting_replay",
-        "fallback": {"auto": "not applicable", "explicit": "fill replay is selected directly"},
-        "notes": ("It certifies accounting from supplied fills, not fill generation.",),
+        "maturity": "legacy_accounting_comparator",
+        "fallback": {"auto": "not applicable", "explicit": "default accounting_backend='numba_v1' remains available"},
+        "notes": ("Single-symbol V1 comparator; it certifies supplied-fill arithmetic, not fill generation.",),
+    },
+    {
+        "id": "fill_replay_v2_rust",
+        "factory": "fill_replay",
+        "input_mode": "typed_explicit_fill_and_funding_tapes",
+        "profiles": ("minimal", "standard", "full", "audit"),
+        "requested_backends": ("rust_v2",),
+        "resolved_backend_baseline": "explicit Rust FillReplay V2 with LinearGrossCrossAccountV1",
+        "authority": RUST_FILL_REPLAY_V2_AUTHORITY,
+        "runtime_class": "WholeRunNative",
+        "maturity": "a2_domain_certified",
+        "fallback": {"auto": "not applicable", "explicit": "rust_v2 fails closed when the matching native wheel is unavailable"},
+        "notes": (
+            "Accounting is certified from supplied fills and funding only; matching and fill generation remain out of scope.",
+            "Close-timestamp bars, one settlement currency, and linear gross-cross margin are required.",
+        ),
     },
     {
         "id": "dca_ladder_legacy",
