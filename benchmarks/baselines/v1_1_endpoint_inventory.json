@@ -1,0 +1,1980 @@
+{
+  "baseline_id": "rust_primary_v1_1_phase0",
+  "endpoint_factory_coverage": {
+    "arbitrage": [
+      "arbitrage_package"
+    ],
+    "basket": [
+      "basket_pair"
+    ],
+    "dca_ladder": [
+      "dca_ladder_legacy"
+    ],
+    "event_driven": [
+      "event_driven_orders",
+      "event_driven_strategy"
+    ],
+    "fill_replay": [
+      "fill_replay_accounting"
+    ],
+    "intrabar_bracket": [
+      "intrabar_fast_numba"
+    ],
+    "intrabar_bracket_reference": [
+      "intrabar_reference"
+    ],
+    "native_event_bracket_orders": [
+      "native_event_bracket_orders"
+    ],
+    "native_event_dca_grid": [
+      "native_event_dca_grid"
+    ],
+    "native_event_lifecycle": [
+      "native_event_lifecycle"
+    ],
+    "native_event_strategy": [
+      "native_event_strategy"
+    ],
+    "nautilus_bracket_orders": [
+      "nautilus_bracket_validation"
+    ],
+    "nautilus_dca_grid": [
+      "nautilus_dca_grid_validation"
+    ],
+    "nautilus_validation": [
+      "nautilus_validation"
+    ],
+    "options": [
+      "options_native_option"
+    ],
+    "orders": [
+      "orders_event_lifecycle"
+    ],
+    "pct_equity": [
+      "pct_equity_legacy_signal"
+    ],
+    "portfolio": [
+      "portfolio_generic"
+    ],
+    "signal_notional": [
+      "signal_notional_vectorized",
+      "signal_notional_event"
+    ],
+    "train_test_split": [
+      "train_test_split"
+    ],
+    "walk_forward": [
+      "walk_forward"
+    ]
+  },
+  "interpretation": {
+    "authority": "current baseline authority by declared route, not a future promotion target",
+    "fallback": "auto fallback must be observable; explicit Rust requests fail closed outside certified scope",
+    "runtime_class": "describes current decision/execution ownership and must not be inferred from a single native entry"
+  },
+  "lifecycle_contract_ids": [
+    "event_lifecycle_v2_next_bar_close",
+    "event_lifecycle_v3_next_open"
+  ],
+  "package_versions": {
+    "command_abi": "full-command-v1",
+    "native_protocol": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "quantbt_engine": "1.1.0",
+    "quantbt_native": "0.4.1",
+    "result_abi": "native-event-result-v1"
+  },
+  "public_root_exports": [
+    "ACCOUNTING_LEDGER_SCHEMA_VERSION",
+    "AccountConfig",
+    "AlphaExecutionClassification",
+    "AmbiguityPolicy",
+    "ArbExecutionPolicy",
+    "ArbitrageLeg",
+    "ArbitragePlan",
+    "ArbitrageSpec",
+    "ArbitrageType",
+    "AssetType",
+    "AuditMismatchError",
+    "BacktestEngine",
+    "BacktestEngineV2",
+    "BacktestResult",
+    "BacktestResultV2",
+    "BarView",
+    "BasisArbitrageSpec",
+    "BasketExecutionPolicy",
+    "BasketIntent",
+    "BasketLegSpec",
+    "BasketSpec",
+    "BracketOrderSpec",
+    "CANONICAL_OPTION_CHAIN_COLUMNS",
+    "CONSTRAINTS_USER_ATTR",
+    "CalendarSpreadSpec",
+    "CallbackSchedule",
+    "CanonicalTraceArtifact",
+    "CapabilityError",
+    "CarryModel",
+    "CarryModelKind",
+    "CertificationLevel",
+    "CommandBatchView",
+    "CommandOutcome",
+    "CommandValidationError",
+    "CommandWriter",
+    "ConfigurationError",
+    "ContractMismatchError",
+    "ContractType",
+    "CostModel",
+    "CostModelKind",
+    "CrossExchangeArbSpec",
+    "DEFAULT_NUMERIC_ATOL",
+    "DcaGridSpec",
+    "DuplicatePruner",
+    "EVENT_CLOCK_CONTRACTS",
+    "EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE",
+    "EVENT_LIFECYCLE_V3_NEXT_OPEN",
+    "EXECUTION_CONTRACT_REGISTRY",
+    "EarlyStoppingCallback",
+    "EndpointConfig",
+    "EngineDiagnosticsV1",
+    "EngineErrorCode",
+    "EngineErrorContext",
+    "EntryPositionPolicy",
+    "EventClockContract",
+    "EventDrivenBacktestEngine",
+    "ExecutionConfig",
+    "ExecutionContract",
+    "ExecutionInvariantError",
+    "ExerciseStyle",
+    "ExternalOptionMarginValidator",
+    "FeeModel",
+    "Fill",
+    "FillDecision",
+    "FillPhase",
+    "FillPricePolicy",
+    "FillReplayTape",
+    "FrozenBasketPlan",
+    "FundingArbitrageSpec",
+    "FundingPhase",
+    "GammaScalpingConfig",
+    "HedgeDecision",
+    "HedgePathResult",
+    "HedgePolicy",
+    "HedgePolicyKind",
+    "INSTRUMENT_TABLE_SCHEMA_VERSION",
+    "IVStatus",
+    "ImpliedVolResult",
+    "IndexBasketArbSpec",
+    "InstrumentRegistrySignature",
+    "InstrumentRejectCode",
+    "InstrumentSpec",
+    "IntrabarEventFlag",
+    "IntrabarFill",
+    "IntrabarFillReason",
+    "IntrabarIntentTape",
+    "IntrabarLevelMode",
+    "IntrabarReferenceResult",
+    "IntrabarSameBarPolicy",
+    "IntrabarSessionTape",
+    "IntrabarSizingMode",
+    "JsonlOptimizationLogger",
+    "LEGACY_PORTFOLIO_MODES",
+    "LEGACY_PORTFOLIO_SIZING_MODES",
+    "LifecycleEventKind",
+    "LifecycleModel",
+    "LifecycleModelKind",
+    "LifecycleOrderStatus",
+    "LifecycleTransition",
+    "LiquidationPriority",
+    "LiquiditySide",
+    "MarginMode",
+    "MarginModel",
+    "MarginModelKind",
+    "MarketFillPolicy",
+    "MarketValidationCertificate",
+    "MaterializedStrategyContext",
+    "MultiSeedOptimization",
+    "MultiSymbolPortfolio",
+    "NATIVE_EVENT_CAPABILITY_MATRIX",
+    "NATIVE_EVENT_CAPABILITY_MATRIX_VERSION",
+    "NATIVE_EVENT_COMMAND_ABI_VERSION",
+    "NATIVE_EVENT_CONTRACT_FINGERPRINT",
+    "NATIVE_EVENT_CORE_PROTOCOL_VERSION",
+    "NATIVE_EVENT_SEMANTIC_DESCRIPTOR_VERSION",
+    "NATIVE_PORTFOLIO_ROADMAP_SIZING_MODES",
+    "NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES",
+    "NUMERIC_POLICY_VERSION",
+    "NativeAccountingArrays",
+    "NativeAccountingAudit",
+    "NativeAccountingPolicyV1",
+    "NativeActiveOrderSnapshot",
+    "NativeCommandBatch",
+    "NativeEventBackend",
+    "NativeEventConfig",
+    "NativeEventParityCertificate",
+    "NativeEventParityError",
+    "NativeEventProfile",
+    "NativeEventScalarScoreResult",
+    "NativeEventScoreRequirements",
+    "NativeEventScoreResult",
+    "NativeEventStrategy",
+    "NativeEventStrategyError",
+    "NativeEventStrategyProtocol",
+    "NativeFillEvent",
+    "NativeFillReplayResult",
+    "NativeIRBatchResult",
+    "NativeIRExecutionRunner",
+    "NativeIRFold",
+    "NativeIRLimits",
+    "NativeIRReferenceTape",
+    "NativeIRRunResult",
+    "NativeIntrabarKernelResult",
+    "NativeOptionBackend",
+    "NativeOptionConfig",
+    "NativeOrderEvent",
+    "NativePortfolioBackend",
+    "NativePortfolioConfig",
+    "NativeProtocolError",
+    "NativeStrategyContext",
+    "NativeStrategyIR",
+    "NativeStrategyKind",
+    "NativeStrategyParameters",
+    "NativeVectorizedBackend",
+    "NativeVectorizedConfig",
+    "NautilusBacktestEngine",
+    "NautilusExecutionDepthConfig",
+    "NautilusToleranceProfile",
+    "ObjectiveResult",
+    "OmsMode",
+    "OptimizationConfig",
+    "OptimizationResult",
+    "OptimizationTrialRecord",
+    "OptionBacktestEngine",
+    "OptionBacktestResult",
+    "OptionDecisionFillPolicy",
+    "OptionDepthFidelity",
+    "OptionExecutionConfig",
+    "OptionFeeResult",
+    "OptionFeeSchedule",
+    "OptionGreeks",
+    "OptionHedgeConfig",
+    "OptionHedgePolicyType",
+    "OptionInstrumentRegistry",
+    "OptionInstrumentSpec",
+    "OptionKind",
+    "OptionLedger",
+    "OptionLimitFidelity",
+    "OptionLiquidationAudit",
+    "OptionMarginConfig",
+    "OptionMarginModel",
+    "OptionMarginRequirement",
+    "OptionPackageExecutionPolicy",
+    "OptionPackageExecutionResult",
+    "OptionPackageIntent",
+    "OptionPackageLeg",
+    "OptionPosition",
+    "OptionPreparedRunCache",
+    "OptionSelection",
+    "OptionSelectionFilters",
+    "OptionSettlementEvent",
+    "OptionSettlementRepresentation",
+    "OptionSettlementResult",
+    "OptionStrategyRun",
+    "OptionTapeSignature",
+    "OptionVenueConvention",
+    "OptionsVolArbSpec",
+    "OptunaOptimizer",
+    "OrderAction",
+    "OrderActivationPolicy",
+    "OrderCommand",
+    "OrderIntent",
+    "OrderSide",
+    "OrderType",
+    "PACKAGE_EXECUTION_CONTRACT_VERSION",
+    "PORTFOLIO_EXECUTION_CONTRACT_VERSION",
+    "PackageDepthPreflightResult",
+    "PackageExecutionKind",
+    "PackageLegRequest",
+    "PackageRejection",
+    "PackageState",
+    "PackageTransactionPolicy",
+    "PackageTransactionResult",
+    "PortfolioBacktestEngine",
+    "PortfolioDomainSpec",
+    "PortfolioMarginAllocationPolicy",
+    "PortfolioMode",
+    "PortfolioRebalancePolicy",
+    "PortfolioSizingMode",
+    "PortfolioTargetExecutionResult",
+    "PortfolioTargetRejectReason",
+    "PremiumConvention",
+    "PreparationError",
+    "PreparedInstrumentTable",
+    "PreparedIntrabarRunner",
+    "PreparedMarketTape",
+    "PreparedNativeEventStrategyRunner",
+    "PreparedOptionTape",
+    "PreparedWalkForwardContext",
+    "ProtectiveExitReentryPolicy",
+    "QuantBTEndpoint",
+    "QuantBTEngineError",
+    "QuantBTPreparedContext",
+    "QuantityConstraints",
+    "QuantizedOrderValue",
+    "ResourceLimitError",
+    "RobustSelectionConfig",
+    "RustNativeIRRunner",
+    "STRATEGY_IR_PARAMETER_NAMES",
+    "STRATEGY_IR_VERSION",
+    "SUPPORTED_DEPTH_MODELS",
+    "SameBarPolicy",
+    "SamplerConfig",
+    "SearchSpaceInfo",
+    "SessionCounterBasis",
+    "SessionExecutionPolicy",
+    "SettlementStyle",
+    "SignalModel",
+    "SignalModelKind",
+    "SignalPhase",
+    "SignalSpec",
+    "SingleObjectiveEarlyStopping",
+    "SizingPolicy",
+    "SizingPolicyKind",
+    "SpotPerpCashCarrySpec",
+    "SpreadFormula",
+    "SpreadFormulaKind",
+    "StaleStrategyContextError",
+    "StatArbPairSpec",
+    "StopGapPolicy",
+    "StrategyCallbackError",
+    "StrategyContextRequirements",
+    "StrategyContextView",
+    "StructuredOrderPlan",
+    "SurfaceDiagnostics",
+    "TRACE_FIELDS",
+    "TRACE_SCHEMA_VERSION",
+    "TakeProfitGapPolicy",
+    "TimeInForce",
+    "TotalVarianceSurface",
+    "TraceReplayResult",
+    "TraceReplayer",
+    "Trade",
+    "TrailingUpdatePhase",
+    "TrialEvaluator",
+    "TriangularArbSpec",
+    "WalkForwardBenchmarkSnapshot",
+    "WalkForwardCompatibilityEntry",
+    "WalkForwardConfig",
+    "WalkForwardEngine",
+    "WalkForwardFold",
+    "WalkForwardResult",
+    "WalkForwardTrialRecord",
+    "WorkingOrderView",
+    "YEAR_NS",
+    "alpha_report_markdown",
+    "apply_theme",
+    "assert_native_accounting_invariants",
+    "assert_native_event_full_parity",
+    "available_option_rows",
+    "benchmark_walkforward_kernels",
+    "binance_european_options_convention",
+    "black76_intrinsic",
+    "black76_parity_residual",
+    "black76_parity_value",
+    "black76_price",
+    "build_alpha_certification_report",
+    "build_arbitrage_domain_audit",
+    "build_arbitrage_order_plan",
+    "build_bracket_order_plan",
+    "build_canonical_execution_trace",
+    "build_dca_grid_order_plan",
+    "build_forced_close_liquidation_attribution",
+    "build_frozen_basket_orders",
+    "build_gamma_scalping_strategy_run",
+    "build_grid_search_space",
+    "build_native_accounting_audit",
+    "build_native_nautilus_parity_report",
+    "build_nautilus_certification_profile",
+    "build_nautilus_depth_execution_report",
+    "build_nautilus_depth_parity_summary",
+    "build_nautilus_pct_equity_diagnostic",
+    "build_portfolio_domain_audit",
+    "build_portfolio_nautilus_position_report",
+    "build_portfolio_nautilus_validation_report",
+    "build_quantity_constraints",
+    "build_sampler",
+    "butterfly",
+    "cagr",
+    "calculate_option_fee",
+    "calculate_option_margin",
+    "calendar",
+    "calmar",
+    "canonical_trace_fingerprint",
+    "capability_matrix_fingerprint",
+    "certify_result_metadata",
+    "classify_alpha_source",
+    "collar",
+    "compare_canonical_traces",
+    "compare_native_arbitrage_results",
+    "compile_instrument_table",
+    "compile_option_package_orders",
+    "compute_net_option_delta",
+    "condor",
+    "constraints_from_trial",
+    "covered_call",
+    "decide_bar_fill",
+    "deribit_inverse_fee_schedule",
+    "deribit_inverse_option_convention",
+    "deribit_linear_usdc_fee_schedule",
+    "deribit_linear_usdc_option_convention",
+    "execute_option_package",
+    "execute_package_transaction_reference",
+    "execute_portfolio_target_reference",
+    "export_nautilus_report_bundle",
+    "format_metrics_report",
+    "full_report",
+    "get_event_clock_contract",
+    "get_execution_contract",
+    "hedge_decision",
+    "hitrate",
+    "implied_vol_black76",
+    "implied_vol_inverse_black76_base",
+    "inverse_black76_greeks_base",
+    "inverse_black76_greeks_quote",
+    "inverse_black76_intrinsic_base",
+    "inverse_black76_parity_residual_base",
+    "inverse_black76_parity_value_base",
+    "inverse_black76_price_base",
+    "l2_replay_available",
+    "lifecycle_transitions",
+    "linear_black76_greeks",
+    "liquidate_option_positions",
+    "logging_callback",
+    "long_call",
+    "long_put",
+    "max_drawdown",
+    "max_drawdown_pct",
+    "native_event_capability_matrix",
+    "native_event_semantic_descriptor",
+    "normalize_native_event_capabilities",
+    "normalize_portfolio_mode",
+    "normalize_portfolio_sizing_mode",
+    "normalize_rebalance_policy",
+    "omega",
+    "option_attribution_report",
+    "option_expiry_payoff_per_unit",
+    "option_package_cache_key",
+    "option_report_bundle",
+    "option_run_manifest",
+    "order_intents_to_lifecycle_commands",
+    "portfolio_capability_matrix",
+    "prepare_market_tape",
+    "prepare_option_tape",
+    "profit_factor",
+    "quantize_order_value",
+    "quantize_signed_quantity",
+    "quick_plot",
+    "risk_reversal",
+    "rolling_drawdown",
+    "rolling_sharpe",
+    "round_down_to_step",
+    "run_delta_hedge_path",
+    "run_fill_replay_kernel",
+    "run_intrabar_kernel",
+    "run_intrabar_reference",
+    "run_intrabar_session_kernel",
+    "scale_greeks_to_reporting_currency",
+    "scan_alpha_directory",
+    "score_strategy_output",
+    "search_space_info",
+    "select_atm_option",
+    "select_flat_minima_record",
+    "select_full_sample_robust_record",
+    "select_is_only_robust_record",
+    "select_is_plateau_robust_record",
+    "select_target_delta_option",
+    "select_target_dte_option",
+    "select_target_moneyness_option",
+    "semantic_descriptor_fingerprint",
+    "set_trial_constraints",
+    "settle_option_expiry",
+    "sharpe",
+    "short_call",
+    "short_put",
+    "simulate_nautilus_order_package_depth",
+    "sortino",
+    "stable_params_key",
+    "stationary_bootstrap_sharpes",
+    "stitch_oos_outputs",
+    "straddle",
+    "strangle",
+    "strategy_requirements",
+    "strategy_return_series",
+    "suggest_parameter",
+    "suggest_params",
+    "summarize_native_nautilus_parity_report",
+    "synthetic_walkforward_sharpes",
+    "tearsheet",
+    "total_return",
+    "trade_frequency_penalty",
+    "validate_lifecycle_transition",
+    "validate_native_event_capability_matrix",
+    "validate_native_event_semantic_descriptor",
+    "validate_option_chain_frame",
+    "validate_param_ranges",
+    "validate_portfolio_result_contract",
+    "validate_walkforward_strategy_output",
+    "vertical",
+    "volatility_regime_labels",
+    "walkforward_support_matrix",
+    "write_nautilus_certification_artifacts"
+  ],
+  "rows": [
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.arbitrage",
+      "factory": "arbitrage",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "schema-only specs are rejected before execution"
+      },
+      "id": "arbitrage_package",
+      "input_mode": "typed_arbitrage_spec_and_package_intents",
+      "maturity": "controlled_research_by_spec",
+      "notes": [
+        "Cross-exchange, triangular, and venue-specific contracts remain specialized future engines."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "native_vectorized",
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "selected Python or external specialized package route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.arbitrage"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.basket",
+      "factory": "basket",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "backend is user-selected"
+      },
+      "id": "basket_pair",
+      "input_mode": "BasketSpec_and_scalar_entry_exit_signal",
+      "maturity": "stable_controlled_research",
+      "notes": [
+        "Frozen hedge-ratio basket semantics are distinct from generic portfolio allocation."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "native_vectorized",
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "selected Python or external package route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.basket"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python/NumPy/Numba vectorized route",
+        "control_flow": "Python endpoint facade",
+        "execution": "Python/NumPy/Numba vectorized route",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/report adapters",
+        "strategy": "external Python strategy or supplied signal"
+      },
+      "endpoint": "QuantBTEndpoint.dca_ladder",
+      "factory": "dca_ladder",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "legacy route is selected directly"
+      },
+      "id": "dca_ladder_legacy",
+      "input_mode": "structural_grid_level",
+      "maturity": "stable_compatibility",
+      "notes": [
+        "This is distinct from the reactive callback/Grid protocol."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "legacy"
+      ],
+      "resolved_backend_baseline": "legacy DCA/grid simulator",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.dca_ladder"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "endpoint": "QuantBTEndpoint.event_driven",
+      "factory": "event_driven",
+      "fallback": {
+        "auto": "Python with a recorded resolver reason outside the governed static-tape capability",
+        "explicit": "Rust fails closed outside the exact certified capability"
+      },
+      "id": "event_driven_orders",
+      "input_mode": "canonical_order_command_tape",
+      "maturity": "promoted_bounded_static",
+      "notes": [
+        "Only product-registry static V2/V3 tape rows are auto eligible."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "capability-gated Rust static tape at declared thresholds; Python otherwise",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.event_driven"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.event_driven",
+      "factory": "event_driven",
+      "fallback": {
+        "auto": "Python remains the default authority for arbitrary callbacks",
+        "explicit": "unsupported Rust callback capability fails closed"
+      },
+      "id": "event_driven_strategy",
+      "input_mode": "stateful_python_reactive_strategy",
+      "maturity": "stable_python_reactive",
+      "notes": [
+        "Reactive Python is first-class and not represented as fully native."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python reactive lifecycle",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.event_driven"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python reference or Numba intrabar accounting by endpoint",
+        "control_flow": "Python contract validation and session policy",
+        "execution": "Python reference or Numba intrabar kernel by endpoint",
+        "metrics": "Python metrics layer",
+        "result": "Python IntrabarReferenceResult/BacktestResult adapters",
+        "strategy": "external Python strategy or compact intent arrays"
+      },
+      "endpoint": "QuantBTEndpoint.fill_replay",
+      "factory": "fill_replay",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "fill replay is selected directly"
+      },
+      "id": "fill_replay_accounting",
+      "input_mode": "explicit_fill_tape",
+      "maturity": "certified_accounting_replay",
+      "notes": [
+        "It certifies accounting from supplied fills, not fill generation."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_intrabar"
+      ],
+      "resolved_backend_baseline": "Numba fill-replay accounting kernel",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.fill_replay"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python reference or Numba intrabar accounting by endpoint",
+        "control_flow": "Python contract validation and session policy",
+        "execution": "Python reference or Numba intrabar kernel by endpoint",
+        "metrics": "Python metrics layer",
+        "result": "Python IntrabarReferenceResult/BacktestResult adapters",
+        "strategy": "external Python strategy or compact intent arrays"
+      },
+      "endpoint": "QuantBTEndpoint.intrabar_bracket",
+      "factory": "intrabar_bracket",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "fast intrabar endpoint is selected directly"
+      },
+      "id": "intrabar_fast_numba",
+      "input_mode": "compact_entry_exit_stop_take_profit_trailing_intent",
+      "maturity": "certified_numba",
+      "notes": [
+        "Audit materialization is a bounded sparse second pass, not an execution replay."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_intrabar"
+      ],
+      "resolved_backend_baseline": "Numba intrabar kernel",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.intrabar_bracket"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python reference or Numba intrabar accounting by endpoint",
+        "control_flow": "Python contract validation and session policy",
+        "execution": "Python reference or Numba intrabar kernel by endpoint",
+        "metrics": "Python metrics layer",
+        "result": "Python IntrabarReferenceResult/BacktestResult adapters",
+        "strategy": "external Python strategy or compact intent arrays"
+      },
+      "endpoint": "QuantBTEndpoint.intrabar_bracket_reference",
+      "factory": "intrabar_bracket_reference",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "reference endpoint is selected directly"
+      },
+      "id": "intrabar_reference",
+      "input_mode": "compact_entry_exit_stop_take_profit_trailing_intent",
+      "maturity": "truth_model",
+      "notes": [
+        "This is the causal oracle for the fast intrabar contract."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "reference",
+        "audit"
+      ],
+      "requested_backends": [
+        "intrabar_reference"
+      ],
+      "resolved_backend_baseline": "readable Python intrabar oracle",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.intrabar_bracket_reference"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.native_event_bracket_orders",
+      "factory": "native_event_bracket_orders",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "generic bracket package is not auto Rust-promoted"
+      },
+      "id": "native_event_bracket_orders",
+      "input_mode": "BracketOrderSpec_to_order_commands",
+      "maturity": "controlled_research",
+      "notes": [
+        "The lifecycle contract remains explicit and auditable."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python native-event structured-order route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.native_event_bracket_orders"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.native_event_dca_grid",
+      "factory": "native_event_dca_grid",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "generic structured grid is not auto Rust-promoted"
+      },
+      "id": "native_event_dca_grid",
+      "input_mode": "DcaGridSpec_to_order_commands",
+      "maturity": "controlled_research",
+      "notes": [
+        "No dynamic Grid/DCA Rust state machine is claimed."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python native-event structured-order route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.native_event_dca_grid"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "endpoint": "QuantBTEndpoint.native_event_lifecycle",
+      "factory": "native_event_lifecycle",
+      "fallback": {
+        "auto": "Python with an observable resolver reason outside a certified static row",
+        "explicit": "Rust fails closed outside the exact certified capability"
+      },
+      "id": "native_event_lifecycle",
+      "input_mode": "canonical_order_command_tape",
+      "maturity": "promoted_bounded_static",
+      "notes": [
+        "Advanced lifecycle controls retain their declared contract identifiers."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "same governed lifecycle resolver as event_driven(input_mode='orders')",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.native_event_lifecycle"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.native_event_strategy",
+      "factory": "native_event_strategy",
+      "fallback": {
+        "auto": "Python remains the default authority for arbitrary callbacks",
+        "explicit": "unsupported Rust callback capability fails closed"
+      },
+      "id": "native_event_strategy",
+      "input_mode": "stateful_python_reactive_strategy",
+      "maturity": "stable_python_reactive",
+      "notes": [
+        "No generic Python callback becomes Rust-authoritative in this baseline."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python reactive lifecycle",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.native_event_strategy"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::event_python_callback_v2_v3",
+      "input_mode": "python_callback_compat",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: python_callback_compat.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "auto_promotion": true,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::event_static_tape_v2_v3",
+      "input_mode": "static_commands",
+      "maturity": "promoted",
+      "notes": [
+        "Declared strategy modes: static_commands.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "auto_promotion": true,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::native_strategy_ir_v1",
+      "input_mode": "ir_v1",
+      "maturity": "promoted",
+      "notes": [
+        "Declared strategy modes: ir_v1.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::package_atomic_market_v1",
+      "input_mode": "package_atomic_market",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: package_atomic_market.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Rust explicit helper only; generic endpoint remains Python",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::package_transaction_preflight_v1",
+      "input_mode": "package_transaction_preflight",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: package_transaction_preflight.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Rust only for an eligible governed workload; Python otherwise",
+        "control_flow": "Python facade plus capability resolver",
+        "execution": "Rust only for an eligible governed workload; Python otherwise",
+        "metrics": "Rust compact metrics for eligible score/compact routes; Python otherwise",
+        "result": "Rust buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or precomputed typed intent"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::portfolio_target_market_v1",
+      "input_mode": "portfolio_target_market",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: portfolio_target_market.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Rust explicit helper only; generic endpoint remains Python",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::portfolio_target_preflight_v1",
+      "input_mode": "portfolio_target_preflight",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: portfolio_target_preflight.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "NautilusTrader account/fill accounting",
+        "control_flow": "Python adapter compiles declared intent",
+        "execution": "NautilusTrader external validation engine",
+        "metrics": "QuantBT adaptation over Nautilus artifacts",
+        "result": "Python report bundle adapted from Nautilus artifacts",
+        "strategy": "external Python signal/intent adapter"
+      },
+      "endpoint": "QuantBTEndpoint.nautilus_bracket_orders",
+      "factory": "nautilus_bracket_orders",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "requires the Nautilus adapter/runtime"
+      },
+      "id": "nautilus_bracket_validation",
+      "input_mode": "BracketOrderSpec",
+      "maturity": "third_party_validation",
+      "notes": [
+        "Sibling cancellation is adapter/package semantics, not venue-native order-list proof."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "validation",
+        "audit"
+      ],
+      "requested_backends": [
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "Nautilus bracket/OCO validation adapter",
+      "runtime_class": "ExternalValidator",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.nautilus_bracket_orders"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "NautilusTrader account/fill accounting",
+        "control_flow": "Python adapter compiles declared intent",
+        "execution": "NautilusTrader external validation engine",
+        "metrics": "QuantBT adaptation over Nautilus artifacts",
+        "result": "Python report bundle adapted from Nautilus artifacts",
+        "strategy": "external Python signal/intent adapter"
+      },
+      "endpoint": "QuantBTEndpoint.nautilus_dca_grid",
+      "factory": "nautilus_dca_grid",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "requires the Nautilus adapter/runtime"
+      },
+      "id": "nautilus_dca_grid_validation",
+      "input_mode": "DcaGridSpec",
+      "maturity": "third_party_validation",
+      "notes": [
+        "Dynamic state remains preflight mediated, not an in-strategy Nautilus state machine."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "validation",
+        "audit"
+      ],
+      "requested_backends": [
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "Nautilus structured-order validation adapter",
+      "runtime_class": "ExternalValidator",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.nautilus_dca_grid"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "NautilusTrader account/fill accounting",
+        "control_flow": "Python adapter compiles declared intent",
+        "execution": "NautilusTrader external validation engine",
+        "metrics": "QuantBT adaptation over Nautilus artifacts",
+        "result": "Python report bundle adapted from Nautilus artifacts",
+        "strategy": "external Python signal/intent adapter"
+      },
+      "endpoint": "QuantBTEndpoint.nautilus_validation",
+      "factory": "nautilus_validation",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "requires installed Nautilus dependencies"
+      },
+      "id": "nautilus_validation",
+      "input_mode": "signal_or_order_adapter_to_Nautilus",
+      "maturity": "third_party_validation",
+      "notes": [
+        "Adapter fidelity is bounded by the supplied bar/depth data and venue instrument model."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "validation",
+        "audit"
+      ],
+      "requested_backends": [
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "NautilusTrader third-party validation adapter",
+      "runtime_class": "ExternalValidator",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.nautilus_validation"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python multi-currency option ledger",
+        "control_flow": "Python option package planner",
+        "execution": "Python native option backend",
+        "metrics": "Python option metrics/Greeks reports",
+        "result": "Python OptionBacktestResult adapters",
+        "strategy": "external option strategy/package planner"
+      },
+      "endpoint": "QuantBTEndpoint.options",
+      "factory": "options",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "native_option is the only accepted backend"
+      },
+      "id": "options_native_option",
+      "input_mode": "canonical_option_chain_and_package_intents",
+      "maturity": "stable_controlled_research",
+      "notes": [
+        "Options remain contained until a dedicated native contract exists."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_option"
+      ],
+      "resolved_backend_baseline": "native_option Python domain backend",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.options"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.orders",
+      "factory": "orders",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "backend is user-selected"
+      },
+      "id": "orders_event_lifecycle",
+      "input_mode": "explicit_order_intents",
+      "maturity": "stable",
+      "notes": [
+        "The public constructor is backend-neutral; authority follows the selected backend."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "nautilus"
+      ],
+      "resolved_backend_baseline": "selected external or Python event lifecycle backend",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.orders"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python/NumPy/Numba vectorized route",
+        "control_flow": "Python endpoint facade",
+        "execution": "Python/NumPy/Numba vectorized route",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/report adapters",
+        "strategy": "external Python strategy or supplied signal"
+      },
+      "endpoint": "QuantBTEndpoint.pct_equity",
+      "factory": "pct_equity",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "legacy is the declared route"
+      },
+      "id": "pct_equity_legacy_signal",
+      "input_mode": "signed_signal_or_target_weight",
+      "maturity": "stable_compatibility",
+      "notes": [
+        "Legacy fee compatibility remains explicit at the endpoint boundary."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "audit"
+      ],
+      "requested_backends": [
+        "legacy"
+      ],
+      "resolved_backend_baseline": "legacy pct_equity route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.pct_equity"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python/NumPy/Numba native-portfolio ledger",
+        "control_flow": "Python portfolio target planner",
+        "execution": "Python/NumPy/Numba native-portfolio backend",
+        "metrics": "Python portfolio metrics/attribution",
+        "result": "Python portfolio result/report adapters",
+        "strategy": "external Python strategy/planner target matrix"
+      },
+      "endpoint": "QuantBTEndpoint.portfolio",
+      "factory": "portfolio",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "generic portfolio is not a Rust auto route"
+      },
+      "id": "portfolio_generic",
+      "input_mode": "multi_symbol_target_matrix",
+      "maturity": "stable_default",
+      "notes": [
+        "Risk parity and cross-margin remain governed by the current Python portfolio contract."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_portfolio"
+      ],
+      "resolved_backend_baseline": "Python/NumPy/Numba native_portfolio backend",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.portfolio"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "endpoint": "QuantBTEndpoint.signal_notional",
+      "factory": "signal_notional",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "unsupported Rust request fails closed"
+      },
+      "id": "signal_notional_event",
+      "input_mode": "signed_signal_to_market_rebalance",
+      "maturity": "stable_explicit_event",
+      "notes": [
+        "The generic signal-to-order adapter is not a blanket Rust promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_event",
+        "rust"
+      ],
+      "resolved_backend_baseline": "native_event Python lifecycle unless an explicit governed product route applies",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.signal_notional"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "Python/NumPy/Numba vectorized route",
+        "control_flow": "Python endpoint facade",
+        "execution": "Python/NumPy/Numba vectorized route",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/report adapters",
+        "strategy": "external Python strategy or supplied signal"
+      },
+      "endpoint": "QuantBTEndpoint.signal_notional",
+      "factory": "signal_notional",
+      "fallback": {
+        "auto": "not applicable",
+        "explicit": "native_vectorized is the declared default"
+      },
+      "id": "signal_notional_vectorized",
+      "input_mode": "signed_signal_or_target_notional",
+      "maturity": "stable",
+      "notes": [
+        "Signal changes freeze units until the next declared transition."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "native_vectorized"
+      ],
+      "resolved_backend_baseline": "native_vectorized",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.signal_notional"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "selected endpoint account backend",
+        "control_flow": "Python split schedule and optimizer control",
+        "execution": "selected endpoint scorer/backend",
+        "metrics": "Python holdout metrics",
+        "result": "Python BacktestResult with WFO metadata",
+        "strategy": "external Python strategy on the declared train and holdout windows"
+      },
+      "endpoint": "QuantBTEndpoint.train_test_split",
+      "factory": "train_test_split",
+      "fallback": {
+        "auto": "backend-specific",
+        "explicit": "unsupported target/backend combinations raise"
+      },
+      "id": "train_test_split",
+      "input_mode": "strategy_callback_or_prepared_signal_with_one_holdout",
+      "maturity": "stable_holdout_contract",
+      "notes": [
+        "The external holdout is not selection input under an IS-only configuration."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "target_backend_selected_by_endpoint"
+      ],
+      "resolved_backend_baseline": "Python train/test wrapper over the WFO scoring stack",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.train_test_split"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
+        "accounting": "selected endpoint account backend",
+        "control_flow": "Python WalkForwardEngine schedule/optimizer/fold lifecycle",
+        "execution": "selected endpoint scorer/backend",
+        "metrics": "Python WFO score and stitched metrics",
+        "result": "Python WalkForwardResult and endpoint adaptation",
+        "strategy": "external Python strategy per declared cutoff"
+      },
+      "endpoint": "QuantBTEndpoint.walk_forward",
+      "factory": "walk_forward",
+      "fallback": {
+        "auto": "backend-specific",
+        "explicit": "unsupported schedule/backend combinations raise"
+      },
+      "id": "walk_forward",
+      "input_mode": "strategy_callback_or_prepared_signal_with_fold_schedule",
+      "maturity": "stable_causal_schedule_contract",
+      "notes": [
+        "Global, per-fold decay, causal, and nested schedules retain distinct provenance claims."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "research",
+        "optimize",
+        "audit"
+      ],
+      "requested_backends": [
+        "target_backend_selected_by_endpoint"
+      ],
+      "resolved_backend_baseline": "Python WalkForwardEngine controls folds, optimizer, and stitching",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.walk_forward"
+      ],
+      "surface_type": "public_endpoint"
+    }
+  ],
+  "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
+  "source_fingerprints": {
+    "endpoint": {
+      "bytes": 202087,
+      "path": "src/quantbt/endpoint.py",
+      "sha256": "eb0fd05dbb766d8cc00fa8c24634f9a87d83544427035e2f335b1f865d790358"
+    },
+    "guide": {
+      "bytes": 144542,
+      "path": "upgrade/QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md",
+      "sha256": "83ab362441c90ad47cd10e0be4a983274aabe8c84e7db3dae039b86929fbab83"
+    },
+    "lifecycle_registry": {
+      "bytes": 7120,
+      "path": "contracts/native_event_contract_registry.json",
+      "sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa"
+    },
+    "product_registry": {
+      "bytes": 13376,
+      "path": "contracts/native_event_product_registry.json",
+      "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
+    },
+    "public_api_inventory": {
+      "bytes": 15462,
+      "path": "contracts/generated_public_api_inventory.json",
+      "sha256": "0c2edccc96fce49904fe5382168d9723f4812faad7c2b3d77fe31c964d020049"
+    }
+  }
+}

@@ -13976,3 +13976,1111 @@ public-complete:
    artifacts.
 3. Repeat native-first on PyPI, publish the GitHub Release for the core, then
    run and archive the PyPI consumer matrix.
+
+## Phase 56-71 - QuantBT Rust-Primary, Correctness-Certified Runtime V1.1
+
+**Status: planned. No implementation begins until the corresponding phase is
+explicitly approved.**
+
+This is the V1.1 successor program after the public `quantbt-engine==1.1.0`
+and `quantbt-native==0.4.1` baseline. It is not a blanket Rust rewrite and it
+does not authorize a new fast path merely because a Rust crate or enum exists.
+The objective is to make Rust the single simulation authority for each
+linear-domain capability that has passed independent correctness certification,
+while preserving Python for research, strategy logic, public ergonomics, lazy
+reporting, and the independent test oracle.
+
+**Canonical detailed guide:**
+[QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+Every implementation phase must read its cited guide sections, plus the
+agent rules and PR evidence template in guide sections 95-96, before editing.
+The guide is authoritative for domain semantics; this section is the concise
+delivery, exit-gate, and progress-tracking plan.
+
+### V1.1 Program Contract
+
+The non-negotiable ordering is:
+
+```text
+written domain and causal specification
+-> independent oracle and canonical trace
+-> differential parity and invariants
+-> end-to-end performance evidence
+-> explicit Rust route
+-> workload-aware auto promotion
+-> stable soak/shadow evidence
+-> removal of an eligible production duplicate
+```
+
+Program-wide rules:
+
+- Strategy research remains outside QuantBT. Features, indicators, alpha state,
+  parameter logic, target generation, hedge ratios, and package intent remain
+  strategy-owned.
+- Rust must own mutable simulation state for a promoted route: market/calendar
+  view, instrument constraints, order/fill lifecycle, cash, PnL, fees,
+  funding, margin, liquidation, metrics, and native result buffers.
+- Python must not maintain a shadow account or replay execution to create a
+  normal Rust result. Python adapts native result buffers only on the cold path.
+- `backend="rust"` is explicit and fail-closed outside the exact certified
+  capability. `backend="auto"` promotes only after capability, installed-wheel,
+  parity, RSS, and end-to-end speed gates pass. It must record why it selected
+  Python or Rust.
+- Final equity parity alone is insufficient. Every promoted route needs the
+  declared canonical trace, terminal fingerprint, field-specific tolerance,
+  hand-computable fixtures, and independent-oracle evidence.
+- Historical timing IDs and legacy routes remain reproducible until their A5
+  removal gate. No timing change is allowed as a performance optimization.
+- Each phase is closed only when all in-scope work items pass. A capability
+  deliberately outside V1.1 must be represented as an explicit unsupported or
+  experimental contract with fail-fast behavior, never as an undocumented
+  technical debt or silent fallback.
+- No phase combines a semantic rewrite, broad auto-promotion, and deletion of
+  the old production implementation. Every phase has an explicit rollback
+  boundary and records requested/resolved contracts in result metadata.
+
+### V1.1 Authority And Promotion Vocabulary
+
+The following maturity ladder from guide section 7 is mandatory in all phase
+reports:
+
+```text
+A0: module/substrate exists
+A1: differential parity
+A2: written spec + oracle + trace + invariant certification
+A3: explicit Rust route, fail-closed outside capability
+A4: auto eligible after installed-wheel/RSS/end-to-end gates
+A5: Rust primary after shadow release and stable soak; old production path may retire
+```
+
+The runtime class must be reported separately from authority. In particular, a
+reactive run with one Python-to-Rust public entry and thousands of callbacks is
+`RustPrimaryPythonCallback`, not fully native. A benchmark must report
+preparation, strategy generation, intent ingestion, native execution, native
+metrics, materialization/report time, copy counters, cold peak RSS, and warm
+steady RSS.
+
+### Phase Map
+
+| Local tracking phase | Guide phase | Primary outcome | Required guide references |
+|---|---:|---|---|
+| 56 | 0 | Baseline, inventory, corpus, diagnostics, clean-wheel baseline | sections 41-42, 81 |
+| 57 | 1 | Written specs, canonical trace, independent Python oracle | sections 16-21, 43, 81 |
+| 58 | 2 | CalendarPlanV2, prepared market, InstrumentRegistryV2 | sections 22-23, 44, 82 |
+| 59 | 3 | Linear Rust account authority and FillReplay certification | sections 24-25, 45, 83 |
+| 60 | 4 | ExecutionModelV1, MetricContractV2, NativeResultV2 | sections 26-27, 46, 84 |
+| 61 | 5 | Static order tape Rust-primary closure | sections 28, 47, 85 |
+| 62 | 6 | Reactive numeric co-runtime R1 foundation | sections 29.1-29.7, 29.13-29.17, 48, 86 |
+| 63 | 7 | Sparse wake, block intent, reactive candidate batching | sections 29.8-29.12, 49, 86 |
+| 64 | 8 | WFO calendar, causality, lifecycle, account-policy closure | sections 30-31, 50, 87 |
+| 65 | 9 | Persistent Rust WFO evaluation runtime V2 | sections 32, 51, 87 |
+| 66 | 10 | Rust target/vectorized authority | sections 33, 52, 88 |
+| 67 | 11 | Rust shared-account portfolio executor | sections 34, 53, 88 |
+| 68 | 12 | Bounded same-account package/arbitrage authority | sections 35, 54, 88 |
+| 69 | 13 | Rust bounded intrabar authority | sections 36, 55, 89 |
+| 70 | 14 | Options P0 correctness containment | sections 37, 56, 89 |
+| 71 | 15 | Reliability, productization, A4/A5 promotion and cleanup | sections 38-40, 57, 90-92 |
+
+### Shared Evidence And Review Protocol
+
+Every phase PR/commit series must include the guide section 96 evidence:
+
+```text
+Contract IDs and authority before/after
+Specification examples, independent-oracle comparison, canonical trace
+Invariants/property/fuzz or mutation evidence appropriate to the phase
+Workload manifest, phase timings, boundary/copy counters, RSS, end-to-end comparison
+Public API/legacy compatibility, capability-registry and installed-wheel result
+Explicit rollback route, flag, backend selection, or package pin
+```
+
+The target repository structure in guide section 70 is directional. Crate
+extraction follows section 71 only after behavior is frozen and all consumers
+are migrated. A crate move, numeric rewrite, semantic change, ABI change, and
+auto-promotion must never be combined in one phase or PR.
+
+### Phase 56 / Guide Phase 0 - Baseline, Inventory, And Measurement Contract
+
+**Status: complete.**
+
+**Goal:** freeze a reproducible V1.1 starting point without changing runtime
+semantics. Every later performance or authority claim must be comparable to
+this baseline.
+
+**Read first:** [V1.1 guide sections 1-3, 39-42, and 81](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-000` through `RP-004`.
+
+Implementation scope:
+
+- Write the V1.1 ADR set for Rust-primary authority, strategy/engine boundary,
+  correctness-before-performance, runtime classes, and WFO optimizer schedules.
+- Generate a deterministic, machine-readable endpoint/capability inventory
+  covering endpoint, input mode, account/timing contract, output profile,
+  requested/resolved backend, authority dimensions, runtime class, and fallback.
+- Freeze a baseline corpus for static V2/V3 orders, FillReplay, reactive
+  Grid/MRS-like behavior, signal/target routes, portfolio, WFO schedules,
+  intrabar, atomic package, and basic European options. Store config, result,
+  traces where available, metrics, artifacts, and declared known deviations.
+- Add one cross-route timing/copy/RSS diagnostics schema. It must separate
+  Python-to-Rust entries, Rust-to-Python callbacks, GIL acquisitions, market/
+  intent/result copy bytes, worker starts, session resets, phase timings, and
+  cold/warm RSS.
+- Build and install the exact core/native wheel pair in clean environments,
+  recording import path, protocol handshake, capability registry, route choice,
+  and test subset. This is a baseline only, not a new public promotion.
+
+Required tests and evidence:
+
+- inventory JSON and generated documentation are deterministic and agree;
+- benchmark/corpus manifests resolve immutable data/config fingerprints;
+- source and installed-wheel baseline show the same declared authority and
+  routing for covered capabilities;
+- diagnostics are emitted without pandas/report side effects in score profiles;
+- no domain result, timing ID, or default endpoint behavior changes.
+
+Exit gate:
+
+```text
+V1.1 has an approved ADR set, a reproducible corpus, comparable phase/RSS/
+boundary counters, an endpoint-authority inventory, and a clean-wheel baseline.
+No implementation may claim an improvement without comparing against it.
+```
+
+No-debt rule and rollback:
+
+- No incomplete inventory field or ambiguous baseline fixture is allowed to
+  pass into Phase 57. Missing coverage must be labeled unsupported and added
+  before its consuming domain migrates.
+- This phase is documentation/test instrumentation only; rollback is removal of
+  new diagnostic collection behind an opt-in flag, with no execution fallback
+  change.
+
+**Completion evidence (2026-09-04):**
+
+- `docs/adr/ADR-RP-001-rust-primary-authority.md` through
+  `docs/adr/ADR-RP-005-wfo-optimizer-schedules.md` freeze authority, strategy
+  boundary, correctness, runtime-class, and WFO-schedule decisions.
+- `tools/generate_v1_1_baseline.py` deterministically emits
+  `benchmarks/baselines/v1_1_endpoint_inventory.json`,
+  `benchmarks/baselines/v1_1_corpus_manifest.json`, the matching generated
+  documentation, and `contracts/v1_1_measurement_contract.json`.
+- The inventory covers every current `QuantBTEndpoint` classmethod and records
+  authority dimensions, runtime class, fallback, product versions, and the
+  actual bounded Rust promotion state. The corpus includes the requested
+  static, reactive, signal, pct-equity, portfolio, WFO, intrabar, replay,
+  package, and basic-option snapshots; unsupported nested WFO is explicit.
+- `tools/capture_v1_1_installed_wheel_baseline.py` recorded a clean CPython
+  3.12 Linux core-only and exact-pair proof in
+  `benchmarks/baselines/v1_1_installed_wheel_baseline.json`. The exact pair
+  imported from `site-packages`, selected the governed static Rust route, and
+  retained explicit portfolio/package policy; core-only auto selected Python.
+- Gates: `poetry run python tools/generate_v1_1_baseline.py --check`,
+  `poetry run pytest -q tests/test_phase56_v1_1_baseline.py`, source-mirror
+  and contract generators, module-architecture, documentation-link, and
+  native-event contract checks all pass. No runtime/domain source changed.
+
+### Phase 57 / Guide Phase 1 - Domain Specifications, Oracle, And Canonical Trace
+
+**Status: planned.**
+
+**Goal:** establish a specification and executable correctness control that is
+independent from both legacy production code and new Rust code.
+
+**Read first:** [V1.1 guide sections 10-21, 43, 60, and 81](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-005` through `RP-010`.
+
+Implementation scope:
+
+- Write versioned timing/execution-clock specifications for observation,
+  effective phase, first-bar behavior, V2/V3 lifecycle ordering, gap behavior,
+  same-bar ambiguity, funding boundary, and effective timestamps.
+- Write linear accounting, margin, funding, fee, scale/reduce/reverse, and
+  liquidation specifications with hand-computable examples. Preserve `f64` in
+  V1.1 hot paths but introduce typed IDs, centralized comparison/rounding
+  policy, and field-specific tolerances.
+- Define backend-neutral `CanonicalTraceV2`, stable serializer, trace hash, and
+  `TerminalFingerprintV2`. Trace rows include event/order/account identifiers,
+  timestamps, reason code, qty, price, fee, cash, position, PnL, margin, and
+  state hash before/after where applicable.
+- Create an independent pure-Python oracle tree, starting with linear
+  accounting and FillReplay. It must not import production QuantBT, Rust, or
+  Numba and must remain small enough to audit.
+- Add specification fixtures, differential harnesses, property/metamorphic
+  generators, causal mutation fixtures, and bounded Rust fuzz/mutation gates.
+
+Required tests and evidence:
+
+- hand-computable timing/accounting fixtures are exact;
+- old Python route and current Rust substrate emit normalized trace records for
+  bounded fixtures without claiming parity yet;
+- required mutations catch funding sign, fee side, fill ordering, timing,
+  quantity rounding, maintenance comparison, OCO cancellation, and calendar
+  relabel defects;
+- score/compact/audit fingerprint policy and field-specific tolerance table are
+  versioned;
+- independent oracle import audit proves no production implementation leakage.
+
+Exit gate:
+
+```text
+The timing, accounting, trace, oracle, property, and mutation foundations pass.
+No downstream Rust authority migration begins without an executable independent
+oracle and canonical-trace comparison path for its financial contract.
+```
+
+No-debt rule and rollback:
+
+- A known semantic disagreement must be resolved in the written specification
+  before it can be encoded in Rust; legacy parity alone cannot waive this rule.
+- New trace/oracle code is test-only and additive. Existing production routes
+  remain the explicit compatibility baseline until later promotion gates.
+
+### Phase 58 / Guide Phase 2 - Canonical Market, Calendar, And Instrument V2
+
+**Status: planned.**
+
+**Goal:** establish one canonical market clock and one instrument-rule source
+of truth for every certified multi-symbol route.
+
+**Read first:** [V1.1 guide sections 22-23, 44, 60.1, 72, and 82](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-011` through `RP-017`.
+
+Implementation scope:
+
+- Add the equal-length/different-timestamp WFO regression first. Any `Exact`
+  request must fail with the first divergent timestamp rather than relabel a
+  symbol by row count.
+- Implement `CalendarPlanV2` with `Exact`, `Intersection`, `Union`, and
+  `PrimaryClock` policy IDs; per-symbol canonical/local mappings; observed,
+  stale, and tradable flags; and explicit missing-observation behavior.
+- Build immutable, fingerprinted `PreparedMarketHandleV2` with bounded cache,
+  explicit close/release, one canonical timestamp allocation, and safe reuse
+  across runs, folds, and candidates.
+- Add `InstrumentRegistryV2` as the only certified owner for price tick,
+  quantity step, min/max quantity, min notional, multiplier, leverage limit,
+  settlement currency, fee/funding schedule, and purpose-specific rounding.
+- Adapt current static event, Rust target helper, and atomic package helper to
+  the registry. Legacy per-workload fields resolve through compatibility
+  adapters and are recorded in requested/resolved metadata.
+
+Required tests and evidence:
+
+- exact, intersection, union, and primary-clock maps match the independent
+  calendar oracle, including reordered symbol dictionaries and future append;
+- no observer/marking/execution value is silently forward-filled without the
+  declared policy;
+- OHLC, timestamp, volume, funding, duplicate, stale, and tradability
+  validation tests pass;
+- tick/lot/min-notional/min-quantity and reduce-only close parity pass in
+  Python and Rust;
+- prepared/unprepared input has identical mapping/trace and repeated WFO runs
+  show zero market copies per candidate or fold.
+
+Exit gate:
+
+```text
+All V1.1-certified multi-symbol routes consume CalendarPlanV2 and
+InstrumentRegistryV2. No len-based relabel or divergent instrument constraint
+remains in a certified route.
+```
+
+No-debt rule and rollback:
+
+- Unsupported calendar/missing-data semantics fail during preparation. They are
+  not approximated by a generic `fillna` or hidden legacy fallback.
+- `calendar_contract="legacy_v1"` remains explicit for historical
+  reproduction only; `Exact` is the certified default.
+
+### Phase 59 / Guide Phase 3 - Linear Accounting Authority And FillReplay
+
+**Status: planned.**
+
+**Goal:** certify one Rust linear gross-cross account transition authority
+before any complex matching, target, portfolio, package, or intrabar route
+adopts it.
+
+**Read first:** [V1.1 guide sections 24-25, 45, 60.2, and 83](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-018` through `RP-025`.
+
+Implementation scope:
+
+- Stabilize an internal preview-reserve-commit transaction trait around the
+  existing Rust account substrate. Preview is immutable; a rejected preview or
+  aborted transaction cannot mutate the account fingerprint.
+- Implement typed reject codes, reservation tokens, consumption/release
+  accounting, explicit scheduled funding/fee events with apply-once IDs, and
+  deterministic linear liquidation state transitions with executable fills.
+- Build the explicit whole-run Rust `FillReplayV2` route using the common
+  account authority and separate typed fill, funding, and mark rows.
+- Migrate financial arithmetic in a behavior-preserving manner only after the
+  contract is documented. Do not construct a second account engine beside
+  `FullSession`.
+- Add debug/certification invariant checks after randomized account transitions
+  while preserving release hot-path performance policy.
+
+Required tests and evidence:
+
+- independent oracle, old production Python/Numba, and Rust FillReplay agree
+  on canonical account trace and terminal fingerprint for open, scale, reduce,
+  close, reverse, fee, funding, margin reject, liquidation, and multi-symbol
+  shared-margin fixtures;
+- split-fill metamorphism, zero-quantity rejection, funding apply-once,
+  reject immutability, reservation leak, and liquidation state-machine tests
+  pass;
+- randomized valid/invalid fill streams run invariant checks after every
+  transition;
+- field tolerances are quantity/tick/cash/metric specific and are recorded.
+
+Exit gate:
+
+```text
+FillReplay is A2 domain-certified: written linear accounting semantics,
+independent oracle, canonical trace, invariant/property/fuzz evidence, and
+three-way parity are all green. No downstream route may use a different linear
+accounting authority.
+```
+
+No-debt rule and rollback:
+
+- Any unresolved funding, fee, margin, reservation, or liquidation disagreement
+  blocks this phase and downstream migration. It cannot be marked as a
+  tolerance exception.
+- Existing accounting routes stay available as explicit comparators until each
+  consuming route reaches its own promotion gate.
+
+### Phase 60 / Guide Phase 4 - Execution Model, Metrics, And Native Result Closure
+
+**Status: planned.**
+
+**Goal:** make execution cost, standard metrics, and result ownership common
+contracts rather than duplicated Python/Rust per-endpoint behavior.
+
+**Read first:** [V1.1 guide sections 26-27, 46, 60.3, 63, and 84](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-026` through `RP-033`.
+
+Implementation scope:
+
+- Separate `AccountModel`, `ExecutionModelV1`, and `InstrumentRegistryV2`.
+  Legacy fee/slippage fields are resolved into typed plans and provenance; no
+  slippage remains hidden inside an account contract.
+- Freeze and implement `BarTouchV1` first as the deterministic parity anchor,
+  then `CostModelV1` for fee, spread, slippage, participation, simple impact,
+  and optional shared liquidity ledger. Deep/L2 models remain out of default
+  WFO scope.
+- Implement `MetricContractV2`, online reducers, annualization/DDOF/zero-run
+  policies, and domain-specific `NativeResultV2` score/compact/audit envelopes.
+- Route Rust results through flat SoA buffers. Python materializes metrics,
+  pandas, fill/event dataframes, and reports only on demand with bounded cache
+  ownership and truncation metadata.
+
+Required tests and evidence:
+
+- event lifecycle corpus covers market/limit/stop/stop-limit, gap cases,
+  TIF, cancel/amend/replace, reduce-only, OCO, partial fills, funding, and
+  liquidation under the declared execution-model ID;
+- execution cost is reconciled independently from account state;
+- participation/shared-liquidity conservation and partial-fill behavior pass;
+- standard metrics match contract fixtures, including short-run and zero
+  variance behavior;
+- score, compact, and audit return the same terminal accounting fingerprint;
+- score path creates zero pandas/nested fill-event Python objects, audit is
+  bounded/truncation-aware, and RSS plateaus under repeated score runs.
+
+Exit gate:
+
+```text
+ExecutionModelV1, MetricContractV2, and NativeResultV2 are reusable common
+authorities. Static event and specialized kernels can adopt them without a new
+accounting or reporting implementation.
+```
+
+No-debt rule and rollback:
+
+- An execution model exists only when its fill semantics, cost semantics, and
+  liquidity contract are tested. Merely adding an enum does not imply support.
+- Legacy result/report compatibility remains via lazy adapters; no public
+  report API is removed in this phase.
+
+### Phase 61 / Guide Phase 5 - Static Event Rust-Primary Closure
+
+**Status: planned.**
+
+**Goal:** make prepared static `OrderCommand` tapes the first full public,
+whole-run Rust-primary reference route.
+
+**Read first:** [V1.1 guide sections 28, 47, 60.3, 63, 73, and 85](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-034` through `RP-040`.
+
+Implementation scope:
+
+- Close public request ABI 0.5 around one prepared market, instrument registry,
+  command tape, execution plan, `FullSession`, common accounting, native
+  metrics, and `NativeResultV2`.
+- Use existing `OrderArena`, active/lifecycle indexes, expiry buckets,
+  parent-child/OCO indexes, and generation-safe handles. Remove historical
+  full-arena scans only from the certified path after trace parity.
+- Retain API 0.4 behind an explicit compatibility flag and record the resolved
+  lifecycle/timing contract. No silent reinterpretation of V2/V3 tape data.
+- Make score avoid active-order projection; compact/audit iterate only active
+  indexes and bounded retention sinks.
+
+Required tests and evidence:
+
+- complete lifecycle corpus: market/limit/stop/stop-limit, TIF, cancel/amend,
+  replace, reduce-only, parent/OCO, funding, margin/liquidation, multi-symbol,
+  V2/V3 timing, low/high churn;
+- independent-oracle/legacy/Rust canonical trace and terminal fingerprint
+  parity for supported contracts;
+- prepared command/market path has one main native entry, releases the GIL for
+  whole native execution where legal, has zero replay-market copy and zero
+  command-tape copy after preparation;
+- installed-wheel test passes and promoted score workload is faster end-to-end
+  than the Python comparator, with compact/audit adaptation budget reported.
+
+Exit gate:
+
+```text
+The exact static command capability is A4 auto-eligible on supported installed
+wheels. API 0.4 remains an explicit rollback route until stable-soak A5.
+```
+
+No-debt rule and rollback:
+
+- Unsupported order semantics must fail with typed capability/error codes,
+  never degrade to a partial Python simulation under explicit Rust.
+- `backend="python"`, the legacy ABI flag, and the prior package version remain
+  the rollback boundary; no duplicate production path is deleted here.
+
+### Phase 62 / Guide Phase 6 - Reactive Numeric Co-runtime R1 Foundation
+
+**Status: planned.**
+
+**Goal:** preserve arbitrary Python reactive strategy logic while moving the
+outer simulation timeline, execution state, and hot buffer ownership into Rust.
+
+**Read first:** [V1.1 guide sections 5-6, 29.1-29.7, 29.13-29.17, 48, 61, and 86](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-041` through `RP-048`.
+
+Implementation scope:
+
+- Add truthful reactive diagnostics: public native entries, Python callbacks,
+  GIL acquisitions, context projection/copy bytes, command ingestion, engine,
+  result materialization, and callback timing.
+- Implement one persistent numeric `ReactiveContextBufferV1` wrapper per
+  session with generation/lifetime validation, declared projection
+  requirements, and delta-only fills/events/order changes by default.
+- Implement one Rust-owned primitive `ReactiveCommandBufferV2` per session,
+  bounded growth, typed numeric IDs, immediate validation/consumption, and no
+  per-callback dict/dataclass/array concatenation.
+- Introduce Rust-driven outer loop with one public entry and a compatibility
+  bridge retained as comparator. Benchmark held-GIL and release-between-
+  callbacks policies rather than assuming one is universally faster.
+- Establish the A/B/C/D four-way oracle: Python strategy plus independent
+  execution oracle, current bridge, new co-runtime, and captured static tape
+  replay.
+
+Required tests and evidence:
+
+- exact callback-input, command-output, execution/account trace, and strategy
+  state fingerprint parity on Grid/MRS-like fixtures;
+- no pandas/dict/dataclass context allocations after warmup; no per-bar command
+  array allocation; stale generation/capacity misuse fails deterministically;
+- lifecycle, callback exception, invalid command, cancellation, and strategy
+  reset/state ownership tests pass;
+- separate lightweight, low-churn, high-churn, and concurrent-session GIL
+  benchmarks are recorded. R1 cannot auto-promote while slower end-to-end.
+
+Exit gate:
+
+```text
+R1 NumericEveryBar is A3 explicit with four-way trace parity. Rust owns
+simulation/accounting/control flow, Python owns only declared strategy
+decisions, and metadata truthfully reports the hybrid runtime class.
+```
+
+No-debt rule and rollback:
+
+- Every-bar Python callbacks are intentionally still hybrid, not an unresolved
+  debt. They must not be marketed as fully native.
+- Existing object callback route remains the comparator/rollback route until
+  R1 demonstrates the stated exact semantics and performance on each promoted
+  capability.
+
+### Phase 63 / Guide Phase 7 - Sparse Wake, Block Intent, And Reactive Batching
+
+**Status: planned.**
+
+**Goal:** reduce Python callback frequency only where a strategy has declared
+engine-level decision boundaries that can be certified against every-bar
+semantics.
+
+**Read first:** [V1.1 guide sections 29.8-29.12, 49, 60.4, 61, and 86](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-049` through `RP-056`.
+
+Implementation scope:
+
+- Define `WakePlanV1` for time, fill, order-event, liquidation, funding,
+  price-cross, position, equity, and margin triggers. QuantBT may observe
+  these execution-level conditions but may not calculate alpha indicators.
+- Implement dynamic `run_until_next_wake`, deterministic coalescing/order of
+  simultaneous reasons, typed wake trace, and one callback per declared
+  coalesced boundary.
+- Add `BlockIntentProviderV1` with explicit invalidation on fill/reject/margin
+  changes and bounded block ranges. Add candidate-batch context/command buffers
+  for reactive WFO with per-candidate typed errors.
+- Add workload-aware route selection among Python, R1, sparse R2, block R3,
+  and candidate-batch R3B. Auto may choose Python if a declared optimized
+  capability is slower or not certified.
+
+Required tests and evidence:
+
+- every sparse/block-capable strategy has a shadow run with every-bar callback;
+  actual decision-boundary inputs, commands, execution trace, account trace,
+  and strategy state fingerprint must match;
+- tests cover fill/order/liquidation/funding/price-cross wake collisions,
+  append/replace wake plan behavior, block invalidation, candidate isolation,
+  stable candidate ordering, bounded capacity, and deterministic cancellation;
+- benchmark callback count, skipped bars, wake ratio, context/command bytes,
+  GIL transitions, speedup, and RSS. Sparse speedup must scale with genuinely
+  skipped decisions, not a changed strategy semantic.
+
+Exit gate:
+
+```text
+R2/R3/R3B are A3 explicit only for strategies with certified wake/block
+contracts. No callback may be omitted when the every-bar oracle would have
+produced a different command.
+```
+
+No-debt rule and rollback:
+
+- Unsupported dynamic wake condition fails fast; it cannot be approximated by
+  polling on a different bar schedule.
+- `reactive_runtime="numeric_every_bar_v1"` and legacy callbacks remain
+  explicit fallbacks. No general auto-promotion occurs without per-capability
+  benchmark evidence.
+
+### Phase 64 / Guide Phase 8 - WFO Correctness, Causality, And Lifecycle Closure
+
+**Status: planned.**
+
+**Goal:** close WFO time alignment, signal timing, strategy isolation, fold
+state, and objective provenance before changing WFO throughput architecture.
+
+**Read first:** [V1.1 guide sections 2.1-2.2, 30-31, 50, 60.1, 60.5, 64, and 87](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-057` through `RP-064`.
+
+Implementation scope:
+
+- Replace WFO row-count alignment with `CalendarPlanV2`. Preserve an explicit
+  legacy calendar ID only for reproducibility; never relabel a symbol because
+  lengths match.
+- Make each WFO adapter declare intent kind, observation phase, effective
+  phase, whether it is already shifted, and target/order/position semantics.
+  A generic Series is never assumed to be an already-effective position.
+- Implement and record purge, embargo, label horizon, warmup policy, cutoff,
+  and fold account policy: `ResetFlat`, `CarryPosition`, `CloseAtBoundary`, or
+  `ReplayPriorState` with auditable event behavior.
+- Implement `StrategyLifecycleV1` spawn/reset/seed/fingerprint/snapshot rules.
+  Prohibit unsafe mutable strategy reuse across trial/fold/thread boundaries.
+- Version WFO causality schedules as retrospective global, trusted strategy
+  global, engine-enforced per-fold, and engine-enforced nested. Preserve legacy
+  aliases but resolve them into exact metadata.
+- Treat proxy scoring as screening only. Add rank correlation, Top-K overlap,
+  winner regret, and false-positive gates against native accounting scores.
+
+Required tests and evidence:
+
+- causal mutation tests: change future bars/funding/test labels/calendar/fold
+  execution order and prove prior selection, signal, score, and per-fold result
+  remain unchanged where contract requires;
+- train/validation/test/warmup/purge/embargo ranges and account boundary events
+  appear in fold provenance;
+- class/instance lifecycle, repeat seed, worker count, fold ordering, cache
+  cutoff, position carry/close/reset/replay, and timing declarations pass;
+- proxy is disabled for a workload when its declared native ranking gates fail.
+
+Exit gate:
+
+```text
+WFO is A2 correct independently of runtime speed: calendar mapping, causal
+cutoffs, timing, lifecycle, account policy, proxy role, and selection
+provenance are explicit and tested.
+```
+
+No-debt rule and rollback:
+
+- A legacy/global schedule remains available only with its retrospective or
+  trusted semantics recorded. It must not be described as engine-enforced
+  causal merely because its output is OOS-shaped.
+- Unsupported fold account policy or strategy lifecycle capability fails at
+  construction; it does not reuse state silently.
+
+### Phase 65 / Guide Phase 9 - Native WFO Runtime V2
+
+**Status: planned.**
+
+**Goal:** move repeated candidate x fold x scenario simulation into a persistent
+Rust evaluation runtime without pretending that arbitrary Python feature
+generation has become native.
+
+**Read first:** [V1.1 guide sections 32, 51, 60.5, 62, 63, 77-78, and 87](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-065` through `RP-077`.
+
+Implementation scope:
+
+- Implement `NativeWfoPlanV2` with shared prepared market, instrument registry,
+  fold plan, execution/account/metric contracts, scenario plan, optimizer
+  schedule, resource budget, and immutable fingerprints.
+- Define prepared signal, target, static command, portfolio target, and
+  Strategy IR intent handles. Market allocations, fold windows, and prepared
+  tape physical storage must not copy per candidate/fold/scenario.
+- Build one persistent worker pool per WFO run with retained sessions, account
+  scratch, order arena, metric reducers, bounded error rows, deterministic RNG,
+  cancellation, poison recovery, and cost-aware work stealing.
+- Implement W0 compatibility, W1 prepared Python strategy, W2 batched intent
+  generation, and declared reactive WFO process/batch paths without moving
+  features or indicators into QuantBT.
+- Support separately versioned `certified_sequential_v1` ask/evaluate/tell
+  parity and `throughput_batch_v1` behavior. Batch adaptive TPE must never
+  claim sequential candidate-sequence parity.
+- Return compact native candidate/fold/scenario metric matrices; compose custom
+  objectives in Python without materializing an equity path for every trial.
+  Top-K audit reruns use the exact same plan/intent/seed and match score
+  fingerprint.
+
+Required tests and evidence:
+
+- fixed candidate matrix parity covers every candidate/fold metric/trace;
+- sequential optimizer has exact seed, candidate sequence, objective/pruning,
+  selected parameter, and stitched OOS parity;
+- batched schedule has fixed-matrix exact score parity, deterministic seed plus
+  batch-size behavior, worker-count invariance, and quality/regret report;
+- prepared/unprepared, score/audit, one/many worker, cancel/poison recovery,
+  and strategy cache cutoff tests pass;
+- benchmark reports strategy preparation/generation separately from ingestion,
+  native simulation, metrics, optimizer, report, cold/warm RSS, worker
+  utilization, and copy bytes.
+
+Exit gate:
+
+```text
+Prepared signal/target/order WFO is A4 only for capability rows that pass
+correctness and end-to-end evidence. Runtime creates one worker pool per run,
+has zero market/tape copies per candidate execution, bounded retained results,
+and RSS plateaus after warmup.
+```
+
+No-debt rule and rollback:
+
+- Python strategy generation time is reported rather than hidden from the
+  endpoint benchmark. A strategy that cannot prepare/batch remains an exact
+  W0/W1 hybrid capability, not an incomplete native claim.
+- Legacy WFO orchestration and explicit optimizer schedule IDs remain rollback
+  paths until each promoted workload reaches stable soak.
+
+### Phase 66 / Guide Phase 10 - Rust Target And Vectorized Authority
+
+**Status: planned.**
+
+**Goal:** migrate common static signal/target simulation to direct Rust target
+delta kernels using the certified market, instrument, execution, account,
+metric, and result authorities.
+
+**Read first:** [V1.1 guide sections 33, 52, 60.2, 63, and 88](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-078` through `RP-086`.
+
+Implementation scope:
+
+- Freeze all legacy target timing IDs, including same-close and next-open/close,
+  before porting. Never silently turn same-close research behavior into
+  next-open execution.
+- Implement direct-delta `TargetUnits` first: read target, resolve quantity,
+  quantize, calculate delta from actual position, validate stale/tradable/
+  instrument constraints, apply execution model, preview/commit account, and
+  update native metrics without generic `OrderCommand` allocation.
+- Promote `TargetNotional`, `TargetWeight`, and `EquityFraction` separately.
+  Each must define price source, multiplier, equity denominator/snapshot,
+  leverage/gross semantics, missing/invalid-target behavior, and rounding.
+- Compile static DCA schedule to typed target/order tape only. Dynamic
+  fill-dependent DCA remains a reactive workload.
+- Wire prepared target handles into NativeWfoRuntimeV2 and stage explicit Rust
+  routes before any auto policy change.
+
+Required tests and evidence:
+
+- independent target oracle, legacy Numba production, and Rust compare target
+  resolution, accepted quantities, execution/account trace, metrics, and
+  terminal fingerprint;
+- units/notional/weight/equity fraction are tested as distinct contracts with
+  long/short, constraints, missing/invalid target, scale/reduce/reverse,
+  fee/funding/margin/liquidation cases;
+- prepared/non-prepared and score/compact/audit parity pass;
+- warm and cold endpoint benchmarks include conversion/ingestion/materialization
+  and demonstrate no JIT dependency, no pandas in score, one market pass, and
+  no generic arena for simple direct target delta.
+
+Exit gate:
+
+```text
+Each separately certified target intent reaches A3 first and A4 only after its
+installed-wheel/end-to-end route passes. Native WFO consumes target handles
+without event-command conversion.
+```
+
+No-debt rule and rollback:
+
+- A target mode with unresolved denominator/timing/rounding semantics remains
+  explicit Python/Numba compatibility, not a partially promoted Rust route.
+- Numba remains version-pinned/reproducible until Phase 71 A5 removal review.
+
+### Phase 67 / Guide Phase 11 - Rust Shared-Account Portfolio Authority
+
+**Status: planned.**
+
+**Goal:** execute linear multi-symbol portfolio targets in Rust against one
+shared account with deterministic admission, attribution, and liquidation.
+
+**Read first:** [V1.1 guide sections 34, 53, 60.2, 60.6, 62, and 88](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-087` through `RP-096`.
+
+Implementation scope:
+
+- Rewire the existing Rust target-units helper to CalendarPlanV2,
+  InstrumentRegistryV2, common execution/account/result contracts, and one
+  shared linear account. Do not create a per-symbol shadow cash/margin model.
+- Implement and certify `SequentialLegacy`, `ReduceFirstThenIncrease`,
+  `ProRataToAvailableMargin`, and `AllOrNoneRebalance` as distinct admission
+  policy IDs. Reductions have priority; pro-rata scales only risk increases and
+  allocates residual lots deterministically; all-or-none has reservation-backed
+  transaction immutability.
+- Add units, notional, weight, and equity-fraction target matrices through the
+  common target resolver, with explicit planner/execution authority separation.
+- Add native per-symbol realized/unrealized PnL, fees, funding, turnover,
+  exposure, margin, and reconciliation attribution. Integrate portfolio target
+  matrices with NativeWfoRuntimeV2.
+- Implement account-wide liquidation and deterministic symbol-reduction policy,
+  with stale/missing/no-observation/non-tradable behavior explicit.
+
+Required tests and evidence:
+
+- 1/2/8/20-symbol portfolio corpus covers long-only, long/short,
+  market-neutral targets, sparse/high-turnover rebalance, sufficient/
+  insufficient margin, simultaneous reduce/increase, stale/missing symbols,
+  liquidation, and calendar policy;
+- accepted target positions, quantization, margin admission, account trace,
+  fees/funding/turnover, equity, and per-symbol attribution sum to portfolio
+  totals within contract tolerance;
+- all-or-none reject is fingerprint-immutable; pro-rata residual allocation is
+  stable under symbol-input permutation; worker count does not change results;
+- score avoids per-symbol pandas outputs, audit/compact retain bounded
+  attribution, and prepared multi-symbol benchmark reports RSS and phase split.
+
+Exit gate:
+
+```text
+Target-units portfolio reaches A3/A4 first; notional/weight/equity fraction
+promote independently after their complete matrix. Generic portfolio routing
+records planning versus execution authority and never promotes unavailable
+planner semantics.
+```
+
+No-debt rule and rollback:
+
+- Risk-parity/covariance/beta estimation remains strategy-owned, not a missing
+  executor feature. Cross-margin beyond the declared linear contract is
+  unsupported/fail-fast.
+- Existing Python/Numba portfolio implementation remains explicit rollback
+  until the individual capability has A5 certification.
+
+### Phase 68 / Guide Phase 12 - Bounded Package And Arbitrage Authority
+
+**Status: planned.**
+
+**Goal:** make selected same-account linear package policies executable in Rust
+with actual-fill dependencies, reservations, residual accounting, and explicit
+policy-level capability claims.
+
+**Read first:** [V1.1 guide sections 35, 54, 60.7, 62, and 88](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-097` through `RP-107`.
+
+Implementation scope:
+
+- Freeze `PackageIntentV2`, leg dependency/quantity contracts, residual schema,
+  package state machine, reservation lifecycle, and package terminal status.
+- Rewire `AtomicBarSimulation` to common calendar/instrument/execution/account
+  authority. Then implement, certify, and expose `Sequential`, `BestEffort`,
+  `HedgeAfterPrimary`, and partial compensation/unwind in that order.
+- Use actual committed fill quantity for dependent hedge legs; apply hedge
+  instrument quantization after actual-fill calculation. Residual exposure is
+  a required output, never a hidden orphan position.
+- Add typed basis, stat-pair, calendar, and index-basket adapters only where
+  their same-account linear contract is complete. Integrate package scenarios
+  and WFO batching only after policy correctness.
+- Add triangular/cross-exchange foundation types but fail closed until currency
+  conservation/multi-venue accounts/clocks/prefunding authority are certified.
+
+Required tests and evidence:
+
+- all-leg fill, primary/hedge partial fill, secondary reject, reservation
+  failure/leak, atomic reject, residual detection, compensation/unwind,
+  sequential timing, actual-fill hedge, cancel/fill ordering, and package PnL
+  reconciliation tests pass;
+- package trace and account fingerprint reconcile reservations created minus
+  consumed minus released to zero;
+- single package, multiple package, low/high leg count, and scenario/WFO
+  benchmarks show bounded flat leg buffers and no Python object per leg/fill in
+  score mode;
+- mutation/fuzz suite catches requested-vs-actual hedge mistakes and hidden
+  residual/orphan exposure.
+
+Exit gate:
+
+```text
+Only individually certified same-account linear package policies reach A3/A4.
+The generic arbitrage endpoint routes by exact package subtype/policy rather
+than treating an enum declaration as executable authority.
+```
+
+No-debt rule and rollback:
+
+- Triangular and cross-exchange are intentional foundation-only non-goals in
+  V1.1 unless their distinct multi-currency/multi-venue contracts pass. They
+  must return explicit unsupported/experimental metadata.
+- Python package path stays an explicit fallback for unpromoted policy rows;
+  no blanket endpoint auto-promotion is permitted.
+
+### Phase 69 / Guide Phase 13 - Rust Intrabar Authority
+
+**Status: planned.**
+
+**Goal:** port the already bounded intrabar contract into specialized Rust
+kernels without changing timing, ambiguity, bracket, trailing, or session
+semantics to chase performance.
+
+**Read first:** [V1.1 guide sections 36, 55, 60.8, 63, and 89](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-108` through `RP-114`.
+
+Implementation scope:
+
+- Produce an intrabar contract manifest for entry timing, SL/TP, gap behavior,
+  same-bar ambiguity, trailing update phase, technical exit ordering, session
+  window, EOD flatten, stale-signal cancellation, re-entry suppression,
+  funding, and liquidation.
+- Implement specialized `BracketIntrabarKernelV1` and `SessionIntrabarKernelV1`
+  over common market/instrument/execution/account/result authorities. Do not
+  force the branch-heavy intrabar semantics through the generic event engine.
+- Generate a frozen corpus from the current Python reference and Numba path;
+  any legacy bug is resolved in written spec before a documented parity
+  difference is accepted.
+- Add ambiguity audit fields and explicit path-policy ID. Stage an explicit
+  Rust route before auto promotion and retain Numba as the reproducibility
+  comparator.
+
+Required tests and evidence:
+
+- Python reference, Numba production, and Rust compare entry/exit, SL/TP,
+  gap, trailing state, technical-exit conflict, session, EOD, stale/re-entry,
+  funding/liquidation, trace, and terminal fingerprint;
+- fixtures cover stop-only, target-only, both-touched, stop/target gaps,
+  trailing-before/after extreme, session boundary, and EOD force-flat;
+- compact/audit preserve chosen ambiguity path, audit retention is bounded,
+  and score has no JIT cold-start dependency;
+- warm/cold installed-wheel benchmark is no worse than the approved Numba
+  budget and reports adapter versus kernel time separately.
+
+Exit gate:
+
+```text
+The bounded intrabar capability reaches A3, then A4 only after complete
+trace parity, installed-wheel evidence, and end-to-end performance gate.
+FillReplay remains its separate accounting anchor.
+```
+
+No-debt rule and rollback:
+
+- OHLC intrabar remains a declared bounded-path simulation, never a claim of
+  reconstructed L2 order-book truth. Unsupported path policy fails fast.
+- The existing Numba route remains version-pinned for at least one stable
+  release after A4 and is the explicit rollback path until A5.
+
+### Phase 70 / Guide Phase 14 - Options P0 Correctness Containment
+
+**Status: planned.**
+
+**Goal:** prevent options simulations from silently claiming unsupported
+lifecycle, settlement, fee, margin, or liquidation semantics while full Rust
+options authority remains a V1.2 program.
+
+**Read first:** [V1.1 guide sections 2.8, 3.2, 37, 56, 60.9, and 89](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-115` through `RP-122`.
+
+Implementation scope:
+
+- Add an options capability registry keyed by exercise style, premium
+convention, settlement style, margin model, execution model, and validation
+status.
+- Fail fast at plan construction for American, Quanto, physical settlement, or
+venue-exact portfolio margin requests without the required authoritative model.
+- Consolidate package guard, fill ledger, fee schedule, cash/position ledger,
+  margin preview/admission, maintenance, liquidation, expiry, and settlement
+  sequencing so only one authority commits financial state.
+- Require explicit settlement event/source/timestamp provenance. A last-row
+  mark fallback, if retained for legacy research, is visibly non-certified.
+- Expand independent oracle/corpus for supported European linear and explicitly
+  modeled inverse contracts, fees, margin rejects, settlement, and capability
+  rejection. Write a V1.2 handoff for multi-currency Rust options, assignment,
+  exercise, and portfolio margin.
+
+Required tests and evidence:
+
+- supported European contract lifecycle/accounting tests pass;
+- unsupported American/Quanto/physical requests fail before simulation with
+  actionable capability code;
+- package guard/ledger/result fee totals reconcile; failed pre-fill margin
+  admission leaves state unchanged; settlement occurs exactly once;
+- maintenance breach and liquidation status derive from timeline state, not
+  post-hoc final flags; option capability metadata appears in results/docs.
+
+Exit gate:
+
+```text
+Options remain Python-primary but are correctness-contained. Every supported
+result has one ledger/fee/margin/settlement authority, and every unsupported
+combination fails before a misleading simulation can run.
+```
+
+No-debt rule and rollback:
+
+- Full Rust options, American exercise/assignment, Quanto, physical delivery,
+  multi-currency ledger, and venue-exact portfolio margin are intentionally
+  deferred V1.2 contracts, not V1.1 Rust-primary claims.
+- Existing supported Python options routes remain public; containment introduces
+  only explicit rejection or provenance where a claim was previously unsafe.
+
+### Phase 71 / Guide Phase 15 - Reliability, Productization, Promotion, And A5 Closure
+
+**Status: planned.**
+
+**Goal:** turn individually certified Rust routes into safe installed products,
+operate them under bounded long-running workloads, then retire only the
+production duplicates that have reached A5.
+
+**Read first:** [V1.1 guide sections 38-40, 57, 59, 63-69, 79-80, and 90-92](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+
+**Work packages:** `RP-123` through `RP-135`.
+
+Implementation scope:
+
+- Implement common runtime budgets, cancellation status, explicit prepared
+  handle lifetime/close semantics, generation IDs, poison recovery,
+  deterministic teardown, cache byte/entry budgets, audit chunking/truncation,
+  and one parallelism coordinator for Python processes, Rust threads, and
+  BLAS/OpenMP/Numba threads.
+- Generate one machine-readable capability registry that drives Rust/Python
+  routing, public docs, installed-wheel tests, and promotion reports. Add exact
+  core/native protocol negotiation for capability hash, contract/result ABI,
+  and build features.
+- Expand clean installed-wheel certification across the approved platform wheel
+  matrix. Every route is tested from wheels, never source-tree imports alone.
+- Add workload-aware `backend="auto"` policy using exact capability, runtime
+  class, native companion compatibility, parity status, and end-to-end
+  performance/RSS evidence. `backend="rust"` remains fail-closed.
+- Run sampled shadow-oracle releases with mismatch bundles and kill switch,
+  stable soak, fallback-usage telemetry, and A5 review route by route.
+- Remove the root source mirror only after source-layout/import/notebook/example
+  evidence. Remove a Python/Numba production duplicate only after its own A5
+  approval, documented migration manifest, rollback package version, and one
+  stable release cycle. Preserve Python facade, strategy protocol, reporting,
+  adapters, Nautilus validator, and independent oracle.
+
+Required tests and evidence:
+
+- runtime budget/cancel, use-after-close, cross-runtime mismatch, poisoned
+  worker recreation, deterministic teardown, cache eviction, audit truncation,
+  and nested-parallelism budget tests pass;
+- generated capability registry agrees across Rust, Python, documentation,
+  endpoint inventory, wheel test, and auto-router; CI rejects drift;
+- installed-wheel source parity and exact protocol negotiation pass on every
+  supported platform/Python pair;
+- warm repeated service/WFO score runs demonstrate RSS plateau; full benchmark
+  manifests report cold/warm peak/steady RSS, copy bytes, phase timings, and
+  route-specific end-to-end performance;
+- shadow mismatches generate evidence and kill-switch fallback. A5 removal is
+  blocked by any unexplained mismatch, degraded fallback behavior, or missing
+  migration manifest.
+
+Exit gate:
+
+```text
+QuantBT can truthfully claim a correctness-certified Rust-primary simulation
+core for the exact certified linear capabilities: static orders, promoted
+targets, promoted portfolio policies, promoted same-account package policies,
+promoted intrabar contracts, and prepared WFO evaluation. Reactive Python
+strategies remain explicitly Rust-led hybrid. Unsupported advanced options and
+cross-venue domains remain capability-gated.
+```
+
+No-debt rule and rollback:
+
+- No generic endpoint is promoted merely because one subtype passed. Capability
+registry, result authority metadata, and docs must agree on the boundary.
+- Any route not at A5 retains its explicit Python/Numba route and package-pin
+rollback. The independent Python oracle is permanent test infrastructure and
+is never removed.
+
+### V1.1 Explicit Non-Goals And Deferred Domains
+
+The following are intentionally outside V1.1 and must stay fail-fast or
+explicitly experimental. They are not hidden technical debt within a completed
+V1.1 phase:
+
+- automatic compilation/translation of arbitrary Python alpha logic into Rust;
+- feature/indicator ownership inside QuantBT;
+- universal event loop replacing all specialized kernels;
+- venue-exact L2 reconstruction from OHLCV or synthetic-book claims;
+- cross-exchange atomicity, multi-venue ledger, latency/prefunding authority;
+- triangular execution without exact dependent-currency conservation;
+- American exercise/assignment, Quanto, physical-settlement, multi-currency
+  options ledger, and venue-exact options portfolio margin;
+- a universal exchange portfolio-margin clone without a specified venue model;
+- whole-core fixed-point rewrite before domain-specific precision requirements
+  and benchmarks justify it;
+- deleting Python oracle, historical timing IDs, or production fallback before
+  the A5 and rollback gates.
+
+### V1.1 Final Definition Of Done
+
+V1.1 is complete only when the guide section 91 checklist is met:
+
+- linear accounting is independently proven through FillReplay and canonical
+  trace, then reused by promoted static event, target, portfolio, package, and
+  intrabar kernels;
+- WFO calendar/timing/causality/fold lifecycle are explicit and tested, while
+  native WFO owns prepared repeated evaluation rather than Python per-trial
+  simulation overhead;
+- reactive optimized routes preserve callback/command/account traces and state
+  that they are hybrid when Python strategy decisions remain;
+- native metrics and result buffers are authoritative, lazy Python adaptation
+  does not replay execution, and score/compact/audit agree financially;
+- no auto-promoted Rust route is slower end-to-end than its intended Python
+  route without an approved correctness-first exception recorded in capability
+  metadata;
+- installed wheels, protocol negotiation, capability registry, runtime/RSS
+  soak, shadow-oracle release, migration manifests, docs, and rollback paths
+  are complete for every A4/A5 claim.

@@ -39,6 +39,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Publish the governed native/core pair or inspect a TestPyPI proof | [TestPyPI release checklist](testpypi_release_checklist.md) |
 | Understand the Python/Rust execution boundary | [Execution-plan architecture](architecture/execution-plan.md) |
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
+| Establish or inspect the V1.1 Rust-primary evidence baseline | [Rust-primary V1.1 baseline](architecture/rust_primary_v1_1_baseline.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
 | Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |

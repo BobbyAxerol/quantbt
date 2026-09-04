@@ -1,0 +1,1162 @@
+{
+  "baseline_id": "rust_primary_v1_1_phase0",
+  "cases": [
+    {
+      "artifacts": [
+        {
+          "bytes": 5174,
+          "path": "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+          "sha256": "095318fe0d590360b88e386203f9f116f8aa35dad5869174284c1cc4c61c45b2"
+        },
+        {
+          "bytes": 789,
+          "path": "tests/corpus/regressions/phase51b/reversal_and_atomic_rollback.json",
+          "sha256": "ee464cf302a2ab153252823c0780222706999a3fd6d6bf8ff19e3b83ea77e04a"
+        }
+      ],
+      "canonical_trace": "package_transaction_artifact_available",
+      "config_contract": {
+        "account": "linear_quote_settled_gross_cross",
+        "package_policy": "same_bar_atomic_market",
+        "scope": "all_or_none"
+      },
+      "id": "atomic_package",
+      "known_deviations": [
+        "Generic arbitrage/package endpoints remain Python by default."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+          "tests/corpus/regressions/phase51b/reversal_and_atomic_rollback.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "rust_explicit",
+        "resolved_backend": "Rust bounded package helper when explicitly selected",
+        "result_status": "not_recorded",
+        "route_id": "run_atomic_package_market",
+        "runtime_class": "WholeRunNative",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "atomic_package"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fill_count",
+        "fees",
+        "funding",
+        "package_status"
+      ],
+      "route": "run_atomic_package_market",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 4886,
+          "path": "benchmarks/phase31_intrabar_benchmark.json",
+          "sha256": "c659e85bfb1f0a0000911c8f77d8818d55b0cd9bd76a816bef5607d80b05be70"
+        },
+        {
+          "bytes": 789,
+          "path": "tests/corpus/regressions/phase51b/reversal_and_atomic_rollback.json",
+          "sha256": "ee464cf302a2ab153252823c0780222706999a3fd6d6bf8ff19e3b83ea77e04a"
+        }
+      ],
+      "canonical_trace": "replay_artifact_available",
+      "config_contract": {
+        "claim": "accounting_only",
+        "execution_contract": "fill_replay_v1",
+        "input": "explicit fill tape"
+      },
+      "id": "fill_replay",
+      "known_deviations": [
+        "It does not validate order matching or market fill generation."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase31_intrabar_benchmark.json",
+          "tests/corpus/regressions/phase51b/reversal_and_atomic_rollback.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "native_intrabar",
+        "resolved_backend": "Numba fill-replay accounting kernel",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.fill_replay",
+        "runtime_class": "WholeRunNative",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "fill_replay"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fees",
+        "funding",
+        "terminal_position",
+        "trace_replay"
+      ],
+      "route": "QuantBTEndpoint.fill_replay",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 4886,
+          "path": "benchmarks/phase31_intrabar_benchmark.json",
+          "sha256": "c659e85bfb1f0a0000911c8f77d8818d55b0cd9bd76a816bef5607d80b05be70"
+        },
+        {
+          "bytes": 2281,
+          "path": "docs/contracts/phase51b_certification.json",
+          "sha256": "af2a0f6d2bea474db7afaaad24b22dc6fd1ecb56d88e3e8b5292d1d16cfb22ab"
+        }
+      ],
+      "canonical_trace": "canonical_trace_and_replay_evidence",
+      "config_contract": {
+        "execution_contract": "intrabar_bracket_v1",
+        "input": "compact intent columns",
+        "profiles": [
+          "minimal",
+          "standard",
+          "audit"
+        ]
+      },
+      "id": "intrabar_bracket",
+      "known_deviations": [
+        "Scope is single-symbol intrabar, not shared cross-margin portfolio execution."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase31_intrabar_benchmark.json",
+          "docs/contracts/phase51b_certification.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "native_intrabar",
+        "resolved_backend": "Numba intrabar kernel",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.intrabar_bracket",
+        "runtime_class": "WholeRunNative",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "intrabar_bracket"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fills",
+        "terminal_fingerprint",
+        "trace_replay",
+        "bars_per_second"
+      ],
+      "route": "QuantBTEndpoint.intrabar_bracket",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 2410,
+          "path": "benchmarks/options_phase10_baseline.json",
+          "sha256": "00c75435ba7a5da9cc970d10be944036dd4bfbca0a569f742efef91a6b28eb90"
+        }
+      ],
+      "canonical_trace": "deterministic_replay_manifest",
+      "config_contract": {
+        "execution": "top_of_book",
+        "instrument_scope": "basic European options",
+        "margin": "standard_venue_approx"
+      },
+      "id": "options_basic_european",
+      "known_deviations": [
+        "Venue-exact margin and a dedicated Rust options engine are not claimed."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/options_phase10_baseline.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "native_option",
+        "resolved_backend": "native_option Python domain backend",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.options",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "options_basic_european"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fills",
+        "packages",
+        "cash",
+        "marks",
+        "greeks",
+        "margin"
+      ],
+      "route": "QuantBTEndpoint.options",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 9300,
+          "path": "benchmarks/pct_equity_nautilus_smoke.json",
+          "sha256": "6306f30392adc078332239d821843b383646c1644b90619de7b6dcfd703cd102"
+        },
+        {
+          "bytes": 609,
+          "path": "tests/corpus/p0_baseline/market_single_symbol.json",
+          "sha256": "3d4ae1b56acecd023170d292aa740d1381cbb62f5b9b95e78451e7755867f906"
+        }
+      ],
+      "canonical_trace": "adapter_transition_report_available",
+      "config_contract": {
+        "fee_contract": "compatibility_layer_to_canonical_one_way_fee",
+        "input": "signed_signal",
+        "sizing": "pct_equity"
+      },
+      "id": "pct_equity",
+      "known_deviations": [
+        "Nautilus venue fees/slippage can differ from endpoint custom settings by adapter contract."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/pct_equity_nautilus_smoke.json",
+          "tests/corpus/p0_baseline/market_single_symbol.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "legacy",
+        "resolved_backend": "legacy",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.pct_equity",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "pct_equity"
+      },
+      "required_metrics": [
+        "final_equity",
+        "total_return_pct",
+        "num_trades",
+        "transition_count"
+      ],
+      "route": "QuantBTEndpoint.pct_equity",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 11263,
+          "path": "benchmarks/portfolio_real_parity_report.json",
+          "sha256": "9fff817cb1bdcfe2b5736067eaca36f091e4d246897f1eefb9f8790fc37d21d1"
+        },
+        {
+          "bytes": 5174,
+          "path": "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+          "sha256": "095318fe0d590360b88e386203f9f116f8aa35dad5869174284c1cc4c61c45b2"
+        },
+        {
+          "bytes": 3710,
+          "path": "benchmarks/phase16_performance_debt.json",
+          "sha256": "380a66eefbcc1969ecda0d30f45848cf2ee9af68df4bcfbacb9d8999bccc0f8e"
+        }
+      ],
+      "canonical_trace": "portfolio_audit_artifact_available",
+      "config_contract": {
+        "account": "shared_linear_quote_settled",
+        "input": "multi_symbol_target_matrix",
+        "report_levels": [
+          "minimal",
+          "standard",
+          "audit"
+        ]
+      },
+      "id": "portfolio",
+      "known_deviations": [
+        "Generic portfolio is not a Rust auto route in this baseline."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+          "benchmarks/phase16_performance_debt.json",
+          "benchmarks/portfolio_real_parity_report.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "native_portfolio",
+        "resolved_backend": "native_portfolio",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.portfolio",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "portfolio"
+      },
+      "required_metrics": [
+        "equity",
+        "positions",
+        "fees",
+        "funding",
+        "margin",
+        "turnover",
+        "attribution"
+      ],
+      "route": "QuantBTEndpoint.portfolio",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 3609,
+          "path": "benchmarks/native_event/reactive_session_baseline.json",
+          "sha256": "b9157e414654d4f309a511c3856ab6344502bc8ae5eeea030ca1cd89e72c6705"
+        },
+        {
+          "bytes": 1536,
+          "path": "benchmarks/native_event/results/phase47c/python_audit_long_short.json",
+          "sha256": "3af022f93ad381eae317b0f6100927800f20cbf2944071fd21f5d4297eca3973"
+        },
+        {
+          "bytes": 1528,
+          "path": "benchmarks/native_event/results/phase47c/rust_audit_long_short.json",
+          "sha256": "2f3fcd31f90346d6d6f79eed89144e5e6cd79848a0c600e9164f250364abd70b"
+        }
+      ],
+      "canonical_trace": "route_specific_audit_artifacts",
+      "config_contract": {
+        "account": "single_symbol_linear",
+        "input": "stateful_python_callback",
+        "wake_policy": "strategy_declared"
+      },
+      "id": "reactive_grid_mrs_like",
+      "known_deviations": [
+        "Generic callback/reactive strategy is not Rust-primary in the V1.1 baseline."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/native_event/reactive_session_baseline.json",
+          "benchmarks/native_event/results/phase47c/python_audit_long_short.json",
+          "benchmarks/native_event/results/phase47c/rust_audit_long_short.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "auto",
+        "resolved_backend": "python",
+        "result_status": "not_recorded",
+        "route_id": "event_driven(input_mode='strategy')",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "reactive_grid_mrs_like"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fill_count",
+        "event_count",
+        "peak_rss_mb"
+      ],
+      "route": "event_driven(input_mode='strategy')",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 3710,
+          "path": "benchmarks/phase16_performance_debt.json",
+          "sha256": "380a66eefbcc1969ecda0d30f45848cf2ee9af68df4bcfbacb9d8999bccc0f8e"
+        },
+        {
+          "bytes": 581,
+          "path": "benchmarks/results/optimization_overhead.json",
+          "sha256": "f72a893df9e0c72d32e3a79eed4042a83f6999c822065272c65f265c4a99f92f"
+        },
+        {
+          "bytes": 609,
+          "path": "tests/corpus/p0_baseline/market_single_symbol.json",
+          "sha256": "3d4ae1b56acecd023170d292aa740d1381cbb62f5b9b95e78451e7755867f906"
+        }
+      ],
+      "canonical_trace": "not_recorded_in_historical_artifact",
+      "config_contract": {
+        "input": "signed_signal",
+        "sizing": "signal_notional",
+        "unit_policy": "frozen_between_signal_transitions"
+      },
+      "id": "signal_notional",
+      "known_deviations": [],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase16_performance_debt.json",
+          "benchmarks/results/optimization_overhead.json",
+          "tests/corpus/p0_baseline/market_single_symbol.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "native_vectorized",
+        "resolved_backend": "native_vectorized",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.signal_notional",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "signal_notional"
+      },
+      "required_metrics": [
+        "final_equity",
+        "positions",
+        "objective",
+        "prepared_context_parity"
+      ],
+      "route": "QuantBTEndpoint.signal_notional",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 3284,
+          "path": "tests/corpus/native_event/phase54a5_full_session.json",
+          "sha256": "d7da6a09c0732fd2a32385de6f0fe58aae91caa52c4777c3f04eedfbb595e98c"
+        },
+        {
+          "bytes": 7853,
+          "path": "benchmarks/native_event/results/phase54a5/exit_gate.json",
+          "sha256": "508d13de3547b5556323f0f25f1d3c87ffc7e69c601af7a8e9ede4c130e93ddc"
+        },
+        {
+          "bytes": 5754,
+          "path": "benchmarks/native_event/results/phase54b2/public_routes.json",
+          "sha256": "ab1ef7603ed4f0068d5d040ba163c72ed5b501cbd8a2157d2699c8977fbb516c"
+        }
+      ],
+      "canonical_trace": "canonical_trace_artifact_available",
+      "config_contract": {
+        "execution_contracts": [
+          "event_lifecycle_v2_next_bar_close",
+          "event_lifecycle_v3_next_open"
+        ],
+        "input": "canonical_order_command_tape"
+      },
+      "id": "static_v2_v3_orders",
+      "known_deviations": [],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/native_event/results/phase54a5/exit_gate.json",
+          "benchmarks/native_event/results/phase54b2/public_routes.json",
+          "tests/corpus/native_event/phase54a5_full_session.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "auto",
+        "resolved_backend": "rust_when_capability_gate_passes",
+        "result_status": "not_recorded",
+        "route_id": "event_static_tape_v2_v3",
+        "runtime_class": "WholeRunNative",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "static_v2_v3_orders"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fees",
+        "funding",
+        "margin",
+        "terminal_fingerprint"
+      ],
+      "route": "event_static_tape_v2_v3",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 144542,
+          "path": "upgrade/QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md",
+          "sha256": "83ab362441c90ad47cd10e0be4a983274aabe8c84e7db3dae039b86929fbab83"
+        }
+      ],
+      "canonical_trace": "not_available",
+      "config_contract": {
+        "optimization_schedule": "engine_enforced_nested",
+        "selection": "future native/WFO contract"
+      },
+      "id": "wfo_engine_enforced_nested",
+      "known_deviations": [
+        "Included to prevent a future schedule from being mistaken for an existing capability."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "upgrade/QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "not_applicable",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "endpoint_selected",
+        "resolved_backend": "not implemented as a current public schedule",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.walk_forward",
+        "runtime_class": "not_applicable",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "wfo_engine_enforced_nested"
+      },
+      "required_metrics": [],
+      "route": "QuantBTEndpoint.walk_forward",
+      "status": "unsupported_baseline"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 5542,
+          "path": "benchmarks/phase49b_wfo_performance.json",
+          "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
+        },
+        {
+          "bytes": 566,
+          "path": "benchmarks/phase13_wfo_cache.json",
+          "sha256": "437dcb8843c1bdd41fc7c3723d0a448079239feaec21aee7345f80b73fbcf05a"
+        }
+      ],
+      "canonical_trace": "fold_metadata_and_terminal_metrics",
+      "config_contract": {
+        "fold_account": "declared_endpoint_policy",
+        "optimization_schedule": "retrospective_global",
+        "selection": "mode_specific"
+      },
+      "id": "wfo_global",
+      "known_deviations": [
+        "Global schedule has retrospective provenance and is not a per-fold causal claim."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase13_wfo_cache.json",
+          "benchmarks/phase49b_wfo_performance.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "endpoint_selected",
+        "resolved_backend": "Python WalkForwardEngine global schedule",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.walk_forward",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "wfo_global"
+      },
+      "required_metrics": [
+        "trial_table",
+        "candidate_table",
+        "selected_params",
+        "stitched_equity",
+        "fold_metrics"
+      ],
+      "route": "QuantBTEndpoint.walk_forward",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 5542,
+          "path": "benchmarks/phase49b_wfo_performance.json",
+          "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
+        },
+        {
+          "bytes": 7774,
+          "path": "docs/walkforward_causal.md",
+          "sha256": "3f414696926ece4a8250fe12ad2fbc46affb435b39b950aa44ecbed9105e1e2d"
+        }
+      ],
+      "canonical_trace": "fold_metadata_and_causal_cutoff",
+      "config_contract": {
+        "fold_account": "declared_endpoint_policy",
+        "optimization_schedule": "per_fold_causal",
+        "selection": "IS-only"
+      },
+      "id": "wfo_per_fold_causal",
+      "known_deviations": [
+        "Selection must not inspect later fold observations."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase49b_wfo_performance.json",
+          "docs/walkforward_causal.md"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "endpoint_selected",
+        "resolved_backend": "Python WalkForwardEngine per_fold_causal schedule",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.walk_forward",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "wfo_per_fold_causal"
+      },
+      "required_metrics": [
+        "fold_trial_table",
+        "fold_selected_params",
+        "fold_oos_metrics",
+        "stitched_equity"
+      ],
+      "route": "QuantBTEndpoint.walk_forward",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 5542,
+          "path": "benchmarks/phase49b_wfo_performance.json",
+          "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
+        },
+        {
+          "bytes": 7774,
+          "path": "docs/walkforward_causal.md",
+          "sha256": "3f414696926ece4a8250fe12ad2fbc46affb435b39b950aa44ecbed9105e1e2d"
+        }
+      ],
+      "canonical_trace": "fold_metadata_and_causal_cutoff",
+      "config_contract": {
+        "fold_account": "declared_endpoint_policy",
+        "optimization_schedule": "per_fold_decay",
+        "selection": "IS optimization with OOS decay measurement"
+      },
+      "id": "wfo_per_fold_decay",
+      "known_deviations": [
+        "OOS is evaluation for fold decay, never a direct Optuna parameter input."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/phase49b_wfo_performance.json",
+          "docs/walkforward_causal.md"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "endpoint_selected",
+        "resolved_backend": "Python WalkForwardEngine per_fold_decay schedule",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.walk_forward",
+        "runtime_class": "PythonCompatibility",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "wfo_per_fold_decay"
+      },
+      "required_metrics": [
+        "fold_trial_table",
+        "fold_selected_params",
+        "fold_oos_metrics",
+        "stitched_equity"
+      ],
+      "route": "QuantBTEndpoint.walk_forward",
+      "status": "baseline_available"
+    }
+  ],
+  "measurement_null_semantics": "null means not measured by the referenced historical artifact; zero means measured zero",
+  "package_versions": {
+    "command_abi": "full-command-v1",
+    "native_protocol": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "quantbt_engine": "1.1.0",
+    "quantbt_native": "0.4.1",
+    "result_abi": "native-event-result-v1"
+  },
+  "schema": "quantbt-rust-primary-v1_1-corpus-manifest-v1",
+  "source_fingerprints": {
+    "guide": {
+      "bytes": 144542,
+      "path": "upgrade/QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md",
+      "sha256": "83ab362441c90ad47cd10e0be4a983274aabe8c84e7db3dae039b86929fbab83"
+    },
+    "measurement_contract_module": {
+      "bytes": 7314,
+      "path": "src/quantbt/benchmarks/v1_1_measurement.py",
+      "sha256": "04c95b903f9afdaa8bd80282a55dcb5ebe480d5456b664fac441dd90de0032a6"
+    },
+    "product_registry": {
+      "bytes": 13376,
+      "path": "contracts/native_event_product_registry.json",
+      "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
+    }
+  }
+}

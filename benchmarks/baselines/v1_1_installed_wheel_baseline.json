@@ -1,0 +1,129 @@
+{
+  "artifacts": [
+    {
+      "bytes": 627407,
+      "name": "quantbt_engine-1.1.0-py3-none-any.whl",
+      "sha256": "d29b40748b8bc165a71a1bcbdc02d84f753db013a66b4a74f3f8388c25ca81fb"
+    },
+    {
+      "bytes": 583431,
+      "name": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "9f8ea7afc9f6b8d7bfd53dbc6c4b6fc40ac1d570b8bc81316f6a82b007bc203d"
+    },
+    {
+      "bytes": 666643,
+      "name": "quantbt_engine-1.1.0.tar.gz",
+      "sha256": "6794e4410e374761bd6bac081974785b37bdc29d2e05157ca6cb927ee51a0389"
+    }
+  ],
+  "baseline_id": "rust_primary_v1_1_phase0",
+  "certificate_fingerprint": "e8db482ba0b8b6d80e6443cb176d68b39e2d4cf13432175c5b572b3f46f9bb41",
+  "core_distribution": {
+    "name": "quantbt-engine",
+    "version": "1.1.0"
+  },
+  "host": {
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "python_implementation": "CPython",
+    "python_version": "3.12.13"
+  },
+  "installed_wheel": {
+    "core_only": {
+      "auto_reason_without_native": "native_unavailable",
+      "core_version": "1.1.0",
+      "disabled_reason": "emergency_native_disabled",
+      "quantbt_path": "/tmp/quantbt-native-release-_f08i2de/core-only/lib/python3.12/site-packages/quantbt/__init__.py"
+    },
+    "exact_pair": {
+      "core_version": "1.1.0",
+      "disabled_reason": "emergency_native_disabled",
+      "explicit_disable_fails_closed": true,
+      "ir_batch_boundary_calls": 1,
+      "ir_fold_boundary_calls": 1,
+      "native_path": "/tmp/quantbt-native-release-_f08i2de/exact-pair/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "native_version": "0.4.1",
+      "package_accepted": [
+        true,
+        true
+      ],
+      "package_final_equity": 9999.981999584,
+      "package_python_oracle_parity": "exact_atol_1e-12",
+      "portfolio_auto_reason": "auto_python_release_policy",
+      "quantbt_path": "/tmp/quantbt-native-release-_f08i2de/exact-pair/lib/python3.12/site-packages/quantbt/__init__.py",
+      "static_auto_reason": "auto_rust_certified",
+      "static_backend": "rust",
+      "target_final_equity": 10000.481174235,
+      "target_python_oracle_parity": "exact_atol_1e-12"
+    }
+  },
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "native_distribution": {
+    "name": "quantbt-native",
+    "version": "0.4.1"
+  },
+  "product_registry_fingerprint": "ee8cfc3b99fcad075cd215e9aadcbc2467eb2eaf44f55720f9a4c810149bbdba",
+  "route_observations": {
+    "core_only_auto_backend": "native_unavailable",
+    "core_only_disabled_backend": "emergency_native_disabled",
+    "exact_pair_native_api": "0.4",
+    "exact_pair_static_auto_backend": "auto_rust_certified"
+  },
+  "schema": "quantbt-rust-primary-v1_1-installed-wheel-baseline-v1",
+  "source_fingerprints": {
+    "endpoint": {
+      "path": "src/quantbt/endpoint.py",
+      "sha256": "eb0fd05dbb766d8cc00fa8c24634f9a87d83544427035e2f335b1f865d790358"
+    },
+    "lifecycle_registry": {
+      "path": "contracts/native_event_contract_registry.json",
+      "sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa"
+    },
+    "measurement_contract_module": {
+      "path": "src/quantbt/benchmarks/v1_1_measurement.py",
+      "sha256": "04c95b903f9afdaa8bd80282a55dcb5ebe480d5456b664fac441dd90de0032a6"
+    },
+    "product_registry": {
+      "path": "contracts/native_event_product_registry.json",
+      "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
+    },
+    "pyproject": {
+      "path": "pyproject.toml",
+      "sha256": "6272426606aaf238f828df970d08296a3cac3db766cca9974671d6ecfbdfd73f"
+    }
+  },
+  "source_revision": {
+    "git_ref": "dev",
+    "git_sha": "a9dd32220852463645c161c4f6ffdfd0f55911aa"
+  },
+  "tested_contract": {
+    "certifier": "tools/certify_native_release.py",
+    "claims": [
+      "core-only fallback imports from site-packages and resolves auto to Python",
+      "the exact core/native pair imports from site-packages and completes the governed public route probes",
+      "this record is a V1.1 baseline, not a new endpoint promotion"
+    ],
+    "import_boundary": "fresh venvs without repository PYTHONPATH or active Poetry environment",
+    "source_test_subset": "tools/run_test_shards.py --profile release"
+  },
+  "wheel_verification": {
+    "clean_install": true,
+    "core_wheel": "quantbt_engine-1.1.0-py3-none-any.whl",
+    "native_pair": {
+      "command_abis": [
+        "full-command-v1"
+      ],
+      "core_version": "1.1.0",
+      "fallback": "explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason",
+      "native_protocol_max": 1,
+      "native_protocol_min": 1,
+      "native_version": "0.4.1",
+      "result_abis": [
+        "native-event-result-v1"
+      ],
+      "status": "exact_staged_pair"
+    },
+    "native_wheel": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+    "schema": "quantbt-staged-wheel-verification-v1",
+    "source_hash_parity": true
+  }
+}
