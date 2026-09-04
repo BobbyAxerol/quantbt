@@ -16,12 +16,18 @@ NATIVE_DIST ?= dist/native
 	release-manifest-staged migration-audit certify-native-release \
 	docs-check v1_1-baseline-check
 
+.PHONY: v1_1-phase57-check
+
 docs-check:
 	$(PYTHON) tools/check_docs_links.py
 
 v1_1-baseline-check:
 	$(PYTHON) tools/generate_v1_1_baseline.py --check
 	$(PYTEST) -q tests/test_phase56_v1_1_baseline.py
+
+v1_1-phase57-check:
+	$(PYTHON) tools/check_v1_1_phase57_foundation.py
+	$(PYTEST) -q tests/test_phase57_v1_1_specs_oracle_trace.py
 
 test-python-unit:
 	$(PYTEST) -q --ignore=tests/test_real.py --ignore=tests/test_real_endpoints.py
@@ -37,9 +43,10 @@ test-contracts:
 	$(PYTHON) tools/generate_product_contracts.py --check
 	$(PYTHON) tools/generate_public_api_inventory.py --check
 	$(PYTHON) tools/generate_v1_1_baseline.py --check
+	$(PYTHON) tools/check_v1_1_phase57_foundation.py
 	$(PYTHON) tools/check_module_architecture.py
 	$(PYTHON) tools/check_docs_links.py
-	$(PYTEST) -q tests/native_event/contract tests/test_phase56_v1_1_baseline.py
+	$(PYTEST) -q tests/native_event/contract tests/test_phase56_v1_1_baseline.py tests/test_phase57_v1_1_specs_oracle_trace.py
 
 test-differential:
 	$(PYTEST) -q tests/native_event/test_reactive_lifecycle_parity.py tests/native_event/test_reactive_accounting_parity.py

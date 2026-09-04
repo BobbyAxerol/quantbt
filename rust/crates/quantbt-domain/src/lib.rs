@@ -13,8 +13,15 @@ pub mod generated_contracts;
 pub mod generated_product_contracts;
 pub mod ids;
 pub mod numeric;
+pub mod trace_v2;
 
 pub use commands::{CommandTapeV5, LegacyCommandTapeV4, OrderCommandV5};
 pub use enums::{ActivationPolicy, CommandAction, OrderStatus, OrderType, Side, TimeInForce};
 pub use errors::DomainError;
-pub use ids::{ExternalOrderId, OrderHandle, SymbolId};
+pub use ids::{
+    AccountId, BarIndex, ExternalOrderId, OrderHandle, PackageId, SymbolId, TimestampNs,
+};
+pub use trace_v2::{
+    CanonicalEventKindV2, CanonicalTraceRowV2, TerminalFingerprintV2, TraceHashV2,
+    TraceToleranceV2, canonical_trace_hash_v2,
+};

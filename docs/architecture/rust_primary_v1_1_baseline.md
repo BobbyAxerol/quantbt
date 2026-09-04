@@ -57,3 +57,33 @@ only after the later specification, oracle, canonical-trace, differential,
 installed-wheel, RSS, and performance gates documented in the V1.1 guide. An
 explicit `backend="rust"` request must fail closed outside a certified contract;
 `backend="auto"` must retain an observable Python fallback reason.
+
+## Phase 57 Correctness Foundation
+
+Phase 57 adds the first V1.1 promotion prerequisite without changing a
+production route:
+
+- [Execution clock contract](../contracts/v1_1_execution_clock.md) freezes
+  first-bar, effective-time, V2/V3, gap, ambiguity, and funding-boundary
+  language.
+- [Linear accounting contract](../contracts/v1_1_linear_accounting.md)
+  defines scale, reduce, reverse, fee, funding, margin preview, and the scope
+  boundary for the linear quote-settled model.
+- [Canonical Trace V2](../contracts/v1_1_canonical_trace_v2.md) defines the
+  typed trace, field-specific comparator, stable serializer, and terminal
+  fingerprint needed for later route-by-route promotion.
+
+The machine-readable source is
+[`contracts/v1_1_correctness_contract.json`](../../contracts/v1_1_correctness_contract.json).
+The independent reference implementations stay under `reference/python`; that
+tree is standard-library-only and excluded from the production wheel. Existing
+`canonical-execution-trace-v1` output remains unchanged. Its V2 adapter is
+explicitly lossy and is evidence for bounded fixtures, not a claim that every
+runtime already emits a complete V2 trace.
+
+Run the foundation gate with:
+
+```bash
+poetry run make v1_1-phase57-check \
+  PYTHON=/root/bobby/pool_alpha/quantbt/.venv/bin/python
+```

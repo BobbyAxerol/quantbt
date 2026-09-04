@@ -20,6 +20,28 @@ pub struct CurrencyId(pub u16);
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct ExternalOrderId(pub i64);
 
+/// Typed canonical trace bar index.  The Python trace uses ``-1`` only for
+/// absent legacy projections; native V2 rows always carry a valid value.
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct BarIndex(pub u32);
+
+/// Nanosecond UTC timestamp used by native domain traces.
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct TimestampNs(pub i64);
+
+/// Account-local typed identifier.  It prevents string IDs in native trace
+/// hot paths while preserving a simple packed FFI representation.
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct AccountId(pub u32);
+
+/// Typed package identifier for a common account transaction.
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct PackageId(pub i64);
+
 /// A generation-checked reference into an engine-owned order arena.
 ///
 /// The packed representation is used only at narrow FFI boundaries. Core code

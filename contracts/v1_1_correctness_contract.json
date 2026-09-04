@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "contract_id": "quantbt-v1_1-correctness-foundation-v1",
+  "guide_phase": "57 / RP-005..RP-010",
+  "authority": {
+    "production_comparator": "existing Python/Numba and Rust routes remain comparators",
+    "specification": "docs/contracts/v1_1_execution_clock.md and docs/contracts/v1_1_linear_accounting.md",
+    "independent_oracle": "reference/python (test-only, never packaged)",
+    "trace_contract": "canonical-trace-v2"
+  },
+  "execution_clock": {
+    "bar_timestamp_semantics": "close",
+    "first_bar": "bar_zero_is_initial_snapshot; explicit command at bar zero is outside_tape",
+    "funding_boundary": "close_timestamp_funding_after_intrabar_mark_and_before_command_matching",
+    "contracts": {
+      "event_lifecycle_v2_next_bar_close": {
+        "observation_phase": "post_execution_bar_close",
+        "effective_phase": "next_bar_close",
+        "market_fill": "close",
+        "gap_policy": "legacy_trigger",
+        "same_bar_ambiguity": "unordered_ohlc_range_legacy"
+      },
+      "event_lifecycle_v3_next_open": {
+        "observation_phase": "post_execution_bar_close",
+        "effective_phase": "next_bar_open",
+        "market_fill": "open",
+        "gap_policy": "limit_open_improvement_and_stop_open_worse",
+        "same_bar_ambiguity": "flag_and_conservative"
+      }
+    }
+  },
+  "linear_accounting": {
+    "model_id": "linear_quote_settled_gross_cross_v1",
+    "pnl": "realized_and_unrealized_linear_quote_settled",
+    "fee": "quote_one_way_per_fill",
+    "funding": "signed_position_times_mark_times_contract_size_times_rate",
+    "margin": "gross_cross",
+    "liquidation": "zero_equity_legacy_is_comparator_only"
+  },
+  "canonical_trace_v2": {
+    "schema_version": "canonical-trace-v2",
+    "serializer": "canonical-little-endian-v1",
+    "hash": "fnv1a-dual-128-v1",
+    "terminal_fingerprint": "terminal-fingerprint-v2",
+    "required_discrete_fields": [
+      "sequence",
+      "bar_index",
+      "event_timestamp_ns",
+      "effective_timestamp_ns",
+      "symbol_id",
+      "account_id",
+      "package_id",
+      "order_id",
+      "event_kind",
+      "reason_code",
+      "order_status_code",
+      "state_hash_before",
+      "state_hash_after"
+    ],
+    "required_financial_fields": [
+      "qty",
+      "price",
+      "fee",
+      "cash_before",
+      "cash_after",
+      "position_before",
+      "position_after",
+      "realized_pnl_before",
+      "realized_pnl_after",
+      "initial_margin_before",
+      "initial_margin_after",
+      "maintenance_margin_before",
+      "maintenance_margin_after"
+    ]
+  },
+  "tolerance_policy": {
+    "policy_id": "trace-tolerance-v2-linear-default",
+    "ids_status_timestamps": {"comparison": "exact", "normalization_quantum": 0.0},
+    "quantity": {"comparison": "lot_aware", "absolute": 1e-12, "relative": 0.0, "normalization_quantum": 1e-12},
+    "price": {"comparison": "tick_aware", "absolute": 1e-10, "relative": 1e-12, "normalization_quantum": 1e-10},
+    "cash_fee_funding_margin_pnl": {"comparison": "financial", "absolute": 1e-9, "relative": 1e-12, "normalization_quantum": 1e-10},
+    "metrics": {"comparison": "metric", "absolute": 1e-8, "relative": 1e-10, "normalization_quantum": 1e-8}
+  },
+  "mutation_catalog": [
+    "funding_sign",
+    "fee_side",
+    "fill_accounting_order",
+    "next_open_vs_same_close",
+    "quantity_rounding_direction",
+    "maintenance_comparison",
+    "oco_sibling_cancellation",
+    "calendar_row_relabel"
+  ],
+  "rollback": "additive test/specification contract only; production routes and public endpoint defaults are unchanged"
+}

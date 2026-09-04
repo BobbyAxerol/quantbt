@@ -14182,7 +14182,7 @@ No-debt rule and rollback:
 
 ### Phase 57 / Guide Phase 1 - Domain Specifications, Oracle, And Canonical Trace
 
-**Status: planned.**
+**Status: completed on 2026-09-04.**
 
 **Goal:** establish a specification and executable correctness control that is
 independent from both legacy production code and new Rust code.
@@ -14236,6 +14236,60 @@ No-debt rule and rollback:
   before it can be encoded in Rust; legacy parity alone cannot waive this rule.
 - New trace/oracle code is test-only and additive. Existing production routes
   remain the explicit compatibility baseline until later promotion gates.
+
+Implementation evidence:
+
+- Added the machine-readable
+  [`contracts/v1_1_correctness_contract.json`](../contracts/v1_1_correctness_contract.json)
+  plus versioned [execution-clock](../docs/contracts/v1_1_execution_clock.md),
+  [linear-accounting](../docs/contracts/v1_1_linear_accounting.md), and
+  [Canonical Trace V2](../docs/contracts/v1_1_canonical_trace_v2.md)
+  specifications. They freeze V2/V3 timing, close timestamp semantics,
+  effective timestamps, linear scale/reduce/reverse accounting, one-way fees,
+  signed funding, margin preview, field-specific tolerances, and the bounded
+  mutation catalog.
+- Added `quantbt.verification.canonical_trace_v2`: typed integer IDs,
+  backend-neutral rows, stable little-endian dual-FNV serializer/hash,
+  field-aware comparison, terminal fingerprints, and an explicitly lossy V1
+  trace adapter. Existing `canonical-execution-trace-v1` output and product
+  trace ABI remain unchanged.
+- Added the matching Rust domain vocabulary in
+  `rust/crates/quantbt-domain/src/trace_v2.rs`, including typed `BarIndex`,
+  `TimestampNs`, `AccountId`, and `PackageId`. A shared fixed vector locks
+  Python/Rust byte order and hash behavior without introducing a new runtime
+  emitter or a second execution authority.
+- Added the standard-library-only reference tree under `reference/python` for
+  linear accounting, FillReplay, timing, exact calendar, quantity rounding,
+  maintenance, and OCO rules. It is outside `src/`, excluded from wheels, and
+  guarded by AST import audit against QuantBT, Rust, Numba, NumPy, and pandas.
+- Added hand fixtures, FillReplay differential evidence, normalized legacy
+  Python/Rust trace projection, Hypothesis split-fill metamorphism, and
+  explicit mutations for funding sign, fee side, fill ordering, timing,
+  quantity rounding, maintenance comparison, OCO cancellation, and calendar
+  relabeling. `tests/conftest.py` now prioritizes `src/` so these tests cannot
+  accidentally validate a stale site-packages wheel.
+- Repaired the historical root/source mirror guard exposed by the full suite:
+  it now compares only the manifest-approved local compatibility surface rather
+  than treating package-only benchmark helpers as a second source tree. The
+  new `verification` package is included in that manifest and copied
+  byte-identically to the retained root mirror; `benchmarks` remains
+  deliberately source-only.
+- Added `tools/check_v1_1_phase57_foundation.py` and
+  `make v1_1-phase57-check`; `make test-contracts` now includes both the
+  foundation validator and Phase 57 tests.
+- Verification on local CPython 3.12/Linux: `make v1_1-phase57-check`,
+  `make test-contracts` (`160 passed`), `make test-rust-unit` (all workspace
+  unit/doc tests), and the full Python suite excluding the two local real-data
+  scripts (`934 passed, 22 skipped`) pass. A temporary core wheel contains
+  `quantbt/verification/canonical_trace_v2.py` and excludes `reference/`.
+
+Phase boundary:
+
+- No endpoint timing, accounting, auto-routing, public trace schema, or
+  production `FullSession` behavior changed. Direct V2 runtime emission,
+  executable Rust FillReplay parity, CalendarPlanV2, and a common accounting
+  authority remain intentionally scheduled Phase 58 onward, not hidden
+  technical debt in this completed foundation phase.
 
 ### Phase 58 / Guide Phase 2 - Canonical Market, Calendar, And Instrument V2
 

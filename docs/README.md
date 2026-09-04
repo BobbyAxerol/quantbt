@@ -40,6 +40,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Understand the Python/Rust execution boundary | [Execution-plan architecture](architecture/execution-plan.md) |
 | Inspect the Rust crate map and current promotion state | [Native Rust architecture](architecture/native-rust.md) |
 | Establish or inspect the V1.1 Rust-primary evidence baseline | [Rust-primary V1.1 baseline](architecture/rust_primary_v1_1_baseline.md) |
+| Review the V1.1 independent oracle, execution-clock, accounting, and trace foundation | [Canonical Trace V2](contracts/v1_1_canonical_trace_v2.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
 | Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |
@@ -93,9 +94,12 @@ For production-like research:
 
 ## Native Product Status
 
-`src/quantbt` is the authoritative Python source tree. The root mirror is a
-checked compatibility mirror during the transition and must be synchronized by
-the repository tool, never edited independently. The platform-governed Rust companion
+`src/quantbt` is the authoritative Python source tree. A byte-identical,
+manifest-limited root mirror remains for local Pool Alpha compatibility; test
+bootstrap explicitly prioritizes `src/` so local tests cannot accidentally
+exercise a stale installed wheel or a mirror instead of the source under
+review.
+The platform-governed Rust companion
 promotes certified static command tapes and bounded Native Strategy IR/batch
 rows under `backend="auto"`. It also exposes explicit bounded V2
 `target_units` and same-bar atomic package market helpers; generic callback,

@@ -37,6 +37,7 @@ MIRROR_ENTRIES = (
     "strategies",
     "reporting",
     "sizing",
+    "verification",
     "viz",
 )
 
