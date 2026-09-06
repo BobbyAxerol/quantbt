@@ -29,9 +29,9 @@ This artifact pins source ownership and measurement obligations before later per
 | Proposal | State | Owner |
 |---|---|---|
 | `AP-01` | `IMPLEMENTED_VERIFIED` | `PERF-01` |
-| `AP-02` | `OPEN` | `PERF-02` |
+| `AP-02` | `IMPLEMENTED_VERIFIED` | `PERF-02` |
 | `AP-03` | `IMPLEMENTED_VERIFIED` | `PERF-03` |
-| `AP-04` | `OPEN` | `PERF-02` |
+| `AP-04` | `IMPLEMENTED_VERIFIED` | `PERF-02` |
 | `AP-05` | `IMPLEMENTED_VERIFIED` | `PERF-04` |
 | `AP-06` | `IMPLEMENTED_VERIFIED` | `PERF-04` |
 | `AP-07` | `IMPLEMENTED_VERIFIED` | `PERF-05` |
@@ -39,7 +39,7 @@ This artifact pins source ownership and measurement obligations before later per
 | `AP-09` | `IMPLEMENTED_VERIFIED` | `PERF-05` |
 | `AP-10` | `IMPLEMENTED_VERIFIED` | `PERF-06` |
 | `AP-11` | `IMPLEMENTED_VERIFIED` | `PERF-01` |
-| `AP-12` | `OPEN` | `PERF-07` |
+| `AP-12` | `IMPLEMENTED_VERIFIED` | `PERF-07` |
 
 ## PERF-01 Contracts
 

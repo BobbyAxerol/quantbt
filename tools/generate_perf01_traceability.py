@@ -270,7 +270,16 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
 
 AP_DISPOSITIONS: tuple[dict[str, Any], ...] = (
     {"id": "AP-01", "state": "IMPLEMENTED_VERIFIED", "owner": "PERF-01", "evidence": ("src/quantbt/core/performance_contracts.py", "rust/crates/quantbt-engine/src/metrics_v2.rs", "src/quantbt/core/native_result_v2.py")},
-    {"id": "AP-02", "state": "OPEN", "owner": "PERF-02", "evidence": ("src/quantbt/backends/native_prepared_evaluation.py",)},
+    {
+        "id": "AP-02",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-02",
+        "evidence": (
+            "src/quantbt/backends/native_prepared_evaluation.py",
+            "rust/crates/quantbt-execution/examples/perf02_session_reuse.rs",
+            "tests/test_perf_02_session_reuse.py",
+        ),
+    },
     {
         "id": "AP-03",
         "state": "IMPLEMENTED_VERIFIED",
@@ -282,7 +291,16 @@ AP_DISPOSITIONS: tuple[dict[str, Any], ...] = (
             "benchmarks/native_event/benchmark_perf03_reactive_boundary.py",
         ),
     },
-    {"id": "AP-04", "state": "OPEN", "owner": "PERF-02", "evidence": ("src/quantbt/core/runtime_governance.py",)},
+    {
+        "id": "AP-04",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-02",
+        "evidence": (
+            "src/quantbt/core/runtime_governance.py",
+            "rust/crates/quantbt-execution/src/lib.rs",
+            "tests/test_perf_02_session_reuse.py",
+        ),
+    },
     {
         "id": "AP-05",
         "state": "IMPLEMENTED_VERIFIED",
@@ -356,7 +374,16 @@ AP_DISPOSITIONS: tuple[dict[str, Any], ...] = (
         ),
     },
     {"id": "AP-11", "state": "IMPLEMENTED_VERIFIED", "owner": "PERF-01", "evidence": ("src/quantbt/core/performance_contracts.py", "src/quantbt/walkforward.py")},
-    {"id": "AP-12", "state": "OPEN", "owner": "PERF-07", "evidence": ("rust/Cargo.toml",)},
+    {
+        "id": "AP-12",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-07",
+        "evidence": (
+            "rust/Cargo.toml",
+            "tools/run_perf07_pgo_experiment.py",
+            "tools/performance_closure.py",
+        ),
+    },
 )
 
 _LATER_AC_OWNER = {
@@ -458,6 +485,12 @@ def build_manifest() -> dict[str, Any]:
         2: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_opaque_custom_metric_requires_conservative_full_input"),
         3: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_profiled_wfo_preserves_trial_checkpoint_order_and_result"),
         4: ("PERF-01", "tests/test_phase49b_wfo_performance.py::test_prepared_walkforward_context_has_content_signature_and_isolated_strategy_slice"),
+        5: ("PERF-02", "rust/crates/quantbt-execution/src/lib.rs::tests::reused_runner_has_no_large_predecessor_state_or_retained_output_alias"),
+        6: ("PERF-02", "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_funding_sign_and_empty_tape_metamorphic"),
+        7: ("PERF-02", "tests/test_perf_02_session_reuse.py::test_perf02_prepared_runner_reuse_has_no_residual_state_or_output_alias"),
+        8: ("PERF-02", "rust/crates/quantbt-execution/src/lib.rs::tests::windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage"),
+        9: ("PERF-02", "rust/crates/quantbt-execution/src/lib.rs::tests::request_fingerprint_covers_all_result_affecting_inputs"),
+        10: ("PERF-02", "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_ledger_reconciles_scale_reduce_close_and_reverse_python_rust"),
         11: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset"),
         12: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_business_rejection_remains_per_command_not_callback_atomicity"),
         13: ("PERF-03", "tests/test_phase62_reactive_numeric_coruntime.py::test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically"),
@@ -471,6 +504,17 @@ def build_manifest() -> dict[str, Any]:
         21: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation"),
         22: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference"),
         23: ("PERF-04", "tests/test_phase67_rust_shared_portfolio.py::test_v2_registry_normalizes_symbol_input_order_before_shared_pro_rata_execution"),
+        24: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling"),
+        25: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_semantic_context_and_seed_changes_do_not_share_execution_keys"),
+        26: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_rejects_an_underspecified_terminal_scorer_contract"),
+        27: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling"),
+        28: ("PERF-05", "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_cancel_reset_and_unsupported_intent_fail_closed"),
+        29: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_study_seed_and_study_identity_prevent_cross_study_reuse"),
+        30: ("PERF-05", "tests/test_phase64_wfo_correctness.py::test_per_fold_causal_selection_does_not_inspect_that_fold_external_test_labels"),
+        31: ("PERF-05", "tests/test_phase76_reactive_wfo.py::test_phase76_reactive_wfo_keeps_absolute_clock_and_reset_flat_score_audit_parity"),
+        32: ("PERF-05", "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_matches_existing_fold_oracle_and_is_worker_count_invariant"),
+        33: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_mode2_keeps_proxy_path_and_streaming_retention_declaration"),
+        34: ("PERF-05", "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_exact_native_score_reuse_preserves_all_supported_endpoint_mode_outputs"),
         35: ("PERF-06", "tests/test_perf_06_research_audit.py::test_perf06_dynamic_conditional_space_is_observed_only_and_keeps_category_order"),
         36: ("PERF-06", "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes"),
         37: ("PERF-06", "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes"),
@@ -479,6 +523,8 @@ def build_manifest() -> dict[str, Any]:
         40: ("PERF-04", "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production"),
         41: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_multi_currency_and_multi_venue_arbitrage_fail_closed"),
         42: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical"),
+        43: ("PERF-07", "tests/test_perf_07_performance_closure.py::test_perf07_candidate_wheel_evidence_requires_clean_install"),
+        44: ("PERF-07", "tests/test_perf_07_performance_closure.py::test_perf07_manifest_rejects_changed_evidence_or_source_identity"),
     }
     for identifier in range(1, 45):
         if identifier in covered:

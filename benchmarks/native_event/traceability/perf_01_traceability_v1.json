@@ -25,40 +25,40 @@
       "state": "COVERED_PERF01"
     },
     {
-      "evidence": null,
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::reused_runner_has_no_large_predecessor_state_or_retained_output_alias",
       "id": "AC-05",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
-      "evidence": null,
+      "evidence": "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_funding_sign_and_empty_tape_metamorphic",
       "id": "AC-06",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_02_session_reuse.py::test_perf02_prepared_runner_reuse_has_no_residual_state_or_output_alias",
       "id": "AC-07",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
-      "evidence": null,
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage",
       "id": "AC-08",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
-      "evidence": null,
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::request_fingerprint_covers_all_result_affecting_inputs",
       "id": "AC-09",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
-      "evidence": null,
+      "evidence": "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_ledger_reconciles_scale_reduce_close_and_reverse_python_rust",
       "id": "AC-10",
       "owner": "PERF-02",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF02"
     },
     {
       "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset",
@@ -139,70 +139,70 @@
       "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling",
       "id": "AC-24",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_semantic_context_and_seed_changes_do_not_share_execution_keys",
       "id": "AC-25",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_rejects_an_underspecified_terminal_scorer_contract",
       "id": "AC-26",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling",
       "id": "AC-27",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_cancel_reset_and_unsupported_intent_fail_closed",
       "id": "AC-28",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_study_seed_and_study_identity_prevent_cross_study_reuse",
       "id": "AC-29",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase64_wfo_correctness.py::test_per_fold_causal_selection_does_not_inspect_that_fold_external_test_labels",
       "id": "AC-30",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase76_reactive_wfo.py::test_phase76_reactive_wfo_keeps_absolute_clock_and_reset_flat_score_audit_parity",
       "id": "AC-31",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_matches_existing_fold_oracle_and_is_worker_count_invariant",
       "id": "AC-32",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_mode2_keeps_proxy_path_and_streaming_retention_declaration",
       "id": "AC-33",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_exact_native_score_reuse_preserves_all_supported_endpoint_mode_outputs",
       "id": "AC-34",
       "owner": "PERF-05",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF05"
     },
     {
       "evidence": "tests/test_perf_06_research_audit.py::test_perf06_dynamic_conditional_space_is_observed_only_and_keeps_category_order",
@@ -253,16 +253,16 @@
       "state": "COVERED_PERF01"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_07_performance_closure.py::test_perf07_candidate_wheel_evidence_requires_clean_install",
       "id": "AC-43",
       "owner": "PERF-07",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF07"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_07_performance_closure.py::test_perf07_manifest_rejects_changed_evidence_or_source_identity",
       "id": "AC-44",
       "owner": "PERF-07",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF07"
     }
   ],
   "ap_dispositions": [
@@ -278,11 +278,13 @@
     },
     {
       "evidence": [
-        "src/quantbt/backends/native_prepared_evaluation.py"
+        "src/quantbt/backends/native_prepared_evaluation.py",
+        "rust/crates/quantbt-execution/examples/perf02_session_reuse.rs",
+        "tests/test_perf_02_session_reuse.py"
       ],
       "id": "AP-02",
       "owner": "PERF-02",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -297,11 +299,13 @@
     },
     {
       "evidence": [
-        "src/quantbt/core/runtime_governance.py"
+        "src/quantbt/core/runtime_governance.py",
+        "rust/crates/quantbt-execution/src/lib.rs",
+        "tests/test_perf_02_session_reuse.py"
       ],
       "id": "AP-04",
       "owner": "PERF-02",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -386,11 +390,13 @@
     },
     {
       "evidence": [
-        "rust/Cargo.toml"
+        "rust/Cargo.toml",
+        "tools/run_perf07_pgo_experiment.py",
+        "tools/performance_closure.py"
       ],
       "id": "AP-12",
       "owner": "PERF-07",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     }
   ],
   "baseline_source": {
