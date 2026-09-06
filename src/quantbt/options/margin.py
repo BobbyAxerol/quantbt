@@ -4,14 +4,15 @@ Option margin and liquidation approximations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
-from typing import Dict, Optional, Protocol, Tuple
+from typing import Callable, Dict, Optional, Protocol, Tuple
 
 import pandas as pd
 
 from ..core.orders import Fill
 from ..core.schema import LiquiditySide, OrderSide
+from .fees import OptionFeeResult
 from .ledger import OptionLedger
 from .schema import OptionInstrumentSpec
 
@@ -80,6 +81,7 @@ class OptionLiquidationAudit:
     final_cash: Dict[str, float]
     final_positions: Dict[str, float]
     liquidation_orders: pd.DataFrame
+    fills_with_fees: Tuple[tuple[Fill, Optional[OptionFeeResult]], ...] = ()
     metadata: Dict = field(default_factory=dict)
 
 
@@ -167,6 +169,7 @@ def liquidate_option_positions(
     reporting_currency: str = "USD",
     timestamp_ns: int,
     fee_rate: float = 0.0,
+    fee_resolver: Optional[Callable[[Fill, OptionInstrumentSpec], Optional[OptionFeeResult]]] = None,
 ) -> OptionLiquidationAudit:
     """Liquidate all option positions with adverse bid/ask prices if breached."""
     equity_before = ledger.equity(
@@ -185,9 +188,11 @@ def liquidate_option_positions(
             final_cash=dict(ledger.cash),
             final_positions={symbol: pos.qty for symbol, pos in ledger.positions.items() if not pos.is_flat},
             liquidation_orders=pd.DataFrame(),
+            fills_with_fees=(),
             metadata={"venue_exact": margin_requirement.venue_exact},
         )
     rows = []
+    fills_with_fees = []
     for symbol, position in list(ledger.positions.items()):
         if position.is_flat:
             continue
@@ -212,7 +217,21 @@ def liquidate_option_positions(
             liquidity=LiquiditySide.TAKER,
             metadata={"liquidation": True, "adverse_bid_ask": True},
         )
-        ledger.apply_fill(fill, instrument, timestamp_ns=timestamp_ns)
+        fee_result = fee_resolver(fill, instrument) if fee_resolver is not None else None
+        applied_fee = float(fee_result.fee if fee_result is not None else fee)
+        applied_fill = replace(
+            fill,
+            fee=applied_fee,
+            metadata={
+                **fill.metadata,
+                "applied_fee": applied_fee,
+                "fee_authority": "option_ledger",
+                "fee_currency": fee_result.currency if fee_result is not None else instrument.premium_currency,
+                "contract_multiplier": float(instrument.multiplier),
+            },
+        )
+        ledger.apply_fill(applied_fill, instrument, fee=fee_result, timestamp_ns=timestamp_ns)
+        fills_with_fees.append((applied_fill, fee_result))
         rows.append(
             {
                 "timestamp_ns": int(timestamp_ns),
@@ -220,7 +239,7 @@ def liquidate_option_positions(
                 "side": side.value,
                 "qty": qty,
                 "price": price,
-                "fee": fee,
+                "fee": applied_fee,
                 "reason": "maintenance_margin_breach",
                 "adverse_bid_ask": True,
             }
@@ -240,6 +259,7 @@ def liquidate_option_positions(
         final_cash=dict(ledger.cash),
         final_positions={symbol: pos.qty for symbol, pos in ledger.positions.items() if not pos.is_flat},
         liquidation_orders=pd.DataFrame(rows),
+        fills_with_fees=tuple(fills_with_fees),
         metadata={
             "venue_exact": margin_requirement.venue_exact,
             "liquidation_sequence": "all_positions_adverse_bid_ask",

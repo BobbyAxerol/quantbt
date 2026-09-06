@@ -19,12 +19,22 @@ from typing import Any, Optional, Sequence
 import numpy as np
 
 from .cache import CachePolicy, PreparedObjectCache
+from .native_target_requests import (
+    prepare_direct_target_request,
+    prepare_shared_portfolio_target_request,
+)
+from .native_package_requests import (
+    prepare_package_market_v2_request,
+    prepare_package_market_v2_scenario_batch,
+)
+from .native_intrabar_requests import prepare_intrabar_request
 
 
 _PREPARATION_SCHEMA = "native-execution-preparation-v1"
 _MARKET_SCHEMA = "native-prepared-market-v1"
 _TEMPLATE_SCHEMA = "native-execution-template-v1"
 _REQUEST_SCHEMA = "native-execution-request-cache-v1"
+
 
 
 def _digest(namespace: str, *parts: object) -> str:
@@ -148,10 +158,15 @@ class NativePreparedRequest:
     """Immutable workload request whose execution state is always separate."""
 
     core: Any
-    template: NativePreparedTemplate
+    template: NativePreparedTemplate | None
     signature: str
     workload: str
     request_bytes: int
+    # The execution request may outlive a cache entry, so retain the immutable
+    # market identity explicitly for scheduler memory accounting.  This lets a
+    # batch with many candidate requests charge one shared tape once rather
+    # than pessimistically charging it once per candidate.
+    market_signature: str = ""
 
 
 class NativeExecutionPreparationCache:
@@ -432,6 +447,7 @@ class NativeExecutionPreparationCache:
                 signature=str(core.fingerprint),
                 workload="command_tape_v5",
                 request_bytes=request_bytes,
+                market_signature=template.market.signature,
             )
             self._request_cache.put(key, record, size_bytes=request_bytes)
             self._ingress_copy_count += ptr_copies + codes_copies + values_copies + expiry_copies
@@ -497,11 +513,82 @@ class NativeExecutionPreparationCache:
                 signature=str(core.fingerprint),
                 workload="strategy_ir_v1",
                 request_bytes=request_bytes,
+                market_signature=template.market.signature,
             )
             self._request_cache.put(key, record, size_bytes=request_bytes)
             self._ingress_copy_count += signal_copies + parameter_copies
             self._ingress_copied_bytes += signal_bytes + parameter_bytes
             return record
+
+    def direct_target_request(
+        self,
+        template: NativePreparedTemplate,
+        *,
+        targets: object,
+        target_kind: str | int = "units",
+        timing: str | int = "close_target_v2_same_close",
+        invalid_target_policy: str | int = "reject_run",
+        tradable: object | None = None,
+        stale: object | None = None,
+        qty_step: object | None = None,
+        min_qty: object | None = None,
+        min_notional: object | None = None,
+        equity_fraction: object | None = None,
+        output_profile: int = 0,
+    ) -> NativePreparedRequest:
+        """Prepare/reuse one Rust-owned direct close-target request."""
+
+        return prepare_direct_target_request(
+            self,
+            template,
+            targets=targets,
+            target_kind=target_kind,
+            timing=timing,
+            invalid_target_policy=invalid_target_policy,
+            tradable=tradable,
+            stale=stale,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+            equity_fraction=equity_fraction,
+            output_profile=output_profile,
+        )
+
+    def shared_portfolio_target_request(
+        self,
+        template: NativePreparedTemplate,
+        *,
+        targets: object,
+        target_kind: str | int = "units",
+        admission_policy: str | int = "sequential_legacy",
+        timing: str | int = "close_target_v2_same_close",
+        invalid_target_policy: str | int = "reject_run",
+        tradable: object | None = None,
+        stale: object | None = None,
+        qty_step: object | None = None,
+        min_qty: object | None = None,
+        min_notional: object | None = None,
+        equity_fraction: object | None = None,
+        output_profile: int = 0,
+    ) -> NativePreparedRequest:
+        """Prepare/reuse a Rust-owned shared-account portfolio target request."""
+
+        return prepare_shared_portfolio_target_request(
+            self,
+            template,
+            targets=targets,
+            target_kind=target_kind,
+            admission_policy=admission_policy,
+            timing=timing,
+            invalid_target_policy=invalid_target_policy,
+            tradable=tradable,
+            stale=stale,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+            equity_fraction=equity_fraction,
+            output_profile=output_profile,
+        )
 
     def portfolio_target_market_request(
         self,
@@ -590,6 +677,7 @@ class NativeExecutionPreparationCache:
                 signature=str(core.fingerprint),
                 workload="portfolio_target_market_v1",
                 request_bytes=request_bytes,
+                market_signature=template.market.signature,
             )
             self._request_cache.put(key, record, size_bytes=request_bytes)
             self._ingress_copy_count += (
@@ -695,16 +783,71 @@ class NativeExecutionPreparationCache:
                 signature=str(core.fingerprint),
                 workload="package_atomic_market_v1",
                 request_bytes=request_bytes,
+                market_signature=template.market.signature,
             )
             self._request_cache.put(key, record, size_bytes=request_bytes)
             self._ingress_copy_count += copy_count
             self._ingress_copied_bytes += copied_bytes
             return record
 
+    def package_market_v2_request(
+        self,
+        template: NativePreparedTemplate,
+        **kwargs: object,
+    ) -> NativePreparedRequest:
+        """Prepare/reuse one bounded same-account Rust package V2 request.
+
+        The V2 builder lives in a sibling module to keep this cache owner
+        below its module-size budget. It receives this cache instance, so
+        request signature, cache tier, ingress-copy counters, and lifetime
+        semantics stay identical to all existing prepared native routes.
+        """
+
+        return prepare_package_market_v2_request(self, template, **kwargs)
+
+    def package_market_v2_scenario_batch(
+        self,
+        template: NativePreparedTemplate,
+        **kwargs: object,
+    ) -> NativePreparedRequest:
+        """Prepare/reuse a one-boundary scalar batch of isolated packages.
+
+        This is an explicit package scenario primitive, not a hidden reroute of
+        generic walk-forward or arbitrage endpoints. Each batch row receives a
+        reset Rust account; selected rows remain auditable through the normal
+        single-package request.
+        """
+
+        return prepare_package_market_v2_scenario_batch(self, template, **kwargs)
+
+    def intrabar_request(
+        self,
+        market: NativePreparedMarket,
+        **kwargs: object,
+    ) -> NativePreparedRequest:
+        """Prepare/reuse one single-symbol intrabar request over a cached tape.
+
+        The intrabar execution contract remains independent from generic
+        command and target semantics.  Its immutable request now shares the
+        same content-addressed cache, generation, ingress-copy accounting and
+        lifecycle policy as every other native workload.
+        """
+
+        if not isinstance(market, NativePreparedMarket):
+            raise TypeError("market must be NativePreparedMarket from this preparation cache")
+        return prepare_intrabar_request(self, market, **kwargs)
+
     def new_runner(self, request: NativePreparedRequest) -> Any:
         """Create a fresh mutable runner from one immutable cached request."""
 
-        return request.core.new_runner()
+        factory = getattr(request.core, "new_runner", None)
+        if factory is None:
+            raise TypeError(
+                f"prepared native workload {request.workload!r} is scalar-only and "
+                "does not expose a mutable runner; execute it directly or rerun a "
+                "selected scenario through its audit-capable single-request route"
+            )
+        return factory()
 
     def clear(self, *, force: bool = False) -> dict[str, object]:
         """Clear cache-owned references without invalidating detached outputs."""

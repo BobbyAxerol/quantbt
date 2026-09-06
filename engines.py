@@ -29,6 +29,7 @@ from .core.instrument_registry_v2 import InstrumentRegistryV2
 from .core.market_calendar_v2 import PreparedMarketHandleV2
 from .core.preprocessor import validate_datetime
 from .core.results import BacktestResultV2, OptionBacktestResult
+from .core.runtime_governance import RuntimeBudgetV1
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .options.cache import OptionPreparedRunCache
 from .options.hedging import OptionHedgeConfig
@@ -60,6 +61,8 @@ class BacktestEngineV2:
         backend: str = "native_vectorized",
         native_backend: Optional[str] = None,
         backend_policy: Optional[str] = None,
+        native_static_abi: str = "0.5",
+        target_runtime: str = "numba",
         account: Optional[AccountConfig] = None,
         execution: Optional[ExecutionConfig] = None,
         fee_rate: float = 0.0,
@@ -76,12 +79,16 @@ class BacktestEngineV2:
         execution_contract=None,
         reactive_execution_mode: str = "fast",
         reactive_kernel_mode: str = "replay_certified",
+        reactive_runtime: str = "legacy_python_loop",
+        reactive_gil_policy: str = "held_for_session",
         audit_mode: Optional[str] = None,
         oracle_sample_rate: float = 0.0,
         oracle_sample_seed: int = 0,
         report_level: str = "audit",
         audit_sink: str = "memory",
         audit_sink_path: Optional[str] = None,
+        runtime_budget: Optional[RuntimeBudgetV1] = None,
+        shadow_evidence_dir: Optional[str] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
         closes: Optional[SeriesMap] = None,
         highs: Optional[SeriesMap] = None,
@@ -112,6 +119,8 @@ class BacktestEngineV2:
         self.data = data
         self.native_backend = native_backend
         self.backend_policy = backend_policy
+        self.native_static_abi = str(native_static_abi)
+        self.target_runtime = str(target_runtime).lower().strip()
         self.signals = signals
         self.account = account or AccountConfig(initial_capital=100_000.0)
         self.execution = execution or ExecutionConfig()
@@ -129,12 +138,16 @@ class BacktestEngineV2:
         self.execution_contract = execution_contract
         self.reactive_execution_mode = str(reactive_execution_mode).lower().strip()
         self.reactive_kernel_mode = str(reactive_kernel_mode).lower().strip()
+        self.reactive_runtime = str(reactive_runtime).lower().strip()
+        self.reactive_gil_policy = str(reactive_gil_policy).lower().strip()
         self.audit_mode = audit_mode
         self.oracle_sample_rate = float(oracle_sample_rate)
         self.oracle_sample_seed = int(oracle_sample_seed)
         self.report_level = str(report_level)
         self.audit_sink = str(audit_sink)
         self.audit_sink_path = audit_sink_path
+        self.runtime_budget = runtime_budget or RuntimeBudgetV1()
+        self.shadow_evidence_dir = shadow_evidence_dir
         self.datetime_index = datetime_index
         self.closes = closes
         self.highs = highs
@@ -187,6 +200,7 @@ class BacktestEngineV2:
                 execution=self.execution,
                 fee_rate=self.fee_rate,
                 use_funding=self.use_funding,
+                target_runtime=self.target_runtime,
             )
         )
 
@@ -267,16 +281,21 @@ class BacktestEngineV2:
                     audit_sink=self.audit_sink,
                     audit_sink_path=self.audit_sink_path,
                     reactive_kernel_mode=self.reactive_kernel_mode,
+                    reactive_runtime=self.reactive_runtime,
+                    reactive_gil_policy=self.reactive_gil_policy,
                     audit_mode=self.audit_mode,
                     oracle_sample_rate=self.oracle_sample_rate,
                     oracle_sample_seed=self.oracle_sample_seed,
                     native_backend=self.native_backend,
                     backend_policy=self.backend_policy,
+                    native_static_abi=self.native_static_abi,
                     execution_contract=(
                         self.execution_contract
                         if self.execution_contract is not None
                         else "event_lifecycle_v2_next_bar_close"
                     ),
+                    runtime_budget=self.runtime_budget,
+                    shadow_evidence_dir=self.shadow_evidence_dir,
                 )
             )
 
@@ -312,6 +331,8 @@ class BacktestEngineV2:
                 min_notional=self.min_notional,
                 execution_mode=self.reactive_execution_mode,
                 reactive_kernel_mode=self.reactive_kernel_mode,
+                reactive_runtime=self.reactive_runtime,
+                reactive_gil_policy=self.reactive_gil_policy,
                 report_level=self.report_level,
                 audit_sink=self.audit_sink,
                 audit_sink_path=self.audit_sink_path,
@@ -398,6 +419,7 @@ class BacktestEngineV2:
                 execution=self.execution,
                 native_backend=self.native_backend,
                 backend_policy=self.backend_policy,
+                native_static_abi=self.native_static_abi,
                 execution_contract=(
                     self.execution_contract
                     if self.execution_contract is not None
@@ -416,6 +438,8 @@ class BacktestEngineV2:
                 market_handle=self.prepared_market,
                 instrument_registry=self.prepared_instruments,
                 calendar_contract=self.calendar_contract,
+                runtime_budget=self.runtime_budget,
+                shadow_evidence_dir=self.shadow_evidence_dir,
             )
             self.execution_plan = outcome.preparation.prepared.plan
             self.prepared_run = outcome.preparation.prepared

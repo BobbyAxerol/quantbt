@@ -1,0 +1,85 @@
+{
+  "evidence": {
+    "admission_policy": "reduce_first_then_increase",
+    "generic_order_arena_used": false,
+    "prepared_cache": {
+      "cache_hit": 2,
+      "cache_miss": 4,
+      "entry_count": 4,
+      "eviction_count": 0,
+      "generation": 0,
+      "ingress_copied_bytes": 0,
+      "ingress_copy_count": 0,
+      "resident_bytes": 2739760,
+      "reuse_count": 2,
+      "schema": "native-execution-preparation-v1",
+      "tier_budgets": {
+        "market": 161061273,
+        "request": 67108864,
+        "template": 40265318
+      },
+      "tiers": {
+        "market": {
+          "cache_hit": 1,
+          "cache_miss": 1,
+          "clear_count": 0,
+          "entry_count": 1,
+          "eviction_count": 0,
+          "generation": 0,
+          "pinned_entries": 0,
+          "resident_bytes": 1938000,
+          "reuse_count": 1
+        },
+        "request": {
+          "cache_hit": 0,
+          "cache_miss": 2,
+          "clear_count": 0,
+          "entry_count": 2,
+          "eviction_count": 0,
+          "generation": 0,
+          "pinned_entries": 0,
+          "resident_bytes": 801280,
+          "reuse_count": 0
+        },
+        "template": {
+          "cache_hit": 1,
+          "cache_miss": 1,
+          "clear_count": 0,
+          "entry_count": 1,
+          "eviction_count": 0,
+          "generation": 0,
+          "pinned_entries": 0,
+          "resident_bytes": 480,
+          "reuse_count": 1
+        }
+      }
+    },
+    "score_compact_terminal_parity": true,
+    "wfo_market_copy_bytes": 0,
+    "wfo_prepared_parity": true
+  },
+  "fixture": {
+    "bars": 2000,
+    "candidates": 16,
+    "folds": 2,
+    "repeats": 3,
+    "symbols": 20
+  },
+  "rss_mb": {
+    "after_prepare": 155.39453125,
+    "after_score": 158.40625,
+    "after_wfo": 173.18359375,
+    "process_start": 151.3046875
+  },
+  "schema": "phase67-shared-portfolio-benchmark-v1",
+  "throughput_bar_symbols_per_second": {
+    "prepared_score": 16735462.32894727,
+    "prepared_wfo_score": 44972256.63529895
+  },
+  "timing_seconds": {
+    "prepared_compact": 0.00539364293217659,
+    "prepared_score": 0.002390134148299694,
+    "prepared_wfo_score": 0.02846199180930853,
+    "request_preparation": 0.02530036401003599
+  }
+}

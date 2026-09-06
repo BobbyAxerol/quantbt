@@ -1,0 +1,347 @@
+{
+  "schema": "quantbt-native-measurement-contract-v1",
+  "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+  "purpose": "Separate actual executor work from logical input volume and prevent historical benchmark evidence from auto-promoting a current route.",
+  "identity_required_fields": [
+    "git_commit",
+    "git_dirty",
+    "git_status_sha256",
+    "canonical_source_sha256",
+    "product_registry_sha256",
+    "lifecycle_registry_sha256",
+    "core_distribution",
+    "native_distribution",
+    "native_extension",
+    "python",
+    "platform",
+    "cpu_count",
+    "thread_environment",
+    "data_sha256",
+    "intent_sha256",
+    "measurement_contract_sha256",
+    "warmup_procedure"
+  ],
+  "counter_schema": "quantbt-native-work-counters-v1",
+  "current_candidate_evidence": {
+    "schema": "quantbt-current-candidate-evidence-v1",
+    "require_clean_tree": true,
+    "identity_required_fields": [
+      "git_commit",
+      "git_dirty",
+      "git_status_sha256",
+      "canonical_source_sha256",
+      "product_registry_sha256",
+      "lifecycle_registry_sha256",
+      "core_distribution",
+      "native_distribution",
+      "native_extension",
+      "python",
+      "platform",
+      "cpu_count",
+      "thread_environment",
+      "data_sha256",
+      "intent_sha256",
+      "measurement_contract_sha256",
+      "warmup_procedure"
+    ],
+    "native_extension_required_fields": [
+      "available",
+      "module_sha256",
+      "version",
+      "api_version",
+      "capability_sha256"
+    ],
+    "comparator_required_fields": [
+      "timing_scope",
+      "result_contract",
+      "metric_contract_id",
+      "annualization_days",
+      "fee_contract_id",
+      "account_contract_id"
+    ],
+    "measurement_required_fields": [
+      "sample_count",
+      "median_seconds",
+      "p95_seconds",
+      "cold_rss_mb",
+      "warm_rss_mb",
+      "parity",
+      "artifact_sha256"
+    ]
+  },
+  "profile_pairs": [
+    {
+      "id": "score_to_score_v1",
+      "python_profile": "score",
+      "native_profile": "score",
+      "result_contract": "scalar_metrics_same_annualization_and_accounting_v1",
+      "timing_scope": "prepared_execution_and_metrics_only"
+    },
+    {
+      "id": "compact_to_compact_v1",
+      "python_profile": "compact",
+      "native_profile": "compact",
+      "result_contract": "compact_paths_same_accounting_v1",
+      "timing_scope": "execution_metrics_and_result_materialization"
+    },
+    {
+      "id": "audit_to_audit_v1",
+      "python_profile": "audit",
+      "native_profile": "audit",
+      "result_contract": "canonical_trace_and_audit_rows_v1",
+      "timing_scope": "execution_metrics_trace_and_audit_materialization"
+    }
+  ],
+  "required_matrix": {
+    "bars": [1000, 10000, 100000],
+    "symbols": [1, 8, 20],
+    "candidates": [16, 64, 256, 1000],
+    "folds": [3, 6, 12],
+    "intent_types": ["signal", "target", "orders", "portfolio"],
+    "churn": ["low", "high"],
+    "profiles": ["score", "compact", "audit"]
+  },
+  "comparison_policy": {
+    "paired_timing": "alternate comparator order; report median, p95, sample count, and noise policy",
+    "rss": "fresh-process cold peak and warmed repeated-run RSS are separate backend-specific measurements",
+    "promotion": "only current_candidate_verified evidence with exact identity, matching profile pair, measured limits, and parity can enable auto promotion",
+    "historical": "historical manifests remain immutable scope records and are never promotion eligible"
+  },
+  "routes": [
+    {
+      "id": "public_event_static",
+      "public_surface": "QuantBTEndpoint.event_driven(input_mode='orders')",
+      "planner": "resolve_execution_plan -> native_event_promotion",
+      "native_entry": "NativeEventBackend static command execution",
+      "result_adapter": "BacktestResult / report adapter",
+      "authority": "Python default; Rust explicit certification route",
+      "current_status": "historical evidence held pending current route measurement",
+      "owner_phase": 77,
+      "fixture": "phase54b2 deterministic public static command tape",
+      "anchor_paths": [
+        "src/quantbt/endpoint.py",
+        "src/quantbt/backends/native_event.py",
+        "src/quantbt/core/native_event_promotion.py"
+      ]
+    },
+    {
+      "id": "public_native_strategy_ir",
+      "public_surface": "QuantBTEndpoint.event_driven(strategy=NativeStrategyIR)",
+      "planner": "resolve_execution_plan -> native_event_promotion",
+      "native_entry": "RustNativeIRRunner",
+      "result_adapter": "BacktestResult / report adapter",
+      "authority": "Python default; Rust explicit certification route",
+      "current_status": "historical evidence held pending current route measurement",
+      "owner_phase": 77,
+      "fixture": "phase54b2 deterministic Grid-level Native Strategy IR",
+      "anchor_paths": [
+        "src/quantbt/endpoint.py",
+        "src/quantbt/backends/native_strategy_ir.py",
+        "src/quantbt/core/native_event_promotion.py"
+      ]
+    },
+    {
+      "id": "public_generic_walk_forward",
+      "public_surface": "QuantBTEndpoint.walk_forward(...).backtest(...)",
+      "planner": "WalkForwardEngine and endpoint scorer",
+      "native_entry": "none for generic callback WFO",
+      "result_adapter": "stitched OOS BacktestResult adapter",
+      "authority": "Python orchestration and account stitching",
+      "current_status": "not Rust authority",
+      "owner_phase": 74,
+      "fixture": "five-mode public causal WFO fixture",
+      "anchor_paths": [
+        "src/quantbt/endpoint.py",
+        "src/quantbt/walkforward.py"
+      ]
+    },
+    {
+      "id": "prepared_native_signal_wfo",
+      "public_surface": "NativeWfoRuntimeV2 explicit prepared StrategyIR companion",
+      "planner": "prepared signal cube and native fold plan",
+      "native_entry": "NativeWfoRuntimeV2 Rust metric matrix",
+      "result_adapter": "NativeWfoMetricMatrixV2 compact/audit adapter",
+      "authority": "explicit bounded Rust companion",
+      "current_status": "historical WFO measurement only; no generic WFO promotion",
+      "owner_phase": 73,
+      "fixture": "phase65/71 causal test-window signal matrix",
+      "anchor_paths": [
+        "src/quantbt/backends/native_wfo.py",
+        "src/quantbt/backends/native_strategy_ir.py"
+      ]
+    },
+    {
+      "id": "direct_target_vectorized",
+      "public_surface": "NativeVectorizedBackend direct target endpoint",
+      "planner": "NativeExecutionPreparationCache direct target request",
+      "native_entry": "typed Rust direct target core",
+      "result_adapter": "BacktestResultV2 compact/audit adapter",
+      "authority": "explicit bounded Rust route",
+      "current_status": "explicit only",
+      "owner_phase": 77,
+      "fixture": "phase66 same-close target-units fixture",
+      "anchor_paths": [
+        "src/quantbt/backends/native_vectorized.py",
+        "src/quantbt/preparation/native_execution.py"
+      ]
+    },
+    {
+      "id": "prepared_native_target_wfo",
+      "public_surface": "NativeTargetWfoRuntimeV2 explicit prepared target companion",
+      "planner": "NativePreparedTemplate target matrix and folds",
+      "native_entry": "NativeTargetWfoRuntimeV2 Rust core",
+      "result_adapter": "NativeWfoMetricMatrixV2 compact/audit adapter",
+      "authority": "explicit bounded Rust companion",
+      "current_status": "single-worker ingress-copy debt owned by Phase 73",
+      "owner_phase": 73,
+      "fixture": "prepared direct target causal matrix",
+      "anchor_paths": [
+        "src/quantbt/backends/native_wfo_target.py",
+        "src/quantbt/preparation/native_execution.py"
+      ]
+    },
+    {
+      "id": "shared_account_portfolio",
+      "public_surface": "NativePortfolioBackend shared-account target route",
+      "planner": "portfolio target preparation and admission policy",
+      "native_entry": "Rust shared-account portfolio target core",
+      "result_adapter": "NativePortfolioResult attribution adapter",
+      "authority": "explicit bounded Rust route",
+      "current_status": "explicit only pending matrix and end-to-end certification",
+      "owner_phase": 77,
+      "fixture": "phase67 shared-account portfolio fixture",
+      "anchor_paths": [
+        "src/quantbt/backends/native_portfolio.py",
+        "src/quantbt/preparation/native_execution.py"
+      ]
+    },
+    {
+      "id": "bounded_package_arbitrage",
+      "public_surface": "Native package/arbitrage bounded package route",
+      "planner": "typed package intent preparation",
+      "native_entry": "Rust package V2 core",
+      "result_adapter": "package execution result adapter",
+      "authority": "explicit bounded Rust route",
+      "current_status": "explicit only pending package matrix and audit pair",
+      "owner_phase": 77,
+      "fixture": "phase68 bounded package fixture",
+      "anchor_paths": [
+        "src/quantbt/backends/native_package_arbitrage.py",
+        "src/quantbt/core/package_execution_v2.py"
+      ]
+    },
+    {
+      "id": "single_symbol_intrabar",
+      "public_surface": "run_rust_intrabar_kernel explicit adapter",
+      "planner": "prepared OHLCV and IntrabarIntentTape",
+      "native_entry": "NativeIntrabarRequestCore",
+      "result_adapter": "intrabar compact/audit result adapter",
+      "authority": "explicit bounded Rust route with Numba oracle",
+      "current_status": "performance hold; not auto promoted",
+      "owner_phase": 77,
+      "fixture": "phase69 single-symbol bracket fixture",
+      "anchor_paths": [
+        "src/quantbt/backends/native_intrabar_rust.py",
+        "src/quantbt/core/intrabar_kernel.py"
+      ]
+    },
+    {
+      "id": "reactive_event_strategies",
+      "public_surface": "QuantBTEndpoint.event_driven(strategy=reactive callback)",
+      "planner": "reactive strategy protocol and wake scheduler",
+      "native_entry": "Rust reactive numeric co-runtime when explicitly selected",
+      "result_adapter": "reactive BacktestResult adapter",
+      "authority": "hybrid Python strategy / Rust execution",
+      "current_status": "not Rust-primary; sparse and batching owned by Phases 75-76",
+      "owner_phase": 75,
+      "fixture": "phase62/63 reactive low/high churn routes",
+      "anchor_paths": [
+        "src/quantbt/api/event_driven.py",
+        "src/quantbt/strategies/reactive_protocols.py"
+      ]
+    },
+    {
+      "id": "options_backtest",
+      "public_surface": "QuantBTEndpoint.options",
+      "planner": "options chain and hedge policy preparation",
+      "native_entry": "none in V1.1",
+      "result_adapter": "options execution/report adapter",
+      "authority": "Python P0 containment route",
+      "current_status": "out of Rust-primary V1.1 scope",
+      "owner_phase": 78,
+      "fixture": "options P0 containment regression",
+      "anchor_paths": [
+        "src/quantbt/options/execution.py",
+        "src/quantbt/options/authority.py"
+      ]
+    }
+  ],
+  "historical_manifests": [
+    {
+      "path": "benchmarks/native_event/manifests/e0_e3_e6_v1.json",
+      "manifest_id": "native-event-e0-e3-e6-v1",
+      "sha256": "8261e75af68efa975b3b0a46743f8c9a1dc134e4eed777b1c4878d71a32bb280",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase54a5_exit_gate_v1.json",
+      "manifest_id": "native-event-phase54a5-exit-gate-v1",
+      "sha256": "d94113a28446f2c6befc5f358ff1712362aa30e88e0fcc42217a7fa2ce27af45",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase54b2_public_routes_v1.json",
+      "manifest_id": "native-event-phase54b2-public-routes-v1",
+      "sha256": "c65a3a5c110605bb98fa9f2af214ea646a76104e2c559ac0fb05daf0c1501cc3",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase54b3_portfolio_package_v1.json",
+      "manifest_id": "native-event-phase54b3-portfolio-package-v1",
+      "sha256": "f90b0d928c1961bcd194a499824e2f9c8319b700bed8e20fd7216738d77a8bb7",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase62_reactive_coruntime_v1.json",
+      "manifest_id": "native-event-phase62-reactive-coruntime-v1",
+      "sha256": "a54a8b2ccb35084473f14129fb0ec42e9a9bb07f937db7aa3f8b1095f2ca0bf1",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase63_sparse_block_batch_v1.json",
+      "manifest_id": "native-event-phase63-sparse-block-batch-v1",
+      "sha256": "26e2d088cfca1b15e20212a87defe15faeaecc736cf5c7ef46d48fa87b7907e8",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase66_rust_target_vectorized_v1.json",
+      "manifest_id": "native-event-phase66-rust-target-vectorized-v1",
+      "sha256": "5f5df1683d1869d184ded0e04fd2b8a5d231f2bd84e8c8d4082243f15c170bf3",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase67_shared_portfolio_v1.json",
+      "manifest_id": "native-event-phase67-shared-portfolio-v1",
+      "sha256": "1aa194ed1ed915d0822644f4d7b45feb2dc879fb80c57572193703c2d1821bb9",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase68_bounded_package_v1.json",
+      "manifest_id": "native-event-phase68-bounded-package-v1",
+      "sha256": "898dd7de1c6d86dc4458a16bfaf967a6538824db18009cf6c83949cbd1116c9f",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase69_rust_intrabar_v1.json",
+      "manifest_id": "native-event-phase69-rust-intrabar-v1",
+      "sha256": "22a1e5a6cc42039d76c0c9a76a5a775b939d27fd58eb3b9b4131de4edc3e97f1",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    },
+    {
+      "path": "benchmarks/native_event/manifests/phase71_runtime_productization_v1.json",
+      "manifest_id": "native-event-phase71-runtime-productization-v1",
+      "sha256": "19f9eb5678c1f7bda4ccfcdf7bed88ee7cad0c3e4d8b1e62e1d92a4894e9e504",
+      "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d"
+    }
+  ]
+}

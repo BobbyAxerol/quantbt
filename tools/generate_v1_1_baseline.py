@@ -163,6 +163,15 @@ INTRABAR_AUTHORITY = _authority(
     "Python IntrabarReferenceResult/BacktestResult adapters",
 )
 
+RUST_INTRABAR_AUTHORITY = _authority(
+    "external Python strategy or compact intent arrays",
+    "Python validates and packs one immutable intrabar request",
+    "Rust BracketIntrabarKernelV1 / SessionIntrabarKernelV1 whole-tape executor",
+    "Rust intrabar account state machine",
+    "Python standard metrics over Rust-owned paths",
+    "Rust SoA buffers adapted by Python on the cold path",
+)
+
 RUST_FILL_REPLAY_V2_AUTHORITY = _authority(
     "caller-owned explicit typed fill and funding tapes",
     "Python validates and packs one immutable replay request",
@@ -306,6 +315,25 @@ BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
         "notes": ("Audit materialization is a bounded sparse second pass, not an execution replay.",),
     },
     {
+        "id": "intrabar_rust_explicit",
+        "factory": "intrabar_bracket_rust",
+        "input_mode": "compact_entry_exit_stop_take_profit_trailing_intent",
+        "profiles": ("minimal", "standard", "audit"),
+        "requested_backends": ("rust_intrabar",),
+        "resolved_backend_baseline": "explicit Rust BracketIntrabarKernelV1 / SessionIntrabarKernelV1",
+        "authority": RUST_INTRABAR_AUTHORITY,
+        "runtime_class": "WholeRunNative",
+        "maturity": "a4_explicit_certified",
+        "fallback": {
+            "auto": "not applicable; intrabar_bracket_rust is never selected automatically",
+            "explicit": "requires matching native capability; unsupported ambiguity policies fail closed",
+        },
+        "notes": (
+            "The Numba intrabar endpoint remains a version-pinned rollback comparator.",
+            "Scope is one strict OHLC symbol; it does not claim L2, grid/DCA, or cross-margin portfolio execution.",
+        ),
+    },
+    {
         "id": "fill_replay_v1_numba",
         "factory": "fill_replay",
         "input_mode": "explicit_fill_tape",
@@ -366,15 +394,15 @@ BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
         "input_mode": "canonical_order_command_tape",
         "profiles": ("research", "optimize", "audit"),
         "requested_backends": ("auto", "python", "rust"),
-        "resolved_backend_baseline": "capability-gated Rust static tape at declared thresholds; Python otherwise",
+        "resolved_backend_baseline": "Python by auto policy; explicit Rust static tape remains capability-gated",
         "authority": RUST_GATED_EVENT_AUTHORITY,
-        "runtime_class": "WholeRunNative",
-        "maturity": "promoted_bounded_static",
+        "runtime_class": "PythonCompatibility",
+        "maturity": "certified_explicit_rust",
         "fallback": {
             "auto": "Python with a recorded resolver reason outside the governed static-tape capability",
             "explicit": "Rust fails closed outside the exact certified capability",
         },
-        "notes": ("Only product-registry static V2/V3 tape rows are auto eligible.",),
+        "notes": ("Phase 72 holds auto promotion until current-candidate evidence is recorded.",),
     },
     {
         "id": "event_driven_strategy",
@@ -398,15 +426,15 @@ BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
         "input_mode": "canonical_order_command_tape",
         "profiles": ("research", "optimize", "audit"),
         "requested_backends": ("auto", "python", "rust"),
-        "resolved_backend_baseline": "same governed lifecycle resolver as event_driven(input_mode='orders')",
+        "resolved_backend_baseline": "Python by auto policy; explicit Rust lifecycle remains capability-gated",
         "authority": RUST_GATED_EVENT_AUTHORITY,
-        "runtime_class": "WholeRunNative",
-        "maturity": "promoted_bounded_static",
+        "runtime_class": "PythonCompatibility",
+        "maturity": "certified_explicit_rust",
         "fallback": {
             "auto": "Python with an observable resolver reason outside a certified static row",
             "explicit": "Rust fails closed outside the exact certified capability",
         },
-        "notes": ("Advanced lifecycle controls retain their declared contract identifiers.",),
+        "notes": ("Advanced lifecycle controls retain their declared contract identifiers and explicit Rust route.",),
     },
     {
         "id": "native_event_strategy",
@@ -751,6 +779,40 @@ CORPUS_SPECS: tuple[dict[str, Any], ...] = (
         "known_deviations": ("Scope is single-symbol intrabar, not shared cross-margin portfolio execution.",),
     },
     {
+        "id": "intrabar_rust_explicit",
+        "route": "QuantBTEndpoint.intrabar_bracket_rust",
+        "status": "baseline_available",
+        "runtime_class": "WholeRunNative",
+        "requested_backend": "rust_intrabar",
+        "resolved_backend": "Rust bounded single-symbol intrabar whole-tape executor",
+        "config_contract": {
+            "execution_contract": "intrabar_bracket_v1",
+            "input": "compact intent columns",
+            "profiles": ["minimal", "standard", "audit"],
+            "same_bar_policy": ["conservative", "stop_first", "tp_first", "ohlc_path", "olhc_path"],
+            "audit_bounded": True,
+        },
+        "artifacts": (
+            "contracts/intrabar_contract_v1.json",
+            "benchmarks/native_event/results/phase69_rust_intrabar.json",
+            "benchmarks/native_event/manifests/phase69_rust_intrabar_v1.json",
+        ),
+        "metrics": (
+            "final_equity",
+            "fills",
+            "fees",
+            "funding",
+            "terminal_fingerprint",
+            "ambiguity_policy",
+            "bars_per_second",
+        ),
+        "trace": "python_numba_rust_exact_path_parity",
+        "known_deviations": (
+            "Bounded to one OHLC symbol; reject_ambiguous and lower_timeframe_required fail closed.",
+            "It does not claim L2 matching, grid/DCA state machines, or shared cross-margin portfolio execution.",
+        ),
+    },
+    {
         "id": "fill_replay",
         "route": "QuantBTEndpoint.fill_replay",
         "status": "baseline_available",
@@ -849,10 +911,14 @@ def _workload_rows(product: Mapping[str, Any]) -> list[dict[str, Any]]:
         strategy_modes = tuple(str(item) for item in workload["strategy_modes"])
         maturity = str(workload["maturity"])
         auto = bool(workload["auto_promotion"])
-        if workload_id in {"event_static_tape_v2_v3", "native_strategy_ir_v1"}:
+        if workload_id in {"event_static_tape_v2_v3", "native_strategy_ir_v1"} and auto:
             authority = RUST_GATED_EVENT_AUTHORITY
             runtime_class = "WholeRunNative"
             resolved = "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise"
+        elif workload_id in {"event_static_tape_v2_v3", "native_strategy_ir_v1"}:
+            authority = RUST_GATED_EVENT_AUTHORITY
+            runtime_class = "PythonCompatibility"
+            resolved = "Python by auto policy; Rust remains an explicit certified route"
         elif workload_id in {"portfolio_target_market_v1", "package_atomic_market_v1"}:
             authority = RUST_GATED_EVENT_AUTHORITY
             runtime_class = "WholeRunNative"

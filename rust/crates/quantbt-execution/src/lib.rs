@@ -20,15 +20,22 @@ use quantbt_domain::generated_product_contracts::{
 };
 use quantbt_domain::ids::SymbolId;
 use quantbt_engine::{
-    FullMarketData, FullSession, NativeExecutionOutputV1, NativeScoreOutputV1, StaticOutputProfile,
-    StaticTapeOutput,
+    AuditRetentionV1, ExecutionModelPlanV1, FullMarketData, FullSession, MetricContractV2,
+    NativeExecutionOutputV1, NativeMetricSnapshotV2, NativeScoreOutputV1, OutputRequirementsV1,
+    StaticOutputProfile, StaticTapeOutput,
 };
 use quantbt_package::{
-    PackageEventKind, PackageExecutionResult, PackageLegRequest, PackagePlan, PackagePolicy,
-    PackageState,
+    PackageEventKind, PackageExecutionResult, PackageIntentV2, PackageLegRequest,
+    PackageMarketExecutionRequestV2, PackagePlan, PackagePolicy, PackageState,
 };
 use quantbt_portfolio::{PortfolioMarginAllocationPolicy, PortfolioTargetTape};
 use quantbt_strategy_ir::{PARAMETER_WIDTH, StrategyProgram};
+
+pub mod intrabar;
+pub mod package;
+pub mod target;
+
+use package::{PackageMarketAuditV2, PackageMarketWorkloadV2};
 
 /// Stable version for the immutable request layout, independent of the public
 /// PyO3 API version.  Additive fields require a new request version.
@@ -39,6 +46,11 @@ pub const NATIVE_EXECUTION_REQUEST_SCHEMA_V1: &str = "native-execution-request-v
 /// core protocol.  Keeping this explicit in the request fingerprint prevents
 /// cache reuse across a future protocol change.
 pub const NATIVE_EXECUTION_PROTOCOL_VERSION_V1: u16 = CORE_PROTOCOL_MIN as u16;
+
+/// Stable envelope version for native result provenance. The underlying
+/// score/compact/audit SoA payloads stay domain-specific; this header records
+/// their common authority, retention, and terminal accounting identity.
+pub const NATIVE_RESULT_VERSION_V2: u16 = 2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -209,6 +221,24 @@ impl InstrumentTableV1 {
     pub const fn is_empty(&self) -> bool {
         self.symbol_ids.is_empty()
     }
+
+    /// Immutable contract multipliers in normalized market-column order.
+    #[must_use]
+    pub fn contract_sizes(&self) -> &[f64] {
+        &self.contract_sizes
+    }
+
+    /// Immutable leverage limits in normalized market-column order.
+    #[must_use]
+    pub fn leverages(&self) -> &[f64] {
+        &self.leverages
+    }
+
+    /// Immutable canonical one-way fee rates in normalized market-column order.
+    #[must_use]
+    pub fn fee_rates(&self) -> &[f64] {
+        &self.fee_rates
+    }
 }
 
 /// Complete supported event-clock contract for the current full session.
@@ -245,6 +275,7 @@ pub enum NativeWorkloadKindV1 {
     Package = 3,
     PortfolioTargetMarket = 4,
     PackageAtomicMarket = 5,
+    PackageMarketV2 = 6,
 }
 
 impl NativeWorkloadKindV1 {
@@ -257,6 +288,7 @@ impl NativeWorkloadKindV1 {
             Self::Package => "package_tape_v1",
             Self::PortfolioTargetMarket => "portfolio_target_market_v1",
             Self::PackageAtomicMarket => "package_atomic_market_v1",
+            Self::PackageMarketV2 => "package_market_v2",
         }
     }
 }
@@ -280,6 +312,17 @@ impl StrategyIrCloseProjectionV1 {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.closes.is_empty()
+    }
+
+    /// Return the immutable close column retained by this prepared projection.
+    ///
+    /// Batch/WFO runtimes may share this allocation across fold views.  The
+    /// returned `Arc` is immutable and belongs to the template identity that
+    /// created the projection; callers must still validate their own window
+    /// bounds before compiling an intent against it.
+    #[must_use]
+    pub fn values_arc(&self) -> Arc<[f64]> {
+        Arc::clone(&self.closes)
     }
 }
 
@@ -567,6 +610,7 @@ pub enum WorkloadPayloadV1 {
     Package(PackageTapeV1),
     PortfolioTargetMarket(PortfolioTargetMarketWorkloadV1),
     PackageAtomicMarket(PackageAtomicMarketWorkloadV1),
+    PackageMarketV2(PackageMarketWorkloadV2),
 }
 
 impl WorkloadPayloadV1 {
@@ -579,6 +623,7 @@ impl WorkloadPayloadV1 {
             Self::Package(_) => NativeWorkloadKindV1::Package,
             Self::PortfolioTargetMarket(_) => NativeWorkloadKindV1::PortfolioTargetMarket,
             Self::PackageAtomicMarket(_) => NativeWorkloadKindV1::PackageAtomicMarket,
+            Self::PackageMarketV2(_) => NativeWorkloadKindV1::PackageMarketV2,
         }
     }
 
@@ -591,6 +636,7 @@ impl WorkloadPayloadV1 {
             Self::Package(workload) => workload.command_tape(),
             Self::PortfolioTargetMarket(workload) => workload.command_tape(),
             Self::PackageAtomicMarket(workload) => workload.command_tape(),
+            Self::PackageMarketV2(workload) => workload.command_tape(),
         }
     }
 }
@@ -622,6 +668,34 @@ pub struct PortfolioTargetAuditV1 {
     pub rejection_code: Vec<i64>,
     pub decision_count: usize,
     pub rejected_decision_count: usize,
+    /// Bounded target-admission rows. Aggregate counters above remain exact
+    /// even when the optional diagnostic rows are truncated.
+    pub detail_retention: AuditRetentionV1,
+}
+
+impl PortfolioTargetAuditV1 {
+    fn with_detail_limit(detail_row_limit: usize) -> Self {
+        Self {
+            detail_retention: AuditRetentionV1::new(detail_row_limit),
+            ..Self::default()
+        }
+    }
+
+    fn record(
+        &mut self,
+        bar: usize,
+        requested_units: f64,
+        accepted_units: f64,
+        rejection_code: i64,
+    ) {
+        if !self.detail_retention.retain_next() {
+            return;
+        }
+        self.bar.push(bar as i64);
+        self.requested_units.push(requested_units);
+        self.accepted_units.push(accepted_units);
+        self.rejection_code.push(rejection_code);
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -636,6 +710,34 @@ pub struct PackageAtomicAuditV1 {
     pub package_fee: f64,
     pub residual_notional: f64,
     pub attempted: bool,
+    /// One shared cap covers leg outcomes and package transitions, so a large
+    /// package cannot bypass the audit-memory contract through two vectors.
+    pub detail_retention: AuditRetentionV1,
+}
+
+impl PackageAtomicAuditV1 {
+    fn with_detail_limit(command_bar: usize, package_id: u64, detail_row_limit: usize) -> Self {
+        Self {
+            command_bar: command_bar as i64,
+            package_id,
+            detail_retention: AuditRetentionV1::new(detail_row_limit),
+            ..Self::default()
+        }
+    }
+
+    fn record_leg(&mut self, accepted: bool, rejection_code: i64) {
+        if !self.detail_retention.retain_next() {
+            return;
+        }
+        self.accepted.push(accepted);
+        self.rejection_code.push(rejection_code);
+    }
+
+    fn record_transition(&mut self, transition_code: i64) {
+        if self.detail_retention.retain_next() {
+            self.transition_code.push(transition_code);
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -644,6 +746,22 @@ pub enum NativeWorkloadAuditV1 {
     None,
     PortfolioTarget(PortfolioTargetAuditV1),
     PackageAtomic(PackageAtomicAuditV1),
+    // Package V2 has many bounded provenance vectors. Keep that audit behind
+    // one allocation so score/compact workflow enums do not reserve its full
+    // inline footprint on every execution result.
+    PackageMarketV2(Box<PackageMarketAuditV2>),
+}
+
+impl NativeWorkloadAuditV1 {
+    #[must_use]
+    pub const fn detail_retention(&self) -> AuditRetentionV1 {
+        match self {
+            Self::None => AuditRetentionV1::new(0),
+            Self::PortfolioTarget(audit) => audit.detail_retention,
+            Self::PackageAtomic(audit) => audit.detail_retention,
+            Self::PackageMarketV2(audit) => audit.detail_retention,
+        }
+    }
 }
 
 impl NativeExecutionTemplateV1 {
@@ -751,6 +869,18 @@ impl NativeExecutionTemplateV1 {
     #[must_use]
     pub fn market(&self) -> &Arc<FullMarketData> {
         &self.market
+    }
+
+    /// Immutable account model fixed by this prepared template.
+    #[must_use]
+    pub const fn account(&self) -> AccountModelV1 {
+        self.account
+    }
+
+    /// Immutable instrument table fixed by this prepared template.
+    #[must_use]
+    pub fn instruments(&self) -> &InstrumentTableV1 {
+        &self.instruments
     }
 
     #[must_use]
@@ -888,6 +1018,29 @@ impl NativeExecutionRunnerV1 {
         self.session.step_buffer_capacities()
     }
 
+    /// Cold-path diagnostics for the authoritative runner. These values are
+    /// observed after the native execution pass; they are never required to
+    /// execute a typed request or materialize a Python result.
+    #[must_use]
+    pub fn order_arena_counters(&self) -> (usize, usize, u64, u64) {
+        (
+            self.session.orders_len(),
+            self.session.orders_capacity(),
+            self.session.compaction_count,
+            self.session.terminal_orders_removed,
+        )
+    }
+
+    #[must_use]
+    pub fn engine_scan_counters(&self) -> (u64, u64, u64) {
+        self.session.engine_scan_counters()
+    }
+
+    #[must_use]
+    pub fn margin_recompute_count(&self) -> u64 {
+        self.session.margin_recompute_count()
+    }
+
     #[must_use]
     pub const fn generation(&self) -> u64 {
         self.generation
@@ -911,7 +1064,14 @@ impl NativeExecutionRunnerV1 {
             return Err("native execution runner/template mismatch".to_owned());
         }
         let (output, command_count, workload_audit) =
-            self.execute_workload_detailed(request.output, &request.workload)?;
+            self.execute_workload_detailed(request.output_requirements(), &request.workload)?;
+        let header_v2 = NativeResultHeaderV2::from_authoritative_run(
+            self.generation,
+            request,
+            &self.session,
+            &output,
+            &workload_audit,
+        );
         Ok(NativeExecutionResultV1 {
             request_version: request.request_version(),
             protocol_version: request.protocol_version(),
@@ -923,6 +1083,7 @@ impl NativeExecutionRunnerV1 {
             bar_count: self.template.bar_count(),
             execution_generation: self.generation,
             runner_run_count: self.run_count,
+            header_v2,
             output,
             workload_audit,
         })
@@ -936,25 +1097,31 @@ impl NativeExecutionRunnerV1 {
         output: NativeOutputProfileV1,
         workload: &WorkloadPayloadV1,
     ) -> Result<NativeExecutionOutputV1, String> {
-        self.execute_workload_detailed(output, workload)
-            .map(|(result, _, _)| result)
+        self.execute_workload_detailed(
+            OutputRequirementsV1::resolve(static_profile(output)),
+            workload,
+        )
+        .map(|(result, _, _)| result)
     }
 
     fn execute_workload_detailed(
         &mut self,
-        output: NativeOutputProfileV1,
+        requirements: OutputRequirementsV1,
         workload: &WorkloadPayloadV1,
     ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         validate_workload(&self.template, workload)?;
         self.reset_for_execution()?;
         let result = match workload {
             WorkloadPayloadV1::PortfolioTargetMarket(workload) => {
-                self.execute_portfolio_target_market(output, workload)
+                self.execute_portfolio_target_market(requirements, workload)
             }
             WorkloadPayloadV1::PackageAtomicMarket(workload) => {
-                self.execute_package_atomic_market(output, workload)
+                self.execute_package_atomic_market(requirements, workload)
             }
-            _ => self.execute_static_workload(output, workload),
+            WorkloadPayloadV1::PackageMarketV2(workload) => {
+                self.execute_package_market_v2(requirements, workload)
+            }
+            _ => self.execute_static_workload(requirements, workload),
         };
         if result.is_ok() {
             self.run_count = self
@@ -967,30 +1134,19 @@ impl NativeExecutionRunnerV1 {
 
     fn execute_static_workload(
         &mut self,
-        output: NativeOutputProfileV1,
+        requirements: OutputRequirementsV1,
         workload: &WorkloadPayloadV1,
     ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         let tape = workload.command_tape();
-        let result = match output {
-            NativeOutputProfileV1::Score => self
-                .session
-                .run_typed_score_v1(tape)
-                .map(NativeExecutionOutputV1::Score),
-            NativeOutputProfileV1::Compact => self
-                .session
-                .run_typed_compact_v1(tape)
-                .map(|value| NativeExecutionOutputV1::Compact(Box::new(value))),
-            NativeOutputProfileV1::Audit => self
-                .session
-                .run_typed_audit_v1(tape)
-                .map(|value| NativeExecutionOutputV1::Audit(Box::new(value))),
-        };
+        let result = self
+            .session
+            .run_typed_output_with_requirements_v1(tape, requirements);
         result.map(|value| (value, tape.command_count(), NativeWorkloadAuditV1::None))
     }
 
     fn execute_portfolio_target_market(
         &mut self,
-        output: NativeOutputProfileV1,
+        requirements: OutputRequirementsV1,
         workload: &PortfolioTargetMarketWorkloadV1,
     ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         let n_symbols = self.template.n_symbols();
@@ -1001,12 +1157,13 @@ impl NativeExecutionRunnerV1 {
         let slippage_rate = self.template.account.slippage_rate;
         let slippage_rates = vec![slippage_rate; n_symbols];
         let mut prices = vec![0.0; n_symbols];
-        let mut audit = PortfolioTargetAuditV1::default();
-        let retain_audit = output == NativeOutputProfileV1::Audit;
-        let profile = static_profile(output);
+        let mut audit =
+            PortfolioTargetAuditV1::with_detail_limit(requirements.detail_row_limit.unwrap_or(0));
+        let retain_audit = requirements.retain_detail;
         let (native_output, command_count) =
-            self.session
-                .run_typed_dynamic_output_v1(profile, |bar, session, commands| {
+            self.session.run_typed_dynamic_output_with_requirements_v1(
+                requirements,
+                |bar, session, commands| {
                     let requested = workload.targets.targets_at(bar);
                     let changed = requested
                         .iter()
@@ -1021,10 +1178,10 @@ impl NativeExecutionRunnerV1 {
                         audit.rejected_decision_count += 1;
                         if retain_audit {
                             for (index, target) in requested.iter().copied().enumerate() {
-                                audit.bar.push(bar as i64);
-                                audit.requested_units.push(target);
-                                audit.accepted_units.push(session.positions[index]);
-                                audit.rejection_code.push(
+                                audit.record(
+                                    bar,
+                                    target,
+                                    session.positions[index],
                                     quantbt_portfolio::PortfolioTargetRejectReason::PostCostMargin
                                         as i64,
                                 );
@@ -1061,12 +1218,12 @@ impl NativeExecutionRunnerV1 {
                     }
                     if retain_audit {
                         for (index, requested_units) in requested.iter().copied().enumerate() {
-                            audit.bar.push(bar as i64);
-                            audit.requested_units.push(requested_units);
-                            audit.accepted_units.push(execution.accepted_units[index]);
-                            audit
-                                .rejection_code
-                                .push(execution.rejection_reasons[index] as i64);
+                            audit.record(
+                                bar,
+                                requested_units,
+                                execution.accepted_units[index],
+                                execution.rejection_reasons[index] as i64,
+                            );
                         }
                     }
                     let bar_offset = i64::try_from(bar)
@@ -1084,7 +1241,8 @@ impl NativeExecutionRunnerV1 {
                         external_id_start,
                     )?);
                     Ok(())
-                })?;
+                },
+            )?;
         Ok((
             native_output,
             command_count,
@@ -1094,7 +1252,7 @@ impl NativeExecutionRunnerV1 {
 
     fn execute_package_atomic_market(
         &mut self,
-        output: NativeOutputProfileV1,
+        requirements: OutputRequirementsV1,
         workload: &PackageAtomicMarketWorkloadV1,
     ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
         let n_symbols = self.template.n_symbols();
@@ -1104,27 +1262,30 @@ impl NativeExecutionRunnerV1 {
         let slippage_rate = self.template.account.slippage_rate;
         let mut prices = vec![0.0; n_symbols];
         let mut resolved_legs = workload.legs.to_vec();
-        let mut audit = PackageAtomicAuditV1 {
-            command_bar: workload.command_bar as i64,
-            package_id: workload.plan.id.0,
-            ..PackageAtomicAuditV1::default()
-        };
-        let profile = static_profile(output);
+        let mut audit = PackageAtomicAuditV1::with_detail_limit(
+            workload.command_bar,
+            workload.plan.id.0,
+            requirements.detail_row_limit.unwrap_or(0),
+        );
+        let retain_audit = requirements.retain_detail;
         let (native_output, command_count) =
-            self.session
-                .run_typed_dynamic_output_v1(profile, |bar, session, commands| {
+            self.session.run_typed_dynamic_output_with_requirements_v1(
+                requirements,
+                |bar, session, commands| {
                     if bar != workload.command_bar {
                         return Ok(());
                     }
                     audit.attempted = true;
                     let projection = session.project_pre_command_account_v1(bar)?;
                     if projection.liquidated {
-                        audit.accepted = vec![false; workload.legs.len()];
-                        audit.rejection_code = vec![
-                            quantbt_package::PackageRejectReason::PostCostMargin
-                                as i64;
-                            workload.legs.len()
-                        ];
+                        if retain_audit {
+                            for _ in 0..workload.legs.len() {
+                                audit.record_leg(
+                                    false,
+                                    quantbt_package::PackageRejectReason::PostCostMargin as i64,
+                                );
+                            }
+                        }
                         return Ok(());
                     }
                     for (symbol, price) in prices.iter_mut().enumerate() {
@@ -1153,17 +1314,19 @@ impl NativeExecutionRunnerV1 {
                             max_staleness_ns: workload.max_staleness_ns,
                         },
                     )?;
-                    audit.accepted = result.accepted.clone();
-                    audit.rejection_code = result
-                        .rejection_reasons
-                        .iter()
-                        .map(|reason| *reason as i64)
-                        .collect();
-                    audit.transition_code = result
-                        .transitions
-                        .iter()
-                        .map(|event| package_event_code(*event) as i64)
-                        .collect();
+                    if retain_audit {
+                        for (accepted, rejection_reason) in result
+                            .accepted
+                            .iter()
+                            .copied()
+                            .zip(result.rejection_reasons.iter().copied())
+                        {
+                            audit.record_leg(accepted, rejection_reason as i64);
+                        }
+                        for event in result.transitions.iter().copied() {
+                            audit.record_transition(package_event_code(event) as i64);
+                        }
+                    }
                     audit.reserved_margin = result.reserved_margin;
                     audit.released_margin = result.released_margin;
                     audit.package_fee = result.package_fee;
@@ -1174,11 +1337,80 @@ impl NativeExecutionRunnerV1 {
                         &result,
                     )?);
                     Ok(())
-                })?;
+                },
+            )?;
         Ok((
             native_output,
             command_count,
             NativeWorkloadAuditV1::PackageAtomic(audit),
+        ))
+    }
+
+    /// Execute bounded V2 package planning in the same dynamic session used
+    /// by target workloads. The package domain computes only a deterministic
+    /// preview and exact submitted quantities; `FullSession` commits every
+    /// emitted command, owns the canonical fill/event trace, and updates the
+    /// one linear account. There is deliberately no package-local ledger.
+    fn execute_package_market_v2(
+        &mut self,
+        requirements: OutputRequirementsV1,
+        workload: &PackageMarketWorkloadV2,
+    ) -> Result<(NativeExecutionOutputV1, usize, NativeWorkloadAuditV1), String> {
+        let n_symbols = self.template.n_symbols();
+        let contract_sizes = self.template.instruments.contract_sizes.to_vec();
+        let leverages = self.template.instruments.leverages.to_vec();
+        let fee_rates = self.template.instruments.fee_rates.to_vec();
+        let slippage_rate = self.template.account.slippage_rate;
+        let mut prices = vec![0.0; n_symbols];
+        let mut audit =
+            PackageMarketAuditV2::with_detail_limit(requirements.detail_row_limit.unwrap_or(0));
+        let (native_output, command_count) =
+            self.session.run_typed_dynamic_output_with_requirements_v1(
+                requirements,
+                |bar, session, commands| {
+                    let Some(intent) = workload.intent_at(bar) else {
+                        return Ok(());
+                    };
+                    let projection = session.project_pre_command_account_v1(bar)?;
+                    if projection.liquidated {
+                        let result = quantbt_package::abort_package_market_v2(
+                            intent,
+                            quantbt_package::PackageRejectReasonV2::PostCostMargin,
+                        );
+                        audit.record(intent, &result);
+                        return Ok(());
+                    }
+                    for (symbol, price) in prices.iter_mut().enumerate() {
+                        *price = session.close_price_at(bar, symbol)?;
+                    }
+                    let result = quantbt_package::execute_package_market_v2(
+                        PackageMarketExecutionRequestV2 {
+                            intent,
+                            previous_units: &session.positions,
+                            close_prices: &prices,
+                            contract_sizes: &contract_sizes,
+                            leverages: &leverages,
+                            fee_rates: &fee_rates,
+                            slippage_rate,
+                            equity: projection.equity,
+                        },
+                    )?;
+                    // The deterministic V2 preview is emitted as canonical
+                    // market commands immediately. Under the bounded linear
+                    // contract these quantities are the actual session fills;
+                    // a future L2 venue model must add a new contract rather
+                    // than reinterpret `fill_fraction` here.
+                    commands.extend(quantbt_package::compile_package_commands_v2(
+                        intent, &result,
+                    )?);
+                    audit.record(intent, &result);
+                    Ok(())
+                },
+            )?;
+        Ok((
+            native_output,
+            command_count,
+            NativeWorkloadAuditV1::PackageMarketV2(Box::new(audit)),
         ))
     }
 }
@@ -1198,6 +1430,7 @@ const fn static_profile(output: NativeOutputProfileV1) -> StaticOutputProfile {
 pub struct NativeExecutionRequestV1 {
     template: Arc<NativeExecutionTemplateV1>,
     output: NativeOutputProfileV1,
+    audit_detail_row_limit: Option<usize>,
     workload: WorkloadPayloadV1,
     fingerprint: [u8; 32],
 }
@@ -1226,13 +1459,34 @@ impl NativeExecutionRequestV1 {
         workload: WorkloadPayloadV1,
     ) -> Result<Self, String> {
         validate_workload(&template, &workload)?;
-        let fingerprint = fingerprint_request(&template, output, &workload);
+        let audit_detail_row_limit =
+            OutputRequirementsV1::resolve(static_profile(output)).detail_row_limit;
+        let fingerprint = fingerprint_request(&template, output, audit_detail_row_limit, &workload);
         Ok(Self {
             template,
             output,
+            audit_detail_row_limit,
             workload,
             fingerprint,
         })
+    }
+
+    /// Return a new immutable audit request with an explicit combined
+    /// fill/event retention limit. The bound changes only diagnostic output,
+    /// but is included in the request fingerprint so prepared caches cannot
+    /// reuse an artifact under a different retention contract.
+    pub fn with_audit_detail_limit(mut self, detail_row_limit: usize) -> Result<Self, String> {
+        if self.output != NativeOutputProfileV1::Audit {
+            return Err("audit detail limit is only valid for audit output".to_owned());
+        }
+        self.audit_detail_row_limit = Some(detail_row_limit);
+        self.fingerprint = fingerprint_request(
+            &self.template,
+            self.output,
+            self.audit_detail_row_limit,
+            &self.workload,
+        );
+        Ok(self)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1335,6 +1589,30 @@ impl NativeExecutionRequestV1 {
         )
     }
 
+    /// Build an immutable bounded same-account package request.  V2 accepts
+    /// only exact deterministic OHLC-bar scenarios: a package may execute on
+    /// a command bar, and one subsequent bar remains available for canonical
+    /// session reconciliation/inspection.  It is not a claim of native venue
+    /// OCO, L2 queue, cross-currency, or multi-account semantics.
+    pub fn from_template_package_market_v2(
+        template: Arc<NativeExecutionTemplateV1>,
+        output: NativeOutputProfileV1,
+        intents: Vec<PackageIntentV2>,
+    ) -> Result<Self, String> {
+        if template.contract.event_contract_code != CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE {
+            return Err(
+                "native package V2 market route requires event_lifecycle_v2_next_bar_close"
+                    .to_owned(),
+            );
+        }
+        let workload = PackageMarketWorkloadV2::new(template.bar_count(), intents)?;
+        Self::from_template(
+            template,
+            output,
+            WorkloadPayloadV1::PackageMarketV2(workload),
+        )
+    }
+
     #[must_use]
     pub const fn request_version(&self) -> u16 {
         NATIVE_EXECUTION_REQUEST_VERSION_V1
@@ -1348,6 +1626,19 @@ impl NativeExecutionRequestV1 {
     #[must_use]
     pub const fn output_profile(&self) -> NativeOutputProfileV1 {
         self.output
+    }
+
+    #[must_use]
+    pub const fn audit_detail_row_limit(&self) -> Option<usize> {
+        self.audit_detail_row_limit
+    }
+
+    #[must_use]
+    pub fn output_requirements(&self) -> OutputRequirementsV1 {
+        match self.audit_detail_row_limit {
+            Some(limit) => OutputRequirementsV1::audit_with_detail_limit(limit),
+            None => OutputRequirementsV1::resolve(static_profile(self.output)),
+        }
     }
 
     #[must_use]
@@ -1395,7 +1686,113 @@ impl NativeExecutionRequestV1 {
     }
 }
 
-/// Native result plus immutable request provenance.  Python report adaptation
+/// Native workload authority embedded in [`NativeResultHeaderV2`]. This keeps
+/// promotion claims attached to the result instead of inferred from a Python
+/// endpoint name after the fact.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NativeWorkloadAuthorityDescriptorV1 {
+    pub workload_kind: NativeWorkloadKindV1,
+    pub runtime_class: &'static str,
+    pub account_authority: &'static str,
+    pub execution_model_id: &'static str,
+    pub metric_contract_version: u16,
+}
+
+/// Common result provenance for all output retention profiles. It is scalar
+/// and allocation-light, so score runs do not construct a Python dictionary,
+/// tabular report, or nested lifecycle objects merely to carry metadata.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NativeResultHeaderV2 {
+    pub result_version: u16,
+    pub run_id: u64,
+    pub request_fingerprint: [u8; 32],
+    pub template_fingerprint: [u8; 32],
+    pub contract_bundle_hash: u128,
+    pub authority: NativeWorkloadAuthorityDescriptorV1,
+    pub retention: NativeOutputProfileV1,
+    pub detail_truncated: bool,
+    pub retained_rows: u64,
+    pub dropped_rows: u64,
+    pub terminal_fingerprint: [u8; 32],
+}
+
+impl NativeResultHeaderV2 {
+    fn from_authoritative_run(
+        run_id: u64,
+        request: &NativeExecutionRequestV1,
+        session: &FullSession,
+        output: &NativeExecutionOutputV1,
+        workload_audit: &NativeWorkloadAuditV1,
+    ) -> Self {
+        let execution_detail = output.detail_retention();
+        let workload_detail = workload_audit.detail_retention();
+        // The canonical fill/event trace and the optional dynamic-workload
+        // admission trace each have an explicit bounded sink. Report their
+        // aggregate here so a caller can see total retained diagnostic rows
+        // without mistaking either artifact for an unbounded side ledger.
+        let retained_rows = execution_detail
+            .retained_rows
+            .saturating_add(workload_detail.retained_rows);
+        let dropped_rows = execution_detail
+            .dropped_rows
+            .saturating_add(workload_detail.dropped_rows);
+        let workload_kind = request.workload.kind();
+        Self {
+            result_version: NATIVE_RESULT_VERSION_V2,
+            run_id,
+            request_fingerprint: request.fingerprint,
+            template_fingerprint: request.template.fingerprint,
+            contract_bundle_hash: contract_bundle_hash_v2(
+                &request.template,
+                session,
+                workload_kind,
+            ),
+            authority: NativeWorkloadAuthorityDescriptorV1 {
+                workload_kind,
+                runtime_class: "whole_run_native",
+                account_authority: "linear_account_v1",
+                execution_model_id: session.execution_model.id(),
+                metric_contract_version: output.score().metrics_v2.metric_contract_version,
+            },
+            retention: request.output,
+            detail_truncated: execution_detail.truncated() || workload_detail.truncated(),
+            retained_rows: u64::try_from(retained_rows).unwrap_or(u64::MAX),
+            dropped_rows: u64::try_from(dropped_rows).unwrap_or(u64::MAX),
+            terminal_fingerprint: terminal_fingerprint_v2(output),
+        }
+    }
+
+    #[must_use]
+    pub fn request_fingerprint_hex(&self) -> String {
+        hex_fingerprint(self.request_fingerprint)
+    }
+
+    #[must_use]
+    pub fn template_fingerprint_hex(&self) -> String {
+        hex_fingerprint(self.template_fingerprint)
+    }
+
+    #[must_use]
+    pub fn terminal_fingerprint_hex(&self) -> String {
+        hex_fingerprint(self.terminal_fingerprint)
+    }
+
+    #[must_use]
+    pub fn contract_bundle_hash_hex(&self) -> String {
+        format!("{:032x}", self.contract_bundle_hash)
+    }
+}
+
+/// Borrowed NativeResult V2 envelope over the existing flat result payload.
+/// It deliberately avoids cloning potentially large compact/audit arrays just
+/// to present a versioned common result view.
+#[derive(Clone, Copy, Debug)]
+pub struct NativeResultV2<'a> {
+    pub header: &'a NativeResultHeaderV2,
+    pub output: &'a NativeExecutionOutputV1,
+}
+
+/// Native result plus immutable request provenance. Python report adaptation
 /// remains a cold-path concern and must consume this authoritative output.
 pub struct NativeExecutionResultV1 {
     pub request_version: u16,
@@ -1408,11 +1805,21 @@ pub struct NativeExecutionResultV1 {
     pub bar_count: usize,
     pub execution_generation: u64,
     pub runner_run_count: u64,
+    /// Versioned common result envelope over the profile-specific SoA payload.
+    pub header_v2: NativeResultHeaderV2,
     pub output: NativeExecutionOutputV1,
     pub workload_audit: NativeWorkloadAuditV1,
 }
 
 impl NativeExecutionResultV1 {
+    #[must_use]
+    pub const fn native_result_v2(&self) -> NativeResultV2<'_> {
+        NativeResultV2 {
+            header: &self.header_v2,
+            output: &self.output,
+        }
+    }
+
     #[must_use]
     pub fn fingerprint_hex(&self) -> String {
         hex_fingerprint(self.request_fingerprint)
@@ -1435,6 +1842,118 @@ impl NativeExecutionResultV1 {
     pub fn into_legacy_static(self) -> StaticTapeOutput {
         self.output.into_legacy_static()
     }
+}
+
+fn contract_bundle_hash_v2(
+    template: &NativeExecutionTemplateV1,
+    session: &FullSession,
+    workload_kind: NativeWorkloadKindV1,
+) -> u128 {
+    let mut hash = FingerprintWriter::new();
+    hash.bytes(b"native-contract-bundle-v2");
+    hash.u16(NATIVE_RESULT_VERSION_V2);
+    hash.bytes(&template.fingerprint);
+    hash.u8(workload_kind as u8);
+    hash.i64(template.contract.event_contract_code);
+    hash.f64(template.account.initial_capital);
+    hash.f64(template.account.maintenance_ratio);
+    hash.bool(template.account.use_funding);
+    fingerprint_execution_model_v1(&mut hash, session.execution_model);
+    fingerprint_metric_contract_v2(&mut hash, session.metric_contract);
+    let bytes = hash.finish();
+    let mut lower = [0_u8; 16];
+    lower.copy_from_slice(&bytes[..16]);
+    u128::from_le_bytes(lower)
+}
+
+fn fingerprint_execution_model_v1(hash: &mut FingerprintWriter, model: ExecutionModelPlanV1) {
+    hash.bytes(model.id().as_bytes());
+    match model {
+        ExecutionModelPlanV1::BarTouch {
+            proportional_slippage,
+        } => {
+            hash.u8(0);
+            hash.f64(proportional_slippage);
+        }
+        ExecutionModelPlanV1::Cost(cost) => {
+            hash.u8(1);
+            hash.f64(cost.proportional_slippage);
+            hash.f64(cost.spread_bps);
+            hash.f64(cost.fixed_slippage);
+            hash.f64(cost.impact_coefficient);
+            match cost.participation_rate {
+                Some(value) => {
+                    hash.bool(true);
+                    hash.f64(value);
+                }
+                None => hash.bool(false),
+            }
+        }
+    }
+}
+
+fn fingerprint_metric_contract_v2(hash: &mut FingerprintWriter, contract: MetricContractV2) {
+    hash.bytes(b"metric-contract-v2");
+    hash.u8(contract.return_frequency as u8);
+    hash.f64(contract.annualization_factor);
+    hash.f64(contract.risk_free_rate);
+    hash.u8(contract.variance_ddof);
+    hash.u8(contract.zero_variance_policy as u8);
+    hash.u8(contract.short_run_policy as u8);
+    hash.u8(contract.trade_count_definition as u8);
+}
+
+pub(crate) fn terminal_fingerprint_v2(output: &NativeExecutionOutputV1) -> [u8; 32] {
+    let score = output.score();
+    let metrics = *score.metrics_v2;
+    let mut hash = FingerprintWriter::new();
+    hash.bytes(b"native-terminal-accounting-v2");
+    hash.u16(NATIVE_RESULT_VERSION_V2);
+    hash.f64(score.final_equity);
+    hash.usize(score.final_positions.len());
+    for position in score.final_positions.iter().copied() {
+        hash.f64(position);
+    }
+    hash.f64(score.total_fee);
+    hash.f64(score.total_turnover);
+    hash.f64(score.total_funding);
+    hash.i64(score.fill_count);
+    hash.i64(score.event_count);
+    hash.i64(score.rejected_count);
+    hash.i64(score.canceled_count);
+    hash.f64(score.max_initial_margin);
+    hash.f64(score.max_maintenance_margin);
+    hash.bool(score.liquidated);
+    hash.i64(score.liquidation_bar);
+    hash.i64(score.liquidation_reason);
+    fingerprint_metric_contract_v2(&mut hash, score.metric_contract);
+    fingerprint_metric_snapshot_v2(&mut hash, metrics);
+    hash.finish()
+}
+
+fn fingerprint_metric_snapshot_v2(hash: &mut FingerprintWriter, metrics: NativeMetricSnapshotV2) {
+    hash.u16(metrics.metric_contract_version);
+    hash.f64(metrics.final_equity);
+    hash.f64(metrics.total_return);
+    hash.f64(metrics.cagr);
+    hash.f64(metrics.mean_return);
+    hash.f64(metrics.variance);
+    hash.f64(metrics.sharpe);
+    hash.f64(metrics.sortino);
+    hash.f64(metrics.max_drawdown);
+    hash.f64(metrics.calmar);
+    hash.f64(metrics.omega);
+    hash.f64(metrics.profit_factor);
+    hash.f64(metrics.average_gross_exposure);
+    hash.f64(metrics.turnover);
+    hash.f64(metrics.total_fee);
+    hash.f64(metrics.total_funding);
+    hash.u64(metrics.fill_count);
+    hash.u64(metrics.event_count);
+    hash.u64(metrics.rejected_count);
+    hash.u64(metrics.canceled_count);
+    hash.u64(metrics.sample_count);
+    hash.bool(metrics.liquidated);
 }
 
 fn validate_workload(
@@ -1487,6 +2006,19 @@ fn validate_workload(
                 return Err(
                     "native atomic package workload is outside the prepared market clock"
                         .to_owned(),
+                );
+            }
+        }
+        WorkloadPayloadV1::PackageMarketV2(package) => {
+            if package.package_count() == 0
+                || package.intents.iter().any(|intent| {
+                    intent.command_bar == 0
+                        || intent.command_bar + 1 >= template.bar_count()
+                        || intent.legs.is_empty()
+                })
+            {
+                return Err(
+                    "native package V2 workload is outside the prepared market clock".to_owned(),
                 );
             }
         }
@@ -1576,6 +2108,7 @@ fn fingerprint_template(
 fn fingerprint_request(
     template: &NativeExecutionTemplateV1,
     output: NativeOutputProfileV1,
+    audit_detail_row_limit: Option<usize>,
     workload: &WorkloadPayloadV1,
 ) -> [u8; 32] {
     let mut hash = FingerprintWriter::new();
@@ -1584,6 +2117,13 @@ fn fingerprint_request(
     hash.u16(NATIVE_EXECUTION_PROTOCOL_VERSION_V1);
     hash.bytes(&template.fingerprint());
     hash.u8(output as u8);
+    match audit_detail_row_limit {
+        Some(limit) => {
+            hash.bool(true);
+            hash.usize(limit);
+        }
+        None => hash.bool(false),
+    }
     fingerprint_workload(&mut hash, workload);
     hash.finish()
 }
@@ -1744,6 +2284,33 @@ fn fingerprint_workload(hash: &mut FingerprintWriter, workload: &WorkloadPayload
                 hash.f64(leg.min_notional);
             }
         }
+        WorkloadPayloadV1::PackageMarketV2(package) => {
+            hash.bytes(b"package-market-v2");
+            hash.usize(package.intents.len());
+            for intent in package.intents.iter() {
+                hash.u64(intent.package_id.0);
+                hash.usize(intent.command_bar);
+                hash.u8(intent.execution_policy as u8);
+                hash.u8(intent.residual_policy as u8);
+                hash.i64(intent.max_staleness_ns);
+                hash.usize(intent.legs.len());
+                for leg in intent.legs.iter() {
+                    hash.i64(leg.order_id.0);
+                    hash.u32(leg.symbol.0);
+                    hash.f64(leg.signed_qty);
+                    hash.u8(leg.quantity_source as u8);
+                    hash.i64(leg.source_leg);
+                    hash.f64(leg.quantity_ratio);
+                    hash.f64(leg.fill_fraction);
+                    hash.f64(leg.qty_step);
+                    hash.f64(leg.min_qty);
+                    hash.f64(leg.min_notional);
+                    hash.i64(leg.source_age_ns);
+                    hash.u16(leg.venue_code);
+                    hash.u32(leg.venue_sequence);
+                }
+            }
+        }
     }
 }
 
@@ -1800,12 +2367,12 @@ fn package_event_code(event: PackageEventKind) -> u8 {
     }
 }
 
-struct FingerprintWriter {
+pub(crate) struct FingerprintWriter {
     lanes: [u64; 4],
 }
 
 impl FingerprintWriter {
-    const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             lanes: [
                 0xcbf2_9ce4_8422_2325_u64,
@@ -1816,7 +2383,7 @@ impl FingerprintWriter {
         }
     }
 
-    fn bytes(&mut self, bytes: &[u8]) {
+    pub(crate) fn bytes(&mut self, bytes: &[u8]) {
         self.raw_bytes(&u64::try_from(bytes.len()).unwrap_or(u64::MAX).to_le_bytes());
         self.raw_bytes(bytes);
     }
@@ -1830,39 +2397,39 @@ impl FingerprintWriter {
         }
     }
 
-    fn bool(&mut self, value: bool) {
+    pub(crate) fn bool(&mut self, value: bool) {
         self.u8(u8::from(value));
     }
 
-    fn u8(&mut self, value: u8) {
+    pub(crate) fn u8(&mut self, value: u8) {
         self.raw_bytes(&[value]);
     }
 
-    fn u16(&mut self, value: u16) {
+    pub(crate) fn u16(&mut self, value: u16) {
         self.raw_bytes(&value.to_le_bytes());
     }
 
-    fn u32(&mut self, value: u32) {
+    pub(crate) fn u32(&mut self, value: u32) {
         self.raw_bytes(&value.to_le_bytes());
     }
 
-    fn u64(&mut self, value: u64) {
+    pub(crate) fn u64(&mut self, value: u64) {
         self.raw_bytes(&value.to_le_bytes());
     }
 
-    fn i64(&mut self, value: i64) {
+    pub(crate) fn i64(&mut self, value: i64) {
         self.raw_bytes(&value.to_le_bytes());
     }
 
-    fn usize(&mut self, value: usize) {
+    pub(crate) fn usize(&mut self, value: usize) {
         self.u64(u64::try_from(value).unwrap_or(u64::MAX));
     }
 
-    fn f64(&mut self, value: f64) {
+    pub(crate) fn f64(&mut self, value: f64) {
         self.u64(value.to_bits());
     }
 
-    fn finish(self) -> [u8; 32] {
+    pub(crate) fn finish(self) -> [u8; 32] {
         let mut fingerprint = [0_u8; 32];
         for (index, lane) in self.lanes.into_iter().enumerate() {
             fingerprint[index * 8..(index + 1) * 8].copy_from_slice(&lane.to_le_bytes());
@@ -1871,7 +2438,7 @@ impl FingerprintWriter {
     }
 }
 
-fn hex_fingerprint(fingerprint: [u8; 32]) -> String {
+pub(crate) fn hex_fingerprint(fingerprint: [u8; 32]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let mut output = String::with_capacity(64);
     for byte in fingerprint {
@@ -2056,6 +2623,26 @@ mod tests {
             assert_eq!(actual.output_profile, profile);
             assert_output_eq(&actual.output.clone().into_legacy_static(), &expected);
         }
+    }
+
+    #[test]
+    fn audit_retention_changes_only_diagnostic_rows_not_terminal_authority() {
+        let full_request = request(NativeOutputProfileV1::Audit);
+        let capped_request = full_request.clone().with_audit_detail_limit(1).unwrap();
+        assert_ne!(full_request.fingerprint(), capped_request.fingerprint());
+
+        let full = full_request.execute().unwrap();
+        let capped = capped_request.execute().unwrap();
+        assert_eq!(
+            full.header_v2.terminal_fingerprint,
+            capped.header_v2.terminal_fingerprint
+        );
+        assert_eq!(full.output.score(), capped.output.score());
+        assert!(capped.header_v2.detail_truncated);
+        assert_eq!(capped.header_v2.retained_rows, 1);
+        assert!(capped.header_v2.dropped_rows > 0);
+        assert_eq!(capped.output.detail_retention().retained_rows, 1);
+        assert!(capped.output.detail_retention().truncated());
     }
 
     #[test]
@@ -2426,6 +3013,48 @@ mod tests {
             &second.output.into_legacy_static(),
             &third.output.into_legacy_static(),
         );
+    }
+
+    #[test]
+    fn dynamic_workload_audit_respects_the_same_explicit_detail_cap() {
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                market(),
+                instruments(),
+                account(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        let uncapped = NativeExecutionRequestV1::from_template_portfolio_target_market(
+            template,
+            NativeOutputProfileV1::Audit,
+            vec![0.0, 1.0, -1.0, 0.0],
+            vec![true; 4],
+            vec![false; 4],
+            vec![0.0],
+            vec![0.0],
+            1_000,
+        )
+        .unwrap();
+        let capped = uncapped.clone().with_audit_detail_limit(1).unwrap();
+        let full_result = uncapped.execute().unwrap();
+        let capped_result = capped.execute().unwrap();
+        assert_eq!(
+            full_result.header_v2.terminal_fingerprint,
+            capped_result.header_v2.terminal_fingerprint
+        );
+        let NativeWorkloadAuditV1::PortfolioTarget(audit) = capped_result.workload_audit else {
+            panic!("portfolio target workload must emit portfolio audit")
+        };
+        assert_eq!(audit.detail_retention.retained_rows, 1);
+        assert_eq!(audit.detail_retention.dropped_rows, 2);
+        assert_eq!(audit.bar.len(), 1);
+        assert!(capped_result.header_v2.detail_truncated);
+        // Header combines canonical fill/event detail plus dynamic admission
+        // provenance, both of which are independently bounded by the request.
+        assert!(capped_result.header_v2.retained_rows >= 1);
+        assert!(capped_result.header_v2.dropped_rows >= 2);
     }
 
     #[test]

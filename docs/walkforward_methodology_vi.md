@@ -205,8 +205,24 @@ hoàn tất.
 
 QuantBT truyền strategy một data view kết thúc đúng tại `train_end` cho IS và
 `test_end` cho OOS. Target của các fold được stitch trước khi account engine
-chạy một lần. `fold_boundary_position_policy="carry"` đảm bảo không reset
-equity, không tự flatten và không nhân đôi fee tại retraining boundary.
+chạy một lần. `fold_boundary_position_policy="carry"` vẫn là alias legacy cho
+`fold_account_policy="carry_position"`: không reset equity, không tự flatten
+và không nhân đôi fee tại retraining boundary.
+
+Từ Phase 64, WFO có `CalendarPlanV2` và contract timing/lifecycle rõ ràng.
+`exact_v2` reject tape lệch timestamp dù cùng số row; `intersection_v2` chỉ
+dùng clock common có observation đầy đủ. Mỗi fold audit riêng `warmup`,
+`label_horizon`, `purge`, `test` và `embargo`. `close_at_boundary` chỉ hợp lệ
+khi embargo tạo gap flatten cụ thể; `reset_flat` và `replay_prior_state` raise
+trên stitched-target endpoint thay vì bị đổi ngầm thành carry.
+
+`intent_contract` ghi rõ output là signal/target/position, phase quan sát,
+phase hiệu lực và trạng thái lag. `StrategyLifecycleV1` cô lập mutable object
+theo run/candidate/fold/cutoff qua `spawn/reset` hoặc deepcopy. Những contract
+này làm rõ giới hạn engine; feature/indicator bên trong strategy vẫn phải causal
+ở mức intra-fold. Với `scoring_backend="proxy"`, proxy rank có thể được audit
+IS-only qua Spearman, Top-K overlap, winner regret và false-positive rate với
+native scorer; `enforce` sẽ fail-closed nếu gate không đạt.
 
 Metadata cần đọc cùng nhau là `validation_claim`, `causality_claim` và
 `chronological_validation_claim`. Field cuối tách riêng để `global` vẫn giữ
@@ -916,3 +932,40 @@ Một backtest đáng tin không phải backtest có Sharpe cao nhất.
 
 Một backtest đáng tin là backtest có methodology chọn params minh bạch,
 ít leak, có kiểm định robustness, và có thể audit.
+
+---
+
+## 18. Native WFO Runtime V2 Và Methodology
+
+`NativeWfoRuntimeV2` không thêm một optimization mode mới và không đổi ý nghĩa
+thống kê của `global`, `per_fold_decay`, hoặc `per_fold_causal`. Nó chỉ là một
+execution runtime A4 cho workload hẹp: signal StrategyIR một symbol, input W1/
+W2 đã chuẩn bị causal, và một account reset-flat độc lập cho từng OOS fold.
+
+Do đó phải tách hai câu hỏi:
+
+```text
+selection chronology: public WalkForwardEngine + optimization schedule
+candidate/fold simulation: optional NativeWfoRuntimeV2 prepared runtime
+```
+
+Runtime native không làm Python feature trở nên causal, không tự stitch OOS
+equity continuous, và không biến callback/portfolio/package thành Rust. Nó chỉ
+loại bỏ repeated execution/accounting overhead sau khi alpha đã tạo một finite
+numeric signal tape hợp lệ. Mỗi audit selected candidate phải tái tạo đúng
+intent fingerprint của source score batch; nếu generator không deterministic
+thì audit fail thay vì tạo evidence sai. Xem [Native WFO Runtime V2](native_wfo_runtime.md)
+để biết contract và giới hạn kỹ thuật.
+
+Phase 74 thêm một public scorer hẹp dưới `QuantBTEndpoint.walk_forward()`: W0
+scalar callback có thể được batch score bởi Rust; W1/W2 là opt-in cache/generator
+cho alpha có feature parameter-independent. Engine vẫn giữ Optuna sequence,
+objective/selector từng mode và one final stitched account. Matrix chỉ gồm một
+symbol OHLCV, `signal_notional`/`single_signal`/`notional`/`unit`, annualization
+`365`; `mode_2_sbb` vẫn dùng proxy path. Public prepared route cũng chứng nhận
+`pct_equity` transition-sized khi khai báo rõ `target_runtime="rust"` và
+`native_prepared_wfo="require"`; `auto` vẫn giữ legacy. Nó không phải per-bar
+equity-fraction rebalance. Với strict per-fold schedule, prepared alpha phải tự
+declare `causal_cache_contract="causal_parameter_independent_v1"`; engine không
+tự biến Python cache thành chứng nhận no-look-ahead. Xem
+[Public prepared-native WFO scoring](native_prepared_wfo_public.md).

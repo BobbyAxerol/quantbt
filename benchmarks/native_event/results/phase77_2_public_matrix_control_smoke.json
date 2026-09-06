@@ -1,0 +1,2958 @@
+{
+  "excluded_workload_ids": [],
+  "findings_to_next_phase": [
+    {
+      "baseline_loss": "legacy pct_equity executes only on raw-weight transition and reports raw weights, so direct per-bar EquityFraction cannot be substituted.",
+      "comparator": "legacy_pct_equity_transition_sizing_v1 hand fixtures plus public fold parity.",
+      "domain_risk": "silent drift-rebalance or rejection-retry changes fees, margin and final equity.",
+      "gate": "exact accepted-unit/equity/cost/rejection parity before any Rust eligibility widening.",
+      "measured_or_inspected": "inspected_and_contract_locked",
+      "mechanism": "introduce a typed transition-sizing request with accepted-unit state and a separate public adapter.",
+      "owner": "77.2",
+      "priority": 1
+    },
+    {
+      "baseline_loss": "W0 endpoint scoring enters Rust only for certified scalar signal/notional/unit routes; callback generation and selection/report adaptation remain Python-owned.",
+      "comparator": "paired reference/native rows in this artifact, fixed candidate fingerprint and same-seed trial-table fingerprint.",
+      "domain_risk": "candidate ordering, strict causal boundaries and final stitched account parity.",
+      "gate": "same params, trial ordering, output, fees, funding and final account within declared tolerance.",
+      "measured_or_inspected": "measured_public_matrix",
+      "mechanism": "share prepared market ownership and compact metric columns without changing strategy lifecycle or Optuna order.",
+      "owner": "77.2",
+      "priority": 2
+    },
+    {
+      "baseline_loss": "Mode 2 proxy and W3 reactive routes have different execution and sampling contracts; they must not inherit a W0 score speedup claim.",
+      "comparator": "Mode 2 proxy-preserved row and Phase 76 reactive artifacts.",
+      "domain_risk": "changed bootstrap RNG/path semantics, missed reactive wake, or TPE-sequence relabeling.",
+      "gate": "identical path fingerprints or explicit non-comparability labels; no auto-promotion from this baseline.",
+      "measured_or_inspected": "scope_lock",
+      "mechanism": "separate sparse/reactive native state and bounded SBB work only after their own comparator is defined.",
+      "owner": "77.3",
+      "priority": 3
+    }
+  ],
+  "fixed_candidate_reproducibility": {
+    "best_trial": {
+      "mean_decay": -0.090904404,
+      "mean_is_sharpe": -1.039315849,
+      "mean_oos_sharpe": -0.948411445,
+      "objective": -1.417584466,
+      "params": {
+        "amplitude": 0.8,
+        "period": 7
+      },
+      "std_decay": 0.938346043,
+      "trial_id": 0
+    },
+    "candidate_table_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "equity_sha256": "8eedd3b9437669ec80d7ba5467d425d84e4e1fcb57ec34ce4c25f5aa2d38d9a8",
+    "oos_output_sha256": "983bb4eca2c0204ab566dbf449e4522e2261c830bbd3102c6bcf5d4999500e2c",
+    "params": {
+      "amplitude": 0.8,
+      "period": 7
+    },
+    "params_by_fold": {},
+    "positions_sha256": "2907e8840caa2c7c653abb54777b9ee760f0fb55b546426325457e05e1126dc2",
+    "trial_table_sha256": "aa0acb5bed8c56434619c91163a7352c4b8a2ec0b9de6d3a3dba224f3479c17b"
+  },
+  "matrix_manifest": "benchmarks/native_event/manifests/phase77_1_public_matrix_v1.json",
+  "measurement_identity": {
+    "canonical_source_sha256": "644ad261c1a78f353124e416968f4398a9dff9ec1a6001316bb31c12d0aa8479",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "013a3d9ab87045a46f9cdb86f68ac02183ce47c2d51ef61a42555942bfbeb1cf",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "b43aa6eb6cfa230232873b093f33ed0defde702f9486e0b598fbdc16cc7a84a5",
+    "intent_sha256": "2c896ed6523d896476ba4c373ce8f2b4c23a2b5179ddf17118d5442fee97bad3",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "c39670da0ccbc2fa0d114f03887bb97ec624368821b88314ef128400a5456614",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "per eligible row warm reference/native public WFO once, assert full result fingerprint parity, then alternate paired order; unpaired fallback rows are recorded without a speed ratio"
+  },
+  "memory_mb": {
+    "after": {
+      "pss_mb": 274.849609375,
+      "rss_mb": 284.5078125
+    },
+    "before": {
+      "pss_mb": 148.7197265625,
+      "rss_mb": 158.44140625
+    },
+    "delta": {
+      "pss_mb": 126.1298828125,
+      "rss_mb": 126.06640625
+    },
+    "interpretation": "same-process baseline; no per-backend ownership or cold-process peak claim"
+  },
+  "pct_equity_transition_contract": {
+    "alloc_fraction_and_percent_alias_match": true,
+    "contract_id": "legacy_pct_equity_transition_sizing_v1",
+    "entry_hold_reversal_equity": [
+      10000.0,
+      10000.0,
+      11000.0,
+      11000.0,
+      10450.0
+    ],
+    "expected_entry_hold_reversal_equity": [
+      10000.0,
+      10000.0,
+      11000.0,
+      11000.0,
+      10450.0
+    ],
+    "first_bar_is_snapshot": true,
+    "funding_on_carried_position": true,
+    "rejected_unchanged_signal_is_not_retried": true,
+    "reported_positions_are_raw_weights": true
+  },
+  "phase": "77.1",
+  "profile": {
+    "bars": 720,
+    "description": "Complete public routing and selection-contract matrix; not a headline speed claim.",
+    "frequency": "1D",
+    "id": "smoke",
+    "repeats": 1,
+    "split_frequency": "quarterly",
+    "split_mode": "2020-07-01",
+    "train_window": "180D",
+    "trials": 4
+  },
+  "rows": [
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode1_global_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 24,
+        "native_scored_bars": 3778,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 2.078559540678365,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; declared fold OOS participates in decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.018158535473048687,
+          "last": 0.0966635262593627,
+          "median": 0.0966635262593627,
+          "native_execute_within_score": 0.0016780495643615723,
+          "p95": 0.0966635262593627,
+          "prepare_fold_plan": 0.015607889741659164,
+          "samples": [
+            0.0966635262593627
+          ],
+          "strategy_generation": 0.026062624529004097
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode1_global_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; declared fold OOS participates in decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.1247696178033948,
+          "last": 0.20092089474201202,
+          "median": 0.20092089474201202,
+          "native_execute_within_score": 0.0,
+          "p95": 0.20092089474201202,
+          "prepare_fold_plan": 0.016003018245100975,
+          "samples": [
+            0.20092089474201202
+          ],
+          "strategy_generation": 0.02665394265204668
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 211.0771484375,
+          "rss_mb": 220.9453125
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 32,
+        "causality_claim": "fold_local_decay_calibration",
+        "chronological_validation_claim": "selection_adjusted_outer_oos",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 1.005858605,
+            "mean_is_sharpe": 0.063240918,
+            "mean_oos_sharpe": -0.942617687,
+            "objective": -1.44554699,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 0.0,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "188052e4639b53162558b069d51f10f988f9b4b04e1ccf1924cab0b88d3849c2",
+          "equity_sha256": "33b430c7010615aece09ae4eab6b57c0dcccc5747bf05e9b907b6549acc467e4",
+          "oos_output_sha256": "77ece5d6be96aff841003c672d82e559bf3ead54dddf8ebf2882cadfc800d9ef",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "37336a557f188bc330c0a283ff68ff930992a95ae749191ac4cba8654ded8744",
+          "trial_table_sha256": "a8ef5f32b04ad95188bb3dbcc5f47ea1477239de1fcf5ac945e1204ab3eec389"
+        },
+        "fold_count": 6,
+        "id": "mode1_per_fold_decay_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 22,
+        "native_score_rows": 30,
+        "native_scored_bars": 4680,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "per_fold_decay",
+        "paired_speedup_vs_reference": 1.6936174695371378,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one independent study per outer fold; same-fold OOS selects among top-IS candidates",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.03408237639814615,
+          "last": 0.15698976907879114,
+          "median": 0.15698976907879114,
+          "native_execute_within_score": 0.00698261521756649,
+          "p95": 0.15698976907879114,
+          "prepare_fold_plan": 0.016320780850946903,
+          "samples": [
+            0.15698976907879114
+          ],
+          "strategy_generation": 0.05087492521852255
+        },
+        "validation_claim": "selection_adjusted_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 17216,
+          "actual_simulation_symbol_bar_visits": 17216,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 32,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 192,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 138240,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 138240,
+          "planned_candidate_fold_scenario_tasks": 192,
+          "planned_simulation_bar_visits": 17216,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 32,
+        "causality_claim": "fold_local_decay_calibration",
+        "chronological_validation_claim": "selection_adjusted_outer_oos",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 1.005858605,
+            "mean_is_sharpe": 0.063240918,
+            "mean_oos_sharpe": -0.942617687,
+            "objective": -1.44554699,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 0.0,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "188052e4639b53162558b069d51f10f988f9b4b04e1ccf1924cab0b88d3849c2",
+          "equity_sha256": "33b430c7010615aece09ae4eab6b57c0dcccc5747bf05e9b907b6549acc467e4",
+          "oos_output_sha256": "77ece5d6be96aff841003c672d82e559bf3ead54dddf8ebf2882cadfc800d9ef",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "37336a557f188bc330c0a283ff68ff930992a95ae749191ac4cba8654ded8744",
+          "trial_table_sha256": "a8ef5f32b04ad95188bb3dbcc5f47ea1477239de1fcf5ac945e1204ab3eec389"
+        },
+        "fold_count": 6,
+        "id": "mode1_per_fold_decay_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "per_fold_decay",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one independent study per outer fold; same-fold OOS selects among top-IS candidates",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.14988119155168533,
+          "last": 0.26588061545044184,
+          "median": 0.26588061545044184,
+          "native_execute_within_score": 0.0,
+          "p95": 0.26588061545044184,
+          "prepare_fold_plan": 0.015298786573112011,
+          "samples": [
+            0.26588061545044184
+          ],
+          "strategy_generation": 0.04876207187771797
+        },
+        "validation_claim": "selection_adjusted_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 17216,
+          "actual_simulation_symbol_bar_visits": 17216,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 32,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 192,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 138240,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 138240,
+          "planned_candidate_fold_scenario_tasks": 192,
+          "planned_simulation_bar_visits": 17216,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 211.9638671875,
+          "rss_mb": 221.73828125
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 32,
+        "causality_claim": "strict_nested_fold_local_retraining",
+        "chronological_validation_claim": "strict_outer_oos_after_frozen_selection",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 0.866711423,
+            "mean_is_sharpe": -0.579337756,
+            "mean_oos_sharpe": -1.446049178,
+            "objective": -6.351350902,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 8.943892025,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "df606583308988e98ceff0f57f9dfade3b652a08924d6dad863754aa17558a7f",
+          "equity_sha256": "5f41d2006fe75c2699ded250b5d20a5782ee4ad41a0e26a8960ad85ce69715ac",
+          "oos_output_sha256": "c46b21be5b5e26075d5eec43a26408eceb687dc95a5e787e8a364aeb19131c0c",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "01ef11bd58ff1f14f024a7e5825e140ee2e4224b8791b90f417da5d89d126a32",
+          "trial_table_sha256": "a1880538fc84ed9ba2a138f25225357cd2b5d9f552f51e0d40b9a195f209bb7f"
+        },
+        "fold_count": 6,
+        "id": "mode1_per_fold_causal_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 28,
+        "native_score_rows": 126,
+        "native_scored_bars": 6778,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "per_fold_causal",
+        "paired_speedup_vs_reference": 2.2364097088322374,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one study per outer fold; nested inner IS/OOS only, outer OOS remains untouched",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.10762862768024206,
+          "last": 0.3670883299782872,
+          "median": 0.3670883299782872,
+          "native_execute_within_score": 0.010477551259100437,
+          "p95": 0.3670883299782872,
+          "prepare_fold_plan": 0.026996813714504242,
+          "samples": [
+            0.3670883299782872
+          ],
+          "strategy_generation": 0.16138625890016556
+        },
+        "validation_claim": "strict_nested_fold_local_retraining",
+        "work_counters": {
+          "actual_simulation_bar_visits": 17216,
+          "actual_simulation_symbol_bar_visits": 17216,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 32,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 192,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 138240,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 138240,
+          "planned_candidate_fold_scenario_tasks": 192,
+          "planned_simulation_bar_visits": 17216,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 32,
+        "causality_claim": "strict_nested_fold_local_retraining",
+        "chronological_validation_claim": "strict_outer_oos_after_frozen_selection",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 0.866711423,
+            "mean_is_sharpe": -0.579337756,
+            "mean_oos_sharpe": -1.446049178,
+            "objective": -6.351350902,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 8.943892025,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "df606583308988e98ceff0f57f9dfade3b652a08924d6dad863754aa17558a7f",
+          "equity_sha256": "5f41d2006fe75c2699ded250b5d20a5782ee4ad41a0e26a8960ad85ce69715ac",
+          "oos_output_sha256": "c46b21be5b5e26075d5eec43a26408eceb687dc95a5e787e8a364aeb19131c0c",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "01ef11bd58ff1f14f024a7e5825e140ee2e4224b8791b90f417da5d89d126a32",
+          "trial_table_sha256": "a1880538fc84ed9ba2a138f25225357cd2b5d9f552f51e0d40b9a195f209bb7f"
+        },
+        "fold_count": 6,
+        "id": "mode1_per_fold_causal_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "per_fold_causal",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one study per outer fold; nested inner IS/OOS only, outer OOS remains untouched",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.5657508550211787,
+          "last": 0.8209599051624537,
+          "median": 0.8209599051624537,
+          "native_execute_within_score": 0.0,
+          "p95": 0.8209599051624537,
+          "prepare_fold_plan": 0.024101306684315205,
+          "samples": [
+            0.8209599051624537
+          ],
+          "strategy_generation": 0.16102183796465397
+        },
+        "validation_claim": "strict_nested_fold_local_retraining",
+        "work_counters": {
+          "actual_simulation_bar_visits": 17216,
+          "actual_simulation_symbol_bar_visits": 17216,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 32,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 192,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 138240,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 138240,
+          "planned_candidate_fold_scenario_tasks": 192,
+          "planned_simulation_bar_visits": 17216,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 212.3447265625,
+          "rss_mb": 221.99609375
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode1_train_test_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 4,
+        "native_scored_bars": 1347,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 1.36897734600058,
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test fold; OOS contributes to Mode 1 decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.004227559082210064,
+          "last": 0.04861673340201378,
+          "median": 0.04861673340201378,
+          "native_execute_within_score": 0.001039600931107998,
+          "p95": 0.04861673340201378,
+          "prepare_fold_plan": 0.01383302453905344,
+          "samples": [
+            0.04861673340201378
+          ],
+          "strategy_generation": 0.004691943526268005
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode1_train_test_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test fold; OOS contributes to Mode 1 decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.02512900996953249,
+          "last": 0.06655520666390657,
+          "median": 0.06655520666390657,
+          "native_execute_within_score": 0.0,
+          "p95": 0.06655520666390657,
+          "prepare_fold_plan": 0.013577155768871307,
+          "samples": [
+            0.06655520666390657
+          ],
+          "strategy_generation": 0.005059945397078991
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 212.5830078125,
+          "rss_mb": 222.35546875
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "observed": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": -0.219679226,
+            "mean_is_sharpe": -0.067103281,
+            "mean_oos_sharpe": 0.152575945,
+            "objective": -0.224958687,
+            "params": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "std_decay": 0.755069265,
+            "trial_id": 1
+          },
+          "candidate_table_sha256": "7d3e9ef9e07a4294dd4bef2d5bc5c9c2473f66620d37d46abbefed3ee0c28b5b",
+          "equity_sha256": "8eedd3b9437669ec80d7ba5467d425d84e4e1fcb57ec34ce4c25f5aa2d38d9a8",
+          "oos_output_sha256": "983bb4eca2c0204ab566dbf449e4522e2261c830bbd3102c6bcf5d4999500e2c",
+          "params": {
+            "amplitude": 0.8,
+            "period": 7
+          },
+          "params_by_fold": {},
+          "positions_sha256": "2907e8840caa2c7c653abb54777b9ee760f0fb55b546426325457e05e1126dc2",
+          "trial_table_sha256": "7bcf164694c33033b7002b47981dd9bbf161b2f051ac5b3754ecb86c5165d2df"
+        },
+        "fold_count": 6,
+        "id": "mode2_global_proxy_preserved",
+        "lane": "authoritative_contract_route",
+        "mode": "mode_2_sbb",
+        "native_prepared_reason": "mode_2_sbb retains the certified proxy path-resampling scorer",
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "auto",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "proxy_preserved",
+        "scoring_backend": "proxy",
+        "selection_contract": "bounded path-resampling proxy; stationary-bootstrap path construction remains authoritative",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.07286118343472481,
+          "last": 0.21264284383505583,
+          "median": 0.21264284383505583,
+          "native_execute_within_score": 0.0,
+          "p95": 0.21264284383505583,
+          "prepare_fold_plan": 0.020071393810212612,
+          "samples": [
+            0.21264284383505583
+          ],
+          "strategy_generation": 0.025566911324858665
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "status": "measured_unpaired_contract_route"
+    },
+    {
+      "observed": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": -0.21983008,
+            "mean_is_sharpe": -0.010278235,
+            "mean_oos_sharpe": 0.209551845,
+            "objective": 0.209551845,
+            "params": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "std_decay": 0.0,
+            "trial_id": 1
+          },
+          "candidate_table_sha256": "f06515820a423d8a51c585ac8a026dfec42274eca940cc2b058129560d39cd64",
+          "equity_sha256": "7eeeadca446277baedfe5b2d5890dcf3e5ecca4e186e4847b24716d4d85a2128",
+          "oos_output_sha256": "de379b255899c2ae82915d949b9e9a57d527fbc7d904a62367eff399e9d072fc",
+          "params": {
+            "amplitude": 0.8,
+            "period": 7
+          },
+          "params_by_fold": {},
+          "positions_sha256": "71f2f865d671f8bc015698d9bce62e8e5229695b8b6fe925151aa4204d8abaff",
+          "trial_table_sha256": "7950975e1af00b86225e257ce67011b39ca6db1048bf7331566ff7c1179c9229"
+        },
+        "fold_count": 1,
+        "id": "mode2_train_test_proxy_preserved",
+        "lane": "authoritative_contract_route",
+        "mode": "mode_2_sbb",
+        "native_prepared_reason": "mode_2_sbb retains the certified proxy path-resampling scorer",
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "auto",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "proxy_preserved",
+        "scoring_backend": "proxy",
+        "selection_contract": "single declared train/test with the same bounded path-resampling proxy",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.011809282936155796,
+          "last": 0.06724204402416945,
+          "median": 0.06724204402416945,
+          "native_execute_within_score": 0.0,
+          "p95": 0.06724204402416945,
+          "prepare_fold_plan": 0.013494109734892845,
+          "samples": [
+            0.06724204402416945
+          ],
+          "strategy_generation": 0.005295109003782272
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "status": "measured_unpaired_contract_route"
+    },
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode3_global_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_3_flat_minima",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 24,
+        "native_scored_bars": 3778,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 2.0833295861701457,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; cluster/plateau selection after endpoint scoring",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.018527532927691936,
+          "last": 0.09610240533947945,
+          "median": 0.09610240533947945,
+          "native_execute_within_score": 0.001632804051041603,
+          "p95": 0.09610240533947945,
+          "prepare_fold_plan": 0.015366840176284313,
+          "samples": [
+            0.09610240533947945
+          ],
+          "strategy_generation": 0.026211949065327644
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode3_global_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_3_flat_minima",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; cluster/plateau selection after endpoint scoring",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.1258641006425023,
+          "last": 0.20021298434585333,
+          "median": 0.20021298434585333,
+          "native_execute_within_score": 0.0,
+          "p95": 0.20021298434585333,
+          "prepare_fold_plan": 0.015754361636936665,
+          "samples": [
+            0.20021298434585333
+          ],
+          "strategy_generation": 0.025928238406777382
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 212.9462890625,
+          "rss_mb": 222.35546875
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode3_train_test_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_3_flat_minima",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 4,
+        "native_scored_bars": 1347,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 1.400905079101083,
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test with flat-minima selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.004194258712232113,
+          "last": 0.04879209864884615,
+          "median": 0.04879209864884615,
+          "native_execute_within_score": 0.000874098390340805,
+          "p95": 0.04879209864884615,
+          "prepare_fold_plan": 0.013819903135299683,
+          "samples": [
+            0.04879209864884615
+          ],
+          "strategy_generation": 0.004468285478651524
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode3_train_test_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_3_flat_minima",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test with flat-minima selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.026496391743421555,
+          "last": 0.06835309881716967,
+          "median": 0.06835309881716967,
+          "native_execute_within_score": 0.0,
+          "p95": 0.06835309881716967,
+          "prepare_fold_plan": 0.013817861676216125,
+          "samples": [
+            0.06835309881716967
+          ],
+          "strategy_generation": 0.005179755389690399
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 213.1181640625,
+          "rss_mb": 222.9296875
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode4_global_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 48,
+        "native_scored_bars": 5938,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 2.222721467246779,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; IS-only temporal and plateau robustness",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.03541653510183096,
+          "last": 0.15696784108877182,
+          "median": 0.15696784108877182,
+          "native_execute_within_score": 0.0021005067974328995,
+          "p95": 0.15696784108877182,
+          "prepare_fold_plan": 0.02454832848161459,
+          "samples": [
+            0.15696784108877182
+          ],
+          "strategy_generation": 0.027609463781118393
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.013509341,
+            "mean_is_sharpe": -0.526836213,
+            "mean_oos_sharpe": -0.540345554,
+            "objective": -1.75781886,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 2.421437271,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "de78f42ee8e9746b80a22d4e7661450b0be5136eb4f792459edf439ca55946cf",
+          "equity_sha256": "1f702641697a4b3b6b6ef7bd0dfa7f2275bbe4181f860ad0ef98575b5d3d9979",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "4688dcbddbc47c7028eaf6daf8e41926e2c65ae8755ba19326fc6cd0098c6dd5",
+          "trial_table_sha256": "6a83b5a25ec2740896a005153adc346b8387c477c09ea4986b1a25d11ac19078"
+        },
+        "fold_count": 6,
+        "id": "mode4_global_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; IS-only temporal and plateau robustness",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.22960083186626434,
+          "last": 0.3488957900553942,
+          "median": 0.3488957900553942,
+          "native_execute_within_score": 0.0,
+          "p95": 0.3488957900553942,
+          "prepare_fold_plan": 0.02416153158992529,
+          "samples": [
+            0.3488957900553942
+          ],
+          "strategy_generation": 0.026565922424197197
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 213.1728515625,
+          "rss_mb": 222.9296875
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 24,
+        "causality_claim": "strict_fold_local_retraining",
+        "chronological_validation_claim": "strict_outer_oos_after_frozen_selection",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 0.0,
+            "mean_is_sharpe": 0.063240918,
+            "mean_oos_sharpe": 0.0,
+            "objective": 0.063240918,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 0.0,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "a807019f10feae838e96c42a109ca92cd67106e0a54ebef7b8df55887f5ab0d5",
+          "equity_sha256": "be55d4ad7030863bddb14ae8baa0235e8968f1c5eef7e434f43b503651008fd3",
+          "oos_output_sha256": "d14c5168e3fea1e420aa8dcd3d58ab8e2a787d014890dcf067a9f08ab8847497",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "9213a4b580ddbe0c423e6c89df8403b0bff9fc1f5f319411f0d0cb0aa2913eab",
+          "trial_table_sha256": "dc6868e4f5d935c18a0f1cece2cbad107659a4e38c6b06b8ce0e2476d91599f5"
+        },
+        "fold_count": 6,
+        "id": "mode4_per_fold_causal_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 20,
+        "native_score_rows": 48,
+        "native_scored_bars": 5578,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "per_fold_causal",
+        "paired_speedup_vs_reference": 1.9444352355747394,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one IS-only study per outer fold; strict outer OOS after frozen selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.04839336033910513,
+          "last": 0.21303149312734604,
+          "median": 0.21303149312734604,
+          "native_execute_within_score": 0.0071581341326236725,
+          "p95": 0.21303149312734604,
+          "prepare_fold_plan": 0.0253168111667037,
+          "samples": [
+            0.21303149312734604
+          ],
+          "strategy_generation": 0.03282437473535538
+        },
+        "validation_claim": "strict_fold_local_retraining",
+        "work_counters": {
+          "actual_simulation_bar_visits": 12912,
+          "actual_simulation_symbol_bar_visits": 12912,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 24,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 144,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 103680,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 103680,
+          "planned_candidate_fold_scenario_tasks": 144,
+          "planned_simulation_bar_visits": 12912,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 24,
+        "causality_claim": "strict_fold_local_retraining",
+        "chronological_validation_claim": "strict_outer_oos_after_frozen_selection",
+        "fingerprint": {
+          "best_trial": {
+            "fold_seed": 5000746,
+            "mean_decay": 0.0,
+            "mean_is_sharpe": 0.063240918,
+            "mean_oos_sharpe": 0.0,
+            "objective": 0.063240918,
+            "params": {
+              "amplitude": 0.4,
+              "period": 13
+            },
+            "schedule_fold_id": 5,
+            "std_decay": 0.0,
+            "study_id": 5,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "a807019f10feae838e96c42a109ca92cd67106e0a54ebef7b8df55887f5ab0d5",
+          "equity_sha256": "be55d4ad7030863bddb14ae8baa0235e8968f1c5eef7e434f43b503651008fd3",
+          "oos_output_sha256": "d14c5168e3fea1e420aa8dcd3d58ab8e2a787d014890dcf067a9f08ab8847497",
+          "params": {
+            "amplitude": 0.4,
+            "period": 13
+          },
+          "params_by_fold": {
+            "0": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "1": {
+              "amplitude": 0.8,
+              "period": 7
+            },
+            "2": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "3": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "4": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "5": {
+              "amplitude": 0.4,
+              "period": 13
+            }
+          },
+          "positions_sha256": "9213a4b580ddbe0c423e6c89df8403b0bff9fc1f5f319411f0d0cb0aa2913eab",
+          "trial_table_sha256": "dc6868e4f5d935c18a0f1cece2cbad107659a4e38c6b06b8ce0e2476d91599f5"
+        },
+        "fold_count": 6,
+        "id": "mode4_per_fold_causal_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "per_fold_causal",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one IS-only study per outer fold; strict outer OOS after frozen selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.25072688702493906,
+          "last": 0.41422594152390957,
+          "median": 0.41422594152390957,
+          "native_execute_within_score": 0.0,
+          "p95": 0.41422594152390957,
+          "prepare_fold_plan": 0.02503353636711836,
+          "samples": [
+            0.41422594152390957
+          ],
+          "strategy_generation": 0.03407256957143545
+        },
+        "validation_claim": "strict_fold_local_retraining",
+        "work_counters": {
+          "actual_simulation_bar_visits": 12912,
+          "actual_simulation_symbol_bar_visits": 12912,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 24,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 144,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 103680,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 103680,
+          "planned_candidate_fold_scenario_tasks": 144,
+          "planned_simulation_bar_visits": 12912,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 274.189453125,
+          "rss_mb": 283.93359375
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode4_train_test_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 3,
+        "native_score_rows": 8,
+        "native_scored_bars": 2077,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 1.6419045110144936,
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test; IS-only robust selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.007160713896155357,
+          "last": 0.061754725873470306,
+          "median": 0.061754725873470306,
+          "native_execute_within_score": 0.0011909911409020424,
+          "p95": 0.061754725873470306,
+          "prepare_fold_plan": 0.01557843666523695,
+          "samples": [
+            0.061754725873470306
+          ],
+          "strategy_generation": 0.004921791143715382
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.138630574,
+            "mean_is_sharpe": -0.466750876,
+            "mean_oos_sharpe": -0.605381449,
+            "objective": -0.674696736,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "3a6671a88d3a2cdd78af45209119691a3a063b3e296e5c17095c07c381eef924",
+          "equity_sha256": "74d061016cf69932dea123cabddc9a27912549c86ffdd3e894d6f69671e33aff",
+          "oos_output_sha256": "6cbedfaf80e071ff62e8cb34e72f2c80a96f1b66226fb104144112ad81923214",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "8de290c61df2595a84e0f233bd496c386ff06288b5e16ff47dd1303d6af0b14a",
+          "trial_table_sha256": "1a011edbf465af890a695ca55fd4510d6f02c629f425a8634dfc56d1d637a374"
+        },
+        "fold_count": 1,
+        "id": "mode4_train_test_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "train_test_split",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "single declared train/test; IS-only robust selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.046322960406541824,
+          "last": 0.10139536298811436,
+          "median": 0.10139536298811436,
+          "native_execute_within_score": 0.0,
+          "p95": 0.10139536298811436,
+          "prepare_fold_plan": 0.016136297024786472,
+          "samples": [
+            0.10139536298811436
+          ],
+          "strategy_generation": 0.005346008576452732
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 1260,
+          "actual_simulation_symbol_bar_visits": 1260,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 5,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 252,
+              "test_end": 252,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 3600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 3600,
+          "planned_candidate_fold_scenario_tasks": 5,
+          "planned_simulation_bar_visits": 1260,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 274.423828125,
+          "rss_mb": 284.19140625
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "native": {
+        "candidate_count": 6,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.0,
+            "mean_is_sharpe": -0.240882462,
+            "mean_oos_sharpe": 0.0,
+            "objective": -0.240882462,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "1bf0522dde458fa5652e2a8c2800ecf23226b72b008e576b987986bd91fb5512",
+          "equity_sha256": "f2d8e23f4cfc873436ed5a4d37a2a7bb135e667a6b24dd9c43577b53782779b1",
+          "oos_output_sha256": "4384afcd66a5ca6f49599d6bcf907f4beabcefe50d52ca2741c4eeda713ba030",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "50960cb898d41aa0d791c0194a1bd1182266f989c7310a64e30f52a9b4b2adbe",
+          "trial_table_sha256": "7e53f81f53e6acb7d1464c76962e28cb4ef1a5d8650733f070ff0e3c678783a2"
+        },
+        "fold_count": 1,
+        "id": "mode5_full_sample_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_5_full_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 2,
+        "native_score_rows": 4,
+        "native_scored_bars": 2880,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 1.3372756020016894,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "full declared sample calibration; no fabricated OOS validation claim",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.004040257073938847,
+          "last": 0.06065256055444479,
+          "median": 0.06065256055444479,
+          "native_execute_within_score": 0.000881892628967762,
+          "p95": 0.06065256055444479,
+          "prepare_fold_plan": 0.01734153926372528,
+          "samples": [
+            0.06065256055444479
+          ],
+          "strategy_generation": 0.0033305082470178604
+        },
+        "validation_claim": "none_full_sample_calibration",
+        "work_counters": {
+          "actual_simulation_bar_visits": 4320,
+          "actual_simulation_symbol_bar_visits": 4320,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 6,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 6,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 720,
+              "test_end": 720,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 4320,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 4320,
+          "planned_candidate_fold_scenario_tasks": 6,
+          "planned_simulation_bar_visits": 4320,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 6,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.0,
+            "mean_is_sharpe": -0.240882462,
+            "mean_oos_sharpe": 0.0,
+            "objective": -0.240882462,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 0.0,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "1bf0522dde458fa5652e2a8c2800ecf23226b72b008e576b987986bd91fb5512",
+          "equity_sha256": "f2d8e23f4cfc873436ed5a4d37a2a7bb135e667a6b24dd9c43577b53782779b1",
+          "oos_output_sha256": "4384afcd66a5ca6f49599d6bcf907f4beabcefe50d52ca2741c4eeda713ba030",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "50960cb898d41aa0d791c0194a1bd1182266f989c7310a64e30f52a9b4b2adbe",
+          "trial_table_sha256": "7e53f81f53e6acb7d1464c76962e28cb4ef1a5d8650733f070ff0e3c678783a2"
+        },
+        "fold_count": 1,
+        "id": "mode5_full_sample_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_5_full_robust",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "full declared sample calibration; no fabricated OOS validation claim",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.028788559138774872,
+          "last": 0.08110918942838907,
+          "median": 0.08110918942838907,
+          "native_execute_within_score": 0.0,
+          "p95": 0.08110918942838907,
+          "prepare_fold_plan": 0.016923915594816208,
+          "samples": [
+            0.08110918942838907
+          ],
+          "strategy_generation": 0.003367137163877487
+        },
+        "validation_claim": "none_full_sample_calibration",
+        "work_counters": {
+          "actual_simulation_bar_visits": 4320,
+          "actual_simulation_symbol_bar_visits": 4320,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 6,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 6,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 720,
+              "test_end": 720,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 4320,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 4320,
+          "planned_candidate_fold_scenario_tasks": 6,
+          "planned_simulation_bar_visits": 4320,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 274.423828125,
+          "rss_mb": 284.19140625
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 0.0,
+        "rss_mb": 0.0
+      },
+      "status": "measured_pair_parity_passed"
+    },
+    {
+      "observed": {
+        "candidate_count": 5,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": -0.318036956,
+            "mean_is_sharpe": -0.968618163,
+            "mean_oos_sharpe": -0.650581206,
+            "objective": -1.619866378,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 1.938570344,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "9788bb570fe8ab3315cc7bc5e8e4e6ac6487753d56adea9b86a13ec88acc35f8",
+          "equity_sha256": "26678254549532ea8bbe16d7a0cb965dff74f27ab6be63bd6a63b1094cdd63be",
+          "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "261a213549828a3b1e986d84061654bbec09223dc42fe2130e5363abd111671f",
+          "trial_table_sha256": "8fcc1f3afa3a84a2a3a45e5e59e195881f9a87d203305ee44b5d22569fc60724"
+        },
+        "fold_count": 6,
+        "id": "pct_equity_auto_fallback",
+        "lane": "authoritative_contract_route",
+        "mode": "mode_4_is_only_robust",
+        "native_prepared_reason": "prepared target_mode='pct_equity' scoring is opt-in: set native_prepared_wfo='require' with target_runtime='rust'; auto preserves the legacy endpoint route",
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": false,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "auto",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": null,
+        "resolved_native_prepared_policy": "fallback",
+        "scoring_backend": "endpoint",
+        "selection_contract": "legacy transition-sized percent-equity scorer remains authoritative",
+        "target_mode": "pct_equity",
+        "timing_seconds": {
+          "candidate_score": 0.47680492512881756,
+          "last": 0.6007949337363243,
+          "median": 0.6007949337363243,
+          "native_execute_within_score": 0.0,
+          "p95": 0.6007949337363243,
+          "prepare_fold_plan": 0.023891092278063297,
+          "samples": [
+            0.6007949337363243
+          ],
+          "strategy_generation": 0.028161863796412945
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 2690,
+          "actual_simulation_symbol_bar_visits": 2690,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 5,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 30,
+          "fold_count": 6,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 90,
+              "test_end": 90,
+              "test_start": 0
+            },
+            {
+              "fold_id": 3,
+              "planned_test_bar_visits": 91,
+              "test_end": 91,
+              "test_start": 0
+            },
+            {
+              "fold_id": 4,
+              "planned_test_bar_visits": 92,
+              "test_end": 92,
+              "test_start": 0
+            },
+            {
+              "fold_id": 5,
+              "planned_test_bar_visits": 81,
+              "test_end": 81,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 21600,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+          "planned_candidate_fold_scenario_tasks": 30,
+          "planned_simulation_bar_visits": 2690,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 720,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "status": "measured_unpaired_contract_route"
+    }
+  ],
+  "schema": "quantbt-phase77-1-public-workload-baseline-v1",
+  "selected_workload_ids": [
+    "mode1_global_w0_native_eligible",
+    "mode1_per_fold_decay_w0_native_eligible",
+    "mode1_per_fold_causal_w0_native_eligible",
+    "mode1_train_test_w0_native_eligible",
+    "mode2_global_proxy_preserved",
+    "mode2_train_test_proxy_preserved",
+    "mode3_global_w0_native_eligible",
+    "mode3_train_test_w0_native_eligible",
+    "mode4_global_w0_native_eligible",
+    "mode4_per_fold_causal_w0_native_eligible",
+    "mode4_train_test_w0_native_eligible",
+    "mode5_full_sample_w0_native_eligible",
+    "pct_equity_auto_fallback"
+  ],
+  "separate_scope_evidence": [
+    {
+      "boundary": "No W0 comparator or generic walk_forward speedup claim.",
+      "contract": "prepared reactive callback; reset-flat segmented accounts",
+      "coverage": "Mode 1 global timing; Modes 1/3/4/5 fixed-candidate selector parity in tests/test_phase76_reactive_wfo.py",
+      "evidence": "benchmarks/native_event/results/phase76_reactive_wfo.json",
+      "route": "reactive_w3"
+    },
+    {
+      "boundary": "Not generic callback WFO or legacy pct_equity.",
+      "contract": "typed direct target tape",
+      "coverage": "separate target/vectorized authority benchmark",
+      "evidence": "benchmarks/native_event/results/phase66_rust_target_vectorized.json",
+      "route": "direct_target_vectorized"
+    },
+    {
+      "boundary": "Not a single-symbol public WFO score route.",
+      "contract": "bounded shared-account portfolio",
+      "coverage": "separate portfolio parity and throughput benchmark",
+      "evidence": "benchmarks/native_event/results/phase67_shared_portfolio.json",
+      "route": "shared_account_portfolio"
+    },
+    {
+      "boundary": "Not a generic package/arbitrage WFO promotion claim.",
+      "contract": "same-account bounded package",
+      "coverage": "separate package reconciliation benchmark",
+      "evidence": "benchmarks/native_event/results/phase68_bounded_package.json",
+      "route": "bounded_package"
+    }
+  ],
+  "status": "baseline_only_not_promotion_eligible"
+}

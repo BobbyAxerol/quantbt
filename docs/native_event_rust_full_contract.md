@@ -121,8 +121,9 @@ adapter and returns the historical dictionary shape. It moves the authoritative
 typed output into that shape without a second engine run. Calling
 `typed.as_dict()` is likewise an explicit cold-path conversion for legacy code.
 Pandas, `BacktestResultV2`, plots, reports, and stakeholder tables are created
-only by their explicit report/adaptation path. No endpoint is silently promoted
-to this ABI-0.5 surface in the current release.
+only by their explicit report/adaptation path. The final sentence above
+describes the Phase 53A staging state; Phase 61 promotes the certified public
+static-command route below, without promoting unrelated event workloads.
 
 ### Prepared ownership, cache, and reset
 
@@ -280,19 +281,95 @@ cross-margin, package policies other than atomic-bar, and arbitrage domain
 plans remain on their existing Python routes until each has a separate
 contract, oracle corpus, and promotion row.
 
+### Phase 68 bounded package V2 authority
+
+Phase 68 adds an explicit typed package companion without changing the public
+generic endpoint authority:
+
+```python
+from quantbt.backends import (
+    run_bounded_package_market,
+    run_bounded_package_market_scenarios,
+)
+```
+
+`run_bounded_package_market(...)` owns a finite tape of `PackageIntentV2`
+rows over the common Rust `FullSession`. It supports only one shared, linear
+quote-settled gross-cross account and `event_lifecycle_v2_next_bar_close`. The
+supported policy rows are `atomic_bar_simulation`, `sequential`, `best_effort`,
+and `hedge_after_primary`. A typed planner previews/reserves each package,
+resolves dependent quantities, then emits only accepted market commands to the
+common session. The common session remains the sole lifecycle/fill/fee/funding/
+margin authority; the package planner does not keep a second account or replay
+a ledger.
+
+For `hedge_after_primary`, dependent legs use the committed primary simulated
+fill, then apply their own quantity step and minimum rules. Partial/rejected
+legs create explicit residual rows. `unwind_package` emits deterministic
+compensation commands in reverse declared leg order; if an unwind fails, the
+remaining gross residual is still visible. `atomic_bar_simulation` is all or
+nothing under the declared deterministic OHLC cost model, **not** exchange-
+native OCO, queue priority, L2 matching, multi-venue settlement, or
+cross-currency atomicity.
+
+`run_bounded_package_market_scenarios(...)` batches pre-built independent
+package scenarios through one Python-to-Rust boundary. It retains scalar score
+columns and reset-flats the account, orders, positions, and reservations before
+each row. It is appropriate after package intents have been created for
+candidate/fold execution, but it is not generic callback WFO. Rerun the
+selected scenario through the single-package helper with `report_level="audit"`
+to materialize package/leg/residual provenance. The only typed arbitrage
+adapters are selected same-account linear basis, stat-pair, calendar, and
+index-basket plans. Triangular and cross-exchange plans fail before execution.
+
+### Phase 67 shared-account portfolio target authority
+
+`run_shared_portfolio_target_market(...)` is the explicit Phase 67 companion
+for a planned multi-symbol linear target matrix. Unlike the legacy
+`run_portfolio_target_market(...)` all-or-none helper, it maintains one shared
+Rust account and accepts a fingerprinted admission policy:
+
+```python
+from quantbt.backends import run_shared_portfolio_target_market
+
+result = run_shared_portfolio_target_market(
+    ...,  # canonical OHLCV/funding arrays and per-symbol constraints
+    targets=target_matrix,  # (bars, symbols)
+    target_kind="units",
+    admission_policy="reduce_first_then_increase",
+    report_level="audit",
+)
+```
+
+The planner owns the target matrix. Rust resolves units, quantizes venue lots,
+commits fees/slippage/funding, admits shared margin, liquidates the whole
+account, and emits dense account paths plus bounded per-symbol attribution in
+compact/audit output. `pro_rata_to_available_margin` scales only increases
+after reductions and uses the canonical instrument order for residual lots.
+`all_or_none_rebalance` previews on a cloned account and commits nothing if
+any leg fails. A zero-equity liquidation exposes a deterministic
+`portfolio_symbol_liquidation_loss` residual so symbol PnL/cost attribution
+reconciles to forced terminal equity.
+
+The first certified row is target units and its prepared candidate/fold WFO
+runtime. Notional, weight, and equity-fraction are available only as explicit
+experimental target resolvers. Generic `QuantBTEndpoint.portfolio()`,
+risk-parity/beta/covariance planning, cross-margin, packages, and arbitrage
+are not rerouted or promoted by this helper.
+
 Reproduce the bounded E4/E5 evidence after building the local wheel:
 
 ```bash
 MPLCONFIGDIR=/tmp PYTHONPATH=src:. poetry run python \
-  benchmarks/native_event/benchmark_phase54b3_portfolio_package.py \
-  --bars 2000 --symbols 8 --repeats 5
+  benchmarks/native_event/benchmark_phase67_shared_portfolio.py \
+  --bars 2000 --symbols 20 --candidates 16 --repeats 3
 ```
 
-The artifact records one same-process Python oracle parity check before timing,
-engine-only versus cold adaptation time, boundaries/callbacks, retained output,
-and current/peak RSS. Its numbers are local evidence for these two contracts
-only; they do not generalize to the legacy portfolio engine or arbitrary
-multi-leg strategies.
+The artifact records preparation, score, compact retention, prepared WFO,
+score/compact terminal parity, prepared/direct fold parity, no generic order
+arena, zero WFO market-copy bytes, and current RSS. Its numbers are local
+evidence for the explicit shared-account target contract only; they do not
+generalize to the legacy portfolio engine or arbitrary multi-leg strategies.
 
 ### Phase 54B.4 installed-wheel release gate
 
@@ -477,6 +554,71 @@ margin paths, fills, `fills_report`, `order_report`, and reporting helpers.
 The score facade keeps pandas report construction out of the optimization
 boundary; use an audit rerun for stakeholder-level ledgers and plots.
 
+## Phase 61 Static Event Rust-Primary Closure
+
+Phase 61 promotes one deliberately narrow public capability: a prepared,
+static `OrderCommand` tape resolved to the Rust backend. For that capability,
+`native_static_abi="0.5"` is the default and uses one Rust-owned
+`NativeExecutionRequestCore`/`FullSession` execution per run. The historical
+API 0.4 wire route remains available only through the explicit rollback flag
+`native_static_abi="0.4_compat"`; QuantBT never selects it automatically.
+
+```python
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    backend="rust",                 # strict: fail if the matching wheel cannot run
+    execution_contract="event_lifecycle_v3_next_open",
+    native_static_abi="0.5",        # default; shown for provenance
+    initial_capital=20_000,
+)
+result = bt.simulate(data=frame, order_commands=commands, symbols=["BTCUSDT"])
+
+# Compatibility-only rollback for an investigation or controlled comparison.
+compat = QuantBTEndpoint.event_driven(
+    input_mode="orders", backend="rust", native_static_abi="0.4_compat"
+)
+```
+
+The typed route prepares immutable market/instrument state and the command
+tape once, then Rust owns market access, order lifecycle, fills, fees, funding,
+margin, liquidation, trace, and online metrics for the run. It returns typed
+SoA `NativeResultV2` output directly. Python adapts that result only after
+execution to preserve the existing `BacktestResultV2` report surface; it does
+not replay market/accounting state. Result metadata records
+`native_static_abi_requested`, `native_static_abi_resolved`,
+`native_static_execution_boundary_calls`, `native_result_v2`, and
+`native_metric_v2` for auditability.
+
+For `event_lifecycle_v3_next_open`, a prepared score request must supply the
+actual `open` array. The low-level
+`NativeEventBackend.run_compiled_tape_score(...)` fails closed without it;
+using close as a substitute would change the execution clock. V2 close-timing
+score requests may use close as their immutable open-equivalent because that is
+their declared clock.
+
+Three retention choices share the same Rust execution and accounting path:
+
+| Route | Retention | Appropriate use |
+| --- | --- | --- |
+| Typed `score` | terminal scalar state only | native batch/scoring internals |
+| Typed `compact` | dense account paths, no audit rows | prepared score/metrics adapter |
+| Typed `audit` | compact paths plus bounded fill/lifecycle SoA | evidence, reconciliation, reports |
+
+On the Phase 61 10,000-bar static V3 fixture, the prepared ABI-0.5 compact
+score route measured `1.34M bars/s` versus `56.5k bars/s` for the Python
+prepared comparator (`23.74x`), with no measured score-run RSS growth. These
+are local release-gate measurements, not a claim about callback, portfolio,
+arbitrage, grid, options, or full pandas-report workloads. The public
+`BacktestResultV2` facade necessarily includes pandas/result adaptation and may
+be slower than the low-retention score route; it is reported separately rather
+than hidden inside the kernel claim.
+
+The automatic A4 rule remains governed by the product registry: supported
+installed Linux x86_64 CPython wheels may auto-select this exact static V2/V3
+route at its certified workload threshold. Arbitrary Python callbacks,
+reactive strategies, generic portfolio/basket/arbitrage, options, vectorized,
+intrabar, and WFO orchestration are not promoted by Phase 61.
+
 ## Phase 48E.1 production-closure contract
 
 Phase 48E.1 keeps the public command ABI and endpoint stable while closing the
@@ -586,3 +728,292 @@ Current focused evidence: **13 passed** after Rust rebuild. Related R0/R1/R2,
 score/RSS, and capability regression suites also pass. Grid 2,000-bar
 long-only/long-short parity, isolated RSS evidence, and `auto` promotion are
 Phase 47C gates and are intentionally not claimed here.
+
+## Phase 62 Reactive Numeric Co-runtime R1
+
+Phase 62 introduces an **explicit hybrid** reactive runtime. It is not an
+alternate Python account engine and it is not a claim that arbitrary Python
+strategy logic has become Rust. One `ReactiveNumericRunnerCore` owns the full
+market timeline, `FullSession`, order arena, matching, fees, funding, margin,
+liquidation, and dense native result buffers. Rust calls a declared Python
+numeric strategy once at each required bar; the strategy writes primitive rows
+into the persistent `ReactiveCommandBufferV2`.
+
+```text
+one Python -> Rust run entry
+  -> Rust advances the bar and owns accounting
+  -> Rust refreshes one ephemeral numeric context
+  -> Python decides and writes primitive command rows
+  -> Rust validates/quantizes/ingests rows for t + 1
+  -> Rust continues the same session
+  -> Python adapts the final typed result only after execution
+```
+
+The route requires all of the following:
+
+- `native_backend="rust"` with a matching extension exposing
+  `reactive_numeric_coruntime_r1`;
+- `reactive_runtime="numeric_every_bar_v1"` and
+  `reactive_kernel_mode="single_pass"`;
+- `quantbt_reactive_numeric_v1 = True` and
+  `StrategyContextRequirements(context_mode="numeric")` on the strategy;
+- an every-bar callback schedule; and
+- `audit_sink="memory"` or `"none"`.
+
+The persistent context exposes only declared OHLCV/account fields, positions,
+new fill/event deltas, and optional active-order data. It has no pandas,
+dictionary, or dataclass projection in the callback path. The command writer
+has bounded growth, numeric symbol/order handles, immediate Rust validation,
+and deterministic stale/capacity errors. Both wrappers are invalid outside a
+callback generation.
+
+R1 deliberately rejects hidden second execution: oracle-audit mode, sidecar
+audit sinks, and sparse schedules are not accepted by the every-bar runtime.
+Phase 75 adds a distinct prepared **scalar-score** surface for R1/R2/R3. It is
+not a second execution or replay: the same Rust `FullSession` streams returns,
+drawdown, trade/cost counters, final account state, and canonical metrics while
+retaining no account path, command rows, callback trace, or terminal active
+orders. A path/ledger score request fails before simulation; the selected
+candidate must be rerun once through the public minimal/standard/audit path.
+
+The independent certification protocol remains A/B/C/D:
+
+```text
+A  Python callback + independent Python execution oracle
+B  Python callback + existing Rust per-bar bridge
+C  Python callback + R1 Rust-led co-runtime
+D  captured C command tape + static Rust replay
+```
+
+The Phase 62 fixture compares callback inputs, emitted commands, canonical
+execution/account traces, strategy-state fingerprint, fills, equity,
+positions, fees, funding, margin, and reset behavior. It also covers stale
+handles, callback/command errors, cancellation, quantity quantization, and
+command-capacity exhaustion. `tests/test_phase62_reactive_numeric_coruntime.py`
+is the focused conformance suite.
+
+Run the reproducible end-to-end benchmark with:
+
+```bash
+PYTHONPATH=src poetry run python \
+  benchmarks/native_event/benchmark_phase62_reactive_coruntime.py \
+  --bars 10000 --repeats 3 --concurrent-sessions 2
+```
+
+It measures lightweight, low-churn, high-churn, and two-session workloads
+across Python R0, the old Rust per-bar bridge, R1 held-GIL, and R1
+release-between-callbacks. Timing includes callback dispatch and public result
+adaptation. RSS reports both one retained public result and the post-release
+allocator plateau. On the recorded local 10,000-bar fixture, held-R1 was
+`150.8k bars/s` low-churn versus Python R0 `46.2k bars/s`; this is
+workload- and machine-specific evidence, not an automatic routing rule.
+
+R1 remains A3 explicit. `backend="auto"` continues to use the Python callback
+route. Sparse wakes, block intent, candidate batches, and any general reactive
+auto-promotion are later contracts, not fallbacks hidden inside R1.
+
+### Phase 75 Reactive Scalar Retention And Rust Hot State
+
+The prepared scalar surface applies the same retention policy to R1 every-bar,
+R2 sparse-wake, and R3 block-intent sessions. Rust keeps O(symbols) account and
+metric state instead of O(bars x symbols) financial paths; per-bar execution,
+funding, matching, margin, liquidation, wake evaluation, and Python decision
+semantics are unchanged. Final margin values come from the live account state,
+not the last element of a removed path. The reducer receives the full market
+tape start/end timestamps and Python-equivalent bar annualization so short
+tapes and early liquidation retain exact CAGR/Sharpe-family semantics.
+
+`ReactiveNumericRunnerCore.from_prepared(...)` has backward-compatible public
+retention defaults. The scalar profile explicitly sets all four retained
+artifacts false: `account_paths`, `command_rows`, `callback_trace`, and
+`terminal_active_orders`. `run_scalar(...)` rejects a non-scalar runner and
+verifies that Rust did not return a retained artifact. Public `run(...)` remains
+the cold result adapter and still supports minimal/standard/audit reports.
+
+On the recorded warmed 10,000-bar fixture, scalar score measured `548.8k`,
+`661.8k`, and `510.3k bars/s` for R1/R2/R3 versus public-minimal `263.1k`,
+`330.1k`, and `261.2k bars/s` respectively (`2.09x`, `2.00x`, `1.95x`). These
+are end-to-end prepared measurements including the declared Python callbacks;
+they are not a generic callback or auto-promotion claim. The same-process RSS
+delta is reported as an incremental warm allocation, not a cold peak-RSS claim.
+See `benchmarks/native_event/results/phase75_reactive_scalar_retention.md`.
+
+### Phase 76 Reactive Walk-Forward And Sparse Candidate Scheduling
+
+Phase 76 makes the W3 reactive route public through
+`QuantBTEndpoint.prepare_reactive_walk_forward(...)`. It reuses the established
+`WalkForwardEngine` fold/selector mathematics and replaces only candidate
+scoring with prepared Rust-owned dynamic account runs. A candidate/fold window
+uses the full prepared tape's absolute clock but starts a fresh flat account;
+the output is consequently a set of auditable OOS account segments, never a
+synthetic continuous equity curve or a `pos_weight` stitch.
+
+The sequential schedule retains one Optuna ask/evaluate/tell at a time and can
+use the declared global or per-fold WFO schedules. Modes 4 and 5 never score
+OOS for selection. Modes 1 and 3 score all candidates on IS first and only run
+OOS for the resulting IS shortlist. R3B adds a separately declared
+`throughput_batch_v1` ask-B/score-B/tell-B schedule for global WFO only; it is
+deterministic for its configured seed/batch size but does not claim sequential
+TPE equivalence.
+
+For a heavy Python alpha, the sequential route may use one persistent Linux
+fork/COW worker. The parent must have exactly one kernel thread before fork;
+otherwise the route fails closed and callers use the in-process runtime or a
+dedicated constrained worker. The prepared market is inherited COW, while IPC
+contains only task markers and scalar rows. Worker metadata records PSS/RSS and
+shared/private memory separately so shared tape pages are not double counted.
+
+R3B candidate command/wake errors are candidate-local pruned records. A shared
+Python callback exception fails the batch closed. Cancellation, failed workers,
+and callback errors discard mutable session state before reuse. The complete
+public API, scope, metadata, and benchmark contract are in
+[Reactive Walk-Forward (W3)](reactive_wfo.md).
+
+### Phase 77.3 Reactive Hot-State And Resource Closure
+
+R2/R3 now pass the typed `quantbt-wake-wire-v1` tuple directly to Rust when a
+strategy exposes `WakePlanV1.as_native_wire()`. The legacy payload adapter is
+retained for older strategies, but the optimized path no longer builds or
+parses a Python dictionary at each wake. Two symbol-sized observations refresh
+in place while Rust advances no-decision bars, so a sparse/block gap does not
+allocate a market/account snapshot per bar.
+
+`RuntimeBudgetV1.max_wall_time_ms` and cancellation are active-work controls,
+not metadata. R1 checks after each completed account bar. R2/R3 detached
+native gaps check at most every 64 completed account bars and again before a
+wake/end return. Rust never aborts inside a bar/accounting step or a Python
+callback; it raises at the next certified boundary, discards the scalar output,
+and requires/reset-clears state before an independent score. W3 propagates a
+deadline as `RuntimeBudgetError(code="MAX_WALL_TIME")`, including the COW
+process worker and R3B candidate-batch path.
+
+The current-candidate artifact
+`benchmarks/native_event/results/phase77_3_reactive_closure.{json,md}` records
+R1/R2/R3 retention, W3 schedules, cross-route controls, and source/native
+identity. It remains a development evidence artifact until the separate Phase
+78 promotion/release gate.
+
+## Phase 63 Sparse Wake, Block Intent, And Candidate Batch R2/R3/R3B
+
+Phase 63 extends the explicit reactive co-runtime without creating a second
+Python state machine. `ReactiveNumericRunnerCore` remains the sole authority
+for prepared market data, event clock, active-order lifecycle, matching, fees,
+funding, margin, liquidation, command retention, and compact native output.
+Only the Python decision boundary changes:
+
+```text
+R2  Rust advances bars -> evaluates WakePlanV1 -> coalesces reasons -> Python once
+R3  Rust advances a bounded command block -> invalidation/end -> Python once
+R3B Rust advances independent candidate sessions -> groups same-bar wakes -> Python once
+```
+
+`WakePlanV1` contains only engine-observable conditions: time/timestamp, fill,
+order event, liquidation, funding, price cross, position threshold, equity
+threshold, and margin threshold. It replaces the prior plan in full. Rust
+rejects inexact timestamps, unsupported rows, and non-finite levels. Same-bar
+reasons are coalesced after market observation, funding, matching/fills,
+lifecycle, and condition evaluation; `wake_trace` preserves the bit mask.
+
+`BlockPlanV1` owns a half-open effective-bar range. The provider writes only
+within `[start_bar, stop_bar)` and declares fill/reject/margin invalidation.
+Rust removes only future unexecuted rows, labels them
+`invalidated_before_execution`, and asks for a replacement block. It never
+relabels invalidation as an exchange rejection.
+
+R3B uses a shared immutable market tape for `1..64` independent `FullSession`
+instances. Python receives a short-lived numeric batch context and a
+candidate-scoped writer. Candidate failures are typed and local; malformed
+batch callbacks fail deterministically. Results are flat SoA payloads per
+candidate. This is intentionally a prepared primitive, not a hidden WFO or
+Optuna loop.
+
+All R2/R3/R3B routes are A3 explicit-only: matching capability marker,
+`native_backend="rust"`, numeric context, and `reactive_kernel_mode="single_pass"`
+are mandatory. R2/R3 require an independent every-bar shadow declaration;
+`certify_reactive_shadow_v1` compares decision-boundary inputs, commands,
+canonical execution/account trace, and optional strategy fingerprint. Auto
+continues to use the conservative Python callback route.
+
+Focused conformance coverage is in `tests/test_phase63_sparse_block_reactive.py`:
+typed conditions, coalescing, plan replacement, timestamp rejection,
+fill/reject/margin invalidation, cancellation provenance, candidate
+isolation/order/capacity, stale handles, and reset. Reproduce the evidence:
+
+```bash
+PYTHONPATH=src poetry run python \
+  benchmarks/native_event/benchmark_phase63_sparse_block_batch.py \
+  --bars 10000 --cadence 32 --candidates 16 --repeats 3
+```
+
+It proves R1/R2/R3 accounting and canonical-trace parity on one tape before
+measuring callback count, skipped bars, wake ratio, copy bytes, GIL transitions,
+end-to-end timing, and RSS. R3B is reported separately as prepared
+candidate-bars, not a public facade benchmark.
+
+## Phase 65 Native WFO Runtime V2
+
+Phase 65 adds an explicit A4 prepared WFO runtime for the bounded
+single-symbol `strategy_ir_signal_target_v1` workload. Rust owns the immutable
+market/fold/account plan, retained per-fold sessions, candidate x fold worker
+queue, scalar metric rows, cancellation/recovery, and selected-candidate audit
+rerun. Python owns W1/W2 causal signal generation and Optuna control.
+
+This is not a promotion of generic `walk_forward()`. The W0 pandas/callback
+engine remains the compatibility oracle. Target/notional/weight/order,
+portfolio, and package intents remain fail-closed until their own
+execution/accounting contracts exist. Reactive WFO now has its separate W3
+contract through `prepare_reactive_walk_forward(...)`; it is limited to the
+documented single-symbol, reset-flat lifecycle route and likewise cannot
+impersonate a stitched continuous-account WFO result. See
+[Reactive WFO](reactive_wfo.md) for its distinct selection, worker, and output
+semantics.
+
+The native score matrix contains no full paths or audit tables. A selected audit
+replays the exact source batch fingerprint, not merely a newly generated
+candidate row. `certified_sequential_v1` retains single ask/evaluate/tell
+semantics; `throughput_batch_v1` is deterministic only by seed and batch size
+and never claims sequential-TPE equivalence. See [Native WFO Runtime V2](native_wfo_runtime.md)
+for the API and `benchmark_phase65_native_wfo.py` for reproducible parity/RSS
+evidence.
+
+## Phase 69 Rust Intrabar Authority
+
+Phase 69 introduces `NativeIntrabarRequestCore` for one bounded strict-OHLC
+symbol. It is deliberately a specialized Rust state machine rather than a
+branch-heavy lowering into the generic static command engine. A prepared native
+market is retained through an `Arc`; Python provides compact intent and optional
+session arrays once; Rust performs the complete next-open bracket/accounting
+run; only typed SoA output crosses the boundary after the run.
+
+The frozen [`intrabar_bracket_v1` manifest](../contracts/intrabar_contract_v1.json)
+defines the exact order:
+
+```text
+open gap mark -> open maintenance check -> open funding -> session control
+-> stale cancellation -> technical exit/reversal -> entry -> bracket decision
+-> close mark/liquidation -> trailing update -> close funding -> snapshot
+```
+
+The specialized request covers entry sizing, SL/TP level modes, stop and
+target gaps, conservative/stop-first/TP-first/OHLC/OLHC ambiguity policy,
+trailing updates, technical exits, session quotas and forced flat, funding,
+quantity/tick constraints, margin, liquidation, and bounded audit buffers.
+`reject_ambiguous` and `lower_timeframe_required` deliberately fail closed on
+the Rust route. They are diagnostic/data-resolution policies, not hidden
+fallbacks. The Python reference remains the readable oracle; Numba remains the
+version-pinned rollback comparator for at least one stable release.
+
+`intrabar_bracket_rust()` is explicit-only and produces the normal
+`BacktestResultV2` cold-path surface for `minimal`, `standard`, and `audit`.
+Audit fill rows include `ambiguity_flag` and `same_bar_policy_id`. Direct native
+`score` is scalar-only by design and does not create a result/report object.
+The route is not selected by `backend="auto"`, and it makes no claim for L2,
+queue priority, partial-fill matching, grid/DCA state machines, multi-symbol
+cross-margin, portfolio, package, or options execution.
+
+The controlled 2,000-bar evidence records exact Python-reference/Numba/Rust
+path and terminal parity, one native boundary, zero Python callbacks, bounded
+audit retention, a direct score kernel of `20.90M bars/s`, and the separately
+reported public adapter result of `788,099 bars/s`. See
+[`phase69_rust_intrabar.md`](../benchmarks/native_event/results/phase69_rust_intrabar.md)
+and [`phase69_rust_intrabar_v1.json`](../benchmarks/native_event/manifests/phase69_rust_intrabar_v1.json).

@@ -266,6 +266,113 @@
     {
       "artifacts": [
         {
+          "bytes": 2471,
+          "path": "contracts/intrabar_contract_v1.json",
+          "sha256": "9e3d07bd3ca01afccaa7819d0ed6e7b5625c0c43fa66b6d5147749457dcdf5ad"
+        },
+        {
+          "bytes": 1269,
+          "path": "benchmarks/native_event/results/phase69_rust_intrabar.json",
+          "sha256": "a7d906cc64d30cc13d501cbe0fa23c8794ead0122a34695c10f7464edf6127d6"
+        },
+        {
+          "bytes": 1524,
+          "path": "benchmarks/native_event/manifests/phase69_rust_intrabar_v1.json",
+          "sha256": "22a1e5a6cc42039d76c0c9a76a5a775b939d27fd58eb3b9b4131de4edc3e97f1"
+        }
+      ],
+      "canonical_trace": "python_numba_rust_exact_path_parity",
+      "config_contract": {
+        "audit_bounded": true,
+        "execution_contract": "intrabar_bracket_v1",
+        "input": "compact intent columns",
+        "profiles": [
+          "minimal",
+          "standard",
+          "audit"
+        ],
+        "same_bar_policy": [
+          "conservative",
+          "stop_first",
+          "tp_first",
+          "ohlc_path",
+          "olhc_path"
+        ]
+      },
+      "id": "intrabar_rust_explicit",
+      "known_deviations": [
+        "Bounded to one OHLC symbol; reject_ambiguous and lower_timeframe_required fail closed.",
+        "It does not claim L2 matching, grid/DCA state machines, or shared cross-margin portfolio execution."
+      ],
+      "measurement": {
+        "artifact_refs": [
+          "benchmarks/native_event/manifests/phase69_rust_intrabar_v1.json",
+          "benchmarks/native_event/results/phase69_rust_intrabar.json",
+          "contracts/intrabar_contract_v1.json"
+        ],
+        "boundary_counters": {
+          "command_ingest_bytes": null,
+          "context_projection_bytes": null,
+          "gil_acquisitions": null,
+          "intent_copy_bytes": null,
+          "market_copy_bytes": null,
+          "native_entry_calls": null,
+          "python_callback_calls": null,
+          "result_copy_bytes": null,
+          "session_resets": null,
+          "worker_pool_starts": null
+        },
+        "measurement_status": "historical_artifact",
+        "memory_bytes": {
+          "cache_bytes": null,
+          "cold_peak_rss_bytes": null,
+          "native_allocated_bytes": null,
+          "python_allocated_bytes": null,
+          "result_retained_bytes": null,
+          "warm_steady_rss_bytes": null
+        },
+        "notes": [
+          "Historical evidence is normalized into the V1.1 field shape.",
+          "Null counter/timing/RSS values are unmeasured, not zero."
+        ],
+        "phase_timings_ns": {
+          "input_adaptation_ns": null,
+          "instrument_prepare_ns": null,
+          "intent_ingest_ns": null,
+          "market_prepare_ns": null,
+          "native_execution_ns": null,
+          "native_metrics_ns": null,
+          "native_result_ns": null,
+          "python_materialization_ns": null,
+          "report_ns": null,
+          "strategy_generate_ns": null,
+          "strategy_prepare_ns": null
+        },
+        "profile": "baseline_snapshot",
+        "requested_backend": "rust_intrabar",
+        "resolved_backend": "Rust bounded single-symbol intrabar whole-tape executor",
+        "result_status": "not_recorded",
+        "route_id": "QuantBTEndpoint.intrabar_bracket_rust",
+        "runtime_class": "WholeRunNative",
+        "schema": "quantbt-rust-primary-measurement-v1",
+        "terminal_fingerprint": null,
+        "workload_id": "intrabar_rust_explicit"
+      },
+      "required_metrics": [
+        "final_equity",
+        "fills",
+        "fees",
+        "funding",
+        "terminal_fingerprint",
+        "ambiguity_policy",
+        "bars_per_second"
+      ],
+      "route": "QuantBTEndpoint.intrabar_bracket_rust",
+      "status": "baseline_available"
+    },
+    {
+      "artifacts": [
+        {
           "bytes": 2410,
           "path": "benchmarks/options_phase10_baseline.json",
           "sha256": "00c75435ba7a5da9cc970d10be944036dd4bfbca0a569f742efef91a6b28eb90"
@@ -967,9 +1074,9 @@
           "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
         },
         {
-          "bytes": 7774,
+          "bytes": 11312,
           "path": "docs/walkforward_causal.md",
-          "sha256": "3f414696926ece4a8250fe12ad2fbc46affb435b39b950aa44ecbed9105e1e2d"
+          "sha256": "51b058c1f17a8c7078a922a2f791f539a330c847bf1dc3a77b263f174bb4ec64"
         }
       ],
       "canonical_trace": "fold_metadata_and_causal_cutoff",
@@ -1052,9 +1159,9 @@
           "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
         },
         {
-          "bytes": 7774,
+          "bytes": 11312,
           "path": "docs/walkforward_causal.md",
-          "sha256": "3f414696926ece4a8250fe12ad2fbc46affb435b39b950aa44ecbed9105e1e2d"
+          "sha256": "51b058c1f17a8c7078a922a2f791f539a330c847bf1dc3a77b263f174bb4ec64"
         }
       ],
       "canonical_trace": "fold_metadata_and_causal_cutoff",
@@ -1154,9 +1261,9 @@
       "sha256": "04c95b903f9afdaa8bd80282a55dcb5ebe480d5456b664fac441dd90de0032a6"
     },
     "product_registry": {
-      "bytes": 13376,
+      "bytes": 28037,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
+      "sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f"
     }
   }
 }

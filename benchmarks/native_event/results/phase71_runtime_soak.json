@@ -1,0 +1,94 @@
+{
+  "copy_contract": {
+    "intent_copy_per_warm_score_bytes": 0,
+    "market_copy_per_warm_score_bytes": 0
+  },
+  "evidence": {
+    "cancellation_typed": true,
+    "closed": true,
+    "generation_incremented": true,
+    "post_cancel_recovery_parity": true,
+    "reset_parity": true,
+    "rss_plateau": true,
+    "warm_deterministic": true
+  },
+  "rss_mb": {
+    "plateau_limit": 8.148828125,
+    "samples": [
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625,
+      162.9765625
+    ],
+    "tail_spread": 0.0
+  },
+  "runtime_diagnostics": {
+    "audit_batches": 0,
+    "bars": 4096,
+    "canceled_tasks": 0,
+    "closed": false,
+    "completed_tasks": 3968,
+    "fold_count": 4,
+    "intent_kind": "strategy_ir_signal_target_v1",
+    "market_bytes": 233472,
+    "max_bars": 4096,
+    "max_native_memory_bytes": 536870912,
+    "max_wall_time_ms": null,
+    "max_workers": 2,
+    "optimizer_schedule": "fixed_matrix_v1",
+    "parallelism": {
+      "blas_threads": 1,
+      "constrained_by": [],
+      "host_cpus": 4,
+      "numba_threads": 1,
+      "openmp_threads": 1,
+      "python_processes": 1,
+      "rust_workers": 2
+    },
+    "plan_fingerprint": "7739187173be39220bcc2c66b5af1c21504c86b94b2f210eb385108e875dae14",
+    "poison_recoveries": 0,
+    "runtime_budget": {
+      "max_active_orders": 524288,
+      "max_audit_rows": 128,
+      "max_bars": 4096,
+      "max_commands": 524288,
+      "max_error_rows": 64,
+      "max_fills": 524288,
+      "max_metric_rows": 128,
+      "max_native_memory_bytes": 536870912,
+      "max_orders": 524288,
+      "max_wall_time_ms": null,
+      "max_workers": 2
+    },
+    "runtime_version": 2,
+    "score_batches": 31,
+    "session_id": "f56d28c59a024d129603a594f55fc649",
+    "worker_generation": 2,
+    "worker_pool_creations": 1,
+    "worker_tasks": [
+      2025,
+      1943
+    ]
+  },
+  "schema": "quantbt-phase71-runtime-soak-v1",
+  "throughput_candidate_fold_bars_per_second": 39345616.0873514,
+  "timing_seconds": {
+    "max_warm_score": 0.019953115843236446,
+    "median_warm_score": 0.013325194828212261,
+    "min_warm_score": 0.011221522465348244
+  },
+  "workload": {
+    "bars": 4096,
+    "candidates": 32,
+    "folds": 4,
+    "repeats": 30,
+    "workers": 2
+  }
+}

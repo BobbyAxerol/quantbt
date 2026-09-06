@@ -99,7 +99,7 @@ def _static_context(*, bars: int, workload_id: str = "event_static_tape_v2_v3") 
     )
 
 
-def test_stage_b_promotion_thresholds_are_deterministic_and_fail_closed():
+def test_phase72_auto_routes_hold_until_current_candidate_evidence_exists():
     static_small = resolve_native_event_promotion(_static_context(bars=9_999), environment={})
     static_promoted = resolve_native_event_promotion(_static_context(bars=10_000), environment={})
     ir_small = resolve_native_event_promotion(
@@ -109,41 +109,30 @@ def test_stage_b_promotion_thresholds_are_deterministic_and_fail_closed():
         _static_context(bars=2_000, workload_id="native_strategy_ir_v1"), environment={}
     )
 
-    assert (static_small.resolved_backend, static_small.reason, static_small.minimum_bars) == (
-        "python",
-        "below_promotion_min_bars",
-        10_000,
-    )
-    assert (static_promoted.resolved_backend, static_promoted.reason, static_promoted.minimum_bars) == (
-        "rust",
-        "auto_rust_certified",
-        10_000,
-    )
-    assert (ir_small.resolved_backend, ir_small.reason, ir_small.minimum_bars) == (
-        "python",
-        "below_promotion_min_bars",
-        2_000,
-    )
-    assert (ir_promoted.resolved_backend, ir_promoted.reason, ir_promoted.minimum_bars) == (
-        "rust",
-        "auto_rust_certified",
-        2_000,
-    )
+    for decision in (static_small, static_promoted, ir_small, ir_promoted):
+        assert (decision.resolved_backend, decision.reason, decision.minimum_bars) == (
+            "python",
+            "measurement_evidence_not_current",
+            0,
+        )
 
 
 @pytest.mark.skipif(
     importlib.util.find_spec("_quantbt_native") is None,
     reason="quantbt-native extension is not installed in this environment",
 )
-def test_stage_b_public_static_auto_matches_explicit_rust_and_python_oracle():
-    frame = _frame(10_000)
+def test_phase72_public_static_auto_holds_to_python_while_explicit_rust_matches_oracle():
+    # Phase 72 withdraws the stale auto-promotion evidence. This regression
+    # proves policy and audit parity, so it deliberately uses a compact tape
+    # rather than turning a routing test into three 10k-bar audit runs.
+    frame = _frame(512)
     commands = [
         OrderCommand(
             timestamp=frame.index[1], symbol="BTC", side=OrderSide.BUY,
             order_type=OrderType.MARKET, qty=1.0, order_id="entry",
         ),
         OrderCommand(
-            timestamp=frame.index[4_000], symbol="BTC", side=OrderSide.SELL,
+            timestamp=frame.index[256], symbol="BTC", side=OrderSide.SELL,
             order_type=OrderType.MARKET, qty=1.0, reduce_only=True, order_id="exit",
         ),
     ]
@@ -165,16 +154,16 @@ def test_stage_b_public_static_auto_matches_explicit_rust_and_python_oracle():
     python = run("python")
     _assert_accounting_equal(auto, rust)
     _assert_accounting_equal(auto, python)
-    assert auto.metadata["execution_plan_v1"]["backend"] == "rust"
-    assert auto.metadata["native_event_promotion_v1"]["reason"] == "auto_rust_certified"
-    assert auto.metadata["native_event_promotion_v1"]["minimum_bars"] == 10_000
+    assert auto.metadata["execution_plan_v1"]["backend"] == "python"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert auto.metadata["native_event_promotion_v1"]["minimum_bars"] == 0
 
 
 @pytest.mark.skipif(
     importlib.util.find_spec("_quantbt_native") is None,
     reason="quantbt-native extension is not installed in this environment",
 )
-def test_stage_b_static_v3_and_score_use_one_rust_pass_without_audit_replay():
+def test_phase72_static_v3_explicit_rust_uses_one_rust_pass_without_audit_replay():
     frame = _frame(10_000)
     command = OrderCommand(
         timestamp=frame.index[1], symbol="BTC", side=OrderSide.BUY,
@@ -183,7 +172,7 @@ def test_stage_b_static_v3_and_score_use_one_rust_pass_without_audit_replay():
     endpoint = QuantBTEndpoint.event_driven(
         input_mode="orders",
         profile="optimize",
-        backend="auto",
+        backend="rust",
         execution_contract="event_lifecycle_v3_next_open",
         initial_capital=10_000.0,
         leverage=5.0,
@@ -203,8 +192,8 @@ def test_stage_b_static_v3_and_score_use_one_rust_pass_without_audit_replay():
     importlib.util.find_spec("_quantbt_native") is None,
     reason="quantbt-native extension is not installed in this environment",
 )
-def test_stage_b_v3_multisymbol_static_prepared_and_raw_routes_match_python_oracle():
-    """Certify the promoted static row beyond the single-symbol happy path."""
+def test_phase72_v3_multisymbol_explicit_rust_and_auto_python_match_oracle():
+    """Keep explicit Rust parity while the current auto route is held safely."""
 
     index = pd.date_range("2024-01-01 07:00", periods=10_000, freq="1h", tz="UTC")
     phase = np.arange(len(index), dtype=np.float64)
@@ -266,25 +255,29 @@ def test_stage_b_v3_multisymbol_static_prepared_and_raw_routes_match_python_orac
         min_qty={"A": 0.25, "B": 0.10},
         report_level="audit",
     )
-    auto_raw = backend("auto").run_order_commands(**kwargs)
-    auto_prepared_backend = backend("auto")
-    prepared_market = auto_prepared_backend.prepare_market_arrays(
+    rust_raw = backend("rust").run_order_commands(**kwargs)
+    rust_prepared_backend = backend("rust")
+    prepared_market = rust_prepared_backend.prepare_market_arrays(
         index, closes=closes, highs=highs, lows=lows, funding_rate=funding, symbols=["A", "B"]
     )
-    compiled = auto_prepared_backend.compile_order_commands(index, commands, symbols=["A", "B"])
-    auto_prepared = auto_prepared_backend.run_order_commands(
+    compiled = rust_prepared_backend.compile_order_commands(index, commands, symbols=["A", "B"])
+    rust_prepared = rust_prepared_backend.run_order_commands(
         **kwargs,
         market_arrays=prepared_market,
         compiled_commands=compiled,
     )
+    auto = backend("auto").run_order_commands(**kwargs)
     python = backend("python").run_order_commands(**kwargs)
 
-    _assert_accounting_equal(auto_raw, auto_prepared)
-    _assert_accounting_equal(auto_raw, python)
-    assert auto_raw.metadata["native_event_backend_resolved"] == "rust"
-    assert auto_raw.metadata["execution_contract_id"] == "event_lifecycle_v3_next_open"
-    assert float(auto_raw.funding.sum()) != 0.0
-    assert auto_raw.metadata["quantity_preflight"]["changed_count"] >= 2
+    _assert_accounting_equal(rust_raw, rust_prepared)
+    _assert_accounting_equal(rust_raw, python)
+    _assert_accounting_equal(auto, python)
+    assert auto.metadata["native_event_backend_resolved"] == "python"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert rust_raw.metadata["native_event_backend_resolved"] == "rust"
+    assert rust_raw.metadata["execution_contract_id"] == "event_lifecycle_v3_next_open"
+    assert float(rust_raw.funding.sum()) != 0.0
+    assert rust_raw.metadata["quantity_preflight"]["changed_count"] >= 2
 
 
 def _ir_backend(
@@ -328,7 +321,7 @@ def _ir_backend(
         ),
     ],
 )
-def test_stage_b_native_ir_auto_matches_explicit_rust_and_python(kind, parameters, signal):
+def test_phase72_native_ir_auto_holds_while_explicit_rust_matches_python(kind, parameters, signal):
     frame = _frame(2_000)
     values = signal(len(frame)).astype(np.float64)
     program = NativeStrategyIR(kind, "BTC", parameters=parameters)
@@ -350,9 +343,10 @@ def test_stage_b_native_ir_auto_matches_explicit_rust_and_python(kind, parameter
     python = run("python")
     _assert_accounting_equal(auto, rust)
     _assert_accounting_equal(auto, python)
-    assert auto.metadata["execution_plan_v1"]["backend"] == "rust"
-    assert auto.metadata["native_strategy_ir_execution_v1"]["python_callbacks"] == 0
-    assert auto.metadata["native_strategy_ir_execution_v1"]["rust_audit_replay"] is False
+    assert auto.metadata["execution_plan_v1"]["backend"] == "python"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert rust.metadata["native_strategy_ir_execution_v1"]["python_callbacks"] == 0
+    assert rust.metadata["native_strategy_ir_execution_v1"]["rust_audit_replay"] is False
 
 
 @pytest.mark.skipif(
@@ -382,12 +376,12 @@ def test_stage_b_native_ir_v3_profiles_and_cold_public_adaptation_are_parity_loc
             symbols=["BTC"],
         )
 
-    auto_runner = runner("auto")
-    score = auto_runner.run_score(signal)
-    compact = auto_runner.run_compact(signal)
-    audit = auto_runner.run_audit(signal)
-    public_score = auto_runner.backtest(signal, report_level="score")
-    public_audit = auto_runner.backtest(signal, report_level="audit")
+    rust_runner = runner("rust")
+    score = rust_runner.run_score(signal)
+    compact = rust_runner.run_compact(signal)
+    audit = rust_runner.run_audit(signal)
+    public_score = rust_runner.backtest(signal, report_level="score")
+    public_audit = rust_runner.backtest(signal, report_level="audit")
     python_audit = runner("python").backtest(signal, report_level="audit")
 
     assert score.profile == "score"
@@ -411,7 +405,7 @@ def test_stage_b_native_ir_v3_profiles_and_cold_public_adaptation_are_parity_loc
 def test_stage_b_native_ir_batch_and_causal_fold_keep_one_boundary_and_fresh_state():
     frame = _frame(2_000)
     program = NativeStrategyIR(NativeStrategyKind.GRID_LEVEL, "BTC", parameters=NativeStrategyParameters(quantity=0.5))
-    runner = _ir_backend("auto").prepare_native_strategy_ir(
+    runner = _ir_backend("rust").prepare_native_strategy_ir(
         frame.index,
         closes={"BTC": frame["close"]},
         highs={"BTC": frame["high"]},
@@ -475,4 +469,4 @@ def test_stage_b_native_ir_small_auto_request_falls_back_to_python_with_reason()
     )
     result = runner.backtest(np.where(np.arange(len(frame)) % 20 < 10, 1.0, 0.0), report_level="audit")
     assert result.metadata["execution_plan_v1"]["backend"] == "python"
-    assert result.metadata["native_event_promotion_v1"]["reason"] == "below_promotion_min_bars"
+    assert result.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"

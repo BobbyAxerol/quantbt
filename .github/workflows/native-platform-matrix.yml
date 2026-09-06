@@ -1,0 +1,76 @@
+name: Native Platform Wheel Matrix
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "rust/**"
+      - "contracts/native_event_product_registry.json"
+      - "tools/generate_product_contracts.py"
+      - ".github/workflows/native-platform-matrix.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  native-wheel:
+    name: ${{ matrix.platform.id }} / CPython ${{ matrix.python-version }}
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        platform:
+          - id: linux-x86_64
+            runner: ubuntu-latest
+            manylinux: "2014"
+          - id: linux-aarch64
+            runner: ubuntu-24.04-arm
+            manylinux: "2014"
+          - id: macos-x86_64
+            runner: macos-13
+            manylinux: "off"
+          - id: macos-arm64
+            runner: macos-14
+            manylinux: "off"
+          - id: windows-x86_64
+            runner: windows-latest
+            manylinux: "off"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build native wheel from this ref
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python
+            --out dist/native
+          manylinux: ${{ matrix.platform.manylinux }}
+
+      - name: Install and negotiate from wheel outside the source tree
+        shell: bash
+        run: |
+          python -c "import glob,subprocess,sys; wheels=glob.glob('dist/native/*.whl'); assert len(wheels)==1, wheels; subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--force-reinstall', '--no-deps', wheels[0]])"
+          cd "${RUNNER_TEMP}"
+          python -c "import _quantbt_native as n; assert n.api_version() == '0.4'; assert n.product_descriptor()['result_abi'] == 'native-event-result-v1'; assert n.capabilities()['native_event_v2_full_contract']; print(n.__file__)"
+
+      - name: Upload candidate wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform.id }}-cp${{ matrix.python-version }}
+          path: dist/native/*.whl
+          if-no-files-found: error

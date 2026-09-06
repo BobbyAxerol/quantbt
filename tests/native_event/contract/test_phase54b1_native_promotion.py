@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -29,6 +30,7 @@ from quantbt.planning import (
     resolve_execution_plan,
 )
 from quantbt.planning.capabilities import CapabilitySnapshot
+from tools.measurement_contract import load_measurement_contract
 
 
 _STATIC_CAPABILITIES = (
@@ -41,6 +43,69 @@ _STATIC_CAPABILITIES = (
     "native_event_v2_relationships",
     "native_event_v2_quantity_preflight",
 )
+
+
+def _current_candidate_evidence() -> dict[str, object]:
+    """Build fully-shaped synthetic evidence for routing-policy tests only."""
+
+    root = Path(__file__).resolve().parents[3]
+    contract = load_measurement_contract(
+        root / "benchmarks" / "native_event" / "manifests" / "phase72_measurement_contract_v1.json",
+        root=root,
+    )
+    digest = "a" * 64
+    pair = next(item for item in contract["profile_pairs"] if item["id"] == "compact_to_compact_v1")
+    comparator = {
+        "timing_scope": pair["timing_scope"],
+        "result_contract": pair["result_contract"],
+        "metric_contract_id": "metric-contract-v2-365",
+        "annualization_days": 365,
+        "fee_contract_id": "canonical-one-way-fee-v1",
+        "account_contract_id": "linear-quote-gross-cross-v1",
+    }
+    return {
+        "status": "pass",
+        "measurement_status": "current_candidate_verified",
+        "identity_status": "current_candidate",
+        "promotion_eligible": True,
+        "end_to_end_faster_than_python": True,
+        "rss_plateau": True,
+        "candidate_identity": {
+            "git_commit": "b" * 40,
+            "git_dirty": False,
+            "git_status_sha256": digest,
+            "canonical_source_sha256": digest,
+            "product_registry_sha256": digest,
+            "lifecycle_registry_sha256": digest,
+            "core_distribution": {"distribution": "quantbt-engine", "version": "1.1.0"},
+            "native_distribution": {"distribution": "quantbt-native", "version": "0.4.1"},
+            "native_extension": {
+                "available": True,
+                "module_sha256": digest,
+                "version": "0.4.1",
+                "api_version": "0.4",
+                "capability_sha256": digest,
+            },
+            "python": "CPython 3.12",
+            "platform": "linux-x86_64",
+            "cpu_count": 4,
+            "thread_environment": {},
+            "data_sha256": digest,
+            "intent_sha256": digest,
+            "measurement_contract_sha256": digest,
+            "warmup_procedure": "test warmup",
+        },
+        "comparator_contract": {"python": dict(comparator), "native": dict(comparator)},
+        "measurement": {
+            "sample_count": 9,
+            "median_seconds": 0.01,
+            "p95_seconds": 0.02,
+            "cold_rss_mb": 100.0,
+            "warm_rss_mb": 104.0,
+            "parity": {"passed": True},
+            "artifact_sha256": digest,
+        },
+    }
 
 
 def _context(**updates) -> NativePromotionContext:
@@ -68,6 +133,18 @@ def _promoted_static_registry_and_policy():
     static = next(item for item in registry["workloads"] if item["id"] == "event_static_tape_v2_v3")
     static["maturity"] = "promoted"
     static["auto_promotion"] = True
+    evidence = registry["performance_evidence"]["event_static_tape_v2_v3"]
+    evidence.update(_current_candidate_evidence())
+    evidence.update(
+        {
+            "status": "pass",
+            "measurement_status": "current_candidate_verified",
+            "identity_status": "current_candidate",
+            "promotion_eligible": True,
+            "end_to_end_faster_than_python": True,
+            "rss_plateau": True,
+        }
+    )
     policy["default_stage"] = "static_ir"
     policy["rules"] = list(policy["rules"])
     next(item for item in policy["rules"] if item["id"] == "static_tape_rust_stage_b")["enabled"] = True
@@ -105,13 +182,13 @@ def _request(**updates) -> BacktestRequest:
     return BacktestRequest(**values)
 
 
-def test_phase54b1_registry_is_versioned_and_auto_requires_one_native_probe_when_promoted():
+def test_phase72_registry_is_versioned_and_holds_auto_promotion_without_current_evidence():
     decision = resolve_native_event_promotion(_context(), environment={})
 
     assert NATIVE_EVENT_PROMOTION_POLICY["table_version"] == NATIVE_EVENT_PROMOTION_TABLE_VERSION
     assert decision.resolved_backend == "python"
-    assert decision.reason == "native_probe_required"
-    assert decision.native_probe_required is True
+    assert decision.reason == "measurement_evidence_not_current"
+    assert decision.native_probe_required is False
     assert decision.configured_stage == "static_ir"
     assert decision.effective_stage == "static_ir"
     assert decision.to_dict()["fingerprint"] == decision.fingerprint
@@ -209,7 +286,7 @@ def test_phase54b1_decision_fingerprint_changes_only_with_routing_inputs():
     assert first.fingerprint != policy_changed.fingerprint
 
 
-def test_phase54b1_planner_probes_promoted_auto_route_and_records_provenance():
+def test_phase72_planner_does_not_probe_a_withdrawn_auto_route_and_records_provenance():
     calls = 0
 
     def unexpected_probe() -> CapabilitySnapshot:
@@ -226,11 +303,11 @@ def test_phase54b1_planner_probes_promoted_auto_route_and_records_provenance():
 
     plan = resolve_execution_plan(_request(), rust_capability_loader=unexpected_probe, environment={})
 
-    assert calls == 1
-    assert plan.backend is BackendKind.RUST
-    assert plan.promotion_reason == "auto_rust_certified"
+    assert calls == 0
+    assert plan.backend is BackendKind.PYTHON
+    assert plan.promotion_reason == "measurement_evidence_not_current"
     assert plan.promotion_table_version == NATIVE_EVENT_PROMOTION_TABLE_VERSION
-    assert plan.promotion_rule_id == "static_tape_rust_stage_b"
+    assert plan.promotion_rule_id is None
     assert len(plan.promotion_fingerprint) == 64
     assert plan.to_dict()["backend_policy"] == "certified_only"
 

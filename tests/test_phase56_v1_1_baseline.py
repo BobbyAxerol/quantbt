@@ -26,6 +26,7 @@ EXPECTED_CORPUS_CASES = {
     "atomic_package",
     "fill_replay",
     "intrabar_bracket",
+    "intrabar_rust_explicit",
     "options_basic_european",
     "pct_equity",
     "portfolio",
@@ -95,9 +96,9 @@ def test_phase56_inventory_covers_every_public_factory_and_separates_authority()
 
     by_id = {row["id"]: row for row in inventory["rows"]}
     assert by_id["event_driven_strategy"]["runtime_class"] == "PythonCompatibility"
-    assert by_id["event_driven_orders"]["maturity"] == "promoted_bounded_static"
+    assert by_id["event_driven_orders"]["maturity"] == "certified_explicit_rust"
     assert by_id["portfolio_generic"]["resolved_backend_baseline"] == "Python/NumPy/Numba native_portfolio backend"
-    assert by_id["native_workload::event_static_tape_v2_v3"]["auto_promotion"] is True
+    assert by_id["native_workload::event_static_tape_v2_v3"]["auto_promotion"] is False
     assert by_id["native_workload::portfolio_target_market_v1"]["auto_promotion"] is False
 
 

@@ -1,0 +1,27 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase71-runtime-productization-v1",
+  "owner": "runtime-reliability",
+  "promotion_policy": "prepared WFO performance and RSS evidence only; A5 deletion remains route-level and separately approved",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "NATIVE_WFO_RUNTIME_SOAK_V1",
+      "contract_ids": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_mode": "strategy_ir_signal_target_v1",
+      "profiles": ["score"],
+      "fixture": "4096 hourly bars; 32 candidates; four causal folds; two persistent workers; 30 repeated warm scores",
+      "baseline_path": "benchmarks/native_event/results/phase71_runtime_soak.json",
+      "baseline_sha256": "b898a7b551449aa2a59277990668d3a374296692a991a91e005dd5de5af8a19c",
+      "required_result_fields": [
+        "workload",
+        "timing_seconds",
+        "throughput_candidate_fold_bars_per_second",
+        "rss_mb",
+        "copy_contract",
+        "evidence"
+      ]
+    }
+  ]
+}

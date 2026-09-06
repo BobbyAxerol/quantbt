@@ -18,7 +18,7 @@ from typing import Callable, Mapping, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from ..core.event import ORDER_STATUS_PENDING
+from ..core.event import ORDER_STATUS_CANCELED, ORDER_STATUS_PENDING, ORDER_STATUS_REJECTED
 from ..core.event_contracts import EventClockContract, get_event_clock_contract
 from ..core.constraints import quantize_signed_quantity
 from ..core.order_compiler import CompiledOrderCommandArrays, command_tape_fingerprint
@@ -417,7 +417,7 @@ class RustFullAuditResult:
     @classmethod
     def from_compact_payload(
         cls,
-        payload: Mapping[str, object],
+        payload: object,
         *,
         n_bars: int,
         n_symbols: int,
@@ -444,7 +444,7 @@ class RustFullAuditResult:
             "maintenance_margin",
         )
         arrays = {
-            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            key: np.ascontiguousarray(np.asarray(_payload_value(payload, key)), dtype=np.float64)
             for key in float_keys
         }
         if arrays["equity"].shape != (int(n_bars),):
@@ -479,18 +479,18 @@ class RustFullAuditResult:
             event_target_id=empty_i64.copy(),
             event_symbol=empty_i64.copy(),
             event_reject_code=empty_i64.copy(),
-            total_fee=float(payload["total_fee"]),
-            total_turnover=float(payload["total_turnover"]),
-            total_funding=float(payload["total_funding"]),
-            fill_count=int(payload["fill_count"]),
-            event_count=int(payload["event_count"]),
-            rejected_count=int(payload["rejected_count"]),
-            canceled_count=int(payload["canceled_count"]),
-            max_initial_margin=float(payload["max_initial_margin"]),
-            max_maintenance_margin=float(payload["max_maintenance_margin"]),
-            liquidated=bool(payload["liquidated"]),
-            liquidation_bar=int(payload["liquidation_bar"]),
-            liquidation_reason=int(payload["liquidation_reason"]),
+            total_fee=float(_payload_value(payload, "total_fee")),
+            total_turnover=float(_payload_value(payload, "total_turnover")),
+            total_funding=float(_payload_value(payload, "total_funding")),
+            fill_count=int(_payload_value(payload, "fill_count")),
+            event_count=int(_payload_value(payload, "event_count")),
+            rejected_count=int(_payload_value(payload, "rejected_count")),
+            canceled_count=int(_payload_value(payload, "canceled_count")),
+            max_initial_margin=float(_payload_value(payload, "max_initial_margin")),
+            max_maintenance_margin=float(_payload_value(payload, "max_maintenance_margin")),
+            liquidated=bool(_payload_value(payload, "liquidated")),
+            liquidation_bar=int(_payload_value(payload, "liquidation_bar")),
+            liquidation_reason=int(_payload_value(payload, "liquidation_reason")),
             id_values=tuple(id_values),
             external_id_values={} if external_id_values is None else dict(external_id_values),
             command_report=command_report,
@@ -500,7 +500,7 @@ class RustFullAuditResult:
     @classmethod
     def from_audit_payload(
         cls,
-        payload: Mapping[str, object],
+        payload: object,
         *,
         n_bars: int,
         n_symbols: int,
@@ -537,38 +537,38 @@ class RustFullAuditResult:
             "event_reject_code",
         )
         arrays = {
-            key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            key: np.ascontiguousarray(np.asarray(_payload_value(payload, key)), dtype=np.float64)
             for key in float_keys
         }
         arrays.update(
             {
-                key: np.ascontiguousarray(np.asarray(payload[key]), dtype=np.int64)
+                key: np.ascontiguousarray(np.asarray(_payload_value(payload, key)), dtype=np.int64)
                 for key in int_keys
             }
         )
         arrays["fill_reason"] = np.ascontiguousarray(
-            np.asarray(payload.get("fill_reason", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
+            np.asarray(_payload_value(payload, "fill_reason", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
         )
         arrays["fill_ambiguity"] = np.ascontiguousarray(
-            np.asarray(payload.get("fill_ambiguity", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
+            np.asarray(_payload_value(payload, "fill_ambiguity", np.zeros(len(arrays["fill_bar"]))), dtype=np.int64)
         )
         arrays["positions"] = np.ascontiguousarray(
             np.asarray(arrays["positions"], dtype=np.float64).reshape(int(n_bars), int(n_symbols))
         )
         return cls(
             **arrays,
-            total_fee=float(payload["total_fee"]),
-            total_turnover=float(payload["total_turnover"]),
-            total_funding=float(payload["total_funding"]),
-            fill_count=int(payload["fill_count"]),
-            event_count=int(payload["event_count"]),
-            rejected_count=int(payload["rejected_count"]),
-            canceled_count=int(payload["canceled_count"]),
-            max_initial_margin=float(payload["max_initial_margin"]),
-            max_maintenance_margin=float(payload["max_maintenance_margin"]),
-            liquidated=bool(payload["liquidated"]),
-            liquidation_bar=int(payload["liquidation_bar"]),
-            liquidation_reason=int(payload["liquidation_reason"]),
+            total_fee=float(_payload_value(payload, "total_fee")),
+            total_turnover=float(_payload_value(payload, "total_turnover")),
+            total_funding=float(_payload_value(payload, "total_funding")),
+            fill_count=int(_payload_value(payload, "fill_count")),
+            event_count=int(_payload_value(payload, "event_count")),
+            rejected_count=int(_payload_value(payload, "rejected_count")),
+            canceled_count=int(_payload_value(payload, "canceled_count")),
+            max_initial_margin=float(_payload_value(payload, "max_initial_margin")),
+            max_maintenance_margin=float(_payload_value(payload, "max_maintenance_margin")),
+            liquidated=bool(_payload_value(payload, "liquidated")),
+            liquidation_bar=int(_payload_value(payload, "liquidation_bar")),
+            liquidation_reason=int(_payload_value(payload, "liquidation_reason")),
             id_values=tuple(id_values),
             external_id_values={} if external_id_values is None else dict(external_id_values),
             command_report=command_report,
@@ -579,11 +579,13 @@ class RustFullAuditResult:
         self,
         *,
         datetime_index: pd.DatetimeIndex,
-        closes: pd.DataFrame,
+        closes: pd.DataFrame | np.ndarray,
         symbols: Sequence[str],
         initial_capital: float,
         leverage: float,
         metadata: Optional[Mapping[str, object]] = None,
+        include_audit_reports: bool = True,
+        bar_offset: int = 0,
     ):
         """Materialize the common result surface outside the Rust hot path."""
         from ..core.results import BacktestResultV2
@@ -591,15 +593,29 @@ class RustFullAuditResult:
         from ..core.schema import OrderSide
 
         idx = pd.DatetimeIndex(datetime_index)
+        offset = int(bar_offset)
+
+        def timestamp_for_bar(value: int):
+            local = int(value) - offset
+            return idx[local] if 0 <= local < len(idx) else pd.NaT
         equity = pd.Series(self.equity, index=idx, name="equity")
         positions = pd.DataFrame(
             {f"Position_{symbol}": self.positions[:, col] for col, symbol in enumerate(symbols)},
             index=idx,
         )
-        close_frame = pd.DataFrame(
-            {f"Close_{symbol}": closes[symbol].to_numpy(dtype=np.float64) for symbol in symbols},
-            index=idx,
-        )
+        if isinstance(closes, pd.DataFrame):
+            close_frame = pd.DataFrame(
+                {f"Close_{symbol}": closes[symbol].to_numpy(dtype=np.float64) for symbol in symbols},
+                index=idx,
+            )
+        else:
+            close_matrix = np.asarray(closes, dtype=np.float64)
+            if close_matrix.shape != (len(idx), len(symbols)):
+                raise ValueError("Rust compact closes must match the prepared (bars, symbols) shape")
+            close_frame = pd.DataFrame(
+                {f"Close_{symbol}": close_matrix[:, col] for col, symbol in enumerate(symbols)},
+                index=idx,
+            )
 
         def order_id(code: int) -> Optional[str]:
             mapped = self.external_id_values.get(int(code))
@@ -610,48 +626,59 @@ class RustFullAuditResult:
         fill_meta = [
             self.command_metadata.get(order_id(code) or "", {}) for code in self.fill_order_id
         ]
-        fills_report = pd.DataFrame({
-            "bar": self.fill_bar,
-            "timestamp": [idx[int(bar)] for bar in self.fill_bar],
-            "order_id": [order_id(code) for code in self.fill_order_id],
-            "symbol": [symbols[int(code)] for code in self.fill_symbol],
-            "side": ["BUY" if int(side) > 0 else "SELL" for side in self.fill_side],
-            "qty": self.fill_qty,
-            "price": self.fill_price,
-            "fee": self.fill_fee,
-            "fill_reason_code": self.fill_reason,
-            "fill_ambiguity_code": self.fill_ambiguity,
-            "tag": [meta.get("tag") for meta in fill_meta],
-            "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
-            "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
-            "level_id": [meta.get("level_id") for meta in fill_meta],
-        })
-        order_report = pd.DataFrame({
-            "bar": self.event_bar,
-            "timestamp": [idx[int(bar)] for bar in self.event_bar],
-            "event_kind": self.event_kind,
-            "event_status": self.event_status,
-            "order_id": [order_id(code) for code in self.event_order_id],
-            "target_order_id": [order_id(code) for code in self.event_target_id],
-            "symbol": [None if int(code) < 0 else symbols[int(code)] for code in self.event_symbol],
-            "reject_code": self.event_reject_code,
-        })
-        fills = tuple(
-            Fill(
-                timestamp=idx[int(bar)], symbol=symbols[int(symbol)],
-                side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
-                qty=float(qty), price=float(price), fee=float(fee), order_id=order_id(order_code),
-                metadata={"backend": "rust_full_contract", "bar": int(bar)},
+        if include_audit_reports:
+            fills_report = pd.DataFrame({
+                "bar": self.fill_bar,
+                "timestamp": [timestamp_for_bar(int(bar)) for bar in self.fill_bar],
+                "order_id": [order_id(code) for code in self.fill_order_id],
+                "symbol": [symbols[int(code)] for code in self.fill_symbol],
+                "side": ["BUY" if int(side) > 0 else "SELL" for side in self.fill_side],
+                "qty": self.fill_qty,
+                "price": self.fill_price,
+                "fee": self.fill_fee,
+                "fill_reason_code": self.fill_reason,
+                "fill_ambiguity_code": self.fill_ambiguity,
+                "tag": [meta.get("tag") for meta in fill_meta],
+                "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
+                "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
+                "level_id": [meta.get("level_id") for meta in fill_meta],
+            })
+            order_report = pd.DataFrame({
+                "bar": self.event_bar,
+                "timestamp": [timestamp_for_bar(int(bar)) for bar in self.event_bar],
+                "event_kind": self.event_kind,
+                "event_status": self.event_status,
+                "order_id": [order_id(code) for code in self.event_order_id],
+                "target_order_id": [order_id(code) for code in self.event_target_id],
+                "symbol": [None if int(code) < 0 else symbols[int(code)] for code in self.event_symbol],
+                "reject_code": self.event_reject_code,
+            })
+            fills = tuple(
+                Fill(
+                    timestamp=timestamp_for_bar(int(bar)), symbol=symbols[int(symbol)],
+                    side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
+                    qty=float(qty), price=float(price), fee=float(fee), order_id=order_id(order_code),
+                    metadata={"backend": "rust_full_contract", "bar": int(bar)},
+                )
+                for bar, order_code, symbol, side, qty, price, fee in zip(
+                    self.fill_bar, self.fill_order_id, self.fill_symbol, self.fill_side,
+                    self.fill_qty, self.fill_price, self.fill_fee,
+                )
             )
-            for bar, order_code, symbol, side, qty, price, fee in zip(
-                self.fill_bar, self.fill_order_id, self.fill_symbol, self.fill_side,
-                self.fill_qty, self.fill_price, self.fill_fee,
-            )
-        )
+        else:
+            fills_report = pd.DataFrame()
+            order_report = pd.DataFrame()
+            fills = ()
         diagnostics = pd.DataFrame({
             "turnover": self.turnover,
-            "rejected_orders": np.bincount(self.event_bar[self.event_kind == 7], minlength=len(idx)),
-            "canceled_orders": np.bincount(self.event_bar[self.event_kind == 1], minlength=len(idx)),
+            "rejected_orders": np.bincount(
+                np.asarray(self.event_bar[self.event_kind == 7], dtype=np.int64) - offset,
+                minlength=len(idx),
+            ),
+            "canceled_orders": np.bincount(
+                np.asarray(self.event_bar[self.event_kind == 1], dtype=np.int64) - offset,
+                minlength=len(idx),
+            ),
         }, index=idx)
         result_metadata = {
             "backend": "native_event",
@@ -680,9 +707,18 @@ class RustFullAuditResult:
                 "target_id": self.event_target_id,
             },
             "rust_contract": "native_event_v2_full_contract",
+            "bar_coordinate": "absolute_prepared_market" if offset else "local_market",
+            "prepared_market_bar_offset": offset,
         }
         if metadata:
             result_metadata.update(dict(metadata))
+        absolute_liquidation_bar = int(self.liquidation_bar)
+        liquidation_bar = (
+            absolute_liquidation_bar - offset
+            if absolute_liquidation_bar >= offset
+            else -1
+        )
+        result_metadata["absolute_liquidation_bar"] = absolute_liquidation_bar
         return BacktestResultV2(
             equity=equity,
             returns=equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0),
@@ -692,7 +728,7 @@ class RustFullAuditResult:
             initial_capital=float(initial_capital),
             leverage=float(leverage),
             liquidated=bool(self.liquidated),
-            liquidation_bar=int(self.liquidation_bar),
+            liquidation_bar=liquidation_bar,
             orders=(), fills=fills,
             fees=pd.Series(self.fees, index=idx, name="fees"),
             funding=pd.Series(self.funding, index=idx, name="funding"),
@@ -1369,16 +1405,23 @@ def _build_rust_command_intent_report(
     return pd.DataFrame(rows)
 
 
-def _payload_value(payload, key: str):
-    """Read both the R2 dict boundary and the R2.1 typed score boundary."""
+def _payload_value(payload, key: str, default=None):
+    """Read a legacy mapping or a typed native-result SoA attribute."""
 
     if isinstance(payload, Mapping):
-        return payload[key]
-    return getattr(payload, key)
+        return payload.get(key, default)
+    return getattr(payload, key, default)
 
 
 class RustFullRunner:
-    """Prepared full-contract Rust tape runner for explicit Rust execution."""
+    """Prepared full-contract Rust tape runner for explicit Rust execution.
+
+    ABI ``0.5`` is the default certified static path: it builds one immutable
+    Rust-owned template and one typed ``CommandTapeV5`` request per prepared
+    tape/profile, then reuses a native runner with deterministic account/order
+    resets. ABI ``0.4_compat`` remains available only as an explicit rollback
+    route for callers that need the historical session-array boundary.
+    """
 
     def __init__(
         self,
@@ -1398,6 +1441,7 @@ class RustFullRunner:
         volumes_arr: Optional[np.ndarray] = None,
         prepared_market_core=None,
         max_tape_cache_bytes: int = 64 * 1024 * 1024,
+        native_static_abi: str = "0.5",
     ) -> None:
         self.idx = pd.DatetimeIndex(idx)
         self.symbols = tuple(symbols)
@@ -1412,6 +1456,19 @@ class RustFullRunner:
         self.slippage = float(slippage)
         self.use_funding = bool(use_funding)
         self.event_contract = get_event_clock_contract(event_contract)
+        aliases = {
+            "0.5": "0.5",
+            "typed": "0.5",
+            "typed_v2": "0.5",
+            "0.4": "0.4_compat",
+            "0.4_compat": "0.4_compat",
+            "legacy": "0.4_compat",
+            "legacy_compat": "0.4_compat",
+        }
+        requested_abi = str(native_static_abi).lower().strip()
+        if requested_abi not in aliases:
+            raise ValueError("native_static_abi must be '0.5' or '0.4_compat'")
+        self.native_static_abi = aliases[requested_abi]
         if int(max_tape_cache_bytes) < 0:
             raise ValueError("max_tape_cache_bytes must be >= 0")
         self.max_tape_cache_bytes = int(max_tape_cache_bytes)
@@ -1450,7 +1507,31 @@ class RustFullRunner:
         self._cached_tape_fingerprint: Optional[str] = None
         self._cached_tape_arrays: Optional[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
         self._cached_tape_bytes = 0
+        self._typed_template = None
+        self._typed_requests: dict[tuple[str, str], object] = {}
+        self._typed_runners: dict[tuple[str, str], object] = {}
+        self._last_typed_diagnostics: Mapping[str, object] = {}
+        self._typed_diagnostics: dict[tuple[str, str], Mapping[str, object]] = {}
         self._session = None
+        if self.native_static_abi == "0.5":
+            if not hasattr(self._module, "NativeExecutionTemplateCore") or not hasattr(
+                self._module, "NativeExecutionRequestCore"
+            ):
+                raise NativeEventRustBackendError(
+                    "installed _quantbt_native wheel lacks the typed static ABI 0.5 request surface; "
+                    "use native_static_abi='0.4_compat' only as an explicit rollback"
+                )
+            self._typed_template = self._module.NativeExecutionTemplateCore.from_prepared(
+                self.prepared_market_core,
+                self.contract_sizes,
+                self.leverages,
+                self.fee_rates,
+                self.initial_capital,
+                self.maintenance_ratio,
+                self.slippage,
+                self.use_funding,
+                event_contract_code=self.event_contract.contract_code,
+            )
 
     def _new_session(self):
         if self._session is None:
@@ -1491,6 +1572,60 @@ class RustFullRunner:
             self.clear_tape_cache()
         return arrays
 
+    @staticmethod
+    def _typed_profile_code(profile: str) -> int:
+        try:
+            return {"score": 0, "compact": 1, "audit": 2}[str(profile).lower().strip()]
+        except KeyError as exc:
+            raise ValueError("typed static profile must be score, compact, or audit") from exc
+
+    def _typed_request(self, compiled_commands: CompiledOrderCommandArrays, profile: str):
+        """Return a cached immutable V5 request and its reset-safe native runner."""
+
+        if self.native_static_abi != "0.5" or self._typed_template is None:
+            raise NativeEventRustBackendError("typed static request is unavailable for ABI 0.4 compatibility mode")
+        fingerprint = getattr(compiled_commands, "tape_fingerprint", "") or _command_tape_fingerprint(
+            compiled_commands
+        )
+        normalized_profile = str(profile).lower().strip()
+        key = (fingerprint, normalized_profile)
+        request = self._typed_requests.get(key)
+        runner = self._typed_runners.get(key)
+        if request is None or runner is None:
+            ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
+            request = self._module.NativeExecutionRequestCore.from_template_command_tape(
+                self._typed_template,
+                ptr,
+                codes,
+                values,
+                expiry,
+                output_profile=self._typed_profile_code(normalized_profile),
+            )
+            runner = request.new_runner()
+            self._typed_requests[key] = request
+            self._typed_runners[key] = runner
+        return request, runner
+
+    def run_tape_typed(self, compiled_commands: CompiledOrderCommandArrays, *, profile: str):
+        """Execute one prepared V5 tape and return its direct typed SoA output.
+
+        The execution call releases the GIL in Rust. The result is not replayed
+        or converted to a Python mapping here; legacy helpers below retain that
+        optional cold-path behavior for existing callers.
+        """
+
+        if self.native_static_abi != "0.5":
+            raise NativeEventRustBackendError(
+                "run_tape_typed requires native_static_abi='0.5'; ABI 0.4 is compatibility-only"
+            )
+        request, runner = self._typed_request(compiled_commands, profile)
+        output = runner.execute_typed()
+        if hasattr(runner, "diagnostics"):
+            diagnostics = dict(runner.diagnostics())
+            self._last_typed_diagnostics = diagnostics
+            self._typed_diagnostics[(str(request.fingerprint), str(profile).lower().strip())] = diagnostics
+        return output
+
     @property
     def tape_cache_bytes(self) -> int:
         """Resident bytes held by the bounded full-contract tape cache."""
@@ -1503,6 +1638,13 @@ class RustFullRunner:
         self._cached_tape_fingerprint = None
         self._cached_tape_arrays = None
         self._cached_tape_bytes = 0
+        for runner in self._typed_runners.values():
+            if hasattr(runner, "close"):
+                runner.close()
+        self._typed_requests.clear()
+        self._typed_runners.clear()
+        self._last_typed_diagnostics = {}
+        self._typed_diagnostics.clear()
         self._command_buffer.clear()
 
     def clear_caches(self) -> None:
@@ -1511,7 +1653,7 @@ class RustFullRunner:
         self.clear_tape_cache()
         self._session = None
 
-    def cache_info(self) -> Mapping[str, int]:
+    def cache_info(self) -> Mapping[str, object]:
         """Return observable bounded-cache and command-buffer counters."""
 
         info = {
@@ -1520,7 +1662,51 @@ class RustFullRunner:
             "command_buffer_capacity": self._command_buffer.capacity,
             "command_buffer_growth_count": self._command_buffer.growth_count,
             "commands_compiled": self._command_buffer.commands_compiled,
+            "native_static_abi": self.native_static_abi,
+            "typed_request_entries": len(self._typed_requests),
+            "typed_runner_entries": len(self._typed_runners),
         }
+        if self.native_static_abi == "0.5":
+            typed = self._last_typed_diagnostics
+            for key in (
+                "order_arena_slots",
+                "order_arena_capacity",
+                "order_compactions",
+                "terminal_orders_removed",
+                "step_fill_buffer_capacity",
+                "step_event_buffer_capacity",
+                "step_active_order_buffer_capacity",
+                "margin_recompute_count",
+                "expiry_scan_count",
+                "matching_scan_count",
+                "relationship_scan_count",
+                "boundary_calls",
+                "run_count",
+            ):
+                if key in typed:
+                    info[key] = int(typed[key])
+            if self._typed_diagnostics:
+                values = tuple(self._typed_diagnostics.values())
+                for key in (
+                    "boundary_calls",
+                    "run_count",
+                    "full_rebuilds",
+                    "terminal_orders_removed",
+                    "order_compactions",
+                    "margin_recompute_count",
+                    "expiry_scan_count",
+                    "matching_scan_count",
+                    "relationship_scan_count",
+                ):
+                    info[f"typed_{key}_total"] = int(sum(int(item.get(key, 0)) for item in values))
+                for key in (
+                    "order_arena_slots",
+                    "order_arena_capacity",
+                    "step_fill_buffer_capacity",
+                    "step_event_buffer_capacity",
+                    "step_active_order_buffer_capacity",
+                ):
+                    info[f"typed_{key}_max"] = int(max(int(item.get(key, 0)) for item in values))
         if self._session is not None and hasattr(self._session, "order_arena_counters"):
             slots, capacity, compactions, removed = self._session.order_arena_counters()
             info.update(
@@ -1554,6 +1740,10 @@ class RustFullRunner:
         return info
 
     def run_tape_score(self, compiled_commands: CompiledOrderCommandArrays) -> Mapping[str, object]:
+        if self.native_static_abi == "0.5":
+            # Public compatibility helper only. Static endpoint execution uses
+            # ``run_tape_typed`` directly and does not build this mapping.
+            return dict(self.run_tape_typed(compiled_commands, profile="score").as_dict())
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         return self._new_session().run_tape_score(ptr, codes, values, expiry)
 
@@ -1565,6 +1755,14 @@ class RustFullRunner:
         materialization; endpoint report adaptation remains outside Rust.
         """
 
+        if self.native_static_abi == "0.5":
+            payload = dict(self.run_tape_typed(compiled_commands, profile="compact").as_dict())
+            for key in (
+                "equity", "positions", "fees", "turnover", "funding", "initial_margin", "maintenance_margin",
+            ):
+                payload[key] = np.ascontiguousarray(np.asarray(payload[key]), dtype=np.float64)
+            payload["positions"] = payload["positions"].reshape(len(self.idx), len(self.symbols))
+            return payload
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         session = self._new_session()
         if not hasattr(session, "run_tape_compact"):
@@ -1580,6 +1778,20 @@ class RustFullRunner:
         return payload
 
     def run_tape_audit(self, compiled_commands: CompiledOrderCommandArrays) -> RustFullAuditResult:
+        if self.native_static_abi == "0.5":
+            payload = self.run_tape_typed(compiled_commands, profile="audit")
+            return RustFullAuditResult.from_audit_payload(
+                payload,
+                n_bars=len(self.idx),
+                n_symbols=len(self.symbols),
+                id_values=tuple(compiled_commands.id_values),
+                command_report=_build_rust_command_intent_report(compiled_commands),
+                command_metadata={
+                    command.order_id: dict(command.metadata)
+                    for _, command in compiled_commands.sorted_commands
+                    if command.order_id
+                },
+            )
         ptr, codes, values, expiry = self._tape_arrays(compiled_commands)
         payload = self._new_session().run_tape_audit(ptr, codes, values, expiry)
         return RustFullAuditResult.from_audit_payload(
@@ -2814,6 +3026,1099 @@ class RustReactiveSessionAdapter:
         )
 
 
+class RustReactiveNumericCoRuntime:
+    """One-entry Rust timeline for explicit R1 numeric Python strategies.
+
+    This is intentionally separate from :class:`RustReactiveSessionAdapter`.
+    The legacy adapter remains the compatibility/oracle route with a Python
+    loop around each state transition.  R1 keeps the execution clock,
+    lifecycle state, accounting, primitive command ingestion, and dense
+    result buffers inside Rust for a complete run. Python receives only the
+    declared numeric callback context and writes into the persistent Rust
+    command buffer.
+
+    It is an explicit, experimental co-runtime. It does not silently fall
+    back to the legacy callback bridge and it is not eligible for auto route
+    promotion.
+    """
+
+    _MARKET_MASK = {"open": 1, "high": 2, "low": 4, "close": 8, "volume": 16}
+    _ACCOUNT_MASK = {
+        "equity": 1,
+        "available_equity": 2,
+        "initial_margin": 4,
+        "maintenance_margin": 8,
+        "liquidated": 16,
+    }
+    _ACTION = {
+        0: OrderAction.PLACE,
+        1: OrderAction.CANCEL,
+        2: OrderAction.REPLACE,
+        3: OrderAction.AMEND,
+        4: OrderAction.CANCEL_ALL,
+    }
+    _ORDER_TYPE = {0: OrderType.MARKET, 1: OrderType.LIMIT, 2: OrderType.STOP_MARKET, 3: OrderType.STOP_LIMIT}
+    _TIF = {0: TimeInForce.GTC, 1: TimeInForce.IOC, 2: TimeInForce.FOK, 3: TimeInForce.GTD}
+    _ACTIVATION = {
+        0: OrderActivationPolicy.IMMEDIATE,
+        1: OrderActivationPolicy.ON_PARENT_FIRST_FILL,
+        2: OrderActivationPolicy.ON_PARENT_FULL_FILL,
+    }
+
+    def __init__(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market_arrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        initial_capital: float,
+        maintenance_ratio: float,
+        slippage: float,
+        use_funding: bool,
+        event_contract: EventClockContract | str,
+        requirements,
+        retain_fills: bool,
+        retain_events: bool,
+        prepared_market_core=None,
+        command_initial_capacity: int = 8,
+        command_hard_limit: int = 65_536,
+        runtime: str = "numeric_every_bar_v1",
+        scalar_score: bool = False,
+        score_trading_days: int = 365,
+    ) -> None:
+        self._module = _require_r1_extension()
+        status = probe_native_event_rust_extension(module=self._module)
+        runtime_capability = {
+            "numeric_every_bar_v1": "reactive_numeric_coruntime_r1",
+            "numeric_sparse_wake_v1": "reactive_sparse_wake_r2",
+            "numeric_block_intent_v1": "reactive_block_intent_r3",
+        }.get(str(runtime))
+        if runtime_capability is None:
+            raise NativeEventRustBackendError(f"unsupported reactive numeric runtime={runtime!r}")
+        if not bool(status.capabilities.get(runtime_capability, False)):
+            raise NativeEventRustBackendError(
+                f"installed _quantbt_native wheel lacks {runtime_capability}; rebuild/install the matching native wheel"
+            )
+        if not hasattr(self._module, "ReactiveNumericRunnerCore"):
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks ReactiveNumericRunnerCore"
+            )
+        self.idx = pd.DatetimeIndex(idx)
+        self.symbols = tuple(str(symbol) for symbol in symbols)
+        self.market_arrays = market_arrays
+        self.opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        self.volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        self.constraints = constraints
+        self.contract_sizes = np.ascontiguousarray(contract_sizes, dtype=np.float64)
+        self.leverages = np.ascontiguousarray(leverages, dtype=np.float64)
+        self.fee_rates = np.ascontiguousarray(fee_rates, dtype=np.float64)
+        self.initial_capital = float(initial_capital)
+        self.maintenance_ratio = float(maintenance_ratio)
+        self.slippage = float(slippage)
+        self.use_funding = bool(use_funding)
+        self.event_contract = get_event_clock_contract(event_contract)
+        self.requirements = requirements
+        self.retain_fills = bool(retain_fills)
+        self.retain_events = bool(retain_events)
+        self.runtime = str(runtime)
+        self.scalar_score = bool(scalar_score)
+        self.score_trading_days = int(score_trading_days)
+        if self.scalar_score and self.score_trading_days <= 0:
+            raise NativeEventRustBackendError("reactive scalar score requires trading_days > 0")
+        self._prepared_market_core = prepared_market_core
+        if self._prepared_market_core is None:
+            self._prepared_market_core = self._module.FullPreparedMarketCore(
+                np.ascontiguousarray(self.idx.asi8, dtype=np.int64),
+                self.opens_arr,
+                np.ascontiguousarray(market_arrays.highs, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.lows, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.closes, dtype=np.float64),
+                self.volumes_arr,
+                np.ascontiguousarray(market_arrays.funding, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.is_funding_bar, dtype=np.bool_),
+            )
+        market_mask = sum(self._MARKET_MASK[name] for name in requirements.market)
+        account_mask = sum(self._ACCOUNT_MASK[name] for name in requirements.account)
+        score_bar_annualization = self._score_bar_annualization(
+            self.idx,
+            fallback=float(self.score_trading_days),
+        )
+        self._core = self._module.ReactiveNumericRunnerCore.from_prepared(
+            self._prepared_market_core,
+            self.contract_sizes,
+            self.leverages,
+            self.fee_rates,
+            np.ascontiguousarray(constraints.qty_step, dtype=np.float64),
+            np.ascontiguousarray(constraints.min_qty, dtype=np.float64),
+            np.ascontiguousarray(constraints.min_notional, dtype=np.float64),
+            self.initial_capital,
+            self.maintenance_ratio,
+            self.slippage,
+            self.use_funding,
+            int(market_mask),
+            int(account_mask),
+            bool(requirements.positions),
+            bool(requirements.fills != "none"),
+            bool(requirements.events != "none"),
+            bool(requirements.active_orders != "none"),
+            self.retain_fills,
+            self.retain_events,
+            int(command_initial_capacity),
+            int(command_hard_limit),
+            retain_account_paths=not self.scalar_score,
+            retain_command_rows=not self.scalar_score,
+            retain_callback_trace=not self.scalar_score,
+            retain_terminal_active_orders=not self.scalar_score,
+            scalar_metrics=self.scalar_score,
+            score_trading_days=int(self.score_trading_days),
+            score_bar_annualization=float(score_bar_annualization),
+        )
+        self._core.set_event_contract(self.event_contract.contract_code)
+        self._cancellation_token = (
+            self._core.cancellation_token()
+            if hasattr(self._core, "cancellation_token")
+            else None
+        )
+
+    @property
+    def prepared_market_core(self):
+        return self._prepared_market_core
+
+    @property
+    def cancellation_token(self):
+        """Return the native cooperative-cancellation token, when available.
+
+        It is deliberately separate from the runner and owns no accounting
+        state. Older installed extensions retain the established ``None``
+        compatibility surface rather than silently emulating cancellation.
+        """
+
+        return self._cancellation_token
+
+    def request_cancel(self) -> None:
+        """Ask a detached reactive native gap to stop at its next safe bar."""
+
+        if self._cancellation_token is not None:
+            self._cancellation_token.cancel()
+        elif hasattr(self._core, "request_cancel"):
+            self._core.request_cancel()
+        else:
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks cooperative reactive cancellation"
+            )
+
+    def clear_cancellation(self) -> None:
+        """Clear a prior cancellation before a fresh runner lifecycle."""
+
+        if self._cancellation_token is not None:
+            self._cancellation_token.clear()
+        elif hasattr(self._core, "clear_cancellation"):
+            self._core.clear_cancellation()
+
+    def set_deadline_ms(self, deadline_ms: int | None) -> None:
+        """Set one native safe-point deadline for each subsequent run.
+
+        The limit is enforced inside Rust between completed account bars.  It
+        intentionally cannot interrupt a Python strategy callback or half of
+        an accounting transition, so an interrupted score is never adapted as
+        a partial result.
+        """
+
+        if deadline_ms is not None and int(deadline_ms) <= 0:
+            raise ValueError("reactive native deadline_ms must be > 0 or None")
+        if not hasattr(self._core, "set_deadline_ms"):
+            if deadline_ms is None:
+                return
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks native reactive deadline enforcement"
+            )
+        self._core.set_deadline_ms(None if deadline_ms is None else int(deadline_ms))
+
+    @staticmethod
+    def _score_bar_annualization(idx: pd.DatetimeIndex, *, fallback: float) -> float:
+        """Match the legacy scalar reducer's short-sample annualization.
+
+        Multi-day runs use daily sampling.  For a sub-day tape, the Python
+        oracle derives periods/year from the median positive timestamp delta;
+        calculate it once at preparation so Rust does not retain timestamps.
+        """
+
+        values = np.asarray(pd.DatetimeIndex(idx).asi8, dtype=np.int64)
+        if values.size < 2:
+            return float(fallback)
+        deltas = np.diff(values).astype(np.float64) / 1_000_000_000.0
+        deltas = deltas[deltas > 0.0]
+        if not deltas.size:
+            return float(fallback)
+        return float(365.25 * 24.0 * 60.0 * 60.0 / np.median(deltas))
+
+    @staticmethod
+    def _value(payload: Mapping[str, object], name: str) -> np.ndarray:
+        return np.asarray(payload[name])
+
+    def _pad_terminal_paths(
+        self,
+        payload: Mapping[str, object],
+        *,
+        total_bars: int | None = None,
+    ) -> dict[str, object]:
+        """Pad an early-liquidated native session on the cold result path.
+
+        ``FullSession`` correctly stops stepping after liquidation, so its hot
+        SoA paths contain exactly ``bars_processed`` rows.  The public result
+        contract, however, is indexed by the full submitted market tape.  We
+        retain the terminal account state for the remaining timestamps while
+        appending *zero* flow values; this mirrors a flat/liquidated account
+        without replaying one execution bar in Python.
+        """
+
+        processed = int(payload["bars_processed"])
+        total = len(self.idx) if total_bars is None else int(total_bars)
+        if not 0 < total <= len(self.idx):
+            raise NativeEventRustBackendError("reactive terminal path target length is invalid")
+        if processed == total:
+            return dict(payload)
+        if not 0 < processed < total:
+            raise NativeEventRustBackendError(
+                "reactive native result bars_processed is outside the prepared market range"
+            )
+
+        result = dict(payload)
+        trailing = total - processed
+        state_keys = ("equity", "initial_margin", "maintenance_margin")
+        flow_keys = ("fees", "turnover", "funding")
+        for key in state_keys:
+            values = np.ascontiguousarray(np.asarray(payload[key], dtype=np.float64))
+            if values.shape != (processed,):
+                raise NativeEventRustBackendError(
+                    f"reactive native {key} path does not match bars_processed"
+                )
+            result[key] = np.ascontiguousarray(
+                np.concatenate((values, np.full(trailing, values[-1], dtype=np.float64)))
+            )
+        for key in flow_keys:
+            values = np.ascontiguousarray(np.asarray(payload[key], dtype=np.float64))
+            if values.shape != (processed,):
+                raise NativeEventRustBackendError(
+                    f"reactive native {key} path does not match bars_processed"
+                )
+            result[key] = np.ascontiguousarray(
+                np.concatenate((values, np.zeros(trailing, dtype=np.float64)))
+            )
+
+        positions = np.ascontiguousarray(np.asarray(payload["positions"], dtype=np.float64))
+        expected_positions = processed * len(self.symbols)
+        if positions.size != expected_positions:
+            raise NativeEventRustBackendError(
+                "reactive native position path does not match bars_processed and symbols"
+            )
+        matrix = positions.reshape(processed, len(self.symbols))
+        padded_positions = np.vstack(
+            (matrix, np.repeat(matrix[-1:, :], trailing, axis=0))
+        )
+        result["positions"] = np.ascontiguousarray(padded_positions.reshape(-1))
+        result["terminal_path_padded"] = True
+        result["terminal_path_original_bars"] = processed
+        return result
+
+    @staticmethod
+    def _numeric_id(value: int) -> str | None:
+        return None if int(value) < 0 else f"qbt-{int(value)}"
+
+    def _external_ids(self, payload: Mapping[str, object]) -> dict[int, str]:
+        values: set[int] = set()
+        for name in (
+            "fill_order_id",
+            "event_order_id",
+            "event_target_id",
+            "command_order_id",
+            "command_target_id",
+            "command_parent_id",
+            "command_group_id",
+            "command_oco_id",
+            "terminal_active_order_id",
+        ):
+            values.update(int(value) for value in self._value(payload, name).tolist() if int(value) >= 0)
+        return {value: f"qbt-{value}" for value in sorted(values)}
+
+    def _command_report(self, payload: Mapping[str, object]) -> pd.DataFrame:
+        bars = self._value(payload, "command_bar").astype(np.int64, copy=False)
+        if not len(bars):
+            return pd.DataFrame()
+        effective = self._value(payload, "command_effective_bar").astype(np.int64, copy=False)
+        action = self._value(payload, "command_action").astype(np.int64, copy=False)
+        symbol = self._value(payload, "command_symbol").astype(np.int64, copy=False)
+        side = self._value(payload, "command_side").astype(np.int64, copy=False)
+        order_type = self._value(payload, "command_order_type").astype(np.int64, copy=False)
+        tif = self._value(payload, "command_tif").astype(np.int64, copy=False)
+        flags = self._value(payload, "command_flags").astype(np.int64, copy=False)
+        order_id = self._value(payload, "command_order_id").astype(np.int64, copy=False)
+        target_id = self._value(payload, "command_target_id").astype(np.int64, copy=False)
+        parent_id = self._value(payload, "command_parent_id").astype(np.int64, copy=False)
+        group_id = self._value(payload, "command_group_id").astype(np.int64, copy=False)
+        oco_id = self._value(payload, "command_oco_id").astype(np.int64, copy=False)
+        activation = self._value(payload, "command_activation").astype(np.int64, copy=False)
+        accepted = self._value(payload, "command_accepted").astype(bool, copy=False)
+        outside = self._value(payload, "command_outside_tape").astype(bool, copy=False)
+        invalidated = np.asarray(
+            payload.get("command_invalidated", np.zeros(len(bars), dtype=bool)), dtype=bool
+        )
+        timestamps = [
+            self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
+            for bar in effective
+        ]
+        report = pd.DataFrame(
+            {
+                "original_index": np.arange(len(bars), dtype=np.int64),
+                "timestamp": timestamps,
+                "source_bar": bars,
+                "effective_bar": effective,
+                "action": [
+                    self._ACTION[int(value)].value if int(value) in self._ACTION else "unknown"
+                    for value in action
+                ],
+                "symbol": [self.symbols[int(value)] if 0 <= int(value) < len(self.symbols) else None for value in symbol],
+                "side": [None if int(value) == 0 else ("buy" if int(value) > 0 else "sell") for value in side],
+                "order_type": [self._ORDER_TYPE[int(value)].value if int(value) in self._ORDER_TYPE else None for value in order_type],
+                "order_id": [self._numeric_id(value) for value in order_id],
+                "target_order_id": [self._numeric_id(value) for value in target_id],
+                "parent_order_id": [self._numeric_id(value) for value in parent_id],
+                "group_id": [self._numeric_id(value) for value in group_id],
+                "oco_group_id": [self._numeric_id(value) for value in oco_id],
+                "qty": self._value(payload, "command_qty").astype(np.float64, copy=False),
+                "price": self._value(payload, "command_price").astype(np.float64, copy=False),
+                "trigger_price": self._value(payload, "command_trigger").astype(np.float64, copy=False),
+                "tif": [self._TIF[int(value)].value if int(value) in self._TIF else None for value in tif],
+                "reduce_only": (flags & 1).astype(bool),
+                "activation_policy": [
+                    self._ACTIVATION[int(value)].value if int(value) in self._ACTIVATION else None
+                    for value in activation
+                ],
+                "accepted_by_preflight": accepted,
+                "outside_executable_tape": outside,
+                "invalidated_before_execution": invalidated,
+                # ``accepted_by_preflight`` is intentionally separate from a
+                # terminal lifecycle state. A command can be accepted at its
+                # callback boundary and subsequently fill, cancel, or reject.
+                "status": np.where(
+                    invalidated,
+                    ORDER_STATUS_CANCELED,
+                    np.where(accepted, ORDER_STATUS_PENDING, ORDER_STATUS_REJECTED),
+                ),
+                "report_kind": "reactive_numeric_command_intent",
+            }
+        )
+        if not len(report):
+            return report
+
+        event_kind = self._value(payload, "event_kind").astype(np.int64, copy=False)
+        event_status = self._value(payload, "event_status").astype(np.int64, copy=False)
+        event_order = self._value(payload, "event_order_id").astype(np.int64, copy=False)
+        event_target = self._value(payload, "event_target_id").astype(np.int64, copy=False)
+        terminal_by_order: dict[int, int] = {}
+        control_by_target: dict[int, int] = {}
+        for kind, status_value, order_value, target_value in zip(
+            event_kind, event_status, event_order, event_target
+        ):
+            kind = int(kind)
+            status_value = int(status_value)
+            order_value = int(order_value)
+            target_value = int(target_value)
+            if order_value >= 0 and kind in {1, 4, 5, 7}:
+                terminal_by_order[order_value] = status_value
+            if target_value >= 0 and kind in {1, 2, 3, 7}:
+                control_by_target[target_value] = status_value
+
+        terminal_status = report["status"].to_numpy(dtype=np.int64, copy=True)
+        action_values = action.astype(np.int64, copy=False)
+        for row in range(len(report)):
+            if not accepted[row] or invalidated[row]:
+                continue
+            action_value = int(action_values[row])
+            if action_value in {0, 2}:  # place / replace
+                terminal_status[row] = terminal_by_order.get(int(order_id[row]), terminal_status[row])
+            elif action_value in {1, 3, 4}:  # cancel / amend / cancel_all
+                terminal_status[row] = control_by_target.get(int(target_id[row]), terminal_status[row])
+        report["terminal_status"] = terminal_status
+        return report
+
+    def emitted_commands(self, payload: Mapping[str, object]) -> tuple[OrderCommand, ...]:
+        """Materialize the executed primitive tape only for external auditing.
+
+        This method is intentionally cold-path only. The co-runtime never
+        uses it to replay or execute the strategy.
+        """
+
+        commands: list[OrderCommand] = []
+        report = self._command_report(payload)
+        if report.empty:
+            return ()
+        for row in report.itertuples(index=False):
+            if (
+                not bool(row.accepted_by_preflight)
+                or bool(row.outside_executable_tape)
+                or bool(row.invalidated_before_execution)
+            ):
+                continue
+            action = next((value for value in self._ACTION.values() if value.value == row.action), None)
+            if action is None:
+                raise NativeEventRustBackendError(f"unsupported R1 command action={row.action!r}")
+            side = None if row.side is None else (OrderSide.BUY if row.side == "buy" else OrderSide.SELL)
+            order_type = next(
+                (value for value in self._ORDER_TYPE.values() if value.value == row.order_type),
+                None,
+            )
+            tif = next(value for value in self._TIF.values() if value.value == row.tif)
+            activation = next(
+                value for value in self._ACTIVATION.values() if value.value == row.activation_policy
+            )
+            commands.append(
+                OrderCommand(
+                    timestamp=row.timestamp,
+                    action=action,
+                    symbol=row.symbol,
+                    side=side,
+                    order_type=order_type,
+                    qty=None if not np.isfinite(row.qty) else float(row.qty),
+                    price=None if not np.isfinite(row.price) else float(row.price),
+                    trigger_price=None if not np.isfinite(row.trigger_price) else float(row.trigger_price),
+                    tif=tif,
+                    reduce_only=bool(row.reduce_only),
+                    order_id=row.order_id,
+                    target_order_id=row.target_order_id,
+                    parent_order_id=row.parent_order_id,
+                    group_id=row.group_id,
+                    oco_group_id=row.oco_group_id,
+                    activation_policy=activation,
+                )
+            )
+        return tuple(commands)
+
+    def run(
+        self,
+        strategy,
+        *,
+        gil_policy: str = "held_for_session",
+        runtime: str | None = None,
+    ) -> tuple[RustFullAuditResult, Mapping[str, object]]:
+        selected_runtime = self.runtime if runtime is None else str(runtime)
+        runner_method = {
+            "numeric_every_bar_v1": "run",
+            "numeric_sparse_wake_v1": "run_sparse",
+            "numeric_block_intent_v1": "run_block",
+        }.get(selected_runtime)
+        if runner_method is None or not hasattr(self._core, runner_method):
+            raise NativeEventRustBackendError(
+                f"installed _quantbt_native wheel lacks runner support for {selected_runtime!r}"
+            )
+        output = getattr(self._core, runner_method)(strategy, gil_policy)
+        payload = self._pad_terminal_paths(dict(output.consume()))
+        command_report = self._command_report(payload)
+        audit = RustFullAuditResult.from_audit_payload(
+            payload,
+            n_bars=len(self.idx),
+            n_symbols=len(self.symbols),
+            external_id_values=self._external_ids(payload),
+            command_report=command_report,
+        )
+        callback_kind = self._value(payload, "callback_kind").astype(np.int64, copy=False)
+        decision_callbacks = int(np.count_nonzero(np.isin(callback_kind, (1, 3, 4))))
+        wake_bar = self._value(payload, "wake_bar").astype(np.int64, copy=False)
+        wake_reason_mask = self._value(payload, "wake_reason_mask").astype(np.int64, copy=False)
+        metadata = {
+            "runtime_class": str(payload["runtime_class"]),
+            "strategy_authority": "python_callback",
+            "control_flow_authority": "rust_runtime",
+            "execution_authority": "rust",
+            "accounting_authority": "rust",
+            "metrics_authority": "rust",
+            "result_authority": "rust",
+            "fully_native": False,
+            "native_entry_calls": int(payload["native_entry_calls"]),
+            "bars_processed": int(payload["bars_processed"]),
+            "terminal_path_padded": bool(payload.get("terminal_path_padded", False)),
+            "terminal_path_original_bars": int(
+                payload.get("terminal_path_original_bars", payload["bars_processed"])
+            ),
+            "python_callback_calls": int(payload["python_callback_calls"]),
+            "gil_acquisitions": int(payload["gil_acquisitions"]),
+            "gil_policy": str(payload["gil_policy"]),
+            "bars_processed_without_callback": max(0, int(payload["bars_processed"]) - decision_callbacks),
+            "context_projection_copy_bytes": int(payload["context_copy_bytes"]),
+            "wake_observation_refreshes": int(payload.get("wake_observation_refreshes", 0)),
+            "wake_observation_buffer_allocations": int(
+                payload.get("wake_observation_buffer_allocations", 0)
+            ),
+            "native_gap_runs": int(payload.get("native_gap_runs", 0)),
+            "native_gap_bars": int(payload.get("native_gap_bars", 0)),
+            "native_cancellation_checks": int(payload.get("native_cancellation_checks", 0)),
+            "native_deadline_checks": int(payload.get("native_deadline_checks", 0)),
+            "command_ingest_copy_bytes": int(payload["command_ingest_bytes"]),
+            "command_rows": int(payload["command_rows"]),
+            "command_rows_dropped": int(payload["command_rows_dropped"]),
+            "command_rows_quantized": int(payload["command_rows_quantized"]),
+            "callback_ns": int(payload["python_callback_ns"]),
+            "context_projection_ns": int(payload["context_projection_ns"]),
+            "command_ingest_ns": int(payload["command_ingest_ns"]),
+            "engine_ns": int(payload["engine_ns"]),
+            "result_materialization_ns": int(payload["result_materialization_ns"]),
+            "command_writer_python_objects": 0,
+            "context_pandas_allocations": 0,
+            "context_dataclass_allocations": 0,
+            "strategy_callback_trace": pd.DataFrame(
+                {
+                    "kind": self._value(payload, "callback_kind").astype(np.int64, copy=False),
+                    "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
+                    "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
+                    "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
+                    "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
+                }
+            ),
+            "wake_trace": pd.DataFrame(
+                {
+                    "bar": wake_bar,
+                    "timestamp": [
+                        self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
+                        for bar in wake_bar
+                    ],
+                    "reason_mask": wake_reason_mask,
+                }
+            ),
+        }
+        fingerprint = getattr(strategy, "quantbt_state_fingerprint", None)
+        metadata["strategy_state_fingerprint"] = fingerprint() if callable(fingerprint) else None
+        return audit, {**payload, "metadata": metadata}
+
+    def run_window(
+        self,
+        strategy,
+        *,
+        start_bar: int,
+        end_bar: int,
+        gil_policy: str = "held_for_session",
+        runtime: str | None = None,
+    ) -> tuple[RustFullAuditResult, Mapping[str, object]]:
+        """Run a fresh account over one absolute prepared-market bar window.
+
+        The immutable market remains owned by the shared Rust core.  Callback
+        contexts and emitted command bars remain absolute to that market so a
+        prepared strategy can use causal full-history features without a
+        fold-local market copy.  Public audit adaptation intentionally uses
+        this method only through the reactive WFO cold result route.
+        """
+
+        start = int(start_bar)
+        end = int(end_bar)
+        if not 0 <= start < end <= len(self.idx):
+            raise ValueError("reactive run window must satisfy 0 <= start_bar < end_bar <= market bars")
+        selected_runtime = self.runtime if runtime is None else str(runtime)
+        runner_method = {
+            "numeric_every_bar_v1": "run_window",
+            "numeric_sparse_wake_v1": "run_sparse_window",
+            "numeric_block_intent_v1": "run_block_window",
+        }.get(selected_runtime)
+        if runner_method is None or not hasattr(self._core, runner_method):
+            raise NativeEventRustBackendError(
+                f"installed _quantbt_native wheel lacks window runner support for {selected_runtime!r}"
+            )
+        output = getattr(self._core, runner_method)(strategy, start, end, gil_policy)
+        payload = self._pad_terminal_paths(dict(output.consume()), total_bars=end - start)
+        expected_bars = int(payload["bars_processed"])
+        if not 0 < expected_bars <= end - start:
+            raise NativeEventRustBackendError("reactive window result bars_processed is outside its requested range")
+        command_report = self._command_report(payload)
+        audit = RustFullAuditResult.from_audit_payload(
+            payload,
+            n_bars=end - start,
+            n_symbols=len(self.symbols),
+            external_id_values=self._external_ids(payload),
+            command_report=command_report,
+        )
+        payload["window_start_bar"] = start
+        payload["window_end_bar"] = end
+        callback_kind = self._value(payload, "callback_kind").astype(np.int64, copy=False)
+        decision_callbacks = int(np.count_nonzero(np.isin(callback_kind, (1, 3, 4))))
+        wake_bar = self._value(payload, "wake_bar").astype(np.int64, copy=False)
+        wake_reason_mask = self._value(payload, "wake_reason_mask").astype(np.int64, copy=False)
+        payload["metadata"] = {
+            "runtime_class": str(payload["runtime_class"]),
+            "window_start_bar": start,
+            "window_end_bar": end,
+            "strategy_authority": "python_callback",
+            "control_flow_authority": "rust_runtime",
+            "execution_authority": "rust",
+            "accounting_authority": "rust",
+            "metrics_authority": "rust",
+            "result_authority": "rust",
+            "fully_native": False,
+            "native_entry_calls": int(payload["native_entry_calls"]),
+            "bars_processed": int(payload["bars_processed"]),
+            "terminal_path_padded": bool(payload.get("terminal_path_padded", False)),
+            "terminal_path_original_bars": int(
+                payload.get("terminal_path_original_bars", payload["bars_processed"])
+            ),
+            "python_callback_calls": int(payload["python_callback_calls"]),
+            "gil_acquisitions": int(payload["gil_acquisitions"]),
+            "gil_policy": str(payload["gil_policy"]),
+            "bars_processed_without_callback": max(
+                0, int(payload["bars_processed"]) - decision_callbacks
+            ),
+            "context_projection_copy_bytes": int(payload["context_copy_bytes"]),
+            "wake_observation_refreshes": int(payload.get("wake_observation_refreshes", 0)),
+            "wake_observation_buffer_allocations": int(
+                payload.get("wake_observation_buffer_allocations", 0)
+            ),
+            "native_gap_runs": int(payload.get("native_gap_runs", 0)),
+            "native_gap_bars": int(payload.get("native_gap_bars", 0)),
+            "native_cancellation_checks": int(payload.get("native_cancellation_checks", 0)),
+            "native_deadline_checks": int(payload.get("native_deadline_checks", 0)),
+            "command_ingest_copy_bytes": int(payload["command_ingest_bytes"]),
+            "command_rows": int(payload["command_rows"]),
+            "command_rows_dropped": int(payload["command_rows_dropped"]),
+            "command_rows_quantized": int(payload["command_rows_quantized"]),
+            "callback_ns": int(payload["python_callback_ns"]),
+            "context_projection_ns": int(payload["context_projection_ns"]),
+            "command_ingest_ns": int(payload["command_ingest_ns"]),
+            "engine_ns": int(payload["engine_ns"]),
+            "result_materialization_ns": int(payload["result_materialization_ns"]),
+            "command_writer_python_objects": 0,
+            "context_pandas_allocations": 0,
+            "context_dataclass_allocations": 0,
+            "strategy_callback_trace": pd.DataFrame(
+                {
+                    "kind": callback_kind,
+                    "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
+                    "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
+                    "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
+                    "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
+                }
+            ),
+            "wake_trace": pd.DataFrame(
+                {
+                    "bar": wake_bar,
+                    "timestamp": [
+                        self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
+                        for bar in wake_bar
+                    ],
+                    "reason_mask": wake_reason_mask,
+                }
+            ),
+        }
+        fingerprint = getattr(strategy, "quantbt_state_fingerprint", None)
+        payload["metadata"]["strategy_state_fingerprint"] = (
+            fingerprint() if callable(fingerprint) else None
+        )
+        return audit, payload
+
+    def run_scalar(
+        self,
+        strategy,
+        *,
+        gil_policy: str = "held_for_session",
+        runtime: str | None = None,
+    ) -> Mapping[str, object]:
+        """Return one scalar-only reactive result without cold audit adaptation.
+
+        This route is private to prepared optimization/WFO.  Rust keeps the
+        account and lifecycle state authoritative; Python receives a small
+        mapping of terminal state, counters and streaming metrics only.
+        """
+
+        if not self.scalar_score:
+            raise NativeEventRustBackendError(
+                "run_scalar requires RustReactiveNumericCoRuntime(scalar_score=True)"
+            )
+        selected_runtime = self.runtime if runtime is None else str(runtime)
+        runner_method = {
+            "numeric_every_bar_v1": "run",
+            "numeric_sparse_wake_v1": "run_sparse",
+            "numeric_block_intent_v1": "run_block",
+        }.get(selected_runtime)
+        if runner_method is None or not hasattr(self._core, runner_method):
+            raise NativeEventRustBackendError(
+                f"installed _quantbt_native wheel lacks runner support for {selected_runtime!r}"
+            )
+        output = getattr(self._core, runner_method)(strategy, gil_policy)
+        payload = dict(output.consume())
+        if not bool(payload.get("score_metrics_present", False)):
+            raise NativeEventRustBackendError(
+                "native reactive scalar run completed without a streaming metric snapshot"
+            )
+        if any(
+            np.asarray(payload[name]).size
+            for name in (
+                "equity", "positions", "fees", "turnover", "funding",
+                "initial_margin", "maintenance_margin", "command_bar",
+                "callback_bar", "terminal_active_order_id",
+            )
+        ):
+            raise NativeEventRustBackendError(
+                "native reactive scalar run retained a path or audit tape unexpectedly"
+            )
+        return payload
+
+    def run_scalar_window(
+        self,
+        strategy,
+        *,
+        start_bar: int,
+        end_bar: int,
+        gil_policy: str = "held_for_session",
+        runtime: str | None = None,
+    ) -> Mapping[str, object]:
+        """Score a fresh absolute window without materializing public paths."""
+
+        if not self.scalar_score:
+            raise NativeEventRustBackendError(
+                "run_scalar_window requires RustReactiveNumericCoRuntime(scalar_score=True)"
+            )
+        start = int(start_bar)
+        end = int(end_bar)
+        if not 0 <= start < end <= len(self.idx):
+            raise ValueError("reactive score window must satisfy 0 <= start_bar < end_bar <= market bars")
+        selected_runtime = self.runtime if runtime is None else str(runtime)
+        runner_method = {
+            "numeric_every_bar_v1": "run_window",
+            "numeric_sparse_wake_v1": "run_sparse_window",
+            "numeric_block_intent_v1": "run_block_window",
+        }.get(selected_runtime)
+        if runner_method is None or not hasattr(self._core, runner_method):
+            raise NativeEventRustBackendError(
+                f"installed _quantbt_native wheel lacks scalar window runner support for {selected_runtime!r}"
+            )
+        output = getattr(self._core, runner_method)(strategy, start, end, gil_policy)
+        payload = dict(output.consume())
+        if not bool(payload.get("score_metrics_present", False)):
+            raise NativeEventRustBackendError(
+                "native reactive scalar window completed without a streaming metric snapshot"
+            )
+        if any(
+            np.asarray(payload[name]).size
+            for name in (
+                "equity", "positions", "fees", "turnover", "funding",
+                "initial_margin", "maintenance_margin", "command_bar",
+                "callback_bar", "terminal_active_order_id",
+            )
+        ):
+            raise NativeEventRustBackendError(
+                "native reactive scalar window retained a path or audit tape unexpectedly"
+            )
+        payload["window_start_bar"] = start
+        payload["window_end_bar"] = end
+        return payload
+
+    @property
+    def last_callback_name(self) -> str:
+        """Expose callback provenance without leaking the native core publicly."""
+
+        return str(self._core.last_callback_name)
+
+    @property
+    def last_callback_bar(self) -> int:
+        """Return the last callback bar for one wrapped strategy error."""
+
+        return int(self._core.last_callback_bar)
+
+    @property
+    def poisoned(self) -> bool:
+        """Whether a failed callback left the reusable native session unsafe.
+
+        A caller must call :meth:`reset` before attempting another run.  This
+        mirrors the Rust core state instead of inferring it from an exception
+        string, which keeps lifecycle/retry diagnostics deterministic.
+        """
+
+        return bool(self._core.poisoned)
+
+    def terminal_active_orders(self, payload: Mapping[str, object]) -> pd.DataFrame:
+        """Materialize the terminal active-order snapshot on the cold path."""
+
+        order_id = self._value(payload, "terminal_active_order_id").astype(np.int64, copy=False)
+        if not len(order_id):
+            return pd.DataFrame()
+        symbol = self._value(payload, "terminal_active_symbol").astype(np.int64, copy=False)
+        side = self._value(payload, "terminal_active_side").astype(np.int64, copy=False)
+        order_type = self._value(payload, "terminal_active_order_type").astype(np.int64, copy=False)
+        return pd.DataFrame(
+            {
+                "order_id": [self._numeric_id(value) for value in order_id],
+                "symbol": [self.symbols[int(value)] if 0 <= int(value) < len(self.symbols) else None for value in symbol],
+                "side": [None if int(value) == 0 else ("buy" if int(value) > 0 else "sell") for value in side],
+                "order_type": [
+                    self._ORDER_TYPE[int(value)].value if int(value) in self._ORDER_TYPE else None
+                    for value in order_type
+                ],
+                "remaining_qty": self._value(payload, "terminal_active_qty").astype(np.float64, copy=False),
+                "price": self._value(payload, "terminal_active_price").astype(np.float64, copy=False),
+                "trigger_price": self._value(payload, "terminal_active_trigger").astype(np.float64, copy=False),
+            }
+        )
+
+    def order_events(self, payload: Mapping[str, object], *, idx: pd.DatetimeIndex) -> pd.DataFrame:
+        """Build an audit table from native event SoA without execution replay."""
+
+        bars = self._value(payload, "event_bar").astype(np.int64, copy=False)
+        if not len(bars):
+            return pd.DataFrame()
+        kinds = self._value(payload, "event_kind").astype(np.int64, copy=False)
+        status = self._value(payload, "event_status").astype(np.int64, copy=False)
+        order_id = self._value(payload, "event_order_id").astype(np.int64, copy=False)
+        target_id = self._value(payload, "event_target_id").astype(np.int64, copy=False)
+        symbol = self._value(payload, "event_symbol").astype(np.int64, copy=False)
+        reject = self._value(payload, "event_reject_code").astype(np.int64, copy=False)
+        timestamps = [idx[int(bar)] if 0 <= int(bar) < len(idx) else pd.NaT for bar in bars]
+        return pd.DataFrame(
+            {
+                "timestamp": timestamps,
+                "bar": bars,
+                "event_kind": kinds,
+                "event_status": status,
+                "order_id": [self._numeric_id(value) for value in order_id],
+                "target_order_id": [self._numeric_id(value) for value in target_id],
+                "symbol": [self.symbols[int(value)] if 0 <= int(value) < len(self.symbols) else None for value in symbol],
+                "reject_code": reject,
+            }
+        )
+
+    def reset(self) -> None:
+        self._core.reset()
+
+    def release_excess_capacity(self, max_capacity: int) -> None:
+        self._core.release_excess_capacity(int(max_capacity))
+
+
+class RustReactiveCandidateBatchCoRuntime:
+    """R3B shared-market runner for explicitly certified candidate batches.
+
+    The class is deliberately a low-level prepared-runtime surface in Phase
+    63.  It owns one native multi-session tape and invokes
+    ``strategy.on_wake_batch(context_batch, out_batch)`` once for all
+    candidates waking on a market bar.  WFO route ownership remains Phase 65;
+    this object is the tested primitive it will consume rather than a hidden
+    Python loop over R2 sessions.
+    """
+
+    _MARKET_MASK = RustReactiveNumericCoRuntime._MARKET_MASK
+    _ACCOUNT_MASK = RustReactiveNumericCoRuntime._ACCOUNT_MASK
+
+    def __init__(
+        self,
+        *,
+        candidate_count: int,
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market_arrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        initial_capital: float,
+        maintenance_ratio: float,
+        slippage: float,
+        use_funding: bool,
+        event_contract: EventClockContract | str,
+        requirements,
+        retain_fills: bool,
+        retain_events: bool,
+        prepared_market_core=None,
+        command_initial_capacity: int = 8,
+        command_hard_limit: int = 65_536,
+        scalar_score: bool = False,
+        score_trading_days: int = 365,
+    ) -> None:
+        candidate_count = int(candidate_count)
+        if not 1 <= candidate_count <= 64:
+            raise ValueError("candidate_count must be in 1..=64")
+        self._module = _require_r1_extension()
+        status = probe_native_event_rust_extension(module=self._module)
+        if not bool(status.capabilities.get("reactive_candidate_batch_r3b", False)):
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks reactive_candidate_batch_r3b; "
+                "rebuild/install the matching native wheel"
+            )
+        if not hasattr(self._module, "ReactiveCandidateBatchRunnerCore"):
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks ReactiveCandidateBatchRunnerCore"
+            )
+        self.candidate_count = candidate_count
+        self.idx = pd.DatetimeIndex(idx)
+        self.symbols = tuple(str(symbol) for symbol in symbols)
+        self.market_arrays = market_arrays
+        self.opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        self.volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        self.constraints = constraints
+        self.contract_sizes = np.ascontiguousarray(contract_sizes, dtype=np.float64)
+        self.leverages = np.ascontiguousarray(leverages, dtype=np.float64)
+        self.fee_rates = np.ascontiguousarray(fee_rates, dtype=np.float64)
+        self.initial_capital = float(initial_capital)
+        self.maintenance_ratio = float(maintenance_ratio)
+        self.slippage = float(slippage)
+        self.use_funding = bool(use_funding)
+        self.event_contract = get_event_clock_contract(event_contract)
+        self.requirements = requirements
+        self.retain_fills = bool(retain_fills)
+        self.retain_events = bool(retain_events)
+        self.scalar_score = bool(scalar_score)
+        self.score_trading_days = int(score_trading_days)
+        if self.scalar_score and self.score_trading_days <= 0:
+            raise NativeEventRustBackendError("reactive candidate scalar score requires trading_days > 0")
+        self._prepared_market_core = prepared_market_core
+        if self._prepared_market_core is None:
+            self._prepared_market_core = self._module.FullPreparedMarketCore(
+                np.ascontiguousarray(self.idx.asi8, dtype=np.int64),
+                self.opens_arr,
+                np.ascontiguousarray(market_arrays.highs, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.lows, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.closes, dtype=np.float64),
+                self.volumes_arr,
+                np.ascontiguousarray(market_arrays.funding, dtype=np.float64),
+                np.ascontiguousarray(market_arrays.is_funding_bar, dtype=np.bool_),
+            )
+        market_mask = sum(self._MARKET_MASK[name] for name in requirements.market)
+        account_mask = sum(self._ACCOUNT_MASK[name] for name in requirements.account)
+        self._core = self._module.ReactiveCandidateBatchRunnerCore.from_prepared(
+            self._prepared_market_core,
+            self.candidate_count,
+            self.contract_sizes,
+            self.leverages,
+            self.fee_rates,
+            np.ascontiguousarray(constraints.qty_step, dtype=np.float64),
+            np.ascontiguousarray(constraints.min_qty, dtype=np.float64),
+            np.ascontiguousarray(constraints.min_notional, dtype=np.float64),
+            self.initial_capital,
+            self.maintenance_ratio,
+            self.slippage,
+            self.use_funding,
+            int(market_mask),
+            int(account_mask),
+            bool(requirements.positions),
+            bool(requirements.fills != "none"),
+            bool(requirements.events != "none"),
+            bool(requirements.active_orders != "none"),
+            self.retain_fills,
+            self.retain_events,
+            int(command_initial_capacity),
+            int(command_hard_limit),
+            retain_account_paths=not self.scalar_score,
+            retain_command_rows=not self.scalar_score,
+            retain_callback_trace=not self.scalar_score,
+            retain_terminal_active_orders=not self.scalar_score,
+            scalar_metrics=self.scalar_score,
+            score_trading_days=int(self.score_trading_days),
+            score_bar_annualization=float(
+                RustReactiveNumericCoRuntime._score_bar_annualization(
+                    self.idx,
+                    fallback=float(self.score_trading_days),
+                )
+            ),
+        )
+        self._core.set_event_contract(self.event_contract.contract_code)
+
+    @property
+    def prepared_market_core(self):
+        return self._prepared_market_core
+
+    def request_cancel(self) -> None:
+        """Stop an active shared candidate batch at a native bar boundary."""
+
+        if not hasattr(self._core, "request_cancel"):
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks reactive candidate-batch cancellation"
+            )
+        self._core.request_cancel()
+
+    def clear_cancellation(self) -> None:
+        if hasattr(self._core, "clear_cancellation"):
+            self._core.clear_cancellation()
+
+    def set_deadline_ms(self, deadline_ms: int | None) -> None:
+        """Configure a per-batch native deadline before ``run[_window]``."""
+
+        if deadline_ms is not None and int(deadline_ms) <= 0:
+            raise ValueError("reactive candidate deadline_ms must be > 0 or None")
+        if not hasattr(self._core, "set_deadline_ms"):
+            if deadline_ms is None:
+                return
+            raise NativeEventRustBackendError(
+                "installed _quantbt_native wheel lacks reactive candidate-batch deadline enforcement"
+            )
+        self._core.set_deadline_ms(None if deadline_ms is None else int(deadline_ms))
+
+    def run(self, strategy, *, gil_policy: str = "held_for_session") -> Mapping[str, object]:
+        """Run exactly one shared market tape and return flat candidate payloads.
+
+        Each element of ``candidate_outputs`` is the same cold-path SoA result
+        wire format used by :class:`RustReactiveNumericCoRuntime`.  Candidate
+        error codes are local: a failed candidate does not poison its peers.
+        """
+
+        output = self._core.run(strategy, gil_policy)
+        payload = dict(output.consume())
+        if self.scalar_score:
+            self._assert_scalar_payload(payload)
+        return payload
+
+    def run_window(
+        self,
+        strategy,
+        *,
+        start_bar: int,
+        end_bar: int,
+        gil_policy: str = "held_for_session",
+    ) -> Mapping[str, object]:
+        """Run all candidate accounts over one shared absolute market window."""
+
+        start = int(start_bar)
+        end = int(end_bar)
+        if not 0 <= start < end <= len(self.idx):
+            raise ValueError("reactive candidate window must satisfy 0 <= start_bar < end_bar <= market bars")
+        output = self._core.run_window(strategy, start, end, gil_policy)
+        payload = dict(output.consume())
+        payload["window_start_bar"] = start
+        payload["window_end_bar"] = end
+        if self.scalar_score:
+            self._assert_scalar_payload(payload)
+        return payload
+
+    @staticmethod
+    def _assert_scalar_payload(payload: Mapping[str, object]) -> None:
+        for candidate_payload in payload.get("candidate_outputs", ()):
+            if not bool(candidate_payload.get("score_metrics_present", False)):
+                raise NativeEventRustBackendError(
+                    "native reactive candidate scalar run completed without streaming metrics"
+                )
+            if any(
+                np.asarray(candidate_payload[name]).size
+                for name in (
+                    "equity", "positions", "fees", "turnover", "funding",
+                    "initial_margin", "maintenance_margin", "command_bar",
+                    "callback_bar", "terminal_active_order_id",
+                )
+            ):
+                raise NativeEventRustBackendError(
+                    "native reactive candidate scalar run retained a path or audit tape unexpectedly"
+                )
+
+    @property
+    def last_callback_name(self) -> str:
+        return str(self._core.last_callback_name)
+
+    @property
+    def last_callback_bar(self) -> int:
+        return int(self._core.last_callback_bar)
+
+    def reset(self) -> None:
+        self._core.reset()
+
+
 __all__ = [
     "NativeEventBackendSelection",
     "NativeEventRustBackendError",
@@ -2829,6 +4134,8 @@ __all__ = [
     "RustFullRunner",
     "RustBatchedScoreResult",
     "RustBatchedSession",
+    "RustReactiveCandidateBatchCoRuntime",
+    "RustReactiveNumericCoRuntime",
     "RustReactiveSessionAdapter",
     "compile_rust_batched_tape",
     "compile_rust_full_tape",

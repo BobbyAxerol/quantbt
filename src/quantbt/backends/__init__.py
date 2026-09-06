@@ -1,12 +1,23 @@
 from .native_event import NativeEventBackend, NativeEventConfig, NativeEventScoreRequirements
+from .native_intrabar_rust import RustIntrabarUnavailable, run_rust_intrabar_kernel
 from .native_option import NativeOptionBackend, NativeOptionConfig, OptionSettlementEvent
 from .native_portfolio import NativePortfolioBackend, NativePortfolioConfig
 from .native_portfolio_package import (
     RustNativeMarketExecution,
     run_atomic_package_market,
     run_atomic_package_market_v2,
+    run_bounded_package_market,
+    run_bounded_package_market_scenarios,
+    run_bounded_package_market_scenarios_v2,
+    run_bounded_package_market_v2,
     run_portfolio_target_market,
     run_portfolio_target_market_v2,
+    run_shared_portfolio_target_market,
+    run_shared_portfolio_target_market_v2,
+)
+from .native_package_arbitrage import (
+    BoundedArbitragePackageTapeV1,
+    compile_bounded_linear_arbitrage_package_tape,
 )
 from .native_vectorized import NativeVectorizedBackend, NativeVectorizedConfig
 from .native_strategy_ir import (
@@ -16,22 +27,70 @@ from .native_strategy_ir import (
     NativeIRRunResult,
     RustNativeIRRunner,
 )
+from .native_wfo import (
+    BatchedPreparedWfoStrategyV1,
+    NativeWfoMetricMatrixV2,
+    NativeWfoOptimizationResultV2,
+    NativeWfoPreparedSignalBatchV2,
+    NativeWfoPreparedTargetBatchV1,
+    NativeWfoRuntimeV2,
+    NativeTargetWfoRuntimeV2,
+    PreparedWfoStrategyV1,
+)
+from .native_prepared_evaluation import (
+    NativeEvaluationMetricContractV1,
+    NativePreparedEvaluationBindingV1,
+    NativePreparedEvaluationResultV1,
+    NativePreparedEvaluationRowV1,
+    NativePreparedEvaluationRuntimeV1,
+    NativePreparedScoreColumnsV1,
+    NativePreparedWorkloadV1,
+    native_prepared_evaluation_support_matrix,
+)
+from .reactive_wfo import (
+    ReactivePreparedWfoRuntimeV1,
+    ReactiveWalkForwardResultV1,
+    ReactiveWalkForwardUnsupported,
+    ReactiveWfoFoldResultV1,
+    ReactiveWfoRuntimeConfigV1,
+)
 from ._native_event_rust import (
     RustBatchedAuditResult,
     RustBatchedChunkResult,
     RustBatchedRunner,
     RustBatchedScoreResult,
     RustBatchedSession,
+    RustReactiveCandidateBatchCoRuntime,
 )
 
 __all__ = [
+    "BoundedArbitragePackageTapeV1",
     "NativeEventBackend",
     "NativeEventConfig",
     "NativeEventScoreRequirements",
+    "RustIntrabarUnavailable",
     "NativeIRBatchResult",
     "NativeIRExecutionRunner",
     "NativeIRFold",
     "NativeIRRunResult",
+    "NativeWfoMetricMatrixV2",
+    "NativeWfoOptimizationResultV2",
+    "NativeWfoPreparedSignalBatchV2",
+    "NativeWfoPreparedTargetBatchV1",
+    "NativeWfoRuntimeV2",
+    "NativeTargetWfoRuntimeV2",
+    "NativeEvaluationMetricContractV1",
+    "NativePreparedEvaluationBindingV1",
+    "NativePreparedEvaluationResultV1",
+    "NativePreparedEvaluationRowV1",
+    "NativePreparedEvaluationRuntimeV1",
+    "NativePreparedScoreColumnsV1",
+    "NativePreparedWorkloadV1",
+    "ReactivePreparedWfoRuntimeV1",
+    "ReactiveWalkForwardResultV1",
+    "ReactiveWalkForwardUnsupported",
+    "ReactiveWfoFoldResultV1",
+    "ReactiveWfoRuntimeConfigV1",
     "NativeOptionBackend",
     "NativeOptionConfig",
     "NativePortfolioBackend",
@@ -44,10 +103,22 @@ __all__ = [
     "RustBatchedRunner",
     "RustBatchedScoreResult",
     "RustBatchedSession",
+    "RustReactiveCandidateBatchCoRuntime",
     "RustNativeIRRunner",
     "RustNativeMarketExecution",
     "run_atomic_package_market",
     "run_atomic_package_market_v2",
+    "run_bounded_package_market",
+    "run_bounded_package_market_scenarios",
+    "run_bounded_package_market_scenarios_v2",
+    "run_bounded_package_market_v2",
+    "compile_bounded_linear_arbitrage_package_tape",
     "run_portfolio_target_market",
     "run_portfolio_target_market_v2",
+    "run_shared_portfolio_target_market",
+    "run_shared_portfolio_target_market_v2",
+    "run_rust_intrabar_kernel",
+    "native_prepared_evaluation_support_matrix",
+    "BatchedPreparedWfoStrategyV1",
+    "PreparedWfoStrategyV1",
 ]

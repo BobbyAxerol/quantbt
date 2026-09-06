@@ -91,7 +91,14 @@ def _run(command: list[str], *, cwd: Path, env: dict[str, str]) -> None:
         )
 
 
-def _installed_script(core_version: str, expect_native: bool) -> str:
+def _installed_script(
+    core_version: str,
+    expect_native: bool,
+    *,
+    direct_target_smoke: bool = False,
+) -> str:
+    if direct_target_smoke and not expect_native:
+        raise ValueError("direct target wheel smoke requires a staged native wheel")
     native_check = ""
     if expect_native:
         native_check = """
@@ -106,6 +113,91 @@ pair = require_native_package_pair(
 assert pair.status == "exact_staged_pair"
 assert _quantbt_native.api_version() == "0.4"
 """
+    direct_target_check = ""
+    if direct_target_smoke:
+        direct_target_check = """
+import numpy as np
+import pandas as pd
+from quantbt.backends import NativeVectorizedBackend, NativeVectorizedConfig
+from quantbt.core.schema import AccountConfig, ExecutionConfig
+
+index = pd.date_range("2025-01-01", periods=4, freq="1h", tz="UTC")
+close = pd.Series([100.0, 101.0, 99.0, 102.0], index=index)
+backend = NativeVectorizedBackend(
+    NativeVectorizedConfig(
+        account=AccountConfig(initial_capital=1_000.0, leverage=3.0),
+        execution=ExecutionConfig(slippage_bps=2.0),
+        fee_rate=0.0005,
+        target_runtime="rust",
+    )
+)
+common = dict(
+    datetime_index=index,
+    closes={"BTCUSDT": close},
+    highs={"BTCUSDT": close + 1.0},
+    lows={"BTCUSDT": close - 1.0},
+    symbols=["BTCUSDT"],
+)
+
+def assert_direct_target(result, target_kind):
+    assert result.metadata["target_runtime"] == "rust_direct_target_v1"
+    native = result.metadata["native_target_execution"]
+    assert native["native_target_no_order_arena"] is True
+    assert result.metadata["target_intent_kind"] == target_kind
+    expected_native_kind = {
+        "units": "target_units_v1",
+        "notional": "target_notional_v1",
+        "weight": "target_weight_v1",
+        "equity_fraction": "equity_fraction_v1",
+    }[target_kind]
+    assert native["direct_target_kind"] == expected_native_kind
+    assert len(result.equity) == len(index)
+    assert float(result.positions.iloc[-1, 0]) == 0.0
+
+assert_direct_target(
+    backend.run_target_units(
+        target_units={"BTCUSDT": pd.Series([0.0, 1.0, 1.0, 0.0], index=index)},
+        **common,
+    ),
+    "units",
+)
+assert_direct_target(
+    backend.run_target_notionals(
+        target_notionals={"BTCUSDT": pd.Series([0.0, 100.0, 100.0, 0.0], index=index)},
+        **common,
+    ),
+    "notional",
+)
+assert_direct_target(
+    backend.run_target_weights(
+        target_weights={"BTCUSDT": pd.Series([0.0, 0.1, 0.1, 0.0], index=index)},
+        **common,
+    ),
+    "weight",
+)
+assert_direct_target(
+    backend.run_equity_fraction_targets(
+        target_fractions={"BTCUSDT": pd.Series([0.0, 0.5, 0.5, 0.0], index=index)},
+        equity_fraction=0.5,
+        **common,
+    ),
+    "equity_fraction",
+)
+assert_direct_target(
+    backend.run_static_dca_schedule(
+        datetime_index=index,
+        symbol="BTCUSDT",
+        closes=close,
+        schedule={index[1]: 1.0, index[3]: 0.0},
+        **{
+            key: value
+            for key, value in common.items()
+            if key not in {"datetime_index", "closes", "symbols"}
+        },
+    ),
+    "units",
+)
+"""
     return f"""
 import importlib.metadata as metadata
 import pathlib
@@ -115,11 +207,18 @@ path = pathlib.Path(quantbt.__file__).resolve()
 assert "site-packages" in path.parts or "dist-packages" in path.parts, path
 assert metadata.version("quantbt-engine") == {core_version!r}
 {native_check}
+{direct_target_check}
 print(path)
 """
 
 
-def clean_install_smoke(core_artifact: Path, *, core_version: str, native_wheel: Path | None = None) -> None:
+def clean_install_smoke(
+    core_artifact: Path,
+    *,
+    core_version: str,
+    native_wheel: Path | None = None,
+    direct_target_smoke: bool = False,
+) -> None:
     """Install artifacts in a fresh venv and assert imports cannot leak from the repo."""
 
     with tempfile.TemporaryDirectory(prefix="quantbt-wheel-") as raw:
@@ -140,10 +239,28 @@ def clean_install_smoke(core_artifact: Path, *, core_version: str, native_wheel:
             # This is only a core fallback import probe. The normal supported
             # Linux consumer proof installs the exact native pair above.
             _run([str(python), "-m", "pip", "install", "--no-deps", str(core_artifact)], cwd=root, env=env)
-        _run([str(python), "-c", _installed_script(core_version, native_wheel is not None)], cwd=root, env=env)
+        _run(
+            [
+                str(python),
+                "-c",
+                _installed_script(
+                    core_version,
+                    native_wheel is not None,
+                    direct_target_smoke=direct_target_smoke,
+                ),
+            ],
+            cwd=root,
+            env=env,
+        )
 
 
-def verify_staged_wheels(dist: Path, *, require_native: bool, install: bool) -> dict[str, Any]:
+def verify_staged_wheels(
+    dist: Path,
+    *,
+    require_native: bool,
+    install: bool,
+    direct_target_smoke: bool = False,
+) -> dict[str, Any]:
     """Return an auditable wheel verification result or raise on a release blocker."""
 
     registry = json.loads(PRODUCT_REGISTRY.read_text(encoding="utf-8"))
@@ -161,15 +278,27 @@ def verify_staged_wheels(dist: Path, *, require_native: bool, install: bool) -> 
         native_wheel = native_candidates[0]
     if require_native and native_wheel is None:
         raise RuntimeError("native wheel required but absent from staged directory")
+    if direct_target_smoke and native_wheel is None:
+        raise RuntimeError("direct target wheel smoke requires a staged native wheel")
     pair = None
     if native_wheel is not None:
         pair = _registry_pair(str(core_metadata["version"]), str(native_metadata["version"]))
         if pair is None:
             raise RuntimeError("staged core/native versions are not declared by the product registry")
     if install:
-        clean_install_smoke(core_wheel, core_version=str(core_metadata["version"]), native_wheel=native_wheel)
+        clean_install_smoke(
+            core_wheel,
+            core_version=str(core_metadata["version"]),
+            native_wheel=native_wheel,
+            direct_target_smoke=direct_target_smoke,
+        )
         sdist = find_artifact(dist, core_metadata["distribution"], ".tar.gz")
-        clean_install_smoke(sdist, core_version=str(core_metadata["version"]), native_wheel=native_wheel)
+        clean_install_smoke(
+            sdist,
+            core_version=str(core_metadata["version"]),
+            native_wheel=native_wheel,
+            direct_target_smoke=direct_target_smoke,
+        )
     return {
         "schema": "quantbt-staged-wheel-verification-v1",
         "core_wheel": core_wheel.name,
@@ -177,6 +306,7 @@ def verify_staged_wheels(dist: Path, *, require_native: bool, install: bool) -> 
         "source_hash_parity": not any(differences.values()),
         "native_pair": pair,
         "clean_install": bool(install),
+        "direct_target_smoke": bool(direct_target_smoke and install),
     }
 
 
@@ -185,11 +315,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dist", type=Path, required=True)
     parser.add_argument("--require-native", action="store_true")
     parser.add_argument("--skip-install", action="store_true")
+    parser.add_argument(
+        "--direct-target-smoke",
+        action="store_true",
+        help="run the explicit Rust direct-target smoke after each clean staged install",
+    )
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args(argv)
     try:
         result = verify_staged_wheels(
-            args.dist.resolve(), require_native=args.require_native, install=not args.skip_install
+            args.dist.resolve(),
+            require_native=args.require_native,
+            install=not args.skip_install,
+            direct_target_smoke=args.direct_target_smoke,
         )
     except (OSError, RuntimeError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         print(f"staged wheel verification failed: {exc}", file=sys.stderr)

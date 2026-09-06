@@ -25,6 +25,16 @@ impl StaticOutputProfile {
 /// accounting, or the authoritative session state used to produce a result.
 pub const NATIVE_EXECUTION_OUTPUT_VERSION_V1: u16 = 1;
 
+/// Default upper bound for audit fill/event rows retained by one native run.
+///
+/// The accounting session still processes every lifecycle event. This limit
+/// applies only to the optional diagnostic sink so a long audit cannot retain
+/// an unbounded Python-facing trace by accident. Callers that need a complete
+/// history can partition the tape into certified windows or use a future
+/// chunked sink; the native result always reports whether any detail was
+/// omitted.
+pub const DEFAULT_AUDIT_DETAIL_ROW_LIMIT_V1: usize = 250_000;
+
 /// Output retention is resolved once before a typed tape enters the hot loop.
 /// This avoids scattered booleans accidentally materializing paths or audit
 /// columns during score-only optimization workloads.
@@ -33,6 +43,9 @@ pub struct OutputRequirementsV1 {
     pub profile: StaticOutputProfile,
     pub retain_paths: bool,
     pub retain_detail: bool,
+    /// Combined fill + lifecycle-event row cap. `None` means the profile does
+    /// not retain audit detail at all; it never means unbounded retention.
+    pub detail_row_limit: Option<usize>,
 }
 
 impl OutputRequirementsV1 {
@@ -42,7 +55,85 @@ impl OutputRequirementsV1 {
             profile,
             retain_paths: profile.retains_paths(),
             retain_detail: profile.retains_detail(),
+            detail_row_limit: if profile.retains_detail() {
+                Some(DEFAULT_AUDIT_DETAIL_ROW_LIMIT_V1)
+            } else {
+                None
+            },
         }
+    }
+
+    /// Construct a bounded audit requirement explicitly. This changes only
+    /// output retention, never execution/accounting semantics.
+    #[must_use]
+    pub const fn audit_with_detail_limit(detail_row_limit: usize) -> Self {
+        Self {
+            profile: StaticOutputProfile::Audit,
+            retain_paths: true,
+            retain_detail: true,
+            detail_row_limit: Some(detail_row_limit),
+        }
+    }
+
+    /// Reject internally inconsistent retention plans before any lifecycle
+    /// work begins. The public request builders always create valid plans, but
+    /// this guard keeps direct Rust callers from silently turning a score run
+    /// into a detail-retaining run (or vice versa).
+    pub fn validate(self) -> Result<(), String> {
+        let expected_paths = self.profile.retains_paths();
+        let expected_detail = self.profile.retains_detail();
+        if self.retain_paths != expected_paths || self.retain_detail != expected_detail {
+            return Err("native output requirements conflict with their profile".to_owned());
+        }
+        match (self.retain_detail, self.detail_row_limit) {
+            (true, Some(_)) | (false, None) => Ok(()),
+            (true, None) => Err("audit output requires a bounded detail row limit".to_owned()),
+            (false, Some(_)) => Err("non-audit output cannot retain detail rows".to_owned()),
+        }
+    }
+}
+
+/// Retention accounting for the optional audit SoA sink. Each fill and each
+/// lifecycle event consumes one row from the same budget, preserving a strict
+/// bounded-memory contract across both detail families.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AuditRetentionV1 {
+    pub row_limit: usize,
+    pub retained_rows: usize,
+    pub dropped_rows: usize,
+}
+
+impl AuditRetentionV1 {
+    #[must_use]
+    pub const fn new(row_limit: usize) -> Self {
+        Self {
+            row_limit,
+            retained_rows: 0,
+            dropped_rows: 0,
+        }
+    }
+
+    /// Returns whether the next row may enter the retained SoA columns.
+    /// Overflow is accounted as a dropped row rather than silently ignored.
+    pub fn retain_next(&mut self) -> bool {
+        if self.retained_rows < self.row_limit {
+            self.retained_rows += 1;
+            true
+        } else {
+            self.dropped_rows = self.dropped_rows.saturating_add(1);
+            false
+        }
+    }
+
+    #[must_use]
+    pub const fn truncated(self) -> bool {
+        self.dropped_rows > 0
+    }
+}
+
+impl Default for AuditRetentionV1 {
+    fn default() -> Self {
+        Self::new(0)
     }
 }
 
@@ -67,6 +158,10 @@ pub struct NativeScoreOutputV1 {
     pub liquidated: bool,
     pub liquidation_bar: i64,
     pub liquidation_reason: i64,
+    /// Policy and standard scalar metrics emitted by the same native pass.
+    /// Paths/fills remain retention-profile-specific payloads below.
+    pub metric_contract: MetricContractV2,
+    pub metrics_v2: Box<NativeMetricSnapshotV2>,
 }
 
 impl NativeScoreOutputV1 {
@@ -88,6 +183,12 @@ impl NativeScoreOutputV1 {
             liquidated: false,
             liquidation_bar: -1,
             liquidation_reason: 0,
+            metric_contract: MetricContractV2::default(),
+            metrics_v2: Box::new(NativeMetricSnapshotV2 {
+                metric_contract_version: crate::metrics_v2::METRIC_CONTRACT_VERSION_V2,
+                final_equity: initial_equity,
+                ..NativeMetricSnapshotV2::default()
+            }),
         }
     }
 }
@@ -113,7 +214,7 @@ pub struct NativePathOutputV1 {
 
 impl NativePathOutputV1 {
     #[must_use]
-    pub(crate) fn with_capacity(n_bars: usize, n_symbols: usize) -> Self {
+    pub fn with_capacity(n_bars: usize, n_symbols: usize) -> Self {
         Self {
             equity: Vec::with_capacity(n_bars),
             positions: Vec::with_capacity(n_bars.saturating_mul(n_symbols)),
@@ -170,6 +271,7 @@ pub struct NativeAuditOutputV1 {
     pub compact: NativeCompactOutputV1,
     pub fills: NativeFillOutputV1,
     pub events: NativeEventOutputV1,
+    pub detail_retention: AuditRetentionV1,
 }
 
 /// Versioned output family used by ABI-0.5 typed requests. The legacy static
@@ -197,6 +299,14 @@ impl NativeExecutionOutputV1 {
             Self::Score(output) => output,
             Self::Compact(output) => &output.score,
             Self::Audit(output) => &output.compact.score,
+        }
+    }
+
+    #[must_use]
+    pub const fn detail_retention(&self) -> AuditRetentionV1 {
+        match self {
+            Self::Score(_) | Self::Compact(_) => AuditRetentionV1::new(0),
+            Self::Audit(output) => output.detail_retention,
         }
     }
 
@@ -275,6 +385,7 @@ impl From<NativeExecutionOutputV1> for StaticTapeOutput {
                     compact,
                     fills,
                     events,
+                    detail_retention: _,
                 } = *audit;
                 Self::from_typed_parts(compact.score, compact.paths, fills, events)
             }
@@ -330,3 +441,4 @@ impl StaticTapeOutput {
         }
     }
 }
+use crate::metrics_v2::{MetricContractV2, NativeMetricSnapshotV2};

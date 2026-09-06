@@ -126,9 +126,43 @@ uses limit-style behavior by default.
 | `standard` | notebooks and normal services | no |
 | `audit` | migration/certification/debugging | yes |
 
-`audit` runs a deterministic second pass. The first pass computes accounting;
-the second pass materializes sparse fill arrays sized exactly to the observed
-fill count. The audit path asserts accounting parity with the first pass.
+`audit` on the Numba route runs a deterministic second pass. The first pass
+computes accounting; the second pass materializes sparse fill arrays sized
+exactly to the observed fill count. The audit path asserts accounting parity
+with the first pass.
+
+## Explicit Rust Intrabar Authority
+
+The optional `intrabar_bracket_rust()` endpoint runs the frozen bounded
+single-symbol OHLC contract in one typed Python-to-Rust call. It is an explicit
+route, not an `auto` promotion and not a replacement for the Numba path.
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket_rust(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=True,
+    report_level="audit",
+)
+result = bt.backtest(data=df, signal_col="entry_signal", symbols=["ETHUSDT"])
+```
+
+It owns entry timing, bracket resolution, gap behavior, trailing state,
+technical exits, optional session rules, EOD flattening, funding, margin,
+liquidation, and a bounded SoA audit buffer. The normal result/report helpers
+work after the cold-path adapter creates `BacktestResultV2`. In audit mode,
+`fills_report` includes `ambiguity_flag` and `same_bar_policy_id`.
+
+The public endpoint accepts `minimal`, `standard`, and `audit`. A native scalar
+`score` request exists for controlled prepared/batch infrastructure but does
+not create a report object and is intentionally not exposed as a public result
+level. Conservative, stop-first, TP-first, OHLC-path, and OLHC-path ambiguity
+policies are supported. `reject_ambiguous` and `lower_timeframe_required` fail
+closed; use the Python reference for the former or provide a smaller tape for
+the latter. The exact contract is
+[`contracts/intrabar_contract_v1.json`](../contracts/intrabar_contract_v1.json).
 
 ## Python Oracle
 
@@ -220,7 +254,9 @@ session policy    -> intrabar_session_bracket_v1
 ```
 
 Use `intrabar_bracket_reference(...)` as the readable oracle for new session
-semantics, then use `intrabar_bracket(...)` for sweeps after parity checks pass.
+semantics, then use `intrabar_bracket(...)` for Numba sweeps or
+`intrabar_bracket_rust(...)` for the explicit whole-tape Rust route after
+parity checks pass.
 Prepared runners also include `session_policy` and `session_tape_signature` in
 their frozen profile metadata to avoid cache reuse across different session
 contracts.
@@ -237,6 +273,17 @@ The prepared runner caches strict OHLCV arrays, timestamps, funding arrays,
 quantity constraints, validation certificate, data signature, and frozen profile
 metadata. Use this in WFO/Optuna loops where market tape is fixed and only the
 intent changes.
+
+With `QuantBTEndpoint.intrabar_bracket_rust(...)`, the same runner additionally
+owns one validated native market handle and its UTC timestamp index. Each new
+intent is still normalized, shape-checked, and lowered to a fresh authoritative
+Rust request fingerprint, but QuantBT does not repeat the Python content digest
+or retain a cache entry for that one-shot candidate. Normal `.backtest(...)`
+keeps its content-addressed validation behavior. `minimal` and `standard` keep
+the ordinary result paths; `audit` adds only the bounded fill/ambiguity ledger.
+The prepared handle remains valid if its cache releases unrelated references,
+so a runner has a clear immutable-market lifetime rather than relying on a
+global cache. See the matched [Phase 77 benchmark](../benchmarks/native_event/results/phase77_native_performance_closure.md).
 
 Funding events must align exactly to a market bar timestamp for
 `POSITION_AT_EVENT` certification. Mid-bar funding events are rejected rather

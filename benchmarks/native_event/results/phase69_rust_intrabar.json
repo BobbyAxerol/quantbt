@@ -1,0 +1,38 @@
+{
+  "evidence": {
+    "boundary_calls": 1,
+    "numba_comparator": "run_intrabar_kernel standard profile",
+    "prepared_market_copy_bytes": 0,
+    "prepared_market_signature": "45e800655ebb90c42d11841045b40e0100d10bf7d88625ca4962529ba0ef4929",
+    "python_callbacks": 0,
+    "rust_public_route": "run_rust_intrabar_kernel explicit route",
+    "score_has_no_dense_paths": true,
+    "terminal_and_path_parity": true
+  },
+  "fixture": {
+    "bars": 2000,
+    "contract": "intrabar_bracket_v1",
+    "symbols": 1,
+    "timeframe": "1h"
+  },
+  "rss_mb": {
+    "after_prepared_market": 153.84765625,
+    "after_profiles": 211.5,
+    "process_start": 150.12890625
+  },
+  "schema": "quantbt-phase69-rust-intrabar-benchmark-v1",
+  "throughput_bars_per_second": {
+    "numba_warm": 974198.6890520102,
+    "rust_adapter_compact_warm": 788098.9177181766,
+    "rust_cold_prepare_score": 1987433.630316946,
+    "rust_compact_kernel_warm": 12596246.3076147,
+    "rust_score_warm": 20904763.577248435
+  },
+  "timing_seconds": {
+    "numba_warm": 0.0020529692992568016,
+    "rust_adapter_compact_warm": 0.002537752501666546,
+    "rust_cold_prepare_score": 0.0010063229128718376,
+    "rust_compact_kernel_warm": 0.00015877746045589447,
+    "rust_score_warm": 9.567197412252426e-05
+  }
+}

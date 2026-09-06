@@ -1,0 +1,59 @@
+{
+  "schema": "quantbt-phase77-1-public-workload-manifest-v1",
+  "phase": "77.1",
+  "purpose": "baseline_only_before_public_wfo_rust_execution_or_promotion",
+  "promotion_eligible": false,
+  "profiles": {
+    "smoke": {
+      "bars": 720,
+      "frequency": "1D",
+      "split_mode": "2020-07-01",
+      "split_frequency": "quarterly",
+      "train_window": "180D",
+      "trials": 4,
+      "repeats": 1,
+      "rows": "complete_public_mode_matrix"
+    },
+    "standard": {
+      "bars": 10000,
+      "frequency": "1h",
+      "split_mode": "2020-07-01",
+      "split_frequency": "quarterly",
+      "train_window": "180D",
+      "trials": 64,
+      "repeats": 5,
+      "rows": ["mode1_global_w0_native_eligible"],
+      "paired_order": "alternating_reference_native"
+    },
+    "long": {
+      "bars": 100000,
+      "frequency": "1h",
+      "split_mode": "2020-02-01",
+      "split_frequency": "yearly",
+      "train_window": "30D",
+      "trials": 256,
+      "repeats": 1,
+      "rows": ["mode1_global_w0_native_eligible"],
+      "requires_explicit_allow_long": true
+    }
+  },
+  "required_mode_schedule_matrix": {
+    "mode_1_decay": ["global", "per_fold_decay", "per_fold_causal", "train_test_split"],
+    "mode_2_sbb": ["global", "train_test_split"],
+    "mode_3_flat_minima": ["global", "train_test_split"],
+    "mode_4_is_only_robust": ["global", "per_fold_causal", "train_test_split"],
+    "mode_5_full_robust": ["full_declared_sample"]
+  },
+  "authoritative_boundaries": {
+    "pct_equity": "legacy_pct_equity_transition_sizing_v1",
+    "mode_2_sbb": "proxy_path_resampling_preserved",
+    "reactive_w3": "separate_prepared_reactive_facade_phase76",
+    "portfolio_package": "separate_bounded_native_routes_not_generic_public_wfo"
+  },
+  "measurement_rules": [
+    "Do not compare scalar score with compact or audit result construction.",
+    "Do not relabel proxy, reactive batch, or unsupported fallback as an endpoint-native speedup.",
+    "Record requested and resolved backend policy, actual native rows/batches, work counters, RSS/PSS, and source identity.",
+    "Require result fingerprint parity before recording any paired timing."
+  ]
+}

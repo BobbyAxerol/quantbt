@@ -7,7 +7,8 @@ V2 backend facade over Numba vectorized kernels.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union
+import importlib
+from typing import Any, Dict, List, Optional, Union
 import warnings
 
 import numpy as np
@@ -56,6 +57,8 @@ from ..core.basket import build_frozen_basket_orders
 from ..core.orders import OrderIntent
 from ..core.preprocessor import make_funding_mask
 from ..core.schema import OrderSide
+from ..core.target_intents import StaticDcaTargetStepV1, StaticTargetTapeV1, compile_static_dca_target_tape
+from ..preparation.native_execution import NativeExecutionPreparationCache
 from ..sizing.fast import scale_signal_notional_matrix
 from ..sizing.modes import compute_target_units
 
@@ -66,6 +69,10 @@ class NativeVectorizedConfig:
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     fee_rate: Union[float, Dict[str, float]] = 0.0
     use_funding: bool = True
+    # Explicit Rust promotion for the close_target_v2 direct-target route.
+    # ``auto`` intentionally remains Numba until target-score/WFO promotion
+    # receives a separate compatibility lock; old endpoints stay unchanged.
+    target_runtime: str = "numba"
 
     def __post_init__(self) -> None:
         if isinstance(self.fee_rate, dict):
@@ -89,6 +96,10 @@ class NativeVectorizedConfig:
                 "native_vectorized is the close_target_v2 contract and does not support "
                 + ", ".join(unsupported)
             )
+        runtime = str(self.target_runtime).strip().lower()
+        if runtime not in {"numba", "rust", "auto"}:
+            raise ValueError("target_runtime must be 'numba', 'rust', or 'auto'")
+        object.__setattr__(self, "target_runtime", runtime)
 
 
 class NativeVectorizedBackend:
@@ -102,6 +113,194 @@ class NativeVectorizedBackend:
 
     def __init__(self, config: NativeVectorizedConfig):
         self.config = config
+        self._rust_target_preparation: Optional[NativeExecutionPreparationCache] = None
+
+    def _use_rust_target_runtime(self, target_kind: str = "units") -> bool:
+        """Resolve the direct-target runtime without implicit fallback.
+
+        ``auto`` deliberately remains on the established Numba route during
+        Phase 66. An explicit ``rust`` request either runs the direct target
+        kernel or raises a capability error; it never quietly changes backends.
+        """
+
+        if self.config.target_runtime != "rust":
+            return False
+        try:
+            native = importlib.import_module("_quantbt_native")
+        except Exception as exc:  # pragma: no cover - environment dependent
+            raise RuntimeError(
+                "target_runtime='rust' requires an installed compatible quantbt-native wheel"
+            ) from exc
+        if not hasattr(native, "NativeTargetExecutionRequestCore"):
+            raise RuntimeError(
+                "installed quantbt-native wheel does not support direct close-target execution"
+            )
+        from ._native_event_rust import probe_native_event_rust_extension
+
+        status = probe_native_event_rust_extension(module=native)
+        required_capability = {
+            "units": "rust_direct_target_units_v1",
+            "notional": "rust_direct_target_notional_v1",
+            "weight": "rust_direct_target_weight_v1",
+            "equity_fraction": "rust_direct_target_equity_fraction_v1",
+            "pct_equity_transition": "rust_direct_target_pct_equity_transition_v1",
+        }.get(str(target_kind).strip().lower())
+        required = ("rust_direct_target_v1", required_capability)
+        missing = [name for name in required if name and not status.capabilities.get(name, False)]
+        if not status.available or not status.compatible or missing:
+            detail = ", ".join(missing) if missing else str(status.reason or "descriptor mismatch")
+            raise RuntimeError(
+                "installed quantbt-native wheel lacks a compatible direct target capability: " + detail
+            )
+        return True
+
+    def _rust_target_payload(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbol_list: List[str],
+        closes_m: np.ndarray,
+        highs_m: np.ndarray,
+        lows_m: np.ndarray,
+        target_m: np.ndarray,
+        funding_m: np.ndarray,
+        is_funding: np.ndarray,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        constraints,
+        target_kind: str,
+        equity_fraction: np.ndarray,
+        output_profile: int,
+    ) -> tuple[Any, dict[str, Any], dict[str, Any]]:
+        """Run one prepared Rust direct-target pass without a legacy dict hop.
+
+        The close-target contract does not consume open or volume. They are
+        still supplied to the canonical Rust market owner as deterministic
+        close/zero placeholders so the prepared signature remains complete.
+        """
+
+        if self._rust_target_preparation is None:
+            self._rust_target_preparation = NativeExecutionPreparationCache()
+        cache = self._rust_target_preparation
+        closes_array = np.ascontiguousarray(closes_m, dtype=np.float64)
+        highs_array = np.ascontiguousarray(highs_m, dtype=np.float64)
+        lows_array = np.ascontiguousarray(lows_m, dtype=np.float64)
+        funding_array = np.ascontiguousarray(funding_m, dtype=np.float64)
+        target_array = np.ascontiguousarray(target_m, dtype=np.float64)
+        timestamps = np.ascontiguousarray(idx.view("int64"), dtype=np.int64)
+        market = cache.prepare_market(
+            timestamps_ns=timestamps,
+            opens=closes_array,
+            highs=highs_array,
+            lows=lows_array,
+            closes=closes_array,
+            volumes=np.zeros_like(closes_array),
+            funding=funding_array,
+            funding_mask=np.ascontiguousarray(is_funding, dtype=np.bool_),
+            symbols=symbol_list,
+        )
+        # The direct target request has its own frozen timing identifier. The
+        # template event code remains a compatibility/provenance field only;
+        # no FullSession/event lifecycle is instantiated by this route.
+        template = cache.prepare_template(
+            market,
+            contract_sizes=np.ascontiguousarray(contract_sizes, dtype=np.float64),
+            leverages=np.ascontiguousarray(leverages, dtype=np.float64),
+            fee_rates=np.ascontiguousarray(fee_rates, dtype=np.float64),
+            initial_capital=float(self.config.account.initial_capital),
+            maintenance_ratio=float(self.config.account.maintenance_ratio),
+            slippage_rate=float(self.config.execution.slippage_rate),
+            use_funding=bool(self.config.use_funding),
+            event_contract_code=2,
+        )
+        request = cache.direct_target_request(
+            template,
+            targets=target_array,
+            target_kind=target_kind,
+            timing="close_target_v2_same_close",
+            invalid_target_policy="reject_run",
+            qty_step=np.ascontiguousarray(constraints.qty_step, dtype=np.float64),
+            min_qty=np.ascontiguousarray(constraints.min_qty, dtype=np.float64),
+            min_notional=np.ascontiguousarray(constraints.min_notional, dtype=np.float64),
+            equity_fraction=np.ascontiguousarray(equity_fraction, dtype=np.float64),
+            output_profile=int(output_profile),
+        )
+        typed_output = request.core.execute_typed()
+        execution_metadata = self._rust_target_execution_metadata(
+            typed_output,
+            target_kind=target_kind,
+            request_bytes=int(request.request_bytes),
+            constraints=constraints,
+        )
+        return typed_output, execution_metadata, dict(cache.diagnostics)
+
+    @staticmethod
+    def _rust_target_execution_metadata(
+        typed_output: Any,
+        *,
+        target_kind: str,
+        request_bytes: int,
+        constraints: Any,
+    ) -> dict[str, Any]:
+        """Adapt scalar provenance only; retain Rust SoA buffers untouched.
+
+        ``NativeCompactOutputV1.as_dict()`` is a compatibility adapter.  The
+        public close-target result already needs a handful of arrays and a
+        small metadata mapping, so converting the entire typed result into a
+        second Python mapping is unnecessary allocation and RSS pressure.
+        """
+
+        intent_kind = {
+            "units": "target_units_v1",
+            "notional": "target_notional_v1",
+            "weight": "target_weight_v1",
+            "equity_fraction": "equity_fraction_v1",
+            "pct_equity_transition": "pct_equity_transition_v1",
+        }[target_kind]
+        unconstrained_units = bool(
+            target_kind == "units"
+            and np.all(np.asarray(constraints.qty_step, dtype=np.float64) == 0.0)
+            and np.all(np.asarray(constraints.min_qty, dtype=np.float64) == 0.0)
+            and np.all(np.asarray(constraints.min_notional, dtype=np.float64) == 0.0)
+        )
+        metrics = dict(getattr(typed_output, "metrics", {}))
+        return {
+            "native_direct_target": True,
+            "native_target_no_order_arena": True,
+            "native_target_specialization": (
+                "units_unconstrained_delta_skip_v1" if unconstrained_units else "general_target_resolution_v1"
+            ),
+            "direct_target_kind": intent_kind,
+            "direct_target_timing": "close_target_v2_same_close",
+            "direct_target_invalid_target_policy": "reject_run",
+            "native_target_request_bytes": int(request_bytes),
+            "native_result_version": int(typed_output.native_result_version),
+            "native_execution_account_authority": str(typed_output.account_authority),
+            "native_execution_buffer_transfer": "rust_vec_to_numpy_zero_copy",
+            "native_execution_command_count": int(typed_output.command_count),
+            "native_execution_contract_bundle_hash": str(typed_output.contract_bundle_hash),
+            "native_execution_detail_truncated": bool(typed_output.detail_truncated),
+            "native_execution_dropped_rows": int(typed_output.dropped_rows),
+            "native_execution_generation": int(typed_output.execution_generation),
+            "native_execution_model_id": str(typed_output.execution_model_id),
+            "native_execution_output_bytes": int(typed_output.output_bytes),
+            "native_execution_output_profile": str(typed_output.output_profile),
+            "native_execution_output_version": int(typed_output.output_version),
+            "native_execution_passes": 1,
+            "native_execution_protocol_version": int(typed_output.protocol_version),
+            "native_execution_request_fingerprint": str(typed_output.fingerprint),
+            "native_execution_request_version": int(typed_output.request_version),
+            "native_execution_retained_rows": int(typed_output.retained_rows),
+            "native_execution_runner_run_count": int(typed_output.runner_run_count),
+            "native_execution_runtime_class": str(typed_output.runtime_class),
+            "native_execution_template_fingerprint": str(typed_output.template_fingerprint),
+            "native_execution_terminal_fingerprint": str(typed_output.terminal_fingerprint),
+            "native_execution_workload": str(typed_output.workload_kind),
+            "python_callbacks": 0,
+            "boundary_calls": 1,
+            **metrics,
+        }
 
     @staticmethod
     def _close_target_metadata(
@@ -209,18 +408,37 @@ class NativeVectorizedBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        _target_kind: str = "units",
+        _equity_fraction: Optional[Union[float, Dict[str, float]]] = None,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(target_units.keys())
         if set(symbol_list) != set(target_units.keys()) or set(symbol_list) != set(closes.keys()):
             raise ValueError("symbols, target_units, and closes must contain the same keys")
 
+        target_kind = str(_target_kind).strip().lower()
+        if target_kind not in {"units", "notional", "weight", "equity_fraction", "pct_equity_transition"}:
+            raise ValueError(
+                "_target_kind must be units, notional, weight, equity_fraction, or pct_equity_transition"
+            )
+        rust_target_requested = self.config.target_runtime == "rust"
+        if target_kind != "units" and not rust_target_requested:
+            raise NotImplementedError(
+                f"native_vectorized {target_kind!r} targets require target_runtime='rust'; "
+                "Numba remains the frozen target-units compatibility route"
+            )
+
         close_dict = align_series(closes, symbol_list, idx)
         high_low_source = self._high_low_source(highs, lows)
         self._warn_high_low_fallback(high_low_source)
         high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
         low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
-        target_dict = align_series(target_units, symbol_list, idx, fill_val=0.0)
+        target_dict = align_series(
+            target_units,
+            symbol_list,
+            idx,
+            fill_val=np.nan if rust_target_requested else 0.0,
+        )
         funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
 
         closes_m, highs_m, lows_m, target_m, funding_m, is_funding = build_arrays(
@@ -231,6 +449,7 @@ class NativeVectorizedBackend:
             lows_dict=low_dict,
             signals_dict=target_dict,
             funding_dict=funding_dict,
+            preserve_signal_nan=rust_target_requested,
         )
 
         return self._run_target_arrays(
@@ -252,7 +471,144 @@ class NativeVectorizedBackend:
             min_qty=min_qty,
             min_notional=min_notional,
             high_low_source=high_low_source,
+            _target_kind=_target_kind,
+            _equity_fraction=_equity_fraction,
         )
+
+    def run_target_notionals(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        target_notionals: Dict[str, pd.Series],
+        closes: Dict[str, pd.Series],
+        **kwargs,
+    ) -> BacktestResultV2:
+        """Run signed quote-notional targets through explicit Rust authority.
+
+        Each matrix value is quote-currency notional at the same-close price
+        before quantity constraints. This target contract is intentionally not
+        lowered to the historical Numba units engine.
+        """
+
+        return self.run_target_units(
+            datetime_index=datetime_index,
+            target_units=target_notionals,
+            closes=closes,
+            _target_kind="notional",
+            **kwargs,
+        )
+
+    def run_target_weights(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        target_weights: Dict[str, pd.Series],
+        closes: Dict[str, pd.Series],
+        **kwargs,
+    ) -> BacktestResultV2:
+        """Run signed targets as fractions of pre-rebalance close equity.
+
+        All symbols use the same immutable equity snapshot for a bar. Leverage
+        changes buying power/margin only and never multiplies a target weight.
+        """
+
+        return self.run_target_units(
+            datetime_index=datetime_index,
+            target_units=target_weights,
+            closes=closes,
+            _target_kind="weight",
+            **kwargs,
+        )
+
+    def run_equity_fraction_targets(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        target_fractions: Dict[str, pd.Series],
+        closes: Dict[str, pd.Series],
+        *,
+        equity_fraction: Union[float, Dict[str, float]],
+        **kwargs,
+    ) -> BacktestResultV2:
+        """Run target fractions with an explicit per-symbol capital cap.
+
+        Unlike weight targets, the raw matrix is multiplied by the separately
+        declared ``equity_fraction`` before conversion to units. No implicit
+        leverage multiplier is applied.
+        """
+
+        return self.run_target_units(
+            datetime_index=datetime_index,
+            target_units=target_fractions,
+            closes=closes,
+            _target_kind="equity_fraction",
+            _equity_fraction=equity_fraction,
+            **kwargs,
+        )
+
+    def run_pct_equity_transition_targets(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        target_weights: Dict[str, pd.Series],
+        closes: Dict[str, pd.Series],
+        *,
+        equity_fraction: Union[float, Dict[str, float]],
+        **kwargs,
+    ) -> BacktestResultV2:
+        """Run the legacy `%_equity` transition-sized target contract.
+
+        A weight is converted to units only when its processed value changes.
+        It is therefore intentionally distinct from
+        :meth:`run_equity_fraction_targets`, which rebalances each bar.
+        Rust authority is explicit via ``target_runtime='rust'``.
+        """
+
+        return self.run_target_units(
+            datetime_index=datetime_index,
+            target_units=target_weights,
+            closes=closes,
+            _target_kind="pct_equity_transition",
+            _equity_fraction=equity_fraction,
+            **kwargs,
+        )
+
+    def run_static_dca_schedule(
+        self,
+        datetime_index: Union[pd.DatetimeIndex, pd.Series],
+        *,
+        symbol: str,
+        closes: pd.Series,
+        schedule: Union[
+            Dict[object, float],
+            pd.Series,
+            List[StaticDcaTargetStepV1],
+            List[tuple[object, float]],
+        ],
+        initial_target_units: float = 0.0,
+        **kwargs,
+    ) -> BacktestResultV2:
+        """Execute a predeclared DCA schedule as a typed close-target tape.
+
+        This is intentionally limited to absolute targets known before the
+        run. It does not lower price-triggered safety orders or fill-driven
+        ladder state into a static matrix; use ``event_driven`` for reactive
+        grid/DCA strategies.
+        """
+
+        tape: StaticTargetTapeV1 = compile_static_dca_target_tape(
+            validate_datetime(datetime_index),
+            schedule,
+            initial_target_units=initial_target_units,
+        )
+        declared_symbols = kwargs.pop("symbols", None)
+        if declared_symbols is not None and list(declared_symbols) != [str(symbol)]:
+            raise ValueError("run_static_dca_schedule supports exactly its declared single symbol")
+        result = self.run_target_units(
+            datetime_index=datetime_index,
+            target_units={str(symbol): tape.target_units},
+            closes={str(symbol): closes},
+            symbols=[str(symbol)],
+            **kwargs,
+        )
+        result.metadata.update({"static_target_tape": tape.metadata()})
+        return result
 
     def _run_target_arrays(
         self,
@@ -277,7 +633,14 @@ class NativeVectorizedBackend:
         raw_signal_matrix: Optional[np.ndarray] = None,
         high_low_source: str = "provided",
         _scalar_score_trading_days: Optional[int] = None,
+        _target_kind: str = "units",
+        _equity_fraction: Optional[Union[float, Dict[str, float]]] = None,
     ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
+        target_kind = str(_target_kind).strip().lower()
+        if target_kind not in {"units", "notional", "weight", "equity_fraction", "pct_equity_transition"}:
+            raise ValueError(
+                "_target_kind must be units, notional, weight, equity_fraction, or pct_equity_transition"
+            )
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         constraints = build_quantity_constraints(
             symbol_list,
@@ -288,7 +651,6 @@ class NativeVectorizedBackend:
             min_qty=min_qty,
             min_notional=min_notional,
         )
-        target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
@@ -299,37 +661,96 @@ class NativeVectorizedBackend:
             symbol_list,
             default=0.0,
         )
-
-        (
-            equity_arr,
-            pos_arr,
-            fee_arr,
-            turnover_arr,
-            funding_arr,
-            init_margin_arr,
-            maint_margin_arr,
-            rejected_arr,
-            reject_code_arr,
-            liq_flag,
-            liq_idx,
-            liq_reason,
-        ) = _engine_units_v2(
-            n_bars=len(idx),
-            n_syms=len(symbol_list),
-            highs=highs_m,
-            lows=lows_m,
-            closes=closes_m,
-            target_units=target_m,
-            funding_rates=funding_m,
-            is_funding_bar=is_funding,
-            init_capital=self.config.account.initial_capital,
-            leverages=leverages,
-            maint_ratio=self.config.account.maintenance_ratio,
-            fee_rates=fee_rates,
-            contract_sizes=contract_sizes,
-            slippage=self.config.execution.slippage_rate,
-            use_funding=bool(self.config.use_funding),
+        equity_fraction = self._per_symbol_array(
+            1.0 if _equity_fraction is None else _equity_fraction,
+            symbol_list,
+            default=1.0,
         )
+        rust_payload: Optional[Any] = None
+        rust_execution_metadata: Optional[dict[str, Any]] = None
+        rust_preparation: Optional[dict[str, Any]] = None
+        use_rust_target = self._use_rust_target_runtime(target_kind)
+        if target_kind != "units" and not use_rust_target:
+            raise NotImplementedError(
+                f"native_vectorized {target_kind!r} targets require target_runtime='rust'; "
+                "Numba remains the frozen target-units compatibility route"
+            )
+        if use_rust_target:
+            # Compact retains only the canonical accounting arrays needed by
+            # the existing public result/score facades. Rust performs all
+            # target resolution, quantity rounding, fills and account state;
+            # Python never replays execution.
+            rust_payload, rust_execution_metadata, rust_preparation = self._rust_target_payload(
+                idx=idx,
+                symbol_list=symbol_list,
+                closes_m=closes_m,
+                highs_m=highs_m,
+                lows_m=lows_m,
+                target_m=target_m,
+                funding_m=funding_m,
+                is_funding=is_funding,
+                contract_sizes=contract_sizes,
+                leverages=leverages,
+                fee_rates=fee_rates,
+                constraints=constraints,
+                target_kind=target_kind,
+                equity_fraction=equity_fraction,
+                output_profile=1,
+            )
+            equity_arr = np.ascontiguousarray(rust_payload.equity, dtype=np.float64)
+            pos_arr = np.ascontiguousarray(rust_payload.positions, dtype=np.float64).reshape(
+                len(idx), len(symbol_list)
+            )
+            fee_arr = np.ascontiguousarray(rust_payload.fees, dtype=np.float64)
+            turnover_arr = np.ascontiguousarray(rust_payload.turnover, dtype=np.float64)
+            funding_arr = np.ascontiguousarray(rust_payload.funding, dtype=np.float64)
+            init_margin_arr = np.ascontiguousarray(rust_payload.initial_margin, dtype=np.float64)
+            maint_margin_arr = np.ascontiguousarray(
+                rust_payload.maintenance_margin, dtype=np.float64
+            )
+            rejected_arr = np.ascontiguousarray(
+                rust_payload.direct_target_rejected_by_bar,
+                dtype=np.int64,
+            )
+            reject_code_arr = np.ascontiguousarray(
+                rust_payload.direct_target_reject_code_by_bar,
+                dtype=np.int64,
+            )
+            liq_flag = bool(rust_payload.liquidated)
+            liq_idx = int(rust_payload.liquidation_bar)
+            liq_reason = int(rust_payload.liquidation_reason)
+        else:
+            target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints)
+            (
+                equity_arr,
+                pos_arr,
+                fee_arr,
+                turnover_arr,
+                funding_arr,
+                init_margin_arr,
+                maint_margin_arr,
+                rejected_arr,
+                reject_code_arr,
+                liq_flag,
+                liq_idx,
+                liq_reason,
+            ) = _engine_units_v2(
+                n_bars=len(idx),
+                n_syms=len(symbol_list),
+                highs=highs_m,
+                lows=lows_m,
+                closes=closes_m,
+                target_units=target_m,
+                funding_rates=funding_m,
+                is_funding_bar=is_funding,
+                init_capital=self.config.account.initial_capital,
+                leverages=leverages,
+                maint_ratio=self.config.account.maintenance_ratio,
+                fee_rates=fee_rates,
+                contract_sizes=contract_sizes,
+                slippage=self.config.execution.slippage_rate,
+                use_funding=bool(self.config.use_funding),
+            )
 
         if _scalar_score_trading_days is not None:
             from ..metrics.performance import compute_performance_metrics
@@ -368,6 +789,9 @@ class NativeVectorizedBackend:
                     "score_scalar": True,
                     "score_pandas_materialized": False,
                     "trading_days": int(_scalar_score_trading_days),
+                    "target_runtime": "rust_direct_target_v1" if rust_payload is not None else "numba_units_v2",
+                    "target_intent_kind": target_kind,
+                    "native_target_execution": rust_execution_metadata,
                 },
             )
 
@@ -412,8 +836,17 @@ class NativeVectorizedBackend:
                 "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
                 "liquidation_reason": int(liq_reason),
                 "quantity_constraints": constraints.as_dict(),
+                "target_runtime": "rust_direct_target_v1" if rust_payload is not None else "numba_units_v2",
+                "target_intent_kind": target_kind,
             }
         )
+        if rust_payload is not None:
+            metadata.update(
+                {
+                    "native_target_execution": rust_execution_metadata,
+                    "native_target_preparation": rust_preparation,
+                }
+            )
 
         return BacktestResultV2(
             equity=equity,

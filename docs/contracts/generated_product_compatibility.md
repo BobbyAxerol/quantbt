@@ -7,24 +7,33 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `ee8cfc3b99fcad075cd215e9aadcbc2467eb2eaf44f55720f9a4c810149bbdba`
+- Product fingerprint: `5459e9a9167e24f19ee4eefb9d334fe8803d2541db3e1869f6b681666369ee0a`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
 - Core distribution: `quantbt-engine==1.1.0`
 - Native distribution: `quantbt-native==0.4.1` (published: `true`)
 
 ## Promotion Policy
 
-- Table version: `native-event-promotion-v2` (schema `1`)
+- Table version: `native-event-promotion-v3-phase72-measurement-gate` (schema `1`)
 - Default user policy: `certified_only`
 - Configured automatic stage: `static_ir`
 - Emergency controls: `QUANTBT_DISABLE_NATIVE=1` and `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`.
+- A rule may enable automatic Rust only with fresh, exact current-candidate evidence; a historical pass is never sufficient.
 
 | Rule | Workload | Stage | Enabled | Required capabilities |
 |---|---|---|---|---|
-| `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `true` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships, native_event_v2_quantity_preflight` |
-| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `true` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
+| `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `false` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships, native_event_v2_quantity_preflight` |
+| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `false` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
 | `portfolio_target_rust_stage_c` | `portfolio_target_market_v1` | `portfolio` | `false` | `native_event_v2_full_contract, native_portfolio_target_market_v1` |
 | `package_transaction_rust_stage_d` | `package_atomic_market_v1` | `package` | `false` | `native_event_v2_full_contract, native_package_atomic_market_v1` |
+| `bounded_package_v2_rust_stage_d` | `package_market_v2` | `package` | `false` | `native_event_v2_full_contract, native_package_market_v2, native_package_actual_fill_hedge_v2, native_package_residual_unwind_v2` |
+
+## Measurement Contract
+
+- Contract: [`quantbt-phase72-measurement-contract-v1`](../../benchmarks/native_event/manifests/phase72_measurement_contract_v1.json)
+- Historical policy: `historical_scope_only_never_auto_promotes`.
+- Required automatic-promotion evidence: `current_candidate_verified`.
+- Candidate proof records matched data/intent fingerprints, source/wheel identity, output-retention profile, and measured accounting parity. Historical manifests retain their original raw duration but are scope-only.
 
 ## Version Matrix
 
@@ -40,13 +49,59 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 | Workload | Contracts | Strategy mode | Profiles | Maturity | Auto |
 |---|---|---|---|---|---|
-| `event_static_tape_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `static_commands` | `score, minimal, standard, audit` | `promoted` | `true` |
+| `event_static_tape_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `static_commands` | `score, minimal, standard, audit` | `certified` | `false` |
 | `event_python_callback_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_compat` | `score, minimal, standard, audit` | `experimental` | `false` |
-| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, minimal, standard, audit` | `promoted` | `true` |
+| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, minimal, standard, audit` | `certified` | `false` |
+| `native_wfo_prepared_signal_v2` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `prepared_signal_w1, prepared_signal_w2` | `score, audit` | `certified` | `false` |
 | `portfolio_target_preflight_v1` | `event_lifecycle_v3_next_open` | `portfolio_target_preflight` | `score, audit` | `experimental` | `false` |
 | `package_transaction_preflight_v1` | `event_lifecycle_v3_next_open` | `package_transaction_preflight` | `score, audit` | `experimental` | `false` |
 | `portfolio_target_market_v1` | `event_lifecycle_v2_next_bar_close` | `portfolio_target_market` | `score, minimal, standard, audit` | `certified` | `false` |
+| `shared_portfolio_target_units_v1` | `event_lifecycle_v2_next_bar_close` | `shared_portfolio_target` | `score, minimal, standard, audit` | `certified` | `false` |
+| `shared_portfolio_target_matrix_v1` | `event_lifecycle_v2_next_bar_close` | `shared_portfolio_target` | `score, minimal, standard, audit` | `experimental` | `false` |
+| `shared_portfolio_target_wfo_v1` | `event_lifecycle_v2_next_bar_close` | `prepared_shared_portfolio_target_wfo` | `score, audit` | `certified` | `false` |
 | `package_atomic_market_v1` | `event_lifecycle_v2_next_bar_close` | `package_atomic_market` | `score, minimal, standard, audit` | `certified` | `false` |
+| `package_market_v2` | `event_lifecycle_v2_next_bar_close` | `typed_package_intent_v2` | `score, minimal, standard, audit` | `certified` | `false` |
+| `package_market_v2_scenario_batch` | `event_lifecycle_v2_next_bar_close` | `typed_package_intent_v2_scenario_batch` | `score` | `certified` | `false` |
+| `intrabar_bracket_rust_v1` | `event_lifecycle_v3_next_open` | `intrabar_intent_v1` | `score, minimal, standard, audit` | `certified` | `false` |
+| `event_reactive_sparse_wake_r2` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_sparse_wake` | `minimal, standard, audit` | `experimental` | `false` |
+| `event_reactive_block_intent_r3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_block_intent` | `minimal, standard, audit` | `experimental` | `false` |
+| `event_reactive_candidate_batch_r3b` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_candidate_batch` | `minimal` | `experimental` | `false` |
+
+## Reliability Contract
+
+| Concern | Contract |
+|---|---|
+| `runtime_budget` | `runtime-budget-v1` |
+| `cancellation` | `safe-point-cancellation-v1` |
+| `prepared_handle_ownership` | `runtime-session-owned-v1` |
+| `worker_generation` | `reset-generation-v1` |
+| `poison_recovery` | `fresh-session-recreation-v1` |
+| `parallelism` | `coordinated-process-rust-blas-openmp-numba-v1` |
+| `audit_retention` | `bounded-chunked-audit-v1` |
+| `shadow_oracle` | `sampled-canonical-trace-v1` |
+| `a5_review` | `route-level-stable-release-v1` |
+
+## Platform Wheel Matrix
+
+| Platform | Python | Status |
+|---|---|---|
+| `linux-x86_64` | `3.11, 3.12, 3.13` | `published-certified` |
+| `linux-aarch64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
+| `macos-arm64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
+| `macos-x86_64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
+| `windows-x86_64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
+
+## Performance Evidence
+
+| Workload | Status | Measurement status | Route / profile | Promotion eligible | E2E faster | RSS plateau | Manifest |
+|---|---|---|---|---|---|---|---|
+| `event_static_tape_v2_v3` | `historical_scope_only` | `historical_scope_only` | `public_event_static` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json` |
+| `native_strategy_ir_v1` | `historical_scope_only` | `historical_scope_only` | `public_native_strategy_ir` / `score_to_score_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json` |
+| `native_wfo_prepared_signal_v2` | `historical_scope_only` | `historical_scope_only` | `prepared_native_signal_wfo` / `score_to_score_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase71_runtime_productization_v1.json` |
+| `portfolio_target_market_v1` | `explicit-only` | `historical_scope_only` | `direct_target_vectorized` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/results/phase66_rust_target_vectorized.json` |
+| `package_market_v2` | `explicit-only` | `historical_scope_only` | `bounded_package_arbitrage` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/results/phase68_bounded_package.json` |
+| `intrabar_bracket_rust_v1` | `performance-hold` | `performance_hold` | `single_symbol_intrabar` / `compact_to_compact_v1` | `false` | `false` | `true` | `benchmarks/native_event/results/phase69_rust_intrabar.json` |
+| `event_reactive_sparse_wake_r2` | `experimental` | `experimental` | `reactive_event_strategies` / `compact_to_compact_v1` | `false` | `false` | `false` | `benchmarks/native_event/results/phase63_sparse_block_batch.json` |
 
 ## Exact Package Pairs
 

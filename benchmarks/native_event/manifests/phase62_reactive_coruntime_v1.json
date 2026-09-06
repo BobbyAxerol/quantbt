@@ -1,0 +1,30 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase62-reactive-coruntime-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_r1_only_no_auto_promotion_until_sparse_or_workload_specific_policy_is_certified",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "R1_NUMERIC_EVERY_BAR_PUBLIC",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "python_numeric_callback_r1",
+      "profiles": [
+        "minimal",
+        "audit"
+      ],
+      "fixture": "deterministic 10,000-bar one-symbol numeric every-bar callback with lightweight, low-churn, high-churn, and two-session cases",
+      "baseline_path": "benchmarks/native_event/results/phase62_reactive_coruntime.json",
+      "baseline_sha256": "c6e6ca4a79f4355542665027725fc6e64043a7f25f642c16f8138715bdd7b075",
+      "required_result_fields": [
+        "sequential",
+        "concurrent",
+        "parity",
+        "gates"
+      ]
+    }
+  ]
+}

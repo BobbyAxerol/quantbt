@@ -21,6 +21,27 @@ import numpy as np
 import pandas as pd
 
 from .core.preprocessor import validate_datetime
+from .core.market_calendar_v2 import (
+    CalendarPlanV2,
+    CalendarPolicyV2,
+    MissingObservationPolicyV1,
+    prepare_calendar_plan_v2,
+)
+from .core.wfo_contracts import (
+    FoldAccountPolicyV1,
+    FoldWarmupPolicyV1,
+    WfoCausalityScheduleV2,
+    WfoIntentContractV1,
+    WfoIntentKindV1,
+    derive_strategy_seed,
+    isolated_strategy_instance,
+    resolve_causality_schedule_v2,
+    strategy_fingerprint,
+)
+from .strategies.wfo_prepared import (
+    PreparedWfoStrategyAdapterV1,
+    prepare_public_wfo_strategy,
+)
 from .optimization.callbacks import SingleObjectiveEarlyStopping as _OptimizationEarlyStopping
 from .optimization.space import stable_params_key, suggest_params as _optimization_suggest_params
 
@@ -80,7 +101,7 @@ class WalkForwardBenchmarkSnapshot:
 
 @dataclass(frozen=True)
 class WalkForwardFold:
-    """One time-safe train/OOS fold."""
+    """One canonical-clock train/OOS fold with causal provenance."""
 
     fold_id: int
     train_start: pd.Timestamp
@@ -89,6 +110,34 @@ class WalkForwardFold:
     test_end: pd.Timestamp
     train_index: pd.DatetimeIndex
     test_index: pd.DatetimeIndex
+    validation_index: Optional[pd.DatetimeIndex] = None
+    warmup_index: pd.DatetimeIndex = field(default_factory=lambda: pd.DatetimeIndex([], tz="UTC"))
+    label_horizon_index: pd.DatetimeIndex = field(default_factory=lambda: pd.DatetimeIndex([], tz="UTC"))
+    purge_index: pd.DatetimeIndex = field(default_factory=lambda: pd.DatetimeIndex([], tz="UTC"))
+    embargo_index: pd.DatetimeIndex = field(default_factory=lambda: pd.DatetimeIndex([], tz="UTC"))
+    cutoff_timestamp: Optional[pd.Timestamp] = None
+    account_policy: str = FoldAccountPolicyV1.CARRY_POSITION.value
+
+    def __post_init__(self) -> None:
+        if len(self.train_index) == 0 or len(self.test_index) == 0:
+            raise ValueError("walk-forward fold train_index and test_index must be non-empty")
+        cutoff = self.test_end if self.cutoff_timestamp is None else pd.Timestamp(self.cutoff_timestamp)
+        cutoff = cutoff.tz_localize("UTC") if cutoff.tzinfo is None else cutoff.tz_convert("UTC")
+        if cutoff != self.test_end:
+            raise ValueError("walk-forward fold cutoff_timestamp must equal the declared test end")
+        if self.train_end >= self.test_start and not self.train_index.equals(self.test_index):
+            raise ValueError("walk-forward fold train data must end before test data begins")
+        if len(self.label_horizon_index) and self.label_horizon_index[-1] >= self.test_start:
+            raise ValueError("walk-forward fold label_horizon_index must end before the test range")
+        if len(self.purge_index) and self.purge_index[-1] >= self.test_start:
+            raise ValueError("walk-forward fold purge_index must end before the test range")
+        try:
+            account = FoldAccountPolicyV1(str(self.account_policy).lower().strip())
+        except ValueError as exc:
+            allowed = ", ".join(item.value for item in FoldAccountPolicyV1)
+            raise ValueError(f"walk-forward fold account_policy must be one of: {allowed}") from exc
+        object.__setattr__(self, "cutoff_timestamp", cutoff)
+        object.__setattr__(self, "account_policy", account.value)
 
 
 @dataclass(frozen=True)
@@ -108,6 +157,7 @@ class PreparedWalkForwardContext:
     config_signature: str
     signature: str
     cutoff_stops: Mapping[int, int]
+    calendar_plan: Optional[CalendarPlanV2] = None
     _stats: Dict[str, int] = field(
         default_factory=lambda: {
             "strategy_slice_requests": 0,
@@ -126,6 +176,7 @@ class PreparedWalkForwardContext:
         datetime_index: pd.DatetimeIndex,
         folds: Sequence[WalkForwardFold],
         config: "WalkForwardConfig",
+        calendar_plan: Optional[CalendarPlanV2] = None,
     ) -> "PreparedWalkForwardContext":
         idx = validate_datetime(datetime_index)
         fold_tuple = tuple(folds)
@@ -157,7 +208,16 @@ class PreparedWalkForwardContext:
         data_signature = _complete_data_hash(data)
         config_signature = _config_hash(config)
         fold_payload = [
-            (int(fold.fold_id), int(fold.train_start.value), int(fold.train_end.value), int(fold.test_start.value), int(fold.test_end.value))
+            {
+                "fold_id": int(fold.fold_id),
+                "train": (int(fold.train_start.value), int(fold.train_end.value)),
+                "test": (int(fold.test_start.value), int(fold.test_end.value)),
+                "warmup": _index_bounds_payload(fold.warmup_index),
+                "label_horizon": _index_bounds_payload(fold.label_horizon_index),
+                "purge": _index_bounds_payload(fold.purge_index),
+                "embargo": _index_bounds_payload(fold.embargo_index),
+                "account_policy": fold.account_policy,
+            }
             for fold in fold_tuple
         ]
         signature_payload = json.dumps(
@@ -165,6 +225,7 @@ class PreparedWalkForwardContext:
                 "data": data_signature,
                 "config": config_signature,
                 "folds": fold_payload,
+                "calendar": None if calendar_plan is None else calendar_plan.fingerprint,
             },
             sort_keys=True,
         ).encode("utf-8")
@@ -176,6 +237,7 @@ class PreparedWalkForwardContext:
             config_signature=config_signature,
             signature=hashlib.sha256(signature_payload).hexdigest(),
             cutoff_stops=cutoff_stops,
+            calendar_plan=calendar_plan,
         )
 
     def data_through(self, end: pd.Timestamp, *, strategy_copy: bool):
@@ -210,6 +272,7 @@ class PreparedWalkForwardContext:
             "bars": int(len(self.datetime_index)),
             "folds": int(len(self.folds)),
             "prepared_cutoffs": int(len(self.cutoff_stops)),
+            "calendar_plan": None if self.calendar_plan is None else self.calendar_plan.metadata(),
             **dict(self._stats),
         }
 
@@ -264,6 +327,21 @@ class WalkForwardConfig:
         source tape whose timestamps differ from the fold clock.  Explicit
         ``"legacy_v1"`` preserves historical row-count relabel behavior for
         reproduction only; it is never emitted as a certified calendar route.
+    label_horizon_bars, purge_bars, embargo_bars:
+        Explicit temporal guards. The train tail affected by labels and purge
+        is removed before each OOS start; embargo bars form a declared
+        non-trading gap before the next eligible OOS fold.
+    warmup_policy, warmup_bars:
+        Strategy-only history policy. Warmup observations never enter the
+        fold's train/test PnL output.
+    fold_account_policy:
+        `carry_position`, `replay_prior_state`, `close_at_boundary`, or
+        `reset_flat`. Unsupported final execution combinations fail closed;
+        no policy is silently converted to carry.
+    intent_contract:
+        Timing/semantic declaration for output generated by the strategy.
+        Omitting it preserves legacy behavior but is recorded as an
+        un-certified compatibility adapter.
     """
 
     split_mode: Union[str, int, pd.Timestamp] = "walk_forward_2022"
@@ -282,6 +360,23 @@ class WalkForwardConfig:
     inner_train_window: Optional[str] = None
     inner_min_folds: int = 2
     calendar_contract: str = "exact_v2"
+    calendar_primary_symbol: Optional[str] = None
+    calendar_missing_policy: str = "no_observation"
+    label_horizon_bars: int = 0
+    purge_bars: int = 0
+    embargo_bars: int = 0
+    warmup_policy: str = FoldWarmupPolicyV1.NONE.value
+    warmup_bars: Optional[int] = None
+    fold_account_policy: str = FoldAccountPolicyV1.CARRY_POSITION.value
+    intent_contract: Optional[Union[WfoIntentContractV1, Mapping[str, Any]]] = None
+    strategy_lifecycle_policy: str = "isolated_v1"
+    trusted_strategy_global: bool = False
+    proxy_validation_mode: str = "off"
+    proxy_validation_top_fraction: float = 0.10
+    proxy_min_spearman: float = 0.70
+    proxy_min_top_k_overlap: float = 0.50
+    proxy_max_winner_regret: float = 0.25
+    proxy_max_false_positive_rate: float = 0.25
     optuna_trials: int = 0
     optuna_early_stopping: Optional[int] = None
     random_seed: int = 42
@@ -414,16 +509,104 @@ class WalkForwardConfig:
         object.__setattr__(self, "optimization_schedule", schedule)
 
         calendar_contract = str(self.calendar_contract).lower().strip()
-        if calendar_contract not in {"exact_v2", "legacy_v1"}:
-            raise ValueError("calendar_contract must be exact_v2 or legacy_v1")
+        if calendar_contract not in {"exact_v2", "intersection_v2", "legacy_v1"}:
+            raise ValueError("calendar_contract must be exact_v2, intersection_v2, or legacy_v1")
         object.__setattr__(self, "calendar_contract", calendar_contract)
+        missing_policy = str(self.calendar_missing_policy).lower().strip()
+        try:
+            missing_policy = MissingObservationPolicyV1(missing_policy).value
+        except ValueError as exc:
+            allowed = ", ".join(item.value for item in MissingObservationPolicyV1)
+            raise ValueError(f"calendar_missing_policy must be one of: {allowed}") from exc
+        if calendar_contract == "intersection_v2" and missing_policy != MissingObservationPolicyV1.NO_OBSERVATION.value:
+            raise ValueError("intersection_v2 requires calendar_missing_policy='no_observation'")
+        object.__setattr__(self, "calendar_missing_policy", missing_policy)
 
         boundary_policy = self.fold_boundary_position_policy.lower().strip()
-        if boundary_policy != "carry":
+        boundary_aliases = {
+            "carry": FoldAccountPolicyV1.CARRY_POSITION.value,
+            "carry_position": FoldAccountPolicyV1.CARRY_POSITION.value,
+            "reset_flat": FoldAccountPolicyV1.RESET_FLAT.value,
+            "close_at_boundary": FoldAccountPolicyV1.CLOSE_AT_BOUNDARY.value,
+            "replay_prior_state": FoldAccountPolicyV1.REPLAY_PRIOR_STATE.value,
+        }
+        if boundary_policy not in boundary_aliases:
+            allowed = ", ".join(boundary_aliases)
             raise NotImplementedError(
-                "fold_boundary_position_policy currently supports 'carry' only"
+                "fold_boundary_position_policy currently supports 'carry' only for legacy callers; "
+                f"new explicit policies must be one of: {allowed}"
             )
         object.__setattr__(self, "fold_boundary_position_policy", boundary_policy)
+        try:
+            raw_account_policy = str(self.fold_account_policy).lower().strip()
+            account_policy = FoldAccountPolicyV1(
+                boundary_aliases.get(raw_account_policy, raw_account_policy)
+            )
+        except ValueError as exc:
+            allowed = ", ".join(item.value for item in FoldAccountPolicyV1)
+            raise ValueError(f"fold_account_policy must be one of: {allowed}") from exc
+        alias_policy = boundary_aliases[boundary_policy]
+        if boundary_policy != "carry" and account_policy.value != alias_policy:
+            raise ValueError(
+                "fold_boundary_position_policy and fold_account_policy disagree; "
+                "use the same explicit policy or leave the legacy alias as 'carry'"
+            )
+        if boundary_policy == "carry" and account_policy is not FoldAccountPolicyV1.CARRY_POSITION:
+            object.__setattr__(self, "fold_boundary_position_policy", account_policy.value)
+        object.__setattr__(self, "fold_account_policy", account_policy.value)
+
+        for name in ("label_horizon_bars", "purge_bars", "embargo_bars"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, np.integer)) or isinstance(value, bool) or int(value) < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
+            object.__setattr__(self, name, int(value))
+        try:
+            warmup_policy = FoldWarmupPolicyV1(str(self.warmup_policy).lower().strip())
+        except ValueError as exc:
+            allowed = ", ".join(item.value for item in FoldWarmupPolicyV1)
+            raise ValueError(f"warmup_policy must be one of: {allowed}") from exc
+        warmup_bars = self.warmup_bars
+        if warmup_policy is FoldWarmupPolicyV1.EXPLICIT_BARS:
+            if not isinstance(warmup_bars, (int, np.integer)) or isinstance(warmup_bars, bool) or int(warmup_bars) <= 0:
+                raise ValueError("warmup_policy='explicit_bars' requires warmup_bars > 0")
+            warmup_bars = int(warmup_bars)
+        elif warmup_bars is not None:
+            if not isinstance(warmup_bars, (int, np.integer)) or isinstance(warmup_bars, bool) or int(warmup_bars) < 0:
+                raise ValueError("warmup_bars must be a non-negative integer when provided")
+            warmup_bars = int(warmup_bars)
+        object.__setattr__(self, "warmup_policy", warmup_policy.value)
+        object.__setattr__(self, "warmup_bars", warmup_bars)
+        object.__setattr__(self, "intent_contract", WfoIntentContractV1.from_value(self.intent_contract))
+        lifecycle_policy = str(self.strategy_lifecycle_policy).lower().strip()
+        if lifecycle_policy not in {"isolated_v1", "legacy_reuse_v1"}:
+            raise ValueError("strategy_lifecycle_policy must be isolated_v1 or legacy_reuse_v1")
+        object.__setattr__(self, "strategy_lifecycle_policy", lifecycle_policy)
+        proxy_mode = str(self.proxy_validation_mode).lower().strip()
+        if proxy_mode not in {"off", "record", "enforce"}:
+            raise ValueError("proxy_validation_mode must be off, record, or enforce")
+        if self.scoring_backend != "proxy" and proxy_mode != "off":
+            raise ValueError("proxy_validation_mode is only valid with scoring_backend='proxy'")
+        for name, minimum, maximum in (
+            ("proxy_validation_top_fraction", 0.0, 1.0),
+            ("proxy_min_spearman", -1.0, 1.0),
+            ("proxy_min_top_k_overlap", 0.0, 1.0),
+            ("proxy_max_false_positive_rate", 0.0, 1.0),
+        ):
+            value = float(getattr(self, name))
+            if name == "proxy_validation_top_fraction":
+                valid = minimum < value <= maximum
+                message = f"{name} must be in ({minimum}, {maximum}]"
+            else:
+                valid = minimum <= value <= maximum
+                message = f"{name} must be in [{minimum}, {maximum}]"
+            if not valid:
+                raise ValueError(message)
+            object.__setattr__(self, name, value)
+        regret = float(self.proxy_max_winner_regret)
+        if regret < 0.0:
+            raise ValueError("proxy_max_winner_regret must be >= 0")
+        object.__setattr__(self, "proxy_max_winner_regret", regret)
+        object.__setattr__(self, "proxy_validation_mode", proxy_mode)
         if self.optuna_trials < 0:
             raise ValueError("optuna_trials must be >= 0")
         if self.optuna_early_stopping is not None and self.optuna_early_stopping <= 0:
@@ -718,14 +901,21 @@ class WalkForwardEngine:
         strategy: Any,
         config: Optional[WalkForwardConfig] = None,
         scorer: Optional[Callable[..., Dict[str, float]]] = None,
+        native_scorer: Optional[Callable[..., Dict[str, float]]] = None,
     ):
         if strategy is None:
             raise ValueError("WalkForwardEngine requires a strategy callable or strategy class/object")
         self.strategy = strategy
         self.config = config or WalkForwardConfig()
         self.scorer = scorer
+        self.native_scorer = native_scorer
         if self.config.scoring_backend == "endpoint" and self.scorer is None:
             raise ValueError("scoring_backend='endpoint' requires a scorer callback")
+        if self.config.scoring_backend == "proxy" and self.config.proxy_validation_mode == "enforce" and self.native_scorer is None:
+            raise ValueError(
+                "proxy_validation_mode='enforce' requires a native_scorer; "
+                "use an endpoint-backed scorer or disable proxy enforcement"
+            )
 
     def run(
         self,
@@ -737,12 +927,41 @@ class WalkForwardEngine:
         """Build folds, call the strategy per fold, and stitch OOS output."""
         profile_enabled = bool(self.config.metadata.get("profile_walkforward", False))
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
+        self._lifecycle_records: List[Dict[str, Any]] = []
+        self._lifecycle_records_dropped = 0
+        self._strategy_market_fingerprints: Dict[int, str] = {}
+        self._prepared_wfo_strategy_adapter: PreparedWfoStrategyAdapterV1 | None = None
+        self._prepared_wfo_strategy_metadata: Dict[str, Any] = {
+            "schema": "quantbt-prepared-wfo-strategy-v1",
+            "requested_policy": "off",
+            "resolved_adapter": "w0",
+            "reason": "not_prepared",
+        }
+        self._prepared_wfo_strategy_lifecycle_record: Dict[str, Any] | None = None
+        self._proxy_validation: Dict[str, Any] = {
+            "mode": self.config.proxy_validation_mode,
+            "status": "not_requested" if self.config.proxy_validation_mode == "off" else "pending",
+            "selection_mutated": False,
+            "selection_scope": "is_only",
+        }
         prepare_started = time.perf_counter()
-        idx = _infer_datetime_index(data, datetime_index)
+        requested_index = _infer_datetime_index(data, datetime_index)
+        calendar_plan = _prepare_walkforward_calendar_plan(
+            data,
+            requested_index=requested_index,
+            config=self.config,
+        )
+        idx = requested_index if calendar_plan is None else calendar_plan.datetime_index
+        if datetime_index is not None and not requested_index.equals(idx):
+            raise ValueError(
+                "walk-forward datetime_index must exactly match the CalendarPlanV2 canonical clock; "
+                "omit datetime_index to use the configured canonical calendar"
+            )
         data_for_strategy = _align_data_to_datetime_index(
             data,
             idx,
             calendar_contract=self.config.calendar_contract,
+            calendar_plan=calendar_plan,
         )
         folds = self.build_folds(idx)
         use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
@@ -752,6 +971,7 @@ class WalkForwardEngine:
                 datetime_index=idx,
                 folds=folds,
                 config=self.config,
+                calendar_plan=calendar_plan,
             )
             if use_prepared_context
             else None
@@ -761,17 +981,46 @@ class WalkForwardEngine:
         self._prepared_context = prepared_context
         if prepared_context is not None and hasattr(self.scorer, "bind_walkforward_context"):
             self.scorer.bind_walkforward_context(prepared_context)
+        if prepared_context is not None and hasattr(self.native_scorer, "bind_walkforward_context"):
+            self.native_scorer.bind_walkforward_context(prepared_context)
+        result: WalkForwardResult | None = None
         try:
-            return self._run_aligned(
+            (
+                self._prepared_wfo_strategy_adapter,
+                self._prepared_wfo_strategy_metadata,
+                self._prepared_wfo_strategy_lifecycle_record,
+            ) = prepare_public_wfo_strategy(
+                strategy=self.strategy,
+                data=data_for_strategy,
+                datetime_index=idx,
+                folds=folds,
+                config=self.config,
+            )
+            result = self._run_aligned(
                 data_for_strategy=data_for_strategy,
                 idx=idx,
                 folds=folds,
                 params=params,
                 param_ranges=param_ranges,
                 prepared_context=prepared_context,
+                calendar_plan=calendar_plan,
             )
+            return result
         finally:
+            adapter = self._prepared_wfo_strategy_adapter
+            if adapter is not None:
+                adapter.close()
+                self._prepared_wfo_strategy_metadata = adapter.metadata()
+            lifecycle_record = self._prepared_wfo_strategy_lifecycle_record
+            if lifecycle_record is not None:
+                self._append_lifecycle_record(lifecycle_record)
+            if result is not None:
+                result.metadata["prepared_wfo_strategy"] = dict(self._prepared_wfo_strategy_metadata)
+                result.metadata["strategy_lifecycle_table"] = pd.DataFrame(self._lifecycle_records)
+            self._prepared_wfo_strategy_adapter = None
+            self._prepared_wfo_strategy_lifecycle_record = None
             self._prepared_context = None
+            self._strategy_market_fingerprints = {}
 
     def _run_aligned(
         self,
@@ -782,6 +1031,7 @@ class WalkForwardEngine:
         params: Optional[Dict[str, Any]],
         param_ranges: Optional[Dict[str, Any]],
         prepared_context: Optional[PreparedWalkForwardContext],
+        calendar_plan: Optional[CalendarPlanV2],
     ) -> WalkForwardResult:
         schedule = self.config.optimization_schedule
         params_by_fold: Dict[int, Dict[str, Any]] = {}
@@ -852,6 +1102,13 @@ class WalkForwardEngine:
             selected_record = scheduled.selected_records[-1]
             chosen_params = dict(selected_record.params)
 
+        self._validate_proxy_screening(
+            data=data_for_strategy,
+            folds=folds,
+            records=(candidate_records or trial_records),
+            selected=selected_record,
+        )
+
         stitched = stitch_oos_outputs(
             outputs=outputs,
             folds=folds,
@@ -864,7 +1121,27 @@ class WalkForwardEngine:
             folds=folds,
             full_index=idx,
             fill_value=self.config.fill_value,
+            account_policy=self.config.fold_account_policy,
         )
+        account_execution_plan = _fold_account_execution_plan(
+            folds=folds,
+            full_index=idx,
+            policy=self.config.fold_account_policy,
+        )
+        schedule_contract = resolve_causality_schedule_v2(
+            optimization_schedule=self.config.optimization_schedule,
+            optimization_mode=self.config.optimization_mode,
+            trusted_strategy_global=bool(self.config.trusted_strategy_global),
+        )
+        prepared_strategy_active = self._prepared_wfo_strategy_adapter is not None
+        if prepared_strategy_active:
+            signal_causality_scope = "prepared_strategy_declared_parameter_independent_cache_v1"
+        elif schedule_contract is WfoCausalityScheduleV2.RETROSPECTIVE_GLOBAL:
+            signal_causality_scope = "retrospective_global_strategy_data"
+        elif bool(self.config.intent_contract.certified):
+            signal_causality_scope = "strategy_declared_timing_contract"
+        else:
+            signal_causality_scope = "legacy_series_adapter_timing_unverified"
         if schedule == "per_fold_decay":
             validation_claim = "selection_adjusted_oos"
             causality_claim = "fold_local_decay_calibration"
@@ -920,7 +1197,24 @@ class WalkForwardEngine:
                 "target_mode": self.config.target_mode,
                 "optimization_mode": self.config.optimization_mode,
                 "optimization_schedule": schedule,
+                "causality_schedule_v2": schedule_contract.value,
+                "wfo_contract_schema": "quantbt-wfo-contract-v1",
+                "signal_causality_scope": signal_causality_scope,
                 "fold_boundary_position_policy": self.config.fold_boundary_position_policy,
+                "fold_account_policy": self.config.fold_account_policy,
+                "intent_contract": self.config.intent_contract.metadata(),
+                "strategy_lifecycle_policy": self.config.strategy_lifecycle_policy,
+                "strategy_fingerprint": strategy_fingerprint(self.strategy),
+                "strategy_lifecycle_table": pd.DataFrame(self._lifecycle_records),
+                "strategy_lifecycle_records_dropped": int(self._lifecycle_records_dropped),
+                "prepared_wfo_strategy": dict(self._prepared_wfo_strategy_metadata),
+                "calendar_plan": None if calendar_plan is None else calendar_plan.metadata(),
+                "calendar_contract": self.config.calendar_contract,
+                "label_horizon_bars": int(self.config.label_horizon_bars),
+                "purge_bars": int(self.config.purge_bars),
+                "embargo_bars": int(self.config.embargo_bars),
+                "warmup_policy": self.config.warmup_policy,
+                "warmup_bars": self.config.warmup_bars,
                 "validation_claim": validation_claim,
                 "causality_claim": causality_claim,
                 "full_sample_used_for_selection": self.config.optimization_mode == "mode_5_full_robust",
@@ -930,7 +1224,8 @@ class WalkForwardEngine:
                 "fold_selection_table": pd.DataFrame(selection_rows),
                 "inner_fold_table": pd.DataFrame(inner_fold_rows),
                 "fold_boundary_table": boundary_table,
-                "account_execution": "single_stitched_run",
+                "account_execution": account_execution_plan["execution_mode"],
+                "account_execution_plan": account_execution_plan,
                 "n_folds": len(folds),
                 "n_studies": len(folds) if schedule != "global" else int(optimization_requested),
                 "optuna_trials_scope": (
@@ -979,6 +1274,7 @@ class WalkForwardEngine:
                 "use_bootstrap_penalty": self.config.use_bootstrap_penalty,
                 "use_complexity_penalty": self.config.use_complexity_penalty,
                 "scoring_backend": self.config.scoring_backend,
+                "proxy_validation": self._proxy_validation_metadata(),
                 "prepared_wfo_context": (
                     prepared_context.metadata
                     if prepared_context is not None
@@ -1327,7 +1623,8 @@ class WalkForwardEngine:
         """Score params on in-sample folds only for anti-leakage Optuna search."""
         fold_metrics = []
         is_scores = []
-
+        score_tasks = []
+        fold_work = []
         for fold in folds:
             is_output = self._call_strategy_for_indices(
                 data=data,
@@ -1337,24 +1634,41 @@ class WalkForwardEngine:
                 fold=fold,
                 context="anti-leakage in-sample search",
             )
-            is_metrics = self._score_strategy_output(
-                data,
-                is_output,
-                fold.train_index,
-                fold=fold,
-                params=params,
-                context="anti-leakage in-sample search",
+            is_task = len(score_tasks)
+            score_tasks.append(
+                (is_output, fold.train_index, fold, params, "anti-leakage in-sample search")
             )
+            shard_tasks = []
+            if self.config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
+                for shard_id, shard_index in enumerate(
+                    _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
+                ):
+                    if len(shard_index) < 2:
+                        continue
+                    shard_tasks.append((shard_id, shard_index, len(score_tasks)))
+                    score_tasks.append(
+                        (
+                            _slice_output_to_test(is_output, shard_index),
+                            shard_index,
+                            fold,
+                            params,
+                            f"is-only robustness subperiod {shard_id}",
+                        )
+                    )
+            fold_work.append((fold, is_task, shard_tasks))
+
+        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        for fold, is_task, shard_tasks in fold_work:
+            is_metrics = scored[is_task]
             required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
             is_sharpe = is_metrics["sharpe"] - penalty
-            shard_stats = self._score_is_subperiods(
-                data=data,
-                is_output=is_output,
-                train_index=fold.train_index,
-                fold=fold,
-                params=params,
+            shard_stats = self._summarize_is_subperiod_metrics(
+                [
+                    (shard_index, scored[task_index])
+                    for _shard_id, shard_index, task_index in shard_tasks
+                ]
             )
             is_scores.append(is_sharpe)
             fold_metrics.append(
@@ -1401,39 +1715,24 @@ class WalkForwardEngine:
             },
         )
 
-    def _score_is_subperiods(
+    def _summarize_is_subperiod_metrics(
         self,
-        data,
-        is_output: StrategyOutput,
-        train_index: pd.DatetimeIndex,
-        fold: WalkForwardFold,
-        params: Dict[str, Any],
+        shard_metrics: Sequence[tuple[pd.DatetimeIndex, Dict[str, float]]],
     ) -> Dict[str, Any]:
+        """Apply the existing temporal score formula to pre-scored IS shards."""
+
         if self.config.optimization_mode not in {"mode_4_is_only_robust", "mode_5_full_robust"}:
             return {}
-        shards = _split_index_into_subperiods(train_index, int(self.config.is_subperiods))
         scores = []
         raw_scores = []
         trade_counts = []
         factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
-        for shard_id, shard_index in enumerate(shards):
-            if len(shard_index) < 2:
-                continue
-            shard_output = _slice_output_to_test(is_output, shard_index)
-            metrics = self._score_strategy_output(
-                data,
-                shard_output,
-                shard_index,
-                fold=fold,
-                params=params,
-                context=f"is-only robustness subperiod {shard_id}",
-            )
+        for shard_index, metrics in shard_metrics:
             required = _required_trades_for_index(shard_index, self.config.min_trades_per_year)
             penalty = trade_frequency_penalty(metrics["trade_count"], required, factor)
             raw = float(metrics["sharpe"])
-            score = raw - penalty
             raw_scores.append(raw)
-            scores.append(float(score))
+            scores.append(float(raw - penalty))
             trade_counts.append(float(metrics["trade_count"]))
         stats = _temporal_robustness_stats(
             scores,
@@ -1452,6 +1751,36 @@ class WalkForwardEngine:
             "is_temporal_score": stats["temporal_score"],
         }
 
+    def _score_is_subperiods(
+        self,
+        data,
+        is_output: StrategyOutput,
+        train_index: pd.DatetimeIndex,
+        fold: WalkForwardFold,
+        params: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if self.config.optimization_mode not in {"mode_4_is_only_robust", "mode_5_full_robust"}:
+            return {}
+        tasks = []
+        shard_indices = []
+        for shard_id, shard_index in enumerate(
+            _split_index_into_subperiods(train_index, int(self.config.is_subperiods))
+        ):
+            if len(shard_index) < 2:
+                continue
+            shard_indices.append(shard_index)
+            tasks.append(
+                (
+                    _slice_output_to_test(is_output, shard_index),
+                    shard_index,
+                    fold,
+                    params,
+                    f"is-only robustness subperiod {shard_id}",
+                )
+            )
+        metrics = self._score_strategy_outputs_batch(data, tasks)
+        return self._summarize_is_subperiod_metrics(list(zip(shard_indices, metrics, strict=True)))
+
     def evaluate_params(
         self,
         data,
@@ -1464,7 +1793,8 @@ class WalkForwardEngine:
         is_scores = []
         oos_scores = []
         decay = []
-
+        score_tasks = []
+        fold_work = []
         for fold in folds:
             is_output = self._call_strategy_for_indices(
                 data=data,
@@ -1482,22 +1812,20 @@ class WalkForwardEngine:
                 fold=fold,
                 context="out-of-sample scoring",
             )
-            is_metrics = self._score_strategy_output(
-                data,
-                is_output,
-                fold.train_index,
-                fold=fold,
-                params=params,
-                context="in-sample scoring",
+            is_task = len(score_tasks)
+            score_tasks.append(
+                (is_output, fold.train_index, fold, params, "in-sample scoring")
             )
-            oos_metrics = self._score_strategy_output(
-                data,
-                oos_output,
-                fold.test_index,
-                fold=fold,
-                params=params,
-                context="out-of-sample scoring",
+            oos_task = len(score_tasks)
+            score_tasks.append(
+                (oos_output, fold.test_index, fold, params, "out-of-sample scoring")
             )
+            fold_work.append((fold, is_task, oos_task))
+
+        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        for fold, is_task, oos_task in fold_work:
+            is_metrics = scored[is_task]
+            oos_metrics = scored[oos_task]
             is_required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
             oos_required_trades = _required_trades_for_index(fold.test_index, self.config.min_trades_per_year)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
@@ -1575,7 +1903,8 @@ class WalkForwardEngine:
         synthetic_scores = []
         synthetic_stds = []
         decay = []
-
+        score_tasks = []
+        fold_work = []
         for fold in folds:
             is_output = self._call_strategy_for_indices(
                 data=data,
@@ -1585,14 +1914,15 @@ class WalkForwardEngine:
                 fold=fold,
                 context="sbb train scoring",
             )
-            is_metrics = self._score_strategy_output(
-                data,
-                is_output,
-                fold.train_index,
-                fold=fold,
-                params=params,
-                context="sbb train scoring",
+            is_task = len(score_tasks)
+            score_tasks.append(
+                (is_output, fold.train_index, fold, params, "sbb train scoring")
             )
+            fold_work.append((fold, is_output, is_task))
+
+        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        for fold, is_output, is_task in fold_work:
+            is_metrics = scored[is_task]
             returns = strategy_return_series(
                 data,
                 is_output,
@@ -1703,7 +2033,14 @@ class WalkForwardEngine:
         )
 
     def build_folds(self, idx: pd.DatetimeIndex) -> List[WalkForwardFold]:
-        """Return chronological train/OOS folds without lookahead."""
+        """Return canonical-clock chronological folds without lookahead.
+
+        The raw calendar spans are converted once into integer boundaries.  A
+        fold's train tail is then purged before its test range, while an
+        embargo is an explicit non-trading gap before the next eligible OOS
+        range.  This makes all temporal exclusions inspectable rather than a
+        hidden boolean mask inside strategy or optimizer code.
+        """
         idx = validate_datetime(idx)
         if len(idx) == 0:
             raise ValueError("walk-forward datetime index is empty")
@@ -1720,6 +2057,8 @@ class WalkForwardEngine:
                     test_end=idx[-1],
                     train_index=idx,
                     test_index=idx,
+                    cutoff_timestamp=idx[-1],
+                    account_policy=self.config.fold_account_policy,
                 )
             ]
 
@@ -1729,61 +2068,65 @@ class WalkForwardEngine:
         if first_oos > idx[-1]:
             raise ValueError("first OOS timestamp is after the available data")
 
+        first_test_start = int(idx.searchsorted(first_oos, side="left"))
+        if first_test_start >= len(idx):
+            raise ValueError("first OOS timestamp is after the available data")
+
         if self.config.split_frequency == "single":
-            train_start = idx[0] if self.config.window_mode == "expanding" else first_oos - pd.Timedelta(self.config.train_window)
-            train_index = idx[(idx >= train_start) & (idx < first_oos)]
-            test_index = idx[idx >= first_oos]
-            if len(train_index) < self.config.min_train_bars:
+            raw_train_start = (
+                0
+                if self.config.window_mode == "expanding"
+                else int(idx.searchsorted(first_oos - pd.Timedelta(self.config.train_window), side="left"))
+            )
+            fold = _build_fold_v2(
+                idx,
+                fold_id=0,
+                raw_train_start=raw_train_start,
+                test_start=first_test_start,
+                test_stop=len(idx),
+                config=self.config,
+            )
+            if fold is None or len(fold.train_index) < self.config.min_train_bars:
                 raise ValueError("train/test split produced too few train bars")
-            if len(test_index) < self.config.min_test_bars:
+            if len(fold.test_index) < self.config.min_test_bars:
                 raise ValueError("train/test split produced too few test bars")
-            return [
-                WalkForwardFold(
-                    fold_id=0,
-                    train_start=train_index[0],
-                    train_end=train_index[-1],
-                    test_start=test_index[0],
-                    test_end=test_index[-1],
-                    train_index=train_index,
-                    test_index=test_index,
-                )
-            ]
+            return [fold]
 
         step = _frequency_offset(self.config.split_frequency)
         folds: List[WalkForwardFold] = []
-        test_start = first_oos
+        test_start_position = first_test_start
         fold_id = 0
-        while test_start <= idx[-1]:
-            test_stop = test_start + step
-            test_mask = (idx >= test_start) & (idx < test_stop)
-            test_index = idx[test_mask]
-            if len(test_index) < self.config.min_test_bars:
-                test_start = test_stop
+        while test_start_position < len(idx):
+            test_start = idx[test_start_position]
+            test_stop_timestamp = test_start + step
+            test_stop_position = int(idx.searchsorted(test_stop_timestamp, side="left"))
+            if test_stop_position <= test_start_position:
+                test_stop_position = min(len(idx), test_start_position + 1)
+            test_bars = test_stop_position - test_start_position
+            if test_bars < self.config.min_test_bars:
+                test_start_position = test_stop_position
                 continue
 
             if self.config.window_mode == "expanding":
-                train_start = idx[0]
+                raw_train_start = 0
             else:
-                train_start = test_start - pd.Timedelta(self.config.train_window)
-            train_mask = (idx >= train_start) & (idx < test_start)
-            train_index = idx[train_mask]
-            if len(train_index) < self.config.min_train_bars:
-                test_start = test_stop
-                continue
-
-            folds.append(
-                WalkForwardFold(
-                    fold_id=fold_id,
-                    train_start=train_index[0],
-                    train_end=train_index[-1],
-                    test_start=test_index[0],
-                    test_end=test_index[-1],
-                    train_index=train_index,
-                    test_index=test_index,
+                raw_train_start = int(
+                    idx.searchsorted(test_start - pd.Timedelta(self.config.train_window), side="left")
                 )
+            fold = _build_fold_v2(
+                idx,
+                fold_id=fold_id,
+                raw_train_start=raw_train_start,
+                test_start=test_start_position,
+                test_stop=test_stop_position,
+                config=self.config,
             )
+            if fold is None or len(fold.train_index) < self.config.min_train_bars:
+                test_start_position = test_stop_position
+                continue
+            folds.append(fold)
             fold_id += 1
-            test_start = test_stop
+            test_start_position = test_stop_position + int(self.config.embargo_bars)
 
         if not folds:
             raise ValueError("walk-forward split produced no folds")
@@ -1798,33 +2141,216 @@ class WalkForwardEngine:
         params: Dict[str, Any],
         context: str,
     ) -> Dict[str, float]:
+        return self._score_strategy_outputs_batch(
+            data,
+            [(output, index, fold, params, context)],
+        )[0]
+
+    def _score_strategy_outputs_batch(
+        self,
+        data,
+        tasks: Sequence[tuple[StrategyOutput, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]],
+    ) -> list[Dict[str, float]]:
+        """Score ordered WFO fold/shard work without changing its formulas.
+
+        Strategy execution remains above this method and is still lifecycle
+        isolated.  This method only groups *already-produced* outputs for an
+        optional endpoint scorer batch.  The proxy route and scorers without a
+        batch hook retain their historic per-task call order.
+        """
+
+        entries = tuple(tasks)
+        if not entries:
+            return []
         score_started = time.perf_counter()
-        scoring_data = (
-            data
-            if self.config.optimization_schedule == "global"
-            else self._prepared_data_through(data, index[-1], strategy_copy=False)
-        )
+        payloads = []
+        for output, index, fold, params, context in entries:
+            scoring_data = (
+                data
+                if self.config.optimization_schedule == "global"
+                else self._prepared_data_through(data, index[-1], strategy_copy=False)
+            )
+            payloads.append(
+                {
+                    "data": scoring_data,
+                    "output": output,
+                    "index": index,
+                    "fold": fold,
+                    "params": params,
+                    "context": context,
+                    "trading_days": int(self.config.scoring_trading_days),
+                }
+            )
         if self.config.scoring_backend == "endpoint":
             assert self.scorer is not None
-            metrics = self.scorer(
-                data=scoring_data,
-                output=output,
-                index=index,
-                fold=fold,
-                params=params,
-                context=context,
-                trading_days=int(self.config.scoring_trading_days),
-            )
+            batch = getattr(self.scorer, "score_batch", None)
+            if callable(batch):
+                metrics = list(batch(payloads))
+            else:
+                metrics = [self.scorer(**payload) for payload in payloads]
         else:
-            metrics = score_strategy_output(
-                scoring_data,
-                output,
-                index,
-                trading_days=int(self.config.scoring_trading_days),
-                use_numba=bool(self.config.use_numba),
+            metrics = [
+                score_strategy_output(
+                    payload["data"],
+                    payload["output"],
+                    payload["index"],
+                    trading_days=int(self.config.scoring_trading_days),
+                    use_numba=bool(self.config.use_numba),
+                )
+                for payload in payloads
+            ]
+        if len(metrics) != len(entries):
+            raise RuntimeError("walk-forward scorer returned a metric row count different from its task batch")
+        profile = getattr(self, "_performance_profile", None)
+        if profile and profile.get("enabled"):
+            profile["score_seconds"] = float(profile.get("score_seconds", 0.0)) + (
+                time.perf_counter() - score_started
             )
-        self._profile_add("score_seconds", time.perf_counter() - score_started, count_key="score_calls")
+            profile["score_calls"] = int(profile.get("score_calls", 0)) + len(entries)
         return metrics
+
+    def _validate_proxy_screening(
+        self,
+        *,
+        data,
+        folds: Sequence[WalkForwardFold],
+        records: Sequence[WalkForwardTrialRecord],
+        selected: WalkForwardTrialRecord,
+    ) -> None:
+        """Audit a proxy ranking against native IS accounting without selecting.
+
+        The comparison deliberately sees only each fold's declared train range.
+        It runs after the optimizer has selected its candidate and can only
+        record or reject the *proxy contract*; it cannot substitute a native
+        winner and thereby introduce an undeclared selection path.
+        """
+
+        if self.config.scoring_backend != "proxy" or self.config.proxy_validation_mode == "off":
+            return
+        if self.native_scorer is None:
+            self._proxy_validation = {
+                "mode": self.config.proxy_validation_mode,
+                "status": "native_scorer_unavailable",
+                "selection_mutated": False,
+                "selection_scope": "is_only",
+            }
+            if self.config.proxy_validation_mode == "enforce":  # constructor normally catches this
+                raise RuntimeError("proxy screening enforcement requires a native scorer")
+            return
+
+        deduplicated: Dict[str, WalkForwardTrialRecord] = {}
+        for record in records:
+            key = _strategy_candidate_id(record.params)
+            prior = deduplicated.get(key)
+            if prior is None or float(record.objective) > float(prior.objective):
+                deduplicated[key] = record
+        ordered = sorted(
+            deduplicated.values(),
+            key=lambda record: (-float(record.objective), _strategy_candidate_id(record.params)),
+        )
+        if len(ordered) < 2:
+            self._proxy_validation = {
+                "mode": self.config.proxy_validation_mode,
+                "status": "insufficient_candidates",
+                "candidate_count": int(len(ordered)),
+                "selection_mutated": False,
+                "selection_scope": "is_only",
+            }
+            if self.config.proxy_validation_mode == "enforce":
+                raise RuntimeError("proxy screening enforcement requires at least two distinct candidates")
+            return
+
+        top_count = max(1, int(np.ceil(len(ordered) * float(self.config.proxy_validation_top_fraction))))
+        # Native accounting is intentionally bounded to the candidates whose
+        # proxy ranking is relevant to a screening decision, plus the chosen
+        # candidate for a deterministic winner-regret calculation.
+        sample = ordered[:top_count]
+        selected_key = _strategy_candidate_id(selected.params)
+        if selected_key not in {_strategy_candidate_id(record.params) for record in sample}:
+            sample = [*sample, selected]
+        rows: List[Dict[str, Any]] = []
+        for record in sample:
+            native_scores: List[float] = []
+            for fold in folds:
+                output = self._call_strategy_for_indices(
+                    data=data,
+                    params=dict(record.params),
+                    train_index=fold.train_index,
+                    test_index=fold.train_index,
+                    fold=fold,
+                    context="proxy native IS certification",
+                )
+                score_data = self._prepared_data_through(data, fold.train_end, strategy_copy=False)
+                metrics = self.native_scorer(
+                    data=score_data,
+                    output=output,
+                    index=fold.train_index,
+                    fold=fold,
+                    params=dict(record.params),
+                    context="proxy native IS certification",
+                    trading_days=int(self.config.scoring_trading_days),
+                )
+                native_scores.append(float(metrics["sharpe"]))
+            rows.append(
+                {
+                    "candidate_id": _strategy_candidate_id(record.params),
+                    "trial_id": int(record.trial_id),
+                    "proxy_objective": float(record.objective),
+                    "native_is_score": float(np.mean(native_scores)) if native_scores else 0.0,
+                    "params": dict(record.params),
+                }
+            )
+
+        audit = pd.DataFrame(rows)
+        proxy_rank = audit["proxy_objective"].rank(method="average")
+        native_rank = audit["native_is_score"].rank(method="average")
+        spearman = float(proxy_rank.corr(native_rank, method="pearson"))
+        if not np.isfinite(spearman):
+            spearman = 1.0 if audit["proxy_objective"].nunique() == 1 and audit["native_is_score"].nunique() == 1 else 0.0
+        sample_top_count = max(1, int(np.ceil(len(audit) * float(self.config.proxy_validation_top_fraction))))
+        proxy_top = set(audit.nlargest(sample_top_count, "proxy_objective")["candidate_id"])
+        native_top = set(audit.nlargest(sample_top_count, "native_is_score")["candidate_id"])
+        overlap = float(len(proxy_top & native_top) / sample_top_count)
+        proxy_winner = audit.sort_values(["proxy_objective", "candidate_id"], ascending=[False, True]).iloc[0]
+        native_best = float(audit["native_is_score"].max())
+        winner_regret = max(0.0, native_best - float(proxy_winner["native_is_score"]))
+        false_positive_rate = float(1.0 - overlap)
+        passed = bool(
+            spearman >= float(self.config.proxy_min_spearman)
+            and overlap >= float(self.config.proxy_min_top_k_overlap)
+            and winner_regret <= float(self.config.proxy_max_winner_regret)
+            and false_positive_rate <= float(self.config.proxy_max_false_positive_rate)
+        )
+        self._proxy_validation = {
+            "mode": self.config.proxy_validation_mode,
+            "status": "passed" if passed else "failed",
+            "selection_mutated": False,
+            "selection_scope": "is_only",
+            "candidate_count": int(len(ordered)),
+            "sampled_candidate_count": int(len(audit)),
+            "top_k": int(sample_top_count),
+            "spearman_rank": spearman,
+            "top_k_overlap": overlap,
+            "winner_regret": winner_regret,
+            "false_positive_rate": false_positive_rate,
+            "thresholds": {
+                "min_spearman": float(self.config.proxy_min_spearman),
+                "min_top_k_overlap": float(self.config.proxy_min_top_k_overlap),
+                "max_winner_regret": float(self.config.proxy_max_winner_regret),
+                "max_false_positive_rate": float(self.config.proxy_max_false_positive_rate),
+            },
+            "rows": audit,
+        }
+        if self.config.proxy_validation_mode == "enforce" and not passed:
+            raise RuntimeError(
+                "proxy screening contract failed native IS ranking gates; "
+                "disable proxy use or adjust the declared proxy contract"
+            )
+
+    def _proxy_validation_metadata(self) -> Dict[str, Any]:
+        """Return the bounded audit record without mutating candidate selection."""
+
+        return dict(getattr(self, "_proxy_validation", {"status": "not_run"}))
 
     def _call_strategy(self, data, params: Dict[str, Any], fold: WalkForwardFold) -> StrategyOutput:
         return self._call_strategy_for_indices(
@@ -1845,50 +2371,136 @@ class WalkForwardEngine:
         context: str = "out-of-sample generation",
     ) -> StrategyOutput:
         strategy_started = time.perf_counter()
-        strategy = self.strategy() if isinstance(self.strategy, type) else self.strategy
+        prepared_adapter = getattr(self, "_prepared_wfo_strategy_adapter", None)
+        if prepared_adapter is not None:
+            try:
+                output = prepared_adapter.generate(
+                    params=params,
+                    fold_id=int(fold.fold_id),
+                    expected_index=test_index,
+                    context=context,
+                )
+                validated = validate_walkforward_strategy_output(
+                    output,
+                    expected_index=test_index,
+                    context=f"{context} prepared WFO fold_id={fold.fold_id}",
+                    intent_contract=self.config.intent_contract,
+                )
+            except Exception as exc:
+                raise RuntimeError(
+                    "prepared walk-forward strategy failed during "
+                    f"{context} for fold_id={fold.fold_id}, "
+                    f"train=[{fold.train_start}, {fold.train_end}], "
+                    f"test=[{test_index[0]}, {test_index[-1]}]: {exc}"
+                ) from exc
+            self._profile_add("strategy_seconds", time.perf_counter() - strategy_started, count_key="strategy_calls")
+            return validated
         strategy_data = (
             data
             if self.config.optimization_schedule == "global"
             else self._prepared_data_through(data, test_index[-1], strategy_copy=True)
         )
+        candidate_id = _strategy_candidate_id(params)
+        # Context signatures include the full source tape for cache
+        # invalidation. They must not seed a causal fold because appending a
+        # later bar would otherwise change an already-completed fold.
+        run_id = hashlib.sha256(
+            f"{_config_hash(self.config)}:{strategy_fingerprint(self.strategy)}".encode("utf-8")
+        ).hexdigest()
+        prepared_context = getattr(self, "_prepared_context", None)
+        cutoff = pd.Timestamp(test_index[-1])
+        market_fingerprint = (
+            (
+                str(prepared_context.data_signature)
+                if prepared_context is not None
+                else _complete_data_hash(data)
+            )
+            if self.config.optimization_schedule == "global"
+            else self._strategy_market_fingerprint(data, cutoff)
+        )
+        seed = derive_strategy_seed(
+            base_seed=int(self.config.random_seed),
+            run_id=str(run_id),
+            candidate_id=candidate_id,
+            fold_id=int(fold.fold_id),
+            cutoff_ns=int(cutoff.value),
+            purpose=context,
+        )
+        record: Optional[Dict[str, Any]] = None
         try:
-            if hasattr(strategy, "build_signal"):
-                output = strategy.build_signal(
-                    data=strategy_data,
-                    params=params,
-                    train_index=train_index,
-                    test_index=test_index,
-                    fold=fold,
-                )
-            elif hasattr(strategy, "generate_signal"):
-                output = strategy.generate_signal(
-                    data=strategy_data,
-                    params=params,
-                    train_index=train_index,
-                    test_index=test_index,
-                    fold=fold,
-                )
-            elif callable(strategy):
-                output = strategy(
-                    data=strategy_data,
-                    params=params,
-                    train_index=train_index,
-                    test_index=test_index,
-                    fold=fold,
-                )
-            else:
-                raise TypeError("strategy must be callable or expose build_signal/generate_signal")
+            with isolated_strategy_instance(
+                self.strategy,
+                run_id=str(run_id),
+                candidate_id=candidate_id,
+                fold_id=int(fold.fold_id),
+                seed=seed,
+                market_fingerprint=market_fingerprint,
+                cutoff=cutoff,
+                policy=self.config.strategy_lifecycle_policy,
+            ) as (strategy, lifecycle_record):
+                record = lifecycle_record
+                warmup = getattr(strategy, "warmup", None)
+                if callable(warmup) and len(fold.warmup_index):
+                    warmup_data = _slice_strategy_data_for_index(strategy_data, fold.warmup_index)
+                    warmup(
+                        data=warmup_data,
+                        index=fold.warmup_index,
+                        params=params,
+                        fold=fold,
+                    )
+                    record["warmup_called"] = True
+                    record["warmup_start"] = fold.warmup_index[0]
+                    record["warmup_end"] = fold.warmup_index[-1]
+                    record["warmup_bars"] = int(len(fold.warmup_index))
+                else:
+                    record["warmup_called"] = False
+                    record["warmup_bars"] = 0
+                if hasattr(strategy, "build_signal"):
+                    output = strategy.build_signal(
+                        data=strategy_data,
+                        params=params,
+                        train_index=train_index,
+                        test_index=test_index,
+                        fold=fold,
+                    )
+                elif hasattr(strategy, "generate_signal"):
+                    output = strategy.generate_signal(
+                        data=strategy_data,
+                        params=params,
+                        train_index=train_index,
+                        test_index=test_index,
+                        fold=fold,
+                    )
+                elif callable(strategy):
+                    output = strategy(
+                        data=strategy_data,
+                        params=params,
+                        train_index=train_index,
+                        test_index=test_index,
+                        fold=fold,
+                    )
+                else:
+                    raise TypeError("strategy must be callable or expose build_signal/generate_signal")
         except Exception as exc:
             raise RuntimeError(
                 "walk-forward strategy failed during "
                 f"{context} for fold_id={fold.fold_id}, "
                 f"train=[{fold.train_start}, {fold.train_end}], "
-                f"test=[{test_index[0]}, {test_index[-1]}]"
+                f"test=[{test_index[0]}, {test_index[-1]}]: {exc}"
             ) from exc
+        finally:
+            if record is not None:
+                record["context"] = str(context)
+                record["train_start"] = train_index[0]
+                record["train_end"] = train_index[-1]
+                record["test_start"] = test_index[0]
+                record["test_end"] = test_index[-1]
+                self._append_lifecycle_record(record)
         validated = validate_walkforward_strategy_output(
             output,
             expected_index=test_index,
             context=f"{context} fold_id={fold.fold_id}",
+            intent_contract=self.config.intent_contract,
         )
         self._profile_add("strategy_seconds", time.perf_counter() - strategy_started, count_key="strategy_calls")
         return validated
@@ -1899,6 +2511,19 @@ class WalkForwardEngine:
             return prepared.data_through(end, strategy_copy=strategy_copy)
         return _slice_strategy_data_through(data, end)
 
+    def _strategy_market_fingerprint(self, data, cutoff: pd.Timestamp) -> str:
+        """Hash only the causal market view available to one strategy call."""
+
+        cache = getattr(self, "_strategy_market_fingerprints", None)
+        if cache is None:
+            cache = {}
+            self._strategy_market_fingerprints = cache
+        key = int(pd.Timestamp(cutoff).value)
+        if key not in cache:
+            causal_view = self._prepared_data_through(data, cutoff, strategy_copy=False)
+            cache[key] = _complete_data_hash(causal_view)
+        return str(cache[key])
+
     def _profile_add(self, key: str, elapsed: float, *, count_key: str) -> None:
         profile = getattr(self, "_performance_profile", None)
         if not profile or not profile.get("enabled"):
@@ -1906,11 +2531,152 @@ class WalkForwardEngine:
         profile[key] = float(profile.get(key, 0.0)) + float(elapsed)
         profile[count_key] = int(profile.get(count_key, 0)) + 1
 
+    def _append_lifecycle_record(self, record: Dict[str, Any]) -> None:
+        """Keep lifecycle provenance bounded during large Optuna WFO runs."""
+
+        limit = int(self.config.metadata.get("lifecycle_ledger_max_rows", 2_000))
+        if limit < 0:
+            raise ValueError("metadata['lifecycle_ledger_max_rows'] must be >= 0")
+        records = getattr(self, "_lifecycle_records", None)
+        if records is None:
+            records = []
+            self._lifecycle_records = records
+        if not hasattr(self, "_lifecycle_records_dropped"):
+            self._lifecycle_records_dropped = 0
+        if len(records) < limit:
+            records.append(record)
+        else:
+            self._lifecycle_records_dropped += 1
+
+
+def _strategy_candidate_id(params: Mapping[str, Any]) -> str:
+    """Return a stable candidate identity independent of Optuna worker order."""
+
+    payload = json.dumps(dict(params), sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()[:24]
+
+
+def _index_bounds_payload(index: Optional[pd.DatetimeIndex]) -> Optional[tuple[int, int, int]]:
+    """Return a compact immutable range witness for a fold-local index."""
+
+    if index is None or len(index) == 0:
+        return None
+    return (int(index[0].value), int(index[-1].value), int(len(index)))
+
+
+def _build_fold_v2(
+    idx: pd.DatetimeIndex,
+    *,
+    fold_id: int,
+    raw_train_start: int,
+    test_start: int,
+    test_stop: int,
+    config: WalkForwardConfig,
+) -> Optional[WalkForwardFold]:
+    """Materialize one fold from canonical integer spans and temporal guards."""
+
+    n_bars = len(idx)
+    start = max(0, int(raw_train_start))
+    test_start = int(test_start)
+    test_stop = min(n_bars, int(test_stop))
+    if start >= test_start or test_start >= test_stop:
+        return None
+    label_start = test_start - int(config.label_horizon_bars)
+    train_stop = label_start - int(config.purge_bars)
+    if train_stop <= start:
+        return None
+    train_index = idx[start:train_stop]
+    test_index = idx[test_start:test_stop]
+    purge_index = idx[train_stop:label_start]
+    label_horizon_index = idx[label_start:test_start]
+    embargo_stop = min(n_bars, test_stop + int(config.embargo_bars))
+    embargo_index = idx[test_stop:embargo_stop]
+
+    policy = FoldWarmupPolicyV1(config.warmup_policy)
+    width = int(config.warmup_bars or 0)
+    if policy is FoldWarmupPolicyV1.NONE or width == 0:
+        warmup_index = pd.DatetimeIndex([], tz="UTC")
+    elif policy is FoldWarmupPolicyV1.PRE_TRAIN_ONLY:
+        warmup_index = idx[max(0, start - width):start]
+    elif policy in {FoldWarmupPolicyV1.PRE_TEST_FROM_TRAIN_TAIL, FoldWarmupPolicyV1.EXPLICIT_BARS}:
+        warmup_index = train_index[max(0, len(train_index) - width):]
+    else:  # pragma: no cover - enum validation happens in WalkForwardConfig
+        raise RuntimeError(f"unsupported warmup policy {policy.value!r}")
+
+    return WalkForwardFold(
+        fold_id=int(fold_id),
+        train_start=train_index[0],
+        train_end=train_index[-1],
+        test_start=test_index[0],
+        test_end=test_index[-1],
+        train_index=train_index,
+        test_index=test_index,
+        warmup_index=warmup_index,
+        label_horizon_index=label_horizon_index,
+        purge_index=purge_index,
+        embargo_index=embargo_index,
+        cutoff_timestamp=test_index[-1],
+        account_policy=config.fold_account_policy,
+    )
+
+
+def _fold_account_execution_plan(
+    *,
+    folds: Sequence[WalkForwardFold],
+    full_index: pd.DatetimeIndex,
+    policy: str,
+) -> Dict[str, Any]:
+    """Describe final account treatment without inventing hidden executions."""
+
+    account_policy = FoldAccountPolicyV1(str(policy).lower().strip())
+    boundary_events: List[Dict[str, Any]] = []
+    for prior, current in zip(folds[:-1], folds[1:]):
+        gap = full_index[(full_index > prior.test_end) & (full_index < current.test_start)]
+        event: Dict[str, Any] = {
+            "previous_fold_id": int(prior.fold_id),
+            "fold_id": int(current.fold_id),
+            "boundary_timestamp": prior.test_end,
+            "next_test_start": current.test_start,
+            "gap_bars": int(len(gap)),
+            "policy": account_policy.value,
+        }
+        if account_policy is FoldAccountPolicyV1.CARRY_POSITION:
+            event["event"] = "carry_position"
+        elif account_policy is FoldAccountPolicyV1.REPLAY_PRIOR_STATE:
+            event["event"] = "replay_prior_state"
+        elif account_policy is FoldAccountPolicyV1.CLOSE_AT_BOUNDARY:
+            event["event"] = "target_flatten_in_declared_gap"
+            event["requires_gap"] = True
+        else:
+            event["event"] = "fresh_segment_account"
+        boundary_events.append(event)
+
+    if account_policy is FoldAccountPolicyV1.CARRY_POSITION:
+        mode = "single_stitched_run"
+    elif account_policy is FoldAccountPolicyV1.REPLAY_PRIOR_STATE:
+        mode = "explicit_replay_required"
+    elif account_policy is FoldAccountPolicyV1.CLOSE_AT_BOUNDARY:
+        mode = "single_stitched_run_with_declared_flatten_gaps"
+    else:
+        mode = "segmented_reset_flat_required"
+    return {
+        "schema": "wfo-account-boundary-v1",
+        "policy": account_policy.value,
+        "execution_mode": mode,
+        "boundary_events": boundary_events,
+        "all_boundaries_have_gap": all(int(item["gap_bars"]) > 0 for item in boundary_events),
+        "final_accounting_supported": account_policy in {
+            FoldAccountPolicyV1.CARRY_POSITION,
+            FoldAccountPolicyV1.CLOSE_AT_BOUNDARY,
+        },
+    }
+
 
 def validate_walkforward_strategy_output(
     output: StrategyOutput,
     expected_index: pd.DatetimeIndex,
     context: str = "walk-forward strategy output",
+    intent_contract: Optional[WfoIntentContractV1] = None,
 ) -> StrategyOutput:
     """
     Validate strategy output before slicing/stitching.
@@ -1919,6 +2685,12 @@ def validate_walkforward_strategy_output(
     array-like output would silently reindex to all zeros, which is dangerous in
     production research.
     """
+    contract = WfoIntentContractV1.from_value(intent_contract)
+    if contract.kind is WfoIntentKindV1.DESIRED_ORDER:
+        raise NotImplementedError(
+            "WFO desired_order intent requires the explicit order-tape adapter; "
+            "a generic Series/DataFrame strategy output cannot be treated as orders"
+        )
     idx = validate_datetime(expected_index)
     if len(idx) == 0:
         raise ValueError(f"{context}: expected_index is empty")
@@ -3517,7 +4289,49 @@ def _first_wfo_calendar_divergence(reference: pd.DatetimeIndex, candidate: pd.Da
     return None
 
 
-def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex, *, calendar_contract: str = "exact_v2"):
+def _prepare_walkforward_calendar_plan(
+    data,
+    *,
+    requested_index: pd.DatetimeIndex,
+    config: WalkForwardConfig,
+) -> Optional[CalendarPlanV2]:
+    """Build the WFO canonical clock before any fold or strategy work."""
+
+    if config.calendar_contract == "legacy_v1":
+        return None
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        sources = {"DEFAULT": data.index}
+    elif isinstance(data, Mapping):
+        sources = {
+            str(symbol): value.index
+            for symbol, value in data.items()
+            if isinstance(value, (pd.DataFrame, pd.Series)) and isinstance(value.index, pd.DatetimeIndex)
+        }
+        if not sources:
+            raise TypeError("walk-forward CalendarPlanV2 requires timestamp-indexed DataFrame/Series input")
+    else:
+        sources = {"DEFAULT": requested_index}
+    policy = CalendarPolicyV2.EXACT if config.calendar_contract == "exact_v2" else CalendarPolicyV2.INTERSECTION
+    plan = prepare_calendar_plan_v2(
+        sources,
+        calendar_policy=policy,
+        missing_policy=config.calendar_missing_policy,
+        primary_symbol=config.calendar_primary_symbol,
+    )
+    if policy is CalendarPolicyV2.EXACT and not requested_index.equals(plan.datetime_index):
+        raise ValueError(
+            "walk-forward CalendarPlanV2 Exact canonical clock differs from the supplied datetime_index"
+        )
+    return plan
+
+
+def _align_data_to_datetime_index(
+    data,
+    idx: pd.DatetimeIndex,
+    *,
+    calendar_contract: str = "exact_v2",
+    calendar_plan: Optional[CalendarPlanV2] = None,
+):
     """
     Return a data view/copy whose timestamp index matches WFO fold indices.
 
@@ -3527,7 +4341,9 @@ def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex, *, calendar_contr
     then requires exact timestamps.  It never changes labels merely because a
     source happens to have the same number of rows.
     """
-    legacy = str(calendar_contract).lower().strip() == "legacy_v1"
+    contract = str(calendar_contract).lower().strip()
+    legacy = contract == "legacy_v1"
+    intersection = contract == "intersection_v2"
 
     def normalize_item(value, label: str):
         if not isinstance(value, (pd.DataFrame, pd.Series)) or not isinstance(value.index, pd.DatetimeIndex):
@@ -3535,6 +4351,15 @@ def _align_data_to_datetime_index(data, idx: pd.DatetimeIndex, *, calendar_contr
         source_index = _strict_wfo_datetime_index(value.index, label=label)
         divergence = _first_wfo_calendar_divergence(idx, source_index)
         if divergence is not None:
+            if intersection:
+                if not idx.isin(source_index).all():
+                    raise ValueError(
+                        "walk-forward CalendarPlanV2 Intersection alignment lost an observation; "
+                        f"{label} does not fully cover the canonical clock"
+                    )
+                out = value.reindex(idx).copy(deep=False)
+                out.index = idx
+                return out
             row, expected, actual = divergence
             if not legacy:
                 raise ValueError(
@@ -3577,6 +4402,22 @@ def _slice_strategy_data_through(data, end: pd.Timestamp):
     return data
 
 
+def _slice_strategy_data_for_index(data, index: pd.DatetimeIndex):
+    """Project a declared warmup range without manufacturing observations."""
+
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        return data.reindex(index)
+    if isinstance(data, dict):
+        out = {}
+        for key, value in data.items():
+            if isinstance(value, (pd.DataFrame, pd.Series)) and isinstance(value.index, pd.DatetimeIndex):
+                out[key] = value.reindex(index)
+            else:
+                out[key] = value
+        return out
+    return data
+
+
 def _slice_strategy_data_by_stop(
     data,
     *,
@@ -3611,6 +4452,7 @@ def _fold_boundary_table(
     folds: Sequence[WalkForwardFold],
     full_index: pd.DatetimeIndex,
     fill_value: float = 0.0,
+    account_policy: str = FoldAccountPolicyV1.CARRY_POSITION.value,
 ) -> pd.DataFrame:
     """Describe target continuity at adjacent fold boundaries without trading."""
     columns = [
@@ -3624,7 +4466,13 @@ def _fold_boundary_table(
         "target_before",
         "target_after",
         "changed_targets",
-        "position_policy",
+                "position_policy",
+                "account_policy",
+                "warmup_bars",
+                "label_horizon_bars",
+                "purge_bars",
+                "embargo_bars",
+                "cutoff_timestamp",
     ]
     if stitched is None or len(folds) < 2:
         return pd.DataFrame(columns=columns)
@@ -3650,7 +4498,13 @@ def _fold_boundary_table(
                 "target_before": before,
                 "target_after": after,
                 "changed_targets": _changed_target_count(before, after),
-                "position_policy": "carry",
+                "position_policy": "carry" if account_policy == FoldAccountPolicyV1.CARRY_POSITION.value else account_policy,
+                "account_policy": account_policy,
+                "warmup_bars": int(len(current.warmup_index)),
+                "label_horizon_bars": int(len(current.label_horizon_index)),
+                "purge_bars": int(len(current.purge_index)),
+                "embargo_bars": int(len(previous.embargo_index)),
+                "cutoff_timestamp": current.cutoff_timestamp,
             }
         )
     return pd.DataFrame(rows, columns=columns)
@@ -3721,48 +4575,53 @@ def _build_inner_folds(outer_fold: WalkForwardFold, config: WalkForwardConfig) -
     folds: List[WalkForwardFold] = []
 
     if frequency == "single":
-        train_start = idx[0] if window_mode == "expanding" else first_oos - train_window
-        train_index = idx[(idx >= train_start) & (idx < first_oos)]
-        test_index = idx[idx >= first_oos]
-        if len(train_index) >= config.min_train_bars and len(test_index) >= config.min_test_bars:
-            folds.append(
-                WalkForwardFold(
-                    fold_id=0,
-                    train_start=train_index[0],
-                    train_end=train_index[-1],
-                    test_start=test_index[0],
-                    test_end=test_index[-1],
-                    train_index=train_index,
-                    test_index=test_index,
-                )
-            )
+        test_start_position = int(idx.searchsorted(first_oos, side="left"))
+        raw_train_start = (
+            0
+            if window_mode == "expanding"
+            else int(idx.searchsorted(first_oos - train_window, side="left"))
+        )
+        fold = _build_fold_v2(
+            idx,
+            fold_id=0,
+            raw_train_start=raw_train_start,
+            test_start=test_start_position,
+            test_stop=len(idx),
+            config=config,
+        )
+        if fold is not None and len(fold.train_index) >= config.min_train_bars and len(fold.test_index) >= config.min_test_bars:
+            folds.append(fold)
     else:
         step = _frequency_offset(frequency)
-        test_start = first_oos
+        test_start_position = int(idx.searchsorted(first_oos, side="left"))
         inner_fold_id = 0
-        while test_start <= idx[-1]:
+        while test_start_position < len(idx):
+            test_start = idx[test_start_position]
             test_stop = test_start + step
-            test_index = idx[(idx >= test_start) & (idx < test_stop)]
-            if len(test_index) < config.min_test_bars:
-                test_start = test_stop
+            test_stop_position = int(idx.searchsorted(test_stop, side="left"))
+            if test_stop_position <= test_start_position:
+                test_stop_position = min(len(idx), test_start_position + 1)
+            if test_stop_position - test_start_position < config.min_test_bars:
+                test_start_position = test_stop_position
                 continue
 
-            train_start = idx[0] if window_mode == "expanding" else test_start - train_window
-            train_index = idx[(idx >= train_start) & (idx < test_start)]
-            if len(train_index) >= config.min_train_bars:
-                folds.append(
-                    WalkForwardFold(
-                        fold_id=inner_fold_id,
-                        train_start=train_index[0],
-                        train_end=train_index[-1],
-                        test_start=test_index[0],
-                        test_end=test_index[-1],
-                        train_index=train_index,
-                        test_index=test_index,
-                    )
-                )
+            raw_train_start = (
+                0
+                if window_mode == "expanding"
+                else int(idx.searchsorted(test_start - train_window, side="left"))
+            )
+            fold = _build_fold_v2(
+                idx,
+                fold_id=inner_fold_id,
+                raw_train_start=raw_train_start,
+                test_start=test_start_position,
+                test_stop=test_stop_position,
+                config=config,
+            )
+            if fold is not None and len(fold.train_index) >= config.min_train_bars:
+                folds.append(fold)
                 inner_fold_id += 1
-            test_start = test_stop
+            test_start_position = test_stop_position + int(config.embargo_bars)
 
     if len(folds) < int(config.inner_min_folds):
         raise ValueError(
@@ -3885,6 +4744,23 @@ def _fold_table(folds: Sequence[WalkForwardFold]) -> pd.DataFrame:
                 "test_end": fold.test_end,
                 "train_bars": len(fold.train_index),
                 "test_bars": len(fold.test_index),
+                "validation_start": None if fold.validation_index is None or len(fold.validation_index) == 0 else fold.validation_index[0],
+                "validation_end": None if fold.validation_index is None or len(fold.validation_index) == 0 else fold.validation_index[-1],
+                "validation_bars": 0 if fold.validation_index is None else len(fold.validation_index),
+                "warmup_start": None if len(fold.warmup_index) == 0 else fold.warmup_index[0],
+                "warmup_end": None if len(fold.warmup_index) == 0 else fold.warmup_index[-1],
+                "warmup_bars": len(fold.warmup_index),
+                "label_horizon_start": None if len(fold.label_horizon_index) == 0 else fold.label_horizon_index[0],
+                "label_horizon_end": None if len(fold.label_horizon_index) == 0 else fold.label_horizon_index[-1],
+                "label_horizon_bars": len(fold.label_horizon_index),
+                "purge_start": None if len(fold.purge_index) == 0 else fold.purge_index[0],
+                "purge_end": None if len(fold.purge_index) == 0 else fold.purge_index[-1],
+                "purge_bars": len(fold.purge_index),
+                "embargo_start": None if len(fold.embargo_index) == 0 else fold.embargo_index[0],
+                "embargo_end": None if len(fold.embargo_index) == 0 else fold.embargo_index[-1],
+                "embargo_bars": len(fold.embargo_index),
+                "cutoff_timestamp": fold.cutoff_timestamp,
+                "account_policy": fold.account_policy,
             }
             for fold in folds
         ]
@@ -4044,6 +4920,24 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "optimization_mode": config.optimization_mode,
         "optimization_schedule": config.optimization_schedule,
         "fold_boundary_position_policy": config.fold_boundary_position_policy,
+        "fold_account_policy": config.fold_account_policy,
+        "calendar_contract": config.calendar_contract,
+        "calendar_primary_symbol": config.calendar_primary_symbol,
+        "calendar_missing_policy": config.calendar_missing_policy,
+        "label_horizon_bars": config.label_horizon_bars,
+        "purge_bars": config.purge_bars,
+        "embargo_bars": config.embargo_bars,
+        "warmup_policy": config.warmup_policy,
+        "warmup_bars": config.warmup_bars,
+        "intent_contract": config.intent_contract.metadata(),
+        "strategy_lifecycle_policy": config.strategy_lifecycle_policy,
+        "trusted_strategy_global": config.trusted_strategy_global,
+        "proxy_validation_mode": config.proxy_validation_mode,
+        "proxy_validation_top_fraction": config.proxy_validation_top_fraction,
+        "proxy_min_spearman": config.proxy_min_spearman,
+        "proxy_min_top_k_overlap": config.proxy_min_top_k_overlap,
+        "proxy_max_winner_regret": config.proxy_max_winner_regret,
+        "proxy_max_false_positive_rate": config.proxy_max_false_positive_rate,
         "optuna_trials": config.optuna_trials,
         "optuna_early_stopping": config.optuna_early_stopping,
         "random_seed": config.random_seed,

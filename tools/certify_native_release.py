@@ -308,6 +308,7 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
             input_mode="orders",
             profile="optimize",
             backend="auto",
+            execution_contract="event_lifecycle_v3_next_open",
             initial_capital=10_000.0,
             leverage=5.0,
             fee_rate=0.0002,
@@ -322,6 +323,11 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
         )
         assert static_result.metadata["execution_plan_v1"]["backend"] == "rust"
         assert static_result.metadata["rust_audit_replay"] is False
+        assert static_result.metadata["native_static_abi_requested"] == "0.5"
+        assert static_result.metadata["native_static_abi_resolved"] == "0.5"
+        assert static_result.metadata["native_static_execution_boundary_calls"] == 1
+        assert static_result.metadata["native_result_v2"]["result_version"] == 2
+        assert static_result.metadata["native_result_v2"]["workload_kind"] == "command_tape_v5"
 
         ir_bars = 2_000
         ir_index = pd.date_range("2025-02-01", periods=ir_bars, freq="1h", tz="UTC")

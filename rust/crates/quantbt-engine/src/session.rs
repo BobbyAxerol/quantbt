@@ -9,14 +9,19 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::execution_model::{
+    ExecutionClockStateV1, ExecutionModelPlanV1, ExecutionModelV1, FillCostInputV1, FillDecisionV1,
+    LiquidityLedgerV1, MarketBarViewV1, OrderTouchViewV1,
+};
 use crate::generated_contracts::{
     CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE, CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
 };
+use crate::metrics_v2::{MetricContractV2, MetricFinishInputV2, OnlineMetricReducerV2};
 use crate::orders::{IndexOrderState, LifecycleIndexes, OrderArena};
 use crate::output::{
-    NativeAuditOutputV1, NativeCompactOutputV1, NativeEventOutputV1, NativeExecutionOutputV1,
-    NativeFillOutputV1, NativePathOutputV1, NativeScoreOutputV1, OutputRequirementsV1,
-    StaticOutputProfile, StaticTapeOutput,
+    AuditRetentionV1, NativeAuditOutputV1, NativeCompactOutputV1, NativeEventOutputV1,
+    NativeExecutionOutputV1, NativeFillOutputV1, NativePathOutputV1, NativeScoreOutputV1,
+    OutputRequirementsV1, StaticOutputProfile, StaticTapeOutput,
 };
 use quantbt_domain::commands::{CommandTapeV5, OrderCommandV5};
 use quantbt_domain::ids::{ExternalOrderId, OrderHandle, SymbolId};
@@ -52,35 +57,39 @@ const FLAG_REDUCE_ONLY: u16 = 1 << 0;
 const DEFAULT_MAX_LIVE_ORDERS: usize = 1_000_000;
 const DEFAULT_MAX_TOTAL_ORDERS: u64 = 10_000_000;
 
-pub const FILL_REASON_NONE: i64 = 0;
-pub const FILL_REASON_NEXT_BAR_CLOSE: i64 = 1;
-pub const FILL_REASON_NEXT_OPEN: i64 = 2;
-pub const FILL_REASON_LIMIT_TRIGGER: i64 = 3;
-pub const FILL_REASON_LIMIT_OPEN_IMPROVEMENT: i64 = 4;
-pub const FILL_REASON_STOP_TRIGGER_LEGACY: i64 = 5;
-pub const FILL_REASON_STOP_TRIGGER: i64 = 6;
-pub const FILL_REASON_STOP_OPEN_WORSE: i64 = 7;
-pub const FILL_REASON_STOP_LIMIT_LEGACY: i64 = 8;
-pub const FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT: i64 = 9;
-pub const FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER: i64 = 10;
-pub const FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED: i64 = 11;
-pub const FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR: i64 = 12;
+pub use crate::execution_model::{
+    FILL_AMBIGUITY_NONE_V1 as FILL_AMBIGUITY_NONE,
+    FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN_V1 as FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN,
+    FILL_AMBIGUITY_UNORDERED_OHLC_RANGE_V1 as FILL_AMBIGUITY_UNORDERED_OHLC_RANGE,
+    FILL_REASON_LIMIT_OPEN_IMPROVEMENT_V1 as FILL_REASON_LIMIT_OPEN_IMPROVEMENT,
+    FILL_REASON_LIMIT_TRIGGER_V1 as FILL_REASON_LIMIT_TRIGGER,
+    FILL_REASON_NEXT_BAR_CLOSE_V1 as FILL_REASON_NEXT_BAR_CLOSE,
+    FILL_REASON_NEXT_OPEN_V1 as FILL_REASON_NEXT_OPEN, FILL_REASON_NONE_V1 as FILL_REASON_NONE,
+    FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER_V1 as FILL_REASON_STOP_LIMIT_AFTER_OPEN_TRIGGER,
+    FILL_REASON_STOP_LIMIT_LEGACY_V1 as FILL_REASON_STOP_LIMIT_LEGACY,
+    FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT_V1 as FILL_REASON_STOP_LIMIT_OPEN_IMPROVEMENT,
+    FILL_REASON_STOP_OPEN_WORSE_V1 as FILL_REASON_STOP_OPEN_WORSE,
+    FILL_REASON_STOP_TRIGGER_LEGACY_V1 as FILL_REASON_STOP_TRIGGER_LEGACY,
+    FILL_REASON_STOP_TRIGGER_V1 as FILL_REASON_STOP_TRIGGER,
+    FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR_V1 as FILL_REASON_TRIGGERED_AWAIT_NEXT_BAR,
+    FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED_V1 as FILL_REASON_TRIGGERED_LIMIT_NOT_TOUCHED,
+};
 
-pub const FILL_AMBIGUITY_NONE: i64 = 0;
-pub const FILL_AMBIGUITY_UNORDERED_OHLC_RANGE: i64 = 1;
-pub const FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN: i64 = 2;
-
+/// Frozen pre-Phase-60 touch implementation retained only as an in-crate test
+/// oracle. Production execution calls `ExecutionModelPlanV1` below.
+#[cfg(test)]
 #[derive(Clone, Copy, Debug, PartialEq)]
-struct FillDecision {
+struct LegacyFillDecision {
     price: Option<f64>,
     triggered: bool,
     reason: i64,
     ambiguity: i64,
 }
 
-impl FillDecision {
+#[cfg(test)]
+impl LegacyFillDecision {
     #[inline]
-    fn no_fill(triggered: bool, reason: i64, ambiguity: i64) -> Self {
+    const fn no_fill(triggered: bool, reason: i64, ambiguity: i64) -> Self {
         Self {
             price: None,
             triggered,
@@ -90,7 +99,7 @@ impl FillDecision {
     }
 
     #[inline]
-    fn fill(price: f64, triggered: bool, reason: i64, ambiguity: i64) -> Self {
+    const fn fill(price: f64, triggered: bool, reason: i64, ambiguity: i64) -> Self {
         Self {
             price: Some(price),
             triggered,
@@ -99,6 +108,9 @@ impl FillDecision {
         }
     }
 }
+
+#[cfg(test)]
+type FillDecision = LegacyFillDecision;
 
 #[repr(u8)]
 #[derive(Clone, Copy)]
@@ -763,6 +775,10 @@ pub struct FullSession {
     pub initial_capital: f64,
     pub maintenance_ratio: f64,
     pub slippage: f64,
+    /// Immutable execution semantics resolved before a run. Account state is
+    /// deliberately not embedded in this plan.
+    pub execution_model: ExecutionModelPlanV1,
+    pub metric_contract: MetricContractV2,
     pub use_funding: bool,
     pub event_contract_code: i64,
     pub output_mask: u8,
@@ -783,6 +799,10 @@ pub struct FullSession {
     lifecycle_indexes: LifecycleIndexes,
     next_order_sequence: u64,
     matching_candidates: Vec<OrderHandle>,
+    /// Reused per-bar scratch; no market-volume allocation occurs in the
+    /// matching loop.
+    bar_volumes: Vec<f64>,
+    liquidity_ledger: LiquidityLedgerV1,
     step_buffers: StepBuffers,
     margin_cache: MarginCache,
     margin_recompute_count: u64,
@@ -863,6 +883,8 @@ impl FullSession {
             initial_capital,
             maintenance_ratio,
             slippage,
+            execution_model: ExecutionModelPlanV1::legacy(slippage)?,
+            metric_contract: MetricContractV2::default(),
             use_funding,
             event_contract_code: CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE,
             output_mask: OUTPUT_ALL,
@@ -876,6 +898,8 @@ impl FullSession {
             lifecycle_indexes: LifecycleIndexes::with_symbols(n_symbols),
             next_order_sequence: 0,
             matching_candidates: Vec::new(),
+            bar_volumes: vec![0.0; n_symbols],
+            liquidity_ledger: LiquidityLedgerV1::unlimited(n_symbols),
             step_buffers: StepBuffers::default(),
             margin_cache: MarginCache::default(),
             margin_recompute_count: 0,
@@ -924,6 +948,34 @@ impl FullSession {
         self.terminal_orders_removed = 0;
     }
 
+    /// Start one fresh account at an absolute bar of the immutable market.
+    ///
+    /// This is intentionally narrower than a continuation seek: the account
+    /// must still be pristine, there can be no active order or prior account
+    /// state, and the next step remains consecutive on the original prepared
+    /// market clock. It lets a reset-flat WFO fold retain absolute timestamps
+    /// and callback coordinates without copying or replaying the tape prefix
+    /// whose zero-position accounting cannot affect the fresh account.
+    pub fn begin_fresh_at(&mut self, bar: usize) -> Result<(), String> {
+        if bar >= self.n_bars() {
+            return Err("fresh session start is outside the full prepared market tape".to_owned());
+        }
+        if self.last_bar.is_some()
+            || self.liquidated
+            || self.orders_len() != 0
+            || self.positions.iter().any(|position| *position != 0.0)
+            || self.equity != self.initial_capital
+        {
+            return Err(
+                "fresh session start requires a pristine account and no prior execution".to_owned(),
+            );
+        }
+        if bar > 0 {
+            self.last_bar = Some(bar - 1);
+        }
+        Ok(())
+    }
+
     /// Return the next canonical bar accepted by the stateful session.
     ///
     /// Compatibility adapters may retain a caller-visible continuation cursor,
@@ -959,6 +1011,37 @@ impl FullSession {
             return Err("event contract cannot change after execution has started".to_owned());
         }
         self.event_contract_code = contract_code;
+        Ok(())
+    }
+
+    /// Replace the immutable execution plan before a scenario starts. This is
+    /// intentionally rejected mid-run so one account trace can never mix
+    /// cost/liquidity semantics across bars.
+    pub fn set_execution_model(&mut self, model: ExecutionModelPlanV1) -> Result<(), String> {
+        if self.last_bar.is_some() {
+            return Err("execution model cannot change after execution has started".to_owned());
+        }
+        self.execution_model = model;
+        Ok(())
+    }
+
+    /// Freeze the standard metric policy before execution. Report formatting
+    /// remains outside the session; this only controls native online scalars.
+    pub fn set_metric_contract(&mut self, contract: MetricContractV2) -> Result<(), String> {
+        if self.last_bar.is_some() {
+            return Err("metric contract cannot change after execution has started".to_owned());
+        }
+        // Reconstruct through the validated constructor so literal callers
+        // cannot bypass the numeric policy checks.
+        self.metric_contract = MetricContractV2::new(
+            contract.return_frequency,
+            contract.annualization_factor,
+            contract.risk_free_rate,
+            contract.variance_ddof,
+            contract.zero_variance_policy,
+            contract.short_run_policy,
+            contract.trade_count_definition,
+        )?;
         Ok(())
     }
 
@@ -1015,6 +1098,30 @@ impl FullSession {
     }
 
     #[inline]
+    fn volume(&self, bar: usize, symbol: usize) -> f64 {
+        self.market
+            .at(&self.market.volumes, self.market_start + bar, symbol)
+    }
+
+    #[inline]
+    fn timestamp_ns(&self, bar: usize) -> i64 {
+        self.market.timestamps_ns[self.market_start + bar]
+    }
+
+    fn gross_exposure(&self, bar: usize, equity: f64) -> f64 {
+        if equity <= 0.0 {
+            return 0.0;
+        }
+        let mut gross_notional = 0.0;
+        for symbol in 0..self.market.n_symbols {
+            gross_notional += self.positions[symbol].abs()
+                * self.close(bar, symbol)
+                * self.contract_sizes[symbol];
+        }
+        gross_notional / equity
+    }
+
+    #[inline]
     fn funding(&self, bar: usize, symbol: usize) -> f64 {
         self.market
             .at(&self.market.funding, self.market_start + bar, symbol)
@@ -1035,6 +1142,63 @@ impl FullSession {
             return Err("native execution close projection is outside prepared market".to_owned());
         }
         Ok(self.close(bar, symbol))
+    }
+
+    /// Return one declared OHLCV field from the immutable market tape.
+    ///
+    /// Reactive co-runtimes use this read-only projection while the session
+    /// keeps exclusive ownership of execution/accounting state.  The numeric
+    /// field codes intentionally mirror the Python strategy requirements:
+    /// `0=open`, `1=high`, `2=low`, `3=close`, `4=volume`.
+    pub fn market_value_at(&self, field: u8, bar: usize, symbol: usize) -> Result<f64, String> {
+        if bar >= self.n_bars() || symbol >= self.market.n_symbols {
+            return Err("native execution market projection is outside prepared market".to_owned());
+        }
+        match field {
+            0 => Ok(self.open(bar, symbol)),
+            1 => Ok(self.high(bar, symbol)),
+            2 => Ok(self.low(bar, symbol)),
+            3 => Ok(self.close(bar, symbol)),
+            4 => Ok(self.volume(bar, symbol)),
+            _ => Err("native execution market projection field is unsupported".to_owned()),
+        }
+    }
+
+    /// Return the canonical local-bar timestamp for a reactive projection.
+    pub fn timestamp_ns_at(&self, bar: usize) -> Result<i64, String> {
+        if bar >= self.n_bars() {
+            return Err(
+                "native execution timestamp projection is outside prepared market".to_owned(),
+            );
+        }
+        Ok(self.timestamp_ns(bar))
+    }
+
+    /// Return whether the canonical local bar carries a funding boundary.
+    ///
+    /// Reactive sparse scheduling uses the same immutable funding mask as the
+    /// accounting kernel.  A zero funding rate can still be an exchange
+    /// funding event, so callers must not infer this from the cash amount.
+    pub fn has_funding_event_at(&self, bar: usize) -> Result<bool, String> {
+        if bar >= self.n_bars() {
+            return Err(
+                "native execution funding projection is outside prepared market".to_owned(),
+            );
+        }
+        Ok(self.has_funding_event(bar))
+    }
+
+    /// Resolve an exact timestamp on this session's local execution window.
+    ///
+    /// There is deliberately no nearest-bar fallback: a sparse wake timestamp
+    /// that is not a bar boundary must request a finer market tape instead.
+    pub fn bar_for_timestamp_ns(&self, timestamp_ns: i64) -> Result<usize, String> {
+        let start = self.market_start;
+        let end = self.market_end;
+        let values = &self.market.timestamps_ns[start..end];
+        values.binary_search(&timestamp_ns).map_err(|_| {
+            "reactive wake timestamp must match an exact prepared market bar".to_owned()
+        })
     }
 
     /// Project the account immediately before commands for `bar` without
@@ -1370,7 +1534,34 @@ impl FullSession {
         sink.event(kind, status, order, target, symbol, reject_code);
     }
 
-    fn fill_decision(&self, order: &OrderState, bar: usize) -> FillDecision {
+    /// Production bar-touch dispatch. The common execution plan owns this
+    /// decision; account/lifecycle code only consumes its typed outcome.
+    fn fill_decision(&self, order: &OrderState, bar: usize) -> FillDecisionV1 {
+        let clock = ExecutionClockStateV1::new(self.event_contract_code)
+            .expect("FullSession validates the event contract before execution");
+        self.execution_model.evaluate_order(
+            OrderTouchViewV1 {
+                side: order.side,
+                order_type: i64::from(order.order_type),
+                limit_price: order.price,
+                stop_price: order.trigger,
+                trigger_armed: order.trigger_armed,
+            },
+            MarketBarViewV1 {
+                open: self.open(bar, order.symbol as usize),
+                high: self.high(bar, order.symbol as usize),
+                low: self.low(bar, order.symbol as usize),
+                close: self.close(bar, order.symbol as usize),
+                volume: self.volume(bar, order.symbol as usize),
+            },
+            clock,
+        )
+    }
+
+    /// Frozen pre-Phase-60 implementation retained as a test-only parity
+    /// oracle while `ExecutionModelPlanV1` becomes the production authority.
+    #[cfg(test)]
+    fn legacy_fill_decision(&self, order: &OrderState, bar: usize) -> FillDecision {
         let open = self.open(bar, order.symbol as usize);
         let high = self.high(bar, order.symbol as usize);
         let low = self.low(bar, order.symbol as usize);
@@ -2132,6 +2323,14 @@ impl FullSession {
 
         let mut fee_total = 0.0;
         let mut turnover = 0.0;
+        // The ledger is reset once for the whole canonical bar. All matching
+        // candidates, including siblings and package-emitted orders, consume
+        // the same declared synthetic liquidity budget.
+        for symbol in 0..self.market.n_symbols {
+            self.bar_volumes[symbol] = self.volume(bar, symbol);
+        }
+        self.execution_model
+            .begin_bar(&self.bar_volumes, &mut self.liquidity_ledger)?;
         // Stable monotonic sequence is priority. The index contains only
         // active orders; terminal history never participates in matching.
         self.matching_candidates = self.lifecycle_indexes.active_priority_handles();
@@ -2151,7 +2350,7 @@ impl FullSession {
             if let Some(order_mut) = self.orders.get_mut(handle) {
                 order_mut.trigger_armed = decision.triggered;
             }
-            let Some(exec_price) = decision.price else {
+            let Some(raw_price) = decision.raw_price else {
                 if order.tif as i64 != TIF_GTC && order.tif as i64 != TIF_GTD {
                     self.release_order(handle);
                     canceled += 1;
@@ -2190,12 +2389,58 @@ impl FullSession {
                 }
                 qty = qty.min(current.abs());
             }
-            let delta = qty * order.side as f64;
             let symbol = order.symbol as usize;
             let cs = self.contract_sizes[symbol];
             let close = self.close(bar, symbol);
-            let notional = delta.abs() * exec_price * cs;
-            let fee = notional * self.fee_rates[symbol];
+            let Some(fill) = self.execution_model.preview_fill(
+                FillCostInputV1 {
+                    symbol,
+                    side: order.side,
+                    raw_price,
+                    requested_qty: qty,
+                    bar_volume: self.bar_volumes[symbol],
+                    contract_multiplier: cs,
+                    one_way_fee_rate: self.fee_rates[symbol],
+                    apply_price_cost: decision.apply_price_cost,
+                },
+                &self.liquidity_ledger,
+            )?
+            else {
+                if order.tif as i64 != TIF_GTC && order.tif as i64 != TIF_GTD {
+                    self.release_order(handle);
+                    canceled += 1;
+                    Self::add_event(
+                        &mut sink,
+                        EVENT_CANCEL,
+                        STATUS_CANCELED,
+                        order.order_id,
+                        -1,
+                        order.symbol as i64,
+                    );
+                }
+                cursor += 1;
+                continue;
+            };
+            // FOK must not reserve/consume partial synthetic liquidity.
+            if order.tif as i64 == TIF_FOK && fill.partial {
+                self.release_order(handle);
+                canceled += 1;
+                Self::add_event(
+                    &mut sink,
+                    EVENT_CANCEL,
+                    STATUS_CANCELED,
+                    order.order_id,
+                    -1,
+                    order.symbol as i64,
+                );
+                cursor += 1;
+                continue;
+            }
+            let qty = fill.quantity;
+            let delta = qty * order.side as f64;
+            let exec_price = fill.price;
+            let notional = fill.turnover;
+            let fee = fill.fee;
             let (cur_initial, _) = self.close_margin(bar);
             let old_initial = current.abs() * close * cs / self.leverages[symbol];
             let new_initial = (current + delta).abs() * exec_price * cs / self.leverages[symbol];
@@ -2219,6 +2464,8 @@ impl FullSession {
             let new_position = current + delta;
             self.positions[symbol] = new_position;
             self.update_margin_cache_after_fill(bar, symbol, current, new_position);
+            self.execution_model
+                .commit_fill(fill, symbol, &mut self.liquidity_ledger)?;
             fee_total += fee;
             turnover += notional;
             sink.fill(
@@ -2241,7 +2488,25 @@ impl FullSession {
             );
             let activated = self.activate_children(order.order_id, &mut sink);
             canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut sink);
-            self.release_order(handle);
+            if fill.partial {
+                if order.tif as i64 == TIF_IOC {
+                    self.release_order(handle);
+                    canceled += 1;
+                    Self::add_event(
+                        &mut sink,
+                        EVENT_CANCEL,
+                        STATUS_CANCELED,
+                        order.order_id,
+                        -1,
+                        order.symbol as i64,
+                    );
+                } else if let Some(order_mut) = self.orders.get_mut(handle) {
+                    order_mut.qty = (order_mut.qty - qty).max(0.0);
+                    order_mut.trigger_armed = decision.triggered;
+                }
+            } else {
+                self.release_order(handle);
+            }
             self.matching_candidates.extend(activated);
             cursor += 1;
         }
@@ -2613,13 +2878,25 @@ impl FullSession {
         tape: &CommandTapeV5,
         profile: StaticOutputProfile,
     ) -> Result<NativeExecutionOutputV1, String> {
+        self.run_typed_output_with_requirements_v1(tape, OutputRequirementsV1::resolve(profile))
+    }
+
+    /// Execute a typed tape with an already-resolved bounded retention plan.
+    /// This is an output-only extension: matching, accounting, and lifecycle
+    /// are identical to [`Self::run_typed_output_v1`].
+    pub fn run_typed_output_with_requirements_v1(
+        &mut self,
+        tape: &CommandTapeV5,
+        requirements: OutputRequirementsV1,
+    ) -> Result<NativeExecutionOutputV1, String> {
+        requirements.validate()?;
         if tape.bars() != self.n_bars() {
             return Err("typed command tape bars do not match prepared market".to_owned());
         }
         let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
-        let requirements = OutputRequirementsV1::resolve(profile);
         let mut score = NativeScoreOutputV1::new(self.equity);
+        let mut metric_reducer = OnlineMetricReducerV2::new(self.metric_contract, self.equity)?;
         let mut paths = requirements
             .retain_paths
             .then(|| NativePathOutputV1::with_capacity(n_bars, n_symbols));
@@ -2627,6 +2904,9 @@ impl FullSession {
         let mut events = requirements
             .retain_detail
             .then(NativeEventOutputV1::default);
+        let mut detail_retention = requirements
+            .retain_detail
+            .then(|| AuditRetentionV1::new(requirements.detail_row_limit.unwrap_or(0)));
         let mut step_buffers = StepBuffers::default();
         let mut typed_scratch = TypedCommandScratch::with_capacity(8);
 
@@ -2663,8 +2943,10 @@ impl FullSession {
             score.canceled_count += step.canceled_count;
             score.fill_count += step.fill_count;
             score.event_count += step.event_count;
-            if let (Some(fills), Some(events)) = (fills.as_mut(), events.as_mut()) {
-                append_step_details_v1(fills, events, &step_buffers, bar);
+            if let (Some(fills), Some(events), Some(retention)) =
+                (fills.as_mut(), events.as_mut(), detail_retention.as_mut())
+            {
+                append_step_details_v1(fills, events, retention, &step_buffers, bar);
             }
             score.max_initial_margin = score.max_initial_margin.max(step.initial_margin);
             score.max_maintenance_margin =
@@ -2672,10 +2954,27 @@ impl FullSession {
             score.liquidated = step.liquidated;
             score.liquidation_bar = step.liquidation_bar;
             score.liquidation_reason = step.liquidation_reason;
+            metric_reducer.observe(
+                self.timestamp_ns(bar),
+                step.equity,
+                self.gross_exposure(bar, step.equity),
+            )?;
         }
         // This is the only final-position copy in a typed run. In particular,
         // score workloads no longer clone position state once per bar.
         score.final_positions = self.positions.clone();
+        score.metric_contract = self.metric_contract;
+        score.metrics_v2 = Box::new(metric_reducer.finish(MetricFinishInputV2 {
+            final_equity: score.final_equity,
+            turnover: score.total_turnover,
+            total_fee: score.total_fee,
+            total_funding: score.total_funding,
+            fill_count: score.fill_count,
+            event_count: score.event_count,
+            rejected_count: score.rejected_count,
+            canceled_count: score.canceled_count,
+            liquidated: score.liquidated,
+        }));
         match requirements.profile {
             StaticOutputProfile::Score => Ok(NativeExecutionOutputV1::Score(score)),
             StaticOutputProfile::Compact => Ok(NativeExecutionOutputV1::Compact(Box::new(
@@ -2692,6 +2991,8 @@ impl FullSession {
                     },
                     fills: fills.expect("audit output requires fill columns"),
                     events: events.expect("audit output requires event columns"),
+                    detail_retention: detail_retention
+                        .expect("audit output requires bounded detail retention"),
                 },
             ))),
         }
@@ -2709,15 +3010,34 @@ impl FullSession {
     pub fn run_typed_dynamic_output_v1<F>(
         &mut self,
         profile: StaticOutputProfile,
+        command_provider: F,
+    ) -> Result<(NativeExecutionOutputV1, usize), String>
+    where
+        F: FnMut(usize, &FullSession, &mut Vec<OrderCommandV5>) -> Result<(), String>,
+    {
+        self.run_typed_dynamic_output_with_requirements_v1(
+            OutputRequirementsV1::resolve(profile),
+            command_provider,
+        )
+    }
+
+    /// Dynamic counterpart to
+    /// [`Self::run_typed_output_with_requirements_v1`]. The command provider
+    /// remains Rust-only; the supplied requirements can only change retained
+    /// output buffers and never the lifecycle/accounting pass.
+    pub fn run_typed_dynamic_output_with_requirements_v1<F>(
+        &mut self,
+        requirements: OutputRequirementsV1,
         mut command_provider: F,
     ) -> Result<(NativeExecutionOutputV1, usize), String>
     where
         F: FnMut(usize, &FullSession, &mut Vec<OrderCommandV5>) -> Result<(), String>,
     {
+        requirements.validate()?;
         let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
-        let requirements = OutputRequirementsV1::resolve(profile);
         let mut score = NativeScoreOutputV1::new(self.equity);
+        let mut metric_reducer = OnlineMetricReducerV2::new(self.metric_contract, self.equity)?;
         let mut paths = requirements
             .retain_paths
             .then(|| NativePathOutputV1::with_capacity(n_bars, n_symbols));
@@ -2725,6 +3045,9 @@ impl FullSession {
         let mut events = requirements
             .retain_detail
             .then(NativeEventOutputV1::default);
+        let mut detail_retention = requirements
+            .retain_detail
+            .then(|| AuditRetentionV1::new(requirements.detail_row_limit.unwrap_or(0)));
         let mut step_buffers = StepBuffers::default();
         let mut typed_scratch = TypedCommandScratch::with_capacity(8);
         let mut commands = Vec::with_capacity(8);
@@ -2767,8 +3090,10 @@ impl FullSession {
             score.canceled_count += step.canceled_count;
             score.fill_count += step.fill_count;
             score.event_count += step.event_count;
-            if let (Some(fills), Some(events)) = (fills.as_mut(), events.as_mut()) {
-                append_step_details_v1(fills, events, &step_buffers, bar);
+            if let (Some(fills), Some(events), Some(retention)) =
+                (fills.as_mut(), events.as_mut(), detail_retention.as_mut())
+            {
+                append_step_details_v1(fills, events, retention, &step_buffers, bar);
             }
             score.max_initial_margin = score.max_initial_margin.max(step.initial_margin);
             score.max_maintenance_margin =
@@ -2776,8 +3101,25 @@ impl FullSession {
             score.liquidated = step.liquidated;
             score.liquidation_bar = step.liquidation_bar;
             score.liquidation_reason = step.liquidation_reason;
+            metric_reducer.observe(
+                self.timestamp_ns(bar),
+                step.equity,
+                self.gross_exposure(bar, step.equity),
+            )?;
         }
         score.final_positions = self.positions.clone();
+        score.metric_contract = self.metric_contract;
+        score.metrics_v2 = Box::new(metric_reducer.finish(MetricFinishInputV2 {
+            final_equity: score.final_equity,
+            turnover: score.total_turnover,
+            total_fee: score.total_fee,
+            total_funding: score.total_funding,
+            fill_count: score.fill_count,
+            event_count: score.event_count,
+            rejected_count: score.rejected_count,
+            canceled_count: score.canceled_count,
+            liquidated: score.liquidated,
+        }));
         let output = match requirements.profile {
             StaticOutputProfile::Score => NativeExecutionOutputV1::Score(score),
             StaticOutputProfile::Compact => {
@@ -2794,6 +3136,8 @@ impl FullSession {
                     },
                     fills: fills.expect("audit output requires fill columns"),
                     events: events.expect("audit output requires event columns"),
+                    detail_retention: detail_retention
+                        .expect("audit output requires bounded detail retention"),
                 }))
             }
         };
@@ -2839,10 +3183,14 @@ fn encode_typed_command(
 fn append_step_details_v1(
     fills: &mut NativeFillOutputV1,
     events: &mut NativeEventOutputV1,
+    retention: &mut AuditRetentionV1,
     buffers: &StepBuffers,
     bar: usize,
 ) {
     for index in 0..buffers.fills.order_id.len() {
+        if !retention.retain_next() {
+            continue;
+        }
         fills.bar.push(bar as i64);
         fills.order_id.push(buffers.fills.order_id[index]);
         fills.symbol.push(buffers.fills.symbol[index]);
@@ -2854,6 +3202,9 @@ fn append_step_details_v1(
         fills.ambiguity.push(buffers.fills.ambiguity[index]);
     }
     for index in 0..buffers.events.kind.len() {
+        if !retention.retain_next() {
+            continue;
+        }
         events.bar.push(bar as i64);
         events.kind.push(buffers.events.kind[index]);
         events.status.push(buffers.events.status[index]);
@@ -2944,6 +3295,38 @@ mod tests {
             false,
         )
         .unwrap()
+    }
+
+    fn limited_liquidity_session() -> FullSession {
+        let market = FullMarketData::new(
+            vec![0, 1],
+            vec![100.0, 101.0],
+            vec![101.0, 102.0],
+            vec![99.0, 100.0],
+            vec![100.0, 101.0],
+            vec![1.0, 1.0],
+            vec![0.0, 0.0],
+            vec![false, false],
+            1,
+        )
+        .unwrap();
+        let mut engine = FullSession::new(
+            Arc::new(market),
+            vec![1.0],
+            vec![5.0],
+            vec![0.0],
+            10_000.0,
+            0.005,
+            0.0,
+            false,
+        )
+        .unwrap();
+        engine
+            .set_execution_model(ExecutionModelPlanV1::Cost(
+                crate::execution_model::CostModelV1::new(0.0, 0.0, 0.0, 0.0, Some(0.5)).unwrap(),
+            ))
+            .unwrap();
+        engine
     }
 
     fn place_market(order_id: i64, side: i64) -> ([i64; CODE_WIDTH], [f64; VALUE_WIDTH]) {
@@ -3078,8 +3461,87 @@ mod tests {
     fn v2_market_is_frozen_at_next_bar_close() {
         let engine = session(100.0, 115.0, 95.0, 110.0);
         let decision = engine.fill_decision(&order(ORDER_MARKET, SIDE_BUY, 0.0, 0.0), 0);
-        assert!((decision.price.unwrap() - 110.11).abs() <= 1e-12);
+        assert_eq!(decision.raw_price, Some(110.0));
+        assert!(decision.apply_price_cost);
         assert_eq!(decision.reason, FILL_REASON_NEXT_BAR_CLOSE);
+    }
+
+    #[test]
+    fn common_execution_model_matches_frozen_touch_and_cost_oracle() {
+        let engine = session(100.0, 115.0, 95.0, 110.0);
+        let order = order(ORDER_MARKET, SIDE_BUY, 0.0, 0.0);
+        let legacy = engine.legacy_fill_decision(&order, 0);
+        let decision = engine.fill_decision(&order, 0);
+        assert_eq!(decision.triggered, legacy.triggered);
+        assert_eq!(decision.reason, legacy.reason);
+        assert_eq!(decision.ambiguity, legacy.ambiguity);
+
+        let mut ledger = LiquidityLedgerV1::unlimited(1);
+        engine
+            .execution_model
+            .begin_bar(&[1_000.0], &mut ledger)
+            .unwrap();
+        let fill = engine
+            .execution_model
+            .preview_fill(
+                FillCostInputV1 {
+                    symbol: 0,
+                    side: order.side,
+                    raw_price: decision.raw_price.unwrap(),
+                    requested_qty: 1.0,
+                    bar_volume: 1_000.0,
+                    contract_multiplier: 1.0,
+                    one_way_fee_rate: 0.0,
+                    apply_price_cost: decision.apply_price_cost,
+                },
+                &ledger,
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(legacy.price, Some(fill.price));
+    }
+
+    #[test]
+    fn partial_fill_tif_paths_share_one_liquidity_ledger_without_accounting_drift() {
+        // At 50% participation on one unit of OHLCV volume, one market order
+        // for one unit can only fill 0.5 per bar. The lifecycle outcome differs
+        // by TIF; cash/position changes must equal committed fills only.
+        for (tif, expected_position, expected_live_orders, expected_canceled) in [
+            (TIF_GTC, 1.0, 0, 0),
+            (TIF_IOC, 0.5, 0, 1),
+            (TIF_FOK, 0.0, 0, 1),
+        ] {
+            let mut engine = limited_liquidity_session();
+            let (mut code, values) = place_market(42, SIDE_BUY);
+            code[4] = tif;
+            let first = engine
+                .step_with_output(0, &code, &values, &[-1], 1, false)
+                .unwrap();
+            let second = engine.step_with_output(1, &[], &[], &[], 0, false).unwrap();
+
+            match tif {
+                TIF_GTC => {
+                    assert_eq!(first.fill_count, 1);
+                    assert_eq!(second.fill_count, 1);
+                }
+                TIF_IOC => {
+                    assert_eq!(first.fill_count, 1);
+                    assert_eq!(second.fill_count, 0);
+                }
+                TIF_FOK => {
+                    assert_eq!(first.fill_count, 0);
+                    assert_eq!(second.fill_count, 0);
+                }
+                _ => unreachable!(),
+            }
+            assert!((engine.positions[0] - expected_position).abs() < 1e-12);
+            assert_eq!(engine.orders_len(), expected_live_orders);
+            assert_eq!(
+                first.canceled_count + second.canceled_count,
+                expected_canceled
+            );
+            assert!(engine.equity.is_finite());
+        }
     }
 
     #[test]
@@ -3089,7 +3551,8 @@ mod tests {
             .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
             .unwrap();
         let decision = engine.fill_decision(&order(ORDER_MARKET, SIDE_BUY, 0.0, 0.0), 0);
-        assert_eq!(decision.price, Some(100.1));
+        assert_eq!(decision.raw_price, Some(100.0));
+        assert!(decision.apply_price_cost);
         assert_eq!(decision.reason, FILL_REASON_NEXT_OPEN);
     }
 
@@ -3100,7 +3563,8 @@ mod tests {
             .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
             .unwrap();
         let decision = engine.fill_decision(&order(ORDER_LIMIT, SIDE_BUY, 100.0, 0.0), 0);
-        assert_eq!(decision.price, Some(95.0));
+        assert_eq!(decision.raw_price, Some(95.0));
+        assert!(!decision.apply_price_cost);
         assert_eq!(decision.reason, FILL_REASON_LIMIT_OPEN_IMPROVEMENT);
     }
 
@@ -3111,7 +3575,8 @@ mod tests {
             .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
             .unwrap();
         let decision = engine.fill_decision(&order(ORDER_STOP_MARKET, SIDE_BUY, 0.0, 105.0), 0);
-        assert!((decision.price.unwrap() - 110.11).abs() <= 1e-12);
+        assert_eq!(decision.raw_price, Some(110.0));
+        assert!(decision.apply_price_cost);
         assert_eq!(decision.reason, FILL_REASON_STOP_OPEN_WORSE);
     }
 
@@ -3122,7 +3587,7 @@ mod tests {
             .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
             .unwrap();
         let decision = engine.fill_decision(&order(ORDER_STOP_LIMIT, SIDE_BUY, 104.0, 105.0), 0);
-        assert!(decision.price.is_none());
+        assert!(decision.raw_price.is_none());
         assert!(decision.triggered);
         assert_eq!(decision.ambiguity, FILL_AMBIGUITY_STOP_LIMIT_PATH_UNKNOWN);
     }
@@ -3270,5 +3735,52 @@ mod tests {
         assert!(compact.event_bar.is_empty());
         assert_eq!(compact.fill_count, audit.fill_count);
         assert_eq!(compact.event_count, audit.event_count);
+    }
+
+    #[test]
+    fn output_requirements_reject_inconsistent_score_detail_retention_before_execution() {
+        let mut engine = multi_bar_session(2);
+        let (codes, values) = place_market(1, SIDE_BUY);
+        let tape = CommandTapeV5::new(
+            vec![0, 0, 1],
+            vec![OrderCommandV5 {
+                action: quantbt_domain::enums::CommandAction::Place,
+                symbol: Some(SymbolId(0)),
+                side: Some(quantbt_domain::enums::Side::Buy),
+                order_type: Some(quantbt_domain::enums::OrderType::Market),
+                tif: Some(quantbt_domain::enums::TimeInForce::Gtc),
+                reduce_only: false,
+                external_id: ExternalOrderId(1),
+                target_id: ExternalOrderId(-1),
+                parent_id: ExternalOrderId(-1),
+                group_id: -1,
+                oco_id: -1,
+                activation: Some(quantbt_domain::enums::ActivationPolicy::Immediate),
+                command_index: 0,
+                qty: values[0],
+                limit_price: values[1],
+                stop_price: values[2],
+                expire_bar: None,
+            }],
+        )
+        .unwrap();
+        let invalid = OutputRequirementsV1 {
+            profile: StaticOutputProfile::Score,
+            retain_paths: false,
+            retain_detail: true,
+            detail_row_limit: Some(1),
+        };
+        assert!(
+            engine
+                .run_typed_output_with_requirements_v1(&tape, invalid)
+                .is_err()
+        );
+        assert_eq!(engine.equity, engine.initial_capital);
+        let valid = OutputRequirementsV1::audit_with_detail_limit(1);
+        let output = engine
+            .run_typed_output_with_requirements_v1(&tape, valid)
+            .unwrap();
+        assert!(output.detail_retention().retained_rows <= 1);
+        let _ = codes;
     }
 }

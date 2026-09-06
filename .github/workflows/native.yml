@@ -49,6 +49,7 @@ jobs:
           .venv/bin/python tools/generate_native_event_contracts.py --check
           .venv/bin/python tools/generate_product_contracts.py --check
           .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/check_native_a5_review.py
           .venv/bin/python tools/check_module_architecture.py
           .venv/bin/python tools/check_benchmark_governance.py
           .venv/bin/python tools/check_docs_links.py

@@ -24,6 +24,9 @@
     "intrabar_bracket_reference": [
       "intrabar_reference"
     ],
+    "intrabar_bracket_rust": [
+      "intrabar_rust_explicit"
+    ],
     "native_event_bracket_orders": [
       "native_event_bracket_orders"
     ],
@@ -118,6 +121,9 @@
     "BasketIntent",
     "BasketLegSpec",
     "BasketSpec",
+    "BlockIntentProviderV1",
+    "BlockPlanV1",
+    "BoundedAuditSinkV1",
     "BracketOrderSpec",
     "CANONICAL_OPTION_CHAIN_COLUMNS",
     "CONSTRAINTS_USER_ATTR",
@@ -125,6 +131,8 @@
     "CalendarPolicyV2",
     "CalendarSpreadSpec",
     "CallbackSchedule",
+    "CandidateErrorCodeV1",
+    "CandidateWakePlansV1",
     "CanonicalTraceArtifact",
     "CapabilityError",
     "CarryModel",
@@ -153,6 +161,7 @@
     "EngineErrorCode",
     "EngineErrorContext",
     "EntryPositionPolicy",
+    "EquityThresholdV1",
     "EventClockContract",
     "EventDrivenBacktestEngine",
     "ExecutionConfig",
@@ -169,6 +178,8 @@
     "FillReplayTapeV2",
     "FillReplayV2Error",
     "FillReplayV2NativeUnavailable",
+    "FoldAccountPolicyV1",
+    "FoldWarmupPolicyV1",
     "FrozenBasketPlan",
     "FundingArbitrageSpec",
     "FundingPhase",
@@ -207,9 +218,11 @@
     "LifecycleTransition",
     "LiquidationPriority",
     "LiquiditySide",
+    "MarginMetricV1",
     "MarginMode",
     "MarginModel",
     "MarginModelKind",
+    "MarginThresholdV1",
     "MarketExecutionViewV2",
     "MarketFillPolicy",
     "MarketValidationCertificate",
@@ -274,6 +287,9 @@
     "OptimizationTrialRecord",
     "OptionBacktestEngine",
     "OptionBacktestResult",
+    "OptionCapabilityAssessment",
+    "OptionCapabilityError",
+    "OptionCapabilityStatus",
     "OptionDecisionFillPolicy",
     "OptionDepthFidelity",
     "OptionExecutionConfig",
@@ -300,6 +316,7 @@
     "OptionSelection",
     "OptionSelectionFilters",
     "OptionSettlementEvent",
+    "OptionSettlementPolicy",
     "OptionSettlementRepresentation",
     "OptionSettlementResult",
     "OptionStrategyRun",
@@ -322,6 +339,7 @@
     "PackageState",
     "PackageTransactionPolicy",
     "PackageTransactionResult",
+    "ParallelismPlanV1",
     "PortfolioBacktestEngine",
     "PortfolioDomainSpec",
     "PortfolioMarginAllocationPolicy",
@@ -330,6 +348,7 @@
     "PortfolioSizingMode",
     "PortfolioTargetExecutionResult",
     "PortfolioTargetRejectReason",
+    "PositionThresholdV1",
     "PremiumConvention",
     "PreparationError",
     "PreparedExecutionPlanV2",
@@ -340,7 +359,11 @@
     "PreparedMarketTape",
     "PreparedNativeEventStrategyRunner",
     "PreparedOptionTape",
+    "PreparedReactiveWfoStrategyAdapterV1",
+    "PreparedReactiveWfoStrategyV1",
+    "PreparedReactiveWfoUnsupported",
     "PreparedWalkForwardContext",
+    "PriceCrossConditionV1",
     "PricePurposeV2",
     "ProtectiveExitReentryPolicy",
     "QuantBTEndpoint",
@@ -349,8 +372,21 @@
     "QuantityConstraints",
     "QuantityPurposeV2",
     "QuantizedOrderValue",
+    "ReactiveCandidateBatchStrategyV1",
+    "ReactivePreparedWfoRuntimeV1",
+    "ReactiveShadowCertificationV1",
+    "ReactiveSparseStrategyV1",
+    "ReactiveWalkForwardResultV1",
+    "ReactiveWalkForwardUnsupported",
+    "ReactiveWfoFoldResultV1",
+    "ReactiveWfoPreparationV1",
+    "ReactiveWfoRuntimeConfigV1",
+    "ReactiveWfoTaskV1",
     "ResourceLimitError",
     "RobustSelectionConfig",
+    "RuntimeBudgetError",
+    "RuntimeBudgetV1",
+    "RuntimeCanceledError",
     "RustNativeIRRunner",
     "STRATEGY_IR_PARAMETER_NAMES",
     "STRATEGY_IR_VERSION",
@@ -377,12 +413,14 @@
     "StrategyCallbackError",
     "StrategyContextRequirements",
     "StrategyContextView",
+    "StrategyLifecycleV1",
     "StructuredOrderPlan",
     "SurfaceDiagnostics",
     "SymbolCalendarMapV2",
     "TRACE_FIELDS",
     "TRACE_SCHEMA_VERSION",
     "TakeProfitGapPolicy",
+    "ThresholdDirectionV1",
     "TimeInForce",
     "TotalVarianceSurface",
     "TraceReplayResult",
@@ -391,6 +429,9 @@
     "TrailingUpdatePhase",
     "TrialEvaluator",
     "TriangularArbSpec",
+    "WFO_CONTRACT_SCHEMA_V1",
+    "WakePlanV1",
+    "WakeReasonV1",
     "WalkForwardBenchmarkSnapshot",
     "WalkForwardCompatibilityEntry",
     "WalkForwardConfig",
@@ -398,12 +439,16 @@
     "WalkForwardFold",
     "WalkForwardResult",
     "WalkForwardTrialRecord",
+    "WfoCausalityScheduleV2",
+    "WfoIntentContractV1",
+    "WfoIntentKindV1",
     "WorkingOrderView",
     "YEAR_NS",
     "alpha_report_markdown",
     "apply_theme",
     "assert_native_accounting_invariants",
     "assert_native_event_full_parity",
+    "assess_option_capability",
     "available_option_rows",
     "benchmark_walkforward_kernels",
     "binance_european_options_convention",
@@ -440,6 +485,7 @@
     "calmar",
     "canonical_trace_fingerprint",
     "capability_matrix_fingerprint",
+    "certify_reactive_shadow_v1",
     "certify_result_metadata",
     "classify_alpha_source",
     "collar",
@@ -456,6 +502,7 @@
     "deribit_inverse_option_convention",
     "deribit_linear_usdc_fee_schedule",
     "deribit_linear_usdc_option_convention",
+    "derive_strategy_seed",
     "execute_option_package",
     "execute_package_transaction_reference",
     "execute_portfolio_target_reference",
@@ -474,6 +521,7 @@
     "inverse_black76_parity_residual_base",
     "inverse_black76_parity_value_base",
     "inverse_black76_price_base",
+    "isolated_strategy_instance",
     "l2_replay_available",
     "lifecycle_transitions",
     "linear_black76_greeks",
@@ -491,21 +539,26 @@
     "normalize_rebalance_policy",
     "omega",
     "option_attribution_report",
+    "option_capability_registry_v1",
     "option_expiry_payoff_per_unit",
     "option_package_cache_key",
     "option_report_bundle",
     "option_run_manifest",
     "order_intents_to_lifecycle_commands",
     "portfolio_capability_matrix",
+    "prepare_calendar_plan_v2",
     "prepare_execution_plan_v2",
     "prepare_instrument_registry_v2",
     "prepare_market_handle_v2",
     "prepare_market_tape",
     "prepare_option_tape",
+    "prepare_reactive_wfo_strategy",
     "profit_factor",
     "quantize_order_value",
     "quantize_signed_quantity",
     "quick_plot",
+    "reactive_wfo_candidate_id",
+    "resolve_causality_schedule_v2",
     "risk_reversal",
     "rolling_drawdown",
     "rolling_sharpe",
@@ -540,6 +593,7 @@
     "stitch_oos_outputs",
     "straddle",
     "strangle",
+    "strategy_fingerprint",
     "strategy_requirements",
     "strategy_return_series",
     "suggest_parameter",
@@ -552,12 +606,14 @@
     "validate_lifecycle_transition",
     "validate_native_event_capability_matrix",
     "validate_native_event_semantic_descriptor",
+    "validate_option_capabilities",
     "validate_option_chain_frame",
     "validate_param_ranges",
     "validate_portfolio_result_contract",
     "validate_walkforward_strategy_output",
     "vertical",
     "volatility_regime_labels",
+    "wake_reason_names",
     "walkforward_support_matrix",
     "write_nautilus_certification_artifacts"
   ],
@@ -718,9 +774,9 @@
       },
       "id": "event_driven_orders",
       "input_mode": "canonical_order_command_tape",
-      "maturity": "promoted_bounded_static",
+      "maturity": "certified_explicit_rust",
       "notes": [
-        "Only product-registry static V2/V3 tape rows are auto eligible."
+        "Phase 72 holds auto promotion until current-candidate evidence is recorded."
       ],
       "package_versions": {
         "command_abi": "full-command-v1",
@@ -742,8 +798,8 @@
         "python",
         "rust"
       ],
-      "resolved_backend_baseline": "capability-gated Rust static tape at declared thresholds; Python otherwise",
-      "runtime_class": "WholeRunNative",
+      "resolved_backend_baseline": "Python by auto policy; explicit Rust static tape remains capability-gated",
+      "runtime_class": "PythonCompatibility",
       "source_anchors": [
         "src/quantbt/endpoint.py#QuantBTEndpoint.event_driven"
       ],
@@ -984,6 +1040,53 @@
     },
     {
       "authority": {
+        "accounting": "Rust intrabar account state machine",
+        "control_flow": "Python validates and packs one immutable intrabar request",
+        "execution": "Rust BracketIntrabarKernelV1 / SessionIntrabarKernelV1 whole-tape executor",
+        "metrics": "Python standard metrics over Rust-owned paths",
+        "result": "Rust SoA buffers adapted by Python on the cold path",
+        "strategy": "external Python strategy or compact intent arrays"
+      },
+      "endpoint": "QuantBTEndpoint.intrabar_bracket_rust",
+      "factory": "intrabar_bracket_rust",
+      "fallback": {
+        "auto": "not applicable; intrabar_bracket_rust is never selected automatically",
+        "explicit": "requires matching native capability; unsupported ambiguity policies fail closed"
+      },
+      "id": "intrabar_rust_explicit",
+      "input_mode": "compact_entry_exit_stop_take_profit_trailing_intent",
+      "maturity": "a4_explicit_certified",
+      "notes": [
+        "The Numba intrabar endpoint remains a version-pinned rollback comparator.",
+        "Scope is one strict OHLC symbol; it does not claim L2, grid/DCA, or cross-margin portfolio execution."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "rust_intrabar"
+      ],
+      "resolved_backend_baseline": "explicit Rust BracketIntrabarKernelV1 / SessionIntrabarKernelV1",
+      "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "src/quantbt/endpoint.py#QuantBTEndpoint.intrabar_bracket_rust"
+      ],
+      "surface_type": "public_endpoint"
+    },
+    {
+      "authority": {
         "accounting": "Python native-event ledger",
         "control_flow": "Python event lifecycle planner",
         "execution": "Python native-event lifecycle backend",
@@ -1091,9 +1194,9 @@
       },
       "id": "native_event_lifecycle",
       "input_mode": "canonical_order_command_tape",
-      "maturity": "promoted_bounded_static",
+      "maturity": "certified_explicit_rust",
       "notes": [
-        "Advanced lifecycle controls retain their declared contract identifiers."
+        "Advanced lifecycle controls retain their declared contract identifiers and explicit Rust route."
       ],
       "package_versions": {
         "command_abi": "full-command-v1",
@@ -1115,8 +1218,8 @@
         "python",
         "rust"
       ],
-      "resolved_backend_baseline": "same governed lifecycle resolver as event_driven(input_mode='orders')",
-      "runtime_class": "WholeRunNative",
+      "resolved_backend_baseline": "Python by auto policy; explicit Rust lifecycle remains capability-gated",
+      "runtime_class": "PythonCompatibility",
       "source_anchors": [
         "src/quantbt/endpoint.py#QuantBTEndpoint.native_event_lifecycle"
       ],
@@ -1223,6 +1326,154 @@
     },
     {
       "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::event_reactive_block_intent_r3",
+      "input_mode": "python_callback_block_intent",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: python_callback_block_intent.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::event_reactive_candidate_batch_r3b",
+      "input_mode": "python_callback_candidate_batch",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: python_callback_candidate_batch.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::event_reactive_sparse_wake_r2",
+      "input_mode": "python_callback_sparse_wake",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: python_callback_sparse_wake.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
         "accounting": "Rust only for an eligible governed workload; Python otherwise",
         "control_flow": "Python facade plus capability resolver",
         "execution": "Rust only for an eligible governed workload; Python otherwise",
@@ -1230,7 +1481,7 @@
         "result": "Rust buffers adapted by Python on the cold path",
         "strategy": "external Python strategy or precomputed typed intent"
       },
-      "auto_promotion": true,
+      "auto_promotion": false,
       "endpoint": "native product capability registry",
       "factory": null,
       "fallback": {
@@ -1239,7 +1490,7 @@
       },
       "id": "native_workload::event_static_tape_v2_v3",
       "input_mode": "static_commands",
-      "maturity": "promoted",
+      "maturity": "certified",
       "notes": [
         "Declared strategy modes: static_commands.",
         "This is a governed capability row, not blanket endpoint promotion."
@@ -1265,8 +1516,59 @@
         "python",
         "rust"
       ],
-      "resolved_backend_baseline": "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise",
-      "runtime_class": "WholeRunNative",
+      "resolved_backend_baseline": "Python by auto policy; Rust remains an explicit certified route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::intrabar_bracket_rust_v1",
+      "input_mode": "intrabar_intent_v1",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: intrabar_intent_v1.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
       "source_anchors": [
         "contracts/native_event_product_registry.json#workloads"
       ],
@@ -1281,7 +1583,7 @@
         "result": "Rust buffers adapted by Python on the cold path",
         "strategy": "external Python strategy or precomputed typed intent"
       },
-      "auto_promotion": true,
+      "auto_promotion": false,
       "endpoint": "native product capability registry",
       "factory": null,
       "fallback": {
@@ -1290,7 +1592,7 @@
       },
       "id": "native_workload::native_strategy_ir_v1",
       "input_mode": "ir_v1",
-      "maturity": "promoted",
+      "maturity": "certified",
       "notes": [
         "Declared strategy modes: ir_v1.",
         "This is a governed capability row, not blanket endpoint promotion."
@@ -1316,8 +1618,57 @@
         "python",
         "rust"
       ],
-      "resolved_backend_baseline": "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise",
-      "runtime_class": "WholeRunNative",
+      "resolved_backend_baseline": "Python by auto policy; Rust remains an explicit certified route",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::native_wfo_prepared_signal_v2",
+      "input_mode": "prepared_signal_w1,prepared_signal_w2",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: prepared_signal_w1, prepared_signal_w2.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
       "source_anchors": [
         "contracts/native_event_product_registry.json#workloads"
       ],
@@ -1369,6 +1720,105 @@
       ],
       "resolved_backend_baseline": "Rust explicit helper only; generic endpoint remains Python",
       "runtime_class": "WholeRunNative",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::package_market_v2",
+      "input_mode": "typed_package_intent_v2",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: typed_package_intent_v2.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::package_market_v2_scenario_batch",
+      "input_mode": "typed_package_intent_v2_scenario_batch",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: typed_package_intent_v2_scenario_batch.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
       "source_anchors": [
         "contracts/native_event_product_registry.json#workloads"
       ],
@@ -1495,6 +1945,157 @@
       "maturity": "experimental",
       "notes": [
         "Declared strategy modes: portfolio_target_preflight.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::shared_portfolio_target_matrix_v1",
+      "input_mode": "shared_portfolio_target",
+      "maturity": "experimental",
+      "notes": [
+        "Declared strategy modes: shared_portfolio_target.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::shared_portfolio_target_units_v1",
+      "input_mode": "shared_portfolio_target",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: shared_portfolio_target.",
+        "This is a governed capability row, not blanket endpoint promotion."
+      ],
+      "package_versions": {
+        "command_abi": "full-command-v1",
+        "native_protocol": {
+          "maximum": 1,
+          "minimum": 1
+        },
+        "quantbt_engine": "1.1.0",
+        "quantbt_native": "0.4.1",
+        "result_abi": "native-event-result-v1"
+      },
+      "profiles": [
+        "score",
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "requested_backends": [
+        "auto",
+        "python",
+        "rust"
+      ],
+      "resolved_backend_baseline": "Python baseline; no auto Rust authority",
+      "runtime_class": "PythonCompatibility",
+      "source_anchors": [
+        "contracts/native_event_product_registry.json#workloads"
+      ],
+      "surface_type": "governed_native_workload"
+    },
+    {
+      "authority": {
+        "accounting": "Python native-event ledger",
+        "control_flow": "Python event lifecycle planner",
+        "execution": "Python native-event lifecycle backend",
+        "metrics": "Python metrics layer",
+        "result": "Python BacktestResult/event artifacts",
+        "strategy": "external Python strategy or supplied command tape"
+      },
+      "auto_promotion": false,
+      "endpoint": "native product capability registry",
+      "factory": null,
+      "fallback": {
+        "auto": "Python with a resolver reason when no enabled rule matches",
+        "explicit": "Rust fails closed when the exact workload contract is not certified"
+      },
+      "id": "native_workload::shared_portfolio_target_wfo_v1",
+      "input_mode": "prepared_shared_portfolio_target_wfo",
+      "maturity": "certified",
+      "notes": [
+        "Declared strategy modes: prepared_shared_portfolio_target_wfo.",
         "This is a governed capability row, not blanket endpoint promotion."
       ],
       "package_versions": {
@@ -2163,9 +2764,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 215175,
+      "bytes": 254192,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "efd70e4fb4fbd40799873ae4e7f49d988e8962df79e216735f1324d0c1f02d16"
+      "sha256": "d6001cff72b709b1711858c790b7351183ee507e9a809c70196b8c0ae0b44917"
     },
     "guide": {
       "bytes": 144542,
@@ -2178,14 +2779,14 @@
       "sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa"
     },
     "product_registry": {
-      "bytes": 13376,
+      "bytes": 28037,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "d64d79f243e046611257ccb2b04de8e161ede17c12d462a257de526fc51d899b"
+      "sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f"
     },
     "public_api_inventory": {
-      "bytes": 16103,
+      "bytes": 17902,
       "path": "contracts/generated_public_api_inventory.json",
-      "sha256": "51cbb1247ffaffb93916beba8b7ae2b7e3c71f672bc2268ce7716f79e2d25911"
+      "sha256": "a281b920fb99477b773340ee46c64401aa6f229c4fc1560975353341415947b2"
     }
   }
 }

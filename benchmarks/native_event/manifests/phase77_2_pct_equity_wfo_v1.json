@@ -1,0 +1,66 @@
+{
+  "schema": "quantbt-phase77-2-pct-equity-public-wfo-v1",
+  "phase": "77.2",
+  "promotion_eligible": false,
+  "workload_id": "pct_equity_rust_transition_native",
+  "scope": {
+    "endpoint": "QuantBTEndpoint.pct_equity / QuantBTEndpoint.walk_forward",
+    "symbols": 1,
+    "target_mode": "pct_equity",
+    "optimization_modes": [
+      "mode_1_decay",
+      "mode_3_flat_minima",
+      "mode_4_is_only_robust",
+      "mode_5_full_robust"
+    ],
+    "mode_2": "proxy_preserved_not_a_rust_sampling_claim",
+    "opt_in": {
+      "target_runtime": "rust",
+      "native_prepared_wfo": "require"
+    },
+    "default_behavior": "legacy_pct_equity_transition_reference"
+  },
+  "contracts": {
+    "execution": "pct_equity_transition_v1",
+    "fee": "legacy_round_trip_fee_divided_by_two_equals_canonical_one_way_fee_rate",
+    "slippage": "legacy_fractional_slippage_equals_execution_slippage_rate",
+    "public_positions": "processed_signal_weights",
+    "accepted_positions": "metadata.pct_equity_transition.accepted_positions",
+    "candidate_account": "fresh_account_per_evaluation",
+    "final_account": "one_continuous_stitched_transition_account"
+  },
+  "required_parity": [
+    "first_bar_snapshot",
+    "transition_only_resize",
+    "no_drift_rebalance",
+    "rejection_without_retry",
+    "funding_on_carried_units",
+    "liquidation",
+    "accepted_units",
+    "raw_public_positions",
+    "equity",
+    "returns",
+    "selection_fingerprint",
+    "trial_table",
+    "full_report",
+    "one_vs_many_worker_parity"
+  ],
+  "benchmark_profiles": {
+    "smoke": {
+      "bars": 720,
+      "frequency": "1D",
+      "trials": 4,
+      "repeats": 1
+    },
+    "standard": {
+      "bars": 10000,
+      "frequency": "1h",
+      "trials": 64,
+      "repeats": 5
+    }
+  },
+  "outputs": [
+    "benchmarks/native_event/results/phase77_2_pct_equity_wfo.json",
+    "benchmarks/native_event/results/phase77_2_pct_equity_wfo_standard.json"
+  ]
+}

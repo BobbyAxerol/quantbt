@@ -14,7 +14,7 @@ The base package can run ordinary backtests. Parameter search requires the
 declared optional dependency group:
 
 ```bash
-pip install "quantbt-engine[optimization]==1.0.9"
+pip install "quantbt-engine[optimization]>=1.1.0"
 ```
 
 The public import remains unchanged:
@@ -184,10 +184,56 @@ that OOS an untouched holdout. For `global`, the compatibility field
 `chronological_validation_claim` explicitly records that the multi-fold
 calibration is retrospective.
 
-QuantBT stitches outer OOS targets chronologically and runs account accounting
-once. The only supported boundary policy is
-`fold_boundary_position_policy="carry"`: equity and positions continue through
-the boundary, so the engine does not invent a reset, close/reopen, or extra fee.
+## Phase 64 Contract And Boundary Evidence
+
+WFO now records a versioned calendar, temporal, intent, lifecycle, and account
+contract alongside the existing selection metadata. `calendar_contract="exact_v2"`
+is the default: a same-length shifted timestamp tape fails rather than being
+relabelled. `intersection_v2` is available only for the fully observed common
+clock. `legacy_v1` remains a reproduction escape hatch and is not a certified
+calendar route.
+
+Use `label_horizon_bars`, `purge_bars`, and `embargo_bars` to make boundary
+exclusions inspectable. Fold metadata separates the affected label tail,
+purge range, strategy warmup range, OOS test range, and embargo range. A
+strategy object may implement `StrategyLifecycleV1` (`spawn`, `reset`, optional
+`warmup`, fingerprint, and `close`); QuantBT derives its seed from stable
+run/candidate/fold/cutoff identifiers and prevents accidental mutable-instance
+reuse under the default `isolated_v1` policy.
+
+The final stitched endpoint has intentionally explicit account capabilities:
+
+| Policy | Result |
+|---|---|
+| `carry_position` | Supported continuous-account accounting. |
+| `close_at_boundary` | Supported only where an embargo creates an explicit flatten bar. |
+| `reset_flat` | Raises until a segmented-account result adapter is selected. |
+| `replay_prior_state` | Raises until an explicit order/fill replay adapter is selected. |
+
+The legacy `fold_boundary_position_policy="carry"` alias remains valid. It
+does not invent a reset, close/reopen, or duplicate fee when target values agree
+on adjacent OOS ranges.
+
+When `scoring_backend="proxy"`, `proxy_validation_mode="record"` or
+`"enforce"` compares a bounded IS-only proxy candidate sample with native
+accounting scores. It records Spearman rank, Top-K overlap, winner regret, and
+false-positive rate. `enforce` rejects the run if declared gates fail; it never
+quietly replaces the selected candidate with a different native winner.
+
+```python
+wf = result.metadata["walk_forward"]
+display(wf["fold_table"])
+display(wf["strategy_lifecycle_table"])
+display(wf["proxy_validation"])
+print(wf["causality_schedule_v2"])
+print(wf["signal_causality_scope"])
+```
+
+An explicit `intent_contract` describes whether a strategy emits a signal,
+target, or position and at which observation/effective phase. It is a
+declaration, not a magical proof of an arbitrary Python indicator. QuantBT
+enforces fold-level cutoff and execution contracts; the strategy still owns
+intra-fold feature causality.
 
 ## External Holdout And Live Evaluation
 
@@ -197,6 +243,27 @@ passed to `.backtest(..., param_ranges=...)`. Freeze the latest completed-fold
 parameters, build a causal signal on the holdout, and run a normal endpoint on
 that separate period. This answers a different question: whether a policy that
 survived WFO still behaves sensibly on data withheld from the entire WFO run.
+
+## Prepared Native WFO Runtime
+
+The public schedules above describe selection chronology. They are distinct
+from [Native WFO Runtime V2](native_wfo_runtime.md), the advanced static-IR
+candidate-matrix runtime. Phase 74 also provides an opt-in prepared Rust scorer
+beneath the ordinary public endpoint for compatible W0 scalar callbacks and
+optional W1/W2 scalar prepared strategies. Candidate/fold scoring is
+fresh-account; the final public OOS target is still stitched into one declared
+continuous endpoint account, rather than concatenating fold equities.
+
+The public prepared-native matrix is intentionally narrow: one scalar symbol,
+canonical finite OHLCV, `signal_notional`/`single_signal`/`notional`/`unit`,
+and crypto-daily metric annualization `365`. Explicit transition-sized
+`pct_equity` is also supported only with `target_runtime="rust"` and
+`native_prepared_wfo="require"`; `auto` keeps legacy behavior. It retains the
+historical transition/accounting contract rather than becoming a per-bar weight
+rebalance. `mode_2_sbb` deliberately keeps its bounded proxy path. Portfolio,
+package, target-weight, and reactive routes are not promoted by this scorer. See
+[Public prepared-native WFO scoring](native_prepared_wfo_public.md) for the
+compatibility matrix, W0/W1/W2 protocol, fallback policy, and audit metadata.
 
 ## Repository Certification Gate
 

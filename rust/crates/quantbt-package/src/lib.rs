@@ -8,6 +8,15 @@ use quantbt_domain::commands::{CommandTapeV5, OrderCommandV5};
 use quantbt_domain::enums::{ActivationPolicy, CommandAction, OrderType, Side, TimeInForce};
 use quantbt_domain::ids::{ExternalOrderId, SymbolId};
 
+pub mod v2;
+pub use v2::{
+    LegQuantitySourceV1, PackageExecutionCommandV2, PackageExecutionPolicyV2,
+    PackageExecutionResultV2, PackageIntentV2, PackageLegExecutionV2, PackageLegIntentV2,
+    PackageMarketExecutionRequestV2, PackageRejectReasonV2, PackageStateV2, ResidualExposureV1,
+    ResidualReasonCodeV1, ResidualRiskPolicyV1, abort_package_market_v2,
+    compile_package_commands_v2, execute_package_market_v2,
+};
+
 const EPSILON: f64 = 1e-12;
 
 #[repr(transparent)]

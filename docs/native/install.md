@@ -85,11 +85,12 @@ imports, and checks the exact core/native mapping from the product registry.
 
 - Missing native extension: core remains fully functional.
 - `backend="python"`: always selects the reference implementation.
-- `backend="rust"`: verifies the extension descriptor and fails clearly when
-  the pair or workload is not compatible.
-- `backend="auto"`: selects Rust only for certified static command tapes at
-  10,000+ bars and bounded Native Strategy IR/batch runs at 2,000+ bars; all
-  other workloads stay Python with a structured decision reason.
+- `backend="rust"`: explicitly requests a certified static command-tape or
+  bounded Native Strategy IR/batch route, verifies the extension descriptor,
+  and fails clearly when the pair or workload is not compatible.
+- `backend="auto"`: currently stays Python because static/IR evidence is
+  historical scope-only. It records `measurement_evidence_not_current` until
+  fresh route-matched evidence re-enables a generated rule.
 
 The direct `run_portfolio_target_market(...)` and
 `run_atomic_package_market(...)` helpers are separately certified bounded Rust

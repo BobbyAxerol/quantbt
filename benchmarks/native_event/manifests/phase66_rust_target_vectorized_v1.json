@@ -1,0 +1,32 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase66-rust-target-vectorized-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_only_close_target_v2_same_close_with_numba_reproducibility_comparator_and_no_auto_route",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "DIRECT_TARGET_UNITS_SAME_CLOSE",
+      "contract_ids": [
+        "close_target_v2_same_close"
+      ],
+      "strategy_mode": "direct_target_units_v1",
+      "profiles": [
+        "score",
+        "compact",
+        "audit"
+      ],
+      "fixture": "deterministic 20,000-bar one-symbol close-target units tape with quantity constraints and funding",
+      "baseline_path": "benchmarks/native_event/results/phase66_rust_target_vectorized.json",
+      "baseline_sha256": "016460e9f116d9b7c0a0e9790d09baa3cad4afa700d623715159e618fc3644ad",
+      "required_result_fields": [
+        "timings_seconds",
+        "throughput_bars_per_second",
+        "ratios",
+        "evidence",
+        "rss_mb"
+      ]
+    }
+  ]
+}

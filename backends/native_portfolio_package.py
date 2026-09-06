@@ -1,10 +1,12 @@
 """Certified Rust-owned market routes for bounded portfolio/package tapes.
 
 These helpers deliberately do not replace :class:`NativePortfolioBackend` or
-the general Python package executor.  They expose the two exact contracts that
-are currently promoted by the native event runtime:
+the general Python package executor.  They expose exact, explicitly selected
+contracts promoted by the native event runtime:
 
-* bar-major ``target_units`` with all-or-none rebalance admission; and
+* bar-major ``target_units`` with legacy all-or-none rebalance admission;
+* bar-major units/notional/weight/equity-fraction targets against one shared
+  Rust-owned linear account with an explicit admission policy; and
 * one same-bar all-or-none market package transaction.
 
 Both run one typed Python-to-Rust request.  Rust owns the causal account
@@ -236,6 +238,125 @@ def run_portfolio_target_market(
     )
 
 
+def run_shared_portfolio_target_market(
+    *,
+    timestamps_ns: object,
+    opens: object,
+    highs: object,
+    lows: object,
+    closes: object,
+    volumes: object,
+    funding: object,
+    funding_mask: object,
+    symbols: Sequence[str],
+    contract_sizes: object,
+    leverages: object,
+    fee_rates: object,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    targets: object,
+    target_kind: str = "units",
+    admission_policy: str = "sequential_legacy",
+    tradable: object | None = None,
+    stale: object | None = None,
+    qty_step: object | None = None,
+    min_qty: object | None = None,
+    min_notional: object | None = None,
+    equity_fraction: object | None = None,
+    report_level: str = "audit",
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Execute planned multi-symbol targets on one Rust-owned account.
+
+    ``targets`` is a bar-major matrix and its meaning is declared by
+    ``target_kind``: ``units``, ``notional``, ``weight``, or
+    ``equity_fraction``.  The portfolio planner stays outside this helper;
+    Rust resolves target deltas, quantizes them, applies the selected admission
+    policy, and commits all account state in one pass.  ``admission_policy``
+    is one of ``sequential_legacy``, ``reduce_first_then_increase``,
+    ``pro_rata_to_available_margin``, or ``all_or_none_rebalance``.
+
+    This is a declared linear gross-margin contract, not venue-specific
+    portfolio margin or a hidden generic endpoint promotion.
+    """
+
+    cache = NativeExecutionPreparationCache() if cache is None else cache
+    template = _prepare_template(
+        cache,
+        timestamps_ns=timestamps_ns,
+        opens=opens,
+        highs=highs,
+        lows=lows,
+        closes=closes,
+        volumes=volumes,
+        funding=funding,
+        funding_mask=funding_mask,
+        symbols=symbols,
+        contract_sizes=contract_sizes,
+        leverages=leverages,
+        fee_rates=fee_rates,
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+    )
+    expected = (int(template.core.bars), len(tuple(symbols)))
+    target_values = np.ascontiguousarray(np.asarray(targets, dtype=np.float64))
+    if target_values.shape != expected:
+        raise ValueError("targets must have shape (bars, symbols)")
+    tradable_values = (
+        np.ones(expected, dtype=np.bool_)
+        if tradable is None
+        else np.ascontiguousarray(np.asarray(tradable, dtype=np.bool_))
+    )
+    stale_values = (
+        np.zeros(expected, dtype=np.bool_)
+        if stale is None
+        else np.ascontiguousarray(np.asarray(stale, dtype=np.bool_))
+    )
+    qty_step_values = (
+        np.zeros(expected[1], dtype=np.float64)
+        if qty_step is None
+        else np.ascontiguousarray(np.asarray(qty_step, dtype=np.float64))
+    )
+    min_qty_values = (
+        np.zeros(expected[1], dtype=np.float64)
+        if min_qty is None
+        else np.ascontiguousarray(np.asarray(min_qty, dtype=np.float64))
+    )
+    min_notional_values = (
+        np.zeros(expected[1], dtype=np.float64)
+        if min_notional is None
+        else np.ascontiguousarray(np.asarray(min_notional, dtype=np.float64))
+    )
+    equity_fraction_values = (
+        np.ones(expected[1], dtype=np.float64)
+        if equity_fraction is None
+        else np.ascontiguousarray(np.asarray(equity_fraction, dtype=np.float64))
+    )
+    request = cache.shared_portfolio_target_request(
+        template,
+        targets=target_values,
+        target_kind=target_kind,
+        admission_policy=admission_policy,
+        tradable=tradable_values,
+        stale=stale_values,
+        qty_step=qty_step_values,
+        min_qty=min_qty_values,
+        min_notional=min_notional_values,
+        equity_fraction=equity_fraction_values,
+        output_profile=_output_profile(report_level),
+    )
+    return RustNativeMarketExecution(
+        payload=dict(request.core.execute()),
+        request_signature=request.signature,
+        workload=request.workload,
+        symbols=tuple(str(symbol) for symbol in symbols),
+    )
+
+
 def run_atomic_package_market(
     *,
     timestamps_ns: object,
@@ -330,6 +451,213 @@ def run_atomic_package_market(
     )
 
 
+def run_bounded_package_market(
+    *,
+    timestamps_ns: object,
+    opens: object,
+    highs: object,
+    lows: object,
+    closes: object,
+    volumes: object,
+    funding: object,
+    funding_mask: object,
+    symbols: Sequence[str],
+    contract_sizes: object,
+    leverages: object,
+    fee_rates: object,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    command_bars: object,
+    package_ids: object,
+    package_leg_offsets: object,
+    execution_policies: object,
+    residual_policies: object,
+    max_staleness_ns: object,
+    order_ids: object,
+    symbol_ids: object,
+    signed_qty: object,
+    quantity_sources: object,
+    source_legs: object,
+    quantity_ratios: object,
+    fill_fractions: object,
+    qty_step: object,
+    min_qty: object,
+    min_notional: object,
+    source_age_ns: object,
+    venue_codes: object,
+    venue_sequence: object,
+    report_level: str = "audit",
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Run typed bounded package policies on one Rust-owned linear account.
+
+    The accepted policies are ``atomic_bar_simulation``, ``sequential``,
+    ``best_effort`` and ``hedge_after_primary``. Every package uses one command
+    bar and a contiguous range of legs in ``package_leg_offsets``. A non-unity
+    ``fill_fractions`` value is an explicit deterministic partial-fill
+    scenario; it is neither L2 depth simulation nor exchange-native package
+    atomicity. The output always reports residual/reconciliation provenance.
+
+    This helper is deliberately separate from the generic arbitrage endpoint.
+    It certifies only a same-account, quote-settled linear package contract;
+    cross-venue/currency-flow/option packages remain explicit Python routes.
+    """
+
+    cache = NativeExecutionPreparationCache() if cache is None else cache
+    template = _prepare_template(
+        cache,
+        timestamps_ns=timestamps_ns,
+        opens=opens,
+        highs=highs,
+        lows=lows,
+        closes=closes,
+        volumes=volumes,
+        funding=funding,
+        funding_mask=funding_mask,
+        symbols=symbols,
+        contract_sizes=contract_sizes,
+        leverages=leverages,
+        fee_rates=fee_rates,
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+    )
+    request = cache.package_market_v2_request(
+        template,
+        command_bars=command_bars,
+        package_ids=package_ids,
+        package_leg_offsets=package_leg_offsets,
+        execution_policies=execution_policies,
+        residual_policies=residual_policies,
+        max_staleness_ns=max_staleness_ns,
+        order_ids=order_ids,
+        symbol_ids=symbol_ids,
+        signed_qty=signed_qty,
+        quantity_sources=quantity_sources,
+        source_legs=source_legs,
+        quantity_ratios=quantity_ratios,
+        fill_fractions=fill_fractions,
+        qty_step=qty_step,
+        min_qty=min_qty,
+        min_notional=min_notional,
+        source_age_ns=source_age_ns,
+        venue_codes=venue_codes,
+        venue_sequence=venue_sequence,
+        output_profile=_output_profile(report_level),
+    )
+    return RustNativeMarketExecution(
+        payload=dict(request.core.execute()),
+        request_signature=request.signature,
+        workload=request.workload,
+        symbols=tuple(str(symbol) for symbol in symbols),
+    )
+
+
+def run_bounded_package_market_scenarios(
+    *,
+    timestamps_ns: object,
+    opens: object,
+    highs: object,
+    lows: object,
+    closes: object,
+    volumes: object,
+    funding: object,
+    funding_mask: object,
+    symbols: Sequence[str],
+    contract_sizes: object,
+    leverages: object,
+    fee_rates: object,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    scenario_package_offsets: object,
+    command_bars: object,
+    package_ids: object,
+    package_leg_offsets: object,
+    execution_policies: object,
+    residual_policies: object,
+    max_staleness_ns: object,
+    order_ids: object,
+    symbol_ids: object,
+    signed_qty: object,
+    quantity_sources: object,
+    source_legs: object,
+    quantity_ratios: object,
+    fill_fractions: object,
+    qty_step: object,
+    min_qty: object,
+    min_notional: object,
+    source_age_ns: object,
+    venue_codes: object,
+    venue_sequence: object,
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Score isolated typed package scenarios in one Python-to-Rust call.
+
+    Each scenario is an independent account reset selected by
+    ``scenario_package_offsets``. The route retains scalar numeric result
+    columns only; rerun an individual candidate with
+    :func:`run_bounded_package_market` and ``report_level="audit"`` for
+    package legs, residuals, and lifecycle evidence. This explicit helper is
+    suitable for package candidate/fold execution after intent construction;
+    it does not change generic walk-forward or arbitrage routing.
+    """
+
+    cache = NativeExecutionPreparationCache() if cache is None else cache
+    template = _prepare_template(
+        cache,
+        timestamps_ns=timestamps_ns,
+        opens=opens,
+        highs=highs,
+        lows=lows,
+        closes=closes,
+        volumes=volumes,
+        funding=funding,
+        funding_mask=funding_mask,
+        symbols=symbols,
+        contract_sizes=contract_sizes,
+        leverages=leverages,
+        fee_rates=fee_rates,
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+    )
+    request = cache.package_market_v2_scenario_batch(
+        template,
+        scenario_package_offsets=scenario_package_offsets,
+        command_bars=command_bars,
+        package_ids=package_ids,
+        package_leg_offsets=package_leg_offsets,
+        execution_policies=execution_policies,
+        residual_policies=residual_policies,
+        max_staleness_ns=max_staleness_ns,
+        order_ids=order_ids,
+        symbol_ids=symbol_ids,
+        signed_qty=signed_qty,
+        quantity_sources=quantity_sources,
+        source_legs=source_legs,
+        qty_step=qty_step,
+        min_qty=min_qty,
+        min_notional=min_notional,
+        source_age_ns=source_age_ns,
+        venue_codes=venue_codes,
+        venue_sequence=venue_sequence,
+        quantity_ratios=quantity_ratios,
+        fill_fractions=fill_fractions,
+    )
+    return RustNativeMarketExecution(
+        payload=dict(request.core.execute()),
+        request_signature=request.signature,
+        workload=request.workload,
+        symbols=tuple(str(symbol) for symbol in symbols),
+    )
+
+
 def _v2_market_registry_inputs(
     *,
     market: PreparedMarketHandleV2,
@@ -395,6 +723,57 @@ def run_portfolio_target_market_v2(
     )
 
 
+def run_shared_portfolio_target_market_v2(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    targets: object,
+    target_kind: str = "units",
+    admission_policy: str = "sequential_legacy",
+    tradable: object | None = None,
+    stale: object | None = None,
+    equity_fraction: object | None = None,
+    report_level: str = "audit",
+    cache: NativeExecutionPreparationCache | None = None,
+) -> RustNativeMarketExecution:
+    """Run a planned shared-account portfolio from canonical V2 inputs."""
+
+    view, arrays = _v2_market_registry_inputs(market=market, instruments=instruments)
+    return run_shared_portfolio_target_market(
+        timestamps_ns=view.timestamps_ns,
+        opens=view.opens,
+        highs=view.highs,
+        lows=view.lows,
+        closes=view.closes,
+        volumes=view.volumes,
+        funding=view.funding_rates,
+        funding_mask=view.funding_event_mask,
+        symbols=view.symbols,
+        contract_sizes=arrays["contract_size"],
+        leverages=arrays["leverage"],
+        fee_rates=arrays["fee_rate"],
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+        targets=targets,
+        target_kind=target_kind,
+        admission_policy=admission_policy,
+        tradable=view.tradable if tradable is None else tradable,
+        stale=view.stale if stale is None else stale,
+        qty_step=arrays["qty_step"],
+        min_qty=arrays["min_qty"],
+        min_notional=arrays["min_notional"],
+        equity_fraction=equity_fraction,
+        report_level=report_level,
+        cache=cache,
+    )
+
+
 def run_atomic_package_market_v2(
     *,
     market: PreparedMarketHandleV2,
@@ -451,10 +830,84 @@ def run_atomic_package_market_v2(
     )
 
 
+def run_bounded_package_market_v2(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    **package_kwargs: object,
+) -> RustNativeMarketExecution:
+    """Run a bounded package from the canonical V2 market/instrument pair."""
+
+    view, arrays = _v2_market_registry_inputs(market=market, instruments=instruments)
+    return run_bounded_package_market(
+        timestamps_ns=view.timestamps_ns,
+        opens=view.opens,
+        highs=view.highs,
+        lows=view.lows,
+        closes=view.closes,
+        volumes=view.volumes,
+        funding=view.funding_rates,
+        funding_mask=view.funding_event_mask,
+        symbols=view.symbols,
+        contract_sizes=arrays["contract_size"],
+        leverages=arrays["leverage"],
+        fee_rates=arrays["fee_rate"],
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+        **package_kwargs,
+    )
+
+
+def run_bounded_package_market_scenarios_v2(
+    *,
+    market: PreparedMarketHandleV2,
+    instruments: InstrumentRegistryV2,
+    initial_capital: float,
+    maintenance_ratio: float,
+    slippage_rate: float,
+    use_funding: bool,
+    **package_kwargs: object,
+) -> RustNativeMarketExecution:
+    """Run scalar package scenarios from the canonical V2 source pair."""
+
+    view, arrays = _v2_market_registry_inputs(market=market, instruments=instruments)
+    return run_bounded_package_market_scenarios(
+        timestamps_ns=view.timestamps_ns,
+        opens=view.opens,
+        highs=view.highs,
+        lows=view.lows,
+        closes=view.closes,
+        volumes=view.volumes,
+        funding=view.funding_rates,
+        funding_mask=view.funding_event_mask,
+        symbols=view.symbols,
+        contract_sizes=arrays["contract_size"],
+        leverages=arrays["leverage"],
+        fee_rates=arrays["fee_rate"],
+        initial_capital=initial_capital,
+        maintenance_ratio=maintenance_ratio,
+        slippage_rate=slippage_rate,
+        use_funding=use_funding,
+        **package_kwargs,
+    )
+
+
 __all__ = [
     "RustNativeMarketExecution",
     "run_atomic_package_market",
     "run_atomic_package_market_v2",
+    "run_bounded_package_market",
+    "run_bounded_package_market_scenarios",
+    "run_bounded_package_market_v2",
+    "run_bounded_package_market_scenarios_v2",
     "run_portfolio_target_market",
     "run_portfolio_target_market_v2",
+    "run_shared_portfolio_target_market",
+    "run_shared_portfolio_target_market_v2",
 ]

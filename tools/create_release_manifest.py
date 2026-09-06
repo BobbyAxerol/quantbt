@@ -132,7 +132,12 @@ def _native_product_surface(product: dict, native_metadata: dict) -> dict:
             explicit_rows.append(identifier)
     return {
         "core_only_auto_backend": "python",
-        "supported_linux_auto_backend": "certified_rust_with_exact_companion",
+        # Exact paired wheels make explicit Rust routes available, but they do
+        # not override a disabled promotion rule. Phase 72 holds automatic
+        # promotion until current-candidate evidence exists for the workload.
+        "supported_linux_auto_backend": (
+            "certified_rust_with_exact_companion" if auto_rows else "python_explicit_rust_only"
+        ),
         "native_companion_published": bool(native_metadata["published"]),
         "promotion_table_version": str(product["promotion_policy"]["table_version"]),
         "default_stage": str(product["promotion_policy"]["default_stage"]),

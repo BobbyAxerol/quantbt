@@ -16,18 +16,28 @@
       "default_stage": "static_ir",
       "expected": "not_promoted",
       "id": "auto_routing_remains_python",
-      "promotion_table_version": "native-event-promotion-v2",
+      "promotion_table_version": "native-event-promotion-v3-phase72-measurement-gate",
       "workloads": [
         "event_static_tape_v2_v3",
         "event_python_callback_v2_v3",
         "native_strategy_ir_v1",
+        "native_wfo_prepared_signal_v2",
         "portfolio_target_preflight_v1",
         "package_transaction_preflight_v1",
         "portfolio_target_market_v1",
-        "package_atomic_market_v1"
+        "shared_portfolio_target_units_v1",
+        "shared_portfolio_target_matrix_v1",
+        "shared_portfolio_target_wfo_v1",
+        "package_atomic_market_v1",
+        "package_market_v2",
+        "package_market_v2_scenario_batch",
+        "intrabar_bracket_rust_v1",
+        "event_reactive_sparse_wake_r2",
+        "event_reactive_block_intent_r3",
+        "event_reactive_candidate_batch_r3b"
       ]
     }
   ],
-  "registry_fingerprint": "ee8cfc3b99fcad075cd215e9aadcbc2467eb2eaf44f55720f9a4c810149bbdba",
+  "registry_fingerprint": "5459e9a9167e24f19ee4eefb9d334fe8803d2541db3e1869f6b681666369ee0a",
   "schema": "quantbt-product-contract-corpus-v1"
 }

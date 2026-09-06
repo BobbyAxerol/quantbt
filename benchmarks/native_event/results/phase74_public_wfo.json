@@ -1,0 +1,106 @@
+{
+  "evidence": {
+    "full_facade_non_regression": true,
+    "native_route_active": true,
+    "public_parity": true,
+    "rss_plateau": true,
+    "score_stage_reduced": true,
+    "stable_native_work_counts": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "9abf7934ba33b0e365511d96ba65a26f406f071fc4ecee9d630d87c950aa10e5",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "58cf666a4086eb4620fde93e3c4a33faf6a221796e72f0ba2535a05b2d1529cb",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "e398180d1e49592e0de6832b6ad73638c4a96d624a0e26cb4ffa937e92a18c01",
+    "intent_sha256": "446ef96d5c0455e8ab579dffeffa38325a028e4581af41d9c046e4bf7abd1514",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "68b158b5d38f02d81732ed633012b1728351e9c1931dec6f6f6da1e55568e5ab",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "85dda6a7af3cb20b4ab9eb679934eea10abb0f8ba0c350b47f723558f37b5244",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "dd40ad8bdec4f2dba72fb5fd3a5fbd144be122ed023179c20ef2fa56b2ee867a",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "165f742cc2ce43ea12dc263deb98417c9d76b3ea0382718ab76a9cedf5748521",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one unrecorded reference/native full WFO run, then fresh endpoint pairs"
+  },
+  "rss_mb": {
+    "peak": 221.984375,
+    "plateau_limit": 11.098828125,
+    "samples": [
+      220.953125,
+      221.9765625,
+      221.9765625,
+      221.984375,
+      221.984375
+    ],
+    "tail_median": 221.984375,
+    "tail_spread": 0.0078125
+  },
+  "schema": "quantbt-phase74-public-wfo-v1",
+  "scope": "post-warmup public QuantBTEndpoint.walk_forward Mode 1 global W0 callback; candidate/fold fresh-account scorer comparison only",
+  "speedup": {
+    "full_facade_x": 2.439122521702178,
+    "score_stage_x": 4.814940685573548
+  },
+  "throughput_candidate_bar_visits_per_second": 127181.2007287679,
+  "timing_breakdown_seconds": {
+    "native": {
+      "candidate_score": 0.16615636833012104,
+      "full_facade": 0.43173047341406345,
+      "prepare_folds": 0.03428772650659084,
+      "residual_control_reconstruction_report": 0.08867846429347992,
+      "rust_prepared_execute": 0.025927490554749966,
+      "strategy_generate": 0.14260791428387165
+    },
+    "reference": {
+      "candidate_score": 0.800033058039844,
+      "full_facade": 1.0530435210093856,
+      "prepare_folds": 0.03484977502375841,
+      "residual_control_reconstruction_report": 0.08403049316257238,
+      "rust_prepared_execute": 0.0,
+      "strategy_generate": 0.13950623106211424
+    }
+  },
+  "timings_seconds": {
+    "native_full_facade_median": 0.43173047341406345,
+    "native_score_median": 0.16615636833012104,
+    "reference_full_facade_median": 1.0530435210093856,
+    "reference_score_median": 0.800033058039844
+  },
+  "workload": {
+    "bars": 2048,
+    "native_score_batches": 17,
+    "native_score_rows": 168,
+    "native_scored_bars": 54908,
+    "optimization_mode": "mode_1_decay",
+    "optimization_schedule": "global",
+    "repeats": 5,
+    "symbols": 1,
+    "target_mode": "signal_notional",
+    "target_runtime": "rust",
+    "trials": 16
+  }
+}

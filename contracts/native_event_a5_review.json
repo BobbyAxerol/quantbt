@@ -1,0 +1,79 @@
+{
+  "schema": "quantbt-native-a5-review-v1",
+  "phase": "71",
+  "review_date": "2026-09-05",
+  "policy": "route_by_route_no_blanket_deletion",
+  "stable_release_cycles_required": 1,
+  "routes": [
+    {
+      "route_id": "event_static_tape_v2_v3",
+      "current_stage": "A4",
+      "a5_eligible": false,
+      "production_duplicate": "python_static_event_oracle",
+      "stable_release_cycles": 1,
+      "unexplained_shadow_mismatches": 0,
+      "fallback_rate_measured": null,
+      "deletion_approved": false,
+      "blocking_reasons": [
+        "sampled_shadow_fallback_rate_not_yet_archived_for_a_stable_release",
+        "explicit_deletion_approval_missing"
+      ],
+      "rollback": "set native_backend=python or QUANTBT_DISABLE_NATIVE=1 and pin the prior core/native pair"
+    },
+    {
+      "route_id": "native_strategy_ir_v1",
+      "current_stage": "A4",
+      "a5_eligible": false,
+      "production_duplicate": "python_strategy_ir_oracle",
+      "stable_release_cycles": 1,
+      "unexplained_shadow_mismatches": 0,
+      "fallback_rate_measured": null,
+      "deletion_approved": false,
+      "blocking_reasons": [
+        "sampled_shadow_fallback_rate_not_yet_archived_for_a_stable_release",
+        "explicit_deletion_approval_missing"
+      ],
+      "rollback": "request backend=python and pin the prior core/native pair"
+    },
+    {
+      "route_id": "native_wfo_prepared_signal_v2",
+      "current_stage": "A3",
+      "a5_eligible": false,
+      "production_duplicate": "python_wfo_fold_oracle",
+      "stable_release_cycles": 0,
+      "unexplained_shadow_mismatches": 0,
+      "fallback_rate_measured": null,
+      "deletion_approved": false,
+      "blocking_reasons": [
+        "explicit_only_not_auto_promoted",
+        "stable_release_cycle_required",
+        "python_wfo_oracle_is_permanent_test_infrastructure"
+      ],
+      "rollback": "use the ordinary Python WalkForwardEngine route"
+    },
+    {
+      "route_id": "portfolio_package_intrabar_bounded_routes",
+      "current_stage": "A3",
+      "a5_eligible": false,
+      "production_duplicate": "specialized_python_numba_oracles",
+      "stable_release_cycles": 0,
+      "unexplained_shadow_mismatches": 0,
+      "fallback_rate_measured": null,
+      "deletion_approved": false,
+      "blocking_reasons": [
+        "no_generic_endpoint_promotion",
+        "stable_release_cycle_required",
+        "intrabar_end_to_end_performance_hold"
+      ],
+      "rollback": "use the explicit Python/Numba route selected by each specialized endpoint"
+    }
+  ],
+  "deletions_performed": [],
+  "permanent_retention": [
+    "python_public_facade",
+    "python_strategy_protocol",
+    "independent_python_oracle",
+    "reporting_and_adapters",
+    "nautilus_validation"
+  ]
+}

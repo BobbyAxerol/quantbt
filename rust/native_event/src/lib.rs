@@ -1,7 +1,21 @@
-use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
+use numpy::{
+    PyArray1, PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3, PyReadonlyArray4,
+    PyUntypedArrayMethods,
+};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
+
+mod prepared_evaluation;
+mod reactive_hot_loop;
+mod reactive_numeric;
+mod reactive_score;
+use reactive_numeric::{
+    ReactiveCancellationTokenCore, ReactiveCandidateBatchContextV1,
+    ReactiveCandidateBatchRunOutputCore, ReactiveCandidateBatchRunnerCore,
+    ReactiveCandidateCommandBatchV1, ReactiveCommandBufferV2, ReactiveContextBufferV1,
+    ReactiveNumericRunOutputCore, ReactiveNumericRunnerCore,
+};
 
 use quantbt_batch as batch;
 use quantbt_domain::{generated_contracts, generated_product_contracts};
@@ -124,14 +138,25 @@ fn semantic_descriptor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     // The semantic descriptor is generated from the versioned product
     // registry. It must preserve scalar types exactly so Python and Rust
     // reject a mismatched core/native pair before any execution state exists.
-    portfolio.set_item(
-        "target_execution",
-        generated_product_contracts::RUNTIME_PORTFOLIO_TARGET_EXECUTION,
-    )?;
-    portfolio.set_item(
-        "package_atomicity",
-        generated_product_contracts::RUNTIME_PACKAGE_ATOMICITY,
-    )?;
+    for (key, value) in generated_product_contracts::RUNTIME_PORTFOLIO_FIELDS {
+        match value {
+            generated_product_contracts::RuntimePortfolioScalar::Bool(value) => {
+                portfolio.set_item(*key, *value)?;
+            }
+            generated_product_contracts::RuntimePortfolioScalar::Integer(value) => {
+                portfolio.set_item(*key, *value)?;
+            }
+            generated_product_contracts::RuntimePortfolioScalar::Float(value) => {
+                portfolio.set_item(*key, *value)?;
+            }
+            generated_product_contracts::RuntimePortfolioScalar::Str(value) => {
+                portfolio.set_item(*key, *value)?;
+            }
+            generated_product_contracts::RuntimePortfolioScalar::Null => {
+                portfolio.set_item(*key, py.None())?;
+            }
+        }
+    }
     descriptor.set_item("portfolio", portfolio)?;
     Ok(descriptor)
 }
@@ -2142,8 +2167,8 @@ impl FullStepResultCore {
 }
 
 #[pyclass]
-struct FullPreparedMarketCore {
-    inner: Arc<FullMarketData>,
+pub(crate) struct FullPreparedMarketCore {
+    pub(crate) inner: Arc<FullMarketData>,
 }
 
 #[pymethods]
@@ -2226,40 +2251,496 @@ impl FullPreparedMarketCore {
     }
 }
 
+/// Typed one-run ingress for the bounded single-symbol intrabar contract.
+///
+/// The prepared market remains native-owned through an `Arc`; Python passes
+/// compact intent/session arrays once, then Rust owns the complete bracket,
+/// account, funding, liquidation, and audit state machine for the run.
+#[pyclass]
+struct NativeIntrabarRequestCore {
+    inner: Arc<execution::intrabar::IntrabarRequestV1>,
+}
+
+#[pymethods]
+impl NativeIntrabarRequestCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        prepared,
+        entry_side,
+        entry_size,
+        stop_value,
+        take_profit_value,
+        trailing_value,
+        exit_long,
+        exit_short,
+        level_mode,
+        initial_capital,
+        leverage,
+        maintenance_ratio,
+        margin_buffer,
+        contract_size,
+        fee_rate,
+        slippage_rate,
+        sizing_mode,
+        fixed_notional,
+        equity_fraction,
+        risk_fraction,
+        qty_step,
+        min_qty,
+        min_notional,
+        tick_size,
+        bar_timestamp_semantics,
+        same_bar_policy,
+        take_profit_gap_policy,
+        close_on_last_bar,
+        output_profile=1,
+        audit_detail_limit=250000,
+        session_id=None,
+        entry_allowed_at_open=None,
+        force_flat_at_open=None,
+        entry_position_policy=1,
+        counter_basis=1,
+        protective_reentry_policy=1,
+        max_long_entries_per_session=-1,
+        max_short_entries_per_session=-1,
+        cancel_pending_on_session_change=true,
+        suppress_entry_on_force_flat_bar=true
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_prepared(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        prepared: Py<FullPreparedMarketCore>,
+        entry_side: PyReadonlyArray1<'_, i8>,
+        entry_size: PyReadonlyArray1<'_, f64>,
+        stop_value: PyReadonlyArray1<'_, f64>,
+        take_profit_value: PyReadonlyArray1<'_, f64>,
+        trailing_value: PyReadonlyArray1<'_, f64>,
+        exit_long: PyReadonlyArray1<'_, bool>,
+        exit_short: PyReadonlyArray1<'_, bool>,
+        level_mode: u8,
+        initial_capital: f64,
+        leverage: f64,
+        maintenance_ratio: f64,
+        margin_buffer: f64,
+        contract_size: f64,
+        fee_rate: f64,
+        slippage_rate: f64,
+        sizing_mode: u8,
+        fixed_notional: f64,
+        equity_fraction: f64,
+        risk_fraction: f64,
+        qty_step: f64,
+        min_qty: f64,
+        min_notional: f64,
+        tick_size: f64,
+        bar_timestamp_semantics: u8,
+        same_bar_policy: u8,
+        take_profit_gap_policy: u8,
+        close_on_last_bar: bool,
+        output_profile: u8,
+        audit_detail_limit: usize,
+        session_id: Option<PyReadonlyArray1<'_, i64>>,
+        entry_allowed_at_open: Option<PyReadonlyArray1<'_, bool>>,
+        force_flat_at_open: Option<PyReadonlyArray1<'_, bool>>,
+        entry_position_policy: u8,
+        counter_basis: u8,
+        protective_reentry_policy: u8,
+        max_long_entries_per_session: i64,
+        max_short_entries_per_session: i64,
+        cancel_pending_on_session_change: bool,
+        suppress_entry_on_force_flat_bar: bool,
+    ) -> PyResult<Self> {
+        let market = prepared.borrow(py).inner.clone();
+        let intent = execution::intrabar::IntrabarIntentV1::new(
+            entry_side.as_slice()?.to_vec(),
+            entry_size.as_slice()?.to_vec(),
+            stop_value.as_slice()?.to_vec(),
+            take_profit_value.as_slice()?.to_vec(),
+            trailing_value.as_slice()?.to_vec(),
+            exit_long.as_slice()?.to_vec(),
+            exit_short.as_slice()?.to_vec(),
+            level_mode,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let account = execution::intrabar::IntrabarAccountConfigV1::new(
+            initial_capital,
+            leverage,
+            maintenance_ratio,
+            margin_buffer,
+            contract_size,
+            fee_rate,
+            slippage_rate,
+            sizing_mode,
+            fixed_notional,
+            equity_fraction,
+            risk_fraction,
+            qty_step,
+            min_qty,
+            min_notional,
+            tick_size,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let contract = execution::intrabar::IntrabarContractConfigV1::new(
+            bar_timestamp_semantics,
+            same_bar_policy,
+            take_profit_gap_policy,
+            close_on_last_bar,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let session = match (session_id, entry_allowed_at_open, force_flat_at_open) {
+            (None, None, None) => None,
+            (Some(session_id), Some(entry_allowed), Some(force_flat)) => Some(
+                execution::intrabar::IntrabarSessionConfigV1::new(
+                    session_id.as_slice()?.to_vec(),
+                    entry_allowed.as_slice()?.to_vec(),
+                    force_flat.as_slice()?.to_vec(),
+                    entry_position_policy,
+                    counter_basis,
+                    protective_reentry_policy,
+                    max_long_entries_per_session,
+                    max_short_entries_per_session,
+                    cancel_pending_on_session_change,
+                    suppress_entry_on_force_flat_bar,
+                )
+                .map_err(pyo3::exceptions::PyValueError::new_err)?,
+            ),
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "session_id, entry_allowed_at_open, and force_flat_at_open must be supplied together",
+                ));
+            }
+        };
+        let output = execution::intrabar::IntrabarOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::intrabar::IntrabarRequestV1::new(
+            market,
+            intent,
+            account,
+            contract,
+            session,
+            output,
+            audit_detail_limit,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.bar_count()
+    }
+
+    #[getter]
+    fn source_market_bytes(&self) -> usize {
+        self.inner.source_market_bytes()
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.inner.output_profile().name()
+    }
+
+    #[getter]
+    fn session_enabled(&self) -> bool {
+        self.inner.session_enabled()
+    }
+
+    fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let request = self.inner.clone();
+        let bars = request.bar_count();
+        let result = py.detach(move || request.execute());
+        intrabar_result_payload(py, result, bars)
+    }
+}
+
+fn intrabar_hex(value: [u8; 32]) -> String {
+    value.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn intrabar_result_payload(
+    py: Python<'_>,
+    result: execution::intrabar::IntrabarExecutionResultV1,
+    bars: usize,
+) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    let metric_fields =
+        NativeMetricFieldsCore::from_snapshot(result.metric_contract, result.metrics);
+    let request_fingerprint = intrabar_hex(result.request_fingerprint);
+    let terminal_fingerprint = intrabar_hex(result.terminal_fingerprint);
+    payload.set_item("output_profile", result.output_profile.name())?;
+    payload.set_item("final_equity", result.final_equity)?;
+    payload.set_item("final_position", result.final_position)?;
+    payload.set_item("total_fee", result.total_fee)?;
+    payload.set_item("total_turnover", result.total_turnover)?;
+    payload.set_item("total_funding", result.total_funding)?;
+    payload.set_item("fill_count", result.fill_count)?;
+    payload.set_item("event_count", metric_fields.event_count)?;
+    payload.set_item("ambiguity_count", result.ambiguity_count)?;
+    payload.set_item("rejected_count", result.rejected_count)?;
+    payload.set_item("canceled_count", metric_fields.canceled_count)?;
+    payload.set_item("liquidated", result.liquidated)?;
+    payload.set_item("liquidation_bar", result.liquidation_bar)?;
+    payload.set_item("execution_model_id", result.execution_model_id)?;
+    payload.set_item("request_fingerprint", &request_fingerprint)?;
+    payload.set_item("terminal_fingerprint", &terminal_fingerprint)?;
+    payload.set_item("native_execution_request_fingerprint", &request_fingerprint)?;
+    payload.set_item(
+        "native_execution_terminal_fingerprint",
+        &terminal_fingerprint,
+    )?;
+    payload.set_item("native_execution_workload", "intrabar_bracket_v1")?;
+    payload.set_item("native_execution_runtime_class", "whole_run_native")?;
+    payload.set_item("native_execution_account_authority", "linear_account_v1")?;
+    payload.set_item("native_execution_model_id", result.execution_model_id)?;
+    payload.set_item(
+        "native_execution_metric_contract_version",
+        metric_fields.contract_version,
+    )?;
+    payload.set_item(
+        "native_execution_output_profile",
+        result.output_profile.name(),
+    )?;
+    payload.set_item("bars", bars)?;
+    payload.set_item("native_execution_passes", 1)?;
+    payload.set_item("python_callbacks", 0)?;
+    payload.set_item("boundary_calls", 1)?;
+    add_metric_fields(&payload, &metric_fields)?;
+    payload.set_item("audit_detail_retained_rows", result.audit.retained_rows)?;
+    payload.set_item("audit_detail_dropped_rows", result.audit.dropped_rows)?;
+    payload.set_item("audit_detail_truncated", result.audit.dropped_rows > 0)?;
+
+    if let Some(paths) = result.paths {
+        payload.set_item("equity", PyArray1::from_vec(py, paths.equity))?;
+        payload.set_item("position", PyArray1::from_vec(py, paths.position))?;
+        payload.set_item("average_entry", PyArray1::from_vec(py, paths.average_entry))?;
+        payload.set_item("active_stop", PyArray1::from_vec(py, paths.active_stop))?;
+        payload.set_item(
+            "active_take_profit",
+            PyArray1::from_vec(py, paths.active_take_profit),
+        )?;
+        payload.set_item("fees", PyArray1::from_vec(py, paths.fees))?;
+        payload.set_item("funding", PyArray1::from_vec(py, paths.funding))?;
+        payload.set_item("event_flags", PyArray1::from_vec(py, paths.event_flags))?;
+        payload.set_item(
+            "initial_margin",
+            PyArray1::from_vec(py, paths.initial_margin),
+        )?;
+        payload.set_item(
+            "maintenance_margin",
+            PyArray1::from_vec(py, paths.maintenance_margin),
+        )?;
+    }
+
+    let fills = result.audit.fills;
+    let fill_bar = fills.iter().map(|fill| fill.bar).collect();
+    let fill_sequence = fills.iter().map(|fill| fill.sequence).collect();
+    let fill_side = fills.iter().map(|fill| fill.side).collect();
+    let fill_qty = fills.iter().map(|fill| fill.qty).collect();
+    let fill_price = fills.iter().map(|fill| fill.price).collect();
+    let fill_fee = fills.iter().map(|fill| fill.fee).collect();
+    let fill_reason = fills.iter().map(|fill| fill.reason).collect();
+    let fill_ambiguity = fills.iter().map(|fill| fill.ambiguity).collect();
+    let fill_same_bar_policy = fills.iter().map(|fill| fill.same_bar_policy).collect();
+    payload.set_item("fill_bar", PyArray1::from_vec(py, fill_bar))?;
+    payload.set_item("fill_sequence", PyArray1::from_vec(py, fill_sequence))?;
+    payload.set_item("fill_side", PyArray1::from_vec(py, fill_side))?;
+    payload.set_item("fill_qty", PyArray1::from_vec(py, fill_qty))?;
+    payload.set_item("fill_price", PyArray1::from_vec(py, fill_price))?;
+    payload.set_item("fill_fee", PyArray1::from_vec(py, fill_fee))?;
+    payload.set_item("fill_reason", PyArray1::from_vec(py, fill_reason))?;
+    payload.set_item("fill_ambiguity", PyArray1::from_vec(py, fill_ambiguity))?;
+    payload.set_item(
+        "fill_same_bar_policy",
+        PyArray1::from_vec(py, fill_same_bar_policy),
+    )?;
+    payload.set_item(
+        "ambiguity_bar",
+        PyArray1::from_vec(py, result.audit.ambiguity_bar),
+    )?;
+    payload.set_item(
+        "ambiguity_policy",
+        PyArray1::from_vec(py, result.audit.ambiguity_policy),
+    )?;
+
+    if let Some(session) = result.session {
+        payload.set_item("session_execution_enabled", true)?;
+        payload.set_item("session_reset_count", session.session_reset_count)?;
+        payload.set_item(
+            "session_forced_exit_count",
+            session.session_forced_exit_count,
+        )?;
+        payload.set_item(
+            "entry_window_blocked_count",
+            session.entry_window_blocked_count,
+        )?;
+        payload.set_item("long_quota_blocked_count", session.long_quota_blocked_count)?;
+        payload.set_item(
+            "short_quota_blocked_count",
+            session.short_quota_blocked_count,
+        )?;
+        payload.set_item("flat_only_blocked_count", session.flat_only_blocked_count)?;
+        payload.set_item(
+            "stale_session_signal_count",
+            session.stale_session_signal_count,
+        )?;
+        payload.set_item("reentry_suppressed_count", session.reentry_suppressed_count)?;
+    } else {
+        payload.set_item("session_execution_enabled", false)?;
+    }
+    Ok(payload.unbind())
+}
+
 /// One native result object's immutable execution provenance. Python owns the
 /// NumPy arrays after the Rust vectors have moved across the cold boundary.
 /// The metadata is intentionally scalar so score requests never construct a
 /// dictionary just to return a score.
 struct NativeOutputMetadataCore {
+    native_result_version: u16,
     output_version: u16,
     request_version: u16,
     protocol_version: u16,
     request_fingerprint: String,
     template_fingerprint: String,
+    contract_bundle_hash: String,
+    terminal_fingerprint: String,
     workload_kind: &'static str,
+    runtime_class: &'static str,
+    account_authority: &'static str,
+    execution_model_id: &'static str,
+    metric_contract_version: u16,
     output_profile: &'static str,
     command_count: usize,
     bars: usize,
     execution_generation: u64,
     runner_run_count: u64,
+    detail_truncated: bool,
+    retained_rows: u64,
+    dropped_rows: u64,
     output_bytes: usize,
 }
 
 impl NativeOutputMetadataCore {
     fn from_result(result: &execution::NativeExecutionResultV1, output_bytes: usize) -> Self {
+        let header = &result.header_v2;
         Self {
+            native_result_version: header.result_version,
             output_version: result.output.score().output_version,
             request_version: result.request_version,
             protocol_version: result.protocol_version,
             request_fingerprint: result.fingerprint_hex(),
             template_fingerprint: result.template_fingerprint_hex(),
+            contract_bundle_hash: header.contract_bundle_hash_hex(),
+            terminal_fingerprint: header.terminal_fingerprint_hex(),
             workload_kind: result.workload_kind.name(),
+            runtime_class: header.authority.runtime_class,
+            account_authority: header.authority.account_authority,
+            execution_model_id: header.authority.execution_model_id,
+            metric_contract_version: header.authority.metric_contract_version,
             output_profile: result.output_profile.name(),
             command_count: result.command_count,
             bars: result.bar_count,
             execution_generation: result.execution_generation,
             runner_run_count: result.runner_run_count,
+            detail_truncated: header.detail_truncated,
+            retained_rows: header.retained_rows,
+            dropped_rows: header.dropped_rows,
             output_bytes,
+        }
+    }
+}
+
+/// Scalar native metric policy and values returned by the same authoritative
+/// execution pass. It owns no Python report object; dictionaries are created
+/// only by explicit typed-result cold-path accessors below.
+#[derive(Clone, Copy)]
+struct NativeMetricFieldsCore {
+    contract_version: u16,
+    return_frequency: &'static str,
+    annualization_factor: f64,
+    risk_free_rate: f64,
+    variance_ddof: u8,
+    zero_variance_policy: &'static str,
+    short_run_policy: &'static str,
+    trade_count_definition: &'static str,
+    total_return: f64,
+    cagr: f64,
+    mean_return: f64,
+    variance: f64,
+    sharpe: f64,
+    sortino: f64,
+    max_drawdown: f64,
+    calmar: f64,
+    omega: f64,
+    profit_factor: f64,
+    average_gross_exposure: f64,
+    final_equity: f64,
+    turnover: f64,
+    total_fee: f64,
+    total_funding: f64,
+    fill_count: u64,
+    event_count: u64,
+    rejected_count: u64,
+    canceled_count: u64,
+    sample_count: u64,
+    liquidated: bool,
+}
+
+impl NativeMetricFieldsCore {
+    fn from_native(output: &quantbt_engine::NativeScoreOutputV1) -> Self {
+        Self::from_snapshot(output.metric_contract, *output.metrics_v2)
+    }
+
+    fn from_snapshot(
+        contract: quantbt_engine::MetricContractV2,
+        metrics: quantbt_engine::NativeMetricSnapshotV2,
+    ) -> Self {
+        Self {
+            contract_version: metrics.metric_contract_version,
+            return_frequency: match contract.return_frequency {
+                quantbt_engine::ReturnFrequencyV2::PerBar => "per_bar",
+                quantbt_engine::ReturnFrequencyV2::Daily => "daily",
+            },
+            annualization_factor: contract.annualization_factor,
+            risk_free_rate: contract.risk_free_rate,
+            variance_ddof: contract.variance_ddof,
+            zero_variance_policy: match contract.zero_variance_policy {
+                quantbt_engine::ZeroVariancePolicyV2::ReturnZero => "return_zero",
+            },
+            short_run_policy: match contract.short_run_policy {
+                quantbt_engine::ShortRunMetricPolicyV2::ReturnZero => "return_zero",
+            },
+            trade_count_definition: match contract.trade_count_definition {
+                quantbt_engine::TradeCountDefinitionV2::CommittedFills => "committed_fills",
+            },
+            total_return: metrics.total_return,
+            cagr: metrics.cagr,
+            mean_return: metrics.mean_return,
+            variance: metrics.variance,
+            sharpe: metrics.sharpe,
+            sortino: metrics.sortino,
+            max_drawdown: metrics.max_drawdown,
+            calmar: metrics.calmar,
+            omega: metrics.omega,
+            profit_factor: metrics.profit_factor,
+            average_gross_exposure: metrics.average_gross_exposure,
+            final_equity: metrics.final_equity,
+            turnover: metrics.turnover,
+            total_fee: metrics.total_fee,
+            total_funding: metrics.total_funding,
+            fill_count: metrics.fill_count,
+            event_count: metrics.event_count,
+            rejected_count: metrics.rejected_count,
+            canceled_count: metrics.canceled_count,
+            sample_count: metrics.sample_count,
+            liquidated: metrics.liquidated,
         }
     }
 }
@@ -2282,10 +2763,12 @@ struct NativeScoreFieldsCore {
     liquidated: bool,
     liquidation_bar: i64,
     liquidation_reason: i64,
+    metrics: NativeMetricFieldsCore,
 }
 
 impl NativeScoreFieldsCore {
     fn from_native(py: Python<'_>, output: quantbt_engine::NativeScoreOutputV1) -> Self {
+        let metrics = NativeMetricFieldsCore::from_native(&output);
         Self {
             final_equity: output.final_equity,
             final_positions: PyArray1::from_vec(py, output.final_positions).unbind(),
@@ -2301,6 +2784,7 @@ impl NativeScoreFieldsCore {
             liquidated: output.liquidated,
             liquidation_bar: output.liquidation_bar,
             liquidation_reason: output.liquidation_reason,
+            metrics,
         }
     }
 }
@@ -2378,12 +2862,193 @@ impl NativeAuditFieldsCore {
     }
 }
 
+/// Audit-only provenance for dynamic portfolio/package admission. It is
+/// adjacent to, but deliberately distinct from, the canonical fill/event
+/// trace: target/package admission never reconstructs fills or accounting in
+/// Python. The bounded vectors move directly into NumPy only for audit output.
+enum NativeWorkloadAuditFieldsCore {
+    None,
+    DirectTarget {
+        target_kind: &'static str,
+        timing: u8,
+        invalid_target_policy: &'static str,
+        decision_count: usize,
+        rejected_decision_count: usize,
+        retention: quantbt_engine::AuditRetentionV1,
+        bar: Py<PyArray1<i64>>,
+        symbol: Py<PyArray1<i64>>,
+        requested_units: Py<PyArray1<f64>>,
+        accepted_units: Py<PyArray1<f64>>,
+        rejection_code: Py<PyArray1<i64>>,
+        rejected_by_bar: Option<Py<PyArray1<i64>>>,
+        reject_code_by_bar: Option<Py<PyArray1<i64>>>,
+    },
+    PortfolioTarget {
+        decision_count: usize,
+        rejected_decision_count: usize,
+        retention: quantbt_engine::AuditRetentionV1,
+        bar: Py<PyArray1<i64>>,
+        requested_units: Py<PyArray1<f64>>,
+        accepted_units: Py<PyArray1<f64>>,
+        rejection_code: Py<PyArray1<i64>>,
+    },
+    PackageAtomic {
+        command_bar: i64,
+        package_id: u64,
+        attempted: bool,
+        reserved_margin: f64,
+        released_margin: f64,
+        package_fee: f64,
+        residual_notional: f64,
+        retention: quantbt_engine::AuditRetentionV1,
+        accepted: Py<PyArray1<bool>>,
+        rejection_code: Py<PyArray1<i64>>,
+        transition_code: Py<PyArray1<i64>>,
+    },
+    /// Package V2 detail remains flat Rust-owned audit data until the caller
+    /// explicitly asks for the cold compatibility dictionary. Unlike the
+    /// legacy atomic route, it can contain multiple packages and bounded leg,
+    /// residual, and transition arrays, so keeping it as one typed struct
+    /// avoids allocating per-row Python objects at execution completion.
+    // Keep the bounded V2 provenance vectors indirect through the cold-path
+    // adapter so ordinary output variants do not carry its inline footprint.
+    PackageMarketV2(Box<execution::package::PackageMarketAuditV2>),
+}
+
+impl NativeWorkloadAuditFieldsCore {
+    fn from_direct_target(
+        py: Python<'_>,
+        target_kind: execution::target::DirectTargetKindV1,
+        timing: u8,
+        invalid_target_policy: execution::target::InvalidTargetPolicyV1,
+        audit: execution::target::DirectTargetAuditV1,
+        rejected_by_bar: Option<Vec<i64>>,
+        reject_code_by_bar: Option<Vec<i64>>,
+    ) -> Self {
+        Self::DirectTarget {
+            target_kind: target_kind.name(),
+            timing,
+            invalid_target_policy: invalid_target_policy.name(),
+            decision_count: audit.decision_count,
+            rejected_decision_count: audit.rejected_decision_count,
+            retention: audit.detail_retention,
+            bar: PyArray1::from_vec(py, audit.bar).unbind(),
+            symbol: PyArray1::from_vec(py, audit.symbol).unbind(),
+            requested_units: PyArray1::from_vec(py, audit.requested_units).unbind(),
+            accepted_units: PyArray1::from_vec(py, audit.accepted_units).unbind(),
+            rejection_code: PyArray1::from_vec(py, audit.rejection_code).unbind(),
+            rejected_by_bar: rejected_by_bar.map(|values| PyArray1::from_vec(py, values).unbind()),
+            reject_code_by_bar: reject_code_by_bar
+                .map(|values| PyArray1::from_vec(py, values).unbind()),
+        }
+    }
+
+    fn from_native(py: Python<'_>, audit: execution::NativeWorkloadAuditV1) -> Self {
+        match audit {
+            execution::NativeWorkloadAuditV1::None => Self::None,
+            execution::NativeWorkloadAuditV1::PortfolioTarget(audit) => Self::PortfolioTarget {
+                decision_count: audit.decision_count,
+                rejected_decision_count: audit.rejected_decision_count,
+                retention: audit.detail_retention,
+                bar: PyArray1::from_vec(py, audit.bar).unbind(),
+                requested_units: PyArray1::from_vec(py, audit.requested_units).unbind(),
+                accepted_units: PyArray1::from_vec(py, audit.accepted_units).unbind(),
+                rejection_code: PyArray1::from_vec(py, audit.rejection_code).unbind(),
+            },
+            execution::NativeWorkloadAuditV1::PackageAtomic(audit) => Self::PackageAtomic {
+                command_bar: audit.command_bar,
+                package_id: audit.package_id,
+                attempted: audit.attempted,
+                reserved_margin: audit.reserved_margin,
+                released_margin: audit.released_margin,
+                package_fee: audit.package_fee,
+                residual_notional: audit.residual_notional,
+                retention: audit.detail_retention,
+                accepted: PyArray1::from_vec(py, audit.accepted).unbind(),
+                rejection_code: PyArray1::from_vec(py, audit.rejection_code).unbind(),
+                transition_code: PyArray1::from_vec(py, audit.transition_code).unbind(),
+            },
+            execution::NativeWorkloadAuditV1::PackageMarketV2(audit) => {
+                Self::PackageMarketV2(audit)
+            }
+        }
+    }
+
+    const fn kind(&self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::DirectTarget { .. } => "direct_target_v1",
+            Self::PortfolioTarget { .. } => "portfolio_target_market_v1",
+            Self::PackageAtomic { .. } => "package_atomic_market_v1",
+            Self::PackageMarketV2(_) => "package_market_v2",
+        }
+    }
+
+    const fn retention(&self) -> quantbt_engine::AuditRetentionV1 {
+        match self {
+            Self::None => quantbt_engine::AuditRetentionV1::new(0),
+            Self::DirectTarget { retention, .. }
+            | Self::PortfolioTarget { retention, .. }
+            | Self::PackageAtomic { retention, .. } => *retention,
+            Self::PackageMarketV2(audit) => audit.detail_retention,
+        }
+    }
+}
+
 fn bytes_f64(values: &[f64]) -> usize {
     values.len().saturating_mul(std::mem::size_of::<f64>())
 }
 
 fn bytes_i64(values: &[i64]) -> usize {
     values.len().saturating_mul(std::mem::size_of::<i64>())
+}
+
+fn bytes_u64(values: &[u64]) -> usize {
+    values.len().saturating_mul(std::mem::size_of::<u64>())
+}
+
+fn bytes_bool(values: &[bool]) -> usize {
+    values.len().saturating_mul(std::mem::size_of::<bool>())
+}
+
+fn workload_audit_output_bytes(audit: &execution::NativeWorkloadAuditV1) -> usize {
+    match audit {
+        execution::NativeWorkloadAuditV1::None => 0,
+        execution::NativeWorkloadAuditV1::PortfolioTarget(audit) => bytes_i64(&audit.bar)
+            .saturating_add(bytes_f64(&audit.requested_units))
+            .saturating_add(bytes_f64(&audit.accepted_units))
+            .saturating_add(bytes_i64(&audit.rejection_code)),
+        execution::NativeWorkloadAuditV1::PackageAtomic(audit) => bytes_bool(&audit.accepted)
+            .saturating_add(bytes_i64(&audit.rejection_code))
+            .saturating_add(bytes_i64(&audit.transition_code)),
+        execution::NativeWorkloadAuditV1::PackageMarketV2(audit) => bytes_u64(&audit.package_id)
+            .saturating_add(bytes_i64(&audit.command_bar))
+            .saturating_add(bytes_i64(&audit.policy_code))
+            .saturating_add(bytes_i64(&audit.final_state_code))
+            .saturating_add(bytes_f64(&audit.reservation_created))
+            .saturating_add(bytes_f64(&audit.reservation_consumed))
+            .saturating_add(bytes_f64(&audit.reservation_released))
+            .saturating_add(bytes_f64(&audit.package_fee))
+            .saturating_add(bytes_f64(&audit.residual_gross_notional))
+            .saturating_add(bytes_f64(&audit.outstanding_residual_gross_notional))
+            .saturating_add(bytes_u64(&audit.leg_package_id))
+            .saturating_add(bytes_i64(&audit.leg_index))
+            .saturating_add(bytes_i64(&audit.leg_order_id))
+            .saturating_add(bytes_i64(&audit.leg_symbol))
+            .saturating_add(bytes_f64(&audit.leg_requested_qty))
+            .saturating_add(bytes_f64(&audit.leg_filled_qty))
+            .saturating_add(bytes_f64(&audit.leg_compensation_qty))
+            .saturating_add(bytes_bool(&audit.leg_accepted))
+            .saturating_add(bytes_i64(&audit.leg_rejection_code))
+            .saturating_add(bytes_u64(&audit.residual_package_id))
+            .saturating_add(bytes_i64(&audit.residual_leg_index))
+            .saturating_add(bytes_i64(&audit.residual_symbol))
+            .saturating_add(bytes_f64(&audit.residual_qty))
+            .saturating_add(bytes_f64(&audit.residual_notional))
+            .saturating_add(bytes_i64(&audit.residual_reason_code))
+            .saturating_add(bytes_u64(&audit.transition_package_id))
+            .saturating_add(bytes_i64(&audit.transition_code)),
+    }
 }
 
 fn score_output_bytes(output: &quantbt_engine::NativeScoreOutputV1) -> usize {
@@ -2428,6 +3093,7 @@ fn add_typed_output_metadata(
     payload: &Bound<'_, PyDict>,
     metadata: &NativeOutputMetadataCore,
 ) -> PyResult<()> {
+    payload.set_item("native_result_version", metadata.native_result_version)?;
     payload.set_item("native_execution_output_version", metadata.output_version)?;
     payload.set_item("native_execution_request_version", metadata.request_version)?;
     payload.set_item(
@@ -2442,7 +3108,25 @@ fn add_typed_output_metadata(
         "native_execution_template_fingerprint",
         &metadata.template_fingerprint,
     )?;
+    payload.set_item(
+        "native_execution_contract_bundle_hash",
+        &metadata.contract_bundle_hash,
+    )?;
+    payload.set_item(
+        "native_execution_terminal_fingerprint",
+        &metadata.terminal_fingerprint,
+    )?;
     payload.set_item("native_execution_workload", metadata.workload_kind)?;
+    payload.set_item("native_execution_runtime_class", metadata.runtime_class)?;
+    payload.set_item(
+        "native_execution_account_authority",
+        metadata.account_authority,
+    )?;
+    payload.set_item("native_execution_model_id", metadata.execution_model_id)?;
+    payload.set_item(
+        "native_metric_contract_version",
+        metadata.metric_contract_version,
+    )?;
     payload.set_item("native_execution_output_profile", metadata.output_profile)?;
     payload.set_item("native_execution_command_count", metadata.command_count)?;
     payload.set_item("bars", metadata.bars)?;
@@ -2451,6 +3135,12 @@ fn add_typed_output_metadata(
         "native_execution_runner_run_count",
         metadata.runner_run_count,
     )?;
+    payload.set_item(
+        "native_execution_detail_truncated",
+        metadata.detail_truncated,
+    )?;
+    payload.set_item("native_execution_retained_rows", metadata.retained_rows)?;
+    payload.set_item("native_execution_dropped_rows", metadata.dropped_rows)?;
     payload.set_item("native_execution_output_bytes", metadata.output_bytes)?;
     payload.set_item(
         "native_execution_buffer_transfer",
@@ -2460,6 +3150,60 @@ fn add_typed_output_metadata(
     payload.set_item("python_callbacks", 0)?;
     payload.set_item("boundary_calls", 1)?;
     Ok(())
+}
+
+fn add_metric_fields(
+    payload: &Bound<'_, PyDict>,
+    metrics: &NativeMetricFieldsCore,
+) -> PyResult<()> {
+    payload.set_item("native_metric_contract_version", metrics.contract_version)?;
+    payload.set_item("native_metric_return_frequency", metrics.return_frequency)?;
+    payload.set_item(
+        "native_metric_annualization_factor",
+        metrics.annualization_factor,
+    )?;
+    payload.set_item("native_metric_risk_free_rate", metrics.risk_free_rate)?;
+    payload.set_item("native_metric_variance_ddof", metrics.variance_ddof)?;
+    payload.set_item(
+        "native_metric_zero_variance_policy",
+        metrics.zero_variance_policy,
+    )?;
+    payload.set_item("native_metric_short_run_policy", metrics.short_run_policy)?;
+    payload.set_item(
+        "native_metric_trade_count_definition",
+        metrics.trade_count_definition,
+    )?;
+    payload.set_item("native_metric_total_return", metrics.total_return)?;
+    payload.set_item("native_metric_cagr", metrics.cagr)?;
+    payload.set_item("native_metric_mean_return", metrics.mean_return)?;
+    payload.set_item("native_metric_variance", metrics.variance)?;
+    payload.set_item("native_metric_sharpe", metrics.sharpe)?;
+    payload.set_item("native_metric_sortino", metrics.sortino)?;
+    payload.set_item("native_metric_max_drawdown", metrics.max_drawdown)?;
+    payload.set_item("native_metric_calmar", metrics.calmar)?;
+    payload.set_item("native_metric_omega", metrics.omega)?;
+    payload.set_item("native_metric_profit_factor", metrics.profit_factor)?;
+    payload.set_item(
+        "native_metric_average_gross_exposure",
+        metrics.average_gross_exposure,
+    )?;
+    payload.set_item("native_metric_final_equity", metrics.final_equity)?;
+    payload.set_item("native_metric_turnover", metrics.turnover)?;
+    payload.set_item("native_metric_total_fee", metrics.total_fee)?;
+    payload.set_item("native_metric_total_funding", metrics.total_funding)?;
+    payload.set_item("native_metric_fill_count", metrics.fill_count)?;
+    payload.set_item("native_metric_event_count", metrics.event_count)?;
+    payload.set_item("native_metric_rejected_count", metrics.rejected_count)?;
+    payload.set_item("native_metric_canceled_count", metrics.canceled_count)?;
+    payload.set_item("native_metric_sample_count", metrics.sample_count)?;
+    payload.set_item("native_metric_liquidated", metrics.liquidated)?;
+    Ok(())
+}
+
+fn native_metric_payload(py: Python<'_>, metrics: &NativeMetricFieldsCore) -> PyResult<Py<PyDict>> {
+    let payload = PyDict::new(py);
+    add_metric_fields(&payload, metrics)?;
+    Ok(payload.unbind())
 }
 
 fn add_score_fields(
@@ -2481,6 +3225,7 @@ fn add_score_fields(
     payload.set_item("liquidated", score.liquidated)?;
     payload.set_item("liquidation_bar", score.liquidation_bar)?;
     payload.set_item("liquidation_reason", score.liquidation_reason)?;
+    add_metric_fields(payload, &score.metrics)?;
     Ok(())
 }
 
@@ -2535,6 +3280,11 @@ struct NativeScoreOutputCore {
 #[pymethods]
 impl NativeScoreOutputCore {
     #[getter]
+    fn native_result_version(&self) -> u16 {
+        self.metadata.native_result_version
+    }
+
+    #[getter]
     fn output_version(&self) -> u16 {
         self.metadata.output_version
     }
@@ -2592,6 +3342,51 @@ impl NativeScoreOutputCore {
     #[getter]
     fn output_bytes(&self) -> usize {
         self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn contract_bundle_hash(&self) -> String {
+        self.metadata.contract_bundle_hash.clone()
+    }
+
+    #[getter]
+    fn terminal_fingerprint(&self) -> String {
+        self.metadata.terminal_fingerprint.clone()
+    }
+
+    #[getter]
+    fn execution_model_id(&self) -> &'static str {
+        self.metadata.execution_model_id
+    }
+
+    #[getter]
+    fn runtime_class(&self) -> &'static str {
+        self.metadata.runtime_class
+    }
+
+    #[getter]
+    fn account_authority(&self) -> &'static str {
+        self.metadata.account_authority
+    }
+
+    #[getter]
+    fn metric_contract_version(&self) -> u16 {
+        self.metadata.metric_contract_version
+    }
+
+    #[getter]
+    fn detail_truncated(&self) -> bool {
+        self.metadata.detail_truncated
+    }
+
+    #[getter]
+    fn retained_rows(&self) -> u64 {
+        self.metadata.retained_rows
+    }
+
+    #[getter]
+    fn dropped_rows(&self) -> u64 {
+        self.metadata.dropped_rows
     }
 
     #[getter]
@@ -2662,6 +3457,11 @@ impl NativeScoreOutputCore {
     #[getter]
     fn liquidation_reason(&self) -> i64 {
         self.score.liquidation_reason
+    }
+
+    #[getter]
+    fn metrics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        native_metric_payload(py, &self.score.metrics)
     }
 
     /// Explicit cold-path compatibility conversion. It creates one mapping
@@ -2676,15 +3476,48 @@ impl NativeScoreOutputCore {
 
 /// Typed compact result with scalar accounting and contiguous dense account
 /// paths. It intentionally has no fill/event attributes.
+struct DirectTargetCompactFieldsCore {
+    rejected_by_bar: Py<PyArray1<i64>>,
+    reject_code_by_bar: Py<PyArray1<i64>>,
+}
+
+impl DirectTargetCompactFieldsCore {
+    fn from_required(
+        py: Python<'_>,
+        rejected_by_bar: Option<Vec<i64>>,
+        reject_code_by_bar: Option<Vec<i64>>,
+    ) -> Self {
+        Self {
+            rejected_by_bar: PyArray1::from_vec(
+                py,
+                rejected_by_bar.expect("compact direct target output requires rejected_by_bar"),
+            )
+            .unbind(),
+            reject_code_by_bar: PyArray1::from_vec(
+                py,
+                reject_code_by_bar
+                    .expect("compact direct target output requires reject_code_by_bar"),
+            )
+            .unbind(),
+        }
+    }
+}
+
 #[pyclass(name = "NativeCompactOutputV1", module = "_quantbt_native")]
 struct NativeCompactOutputCore {
     metadata: NativeOutputMetadataCore,
     score: NativeScoreFieldsCore,
     paths: NativePathFieldsCore,
+    direct_target: Option<DirectTargetCompactFieldsCore>,
 }
 
 #[pymethods]
 impl NativeCompactOutputCore {
+    #[getter]
+    fn native_result_version(&self) -> u16 {
+        self.metadata.native_result_version
+    }
+
     #[getter]
     fn output_version(&self) -> u16 {
         self.metadata.output_version
@@ -2743,6 +3576,51 @@ impl NativeCompactOutputCore {
     #[getter]
     fn output_bytes(&self) -> usize {
         self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn contract_bundle_hash(&self) -> String {
+        self.metadata.contract_bundle_hash.clone()
+    }
+
+    #[getter]
+    fn terminal_fingerprint(&self) -> String {
+        self.metadata.terminal_fingerprint.clone()
+    }
+
+    #[getter]
+    fn execution_model_id(&self) -> &'static str {
+        self.metadata.execution_model_id
+    }
+
+    #[getter]
+    fn runtime_class(&self) -> &'static str {
+        self.metadata.runtime_class
+    }
+
+    #[getter]
+    fn account_authority(&self) -> &'static str {
+        self.metadata.account_authority
+    }
+
+    #[getter]
+    fn metric_contract_version(&self) -> u16 {
+        self.metadata.metric_contract_version
+    }
+
+    #[getter]
+    fn detail_truncated(&self) -> bool {
+        self.metadata.detail_truncated
+    }
+
+    #[getter]
+    fn retained_rows(&self) -> u64 {
+        self.metadata.retained_rows
+    }
+
+    #[getter]
+    fn dropped_rows(&self) -> u64 {
+        self.metadata.dropped_rows
     }
 
     #[getter]
@@ -2813,6 +3691,11 @@ impl NativeCompactOutputCore {
     #[getter]
     fn liquidation_reason(&self) -> i64 {
         self.score.liquidation_reason
+    }
+
+    #[getter]
+    fn metrics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        native_metric_payload(py, &self.score.metrics)
     }
 
     #[getter]
@@ -2850,12 +3733,36 @@ impl NativeCompactOutputCore {
         self.paths.maintenance_margin.clone_ref(py)
     }
 
+    #[getter]
+    fn direct_target_rejected_by_bar(&self, py: Python<'_>) -> Option<Py<PyArray1<i64>>> {
+        self.direct_target
+            .as_ref()
+            .map(|fields| fields.rejected_by_bar.clone_ref(py))
+    }
+
+    #[getter]
+    fn direct_target_reject_code_by_bar(&self, py: Python<'_>) -> Option<Py<PyArray1<i64>>> {
+        self.direct_target
+            .as_ref()
+            .map(|fields| fields.reject_code_by_bar.clone_ref(py))
+    }
+
     /// Explicit cold-path compatibility conversion after a compact run.
     fn as_dict(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
         let payload = PyDict::new(py);
         add_typed_output_metadata(&payload, &self.metadata)?;
         add_score_fields(py, &payload, &self.score)?;
         add_path_fields(py, &payload, &self.paths)?;
+        if let Some(fields) = self.direct_target.as_ref() {
+            payload.set_item(
+                "direct_target_rejected_by_bar",
+                fields.rejected_by_bar.clone_ref(py),
+            )?;
+            payload.set_item(
+                "direct_target_reject_code_by_bar",
+                fields.reject_code_by_bar.clone_ref(py),
+            )?;
+        }
         Ok(payload.unbind())
     }
 }
@@ -2868,10 +3775,16 @@ struct NativeAuditOutputCore {
     score: NativeScoreFieldsCore,
     paths: NativePathFieldsCore,
     audit: NativeAuditFieldsCore,
+    workload_audit: NativeWorkloadAuditFieldsCore,
 }
 
 #[pymethods]
 impl NativeAuditOutputCore {
+    #[getter]
+    fn native_result_version(&self) -> u16 {
+        self.metadata.native_result_version
+    }
+
     #[getter]
     fn output_version(&self) -> u16 {
         self.metadata.output_version
@@ -2930,6 +3843,71 @@ impl NativeAuditOutputCore {
     #[getter]
     fn output_bytes(&self) -> usize {
         self.metadata.output_bytes
+    }
+
+    #[getter]
+    fn contract_bundle_hash(&self) -> String {
+        self.metadata.contract_bundle_hash.clone()
+    }
+
+    #[getter]
+    fn terminal_fingerprint(&self) -> String {
+        self.metadata.terminal_fingerprint.clone()
+    }
+
+    #[getter]
+    fn execution_model_id(&self) -> &'static str {
+        self.metadata.execution_model_id
+    }
+
+    #[getter]
+    fn runtime_class(&self) -> &'static str {
+        self.metadata.runtime_class
+    }
+
+    #[getter]
+    fn account_authority(&self) -> &'static str {
+        self.metadata.account_authority
+    }
+
+    #[getter]
+    fn metric_contract_version(&self) -> u16 {
+        self.metadata.metric_contract_version
+    }
+
+    #[getter]
+    fn detail_truncated(&self) -> bool {
+        self.metadata.detail_truncated
+    }
+
+    #[getter]
+    fn retained_rows(&self) -> u64 {
+        self.metadata.retained_rows
+    }
+
+    #[getter]
+    fn dropped_rows(&self) -> u64 {
+        self.metadata.dropped_rows
+    }
+
+    #[getter]
+    fn workload_audit_kind(&self) -> &'static str {
+        self.workload_audit.kind()
+    }
+
+    #[getter]
+    fn workload_audit_detail_truncated(&self) -> bool {
+        self.workload_audit.retention().truncated()
+    }
+
+    #[getter]
+    fn workload_audit_retained_rows(&self) -> usize {
+        self.workload_audit.retention().retained_rows
+    }
+
+    #[getter]
+    fn workload_audit_dropped_rows(&self) -> usize {
+        self.workload_audit.retention().dropped_rows
     }
 
     #[getter]
@@ -3000,6 +3978,11 @@ impl NativeAuditOutputCore {
     #[getter]
     fn liquidation_reason(&self) -> i64 {
         self.score.liquidation_reason
+    }
+
+    #[getter]
+    fn metrics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        native_metric_payload(py, &self.score.metrics)
     }
 
     #[getter]
@@ -3124,6 +4107,7 @@ impl NativeAuditOutputCore {
         add_score_fields(py, &payload, &self.score)?;
         add_path_fields(py, &payload, &self.paths)?;
         add_audit_fields(py, &payload, &self.audit)?;
+        add_native_workload_audit_core_fields(py, &payload, &self.workload_audit)?;
         Ok(payload.unbind())
     }
 }
@@ -3235,7 +4219,130 @@ impl NativeExecutionTemplateCore {
 /// native template and choose either fresh or reusable runner ownership.
 #[pyclass]
 struct NativeExecutionRequestCore {
-    inner: execution::NativeExecutionRequestV1,
+    inner: Arc<execution::NativeExecutionRequestV1>,
+}
+
+/// Decode one contiguous package-tape slice at the Python/Rust boundary.
+///
+/// This is intentionally shared by the one-request and scenario-batch
+/// constructors so the exact shape, ID, dependency, and enum validation cannot
+/// drift between public ABI entries. It creates immutable typed package intent
+/// values only; execution/account state is still created by `FullSession`.
+#[allow(clippy::too_many_arguments)]
+fn decode_package_market_v2_intents(
+    command_bars: &[u64],
+    package_ids: &[u64],
+    package_leg_offsets: &[u64],
+    execution_policies: &[u8],
+    residual_policies: &[u8],
+    max_staleness_ns: &[i64],
+    order_ids: &[i64],
+    symbol_ids: &[u32],
+    signed_qty: &[f64],
+    quantity_sources: &[u8],
+    source_legs: &[i64],
+    quantity_ratios: &[f64],
+    fill_fractions: &[f64],
+    qty_step: &[f64],
+    min_qty: &[f64],
+    min_notional: &[f64],
+    source_age_ns: &[i64],
+    venue_codes: &[u16],
+    venue_sequence: &[u32],
+) -> Result<Vec<package::PackageIntentV2>, String> {
+    let package_count = package_ids.len();
+    if package_count == 0
+        || command_bars.len() != package_count
+        || execution_policies.len() != package_count
+        || residual_policies.len() != package_count
+        || max_staleness_ns.len() != package_count
+        || package_leg_offsets.len() != package_count + 1
+        || package_leg_offsets.first() != Some(&0)
+    {
+        return Err("native package V2 package arrays have an invalid shape".to_owned());
+    }
+    let leg_count = order_ids.len();
+    if package_leg_offsets.last().copied() != Some(leg_count as u64)
+        || [
+            symbol_ids.len(),
+            signed_qty.len(),
+            quantity_sources.len(),
+            source_legs.len(),
+            quantity_ratios.len(),
+            fill_fractions.len(),
+            qty_step.len(),
+            min_qty.len(),
+            min_notional.len(),
+            source_age_ns.len(),
+            venue_codes.len(),
+            venue_sequence.len(),
+        ]
+        .iter()
+        .any(|length| *length != leg_count)
+    {
+        return Err(
+            "native package V2 leg arrays must share the declared offset length".to_owned(),
+        );
+    }
+    let mut package_set = std::collections::BTreeSet::new();
+    let mut order_set = std::collections::BTreeSet::new();
+    let mut intents = Vec::with_capacity(package_count);
+    for package_index in 0..package_count {
+        let package_id = package_ids[package_index];
+        let command_bar = usize::try_from(command_bars[package_index])
+            .map_err(|_| "native package V2 command_bar exceeds platform range".to_owned())?;
+        if package_id > i64::MAX as u64 || !package_set.insert(package_id) {
+            return Err(
+                "native package V2 package IDs must be unique and fit canonical group IDs"
+                    .to_owned(),
+            );
+        }
+        let start = usize::try_from(package_leg_offsets[package_index])
+            .map_err(|_| "native package V2 offset exceeds platform range".to_owned())?;
+        let end = usize::try_from(package_leg_offsets[package_index + 1])
+            .map_err(|_| "native package V2 offset exceeds platform range".to_owned())?;
+        if start >= end || end > leg_count {
+            return Err(
+                "native package V2 offsets must be increasing non-empty leg ranges".to_owned(),
+            );
+        }
+        let execution_policy =
+            package::PackageExecutionPolicyV2::try_from(execution_policies[package_index])?;
+        let residual_policy =
+            package::ResidualRiskPolicyV1::try_from(residual_policies[package_index])?;
+        let mut legs = Vec::with_capacity(end - start);
+        for index in start..end {
+            if order_ids[index] < 0 || !order_set.insert(order_ids[index]) {
+                return Err(
+                    "native package V2 order IDs must be unique non-negative values".to_owned(),
+                );
+            }
+            legs.push(package::PackageLegIntentV2 {
+                order_id: quantbt_domain::ids::ExternalOrderId(order_ids[index]),
+                symbol: quantbt_domain::ids::SymbolId(symbol_ids[index]),
+                signed_qty: signed_qty[index],
+                quantity_source: package::LegQuantitySourceV1::try_from(quantity_sources[index])?,
+                source_leg: source_legs[index],
+                quantity_ratio: quantity_ratios[index],
+                fill_fraction: fill_fractions[index],
+                qty_step: qty_step[index],
+                min_qty: min_qty[index],
+                min_notional: min_notional[index],
+                source_age_ns: source_age_ns[index],
+                venue_code: venue_codes[index],
+                venue_sequence: venue_sequence[index],
+            });
+        }
+        intents.push(package::PackageIntentV2 {
+            package_id: package::PackageId(package_id),
+            command_bar,
+            execution_policy,
+            residual_policy,
+            legs: legs.into_boxed_slice(),
+            max_staleness_ns: max_staleness_ns[package_index],
+        });
+    }
+    Ok(intents)
 }
 
 #[pymethods]
@@ -3299,7 +4406,9 @@ impl NativeExecutionRequestCore {
             output_profile,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     /// Build an immutable command request from an already validated native
@@ -3338,7 +4447,9 @@ impl NativeExecutionRequestCore {
             output_profile,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     /// Build a one-call native strategy-IR request.  The signal/parameter
@@ -3409,7 +4520,9 @@ impl NativeExecutionRequestCore {
                 .transpose()?,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     /// Build a one-call strategy-IR request from an existing native template.
@@ -3446,7 +4559,9 @@ impl NativeExecutionRequestCore {
                 .transpose()?,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     /// Build a bounded multi-symbol target-units request that resolves target
@@ -3506,7 +4621,9 @@ impl NativeExecutionRequestCore {
             external_id_start,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     /// Build one Rust-owned same-bar atomic package request.  The output
@@ -3614,7 +4731,117 @@ impl NativeExecutionRequestCore {
             max_staleness_ns,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    /// Build an immutable bounded same-account package V2 request.  One
+    /// package is declared per command bar and every leg is represented in
+    /// typed, contiguous arrays. `fill_fractions` are explicit deterministic
+    /// scenario inputs, not an order-book/liquidity claim; actual command
+    /// quantities are calculated by Rust and committed by the shared session.
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        command_bars,
+        package_ids,
+        package_leg_offsets,
+        execution_policies,
+        residual_policies,
+        max_staleness_ns,
+        order_ids,
+        symbol_ids,
+        signed_qty,
+        quantity_sources,
+        source_legs,
+        quantity_ratios,
+        fill_fractions,
+        qty_step,
+        min_qty,
+        min_notional,
+        source_age_ns,
+        venue_codes,
+        venue_sequence,
+        output_profile=2,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template_package_market_v2(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        command_bars: PyReadonlyArray1<'_, u64>,
+        package_ids: PyReadonlyArray1<'_, u64>,
+        package_leg_offsets: PyReadonlyArray1<'_, u64>,
+        execution_policies: PyReadonlyArray1<'_, u8>,
+        residual_policies: PyReadonlyArray1<'_, u8>,
+        max_staleness_ns: PyReadonlyArray1<'_, i64>,
+        order_ids: PyReadonlyArray1<'_, i64>,
+        symbol_ids: PyReadonlyArray1<'_, u32>,
+        signed_qty: PyReadonlyArray1<'_, f64>,
+        quantity_sources: PyReadonlyArray1<'_, u8>,
+        source_legs: PyReadonlyArray1<'_, i64>,
+        quantity_ratios: PyReadonlyArray1<'_, f64>,
+        fill_fractions: PyReadonlyArray1<'_, f64>,
+        qty_step: PyReadonlyArray1<'_, f64>,
+        min_qty: PyReadonlyArray1<'_, f64>,
+        min_notional: PyReadonlyArray1<'_, f64>,
+        source_age_ns: PyReadonlyArray1<'_, i64>,
+        venue_codes: PyReadonlyArray1<'_, u16>,
+        venue_sequence: PyReadonlyArray1<'_, u32>,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let command_bars = command_bars.as_slice()?;
+        let package_ids = package_ids.as_slice()?;
+        let package_leg_offsets = package_leg_offsets.as_slice()?;
+        let execution_policies = execution_policies.as_slice()?;
+        let residual_policies = residual_policies.as_slice()?;
+        let max_staleness_ns = max_staleness_ns.as_slice()?;
+        let order_ids = order_ids.as_slice()?;
+        let symbol_ids = symbol_ids.as_slice()?;
+        let signed_qty = signed_qty.as_slice()?;
+        let quantity_sources = quantity_sources.as_slice()?;
+        let source_legs = source_legs.as_slice()?;
+        let quantity_ratios = quantity_ratios.as_slice()?;
+        let fill_fractions = fill_fractions.as_slice()?;
+        let qty_step = qty_step.as_slice()?;
+        let min_qty = min_qty.as_slice()?;
+        let min_notional = min_notional.as_slice()?;
+        let source_age_ns = source_age_ns.as_slice()?;
+        let venue_codes = venue_codes.as_slice()?;
+        let venue_sequence = venue_sequence.as_slice()?;
+        let intents = decode_package_market_v2_intents(
+            command_bars,
+            package_ids,
+            package_leg_offsets,
+            execution_policies,
+            residual_policies,
+            max_staleness_ns,
+            order_ids,
+            symbol_ids,
+            signed_qty,
+            quantity_sources,
+            source_legs,
+            quantity_ratios,
+            fill_fractions,
+            qty_step,
+            min_qty,
+            min_notional,
+            source_age_ns,
+            venue_codes,
+            venue_sequence,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::NativeExecutionRequestV1::from_template_package_market_v2(
+            template, output, intents,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
     }
 
     #[getter]
@@ -3645,6 +4872,26 @@ impl NativeExecutionRequestCore {
     #[getter]
     fn output_profile(&self) -> &'static str {
         self.inner.output_profile().name()
+    }
+
+    /// Return a new immutable audit request with a bounded combined fill/event
+    /// retention budget. This affects only audit artifact retention and is
+    /// fingerprinted; score/compact requests reject it explicitly.
+    fn with_audit_detail_limit(&self, detail_row_limit: usize) -> PyResult<Self> {
+        let inner = self
+            .inner
+            .as_ref()
+            .clone()
+            .with_audit_detail_limit(detail_row_limit)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    #[getter]
+    fn audit_detail_row_limit(&self) -> Option<usize> {
+        self.inner.audit_detail_row_limit()
     }
 
     #[getter]
@@ -3699,12 +4946,718 @@ impl NativeExecutionRequestCore {
             .new_runner()
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(NativeExecutionRunnerCore {
-            request: self.inner.clone(),
+            request: self.inner.as_ref().clone(),
             runner: Some(runner),
             boundary_calls: 0,
             full_rebuilds: 0,
             closed: false,
         })
+    }
+}
+
+/// Prepared scalar-only package scenario batch.  It accepts fully typed V2
+/// package tapes and performs all independent runs under one Python-to-Rust
+/// boundary. It intentionally exposes score rows only; a chosen scenario is
+/// rerun through `NativeExecutionRequestCore` in audit profile for leg detail.
+#[pyclass]
+struct NativePackageScenarioBatchCore {
+    inner: execution::package::PackageScenarioBatchV2,
+}
+
+#[pymethods]
+impl NativePackageScenarioBatchCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        scenario_package_offsets,
+        command_bars,
+        package_ids,
+        package_leg_offsets,
+        execution_policies,
+        residual_policies,
+        max_staleness_ns,
+        order_ids,
+        symbol_ids,
+        signed_qty,
+        quantity_sources,
+        source_legs,
+        quantity_ratios,
+        fill_fractions,
+        qty_step,
+        min_qty,
+        min_notional,
+        source_age_ns,
+        venue_codes,
+        venue_sequence,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template_v2(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        scenario_package_offsets: PyReadonlyArray1<'_, u64>,
+        command_bars: PyReadonlyArray1<'_, u64>,
+        package_ids: PyReadonlyArray1<'_, u64>,
+        package_leg_offsets: PyReadonlyArray1<'_, u64>,
+        execution_policies: PyReadonlyArray1<'_, u8>,
+        residual_policies: PyReadonlyArray1<'_, u8>,
+        max_staleness_ns: PyReadonlyArray1<'_, i64>,
+        order_ids: PyReadonlyArray1<'_, i64>,
+        symbol_ids: PyReadonlyArray1<'_, u32>,
+        signed_qty: PyReadonlyArray1<'_, f64>,
+        quantity_sources: PyReadonlyArray1<'_, u8>,
+        source_legs: PyReadonlyArray1<'_, i64>,
+        quantity_ratios: PyReadonlyArray1<'_, f64>,
+        fill_fractions: PyReadonlyArray1<'_, f64>,
+        qty_step: PyReadonlyArray1<'_, f64>,
+        min_qty: PyReadonlyArray1<'_, f64>,
+        min_notional: PyReadonlyArray1<'_, f64>,
+        source_age_ns: PyReadonlyArray1<'_, i64>,
+        venue_codes: PyReadonlyArray1<'_, u16>,
+        venue_sequence: PyReadonlyArray1<'_, u32>,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let scenario_package_offsets = scenario_package_offsets.as_slice()?;
+        let command_bars = command_bars.as_slice()?;
+        let package_ids = package_ids.as_slice()?;
+        let package_leg_offsets = package_leg_offsets.as_slice()?;
+        let execution_policies = execution_policies.as_slice()?;
+        let residual_policies = residual_policies.as_slice()?;
+        let max_staleness_ns = max_staleness_ns.as_slice()?;
+        let order_ids = order_ids.as_slice()?;
+        let symbol_ids = symbol_ids.as_slice()?;
+        let signed_qty = signed_qty.as_slice()?;
+        let quantity_sources = quantity_sources.as_slice()?;
+        let source_legs = source_legs.as_slice()?;
+        let quantity_ratios = quantity_ratios.as_slice()?;
+        let fill_fractions = fill_fractions.as_slice()?;
+        let qty_step = qty_step.as_slice()?;
+        let min_qty = min_qty.as_slice()?;
+        let min_notional = min_notional.as_slice()?;
+        let source_age_ns = source_age_ns.as_slice()?;
+        let venue_codes = venue_codes.as_slice()?;
+        let venue_sequence = venue_sequence.as_slice()?;
+        let package_count = package_ids.len();
+        let leg_count = order_ids.len();
+        if scenario_package_offsets.len() < 2
+            || scenario_package_offsets.first() != Some(&0)
+            || scenario_package_offsets.last().copied() != Some(package_count as u64)
+            || package_leg_offsets.len() != package_count + 1
+            || package_leg_offsets.first() != Some(&0)
+            || package_leg_offsets.last().copied() != Some(leg_count as u64)
+            || [
+                command_bars.len(),
+                execution_policies.len(),
+                residual_policies.len(),
+                max_staleness_ns.len(),
+            ]
+            .iter()
+            .any(|length| *length != package_count)
+            || [
+                symbol_ids.len(),
+                signed_qty.len(),
+                quantity_sources.len(),
+                source_legs.len(),
+                quantity_ratios.len(),
+                fill_fractions.len(),
+                qty_step.len(),
+                min_qty.len(),
+                min_notional.len(),
+                source_age_ns.len(),
+                venue_codes.len(),
+                venue_sequence.len(),
+            ]
+            .iter()
+            .any(|length| *length != leg_count)
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native package V2 scenario batch arrays have an invalid shape",
+            ));
+        }
+        let mut scenarios = Vec::with_capacity(scenario_package_offsets.len() - 1);
+        for scenario_index in 0..scenario_package_offsets.len() - 1 {
+            let package_start =
+                usize::try_from(scenario_package_offsets[scenario_index]).map_err(|_| {
+                    pyo3::exceptions::PyValueError::new_err(
+                        "native package V2 scenario package offset exceeds platform range",
+                    )
+                })?;
+            let package_end = usize::try_from(scenario_package_offsets[scenario_index + 1])
+                .map_err(|_| {
+                    pyo3::exceptions::PyValueError::new_err(
+                        "native package V2 scenario package offset exceeds platform range",
+                    )
+                })?;
+            if package_start >= package_end || package_end > package_count {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "native package V2 scenario offsets must select non-empty package ranges",
+                ));
+            }
+            let leg_start = usize::try_from(package_leg_offsets[package_start]).map_err(|_| {
+                pyo3::exceptions::PyValueError::new_err(
+                    "native package V2 scenario leg offset exceeds platform range",
+                )
+            })?;
+            let leg_end = usize::try_from(package_leg_offsets[package_end]).map_err(|_| {
+                pyo3::exceptions::PyValueError::new_err(
+                    "native package V2 scenario leg offset exceeds platform range",
+                )
+            })?;
+            if leg_start >= leg_end || leg_end > leg_count {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "native package V2 scenario offsets select an invalid leg range",
+                ));
+            }
+            let local_offsets = package_leg_offsets[package_start..=package_end]
+                .iter()
+                .map(|offset| {
+                    offset.checked_sub(leg_start as u64).ok_or_else(|| {
+                        pyo3::exceptions::PyValueError::new_err(
+                            "native package V2 scenario leg offsets are not monotonic",
+                        )
+                    })
+                })
+                .collect::<PyResult<Vec<_>>>()?;
+            let intents = decode_package_market_v2_intents(
+                &command_bars[package_start..package_end],
+                &package_ids[package_start..package_end],
+                &local_offsets,
+                &execution_policies[package_start..package_end],
+                &residual_policies[package_start..package_end],
+                &max_staleness_ns[package_start..package_end],
+                &order_ids[leg_start..leg_end],
+                &symbol_ids[leg_start..leg_end],
+                &signed_qty[leg_start..leg_end],
+                &quantity_sources[leg_start..leg_end],
+                &source_legs[leg_start..leg_end],
+                &quantity_ratios[leg_start..leg_end],
+                &fill_fractions[leg_start..leg_end],
+                &qty_step[leg_start..leg_end],
+                &min_qty[leg_start..leg_end],
+                &min_notional[leg_start..leg_end],
+                &source_age_ns[leg_start..leg_end],
+                &venue_codes[leg_start..leg_end],
+                &venue_sequence[leg_start..leg_end],
+            )
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+            scenarios.push(intents);
+        }
+        let inner = execution::package::PackageScenarioBatchV2::new(template, scenarios)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { inner })
+    }
+
+    #[getter]
+    fn scenario_count(&self) -> usize {
+        self.inner.scenario_count()
+    }
+
+    /// Execute independent score-only scenarios under one PyO3 entry. The
+    /// returned columns are flat numeric arrays; detailed package provenance
+    /// remains an explicit selected-scenario audit rerun.
+    fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let batch = self.inner.clone();
+        let output = py
+            .detach(move || batch.score())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let payload = PyDict::new(py);
+        let rows = output.rows;
+        payload.set_item(
+            "scenario_id",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.scenario_id).collect()),
+        )?;
+        payload.set_item(
+            "final_equity",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.final_equity).collect()),
+        )?;
+        payload.set_item(
+            "total_fee",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.total_fee).collect()),
+        )?;
+        payload.set_item(
+            "total_funding",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.total_funding).collect()),
+        )?;
+        payload.set_item(
+            "total_turnover",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.total_turnover).collect()),
+        )?;
+        payload.set_item(
+            "fill_count",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.fill_count).collect()),
+        )?;
+        payload.set_item(
+            "rejected_count",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.rejected_count).collect()),
+        )?;
+        payload.set_item(
+            "liquidated",
+            PyArray1::from_vec(py, rows.iter().map(|row| row.liquidated).collect()),
+        )?;
+        payload.set_item(
+            "package_count",
+            PyArray1::from_vec(
+                py,
+                rows.iter().map(|row| row.package_count as u64).collect(),
+            ),
+        )?;
+        payload.set_item(
+            "accepted_package_count",
+            PyArray1::from_vec(
+                py,
+                rows.iter()
+                    .map(|row| row.accepted_package_count as u64)
+                    .collect(),
+            ),
+        )?;
+        payload.set_item(
+            "residual_package_count",
+            PyArray1::from_vec(
+                py,
+                rows.iter()
+                    .map(|row| row.residual_package_count as u64)
+                    .collect(),
+            ),
+        )?;
+        payload.set_item(
+            "residual_gross_notional_total",
+            PyArray1::from_vec(
+                py,
+                rows.iter()
+                    .map(|row| row.residual_gross_notional_total)
+                    .collect(),
+            ),
+        )?;
+        payload.set_item(
+            "outstanding_residual_gross_notional_total",
+            PyArray1::from_vec(
+                py,
+                rows.iter()
+                    .map(|row| row.outstanding_residual_gross_notional_total)
+                    .collect(),
+            ),
+        )?;
+        let mut terminal_fingerprint = Vec::with_capacity(rows.len() * 32);
+        let mut request_fingerprint = Vec::with_capacity(rows.len() * 32);
+        for row in &rows {
+            terminal_fingerprint.extend_from_slice(&row.terminal_fingerprint);
+            request_fingerprint.extend_from_slice(&row.request_fingerprint);
+        }
+        payload.set_item(
+            "terminal_fingerprint_bytes",
+            PyArray1::from_vec(py, terminal_fingerprint),
+        )?;
+        payload.set_item(
+            "request_fingerprint_bytes",
+            PyArray1::from_vec(py, request_fingerprint),
+        )?;
+        payload.set_item("fingerprint_width", 32_usize)?;
+        payload.set_item("worker_count", output.worker_count)?;
+        payload.set_item("native_entry_calls", output.native_entry_calls)?;
+        payload.set_item("market_copy_bytes", output.market_copy_bytes)?;
+        Ok(payload.unbind())
+    }
+}
+
+/// Immutable direct close-target request for the Rust vectorized authority.
+///
+/// Unlike ``NativeExecutionRequestCore``, this route never creates a
+/// ``CommandTapeV5`` or an order arena.  It owns a bar-major target matrix and
+/// resolves ``target -> quantized units -> delta -> account`` in one Rust pass
+/// under the independently frozen ``close_target_v2_same_close`` contract.
+#[pyclass]
+struct NativeTargetExecutionRequestCore {
+    inner: Arc<execution::target::DirectTargetRequestV1>,
+}
+
+#[pymethods]
+impl NativeTargetExecutionRequestCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        targets,
+        target_kind=0,
+        timing=execution::target::TARGET_TIMING_CLOSE_TARGET_V2_SAME_CLOSE,
+        invalid_target_policy=0,
+        tradable=None,
+        stale=None,
+        qty_step=None,
+        min_qty=None,
+        min_notional=None,
+        equity_fraction=None,
+        output_profile=0,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        targets: PyReadonlyArray2<'_, f64>,
+        target_kind: u8,
+        timing: u8,
+        invalid_target_policy: u8,
+        tradable: Option<PyReadonlyArray2<'_, bool>>,
+        stale: Option<PyReadonlyArray2<'_, bool>>,
+        qty_step: Option<PyReadonlyArray1<'_, f64>>,
+        min_qty: Option<PyReadonlyArray1<'_, f64>>,
+        min_notional: Option<PyReadonlyArray1<'_, f64>>,
+        equity_fraction: Option<PyReadonlyArray1<'_, f64>>,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let expected_shape = [template.bar_count(), template.n_symbols()];
+        if targets.shape() != expected_shape {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native direct target values must match template (bars, symbols)",
+            ));
+        }
+        let width = expected_shape[0]
+            .checked_mul(expected_shape[1])
+            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("target dimensions overflow"))?;
+        let target_values = targets.as_slice()?.to_vec();
+        let tradable_values = if let Some(values) = tradable {
+            if values.shape() != expected_shape {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "native direct target tradable mask must match target shape",
+                ));
+            }
+            values.as_slice()?.to_vec()
+        } else {
+            vec![true; width]
+        };
+        let stale_values = if let Some(values) = stale {
+            if values.shape() != expected_shape {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "native direct target stale mask must match target shape",
+                ));
+            }
+            values.as_slice()?.to_vec()
+        } else {
+            vec![false; width]
+        };
+        let vector_or_default = |values: Option<PyReadonlyArray1<'_, f64>>,
+                                 default: f64,
+                                 name: &str|
+         -> PyResult<Vec<f64>> {
+            match values {
+                Some(values) => {
+                    if values.len() != expected_shape[1] {
+                        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                            "native direct target {name} length must match template symbols"
+                        )));
+                    }
+                    Ok(values.as_slice()?.to_vec())
+                }
+                None => Ok(vec![default; expected_shape[1]]),
+            }
+        };
+        let qty_step_values = vector_or_default(qty_step, 0.0, "qty_step")?;
+        let min_qty_values = vector_or_default(min_qty, 0.0, "min_qty")?;
+        let min_notional_values = vector_or_default(min_notional, 0.0, "min_notional")?;
+        let equity_fraction_values = vector_or_default(equity_fraction, 1.0, "equity_fraction")?;
+        let kind = execution::target::DirectTargetKindV1::try_from(target_kind)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let policy = execution::target::InvalidTargetPolicyV1::try_from(invalid_target_policy)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::target::DirectTargetRequestV1::from_template(
+            template,
+            target_values,
+            kind,
+            timing,
+            policy,
+            tradable_values,
+            stale_values,
+            qty_step_values,
+            min_qty_values,
+            min_notional_values,
+            equity_fraction_values,
+            output,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        execution::target::DIRECT_TARGET_REQUEST_VERSION_V1
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.inner.template().fingerprint_hex()
+    }
+
+    #[getter]
+    fn target_kind(&self) -> &'static str {
+        self.inner.kind().name()
+    }
+
+    #[getter]
+    fn timing(&self) -> u8 {
+        self.inner.timing()
+    }
+
+    #[getter]
+    fn invalid_target_policy(&self) -> &'static str {
+        self.inner.invalid_target_policy().name()
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.inner.output_profile().name()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.template().bar_count()
+    }
+
+    #[getter]
+    fn symbols(&self) -> usize {
+        self.inner.template().n_symbols()
+    }
+
+    #[getter]
+    fn request_bytes(&self) -> usize {
+        self.inner.request_bytes()
+    }
+
+    #[getter]
+    fn native_target_no_order_arena(&self) -> bool {
+        true
+    }
+
+    fn with_audit_detail_limit(&self, detail_row_limit: usize) -> PyResult<Self> {
+        let inner = self
+            .inner
+            .as_ref()
+            .clone()
+            .with_audit_detail_limit(detail_row_limit)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    /// One detached Rust pass with no generic command tape, per-bar Python
+    /// callback, or Python-side accounting replay.
+    fn execute_typed(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        let request = self.inner.clone();
+        let result = py
+            .detach(move || request.execute())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        direct_target_typed_output(py, result)
+    }
+
+    /// Explicit cold-path dictionary adaptation after the authoritative direct
+    /// target pass. The adapter never reconstructs fills or reruns execution.
+    fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let request = self.inner.clone();
+        let result = py
+            .detach(move || request.execute())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        direct_target_output_payload(py, result)
+    }
+}
+
+/// Immutable direct target request for a linear multi-symbol portfolio that
+/// shares one Rust-owned account.  This is intentionally distinct from the
+/// legacy ``NativeExecutionRequestCore`` portfolio preflight route: target
+/// planning stays in Python, while admission, fills, costs, funding, margin,
+/// liquidation, and attribution execute together in one native pass.
+#[pyclass]
+struct NativeSharedPortfolioTargetRequestCore {
+    inner: Arc<execution::target::SharedPortfolioTargetRequestV1>,
+}
+
+#[pymethods]
+impl NativeSharedPortfolioTargetRequestCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        targets,
+        target_kind=0,
+        admission_policy=0,
+        timing=execution::target::TARGET_TIMING_CLOSE_TARGET_V2_SAME_CLOSE,
+        invalid_target_policy=0,
+        tradable=None,
+        stale=None,
+        qty_step=None,
+        min_qty=None,
+        min_notional=None,
+        equity_fraction=None,
+        output_profile=0,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        targets: PyReadonlyArray2<'_, f64>,
+        target_kind: u8,
+        admission_policy: u8,
+        timing: u8,
+        invalid_target_policy: u8,
+        tradable: Option<PyReadonlyArray2<'_, bool>>,
+        stale: Option<PyReadonlyArray2<'_, bool>>,
+        qty_step: Option<PyReadonlyArray1<'_, f64>>,
+        min_qty: Option<PyReadonlyArray1<'_, f64>>,
+        min_notional: Option<PyReadonlyArray1<'_, f64>>,
+        equity_fraction: Option<PyReadonlyArray1<'_, f64>>,
+        output_profile: u8,
+    ) -> PyResult<Self> {
+        let template = template.borrow(py).inner.clone();
+        let expected_shape = [template.bar_count(), template.n_symbols()];
+        if targets.shape() != expected_shape {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native shared portfolio targets must match template (bars, symbols)",
+            ));
+        }
+        let width = expected_shape[0]
+            .checked_mul(expected_shape[1])
+            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("target dimensions overflow"))?;
+        let target_values = targets.as_slice()?.to_vec();
+        let matrix_or_default = |values: Option<PyReadonlyArray2<'_, bool>>,
+                                 default: bool,
+                                 name: &str|
+         -> PyResult<Vec<bool>> {
+            match values {
+                Some(values) => {
+                    if values.shape() != expected_shape {
+                        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                            "native shared portfolio {name} mask must match target shape"
+                        )));
+                    }
+                    Ok(values.as_slice()?.to_vec())
+                }
+                None => Ok(vec![default; width]),
+            }
+        };
+        let vector_or_default = |values: Option<PyReadonlyArray1<'_, f64>>,
+                                 default: f64,
+                                 name: &str|
+         -> PyResult<Vec<f64>> {
+            match values {
+                Some(values) => {
+                    if values.len() != expected_shape[1] {
+                        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                            "native shared portfolio {name} length must match template symbols"
+                        )));
+                    }
+                    Ok(values.as_slice()?.to_vec())
+                }
+                None => Ok(vec![default; expected_shape[1]]),
+            }
+        };
+        let kind = execution::target::DirectTargetKindV1::try_from(target_kind)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let invalid_policy =
+            execution::target::InvalidTargetPolicyV1::try_from(invalid_target_policy)
+                .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let policy = execution::target::PortfolioAdmissionPolicyV1::try_from(admission_policy)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let output = execution::NativeOutputProfileV1::try_from(output_profile)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = execution::target::SharedPortfolioTargetRequestV1::from_template(
+            template,
+            target_values,
+            kind,
+            timing,
+            invalid_policy,
+            matrix_or_default(tradable, true, "tradable")?,
+            matrix_or_default(stale, false, "stale")?,
+            vector_or_default(qty_step, 0.0, "qty_step")?,
+            vector_or_default(min_qty, 0.0, "min_qty")?,
+            vector_or_default(min_notional, 0.0, "min_notional")?,
+            vector_or_default(equity_fraction, 1.0, "equity_fraction")?,
+            policy,
+            output,
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    #[getter]
+    fn request_version(&self) -> u16 {
+        1
+    }
+
+    #[getter]
+    fn fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn template_fingerprint(&self) -> String {
+        self.inner.inner().template().fingerprint_hex()
+    }
+
+    #[getter]
+    fn target_kind(&self) -> &'static str {
+        self.inner.inner().kind().name()
+    }
+
+    #[getter]
+    fn admission_policy(&self) -> &'static str {
+        self.inner.admission_policy().name()
+    }
+
+    #[getter]
+    fn output_profile(&self) -> &'static str {
+        self.inner.inner().output_profile().name()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.inner().template().bar_count()
+    }
+
+    #[getter]
+    fn symbols(&self) -> usize {
+        self.inner.inner().template().n_symbols()
+    }
+
+    #[getter]
+    fn request_bytes(&self) -> usize {
+        self.inner.request_bytes()
+    }
+
+    #[getter]
+    fn native_target_no_order_arena(&self) -> bool {
+        true
+    }
+
+    fn with_audit_detail_limit(&self, detail_row_limit: usize) -> PyResult<Self> {
+        let inner = self
+            .inner
+            .as_ref()
+            .clone()
+            .with_audit_detail_limit(detail_row_limit)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    /// One detached Rust pass over a shared account.  The dictionary is a
+    /// cold-path SoA adapter; it never replays target execution in Python.
+    fn execute(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let request = self.inner.clone();
+        let result = py
+            .detach(move || request.execute())
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        shared_portfolio_target_output_payload(py, result)
     }
 }
 
@@ -3872,14 +5825,1291 @@ impl NativeExecutionRunnerCore {
         payload.set_item("view_bytes", self.request.template().view_bytes())?;
         if let Some(runner) = self.runner.as_ref() {
             let (fills, events, active) = runner.step_buffer_capacities();
+            let (slots, capacity, compactions, removed) = runner.order_arena_counters();
+            let (expiry_scans, matching_scans, relationship_scans) = runner.engine_scan_counters();
             payload.set_item("generation", runner.generation())?;
             payload.set_item("run_count", runner.run_count())?;
             payload.set_item("explicit_reset_count", runner.explicit_reset_count())?;
             payload.set_item("step_fill_buffer_capacity", fills)?;
             payload.set_item("step_event_buffer_capacity", events)?;
             payload.set_item("step_active_order_buffer_capacity", active)?;
+            payload.set_item("order_arena_slots", slots)?;
+            payload.set_item("order_arena_capacity", capacity)?;
+            payload.set_item("order_compactions", compactions)?;
+            payload.set_item("terminal_orders_removed", removed)?;
+            payload.set_item("margin_recompute_count", runner.margin_recompute_count())?;
+            payload.set_item("expiry_scan_count", expiry_scans)?;
+            payload.set_item("matching_scan_count", matching_scans)?;
+            payload.set_item("relationship_scan_count", relationship_scans)?;
         }
         Ok(payload.unbind())
+    }
+}
+
+/// Typed, scalar-only result for one prepared native WFO score or selected
+/// audit rerun.  The execution loop does not construct this Python object;
+/// it is a cold-path view over Rust-owned SoA-compatible metric rows.
+#[pyclass(name = "NativeWfoMetricMatrixV2", module = "_quantbt_native")]
+struct NativeWfoMetricMatrixCore {
+    inner: batch::NativeWfoMetricMatrixV2,
+}
+
+/// Immutable Rust-owned WFO signal buffer.  Creating this object is the one
+/// explicit Python-to-Rust intent-ingestion boundary; score/audit calls borrow
+/// its `Arc` without another candidate-by-bar copy.
+#[pyclass(name = "NativeWfoPreparedSignalBatchV2", module = "_quantbt_native")]
+struct NativeWfoPreparedSignalBatchCore {
+    inner: Arc<batch::PreparedWfoSignalBatchV2>,
+}
+
+#[pymethods]
+impl NativeWfoPreparedSignalBatchCore {
+    #[getter]
+    fn rows(&self) -> usize {
+        self.inner.rows()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.bars()
+    }
+
+    #[getter]
+    fn per_fold(&self) -> bool {
+        self.inner.is_per_fold()
+    }
+
+    #[getter]
+    fn intent_fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn intent_ingest_bytes(&self) -> usize {
+        self.inner.ingest_bytes()
+    }
+}
+
+impl NativeWfoMetricMatrixCore {
+    fn candidate_ids(&self, py: Python<'_>) -> Py<PyArray1<u64>> {
+        PyArray1::from_vec(
+            py,
+            self.inner.rows.iter().map(|row| row.candidate_id).collect(),
+        )
+        .unbind()
+    }
+
+    fn fold_ids(&self, py: Python<'_>) -> Py<PyArray1<u32>> {
+        PyArray1::from_vec(py, self.inner.rows.iter().map(|row| row.fold_id).collect()).unbind()
+    }
+
+    fn scenario_ids(&self, py: Python<'_>) -> Py<PyArray1<u32>> {
+        PyArray1::from_vec(
+            py,
+            self.inner.rows.iter().map(|row| row.scenario_id).collect(),
+        )
+        .unbind()
+    }
+
+    fn statuses(&self, py: Python<'_>) -> Py<PyArray1<u16>> {
+        PyArray1::from_vec(
+            py,
+            self.inner
+                .rows
+                .iter()
+                .map(|row| row.status.code())
+                .collect(),
+        )
+        .unbind()
+    }
+
+    fn f64_column(
+        &self,
+        py: Python<'_>,
+        extract: impl Fn(&batch::WfoCandidateMetricRowV2) -> f64,
+    ) -> Py<PyArray1<f64>> {
+        PyArray1::from_vec(py, self.inner.rows.iter().map(extract).collect()).unbind()
+    }
+
+    fn u64_column(
+        &self,
+        py: Python<'_>,
+        extract: impl Fn(&batch::WfoCandidateMetricRowV2) -> u64,
+    ) -> Py<PyArray1<u64>> {
+        PyArray1::from_vec(py, self.inner.rows.iter().map(extract).collect()).unbind()
+    }
+
+    fn bool_column(
+        &self,
+        py: Python<'_>,
+        extract: impl Fn(&batch::WfoCandidateMetricRowV2) -> bool,
+    ) -> Py<PyArray1<bool>> {
+        PyArray1::from_vec(py, self.inner.rows.iter().map(extract).collect()).unbind()
+    }
+
+    fn fingerprint_column(
+        &self,
+        py: Python<'_>,
+        extract: impl Fn(&batch::WfoCandidateMetricRowV2) -> [u8; 32],
+    ) -> Vec<String> {
+        let _ = py;
+        self.inner
+            .rows
+            .iter()
+            .map(|row| hex_fingerprint(&extract(row)))
+            .collect()
+    }
+}
+
+#[pymethods]
+impl NativeWfoMetricMatrixCore {
+    #[getter]
+    fn candidate_id(&self, py: Python<'_>) -> Py<PyArray1<u64>> {
+        self.candidate_ids(py)
+    }
+
+    #[getter]
+    fn fold_id(&self, py: Python<'_>) -> Py<PyArray1<u32>> {
+        self.fold_ids(py)
+    }
+
+    #[getter]
+    fn scenario_id(&self, py: Python<'_>) -> Py<PyArray1<u32>> {
+        self.scenario_ids(py)
+    }
+
+    #[getter]
+    fn status(&self, py: Python<'_>) -> Py<PyArray1<u16>> {
+        self.statuses(py)
+    }
+
+    #[getter]
+    fn final_equity(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.final_equity)
+    }
+
+    #[getter]
+    fn fold_return(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.fold_return)
+    }
+
+    #[getter]
+    fn fold_sharpe(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.fold_sharpe)
+    }
+
+    #[getter]
+    fn fold_sortino(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.fold_sortino)
+    }
+
+    #[getter]
+    fn max_drawdown(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.max_drawdown)
+    }
+
+    #[getter]
+    fn turnover(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.turnover)
+    }
+
+    #[getter]
+    fn total_fee(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.total_fee)
+    }
+
+    #[getter]
+    fn total_funding(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.total_funding)
+    }
+
+    #[getter]
+    fn fill_rate(&self, py: Python<'_>) -> Py<PyArray1<f64>> {
+        self.f64_column(py, |row| row.fill_rate)
+    }
+
+    #[getter]
+    fn fill_count(&self, py: Python<'_>) -> Py<PyArray1<u64>> {
+        self.u64_column(py, |row| row.fill_count)
+    }
+
+    #[getter]
+    fn rejected_count(&self, py: Python<'_>) -> Py<PyArray1<u64>> {
+        self.u64_column(py, |row| row.rejected_count)
+    }
+
+    #[getter]
+    fn liquidated(&self, py: Python<'_>) -> Py<PyArray1<bool>> {
+        self.bool_column(py, |row| row.liquidated)
+    }
+
+    #[getter]
+    fn request_fingerprint(&self, py: Python<'_>) -> Vec<String> {
+        self.fingerprint_column(py, |row| row.request_fingerprint)
+    }
+
+    #[getter]
+    fn terminal_fingerprint(&self, py: Python<'_>) -> Vec<String> {
+        self.fingerprint_column(py, |row| row.terminal_fingerprint)
+    }
+
+    #[getter]
+    fn error_slot(&self, py: Python<'_>) -> Py<PyArray1<u32>> {
+        PyArray1::from_vec(
+            py,
+            self.inner.rows.iter().map(|row| row.error_slot).collect(),
+        )
+        .unbind()
+    }
+
+    #[getter]
+    fn errors(&self) -> Vec<String> {
+        self.inner.errors.clone()
+    }
+
+    #[getter]
+    fn errors_dropped(&self) -> usize {
+        self.inner.errors_dropped
+    }
+
+    #[getter]
+    fn plan_fingerprint(&self) -> String {
+        self.inner.plan_fingerprint_hex()
+    }
+
+    #[getter]
+    fn intent_fingerprint(&self) -> String {
+        self.inner.intent_fingerprint_hex()
+    }
+
+    #[getter]
+    fn audit(&self) -> bool {
+        self.inner.audit
+    }
+
+    #[getter]
+    fn worker_count(&self) -> usize {
+        self.inner.worker_count
+    }
+
+    #[getter]
+    fn active_worker_count(&self) -> usize {
+        self.inner.active_worker_count
+    }
+
+    #[getter]
+    fn market_copy_bytes(&self) -> usize {
+        self.inner.market_copy_bytes
+    }
+
+    #[getter]
+    fn candidate_execution_copy_bytes(&self) -> usize {
+        self.inner.candidate_execution_copy_bytes
+    }
+
+    #[getter]
+    fn intent_ingest_bytes(&self) -> usize {
+        self.inner.intent_ingest_bytes
+    }
+
+    #[getter]
+    fn worker_pool_creations(&self) -> u64 {
+        self.inner.worker_pool_creations
+    }
+
+    #[getter]
+    fn worker_pool_batches(&self) -> u64 {
+        self.inner.worker_pool_batches
+    }
+
+    #[getter]
+    fn poison_recoveries(&self) -> u64 {
+        self.inner.poison_recoveries
+    }
+
+    #[getter]
+    fn worker_tasks(&self) -> Vec<u64> {
+        self.inner.worker_tasks.clone()
+    }
+
+    /// Explicit cold-path conversion for pandas/Optuna adapters. Execution
+    /// and metric collection always complete before this dictionary exists.
+    fn as_dict(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        payload.set_item("candidate_id", self.candidate_ids(py))?;
+        payload.set_item("fold_id", self.fold_ids(py))?;
+        payload.set_item("scenario_id", self.scenario_ids(py))?;
+        payload.set_item("status", self.statuses(py))?;
+        payload.set_item("final_equity", self.f64_column(py, |row| row.final_equity))?;
+        payload.set_item("fold_return", self.f64_column(py, |row| row.fold_return))?;
+        payload.set_item("fold_sharpe", self.f64_column(py, |row| row.fold_sharpe))?;
+        payload.set_item("fold_sortino", self.f64_column(py, |row| row.fold_sortino))?;
+        payload.set_item("max_drawdown", self.f64_column(py, |row| row.max_drawdown))?;
+        payload.set_item("turnover", self.f64_column(py, |row| row.turnover))?;
+        payload.set_item("total_fee", self.f64_column(py, |row| row.total_fee))?;
+        payload.set_item(
+            "total_funding",
+            self.f64_column(py, |row| row.total_funding),
+        )?;
+        payload.set_item("fill_rate", self.f64_column(py, |row| row.fill_rate))?;
+        payload.set_item("fill_count", self.u64_column(py, |row| row.fill_count))?;
+        payload.set_item(
+            "rejected_count",
+            self.u64_column(py, |row| row.rejected_count),
+        )?;
+        payload.set_item("liquidated", self.bool_column(py, |row| row.liquidated))?;
+        payload.set_item(
+            "request_fingerprint",
+            self.fingerprint_column(py, |row| row.request_fingerprint),
+        )?;
+        payload.set_item(
+            "terminal_fingerprint",
+            self.fingerprint_column(py, |row| row.terminal_fingerprint),
+        )?;
+        payload.set_item(
+            "error_slot",
+            PyArray1::from_vec(
+                py,
+                self.inner.rows.iter().map(|row| row.error_slot).collect(),
+            ),
+        )?;
+        payload.set_item("errors", self.inner.errors.clone())?;
+        payload.set_item("errors_dropped", self.inner.errors_dropped)?;
+        payload.set_item("plan_fingerprint", self.inner.plan_fingerprint_hex())?;
+        payload.set_item("intent_fingerprint", self.inner.intent_fingerprint_hex())?;
+        payload.set_item("audit", self.inner.audit)?;
+        payload.set_item("worker_count", self.inner.worker_count)?;
+        payload.set_item("active_worker_count", self.inner.active_worker_count)?;
+        payload.set_item("worker_tasks", self.inner.worker_tasks.clone())?;
+        payload.set_item("market_copy_bytes", self.inner.market_copy_bytes)?;
+        payload.set_item(
+            "candidate_execution_copy_bytes",
+            self.inner.candidate_execution_copy_bytes,
+        )?;
+        payload.set_item("intent_ingest_bytes", self.inner.intent_ingest_bytes)?;
+        payload.set_item("worker_pool_creations", self.inner.worker_pool_creations)?;
+        payload.set_item("worker_pool_batches", self.inner.worker_pool_batches)?;
+        payload.set_item("poison_recoveries", self.inner.poison_recoveries)?;
+        Ok(payload.unbind())
+    }
+}
+
+/// Persistent prepared WFO runtime. One instance owns an immutable template,
+/// causal fold views, and a reusable Rust worker pool. It deliberately accepts
+/// only bounded strategy-IR signal batches in V2; generic Python callbacks and
+/// portfolio/package targets fail at construction rather than silently taking
+/// a compatibility path.
+#[pyclass(name = "NativeWfoRuntimeV2", module = "_quantbt_native")]
+struct NativeWfoRuntimeCore {
+    inner: Arc<batch::NativeWfoRuntimeV2>,
+}
+
+impl NativeWfoRuntimeCore {
+    fn parse_parameters(
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+        candidates: usize,
+    ) -> PyResult<Option<Vec<f64>>> {
+        parameters
+            .map(|values| {
+                let shape = values.shape();
+                if shape != [candidates, strategy_ir::PARAMETER_WIDTH] {
+                    return Err(pyo3::exceptions::PyValueError::new_err(
+                        "native WFO parameter matrix must have shape (candidates, 4)",
+                    ));
+                }
+                Ok(values.as_slice()?.to_vec())
+            })
+            .transpose()
+    }
+
+    fn shared_batch(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray2<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<Arc<batch::PreparedWfoSignalBatchV2>> {
+        let candidate_ids = candidate_ids.as_slice()?.to_vec();
+        let shape = signals.shape();
+        if shape != [candidate_ids.len(), self.inner.plan().bar_count()] {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native WFO shared signal matrix must have shape (candidates, prepared_market_bars)",
+            ));
+        }
+        let parameters = Self::parse_parameters(parameters, candidate_ids.len())?;
+        batch::PreparedWfoSignalBatchV2::shared(
+            candidate_ids,
+            signals.as_slice()?.to_vec(),
+            shape[1],
+            parameters,
+        )
+        .map(Arc::new)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    fn per_fold_batch(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray3<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<Arc<batch::PreparedWfoSignalBatchV2>> {
+        let candidate_ids = candidate_ids.as_slice()?.to_vec();
+        let shape = signals.shape();
+        if shape
+            != [
+                self.inner.plan().folds().len(),
+                candidate_ids.len(),
+                self.inner.plan().bar_count(),
+            ]
+        {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native WFO per-fold signal cube must have shape (folds, candidates, prepared_market_bars)",
+            ));
+        }
+        let parameters = Self::parse_parameters(parameters, candidate_ids.len())?;
+        batch::PreparedWfoSignalBatchV2::per_fold(
+            candidate_ids,
+            signals.as_slice()?.to_vec(),
+            shape[2],
+            shape[0],
+            parameters,
+        )
+        .map(Arc::new)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    fn execute_score(
+        &self,
+        py: Python<'_>,
+        batch: Arc<batch::PreparedWfoSignalBatchV2>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let runtime = self.inner.clone();
+        let inner = py
+            .detach(move || runtime.score(batch))
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(NativeWfoMetricMatrixCore { inner })
+    }
+
+    fn execute_audit(
+        &self,
+        py: Python<'_>,
+        batch: Arc<batch::PreparedWfoSignalBatchV2>,
+        candidate_ids: Vec<u64>,
+        expected_intent_fingerprint: [u8; 32],
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let runtime = self.inner.clone();
+        let inner = py
+            .detach(move || {
+                runtime.audit_selected(batch, &candidate_ids, expected_intent_fingerprint)
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(NativeWfoMetricMatrixCore { inner })
+    }
+}
+
+#[pymethods]
+impl NativeWfoRuntimeCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        program,
+        folds,
+        intent_kind="strategy_ir_signal_target_v1",
+        optimizer_schedule="certified_sequential_v1",
+        workers=1,
+        max_metric_rows=1_000_000,
+        max_error_rows=64,
+        max_bars=None,
+        max_wall_time_ms=None,
+        max_commands=None,
+        max_orders=None,
+        max_active_orders=None,
+        max_fills=None,
+        max_audit_rows=None,
+        max_native_memory_bytes=None,
+        max_workers=None,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        program: PyRef<'_, NativeStrategyProgramCore>,
+        folds: PyReadonlyArray2<'_, u32>,
+        intent_kind: &str,
+        optimizer_schedule: &str,
+        workers: usize,
+        max_metric_rows: usize,
+        max_error_rows: usize,
+        max_bars: Option<u64>,
+        max_wall_time_ms: Option<u64>,
+        max_commands: Option<u64>,
+        max_orders: Option<u64>,
+        max_active_orders: Option<u64>,
+        max_fills: Option<u64>,
+        max_audit_rows: Option<u64>,
+        max_native_memory_bytes: Option<u64>,
+        max_workers: Option<u16>,
+    ) -> PyResult<Self> {
+        let shape = folds.shape();
+        if shape.len() != 2 || shape[1] != 6 || shape[0] == 0 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native WFO folds must have shape (fold_count, 6)",
+            ));
+        }
+        let fold_values = folds.as_slice()?;
+        let fold_plan = fold_values
+            .chunks_exact(6)
+            .map(|values| batch::FoldPlan {
+                fold_id: values[0],
+                warmup_start: values[1],
+                train_start: values[2],
+                train_end: values[3],
+                test_start: values[4],
+                test_end: values[5],
+            })
+            .collect::<Vec<_>>();
+        let intent = batch::PreparedWfoIntentKindV2::from_name(intent_kind)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let schedule = batch::WfoOptimizerScheduleV1::from_name(optimizer_schedule)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let template = template.borrow(py).inner.clone();
+        let batch_template = batch::BatchTemplate::from_execution_template(
+            template,
+            Arc::new(program.inner.clone()),
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let plan = batch::NativeWfoPlanV2::new(
+            batch_template,
+            fold_plan,
+            intent,
+            schedule,
+            batch::RuntimeBudgetV1 {
+                workers,
+                max_metric_rows,
+                max_error_rows,
+                max_bars,
+                max_wall_time_ms,
+                max_commands,
+                max_orders,
+                max_active_orders,
+                max_fills,
+                max_audit_rows,
+                max_native_memory_bytes,
+                max_workers,
+            },
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = batch::NativeWfoRuntimeV2::new(Arc::new(plan))
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, parameters=None))]
+    fn score_shared(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray2<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.shared_batch(candidate_ids, signals, parameters)?;
+        self.execute_score(py, batch)
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, parameters=None))]
+    fn prepare_shared(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray2<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoPreparedSignalBatchCore> {
+        Ok(NativeWfoPreparedSignalBatchCore {
+            inner: self.shared_batch(candidate_ids, signals, parameters)?,
+        })
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, parameters=None))]
+    fn score_per_fold(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray3<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.per_fold_batch(candidate_ids, signals, parameters)?;
+        self.execute_score(py, batch)
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, parameters=None))]
+    fn prepare_per_fold(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray3<'_, f64>,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoPreparedSignalBatchCore> {
+        Ok(NativeWfoPreparedSignalBatchCore {
+            inner: self.per_fold_batch(candidate_ids, signals, parameters)?,
+        })
+    }
+
+    fn score_prepared(
+        &self,
+        py: Python<'_>,
+        batch: PyRef<'_, NativeWfoPreparedSignalBatchCore>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        self.execute_score(py, batch.inner.clone())
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, selected_candidate_ids, expected_intent_fingerprint, parameters=None))]
+    #[allow(clippy::too_many_arguments)]
+    fn audit_shared(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray2<'_, f64>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.shared_batch(candidate_ids, signals, parameters)?;
+        self.execute_audit(
+            py,
+            batch,
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    #[pyo3(signature = (candidate_ids, signals, selected_candidate_ids, expected_intent_fingerprint, parameters=None))]
+    #[allow(clippy::too_many_arguments)]
+    fn audit_per_fold(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        signals: PyReadonlyArray3<'_, f64>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+        parameters: Option<PyReadonlyArray2<'_, f64>>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.per_fold_batch(candidate_ids, signals, parameters)?;
+        self.execute_audit(
+            py,
+            batch,
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    #[pyo3(signature = (batch, selected_candidate_ids, expected_intent_fingerprint))]
+    fn audit_prepared(
+        &self,
+        py: Python<'_>,
+        batch: PyRef<'_, NativeWfoPreparedSignalBatchCore>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        self.execute_audit(
+            py,
+            batch.inner.clone(),
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    fn cancel(&self) {
+        self.inner.cancel();
+    }
+
+    fn clear_cancellation(&self) {
+        self.inner.clear_cancellation();
+    }
+
+    fn reset(&self) -> PyResult<()> {
+        self.inner
+            .reset()
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)
+    }
+
+    fn close(&self) -> PyResult<()> {
+        self.inner
+            .close()
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)
+    }
+
+    #[getter]
+    fn closed(&self) -> bool {
+        self.inner.closed()
+    }
+
+    #[getter]
+    fn plan_fingerprint(&self) -> String {
+        self.inner.plan().fingerprint_hex()
+    }
+
+    #[getter]
+    fn intent_kind(&self) -> &'static str {
+        self.inner.plan().intent_kind().name()
+    }
+
+    #[getter]
+    fn optimizer_schedule(&self) -> &'static str {
+        self.inner.plan().optimizer_schedule().name()
+    }
+
+    fn diagnostics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let stats = self.inner.stats();
+        let payload = PyDict::new(py);
+        payload.set_item("runtime_version", batch::NATIVE_WFO_RUNTIME_VERSION_V2)?;
+        payload.set_item("plan_fingerprint", self.inner.plan().fingerprint_hex())?;
+        payload.set_item("intent_kind", self.inner.plan().intent_kind().name())?;
+        payload.set_item(
+            "optimizer_schedule",
+            self.inner.plan().optimizer_schedule().name(),
+        )?;
+        payload.set_item("bars", self.inner.plan().bar_count())?;
+        payload.set_item("fold_count", self.inner.plan().folds().len())?;
+        payload.set_item("market_bytes", self.inner.plan().market_bytes())?;
+        payload.set_item("worker_pool_creations", stats.worker_pool_creations)?;
+        payload.set_item("score_batches", stats.score_batches)?;
+        payload.set_item("audit_batches", stats.audit_batches)?;
+        payload.set_item("completed_tasks", stats.completed_tasks)?;
+        payload.set_item("canceled_tasks", stats.canceled_tasks)?;
+        payload.set_item("poison_recoveries", stats.poison_recoveries)?;
+        payload.set_item("worker_generation", self.inner.generation())?;
+        payload.set_item("max_bars", self.inner.plan().budget().max_bars)?;
+        payload.set_item(
+            "max_wall_time_ms",
+            self.inner.plan().budget().max_wall_time_ms,
+        )?;
+        payload.set_item(
+            "max_native_memory_bytes",
+            self.inner.plan().budget().max_native_memory_bytes,
+        )?;
+        payload.set_item("max_workers", self.inner.plan().budget().max_workers)?;
+        payload.set_item("worker_tasks", stats.worker_tasks)?;
+        payload.set_item("closed", self.inner.closed())?;
+        Ok(payload.unbind())
+    }
+
+    #[cfg(test)]
+    fn inject_poison_for_test(&self, count: u64) {
+        self.inner.inject_poison_for_test(count);
+    }
+}
+
+/// Immutable Rust-owned direct-target WFO ingress. Creating this object is the
+/// only candidate-tape boundary for the target route; score and audit borrow
+/// its Rust allocation and never compile a command tape or recreate Python
+/// target objects.
+#[pyclass(name = "NativeWfoPreparedTargetBatchV1", module = "_quantbt_native")]
+struct NativeWfoPreparedTargetBatchCore {
+    inner: Arc<batch::target_wfo::PreparedWfoTargetBatchV1>,
+}
+
+#[pymethods]
+impl NativeWfoPreparedTargetBatchCore {
+    #[getter]
+    fn rows(&self) -> usize {
+        self.inner.rows()
+    }
+
+    #[getter]
+    fn bars(&self) -> usize {
+        self.inner.bars()
+    }
+
+    #[getter]
+    fn symbols(&self) -> usize {
+        self.inner.symbols()
+    }
+
+    #[getter]
+    fn fold_count(&self) -> usize {
+        self.inner.fold_count()
+    }
+
+    #[getter]
+    fn per_fold(&self) -> bool {
+        self.inner.is_per_fold()
+    }
+
+    #[getter]
+    fn intent_fingerprint(&self) -> String {
+        self.inner.fingerprint_hex()
+    }
+
+    #[getter]
+    fn intent_ingest_bytes(&self) -> usize {
+        self.inner.ingest_bytes()
+    }
+}
+
+/// Typed direct-target WFO runtime. It is intentionally distinct from the
+/// Strategy-IR runtime: a target matrix is already a research-level execution
+/// intent, and lowering it to signal or generic commands would introduce a
+/// second accounting authority.
+#[pyclass(name = "NativeTargetWfoRuntimeV2", module = "_quantbt_native")]
+struct NativeTargetWfoRuntimeCore {
+    inner: Arc<batch::target_wfo::NativeTargetWfoRuntimeV2>,
+}
+
+impl NativeTargetWfoRuntimeCore {
+    fn matrix_or_default(
+        values: Option<PyReadonlyArray2<'_, bool>>,
+        expected_shape: [usize; 2],
+        default: bool,
+        name: &str,
+    ) -> PyResult<Vec<bool>> {
+        match values {
+            Some(values) => {
+                if values.shape() != expected_shape {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "native target WFO {name} mask must match template (bars, symbols)"
+                    )));
+                }
+                Ok(values.as_slice()?.to_vec())
+            }
+            None => Ok(vec![default; expected_shape[0] * expected_shape[1]]),
+        }
+    }
+
+    fn vector_or_default(
+        values: Option<PyReadonlyArray1<'_, f64>>,
+        symbols: usize,
+        default: f64,
+        name: &str,
+    ) -> PyResult<Vec<f64>> {
+        match values {
+            Some(values) => {
+                if values.len() != symbols {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "native target WFO {name} length must match template symbols"
+                    )));
+                }
+                Ok(values.as_slice()?.to_vec())
+            }
+            None => Ok(vec![default; symbols]),
+        }
+    }
+
+    fn shared_batch(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray3<'_, f64>,
+    ) -> PyResult<Arc<batch::target_wfo::PreparedWfoTargetBatchV1>> {
+        let candidate_ids = candidate_ids.as_slice()?.to_vec();
+        let shape = targets.shape();
+        let expected = [
+            candidate_ids.len(),
+            self.inner.plan().bar_count(),
+            self.inner.plan().symbol_count(),
+        ];
+        if shape != expected {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native target WFO shared targets must have shape (candidates, prepared_market_bars, symbols)",
+            ));
+        }
+        batch::target_wfo::PreparedWfoTargetBatchV1::shared(
+            candidate_ids,
+            targets.as_slice()?.to_vec(),
+            shape[1],
+            shape[2],
+        )
+        .map(Arc::new)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    fn per_fold_batch(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray4<'_, f64>,
+    ) -> PyResult<Arc<batch::target_wfo::PreparedWfoTargetBatchV1>> {
+        let candidate_ids = candidate_ids.as_slice()?.to_vec();
+        let shape = targets.shape();
+        let expected = [
+            self.inner.plan().folds().len(),
+            candidate_ids.len(),
+            self.inner.plan().bar_count(),
+            self.inner.plan().symbol_count(),
+        ];
+        if shape != expected {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native target WFO per-fold targets must have shape (folds, candidates, prepared_market_bars, symbols)",
+            ));
+        }
+        batch::target_wfo::PreparedWfoTargetBatchV1::per_fold(
+            candidate_ids,
+            targets.as_slice()?.to_vec(),
+            shape[2],
+            shape[3],
+            shape[0],
+        )
+        .map(Arc::new)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+    }
+
+    fn execute_score(
+        &self,
+        py: Python<'_>,
+        batch: Arc<batch::target_wfo::PreparedWfoTargetBatchV1>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let runtime = self.inner.clone();
+        let inner = py
+            .detach(move || runtime.score(batch))
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(NativeWfoMetricMatrixCore { inner })
+    }
+
+    fn execute_audit(
+        &self,
+        py: Python<'_>,
+        batch: Arc<batch::target_wfo::PreparedWfoTargetBatchV1>,
+        candidate_ids: Vec<u64>,
+        expected_intent_fingerprint: [u8; 32],
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let runtime = self.inner.clone();
+        let inner = py
+            .detach(move || {
+                runtime.audit_selected(batch, &candidate_ids, expected_intent_fingerprint)
+            })
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(NativeWfoMetricMatrixCore { inner })
+    }
+}
+
+#[pymethods]
+impl NativeTargetWfoRuntimeCore {
+    #[classmethod]
+    #[pyo3(signature = (
+        template,
+        folds,
+        target_kind=0,
+        timing=execution::target::TARGET_TIMING_CLOSE_TARGET_V2_SAME_CLOSE,
+        invalid_target_policy=0,
+        admission_policy=None,
+        tradable=None,
+        stale=None,
+        qty_step=None,
+        min_qty=None,
+        min_notional=None,
+        equity_fraction=None,
+        workers=1,
+        max_metric_rows=1_000_000,
+        max_error_rows=64,
+        max_bars=None,
+        max_wall_time_ms=None,
+        max_commands=None,
+        max_orders=None,
+        max_active_orders=None,
+        max_fills=None,
+        max_audit_rows=None,
+        max_native_memory_bytes=None,
+        max_workers=None,
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn from_template(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        template: Py<NativeExecutionTemplateCore>,
+        folds: PyReadonlyArray2<'_, u32>,
+        target_kind: u8,
+        timing: u8,
+        invalid_target_policy: u8,
+        admission_policy: Option<u8>,
+        tradable: Option<PyReadonlyArray2<'_, bool>>,
+        stale: Option<PyReadonlyArray2<'_, bool>>,
+        qty_step: Option<PyReadonlyArray1<'_, f64>>,
+        min_qty: Option<PyReadonlyArray1<'_, f64>>,
+        min_notional: Option<PyReadonlyArray1<'_, f64>>,
+        equity_fraction: Option<PyReadonlyArray1<'_, f64>>,
+        workers: usize,
+        max_metric_rows: usize,
+        max_error_rows: usize,
+        max_bars: Option<u64>,
+        max_wall_time_ms: Option<u64>,
+        max_commands: Option<u64>,
+        max_orders: Option<u64>,
+        max_active_orders: Option<u64>,
+        max_fills: Option<u64>,
+        max_audit_rows: Option<u64>,
+        max_native_memory_bytes: Option<u64>,
+        max_workers: Option<u16>,
+    ) -> PyResult<Self> {
+        if workers != 1 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native target WFO V1 is deliberately serial; workers must be 1 until a bounded parallel target scheduler is certified",
+            ));
+        }
+        let fold_shape = folds.shape();
+        if fold_shape.len() != 2 || fold_shape[1] != 6 || fold_shape[0] == 0 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "native target WFO folds must have shape (fold_count, 6)",
+            ));
+        }
+        let fold_values = folds.as_slice()?;
+        let fold_plan = fold_values
+            .chunks_exact(6)
+            .map(|values| batch::FoldPlan {
+                fold_id: values[0],
+                warmup_start: values[1],
+                train_start: values[2],
+                train_end: values[3],
+                test_start: values[4],
+                test_end: values[5],
+            })
+            .collect::<Vec<_>>();
+        let template = template.borrow(py).inner.clone();
+        let expected_shape = [template.bar_count(), template.n_symbols()];
+        let kind = execution::target::DirectTargetKindV1::try_from(target_kind)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let policy = execution::target::InvalidTargetPolicyV1::try_from(invalid_target_policy)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let admission_policy = admission_policy
+            .map(execution::target::PortfolioAdmissionPolicyV1::try_from)
+            .transpose()
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let plan = batch::target_wfo::NativeTargetWfoPlanV1::new(
+            template,
+            fold_plan,
+            kind,
+            timing,
+            policy,
+            Self::matrix_or_default(tradable, expected_shape, true, "tradable")?,
+            Self::matrix_or_default(stale, expected_shape, false, "stale")?,
+            Self::vector_or_default(qty_step, expected_shape[1], 0.0, "qty_step")?,
+            Self::vector_or_default(min_qty, expected_shape[1], 0.0, "min_qty")?,
+            Self::vector_or_default(min_notional, expected_shape[1], 0.0, "min_notional")?,
+            Self::vector_or_default(equity_fraction, expected_shape[1], 1.0, "equity_fraction")?,
+            admission_policy,
+            batch::RuntimeBudgetV1 {
+                workers,
+                max_metric_rows,
+                max_error_rows,
+                max_bars,
+                max_wall_time_ms,
+                max_commands,
+                max_orders,
+                max_active_orders,
+                max_fills,
+                max_audit_rows,
+                max_native_memory_bytes,
+                max_workers,
+            },
+        )
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let inner = batch::target_wfo::NativeTargetWfoRuntimeV2::new(Arc::new(plan))
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    fn score_shared(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray3<'_, f64>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.shared_batch(candidate_ids, targets)?;
+        self.execute_score(py, batch)
+    }
+
+    fn prepare_shared(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray3<'_, f64>,
+    ) -> PyResult<NativeWfoPreparedTargetBatchCore> {
+        Ok(NativeWfoPreparedTargetBatchCore {
+            inner: self.shared_batch(candidate_ids, targets)?,
+        })
+    }
+
+    fn score_per_fold(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray4<'_, f64>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.per_fold_batch(candidate_ids, targets)?;
+        self.execute_score(py, batch)
+    }
+
+    fn prepare_per_fold(
+        &self,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray4<'_, f64>,
+    ) -> PyResult<NativeWfoPreparedTargetBatchCore> {
+        Ok(NativeWfoPreparedTargetBatchCore {
+            inner: self.per_fold_batch(candidate_ids, targets)?,
+        })
+    }
+
+    fn score_prepared(
+        &self,
+        py: Python<'_>,
+        batch: PyRef<'_, NativeWfoPreparedTargetBatchCore>,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        self.execute_score(py, batch.inner.clone())
+    }
+
+    fn audit_shared(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray3<'_, f64>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.shared_batch(candidate_ids, targets)?;
+        self.execute_audit(
+            py,
+            batch,
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    fn audit_per_fold(
+        &self,
+        py: Python<'_>,
+        candidate_ids: PyReadonlyArray1<'_, u64>,
+        targets: PyReadonlyArray4<'_, f64>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        let batch = self.per_fold_batch(candidate_ids, targets)?;
+        self.execute_audit(
+            py,
+            batch,
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    fn audit_prepared(
+        &self,
+        py: Python<'_>,
+        batch: PyRef<'_, NativeWfoPreparedTargetBatchCore>,
+        selected_candidate_ids: PyReadonlyArray1<'_, u64>,
+        expected_intent_fingerprint: &str,
+    ) -> PyResult<NativeWfoMetricMatrixCore> {
+        self.execute_audit(
+            py,
+            batch.inner.clone(),
+            selected_candidate_ids.as_slice()?.to_vec(),
+            parse_fingerprint(expected_intent_fingerprint)?,
+        )
+    }
+
+    fn reset(&self) -> PyResult<()> {
+        self.inner
+            .reset()
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)
+    }
+
+    fn cancel(&self) {
+        self.inner.cancel();
+    }
+
+    fn clear_cancellation(&self) {
+        self.inner.clear_cancellation();
+    }
+
+    fn close(&self) -> PyResult<()> {
+        self.inner
+            .close()
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)
+    }
+
+    #[getter]
+    fn closed(&self) -> bool {
+        self.inner.closed()
+    }
+
+    #[getter]
+    fn plan_fingerprint(&self) -> String {
+        self.inner.plan().fingerprint_hex()
+    }
+
+    #[getter]
+    fn target_kind(&self) -> &'static str {
+        self.inner.plan().kind().name()
+    }
+
+    #[getter]
+    fn timing(&self) -> u8 {
+        self.inner.plan().timing()
+    }
+
+    fn diagnostics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let stats = self.inner.stats();
+        let plan = self.inner.plan();
+        let payload = PyDict::new(py);
+        payload.set_item(
+            "runtime_version",
+            batch::target_wfo::NATIVE_TARGET_WFO_RUNTIME_VERSION_V1,
+        )?;
+        payload.set_item("plan_fingerprint", plan.fingerprint_hex())?;
+        payload.set_item("target_kind", plan.kind().name())?;
+        payload.set_item("target_timing", "close_target_v2_same_close")?;
+        payload.set_item("invalid_target_policy", "reject_run")?;
+        payload.set_item("bars", plan.bar_count())?;
+        payload.set_item("symbols", plan.symbol_count())?;
+        payload.set_item("fold_count", plan.folds().len())?;
+        payload.set_item("market_bytes", plan.market_bytes())?;
+        payload.set_item("worker_count", 1)?;
+        payload.set_item("worker_pool_creations", 0)?;
+        payload.set_item("score_batches", stats.score_batches)?;
+        payload.set_item("audit_batches", stats.audit_batches)?;
+        payload.set_item("completed_tasks", stats.completed_tasks)?;
+        payload.set_item("worker_generation", self.inner.generation())?;
+        payload.set_item("max_bars", self.inner.plan().budget().max_bars)?;
+        payload.set_item(
+            "max_wall_time_ms",
+            self.inner.plan().budget().max_wall_time_ms,
+        )?;
+        payload.set_item(
+            "max_native_memory_bytes",
+            self.inner.plan().budget().max_native_memory_bytes,
+        )?;
+        payload.set_item("max_workers", self.inner.plan().budget().max_workers)?;
+        payload.set_item("native_target_no_order_arena", true)?;
+        payload.set_item("closed", self.inner.closed())?;
+        Ok(payload.unbind())
+    }
+}
+
+fn hex_fingerprint(value: &[u8; 32]) -> String {
+    value.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn parse_fingerprint(value: &str) -> PyResult<[u8; 32]> {
+    if value.len() != 64 {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "native WFO fingerprint must contain exactly 64 hexadecimal characters",
+        ));
+    }
+    let mut bytes = [0_u8; 32];
+    for (index, pair) in value.as_bytes().chunks_exact(2).enumerate() {
+        let high = hex_digit(pair[0]).ok_or_else(|| {
+            pyo3::exceptions::PyValueError::new_err("native WFO fingerprint is not hexadecimal")
+        })?;
+        let low = hex_digit(pair[1]).ok_or_else(|| {
+            pyo3::exceptions::PyValueError::new_err("native WFO fingerprint is not hexadecimal")
+        })?;
+        bytes[index] = (high << 4) | low;
+    }
+    Ok(bytes)
+}
+
+const fn hex_digit(value: u8) -> Option<u8> {
+    match value {
+        b'0'..=b'9' => Some(value - b'0'),
+        b'a'..=b'f' => Some(value - b'a' + 10),
+        b'A'..=b'F' => Some(value - b'A' + 10),
+        _ => None,
     }
 }
 
@@ -4833,6 +8063,171 @@ fn score_output_payload(
 /// native fill/event output remains the authoritative execution trace; these
 /// arrays explain target/package admission and never reconstruct execution in
 /// Python.
+fn add_workload_audit_retention(
+    payload: &Bound<'_, PyDict>,
+    retention: quantbt_engine::AuditRetentionV1,
+) -> PyResult<()> {
+    payload.set_item(
+        "native_workload_audit_detail_truncated",
+        retention.truncated(),
+    )?;
+    payload.set_item(
+        "native_workload_audit_retained_rows",
+        retention.retained_rows,
+    )?;
+    payload.set_item("native_workload_audit_dropped_rows", retention.dropped_rows)?;
+    Ok(())
+}
+
+/// Materialize the bounded V2 package audit only on the cold audit/report
+/// path. Score and compact results retain its exact scalar accounting in Rust
+/// without allocating these NumPy arrays.
+fn add_package_market_v2_audit_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    audit: &execution::package::PackageMarketAuditV2,
+) -> PyResult<()> {
+    payload.set_item("package_v2_package_count", audit.package_count)?;
+    payload.set_item(
+        "package_v2_accepted_package_count",
+        audit.accepted_package_count,
+    )?;
+    payload.set_item(
+        "package_v2_residual_package_count",
+        audit.residual_package_count,
+    )?;
+    payload.set_item(
+        "package_v2_reservation_created_total",
+        audit.reservation_created_total,
+    )?;
+    payload.set_item(
+        "package_v2_reservation_consumed_total",
+        audit.reservation_consumed_total,
+    )?;
+    payload.set_item(
+        "package_v2_reservation_released_total",
+        audit.reservation_released_total,
+    )?;
+    payload.set_item("package_v2_package_fee_total", audit.package_fee_total)?;
+    payload.set_item(
+        "package_v2_residual_gross_notional_total",
+        audit.residual_gross_notional_total,
+    )?;
+    payload.set_item(
+        "package_v2_outstanding_residual_gross_notional_total",
+        audit.outstanding_residual_gross_notional_total,
+    )?;
+    payload.set_item(
+        "package_v2_package_id",
+        PyArray1::from_vec(py, audit.package_id.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_command_bar",
+        PyArray1::from_vec(py, audit.command_bar.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_policy_code",
+        PyArray1::from_vec(py, audit.policy_code.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_final_state_code",
+        PyArray1::from_vec(py, audit.final_state_code.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_reservation_created",
+        PyArray1::from_vec(py, audit.reservation_created.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_reservation_consumed",
+        PyArray1::from_vec(py, audit.reservation_consumed.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_reservation_released",
+        PyArray1::from_vec(py, audit.reservation_released.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_package_fee",
+        PyArray1::from_vec(py, audit.package_fee.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_gross_notional",
+        PyArray1::from_vec(py, audit.residual_gross_notional.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_outstanding_residual_gross_notional",
+        PyArray1::from_vec(py, audit.outstanding_residual_gross_notional.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_package_id",
+        PyArray1::from_vec(py, audit.leg_package_id.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_index",
+        PyArray1::from_vec(py, audit.leg_index.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_order_id",
+        PyArray1::from_vec(py, audit.leg_order_id.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_symbol",
+        PyArray1::from_vec(py, audit.leg_symbol.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_requested_qty",
+        PyArray1::from_vec(py, audit.leg_requested_qty.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_filled_qty",
+        PyArray1::from_vec(py, audit.leg_filled_qty.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_compensation_qty",
+        PyArray1::from_vec(py, audit.leg_compensation_qty.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_accepted",
+        PyArray1::from_vec(py, audit.leg_accepted.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_leg_rejection_code",
+        PyArray1::from_vec(py, audit.leg_rejection_code.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_package_id",
+        PyArray1::from_vec(py, audit.residual_package_id.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_leg_index",
+        PyArray1::from_vec(py, audit.residual_leg_index.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_symbol",
+        PyArray1::from_vec(py, audit.residual_symbol.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_qty",
+        PyArray1::from_vec(py, audit.residual_qty.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_notional",
+        PyArray1::from_vec(py, audit.residual_notional.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_residual_reason_code",
+        PyArray1::from_vec(py, audit.residual_reason_code.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_transition_package_id",
+        PyArray1::from_vec(py, audit.transition_package_id.clone()),
+    )?;
+    payload.set_item(
+        "package_v2_transition_code",
+        PyArray1::from_vec(py, audit.transition_code.clone()),
+    )?;
+    Ok(())
+}
+
 fn add_native_workload_audit_fields(
     py: Python<'_>,
     payload: &Bound<'_, PyDict>,
@@ -4841,9 +8236,11 @@ fn add_native_workload_audit_fields(
     match audit {
         execution::NativeWorkloadAuditV1::None => {
             payload.set_item("native_workload_audit_kind", "none")?;
+            add_workload_audit_retention(payload, audit.detail_retention())?;
         }
         execution::NativeWorkloadAuditV1::PortfolioTarget(audit) => {
             payload.set_item("native_workload_audit_kind", "portfolio_target_market_v1")?;
+            add_workload_audit_retention(payload, audit.detail_retention)?;
             payload.set_item("portfolio_target_decision_count", audit.decision_count)?;
             payload.set_item(
                 "portfolio_target_rejected_decision_count",
@@ -4868,6 +8265,7 @@ fn add_native_workload_audit_fields(
         }
         execution::NativeWorkloadAuditV1::PackageAtomic(audit) => {
             payload.set_item("native_workload_audit_kind", "package_atomic_market_v1")?;
+            add_workload_audit_retention(payload, audit.detail_retention)?;
             payload.set_item("package_command_bar", audit.command_bar)?;
             payload.set_item("package_id", audit.package_id)?;
             payload.set_item("package_attempted", audit.attempted)?;
@@ -4887,6 +8285,120 @@ fn add_native_workload_audit_fields(
             payload.set_item("package_released_margin", audit.released_margin)?;
             payload.set_item("package_fee", audit.package_fee)?;
             payload.set_item("package_residual_notional", audit.residual_notional)?;
+        }
+        execution::NativeWorkloadAuditV1::PackageMarketV2(audit) => {
+            payload.set_item("native_workload_audit_kind", "package_market_v2")?;
+            add_workload_audit_retention(payload, audit.detail_retention)?;
+            add_package_market_v2_audit_fields(py, payload, audit)?;
+        }
+    }
+    Ok(())
+}
+
+fn add_native_workload_audit_core_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    audit: &NativeWorkloadAuditFieldsCore,
+) -> PyResult<()> {
+    payload.set_item("native_workload_audit_kind", audit.kind())?;
+    add_workload_audit_retention(payload, audit.retention())?;
+    match audit {
+        NativeWorkloadAuditFieldsCore::None => {}
+        NativeWorkloadAuditFieldsCore::DirectTarget {
+            target_kind,
+            timing,
+            invalid_target_policy,
+            decision_count,
+            rejected_decision_count,
+            bar,
+            symbol,
+            requested_units,
+            accepted_units,
+            rejection_code,
+            rejected_by_bar,
+            reject_code_by_bar,
+            ..
+        } => {
+            payload.set_item("direct_target_kind", *target_kind)?;
+            payload.set_item("direct_target_timing", *timing)?;
+            payload.set_item(
+                "direct_target_invalid_target_policy",
+                *invalid_target_policy,
+            )?;
+            payload.set_item("direct_target_decision_count", *decision_count)?;
+            payload.set_item(
+                "direct_target_rejected_decision_count",
+                *rejected_decision_count,
+            )?;
+            payload.set_item("direct_target_decision_bar", bar.clone_ref(py))?;
+            payload.set_item("direct_target_decision_symbol", symbol.clone_ref(py))?;
+            payload.set_item(
+                "direct_target_requested_units",
+                requested_units.clone_ref(py),
+            )?;
+            payload.set_item("direct_target_accepted_units", accepted_units.clone_ref(py))?;
+            payload.set_item("direct_target_rejection_code", rejection_code.clone_ref(py))?;
+            if let Some(values) = rejected_by_bar {
+                payload.set_item("direct_target_rejected_by_bar", values.clone_ref(py))?;
+            }
+            if let Some(values) = reject_code_by_bar {
+                payload.set_item("direct_target_reject_code_by_bar", values.clone_ref(py))?;
+            }
+        }
+        NativeWorkloadAuditFieldsCore::PortfolioTarget {
+            decision_count,
+            rejected_decision_count,
+            bar,
+            requested_units,
+            accepted_units,
+            rejection_code,
+            ..
+        } => {
+            payload.set_item("portfolio_target_decision_count", *decision_count)?;
+            payload.set_item(
+                "portfolio_target_rejected_decision_count",
+                *rejected_decision_count,
+            )?;
+            payload.set_item("portfolio_target_decision_bar", bar.clone_ref(py))?;
+            payload.set_item(
+                "portfolio_target_requested_units",
+                requested_units.clone_ref(py),
+            )?;
+            payload.set_item(
+                "portfolio_target_accepted_units",
+                accepted_units.clone_ref(py),
+            )?;
+            payload.set_item(
+                "portfolio_target_rejection_code",
+                rejection_code.clone_ref(py),
+            )?;
+        }
+        NativeWorkloadAuditFieldsCore::PackageAtomic {
+            command_bar,
+            package_id,
+            attempted,
+            reserved_margin,
+            released_margin,
+            package_fee,
+            residual_notional,
+            accepted,
+            rejection_code,
+            transition_code,
+            ..
+        } => {
+            payload.set_item("package_command_bar", *command_bar)?;
+            payload.set_item("package_id", *package_id)?;
+            payload.set_item("package_attempted", *attempted)?;
+            payload.set_item("package_accepted", accepted.clone_ref(py))?;
+            payload.set_item("package_rejection_code", rejection_code.clone_ref(py))?;
+            payload.set_item("package_transition_code", transition_code.clone_ref(py))?;
+            payload.set_item("package_reserved_margin", *reserved_margin)?;
+            payload.set_item("package_released_margin", *released_margin)?;
+            payload.set_item("package_fee", *package_fee)?;
+            payload.set_item("package_residual_notional", *residual_notional)?;
+        }
+        NativeWorkloadAuditFieldsCore::PackageMarketV2(audit) => {
+            add_package_market_v2_audit_fields(py, payload, audit)?;
         }
     }
     Ok(())
@@ -5141,16 +8653,461 @@ fn build_command_request(
     )
 }
 
+fn direct_target_output_bytes(result: &execution::target::DirectTargetExecutionResultV1) -> usize {
+    let common = match &result.output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => score_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => compact_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => audit_output_bytes(output),
+    };
+    common
+        .saturating_add(bytes_i64(&result.target_audit.bar))
+        .saturating_add(bytes_i64(&result.target_audit.symbol))
+        .saturating_add(bytes_f64(&result.target_audit.requested_units))
+        .saturating_add(bytes_f64(&result.target_audit.accepted_units))
+        .saturating_add(bytes_i64(&result.target_audit.rejection_code))
+        .saturating_add(result.rejected_by_bar.as_deref().map_or(0, bytes_i64))
+        .saturating_add(result.reject_code_by_bar.as_deref().map_or(0, bytes_i64))
+}
+
+fn direct_target_metadata(
+    result: &execution::target::DirectTargetExecutionResultV1,
+    output_bytes: usize,
+) -> NativeOutputMetadataCore {
+    let retention = result.output.detail_retention();
+    NativeOutputMetadataCore {
+        native_result_version: execution::NATIVE_RESULT_VERSION_V2,
+        output_version: result.output.score().output_version,
+        request_version: execution::target::DIRECT_TARGET_REQUEST_VERSION_V1,
+        protocol_version: execution::NATIVE_EXECUTION_PROTOCOL_VERSION_V1,
+        request_fingerprint: result.request_fingerprint_hex(),
+        template_fingerprint: result.template_fingerprint_hex(),
+        contract_bundle_hash: result.contract_bundle_hash_hex(),
+        terminal_fingerprint: result.terminal_fingerprint_hex(),
+        workload_kind: result.target_kind.name(),
+        runtime_class: "rust_direct_target_v1",
+        account_authority: "rust_linear_close_target_v2",
+        execution_model_id: "close_target_v2_same_close",
+        metric_contract_version: result.output.score().metrics_v2.metric_contract_version,
+        output_profile: match result.output.profile() {
+            quantbt_engine::StaticOutputProfile::Score => "score",
+            quantbt_engine::StaticOutputProfile::Compact => "compact",
+            quantbt_engine::StaticOutputProfile::Audit => "audit",
+        },
+        command_count: result.command_count,
+        bars: result.bar_count,
+        execution_generation: 0,
+        runner_run_count: 1,
+        detail_truncated: retention.truncated(),
+        retained_rows: retention.retained_rows as u64,
+        dropped_rows: retention.dropped_rows as u64,
+        output_bytes,
+    }
+}
+
+/// Explicit cold-path mapping for direct target output. It exists separately
+/// from the command request adapter because the direct route has no
+/// ``NativeExecutionResultV1`` command/lifecycle envelope to reconstruct.
+fn direct_target_output_payload(
+    py: Python<'_>,
+    result: execution::target::DirectTargetExecutionResultV1,
+) -> PyResult<Py<PyDict>> {
+    let output_bytes = direct_target_output_bytes(&result);
+    let metadata = direct_target_metadata(&result, output_bytes);
+    let profile = result.output.profile();
+    let metrics = NativeMetricFieldsCore::from_native(result.output.score());
+    let target_kind = result.target_kind.name();
+    let timing = result.timing;
+    let invalid_target_policy = result.invalid_target_policy.name();
+    let command_count = result.command_count;
+    let target_audit = result.target_audit;
+    let rejected_by_bar = result.rejected_by_bar;
+    let reject_code_by_bar = result.reject_code_by_bar;
+    let output = result.output.into_legacy_static();
+    let payload = PyDict::new(py);
+    payload.set_item("final_equity", output.final_equity)?;
+    payload.set_item("final_positions", output.final_positions)?;
+    payload.set_item("total_fee", output.total_fee)?;
+    payload.set_item("total_turnover", output.total_turnover)?;
+    payload.set_item("total_funding", output.total_funding)?;
+    payload.set_item("fill_count", output.fill_count)?;
+    payload.set_item("event_count", output.event_count)?;
+    payload.set_item("rejected_count", output.rejected_count)?;
+    payload.set_item("canceled_count", output.canceled_count)?;
+    payload.set_item("max_initial_margin", output.max_initial_margin)?;
+    payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+    payload.set_item("liquidated", output.liquidated)?;
+    payload.set_item("liquidation_bar", output.liquidation_bar)?;
+    payload.set_item("liquidation_reason", output.liquidation_reason)?;
+    add_typed_output_metadata(&payload, &metadata)?;
+    add_metric_fields(&payload, &metrics)?;
+    payload.set_item("native_direct_target", true)?;
+    payload.set_item("native_target_no_order_arena", true)?;
+    payload.set_item("direct_target_kind", target_kind)?;
+    payload.set_item("direct_target_timing", timing)?;
+    payload.set_item("direct_target_invalid_target_policy", invalid_target_policy)?;
+    payload.set_item("direct_target_command_count", command_count)?;
+    payload.set_item(
+        "direct_target_report_trade_count",
+        result.report_trade_count,
+    )?;
+
+    if matches!(
+        profile,
+        quantbt_engine::StaticOutputProfile::Compact | quantbt_engine::StaticOutputProfile::Audit
+    ) {
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("fees", output.fees)?;
+        payload.set_item("turnover", output.turnover)?;
+        payload.set_item("funding", output.funding)?;
+        payload.set_item("initial_margin", output.initial_margin)?;
+        payload.set_item("maintenance_margin", output.maintenance_margin)?;
+        if let Some(values) = rejected_by_bar {
+            payload.set_item("direct_target_rejected_by_bar", values)?;
+        }
+        if let Some(values) = reject_code_by_bar {
+            payload.set_item("direct_target_reject_code_by_bar", values)?;
+        }
+    }
+    if matches!(profile, quantbt_engine::StaticOutputProfile::Audit) {
+        payload.set_item("fill_bar", output.fill_bar)?;
+        payload.set_item("fill_order_id", output.fill_order_id)?;
+        payload.set_item("fill_symbol", output.fill_symbol)?;
+        payload.set_item("fill_side", output.fill_side)?;
+        payload.set_item("fill_qty", output.fill_qty)?;
+        payload.set_item("fill_price", output.fill_price)?;
+        payload.set_item("fill_fee", output.fill_fee)?;
+        payload.set_item("fill_reason", output.fill_reason)?;
+        payload.set_item("fill_ambiguity", output.fill_ambiguity)?;
+        payload.set_item("event_bar", output.event_bar)?;
+        payload.set_item("event_kind", output.event_kind)?;
+        payload.set_item("event_status", output.event_status)?;
+        payload.set_item("event_order_id", output.event_order_id)?;
+        payload.set_item("event_target_id", output.event_target_id)?;
+        payload.set_item("event_symbol", output.event_symbol)?;
+        payload.set_item("event_reject_code", output.event_reject_code)?;
+        add_workload_audit_retention(&payload, target_audit.detail_retention)?;
+        payload.set_item("native_workload_audit_kind", "direct_target_v1")?;
+        payload.set_item("direct_target_decision_count", target_audit.decision_count)?;
+        payload.set_item(
+            "direct_target_rejected_decision_count",
+            target_audit.rejected_decision_count,
+        )?;
+        payload.set_item("direct_target_decision_bar", target_audit.bar)?;
+        payload.set_item("direct_target_decision_symbol", target_audit.symbol)?;
+        payload.set_item(
+            "direct_target_requested_units",
+            target_audit.requested_units,
+        )?;
+        payload.set_item("direct_target_accepted_units", target_audit.accepted_units)?;
+        payload.set_item("direct_target_rejection_code", target_audit.rejection_code)?;
+    }
+    Ok(payload.unbind())
+}
+
+fn shared_portfolio_target_output_bytes(
+    result: &execution::target::SharedPortfolioExecutionResultV1,
+) -> usize {
+    let common = match &result.output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => score_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => compact_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => audit_output_bytes(output),
+    };
+    let attribution = &result.attribution;
+    common
+        .saturating_add(bytes_i64(&result.target_audit.bar))
+        .saturating_add(bytes_i64(&result.target_audit.symbol))
+        .saturating_add(bytes_f64(&result.target_audit.requested_units))
+        .saturating_add(bytes_f64(&result.target_audit.accepted_units))
+        .saturating_add(bytes_i64(&result.target_audit.rejection_code))
+        .saturating_add(bytes_f64(&attribution.realized_pnl))
+        .saturating_add(bytes_f64(&attribution.unrealized_pnl))
+        .saturating_add(bytes_f64(&attribution.mark_to_market_pnl))
+        .saturating_add(bytes_f64(&attribution.fees))
+        .saturating_add(bytes_f64(&attribution.slippage))
+        .saturating_add(bytes_f64(&attribution.funding))
+        .saturating_add(bytes_f64(&attribution.liquidation_loss))
+        .saturating_add(bytes_f64(&attribution.turnover))
+        .saturating_add(bytes_f64(&attribution.final_exposure))
+        .saturating_add(bytes_f64(&attribution.final_initial_margin))
+        .saturating_add(result.rejected_by_bar.as_deref().map_or(0, bytes_i64))
+        .saturating_add(result.reject_code_by_bar.as_deref().map_or(0, bytes_i64))
+}
+
+fn shared_portfolio_target_metadata(
+    result: &execution::target::SharedPortfolioExecutionResultV1,
+    output_bytes: usize,
+) -> NativeOutputMetadataCore {
+    let retention = result.output.detail_retention();
+    NativeOutputMetadataCore {
+        native_result_version: execution::NATIVE_RESULT_VERSION_V2,
+        output_version: result.output.score().output_version,
+        request_version: 1,
+        protocol_version: execution::NATIVE_EXECUTION_PROTOCOL_VERSION_V1,
+        request_fingerprint: result.request_fingerprint_hex(),
+        template_fingerprint: result.template_fingerprint_hex(),
+        contract_bundle_hash: result.contract_bundle_hash_hex(),
+        terminal_fingerprint: result.terminal_fingerprint_hex(),
+        workload_kind: result.target_kind.name(),
+        runtime_class: "rust_shared_portfolio_target_v1",
+        account_authority: "rust_linear_shared_portfolio_close_target_v2",
+        execution_model_id: "close_target_v2_same_close",
+        metric_contract_version: result.output.score().metrics_v2.metric_contract_version,
+        output_profile: match result.output.profile() {
+            quantbt_engine::StaticOutputProfile::Score => "score",
+            quantbt_engine::StaticOutputProfile::Compact => "compact",
+            quantbt_engine::StaticOutputProfile::Audit => "audit",
+        },
+        command_count: result.command_count,
+        bars: result.bar_count,
+        execution_generation: 0,
+        runner_run_count: 1,
+        detail_truncated: retention.truncated(),
+        retained_rows: retention.retained_rows as u64,
+        dropped_rows: retention.dropped_rows as u64,
+        output_bytes,
+    }
+}
+
+/// Cold-path projection of the shared-account portfolio result.  Attribution
+/// is emitted only for compact/audit retention, keeping score as a flat scalar
+/// workload without per-symbol Python objects or DataFrames.
+fn shared_portfolio_target_output_payload(
+    py: Python<'_>,
+    result: execution::target::SharedPortfolioExecutionResultV1,
+) -> PyResult<Py<PyDict>> {
+    let output_bytes = shared_portfolio_target_output_bytes(&result);
+    let metadata = shared_portfolio_target_metadata(&result, output_bytes);
+    let profile = result.output.profile();
+    let metrics = NativeMetricFieldsCore::from_native(result.output.score());
+    let target_kind = result.target_kind.name();
+    let timing = result.timing;
+    let invalid_target_policy = result.invalid_target_policy.name();
+    let admission_policy = result.admission_policy.name();
+    let command_count = result.command_count;
+    let target_audit = result.target_audit;
+    let attribution = result.attribution;
+    let rejected_by_bar = result.rejected_by_bar;
+    let reject_code_by_bar = result.reject_code_by_bar;
+    let output = result.output.into_legacy_static();
+    let payload = PyDict::new(py);
+    payload.set_item("final_equity", output.final_equity)?;
+    payload.set_item("final_positions", output.final_positions)?;
+    payload.set_item("total_fee", output.total_fee)?;
+    payload.set_item("total_turnover", output.total_turnover)?;
+    payload.set_item("total_funding", output.total_funding)?;
+    payload.set_item("fill_count", output.fill_count)?;
+    payload.set_item("event_count", output.event_count)?;
+    payload.set_item("rejected_count", output.rejected_count)?;
+    payload.set_item("canceled_count", output.canceled_count)?;
+    payload.set_item("max_initial_margin", output.max_initial_margin)?;
+    payload.set_item("max_maintenance_margin", output.max_maintenance_margin)?;
+    payload.set_item("liquidated", output.liquidated)?;
+    payload.set_item("liquidation_bar", output.liquidation_bar)?;
+    payload.set_item("liquidation_reason", output.liquidation_reason)?;
+    add_typed_output_metadata(&payload, &metadata)?;
+    add_metric_fields(&payload, &metrics)?;
+    payload.set_item("native_shared_portfolio_target", true)?;
+    payload.set_item("native_portfolio_shared_account", true)?;
+    payload.set_item("native_target_no_order_arena", true)?;
+    payload.set_item("portfolio_target_kind", target_kind)?;
+    payload.set_item("portfolio_target_timing", timing)?;
+    payload.set_item("portfolio_invalid_target_policy", invalid_target_policy)?;
+    payload.set_item("portfolio_admission_policy", admission_policy)?;
+    payload.set_item("portfolio_target_command_count", command_count)?;
+
+    if matches!(
+        profile,
+        quantbt_engine::StaticOutputProfile::Compact | quantbt_engine::StaticOutputProfile::Audit
+    ) {
+        payload.set_item("equity", output.equity)?;
+        payload.set_item("positions", output.positions)?;
+        payload.set_item("fees", output.fees)?;
+        payload.set_item("turnover", output.turnover)?;
+        payload.set_item("funding", output.funding)?;
+        payload.set_item("initial_margin", output.initial_margin)?;
+        payload.set_item("maintenance_margin", output.maintenance_margin)?;
+        payload.set_item(
+            "portfolio_symbol_realized_pnl",
+            PyArray1::from_vec(py, attribution.realized_pnl),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_unrealized_pnl",
+            PyArray1::from_vec(py, attribution.unrealized_pnl),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_mark_to_market_pnl",
+            PyArray1::from_vec(py, attribution.mark_to_market_pnl),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_fee",
+            PyArray1::from_vec(py, attribution.fees),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_slippage",
+            PyArray1::from_vec(py, attribution.slippage),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_funding",
+            PyArray1::from_vec(py, attribution.funding),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_liquidation_loss",
+            PyArray1::from_vec(py, attribution.liquidation_loss),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_turnover",
+            PyArray1::from_vec(py, attribution.turnover),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_final_exposure",
+            PyArray1::from_vec(py, attribution.final_exposure),
+        )?;
+        payload.set_item(
+            "portfolio_symbol_final_initial_margin",
+            PyArray1::from_vec(py, attribution.final_initial_margin),
+        )?;
+        if let Some(values) = rejected_by_bar {
+            payload.set_item("portfolio_target_rejected_by_bar", values)?;
+        }
+        if let Some(values) = reject_code_by_bar {
+            payload.set_item("portfolio_target_reject_code_by_bar", values)?;
+        }
+    }
+    if matches!(profile, quantbt_engine::StaticOutputProfile::Audit) {
+        payload.set_item("fill_bar", output.fill_bar)?;
+        payload.set_item("fill_order_id", output.fill_order_id)?;
+        payload.set_item("fill_symbol", output.fill_symbol)?;
+        payload.set_item("fill_side", output.fill_side)?;
+        payload.set_item("fill_qty", output.fill_qty)?;
+        payload.set_item("fill_price", output.fill_price)?;
+        payload.set_item("fill_fee", output.fill_fee)?;
+        payload.set_item("fill_reason", output.fill_reason)?;
+        payload.set_item("fill_ambiguity", output.fill_ambiguity)?;
+        payload.set_item("event_bar", output.event_bar)?;
+        payload.set_item("event_kind", output.event_kind)?;
+        payload.set_item("event_status", output.event_status)?;
+        payload.set_item("event_order_id", output.event_order_id)?;
+        payload.set_item("event_target_id", output.event_target_id)?;
+        payload.set_item("event_symbol", output.event_symbol)?;
+        payload.set_item("event_reject_code", output.event_reject_code)?;
+        add_workload_audit_retention(&payload, target_audit.detail_retention)?;
+        payload.set_item("native_workload_audit_kind", "shared_portfolio_target_v1")?;
+        payload.set_item(
+            "portfolio_target_decision_count",
+            target_audit.decision_count,
+        )?;
+        payload.set_item(
+            "portfolio_target_rejected_decision_count",
+            target_audit.rejected_decision_count,
+        )?;
+        payload.set_item("portfolio_target_decision_bar", target_audit.bar)?;
+        payload.set_item("portfolio_target_decision_symbol", target_audit.symbol)?;
+        payload.set_item(
+            "portfolio_target_requested_units",
+            target_audit.requested_units,
+        )?;
+        payload.set_item(
+            "portfolio_target_accepted_units",
+            target_audit.accepted_units,
+        )?;
+        payload.set_item(
+            "portfolio_target_rejection_code",
+            target_audit.rejection_code,
+        )?;
+    }
+    Ok(payload.unbind())
+}
+
+/// Move a direct-target result into the existing profile-specific typed SoA
+/// output family. The audit profile carries target-admission evidence beside
+/// the canonical fill/event trace; score and compact retain no audit rows.
+fn direct_target_typed_output(
+    py: Python<'_>,
+    result: execution::target::DirectTargetExecutionResultV1,
+) -> PyResult<Py<PyAny>> {
+    let output_bytes = direct_target_output_bytes(&result);
+    let metadata = direct_target_metadata(&result, output_bytes);
+    let execution::target::DirectTargetExecutionResultV1 {
+        output,
+        target_audit,
+        rejected_by_bar,
+        reject_code_by_bar,
+        target_kind,
+        timing,
+        invalid_target_policy,
+        ..
+    } = result;
+    match output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => Py::new(
+            py,
+            NativeScoreOutputCore {
+                metadata,
+                score: NativeScoreFieldsCore::from_native(py, output),
+            },
+        )
+        .map(|output| output.into_any()),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => {
+            let quantbt_engine::NativeCompactOutputV1 { score, paths } = *output;
+            Py::new(
+                py,
+                NativeCompactOutputCore {
+                    metadata,
+                    score: NativeScoreFieldsCore::from_native(py, score),
+                    paths: NativePathFieldsCore::from_native(py, paths),
+                    direct_target: Some(DirectTargetCompactFieldsCore::from_required(
+                        py,
+                        rejected_by_bar,
+                        reject_code_by_bar,
+                    )),
+                },
+            )
+            .map(|output| output.into_any())
+        }
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => {
+            let quantbt_engine::NativeAuditOutputV1 {
+                compact,
+                fills,
+                events,
+                detail_retention: _,
+            } = *output;
+            let quantbt_engine::NativeCompactOutputV1 { score, paths } = compact;
+            Py::new(
+                py,
+                NativeAuditOutputCore {
+                    metadata,
+                    score: NativeScoreFieldsCore::from_native(py, score),
+                    paths: NativePathFieldsCore::from_native(py, paths),
+                    audit: NativeAuditFieldsCore::from_native(py, fills, events),
+                    workload_audit: NativeWorkloadAuditFieldsCore::from_direct_target(
+                        py,
+                        target_kind,
+                        timing,
+                        invalid_target_policy,
+                        target_audit,
+                        rejected_by_bar,
+                        reject_code_by_bar,
+                    ),
+                },
+            )
+            .map(|output| output.into_any())
+        }
+    }
+}
+
 fn native_request_output_payload(
     py: Python<'_>,
     result: execution::NativeExecutionResultV1,
 ) -> PyResult<Py<PyDict>> {
     let profile = result.output_profile;
-    let workload = result.workload_kind;
-    let fingerprint = result.fingerprint_hex();
-    let template_fingerprint = result.template_fingerprint_hex();
-    let execution_generation = result.execution_generation;
-    let runner_run_count = result.runner_run_count;
+    let output_bytes = match &result.output {
+        quantbt_engine::NativeExecutionOutputV1::Score(output) => score_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Compact(output) => compact_output_bytes(output),
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => audit_output_bytes(output),
+    }
+    .saturating_add(workload_audit_output_bytes(&result.workload_audit));
+    let metadata = NativeOutputMetadataCore::from_result(&result, output_bytes);
+    let metrics = NativeMetricFieldsCore::from_native(result.output.score());
     // The frozen `execute()` API remains a cold-path mapping adapter. Moving
     // the typed SoA result into this legacy shape never reruns the engine.
     let output = result.output.into_legacy_static();
@@ -5169,20 +9126,8 @@ fn native_request_output_payload(
     payload.set_item("liquidated", output.liquidated)?;
     payload.set_item("liquidation_bar", output.liquidation_bar)?;
     payload.set_item("liquidation_reason", output.liquidation_reason)?;
-    payload.set_item("native_execution_request_version", result.request_version)?;
-    payload.set_item("native_execution_protocol_version", result.protocol_version)?;
-    payload.set_item("native_execution_request_fingerprint", fingerprint)?;
-    payload.set_item(
-        "native_execution_template_fingerprint",
-        template_fingerprint,
-    )?;
-    payload.set_item("native_execution_workload", workload.name())?;
-    payload.set_item("native_execution_output_profile", profile.name())?;
-    payload.set_item("native_execution_command_count", result.command_count)?;
-    payload.set_item("native_execution_generation", execution_generation)?;
-    payload.set_item("native_execution_runner_run_count", runner_run_count)?;
-    payload.set_item("python_callbacks", 0)?;
-    payload.set_item("boundary_calls", 1)?;
+    add_typed_output_metadata(&payload, &metadata)?;
+    add_metric_fields(&payload, &metrics)?;
     add_native_workload_audit_fields(py, &payload, &result.workload_audit)?;
 
     if matches!(
@@ -5230,8 +9175,10 @@ fn native_request_typed_output(
         quantbt_engine::NativeExecutionOutputV1::Score(output) => score_output_bytes(output),
         quantbt_engine::NativeExecutionOutputV1::Compact(output) => compact_output_bytes(output),
         quantbt_engine::NativeExecutionOutputV1::Audit(output) => audit_output_bytes(output),
-    };
+    }
+    .saturating_add(workload_audit_output_bytes(&result.workload_audit));
     let metadata = NativeOutputMetadataCore::from_result(&result, output_bytes);
+    let workload_audit = result.workload_audit;
     match result.output {
         quantbt_engine::NativeExecutionOutputV1::Score(output) => Py::new(
             py,
@@ -5249,6 +9196,7 @@ fn native_request_typed_output(
                     metadata,
                     score: NativeScoreFieldsCore::from_native(py, score),
                     paths: NativePathFieldsCore::from_native(py, paths),
+                    direct_target: None,
                 },
             )
             .map(|output| output.into_any())
@@ -5258,6 +9206,7 @@ fn native_request_typed_output(
                 compact,
                 fills,
                 events,
+                detail_retention: _,
             } = *output;
             let quantbt_engine::NativeCompactOutputV1 { score, paths } = compact;
             Py::new(
@@ -5267,6 +9216,7 @@ fn native_request_typed_output(
                     score: NativeScoreFieldsCore::from_native(py, score),
                     paths: NativePathFieldsCore::from_native(py, paths),
                     audit: NativeAuditFieldsCore::from_native(py, fills, events),
+                    workload_audit: NativeWorkloadAuditFieldsCore::from_native(py, workload_audit),
                 },
             )
             .map(|output| output.into_any())
@@ -5397,11 +9347,32 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeScoreOutputCore>()?;
     module.add_class::<NativeCompactOutputCore>()?;
     module.add_class::<NativeAuditOutputCore>()?;
+    module.add_class::<NativeIntrabarRequestCore>()?;
+    module.add_class::<prepared_evaluation::NativePreparedEvaluationBindingCore>()?;
+    module.add_class::<prepared_evaluation::NativePreparedEvaluationRuntimeCore>()?;
+    module.add_class::<prepared_evaluation::NativePreparedEvaluationMatrixCore>()?;
     module.add_class::<NativeExecutionTemplateCore>()?;
     module.add_class::<NativeExecutionRequestCore>()?;
+    module.add_class::<NativePackageScenarioBatchCore>()?;
+    module.add_class::<NativeTargetExecutionRequestCore>()?;
+    module.add_class::<NativeSharedPortfolioTargetRequestCore>()?;
     module.add_class::<NativeExecutionRunnerCore>()?;
+    module.add_class::<NativeWfoMetricMatrixCore>()?;
+    module.add_class::<NativeWfoPreparedSignalBatchCore>()?;
+    module.add_class::<NativeWfoRuntimeCore>()?;
+    module.add_class::<NativeWfoPreparedTargetBatchCore>()?;
+    module.add_class::<NativeTargetWfoRuntimeCore>()?;
     module.add_class::<NativeStrategyProgramCore>()?;
     module.add_class::<FullReactiveSessionCore>()?;
+    module.add_class::<ReactiveContextBufferV1>()?;
+    module.add_class::<ReactiveCommandBufferV2>()?;
+    module.add_class::<ReactiveCancellationTokenCore>()?;
+    module.add_class::<ReactiveNumericRunOutputCore>()?;
+    module.add_class::<ReactiveNumericRunnerCore>()?;
+    module.add_class::<ReactiveCandidateBatchContextV1>()?;
+    module.add_class::<ReactiveCandidateCommandBatchV1>()?;
+    module.add_class::<ReactiveCandidateBatchRunOutputCore>()?;
+    module.add_class::<ReactiveCandidateBatchRunnerCore>()?;
     Ok(())
 }
 

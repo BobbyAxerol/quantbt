@@ -70,14 +70,19 @@ def test_phase54b4_release_manifest_derives_native_surface_from_registry(tmp_pat
     surface = build_manifest(dist)["native_product_surface"]
     assert surface["core_only_auto_backend"] == "python"
     assert surface["native_companion_published"] is True
-    assert surface["supported_linux_auto_backend"] == "certified_rust_with_exact_companion"
-    assert {row["workload"] for row in surface["automatic_rust_workloads_with_exact_companion"]} == {
-        "event_static_tape_v2_v3",
-        "native_strategy_ir_v1",
-    }
+    assert surface["supported_linux_auto_backend"] == "python_explicit_rust_only"
+    assert surface["automatic_rust_workloads_with_exact_companion"] == []
     assert set(surface["explicit_certified_native_workloads"]) == {
+        "event_static_tape_v2_v3",
+        "intrabar_bracket_rust_v1",
+        "native_strategy_ir_v1",
+        "native_wfo_prepared_signal_v2",
         "package_atomic_market_v1",
+        "package_market_v2",
+        "package_market_v2_scenario_batch",
         "portfolio_target_market_v1",
+        "shared_portfolio_target_units_v1",
+        "shared_portfolio_target_wfo_v1",
     }
 
 
@@ -109,5 +114,7 @@ def test_phase54b4_certifier_forbids_repository_import_shortcuts_and_checks_orac
         "native_backend=\"python\"",
         "target_python_oracle_parity",
         "package_python_oracle_parity",
+        'native_static_abi_resolved',
+        'native_result_v2',
     ):
         assert expected in source

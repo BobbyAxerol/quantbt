@@ -13,15 +13,16 @@ artifact is [`v1_1_endpoint_inventory.json`](../../benchmarks/baselines/v1_1_end
 | `QuantBTEndpoint.arbitrage` (arbitrage_package) | typed_arbitrage_spec_and_package_intents | selected Python or external specialized package route | `PythonCompatibility` | `controlled_research_by_spec` |
 | `QuantBTEndpoint.basket` (basket_pair) | BasketSpec_and_scalar_entry_exit_signal | selected Python or external package route | `PythonCompatibility` | `stable_controlled_research` |
 | `QuantBTEndpoint.dca_ladder` (dca_ladder_legacy) | structural_grid_level | legacy DCA/grid simulator | `PythonCompatibility` | `stable_compatibility` |
-| `QuantBTEndpoint.event_driven` (event_driven_orders) | canonical_order_command_tape | capability-gated Rust static tape at declared thresholds; Python otherwise | `WholeRunNative` | `promoted_bounded_static` |
+| `QuantBTEndpoint.event_driven` (event_driven_orders) | canonical_order_command_tape | Python by auto policy; explicit Rust static tape remains capability-gated | `PythonCompatibility` | `certified_explicit_rust` |
 | `QuantBTEndpoint.event_driven` (event_driven_strategy) | stateful_python_reactive_strategy | Python reactive lifecycle | `PythonCompatibility` | `stable_python_reactive` |
 | `QuantBTEndpoint.fill_replay` (fill_replay_v1_numba) | explicit_fill_tape | legacy Numba fill-replay accounting comparator | `WholeRunNative` | `legacy_accounting_comparator` |
 | `QuantBTEndpoint.fill_replay` (fill_replay_v2_rust) | typed_explicit_fill_and_funding_tapes | explicit Rust FillReplay V2 with LinearGrossCrossAccountV1 | `WholeRunNative` | `a2_domain_certified` |
 | `QuantBTEndpoint.intrabar_bracket` (intrabar_fast_numba) | compact_entry_exit_stop_take_profit_trailing_intent | Numba intrabar kernel | `WholeRunNative` | `certified_numba` |
 | `QuantBTEndpoint.intrabar_bracket_reference` (intrabar_reference) | compact_entry_exit_stop_take_profit_trailing_intent | readable Python intrabar oracle | `PythonCompatibility` | `truth_model` |
+| `QuantBTEndpoint.intrabar_bracket_rust` (intrabar_rust_explicit) | compact_entry_exit_stop_take_profit_trailing_intent | explicit Rust BracketIntrabarKernelV1 / SessionIntrabarKernelV1 | `WholeRunNative` | `a4_explicit_certified` |
 | `QuantBTEndpoint.native_event_bracket_orders` (native_event_bracket_orders) | BracketOrderSpec_to_order_commands | Python native-event structured-order route | `PythonCompatibility` | `controlled_research` |
 | `QuantBTEndpoint.native_event_dca_grid` (native_event_dca_grid) | DcaGridSpec_to_order_commands | Python native-event structured-order route | `PythonCompatibility` | `controlled_research` |
-| `QuantBTEndpoint.native_event_lifecycle` (native_event_lifecycle) | canonical_order_command_tape | same governed lifecycle resolver as event_driven(input_mode='orders') | `WholeRunNative` | `promoted_bounded_static` |
+| `QuantBTEndpoint.native_event_lifecycle` (native_event_lifecycle) | canonical_order_command_tape | Python by auto policy; explicit Rust lifecycle remains capability-gated | `PythonCompatibility` | `certified_explicit_rust` |
 | `QuantBTEndpoint.native_event_strategy` (native_event_strategy) | stateful_python_reactive_strategy | Python reactive lifecycle | `PythonCompatibility` | `stable_python_reactive` |
 | `QuantBTEndpoint.nautilus_bracket_orders` (nautilus_bracket_validation) | BracketOrderSpec | Nautilus bracket/OCO validation adapter | `ExternalValidator` | `third_party_validation` |
 | `QuantBTEndpoint.nautilus_dca_grid` (nautilus_dca_grid_validation) | DcaGridSpec | Nautilus structured-order validation adapter | `ExternalValidator` | `third_party_validation` |
@@ -43,12 +44,22 @@ artifact is [`v1_1_endpoint_inventory.json`](../../benchmarks/baselines/v1_1_end
 | Workload | Auto route | Baseline resolution | Runtime class | Maturity |
 |---|---:|---|---|---|
 | `event_python_callback_v2_v3` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
-| `event_static_tape_v2_v3` | yes | rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise | `WholeRunNative` | `promoted` |
-| `native_strategy_ir_v1` | yes | rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise | `WholeRunNative` | `promoted` |
+| `event_reactive_block_intent_r3` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
+| `event_reactive_candidate_batch_r3b` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
+| `event_reactive_sparse_wake_r2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
+| `event_static_tape_v2_v3` | no | Python by auto policy; Rust remains an explicit certified route | `PythonCompatibility` | `certified` |
+| `intrabar_bracket_rust_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
+| `native_strategy_ir_v1` | no | Python by auto policy; Rust remains an explicit certified route | `PythonCompatibility` | `certified` |
+| `native_wfo_prepared_signal_v2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
 | `package_atomic_market_v1` | no | Rust explicit helper only; generic endpoint remains Python | `WholeRunNative` | `certified` |
+| `package_market_v2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
+| `package_market_v2_scenario_batch` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
 | `package_transaction_preflight_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
 | `portfolio_target_market_v1` | no | Rust explicit helper only; generic endpoint remains Python | `WholeRunNative` | `certified` |
 | `portfolio_target_preflight_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
+| `shared_portfolio_target_matrix_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
+| `shared_portfolio_target_units_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
+| `shared_portfolio_target_wfo_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
 
 ## Reading The Inventory
 

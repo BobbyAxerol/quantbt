@@ -8,9 +8,8 @@ venue-specific gaps stay explicit in reports and metadata.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-import hashlib
-from typing import Dict, Iterable, Mapping, Optional, Sequence
+from dataclasses import dataclass, field, replace
+from typing import Dict, Mapping, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -18,13 +17,39 @@ import pandas as pd
 from ..core.results import OptionBacktestResult
 from ..core.schema import AccountConfig, ExecutionConfig
 from ..options.cache import OptionPreparedRunCache
+from ..options.capabilities import (
+    OptionCapabilityError,
+    OptionSettlementPolicy,
+    validate_option_capabilities,
+)
 from ..options.execution import OptionExecutionConfig, execute_option_package
-from ..options.fees import OptionFeeResult, OptionFeeSchedule, calculate_option_fee
-from ..options.hedging import OptionHedgeConfig, run_delta_hedge_path
+from ..options.authority import (
+    apply_legacy_last_tape_settlements as _apply_legacy_last_tape_settlements,
+    maintenance_liquidation_if_needed as _maintenance_liquidation_if_needed,
+    option_fee as _option_fee,
+    require_expired_positions_settled as _require_expired_positions_settled,
+    settlement_provenance_record as _settlement_provenance_record,
+    snapshot_state as _snapshot_state,
+)
+from ..options.fees import OptionFeeSchedule
+from ..options.hedging import OptionHedgeConfig
 from ..options.ledger import OptionLedger
 from ..options.lifecycle import OptionSettlementRepresentation, settle_option_expiry
-from ..options.margin import OptionMarginConfig, OptionMarginRequirement, calculate_option_margin
+from ..options.margin import (
+    ExternalOptionMarginValidator,
+    OptionLiquidationAudit,
+    OptionMarginConfig,
+    OptionMarginRequirement,
+    calculate_option_margin,
+)
 from ..options.packages import OptionPackageIntent
+from ..options.reporting import (
+    attach_delta_hedge_contract as _attach_delta_hedge_contract,
+    build_option_result as _build_result,
+    concat_reports as _concat,
+    snapshot_marks as _snapshot_marks,
+    snapshot_underlyings as _snapshot_underlyings,
+)
 from ..options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from ..options.tape import PreparedOptionTape, prepare_option_tape
 
@@ -39,7 +64,15 @@ class NativeOptionConfig:
     reporting_currency: str = "USD"
     initial_balances: Optional[Dict[str, float]] = None
     conversion_rates: Dict[str, float] = field(default_factory=dict)
+    # ``settle_expired`` remains a legacy alias.  The effective policy is
+    # recorded in every result so a last-tape price can never masquerade as an
+    # official settlement event.
     settle_expired: bool = False
+    settlement_policy: Optional[OptionSettlementPolicy | str] = None
+    allow_future_then_cash_research: bool = False
+    require_venue_exact_margin: bool = False
+    external_margin_validator: Optional[ExternalOptionMarginValidator] = None
+    liquidate_on_maintenance_breach: bool = True
     max_spread_bps: Optional[float] = None
     max_source_latency_ns: Optional[int] = None
     random_seed: Optional[int] = 42
@@ -49,6 +82,26 @@ class NativeOptionConfig:
         object.__setattr__(self, "reporting_currency", str(self.reporting_currency).upper())
         if self.account.initial_capital <= 0.0:
             raise ValueError("account.initial_capital must be > 0")
+        policy = self.settlement_policy
+        if policy is None:
+            policy = (
+                OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH
+                if self.settle_expired
+                else OptionSettlementPolicy.EXPLICIT_EVENTS_ONLY
+            )
+        else:
+            try:
+                policy = policy if isinstance(policy, OptionSettlementPolicy) else OptionSettlementPolicy(str(policy))
+            except ValueError as exc:
+                raise ValueError("invalid option settlement_policy") from exc
+        if self.settle_expired and policy is not OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH:
+            raise ValueError("settle_expired=True requires legacy_last_tape_mark_research settlement_policy")
+        object.__setattr__(self, "settlement_policy", policy)
+        object.__setattr__(
+            self,
+            "settle_expired",
+            policy is OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH,
+        )
 
 
 @dataclass(frozen=True)
@@ -57,6 +110,41 @@ class OptionSettlementEvent:
     timestamp_ns: int
     settlement_price: float
     representation: Optional[OptionSettlementRepresentation] = None
+    source: str = ""
+    source_timestamp_ns: Optional[int] = None
+    last_trading_timestamp_ns: Optional[int] = None
+    expiry_timestamp_ns: Optional[int] = None
+    source_is_official: bool = False
+    metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.symbol:
+            raise ValueError("settlement event symbol is required")
+        if int(self.timestamp_ns) <= 0:
+            raise ValueError("settlement event timestamp_ns must be > 0")
+        if float(self.settlement_price) <= 0.0:
+            raise ValueError("settlement event settlement_price must be > 0")
+        object.__setattr__(self, "timestamp_ns", int(self.timestamp_ns))
+        object.__setattr__(self, "settlement_price", float(self.settlement_price))
+        object.__setattr__(self, "source", str(self.source).strip())
+        for field_name in ("source_timestamp_ns", "last_trading_timestamp_ns", "expiry_timestamp_ns"):
+            value = getattr(self, field_name)
+            if value is not None and int(value) <= 0:
+                raise ValueError(f"settlement event {field_name} must be > 0")
+            if value is not None:
+                object.__setattr__(self, field_name, int(value))
+
+    @property
+    def provenance_status(self) -> str:
+        if self.source and self.source_timestamp_ns is not None and self.source_is_official:
+            return "official_source"
+        if self.source and self.source_timestamp_ns is not None:
+            return "declared_source"
+        return "legacy_unverified"
+
+    @property
+    def certified_provenance(self) -> bool:
+        return self.provenance_status == "official_source"
 
 
 class NativeOptionBackend:
@@ -81,6 +169,23 @@ class NativeOptionBackend:
         reporting_currency: Optional[str] = None,
     ) -> OptionBacktestResult:
         registry = _normalize_registry(instruments)
+        instrument_map = registry.by_symbol
+        capability_assessments = validate_option_capabilities(
+            registry.instruments,
+            margin=self.config.margin,
+            execution=self.config.option_execution,
+            allow_future_then_cash_research=self.config.allow_future_then_cash_research,
+            require_venue_exact_margin=self.config.require_venue_exact_margin,
+            external_margin_validator=self.config.external_margin_validator,
+        )
+        packages_sorted = tuple(sorted(packages or (), key=lambda package: (int(package.timestamp_ns), package.package_id)))
+        settlement_events_normalized = _normalize_settlement_events(settlement_events)
+        _validate_option_requests(
+            packages_sorted,
+            settlement_events_normalized,
+            instrument_map,
+            settlement_policy=self.config.settlement_policy,
+        )
         if prepared_cache is not None:
             prepared_cache.validate(registry)
             tape = prepared_cache.tape
@@ -92,82 +197,271 @@ class NativeOptionBackend:
                 max_source_latency_ns=self.config.max_source_latency_ns,
             )
         tape.validate_compatible(registry_signature=registry.signature)
+        _validate_tape_coverage(packages_sorted, tape)
         rates = {**self.config.conversion_rates, **(conversion_rates or {})}
         report_ccy = str(reporting_currency or self.config.reporting_currency).upper()
         if report_ccy not in rates:
             rates[report_ccy] = 1.0
 
         ledger = OptionLedger.from_cash(self.config.initial_balances or {report_ccy: self.config.account.initial_capital})
-        instrument_map = registry.by_symbol
-        packages_sorted = tuple(sorted(packages or (), key=lambda package: int(package.timestamp_ns)))
         order_reports = []
         package_reports = []
         applied_fills = []
         snapshots = []
-
-        snapshots.append(_snapshot_state(tape, 0, ledger, instrument_map, rates, report_ccy, "initial"))
-        for package in packages_sorted:
-            pkg_result = execute_option_package(
-                package,
-                tape,
-                config=self.config.option_execution,
-                positions={symbol: position.qty for symbol, position in ledger.positions.items()},
-                compiled_orders=prepared_cache.compile_package(package) if prepared_cache is not None else None,
-            )
-            order_reports.append(pkg_result.order_report)
-            package_reports.append(pkg_result.package_report)
-            for fill in pkg_result.fills:
-                instrument = instrument_map[fill.symbol]
-                fee = _option_fee(fill, instrument, tape, self.config.fee_schedule)
-                ledger.apply_fill(fill, instrument, fee=fee, timestamp_ns=int(fill.timestamp))
-                applied_fills.append((fill, fee))
-            snap_idx = tape.snapshot_index_at_or_before(int(package.timestamp_ns))
-            snapshots.append(_snapshot_state(tape, snap_idx, ledger, instrument_map, rates, report_ccy, package.package_id))
-
         settlements = []
-        for event in _normalize_settlement_events(settlement_events):
-            instrument = instrument_map[event.symbol]
-            settlement = settle_option_expiry(
-                ledger,
-                instrument,
-                timestamp_ns=int(event.timestamp_ns),
-                settlement_price=float(event.settlement_price),
-                representation=event.representation,
-            )
-            settlements.append(settlement)
-            snap_idx = min(tape.snapshot_count - 1, max(0, np.searchsorted(tape.timestamp_ns, int(event.timestamp_ns), side="right") - 1))
-            snapshots.append(_snapshot_state(tape, int(snap_idx), ledger, instrument_map, rates, report_ccy, f"settlement:{event.symbol}"))
+        settlement_records = []
+        margin_timeline = []
+        liquidation_audits: list[OptionLiquidationAudit] = []
+        liquidated = False
+        account_closed = False
+        last_margin: Optional[OptionMarginRequirement] = None
 
-        if self.config.settle_expired:
-            last_ts = int(tape.timestamp_ns[-1])
-            marks = _snapshot_marks(tape, tape.snapshot_count - 1)
-            underlyings = _snapshot_underlyings(tape, tape.snapshot_count - 1)
-            for symbol, position in list(ledger.positions.items()):
-                instrument = instrument_map[symbol]
-                if position.is_flat or int(instrument.expiry_ns) > last_ts:
-                    continue
+        packages_by_timestamp = _events_by_timestamp(packages_sorted)
+        settlements_by_timestamp = _events_by_timestamp(settlement_events_normalized)
+        timeline = sorted(
+            {int(timestamp) for timestamp in tape.timestamp_ns}
+            | set(packages_by_timestamp)
+            | set(settlements_by_timestamp)
+        )
+        quote_config = replace(self.config.option_execution, enforce_package_cash_guard=False)
+        snapshots.append(_snapshot_state(tape, 0, ledger, instrument_map, rates, report_ccy, "initial"))
+
+        for timestamp_ns in timeline:
+            snapshot_idx = _snapshot_index_at_or_before(tape, timestamp_ns)
+            for package in packages_by_timestamp.get(timestamp_ns, ()):
+                pkg_result = execute_option_package(
+                    package,
+                    tape,
+                    config=quote_config,
+                    positions={symbol: position.qty for symbol, position in ledger.positions.items()},
+                    compiled_orders=prepared_cache.compile_package(package) if prepared_cache is not None else None,
+                )
+                if account_closed:
+                    admitted = _reject_quoted_package(pkg_result, package, "LIQUIDATED_ACCOUNT", report_ccy)
+                else:
+                    admitted = _admit_option_package(
+                        package=package,
+                        quote_result=pkg_result,
+                        ledger=ledger,
+                        tape=tape,
+                        snapshot_idx=snapshot_idx,
+                        instruments=instrument_map,
+                        account=self.config.account,
+                        margin_config=self.config.margin,
+                        fee_schedule=self.config.fee_schedule,
+                        conversion_rates=rates,
+                        reporting_currency=report_ccy,
+                        external_margin_validator=self.config.external_margin_validator,
+                        require_venue_exact_margin=self.config.require_venue_exact_margin,
+                    )
+                order_reports.append(admitted["order_report"])
+                package_reports.append(admitted["package_report"])
+                if admitted["accepted"]:
+                    applied_fills.extend(admitted["fills_with_fees"])
+                    last_margin = admitted["margin"]
+                last_margin = _record_margin_state(
+                    margin_timeline,
+                    ledger=ledger,
+                    tape=tape,
+                    snapshot_idx=snapshot_idx,
+                    instruments=instrument_map,
+                    config=self.config,
+                    conversion_rates=rates,
+                    reporting_currency=report_ccy,
+                    label=f"package:{package.package_id}",
+                    timestamp_override_ns=int(package.timestamp_ns),
+                )
+                liquidation = _maintenance_liquidation_if_needed(
+                    ledger=ledger,
+                    margin=last_margin,
+                    tape=tape,
+                    snapshot_idx=snapshot_idx,
+                    instruments=instrument_map,
+                    config=self.config,
+                    conversion_rates=rates,
+                    reporting_currency=report_ccy,
+                    event_timestamp_ns=int(package.timestamp_ns),
+                )
+                if liquidation is not None:
+                    liquidation_audits.append(liquidation)
+                    if liquidation.breached and self.config.liquidate_on_maintenance_breach:
+                        applied_fills.extend(liquidation.fills_with_fees)
+                        liquidated = True
+                        account_closed = True
+                        last_margin = _record_margin_state(
+                            margin_timeline,
+                            ledger=ledger,
+                            tape=tape,
+                            snapshot_idx=snapshot_idx,
+                            instruments=instrument_map,
+                            config=self.config,
+                            conversion_rates=rates,
+                            reporting_currency=report_ccy,
+                            label=f"liquidation:{package.package_id}",
+                            timestamp_override_ns=int(package.timestamp_ns),
+                        )
+
+            for event in settlements_by_timestamp.get(timestamp_ns, ()):
+                instrument = instrument_map[event.symbol]
                 settlement = settle_option_expiry(
                     ledger,
                     instrument,
-                    timestamp_ns=last_ts,
-                    settlement_price=underlyings.get(instrument.underlying_id, marks.get(symbol, 0.0)),
+                    timestamp_ns=int(event.timestamp_ns),
+                    settlement_price=float(event.settlement_price),
+                    representation=event.representation,
                 )
                 settlements.append(settlement)
-            snapshots.append(_snapshot_state(tape, tape.snapshot_count - 1, ledger, instrument_map, rates, report_ccy, "auto_settlement"))
+                settlement_records.append(_settlement_provenance_record(event, instrument, fallback=False))
+                last_margin = _record_margin_state(
+                    margin_timeline,
+                    ledger=ledger,
+                    tape=tape,
+                    snapshot_idx=snapshot_idx,
+                    instruments=instrument_map,
+                    config=self.config,
+                    conversion_rates=rates,
+                    reporting_currency=report_ccy,
+                    label=f"settlement:{event.symbol}",
+                    timestamp_override_ns=int(event.timestamp_ns),
+                )
+                liquidation = _maintenance_liquidation_if_needed(
+                    ledger=ledger,
+                    margin=last_margin,
+                    tape=tape,
+                    snapshot_idx=snapshot_idx,
+                    instruments=instrument_map,
+                    config=self.config,
+                    conversion_rates=rates,
+                    reporting_currency=report_ccy,
+                    event_timestamp_ns=int(event.timestamp_ns),
+                )
+                if liquidation is not None:
+                    liquidation_audits.append(liquidation)
+                    if liquidation.breached and self.config.liquidate_on_maintenance_breach:
+                        applied_fills.extend(liquidation.fills_with_fees)
+                        liquidated = True
+                        account_closed = True
+
+            last_margin = _record_margin_state(
+                margin_timeline,
+                ledger=ledger,
+                tape=tape,
+                snapshot_idx=snapshot_idx,
+                instruments=instrument_map,
+                config=self.config,
+                conversion_rates=rates,
+                reporting_currency=report_ccy,
+                label="mark_to_market",
+                timestamp_override_ns=int(timestamp_ns),
+            )
+            liquidation = _maintenance_liquidation_if_needed(
+                ledger=ledger,
+                margin=last_margin,
+                tape=tape,
+                snapshot_idx=snapshot_idx,
+                instruments=instrument_map,
+                config=self.config,
+                conversion_rates=rates,
+                reporting_currency=report_ccy,
+                event_timestamp_ns=int(timestamp_ns),
+            )
+            if liquidation is not None:
+                liquidation_audits.append(liquidation)
+                if liquidation.breached and self.config.liquidate_on_maintenance_breach:
+                    applied_fills.extend(liquidation.fills_with_fees)
+                    liquidated = True
+                    account_closed = True
+                    last_margin = _record_margin_state(
+                        margin_timeline,
+                        ledger=ledger,
+                        tape=tape,
+                        snapshot_idx=snapshot_idx,
+                        instruments=instrument_map,
+                        config=self.config,
+                        conversion_rates=rates,
+                        reporting_currency=report_ccy,
+                        label="liquidation:mark_to_market",
+                        timestamp_override_ns=int(timestamp_ns),
+                    )
+            snapshots.append(
+                _snapshot_state(
+                    tape,
+                    snapshot_idx,
+                    ledger,
+                    instrument_map,
+                    rates,
+                    report_ccy,
+                    "mark_to_market",
+                    timestamp_override_ns=int(timestamp_ns),
+                )
+            )
+
+        if self.config.settlement_policy is OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH:
+            fallback_records, fallback_settlements = _apply_legacy_last_tape_settlements(
+                ledger=ledger,
+                tape=tape,
+                instruments=instrument_map,
+            )
+            settlement_records.extend(fallback_records)
+            settlements.extend(fallback_settlements)
+            if fallback_settlements:
+                last_margin = _record_margin_state(
+                    margin_timeline,
+                    ledger=ledger,
+                    tape=tape,
+                    snapshot_idx=tape.snapshot_count - 1,
+                    instruments=instrument_map,
+                    config=self.config,
+                    conversion_rates=rates,
+                    reporting_currency=report_ccy,
+                    label="legacy_last_tape_settlement",
+                    timestamp_override_ns=int(tape.timestamp_ns[-1]),
+                )
+                snapshots.append(
+                    _snapshot_state(
+                        tape,
+                        tape.snapshot_count - 1,
+                        ledger,
+                        instrument_map,
+                        rates,
+                        report_ccy,
+                        "legacy_last_tape_settlement",
+                    )
+                )
+        else:
+            _require_expired_positions_settled(ledger, instrument_map, int(tape.timestamp_ns[-1]))
 
         final_snapshot_idx = tape.snapshot_count - 1
-        final_marks = _snapshot_marks(tape, final_snapshot_idx)
-        final_underlyings = _snapshot_underlyings(tape, final_snapshot_idx)
-        margin = calculate_option_margin(
+        final_timestamp_ns = max(
+            int(tape.timestamp_ns[-1]),
+            max((int(event.timestamp_ns) for event in settlement_events_normalized), default=int(tape.timestamp_ns[-1])),
+        )
+        margin = _record_margin_state(
+            margin_timeline,
+            ledger=ledger,
+            tape=tape,
+            snapshot_idx=final_snapshot_idx,
+            instruments=instrument_map,
+            config=self.config,
+            conversion_rates=rates,
+            reporting_currency=report_ccy,
+            label="final",
+            timestamp_override_ns=final_timestamp_ns,
+        )
+        final_snapshot = _snapshot_state(
+            tape,
+            final_snapshot_idx,
             ledger,
             instrument_map,
-            final_marks,
-            final_underlyings,
-            config=self.config.margin,
-            reporting_currency=report_ccy,
-            conversion_rates=rates,
+            rates,
+            report_ccy,
+            "final",
+            timestamp_override_ns=final_timestamp_ns,
         )
-        snapshots.append(_snapshot_state(tape, final_snapshot_idx, ledger, instrument_map, rates, report_ccy, "final"))
+        if snapshots and int(snapshots[-1]["timestamp_ns"]) == final_timestamp_ns:
+            snapshots[-1] = final_snapshot
+        else:
+            snapshots.append(final_snapshot)
 
         result = _build_result(
             tape=tape,
@@ -181,11 +475,15 @@ class NativeOptionBackend:
             order_report=_concat(order_reports),
             package_report=_concat(package_reports),
             settlements=settlements,
+            settlement_records=settlement_records,
             margin=margin,
+            margin_timeline=margin_timeline,
+            liquidation_audits=liquidation_audits,
+            liquidated=liquidated,
             metadata={
                 "backend": "native_option",
                 "engine": "native_option",
-                "phase": "phase7_backend_endpoint_result",
+                "phase": "phase70_options_p0_containment",
                 "package_count": len(packages_sorted),
                 "fill_count": len(applied_fills),
                 "settlement_count": len(settlements),
@@ -199,6 +497,18 @@ class NativeOptionBackend:
                 "limit_fidelity": self.config.option_execution.limit_fidelity.value,
                 "depth_fidelity": self.config.option_execution.depth_fidelity.value,
                 "random_seed": self.config.random_seed,
+                "accounting_authority": "option_ledger_preview_commit_v1",
+                "capability_assessments": [assessment.as_dict() for assessment in capability_assessments],
+                "settlement_policy": self.config.settlement_policy.value,
+                "settlement_certified": bool(
+                    all(record["certified_provenance"] for record in settlement_records)
+                    and not any(record["fallback"] for record in settlement_records)
+                ),
+                "settlement_fallback_used": bool(any(record["fallback"] for record in settlement_records)),
+                "margin_validation_status": "venue_exact" if margin.venue_exact else "approximation",
+                "maintenance_breach_count": int(sum(1 for audit in liquidation_audits if audit.breached)),
+                "liquidation_count": int(sum(1 for audit in liquidation_audits if audit.fills_with_fees)),
+                "liquidated_from_timeline": bool(liquidated),
                 **self.config.metadata,
             },
         )
@@ -240,557 +550,443 @@ def _normalize_settlement_events(events: Optional[Sequence[OptionSettlementEvent
                     timestamp_ns=int(event["timestamp_ns"]),
                     settlement_price=float(event["settlement_price"]),
                     representation=event.get("representation"),
+                    source=str(event.get("source", "")),
+                    source_timestamp_ns=event.get("source_timestamp_ns"),
+                    last_trading_timestamp_ns=event.get("last_trading_timestamp_ns"),
+                    expiry_timestamp_ns=event.get("expiry_timestamp_ns"),
+                    source_is_official=bool(event.get("source_is_official", False)),
+                    metadata=dict(event.get("metadata", {})),
                 )
             )
+    return tuple(sorted(out, key=lambda item: (int(item.timestamp_ns), item.symbol)))
+
+
+def _events_by_timestamp(events: Sequence) -> Dict[int, tuple]:
+    grouped: Dict[int, list] = {}
+    for event in events:
+        grouped.setdefault(int(event.timestamp_ns), []).append(event)
+    return {timestamp: tuple(items) for timestamp, items in grouped.items()}
+
+
+def _validate_option_requests(
+    packages: Sequence[OptionPackageIntent],
+    settlement_events: Sequence[OptionSettlementEvent],
+    instruments: Mapping[str, OptionInstrumentSpec],
+    *,
+    settlement_policy: OptionSettlementPolicy,
+) -> None:
+    """Reject unsupported lifecycle shapes before preparing the chain tape."""
+
+    seen_settlements = set()
+    for event in settlement_events:
+        instrument = instruments.get(event.symbol)
+        if instrument is None:
+            raise OptionCapabilityError(
+                "OPTION_SETTLEMENT_UNKNOWN_INSTRUMENT",
+                f"settlement event references unknown instrument {event.symbol!r}",
+            )
+        if event.symbol in seen_settlements:
+            raise OptionCapabilityError(
+                "OPTION_SETTLEMENT_DUPLICATE_EVENT",
+                f"only one settlement event is allowed for {event.symbol!r}",
+            )
+        seen_settlements.add(event.symbol)
+        if int(event.timestamp_ns) < int(instrument.expiry_ns):
+            raise OptionCapabilityError(
+                "OPTION_SETTLEMENT_BEFORE_EXPIRY",
+                f"settlement for {event.symbol!r} precedes its expiry timestamp",
+            )
+        if event.expiry_timestamp_ns is not None and int(event.expiry_timestamp_ns) != int(instrument.expiry_ns):
+            raise OptionCapabilityError(
+                "OPTION_SETTLEMENT_EXPIRY_MISMATCH",
+                f"settlement expiry provenance does not match instrument expiry for {event.symbol!r}",
+            )
+        if event.last_trading_timestamp_ns is not None and int(event.last_trading_timestamp_ns) > int(instrument.expiry_ns):
+            raise OptionCapabilityError(
+                "OPTION_SETTLEMENT_LAST_TRADING_AFTER_EXPIRY",
+                f"last trading timestamp exceeds expiry for {event.symbol!r}",
+            )
+    for package in packages:
+        for leg in package.legs:
+            instrument = instruments.get(leg.instrument_id)
+            if instrument is None:
+                raise OptionCapabilityError(
+                    "OPTION_PACKAGE_UNKNOWN_INSTRUMENT",
+                    f"package {package.package_id!r} references unknown instrument {leg.instrument_id!r}",
+                )
+            if int(package.timestamp_ns) >= int(instrument.expiry_ns):
+                raise OptionCapabilityError(
+                    "OPTION_EXPIRED_INSTRUMENT_ORDER",
+                    f"package {package.package_id!r} is at/after expiry for {instrument.symbol!r}",
+                )
+    if settlement_policy is OptionSettlementPolicy.EXPLICIT_EVENTS_ONLY:
+        return
+    if settlement_policy is not OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH:
+        raise OptionCapabilityError("OPTION_SETTLEMENT_POLICY_UNSUPPORTED", "unsupported settlement policy")
+
+
+def _validate_tape_coverage(packages: Sequence[OptionPackageIntent], tape: PreparedOptionTape) -> None:
+    first_timestamp = int(tape.timestamp_ns[0])
+    last_timestamp = int(tape.timestamp_ns[-1])
+    for package in packages:
+        if not first_timestamp <= int(package.timestamp_ns) <= last_timestamp:
+            raise OptionCapabilityError(
+                "OPTION_PACKAGE_TIMESTAMP_OUTSIDE_TAPE",
+                f"package {package.package_id!r} timestamp is outside the prepared market tape",
+            )
+
+
+def _snapshot_index_at_or_before(tape: PreparedOptionTape, timestamp_ns: int) -> int:
+    return min(
+        tape.snapshot_count - 1,
+        max(0, int(np.searchsorted(tape.timestamp_ns, int(timestamp_ns), side="right") - 1)),
+    )
+
+
+def _resolve_authoritative_fills(
+    fills: Sequence,
+    *,
+    tape: PreparedOptionTape,
+    instruments: Mapping[str, OptionInstrumentSpec],
+    fee_schedule: Optional[OptionFeeSchedule],
+) -> tuple[tuple, ...]:
+    out = []
+    for quoted_fill in fills:
+        instrument = instruments[quoted_fill.symbol]
+        fee = _option_fee(quoted_fill, instrument, tape, fee_schedule)
+        applied_fee = float(fee.fee if fee is not None else quoted_fill.fee)
+        applied_fill = replace(
+            quoted_fill,
+            fee=applied_fee,
+            metadata={
+                **quoted_fill.metadata,
+                "quoted_execution_fee": float(quoted_fill.fee),
+                "applied_fee": applied_fee,
+                "fee_currency": fee.currency if fee is not None else instrument.premium_currency,
+                "fee_authority": "option_ledger",
+                "contract_multiplier": float(instrument.multiplier),
+            },
+        )
+        out.append((applied_fill, fee))
     return tuple(out)
 
 
-def _option_fee(fill, instrument: OptionInstrumentSpec, tape: PreparedOptionTape, schedule: Optional[OptionFeeSchedule]) -> Optional[OptionFeeResult]:
-    schedule = schedule or fill.metadata.get("option_fee_schedule")
-    if schedule is None:
-        return None
-    if not isinstance(schedule, OptionFeeSchedule):
-        return None
-    row_index = int(fill.metadata.get("option_row_index", -1))
-    if row_index < 0:
-        return None
-    reference = float(tape.index_price[row_index] if np.isfinite(tape.index_price[row_index]) else tape.forward_price[row_index])
-    return calculate_option_fee(fill, instrument, schedule, reference_price=reference)
+def _apply_fills_to_ledger(
+    ledger: OptionLedger,
+    fills_with_fees: Sequence[tuple],
+    instruments: Mapping[str, OptionInstrumentSpec],
+) -> None:
+    for fill, fee in fills_with_fees:
+        ledger.apply_fill(fill, instruments[fill.symbol], fee=fee, timestamp_ns=int(fill.timestamp))
 
 
-def _snapshot_state(
+def _cash_delta_in_reporting(
+    before: Mapping[str, float],
+    after: Mapping[str, float],
+    conversion_rates: Mapping[str, float],
+    reporting_currency: str,
+) -> float:
+    currencies = set(before).union(after)
+    delta = 0.0
+    for currency in currencies:
+        amount = float(after.get(currency, 0.0)) - float(before.get(currency, 0.0))
+        delta += amount * _conversion_rate_to_reporting(currency, conversion_rates, reporting_currency)
+    return float(delta)
+
+
+def _conversion_rate_to_reporting(currency: str, conversion_rates: Mapping[str, float], reporting_currency: str) -> float:
+    ccy = str(currency).upper()
+    report = str(reporting_currency).upper()
+    if ccy == report:
+        return 1.0
+    if ccy not in conversion_rates:
+        raise ValueError(f"missing conversion rate for {ccy}->{report}")
+    rate = float(conversion_rates[ccy])
+    if rate <= 0.0:
+        raise ValueError(f"conversion rate for {ccy}->{report} must be > 0")
+    return rate
+
+
+def _margin_at_snapshot(
+    ledger: OptionLedger,
     tape: PreparedOptionTape,
     snapshot_idx: int,
-    ledger: OptionLedger,
-    instruments: Dict[str, OptionInstrumentSpec],
-    conversion_rates: Dict[str, float],
-    report_ccy: str,
-    label: str,
-) -> Dict:
+    instruments: Mapping[str, OptionInstrumentSpec],
+    *,
+    config: NativeOptionConfig,
+    conversion_rates: Mapping[str, float],
+    reporting_currency: str,
+) -> tuple[OptionMarginRequirement, float]:
     marks = _snapshot_marks(tape, snapshot_idx)
-    equity = ledger.equity(conversion_rates=conversion_rates, marks=marks, instruments=instruments, reporting_currency=report_ccy)
-    return {
-        "timestamp_ns": int(tape.timestamp_ns[snapshot_idx]),
-        "label": label,
-        "equity": float(equity),
-        "cash": dict(ledger.cash),
-        "positions": {symbol: position.qty for symbol, position in ledger.positions.items()},
-        "marks": marks,
-    }
+    underlyings = _snapshot_underlyings(tape, snapshot_idx)
+    margin = calculate_option_margin(
+        ledger,
+        dict(instruments),
+        marks,
+        underlyings,
+        config=config.margin,
+        reporting_currency=reporting_currency,
+        conversion_rates=dict(conversion_rates),
+        external_validator=config.external_margin_validator,
+    )
+    if config.require_venue_exact_margin and not margin.venue_exact:
+        raise OptionCapabilityError(
+            "OPTION_VENUE_EXACT_MARGIN_VALIDATION_FAILED",
+            "external margin validator did not return venue_exact=True",
+        )
+    equity = ledger.equity(
+        conversion_rates=dict(conversion_rates),
+        marks=marks,
+        instruments=dict(instruments),
+        reporting_currency=reporting_currency,
+    )
+    return margin, float(equity)
 
 
-def _snapshot_marks(tape: PreparedOptionTape, snapshot_idx: int) -> Dict[str, float]:
-    rows = tape.snapshot_slice(snapshot_idx)
-    return {tape.instrument_id[idx]: float(tape.mark_price[idx]) for idx in range(rows.start, rows.stop)}
-
-
-def _snapshot_underlyings(tape: PreparedOptionTape, snapshot_idx: int) -> Dict[str, float]:
-    rows = tape.snapshot_slice(snapshot_idx)
-    out = {}
-    registry = tape.registry.by_symbol
-    for idx in range(rows.start, rows.stop):
-        symbol = tape.instrument_id[idx]
-        instrument = registry[symbol]
-        price = float(tape.index_price[idx] if np.isfinite(tape.index_price[idx]) else tape.forward_price[idx])
-        out[instrument.underlying_id] = price
-        out[symbol] = price
-    return out
-
-
-def _build_result(
+def _record_margin_state(
+    timeline: list[Dict],
     *,
-    tape: PreparedOptionTape,
-    registry: OptionInstrumentRegistry,
     ledger: OptionLedger,
-    account: AccountConfig,
-    report_ccy: str,
-    conversion_rates: Dict[str, float],
-    snapshots: Sequence[Dict],
-    fills_with_fees: Sequence[tuple],
-    order_report: pd.DataFrame,
-    package_report: pd.DataFrame,
-    settlements: Sequence,
-    margin: OptionMarginRequirement,
-    metadata: Dict,
-) -> OptionBacktestResult:
-    index = pd.DatetimeIndex(pd.to_datetime([snap["timestamp_ns"] for snap in snapshots], utc=True)).tz_convert(None)
-    equity = pd.Series([snap["equity"] for snap in snapshots], index=index, name="equity")
-    if len(equity.index) != len(set(equity.index)):
-        offsets = pd.to_timedelta(np.arange(len(equity)), unit="ns")
-        equity.index = pd.DatetimeIndex(equity.index + offsets)
-    returns = equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-    symbols = list(registry.symbols)
-    positions = pd.DataFrame(
-        [{f"Position_{symbol}": snap["positions"].get(symbol, 0.0) for symbol in symbols} for snap in snapshots],
-        index=equity.index,
-        columns=[f"Position_{symbol}" for symbol in symbols],
-    )
-    closes = pd.DataFrame(
-        [{f"Close_{symbol}": snap["marks"].get(symbol, np.nan) for symbol in symbols} for snap in snapshots],
-        index=equity.index,
-        columns=[f"Close_{symbol}" for symbol in symbols],
-    ).ffill()
-    cash_report = _cash_report(snapshots, equity.index)
-    marks_report = _marks_report(tape)
-    greeks_report = _greeks_report(tape)
-    fills_report = _fills_report(fills_with_fees)
-    settlements_report = _settlements_report(settlements)
-    attribution_report = _attribution_report(ledger, account, equity.iloc[-1], report_ccy, conversion_rates)
-    run_manifest = {
-        "backend": "native_option",
-        "result_contract": "OptionBacktestResult",
-        "symbols": symbols,
-        "snapshot_count": int(tape.snapshot_count),
-        "row_count": int(tape.row_count),
-        "initial_capital": float(account.initial_capital),
-        "final_equity": float(equity.iloc[-1]),
-        "reporting_currency": report_ccy,
-        "data_hash": _chain_data_hash(marks_report),
-        "registry_signature_hash": _stable_hash(repr(registry.signature.signature)),
-        "convention_versions": sorted(
-            {instrument.convention_version for instrument in registry.instruments if instrument.convention_version}
-        ),
-        "fee_schedule": metadata.get("fee_schedule_id", "execution_fee_rate"),
-        "margin_model": str(getattr(margin.model, "value", margin.model)),
-        "pricing_model": "observed_chain_bid_ask_mark",
-        "deterministic_replay": True,
-        "random_seed": metadata.get("random_seed"),
-        "fidelity_manifest": {
-            "tape": "prepared_csr_option_chain",
-            "execution": "top_of_book_bbo",
-            "limit_fidelity": metadata.get("limit_fidelity"),
-            "depth_fidelity": metadata.get("depth_fidelity"),
-            "margin": str(getattr(margin.model, "value", margin.model)),
-            "venue_exact_margin": bool(margin.venue_exact),
-            "prepared_cache_used": bool(metadata.get("prepared_cache_used", False)),
-        },
-        "option_reports": [
-            "fills_report",
-            "packages_report",
-            "cash_report",
-            "marks_report",
-            "greeks_report",
-            "settlements_report",
-            "margin_report",
-            "attribution_report",
-        ],
-    }
-    result_metadata = {
-        **metadata,
-        "order_report": order_report,
-        "fills_report": fills_report,
-        "packages_report": package_report,
-        "cash_report": cash_report,
-        "marks_report": marks_report,
-        "greeks_report": greeks_report,
-        "settlements_report": settlements_report,
-        "margin_report": margin.detail_report,
-        "attribution_report": attribution_report,
-        "run_manifest": run_manifest,
-        "ledger_event_report": ledger.event_report(),
-        "equity_identity": ledger.equity_identity_report(
-            conversion_rates=conversion_rates,
-            marks=_snapshot_marks(tape, tape.snapshot_count - 1),
-            instruments=registry.by_symbol,
-            reporting_currency=report_ccy,
-        ),
-    }
-    fees = pd.Series(0.0, index=equity.index, name="fees")
-    if len(fees) > 0:
-        fees.iloc[-1] = float(sum((fee.fee if fee is not None else fill.fee) for fill, fee in fills_with_fees))
-    return OptionBacktestResult(
-        equity=equity,
-        returns=returns,
-        positions=positions,
-        closes=closes,
-        symbols=symbols,
-        initial_capital=float(account.initial_capital),
-        leverage=float(account.leverage),
-        liquidated=False,
-        fills=tuple(fill for fill, _ in fills_with_fees),
-        fees=fees,
-        margin=margin.detail_report,
-        diagnostics=package_report,
-        metadata=result_metadata,
-        fills_report=fills_report,
-        packages_report=package_report,
-        cash_report=cash_report,
-        marks_report=marks_report,
-        greeks_report=greeks_report,
-        settlements_report=settlements_report,
-        margin_report=margin.detail_report,
-        attribution_report=attribution_report,
-        run_manifest=run_manifest,
-    )
-
-
-def _concat(frames: Iterable[pd.DataFrame]) -> pd.DataFrame:
-    items = [frame for frame in frames if frame is not None and not frame.empty]
-    return pd.concat(items, ignore_index=True) if items else pd.DataFrame()
-
-
-def _chain_data_hash(frame: pd.DataFrame) -> str:
-    if frame.empty:
-        return "0"
-    hashed = pd.util.hash_pandas_object(frame.sort_index(axis=1), index=False).to_numpy(dtype="uint64")
-    return str(int(hashed.sum(dtype="uint64")))
-
-
-def _stable_hash(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
-
-
-def _attach_delta_hedge_contract(
-    result: OptionBacktestResult,
-    *,
     tape: PreparedOptionTape,
-    registry: OptionInstrumentRegistry,
-    underlying: Optional[pd.DataFrame | pd.Series],
-    hedge_policy: OptionHedgeConfig,
-    net_option_delta: Optional[pd.Series],
-    account: AccountConfig,
-    report_ccy: str,
-) -> OptionBacktestResult:
-    path_timestamps = np.concatenate((np.array([int(tape.timestamp_ns[0]) - 1], dtype=np.int64), tape.timestamp_ns.astype(np.int64)))
-    index = _datetime_index_from_ns(path_timestamps)
-    option_equity, positions, closes, fees = _linear_quote_option_path(
-        result,
+    snapshot_idx: int,
+    instruments: Mapping[str, OptionInstrumentSpec],
+    config: NativeOptionConfig,
+    conversion_rates: Mapping[str, float],
+    reporting_currency: str,
+    label: str,
+    timestamp_override_ns: Optional[int] = None,
+) -> OptionMarginRequirement:
+    margin, equity = _margin_at_snapshot(
+        ledger,
         tape,
-        registry,
-        account,
-        report_ccy,
-        index,
-        path_timestamps,
+        snapshot_idx,
+        instruments,
+        config=config,
+        conversion_rates=conversion_rates,
+        reporting_currency=reporting_currency,
     )
-    deltas = _normalize_net_delta(net_option_delta, result.greeks_report, positions, registry, index)
-    prices, underlying_source = _normalize_underlying_prices(underlying, tape, index)
-
-    hedge = run_delta_hedge_path(
-        timestamps_ns=list(path_timestamps),
-        underlying_prices=prices.to_numpy(dtype=np.float64),
-        net_option_deltas=deltas.to_numpy(dtype=np.float64),
-        config=hedge_policy,
-    )
-    hedge_report = hedge.hedge_report.copy()
-    hedge_report.index = index
-    cumulative_hedge = pd.Series(
-        hedge_report["cumulative_hedge_pnl"].to_numpy(dtype=np.float64),
-        index=index,
-        name="hedge_pnl",
-    )
-    combined = (option_equity + cumulative_hedge).rename("equity")
-    combined_returns = combined.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-    result.option_equity = option_equity
-    result.hedge_report = hedge_report
-    result.combined_equity = combined
-    result.combined_returns = combined_returns
-    result.equity = combined
-    result.returns = combined_returns
-    result.positions = positions
-    result.closes = closes
-    result.fees = fees
-    result.metadata["option_equity"] = option_equity
-    result.metadata["hedge_report"] = hedge_report
-    result.metadata["combined_equity"] = combined
-    result.metadata["combined_returns"] = combined_returns
-    result.metadata["delta_hedge_contract"] = {
-        "enabled": True,
-        "underlying_source": underlying_source,
-        "policy": hedge_policy.policy.value,
-        "target_delta": float(hedge_policy.target_delta),
-        "final_hedge_qty": float(hedge.final_hedge_qty),
-        "hedge_pnl": float(hedge.hedge_pnl),
-        "hedge_rebalances": int(hedge_report["should_rebalance"].sum()) if not hedge_report.empty else 0,
-        "option_path_method": result.metadata.get("option_path_method", "linear_quote_replay"),
-    }
-    result.run_manifest["delta_hedge"] = result.metadata["delta_hedge_contract"]
-    result.run_manifest["final_equity"] = float(combined.iloc[-1])
-    result.metadata["run_manifest"] = result.run_manifest
-    return result
-
-
-def _linear_quote_option_path(
-    result: OptionBacktestResult,
-    tape: PreparedOptionTape,
-    registry: OptionInstrumentRegistry,
-    account: AccountConfig,
-    report_ccy: str,
-    index: pd.DatetimeIndex,
-    path_timestamps: np.ndarray,
-) -> tuple[pd.Series, pd.DataFrame, pd.DataFrame, pd.Series]:
-    symbols = list(registry.symbols)
-    linear_quote_exact = all(
-        instrument.premium_currency.upper() == report_ccy and instrument.settlement_currency.upper() == report_ccy
-        for instrument in registry.instruments
-    )
-    if not linear_quote_exact:
-        option_equity = result.equity.reindex(index).ffill().bfill().rename("option_equity")
-        positions = result.positions.reindex(index).ffill().fillna(0.0)
-        closes = result.closes.reindex(index).ffill().bfill()
-        fees = result.fees.reindex(index).fillna(0.0)
-        result.metadata["option_path_method"] = "event_equity_reindexed_non_quote_currency"
-        return option_equity, positions, closes, fees
-
-    cash = float(account.initial_capital)
-    pos = {symbol: 0.0 for symbol in symbols}
-    fills = result.fills_report.sort_values("timestamp") if not result.fills_report.empty else pd.DataFrame()
-    fill_idx = 0
-    equity_rows = []
-    position_rows = []
-    close_rows = []
-    fee_values = []
-    mark_by_ts_symbol = _mark_lookup(tape)
-
-    for ts, dt in zip(path_timestamps, index):
-        snap_idx = max(0, int(np.searchsorted(tape.timestamp_ns, int(ts), side="right") - 1))
-        fee_at_ts = 0.0
-        while not fills.empty and fill_idx < len(fills) and int(fills.iloc[fill_idx]["timestamp"]) <= int(ts):
-            row = fills.iloc[fill_idx]
-            qty = float(row["qty"])
-            price = float(row["price"])
-            fee = float(row.get("applied_fee", row.get("execution_fee", 0.0)))
-            symbol = str(row["symbol"])
-            side = str(row["side"]).lower()
-            if side == "buy":
-                cash -= qty * price + fee
-                pos[symbol] = pos.get(symbol, 0.0) + qty
-            else:
-                cash += qty * price - fee
-                pos[symbol] = pos.get(symbol, 0.0) - qty
-            fee_at_ts += fee
-            fill_idx += 1
-        mark_ts = int(tape.timestamp_ns[snap_idx])
-        marks = {symbol: mark_by_ts_symbol.get((mark_ts, symbol), np.nan) for symbol in symbols}
-        marked_value = sum(pos.get(symbol, 0.0) * marks[symbol] for symbol in symbols if np.isfinite(marks[symbol]))
-        equity_rows.append(cash + marked_value)
-        position_rows.append({f"Position_{symbol}": pos.get(symbol, 0.0) for symbol in symbols})
-        close_rows.append({f"Close_{symbol}": marks[symbol] for symbol in symbols})
-        fee_values.append(fee_at_ts)
-
-    option_equity = pd.Series(equity_rows, index=index, name="option_equity")
-    positions = pd.DataFrame(position_rows, index=index).fillna(0.0)
-    closes = pd.DataFrame(close_rows, index=index).ffill().bfill()
-    fees = pd.Series(fee_values, index=index, name="fees")
-    result.metadata["option_path_method"] = "linear_quote_replay"
-    return option_equity, positions, closes, fees
-
-
-def _normalize_net_delta(
-    net_option_delta: Optional[pd.Series],
-    greeks_report: pd.DataFrame,
-    positions: pd.DataFrame,
-    registry: OptionInstrumentRegistry,
-    index: pd.DatetimeIndex,
-) -> pd.Series:
-    if net_option_delta is not None:
-        series = _coerce_series_index(net_option_delta, "net_option_delta")
-        return series.reindex(index).ffill().bfill().fillna(0.0).rename("net_option_delta")
-    if greeks_report.empty:
-        return pd.Series(0.0, index=index, name="net_option_delta")
-    greeks = greeks_report.copy()
-    greeks["datetime"] = pd.to_datetime(greeks["timestamp_ns"], utc=True).dt.tz_convert(None)
-    delta = greeks.pivot_table(index="datetime", columns="instrument_id", values="delta", aggfunc="last").reindex(index).ffill()
-    total = pd.Series(0.0, index=index, name="net_option_delta")
-    instruments = registry.by_symbol
-    for symbol in registry.symbols:
-        pos_col = f"Position_{symbol}"
-        if pos_col not in positions or symbol not in delta:
-            continue
-        multiplier = float(instruments[symbol].multiplier)
-        contribution = pd.Series(
-            positions[pos_col].to_numpy(dtype=np.float64) * delta[symbol].fillna(0.0).to_numpy(dtype=np.float64) * multiplier,
-            index=index,
-        )
-        total = total.add(contribution, fill_value=0.0)
-    return total.fillna(0.0).rename("net_option_delta")
-
-
-def _normalize_underlying_prices(
-    underlying: Optional[pd.DataFrame | pd.Series],
-    tape: PreparedOptionTape,
-    index: pd.DatetimeIndex,
-) -> tuple[pd.Series, str]:
-    if underlying is None:
-        tape_index = _datetime_index_from_ns(tape.timestamp_ns.astype(np.int64))
-        base = pd.Series(
-            [_snapshot_underlying_price(tape, i) for i in range(tape.snapshot_count)],
-            index=tape_index,
-            name="underlying_price",
-        )
-        return _align_price_series(base, index), "option_chain_index_price"
-    if isinstance(underlying, pd.Series):
-        series = _coerce_series_index(underlying, "underlying_price")
-        return _align_price_series(series, index), "underlying_series"
-    if not isinstance(underlying, pd.DataFrame):
-        raise TypeError("underlying must be a pandas Series or DataFrame")
-    frame = underlying.copy()
-    if "timestamp_ns" in frame.columns:
-        idx = pd.to_datetime(frame["timestamp_ns"].astype("int64"), utc=True).dt.tz_convert(None)
-    elif "time" in frame.columns:
-        idx = pd.to_datetime(frame["time"], utc=True, errors="coerce").dt.tz_convert(None)
-    elif isinstance(frame.index, pd.DatetimeIndex):
-        idx = pd.DatetimeIndex(pd.to_datetime(frame.index, utc=True)).tz_convert(None)
-    else:
-        raise ValueError("underlying DataFrame requires timestamp_ns, time, or DatetimeIndex")
-    column = "close" if "close" in frame.columns else ("price" if "price" in frame.columns else None)
-    if column is None:
-        raise ValueError("underlying DataFrame requires close or price column")
-    series = pd.Series(pd.to_numeric(frame[column], errors="raise").to_numpy(dtype=np.float64), index=idx, name="underlying_price")
-    return _align_price_series(series, index), f"underlying_dataframe:{column}"
-
-
-def _align_price_series(series: pd.Series, index: pd.DatetimeIndex) -> pd.Series:
-    out = series.sort_index()
-    out = out[~out.index.duplicated(keep="last")]
-    out = out.reindex(index).ffill().bfill()
-    if out.isna().any() or bool((out <= 0.0).any()):
-        raise ValueError("underlying prices must align to option tape and be finite > 0")
-    return out.rename("underlying_price")
-
-
-def _coerce_series_index(series: pd.Series, name: str) -> pd.Series:
-    out = series.copy()
-    if not isinstance(out.index, pd.DatetimeIndex):
-        out.index = pd.to_datetime(out.index, utc=True)
-    else:
-        out.index = pd.DatetimeIndex(pd.to_datetime(out.index, utc=True))
-    out.index = out.index.tz_convert(None)
-    out = pd.to_numeric(out, errors="raise").astype("float64")
-    out.name = name
-    return out
-
-
-def _datetime_index_from_ns(timestamps_ns: np.ndarray) -> pd.DatetimeIndex:
-    return pd.DatetimeIndex(pd.to_datetime(timestamps_ns, utc=True)).tz_convert(None)
-
-
-def _mark_lookup(tape: PreparedOptionTape) -> Dict[tuple[int, str], float]:
-    out: Dict[tuple[int, str], float] = {}
-    for snap_idx, ts in enumerate(tape.timestamp_ns):
-        slc = tape.snapshot_slice(snap_idx)
-        for idx in range(slc.start, slc.stop):
-            out[(int(ts), tape.instrument_id[idx])] = float(tape.mark_price[idx])
-    return out
-
-
-def _snapshot_underlying_price(tape: PreparedOptionTape, snapshot_idx: int) -> float:
-    rows = tape.snapshot_slice(snapshot_idx)
-    for idx in range(rows.start, rows.stop):
-        price = tape.index_price[idx] if np.isfinite(tape.index_price[idx]) else tape.forward_price[idx]
-        if np.isfinite(price) and price > 0.0:
-            return float(price)
-    raise ValueError("option tape snapshot has no finite underlying/index price")
-
-
-def _cash_report(snapshots: Sequence[Dict], index: pd.DatetimeIndex) -> pd.DataFrame:
-    currencies = sorted({currency for snap in snapshots for currency in snap["cash"]})
-    return pd.DataFrame(
-        [{currency: snap["cash"].get(currency, 0.0) for currency in currencies} for snap in snapshots],
-        index=index,
-        columns=currencies,
-    )
-
-
-def _marks_report(tape: PreparedOptionTape) -> pd.DataFrame:
-    rows = []
-    for snap_idx, ts in enumerate(tape.timestamp_ns):
-        slc = tape.snapshot_slice(snap_idx)
-        for idx in range(slc.start, slc.stop):
-            rows.append(
-                {
-                    "timestamp_ns": int(ts),
-                    "instrument_id": tape.instrument_id[idx],
-                    "bid_price": float(tape.bid_price[idx]),
-                    "ask_price": float(tape.ask_price[idx]),
-                    "mark_price": float(tape.mark_price[idx]),
-                    "index_price": float(tape.index_price[idx]),
-                    "forward_price": float(tape.forward_price[idx]),
-                    "bid_size": float(tape.bid_size[idx]),
-                    "ask_size": float(tape.ask_size[idx]),
-                }
-            )
-    return pd.DataFrame(rows)
-
-
-def _greeks_report(tape: PreparedOptionTape) -> pd.DataFrame:
-    return pd.DataFrame(
+    required = float(margin.initial_margin) + float(config.account.margin_buffer)
+    timeline.append(
         {
-            "timestamp_ns": np.repeat(tape.timestamp_ns, np.diff(tape.row_ptr)),
-            "instrument_id": tape.instrument_id,
-            "mark_iv": tape.mark_iv,
-            "bid_iv": tape.bid_iv,
-            "ask_iv": tape.ask_iv,
-            "delta": tape.delta,
-            "gamma": tape.gamma,
-            "vega": tape.vega,
-            "theta": tape.theta,
+            "timestamp_ns": int(
+                tape.timestamp_ns[snapshot_idx] if timestamp_override_ns is None else timestamp_override_ns
+            ),
+            "label": label,
+            "equity": float(equity),
+            "initial_margin": float(margin.initial_margin),
+            "maintenance_margin": float(margin.maintenance_margin),
+            "available_collateral": float(equity - required),
+            "margin_model": margin.model.value,
+            "venue_exact": bool(margin.venue_exact),
+            "maintenance_breached": bool(equity < margin.maintenance_margin),
         }
     )
+    return margin
 
 
-def _fills_report(fills_with_fees: Sequence[tuple]) -> pd.DataFrame:
-    rows = []
-    for fill, fee in fills_with_fees:
-        rows.append(
-            {
-                "timestamp": fill.timestamp,
-                "symbol": fill.symbol,
-                "side": fill.side.value,
-                "qty": float(fill.qty),
-                "price": float(fill.price),
-                "notional": float(fill.notional),
-                "execution_fee": float(fill.fee),
-                "applied_fee": float(fee.fee if fee is not None else fill.fee),
-                "fee_currency": fee.currency if fee is not None else "",
-                "liquidity": fill.liquidity.value,
-                "order_id": fill.order_id,
-                "package_id": fill.metadata.get("package_id"),
-            }
-        )
-    return pd.DataFrame(rows)
-
-
-def _settlements_report(settlements: Sequence) -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {
-                "timestamp_ns": item.timestamp_ns,
-                "symbol": item.symbol,
-                "settlement_price": item.settlement_price,
-                "payoff_per_unit": item.payoff_per_unit,
-                "cashflow": item.cashflow,
-                "settlement_currency": item.settlement_currency,
-                "representation": item.representation.value,
-                "itm": item.itm,
-                "position_closed": item.position_closed,
-            }
-            for item in settlements
-        ]
-    )
-
-
-def _attribution_report(
+def _admit_option_package(
+    *,
+    package: OptionPackageIntent,
+    quote_result,
     ledger: OptionLedger,
+    tape: PreparedOptionTape,
+    snapshot_idx: int,
+    instruments: Mapping[str, OptionInstrumentSpec],
     account: AccountConfig,
-    final_equity: float,
-    report_ccy: str,
-    conversion_rates: Dict[str, float],
-) -> pd.DataFrame:
-    rows = []
-    for currency, amount in ledger.cash.items():
-        rate = 1.0 if currency == report_ccy else float(conversion_rates.get(currency, np.nan))
-        rows.append({"bucket": "cash", "currency": currency, "amount": float(amount), "reporting_value": float(amount) * rate})
-    for currency, fee in ledger.fees.items():
-        rate = 1.0 if currency == report_ccy else float(conversion_rates.get(currency, np.nan))
-        rows.append({"bucket": "fees", "currency": currency, "amount": -float(fee), "reporting_value": -float(fee) * rate})
-    rows.append(
-        {
-            "bucket": "total",
-            "currency": report_ccy,
-            "amount": float(final_equity - account.initial_capital),
-            "reporting_value": float(final_equity - account.initial_capital),
-        }
+    margin_config: OptionMarginConfig,
+    fee_schedule: Optional[OptionFeeSchedule],
+    conversion_rates: Mapping[str, float],
+    reporting_currency: str,
+    external_margin_validator: Optional[ExternalOptionMarginValidator],
+    require_venue_exact_margin: bool,
+) -> Dict:
+    """Preview fees/cash/positions/margin, then commit the exact same fills once."""
+
+    if quote_result.package_report.empty:
+        return _reject_quoted_package(quote_result, package, "PACKAGE_QUOTE_REPORT_MISSING", reporting_currency)
+    quoted_status = str(quote_result.package_report.iloc[0].get("status", "rejected"))
+    if not quote_result.fills:
+        return _annotate_option_package_result(
+            quote_result,
+            package,
+            accepted=False,
+            reason=str(quote_result.package_report.iloc[0].get("reject_reason", "NO_EXECUTABLE_FILL")) or "NO_EXECUTABLE_FILL",
+            reporting_currency=reporting_currency,
+            financial_admission="not_applicable",
+        )
+    guard_currency = str(package.metadata.get("guard_currency", reporting_currency)).upper()
+    if guard_currency != str(reporting_currency).upper():
+        return _reject_quoted_package(quote_result, package, "OPTION_GUARD_CURRENCY_UNSUPPORTED", reporting_currency)
+
+    fills_with_fees = _resolve_authoritative_fills(
+        quote_result.fills,
+        tape=tape,
+        instruments=instruments,
+        fee_schedule=fee_schedule,
     )
-    return pd.DataFrame(rows)
+    preview = ledger.clone()
+    _apply_fills_to_ledger(preview, fills_with_fees, instruments)
+    preview_config = NativeOptionConfig(
+        account=account,
+        margin=margin_config,
+        fee_schedule=fee_schedule,
+        reporting_currency=reporting_currency,
+        conversion_rates=dict(conversion_rates),
+        external_margin_validator=external_margin_validator,
+        require_venue_exact_margin=require_venue_exact_margin,
+    )
+    margin, equity_after = _margin_at_snapshot(
+        preview,
+        tape,
+        snapshot_idx,
+        instruments,
+        config=preview_config,
+        conversion_rates=conversion_rates,
+        reporting_currency=reporting_currency,
+    )
+    net_cash_delta = _cash_delta_in_reporting(ledger.cash, preview.cash, conversion_rates, reporting_currency)
+    debit = max(-net_cash_delta, 0.0)
+    credit = max(net_cash_delta, 0.0)
+    required = float(margin.initial_margin) + float(account.margin_buffer)
+    available = float(equity_after - required)
+    rejection = ""
+    if package.max_debit is not None and debit > float(package.max_debit) + 1e-12:
+        rejection = "MAX_DEBIT_EXCEEDED"
+    elif package.min_credit is not None and credit + 1e-12 < float(package.min_credit):
+        rejection = "MIN_CREDIT_NOT_MET"
+    elif available < -1e-12:
+        rejection = "POST_COST_MARGIN"
+    if rejection:
+        return _reject_quoted_package(
+            quote_result,
+            package,
+            rejection,
+            reporting_currency,
+            preflight={
+                "net_cash_delta": net_cash_delta,
+                "debit": debit,
+                "credit": credit,
+                "equity": equity_after,
+                "initial_margin": float(margin.initial_margin),
+                "maintenance_margin": float(margin.maintenance_margin),
+                "available_collateral": available,
+                "guard_currency": reporting_currency,
+            },
+        )
+    _apply_fills_to_ledger(ledger, fills_with_fees, instruments)
+    return _annotate_option_package_result(
+        quote_result,
+        package,
+        accepted=True,
+        reason="",
+        reporting_currency=reporting_currency,
+        fills_with_fees=fills_with_fees,
+        instruments=instruments,
+        financial_admission="accepted",
+        preflight={
+            "net_cash_delta": net_cash_delta,
+            "debit": debit,
+            "credit": credit,
+            "equity": equity_after,
+            "initial_margin": float(margin.initial_margin),
+            "maintenance_margin": float(margin.maintenance_margin),
+            "available_collateral": available,
+            "guard_currency": reporting_currency,
+            "quoted_status": quoted_status,
+        },
+        margin=margin,
+    )
+
+
+def _reject_quoted_package(quote_result, package: OptionPackageIntent, reason: str, reporting_currency: str, *, preflight: Optional[Dict] = None) -> Dict:
+    order_report = quote_result.order_report.copy()
+    if not order_report.empty:
+        order_report["status"] = "rejected"
+        order_report["reject_reason"] = reason
+        order_report["filled_qty"] = 0.0
+        order_report["residual_qty"] = order_report["requested_qty"]
+        order_report["fee"] = 0.0
+        order_report["cash_delta"] = 0.0
+    return _annotate_option_package_result(
+        quote_result,
+        package,
+        accepted=False,
+        reason=reason,
+        reporting_currency=reporting_currency,
+        order_report=order_report,
+        financial_admission="rejected",
+        preflight=preflight,
+    )
+
+
+def _annotate_option_package_result(
+    quote_result,
+    package: OptionPackageIntent,
+    *,
+    accepted: bool,
+    reason: str,
+    reporting_currency: str,
+    order_report: Optional[pd.DataFrame] = None,
+    fills_with_fees: Sequence[tuple] = (),
+    instruments: Optional[Mapping[str, OptionInstrumentSpec]] = None,
+    financial_admission: str,
+    preflight: Optional[Dict] = None,
+    margin: Optional[OptionMarginRequirement] = None,
+) -> Dict:
+    order_report = quote_result.order_report.copy() if order_report is None else order_report
+    unmatched_fills = list(fills_with_fees)
+    if not order_report.empty:
+        order_report["applied_fee"] = 0.0
+        order_report["fee_currency"] = ""
+        order_report["financial_authority"] = "option_ledger_preview_commit_v1"
+        for row_index, row in order_report.iterrows():
+            item_index = next(
+                (
+                    index
+                    for index, (fill, _) in enumerate(unmatched_fills)
+                    if fill.symbol == str(row.get("symbol"))
+                    and fill.side.value == str(row.get("side"))
+                    and (
+                        fill.order_id == row.get("order_id")
+                        or fill.order_id is None
+                        or pd.isna(row.get("order_id"))
+                    )
+                ),
+                None,
+            )
+            item = None if item_index is None else unmatched_fills.pop(item_index)
+            if item is None:
+                continue
+            fill, fee = item
+            instrument_multiplier = float(instruments[fill.symbol].multiplier) if instruments is not None else 1.0
+            order_report.at[row_index, "fee"] = float(fill.fee)
+            order_report.at[row_index, "applied_fee"] = float(fill.fee)
+            order_report.at[row_index, "fee_currency"] = fee.currency if fee is not None else ""
+            premium = float(fill.qty) * float(fill.price) * instrument_multiplier
+            order_report.at[row_index, "cash_delta"] = premium - float(fill.fee) if fill.side.value == "sell" else -(premium + float(fill.fee))
+    package_report = quote_result.package_report.copy()
+    if package_report.empty:
+        package_report = pd.DataFrame([{"package_id": package.package_id}])
+    package_report["status"] = "filled" if accepted and str(package_report.iloc[0].get("status", "")) == "filled" else (
+        "partial" if accepted else "rejected"
+    )
+    package_report["reject_reason"] = reason
+    package_report["financial_admission"] = financial_admission
+    package_report["financial_authority"] = "option_ledger_preview_commit_v1"
+    package_report["guard_currency"] = str(reporting_currency).upper()
+    for key, value in (preflight or {}).items():
+        package_report[f"preflight_{key}"] = value
+    if preflight is not None:
+        for key in ("net_cash_delta", "debit", "credit"):
+            if key in preflight:
+                package_report[key] = preflight[key]
+    if margin is not None:
+        package_report["preflight_margin_model"] = margin.model.value
+        package_report["preflight_venue_exact"] = bool(margin.venue_exact)
+    return {
+        "accepted": bool(accepted),
+        "fills_with_fees": tuple(fills_with_fees),
+        "order_report": order_report,
+        "package_report": package_report,
+        "margin": margin,
+    }

@@ -153,6 +153,7 @@ def build_arrays(
     lows_dict:     Dict[str, pd.Series],
     signals_dict:  Dict[str, pd.Series],
     funding_dict:  Dict[str, pd.Series],
+    preserve_signal_nan: bool = False,
 ) -> tuple:
     """
     Pack all per-symbol Series into contiguous float64 numpy arrays
@@ -171,7 +172,12 @@ def build_arrays(
         lows_dict=lows_dict,
         funding_dict=funding_dict,
     )
-    signals = build_signal_matrix(symbols=symbols, idx=idx, signals_dict=signals_dict)
+    signals = build_signal_matrix(
+        symbols=symbols,
+        idx=idx,
+        signals_dict=signals_dict,
+        preserve_nan=preserve_signal_nan,
+    )
     return market.closes, market.highs, market.lows, signals, market.funding, market.is_funding_bar
 
 
@@ -230,12 +236,19 @@ def build_signal_matrix(
     symbols: list,
     idx: pd.DatetimeIndex,
     signals_dict: Dict[str, pd.Series],
+    preserve_nan: bool = False,
 ) -> np.ndarray:
     n = len(idx)
     s = len(symbols)
     signals = np.zeros((n, s), dtype=np.float64)
     for k, sym in enumerate(symbols):
-        signals[:, k] = signals_dict[sym].fillna(0).values
+        series = signals_dict[sym]
+        # The historical vectorized signal route treats missing values as flat
+        # targets.  Explicit Rust direct-target execution has a stricter
+        # reject-run contract: an omitted/invalid target must reach the native
+        # request unchanged so it can fail closed rather than becoming zero.
+        values = series.values if preserve_nan else series.fillna(0).values
+        signals[:, k] = values
     return np.ascontiguousarray(signals, dtype=np.float64)
 
 

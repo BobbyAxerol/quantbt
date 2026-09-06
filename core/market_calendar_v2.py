@@ -406,6 +406,76 @@ class PreparedMarketCacheV2:
 _ALLOCATION_SEQUENCE = 0
 
 
+def prepare_calendar_plan_v2(
+    source_indexes: Mapping[str, pd.DatetimeIndex | pd.Series | pd.DataFrame] | pd.DatetimeIndex,
+    *,
+    calendar_policy: CalendarPolicyV2 | str = CalendarPolicyV2.EXACT,
+    missing_policy: MissingObservationPolicyV1 | str = MissingObservationPolicyV1.NO_OBSERVATION,
+    primary_symbol: Optional[str] = None,
+) -> CalendarPlanV2:
+    """Build an immutable calendar plan without requiring OHLCV columns.
+
+    WFO strategy frames commonly contain research features rather than a full
+    executable market schema.  They still need the same canonical-clock proof
+    as executable market data, so this helper reuses CalendarPlanV2's mapping
+    rules without materializing price arrays.  The fingerprint covers every
+    source timestamp and map; callers must separately include result-affecting
+    values in their data signature.
+    """
+
+    policy = _as_policy(calendar_policy)
+    missing = _as_missing_policy(missing_policy)
+    if isinstance(source_indexes, pd.DatetimeIndex):
+        raw = {"DEFAULT": source_indexes}
+    elif isinstance(source_indexes, Mapping):
+        raw = dict(source_indexes)
+    else:
+        raise TypeError("source_indexes must be a DatetimeIndex or mapping of indexed objects")
+    if not raw:
+        raise ValueError("CalendarPlanV2 requires at least one source calendar")
+    indexes: dict[str, pd.DatetimeIndex] = {}
+    for key, value in raw.items():
+        symbol = str(key)
+        index = value.index if isinstance(value, (pd.Series, pd.DataFrame)) else value
+        indexes[symbol] = _utc_index(pd.DatetimeIndex(index), symbol=symbol)
+    symbols = tuple(sorted(indexes))
+    primary = str(primary_symbol) if primary_symbol is not None else symbols[0]
+    if policy is CalendarPolicyV2.PRIMARY_CLOCK and primary not in indexes:
+        raise ValueError("primary_symbol must be present in source_indexes")
+    canonical = _canonical_index(indexes, policy=policy, primary_symbol=primary)
+    maps = _build_maps(
+        indexes,
+        canonical,
+        policy=policy,
+        missing_policy=missing,
+        primary_symbol=primary,
+    )
+    digest = sha256()
+    digest.update(MARKET_CALENDAR_V2_SCHEMA.encode())
+    digest.update(b"|calendar-only-v1|")
+    digest.update(policy.value.encode())
+    digest.update(missing.value.encode())
+    digest.update((primary if policy is CalendarPolicyV2.PRIMARY_CLOCK else "").encode())
+    digest.update(json.dumps(list(symbols), separators=(",", ":")).encode())
+    digest.update(np.ascontiguousarray(canonical.view("int64"), dtype=np.int64).tobytes())
+    for mapping in maps:
+        digest.update(mapping.symbol.encode())
+        digest.update(mapping.canonical_to_local.tobytes())
+        digest.update(mapping.local_to_canonical.tobytes())
+        digest.update(mapping.observed.tobytes())
+        digest.update(mapping.stale.tobytes())
+        digest.update(mapping.tradable.tobytes())
+    return CalendarPlanV2(
+        timestamps_ns=canonical.view("int64"),
+        symbols=symbols,
+        policy=policy,
+        missing_policy=missing,
+        symbol_maps=maps,
+        primary_symbol=primary if policy is CalendarPolicyV2.PRIMARY_CLOCK else None,
+        fingerprint=digest.hexdigest(),
+    )
+
+
 def prepare_market_handle_v2(
     data: pd.DataFrame | Mapping[str, pd.DataFrame] | PreparedMarketHandleV2,
     *,
@@ -668,5 +738,6 @@ __all__ = [
     "PreparedMarketCacheV2",
     "PreparedMarketHandleV2",
     "SymbolCalendarMapV2",
+    "prepare_calendar_plan_v2",
     "prepare_market_handle_v2",
 ]

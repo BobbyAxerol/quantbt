@@ -11,6 +11,7 @@ from ..core.instrument_registry_v2 import InstrumentRegistryV2
 from ..core.market_calendar_v2 import PreparedMarketHandleV2
 from ..core.orders import OrderCommand
 from ..core.schema import AccountConfig, ExecutionConfig
+from ..core.runtime_governance import RuntimeBudgetV1
 from ..planning import (
     BacktestRequest,
     RunProfile,
@@ -69,10 +70,13 @@ def execute_native_event_lifecycle(
     slot_size,
     min_qty,
     min_notional,
+    native_static_abi: str = "0.5",
     diagnostics: bool = False,
     market_handle: PreparedMarketHandleV2 | None = None,
     instrument_registry: InstrumentRegistryV2 | None = None,
     calendar_contract: str = "legacy_v1",
+    runtime_budget: RuntimeBudgetV1 | None = None,
+    shadow_evidence_dir: str | None = None,
 ) -> NativeEventLifecycleOutcome:
     """Execute the P1 static-command compatibility route.
 
@@ -171,7 +175,10 @@ def execute_native_event_lifecycle(
             native_backend=plan.backend.value,
             backend_policy=plan.backend_policy,
             execution_contract=clock,
+            native_static_abi=native_static_abi,
             diagnostics=diagnostics,
+            runtime_budget=runtime_budget or RuntimeBudgetV1(),
+            shadow_evidence_dir=shadow_evidence_dir,
         )
     )
     result = engine.run_order_commands(

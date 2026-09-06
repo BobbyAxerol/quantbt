@@ -1,0 +1,76 @@
+{
+  "benchmark": "phase65_native_wfo_runtime_v2",
+  "copy_contract": {
+    "candidate_execution_copy_bytes": 0,
+    "intent_ingest_bytes": 8389120,
+    "market_copy_bytes": 0
+  },
+  "optimizer": {
+    "audit_rows": 4,
+    "best_value": 21.554819235758806,
+    "candidate_sequence_equivalent_to_sequential": true,
+    "executed": true,
+    "schedule": "certified_sequential_v1"
+  },
+  "parity": {
+    "exact_counts": {
+      "fill_count": true,
+      "rejected_count": true
+    },
+    "max_abs_error": {
+      "final_equity": 0.0,
+      "total_fee": 0.0,
+      "total_funding": 0.0,
+      "turnover": 0.0
+    },
+    "passed": true
+  },
+  "persistent_runtime_vs_legacy_fold_oracle_speedup": 1.3738394809786418,
+  "rss_mb": {
+    "after_optimizer": 180.02734375,
+    "cold_after_import": 148.86328125,
+    "warm_after_score": 172.66015625,
+    "warm_incremental": 23.796875
+  },
+  "runtime": {
+    "active_worker_count": 2,
+    "audit_batches": 0,
+    "bars": 4096,
+    "canceled_tasks": 0,
+    "closed": false,
+    "completed_tasks": 768,
+    "fold_count": 4,
+    "intent_kind": "strategy_ir_signal_target_v1",
+    "market_bytes": 233472,
+    "optimizer_schedule": "fixed_matrix_v1",
+    "plan_fingerprint": "1017dc04065a27c4cacc1a50a54a3b25bb553c5cdda21852fb3e9ad28dfe577c",
+    "poison_recoveries": 0,
+    "runtime_version": 2,
+    "score_batches": 3,
+    "worker_pool_creations": 1,
+    "worker_tasks": [
+      377,
+      391
+    ]
+  },
+  "scope": "single_symbol_strategy_ir_signal_target_v1_reset_flat_per_oos_fold",
+  "throughput_candidate_fold_bars_per_second": 4509729.811336561,
+  "timings_seconds": {
+    "cold_report": 0.0007405849173665047,
+    "intent_ingest": 0.2974963113665581,
+    "legacy_fold_oracle": 0.3194371210411191,
+    "native_score_and_metrics": 0.23251415137201548,
+    "optimizer_end_to_end": 0.3859547348693013,
+    "runtime_prepare": 0.03979226388037205,
+    "strategy_generate": 0.022472819313406944,
+    "strategy_prepare": 0.00011323951184749603
+  },
+  "workload": {
+    "bars": 4096,
+    "candidates": 64,
+    "folds": 4,
+    "optimizer_trials": 16,
+    "repeats": 3,
+    "workers": 2
+  }
+}

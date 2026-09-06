@@ -1,0 +1,48 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase63-sparse-block-batch-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_r2_r3_r3b_only_with_shadow_certification_and_no_auto_promotion",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "R2_R3_PUBLIC_SPARSE_BLOCK",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "python_numeric_callback_sparse_wake_or_block_intent",
+      "profiles": [
+        "minimal",
+        "standard",
+        "audit"
+      ],
+      "fixture": "deterministic 10,000-bar one-symbol numeric callback tape with a 32-bar decision cadence and exact R1/R2/R3 trace parity",
+      "baseline_path": "benchmarks/native_event/results/phase63_sparse_block_batch.json",
+      "baseline_sha256": "af0b6167deb425e204c1c9b471e5ed2785478469fc92399e99922e8fe2265265",
+      "required_result_fields": [
+        "public_routes",
+        "parity",
+        "route_policy"
+      ]
+    },
+    {
+      "id": "R3B_PREPARED_CANDIDATE_BATCH",
+      "contract_ids": [
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_mode": "python_numeric_candidate_batch",
+      "profiles": [
+        "minimal"
+      ],
+      "fixture": "sixteen independent deterministic candidate sessions over one immutable 10,000-bar prepared tape",
+      "baseline_path": "benchmarks/native_event/results/phase63_sparse_block_batch.json",
+      "baseline_sha256": "af0b6167deb425e204c1c9b471e5ed2785478469fc92399e99922e8fe2265265",
+      "required_result_fields": [
+        "candidate_batch",
+        "parity",
+        "route_policy"
+      ]
+    }
+  ]
+}

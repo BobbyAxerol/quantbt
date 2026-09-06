@@ -10,6 +10,7 @@ The machine-readable artifact is [`v1_1_corpus_manifest.json`](../../benchmarks/
 | `atomic_package` | `baseline_available` | `run_atomic_package_market` | package_transaction_artifact_available | 2 |
 | `fill_replay` | `baseline_available` | `QuantBTEndpoint.fill_replay` | replay_artifact_available | 2 |
 | `intrabar_bracket` | `baseline_available` | `QuantBTEndpoint.intrabar_bracket` | canonical_trace_and_replay_evidence | 2 |
+| `intrabar_rust_explicit` | `baseline_available` | `QuantBTEndpoint.intrabar_bracket_rust` | python_numba_rust_exact_path_parity | 3 |
 | `options_basic_european` | `baseline_available` | `QuantBTEndpoint.options` | deterministic_replay_manifest | 1 |
 | `pct_equity` | `baseline_available` | `QuantBTEndpoint.pct_equity` | adapter_transition_report_available | 2 |
 | `portfolio` | `baseline_available` | `QuantBTEndpoint.portfolio` | portfolio_audit_artifact_available | 3 |

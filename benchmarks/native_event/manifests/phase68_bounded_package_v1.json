@@ -1,0 +1,52 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase68-bounded-package-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_only_same_account_linear_package_v2_with_actual_fill_dependency_residual_ledger_and_selected_audit_rerun; no_generic_arbitrage_auto_route",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "BOUNDED_PACKAGE_MARKET_V2",
+      "contract_ids": [
+        "event_lifecycle_v2_next_bar_close"
+      ],
+      "strategy_mode": "typed_package_intent_v2",
+      "profiles": [
+        "score",
+        "compact",
+        "audit"
+      ],
+      "fixture": "deterministic 2,000-bar same-account linear package tape with 2/4/20 legs, one package per bar, partial primary fills, post-actual-fill hedge sizing, funding, fees, slippage, and residual accounting",
+      "baseline_path": "benchmarks/native_event/results/phase68_bounded_package.json",
+      "baseline_sha256": "7b6060a9b45fab8417c27ae3a4759f7f758ea9c9fd176c8406def5af1a1dd8d7",
+      "required_result_fields": [
+        "fixture",
+        "per_leg_count",
+        "scenario_batch",
+        "rss_mb",
+        "evidence"
+      ]
+    },
+    {
+      "id": "BOUNDED_PACKAGE_MARKET_V2_SCENARIO_BATCH",
+      "contract_ids": [
+        "event_lifecycle_v2_next_bar_close"
+      ],
+      "strategy_mode": "typed_package_intent_v2_scenario_batch",
+      "profiles": [
+        "score"
+      ],
+      "fixture": "sixteen reset-flat independent 20-leg package scenarios over one immutable 2,000-bar same-account linear market template; selected scenario audit reruns separately",
+      "baseline_path": "benchmarks/native_event/results/phase68_bounded_package.json",
+      "baseline_sha256": "7b6060a9b45fab8417c27ae3a4759f7f758ea9c9fd176c8406def5af1a1dd8d7",
+      "required_result_fields": [
+        "fixture",
+        "per_leg_count",
+        "scenario_batch",
+        "rss_mb",
+        "evidence"
+      ]
+    }
+  ]
+}

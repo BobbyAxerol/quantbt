@@ -83,6 +83,8 @@ def test_product_registry_preserves_the_frozen_api_04_semantic_descriptor() -> N
         "portfolio": {
             "target_execution": "target_units_market_v1_all_or_none_v2",
             "package_atomicity": "bar_transaction_atomic_market_v1",
+            "package_execution_v2": "same_account_linear_deterministic_bar_scenarios",
+            "package_scenario_batch_v2": "score_only_isolated_same_account_v1",
         },
     }
 
@@ -104,14 +106,23 @@ def test_product_registry_has_exact_pairing_and_generated_corpus() -> None:
         require_native_package_pair(core_version, unsupported_native_version)
 
     workloads = {str(item["id"]): item for item in workload_capabilities()}
-    assert workloads["event_static_tape_v2_v3"]["maturity"] == "promoted"
-    assert workloads["native_strategy_ir_v1"]["maturity"] == "promoted"
-    assert workloads["event_static_tape_v2_v3"]["auto_promotion"] is True
-    assert workloads["native_strategy_ir_v1"]["auto_promotion"] is True
+    assert workloads["event_static_tape_v2_v3"]["maturity"] == "certified"
+    assert workloads["native_strategy_ir_v1"]["maturity"] == "certified"
+    assert workloads["event_static_tape_v2_v3"]["auto_promotion"] is False
+    assert workloads["native_strategy_ir_v1"]["auto_promotion"] is False
+    measurement = registry["measurement_contract"]
+    assert measurement["id"] == "quantbt-phase72-measurement-contract-v1"
+    for evidence in registry["performance_evidence"].values():
+        assert evidence["measurement_contract_id"] == measurement["id"]
+        assert evidence["promotion_eligible"] is False
     assert workloads["portfolio_target_market_v1"]["maturity"] == "certified"
     assert workloads["package_atomic_market_v1"]["maturity"] == "certified"
+    assert workloads["package_market_v2"]["maturity"] == "certified"
+    assert workloads["package_market_v2_scenario_batch"]["maturity"] == "certified"
     assert workloads["portfolio_target_market_v1"]["auto_promotion"] is False
     assert workloads["package_atomic_market_v1"]["auto_promotion"] is False
+    assert workloads["package_market_v2"]["auto_promotion"] is False
+    assert workloads["package_market_v2_scenario_batch"]["auto_promotion"] is False
     assert workloads["portfolio_target_preflight_v1"]["auto_promotion"] is False
     assert workloads["package_transaction_preflight_v1"]["auto_promotion"] is False
 

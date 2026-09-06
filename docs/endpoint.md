@@ -57,26 +57,28 @@ bt.metrics      # alias for bt.full_report()
 
 | Factory | Mode | Default backend | Runtime authority | Main use case |
 |---|---|---|---|---|
-| `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | Python | legacy `%_equity` signal where notional is recomputed from live equity |
+| `QuantBTEndpoint.pct_equity()` | `pct_equity` | `legacy` | Python by default; explicit Rust transition opt-in | legacy `%_equity` signal where notional is recomputed from live equity |
 | `QuantBTEndpoint.signal_notional()` | `signal_notional` | `native_vectorized` | Numba | fast single-symbol signal research with fixed units between signal changes |
 | `QuantBTEndpoint.intrabar_bracket()` | `intrabar_bracket` | `native_intrabar` | Numba | fast next-open SL/TP/trailing/reversal semantics |
 | `QuantBTEndpoint.intrabar_bracket_reference()` | `intrabar_bracket_reference` | `intrabar_reference` | Python oracle | readable oracle for the fast intrabar contract |
+| `QuantBTEndpoint.intrabar_bracket_rust()` | `intrabar_bracket_rust` | `rust_intrabar` | explicit Rust | bounded single-symbol OHLC intrabar contract with typed whole-tape execution |
 | `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | Numba V1 default; explicit Rust V2 | explicit-fill accounting replay; V2 adds multi-symbol funding, margin, liquidation, and canonical audit trace |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | Python | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | Python compatibility | explicit `OrderIntent` market/limit/stop simulation |
-| `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | callback: Python; certified static/IR: Rust eligible | stable facade for reactive strategies or explicit lifecycle commands |
+| `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | Python by auto; explicit Rust for certified static command tape | stable facade for reactive strategies or explicit lifecycle commands |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | Python package | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | Python package | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.options()` | `options` | `native_option` | Python | option contracts, multi-leg packages, and delta-hedged workflows |
-| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | Python orchestration; bounded IR scorer can use Rust | folded parameter selection and OOS stitching |
-| `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | Python orchestration | single train/test holdout using the WFO scoring stack |
+| `QuantBTEndpoint.walk_forward()` | `walk_forward` | `auto` | Python orchestration; opt-in prepared Rust candidate scoring for a certified scalar matrix | folded parameter selection and OOS stitching |
+| `QuantBTEndpoint.train_test_split()` | `walk_forward` | `auto` | Python orchestration; inherits eligible prepared Rust candidate scoring | single train/test holdout using the WFO scoring stack |
 | `QuantBTEndpoint.portfolio()` | `portfolio` | `native_portfolio` | Numba | multi-symbol position matrix portfolio backtest |
 | `QuantBTEndpoint.nautilus_validation()` | `nautilus_validation` | `nautilus` | NautilusTrader | optional third-party execution validation |
 
 Runtime authority is workload-scoped. `quantbt-native` being installed does not
 move generic portfolio, basket, arbitrage, options, callback, vectorized, or
-intrabar endpoints to Rust. The current promotion rules are documented in
-[`native/capabilities.md`](native/capabilities.md).
+the default Numba intrabar endpoint to Rust. The sole intrabar exception is the
+explicit `intrabar_bracket_rust()` route described below. The current promotion
+rules are documented in [`native/capabilities.md`](native/capabilities.md).
 
 Manual construction is also supported:
 
@@ -144,6 +146,36 @@ accounting must be retained. `backend="auto"` follows the package release
 policy. `backend="python"` selects the canonical portable implementation;
 `backend="rust"` is an explicit capability-gated request for the optional
 native wheel and never silently changes to Rust.
+
+### Runtime limits and shadow evidence
+
+Long-running services may pass one optional governance contract without
+changing the endpoint shape:
+
+```python
+from quantbt import QuantBTEndpoint, RuntimeBudgetV1
+
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="auto",
+    runtime_budget=RuntimeBudgetV1(
+        max_bars=100_000,
+        max_commands=200_000,
+        max_orders=100_000,
+        max_fills=100_000,
+        max_native_memory_bytes=512 * 1024 * 1024,
+        max_wall_time_ms=60_000,
+    ),
+    shadow_evidence_dir="artifacts/native-shadow",
+)
+```
+
+An exceeded enforceable limit raises `RuntimeBudgetError` with a stable code.
+Reactive and prepared WFO runtimes expose cancellation/reset/close methods at
+their advanced backend surfaces. Sampled shadow mismatches write an evidence
+bundle and activate a backend-instance Rust kill switch. See
+[Native runtime governance](native_runtime_governance.md).
 
 ### Input modes
 
@@ -260,7 +292,7 @@ stale, and tradability flags. Current static lowering accepts only an
 all-observed, shared-funding-clock execution view and fails closed otherwise.
 
 The V2 prepared route currently applies to explicit static command tapes and
-the promoted bounded target/package helper routes. Stateful Python callbacks,
+the explicit bounded target/package helper routes. Stateful Python callbacks,
 generic portfolio/arbitrage facades, and historical endpoint reproduction
 remain on their existing contracts until their later V1.1 promotion gates.
 See [Canonical Market And Calendar V2](contracts/v1_1_market_calendar_v2.md)
@@ -282,6 +314,34 @@ Bar zero is the immutable initial snapshot and is reported as outside tape;
 the final explicit bar remains executable. For reactive strategies, commands
 emitted after observing close `t` are retimed to the next bar, while finalize
 commands after the last bar are retained only as outside-tape audit intent.
+
+### Static command-tape Rust ABI
+
+When an explicit `OrderCommand` tape resolves to the Rust backend, the public
+default is the typed static ABI `0.5`. It makes one whole-run native call and
+adapts the resulting typed `NativeResultV2` only after Rust accounting is
+complete. Existing report helpers still work because the cold adapter produces
+the normal `BacktestResultV2` surface.
+
+```python
+bt = QuantBTEndpoint.event_driven(
+    input_mode="orders",
+    profile="audit",
+    backend="rust",
+    native_static_abi="0.5",  # default
+    execution_contract="event_lifecycle_v3_next_open",
+    initial_capital=20_000,
+)
+result = bt.simulate(data=df, order_commands=commands, symbols=["BTCUSDT"])
+```
+
+`native_static_abi="0.4_compat"` is retained solely as an explicit rollback
+or comparison route. It is never selected automatically. For a prepared
+low-retention score path, call `NativeEventBackend.run_compiled_tape_score(...)`;
+with V3 it requires explicit `opens`, while V2's declared close clock can use
+the close array. Inspect `result.metadata["native_static_abi_resolved"]` and
+`result.metadata["native_result_v2"]` rather than inferring the route from a
+successful `_quantbt_native` import.
 
 With `profile="audit"`, inspect:
 
@@ -306,6 +366,46 @@ such as `engine_id`, `signal_phase`, `fill_phase`, `intrabar_exit_model`,
 that look like intrabar execution artifacts (`exit_price`, `stop_loss`,
 `take_profit`, `trailing`, etc.), QuantBT marks the run as uncertified for those
 intrabar semantics instead of silently implying correctness.
+
+### Explicit Rust Direct Targets
+
+For a target matrix that is already known at each close, the advanced
+`NativeVectorizedBackend` surface can use the separate Rust direct-target
+contract. This is explicit by design; ordinary endpoint defaults and
+`target_runtime="auto"` keep their historical Numba route.
+
+```python
+from quantbt.backends import NativeVectorizedBackend, NativeVectorizedConfig
+from quantbt.core.schema import AccountConfig, ExecutionConfig
+
+backend = NativeVectorizedBackend(
+    NativeVectorizedConfig(
+        account=AccountConfig(initial_capital=20_000, leverage=3),
+        execution=ExecutionConfig(slippage_bps=2.0),
+        fee_rate=0.0005,             # canonical one-way fee
+        target_runtime="rust",       # explicit, fail-closed native request
+    )
+)
+
+result = backend.run_target_weights(
+    datetime_index=df.index,
+    target_weights={"ETHUSDT": weights},
+    closes={"ETHUSDT": df["close"]},
+    highs={"ETHUSDT": df["high"]},
+    lows={"ETHUSDT": df["low"]},
+    symbols=["ETHUSDT"],
+)
+```
+
+Available direct-target methods are `run_target_units`,
+`run_target_notionals`, `run_target_weights`,
+`run_equity_fraction_targets`, and `run_static_dca_schedule`. They all use
+the same-close `close_target_v2_same_close` contract and reject a requested
+next-open/next-close target clock. `run_static_dca_schedule` accepts only a
+fully predeclared absolute target schedule; dynamic grid/DCA stays on
+event-driven execution. See
+[V1.1 Direct Target Execution Clock](contracts/v1_1_target_execution_clock.md)
+for formulas, timing, rounding, rejection, and profile semantics.
 
 `intrabar_bracket` is the Phase 31C fast Numba implementation of
 `intrabar_bracket_v1`; `intrabar_bracket_reference` is the readable Python
@@ -708,6 +808,56 @@ Report levels:
   exactly to real `fill_count`, materializes `result.fills` and
   `bt.fills_report`, and asserts parity against pass 1.
 
+### Explicit Rust Intrabar Authority
+
+`intrabar_bracket_rust(...)` is an explicit, whole-tape Rust implementation of
+the same bounded `intrabar_bracket_v1` contract. It is not selected by
+`backend="auto"`, and it does not replace the Numba endpoint. Use it only with
+a matching `quantbt-native` build and exactly one strict OHLC symbol.
+
+```python
+bt = QuantBTEndpoint.intrabar_bracket_rust(
+    initial_capital=20_000,
+    leverage=5,
+    fee_rate=0.0002,
+    slippage_bps=1.0,
+    use_funding=True,
+    close_on_last_bar=True,
+    report_level="audit",
+)
+
+result = bt.backtest(
+    data=df,
+    signal_col="entry_signal",
+    symbols=["ETHUSDT"],
+    intent_cols={
+        "stop_value": "sl_pct",
+        "take_profit_value": "tp_pct",
+        "trailing_value": "trail_pct",
+        "exit_long": "exit_long",
+        "exit_short": "exit_short",
+    },
+)
+fills = bt.fills_report
+```
+
+Rust owns the complete market, intent, bracket, funding, margin, liquidation,
+and bounded-audit state machine in one Python-to-Rust call. The cold adapter
+then turns typed SoA buffers into the normal `BacktestResultV2` interface, so
+`show_metrics()`, plots, and reports remain available. `minimal`, `standard`,
+and `audit` are public report levels; native `score` is intentionally a
+low-level scalar primitive and cannot create a `BacktestResultV2`.
+
+`fills_report` adds `ambiguity_flag` and `same_bar_policy_id` to ordinary fill
+fields. Rust supports conservative, stop-first, TP-first, OHLC-path, and
+OLHC-path ambiguity resolution. `reject_ambiguous` and
+`lower_timeframe_required` fail closed on this route; use
+`intrabar_bracket_reference()` to inspect a diagnostic rejection or provide a
+smaller-timeframe tape. See the source-of-truth
+[`intrabar_contract_v1.json`](../contracts/intrabar_contract_v1.json) for the
+declared ordering and non-claims. The existing Numba endpoint remains the
+version-pinned rollback comparator for at least one stable release.
+
 Use the reference endpoint for differential debugging:
 
 ```python
@@ -744,6 +894,18 @@ intent = alpha.generate(runner.market, params)
 result = runner.run(intent, report_level="minimal")
 audit = runner.run(intent, report_level="audit")
 ```
+
+The same `prepare_intrabar(...).run(...)` surface works with
+`intrabar_bracket_rust()` and reuses the immutable native market handle. Its
+public runs still use `minimal`, `standard`, or `audit`; direct scalar scoring
+is deliberately not exposed through the report-oriented runner.
+
+For the Rust route, preparation avoids repeating immutable OHLCV/funding
+fingerprinting across candidate runs while still validating every fresh intent.
+The runner never treats a mutable intent as a reusable cache entry. This is an
+opt-in service/optimizer benefit; normal `backtest(...)` remains fully
+content-addressed and neither `intrabar_bracket()` nor `backend="auto"` changes
+runtime because a native wheel is installed.
 
 Funding for intrabar routes is event-causal only when the funding timestamp
 matches an exact market bar timestamp. Mid-bar funding events are rejected and
@@ -1374,6 +1536,199 @@ This preserves the public report contract without forcing a per-bar snapshot.
 `minimal` omits it; all report levels take per-bar snapshots only when the
 strategy explicitly requests active orders.
 
+### R1 numeric every-bar co-runtime (explicit)
+
+Phase 62 adds an opt-in route for a numeric callback that must still make a
+Python decision at every bar. Rust owns the market clock, active-order
+lifecycle, fills, fees, funding, margin, account state, and result buffers for
+one complete session. Python owns only the strategy's declared decision and
+its private strategy state.
+
+```python
+from quantbt import OrderSide, QuantBTEndpoint, StrategyContextRequirements
+
+class NumericGridR1:
+    # Required opt-in marker: QuantBT never upgrades an arbitrary callback.
+    quantbt_reactive_numeric_v1 = True
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",),
+        account=("equity", "available_equity"),
+        positions=("qty",),
+        fills="new_only",
+        events="new_only",
+        active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_bar_close(self, ctx, out):
+        if ctx.bar_index == 0 and ctx.position_qty(0) == 0.0:
+            out.market(0, OrderSide.BUY, 0.25, tif="ioc")
+
+bt = QuantBTEndpoint.native_event_strategy(
+    native_backend="rust",                   # explicit and fail-fast
+    reactive_runtime="numeric_every_bar_v1",
+    reactive_gil_policy="held_for_session",  # or release_between_callbacks
+    reactive_kernel_mode="single_pass",
+    report_level="audit",
+    audit_sink="memory",
+    audit_mode="native_trace",
+    initial_capital=20_000,
+    leverage=4,
+    fee_rate=0.0004,
+    execution_contract="event_lifecycle_v3_next_open",
+)
+result = bt.simulate(data=df, strategy=NumericGridR1(), symbols=["BTCUSDT"])
+```
+
+Commands written after observing close `t` remain causal and are ingested for
+bar `t + 1`. `ReactiveContextBufferV1` and `ReactiveCommandBufferV2` are
+persistent Rust-owned numeric wrappers. They are valid only during the active
+callback: copy scalar values rather than retaining either object. Context
+fields not declared in `quantbt_requirements` raise instead of causing hidden
+projection work.
+
+R1 supports `CallbackSchedule(every_n_bars=1)` only. It rejects sparse wake
+schedules, `audit_mode="verify_against_oracle"`, `audit_mode="dual_run_sampled"`,
+and sidecar audit sinks. Those combinations would add a second execution/replay
+or change callback timing; they are not silently approximated. Use
+`audit_mode="native_trace"` for one-session inspection and the explicit
+Python/R0 bridge/R1/static-replay A/B/C/D harness for certification.
+
+For prepared optimization, R1, R2, and R3 also support the explicit scalar
+score contract. It runs the same Rust lifecycle/accounting session but retains
+only streaming metrics, final state, and bounded counters: no equity path,
+command rows, callback trace, or terminal-order artifact is created.
+
+```python
+from quantbt.backends.native_event import NativeEventScoreRequirements
+
+prepared = bt.prepare_native_event_strategy(data=df, symbols=["BTCUSDT"])
+score = prepared.score(
+    NumericGridR1(),
+    score_requirements=NativeEventScoreRequirements.scalar_score_contract(),
+)
+print(score.metrics["sharpe"], score.final_equity)
+```
+
+`score` is a `NativeEventScalarScoreResult`, not a public `BacktestResult`:
+it cannot plot or construct an audit ledger. Request `minimal`, `standard`, or
+`audit` when a public result is needed, then rerun the selected candidate once
+on that cold path. Any score request that asks for paths, ledgers, fills,
+orders, or trace artifacts fails before simulation rather than silently
+retaining them.
+
+The route remains explicit even when its benchmark is faster. `backend="auto"`
+and `event_driven(input_mode="strategy")` keep their existing Python callback
+policy. Inspect:
+
+```python
+obs = result.metadata["reactive_numeric_observability"]
+obs["native_entry_calls"]          # exactly 1 for one R1 session
+obs["python_callback_calls"]       # every declared bar, plus lifecycle hooks
+obs["gil_policy"]                  # held_for_session | release_between_callbacks
+obs["context_projection_copy_bytes"]
+obs["command_ingest_copy_bytes"]
+obs["engine_ns"]
+result.metadata["strategy_boundary"]
+result.metadata["strategy_state_fingerprint"]
+```
+
+`held_for_session` is the lighter local option on the recorded R1 fixture;
+`release_between_callbacks` releases the GIL while Rust advances each bar and
+is retained for concurrent-service measurement. Choose it deliberately and
+record the choice in result provenance rather than assuming it is universally
+faster.
+
+### R2 sparse wake, R3 block intent, and R3B candidate batch (explicit)
+
+Phase 63 adds three separately declared hybrid contracts. They retain the R1
+Rust-owned market clock, matching, accounting, funding, margin, liquidation,
+and result buffers; Python is called only at a declared decision boundary.
+
+| Runtime | Strategy method | Decision boundary | Public surface | Promotion |
+|---|---|---|---|---|
+| R2 `numeric_sparse_wake_v1` | `on_wake(ctx, out) -> WakePlanV1` | one coalesced engine-observable wake | `native_event_strategy(...)` | explicit only |
+| R3 `numeric_block_intent_v1` | `next_block(ctx, start_bar, max_stop_bar, out) -> BlockPlanV1` | block end or declared invalidation | `native_event_strategy(...)` | explicit only |
+| R3B `numeric_candidate_batch_v1` | `on_wake_batch(ctx_batch, out_batch) -> CandidateWakePlansV1` | one shared candidate wake bar | prepared `RustReactiveCandidateBatchCoRuntime`; W3 batch schedule | explicit only |
+
+R2 only observes engine-level time/timestamp, fill, order event, liquidation,
+funding, static price cross, and static position/equity/margin thresholds. It
+does not calculate RSI, EMA, z-scores, or other alpha features. Simultaneous
+conditions are coalesced after this fixed ordering:
+
+```text
+market observation -> funding -> activation/matching/fills
+-> liquidation/order lifecycle -> evaluate wakes -> one Python call
+```
+
+`WakePlanV1` replaces the preceding plan completely. A timestamp must equal a
+prepared-market bar; QuantBT never rounds it. A minimal R2 strategy is:
+
+```python
+from quantbt import (
+    OrderSide, QuantBTEndpoint, StrategyContextRequirements,
+    WakePlanV1, WakeReasonV1,
+)
+
+class CertifiedSparseStrategy:
+    quantbt_reactive_sparse_v1 = True
+    # Declare this only after an independent every-bar shadow comparison passes.
+    quantbt_sparse_shadow_certified_v1 = True
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",), account=("equity",), positions=("qty",),
+        fills="new_only", events="new_only", active_orders="none",
+        context_mode="numeric",
+    )
+
+    def on_wake(self, ctx, out):
+        if ctx.wake_reason_mask & int(WakeReasonV1.INITIAL):
+            out.market(0, OrderSide.BUY, 0.25)
+        return WakePlanV1(next_bar=ctx.bar_index + 24, on_fill=True)
+
+bt = QuantBTEndpoint.native_event_strategy(
+    native_backend="rust",
+    reactive_runtime="numeric_sparse_wake_v1",
+    reactive_kernel_mode="single_pass",
+    audit_sink="memory",
+    execution_contract="event_lifecycle_v3_next_open",
+)
+result = bt.simulate(data=df, strategy=CertifiedSparseStrategy(), symbols=["BTCUSDT"])
+```
+
+Use `result.metadata["reactive_numeric_observability"]["wake_trace"]` for
+bar/timestamp/reason-mask evidence. Run equivalent R1 and R2 strategies, then
+use `certify_reactive_shadow_v1(...)` to compare actual decision-boundary
+inputs, emitted commands, canonical execution/account trace, and optional
+state fingerprint before declaring the capability marker.
+
+R3 is suitable for periodic targets, DCA schedules, and grid plans. Commands
+must have `effective_bar` inside `[start_bar, stop_bar)`. A declared fill,
+reject, or margin invalidation marks only future unexecuted rows
+`invalidated_before_execution`, preserves executed history, and requests the
+next block. It is a cancellation, not a fabricated rejection.
+
+R3B shares one immutable prepared market tape over `1..64` independent Rust
+sessions. The batch context contains candidate IDs plus numeric
+equity/position/fill/event/wake data; `out_batch.writer(candidate_id)` is
+candidate-scoped and typed candidate errors isolate only that candidate. It is
+currently an explicit prepared primitive:
+
+```python
+from quantbt.backends import RustReactiveCandidateBatchCoRuntime
+
+payload = runner.run(my_batch_strategy)
+candidate_outputs = payload["candidate_outputs"]
+candidate_error_codes = payload["candidate_error_codes"]
+```
+
+R3B remains distinct from the generic target-series `walk_forward()` facade.
+For stateful reactive WFO, use the explicit
+`endpoint.prepare_reactive_walk_forward(...)` route, which keeps reset-flat
+candidate/fold accounts rather than fabricating a signal or carry-equity
+series. It supports sequential R1/R2/R3 and opt-in R3B throughput scheduling
+under its own documented contract; see [Reactive Walk-Forward (W3)](reactive_wfo.md).
+R2/R3/R3B are never selected by `backend="auto"` in this release.
+
 ### Native-event backend selector and promotion policy (Phase 54B.1)
 
 Native-event endpoints accept the optional `native_backend` selector:
@@ -1391,7 +1746,8 @@ bt = QuantBTEndpoint.orders(
 ```
 
 `python` is the full-featured canonical reactive backend. `rust` is explicit
-and fail-fast: with the installed API `0.4` full-contract wheel it supports
+and fail-fast: with the installed full-contract wheel, static command tapes use
+typed ABI `0.5` by default and support
 the same Native Event V2 lifecycle surface used by this endpoint, including
 multi-symbol tapes, funding, maintenance/liquidation, quantity preflight,
 MARKET/LIMIT/STOP orders, GTC/GTD/IOC/FOK, amend/replace/cancel-all, and
@@ -1404,15 +1760,17 @@ promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
 these policies can bypass a missing capability, mismatched wheel, unsupported
 contract/profile/account model, or an emergency rollback switch.
 
-At the current automatic Stage-B promotion level, `auto` selects Rust only for
-certified bounded static/IR workloads on the declared local wheel/platform
-matrix:
+At the current Phase 72 measurement gate, `auto` stays Python for every
+workload. Static/IR historical evidence remains visible but cannot enable a
+route until fresh score/compact/audit evidence with matching identity passes:
 
 | Workload | Automatic Rust condition |
 |---|---|
-| Static V2/V3 command tape | at least 10,000 bars |
-| Native Strategy IR v1 and its shared batch/fold scorer | at least 2,000 bars |
-| Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
+| Static V2/V3 command tape | Python auto; explicit Rust remains available |
+| Native Strategy IR v1 and its shared batch/fold scorer | Python auto; explicit Rust remains available |
+| Default Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
+| Explicit R1 numeric every-bar callback | Never auto-promoted; Rust-led co-runtime only when requested |
+| Certified R2 sparse wake, R3 block intent, or R3B candidate batch | Never auto-promoted; explicit A3 contract only |
 
 ### Choosing a stable event route
 
@@ -1421,11 +1779,16 @@ for a particular implementation language:
 
 | Need | Public route | Current execution authority |
 |---|---|---|
-| Arbitrary per-bar Python logic or dynamic reactive state | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Python |
+| Default arbitrary per-bar Python logic or dynamic reactive state | `QuantBTEndpoint.event_driven(input_mode="strategy", ...)` | Python |
+| Explicit numeric every-bar callback | `native_event_strategy(..., reactive_runtime="numeric_every_bar_v1")` | Rust simulation/accounting; Python strategy decision |
+| Certified sparse numeric callback | `native_event_strategy(..., reactive_runtime="numeric_sparse_wake_v1", native_backend="rust")` | Rust simulation/accounting; Python decision only at declared wakes |
+| Certified bounded block intents | `native_event_strategy(..., reactive_runtime="numeric_block_intent_v1", native_backend="rust")` | Rust simulation/accounting; Python supplies bounded future commands |
+| Prepared candidate-batch reactive workload | `RustReactiveCandidateBatchCoRuntime` | Rust shared tape/session state; Python batch decision callback |
 | Pre-built deterministic order timeline | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Rust only for a matching static tape at 10,000+ bars; otherwise Python |
 | Signal target, structural grid level, periodic DCA, or fixed bracket template | `NativeEventBackend.prepare_native_strategy_ir(...)` | Rust only for matching bounded IR at 2,000+ bars; otherwise Python |
 | Generic portfolio, basket, or arbitrage plan | Existing portfolio/arbitrage endpoint | Python/native-portfolio contract |
-| Linear `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
+| Legacy all-or-none `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
+| Planned multi-symbol linear target matrix with declared shared-account admission | `run_shared_portfolio_target_market(...)` | Explicit Rust shared-account helper |
 
 On supported Linux, the core PyPI package resolves its matching pre-built
 native companion automatically. On every other platform, and when a governed
@@ -1480,20 +1843,37 @@ retain their existing Python/native-portfolio contracts. For the separately
 certified V2 execution rows, import the explicit helpers:
 
 ```python
-from quantbt.backends import run_atomic_package_market, run_portfolio_target_market
+from quantbt.backends import (
+    run_atomic_package_market,
+    run_portfolio_target_market,
+    run_shared_portfolio_target_market,
+)
 ```
 
 They accept prepared-array-style OHLCV/funding data and return a
 `RustNativeMarketExecution`. `report_level="score"` keeps only terminal
 accounting; rerun a selected candidate with `report_level="audit"` and call
-`.to_audit_result()` for the common report surface. The supported rows are
-linear quote-settled gross-cross `target_units` with all-or-none admission and
-one ordered same-bar `AtomicBarSimulation` market package only. Every other
-portfolio sizing, allocator, package policy, cross-venue, and partial-fill
-case remains on the existing Python route by design. Input package legs must
-already be in the intended deterministic venue/leg order; the helper preserves
-that order rather than inferring venue precedence. The full contract and
-example shape are in
+`.to_audit_result()` for the common report surface.
+
+`run_shared_portfolio_target_market(...)` owns one linear quote-settled,
+gross-cross Rust account for a bar-major `(bars, symbols)` planned matrix. Its
+`target_kind` may be `units`, `notional`, `weight`, or `equity_fraction`; its
+required `admission_policy` is one of `sequential_legacy`,
+`reduce_first_then_increase`, `pro_rata_to_available_margin`, or
+`all_or_none_rebalance`. The first certified capability is `target_units`.
+Notional/weight/equity-fraction remain explicit experimental target resolvers
+until each has its own broader corpus. Rust owns accepted target deltas,
+quantization, fees, slippage, funding, shared margin, liquidation, and bounded
+per-symbol attribution. Planner logic, risk-parity/covariance/beta estimation,
+and generic endpoint routing remain Python-owned.
+
+The legacy helper remains linear quote-settled gross-cross `target_units` with
+all-or-none admission, and the package helper remains one ordered same-bar
+`AtomicBarSimulation` market package only. Every other portfolio sizing,
+allocator, package policy, cross-venue, and partial-fill case remains on the
+existing Python route by design. Input package legs must already be in the
+intended deterministic venue/leg order; the helper preserves that order rather
+than inferring venue precedence. The full contract and example shape are in
 [`native_event_rust_full_contract.md`](native_event_rust_full_contract.md#phase-54b3-bounded-portfoliopackage-market-routes).
 
 For reactive strategies, `report_level="minimal"` intentionally omits
@@ -2322,6 +2702,17 @@ For the schedule decision table, strictness claims, external-holdout workflow,
 and metadata interpretation, read the [causal WFO guide](walkforward_causal.md)
 before presenting WFO metrics.
 
+For bounded single-symbol static StrategyIR candidate-by-fold scoring, see
+[Native WFO Runtime V2](native_wfo_runtime.md). It is an explicit prepared
+runtime and does not silently replace this generic callback endpoint.
+
+For the current five-mode public workload matrix, prepared-native eligibility,
+Mode 2 proxy boundary, and the transition-sized `%_equity` contract, see
+[Public WFO Baseline V1](performance/public_wfo_baseline_v1.md).
+`native_prepared_wfo="require"` remains deliberately narrow. For explicit Rust
+`pct_equity`, it selects `pct_equity_transition_v1`, never a per-bar
+`EquityFraction` reinterpretation; `"auto"` preserves the legacy route.
+
 ```python
 from quantbt import QuantBTEndpoint
 
@@ -2536,13 +2927,114 @@ wf["inner_validation"]
 wf["inner_fold_table"]
 ```
 
-`fold_boundary_position_policy="carry"` is the only Phase 50 policy. QuantBT
-stitches targets first and runs the account engine once. Equal targets across
-a boundary do not create a synthetic close/reopen, reset equity, or duplicate
-fees. Unsupported schedule/mode combinations raise; they never fall back to
-`global`. Global results retain `validation_claim="walk_forward_oos"` for
-compatibility, while `chronological_validation_claim` explicitly reports that
-global multi-fold selection is retrospective rather than causal.
+### Phase 64 Causality And Lifecycle Contracts
+
+Phase 64 makes the WFO clock, temporal exclusions, strategy state, intent
+timing, and account-boundary behavior explicit. These declarations improve
+auditability; they do not move alpha features into QuantBT or make an arbitrary
+strategy implementation causal by assertion alone.
+
+```python
+wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    split_mode="walk_forward_2022",
+    split_frequency="quarterly",
+    window_mode="rolling",
+    train_window="365D",
+    target_mode="signal_notional",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_schedule="per_fold_causal",
+    optimization_config={
+        # CalendarPlanV2 is the fold clock. `legacy_v1` is reproduction-only.
+        "calendar_contract": "exact_v2",  # exact_v2 | intersection_v2 | legacy_v1
+        "calendar_missing_policy": "no_observation",
+        # Remove observations near the train/test boundary explicitly.
+        "label_horizon_bars": 1,
+        "purge_bars": 2,
+        "embargo_bars": 1,
+        # Optional lifecycle warmup data; it never contributes fold PnL.
+        "warmup_policy": "pre_test_from_train_tail",
+        "warmup_bars": 64,
+        # `carry_position` is the continuous-account default.
+        "fold_account_policy": "carry_position",
+        # Declare output meaning and timing rather than treating every Series
+        # as an already-effective position.
+        "intent_contract": {
+            "kind": "target_position",
+            "observation_phase": "bar_close",
+            "effective_phase": "next_bar_open",
+            "already_shifted": False,
+            "route_id": "my-alpha-target-v1",
+            "certified": True,
+        },
+        "strategy_lifecycle_policy": "isolated_v1",
+        # Only when using scoring_backend="proxy": audit the bounded IS-only
+        # proxy ranking against endpoint/native accounting scores.
+        "proxy_validation_mode": "enforce",  # off | record | enforce
+        "proxy_validation_top_fraction": 0.10,
+        "proxy_min_spearman": 0.70,
+        "proxy_min_top_k_overlap": 0.50,
+        "proxy_max_winner_regret": 0.25,
+        "proxy_max_false_positive_rate": 0.25,
+    },
+    initial_capital=20_000,
+    alloc_per_trade=10_000,
+    fee_rate=0.0002,
+)
+```
+
+`exact_v2` rejects even equal-length timestamp tapes when any timestamp
+differs. `intersection_v2` accepts only the fully observed common clock. The
+engine stores separate `label_horizon`, `purge`, `warmup`, `test`, and
+`embargo` ranges in `fold_table`; the embargo is a non-trading gap before the
+next eligible test window.
+
+For a mutable strategy object, `isolated_v1` creates a class instance per call,
+uses `spawn(...)/reset(...)` for a `StrategyLifecycleV1` object, or deep-copies
+a callable instance. Stable seeds derive from the run contract, candidate,
+fold, cutoff, and purpose. A `warmup(...)` method, when present, receives only
+the declared warmup range before signal generation. Unsupported shared state
+does not silently reuse an instance. Plain function strategies remain the
+stateless compatibility route.
+
+Account-policy capability is deliberately narrow on the stitched-target
+endpoint:
+
+| Policy | Final accounting behavior |
+|---|---|
+| `carry_position` | Supported: one continuous account and real target deltas only. |
+| `close_at_boundary` | Supported only with at least one embargo/gap bar; the target is flat in that explicit gap. |
+| `reset_flat` | Raises: a single `BacktestResult` cannot truthfully represent independent fold accounts. |
+| `replay_prior_state` | Raises: it requires the explicit order/fill replay adapter and is never converted to carry. |
+
+The legacy `fold_boundary_position_policy="carry"` alias remains valid. Equal
+targets across a carry boundary do not create a synthetic close/reopen, reset
+equity, or duplicate fees. Unsupported schedule/mode and account-policy
+combinations raise; they never fall back to `global` or carry.
+
+The required audit surface is:
+
+```python
+wf = result.metadata["walk_forward"]
+
+wf["causality_schedule_v2"]
+wf["signal_causality_scope"]
+wf["intent_contract"]
+wf["calendar_plan"]
+wf["fold_table"]
+wf["fold_boundary_table"]
+wf["account_execution_plan"]
+wf["strategy_lifecycle_table"]
+wf["strategy_lifecycle_records_dropped"]
+wf["proxy_validation"]
+```
+
+`signal_causality_scope="strategy_declared_timing_contract"` means the caller
+provided an explicit timing declaration. QuantBT can enforce fold cutoffs and
+execution routing, but an arbitrary batch Python strategy must still build its
+own indicators without intra-fold look-ahead. The legacy Series adapter is
+recorded as timing-unverified. Global schedules remain retrospective unless
+explicitly marked as a trusted strategy-global workflow.
 
 ### Prepared WFO performance lifecycle
 
@@ -2573,6 +3065,157 @@ wf["performance_profile"]        # strategy and scorer timing when enabled
 Prepared state is run-local. QuantBT never caches an arbitrary strategy's
 indicator or signal output, and content signatures include all DataFrame
 columns, including volume and funding columns supplied to the strategy.
+
+### Public prepared-native WFO scorer
+
+Compatible single-symbol target WFO runs can opt into the Phase 74 scorer
+without changing the public strategy wrapper, WFO mode, parameter ranges, or
+final report calls:
+
+```python
+bt = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    target_mode="signal_notional",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_config={
+        "scoring_backend": "endpoint",
+        "native_prepared_wfo": "require",  # off | auto | require
+        "native_prepared_wfo_workers": 1,
+        "scoring_trading_days": 365,
+    },
+    target_runtime="rust",
+)
+result = bt.backtest(data=data, param_ranges=param_ranges)
+```
+
+The certified public matrix is a finite UTC OHLCV `DataFrame`, one symbol,
+`signal_notional`/`single_signal`/`notional`/`unit`, and explicit transition
+`pct_equity`/`%_equity`, with `365` annualization and fresh-account
+candidate/fold/shard scoring. The percent-equity exception requires
+`target_runtime="rust"`, `native_prepared_wfo="require"`, and exact legacy/V2
+fee/slippage equivalence; its final account is the Rust transition contract.
+All other calls retain their historical final route. `mode_2_sbb` retains its
+bounded proxy path; `native_prepared_wfo="require"` therefore raises for it.
+`auto` records the unsupported reason and runs the historical scorer.
+
+```python
+pct_wfo = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    target_mode="pct_equity",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_config={
+        "scoring_backend": "endpoint",
+        "native_prepared_wfo": "require",
+        "scoring_trading_days": 365,
+    },
+    target_runtime="rust",
+    fee=0.0004,        # legacy round-trip compatibility input
+    fee_rate=0.0002,   # canonical one-way rate, exactly fee / 2
+    slippage=0.0001,
+)
+```
+
+An optional W1/W2 strategy protocol can cache parameter-independent causal
+features once through `prepare_wfo(...)`. It must be requested explicitly with
+`prepared_wfo_strategy` and, on a per-fold schedule, declare
+`causal_cache_contract="causal_parameter_independent_v1"`. W2 remains
+sequential in this public facade to preserve the certified TPE ask/tell order;
+the explicit `NativeWfoRuntimeV2` owns opt-in throughput candidate batches.
+
+```python
+wf = result.metadata["walk_forward"]
+wf["native_prepared_wfo"]
+wf["prepared_scoring_cache"]["native_prepared_wfo"]
+wf["prepared_wfo_strategy"]
+```
+
+See [Public prepared-native WFO scoring](native_prepared_wfo_public.md) for
+the full mode/schedule matrix, fallback rules, W0/W1/W2 contract, and
+benchmark scope.
+
+### Native WFO Runtime V2 (explicit prepared StrategyIR)
+
+`NativeWfoRuntimeV2` is a lower-level opt-in companion for a finite numeric
+signal matrix and static `NativeStrategyIR` program. It creates a persistent
+Rust worker pool for candidate x fold scoring with a fresh account per OOS
+fold. Unlike the public prepared scorer above, it owns an explicit static-IR
+candidate matrix and can expose an opt-in throughput sampling contract.
+
+Use it only when the alpha can prepare W1/W2 numeric signals with the declared
+market/fold cutoff and reset-flat OOS fold accounts are intended. The exact
+supported workload is single-symbol `strategy_ir_signal_target_v1`. Targets,
+orders, portfolio/package, and reactive workloads fail closed. See [Native WFO
+Runtime V2](native_wfo_runtime.md) for construction, schedules, typed output,
+audit replay, and benchmark evidence.
+
+### Explicit Bounded Rust Package V2
+
+The generic `basket()` and `arbitrage()` endpoints remain Python-authoritative.
+For a deliberately narrow, fully typed same-account linear package, the native
+companion is available explicitly:
+
+```python
+from quantbt.backends import run_bounded_package_market
+
+result = run_bounded_package_market(
+    timestamps_ns=timestamps_ns,
+    opens=opens,
+    highs=highs,
+    lows=lows,
+    closes=closes,
+    volumes=volumes,
+    funding=funding,
+    funding_mask=funding_mask,
+    symbols=("PERP", "FUT"),
+    contract_sizes=contract_sizes,
+    leverages=leverages,
+    fee_rates=fee_rates,       # canonical one-way fee
+    initial_capital=20_000.0,
+    maintenance_ratio=0.005,
+    slippage_rate=0.0002,
+    use_funding=True,
+    command_bars=command_bars,
+    package_ids=package_ids,
+    package_leg_offsets=package_leg_offsets,
+    execution_policies=execution_policies,
+    residual_policies=residual_policies,
+    max_staleness_ns=max_staleness_ns,
+    order_ids=order_ids,
+    symbol_ids=symbol_ids,
+    signed_qty=signed_qty,
+    quantity_sources=quantity_sources,
+    source_legs=source_legs,
+    quantity_ratios=quantity_ratios,
+    fill_fractions=fill_fractions,
+    qty_step=qty_step,
+    min_qty=min_qty,
+    min_notional=min_notional,
+    source_age_ns=source_age_ns,
+    venue_codes=venue_codes,
+    venue_sequence=venue_sequence,
+    report_level="audit",
+)
+
+payload = result.payload
+```
+
+The route requires `event_lifecycle_v2_next_bar_close`, one linear
+quote-settled gross-cross account, one package per declared bar, and a
+following bar for reconciliation. Supported policies are
+`atomic_bar_simulation`, `sequential`, `best_effort`, and
+`hedge_after_primary`. A dependent hedge in the last policy uses actual primary
+fill quantity before its own lot rounding; residual exposure and reservation
+movements stay visible in the audit payload. `fill_fractions` are deterministic
+scenario inputs, not an L2 or venue matching model.
+
+For repeated pre-built scenarios, use
+`run_bounded_package_market_scenarios(..., scenario_package_offsets=...)`.
+It returns scalar columns only and reset-flats the account per scenario; rerun
+the selected scenario using the single helper with `report_level="audit"`.
+Selected basis, stat-pair, calendar, and index-basket plans can be lowered via
+`compile_bounded_linear_arbitrage_package_tape(...)` when they are already
+same-account and linear. Triangular, cross-exchange, funding/carry, and options
+plans are intentionally not lowered by this helper and fail closed.
 
 Prepared service context for repeated single-symbol runs:
 
@@ -2659,8 +3302,11 @@ Supported target routes:
 
 - `signal_notional`, `notional`, and `unit`: strategy returns one scalar
   `pd.Series`; final run uses native vectorized/event according to backend.
-- `pct_equity` / `%_equity`: strategy returns one scalar `pd.Series`; final run
-  uses the legacy `%_equity` engine.
+- `pct_equity` / `%_equity`: strategy returns one scalar `pd.Series`; the
+  default final run uses the legacy transition engine. Explicit
+  `target_runtime="rust"` plus `native_prepared_wfo="require"` uses the
+  parity-locked Rust `pct_equity_transition_v1` route for its compatible
+  single-symbol WFO/direct-run scope.
 - `dca_ladder`: strategy returns structural ladder levels; final run uses the
   legacy DCA engine and requires `high/low`.
 - `portfolio`: strategy returns a `DataFrame` or `{symbol: Series}`; final run
@@ -3048,10 +3694,15 @@ Rules for services:
 
 ## Options Endpoint
 
-`QuantBTEndpoint.options(...)` is the Phase 7 public route for native option
+`QuantBTEndpoint.options(...)` is the Python-primary public route for native option
 research. It is intentionally separate from `native_event` and generic
 arbitrage because options require quote-side execution, premium-currency
 cashflows, expiry/settlement, Greeks, and option margin.
+
+Phase 70 correctness containment fails unsupported American, Quanto, and
+physical-settlement requests before tape preparation. See
+[Options P0 containment](options_p0_containment.md) for the exact capability,
+financial-admission, margin, liquidation, and settlement contracts.
 
 Minimal call:
 
@@ -3126,10 +3777,17 @@ Useful config:
   endpoint fee rate is applied as a simple execution fee.
 - `option_execution`: optional `OptionExecutionConfig` for quote age, partial
   fill, limit fidelity, and depth fidelity settings.
-- `option_margin`: optional `OptionMarginConfig`. Current margin is an explicit
-  approximation unless an external validator is provided in later phases.
-- `settlement_events`: optional expiry settlement events passed to
-  `backtest(...)`.
+- `option_margin`: optional `OptionMarginConfig`. Approximation models remain
+  explicitly named; `require_venue_exact_margin=True` requires an
+  `external_margin_validator` which returns `venue_exact=True`.
+- `settlement_policy`: defaults to `explicit_events_only`. The legacy
+  `settle_expired=True` alias is retained as a visibly non-certified
+  last-tape-mark research fallback.
+- `settlement_events`: expiry settlement events passed to `backtest(...)`.
+  Official certification requires source, source timestamp, last-trading
+  timestamp, expiry timestamp, and `source_is_official=True`.
+- `liquidate_on_maintenance_breach`: defaults to `True`; maintenance is checked
+  through the market/event timeline and liquidation uses adverse BBO prices.
 - `prepared_cache`: optional `OptionPreparedRunCache` passed to `backtest(...)`
   when replaying many package sets over the same option chain.
 - `hedge_policy`: optional `OptionHedgeConfig`. If omitted, the endpoint uses
@@ -3213,6 +3871,7 @@ Returned result:
   `.tearsheet()`.
 - Option audit tables: `fills_report`, `packages_report`, `cash_report`,
   `marks_report`, `greeks_report`, `settlements_report`, `margin_report`,
+  `margin_timeline_report`, `liquidation_report`, `accounting_reconciliation`,
   `attribution_report`, `hedge_report`, `option_equity`, `combined_equity`,
   `combined_returns`, and `run_manifest`.
 

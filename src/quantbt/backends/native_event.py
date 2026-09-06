@@ -116,6 +116,14 @@ from ..core.results import (
     NativeEventScalarScoreResult,
     NativeEventScoreResult,
 )
+from ..core.native_result_v2 import NativeResultV2Adapter
+from ..core.runtime_governance import (
+    RuntimeBudgetError,
+    RuntimeBudgetV1,
+    RuntimeCanceledError,
+    RuntimeCancellationV1,
+    RuntimeTelemetryV1,
+)
 from ..core.reactive import (
     NativeActiveOrderSnapshot,
     NativeEventStrategyError,
@@ -148,8 +156,11 @@ from ._native_event_rust import (
     NativeEventBackendSelection,
     NativeEventRustBackendError,
     RustFullAuditResult,
+    RustReactiveCandidateBatchCoRuntime,
     RustFullRunner,
+    RustReactiveNumericCoRuntime,
     RustReactiveSessionAdapter,
+    _build_rust_command_intent_report,
     resolve_native_event_backend,
 )
 
@@ -194,17 +205,24 @@ class NativeEventConfig:
     audit_sink: str = "memory"
     audit_sink_path: Optional[str] = None
     reactive_kernel_mode: str = "replay_certified"
+    reactive_runtime: str = "legacy_python_loop"
+    reactive_gil_policy: str = "held_for_session"
     native_backend: Optional[str] = None
     backend_policy: Optional[str] = None
     audit_mode: Optional[str] = None
     oracle_sample_rate: float = 0.0
     oracle_sample_seed: int = 0
     execution_contract: Union[str, EventClockContract] = EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE
+    native_static_abi: str = "0.5"
     diagnostics: bool = False
     prepared_cache_max_bytes: int = 256 * 1024 * 1024
     prepared_cache_max_entries: int = 8
+    runtime_budget: RuntimeBudgetV1 = field(default_factory=RuntimeBudgetV1)
+    shadow_evidence_dir: Optional[str] = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.runtime_budget, RuntimeBudgetV1):
+            raise TypeError("runtime_budget must be RuntimeBudgetV1")
         if isinstance(self.fee_rate, dict):
             if any(float(rate) < 0.0 for rate in self.fee_rate.values()):
                 raise ValueError("fee_rate must be >= 0")
@@ -213,12 +231,15 @@ class NativeEventConfig:
         object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
         object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
         object.__setattr__(self, "reactive_kernel_mode", _normalize_reactive_kernel_mode(self.reactive_kernel_mode))
+        object.__setattr__(self, "reactive_runtime", _normalize_reactive_runtime(self.reactive_runtime))
+        object.__setattr__(self, "reactive_gil_policy", _normalize_reactive_gil_policy(self.reactive_gil_policy))
         object.__setattr__(self, "audit_mode", _normalize_reactive_audit_mode(self.audit_mode))
         if not 0.0 <= float(self.oracle_sample_rate) <= 1.0:
             raise ValueError("oracle_sample_rate must be between 0 and 1")
         object.__setattr__(self, "oracle_sample_rate", float(self.oracle_sample_rate))
         object.__setattr__(self, "oracle_sample_seed", int(self.oracle_sample_seed))
         object.__setattr__(self, "execution_contract", get_event_clock_contract(self.execution_contract))
+        object.__setattr__(self, "native_static_abi", _normalize_native_static_abi(self.native_static_abi))
         if self.native_backend is not None:
             selected = str(self.native_backend).lower().strip()
             if selected not in {"python", "rust", "auto", "replay_certified"}:
@@ -449,6 +470,25 @@ def _normalize_native_event_audit_sink(audit_sink: str) -> str:
     return sink
 
 
+def _normalize_native_static_abi(value: str) -> str:
+    """Resolve the static Rust boundary without silently selecting legacy ABI."""
+
+    raw = str(value or "0.5").lower().strip()
+    aliases = {
+        "0.5": "0.5",
+        "typed": "0.5",
+        "typed_v2": "0.5",
+        "0.4": "0.4_compat",
+        "0.4_compat": "0.4_compat",
+        "legacy": "0.4_compat",
+        "legacy_compat": "0.4_compat",
+    }
+    try:
+        return aliases[raw]
+    except KeyError as exc:
+        raise ValueError("native_static_abi must be '0.5' or '0.4_compat'") from exc
+
+
 def _normalize_reactive_kernel_mode(reactive_kernel_mode: str) -> str:
     mode = str(reactive_kernel_mode or "replay_certified").lower().strip()
     aliases = {"replay": "replay_certified", "certified": "replay_certified", "stateful": "single_pass"}
@@ -456,6 +496,51 @@ def _normalize_reactive_kernel_mode(reactive_kernel_mode: str) -> str:
     if mode not in {"replay_certified", "single_pass"}:
         raise ValueError("reactive_kernel_mode must be replay_certified or single_pass")
     return mode
+
+
+def _normalize_reactive_runtime(value: Optional[str]) -> str:
+    """Resolve control-flow ownership without changing existing defaults."""
+
+    raw = str(value or "legacy_python_loop").lower().strip()
+    normalized = {
+        "legacy": "legacy_python_loop",
+        "python": "legacy_python_loop",
+        "compatibility": "legacy_python_loop",
+        "numeric": "numeric_every_bar_v1",
+        "numeric_r1": "numeric_every_bar_v1",
+        "r1": "numeric_every_bar_v1",
+        "sparse": "numeric_sparse_wake_v1",
+        "sparse_wake": "numeric_sparse_wake_v1",
+        "numeric_r2": "numeric_sparse_wake_v1",
+        "r2": "numeric_sparse_wake_v1",
+        "block": "numeric_block_intent_v1",
+        "block_intent": "numeric_block_intent_v1",
+        "numeric_r3": "numeric_block_intent_v1",
+        "r3": "numeric_block_intent_v1",
+    }.get(raw, raw)
+    if normalized not in {
+        "legacy_python_loop",
+        "numeric_every_bar_v1",
+        "numeric_sparse_wake_v1",
+        "numeric_block_intent_v1",
+    }:
+        raise ValueError(
+            "reactive_runtime must be legacy_python_loop, numeric_every_bar_v1, "
+            "numeric_sparse_wake_v1, or numeric_block_intent_v1"
+        )
+    return normalized
+
+
+def _normalize_reactive_gil_policy(value: Optional[str]) -> str:
+    """Validate the explicit GIL policy used by the R1 co-runtime."""
+
+    raw = str(value or "held_for_session").lower().strip()
+    normalized = {"held": "held_for_session", "release": "release_between_callbacks"}.get(raw, raw)
+    if normalized not in {"held_for_session", "release_between_callbacks"}:
+        raise ValueError(
+            "reactive_gil_policy must be held_for_session or release_between_callbacks"
+        )
+    return normalized
 
 
 def _normalize_reactive_audit_mode(audit_mode: Optional[str]) -> Optional[str]:
@@ -1703,6 +1788,117 @@ class NativeEventBackend:
                 max_entries=int(config.prepared_cache_max_entries),
             )
         )
+        self._runtime_cancellation = RuntimeCancellationV1()
+        self._runtime_telemetry = RuntimeTelemetryV1()
+
+    def cancel(self, reason: str = "operator") -> None:
+        """Request cancellation at the next certified execution safe point."""
+
+        self._runtime_cancellation.cancel(reason)
+
+    def clear_cancellation(self) -> None:
+        self._runtime_cancellation.clear()
+
+    @property
+    def runtime_diagnostics(self) -> Mapping[str, Any]:
+        return {
+            "runtime_budget": asdict(self.config.runtime_budget),
+            "canceled": self._runtime_cancellation.canceled,
+            "cancel_reason": self._runtime_cancellation.reason,
+            "telemetry": self._runtime_telemetry.snapshot(),
+        }
+
+    def _runtime_route_selection(
+        self,
+        selection: NativeEventBackendSelection,
+    ) -> NativeEventBackendSelection:
+        """Apply a process-local shadow mismatch kill switch to one run.
+
+        Explicit Rust requests fail closed so an operator cannot mistake a
+        fallback for native execution. Auto requests retain the public request
+        provenance while resolving the run through the Python oracle.
+        """
+
+        if not self._runtime_telemetry.native_kill_switch or selection.resolved != "rust":
+            return selection
+        if selection.requested == "rust":
+            raise NativeEventRustBackendError(
+                "native-event Rust execution is disabled for this backend instance after a "
+                "shadow-oracle mismatch; inspect runtime_diagnostics and clear the incident "
+                "by constructing a new backend after remediation"
+            )
+        fallback = resolve_native_event_backend(
+            requested="python",
+            backend_policy=self.config.backend_policy,
+            environment={},
+        )
+        self._runtime_telemetry.increment("fallback_runs")
+        return replace(fallback, requested=selection.requested)
+
+    def _record_runtime_route(self, selection: NativeEventBackendSelection) -> None:
+        self._runtime_telemetry.increment(
+            "native_runs" if selection.resolved == "rust" else "python_runs"
+        )
+
+    def _shadow_evidence_dir(self) -> Path:
+        if self.config.shadow_evidence_dir:
+            return Path(self.config.shadow_evidence_dir)
+        if self.config.audit_sink_path:
+            return Path(self.config.audit_sink_path).expanduser().resolve().parent / "shadow-mismatches"
+        return Path.cwd() / ".quantbt" / "shadow-mismatches"
+
+    @staticmethod
+    def _reactive_financial_fingerprint(source, *, replay: bool) -> str:
+        digest = hashlib.sha256()
+        if replay:
+            arrays = (
+                source.equity.to_numpy(dtype=np.float64),
+                source.fees.to_numpy(dtype=np.float64),
+                source.funding.to_numpy(dtype=np.float64),
+                source.positions.to_numpy(dtype=np.float64),
+                source.margin[["initial_margin", "maintenance_margin"]].to_numpy(dtype=np.float64),
+            )
+            terminal = (bool(source.liquidated), int(source.liquidation_bar))
+        else:
+            arrays = (
+                source.equity_path,
+                source.fee_path,
+                source.funding_path,
+                source.pos_path,
+                np.column_stack((source.initial_margin_path, source.maintenance_margin_path)),
+            )
+            terminal = (bool(source.liquidated), int(source.liquidation_bar))
+        for value in arrays:
+            array = np.ascontiguousarray(value, dtype=np.float64)
+            digest.update(str(array.shape).encode("ascii"))
+            digest.update(array.tobytes())
+        digest.update(repr(terminal).encode("ascii"))
+        return digest.hexdigest()
+
+    def _runtime_safe_point(self, *, started_ns: int | None = None) -> None:
+        if self._runtime_cancellation.canceled:
+            self._runtime_telemetry.increment("canceled_runs")
+            raise RuntimeCanceledError(
+                f"native-event runtime canceled: {self._runtime_cancellation.reason or 'requested'}"
+            )
+        limit = self.config.runtime_budget.max_wall_time_ms
+        if limit is not None and started_ns is not None:
+            elapsed_ms = (perf_counter_ns() - int(started_ns)) / 1_000_000.0
+            if elapsed_ms >= int(limit):
+                self._runtime_telemetry.increment("budget_rejections")
+                raise RuntimeBudgetError(
+                    "MAX_WALL_TIME",
+                    f"native-event wall-time budget exceeded at safe point: {elapsed_ms:.3f}ms >= {limit}ms",
+                )
+
+    def _runtime_limit(self, field: str, actual: int, code: str) -> None:
+        limit = getattr(self.config.runtime_budget, field)
+        if limit is not None and int(actual) > int(limit):
+            self._runtime_telemetry.increment("budget_rejections")
+            raise RuntimeBudgetError(
+                code,
+                f"native-event {field} budget exceeded: actual={actual}, limit={limit}",
+            )
 
     @staticmethod
     def _reactive_market_cache_key(kwargs) -> tuple[str, ...]:
@@ -1739,6 +1935,562 @@ class NativeEventBackend:
             market_arrays.is_funding_bar,
         )
         return int(sum(np.asarray(array).nbytes for array in arrays))
+
+    def _prepare_reactive_numeric_coruntime(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbol_list: List[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        clock: EventClockContract,
+        requirements,
+        retain_fills: bool,
+        retain_events: bool,
+        runtime: str,
+        scalar_score: bool = False,
+        score_trading_days: int = 365,
+    ) -> tuple[RustReactiveNumericCoRuntime, int]:
+        """Prepare one Rust-owned reactive session with explicit retention.
+
+        The immutable market core is cached by content.  The full public and
+        scalar optimization routes share this construction path so neither
+        accidentally repacks the market or evolves a different account setup.
+        """
+
+        cache_kwargs = {
+            "market_arrays": market_arrays,
+            "opens_arr": opens_arr,
+            "volumes_arr": volumes_arr,
+        }
+        cache_key = self._reactive_market_cache_key(cache_kwargs)
+        prepared_market_core = self._rust_prepared_market_cores.get(cache_key)
+        started_ns = perf_counter_ns()
+        runner = RustReactiveNumericCoRuntime(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            initial_capital=self.config.account.initial_capital,
+            maintenance_ratio=self.config.account.maintenance_ratio,
+            slippage=self.config.execution.slippage_rate,
+            use_funding=bool(self.config.use_funding),
+            event_contract=clock,
+            requirements=requirements,
+            retain_fills=bool(retain_fills),
+            retain_events=bool(retain_events),
+            prepared_market_core=prepared_market_core,
+            runtime=runtime,
+            scalar_score=bool(scalar_score),
+            score_trading_days=int(score_trading_days),
+        )
+        if prepared_market_core is None:
+            self._rust_prepared_market_cores.put(
+                cache_key,
+                runner.prepared_market_core,
+                size_bytes=self._reactive_market_bytes(cache_kwargs),
+            )
+        return runner, int(perf_counter_ns() - started_ns)
+
+    def prepare_reactive_candidate_batch_coruntime(
+        self,
+        *,
+        candidate_count: int,
+        idx: pd.DatetimeIndex,
+        symbol_list: List[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        clock: EventClockContract,
+        requirements,
+        score_trading_days: int,
+    ) -> RustReactiveCandidateBatchCoRuntime:
+        """Build an R3B candidate batch over an already-prepared market core.
+
+        The small temporary R1/R2/R3 wrapper below is used only to obtain the
+        content-keyed immutable ``FullPreparedMarketCore`` already governed by
+        this backend.  Candidate accounts themselves are owned exclusively by
+        ``ReactiveCandidateBatchRunnerCore``; no Python loop or market repack is
+        introduced per candidate.
+        """
+
+        base_runner, _ = self._prepare_reactive_numeric_coruntime(
+            idx=idx,
+            symbol_list=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            clock=clock,
+            requirements=requirements,
+            retain_fills=False,
+            retain_events=False,
+            runtime="numeric_sparse_wake_v1",
+            scalar_score=True,
+            score_trading_days=int(score_trading_days),
+        )
+        return RustReactiveCandidateBatchCoRuntime(
+            candidate_count=int(candidate_count),
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            initial_capital=self.config.account.initial_capital,
+            maintenance_ratio=self.config.account.maintenance_ratio,
+            slippage=self.config.execution.slippage_rate,
+            use_funding=bool(self.config.use_funding),
+            event_contract=clock,
+            requirements=requirements,
+            retain_fills=False,
+            retain_events=False,
+            prepared_market_core=base_runner.prepared_market_core,
+            scalar_score=True,
+            score_trading_days=int(score_trading_days),
+        )
+
+    def _run_reactive_numeric_coruntime(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        strategy,
+        strategy_adapter: PreparedStrategyAdapter,
+        symbol_list: List[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        clock: EventClockContract,
+        plan: NativeEventArtifactPlan,
+        report_level: str,
+        audit_sink: Optional[str],
+        audit_sink_path: Optional[str],
+        execution_mode: str,
+        runtime: str,
+        gil_policy: str,
+        execution_plan,
+        strategy_prepare_ns: int,
+        planning_ns: int,
+        market_prepare_ns: int,
+        run_started_ns: int,
+        start_bar: int = 0,
+        end_bar: Optional[int] = None,
+    ) -> BacktestResultV2:
+        """Run one explicit R1/R2/R3 numeric co-runtime once.
+
+        The compatibility bridge owns neither this result nor a shadow account:
+        a fresh Rust ``FullSession`` consumes callback command rows directly.
+        Python object materialization happens only after Rust has completed.
+        """
+
+        sink = _normalize_native_event_audit_sink(
+            self.config.audit_sink if audit_sink is None else audit_sink
+        )
+        if sink not in {"memory", "none"}:
+            raise NotImplementedError(
+                "numeric reactive runtimes currently support audit_sink='memory' or 'none'; "
+                "sidecar serialization remains on the legacy reactive route"
+            )
+        runner, engine_prepare_ns = self._prepare_reactive_numeric_coruntime(
+            idx=idx,
+            symbol_list=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            clock=clock,
+            requirements=strategy_adapter.requirements,
+            retain_fills=bool(plan.keep_fill_ledger),
+            retain_events=bool(plan.keep_event_ledger),
+            runtime=runtime,
+        )
+        result_adapt_started_ns = perf_counter_ns()
+        try:
+            window_start = int(start_bar)
+            window_end = len(idx) if end_bar is None else int(end_bar)
+            if window_start == 0 and window_end == len(idx):
+                audit, payload = runner.run(strategy, gil_policy=gil_policy, runtime=runtime)
+            else:
+                audit, payload = runner.run_window(
+                    strategy,
+                    start_bar=window_start,
+                    end_bar=window_end,
+                    gil_policy=gil_policy,
+                    runtime=runtime,
+                )
+        except Exception as exc:
+            callback = runner.last_callback_name or "reactive_numeric"
+            bar = runner.last_callback_bar
+            if callback != "reactive_numeric" and 0 <= bar < len(idx):
+                raise NativeEventStrategyError(
+                    callback,
+                    bar,
+                    idx[bar],
+                    exc,
+                    strategy_id=strategy_adapter.strategy_id,
+                ) from exc
+            raise
+
+        runtime_metadata = dict(payload["metadata"])
+        strategy_boundary = {
+            **strategy_adapter.diagnostics,
+            "python_callbacks": int(runtime_metadata["python_callback_calls"]),
+            "callback_projection_bytes": int(runtime_metadata["context_projection_copy_bytes"]),
+            "callback_ns": int(runtime_metadata["callback_ns"]),
+            "command_writer_python_objects": int(runtime_metadata["command_writer_python_objects"]),
+            "runtime": runtime,
+        }
+        terminal_active = runner.terminal_active_orders(payload)
+        order_events = runner.order_events(payload, idx=idx)
+        emitted_tape = runner.emitted_commands(payload) if plan.keep_command_tape else ()
+        window_start = int(start_bar)
+        window_end = len(idx) if end_bar is None else int(end_bar)
+        result_idx = idx[window_start:window_end]
+        result = audit.to_backtest_result(
+            datetime_index=result_idx,
+            closes=market_arrays.closes[window_start:window_end],
+            symbols=symbol_list,
+            initial_capital=self.config.account.initial_capital,
+            leverage=float(np.mean(leverages)),
+            include_audit_reports=bool(plan.materialize_python_objects),
+            bar_offset=window_start,
+            metadata={
+                "engine": _event_engine_name(
+                    clock,
+                    {
+                        "numeric_every_bar_v1": "reactive_numeric_coruntime_r1",
+                        "numeric_sparse_wake_v1": "reactive_sparse_wake_coruntime_r2",
+                        "numeric_block_intent_v1": "reactive_block_intent_coruntime_r3",
+                    }[runtime],
+                ),
+                "report_level": report_level,
+                "artifact_plan": asdict(plan),
+                "audit_sink": sink,
+                "audit_sink_path": self.config.audit_sink_path if audit_sink_path is None else audit_sink_path,
+                "reactive_execution_mode": execution_mode,
+                "reactive_kernel_mode": "single_pass",
+                "reactive_runtime": runtime,
+                "reactive_gil_policy": gil_policy,
+                "command_effective_phase": "next_bar",
+                "event_clock_contract": clock.to_metadata(),
+                "execution_contract_id": clock.contract_id,
+                "prepared_market_window": {
+                    "start_bar": window_start,
+                    "end_bar": window_end,
+                    "bar_coordinate": "absolute_prepared_market",
+                },
+                "strategy_boundary": strategy_boundary,
+                "strategy_context_requirements": asdict(strategy_adapter.requirements),
+                "execution_plan_fingerprint": execution_plan.plan_fingerprint,
+                "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
+                "state_owner": "rust",
+                "authoritative_mutable_state_count": 1,
+                "python_shadow_accounting": False,
+                "single_pass_accounting_source": "rust_full_session",
+                "single_pass_replay_certified": False,
+                "static_replay_available": bool(plan.keep_command_tape),
+                "emitted_command_tape": emitted_tape,
+                "emitted_command_tape_retained": bool(plan.keep_command_tape),
+                "emitted_command_count": int(runtime_metadata["command_rows"]),
+                "emitted_executable_command_count": int(
+                    runtime_metadata["command_rows"]
+                    - np.count_nonzero(payload["command_outside_tape"])
+                    - np.count_nonzero(payload.get("command_invalidated", ()))
+                ),
+                "ignored_commands_after_end": int(np.count_nonzero(payload["command_outside_tape"])),
+                "invalidated_command_count": int(
+                    np.count_nonzero(payload.get("command_invalidated", ()))
+                ),
+                "quantity_constraints": constraints.as_dict(),
+                "quantity_preflight": {
+                    "changed_count": int(runtime_metadata["command_rows_quantized"]),
+                    "dropped_count": int(runtime_metadata["command_rows_dropped"]),
+                    "dropped_orders": (),
+                },
+                "active_orders": terminal_active,
+                "order_events": order_events,
+                "event_ledger": {
+                    "bar": audit.event_bar,
+                    "kind": audit.event_kind,
+                    "status": audit.event_status,
+                    "order_id": audit.event_order_id,
+                    "target_id": audit.event_target_id,
+                },
+                "reactive_numeric_observability": runtime_metadata,
+                "observability": {
+                    "schema_version": "phase63-reactive-coruntime-v1",
+                    "market_prepare_ns": int(market_prepare_ns),
+                    "strategy_prepare_ns": int(strategy_prepare_ns),
+                    "planning_ns": int(planning_ns),
+                    "engine_prepare_ns": int(engine_prepare_ns),
+                    "command_compile_ns": int(runtime_metadata["command_ingest_ns"]),
+                    "engine_run_ns": int(runtime_metadata["engine_ns"]),
+                    "result_adapt_ns": 0,
+                    "report_build_ns": 0,
+                    "oracle_verify_ns": 0,
+                    "total_ns": 0,
+                },
+                **self._backend_selection_metadata(),
+            },
+        )
+        result.metadata["observability"]["result_adapt_ns"] = int(
+            perf_counter_ns() - result_adapt_started_ns
+        )
+        result.metadata["observability"]["total_ns"] = int(perf_counter_ns() - run_started_ns)
+        if report_level == "audit" and sink == "memory":
+            self._attach_reactive_accounting_trace(
+                result,
+                contract_sizes=contract_sizes,
+            )
+        return result
+
+    def _run_reactive_numeric_coruntime_score(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        strategy,
+        strategy_adapter: PreparedStrategyAdapter,
+        symbol_list: List[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+        constraints,
+        contract_sizes: np.ndarray,
+        leverages: np.ndarray,
+        fee_rates: np.ndarray,
+        clock: EventClockContract,
+        score_requirements: NativeEventScoreRequirements,
+        runtime: str,
+        gil_policy: str,
+        execution_plan,
+        trading_days: int,
+        strategy_prepare_ns: int,
+        planning_ns: int,
+        market_prepare_ns: int,
+        run_started_ns: int,
+        start_bar: int,
+        end_bar: int,
+    ) -> NativeEventScalarScoreResult:
+        """Run R1/R2/R3 with O(symbols) scalar retention only.
+
+        This is the prepared optimization boundary.  It deliberately cannot
+        produce a public report result: any caller needing an equity path,
+        order ledger, or callback trace must use ``run_strategy`` and the
+        existing cold-path adapter.
+        """
+
+        runner, engine_prepare_ns = self._prepare_reactive_numeric_coruntime(
+            idx=idx,
+            symbol_list=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            clock=clock,
+            requirements=strategy_adapter.requirements,
+            retain_fills=False,
+            retain_events=False,
+            runtime=runtime,
+            scalar_score=True,
+            score_trading_days=int(trading_days),
+        )
+        try:
+            payload = runner.run_scalar_window(
+                strategy,
+                start_bar=int(start_bar),
+                end_bar=int(end_bar),
+                gil_policy=gil_policy,
+                runtime=runtime,
+            )
+        except Exception as exc:
+            callback = runner.last_callback_name or "reactive_numeric"
+            bar = runner.last_callback_bar
+            if callback != "reactive_numeric" and 0 <= bar < len(idx):
+                raise NativeEventStrategyError(
+                    callback,
+                    bar,
+                    idx[bar],
+                    exc,
+                    strategy_id=strategy_adapter.strategy_id,
+                ) from exc
+            raise
+
+        metric_fields = {
+            "initial_capital": "score_initial_capital",
+            "final_equity": "score_final_equity",
+            "total_return_pct": "score_total_return_pct",
+            "cagr_pct": "score_cagr_pct",
+            "sharpe": "score_sharpe",
+            "sortino": "score_sortino",
+            "calmar": "score_calmar",
+            "omega": "score_omega",
+            "max_drawdown_pct": "score_max_drawdown_pct",
+            "avg_drawdown_pct": "score_avg_drawdown_pct",
+            "max_dd_duration_days": "score_max_dd_duration_days",
+            "avg_dd_duration_days": "score_avg_dd_duration_days",
+            "profit_factor": "score_profit_factor",
+            "long_hitrate_pct": "score_long_hitrate_pct",
+            "short_hitrate_pct": "score_short_hitrate_pct",
+            "avg_win_pct": "score_avg_win_pct",
+            "avg_loss_pct": "score_avg_loss_pct",
+            "expectancy_pct": "score_expectancy_pct",
+            "num_trades": "score_num_trades",
+            "max_initial_margin": "score_max_initial_margin",
+            "max_maintenance_margin": "score_max_maintenance_margin",
+        }
+        metrics = {
+            name: int(payload[source]) if name.endswith("_days") or name == "num_trades" else float(payload[source])
+            for name, source in metric_fields.items()
+        }
+        metrics.update(
+            {
+                "liquidated": bool(payload["liquidated"]),
+                "total_fee": float(payload["total_fee"]),
+                "total_funding": float(payload["total_funding"]),
+                "total_turnover": float(payload["total_turnover"]),
+            }
+        )
+        lifecycle_counters = {
+            "fill_count": int(payload["fill_count"]),
+            "event_count": int(payload["event_count"]),
+            "rejected_count": int(payload["rejected_count"]),
+            "canceled_count": int(payload["canceled_count"]),
+        }
+        observability = {
+            "schema_version": "phase75-reactive-scalar-v1",
+            "runtime_class": str(payload["runtime_class"]),
+            "native_entry_calls": int(payload["native_entry_calls"]),
+            "bars_processed": int(payload["bars_processed"]),
+            "python_callback_calls": int(payload["python_callback_calls"]),
+            "gil_acquisitions": int(payload["gil_acquisitions"]),
+            "gil_policy": str(payload["gil_policy"]),
+            "context_projection_copy_bytes": int(payload["context_copy_bytes"]),
+            "wake_observation_refreshes": int(payload.get("wake_observation_refreshes", 0)),
+            "wake_observation_buffer_allocations": int(
+                payload.get("wake_observation_buffer_allocations", 0)
+            ),
+            "native_gap_runs": int(payload.get("native_gap_runs", 0)),
+            "native_gap_bars": int(payload.get("native_gap_bars", 0)),
+            "native_cancellation_checks": int(payload.get("native_cancellation_checks", 0)),
+            "native_deadline_checks": int(payload.get("native_deadline_checks", 0)),
+            "command_ingest_copy_bytes": int(payload["command_ingest_bytes"]),
+            "command_rows": int(payload["command_rows"]),
+            "command_rows_dropped": int(payload["command_rows_dropped"]),
+            "command_rows_quantized": int(payload["command_rows_quantized"]),
+            "callback_ns": int(payload["python_callback_ns"]),
+            "context_projection_ns": int(payload["context_projection_ns"]),
+            "command_ingest_ns": int(payload["command_ingest_ns"]),
+            "engine_ns": int(payload["engine_ns"]),
+            "result_materialization_ns": int(payload["result_materialization_ns"]),
+            "retention": {
+                "account_paths": bool(payload["retention_account_paths"]),
+                "command_rows": bool(payload["retention_command_rows"]),
+                "callback_trace": bool(payload["retention_callback_trace"]),
+                "terminal_active_orders": bool(payload["retention_terminal_active_orders"]),
+            },
+        }
+        metadata = {
+            "backend": "native_event",
+            "engine": _event_engine_name(
+                clock,
+                {
+                    "numeric_every_bar_v1": "reactive_numeric_scalar_r1",
+                    "numeric_sparse_wake_v1": "reactive_sparse_scalar_r2",
+                    "numeric_block_intent_v1": "reactive_block_scalar_r3",
+                }[runtime],
+            ),
+            "report_level": "score",
+            "score_scalar": True,
+            "score_direct_arrays": False,
+            "score_pandas_materialized": False,
+            "score_full_ledgers_materialized": False,
+            "score_primitive_order_state": True,
+            "score_retained_paths": {
+                "equity_path": False,
+                "pos_path": False,
+                "fee_path": False,
+                "funding_path": False,
+                "initial_margin_path": False,
+                "maintenance_margin_path": False,
+            },
+            "score_requirements": asdict(score_requirements),
+            "trading_days": int(trading_days),
+            "lifecycle_counters": lifecycle_counters,
+            "total_fee": float(payload["total_fee"]),
+            "total_funding": float(payload["total_funding"]),
+            "total_turnover": float(payload["total_turnover"]),
+            "reactive_runtime": runtime,
+            "reactive_gil_policy": gil_policy,
+            "reactive_kernel_mode": "single_pass",
+            "command_effective_phase": "next_bar",
+            "event_clock_contract": clock.to_metadata(),
+            "execution_contract_id": clock.contract_id,
+            "window_start_bar": int(start_bar),
+            "window_end_bar": int(end_bar),
+            "strategy_context_requirements": asdict(strategy_adapter.requirements),
+            "execution_plan_fingerprint": execution_plan.plan_fingerprint,
+            "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
+            "state_owner": "rust",
+            "authoritative_mutable_state_count": 1,
+            "python_shadow_accounting": False,
+            "single_pass_accounting_source": "rust_full_session",
+            "reactive_numeric_observability": observability,
+            "observability": {
+                "schema_version": "phase75-reactive-scalar-v1",
+                "market_prepare_ns": int(market_prepare_ns),
+                "strategy_prepare_ns": int(strategy_prepare_ns),
+                "planning_ns": int(planning_ns),
+                "engine_prepare_ns": int(engine_prepare_ns),
+                "command_compile_ns": int(payload["command_ingest_ns"]),
+                "engine_run_ns": int(payload["engine_ns"]),
+                "result_adapt_ns": int(payload["result_materialization_ns"]),
+                "report_build_ns": 0,
+                "oracle_verify_ns": 0,
+                "total_ns": int(perf_counter_ns() - run_started_ns),
+            },
+            **self._backend_selection_metadata(),
+        }
+        return NativeEventScalarScoreResult(
+            final_equity=float(payload["final_equity"]),
+            final_positions=np.ascontiguousarray(payload["final_positions"], dtype=np.float64).copy(),
+            fill_count=int(payload["fill_count"]),
+            rejection_count=int(payload["rejected_count"]),
+            cancellation_count=int(payload["canceled_count"]),
+            liquidated=bool(payload["liquidated"]),
+            liquidation_bar=int(payload["liquidation_bar"]),
+            metrics=metrics,
+            metadata=metadata,
+        )
 
     def _create_reactive_session(
         self,
@@ -1791,6 +2543,7 @@ class NativeEventBackend:
             "native_event_rust_fallback_reason": selection.extension.reason,
             "native_event_promotion_v1": selection.promotion.to_dict(),
             "prepared_market_cache": self._rust_prepared_market_cores.diagnostics,
+            "runtime_governance_v1": self.runtime_diagnostics,
         }
 
     def clear_prepared_caches(self) -> None:
@@ -1821,7 +2574,7 @@ class NativeEventBackend:
         high_dict = align_series(highs, symbol_list, idx, fallback=close_dict)
         low_dict = align_series(lows, symbol_list, idx, fallback=close_dict)
         funding_dict = prepare_funding(funding_rate if self.config.use_funding else 0.0, symbol_list, idx)
-        return build_market_arrays(
+        prepared = build_market_arrays(
             symbols=symbol_list,
             idx=idx,
             closes_dict=close_dict,
@@ -1829,6 +2582,22 @@ class NativeEventBackend:
             lows_dict=low_dict,
             funding_dict=funding_dict,
         )
+        native_bytes = sum(
+            int(value.nbytes)
+            for value in (
+                prepared.highs,
+                prepared.lows,
+                prepared.closes,
+                prepared.funding,
+                prepared.is_funding_bar,
+            )
+        )
+        self.config.runtime_budget.require_preflight(
+            bars=len(idx),
+            workers=1,
+            native_memory_bytes=native_bytes,
+        )
+        return prepared
 
     def prepare_rust_batched_runner(
         self,
@@ -1853,9 +2622,9 @@ class NativeEventBackend:
 
         This helper does not change endpoint defaults and never accepts a
         Python strategy callback. Callers compile a static ``OrderCommand``
-        tape once and pass it to ``run_tape_score`` or ``run_tape_audit``.
-        The selected Rust 0.4 full-contract capability set is checked before
-        crossing the boundary.
+        tape once and pass it to the typed score/compact/audit runner. ABI 0.5
+        is the default; ``native_static_abi='0.4_compat'`` remains an explicit
+        rollback setting inherited from this backend configuration.
         """
         idx = validate_datetime(datetime_index)
         clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
@@ -1904,6 +2673,7 @@ class NativeEventBackend:
             opens_arr=opens_arr,
             event_contract=clock,
             prepared_market_core=prepared_market_core,
+            native_static_abi=self.config.native_static_abi,
         )
 
     def prepare_native_strategy_ir(
@@ -2075,9 +2845,44 @@ class NativeEventBackend:
         """
         diagnostics_requested = self.config.diagnostics if diagnostics_enabled is None else bool(diagnostics_enabled)
         total_started_ns = perf_counter_ns() if diagnostics_requested else 0
+        self._runtime_safe_point()
+        command_rows = tuple(commands)
+        self._runtime_limit("max_commands", len(command_rows), "MAX_COMMANDS")
+        order_rows = sum(
+            command.action in (OrderAction.PLACE, OrderAction.REPLACE)
+            for command in command_rows
+        )
+        self._runtime_limit("max_orders", order_rows, "MAX_ORDERS")
+        # A static order can fill at most once in the currently certified
+        # no-partial-fill contract, so this is an exact admission upper bound.
+        self._runtime_limit("max_fills", order_rows, "MAX_FILLS")
         idx = validate_datetime(datetime_index)
         if len(idx) == 0:
             raise ValueError("native-event command execution requires at least one market bar")
+        prepared_bytes = 0
+        if market_arrays is not None:
+            prepared_bytes = int(
+                sum(
+                    int(getattr(value, "nbytes", 0))
+                    for value in (
+                        market_arrays.idx.asi8,
+                        market_arrays.highs,
+                        market_arrays.lows,
+                        market_arrays.closes,
+                        market_arrays.funding,
+                        market_arrays.is_funding_bar,
+                    )
+                )
+            )
+        try:
+            self.config.runtime_budget.require_preflight(
+                bars=len(idx),
+                workers=1,
+                native_memory_bytes=prepared_bytes,
+            )
+        except RuntimeBudgetError:
+            self._runtime_telemetry.increment("budget_rejections")
+            raise
         clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
         requested_report_level = self.config.report_level if report_level is None else report_level
         level = _normalize_native_event_report_level(requested_report_level)
@@ -2193,6 +2998,11 @@ class NativeEventBackend:
             symbol_count=len(symbol_list),
             required_capabilities=tuple(sorted(required)),
         )
+        if not _force_python_backend:
+            static_selection = self._runtime_route_selection(static_selection)
+        self._record_runtime_route(
+            static_selection if not _force_python_backend else replace(static_selection, resolved="python")
+        )
         if static_selection.resolved == "rust" and not _force_python_backend:
             status = static_selection.extension
             missing = sorted(name for name in required if not status.capabilities.get(name, False))
@@ -2202,7 +3012,7 @@ class NativeEventBackend:
                 )
         effective_commands, quantity_preflight = self._apply_command_quantity_constraints(
             idx=idx,
-            commands=commands,
+            commands=command_rows,
             closes=market_arrays.closes,
             symbol_list=symbol_list,
             contract_sizes=contract_sizes,
@@ -2240,6 +3050,7 @@ class NativeEventBackend:
                 use_funding=bool(self.config.use_funding),
                 opens_arr=opens_arr,
                 event_contract=clock,
+                native_static_abi=self.config.native_static_abi,
             )
             engine_started_ns = perf_counter_ns() if diagnostics_requested else 0
             # A public ``score`` request still needs dense account paths for a
@@ -2247,7 +3058,34 @@ class NativeEventBackend:
             # replay the tape. Compact is the single Rust execution pass for
             # that retention profile; standard/audit retain typed ledgers.
             rust_output_profile = "compact" if level == "score" else "audit"
-            if rust_output_profile == "compact":
+            typed_native_output = None
+            if runner.native_static_abi == "0.5":
+                typed_native_output = runner.run_tape_typed(
+                    compiled_commands,
+                    profile=rust_output_profile,
+                )
+                if rust_output_profile == "compact":
+                    audit = RustFullAuditResult.from_compact_payload(
+                        typed_native_output,
+                        n_bars=len(idx),
+                        n_symbols=len(symbol_list),
+                        id_values=tuple(compiled_commands.id_values),
+                    )
+                else:
+                    audit = RustFullAuditResult.from_audit_payload(
+                        typed_native_output,
+                        n_bars=len(idx),
+                        n_symbols=len(symbol_list),
+                        id_values=tuple(compiled_commands.id_values),
+                        command_report=_build_rust_command_intent_report(compiled_commands),
+                        command_metadata={
+                            command.order_id: dict(command.metadata)
+                            for _, command in compiled_commands.sorted_commands
+                            if command.order_id
+                        },
+                    )
+                native_result_adapter = NativeResultV2Adapter(typed_native_output)
+            elif rust_output_profile == "compact":
                 compact_payload = runner.run_tape_compact(compiled_commands)
                 audit = RustFullAuditResult.from_compact_payload(
                     compact_payload,
@@ -2257,13 +3095,38 @@ class NativeEventBackend:
                 )
             else:
                 audit = runner.run_tape_audit(compiled_commands)
+                native_result_adapter = None
             engine_finished_ns = perf_counter_ns() if diagnostics_requested else 0
+            native_result_metadata = {}
+            if typed_native_output is not None:
+                header = native_result_adapter.header
+                native_result_metadata = {
+                    "native_result_v2": {
+                        "result_version": header.result_version,
+                        "run_id": header.run_id,
+                        "request_fingerprint": header.request_fingerprint,
+                        "template_fingerprint": header.template_fingerprint,
+                        "contract_bundle_hash": header.contract_bundle_hash,
+                        "terminal_fingerprint": header.terminal_fingerprint,
+                        "workload_kind": header.workload_kind,
+                        "runtime_class": header.runtime_class,
+                        "account_authority": header.account_authority,
+                        "execution_model_id": header.execution_model_id,
+                        "metric_contract_version": header.metric_contract_version,
+                        "output_profile": header.output_profile,
+                        "detail_truncated": header.detail_truncated,
+                        "retained_rows": header.retained_rows,
+                        "dropped_rows": header.dropped_rows,
+                    },
+                    "native_metric_v2": dict(native_result_adapter.metrics),
+                }
             result = audit.to_backtest_result(
                 datetime_index=idx,
-                closes=pd.DataFrame({symbol: market_arrays.closes[:, col] for col, symbol in enumerate(symbol_list)}, index=idx),
+                closes=market_arrays.closes,
                 symbols=symbol_list,
                 initial_capital=float(self.config.account.initial_capital),
                 leverage=float(np.mean(leverages)),
+                include_audit_reports=rust_output_profile == "audit",
                 metadata={
                     **self._backend_selection_metadata(static_selection),
                     "quantity_preflight": quantity_preflight,
@@ -2277,8 +3140,13 @@ class NativeEventBackend:
                     "use_funding": bool(self.config.use_funding),
                     "rust_output_profile": rust_output_profile,
                     "rust_audit_replay": False,
+                    "native_static_abi_requested": self.config.native_static_abi,
+                    "native_static_abi_resolved": runner.native_static_abi,
+                    "native_static_compatibility": runner.native_static_abi == "0.4_compat",
+                    "native_static_execution_boundary_calls": 1,
                     "event_clock_contract": clock.to_metadata(),
                     "execution_contract_id": clock.contract_id,
+                    **native_result_metadata,
                 },
             )
             if rust_output_profile == "audit":
@@ -2650,6 +3518,8 @@ class NativeEventBackend:
         execution_mode: str = "fast",
         command_effective_phase: str = "next_bar",
         reactive_kernel_mode: Optional[str] = None,
+        reactive_runtime: Optional[str] = None,
+        reactive_gil_policy: Optional[str] = None,
         report_level: Optional[str] = None,
         audit_sink: Optional[str] = None,
         audit_sink_path: Optional[str] = None,
@@ -2659,6 +3529,9 @@ class NativeEventBackend:
         _score_requirements: Optional[NativeEventScoreRequirements] = None,
         _return_score: bool = False,
         _trading_days: int = 365,
+        _start_bar: int = 0,
+        _end_bar: Optional[int] = None,
+        _allow_prepared_window: bool = False,
     ) -> Union[BacktestResultV2, NativeEventScoreResult]:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -2668,6 +3541,7 @@ class NativeEventBackend:
         mode; ordinary single-pass runs report from their primary engine.
         """
         run_started_ns = perf_counter_ns()
+        self._runtime_safe_point(started_ns=run_started_ns)
         if strategy is None:
             raise ValueError("run_strategy requires a strategy object")
         if str(command_effective_phase).lower().strip() != "next_bar":
@@ -2675,9 +3549,21 @@ class NativeEventBackend:
         execution_mode = str(execution_mode).lower().strip()
         if execution_mode not in {"fast", "audit"}:
             raise ValueError("execution_mode must be 'fast' or 'audit'")
-        backend_selection = self._backend_selection
+        if self.config.runtime_budget.max_active_orders is not None:
+            raise NotImplementedError(
+                "reactive max_active_orders budget requires a native active-order counter; "
+                "omit it or use a static/prepared route until that counter is certified"
+            )
+        backend_selection = self._runtime_route_selection(self._backend_selection)
+        self._record_runtime_route(backend_selection)
         kernel_mode = _normalize_reactive_kernel_mode(
             self.config.reactive_kernel_mode if reactive_kernel_mode is None else reactive_kernel_mode
+        )
+        runtime = _normalize_reactive_runtime(
+            self.config.reactive_runtime if reactive_runtime is None else reactive_runtime
+        )
+        gil_policy = _normalize_reactive_gil_policy(
+            self.config.reactive_gil_policy if reactive_gil_policy is None else reactive_gil_policy
         )
         if backend_selection.resolved == "replay_certified":
             kernel_mode = "replay_certified"
@@ -2749,6 +3635,19 @@ class NativeEventBackend:
         idx = validate_datetime(datetime_index)
         if len(idx) == 0:
             raise ValueError("native-event strategy execution requires at least one market bar")
+        score_start_bar = int(_start_bar)
+        score_end_bar = len(idx) if _end_bar is None else int(_end_bar)
+        if not 0 <= score_start_bar < score_end_bar <= len(idx):
+            raise ValueError("reactive score window must satisfy 0 <= start_bar < end_bar <= market bars")
+        if (
+            not _return_score
+            and (score_start_bar != 0 or score_end_bar != len(idx))
+            and not bool(_allow_prepared_window)
+        ):
+            raise NotImplementedError(
+                "windowed reactive execution is reserved for the prepared scalar WFO route; "
+                "public result runs must use one explicit cold segment"
+            )
         clock = get_event_clock_contract(self.config.execution_contract)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
         if market_arrays is None:
@@ -2803,6 +3702,135 @@ class NativeEventBackend:
             symbol_list,
             default=0.0,
         )
+        if runtime in {
+            "numeric_every_bar_v1",
+            "numeric_sparse_wake_v1",
+            "numeric_block_intent_v1",
+        }:
+            if _return_score:
+                if any(
+                    (
+                        score_requirements.need_equity_path,
+                        score_requirements.need_position_path,
+                        score_requirements.need_fee_path,
+                        score_requirements.need_funding_path,
+                        score_requirements.need_margin_path,
+                        score_requirements.need_turnover_path,
+                        score_requirements.need_rejection_path,
+                        score_requirements.need_cancellation_path,
+                        score_requirements.need_fill_ledger,
+                        score_requirements.need_event_ledger,
+                        score_requirements.need_terminal_orders,
+                        score_requirements.need_command_tape,
+                    )
+                ):
+                    raise NotImplementedError(
+                        f"reactive_runtime={runtime!r} direct scoring supports "
+                        "NativeEventScoreRequirements.scalar_score_contract() only; "
+                        "path or ledger retention belongs to the public result route"
+                    )
+            if self.config.audit_mode not in {None, "native_trace"}:
+                raise NotImplementedError(
+                    f"reactive_runtime={runtime!r} executes exactly one Rust-owned session; "
+                    "audit_mode='verify_against_oracle' and 'dual_run_sampled' are not supported by the R1 route. "
+                    "Use audit_mode='native_trace' and run the explicit A/B/C/D certification harness when an oracle "
+                    "comparison is required."
+                )
+            if backend_selection.resolved != "rust":
+                raise NativeEventRustBackendError(
+                    f"reactive_runtime={runtime!r} requires native_backend='rust' and a compatible native wheel"
+                )
+            if runtime != "numeric_every_bar_v1" and backend_selection.requested != "rust":
+                raise NativeEventRustBackendError(
+                    f"reactive_runtime={runtime!r} is A3 explicit-only; set native_backend='rust' explicitly "
+                    "after passing its every-bar shadow certification"
+                )
+            if kernel_mode != "single_pass":
+                raise ValueError(
+                    f"reactive_runtime={runtime!r} requires reactive_kernel_mode='single_pass'; "
+                    "A/B/C/D replay certification is an external audit, not a hidden second run"
+                )
+            if strategy_adapter.requirements.context_mode != "numeric":
+                raise TypeError(
+                    f"reactive_runtime={runtime!r} requires StrategyContextRequirements(context_mode='numeric')"
+                )
+            if not strategy_adapter.requirements.callback.is_every_bar:
+                raise NotImplementedError(
+                    f"reactive_runtime={runtime!r} requires CallbackSchedule(every_n_bars=1); "
+                    "R2/R3 own scheduling through WakePlanV1/BlockPlanV1 rather than legacy callback intervals"
+                )
+            marker = {
+                "numeric_every_bar_v1": "quantbt_reactive_numeric_v1",
+                "numeric_sparse_wake_v1": "quantbt_reactive_sparse_v1",
+                "numeric_block_intent_v1": "quantbt_reactive_block_intent_v1",
+            }[runtime]
+            if not bool(getattr(strategy, marker, False)):
+                raise TypeError(
+                    f"{runtime} strategies must explicitly set {marker} = True"
+                )
+            certification_marker = {
+                "numeric_sparse_wake_v1": "quantbt_sparse_shadow_certified_v1",
+                "numeric_block_intent_v1": "quantbt_block_shadow_certified_v1",
+            }.get(runtime)
+            if certification_marker is not None and not bool(getattr(strategy, certification_marker, False)):
+                raise TypeError(
+                    f"{runtime} is explicit-only and requires {certification_marker} = True after "
+                    "an every-bar shadow parity run"
+                )
+            if _return_score:
+                return self._run_reactive_numeric_coruntime_score(
+                    idx=idx,
+                    strategy=strategy,
+                    strategy_adapter=strategy_adapter,
+                    symbol_list=symbol_list,
+                    market_arrays=market_arrays,
+                    opens_arr=opens_arr,
+                    volumes_arr=volumes_arr,
+                    constraints=constraints,
+                    contract_sizes=contract_sizes,
+                    leverages=leverages,
+                    fee_rates=fee_rates,
+                    clock=clock,
+                    score_requirements=score_requirements,
+                    runtime=runtime,
+                    gil_policy=gil_policy,
+                    execution_plan=execution_plan,
+                    trading_days=int(_trading_days),
+                    strategy_prepare_ns=strategy_prepare_ns,
+                    planning_ns=planning_ns,
+                    market_prepare_ns=market_prepare_ns,
+                    run_started_ns=run_started_ns,
+                    start_bar=score_start_bar,
+                    end_bar=score_end_bar,
+                )
+            return self._run_reactive_numeric_coruntime(
+                idx=idx,
+                strategy=strategy,
+                strategy_adapter=strategy_adapter,
+                symbol_list=symbol_list,
+                market_arrays=market_arrays,
+                opens_arr=opens_arr,
+                volumes_arr=volumes_arr,
+                constraints=constraints,
+                contract_sizes=contract_sizes,
+                leverages=leverages,
+                fee_rates=fee_rates,
+                clock=clock,
+                plan=plan,
+                report_level=level,
+                audit_sink=audit_sink,
+                audit_sink_path=audit_sink_path,
+                execution_mode=execution_mode,
+                runtime=runtime,
+                gil_policy=gil_policy,
+                execution_plan=execution_plan,
+                strategy_prepare_ns=strategy_prepare_ns,
+                planning_ns=planning_ns,
+                market_prepare_ns=market_prepare_ns,
+                run_started_ns=run_started_ns,
+                start_bar=score_start_bar,
+                end_bar=score_end_bar,
+            )
         engine_prepare_started_ns = perf_counter_ns()
         session = self._create_reactive_session(
             backend_selection=backend_selection,
@@ -2840,23 +3868,43 @@ class NativeEventBackend:
         emitted_order_ids: set[str] = set()
         emitted_command_count = 0
         emitted_executable_command_count = 0
+        emitted_order_count = 0
         callback_count = 0
         command_compile_ns = 0
         ignored_commands_after_end = 0
         quantity_preflight_summary = {"changed_count": 0, "dropped_count": 0, "dropped_orders": []}
 
-        def record_scheduled(commands: Sequence[OrderCommand] = (), *, count: Optional[int] = None) -> None:
-            nonlocal emitted_command_count, emitted_executable_command_count
+        def record_scheduled(
+            commands: Sequence[OrderCommand] = (),
+            *,
+            count: Optional[int] = None,
+            order_count: Optional[int] = None,
+        ) -> None:
+            nonlocal emitted_command_count, emitted_executable_command_count, emitted_order_count
             command_count = len(commands) if count is None else int(count)
+            new_order_count = (
+                sum(command.action in (OrderAction.PLACE, OrderAction.REPLACE) for command in commands)
+                if order_count is None
+                else int(order_count)
+            )
+            self._runtime_limit(
+                "max_commands", emitted_command_count + command_count, "MAX_COMMANDS"
+            )
+            self._runtime_limit("max_orders", emitted_order_count + new_order_count, "MAX_ORDERS")
             emitted_command_count += command_count
             emitted_executable_command_count += command_count
+            emitted_order_count += new_order_count
             if not _return_score:
                 emitted.extend(commands)
                 emitted_audit_tape.extend(commands)
 
         def record_outside_tape(commands: Sequence[OrderCommand], *, count: Optional[int] = None) -> None:
             nonlocal emitted_command_count
-            emitted_command_count += len(commands) if count is None else int(count)
+            command_count = len(commands) if count is None else int(count)
+            self._runtime_limit(
+                "max_commands", emitted_command_count + command_count, "MAX_COMMANDS"
+            )
+            emitted_command_count += command_count
             if not _return_score:
                 emitted_audit_tape.extend(commands)
 
@@ -2957,7 +4005,14 @@ class NativeEventBackend:
                     )
                 # Match the compatibility path: counts describe emitted
                 # commands before venue constraints potentially drop a row.
-                record_scheduled(materialized, count=len(commands))
+                numeric_order_count = int(
+                    np.count_nonzero(np.isin(commands.writer.action[: len(commands)], (0, 2)))
+                )
+                record_scheduled(
+                    materialized,
+                    count=len(commands),
+                    order_count=numeric_order_count,
+                )
                 command_compile_ns += perf_counter_ns() - compile_started_ns
                 return tuple(materialized), 0
             if isinstance(commands, CommandBatchView):
@@ -3014,7 +4069,9 @@ class NativeEventBackend:
             )
 
         for bar in range(len(idx)):
+            self._runtime_safe_point(started_ns=run_started_ns)
             session.process_bar(bar)
+            self._runtime_limit("max_fills", len(getattr(session, "fills", ())), "MAX_FILLS")
             if session.liquidated:
                 session.release_bar_payload(bar)
                 break
@@ -3131,7 +4188,7 @@ class NativeEventBackend:
                     "observability": observability,
                     "execution_plan_fingerprint": execution_plan.plan_fingerprint,
                     "strategy_projection_fingerprint": execution_plan.projection_fingerprint,
-                    **self._backend_selection_metadata(),
+                    **self._backend_selection_metadata(backend_selection),
                 },
             )
         result_adapt_started_ns = perf_counter_ns()
@@ -3170,7 +4227,34 @@ class NativeEventBackend:
             )
         oracle_verify_started_ns = perf_counter_ns()
         if replay_result is not None:
-            self._assert_reactive_session_replay_parity(session, replay_result)
+            primary_fingerprint = self._reactive_financial_fingerprint(session, replay=False)
+            oracle_fingerprint = self._reactive_financial_fingerprint(replay_result, replay=True)
+            try:
+                self._assert_reactive_session_replay_parity(session, replay_result)
+            except AuditMismatchError as exc:
+                self._runtime_telemetry.record_shadow(
+                    route_id="reactive_python_callback_v2_v3",
+                    primary_fingerprint=primary_fingerprint,
+                    oracle_fingerprint=oracle_fingerprint,
+                    evidence_dir=self._shadow_evidence_dir(),
+                    details={
+                        "error": str(exc),
+                        "execution_contract_id": clock.contract_id,
+                        "backend_requested": backend_selection.requested,
+                        "backend_resolved": backend_selection.resolved,
+                    },
+                )
+                raise
+            else:
+                # The parity oracle is tolerance-based. Record the primary
+                # digest for both sides after that certified comparison rather
+                # than turning harmless sub-tolerance noise into an incident.
+                self._runtime_telemetry.record_shadow(
+                    route_id="reactive_python_callback_v2_v3",
+                    primary_fingerprint=primary_fingerprint,
+                    oracle_fingerprint=primary_fingerprint,
+                    details={"oracle_raw_fingerprint": oracle_fingerprint},
+                )
         oracle_verify_ns = perf_counter_ns() - oracle_verify_started_ns if replay_result is not None else 0
         report_build_started_ns = perf_counter_ns()
         final_result = self._reactive_session_result(
@@ -3191,7 +4275,7 @@ class NativeEventBackend:
         final_result.metadata.update(
             {
                 "engine": engine_name,
-                **self._backend_selection_metadata(),
+                **self._backend_selection_metadata(backend_selection),
                 "reactive_execution_mode": execution_mode,
                 "reactive_kernel_mode": kernel_mode,
                 "command_effective_phase": "next_bar",
@@ -3256,9 +4340,10 @@ class NativeEventBackend:
         if level == "audit" and _normalize_native_event_audit_sink(
             self.config.audit_sink if audit_sink is None else audit_sink
         ) == "memory":
-            from ..core.execution_trace import attach_canonical_execution_trace
-
-            attach_canonical_execution_trace(final_result)
+            self._attach_reactive_accounting_trace(
+                final_result,
+                contract_sizes=contract_sizes,
+            )
         return final_result
 
     def run_strategy_score(
@@ -3295,6 +4380,7 @@ class NativeEventBackend:
         compiled_commands: CompiledOrderCommandArrays,
         *,
         market_arrays: PreparedMarketArrays,
+        opens: Optional[Dict[str, pd.Series] | np.ndarray] = None,
         contract_size: Union[float, Dict[str, float]] = 1.0,
         leverage: Optional[Union[float, Dict[str, float]]] = None,
         fee_rate: Optional[Union[float, Dict[str, float]]] = None,
@@ -3308,10 +4394,11 @@ class NativeEventBackend:
 
         This is the Python-side apples-to-apples score contract for the Rust
         batched runner. It accepts already prepared market arrays and compiled
-        commands, schedules the existing lifecycle commands without pandas
-        reports or full ledgers, and returns the same scalar accounting fields
-        as :class:`RustBatchedScoreResult` via the result properties and
-        metadata.
+        commands, and executes the declared lifecycle clock without pandas
+        reports or full ledgers. V3 next-open scoring requires explicit open
+        prices: silently substituting close prices would change fill timing.
+        The returned scalar contract remains compatible with
+        :class:`RustBatchedScoreResult`.
 
         The method is intentionally internal-facing: quantity preflight and
         capability validation must happen before compiling the tape. It does
@@ -3328,6 +4415,23 @@ class NativeEventBackend:
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
         if compiled_commands.index_signature != market_arrays.signature:
             raise ValueError("compiled commands do not match prepared market arrays")
+
+        clock = get_event_clock_contract(self.config.execution_contract)
+        if opens is None:
+            if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN:
+                raise ValueError(
+                    "run_compiled_tape_score with event_lifecycle_v3_next_open requires explicit opens"
+                )
+            opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        elif isinstance(opens, np.ndarray):
+            opens_arr = np.ascontiguousarray(np.asarray(opens, dtype=np.float64))
+            if opens_arr.shape != market_arrays.closes.shape:
+                raise ValueError("prepared score opens must match prepared market (bars, symbols) shape")
+        else:
+            open_map = align_series(opens, symbol_list, idx)
+            opens_arr = np.ascontiguousarray(
+                np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
+            )
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
         leverages = self._per_symbol_array(
@@ -3358,13 +4462,41 @@ class NativeEventBackend:
                 maintenance_ratio=maint,
                 slippage=slip,
                 use_funding=funding_enabled,
+                opens_arr=opens_arr,
+                event_contract=clock,
+                native_static_abi=self.config.native_static_abi,
             )
-            # ``run_compiled_tape_score`` is the legacy/public score facade
-            # and promises dense accounting arrays for metric computation.
-            # Keep the Rust runner's scalar score ABI minimal, but use its
-            # typed audit projection here rather than manufacturing missing
-            # paths or changing the public result contract.
-            audit = runner.run_tape_audit(compiled_commands)
+            # Metrics still need dense equity/position paths, but never an
+            # audit ledger. ABI 0.5 compact is therefore the narrowest exact
+            # public score input; API 0.4 remains only explicit rollback.
+            if runner.native_static_abi == "0.5":
+                compact_output = runner.run_tape_typed(compiled_commands, profile="compact")
+                audit = RustFullAuditResult.from_compact_payload(
+                    compact_output,
+                    n_bars=len(idx),
+                    n_symbols=len(symbol_list),
+                    id_values=tuple(compiled_commands.id_values),
+                )
+                native_result_adapter = NativeResultV2Adapter(compact_output)
+                native_metric_v2 = dict(native_result_adapter.metrics)
+                native_result_v2 = {
+                    "result_version": native_result_adapter.header.result_version,
+                    "request_fingerprint": native_result_adapter.header.request_fingerprint,
+                    "template_fingerprint": native_result_adapter.header.template_fingerprint,
+                    "workload_kind": native_result_adapter.header.workload_kind,
+                    "runtime_class": native_result_adapter.header.runtime_class,
+                    "output_profile": native_result_adapter.header.output_profile,
+                }
+            else:
+                compact_payload = runner.run_tape_compact(compiled_commands)
+                audit = RustFullAuditResult.from_compact_payload(
+                    compact_payload,
+                    n_bars=len(idx),
+                    n_symbols=len(symbol_list),
+                    id_values=tuple(compiled_commands.id_values),
+                )
+                native_metric_v2 = {}
+                native_result_v2 = {}
             equity = np.ascontiguousarray(np.asarray(audit.equity, dtype=np.float64))
             positions = np.ascontiguousarray(np.asarray(audit.positions, dtype=np.float64))
             returns = np.zeros_like(equity)
@@ -3404,6 +4536,11 @@ class NativeEventBackend:
                 },
                 "trading_days": int(trading_days),
                 "rust_contract": "native_event_v2_full_contract",
+                "native_static_abi": runner.native_static_abi,
+                "native_static_execution_boundary_calls": 1,
+                "rust_audit_replay": False,
+                "native_metric_v2": native_metric_v2,
+                "native_result_v2": native_result_v2,
             }
             metrics.update({
                 "total_fee": float(audit.total_fee),
@@ -3432,7 +4569,6 @@ class NativeEventBackend:
             need_context_positions=False,
             need_context_margin=False,
         )
-        opens_arr = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
         volumes_arr = np.zeros_like(opens_arr, dtype=np.float64)
         session = _NativeEventReactiveSession(
             idx=idx,
@@ -4070,6 +5206,27 @@ class NativeEventBackend:
             diagnostics=diagnostics,
             metadata=metadata,
         )
+
+    @staticmethod
+    def _attach_reactive_accounting_trace(
+        result: BacktestResultV2,
+        *,
+        contract_sizes: np.ndarray,
+    ) -> BacktestResultV2:
+        """Attach the same independent audit projection to each reactive route.
+
+        The legacy Python loop, the per-bar Rust bridge, and the R1 co-runtime
+        all expose one ``BacktestResultV2``.  Building the ledger from that
+        result keeps their audit comparison backend-neutral and deliberately
+        avoids replaying execution in Python.
+        """
+
+        from ..core.accounting_contracts import attach_native_accounting_audit
+        from ..core.execution_trace import attach_canonical_execution_trace
+
+        attach_native_accounting_audit(result, contract_sizes=contract_sizes)
+        attach_canonical_execution_trace(result)
+        return result
 
     @staticmethod
     def _native_reactive_reports(

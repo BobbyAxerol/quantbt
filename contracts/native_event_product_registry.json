@@ -42,6 +42,184 @@
       "current": "workload-capability-v1"
     }
   },
+  "measurement_contract": {
+    "id": "quantbt-phase72-measurement-contract-v1",
+    "path": "benchmarks/native_event/manifests/phase72_measurement_contract_v1.json",
+    "historical_evidence_policy": "historical_scope_only_never_auto_promotes",
+    "auto_promotion_evidence_status": "current_candidate_verified",
+    "current_candidate_evidence": {
+      "schema": "quantbt-current-candidate-evidence-v1",
+      "require_clean_tree": true,
+      "identity_required_fields": [
+        "git_commit",
+        "git_dirty",
+        "git_status_sha256",
+        "canonical_source_sha256",
+        "product_registry_sha256",
+        "lifecycle_registry_sha256",
+        "core_distribution",
+        "native_distribution",
+        "native_extension",
+        "python",
+        "platform",
+        "cpu_count",
+        "thread_environment",
+        "data_sha256",
+        "intent_sha256",
+        "measurement_contract_sha256",
+        "warmup_procedure"
+      ],
+      "native_extension_required_fields": [
+        "available",
+        "module_sha256",
+        "version",
+        "api_version",
+        "capability_sha256"
+      ],
+      "comparator_required_fields": [
+        "timing_scope",
+        "result_contract",
+        "metric_contract_id",
+        "annualization_days",
+        "fee_contract_id",
+        "account_contract_id"
+      ],
+      "measurement_required_fields": [
+        "sample_count",
+        "median_seconds",
+        "p95_seconds",
+        "cold_rss_mb",
+        "warm_rss_mb",
+        "parity",
+        "artifact_sha256"
+      ]
+    }
+  },
+  "reliability_contract": {
+    "schema_version": 1,
+    "runtime_budget": "runtime-budget-v1",
+    "cancellation": "safe-point-cancellation-v1",
+    "prepared_handle_ownership": "runtime-session-owned-v1",
+    "worker_generation": "reset-generation-v1",
+    "poison_recovery": "fresh-session-recreation-v1",
+    "parallelism": "coordinated-process-rust-blas-openmp-numba-v1",
+    "audit_retention": "bounded-chunked-audit-v1",
+    "shadow_oracle": "sampled-canonical-trace-v1",
+    "a5_review": "route-level-stable-release-v1"
+  },
+  "platform_wheel_matrix": [
+    {
+      "platform": "linux-x86_64",
+      "python": ["3.11", "3.12", "3.13"],
+      "status": "published-certified"
+    },
+    {
+      "platform": "linux-aarch64",
+      "python": ["3.11", "3.12", "3.13"],
+      "status": "ci-certification-target"
+    },
+    {
+      "platform": "macos-arm64",
+      "python": ["3.11", "3.12", "3.13"],
+      "status": "ci-certification-target"
+    },
+    {
+      "platform": "macos-x86_64",
+      "python": ["3.11", "3.12", "3.13"],
+      "status": "ci-certification-target"
+    },
+    {
+      "platform": "windows-x86_64",
+      "python": ["3.11", "3.12", "3.13"],
+      "status": "ci-certification-target"
+    }
+  ],
+  "performance_evidence": {
+    "event_static_tape_v2_v3": {
+      "status": "historical_scope_only",
+      "manifest": "benchmarks/native_event/manifests/phase54b2_public_routes_v1.json",
+      "end_to_end_faster_than_python": true,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "public_event_static",
+      "profile_pair": "compact_to_compact_v1",
+      "measurement_status": "historical_scope_only",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "native_strategy_ir_v1": {
+      "status": "historical_scope_only",
+      "manifest": "benchmarks/native_event/manifests/phase54b2_public_routes_v1.json",
+      "end_to_end_faster_than_python": true,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "public_native_strategy_ir",
+      "profile_pair": "score_to_score_v1",
+      "measurement_status": "historical_scope_only",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "native_wfo_prepared_signal_v2": {
+      "status": "historical_scope_only",
+      "manifest": "benchmarks/native_event/manifests/phase71_runtime_productization_v1.json",
+      "end_to_end_faster_than_python": true,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "prepared_native_signal_wfo",
+      "profile_pair": "score_to_score_v1",
+      "measurement_status": "historical_scope_only",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "portfolio_target_market_v1": {
+      "status": "explicit-only",
+      "manifest": "benchmarks/native_event/results/phase66_rust_target_vectorized.json",
+      "end_to_end_faster_than_python": true,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "direct_target_vectorized",
+      "profile_pair": "compact_to_compact_v1",
+      "measurement_status": "historical_scope_only",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "package_market_v2": {
+      "status": "explicit-only",
+      "manifest": "benchmarks/native_event/results/phase68_bounded_package.json",
+      "end_to_end_faster_than_python": true,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "bounded_package_arbitrage",
+      "profile_pair": "compact_to_compact_v1",
+      "measurement_status": "historical_scope_only",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "intrabar_bracket_rust_v1": {
+      "status": "performance-hold",
+      "manifest": "benchmarks/native_event/results/phase69_rust_intrabar.json",
+      "end_to_end_faster_than_python": false,
+      "rss_plateau": true,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "single_symbol_intrabar",
+      "profile_pair": "compact_to_compact_v1",
+      "measurement_status": "performance_hold",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    },
+    "event_reactive_sparse_wake_r2": {
+      "status": "experimental",
+      "manifest": "benchmarks/native_event/results/phase63_sparse_block_batch.json",
+      "end_to_end_faster_than_python": false,
+      "rss_plateau": false,
+      "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
+      "route_id": "reactive_event_strategies",
+      "profile_pair": "compact_to_compact_v1",
+      "measurement_status": "experimental",
+      "identity_status": "historical_pre_phase72",
+      "promotion_eligible": false
+    }
+  },
   "runtime_descriptor": {
     "descriptor_version": "native-event-semantics-v1",
     "native_api": "0.4",
@@ -62,7 +240,9 @@
     },
     "portfolio": {
       "target_execution": "target_units_market_v1_all_or_none_v2",
-      "package_atomicity": "bar_transaction_atomic_market_v1"
+      "package_atomicity": "bar_transaction_atomic_market_v1",
+      "package_execution_v2": "same_account_linear_deterministic_bar_scenarios",
+      "package_scenario_batch_v2": "score_only_isolated_same_account_v1"
     }
   },
   "stable_capability_matrix": {
@@ -163,7 +343,7 @@
   },
   "promotion_policy": {
     "schema_version": 1,
-    "table_version": "native-event-promotion-v2",
+    "table_version": "native-event-promotion-v3-phase72-measurement-gate",
     "default_backend_policy": "certified_only",
     "default_stage": "static_ir",
     "stages": [
@@ -177,7 +357,7 @@
         "id": "static_tape_rust_stage_b",
         "workload_id": "event_static_tape_v2_v3",
         "stage": "static_ir",
-        "enabled": true,
+        "enabled": false,
         "min_bars": 10000,
         "required_capabilities": [
           "native_event_v2_full_contract",
@@ -194,7 +374,7 @@
         "id": "native_ir_rust_stage_b",
         "workload_id": "native_strategy_ir_v1",
         "stage": "static_ir",
-        "enabled": true,
+        "enabled": false,
         "min_bars": 2000,
         "required_capabilities": [
           "native_event_v2_full_contract",
@@ -227,12 +407,29 @@
           "native_event_v2_full_contract",
           "native_package_atomic_market_v1"
         ]
+      },
+      {
+        "id": "bounded_package_v2_rust_stage_d",
+        "workload_id": "package_market_v2",
+        "stage": "package",
+        "enabled": false,
+        "min_bars": 2,
+        "required_capabilities": [
+          "native_event_v2_full_contract",
+          "native_package_market_v2",
+          "native_package_actual_fill_hedge_v2",
+          "native_package_residual_unwind_v2"
+        ]
       }
     ]
   },
   "extension_capabilities": [
     "r0_import_smoke",
     "reactive_session",
+    "reactive_numeric_coruntime_r1",
+    "reactive_sparse_wake_r2",
+    "reactive_block_intent_r3",
+    "reactive_candidate_batch_r3b",
     "r1_single_symbol",
     "r1_place_cancel_market_limit_gtc",
     "r2_stop_amend_replace_reduce_only_constraints",
@@ -266,10 +463,42 @@
     "native_strategy_ir_dca_periodic",
     "native_strategy_ir_fixed_bracket",
     "native_strategy_ir_batch_v1",
+    "native_wfo_runtime_v2",
+    "native_wfo_prepared_signal_v2",
+    "native_wfo_metric_matrix_v2",
+    "native_wfo_audit_rerun_v2",
+    "native_wfo_worker_pool_v2",
+    "rust_direct_target_v1",
+    "rust_direct_target_units_v1",
+    "rust_direct_target_notional_v1",
+    "rust_direct_target_weight_v1",
+    "rust_direct_target_equity_fraction_v1",
+    "rust_direct_target_pct_equity_transition_v1",
+    "rust_shared_portfolio_target_v1",
+    "rust_shared_portfolio_target_units_v1",
+    "rust_shared_portfolio_target_notional_v1",
+    "rust_shared_portfolio_target_weight_v1",
+    "rust_shared_portfolio_target_equity_fraction_v1",
+    "native_static_dca_target_tape_v1",
+    "native_wfo_prepared_target_v1",
+    "native_wfo_direct_target_score_v1",
+    "native_wfo_direct_target_audit_v1",
+    "native_wfo_shared_portfolio_target_v1",
     "native_portfolio_target_preflight_v1",
     "native_package_transaction_preflight_v1",
     "native_portfolio_target_market_v1",
-    "native_package_atomic_market_v1"
+    "native_package_atomic_market_v1",
+    "native_package_market_v2",
+    "native_package_atomic_bar_v2",
+    "native_package_sequential_v2",
+    "native_package_best_effort_v2",
+    "native_package_actual_fill_hedge_v2",
+    "native_package_residual_unwind_v2",
+    "native_package_scenario_batch_v2",
+    "rust_intrabar_bracket_v1",
+    "rust_intrabar_session_bracket_v1",
+    "rust_intrabar_audit_soa_v1",
+    "rust_intrabar_prepared_market_v1"
   ],
   "workloads": [
     {
@@ -285,9 +514,10 @@
       "portfolio_modes": [],
       "package_policies": [],
       "trace_schemas": ["canonical-execution-trace-v1"],
-      "maturity": "promoted",
+      "maturity": "certified",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
-      "auto_promotion": true
+      "auto_promotion": false,
+      "promotion_hold_reason": "measurement_evidence_not_current"
     },
     {
       "id": "event_python_callback_v2_v3",
@@ -319,9 +549,27 @@
       "portfolio_modes": [],
       "package_policies": [],
       "trace_schemas": ["canonical-execution-trace-v1"],
-      "maturity": "promoted",
+      "maturity": "certified",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
-      "auto_promotion": true
+      "auto_promotion": false,
+      "promotion_hold_reason": "measurement_evidence_not_current"
+    },
+    {
+      "id": "native_wfo_prepared_signal_v2",
+      "contracts": [
+        "event_lifecycle_v2_next_bar_close",
+        "event_lifecycle_v3_next_open"
+      ],
+      "strategy_modes": ["prepared_signal_w1", "prepared_signal_w2"],
+      "profiles": ["score", "audit"],
+      "max_symbols": 1,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
     },
     {
       "id": "portfolio_target_preflight_v1",
@@ -366,6 +614,48 @@
       "auto_promotion": false
     },
     {
+      "id": "shared_portfolio_target_units_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["shared_portfolio_target"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_units"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "shared_portfolio_target_matrix_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["shared_portfolio_target"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_notional", "target_weight", "equity_fraction"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "shared_portfolio_target_wfo_v1",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["prepared_shared_portfolio_target_wfo"],
+      "profiles": ["score", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": ["target_units"],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
       "id": "package_atomic_market_v1",
       "contracts": ["event_lifecycle_v2_next_bar_close"],
       "strategy_modes": ["package_atomic_market"],
@@ -376,6 +666,100 @@
       "package_policies": ["all_or_none"],
       "trace_schemas": ["canonical-execution-trace-v1"],
       "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "package_market_v2",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["typed_package_intent_v2"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [
+        "atomic_bar_simulation",
+        "sequential",
+        "best_effort",
+        "hedge_after_primary"
+      ],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "package_market_v2_scenario_batch",
+      "contracts": ["event_lifecycle_v2_next_bar_close"],
+      "strategy_modes": ["typed_package_intent_v2_scenario_batch"],
+      "profiles": ["score"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [
+        "atomic_bar_simulation",
+        "sequential",
+        "best_effort",
+        "hedge_after_primary"
+      ],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "intrabar_bracket_rust_v1",
+      "contracts": ["event_lifecycle_v3_next_open"],
+      "strategy_modes": ["intrabar_intent_v1"],
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "max_symbols": 1,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "certified",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "event_reactive_sparse_wake_r2",
+      "contracts": ["event_lifecycle_v2_next_bar_close", "event_lifecycle_v3_next_open"],
+      "strategy_modes": ["python_callback_sparse_wake"],
+      "profiles": ["minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "event_reactive_block_intent_r3",
+      "contracts": ["event_lifecycle_v2_next_bar_close", "event_lifecycle_v3_next_open"],
+      "strategy_modes": ["python_callback_block_intent"],
+      "profiles": ["minimal", "standard", "audit"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
+      "platforms": ["cpython-3.11+", "linux-x86_64-local"],
+      "auto_promotion": false
+    },
+    {
+      "id": "event_reactive_candidate_batch_r3b",
+      "contracts": ["event_lifecycle_v2_next_bar_close", "event_lifecycle_v3_next_open"],
+      "strategy_modes": ["python_callback_candidate_batch"],
+      "profiles": ["minimal"],
+      "max_symbols": null,
+      "account_models": ["linear_quote_settled_gross_cross"],
+      "portfolio_modes": [],
+      "package_policies": [],
+      "trace_schemas": ["canonical-execution-trace-v1"],
+      "maturity": "experimental",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
       "auto_promotion": false
     }

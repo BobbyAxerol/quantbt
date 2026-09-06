@@ -1,0 +1,130 @@
+{
+  "copy_contract": {
+    "market_copy_per_execution_bytes": 0,
+    "prepared_intent_copy_per_execution_bytes": 0,
+    "python_normalization_copied_bytes": 0,
+    "rust_owned_one_time_ingress_bytes": 2856984
+  },
+  "evidence": {
+    "one_native_boundary_per_batch": true,
+    "one_worker_pool": true,
+    "rss_plateau": true,
+    "scalar_rows_only": true,
+    "warm_deterministic": true,
+    "zero_intent_copy_per_execution": true,
+    "zero_market_copy_per_execution": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "0951d96df378db832a9608e65d56298b85ab853f37fbf151efec8850323807d0",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "848415a3dc059ea3ef7451490c8357445d72ce6dd5cabccc7b8a4abc3087a3be",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "0674ab00027061f929897edc8e6f829e77fe3bfca8a348b333a04e447afa8a35",
+    "intent_sha256": "f053bc9659faf32563c009ab9f482784dc5fd1d8e27c0ca1f73d1709c8715a56",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "68b158b5d38f02d81732ed633012b1728351e9c1931dec6f6f6da1e55568e5ab",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "85dda6a7af3cb20b4ab9eb679934eea10abb0f8ba0c350b47f723558f37b5244",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "a26d75952ca9ffe9a788c65218d2f2158212149b0ca2c2e00d31c25e2636e1b8",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "165f742cc2ce43ea12dc263deb98417c9d76b3ea0382718ab76a9cedf5748521",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "prepare immutable target requests once, warm one native batch, then repeat score batches"
+  },
+  "rss_mb": {
+    "plateau_limit": 8.0,
+    "samples": [
+      154.83203125,
+      154.83203125,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375,
+      155.1484375
+    ],
+    "tail_spread": 0.0
+  },
+  "runtime_diagnostics": {
+    "active_batches": 0,
+    "cache_generation": 0,
+    "canceled": false,
+    "cancellation_reason": null,
+    "closed": false,
+    "failed_rows": 0,
+    "native_request_executions": 1984,
+    "native_runtime": "native_prepared_evaluation_core_v1",
+    "native_runtime_generation": 1,
+    "native_runtime_id": 1,
+    "parallelism": {
+      "blas_threads": 1,
+      "constrained_by": [],
+      "host_cpus": 4,
+      "numba_threads": 1,
+      "openmp_threads": 1,
+      "python_processes": 1,
+      "rust_workers": 2
+    },
+    "poison_recoveries": 0,
+    "poisoned": false,
+    "runtime": "native_prepared_evaluation_v1",
+    "runtime_budget": {
+      "max_active_orders": null,
+      "max_audit_rows": null,
+      "max_bars": 4096,
+      "max_commands": null,
+      "max_error_rows": 64,
+      "max_fills": null,
+      "max_metric_rows": 64,
+      "max_native_memory_bytes": 536870912,
+      "max_orders": null,
+      "max_wall_time_ms": null,
+      "max_workers": 2
+    },
+    "runtime_generation": 1,
+    "runtime_id": "cbcee82fdc324682b6fc443815ed832c",
+    "score_batches": 31,
+    "worker_pool_creations": 1
+  },
+  "schema": "quantbt-phase73-prepared-evaluation-v1",
+  "scope": "warm prepared target-units batch only; not generic public WFO",
+  "throughput_candidate_bar_visits_per_second": 15460558.625122493,
+  "timings_seconds": {
+    "binding": 0.004572814330458641,
+    "intent_ingest": 0.03368707560002804,
+    "market_template_prepare": 0.004472155123949051,
+    "native_execution_and_scalar_adaptation": 0.016955661587417126
+  },
+  "workload": {
+    "bars": 4096,
+    "candidates": 64,
+    "repeats": 30,
+    "symbols": 1,
+    "workers": 2
+  }
+}

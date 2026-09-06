@@ -21,6 +21,21 @@ import sys
 import tomllib
 from typing import Any
 
+try:  # Supports both ``python tools/...`` and module-based test loading.
+    from measurement_contract import (
+        CURRENT_CANDIDATE_VERIFIED,
+        HISTORICAL_SCOPE_ONLY,
+        current_candidate_evidence_violations,
+        load_measurement_contract,
+    )
+except ModuleNotFoundError:  # pragma: no cover - import style depends on caller.
+    from tools.measurement_contract import (
+        CURRENT_CANDIDATE_VERIFIED,
+        HISTORICAL_SCOPE_ONLY,
+        current_candidate_evidence_violations,
+        load_measurement_contract,
+    )
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCT_REGISTRY = ROOT / "contracts" / "native_event_product_registry.json"
@@ -71,6 +86,7 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
             "schema_version", "registry_id", "lifecycle_registry", "versions",
             "runtime_descriptor", "stable_capability_matrix", "extension_capabilities",
             "capability_normalization", "promotion_policy", "workloads", "compatibility", "deprecations",
+            "measurement_contract", "reliability_contract", "platform_wheel_matrix", "performance_evidence",
         ),
         label="product registry",
     )
@@ -162,6 +178,112 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
             raise ValueError(f"workload {workload['id']} references an unknown lifecycle contract")
         if workload["maturity"] not in {"experimental", "certified", "promoted"}:
             raise ValueError(f"workload {workload['id']} has invalid maturity")
+    reliability = product["reliability_contract"]
+    _require_keys(
+        reliability,
+        (
+            "schema_version", "runtime_budget", "cancellation", "prepared_handle_ownership",
+            "worker_generation", "poison_recovery", "parallelism", "audit_retention",
+            "shadow_oracle", "a5_review",
+        ),
+        label="native reliability contract",
+    )
+    if int(reliability["schema_version"]) != 1:
+        raise ValueError("unsupported native reliability contract schema_version")
+    platforms: set[str] = set()
+    for row in product["platform_wheel_matrix"]:
+        _require_keys(row, ("platform", "python", "status"), label="platform wheel row")
+        platform = str(row["platform"])
+        if not platform or platform in platforms:
+            raise ValueError("platform wheel matrix requires unique non-empty platforms")
+        platforms.add(platform)
+        if not row["python"] or not all(str(value) in {"3.11", "3.12", "3.13"} for value in row["python"]):
+            raise ValueError(f"platform wheel row {platform} has unsupported Python versions")
+        if row["status"] not in {"published-certified", "ci-certification-target"}:
+            raise ValueError(f"platform wheel row {platform} has invalid status")
+    measurement_declaration = product["measurement_contract"]
+    _require_keys(
+        measurement_declaration,
+        (
+            "id",
+            "path",
+            "historical_evidence_policy",
+            "auto_promotion_evidence_status",
+            "current_candidate_evidence",
+        ),
+        label="measurement contract declaration",
+    )
+    measurement_path = ROOT / str(measurement_declaration["path"])
+    if not measurement_path.is_file():
+        raise ValueError(f"measurement contract does not exist: {measurement_path}")
+    measurement = load_measurement_contract(measurement_path, root=ROOT)
+    if measurement_declaration["id"] != measurement["measurement_contract_id"]:
+        raise ValueError("product registry measurement contract id does not match the contract")
+    if measurement_declaration["historical_evidence_policy"] != "historical_scope_only_never_auto_promotes":
+        raise ValueError("product registry has an unsupported historical evidence policy")
+    if measurement_declaration["auto_promotion_evidence_status"] != CURRENT_CANDIDATE_VERIFIED:
+        raise ValueError("product registry has an unsupported auto-promotion evidence status")
+    if measurement_declaration["current_candidate_evidence"] != measurement["current_candidate_evidence"]:
+        raise ValueError("product registry current candidate evidence contract differs from measurement contract")
+    measurement_routes = {str(route["id"]) for route in measurement["routes"]}
+    measurement_profile_pairs = {str(pair["id"]) for pair in measurement["profile_pairs"]}
+
+    performance = product["performance_evidence"]
+    unknown_evidence = sorted(set(performance) - set(workload_ids))
+    if unknown_evidence:
+        raise ValueError(f"performance evidence references unknown workloads: {unknown_evidence}")
+    for workload_id, evidence in performance.items():
+        _require_keys(
+            evidence,
+            (
+                "status", "manifest", "end_to_end_faster_than_python", "rss_plateau",
+                "measurement_contract_id", "route_id", "profile_pair", "measurement_status",
+                "identity_status", "promotion_eligible",
+            ),
+            label=f"performance evidence {workload_id}",
+        )
+        if not isinstance(evidence["end_to_end_faster_than_python"], bool) or not isinstance(
+            evidence["rss_plateau"], bool
+        ):
+            raise ValueError(f"performance evidence {workload_id} gates must be boolean")
+        manifest = ROOT / str(evidence["manifest"])
+        if not manifest.is_file():
+            raise ValueError(f"performance evidence manifest does not exist: {manifest}")
+        if evidence["measurement_contract_id"] != measurement["measurement_contract_id"]:
+            raise ValueError(f"performance evidence {workload_id} has the wrong measurement contract")
+        if str(evidence["route_id"]) not in measurement_routes:
+            raise ValueError(f"performance evidence {workload_id} references an unknown route")
+        if str(evidence["profile_pair"]) not in measurement_profile_pairs:
+            raise ValueError(f"performance evidence {workload_id} references an unknown profile pair")
+        if evidence["measurement_status"] not in {
+            HISTORICAL_SCOPE_ONLY,
+            CURRENT_CANDIDATE_VERIFIED,
+            "performance_hold",
+            "experimental",
+        }:
+            raise ValueError(f"performance evidence {workload_id} has an unsupported measurement status")
+        if not isinstance(evidence["promotion_eligible"], bool):
+            raise ValueError(f"performance evidence {workload_id} promotion_eligible must be boolean")
+        if evidence["measurement_status"] == HISTORICAL_SCOPE_ONLY:
+            if evidence["identity_status"] != "historical_pre_phase72" or evidence["promotion_eligible"]:
+                raise ValueError(f"historical performance evidence {workload_id} cannot promote")
+        if evidence["measurement_status"] == CURRENT_CANDIDATE_VERIFIED:
+            if (
+                evidence["identity_status"] != "current_candidate"
+                or evidence["promotion_eligible"] is not True
+                or evidence["status"] != "pass"
+                or evidence["end_to_end_faster_than_python"] is not True
+                or evidence["rss_plateau"] is not True
+            ):
+                raise ValueError(f"current performance evidence {workload_id} is incomplete")
+            evidence_violations = current_candidate_evidence_violations(evidence, measurement)
+            if evidence_violations:
+                raise ValueError(
+                    f"current performance evidence {workload_id} is invalid: "
+                    + "; ".join(evidence_violations)
+                )
+        elif evidence["promotion_eligible"]:
+            raise ValueError(f"non-current performance evidence {workload_id} cannot promote")
     promotion = product["promotion_policy"]
     _require_keys(
         promotion,
@@ -219,6 +341,18 @@ def load_and_validate() -> tuple[dict[str, Any], dict[str, Any], str, str]:
                 f"native promotion rule {rule_id} references unknown capabilities: {unknown_capabilities}"
             )
         if bool(rule["enabled"]):
+            evidence = performance.get(str(rule["workload_id"]))
+            if (
+                evidence is None
+                or evidence["status"] != "pass"
+                or not evidence["end_to_end_faster_than_python"]
+                or not evidence["rss_plateau"]
+                or evidence["measurement_status"] != CURRENT_CANDIDATE_VERIFIED
+                or evidence["promotion_eligible"] is not True
+            ):
+                raise ValueError(
+                    f"enabled promotion rule {rule_id} lacks passing performance/RSS evidence"
+                )
             enabled_workloads.add(str(rule["workload_id"]))
     for workload in product["workloads"]:
         auto_promoted = bool(workload["auto_promotion"])
@@ -270,6 +404,10 @@ def render_python(product: dict[str, Any], product_fingerprint: str, lifecycle_f
             "NATIVE_EVENT_EXTENSION_CAPABILITIES = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"extension_capabilities\"])",
             "NATIVE_EVENT_CAPABILITY_NORMALIZATION = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"capability_normalization\"])",
             "NATIVE_EVENT_PROMOTION_POLICY = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"promotion_policy\"])",
+            "NATIVE_EVENT_RELIABILITY_CONTRACT = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"reliability_contract\"])",
+            "NATIVE_EVENT_PLATFORM_WHEEL_MATRIX = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"platform_wheel_matrix\"])",
+            "NATIVE_EVENT_MEASUREMENT_CONTRACT = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"measurement_contract\"])",
+            "NATIVE_EVENT_PERFORMANCE_EVIDENCE = dict(NATIVE_EVENT_PRODUCT_REGISTRY[\"performance_evidence\"])",
             f'NATIVE_EVENT_PROMOTION_TABLE_VERSION = "{promotion["table_version"]}"',
             "WORKLOAD_CAPABILITY_DESCRIPTORS = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"workloads\"])",
             "NATIVE_EVENT_COMPATIBILITY_MATRIX = tuple(NATIVE_EVENT_PRODUCT_REGISTRY[\"compatibility\"])",
@@ -314,6 +452,72 @@ def _rust_bool_or_string_constant(name: str, value: Any) -> list[str]:
     raise ValueError(f"{name} must be a non-empty string or boolean")
 
 
+def _rust_string_literal(value: str) -> str:
+    """Return a Rust string literal while preserving registry text exactly."""
+
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    return f'"{escaped}"'
+
+
+def _rust_runtime_portfolio_fields(values: dict[str, Any]) -> list[str]:
+    """Render every registry-owned portfolio scalar for the Rust ABI descriptor.
+
+    Keeping this generated mapping exhaustive prevents an extension from
+    advertising an older descriptor after a new product capability is added.
+    The public descriptor deliberately supports JSON scalar values only.
+    """
+
+    lines = [
+        "#[derive(Clone, Copy)]",
+        "pub enum RuntimePortfolioScalar {",
+        "    Bool(bool),",
+        "    Integer(i64),",
+        "    Float(f64),",
+        "    Str(&'static str),",
+        "    Null,",
+        "}",
+        "",
+        "pub const RUNTIME_PORTFOLIO_FIELDS: &[(&str, RuntimePortfolioScalar)] = &[",
+    ]
+    entries: list[tuple[str, str]] = []
+    for key, value in sorted(values.items()):
+        key_literal = _rust_string_literal(str(key))
+        if value is None:
+            rendered = "RuntimePortfolioScalar::Null"
+        elif isinstance(value, bool):
+            rendered = f"RuntimePortfolioScalar::Bool({str(value).lower()})"
+        elif isinstance(value, int):
+            rendered = f"RuntimePortfolioScalar::Integer({value})"
+        elif isinstance(value, float):
+            rendered = f"RuntimePortfolioScalar::Float({value!r})"
+        elif isinstance(value, str):
+            rendered = f"RuntimePortfolioScalar::Str({_rust_string_literal(value)})"
+        else:
+            raise ValueError(
+                "runtime descriptor portfolio values must be JSON scalar values; "
+                f"got {type(value).__name__} for {key!r}"
+            )
+        entries.append((key_literal, rendered))
+
+    # Rustfmt expands an array of tuple entries as one group when any entry
+    # crosses its width budget. Emit the same shape here so --check is stable
+    # after the generator's normal rustfmt pass.
+    multiline = any(len(f"    ({key}, {value}),") > 100 for key, value in entries)
+    for key_literal, rendered in entries:
+        if multiline:
+            lines.extend(("    (", f"        {key_literal},", f"        {rendered},", "    ),"))
+        else:
+            lines.append(f"    ({key_literal}, {rendered}),")
+    lines.extend(("];", ""))
+    return lines
+
+
 def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     versions = product["versions"]
     runtime = product["runtime_descriptor"]
@@ -346,15 +550,11 @@ def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
     lines.extend(_rust_string_list("RUNTIME_PNL_MODELS", list(runtime["account"]["pnl_models"])))
     lines.extend(_rust_string_list("RUNTIME_MARGIN_MODELS", list(runtime["account"]["margin_models"])))
     lines.extend(_rust_string_list("RUNTIME_LIQUIDATION_MODELS", list(runtime["account"]["liquidation_models"])))
+    lines.extend(_rust_runtime_portfolio_fields(dict(runtime["portfolio"])))
     lines.extend(
         (
             f'pub const RUNTIME_PARTIAL_FILL: bool = {str(bool(runtime["orders"]["partial_fill"])).lower()};',
             f'pub const RUNTIME_VOLUME_MODEL: &str = "{runtime["orders"]["volume_model"]}";',
-            *_rust_bool_or_string_constant(
-                "RUNTIME_PORTFOLIO_TARGET_EXECUTION",
-                runtime["portfolio"]["target_execution"],
-            ),
-            f'pub const RUNTIME_PACKAGE_ATOMICITY: &str = "{runtime["portfolio"]["package_atomicity"]}";',
             "",
         )
     )
@@ -364,6 +564,7 @@ def render_rust(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
 def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fingerprint: str) -> str:
     versions = product["versions"]
     promotion = product["promotion_policy"]
+    measurement = product["measurement_contract"]
     lines = [
         "# Generated Native Product Compatibility",
         "",
@@ -386,6 +587,7 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         f"- Default user policy: `{promotion['default_backend_policy']}`",
         f"- Configured automatic stage: `{promotion['default_stage']}`",
         "- Emergency controls: `QUANTBT_DISABLE_NATIVE=1` and `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`.",
+        "- A rule may enable automatic Rust only with fresh, exact current-candidate evidence; a historical pass is never sufficient.",
         "",
         "| Rule | Workload | Stage | Enabled | Required capabilities |",
         "|---|---|---|---|---|",
@@ -403,7 +605,14 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
     lines.extend(
         (
             "",
-        "## Version Matrix",
+            "## Measurement Contract",
+            "",
+            f"- Contract: [`{measurement['id']}`](../../{measurement['path']})",
+            f"- Historical policy: `{measurement['historical_evidence_policy']}`.",
+            f"- Required automatic-promotion evidence: `{measurement['auto_promotion_evidence_status']}`.",
+            "- Candidate proof records matched data/intent fingerprints, source/wheel identity, output-retention profile, and measured accounting parity. Historical manifests retain their original raw duration but are scope-only.",
+            "",
+            "## Version Matrix",
         "",
         "| Contract | Current | Compatibility policy |",
         "|---|---|---|",
@@ -429,6 +638,48 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
                 maturity=workload["maturity"],
                 auto=str(bool(workload["auto_promotion"])).lower(),
             )
+        )
+    lines.extend(
+        (
+            "",
+            "## Reliability Contract",
+            "",
+            "| Concern | Contract |",
+            "|---|---|",
+        )
+    )
+    for key, value in product["reliability_contract"].items():
+        if key != "schema_version":
+            lines.append(f"| `{key}` | `{value}` |")
+    lines.extend(
+        (
+            "",
+            "## Platform Wheel Matrix",
+            "",
+            "| Platform | Python | Status |",
+            "|---|---|---|",
+        )
+    )
+    for row in product["platform_wheel_matrix"]:
+        lines.append(
+            f"| `{row['platform']}` | `{', '.join(row['python'])}` | `{row['status']}` |"
+        )
+    lines.extend(
+        (
+            "",
+            "## Performance Evidence",
+            "",
+            "| Workload | Status | Measurement status | Route / profile | Promotion eligible | E2E faster | RSS plateau | Manifest |",
+            "|---|---|---|---|---|---|---|---|",
+        )
+    )
+    for workload_id, evidence in product["performance_evidence"].items():
+        lines.append(
+            f"| `{workload_id}` | `{evidence['status']}` | `{evidence['measurement_status']}` | "
+            f"`{evidence['route_id']}` / `{evidence['profile_pair']}` | "
+            f"`{str(evidence['promotion_eligible']).lower()}` | "
+            f"`{str(evidence['end_to_end_faster_than_python']).lower()}` | "
+            f"`{str(evidence['rss_plateau']).lower()}` | `{evidence['manifest']}` |"
         )
     lines.extend(("", "## Exact Package Pairs", "", "| Core | Native | Protocol | Status | Fallback |", "|---|---|---|---|---|"))
     for pair in product["compatibility"]:
@@ -498,7 +749,7 @@ def generated_outputs() -> dict[Path, str]:
     product, _lifecycle, product_fingerprint, lifecycle_fingerprint = load_and_validate()
     rendered = {
         PYTHON_OUTPUT: render_python(product, product_fingerprint, lifecycle_fingerprint),
-        RUST_OUTPUT: render_rust(product, product_fingerprint, lifecycle_fingerprint),
+        RUST_OUTPUT: _rustfmt_text(render_rust(product, product_fingerprint, lifecycle_fingerprint)),
         DOC_OUTPUT: render_docs(product, product_fingerprint, lifecycle_fingerprint),
         CORPUS_OUTPUT: render_corpus(product, product_fingerprint),
     }
@@ -521,6 +772,24 @@ def _rustfmt(path: Path) -> None:
         subprocess.run([rustfmt, str(path)], check=True)
 
 
+def _rustfmt_text(content: str) -> str:
+    """Return optional rustfmt output so generated checks are idempotent."""
+
+    rustfmt = shutil_which("rustfmt")
+    if rustfmt is None:
+        return content
+    completed = subprocess.run(
+        [rustfmt, "--emit", "stdout"],
+        input=content,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(completed.stderr.strip() or "rustfmt failed for generated product contract")
+    return completed.stdout
+
+
 def shutil_which(command: str) -> str | None:
     """Avoid importing a large helper at generator import time."""
 
@@ -535,7 +804,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         outputs = generated_outputs()
-    except (OSError, ValueError, KeyError, tomllib.TOMLDecodeError) as exc:
+    except (OSError, RuntimeError, ValueError, KeyError, tomllib.TOMLDecodeError) as exc:
         print(f"product contract generation failed: {exc}", file=sys.stderr)
         return 1
 
