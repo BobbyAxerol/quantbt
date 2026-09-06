@@ -15959,10 +15959,11 @@ V1.1 is complete only when the guide section 91 checklist is met:
 
 ## Phase 72-78 - Rust-Primary Public Workload And Performance Closure
 
-**Status: Phase 72-77 have the scoped completion records below. Additional
-Phase 77.1-77.3 planning was authorized on 2026-09-06; their implementation
-and Phase 78 still await individual approval. Recording this plan does not
-authorize implementation, automatic promotion, or release.**
+**Status: Phase 72-77 and 77.1-77.3 have the scoped completion records below.
+The additional PERF-01 through PERF-07 plan was authorized on 2026-09-06;
+each new phase still awaits individual implementation approval. Phase 78
+remains planned and additionally depends on their validated handoff.
+Recording this plan does not authorize automatic promotion or release.**
 
 **Canonical detailed guide:**
 [QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
@@ -16086,10 +16087,20 @@ forward as the same unfinished technical debt.
 | 77.1 | Public workload baseline and domain contract lock | 77 plus individual approval | Guide 24-27, 31-32, 60-63 |
 | 77.2 | Public WFO Rust execution and prepared ownership closure | 77.1 exit plus individual approval | RP-057-074, RP-078-084, RP-094, RP-106 |
 | 77.3 | Reactive hot loop and specialized kernel closure | 77.2 exit plus individual approval | RP-041-056, RP-085-114, RP-123-126 |
-| 78 | Public promotion, installed-wheel certification, release handoff | 72-77 and 77.1-77.3 exit artifacts | RP-123-135 |
+| PERF-01 | Source/profiling and computation/output contract | 77.1-77.3 records; current baseline inspection | APC-1.0 section 3; AP-01/AP-11 |
+| PERF-02 | Safe session reset and derived account state | PERF-01 gate | APC-1.0 section 4; AP-02/AP-04 |
+| PERF-03 | Reactive context, command staging and boundary cost | PERF-01/02 gates | APC-1.0 section 5; AP-03 |
+| PERF-04 | Native matching/layout and contract specialization | PERF-01/02 gates | APC-1.0 section 6; AP-05/AP-06 |
+| PERF-05 | Five-mode WFO reuse, reducers and locality | PERF-03/04 and PERF-01 audit schema | APC-1.0 section 7; AP-07/AP-08/AP-09 |
+| PERF-06 | Full research audit, columnar retention and compatibility | PERF-01 schema and PERF-05 identities | APC-1.0 section 8; AP-10 |
+| PERF-07 | Combined qualification, build tuning and closure manifest | PERF-01 through PERF-06 gates | APC-1.0 section 9; AP-12 and all AP integration |
+| 78 | Public promotion, installed-wheel certification, release handoff | Original exit artifacts plus current READY_FOR_PHASE78 manifest | RP-123-135 and APC-1.0 handoff |
 
 Execution order is 72 -> 73 -> 74 -> 75 -> 76 -> 77 -> 77.1 -> 77.2 -> 77.3
--> 78, one user approval at a time. Independent profiling may occur inside an
+-> PERF-01 -> PERF-02 -> PERF-03 -> PERF-04 -> PERF-05 -> PERF-06 -> PERF-07
+-> 78, one user approval at a time. The detailed
+[additional performance plan](#additional-performance-closure---perf-01-to-perf-07)
+is inserted directly before Phase 78. Independent profiling may occur inside an
 approved phase; that does not authorize starting a later implementation phase.
 
 ### Phase 72 - Measurement And Capability Gate Correction
@@ -17637,6 +17648,820 @@ the user separately approves the release-certification phase.
   advanced domains. No auto eligibility, version, wheel scope, or release
   state changed. Rollback remains the existing explicit Python/reference route.
 
+## Additional Performance Closure - PERF-01 To PERF-07
+
+**Status: PLANNED. Planning authorized on 2026-09-06; no PERF implementation,
+benchmark qualification, or promotion is authorized by this entry. Each phase
+requires the user's individual approval before its implementation starts.**
+
+**Canonical detailed guide:**
+[APC-1.0: seven-phase pre-78 performance closure](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md).
+The guide's work packages, adversarial cases, measurement rules and handoff
+schema are normative for this group. Read the whole guide once, then the
+linked sections for each approved phase. Also read the existing
+[agent execution contract](#mandatory-agent-execution-contract-for-phase-72-78)
+and the original
+[V1.1 domain guide](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
+This delivery plan provides ownership and gates; it does not replace the
+detailed guide with a smaller implementation target.
+
+**Integration and evidence boundary:**
+[0: evidence scope](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#0-phạm-vi-bằng-chứng-và-cách-đọc),
+[1: insertion and dependencies](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#1-tích-hợp-vào-upgradeimplementmd),
+[15: integration checklist](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#15-checklist-merge-vào-implementmd-và-tiếp-tục-phase-78) and
+[17: source and dependency evidence policy](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#17-nguồn-và-evidence-policy).
+
+- Use the current `feat/rust-primary-v1_1` branch. Planning inspected commit
+  `0b396fa1e6e08d5d5dea6017615fe6fa21825bd1`; that identifies the planning
+  context, not the future measurement baseline or a released candidate.
+  PERF-01 must pin the actual source/build when its work starts.
+- No existing `PERF-01` through `PERF-07` IDs were found in the main plan
+  during insertion. Keep these seven IDs together and preserve all previous
+  phase IDs, completion evidence, and the Phase 78 release scope.
+- The detailed guide explicitly says its author did not audit this source
+  snapshot. Treat claimed hotspots, proposed types, source locations and old
+  benchmark observations as investigation inputs. Verify existing work before
+  adding replacements; `VERIFIED_EXISTING` requires current public-path proof.
+- Source types such as `RequiredComputationPlan`,
+  `DerivedAccountSnapshot` and `PerformanceClosureManifest` are proposed
+  contracts until mapped/implemented. Do not infer that they already exist.
+- Each approved phase must close its own work packages and update this plan
+  before the next phase starts. Commit each coherent verified change on this
+  feature branch immediately; stage only that change and its required tests,
+  docs and evidence. Do not accumulate another multi-phase dirty checkpoint.
+- Phase 78 keeps its original status and gates. It additionally requires a
+  validated `READY_FOR_PHASE78` handoff from PERF-07 matching the current
+  source/build. These seven phases do not authorize merge, tags, public wheel
+  upload, blanket Rust promotion, or deletion of Python/oracle/mirror sources.
+
+### PERF Dependency And Proposal Map
+
+Follow [1.3: dependency graph](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#13-dependency-và-thứ-tự) and
+[1.4: all twelve AP proposals](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#14-mapping-12-ap-sang-bảy-phase).
+
+| Phase | Primary proposals | Required integration | Dependency |
+|---|---|---|---|
+| PERF-01 | AP-01 computation/output; AP-11 observer overhead | Public requests, five WFO modes, audit schemas | Existing 77.1-77.3 records; new baseline inspection |
+| PERF-02 | AP-02 touched reset; AP-04 derived account state | Session lifecycle, reactive workers, target/portfolio/package consumers | PERF-01 contracts |
+| PERF-03 | AP-03 hidden callback crossings | Public reactive endpoint and reactive WFO; reuse AP-01/02/04 | PERF-01/02 gates |
+| PERF-04 | AP-05 matcher/layout; AP-06 specialization | Existing native loops and derived-state consumers | PERF-01/02 gates |
+| PERF-05 | AP-07 evaluation graph; AP-08 statistical reducers; AP-09 locality | Public five-mode WFO, reactive WFO, full trial identity | PERF-03/04 plus PERF-01 audit schema |
+| PERF-06 | AP-10 columnar research audit | PERF-01 computation plan and PERF-05 evaluation/selection graph | PERF-01 schema; close integration after PERF-05 |
+| PERF-07 | AP-12 build/PGO; closure of AP-01 through AP-11 | Combined public workloads, candidate wheels and release handoff | All PERF-01 through PERF-06 gates |
+
+Default approval/closure order is PERF-01 -> PERF-02 -> PERF-03 -> PERF-04 ->
+PERF-05 -> PERF-06 -> PERF-07 -> Phase 78. The guide permits PERF-03/04 and
+parts of PERF-05/06 to overlap technically; that is not permission to start an
+unapproved phase. PERF-01 locks the PERF-06 schema early, so PERF-05 can use
+that contract without inventing a competing audit model or waiting for the
+writer implementation.
+
+### PERF Shared Domain, Architecture, And Evidence Contract
+
+Read [2: shared acceptance rules](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#2-chuẩn-nghiệm-thu-dùng-chung),
+[10: AC-01 through AC-44](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#10-adversarial-test-matrix-bắt-buộc),
+[11: benchmark fixtures and hard gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#11-benchmark-portfolio-và-gates-theo-nhóm),
+[12: work-package and PR organization](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#12-tổ-chức-prwork-packages) and
+[13: public-path integration requirements](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#13-đường-chạy-tích-hợp-tối-thiểu-để-tránh-helper-only) before each phase.
+
+**Domain and ownership:**
+
+- Strategy owns indicators/features, research models, decisions and declared
+  strategy state. Python strategies remain first-class; no `quantbt-features`,
+  mandatory Rust strategy rewrite, model fitting, or hidden feature authority.
+  Rust owns admitted simulation/accounting work between Python decisions.
+- Preserve public endpoint names, existing notebook calls, callback timing,
+  one-way fee/legacy conversion, funding, margin, quantity/tick rules,
+  effective intent timing, account carry and actual selected parameters.
+- Reuse the existing FullSession, prepared handles, arenas/indexes, pools,
+  co-runtime, reducers and SoA/result substrate. New modules/classes/Protocols
+  and Rust structs/traits must own a specific responsibility. No second
+  accounting authority, optimizer or scheduler; no broad file relocation.
+- Keep economic and performance fingerprints separate. Economic identity covers
+  all outcome-affecting data/state/clock/cost/strategy/RNG semantics.
+  Performance identity covers kernel/layout/tiling/topology/retention encoding
+  and build choices. A physical optimization cannot silently change economics.
+  Version public API, internal command ABI, request/result schemas and package
+  release separately; retain lockfile/toolchain versions unless an approved
+  dependency migration is required.
+- Pin exact comparisons for IDs, timestamps, phases, ordering, lot/tick
+  quantities, statuses, pruning/checkpoints and selected-candidate tie-breaks.
+  Pin float comparator/reduction policy before implementation. No fast-math,
+  RNG-sequence substitution, relaxed tolerances or nondeterministic reductions.
+  A ranking, admission or pruning change is not excused by close final equity.
+- Preserve the independent oracle. If the baseline has a domain bug, record a
+  separate correctness repair/spec delta, test it and repin affected evidence.
+  Do not preserve an incorrect economic rule merely to match the baseline, or
+  conceal that repair inside a performance claim.
+- Resource/ownership correctness and requested audit completeness are hard
+  gates. Callback suppression, reduced trials, missing candidates, lost audit,
+  simplified execution fidelity and changed sampling cannot fund a speedup.
+
+**Requirement disposition and no-debt policy:**
+
+Every AP, PF work package and mandatory AC case must map to actual public
+consumers, source symbols, test IDs, evidence and an owner. Work packages start
+`pending`; their phase starts `PLANNED`. Use the guide's final dispositions:
+
+| Disposition | Minimum evidence and closure meaning |
+|---|---|
+| `IMPLEMENTED_VERIFIED` | New implementation, real public wiring, independent/compatibility tests and measured decision; candidate qualification supplied at PERF-07 |
+| `VERIFIED_EXISTING` | Existing symbols/tests/counters and current public-path evidence already satisfy the requirement |
+| `NOT_BENEFICIAL` | Controlled experiment or measured analysis supports retaining the baseline; no unsupported speedup claim |
+| `BLOCKED_CORRECTNESS` | Reproducer, affected capability and owner; that capability cannot close or promote |
+| `DEFERRED_APPROVED` | Explicit user-approved scope decision with impact and provenance; never silently treated as a passed mandatory release requirement |
+
+No `UNKNOWN`, `BENCHMARK_ONLY`, `HELPER_ONLY`, unresolved in-scope defect,
+or missing required artifact can close a phase. An unsuccessful measured
+optimization may close its investigation as `NOT_BENEFICIAL`; an unperformed
+investigation may not. Named downstream implementation remains with its owner,
+while current defects stay blockers. Final manifest eligibility must validate
+the accepted scope and all required dispositions, not silently omit deferred
+or blocked rows.
+
+**Measurement and validation cadence:**
+
+- Pin baseline/source/native identity, dataset/corpus/strategy/params,
+  economic/retention contract, worker topology, budgets and toolchain.
+  Preserve earlier raw evidence under its original identity.
+- Measure public end-to-end, native execution, preparation, analysis and
+  export separately; distinguish exclusive stage times, wall time and aggregate
+  worker CPU. Record actual visited bars, candidates/folds/scenarios, commands,
+  fills, callback/getter/writer boundaries and emitted audit rows.
+- Report cold cost, warm prepared cost, cache-miss/hit/mixed cost, reset and
+  queue cost, RSS/PSS, retained bytes and steady plateau. A cache hit is an
+  avoided execution, not newly processed bars/s; use actual visited prefixes
+  for pruned/canceled tasks.
+- Alternate paired baseline/candidate samples with identical work. Use at
+  least 30 pairs for warm macrobenchmark p50; use sufficient observations for
+  p95 (guide proposes at least 100) or label it exploratory. PERF-01 locks
+  noise-aware per-class budgets; 3% p50 and 5% p95 are starting proposals,
+  not automatically approved gates. Inadequate evidence is `INCONCLUSIVE`.
+- Test independent invariants/oracle, public equivalence, audit/selection,
+  ownership/concurrency/faults, exact candidate wheels, then performance and
+  route eligibility. During implementation run focused affected tests; rebuild
+  when Rust/ABI changes. PERF-07 runs combined qualification, and Phase 78
+  retains final distribution/platform gates for the actual release artifacts.
+- Report a performance decision for every investigated shape. Do not multiply
+  overlapping speedups or force an indexed/Rust/PGO path onto small workloads
+  where a contract-equivalent baseline is faster.
+
+**Artifact organization:** extend the existing benchmark/governance and
+`docs/performance/` structures. Proposed evidence groups may live under
+`benchmarks/native_event/manifests/` and `benchmarks/native_event/results/`
+with `perf_01` through `perf_07` IDs. PERF-01 chooses actual files and schema
+ownership after inventory. These names are deliverables, not existing passing
+artifacts. Keep private strategy/data, credentials and machine-only build
+outputs out of Git and public distributions.
+
+### Phase PERF-01 - Source Traceability, Profiling, And Computation/Output Plan
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** pin the real public-workload baseline, identify repeated work, and
+implement or verify the computation/output plan and low-cost observation path.
+**Proposal owners:** AP-01 and AP-11.
+**Prerequisite:** current branch access and prior phase evidence inspected.
+
+**Read first:** [3: PERF-01 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#3-perf-01--source-traceability-profiling-và-computationoutput-plan),
+[2.3: economic versus performance identity](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#23-economic-contract-và-performance-plan-là-hai-thứ-khác-nhau),
+[2.5: measurement policy](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#25-performance-measurement) and
+[8.1: financial versus research retention](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#81-pf-061--hai-chiều-retention-độc-lập).
+The common AC/benchmark/approval rules above apply in full.
+
+**Implementation sequence (all pending):**
+
+1. PF-01.1, [3.1: pin and public inventory](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#31-pf-011--pin-baseline-và-map-public-workloads): record source SHA,
+   dirty state, lockfile/toolchain/native module origins and available artifact
+   hashes; hash fixture strategy/data/params privately where appropriate.
+   Map public factory -> resolved request -> runtime -> metrics/result -> export
+   for static orders, replay, target/signal/pct-equity/static DCA, reactive,
+   portfolio/basket, bounded package/arb, intrabar, each WFO mode and options
+   containment. Classify every AP as still open, already satisfied, or needing
+   a measured experiment; do not recreate existing prepared or sparse code.
+2. PF-01.2, [3.2: exclusive profiler and workloads](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#32-pf-012--causal-profiler-và-workload-suite): instrument
+   prepare/validate/ingest, native advance/match/account/wake, projection/Python
+   decision/command write+ingest, metrics/analysis/audit encode+flush/adapt,
+   reset/cache/queue. Avoid nested double counting; distinguish native entries,
+   callback entries and Python-to-native getters/writers. Establish B-01 through
+   B-14 shape classes, including failures and slow audit. MRS is one nominated
+   fixture, not a runtime dependency; unavailable MRS inputs remain unqualified
+   rather than being replaced by a synthetic fixture labelled MRS.
+3. PF-01.3, [3.3: RequiredComputationPlan](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#33-pf-013--requiredcomputationplan): resolve objective,
+   constraints/pruning, strategy context, financial retention and research audit
+   into required observations/paths/reducers/sinks at prepare. Reuse the
+   canonical observation stream with observation IDs; do not count fills as
+   returns or update reducers twice for multiple readers. Opaque custom metrics
+   receive conservative complete inputs. Preserve actual pruning checkpoint
+   values/order and all public result fields; path elision requires every
+   consumer to be satisfied under its declared retention contract.
+4. PF-01.4, [3.4: immutable work and observers](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#34-pf-014--hoist-immutable-work-và-giảm-observer-cost): hoist stable
+   contract/symbol/schema/callback resolution and immutable hashes only within
+   valid lifetimes. Remove writable aliases before treating content as fixed.
+   Use typed success codes and worker-local counters; retain required validation,
+   public status detail and canonical events. Compare coarse measurement and
+   detailed profiling against observers-off economics.
+5. PF-01.5, [3.5: cross-cutting contract lock](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#35-pf-015--khóa-cross-cutting-contracts-sớm): record ADR/schema
+   contracts for retained/borrowed views and staged commands, reset versus carry,
+   semantic cache identity/authorization/retention, research ledger/legacy
+   exports, callback exceptions/re-entry/cancel/capacity, numeric/RNG/tie-breaks
+   and actual WFO mode/schedule migration. PERF-06 writer implementation remains
+   downstream; the schema and compatibility obligations must be decided here.
+
+**Current code anchors to inspect:** `src/quantbt/endpoint.py`,
+`walkforward.py`, `backends/native_wfo_public.py`,
+`backends/native_prepared_evaluation.py`, `core/native_result_v2.py`,
+`core/runtime_governance.py`, `rust/native_event/src/prepared_evaluation.rs`,
+`rust/crates/quantbt-engine/src/metrics_v2.rs` and
+`tools/measurement_contract.py`. Python paths after the first are relative to
+`src/quantbt/`; verify exact functions before recording the implementation map.
+
+**Tests and exit gate:** [3.6: PERF-01 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#36-gates-và-output).
+AC-01 through AC-04 and AC-42 must cover repeated readers, custom metric
+fallback, intermediate pruning, writable input aliases and observers on/off.
+Use future-suffix mutations and actual public result/checkpoint comparisons.
+Profiler counters must measure the intended work without changing it. Lock
+metric pass count, allocations, hash cost, observer overhead and public timing
+with per-workload uncertainty/budgets. Exit requires a complete source/AP
+investigation map and no unresolved baseline contamination or ambiguous
+economics/audit contract. It does not require unapproved later-phase kernels.
+
+**Deliverables/docs:** baseline identity and route/AP/AC/B matrix, profiler and
+workload harness, computation-plan ADR, safety/cache/audit schema contracts,
+prioritized hotspots and budget report; update measurement and endpoint docs
+for any implemented optional surface.
+
+**Technical debt/rollback:** no missing baseline, metric dependency or contract
+decision at exit. Reuse verified existing logic; reject measured harmful
+optimizations. Roll back the performance plan/profiler to the pinned compatible
+path, preserving any separately approved correctness repair. PERF-02 owns reset
+implementation; PERF-05 owns evaluation cache; PERF-06 owns durable writer.
+
+### Phase PERF-02 - Safe Session Reuse And Shared Derived Account State
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** make repeated independent sessions cheap while proving reset,
+retained-view lifetime and derived-account invalidation correctness.
+**Proposal owners:** AP-02 and AP-04.
+**Prerequisite:** PERF-01 locked contracts and independent account oracle.
+
+**Read first:** [4: PERF-02 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#4-perf-02--session-reuse-an-toàn-và-shared-derived-account-state),
+[3.5: locked safety contracts](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#35-pf-015--khóa-cross-cutting-contracts-sớm) and
+[10: adversarial ownership/reset cases](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#10-adversarial-test-matrix-bắt-buộc).
+
+**Implementation sequence (all pending):**
+
+1. PF-02.1, [4.1: measure reset first](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#41-pf-021--đo-reset-trước-khi-thay-data-structure): profile logical clear,
+   destructor, zeroing, index rebuild and allocation separately. Compare fresh,
+   reused and huge-then-small independent trials (including the proposed
+   100,000-order predecessor). Introduce touched lists/generations only for
+   measured capacity/history-dependent costs; a cheap `Vec::clear()` is not
+   automatically a replacement target.
+2. PF-02.2, [4.2: complete reset manifest](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#42-pf-022--reset-manifest-đầy-đủ): classify immutable
+   shared input, run state, worker scratch and retained output. Enumerate wallet,
+   positions, marks, fees/funding cursors, margin/reservations/liquidation,
+   orders/parents/OCO/expiry/pending commands, IDs/generations/sequencing,
+   liquidity/RNG, wake/callback/strategy state, metrics/path/audit namespaces,
+   cancel/error/poison state. Define generation wrap quarantine/recreation.
+   Reset fresh candidates only; never reset carried deployment state implicitly.
+3. PF-02.3, [4.3: retained buffer ownership](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#43-pf-023--ownership-của-retained-buffers): implement verified
+   snapshots, pinned leases/refcounts, or a proxy that never exports unchecked
+   raw views. A wrapper generation token cannot revoke a retained raw ndarray.
+   Prevent writable aliasing, concurrent writes/native reads and resize under
+   exported views. Budget leases; choose copy or explicit failure on overflow.
+   Old results must remain readable after repeated worker resets.
+4. PF-02.4, [4.4: phase-aware derived snapshot](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#44-pf-024--derivedaccountsnapshot-theo-phase): reuse a coherent
+   equity/margin/exposure snapshot keyed by phase and mark, position, wallet,
+   reservation, fee/funding, risk/instrument versions. Invalidate at every
+   relevant mutation including no-position-change marks and reserve/release
+   within one bar. Consumers cannot mutate accounting by reading metrics.
+   Incremental additive terms require certified semantics; nonlinear margin,
+   tiers, offsets/FX use supported full recomputation with a debug comparator.
+5. PF-02.5, [4.5: fault/reset oracle](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#45-pf-025--faultreset-oracle): compare a fresh session with
+   reuse after success, rejection, liquidation, callback failure, cancellation,
+   open reservations, writer failures and large capacity. Test independent
+   candidate permutation, stale handles, forced-small generation wrap, retained
+   arrays, poison/recreate recovery and Python factory/reset contracts.
+   Never retry a mutated Python strategy without an explicit restore contract.
+
+**Current code anchors:** `rust/crates/quantbt-engine/src/session.rs`,
+`rust/native_event/src/{prepared_evaluation,reactive_numeric,reactive_score}.rs`,
+`src/quantbt/backends/{native_prepared_evaluation,reactive_wfo_workers}.py`,
+`src/quantbt/core/{native_result_v2,runtime_governance}.py`; reuse actual
+session/arena/account ownership found there.
+
+**Tests and exit gate:** [4.6: PERF-02 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#46-gates-và-output).
+AC-04 through AC-10 require fresh/reuse trace parity, zero residual
+reservations/events, unchanged retained bytes, safe stale handles, and derived
+snapshots matching from-scratch recomputation after every small-corpus event.
+Measure reset time/bytes zeroed/touched ratio, recompute counts, retained leases,
+scratch/high-watermark growth and peak/steady RSS. Fixed independent candidate
+outcomes must not depend on their predecessor; carried simulations are tested
+under their separate stateful contract.
+
+**Deliverables/docs:** reset/ownership manifest, event invalidation table,
+fresh/fault/permutation corpus and per-optimization decision benchmark; update
+runtime lifecycle and prepared-use documentation.
+
+**Technical debt/rollback:** no cross-trial leakage, stale snapshot or unsafe
+buffer reuse at exit. Safe fallback is fresh independent construction and full
+derived recomputation, never a reset of a carried account. Existing memory
+budgets remain enforced across leases, scratch and outputs.
+
+### Phase PERF-03 - Reactive Boundary, Context Projection, And Command Staging
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** reduce the real cost per Python decision/wake while retaining
+first-class Python strategy behavior and Rust execution ownership.
+**Proposal owner:** AP-03; integrates AP-01/02/04.
+**Prerequisite:** PERF-01/02 gates; existing R1/R2/R3/R3B scope inspected.
+
+**Read first:** [5: PERF-03 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#5-perf-03--reactive-pythonrust-giảm-hidden-crossings-và-công-việc-mỗi-wake),
+[5.6: four-way comparison](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#56-four-way-parity-và-benchmark),
+[14.3: runtime changes outside this critical path](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#143-free-threadedcompiled-strategy-paths-gpu-và-thêm-domain).
+
+**Implementation sequence (all pending):**
+
+1. PF-03.1, [5.1: callback access plan](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#51-pf-031--lập-callback-access-plan): compile declared context
+   fields, handles and delta cursors once at a valid strategy lifecycle
+   boundary. Measure outer entries, callback calls and nested getter/writer
+   calls separately. Use fixed numeric projections where profitable; retain
+   safe snapshots for historical-context consumers. Dynamic callback mutation
+   needs explicit invalidation or compatibility routing. Apply PyO3 optimizations
+   against the pinned version; do not claim zero scalar boxing without evidence.
+2. PF-03.2, [5.2: shared staged commands](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#52-pf-032--shared-staged-command-batch): measure the existing
+   writer, then use bounded primitive rows/stable numeric handles and one
+   valid-prefix ingest where beneficial. Resolve immutable enums/schema early;
+   perform dynamic admission at its original phase. Discard all unsubmitted
+   staged rows on a callback exception and record dirty strategy state. Successful
+   callbacks retain per-command business acceptance/rejection; callback staging
+   atomicity must not turn an ordinary batch into an all-or-none trading package.
+   Capacity growth uses a boundary handshake, never resize under active views.
+3. PF-03.3, [5.3: wake before projection](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#53-pf-033--sparse-wake-giảm-projection-không-chỉ-invocation): evaluate wake conditions
+   before expensive context materialization using existing timers/indexes.
+   Continue matching, valuation, funding, margin and metrics on idle bars.
+   Preserve on-fill/on-close ordering and effective command times. OHLC
+   high/low may only influence decisions after their availability. No-command
+   callbacks may update counters/RNG/state, so every-bar callbacks cannot be
+   skipped without a versioned strategy/parameter/timing safety contract.
+4. PF-03.4, [5.4: GIL and process lifetime](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#54-pf-034--rút-ngắn-critical-section-giữ-threadprocess-semantics-đúng): optimize existing
+   co-runtime policies without a redundant GIL mode or pool. Do not hold native
+   locks across callbacks that can re-enter. Verify attach/detach while waiting.
+   Python-heavy work may require an already-supported process path; fork only
+   under safe pool/thread lifecycle rules and measure whether IPC pays off.
+5. PF-03.5, [5.5: batch and block protocols](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#55-pf-035--candidate-batch-và-block-protocols-đã-có): verify numeric batch
+   decisions actually combine candidates, rather than wrapping individual
+   callbacks in one native call. Isolate each candidate's state/RNG/namespace
+   and errors; preserve optimizer IDs/order. Separate precomputed exogenous
+   tapes from online block observations. Future block contents cannot affect
+   commands before availability. Insufficiently certified fast protocols remain
+   explicit; mandatory every-bar access/writer improvement is still evaluated.
+
+**Current code anchors:** `src/quantbt/api/event_driven.py`,
+`src/quantbt/backends/{native_event,reactive_wfo,reactive_wfo_batch}.py`,
+`src/quantbt/strategies/{context,reactive_protocols,reactive_wfo}.py`,
+`rust/native_event/src/{reactive_numeric,reactive_hot_loop,reactive_score}.rs`.
+Preserve the existing public facade and callbacks; use narrow delegation.
+
+**Tests and exit gate:** [5.7: PERF-03 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#57-gates-và-output).
+AC-11 through AC-17 compare independent small-corpus oracle, pinned baseline
+bridge, optimized bridge, and captured effective-command static replay.
+Compare callback inputs, ordering, commands, financial traces and supported
+strategy-state fingerprints; replay alone cannot prove decisions or sparse
+wake completeness. Include many getters/commands, retained contexts, exception
+after writes, ordinary business rejection, overflow/re-entry/cancel, silent
+state/RNG changes, future suffix perturbation, competing wakes and peer failure.
+Benchmark B-02 through B-06 with ns/wake, projection/allocations, all boundary
+counters and full public time. Preserve every-bar callback counts; declare
+sparse/batch sampling contracts explicitly.
+
+**Deliverables/docs:** context/writer ownership plan, wake/projection integration,
+four-way corpus, route-by-shape recommendation and measured Python residual;
+update reactive endpoint/protocol/WFO docs with stable usage.
+
+**Technical debt/rollback:** no stale alias, lost staged commands, future
+availability leak, deadlock or unexplained callback difference at exit.
+Restore the compatible baseline bridge/snapshot writer when a fast shape
+fails safety/performance. Arbitrary Python compilation and free-threaded
+deployment remain outside this phase.
+
+### Phase PERF-04 - Native Matching, Layout, And Contract Specialization
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** remove measured native matching/account/kernel work while preserving
+all declared priorities, transactions and unsupported-domain behavior.
+**Proposal owners:** AP-05 and AP-06; consumes AP-04.
+**Prerequisite:** PERF-01/02 gates; use PERF-03 workloads where applicable.
+
+**Read first:** [6: PERF-04 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#6-perf-04--native-matching-targetportfolio-kernels-và-contract-specialization),
+[6.5: domain tests before speed](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#65-pf-045--domain-tests-trước-throughput) and
+[11.2: non-negotiable hard gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#112-hard-gates-không-được-trade-off).
+
+**Implementation sequence (all pending):**
+
+1. PF-04.1, [6.1: existing-index prefilter](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#61-pf-041--broad-phase-filter-dùng-indexes-hiện-có): profile examined,
+   eligible and active orders plus maintenance cost. Use existing arena,
+   symbol/expiry/parent/OCO indexes as a conservative superset with no false
+   negatives. Keep contiguous scan for small/high-maintenance sets when better.
+   Reestablish exact matching priority and shared-liquidity consumption after
+   filtering; process same-phase child activation, stop-limit continuation,
+   OCO cancellation and newly eligible orders, not only a start-of-bar list.
+2. PF-04.2, [6.2: hot/cold order layout](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#62-pf-042--hotcold-order-layout): keep frequently read
+   numeric handles/types/sides/activation/remaining quantities/effective prices
+   and lifecycle flags hot; keep strings/tags/provenance/history cold. Maintain
+   one mutable order authority and generation-safe links, with full audit
+   reconstruction. Measure cancel/amend-heavy index maintenance as well as fills.
+3. PF-04.3, [6.3: prepare-time specialization](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#63-pf-043--specialization-một-lần-ở-prepare): select a small
+   measured set of existing loop shapes for linear target score, static orders,
+   reactive compact, shared portfolio rebalance and bounded package audit.
+   Hoist only stable mapping/branches/validations/metric requirements. Dynamic
+   equity sizing, admission, marks, funding/fee/tradability and collateral remain
+   at their correct phases. Share accounting primitives rather than cloning
+   formulas into five new engines.
+4. PF-04.4, [6.4: target/portfolio/package semantics](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#64-pf-044--targetportfoliopackage-correctness-specific-checks): compare
+   direct target fills/accounts without inventing order-lifecycle parity.
+   Preserve portfolio sizing snapshot, explicit priority and supported
+   sequential/reduce-first/pro-rata/all-or-none policies. Replace transactional
+   state copies only where a measured delta/rollback preserves account, fees,
+   reservations and synthetic liquidity. Hedge against actual fills after lot
+   rounding; distinguish missing legs, partial quantities and recorded dust.
+5. PF-04.5, [6.5: differential and mutation tests](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#65-pf-045--domain-tests-trước-throughput): compare indexed
+   versus full-scan execution with gaps, equality, competing orders, expiry,
+   partial liquidity, parent/stop activation and deterministic cancel/amend/OCO
+   races. Deliberately missing a candidate or changing priority must fail tests.
+   Include scale-in/reduce/reversal, costs, funding timestamps, post-cost margin,
+   liquidation, frozen/stale symbols and unsupported-shape rejection.
+
+**Current code anchors:** existing matcher/arena/index modules below
+`rust/crates/quantbt-engine/src/`, `session.rs`,
+`rust/crates/quantbt-execution/src/{target,package,intrabar}.rs`,
+`rust/crates/quantbt-package/src/v2.rs` and corresponding native adapters.
+PERF-01 records exact index functions; do not add a parallel order engine.
+
+**Tests and exit gate:** [6.6: PERF-04 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#66-gates-và-output).
+AC-15, AC-18 through AC-23 and AC-40 lock availability, candidate completeness,
+order priority, shared liquidity, package rollback, actual-fill hedging,
+portfolio permutation preconditions and direct-target equivalence.
+Measure B-06/B-08/B-09, including small shapes, index churn, examined orders,
+branch/instruction/cache counters where available and binary size. Every enabled
+fast shape requires independent financial parity and a public performance
+decision. Unsupported requests still fail or retain their declared approximation.
+
+**Deliverables/docs:** specialization/threshold decision registry, source/index
+map, mutation/differential corpus and per-shape report; update native capability,
+portfolio/package/target usage and rollback docs.
+
+**Technical debt/rollback:** no hidden priority change, false-negative filter,
+account-cache stale state, incomplete transaction rollback or duplicated
+authority at exit. Retain the baseline scan/generic certified loop and
+compatible schemas wherever measured specialization is not beneficial.
+
+### Phase PERF-05 - WFO Evaluation Reuse, Streaming Analysis, And Locality
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** avoid redundant economic evaluations while preserving all five modes,
+optimizer interaction, chronological accounts and full trial identity.
+**Proposal owners:** AP-07, AP-08 and AP-09.
+**Prerequisite:** PERF-03/04 runtime gates and PERF-01 audit/identity contracts.
+
+**Read first:** [7: PERF-05 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#7-perf-05--wfo-evaluation-reuse-streaming-analysis-và-locality-runtime),
+[8.2: research identities](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#82-pf-062--manifests-bất-biến-và-record-identities) and
+[13: public endpoint integration](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#13-đường-chạy-tích-hợp-tối-thiểu-để-tránh-helper-only).
+
+**Implementation sequence (all pending):**
+
+1. PF-05.1, [7.1: five-mode evaluation/retention matrix](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#71-pf-051--chốt-mode-by-mode-evaluationretention-matrix): map
+   actual `mode_1_decay`, `mode_2_sbb`, `mode_3_flat_minima`,
+   `mode_4_is_only_robust`, `mode_5_full_robust`, public schedules and
+   supported reactive combinations from source. Retain decay components,
+   bootstrap paths/replicates, parameter neighborhoods, IS/subperiod robustness
+   and full-sample components actually used. Preserve historical proxy versus
+   execution-account semantics and unsupported mode/schedule combinations.
+   Custom objectives keep declared inputs/Python authority; no opaque-objective
+   introspection or substitution with terminal Sharpe.
+2. PF-05.2, [7.2: execution-analysis graph](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#72-pf-052--executionanalysis-artifact-graph): separate strategy
+   input/intent, execution, analysis, objective, selection, deployment and
+   selected replay. Version `run_id/trial_id/candidate_id/execution_id/
+   execution_attempt_id/analysis_id/selection_id/deployment_id` relationships.
+   Duplicate params still produce separate trials. Reuse report-only analysis
+   only when it has no strategy, pruning or execution-termination feedback.
+3. PF-05.3, [7.3: semantic cache and authorization](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#73-pf-053--semantic-cache-retention-và-authorization): key by
+   semantic engine/numeric build, market/calendar/instruments, initial
+   account/orders/reservations/funding state, strategy implementation/config/
+   state/intent, clock/fold/warmup/cutoff/account policy, execution/cost/risk,
+   RNG algorithm/version/seed/scenario/replicate and completed horizon/prefix.
+   Validate actual immutability, data-role/cutoff permission, retention coverage,
+   deterministic isolation and complete/prefix status. Do not cache transient
+   resource/IO failures, skip promised callbacks/side effects, share independent
+   stochastic replications or reuse across unproven semantic builds.
+4. PF-05.4, [7.4: pruning and optimizer schedule](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#74-pf-054--pruning-và-optimizer-semantics-không-bị-cache-phá): retain certified
+   ask-one -> report/check/prune -> tell-one behavior. On eligible cache hits,
+   replay intermediate observations to the current pruner, never its historical
+   decision; otherwise bypass cache. A complete cached score cannot replace a
+   pruned prefix. Key or disable caching for constraints/objectives affecting
+   termination. Preserve throughput-batch schedule IDs, batch/ask/tell order
+   separately from sequential parity; never let finish order drive the sampler.
+5. PF-05.5, [7.5: bounded public pipeline and locality](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#75-pf-055--public-lifetime-bounded-pipeline-và-locality): keep
+   prepared market/runtime/session lifetime across the existing public WFO
+   request; count pool creation, market ingestion, distinct intent copies,
+   resets and selected reruns. Allow controlled distinct-tape ingestion while
+   removing repeated fold/scenario copies where ownership permits. Use bounded
+   typed queues and one coordinated memory/CPU budget for caches, leases,
+   worker scratch, audit and actual concurrent/nested Python/Rust/BLAS work.
+   Reuse the pool, sweep candidate/time tiles and task grain for independent
+   workloads, preserve each candidate's temporal order, and never pre-sample
+   future adaptive sequential trials or parallelize carried folds as fresh.
+6. PF-05.6, [7.6: streaming statistical reducers](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#76-pf-056--streaming-statistical-reducers): retain a needed
+   path once and consume deterministic resample descriptors/indices with
+   worker-local scratch. Avoid replicate-by-bar-by-candidate tensors when
+   replicate statistics suffice. Pin bootstrap blocks/wrap, RNG indices,
+   formula/ddof/NaN/horizon/quantile/reduction order and replicate ID order.
+   Preserve all-candidate robustness when required. Keep GARCH/model fitting
+   in research, and never combine reset-flat summaries into carried equity.
+7. PF-05.7, [7.7: reactive WFO and replay](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#77-pf-057--reactive-wfo-và-deterministic-replay): factory/reset/snapshot
+   Python state under the certified contract and verify causal feature cutoff.
+   A captured command tape under changed fills/costs is counterfactual execution,
+   not a new reactive strategy run. Carry wallet/positions/orders/parents/OCO/
+   reservations/funding/RNG/strategy state chronologically when requested;
+   preserve current unsupported policies instead of adding implicit continuity.
+   Label selected reconstructed audit separately from original retained data.
+
+**Current code anchors:** `src/quantbt/walkforward.py`,
+`backends/{native_wfo_public,native_wfo_target,native_prepared_evaluation,
+reactive_wfo,reactive_wfo_batch_selection,reactive_wfo_workers}.py`,
+`core/wfo_contracts.py`, `strategies/{wfo_prepared,reactive_wfo}.py`,
+`rust/native_event/src/prepared_evaluation.rs`,
+`rust/crates/quantbt-batch/src/target_wfo.rs`. Python relative anchors are
+under `src/quantbt/`; reuse existing selectors, workers and metadata adapters.
+
+**Tests and exit gate:** [7.8: PERF-05 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#78-gates-và-output).
+AC-03, AC-17, AC-24 through AC-34 cover fixed candidates in every supported
+mode/schedule, cache on/off, fresh/reuse, worker/chunk permutations, actual
+intermediate reports/pruning/tell order, duplicate records, economic-key changes,
+independent RNG replications, future/global cache rejection, prefix/carry
+isolation, fixed bootstrap indices and all-candidate selection.
+Compare full public studies and final params/positions/accounts under the same
+method. B-07 through B-11 and B-13 separate unique executions, avoided visits,
+lookup/store cost, allocation/copy/reset cost, queue/topology, public latency
+and peak/steady memory. Every attempted trial remains auditable.
+
+**Deliverables/docs:** mode/schedule/retention matrix, semantic DAG/cache
+eligibility and invalidation contract, bounded pipeline/reducer corpus,
+topology/shape decisions and WFO compatibility report. Update WFO methodology,
+causal schedule, prepared runtime and endpoint guides with unchanged usage.
+
+**Technical debt/rollback:** no leakage, sampling/pruning drift, hidden loss of
+landscape points/statuses, invalid cached completeness or broken final account
+join at exit. Disable cache or restore baseline reducers/layout on the same
+schedule while preserving research IDs/records. PERF-06 supplies the qualified
+writer against the schema already locked in PERF-01; PERF-07 tests the combined
+runtime/writer. Prefix checkpoint reuse is not introduced here.
+
+### Phase PERF-06 - Columnar Research Audit, Retention, And Compatibility
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** reduce object/serialization and retained-memory cost while preserving
+requested financial outputs and complete research interpretation.
+**Proposal owner:** AP-10; integrates AP-01/AP-07/AP-11.
+**Prerequisite:** PERF-01 schemas and PERF-05 evaluation/selection identities;
+writer work may overlap only when separately approved.
+
+**Read first:** [8: PERF-06 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#8-perf-06--research-auditresult-tốc-độ-cao-và-không-mất-dữ-liệu),
+[2.4: numeric/schema exactness](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#24-exactness-và-floating-point-policy) and
+[11.2: audit completeness is a hard gate](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#112-hard-gates-không-được-trade-off).
+
+**Implementation sequence (all pending):**
+
+1. PF-06.1, [8.1: independent retention axes](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#81-pf-061--hai-chiều-retention-độc-lập): resolve financial
+   `score/compact/audit` separately from research
+   `full_trial_ledger/selected_only/none` using compatible existing surfaces.
+   Keep legacy defaults. The nominated research WFO retains full trial history
+   even with scalar financial scoring. Full trial ledger need not mean every
+   candidate fill, but must retain actual params, attempts/folds/scenarios,
+   objective inputs, statuses and selection provenance. Full financial audit
+   requests are fulfilled or explicitly rejected by resource contract.
+2. PF-06.2, [8.2: immutable manifests and records](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#82-pf-062--manifests-bất-biến-và-record-identities): store run,
+   search-space, instrument and contracts once with stable references. Retain
+   Run, SearchSpace, Trial, Evaluation/Fold/Scenario, Analysis, Selection,
+   Deployment, Replay and Performance records with the guide's full field set.
+   Include declared/observed distributions, bounds/steps/log/category order,
+   conditional inactive reasons, fixed overrides, actual params, cutoff/purge/
+   embargo/warmup, initial state, attempts/reuse/prefix/errors, constraints/
+   tie-break/deployment intervals and original/reconstructed provenance.
+   Dynamic unknown branches use `space_completeness=observed_only`; never
+   invent a declared search space or use arbitrary repr as semantic identity.
+3. PF-06.3, [8.3: typed chunks and ownership](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#83-pf-063--typed-columnar-chunks): append typed SoA
+   rows/chunks in workers; materialize pandas/legacy output once or lazily under
+   its API contract. Prefer the existing substrate; Arrow/Parquet/database are
+   not required additions. Transfer chunk ownership before worker recycling.
+   Logical IDs/order do not follow worker completion order. Preserve numeric,
+   timestamp and category precision with no implicit downcast/quantization.
+4. PF-06.4, [8.4: bounded writer and completion](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#84-pf-064--bounded-writer-và-trạng-thái-hoàn-tất): reuse or extend
+   the current sink with bounded queues, backpressure, controlled spill or
+   explicit budget failure. Distinguish memory-complete, process flush/close and
+   tested crash-durable guarantees. Record financial and audit status separately
+   and aggregate truthfully; no certified success with missing requested audit.
+   Preserve canceled prefix/missing range/reason and make chunk retries
+   idempotent without retrying an uncertain optimizer tell.
+5. PF-06.5, [8.5: digest and legacy round-trip](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#85-pf-065--hashprovenance-và-schema-round-trip): hash immutable
+   manifests once, preserve ordered financial traces, and version changed
+   physical codecs/digests. Compare logical records through compatible adapters
+   instead of promising unchanged JSON/binary hashes. A digest is not the
+   original audit payload; selected regenerated data records
+   `reconstructed=true`. Preserve row counts/joins/dtypes/timezones/nulls/
+   statuses/params/objectives/selection/deployment on legacy exports; distinguish
+   observed parameter points from visual interpolation.
+
+**Current code anchors:** `src/quantbt/core/native_result_v2.py`,
+`core/runtime_governance.py`, `walkforward.py`, `reporting/`, existing WFO
+result/metadata adapters and Rust typed output/reducer modules. Verify current
+sink and serializer ownership in PERF-01 before creating focused additions.
+
+**Tests and exit gate:** [8.6: PERF-06 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#86-gates-và-output).
+AC-24 and AC-35 through AC-39 require duplicate-trial identity, conditional
+search-space fidelity, slow/full queues, disk-full, worker death, serialization/
+schema faults, cancel-mid-flush and duplicate chunk retry. Round-trip all
+promised fields/cardinalities/statuses and recompute objectives from their
+recorded components; selected deployment must join the right candidate.
+B-10/B-11/B-12 measure identical full research retention, bytes/allocations,
+encode/flush/adapt latency, queue pressure and retained/peak memory. Financial
+success plus missing required research/financial audit is a failed aggregate
+contract, regardless of score parity.
+
+**Deliverables/docs:** versioned research records, typed writer/legacy adapters,
+ownership/durability ADR, compatibility and fault corpus, and measured retention
+report. Document how users obtain metrics, plots, trial tables, landscape data,
+selection provenance and original versus reconstructed audit.
+
+**Technical debt/rollback:** no silent row/status/precision loss, unsafe chunk
+reuse, unbounded queue or unsupported durability promise at exit. Restore the
+existing serializer/sink with the same requested retention; do not disable
+audit as rollback. Cross-domain combined qualification belongs to PERF-07.
+
+### Phase PERF-07 - Combined Qualification, Build Tuning, And Phase 78 Handoff
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** qualify the combined implementation on real public routes and exact
+candidate wheels, and produce a validated scoped handoff to Phase 78.
+**Proposal owner:** AP-12 and the final dispositions of AP-01 through AP-11.
+**Prerequisite:** PERF-01 through PERF-06 closed with valid evidence and no
+unresolved mandatory correctness, public integration or audit requirement.
+
+**Read first:** [9: PERF-07 detailed guide](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#9-perf-07--cross-domain-qualification-build-tuning-và-handoff-về-phase-78),
+[9.6: PerformanceClosureManifest](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#96-pf-076--release-handoff-không-trộn-với-publish),
+[11: paired benchmarks and hard gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#11-benchmark-portfolio-và-gates-theo-nhóm),
+[14: out-of-critical-path research](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#14-những-hướng-mạnh-nhưng-giữ-ngoài-critical-path),
+[16: intended seven-phase outcomes](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#16-kết-quả-đích-sau-bảy-phase).
+
+**Implementation sequence (all pending):**
+
+1. PF-07.1, [9.1: combined and ablation qualification](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#91-pf-071--combined-path-và-ablation-qualification): compare
+   baseline, computation plan, reset/derived reuse, reactive boundary, native
+   kernels, WFO cache/reducers/locality, audit representation and combined/chosen
+   build. Test shared ownership/numeric interactions, not an unnecessary full
+   Cartesian sweep. Public timings are the gate; overlapping gains are not
+   multiplied. Apply the paired/noise/memory budgets locked in PERF-01.
+2. PF-07.2, [9.2: cross-domain regression](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#92-pf-072--cross-domain-regression): exercise every
+   advertised affected market/calendar/account/funding/order/target/portfolio/
+   package/intrabar surface and existing options containment. Shared primitives
+   need affected-domain tests even when those endpoints were not hotspots.
+   Unsupported spot-carry, inverse/quanto, cross-venue and option models retain
+   correct rejection/approximation labels instead of nearest-kernel fallback.
+3. PF-07.3, [9.3: controlled PGO/build experiment](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#93-pf-073--pgobuild-experiment-có-kiểm-soát): only after
+   dataflow stabilizes, pin instrumented training, profile merge, profile hash,
+   toolchain/flags and chosen build. Hold out short/long, score/audit, Python-heavy,
+   many-order, target and portfolio/package workloads. Retain non-PGO as
+   `NOT_BENEFICIAL` if public/cold/binary-size gates lose. Public wheels keep
+   their certified portable CPU baseline; no unqualified host-native flags,
+   fast-math, panic/safety change or disabled PyO3 reference-pool safeguards.
+4. PF-07.4, [9.4: resource and fault soak](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#94-pf-074--resource-cancellation-và-ownership-soak): combine heterogeneous
+   long WFO, cache pressure, retained results and slow sinks. Measure governed
+   peak and steady memory after contractual releases. Cancel at prepare,
+   callback, active native work, queue wait, reducer and audit flush; verify
+   bounded response, committed financial prefix, worker join/poison recovery
+   and no orphan/deadlock/invalid alias. Test approved worker topologies with
+   fixed deterministic candidate IDs; time-budgeted async sampling remains
+   separately labelled and cannot claim exact sequential history.
+5. PF-07.5, [9.5: installed candidate and eligibility](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#95-pf-075--installed-candidate-và-route-enablement): build a
+   matched core/native pair from the pinned candidate and install in clean
+   pip/Poetry consumers outside the checkout/mirror. Prove public endpoint,
+   analysis/selection and output behavior with actual import/module origins
+   and extension versions. Qualify the approved platform/CPython/worker cells.
+   Record endpoint, intent/account/clock/execution, retention, reactive/WFO
+   protocol and platform -> explicit/auto-eligible/safe-baseline/rejected.
+   Eligibility is a recommendation to Phase 78; do not blanket-enable routes.
+6. PF-07.6, [9.6: scoped release handoff](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#96-pf-076--release-handoff-không-trộn-với-publish): generate and validate
+   `quantbt.performance_closure.v1` with source/baseline/build identities,
+   immutable evidence references for all seven phases, AP/PF/AC dispositions,
+   scoped route matrix, empty required correctness blockers, audit round-trip,
+   performance uncertainty and contract-compatible rollback. Reject placeholder
+   values, missing artifacts, stale source/build identity and unsupported scope.
+   State explicit research decisions for prefix checkpoints, inert blocks and
+   free-threaded/compiled/GPU/new-domain paths; they remain outside this group.
+
+**Current code anchors:** existing measurement/governance tooling, product
+registry/capability negotiation, `tools/{verify_wheels,certify_native_release}.py`,
+Cargo profiles and native CI/consumer workflows. Reuse existing release
+infrastructure; the phase produces local/CI candidate evidence, not uploads.
+
+**Tests and exit gate:** [9.7: PERF-07 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#97-gates-và-output).
+Close AC-01 through AC-44 mapping and all required B-01 through B-14 decisions.
+AC-32 and AC-40 through AC-44 additionally verify combined topology, direct-target
+contract equivalence, unsupported containment, observers/PGO on/off, clean wheel
+imports and source/build invalidation. Run full deterministic and independent
+affected-domain regression, Rust fmt/clippy/unit/differential checks, mirror,
+generated contract/API/baseline, architecture, docs, secret and benchmark gates.
+Use actual wheel behavior with no advertised native capability silently skipped.
+Uncertainty is reported; no unmatched speedup, requested audit loss, finance
+mismatch, unsafe lifetime or unresolved mandatory case can pass.
+
+**Deliverables/docs:** combined/ablation report, full oracle/public/audit/resource
+matrix, candidate core/native/platform evidence, PGO decision, exact eligibility
+table, rollback package/contract reproduction and validated closure manifest.
+Refresh README with comparable seconds/ms and appropriate work units; explain
+execution versus Python decision authority and cache avoidance separately.
+
+**Technical debt/rollback:** `READY_FOR_PHASE78` applies only to the proven
+capability set with all mandatory evidence resolved. A missing MRS/platform/
+audit/oracle requirement remains explicitly unqualified until its approved
+scope decision, not a fabricated pass. Keep compatible baseline kernels and
+package rollback. Do not publish, promote every endpoint, remove the oracle,
+or silently bypass original A4/A5 observation/cleanup conditions.
+
+### PERF Test Matrix And Coverage Tracking
+
+The full cases and assertions in [10: AC-01 through AC-44](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#10-adversarial-test-matrix-bắt-buộc)
+and workload definitions in [11.1: B-01 through B-14](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#111-benchmark-fixtures)
+must be mapped to concrete tests/fixtures during PERF-01 and reconciled at
+PERF-07. This compact index does not reduce those requirements.
+
+| AC IDs | Required invariant | Owning phase(s) |
+|---|---|---|
+| AC-01, AC-02 | Single observation updates; conservative custom-metric inputs | PERF-01 |
+| AC-03, AC-04 | Pruning checkpoints; immutable input/alias ownership | PERF-01/02/05 as applicable |
+| AC-05, AC-06, AC-07, AC-08 | Huge/tiny reset, fault predecessors, retained results, stale/wrapped handles | PERF-02 |
+| AC-09, AC-10 | Mark/reservation/fee/funding derived-state invalidation | PERF-02 |
+| AC-11, AC-12, AC-13, AC-14 | Callback exceptions versus trading rejects, re-entry/capacity, silent state/RNG | PERF-03 |
+| AC-15, AC-16, AC-17 | Availability/wake ordering and candidate failure isolation | PERF-03/04/05 as applicable |
+| AC-18, AC-19, AC-20 | Conservative prefilter, exact priority, cancel/amend/OCO maintenance | PERF-04 |
+| AC-21, AC-22, AC-23 | Atomic rollback/liquidity, actual partial fills/hedge dust, portfolio priority | PERF-04 |
+| AC-24 | Duplicate trials and execution-reuse identity | PERF-05/06 |
+| AC-25, AC-26, AC-27, AC-28, AC-29 | Cache economics/feedback, current pruning, prefix status, independent replicate identity | PERF-05 |
+| AC-30, AC-31, AC-32 | Causal authorization, reset/carry separation, deterministic topology | PERF-05/07 |
+| AC-33, AC-34 | Fixed resampling/reducers and required all-candidate analysis | PERF-05 |
+| AC-35, AC-36, AC-37, AC-38, AC-39 | Conditional space, writer faults/retries, legacy/digest compatibility | PERF-06 |
+| AC-40, AC-41 | Direct-target equivalence and unsupported-domain containment | PERF-04/07 |
+| AC-42, AC-43, AC-44 | Observer/build equivalence, clean wheel import, changed-candidate invalidation | PERF-01/07/78 |
+
+| Workload IDs | Required measurement | Primary phase(s) |
+|---|---|---|
+| B-01 | No-trade short/long fixed preparation/observer/result overhead | PERF-01 |
+| B-02, B-03, B-04, B-05 | Numeric getters, many commands, Python-heavy and sparse behavior | PERF-03 |
+| B-06 | High-churn resting/cancel/amend/grid with audit | PERF-03/04 |
+| B-07 | Heterogeneous fresh/reused trials and retained high-watermark | PERF-02/05 |
+| B-08, B-09 | Target shape sweep; shared portfolio/package priority and cache | PERF-04/05 |
+| B-10, B-11 | Every WFO mode; zero/mixed/high cache hits with actual work | PERF-05/06 |
+| B-12, B-13 | Same full research retention with slow sink; long WFO failure/cancel | PERF-05/06/07 |
+| B-14 | Held-out PGO workload and cold/binary/error behavior | PERF-07 |
+
+Every released family also needs the real public-input-to-export-to-installed-
+wheel integration chain in [13: minimum public integration](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#13-đường-chạy-tích-hợp-tối-thiểu-để-tránh-helper-only), with
+negative requests for unsupported account/timing, missing metric inputs,
+malformed commands, stale buffers, protocol mismatch and exceeded budgets.
+Metamorphic tests must state preconditions: fill splitting, permutations and
+rescaling are not unconditional invariants with per-fill fees, rounding,
+priority-dependent liquidity or phase-sensitive margin.
+
+### PERF Completion Record And Handoff Control
+
+Use [12: work-package evidence](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#12-tổ-chức-prwork-packages) and
+[15: integration checklist](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#15-checklist-merge-vào-implementmd-và-tiếp-tục-phase-78) together with the existing completion
+record below Phase 78. Each phase must append real outcomes as they occur:
+
+```text
+Phase and approval reference:
+Status: PLANNED | IN_PROGRESS | BLOCKED | COMPLETE
+AP/PF requirement dispositions and actual source/public consumer mapping:
+AC test IDs and B workload IDs, including unqualified cases:
+Pinned baseline/candidate/source/native/wheel identity:
+Economic fingerprint; performance fingerprint; schema/numeric/RNG contract:
+Public route before/after, including decision/execution/analysis authorities:
+Exact commands and pass/fail/skip reasons; independent oracle and field parity:
+Selection/pruning/checkpoint/tell order; state carry and cache authorization:
+Retained research/financial outputs, compatibility and durability evidence:
+Paired p50/p95/sample counts/noise, actual work and cache avoidance:
+Cold/warm RSS/PSS, ownership/copy/reset/topology and resource/fault outcomes:
+Docs/examples and implementation commit:
+Open mandatory blockers; measured NOT_BENEFICIAL decisions:
+Approved deferrals and scoped impact (never counted as a passing requirement):
+Named downstream owner; rollback and whether the next phase may be approved:
+```
+
+Planning alone does not fill any of those evidence fields. `PERF-07` issues the
+validated closure manifest only after the scoped mandatory requirements pass.
+Source/build changes invalidate affected qualification even if package version
+strings remain equal. Phase 78 must verify that manifest and run affected
+integration/distribution gates against the final artifacts it will release.
+
 ### Phase 78 - Public Rust-Primary Promotion And Release Certification
 
 **Status: planned; not started.**
@@ -17650,6 +18475,20 @@ reactive/resource closure. Historical Phase 77 completion alone does not admit
 this phase. Public promotion is separate from implementation and still needs
 this phase's individual approval and current installed-wheel evidence.
 
+**Additional prerequisite (APC-1.0):** PERF-01 through PERF-07 must supply a
+validated `PerformanceClosureManifest` with status `READY_FOR_PHASE78` for
+the proposed capability set, matching the current source/build candidate.
+Original prerequisites remain required. Read the
+[seven-phase handoff contract](#perf-completion-record-and-handoff-control) and
+[guide 9.6](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#96-pf-076--release-handoff-không-trộn-với-publish).
+P78-00 is the admission check for that manifest: validate actual source/build,
+baseline, core/native identities, all required phase/requirement evidence,
+audit compatibility and rollback references. Missing/placeholder/stale evidence
+blocks admission. Requalify impacted gates after source/build changes; matching
+version strings alone do not carry certification across artifacts. PERF-07
+candidate-wheel proof supplements, rather than replaces, P78-04/P78-05 tests
+of the exact final artifacts intended for distribution.
+
 **Read first:**
 - [7: authority/promotion ladder](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#7-promotion-maturity-ladder).
 - [38.1-38.8: reliability and resource governance](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#381-runtime-budget).
@@ -17660,8 +18499,8 @@ this phase's individual approval and current installed-wheel evidence.
 
 **Implementation sequence:**
 
-1. P78-01: reconcile the Phase 72 matrix with actual routes after 73-77 and
-   77.1-77.3. For
+1. P78-01: reconcile the Phase 72 matrix with actual routes after 73-77,
+   77.1-77.3 and the qualified PERF-01 through PERF-07 changes. For
    each endpoint/workload/profile/timing/platform, record state, control-flow,
    data, metric and result authority, native entry/callback counts, and exact
    supported/unsupported policy. No generic `Rust supported` stamp from one case.
@@ -17761,6 +18600,13 @@ its row passed. Planned filenames below are requirements, not tests already run.
 | Mode 2 sampling/reduction preserves historical mathematics | 77.2 | RNG/index/path fingerprints, metric/ranking parity and bounded sampling memory |
 | Reactive wake/GIL/buffer optimization and specialized scratch | 77.3 | Decision/execution traces, transactional rollback and matched public speed/RSS |
 | Cooperative long-task budgets and immutable report ownership | 77.3 | Mid-execution cancellation, worker recovery and report access without replay |
+| Current source/AP inventory and output dependency contract | PERF-01 | AC-01-04/42, public baseline, schema lock and noise-aware budgets |
+| Fresh/reused sessions and coherent derived account snapshots | PERF-02 | AC-04-10, retained ownership, fault/reset oracle and bounded memory |
+| Reactive getter/writer/projection cost with unchanged decisions | PERF-03 | AC-11-17, four-way corpus, real public boundary/ownership evidence |
+| Conservative matching and exact specialized transactions | PERF-04 | AC-15/18-23/40, indexed/reference ordering, rollback and shape decisions |
+| WFO cache/reducers preserve optimizer, roles and accounts | PERF-05 | AC-03/17/24-34, five-mode fixed/full-study parity and actual work measurement |
+| Full research ledger and financial retention remain independent | PERF-06 | AC-24/35-39, legacy round-trip, writer faults and no requested audit loss |
+| Combined public qualification and scoped performance handoff | PERF-07 | Complete AC/B dispositions, exact candidate wheels and valid READY_FOR_PHASE78 manifest |
 | Public promotion reflects exact measured capability | 78 | Registry negative tests and authority metadata |
 | Current installed core/native artifacts behave correctly | 78 | Behavioral wheel matrix plus pip/Poetry consumer runs |
 | A5/shadow/cleanup and final guide completion | 78 | Actual observation evidence, approval and rollback proof |
@@ -17770,7 +18616,8 @@ its row passed. Planned filenames below are requirements, not tests already run.
 Run focused contract/unit/differential tests while each phase is being built.
 Rebuild the native extension when Rust or ABI changes; do not benchmark a stale
 installed module. Broaden regression at shared-boundary changes, and run the
-complete release/installed-wheel matrix at 78. Do not repeat unchanged large
+combined candidate-wheel qualification at PERF-07 and complete release/
+installed-wheel matrix at 78. Do not repeat unchanged large
 suites for a docs-only edit, but never substitute focused tests for the final
 gate or omit a newly affected domain to save time.
 
