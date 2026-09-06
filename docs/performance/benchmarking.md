@@ -301,3 +301,26 @@ The scheduled `Native Nightly Regression Evidence` workflow regenerates E0,
 E3, E6, and prepared-score RSS artifacts on one declared CI host. It is an
 observability tier, not a hardware-normalized release threshold: its artifacts
 can detect a material regression, but they cannot promote `backend="auto"`.
+
+## PERF-07 Candidate Closure
+
+The pre-Phase-78 closure is an integration qualification rather than a
+repository-wide speed number. Its standard matrix takes `87.516 s` wall time
+and confirms exact route-scoped parity for observer, session reuse, lifecycle
+matching, five WFO modes, research retention, direct targets, and reactive
+cross-domain controls. It does **not** add or multiply the individual speedups
+from those measurements.
+
+The affected-domain regression passed `195` tests. Candidate core and native
+wheels were built from the pinned source and installed in clean environments;
+exact-pair, source-hash, public target smoke, and source-tree isolation checks
+all pass. PGO was not selected because `llvm-profdata` was unavailable on the
+qualification host. The portable thin-LTO build remains the only release
+candidate, with no host-native CPU, fast-math, panic, or unsafe relaxation.
+
+Read [PERF-07 performance closure](perf_07_closure.md), the
+[combined matrix](../../benchmarks/native_event/results/perf_07_combined_qualification.md),
+and the machine-readable
+[closure manifest](../../benchmarks/native_event/results/perf_07_performance_closure.json).
+The manifest names bounded explicit Rust routes, Python safe baselines, and
+rejected shapes; it does not authorize blanket `backend="auto"` promotion.

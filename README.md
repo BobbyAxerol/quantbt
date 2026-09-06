@@ -444,6 +444,8 @@ Evidence:
 - [bounded Rust package V2 JSON](benchmarks/native_event/results/phase68_bounded_package.json)
 - [Phase 77 matched kernel/result-adapter evidence](benchmarks/native_event/results/phase77_native_performance_closure.md)
 - [Phase 77 matched kernel/result-adapter JSON](benchmarks/native_event/results/phase77_native_performance_closure.json)
+- [PERF-07 combined candidate qualification](benchmarks/native_event/results/perf_07_combined_qualification.md)
+- [PERF-07 route-scoped closure manifest](benchmarks/native_event/results/perf_07_performance_closure.json)
 - [benchmark governance](docs/performance/benchmarking.md)
 
 ## Core Capabilities

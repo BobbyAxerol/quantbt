@@ -72,6 +72,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Opt into public single-symbol prepared-native WFO scoring and inspect W0/W1/W2 metadata | [Public prepared-native WFO scoring](native_prepared_wfo_public.md) |
 | Inspect run-local exact WFO score reuse, its Optuna safety boundary, and five-mode evidence | [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md) |
 | Retain a bounded immutable WFO trial/selection ledger or selected-execution audit without changing optimizer behavior | [PERF-06 columnar research audit](performance/perf_06_research_audit.md) |
+| Review the clean-candidate combined performance, wheel, PGO, regression, route, and rollback handoff before Phase 78 | [PERF-07 performance closure](performance/perf_07_closure.md) |
 | Use the correctness-contained Python options route and inspect capability/settlement evidence | [Options P0 containment](options_p0_containment.md) |
 | Review the contract required before any Rust-primary options promotion | [Options V1.2 Rust handoff](options_v1_2_rust_handoff.md) |
 | Certify the external Grid alpha on Python/Rust with 2,000-bar parity, RSS, and optimizer evidence | [Grid Phase 47C/47D](grid_native_event_phase47c.md) |

@@ -15959,11 +15959,10 @@ V1.1 is complete only when the guide section 91 checklist is met:
 
 ## Phase 72-78 - Rust-Primary Public Workload And Performance Closure
 
-**Status: Phase 72-77 and 77.1-77.3 have the scoped completion records below.
-The additional PERF-01 through PERF-07 plan was authorized on 2026-09-06;
-each new phase still awaits individual implementation approval. Phase 78
-remains planned and additionally depends on their validated handoff.
-Recording this plan does not authorize automatic promotion or release.**
+**Status: Phase 72-77, 77.1-77.3, and PERF-01 through PERF-07 have scoped
+completion records below. Phase 78 remains planned and additionally depends on
+the validated `READY_FOR_PHASE78` handoff recorded by PERF-07. This does not
+authorize automatic promotion or release.**
 
 **Canonical detailed guide:**
 [QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
@@ -17650,11 +17649,10 @@ the user separately approves the release-certification phase.
 
 ## Additional Performance Closure - PERF-01 To PERF-07
 
-**Status: PERF-01 COMPLETE (2026-09-06); PERF-02 through PERF-07 remain
-PLANNED. Planning was authorized on 2026-09-06. PERF-01 adds source/profiler
-contracts only; no benchmark qualification or promotion is authorized by this
-group until its later phase gates are closed. Each remaining phase requires the
-user's individual approval before its implementation starts.**
+**Status: PERF-01 through PERF-07 COMPLETE (2026-09-06). The validated
+`READY_FOR_PHASE78` handoff is scoped to the route matrix recorded below.
+Planning and implementation were individually approved; this group still does
+not publish a wheel, blanket-promote Rust, or authorize Phase 78 automatically.**
 
 **Canonical detailed guide:**
 [APC-1.0: seven-phase pre-78 performance closure](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md).
@@ -18576,7 +18574,7 @@ phase.
 
 ### Phase PERF-07 - Combined Qualification, Build Tuning, And Phase 78 Handoff
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: COMPLETE (2026-09-06); `READY_FOR_PHASE78` handoff validated.**
 **Goal:** qualify the combined implementation on real public routes and exact
 candidate wheels, and produce a validated scoped handoff to Phase 78.
 **Proposal owner:** AP-12 and the final dispositions of AP-01 through AP-11.
@@ -18663,6 +18661,47 @@ audit/oracle requirement remains explicitly unqualified until its approved
 scope decision, not a fabricated pass. Keep compatible baseline kernels and
 package rollback. Do not publish, promote every endpoint, remove the oracle,
 or silently bypass original A4/A5 observation/cleanup conditions.
+
+**Implementation record (2026-09-06):**
+
+- PF-07.1 ran `benchmark_perf07_combined_qualification.py --profile standard`
+  from clean candidate `2701193`. All observer, reset, reactive boundary,
+  lifecycle matching, five-mode reuse/audit, direct-target, and reactive
+  cross-domain gates passed. The `87.516 s` suite wall time is not a combined
+  speed or RSS claim; each route retains its own benchmark denominator and
+  resource scope.
+- PF-07.2 ran the explicit affected-domain matrix: `195 passed`. The two
+  emitted missing-high/low warnings remain visible and correctly label close
+  fallback intrabar risk as uncertified rather than silently certifying it.
+- PF-07.3 recorded `NOT_BENEFICIAL` for a portable PGO build: this host lacks
+  `llvm-profdata`, so no reproducible profile merge or host-tuned artifact was
+  selected. The retained `opt-level=3` thin-LTO profile preserves portable CPU,
+  no-fast-math, panic/safety, financial-capability, and held-out parity guards.
+  This is an explicit release-build decision, not an unmeasured PGO speed claim.
+- PF-07.4 is covered by the deterministic cancellation/owned-sink/reset matrix
+  in the PERF-02/03/05/06/77.3 tests and by the standard combined run. It
+  verifies cancellation boundaries, bounded retention, release behavior, and
+  no fabricated audit replay under the declared supported topology.
+- PF-07.5 built a local core wheel, sdist, and manylinux CPython 3.12 native
+  wheel from the candidate. Clean external installs proved exact `1.1.0` /
+  `0.4.1` pairing, byte-level source parity, source-tree isolation, and public
+  direct-target native behavior.
+- PF-07.6 generated and validated
+  `benchmarks/native_event/results/perf_07_performance_closure.json`. It pins
+  immutable checksums for combined, regression, PGO, wheel, AP-01..12 and
+  AC-01..44 evidence, requires an empty correctness-blocker list, preserves
+  audit round-trip, and declares explicit-support, safe-baseline, and rejected
+  routes plus a compatible rollback.
+
+**Exit disposition:** all required PERF-07 gates are closed for the declared
+candidate and route matrix. There is no unresolved correctness, ownership,
+audit, wheel, or performance-evidence debt inside PERF-07. Declared non-goals
+remain outside this phase: arbitrary callback compilation, blanket automatic
+promotion, full Rust options, cross-venue/multi-currency/inverse package
+authority, GPU/free-threaded work, and a separately pinned public PGO training
+corpus. They are not implied support and do not weaken the fail-closed route
+matrix. Phase 78 may now consume this manifest, but must rerun it after any
+source, ABI, wheel, or route-scope change.
 
 ### PERF Test Matrix And Coverage Tracking
 
