@@ -1,0 +1,1829 @@
+{
+  "elapsed_seconds": 87.51644605211914,
+  "evidence": {
+    "all_current_qualification_gates": true,
+    "direct_target_accounting_parity": true,
+    "five_mode_audit_parity": true,
+    "five_mode_reuse_parity": true,
+    "native_matching_parity": true,
+    "no_aggregate_speedup_claim": true,
+    "observer_economic_parity": true,
+    "reactive_boundary_completed": true,
+    "reactive_cross_domain_parity": true,
+    "session_reuse_completed": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "580f01c6854319380f55bbdec9f0b55633142964e13e1e583e7e9d047c8d6071",
+    "git_commit": "2701193354794add3a27fee73b79733404607edd",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "314a4329158de9c3e20d3c9f1901a497267194e882b60056736914a6a5da926b",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "each constituent PERF runner performs its own declared warm-up; PERF-07 runs the non-overlapping current-candidate matrix sequentially and does not aggregate speedups"
+  },
+  "phase": "PERF-07",
+  "phase_inputs": {
+    "PERF-01": {
+      "candidate_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "920e6d6821810874b6119b67baede95eef282e7ef8220febaea230fef7f37794",
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "2630946869baa164d8503acc3f7618e1eb57a3d914d6f962922aead4b8bb4f34",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "3 unrecorded public WFO runs per profile before alternating pairs"
+      },
+      "economic_parity": {
+        "final_equity": 19996.801012789183,
+        "passed": true,
+        "public_result_signature": "d2a0d58cccf8a39be9e698c43d8ed2cbe4cc8aa53bf65f7ec6d0adb3163c0c77",
+        "selected_params": {
+          "direction": -1.0
+        },
+        "work_shape": {
+          "bars": 540,
+          "folds": 2,
+          "optuna_trial_rows": 4
+        }
+      },
+      "interpretation": "This paired source/profiler baseline does not promote a backend, claim generic WFO throughput, or qualify a candidate wheel. It only establishes observer on/off economics and a public Mode 1 timing shape.",
+      "observer_off": {
+        "max_ns": 111372838,
+        "median_ns": 90962143,
+        "min_ns": 87967417,
+        "p95_ns": 98779630,
+        "samples": 30
+      },
+      "observer_on": {
+        "max_ns": 103095081,
+        "median_ns": 91799284,
+        "min_ns": 88023886,
+        "p95_ns": 97559653,
+        "samples": 30
+      },
+      "observer_on_exclusive_stage_median_ns": {
+        "advance_match_account_wake": 43007653,
+        "metrics_analysis_audit_encode_flush_public_adapt": 9628410,
+        "prepare_validate_ingest": 12161094,
+        "projection_python_decision_command_write_ingest": 10982714,
+        "reset_cache_lookup_queue_wait": 0
+      },
+      "observer_overhead_latency_quantiles_pct": {
+        "p50_pct": 0.9203180272478849,
+        "p95_pct": -1.2350491695504426
+      },
+      "observer_overhead_median_pct": 0.9203180272478849,
+      "observer_overhead_pairs_pct": {
+        "max_pct": 13.222178772556573,
+        "median_pct": 0.7942300329412815,
+        "min_pct": -12.646761738181505,
+        "p95_pct": 5.309194550023266,
+        "samples": 30
+      },
+      "observer_overhead_proposed_budget": {
+        "binding_release_gate": false,
+        "overall_status": "INCONCLUSIVE",
+        "p50": {
+          "measurement": "p50_latency_quantile_ratio",
+          "status": "PASS",
+          "threshold_pct": 3.0
+        },
+        "p95": {
+          "measurement": "p95_latency_quantile_ratio",
+          "minimum_paired_samples": 100,
+          "status": "INCONCLUSIVE_INSUFFICIENT_PAIRED_SAMPLES",
+          "threshold_pct": 5.0
+        }
+      },
+      "schema": "quantbt-perf-01-observer-baseline-v1",
+      "status": "development_baseline_not_promotion_evidence",
+      "workload": {
+        "bars": 540,
+        "mode": "mode_1_decay",
+        "paired_repeats": 30,
+        "pairing": "alternating observer-off/observer-on order",
+        "route": "QuantBTEndpoint.walk_forward",
+        "schedule": "global",
+        "target_mode": "signal_notional",
+        "trials": 4,
+        "warmup_runs_per_profile": 3
+      }
+    },
+    "PERF-02": {
+      "elapsed_seconds": 11.101785928942263,
+      "result": {
+        "contract": "terminal outlier reset may skip an empty arena scan; live orders are deliberately scanned and canceled",
+        "fresh_small_total": {
+          "max_ns": 33111,
+          "median_ns": 24842,
+          "min_ns": 7222,
+          "p95_ns": 33111
+        },
+        "outlier_orders": 100000,
+        "repeats": 5,
+        "reset_after_live_outlier": {
+          "max_ns": 35758151,
+          "median_ns": 28570425,
+          "min_ns": 26343270,
+          "p95_ns": 35758151
+        },
+        "reset_after_terminal_outlier": {
+          "max_ns": 2959,
+          "median_ns": 2231,
+          "min_ns": 1872,
+          "p95_ns": 2959
+        },
+        "reset_normal": {
+          "max_ns": 202,
+          "median_ns": 180,
+          "min_ns": 160,
+          "p95_ns": 202
+        },
+        "reused_small_total": {
+          "max_ns": 8439,
+          "median_ns": 7870,
+          "min_ns": 3854,
+          "p95_ns": 8439
+        },
+        "rss_end_kib": 75680,
+        "rss_start_kib": 21016,
+        "schema": "quantbt-perf-02-session-reuse-v1"
+      }
+    },
+    "PERF-03": {
+      "elapsed_seconds": 9.754178060218692,
+      "result": {
+        "bars": 2000,
+        "cases": [
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "noop_every_bar",
+            "repeats": 5,
+            "rss_after_timed_mb": 168.15625,
+            "rss_before_timed_mb": 168.15625,
+            "runtime": "numeric_every_bar_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 78034.71748974176,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 2002,
+                "callback_lookup_ns": 593544,
+                "callback_ns": 314243,
+                "callback_plan_compile_ns": 12969,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 0,
+                "context_projection_count": 2000,
+                "engine_ns": 526999,
+                "max_wall_ms": 29.600238,
+                "median_wall_ms": 25.629618,
+                "min_wall_ms": 23.820534,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 78280.68989554812,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 312695,
+                "callback_plan_compile_ns": 24123,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 0,
+                "context_projection_count": 2000,
+                "engine_ns": 583856,
+                "max_wall_ms": 32.707286,
+                "median_wall_ms": 25.549085,
+                "min_wall_ms": 22.92875,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "control no-op callback"
+          },
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "many_getters",
+            "repeats": 5,
+            "rss_after_timed_mb": 168.51171875,
+            "rss_before_timed_mb": 168.51171875,
+            "runtime": "numeric_every_bar_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 53251.62545927197,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 2002,
+                "callback_lookup_ns": 419229,
+                "callback_ns": 12312691,
+                "callback_plan_compile_ns": 11089,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 168000,
+                "context_projection_count": 2000,
+                "engine_ns": 347995,
+                "max_wall_ms": 37.974519,
+                "median_wall_ms": 37.557539,
+                "min_wall_ms": 36.177113,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 54141.366518886905,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 12229419,
+                "callback_plan_compile_ns": 18313,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 168000,
+                "context_projection_count": 2000,
+                "engine_ns": 320108,
+                "max_wall_ms": 38.033016,
+                "median_wall_ms": 36.940331,
+                "min_wall_ms": 36.451724,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "B-02 many getters"
+          },
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "command_burst",
+            "repeats": 5,
+            "rss_after_timed_mb": 168.96484375,
+            "rss_before_timed_mb": 168.96484375,
+            "runtime": "numeric_every_bar_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 71623.1587610755,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 2002,
+                "callback_lookup_ns": 439445,
+                "callback_ns": 748305,
+                "callback_plan_compile_ns": 11776,
+                "command_rows": 16,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 16,
+                "context_getter_calls": 3999,
+                "context_projection_count": 2000,
+                "engine_ns": 419473,
+                "max_wall_ms": 42.141762,
+                "median_wall_ms": 27.923929,
+                "min_wall_ms": 27.28872,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 72364.92706447549,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 739152,
+                "callback_plan_compile_ns": 17465,
+                "command_rows": 16,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 16,
+                "context_getter_calls": 3999,
+                "context_projection_count": 2000,
+                "engine_ns": 406820,
+                "max_wall_ms": 38.776081,
+                "median_wall_ms": 27.637698,
+                "min_wall_ms": 26.659139,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "B-03 many commands/callback"
+          },
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "python_heavy",
+            "repeats": 5,
+            "rss_after_timed_mb": 168.96484375,
+            "rss_before_timed_mb": 168.96484375,
+            "runtime": "numeric_every_bar_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 11368.270096364618,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 2002,
+                "callback_lookup_ns": 475835,
+                "callback_ns": 137252664,
+                "callback_plan_compile_ns": 12087,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 2000,
+                "context_projection_count": 2000,
+                "engine_ns": 396121,
+                "max_wall_ms": 208.896704,
+                "median_wall_ms": 175.928262,
+                "min_wall_ms": 161.794778,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 12091.166232642165,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 140856770,
+                "callback_plan_compile_ns": 18541,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 2000,
+                "context_projection_count": 2000,
+                "engine_ns": 481197,
+                "max_wall_ms": 167.94184,
+                "median_wall_ms": 165.410016,
+                "min_wall_ms": 162.748265,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "B-04 Python-heavy decision"
+          },
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "sparse_clock",
+            "repeats": 5,
+            "rss_after_timed_mb": 168.96484375,
+            "rss_before_timed_mb": 168.96484375,
+            "runtime": "numeric_sparse_wake_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 90309.39547342218,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 4,
+                "callback_lookup_ns": 5665,
+                "callback_ns": 49570,
+                "callback_plan_compile_ns": 9816,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 2,
+                "context_projection_count": 2,
+                "engine_ns": 439552,
+                "max_wall_ms": 23.20875,
+                "median_wall_ms": 22.14609,
+                "min_wall_ms": 21.811657,
+                "python_callback_calls": 2,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 86805.45383041435,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 39429,
+                "callback_plan_compile_ns": 17980,
+                "command_rows": 0,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 0,
+                "context_getter_calls": 2,
+                "context_projection_count": 2,
+                "engine_ns": 550625,
+                "max_wall_ms": 23.997486,
+                "median_wall_ms": 23.040027,
+                "min_wall_ms": 22.651954,
+                "python_callback_calls": 2,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "B-05 declared sparse wake"
+          },
+          {
+            "audit_dynamic_pinned_parity": true,
+            "bars": 2000,
+            "name": "grid_like",
+            "repeats": 5,
+            "rss_after_timed_mb": 170.7421875,
+            "rss_before_timed_mb": 170.7421875,
+            "runtime": "numeric_every_bar_v1",
+            "sample_order": "alternating_dynamic_run_stable",
+            "samples": [
+              {
+                "bars_per_second": 64217.053641307626,
+                "binding": "dynamic",
+                "callback_binding_mode": "dynamic_compatibility_v1",
+                "callback_dynamic_lookup_count": 2002,
+                "callback_lookup_ns": 804360,
+                "callback_ns": 1911466,
+                "callback_plan_compile_ns": 15290,
+                "command_rows": 250,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 250,
+                "context_getter_calls": 2000,
+                "context_projection_count": 2000,
+                "engine_ns": 1013084,
+                "max_wall_ms": 53.540223,
+                "median_wall_ms": 31.144375,
+                "min_wall_ms": 29.62266,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              },
+              {
+                "bars_per_second": 39714.61396124362,
+                "binding": "run_stable",
+                "callback_binding_mode": "run_stable_pinned_v1",
+                "callback_dynamic_lookup_count": 0,
+                "callback_lookup_ns": 0,
+                "callback_ns": 1973893,
+                "callback_plan_compile_ns": 59867,
+                "command_rows": 250,
+                "command_rows_dropped": 0,
+                "command_staged_rows_discarded": 0,
+                "command_writer_calls": 250,
+                "context_getter_calls": 2000,
+                "context_projection_count": 2000,
+                "engine_ns": 1008345,
+                "max_wall_ms": 52.996747,
+                "median_wall_ms": 50.359296,
+                "min_wall_ms": 29.361689,
+                "python_callback_calls": 2000,
+                "rss_delta_mb": 0.0
+              }
+            ],
+            "workload": "B-06 high-churn grid-like"
+          }
+        ],
+        "initial_rss_mb": 152.1875,
+        "peak_rss_mb": 226.8359375,
+        "post_run_rss_mb": 170.7421875,
+        "repeats": 5,
+        "schema_version": "quantbt-perf-03-reactive-boundary-v1"
+      }
+    },
+    "PERF-04": {
+      "algorithm": {
+        "active_prefilter": "exact active lifecycle index ordered by stable sequence",
+        "fallback": "generic active-index scan remains the certified route",
+        "same_phase_children": "append to existing continuation queue",
+        "small_shape": "same generic exact scan; no price-index specialization is enabled"
+      },
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": null,
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": null,
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one audit parity run plus one score warmup per workload"
+      },
+      "rss_mb": {
+        "after": 244.6171875,
+        "before": 224.17578125,
+        "delta": 20.44140625,
+        "tail_spread": 0.0
+      },
+      "schema": "quantbt-perf-04-native-matching-v1",
+      "scope": "prepared static lifecycle matcher only; no generic endpoint or L2 claim",
+      "workload": {
+        "bars": 2000,
+        "high_orders": 32,
+        "repeats": 5,
+        "symbols": 1
+      },
+      "workloads": {
+        "high_churn_indexed": {
+          "bars_per_second": 87686.07752904843,
+          "command_count": 48403,
+          "commands_per_second": 2122134.6053192657,
+          "cycles": 499,
+          "matching": {
+            "active_external_alias_count": 0,
+            "expiry_scan_count": 0,
+            "lifecycle_candidate_capacity": 32,
+            "matching_candidate_capacity": 32,
+            "matching_scan_count": 47904,
+            "relationship_scan_count": 15968,
+            "released_lifecycle_candidate_capacity": 0,
+            "released_matching_candidate_capacity": 0,
+            "terminal_orders_removed": 31936
+          },
+          "median_seconds": 0.022808638,
+          "orders_per_cycle": 32,
+          "rss_mb": {
+            "samples": [
+              259.25390625,
+              259.25390625,
+              259.25390625,
+              259.25390625,
+              259.25390625
+            ],
+            "tail_spread": 0.0
+          },
+          "terminal": {
+            "canceled_count": 15968,
+            "event_count": 48403,
+            "fill_count": 0,
+            "final_equity": 20000.0,
+            "final_position_sum": 0.0,
+            "rejected_count": 0,
+            "score_audit_parity": true
+          }
+        },
+        "small_exact_scan": {
+          "bars_per_second": 1941383.7989580594,
+          "command_count": 1996,
+          "commands_per_second": 1937501.031360143,
+          "cycles": 499,
+          "matching": {
+            "active_external_alias_count": 0,
+            "expiry_scan_count": 0,
+            "lifecycle_candidate_capacity": 4,
+            "matching_candidate_capacity": 4,
+            "matching_scan_count": 1497,
+            "relationship_scan_count": 499,
+            "released_lifecycle_candidate_capacity": 0,
+            "released_matching_candidate_capacity": 0,
+            "terminal_orders_removed": 998
+          },
+          "median_seconds": 0.001030193,
+          "orders_per_cycle": 1,
+          "rss_mb": {
+            "samples": [
+              226.84765625,
+              226.84765625,
+              226.84765625,
+              226.84765625,
+              226.84765625
+            ],
+            "tail_spread": 0.0
+          },
+          "terminal": {
+            "canceled_count": 499,
+            "event_count": 1996,
+            "fill_count": 0,
+            "final_equity": 20000.0,
+            "final_position_sum": 0.0,
+            "rejected_count": 0,
+            "score_audit_parity": true
+          }
+        }
+      }
+    },
+    "PERF-05": {
+      "evidence": {
+        "adaptive_reads_bypassed": true,
+        "all_public_mode1_parity": true,
+        "cache_released": true,
+        "high_hit_lane_has_hits": true,
+        "mode2_proxy_preserved": true,
+        "mode_matrix_parity": true
+      },
+      "lanes": {
+        "high_hit_run_local": {
+          "full_seconds_median": 0.39730456098914146,
+          "full_speedup_pct_vs_off": 2.7409882746154826,
+          "runtime": {
+            "adaptive_read_bypasses": 104,
+            "attempt_rows_retained": 168,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 32,
+            "cache_misses": 32,
+            "cache_stores": 136,
+            "reason": "run_local_pure_terminal_native_metrics",
+            "resolved_policy": "enabled_then_released",
+            "terminal_score_bars_executed": 43228,
+            "terminal_score_bars_reused": 11680
+          },
+          "score_seconds_median": 0.12755669094622135,
+          "score_speedup_pct_vs_off": 10.205635804405292
+        },
+        "mixed_bounded_lru": {
+          "full_seconds_median": 0.42517776042222977,
+          "full_speedup_pct_vs_off": -4.082290631968243,
+          "runtime": {
+            "adaptive_read_bypasses": 104,
+            "attempt_rows_retained": 168,
+            "cache_entries_released": true,
+            "cache_evictions": 167,
+            "cache_hits": 0,
+            "cache_misses": 64,
+            "cache_stores": 168,
+            "reason": "run_local_pure_terminal_native_metrics",
+            "resolved_policy": "enabled_then_released",
+            "terminal_score_bars_executed": 54908,
+            "terminal_score_bars_reused": 0
+          },
+          "score_seconds_median": 0.15819531492888927,
+          "score_speedup_pct_vs_off": -11.362623296259821
+        },
+        "zero_hit_policy_off": {
+          "full_seconds_median": 0.40850154031068087,
+          "full_speedup_pct_vs_off": 0.0,
+          "runtime": {
+            "adaptive_read_bypasses": 0,
+            "attempt_rows_retained": 0,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_stores": 0,
+            "reason": "policy_off",
+            "resolved_policy": "disabled",
+            "terminal_score_bars_executed": 0,
+            "terminal_score_bars_reused": 0
+          },
+          "score_seconds_median": 0.14205422811210155,
+          "score_speedup_pct_vs_off": 0.0
+        }
+      },
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "58cf666a4086eb4620fde93e3c4a33faf6a221796e72f0ba2535a05b2d1529cb",
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "ef44015afb298d2b9ed6562f115af6f0845cc651e97b31c36dcc98b327b07bf6",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one unrecorded public WFO run for each zero/mixed/high cache lane"
+      },
+      "mode_matrix": [
+        {
+          "baseline_seconds": 0.11062166001647711,
+          "exact_public_parity": true,
+          "mode": "mode_1_decay",
+          "reuse_seconds": 0.10498174000531435,
+          "runtime": {
+            "adaptive_read_bypasses": 8,
+            "attempt_rows_retained": 24,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 8,
+            "cache_misses": 8,
+            "cache_stores": 16,
+            "reason": "run_local_pure_terminal_native_metrics",
+            "resolved_policy": "enabled_then_released",
+            "terminal_score_bars_executed": 2093,
+            "terminal_score_bars_reused": 1440
+          }
+        },
+        {
+          "baseline_seconds": 0.2035567695274949,
+          "exact_public_parity": true,
+          "mode": "mode_2_sbb",
+          "reuse_seconds": 0.1861618310213089,
+          "runtime": {
+            "adaptive_read_bypasses": 0,
+            "attempt_rows_retained": 0,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_stores": 0,
+            "reason": "scorer_has_no_pure_terminal_reuse_contract",
+            "resolved_policy": "disabled",
+            "terminal_score_bars_executed": 0,
+            "terminal_score_bars_reused": 0
+          }
+        },
+        {
+          "baseline_seconds": 0.10918428655713797,
+          "exact_public_parity": true,
+          "mode": "mode_3_flat_minima",
+          "reuse_seconds": 0.10294479131698608,
+          "runtime": {
+            "adaptive_read_bypasses": 8,
+            "attempt_rows_retained": 24,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 8,
+            "cache_misses": 8,
+            "cache_stores": 16,
+            "reason": "run_local_pure_terminal_native_metrics",
+            "resolved_policy": "enabled_then_released",
+            "terminal_score_bars_executed": 2093,
+            "terminal_score_bars_reused": 1440
+          }
+        },
+        {
+          "baseline_seconds": 0.15291811060160398,
+          "exact_public_parity": true,
+          "mode": "mode_4_is_only_robust",
+          "reuse_seconds": 0.1521519310772419,
+          "runtime": {
+            "adaptive_read_bypasses": 24,
+            "attempt_rows_retained": 40,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 8,
+            "cache_misses": 8,
+            "cache_stores": 32,
+            "reason": "run_local_pure_terminal_native_metrics",
+            "resolved_policy": "enabled_then_released",
+            "terminal_score_bars_executed": 3533,
+            "terminal_score_bars_reused": 1440
+          }
+        },
+        {
+          "baseline_seconds": 0.06632180418819189,
+          "exact_public_parity": true,
+          "mode": "mode_5_full_robust",
+          "reuse_seconds": 0.06595119554549456,
+          "runtime": {
+            "adaptive_read_bypasses": 0,
+            "attempt_rows_retained": 0,
+            "cache_entries_released": true,
+            "cache_evictions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_stores": 0,
+            "reason": "mode_5_has_no_post_study_exact_score_reuse",
+            "resolved_policy": "disabled",
+            "terminal_score_bars_executed": 0,
+            "terminal_score_bars_reused": 0
+          }
+        }
+      ],
+      "rss_mb": {
+        "peak": 244.90234375,
+        "samples": [
+          244.90234375,
+          244.90234375,
+          244.90234375,
+          244.90234375,
+          244.90234375
+        ],
+        "tail_spread": 0.0
+      },
+      "schema": "quantbt-perf-05-wfo-evaluation-reuse-v1",
+      "scope": "public Mode 1 prepared-native terminal metric reuse plus five-mode contract matrix",
+      "workload": {
+        "bars": 2048,
+        "repeats": 5,
+        "symbols": 1,
+        "trials": 16
+      }
+    },
+    "PERF-06": {
+      "evidence": {
+        "all_full_ledgers_memory_complete": true,
+        "all_legacy_trial_exports_present": true,
+        "all_public_parity": true,
+        "mode2_proxy_retained": true,
+        "slow_sink_owned_chunks_complete": true
+      },
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "6a6e9d7d3e50c7bd532755308b7269461eb97d2c92b7bd7828dde1368dcc508c",
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "07886cba16ba8e6c554a4ee299e01a9a1f8ed63c574637d81af92f3129bdaffa",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one unrecorded Mode 1 public WFO run without the research sidecar"
+      },
+      "mode_matrix": [
+        {
+          "audit": {
+            "candidate_rows": 2,
+            "committed_chunks": 9,
+            "enabled": true,
+            "evaluation_rows": 126,
+            "financial_completion": "score_complete_selected_final_account",
+            "legacy_adapt_seconds": 0.034186532720923424,
+            "physical_bytes": 356288,
+            "trial_rows": 18,
+            "writer_state": "memory_complete"
+          },
+          "full_overhead_pct": 31.222827560604948,
+          "full_rss_delta_mb_median": 0.0,
+          "full_seconds_median": 0.4183721551671624,
+          "mode": "mode_1_decay",
+          "none_rss_delta_mb_median": 0.0,
+          "none_seconds_median": 0.3188257431611419,
+          "public_parity": true,
+          "retention_rss_delta_mb_median": 0.0
+        },
+        {
+          "audit": {
+            "candidate_rows": 2,
+            "committed_chunks": 9,
+            "enabled": true,
+            "evaluation_rows": 126,
+            "financial_completion": "score_complete_selected_final_account",
+            "legacy_adapt_seconds": 0.03458462469279766,
+            "physical_bytes": 425533,
+            "trial_rows": 18,
+            "writer_state": "memory_complete"
+          },
+          "full_overhead_pct": 8.239429428599838,
+          "full_rss_delta_mb_median": 0.0,
+          "full_seconds_median": 0.8875530948862433,
+          "mode": "mode_2_sbb",
+          "none_rss_delta_mb_median": 0.0,
+          "none_seconds_median": 0.8199905520305037,
+          "public_parity": true,
+          "retention_rss_delta_mb_median": 0.0
+        },
+        {
+          "audit": {
+            "candidate_rows": 2,
+            "committed_chunks": 9,
+            "enabled": true,
+            "evaluation_rows": 126,
+            "financial_completion": "score_complete_selected_final_account",
+            "legacy_adapt_seconds": 0.03280987776815891,
+            "physical_bytes": 362766,
+            "trial_rows": 18,
+            "writer_state": "memory_complete"
+          },
+          "full_overhead_pct": 16.012512510599066,
+          "full_rss_delta_mb_median": 0.2578125,
+          "full_seconds_median": 0.4397465670481324,
+          "mode": "mode_3_flat_minima",
+          "none_rss_delta_mb_median": 0.0,
+          "none_seconds_median": 0.37905098125338554,
+          "public_parity": true,
+          "retention_rss_delta_mb_median": 0.2578125
+        },
+        {
+          "audit": {
+            "candidate_rows": 2,
+            "committed_chunks": 9,
+            "enabled": true,
+            "evaluation_rows": 126,
+            "financial_completion": "score_complete_selected_final_account",
+            "legacy_adapt_seconds": 0.04044966585934162,
+            "physical_bytes": 436534,
+            "trial_rows": 18,
+            "writer_state": "memory_complete"
+          },
+          "full_overhead_pct": 48.72135526866392,
+          "full_rss_delta_mb_median": 0.0,
+          "full_seconds_median": 0.8018125640228391,
+          "mode": "mode_4_is_only_robust",
+          "none_rss_delta_mb_median": 0.0,
+          "none_seconds_median": 0.5391374779865146,
+          "public_parity": true,
+          "retention_rss_delta_mb_median": 0.0
+        },
+        {
+          "audit": {
+            "candidate_rows": 3,
+            "committed_chunks": 6,
+            "enabled": true,
+            "evaluation_rows": 8,
+            "financial_completion": "score_complete_selected_final_account",
+            "legacy_adapt_seconds": 0.01506508607417345,
+            "physical_bytes": 89643,
+            "trial_rows": 19,
+            "writer_state": "memory_complete"
+          },
+          "full_overhead_pct": 38.954462868390024,
+          "full_rss_delta_mb_median": 0.0,
+          "full_seconds_median": 0.17927612829953432,
+          "mode": "mode_5_full_robust",
+          "none_rss_delta_mb_median": 0.0,
+          "none_seconds_median": 0.12901789881289005,
+          "public_parity": true,
+          "retention_rss_delta_mb_median": 0.0
+        }
+      ],
+      "rss_mb": {
+        "peak": 290.921875,
+        "samples": [
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          246.390625,
+          289.8828125,
+          290.3984375,
+          290.3984375,
+          290.65625,
+          290.65625,
+          290.6640625,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875,
+          290.921875
+        ],
+        "tail_spread": 0.5234375
+      },
+      "schema": "quantbt-perf-06-research-audit-v1",
+      "scope": "public five-mode WFO sidecar retention and lazy compatibility export",
+      "slow_sink": {
+        "chunks": 4,
+        "crash_durable": "not_provided",
+        "exported_chunks": 4,
+        "median_hook_seconds": 0.0010638125240802765,
+        "queue_high_watermark_chunks": 1,
+        "queue_mode": "synchronous_backpressure_v1"
+      },
+      "workload": {
+        "bars": 2048,
+        "repeats": 5,
+        "symbols": 1,
+        "trials": 16
+      }
+    },
+    "PERF-07": {
+      "direct_target": {
+        "environment": {
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "python": "3.12.13"
+        },
+        "evidence": {
+          "boundary_calls": 1,
+          "exact_accounting_parity": true,
+          "generic_order_arena_used": false,
+          "native_execution_passes": 1,
+          "pandas_in_prepared_score": false,
+          "prepared_market_copy_per_score": 0,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "score_retains_paths": false
+        },
+        "fixture": {
+          "bars": 20000,
+          "contract": "close_target_v2_same_close",
+          "repeats": 5,
+          "symbols": 1
+        },
+        "measurement_identity": {
+          "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "cpu_count": 4,
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "git_commit": "2701193354794add3a27fee73b79733404607edd",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "api_version": "0.4",
+            "available": true,
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+            "version": "0.4.1",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+          },
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "thread_environment": {
+            "MKL_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "OPENBLAS_NUM_THREADS": null
+          },
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.17722101353947056,
+          "rust_public_vs_numba_public": 2.1621109067019315
+        },
+        "rss_mb": {
+          "after_public_compact": 306.828125,
+          "after_score_timing": 296.078125,
+          "after_score_warmup": 293.2421875,
+          "process_start": 292.984375,
+          "score_timing_delta": 2.8359375
+        },
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "throughput_bars_per_second": {
+          "numba_public_compact": 351310.5961203007,
+          "numba_warmed_kernel": 29575142.753656123,
+          "rust_prepared_score": 5241336.774377466,
+          "rust_public_compact": 759572.4715116594
+        },
+        "timings_seconds": {
+          "numba_public_compact": 0.05692968051880598,
+          "numba_warmed_kernel": 0.0006762435659766197,
+          "rust_ingestion_market_template_request": 0.013643832877278328,
+          "rust_prepared_score": 0.0038158204406499863,
+          "rust_public_compact": 0.026330601423978806
+        },
+        "work_counters": {
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 1,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 20000,
+              "test_end": 20000,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "planned_candidate_fold_scenario_tasks": 1,
+          "planned_simulation_bar_visits": 20000,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reactive_cross_domain_controls": {
+        "controls": {
+          "bounded_package": {
+            "required_evidence": {
+              "batch_selected_single_parity": true,
+              "profile_terminal_parity": true,
+              "scenario_batch_account_reset": true
+            },
+            "rss_mb": {
+              "after_batch": 305.1640625,
+              "after_profiles": 305.1640625,
+              "process_start": 301.89453125
+            },
+            "scenario_batch": {
+              "bar_symbols_per_second": 43650315.07992667,
+              "leg_count": 20,
+              "market_copy_bytes": 0,
+              "native_entry_calls": 1,
+              "scenarios": 4,
+              "seconds": 0.0018327473662793636,
+              "worker_count": 1
+            }
+          },
+          "intrabar": {
+            "required_evidence": {
+              "score_has_no_dense_paths": true,
+              "terminal_and_path_parity": true
+            },
+            "rss_mb": {
+              "after_prepared_market": 305.0625,
+              "after_profiles": 305.0625,
+              "process_start": 305.0625
+            },
+            "throughput_bars_per_second": {
+              "numba_warm": 511852.21552062145,
+              "rust_adapter_compact_warm": 367665.8490355097,
+              "rust_cold_prepare_score": 1134335.173109581,
+              "rust_compact_kernel_warm": 4080860.8506118013,
+              "rust_score_warm": 9150454.85457164
+            },
+            "timing_seconds": {
+              "numba_warm": 0.0019536889158189297,
+              "rust_adapter_compact_warm": 0.00271986098960042,
+              "rust_cold_prepare_score": 0.0008815736509859562,
+              "rust_compact_kernel_warm": 0.00024504633620381355,
+              "rust_score_warm": 0.0001092841848731041
+            }
+          },
+          "public_wfo": {
+            "required_evidence": {
+              "full_facade_non_regression": true,
+              "native_route_active": true,
+              "public_parity": true,
+              "rss_plateau": true,
+              "score_stage_reduced": true,
+              "stable_native_work_counts": true
+            },
+            "rss_mb": {
+              "peak": 301.0625,
+              "plateau_limit": 15.053125000000001,
+              "samples": [
+                301.0625,
+                301.0625
+              ],
+              "tail_median": 301.0625,
+              "tail_spread": 0.0
+            },
+            "speedup": {
+              "full_facade_x": 1.7317923559251571,
+              "score_stage_x": 5.889955606661353
+            },
+            "timings_seconds": {
+              "native_full_facade_median": 0.07727661123499274,
+              "native_score_median": 0.011802298948168755,
+              "reference_full_facade_median": 0.13382704462856054,
+              "reference_score_median": 0.06951501686125994
+            }
+          },
+          "shared_portfolio": {
+            "required_evidence": {
+              "score_compact_terminal_parity": true,
+              "wfo_prepared_parity": true
+            },
+            "rss_mb": {
+              "after_prepare": 301.89453125,
+              "after_score": 301.89453125,
+              "after_wfo": 301.89453125,
+              "process_start": 301.89453125
+            },
+            "throughput_bar_symbols_per_second": {
+              "prepared_score": 6190354.929837306,
+              "prepared_wfo_score": 18136793.620614026
+            },
+            "timing_seconds": {
+              "prepared_compact": 0.0005494039505720139,
+              "prepared_score": 0.0003230832517147064,
+              "prepared_wfo_score": 0.000882184598594904,
+              "request_preparation": 0.002193773165345192
+            }
+          }
+        },
+        "evidence": {
+          "active_interrupts_have_focused_test_coverage": true,
+          "cross_route_control_parity": true,
+          "reactive_wfo_cow_worker": true,
+          "reactive_wfo_deterministic": true,
+          "reactive_wfo_r3b_shared_market": true,
+          "same_reactive_accounting_public_and_scalar": true,
+          "scalar_retention_is_path_free": true
+        },
+        "measurement_identity": {
+          "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "cpu_count": 4,
+          "data_sha256": "8cae814ae0a96032b6f689f0a7cb7d21bb8662a83d477b6402c55c2aeb058c0f",
+          "git_commit": "2701193354794add3a27fee73b79733404607edd",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "intent_sha256": "b206a9a7a7a2ae77dc2a6a0d1ccda8db6f2d0256fcfbb80db022cc70596d1a4e",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "api_version": "0.4",
+            "available": true,
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+            "version": "0.4.1",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+          },
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "thread_environment": {
+            "MKL_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "OPENBLAS_NUM_THREADS": null
+          },
+          "warmup_procedure": "each imported benchmark warms its declared route before measured repeats; Phase 77.3 records scalar retention, W3 scheduling, and small cross-route parity controls"
+        },
+        "phase": "77.3",
+        "profile": {
+          "control_bars": 1000,
+          "control_repeats": 2,
+          "id": "standard",
+          "scalar_bars": 10000,
+          "scalar_repeats": 5,
+          "wfo_bars": 2000,
+          "wfo_candidates": 8,
+          "wfo_repeats": 5
+        },
+        "reactive_scalar": {
+          "gates": {
+            "same_rust_accounting_for_public_and_scalar": true,
+            "scalar_retains_no_account_or_audit_path": true
+          },
+          "rows": [
+            {
+              "bars_per_second": 194443.9201083744,
+              "callbacks": 10000,
+              "final_equity": 19989.44953547596,
+              "median_milliseconds": 51.428710110485554,
+              "median_seconds": 0.051428710110485554,
+              "p95_seconds": 0.05414189249277115,
+              "rss_delta_bytes": 2162688,
+              "runtime": "numeric_every_bar_v1",
+              "surface": "prepared_public_minimal"
+            },
+            {
+              "bars_per_second": 437948.7909054423,
+              "callbacks": 10000,
+              "final_equity": 19989.44953547596,
+              "median_milliseconds": 22.833719849586487,
+              "median_seconds": 0.022833719849586487,
+              "p95_seconds": 0.04494160655885934,
+              "rss_delta_bytes": 0,
+              "runtime": "numeric_every_bar_v1",
+              "surface": "prepared_scalar_score"
+            },
+            {
+              "bars_per_second": 263010.57360771,
+              "callbacks": 313,
+              "final_equity": 19998.533185965403,
+              "median_milliseconds": 38.02128508687019,
+              "median_seconds": 0.038021285086870193,
+              "p95_seconds": 0.040498935431241986,
+              "rss_delta_bytes": 0,
+              "runtime": "numeric_sparse_wake_v1",
+              "surface": "prepared_public_minimal"
+            },
+            {
+              "bars_per_second": 667128.5233896264,
+              "callbacks": 313,
+              "final_equity": 19998.533185965403,
+              "median_milliseconds": 14.98961541801691,
+              "median_seconds": 0.01498961541801691,
+              "p95_seconds": 0.0198770260438323,
+              "rss_delta_bytes": 0,
+              "runtime": "numeric_sparse_wake_v1",
+              "surface": "prepared_scalar_score"
+            },
+            {
+              "bars_per_second": 321700.8103057216,
+              "callbacks": 1,
+              "final_equity": 19989.44953547596,
+              "median_milliseconds": 31.084783375263214,
+              "median_seconds": 0.031084783375263214,
+              "p95_seconds": 0.042897843383252615,
+              "rss_delta_bytes": 0,
+              "runtime": "numeric_block_intent_v1",
+              "surface": "prepared_public_minimal"
+            },
+            {
+              "bars_per_second": 850903.6122331986,
+              "callbacks": 1,
+              "final_equity": 19989.44953547596,
+              "median_milliseconds": 11.752212420105934,
+              "median_seconds": 0.011752212420105934,
+              "p95_seconds": 0.012384149245917797,
+              "rss_delta_bytes": 0,
+              "runtime": "numeric_block_intent_v1",
+              "surface": "prepared_scalar_score"
+            }
+          ]
+        },
+        "reactive_wfo": {
+          "evidence": {
+            "clean_cow_worker": true,
+            "public_reactive_wfo_runs": true,
+            "r3b_bounded_inflight": true,
+            "r3b_shared_market": true,
+            "repeat_determinism": true
+          },
+          "rows": [
+            {
+              "candidate_fold_bar_visits_per_second": 89724.86225569017,
+              "median_callbacks": 21710,
+              "median_milliseconds": 241.9619206339121,
+              "median_score_bars": 21710,
+              "median_score_calls": 66,
+              "median_seconds": 0.2419619206339121,
+              "p95_seconds": 0.29249670039862397,
+              "python_work_per_callback": 0,
+              "rss_delta_bytes": {
+                "private_bytes": 0,
+                "pss_bytes": 0,
+                "rss_bytes": 0,
+                "shared_bytes": 0
+              },
+              "schedule": "certified_sequential_v1"
+            },
+            {
+              "candidate_fold_bar_visits_per_second": 103017.89361230946,
+              "median_callbacks": 36,
+              "median_milliseconds": 231.99853114783764,
+              "median_score_bars": 23900,
+              "median_score_calls": 72,
+              "median_seconds": 0.23199853114783764,
+              "p95_seconds": 0.23953890856355428,
+              "python_work_per_callback": 0,
+              "rss_delta_bytes": {
+                "private_bytes": 126976,
+                "pss_bytes": 93184,
+                "rss_bytes": 0,
+                "shared_bytes": -126976
+              },
+              "schedule": "throughput_batch_v1"
+            },
+            {
+              "candidate_fold_bar_visits_per_second": 48611.815064716495,
+              "median_callbacks": 21710,
+              "median_milliseconds": 446.5992469340563,
+              "median_score_bars": 21710,
+              "median_score_calls": 66,
+              "median_seconds": 0.4465992469340563,
+              "p95_seconds": 0.4601116970181465,
+              "python_work_per_callback": 96,
+              "rss_delta_bytes": {
+                "private_bytes": -98304,
+                "pss_bytes": -143360,
+                "rss_bytes": 0,
+                "shared_bytes": 98304
+              },
+              "schedule": "certified_sequential_v1"
+            },
+            {
+              "candidate_fold_bar_visits_per_second": 101888.16830211141,
+              "median_callbacks": 36,
+              "median_milliseconds": 234.5709064975381,
+              "median_score_bars": 23900,
+              "median_score_calls": 72,
+              "median_seconds": 0.2345709064975381,
+              "p95_seconds": 0.23566910922527312,
+              "python_work_per_callback": 96,
+              "rss_delta_bytes": {
+                "private_bytes": 0,
+                "pss_bytes": 0,
+                "rss_bytes": 0,
+                "shared_bytes": 0
+              },
+              "schedule": "throughput_batch_v1"
+            }
+          ],
+          "worker_probe": {
+            "fingerprint": {
+              "folds": [
+                {
+                  "fees": 0.04917549688965768,
+                  "final_equity": 19999.57029448499,
+                  "fold_id": 0,
+                  "funding": 0.0
+                },
+                {
+                  "fees": 0.05174653288991158,
+                  "final_equity": 20000.91236468527,
+                  "fold_id": 1,
+                  "funding": 0.0
+                },
+                {
+                  "fees": 0.05550502913992331,
+                  "final_equity": 19999.398618547362,
+                  "fold_id": 2,
+                  "funding": 0.0
+                },
+                {
+                  "fees": 0.058768065043644284,
+                  "final_equity": 20000.904353893045,
+                  "fold_id": 3,
+                  "funding": 0.0
+                },
+                {
+                  "fees": 0.06177672881375537,
+                  "final_equity": 19999.483941978615,
+                  "fold_id": 4,
+                  "funding": 0.0
+                },
+                {
+                  "fees": 0.06574478187866667,
+                  "final_equity": 20000.92435267816,
+                  "fold_id": 5,
+                  "funding": 0.0
+                }
+              ],
+              "objective": -0.9345778666911283,
+              "params": {
+                "direction": 1.0,
+                "quantity": 0.38
+              }
+            },
+            "folds": 6,
+            "parallelism": {
+              "blas_threads": 1,
+              "constrained_by": [],
+              "host_cpus": 4,
+              "numba_threads": 1,
+              "openmp_threads": 1,
+              "python_processes": 1,
+              "rust_workers": 1
+            },
+            "schema": "quantbt-phase76-reactive-wfo-worker-probe-v1",
+            "score_calls": 66,
+            "worker_market_ipc_bytes_per_task": 0,
+            "worker_memory": {
+              "private_bytes": 8753152,
+              "pss_bytes": 53924864,
+              "rss_bytes": 105910272,
+              "shared_bytes": 97157120
+            },
+            "worker_scalar_sessions": {
+              "active_native_score": false,
+              "closed": false,
+              "gil_acquisitions": 66,
+              "max_wall_time_ms": null,
+              "native_cancel_requests": 0,
+              "python_callback_calls": 21710,
+              "python_callback_ns": 26258399,
+              "schema": "quantbt-reactive-scalar-session-pool-v1",
+              "session_count": 1,
+              "session_creations": 1,
+              "session_poison_discards": 0,
+              "session_runs": 66
+            },
+            "worker_tasks_completed": 66,
+            "worker_transport": "fork_copy_on_write_v1"
+          }
+        },
+        "runtime_contract": {
+          "legacy_wake_plan_adapter": "payload_only_supported",
+          "partial_score_policy": "discard_before_python_adaptation_or_selection",
+          "reactive_deadline_safe_point": "completed_account_bar_v1",
+          "sparse_gap_max_interrupt_interval_bars": 64,
+          "typed_wake_plan": "quantbt-wake-wire-v1"
+        },
+        "schema": "quantbt-phase77-3-reactive-closure-v1",
+        "status": "development_candidate_evidence_not_release_promotion"
+      }
+    }
+  },
+  "profile": "standard",
+  "profile_spec": {
+    "matching": {
+      "bars": 2000,
+      "high_orders": 32,
+      "repeats": 5
+    },
+    "observer": {
+      "bars": 540,
+      "repeats": 30,
+      "trials": 4,
+      "warmup": 3
+    },
+    "reactive_boundary": {
+      "bars": 2000,
+      "repeats": 5
+    },
+    "reactive_closure": "standard",
+    "session_reuse": {
+      "outlier_orders": 100000,
+      "repeats": 5
+    },
+    "target": {
+      "bars": 20000,
+      "repeats": 5
+    },
+    "wfo": {
+      "bars": 2048,
+      "repeats": 5,
+      "trials": 16
+    }
+  },
+  "rss_mb": {
+    "end": 305.0625,
+    "peak": 305.0625,
+    "start": 158.26171875
+  },
+  "schema": "quantbt-perf-07-combined-qualification-v1",
+  "status": "current_candidate_qualification_not_promotion",
+  "summaries": {
+    "PERF-01": {
+      "evidence": {},
+      "measurement_identity": {},
+      "schema": "quantbt-perf-01-observer-baseline-v1"
+    },
+    "PERF-04": {
+      "evidence": {},
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": null,
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": null,
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one audit parity run plus one score warmup per workload"
+      },
+      "schema": "quantbt-perf-04-native-matching-v1"
+    },
+    "PERF-05": {
+      "evidence": {
+        "adaptive_reads_bypassed": true,
+        "all_public_mode1_parity": true,
+        "cache_released": true,
+        "high_hit_lane_has_hits": true,
+        "mode2_proxy_preserved": true,
+        "mode_matrix_parity": true
+      },
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "58cf666a4086eb4620fde93e3c4a33faf6a221796e72f0ba2535a05b2d1529cb",
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "ef44015afb298d2b9ed6562f115af6f0845cc651e97b31c36dcc98b327b07bf6",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one unrecorded public WFO run for each zero/mixed/high cache lane"
+      },
+      "schema": "quantbt-perf-05-wfo-evaluation-reuse-v1"
+    },
+    "PERF-06": {
+      "evidence": {
+        "all_full_ledgers_memory_complete": true,
+        "all_legacy_trial_exports_present": true,
+        "all_public_parity": true,
+        "mode2_proxy_retained": true,
+        "slow_sink_owned_chunks_complete": true
+      },
+      "measurement_identity": {
+        "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "6a6e9d7d3e50c7bd532755308b7269461eb97d2c92b7bd7828dde1368dcc508c",
+        "git_commit": "2701193354794add3a27fee73b79733404607edd",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "07886cba16ba8e6c554a4ee299e01a9a1f8ed63c574637d81af92f3129bdaffa",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+          "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+          "version": "0.4.1",
+          "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "one unrecorded Mode 1 public WFO run without the research sidecar"
+      },
+      "schema": "quantbt-perf-06-research-audit-v1"
+    }
+  }
+}

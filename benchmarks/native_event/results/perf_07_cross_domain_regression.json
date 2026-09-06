@@ -1,0 +1,102 @@
+{
+  "command": [
+    "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_perf_01_traceability_and_computation.py",
+    "tests/test_perf_02_session_reuse.py",
+    "tests/test_perf_03_reactive_boundary.py",
+    "tests/test_perf_04_native_matching.py",
+    "tests/test_perf_05_wfo_evaluation_reuse.py",
+    "tests/test_perf_06_research_audit.py",
+    "tests/native_event/contract/test_phase51a_v3_next_open.py",
+    "tests/native_event/contract/test_phase51b_accounting_numeric.py",
+    "tests/test_phase66_rust_target_vectorized.py",
+    "tests/test_phase67_rust_shared_portfolio.py",
+    "tests/test_phase68_rust_package_authority.py",
+    "tests/test_phase69_rust_intrabar_authority.py",
+    "tests/test_phase77_2_pct_equity_native.py",
+    "tests/test_phase77_native_performance_parity.py",
+    "tests/test_phase77_3_reactive_parity.py",
+    "tests/options/test_endpoint_contract.py",
+    "tests/options/test_result_contract.py",
+    "tests/options/test_phase70_correctness_containment.py",
+    "tests/test_phase8_arbitrage_phase_h.py"
+  ],
+  "elapsed_seconds": 17.129553074017167,
+  "evidence": {
+    "funding_order_lifecycle": true,
+    "market_calendar_accounting": true,
+    "options_containment": true,
+    "reactive_wfo": true,
+    "target_portfolio_package_intrabar": true,
+    "unsupported_arbitrage_containment": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "ae87df70ded960b9e52dfd96b65f5ad732d26fa0b7cf3e306dd893a5d0fc2f94",
+    "git_commit": "2701193354794add3a27fee73b79733404607edd",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "4c10c4c4ed38307e8b5014dc1d9d26dbb45a67b5dc15e26eaf0362c09f67fd4d",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "deterministic affected-domain regression; timing is recorded only as a soak observation"
+  },
+  "phase": "PERF-07",
+  "schema": "quantbt-perf-07-cross-domain-regression-v1",
+  "status": "passed",
+  "stderr_tail": "",
+  "stdout_sha256": "8b84c8c5968bb6e229b26167e7cfe8bec278fa6599876729f00a711f7b741f1b",
+  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 73%]\n...................................................                      [100%]\n=============================== warnings summary ===============================\ntests/test_phase8_arbitrage_phase_h.py::test_phase_h_stat_arb_pair_uses_atomic_margin_preflight_in_event_and_vectorized\n  /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1146: RuntimeWarning: native_vectorized close_target_v2 received missing high/low data and will use close fallback; intrabar liquidation/risk is uncertified for this run. Pass explicit highs/lows for certified risk.\n    result = self.run_target_units(\n\ntests/test_phase8_arbitrage_phase_h.py::test_phase_h_spot_perp_cash_carry_event_vectorized_parity_with_mock_realistic_data\n  /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1232: RuntimeWarning: native_vectorized close_target_v2 received missing high/low data and will use close fallback; intrabar liquidation/risk is uncertified for this run. Pass explicit highs/lows for certified risk.\n    result = self.run_target_units(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n195 passed, 2 warnings in 14.61s\n",
+  "tests": [
+    "tests/test_perf_01_traceability_and_computation.py",
+    "tests/test_perf_02_session_reuse.py",
+    "tests/test_perf_03_reactive_boundary.py",
+    "tests/test_perf_04_native_matching.py",
+    "tests/test_perf_05_wfo_evaluation_reuse.py",
+    "tests/test_perf_06_research_audit.py",
+    "tests/native_event/contract/test_phase51a_v3_next_open.py",
+    "tests/native_event/contract/test_phase51b_accounting_numeric.py",
+    "tests/test_phase66_rust_target_vectorized.py",
+    "tests/test_phase67_rust_shared_portfolio.py",
+    "tests/test_phase68_rust_package_authority.py",
+    "tests/test_phase69_rust_intrabar_authority.py",
+    "tests/test_phase77_2_pct_equity_native.py",
+    "tests/test_phase77_native_performance_parity.py",
+    "tests/test_phase77_3_reactive_parity.py",
+    "tests/options/test_endpoint_contract.py",
+    "tests/options/test_result_contract.py",
+    "tests/options/test_phase70_correctness_containment.py",
+    "tests/test_phase8_arbitrage_phase_h.py"
+  ]
+}
