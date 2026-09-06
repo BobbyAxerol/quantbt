@@ -27,6 +27,7 @@ from quantbt import QuantBTEndpoint
 ROOT = Path(__file__).resolve().parents[2]
 MEASUREMENT_TOOL_PATH = ROOT / "tools" / "measurement_contract.py"
 SCHEMA = "quantbt-perf-01-observer-baseline-v1"
+P95_MINIMUM_PAIRED_SAMPLES = 100
 
 
 def _load_measurement_tool():
@@ -209,9 +210,16 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
     ]
     paired_overhead_summary = _percent_summary(paired_overhead_pct)
     proposed_budget = {"p50_pct": 3.0, "p95_pct": 5.0}
-    within_proposed_budget = bool(
-        paired_overhead_summary["median_pct"] <= proposed_budget["p50_pct"]
-        and paired_overhead_summary["p95_pct"] <= proposed_budget["p95_pct"]
+    p50_status = "PASS" if paired_overhead_summary["median_pct"] <= proposed_budget["p50_pct"] else "FAIL"
+    p95_sample_count_is_sufficient = int(repeats) >= P95_MINIMUM_PAIRED_SAMPLES
+    if not p95_sample_count_is_sufficient:
+        p95_status = "INCONCLUSIVE_INSUFFICIENT_PAIRED_SAMPLES"
+    elif paired_overhead_summary["p95_pct"] <= proposed_budget["p95_pct"]:
+        p95_status = "PASS"
+    else:
+        p95_status = "FAIL"
+    overall_budget_status = "PASS" if p50_status == "PASS" and p95_status == "PASS" else (
+        "FAIL" if "FAIL" in (p50_status, p95_status) else "INCONCLUSIVE"
     )
     measurement = _load_measurement_tool()
     data_sha256 = measurement.typed_array_sha256(
@@ -246,8 +254,13 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
         "observer_overhead_median_pct": float(paired_overhead_summary["median_pct"]),
         "observer_overhead_pairs_pct": paired_overhead_summary,
         "observer_overhead_proposed_budget": {
-            **proposed_budget,
-            "within_proposed_budget": within_proposed_budget,
+            "p50": {"threshold_pct": proposed_budget["p50_pct"], "status": p50_status},
+            "p95": {
+                "threshold_pct": proposed_budget["p95_pct"],
+                "status": p95_status,
+                "minimum_paired_samples": P95_MINIMUM_PAIRED_SAMPLES,
+            },
+            "overall_status": overall_budget_status,
             "binding_release_gate": False,
         },
         "observer_on_exclusive_stage_median_ns": _median_profile(samples[True]),
