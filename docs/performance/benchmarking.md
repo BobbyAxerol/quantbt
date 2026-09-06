@@ -210,6 +210,12 @@ p95 observer budgets. The pair-delta p95 was `11.41%`, which is preserved as
 an order/scheduler-noise diagnostic, not reported as a speedup or latency
 percentile regression.
 
+## PERF-02 Session Reuse
+
+PERF-02 establishes a separate native runner reuse contract. It proves that an independent prepared execution resets account and order state, preserves prior result arrays, and invalidates a post-execution derived-account snapshot on every relevant mutation. The full ownership and cache contract is documented in [PERF-02 session reuse](../contracts/perf_02_session_reuse.md).
+
+The release fixture intentionally distinguishes a terminal `100,000`-order predecessor from `100,000` live passive orders. The former can clear an empty arena quickly; the latter must visit and cancel every live order, so a larger reset time is correct domain behavior rather than a regression. The committed [PERF-02 evidence](../../benchmarks/native_event/results/perf_02_session_reuse.md) records `23.788 us` reused-small execution, `0.202 us` normal reset, `1.688 us` after the terminal predecessor, and `5.094 ms` after the live predecessor. That fixture is a native lifecycle benchmark, not a public facade, WFO, or reactive throughput claim; its small-run delta is within a five-sample measurement and is not reported as a generic speedup.
+
 ## Commands
 
 ```bash

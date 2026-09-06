@@ -1010,7 +1010,8 @@ impl NativeExecutionRunnerV1 {
     /// Results are never retained by this runner, so this cannot invalidate a
     /// previously returned typed output.
     pub fn release_transient_buffers(&mut self, max_capacity: usize) {
-        self.session.release_step_buffer_capacity(max_capacity);
+        self.session
+            .release_resettable_scratch_capacity(max_capacity);
     }
 
     #[must_use]
@@ -1039,6 +1040,31 @@ impl NativeExecutionRunnerV1 {
     #[must_use]
     pub fn margin_recompute_count(&self) -> u64 {
         self.session.margin_recompute_count()
+    }
+
+    #[must_use]
+    pub fn session_reset_count(&self) -> u64 {
+        self.session.session_reset_count()
+    }
+
+    #[must_use]
+    pub fn derived_account_cache_hits(&self) -> u64 {
+        self.session.derived_account_cache_hits()
+    }
+
+    #[must_use]
+    pub fn derived_account_recomputes(&self) -> u64 {
+        self.session.derived_account_recomputes()
+    }
+
+    #[must_use]
+    pub fn matching_candidate_capacity(&self) -> usize {
+        self.session.matching_candidate_capacity()
+    }
+
+    #[must_use]
+    pub fn order_arena_retired_slots(&self) -> usize {
+        self.session.order_arena_retired_slots()
     }
 
     #[must_use]
@@ -2568,6 +2594,37 @@ mod tests {
         .unwrap()
     }
 
+    fn passive_limit_tape(order_count: usize) -> CommandTapeV5 {
+        let mut commands = Vec::with_capacity(order_count);
+        for command_index in 0..order_count {
+            commands.push(quantbt_domain::OrderCommandV5 {
+                action: CommandAction::Place,
+                symbol: Some(SymbolId(0)),
+                side: Some(Side::Buy),
+                order_type: Some(OrderType::Limit),
+                tif: Some(TimeInForce::Gtc),
+                reduce_only: false,
+                external_id: ExternalOrderId(10_000 + command_index as i64),
+                target_id: ExternalOrderId(-1),
+                parent_id: ExternalOrderId(-1),
+                group_id: -1,
+                oco_id: -1,
+                activation: Some(ActivationPolicy::Immediate),
+                command_index: command_index as u32,
+                qty: 1.0,
+                // The fixture market never touches one, so these remain live
+                // until the next independent run must clear the arena.
+                limit_price: 1.0,
+                stop_price: 0.0,
+                expire_bar: None,
+            });
+        }
+        let count = u32::try_from(order_count).unwrap();
+        // Bar zero is the frozen account snapshot for static execution, so
+        // the outlier orders enter at the first executable bar.
+        CommandTapeV5::new(vec![0, 0, count, count, count], commands).unwrap()
+    }
+
     fn request(output: NativeOutputProfileV1) -> NativeExecutionRequestV1 {
         NativeExecutionRequestV1::new(
             market(),
@@ -2706,6 +2763,47 @@ mod tests {
         let third = runner.execute_request(&request).unwrap();
         assert_eq!(third.execution_generation, 4);
         assert_output_eq(&third.output.into_legacy_static(), &expected);
+    }
+
+    #[test]
+    fn reused_runner_has_no_large_predecessor_state_or_retained_output_alias() {
+        let template = Arc::new(
+            NativeExecutionTemplateV1::new(market(), instruments(), account(), contract()).unwrap(),
+        );
+        let large = NativeExecutionRequestV1::from_template(
+            template.clone(),
+            NativeOutputProfileV1::Audit,
+            WorkloadPayloadV1::CommandTape(passive_limit_tape(256)),
+        )
+        .unwrap();
+        let small = NativeExecutionRequestV1::from_template(
+            template.clone(),
+            NativeOutputProfileV1::Audit,
+            WorkloadPayloadV1::CommandTape(market_tape()),
+        )
+        .unwrap();
+        let fresh_small = small.execute().unwrap();
+        let mut runner = NativeExecutionRunnerV1::new(template).unwrap();
+
+        let large_result = runner.execute_request(&large).unwrap();
+        let saved_large = large_result.output.clone().into_legacy_static();
+        // The passive orders stay live at the end of the predecessor. The
+        // next independent run must clear both lifecycle state and account
+        // state before accepting the small workload.
+        assert_eq!(runner.order_arena_counters().0, 256);
+        assert!(runner.order_arena_counters().1 >= 256);
+
+        let reused_small = runner.execute_request(&small).unwrap();
+        assert_output_eq(
+            &reused_small.output.clone().into_legacy_static(),
+            &fresh_small.output.clone().into_legacy_static(),
+        );
+        assert_eq!(runner.order_arena_counters().0, 0);
+        assert_eq!(runner.session_reset_count(), 2);
+
+        // Native results own their output vectors. Reusing the session must
+        // not mutate arrays or audit rows retained by a previous consumer.
+        assert_output_eq(&large_result.output.into_legacy_static(), &saved_large);
     }
 
     #[test]

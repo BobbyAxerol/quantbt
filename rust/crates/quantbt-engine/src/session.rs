@@ -751,6 +751,62 @@ pub struct PreCommandAccountProjectionV1 {
     pub liquidation_reason: i64,
 }
 
+/// Version vector attached to the cached post-bar account snapshot.
+///
+/// The full event session does not retain package reservations or mutable
+/// instrument definitions between bars, but those dimensions stay explicit in
+/// the contract so a future shared-account implementation cannot silently
+/// reuse this cache under broader semantics.  Every mutation also invalidates
+/// the cache directly; the version vector is provenance and a debug oracle,
+/// not the only protection against stale data.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct DerivedAccountVersionsV1 {
+    pub mark: u64,
+    pub position: u64,
+    pub wallet: u64,
+    pub reservation: u64,
+    pub fee: u64,
+    pub funding: u64,
+    pub risk: u64,
+    pub instrument: u64,
+}
+
+/// Coherent account values after one fully committed bar.
+///
+/// This snapshot is deliberately post-execution only. Dynamic portfolio and
+/// package admission uses [`PreCommandAccountProjectionV1`] because it must
+/// value the account before command acceptance; conflating the two phases
+/// would introduce a same-bar look-ahead error.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DerivedAccountSnapshotV1 {
+    pub bar: usize,
+    pub equity: f64,
+    pub available_equity: f64,
+    pub initial_margin: f64,
+    pub maintenance_margin: f64,
+    pub liquidated: bool,
+    pub versions: DerivedAccountVersionsV1,
+}
+
+#[derive(Clone, Copy, Default)]
+struct DerivedAccountCacheV1 {
+    snapshot: Option<DerivedAccountSnapshotV1>,
+}
+
+/// Named invalidation dimensions keep mutation call sites auditable. A
+/// positional boolean list would be both error-prone and opaque as the shared
+/// account contract grows.
+#[derive(Clone, Copy, Debug, Default)]
+struct DerivedAccountInvalidationV1 {
+    mark: bool,
+    position: bool,
+    wallet: bool,
+    fee: bool,
+    funding: bool,
+    risk: bool,
+    instrument: bool,
+}
+
 #[derive(Clone, Copy, Default)]
 struct MarginCache {
     bar: usize,
@@ -805,6 +861,11 @@ pub struct FullSession {
     liquidity_ledger: LiquidityLedgerV1,
     step_buffers: StepBuffers,
     margin_cache: MarginCache,
+    derived_account_cache: DerivedAccountCacheV1,
+    derived_account_versions: DerivedAccountVersionsV1,
+    derived_account_cache_hits: u64,
+    derived_account_recomputes: u64,
+    session_reset_count: u64,
     margin_recompute_count: u64,
     expiry_scan_count: u64,
     matching_scan_count: u64,
@@ -902,6 +963,11 @@ impl FullSession {
             liquidity_ledger: LiquidityLedgerV1::unlimited(n_symbols),
             step_buffers: StepBuffers::default(),
             margin_cache: MarginCache::default(),
+            derived_account_cache: DerivedAccountCacheV1::default(),
+            derived_account_versions: DerivedAccountVersionsV1::default(),
+            derived_account_cache_hits: 0,
+            derived_account_recomputes: 0,
+            session_reset_count: 0,
             margin_recompute_count: 0,
             expiry_scan_count: 0,
             matching_scan_count: 0,
@@ -937,8 +1003,22 @@ impl FullSession {
         self.lifecycle_indexes.clear();
         self.next_order_sequence = 0;
         self.matching_candidates.clear();
+        self.bar_volumes.fill(0.0);
+        self.liquidity_ledger.reset_unlimited();
         self.step_buffers.clear();
         self.margin_cache = MarginCache::default();
+        self.bump_derived_versions(DerivedAccountInvalidationV1 {
+            mark: true,
+            position: true,
+            wallet: true,
+            fee: true,
+            funding: true,
+            risk: true,
+            instrument: true,
+        });
+        self.invalidate_derived_account_cache();
+        self.derived_account_cache_hits = 0;
+        self.derived_account_recomputes = 0;
         self.margin_recompute_count = 0;
         self.expiry_scan_count = 0;
         self.matching_scan_count = 0;
@@ -946,6 +1026,7 @@ impl FullSession {
         self.last_bar = None;
         self.compaction_count = 0;
         self.terminal_orders_removed = 0;
+        self.session_reset_count = self.session_reset_count.saturating_add(1);
     }
 
     /// Start one fresh account at an absolute bar of the immutable market.
@@ -1011,6 +1092,11 @@ impl FullSession {
             return Err("event contract cannot change after execution has started".to_owned());
         }
         self.event_contract_code = contract_code;
+        self.bump_derived_versions(DerivedAccountInvalidationV1 {
+            risk: true,
+            ..DerivedAccountInvalidationV1::default()
+        });
+        self.invalidate_derived_account_cache();
         Ok(())
     }
 
@@ -1022,6 +1108,12 @@ impl FullSession {
             return Err("execution model cannot change after execution has started".to_owned());
         }
         self.execution_model = model;
+        self.bump_derived_versions(DerivedAccountInvalidationV1 {
+            risk: true,
+            instrument: true,
+            ..DerivedAccountInvalidationV1::default()
+        });
+        self.invalidate_derived_account_cache();
         Ok(())
     }
 
@@ -1053,8 +1145,32 @@ impl FullSession {
         self.orders.slot_capacity()
     }
 
+    #[must_use]
+    pub fn order_arena_retired_slots(&self) -> usize {
+        self.orders.stats().retired
+    }
+
+    #[must_use]
+    pub fn matching_candidate_capacity(&self) -> usize {
+        self.matching_candidates.capacity()
+    }
+
     pub fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
         self.step_buffers.release_excess_capacity(max_capacity);
+    }
+
+    /// Release capacity held only by resettable per-scenario scratch.
+    ///
+    /// This operation is intentionally narrower than a runner rebuild: it
+    /// never changes the immutable market template or account semantics. A
+    /// caller may use it after a reset/close to shed a high-water matching
+    /// candidate vector; order-arena storage remains owned by the explicit
+    /// full-rebuild path because its handle generations are lifecycle state.
+    pub fn release_resettable_scratch_capacity(&mut self, max_capacity: usize) {
+        self.step_buffers.release_excess_capacity(max_capacity);
+        if self.matching_candidates.capacity() > max_capacity {
+            self.matching_candidates.shrink_to(max_capacity);
+        }
     }
 
     pub fn step_buffer_capacities(&self) -> (usize, usize, usize) {
@@ -1071,6 +1187,26 @@ impl FullSession {
 
     pub fn margin_recompute_count(&self) -> u64 {
         self.margin_recompute_count
+    }
+
+    #[must_use]
+    pub const fn session_reset_count(&self) -> u64 {
+        self.session_reset_count
+    }
+
+    #[must_use]
+    pub const fn derived_account_cache_hits(&self) -> u64 {
+        self.derived_account_cache_hits
+    }
+
+    #[must_use]
+    pub const fn derived_account_recomputes(&self) -> u64 {
+        self.derived_account_recomputes
+    }
+
+    #[must_use]
+    pub const fn derived_account_versions(&self) -> DerivedAccountVersionsV1 {
+        self.derived_account_versions
     }
 
     #[inline]
@@ -1301,6 +1437,113 @@ impl FullSession {
         })
     }
 
+    /// Return the account valuation after a bar has completed all lifecycle,
+    /// funding, fill, fee, and liquidation work.
+    ///
+    /// The cache is valid only for the exact committed bar and version vector.
+    /// Reads never mutate positions, wallet, orders, or metric state. The
+    /// separate `recompute_post_execution_account_snapshot` method is kept as
+    /// a parity oracle for tests and debug certification.
+    pub fn post_execution_account_snapshot(
+        &mut self,
+        bar: usize,
+    ) -> Result<DerivedAccountSnapshotV1, String> {
+        if self.last_bar != Some(bar) {
+            return Err(
+                "post-execution account snapshot requires the completed current bar".to_owned(),
+            );
+        }
+        if let Some(snapshot) = self.derived_account_cache.snapshot
+            && snapshot.bar == bar
+            && snapshot.versions == self.derived_account_versions
+        {
+            self.derived_account_cache_hits = self.derived_account_cache_hits.saturating_add(1);
+            return Ok(snapshot);
+        }
+        let (equity, initial_margin, maintenance_margin) = if self.liquidated {
+            (0.0, 0.0, 0.0)
+        } else {
+            let (initial_margin, maintenance_margin) = self.close_margin(bar);
+            (self.equity, initial_margin, maintenance_margin)
+        };
+        let snapshot = DerivedAccountSnapshotV1 {
+            bar,
+            equity,
+            available_equity: equity - initial_margin,
+            initial_margin,
+            maintenance_margin,
+            liquidated: self.liquidated,
+            versions: self.derived_account_versions,
+        };
+        self.derived_account_cache.snapshot = Some(snapshot);
+        self.derived_account_recomputes = self.derived_account_recomputes.saturating_add(1);
+        Ok(snapshot)
+    }
+
+    /// Exact non-cached account valuation for debug and differential tests.
+    /// It intentionally does not use incremental assumptions for future
+    /// nonlinear margin/offset models.
+    pub fn recompute_post_execution_account_snapshot(
+        &self,
+        bar: usize,
+    ) -> Result<DerivedAccountSnapshotV1, String> {
+        if self.last_bar != Some(bar) {
+            return Err(
+                "post-execution account recomputation requires the completed current bar"
+                    .to_owned(),
+            );
+        }
+        let (equity, initial_margin, maintenance_margin) = if self.liquidated {
+            (0.0, 0.0, 0.0)
+        } else {
+            let (initial_margin, maintenance_margin) = self.compute_close_margin(bar);
+            (self.equity, initial_margin, maintenance_margin)
+        };
+        Ok(DerivedAccountSnapshotV1 {
+            bar,
+            equity,
+            available_equity: equity - initial_margin,
+            initial_margin,
+            maintenance_margin,
+            liquidated: self.liquidated,
+            versions: self.derived_account_versions,
+        })
+    }
+
+    #[inline]
+    fn invalidate_derived_account_cache(&mut self) {
+        self.derived_account_cache.snapshot = None;
+    }
+
+    #[inline]
+    fn bump_derived_versions(&mut self, invalidation: DerivedAccountInvalidationV1) {
+        if invalidation.mark {
+            self.derived_account_versions.mark = self.derived_account_versions.mark.wrapping_add(1);
+        }
+        if invalidation.position {
+            self.derived_account_versions.position =
+                self.derived_account_versions.position.wrapping_add(1);
+        }
+        if invalidation.wallet {
+            self.derived_account_versions.wallet =
+                self.derived_account_versions.wallet.wrapping_add(1);
+        }
+        if invalidation.fee {
+            self.derived_account_versions.fee = self.derived_account_versions.fee.wrapping_add(1);
+        }
+        if invalidation.funding {
+            self.derived_account_versions.funding =
+                self.derived_account_versions.funding.wrapping_add(1);
+        }
+        if invalidation.risk {
+            self.derived_account_versions.risk = self.derived_account_versions.risk.wrapping_add(1);
+        }
+        if invalidation.instrument {
+            self.derived_account_versions.instrument =
+                self.derived_account_versions.instrument.wrapping_add(1);
+        }
+    }
+
     fn compute_close_margin(&self, bar: usize) -> (f64, f64) {
         let mut initial = 0.0;
         let mut maintenance = 0.0;
@@ -1391,6 +1634,13 @@ impl FullSession {
         self.equity = 0.0;
         self.positions.fill(0.0);
         self.margin_cache.valid = false;
+        self.bump_derived_versions(DerivedAccountInvalidationV1 {
+            position: true,
+            wallet: true,
+            risk: true,
+            ..DerivedAccountInvalidationV1::default()
+        });
+        self.invalidate_derived_account_cache();
     }
 
     fn find_pending(&self, order_id: i64) -> Option<OrderHandle> {
@@ -1420,8 +1670,12 @@ impl FullSession {
         mut order: OrderState,
         aliases: &[i64],
     ) -> Result<OrderHandle, String> {
-        order.sequence = self.next_order_sequence;
-        self.next_order_sequence = self.next_order_sequence.wrapping_add(1);
+        let sequence = self.next_order_sequence;
+        self.next_order_sequence = self
+            .next_order_sequence
+            .checked_add(1)
+            .ok_or_else(|| "native order sequence exhausted; rebuild the session".to_owned())?;
+        order.sequence = sequence;
         let handle = self
             .orders
             .insert(order)
@@ -1987,6 +2241,14 @@ impl FullSession {
         {
             return Err("full command buffers do not match command count".to_owned());
         }
+        // A new bar changes mark inputs even when no order is accepted. Any
+        // post-bar snapshot from the previous mark must not cross this clock
+        // boundary.
+        self.bump_derived_versions(DerivedAccountInvalidationV1 {
+            mark: true,
+            ..DerivedAccountInvalidationV1::default()
+        });
+        self.invalidate_derived_account_cache();
         if self.liquidated {
             self.last_bar = Some(bar);
             return Ok(FullStepResult {
@@ -2008,6 +2270,10 @@ impl FullSession {
                     * (self.close(bar, symbol) - self.close(bar - 1, symbol))
                     * self.contract_sizes[symbol];
             }
+            self.bump_derived_versions(DerivedAccountInvalidationV1 {
+                wallet: true,
+                ..DerivedAccountInvalidationV1::default()
+            });
         }
         if self.intrabar_liquidated(bar) {
             self.liquidate(bar, LIQ_INTRABAR);
@@ -2035,6 +2301,11 @@ impl FullSession {
                 self.equity -= cost;
                 funding_total += cost;
             }
+            self.bump_derived_versions(DerivedAccountInvalidationV1 {
+                wallet: true,
+                funding: true,
+                ..DerivedAccountInvalidationV1::default()
+            });
         }
         let (_, close_mm) = self.close_margin(bar);
         if close_mm > 0.0 && self.equity <= close_mm {
@@ -2464,6 +2735,12 @@ impl FullSession {
             let new_position = current + delta;
             self.positions[symbol] = new_position;
             self.update_margin_cache_after_fill(bar, symbol, current, new_position);
+            self.bump_derived_versions(DerivedAccountInvalidationV1 {
+                position: true,
+                wallet: true,
+                fee: true,
+                ..DerivedAccountInvalidationV1::default()
+            });
             self.execution_model
                 .commit_fill(fill, symbol, &mut self.liquidity_ledger)?;
             fee_total += fee;
@@ -2511,7 +2788,7 @@ impl FullSession {
             cursor += 1;
         }
 
-        let (initial_margin, maintenance_margin) = self.close_margin(bar);
+        let (_initial_margin, maintenance_margin) = self.close_margin(bar);
         if maintenance_margin > 0.0 && self.equity <= maintenance_margin {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
@@ -2542,8 +2819,9 @@ impl FullSession {
         let fill_count = counters.fill_count;
         let event_count = counters.event_count;
         self.last_bar = Some(bar);
+        let account_snapshot = self.post_execution_account_snapshot(bar)?;
         Ok(FullStepResult {
-            equity: self.equity,
+            equity: account_snapshot.equity,
             positions: if output_mask & OUTPUT_POSITIONS != 0 {
                 self.positions.clone()
             } else {
@@ -2552,12 +2830,8 @@ impl FullSession {
             fee: fee_total,
             turnover,
             funding: funding_total,
-            initial_margin: if self.liquidated { 0.0 } else { initial_margin },
-            maintenance_margin: if self.liquidated {
-                0.0
-            } else {
-                maintenance_margin
-            },
+            initial_margin: account_snapshot.initial_margin,
+            maintenance_margin: account_snapshot.maintenance_margin,
             liquidated: self.liquidated,
             liquidation_bar: self.liquidation_bar,
             liquidation_reason: self.liquidation_reason,
@@ -3297,6 +3571,38 @@ mod tests {
         .unwrap()
     }
 
+    fn funded_multi_bar_session(n_bars: usize) -> FullSession {
+        assert!(n_bars >= 3, "funded fixture needs an entry and funding bar");
+        let prices: Vec<f64> = (0..n_bars).map(|index| 100.0 + index as f64).collect();
+        let mut funding = vec![0.0; n_bars];
+        let mut funding_mask = vec![false; n_bars];
+        funding[1] = 0.0001;
+        funding_mask[1] = true;
+        let market = FullMarketData::new(
+            (0..n_bars as i64).collect(),
+            prices.clone(),
+            prices.iter().map(|price| price + 1.0).collect(),
+            prices.iter().map(|price| price - 1.0).collect(),
+            prices,
+            vec![1_000.0; n_bars],
+            funding,
+            funding_mask,
+            1,
+        )
+        .unwrap();
+        FullSession::new(
+            Arc::new(market),
+            vec![1.0],
+            vec![5.0],
+            vec![0.0002],
+            10_000.0,
+            0.005,
+            0.0001,
+            true,
+        )
+        .unwrap()
+    }
+
     fn limited_liquidity_session() -> FullSession {
         let market = FullMarketData::new(
             vec![0, 1],
@@ -3542,6 +3848,113 @@ mod tests {
             );
             assert!(engine.equity.is_finite());
         }
+    }
+
+    #[test]
+    fn derived_account_snapshot_matches_recompute_after_mark_fill_fee_funding_and_reset() {
+        let mut engine = funded_multi_bar_session(4);
+        let (entry_codes, entry_values) = place_market(77, SIDE_BUY);
+        let first = engine
+            .step_with_output(0, &entry_codes, &entry_values, &[-1], 1, false)
+            .unwrap();
+        let first_snapshot = engine.post_execution_account_snapshot(0).unwrap();
+        assert_eq!(
+            first_snapshot,
+            engine.recompute_post_execution_account_snapshot(0).unwrap()
+        );
+        assert_eq!(first.equity, first_snapshot.equity);
+        assert_eq!(first.initial_margin, first_snapshot.initial_margin);
+        assert!(first_snapshot.versions.mark > 0);
+        assert!(first_snapshot.versions.position > 0);
+        assert!(first_snapshot.versions.wallet > 0);
+        assert!(first_snapshot.versions.fee > 0);
+        assert_eq!(engine.derived_account_recomputes(), 1);
+
+        let hits_before_repeat_read = engine.derived_account_cache_hits();
+        assert_eq!(
+            engine.post_execution_account_snapshot(0).unwrap(),
+            first_snapshot
+        );
+        assert_eq!(
+            engine.derived_account_cache_hits(),
+            hits_before_repeat_read + 1
+        );
+
+        let second = engine.step_with_output(1, &[], &[], &[], 0, false).unwrap();
+        let second_snapshot = engine.post_execution_account_snapshot(1).unwrap();
+        assert_eq!(
+            second_snapshot,
+            engine.recompute_post_execution_account_snapshot(1).unwrap()
+        );
+        assert_eq!(second.equity, second_snapshot.equity);
+        assert!(second.funding.abs() > 0.0);
+        assert!(second_snapshot.versions.mark > first_snapshot.versions.mark);
+        assert!(second_snapshot.versions.wallet > first_snapshot.versions.wallet);
+        assert!(second_snapshot.versions.funding > first_snapshot.versions.funding);
+        assert_eq!(engine.derived_account_recomputes(), 2);
+
+        let versions_before_reset = engine.derived_account_versions();
+        engine.reset();
+        let versions_after_reset = engine.derived_account_versions();
+        assert_eq!(engine.session_reset_count(), 1);
+        assert!(engine.positions.iter().all(|position| *position == 0.0));
+        assert_eq!(engine.equity, engine.initial_capital);
+        assert!(versions_after_reset.mark > versions_before_reset.mark);
+        assert!(versions_after_reset.position > versions_before_reset.position);
+        assert!(versions_after_reset.wallet > versions_before_reset.wallet);
+        assert!(versions_after_reset.fee > versions_before_reset.fee);
+        assert!(versions_after_reset.funding > versions_before_reset.funding);
+        assert!(versions_after_reset.risk > versions_before_reset.risk);
+        assert!(versions_after_reset.instrument > versions_before_reset.instrument);
+        assert!(engine.post_execution_account_snapshot(1).is_err());
+    }
+
+    #[test]
+    fn derived_account_snapshot_matches_recompute_after_intrabar_liquidation() {
+        let market = FullMarketData::new(
+            vec![0, 1],
+            vec![100.0, 100.0],
+            vec![101.0, 101.0],
+            vec![99.0, 1.0],
+            vec![100.0, 100.0],
+            vec![1_000.0, 1_000.0],
+            vec![0.0, 0.0],
+            vec![false, false],
+            1,
+        )
+        .unwrap();
+        let mut engine = FullSession::new(
+            Arc::new(market),
+            vec![1.0],
+            vec![5.0],
+            vec![0.0002],
+            1_000.0,
+            0.005,
+            0.0,
+            false,
+        )
+        .unwrap();
+        let (entry_codes, mut entry_values) = place_market(78, SIDE_BUY);
+        entry_values[0] = 20.0;
+        engine
+            .step_with_output(0, &entry_codes, &entry_values, &[-1], 1, false)
+            .unwrap();
+        let before_liquidation = engine.post_execution_account_snapshot(0).unwrap();
+
+        let liquidation = engine.step_with_output(1, &[], &[], &[], 0, false).unwrap();
+        assert!(liquidation.liquidated);
+        let snapshot = engine.post_execution_account_snapshot(1).unwrap();
+        assert_eq!(
+            snapshot,
+            engine.recompute_post_execution_account_snapshot(1).unwrap()
+        );
+        assert!(snapshot.liquidated);
+        assert_eq!(snapshot.equity, 0.0);
+        assert_eq!(snapshot.initial_margin, 0.0);
+        assert_eq!(snapshot.maintenance_margin, 0.0);
+        assert!(snapshot.versions.risk > before_liquidation.versions.risk);
+        assert!(snapshot.versions.position > before_liquidation.versions.position);
+        assert!(snapshot.versions.wallet > before_liquidation.versions.wallet);
     }
 
     #[test]

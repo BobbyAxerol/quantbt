@@ -17955,7 +17955,7 @@ cross-workload performance qualification and promotion decisions.
 
 ### Phase PERF-02 - Safe Session Reuse And Shared Derived Account State
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: IMPLEMENTED_VERIFIED (2026-09-06).**
 **Goal:** make repeated independent sessions cheap while proving reset,
 retained-view lifetime and derived-account invalidation correctness.
 **Proposal owners:** AP-02 and AP-04.
@@ -17965,7 +17965,7 @@ retained-view lifetime and derived-account invalidation correctness.
 [3.5: locked safety contracts](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#35-pf-015--khóa-cross-cutting-contracts-sớm) and
 [10: adversarial ownership/reset cases](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#10-adversarial-test-matrix-bắt-buộc).
 
-**Implementation sequence (all pending):**
+**Implementation sequence (completed):**
 
 1. PF-02.1, [4.1: measure reset first](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#41-pf-021--đo-reset-trước-khi-thay-data-structure): profile logical clear,
    destructor, zeroing, index rebuild and allocation separately. Compare fresh,
@@ -17999,6 +17999,33 @@ retained-view lifetime and derived-account invalidation correctness.
    candidate permutation, stale handles, forced-small generation wrap, retained
    arrays, poison/recreate recovery and Python factory/reset contracts.
    Never retry a mutated Python strategy without an explicit restore contract.
+
+**Implementation record (2026-09-06):**
+
+1. `FullSession` now classifies immutable template data, mutable account/order
+   lifecycle, resettable scratch, and owned result output. Reset clears wallet,
+   positions, marks, fee/funding state, lifecycle indexes, commands, liquidity,
+   buffers, caches, counters, and poison-adjacent reactive state before each
+   independent run. It remains prohibited for carried account state.
+2. `OrderArena` does an O(1) terminal clear only when no order is live. A live
+   arena is scanned and cancelled. Generation `u32::MAX` retires its slot rather
+   than wrapping, while order sequencing fails explicitly on exhaustion.
+3. `DerivedAccountSnapshotV1` is post-execution only and is keyed by named
+   mark/position/wallet/fee/funding/risk/instrument versions. The current
+   single-session route has no persistent reservation ledger, so reservation is
+   explicit in the snapshot schema but remains unchanged; package reservation
+   preflight retains its existing separate contract. The full recompute path is
+   the parity oracle.
+4. Native typed outputs transfer owned storage to Python. Prepared and reactive
+   reset diagnostics expose manifest, result policy, reset count, cache counts,
+   capacities, and retired arena slots without entering the score hot path.
+5. The focused corpus covers fresh/reuse parity, 128 repeated prepared runs,
+   retained output after scratch release, stale handles, mark/fill/fee/funding/
+   liquidation snapshots, callback failure plus explicit recovery, cancellation,
+   rejection/writer failure, and existing package reservation regression cases.
+6. The release fixture reproduces normal, terminal-100k, and live-100k reset
+   behavior. Its evidence is scoped to native lifecycle reset; it makes no WFO
+   or public-facade throughput claim.
 
 **Current code anchors:** `rust/crates/quantbt-engine/src/session.rs`,
 `rust/native_event/src/{prepared_evaluation,reactive_numeric,reactive_score}.rs`,

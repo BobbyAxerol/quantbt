@@ -472,6 +472,15 @@ impl LiquidityLedgerV1 {
         Ok(())
     }
 
+    /// Restore the declared no-participation-cap baseline without allocating.
+    /// `FullSession::reset` calls this even though the next bar will overwrite
+    /// the ledger, so an idle reusable session has no residual fill capacity
+    /// or consumed-liquidity state from its predecessor.
+    pub fn reset_unlimited(&mut self) {
+        self.capacity.fill(f64::INFINITY);
+        self.consumed.fill(0.0);
+    }
+
     #[must_use]
     pub fn available(&self, symbol: usize) -> f64 {
         self.capacity

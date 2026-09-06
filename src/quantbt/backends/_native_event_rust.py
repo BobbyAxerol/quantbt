@@ -1677,6 +1677,11 @@ class RustFullRunner:
                 "step_event_buffer_capacity",
                 "step_active_order_buffer_capacity",
                 "margin_recompute_count",
+                "session_reset_count",
+                "derived_account_cache_hits",
+                "derived_account_recomputes",
+                "matching_candidate_capacity",
+                "order_arena_retired_slots",
                 "expiry_scan_count",
                 "matching_scan_count",
                 "relationship_scan_count",
@@ -1694,6 +1699,9 @@ class RustFullRunner:
                     "terminal_orders_removed",
                     "order_compactions",
                     "margin_recompute_count",
+                    "session_reset_count",
+                    "derived_account_cache_hits",
+                    "derived_account_recomputes",
                     "expiry_scan_count",
                     "matching_scan_count",
                     "relationship_scan_count",
@@ -3891,6 +3899,22 @@ class RustReactiveNumericCoRuntime:
 
     def release_excess_capacity(self, max_capacity: int) -> None:
         self._core.release_excess_capacity(int(max_capacity))
+
+    def session_diagnostics(self) -> Mapping[str, object]:
+        """Return cold-path reset ownership and derived-state counters.
+
+        The mapping is intentionally requested only by callers that need
+        service/WFO observability; normal scalar execution remains one native
+        run without per-candidate diagnostic adaptation.
+        """
+
+        getter = getattr(self._core, "session_diagnostics", None)
+        if not callable(getter):
+            return {
+                "reset_manifest": "unavailable",
+                "retained_output_policy": "unknown",
+            }
+        return dict(getter())
 
 
 class RustReactiveCandidateBatchCoRuntime:

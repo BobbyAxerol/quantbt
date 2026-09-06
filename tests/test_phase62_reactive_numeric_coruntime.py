@@ -397,6 +397,10 @@ def test_r1_direct_runner_reset_reuses_prepared_market_without_state_leakage():
         retain_events=True,
     )
     first, _ = runner.run(StatefulGridFixture())
+    retained_equity = first.equity.copy()
+    retained_positions = first.positions.copy()
+    retained_fees = first.fees.copy()
+    retained_funding = first.funding.copy()
     runner.reset()
     second, _ = runner.run(StatefulGridFixture())
     np.testing.assert_allclose(first.equity, second.equity, rtol=0.0, atol=1e-12)
@@ -404,7 +408,50 @@ def test_r1_direct_runner_reset_reuses_prepared_market_without_state_leakage():
     np.testing.assert_allclose(first.fees, second.fees, rtol=0.0, atol=1e-12)
     assert first.fill_count == second.fill_count
     assert first.event_count == second.event_count
+
+    # A reusable reactive worker may process many independent candidates, but
+    # a result from an earlier candidate owns its arrays and cannot alias the
+    # native session's resettable account/order scratch.
+    for _ in range(8):
+        runner.reset()
+        repeated, _ = runner.run(StatefulGridFixture())
+        np.testing.assert_allclose(first.equity, repeated.equity, rtol=0.0, atol=1e-12)
+        np.testing.assert_allclose(first.positions, repeated.positions, rtol=0.0, atol=1e-12)
+        np.testing.assert_allclose(first.fees, repeated.fees, rtol=0.0, atol=1e-12)
+        np.testing.assert_allclose(first.funding, repeated.funding, rtol=0.0, atol=1e-12)
+
+    class Explodes(StatefulGridFixture):
+        def on_bar_close(self, context, out) -> None:
+            if context.bar_index == 2:
+                raise RuntimeError("fixture strategy failure")
+
+    # A callback failure poisons the active run. Reset is an explicit recovery
+    # boundary; the next independent candidate must start from the same native
+    # account/order state as the original reference rather than retrying the
+    # mutated strategy object in place.
+    runner.reset()
+    # Direct co-runtime callers receive their original callback exception; the
+    # public endpoint is the layer that adds callback-location wrapping.
+    with pytest.raises(RuntimeError, match="fixture strategy failure"):
+        runner.run(Explodes())
+    assert runner.poisoned is True
+    runner.reset()
+    recovered, _ = runner.run(StatefulGridFixture())
+    np.testing.assert_allclose(first.equity, recovered.equity, rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(first.positions, recovered.positions, rtol=0.0, atol=1e-12)
+
+    diagnostics = runner.session_diagnostics()
+    assert diagnostics["reset_manifest"] == "quantbt-native-reset-manifest-v1"
+    assert diagnostics["retained_output_policy"] == "owned_transfer_no_lease_v1"
+    assert diagnostics["reset_count"] >= 11
+    assert diagnostics["session_reset_count"] >= 11
+    assert diagnostics["derived_account_recomputes"] > 0
+    assert diagnostics["poisoned"] is False
     runner.release_excess_capacity(8)
+    np.testing.assert_allclose(first.equity, retained_equity, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(first.positions, retained_positions, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(first.fees, retained_fees, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(first.funding, retained_funding, rtol=0.0, atol=0.0)
 
 
 def test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically():

@@ -19,6 +19,7 @@ pub struct OrderArena<T> {
     max_live: usize,
     max_total_created: u64,
     high_water_live: usize,
+    retired_slots: usize,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -26,6 +27,10 @@ pub struct ArenaStats {
     pub slots: usize,
     pub live: usize,
     pub free: usize,
+    /// Slots deliberately retired after their generation reaches `u32::MAX`.
+    /// They are never recycled, so a stale handle cannot become valid again
+    /// through generation wraparound.
+    pub retired: usize,
     pub total_created: u64,
     pub high_water_live: usize,
 }
@@ -41,6 +46,7 @@ impl<T> OrderArena<T> {
             max_live,
             max_total_created,
             high_water_live: 0,
+            retired_slots: 0,
         }
     }
 
@@ -107,8 +113,16 @@ impl<T> OrderArena<T> {
             return Err(DomainError::StaleHandle);
         }
         let value = slot.value.take().ok_or(DomainError::StaleHandle)?;
-        slot.generation = slot.generation.wrapping_add(1);
-        self.free_slots.push(handle.slot);
+        // Do not wrap an arena generation. A stale handle from `u32::MAX`
+        // must never alias a future order in this slot. Retiring this one
+        // slot is an explicit, bounded safety fallback; a service may rebuild
+        // its session when retention pressure matters more than reuse.
+        if slot.generation != u32::MAX {
+            slot.generation += 1;
+            self.free_slots.push(handle.slot);
+        } else {
+            self.retired_slots = self.retired_slots.saturating_add(1);
+        }
         self.live = self.live.saturating_sub(1);
         Ok(value)
     }
@@ -138,6 +152,7 @@ impl<T> OrderArena<T> {
             slots: self.slots.len(),
             live: self.live,
             free: self.free_slots.len(),
+            retired: self.retired_slots,
             total_created: self.total_created,
             high_water_live: self.high_water_live,
         }
@@ -159,12 +174,26 @@ impl<T> OrderArena<T> {
     }
 
     pub fn clear(&mut self) {
+        // The common prepared-runner path has already released every terminal
+        // order. In that case `free_slots` is authoritative and a full scan of
+        // a high-water arena adds reset work without changing state.
+        if self.live == 0 {
+            self.total_created = 0;
+            self.high_water_live = 0;
+            return;
+        }
         self.free_slots.clear();
         for (slot, entry) in self.slots.iter_mut().enumerate() {
             if entry.value.take().is_some() {
-                entry.generation = entry.generation.wrapping_add(1);
+                if entry.generation != u32::MAX {
+                    entry.generation += 1;
+                } else {
+                    self.retired_slots = self.retired_slots.saturating_add(1);
+                }
             }
-            self.free_slots.push(slot as u32);
+            if entry.generation != u32::MAX {
+                self.free_slots.push(slot as u32);
+            }
         }
         self.live = 0;
         self.total_created = 0;
@@ -176,6 +205,7 @@ impl<T> OrderArena<T> {
 mod tests {
     use super::OrderArena;
     use quantbt_domain::errors::DomainError;
+    use quantbt_domain::ids::OrderHandle;
 
     #[test]
     fn stale_handle_never_aliases_reused_slot() {
@@ -198,5 +228,29 @@ mod tests {
             arena.insert(2_u8),
             Err(DomainError::ResourceLimit { .. })
         ));
+    }
+
+    #[test]
+    fn retired_generation_slot_never_revalidates_a_stale_handle() {
+        let mut arena = OrderArena::new(4, 8);
+        let first = arena.insert("first").unwrap();
+        // Force the terminal generation boundary deterministically. This is
+        // the same branch a long-lived service would reach only after an
+        // impractically large number of reuse cycles.
+        arena.slots[first.slot as usize].generation = u32::MAX;
+        let stale = OrderHandle {
+            slot: first.slot,
+            generation: u32::MAX,
+        };
+        assert_eq!(arena.remove(stale).unwrap(), "first");
+        assert_eq!(arena.stats().retired, 1);
+        let next = arena.insert("next").unwrap();
+        assert_ne!(next.slot, stale.slot);
+        assert!(arena.get(stale).is_none());
+
+        arena.clear();
+        let after_reset = arena.insert("after-reset").unwrap();
+        assert_ne!(after_reset.slot, stale.slot);
+        assert!(arena.get(stale).is_none());
     }
 }

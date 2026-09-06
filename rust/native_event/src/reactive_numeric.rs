@@ -1984,6 +1984,7 @@ pub(crate) struct ReactiveNumericRunnerCore {
     started: bool,
     poisoned: bool,
     run_count: u64,
+    reset_count: u64,
     last_callback_name: String,
     last_callback_bar: i64,
 }
@@ -3321,6 +3322,7 @@ impl ReactiveNumericRunnerCore {
             started: false,
             poisoned: false,
             run_count: 0,
+            reset_count: 0,
             last_callback_name: String::new(),
             last_callback_bar: -1,
         })
@@ -3822,6 +3824,11 @@ impl ReactiveNumericRunnerCore {
         self.run_count
     }
 
+    #[getter]
+    fn reset_count(&self) -> u64 {
+        self.reset_count
+    }
+
     /// Return an independent, thread-safe token for cooperative cancellation.
     /// It does not retain or expose account/session state.
     fn cancellation_token(&self, py: Python<'_>) -> PyResult<Py<ReactiveCancellationTokenCore>> {
@@ -3926,7 +3933,7 @@ impl ReactiveNumericRunnerCore {
         self.run_block_range(py, strategy, start_bar, end_bar, gil_policy)
     }
 
-    fn reset(&mut self, py: Python<'_>) {
+    fn reset(&mut self, py: Python<'_>) -> PyResult<()> {
         self.inner.reset();
         self.step_buffers.clear();
         self.scheduled_commands.clear();
@@ -3938,11 +3945,59 @@ impl ReactiveNumericRunnerCore {
         self.active_deadline = None;
         self.last_callback_name.clear();
         self.last_callback_bar = -1;
+        self.reset_count = self.reset_count.checked_add(1).ok_or_else(|| {
+            PyRuntimeError::new_err("reactive session reset generation exhausted; recreate runner")
+        })?;
+        Ok(())
     }
 
     fn release_excess_capacity(&mut self, max_capacity: usize) {
-        self.inner.release_step_buffer_capacity(max_capacity);
+        self.inner.release_resettable_scratch_capacity(max_capacity);
+        self.step_buffers.release_excess_capacity(max_capacity);
         self.scheduled_commands.clear();
+    }
+
+    /// Cold-path reuse observability. The result is scalar metadata only and
+    /// never exposes mutable account, command, or scratch buffers.
+    fn session_diagnostics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        let versions = self.inner.derived_account_versions();
+        let (fills, events, active) = self.step_buffers.capacity_signature();
+        payload.set_item("reset_manifest", "quantbt-native-reset-manifest-v1")?;
+        payload.set_item("retained_output_policy", "owned_transfer_no_lease_v1")?;
+        payload.set_item("run_count", self.run_count)?;
+        payload.set_item("reset_count", self.reset_count)?;
+        payload.set_item("session_reset_count", self.inner.session_reset_count())?;
+        payload.set_item(
+            "derived_account_cache_hits",
+            self.inner.derived_account_cache_hits(),
+        )?;
+        payload.set_item(
+            "derived_account_recomputes",
+            self.inner.derived_account_recomputes(),
+        )?;
+        payload.set_item("mark_version", versions.mark)?;
+        payload.set_item("position_version", versions.position)?;
+        payload.set_item("wallet_version", versions.wallet)?;
+        payload.set_item("reservation_version", versions.reservation)?;
+        payload.set_item("fee_version", versions.fee)?;
+        payload.set_item("funding_version", versions.funding)?;
+        payload.set_item("risk_version", versions.risk)?;
+        payload.set_item("instrument_version", versions.instrument)?;
+        payload.set_item("local_step_fill_buffer_capacity", fills)?;
+        payload.set_item("local_step_event_buffer_capacity", events)?;
+        payload.set_item("local_step_active_order_buffer_capacity", active)?;
+        payload.set_item(
+            "matching_candidate_capacity",
+            self.inner.matching_candidate_capacity(),
+        )?;
+        payload.set_item(
+            "order_arena_retired_slots",
+            self.inner.order_arena_retired_slots(),
+        )?;
+        payload.set_item("scheduled_command_buckets", self.scheduled_commands.len())?;
+        payload.set_item("poisoned", self.poisoned)?;
+        Ok(payload.unbind())
     }
 }
 
@@ -4625,9 +4680,9 @@ impl ReactiveCandidateBatchRunnerCore {
         self.run_range(py, strategy, start_bar, end_bar, gil_policy)
     }
 
-    fn reset(&mut self, py: Python<'_>) {
+    fn reset(&mut self, py: Python<'_>) -> PyResult<()> {
         for candidate in &mut self.candidates {
-            candidate.core.reset(py);
+            candidate.core.reset(py)?;
             candidate.active = true;
             candidate.plan = WakePlanInternal::default();
             candidate.has_previous_observation = false;
@@ -4641,5 +4696,6 @@ impl ReactiveCandidateBatchRunnerCore {
         self.poisoned = false;
         self.last_callback_name.clear();
         self.last_callback_bar = -1;
+        Ok(())
     }
 }

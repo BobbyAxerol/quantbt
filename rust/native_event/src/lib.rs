@@ -5830,6 +5830,7 @@ impl NativeExecutionRunnerCore {
             payload.set_item("generation", runner.generation())?;
             payload.set_item("run_count", runner.run_count())?;
             payload.set_item("explicit_reset_count", runner.explicit_reset_count())?;
+            payload.set_item("session_reset_count", runner.session_reset_count())?;
             payload.set_item("step_fill_buffer_capacity", fills)?;
             payload.set_item("step_event_buffer_capacity", events)?;
             payload.set_item("step_active_order_buffer_capacity", active)?;
@@ -5838,6 +5839,28 @@ impl NativeExecutionRunnerCore {
             payload.set_item("order_compactions", compactions)?;
             payload.set_item("terminal_orders_removed", removed)?;
             payload.set_item("margin_recompute_count", runner.margin_recompute_count())?;
+            payload.set_item(
+                "derived_account_cache_hits",
+                runner.derived_account_cache_hits(),
+            )?;
+            payload.set_item(
+                "derived_account_recomputes",
+                runner.derived_account_recomputes(),
+            )?;
+            payload.set_item(
+                "matching_candidate_capacity",
+                runner.matching_candidate_capacity(),
+            )?;
+            payload.set_item(
+                "order_arena_retired_slots",
+                runner.order_arena_retired_slots(),
+            )?;
+            // Reset ownership is intentionally observable only on this
+            // cold-path diagnostics surface. Typed execution retains no
+            // account/order result buffers inside the reusable runner.
+            payload.set_item("reset_manifest", "quantbt-native-reset-manifest-v1")?;
+            payload.set_item("retained_output_policy", "owned_transfer_no_lease_v1")?;
+            payload.set_item("carried_account_reset_allowed", false)?;
             payload.set_item("expiry_scan_count", expiry_scans)?;
             payload.set_item("matching_scan_count", matching_scans)?;
             payload.set_item("relationship_scan_count", relationship_scans)?;
@@ -7484,7 +7507,7 @@ impl FullReactiveSessionCore {
     }
 
     fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
-        self.inner.release_step_buffer_capacity(max_capacity);
+        self.inner.release_resettable_scratch_capacity(max_capacity);
     }
 
     fn step_buffer_capacities(&self) -> (usize, usize, usize) {
@@ -7497,6 +7520,41 @@ impl FullReactiveSessionCore {
 
     fn engine_scan_counters(&self) -> (u64, u64, u64) {
         self.inner.engine_scan_counters()
+    }
+
+    /// Cold-path reset/derived-account observability for reusable reactive
+    /// sessions. This does not materialize a result or execute accounting.
+    fn session_diagnostics(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let payload = PyDict::new(py);
+        let versions = self.inner.derived_account_versions();
+        payload.set_item("reset_manifest", "quantbt-native-reset-manifest-v1")?;
+        payload.set_item("retained_output_policy", "owned_transfer_no_lease_v1")?;
+        payload.set_item("session_reset_count", self.inner.session_reset_count())?;
+        payload.set_item(
+            "derived_account_cache_hits",
+            self.inner.derived_account_cache_hits(),
+        )?;
+        payload.set_item(
+            "derived_account_recomputes",
+            self.inner.derived_account_recomputes(),
+        )?;
+        payload.set_item("mark_version", versions.mark)?;
+        payload.set_item("position_version", versions.position)?;
+        payload.set_item("wallet_version", versions.wallet)?;
+        payload.set_item("reservation_version", versions.reservation)?;
+        payload.set_item("fee_version", versions.fee)?;
+        payload.set_item("funding_version", versions.funding)?;
+        payload.set_item("risk_version", versions.risk)?;
+        payload.set_item("instrument_version", versions.instrument)?;
+        payload.set_item(
+            "matching_candidate_capacity",
+            self.inner.matching_candidate_capacity(),
+        )?;
+        payload.set_item(
+            "order_arena_retired_slots",
+            self.inner.order_arena_retired_slots(),
+        )?;
+        Ok(payload.unbind())
     }
 
     fn run_tape_score(
