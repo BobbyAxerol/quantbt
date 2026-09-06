@@ -1063,6 +1063,16 @@ impl NativeExecutionRunnerV1 {
     }
 
     #[must_use]
+    pub fn lifecycle_candidate_capacity(&self) -> usize {
+        self.session.lifecycle_candidate_capacity()
+    }
+
+    #[must_use]
+    pub fn active_external_alias_count(&self) -> usize {
+        self.session.active_external_alias_count()
+    }
+
+    #[must_use]
     pub fn order_arena_retired_slots(&self) -> usize {
         self.session.order_arena_retired_slots()
     }

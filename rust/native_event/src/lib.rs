@@ -5852,6 +5852,14 @@ impl NativeExecutionRunnerCore {
                 runner.matching_candidate_capacity(),
             )?;
             payload.set_item(
+                "lifecycle_candidate_capacity",
+                runner.lifecycle_candidate_capacity(),
+            )?;
+            payload.set_item(
+                "active_external_alias_count",
+                runner.active_external_alias_count(),
+            )?;
+            payload.set_item(
                 "order_arena_retired_slots",
                 runner.order_arena_retired_slots(),
             )?;
@@ -7549,6 +7557,14 @@ impl FullReactiveSessionCore {
         payload.set_item(
             "matching_candidate_capacity",
             self.inner.matching_candidate_capacity(),
+        )?;
+        payload.set_item(
+            "lifecycle_candidate_capacity",
+            self.inner.lifecycle_candidate_capacity(),
+        )?;
+        payload.set_item(
+            "active_external_alias_count",
+            self.inner.active_external_alias_count(),
         )?;
         payload.set_item(
             "order_arena_retired_slots",

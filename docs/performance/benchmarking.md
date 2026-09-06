@@ -216,6 +216,21 @@ PERF-02 establishes a separate native runner reuse contract. It proves that an i
 
 The release fixture intentionally distinguishes a terminal `100,000`-order predecessor from `100,000` live passive orders. The former can clear an empty arena quickly; the latter must visit and cancel every live order, so a larger reset time is correct domain behavior rather than a regression. The committed [PERF-02 evidence](../../benchmarks/native_event/results/perf_02_session_reuse.md) records `23.788 us` reused-small execution, `0.202 us` normal reset, `1.688 us` after the terminal predecessor, and `5.094 ms` after the live predecessor. That fixture is a native lifecycle benchmark, not a public facade, WFO, or reactive throughput claim; its small-run delta is within a five-sample measurement and is not reported as a generic speedup.
 
+## PERF-04 Native Matching
+
+PERF-04 measures the prepared Rust static lifecycle matcher with passive
+`place -> amend -> replace -> cancel_all` cycles. On the committed 2,000-bar,
+one-symbol development fixture, the 64-live-order churn case processed `96,307`
+commands in about `48.3 ms` (`1.99M commands/s`); the one-order control
+processed `1,996` commands in about `1.01 ms` (`1.97M commands/s`). Both require
+score/audit terminal parity before timing, retain stable sequence priority, end
+with zero live external aliases, and show zero RSS tail spread across the timed
+samples. Read the [PERF-04 contract](perf_04_native_matching.md),
+[registry](../../benchmarks/native_event/registries/perf_04_specialization_registry_v1.json),
+and [evidence](../../benchmarks/native_event/results/perf_04_native_matching.md)
+for scope and reproduction. These are prepared lifecycle results, not a general
+endpoint, WFO, L2/order-book, or generic-grid speed claim.
+
 ## Commands
 
 ```bash

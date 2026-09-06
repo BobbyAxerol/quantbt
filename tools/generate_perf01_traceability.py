@@ -15,7 +15,6 @@ from hashlib import sha256
 import importlib.util
 import json
 from pathlib import Path
-import sys
 from typing import Any, Mapping
 
 
@@ -37,7 +36,7 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
         "metrics_result": "native-event ledger -> BacktestResult/report adapters",
         "export": "fills, order logs, metrics, plots, report bundle",
         "domain_contract": "event lifecycle timing, fee/funding/account contract",
-        "optimization_target": "AP-04 matcher/specialization later; PERF-01 records baseline only",
+        "optimization_target": "AP-05 exact lifecycle matching, reusable scratch, and bounded aliases verified by PERF-04",
         "oracle_tests": ("tests/native_event/contract/test_phase54b2_rust_first_routes.py",),
         "benchmark_fixture": "phase54b2 deterministic public static command tape",
         "anchors": (
@@ -67,7 +66,7 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
         "metrics_result": "vectorized account result -> BacktestResult/report adapters",
         "export": "equity, positions, metrics, report",
         "domain_contract": "target sizing, one-way fee, slippage, funding, margin",
-        "optimization_target": "AP-06 target specialization later",
+        "optimization_target": "AP-06 direct-target specialization verified by PERF-04; preserve its distinct no-order-arena contract",
         "oracle_tests": ("tests/test_phase66_rust_target_vectorized.py",),
         "benchmark_fixture": "phase66 same-close direct target fixture",
         "anchors": (
@@ -101,7 +100,7 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
         "metrics_result": "account result -> standard metrics and audit adapters",
         "export": "equity, orders, fills, metrics, report",
         "domain_contract": "ladder activation, quantity constraints, margin and liquidation",
-        "optimization_target": "AP-04/AP-05 high-churn work stays downstream",
+        "optimization_target": "AP-05 static lifecycle matching is verified; DCA/grid remains on its declared structured-order contract",
         "oracle_tests": ("tests/test_phase47a_grid_adapter.py",),
         "benchmark_fixture": "Phase47 grid adapter and parity fixture",
         "anchors": (
@@ -155,7 +154,7 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
         "metrics_result": "package result, residuals and account result -> report adapters",
         "export": "leg package PnL, residuals, metrics, report",
         "domain_contract": "leg ordering, partial/residual policy, shared liquidity/account state",
-        "optimization_target": "AP-04/AP-05 package admission and matcher work later",
+        "optimization_target": "AP-06 bounded package authority is verified; unsupported venue contracts remain fail-closed",
         "oracle_tests": ("tests/test_phase68_rust_package_authority.py",),
         "benchmark_fixture": "phase68 bounded package fixture",
         "anchors": (
@@ -172,7 +171,7 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
         "metrics_result": "intrabar account path -> standard metrics and audit adapters",
         "export": "fills, lifecycle flags, equity, metrics, audit",
         "domain_contract": "intrabar ordering, protective exits, funding clock and ambiguity policy",
-        "optimization_target": "AP-06 specialization is measured before any promotion",
+        "optimization_target": "AP-06 direct target specialization is verified; intrabar remains a distinct declared contract",
         "oracle_tests": ("tests/test_phase69_rust_intrabar_authority.py",),
         "benchmark_fixture": "phase69 single-symbol bracket fixture",
         "anchors": (
@@ -284,8 +283,31 @@ AP_DISPOSITIONS: tuple[dict[str, Any], ...] = (
         ),
     },
     {"id": "AP-04", "state": "OPEN", "owner": "PERF-02", "evidence": ("src/quantbt/core/runtime_governance.py",)},
-    {"id": "AP-05", "state": "OPEN", "owner": "PERF-04", "evidence": ("src/quantbt/backends/native_event.py",)},
-    {"id": "AP-06", "state": "OPEN", "owner": "PERF-04", "evidence": ("src/quantbt/backends/native_vectorized.py",)},
+    {
+        "id": "AP-05",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-04",
+        "evidence": (
+            "rust/crates/quantbt-engine/src/session.rs",
+            "rust/crates/quantbt-engine/src/orders/indexes.rs",
+            "rust/crates/quantbt-engine/src/orders/aliases.rs",
+            "tests/test_perf_04_native_matching.py",
+            "benchmarks/native_event/benchmark_perf04_native_matching.py",
+        ),
+    },
+    {
+        "id": "AP-06",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-04",
+        "evidence": (
+            "rust/crates/quantbt-execution/src/target.rs",
+            "rust/crates/quantbt-execution/src/package.rs",
+            "tests/test_phase66_rust_target_vectorized.py",
+            "tests/test_phase67_rust_shared_portfolio.py",
+            "tests/test_phase68_rust_package_authority.py",
+            "benchmarks/native_event/registries/perf_04_specialization_registry_v1.json",
+        ),
+    },
     {"id": "AP-07", "state": "OPEN", "owner": "PERF-05", "evidence": ("src/quantbt/walkforward.py",)},
     {"id": "AP-08", "state": "OPEN", "owner": "PERF-05", "evidence": ("src/quantbt/walkforward.py",)},
     {"id": "AP-09", "state": "OPEN", "owner": "PERF-05", "evidence": ("src/quantbt/backends/native_prepared_evaluation.py",)},
@@ -400,6 +422,14 @@ def build_manifest() -> dict[str, Any]:
         15: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_future_ohlc_suffix_cannot_change_prior_effective_command"),
         16: ("PERF-03", "tests/test_phase63_sparse_block_reactive.py::test_r2_coalesces_fill_order_event_and_liquidation_on_one_boundary"),
         17: ("PERF-03", "tests/test_phase63_sparse_block_reactive.py::test_r3b_candidate_batch_coalesces_callbacks_and_isolates_failures"),
+        18: ("PERF-04", "tests/test_perf_04_native_matching.py::test_perf04_prepared_runner_reuses_and_releases_matching_scratch"),
+        19: ("PERF-04", "tests/native_event/contract/test_phase51a_v3_next_open.py::test_python_and_rust_command_outcomes_cover_replace_cancel_all_and_reject"),
+        20: ("PERF-04", "tests/test_perf_04_native_matching.py::test_perf04_public_high_churn_lifecycle_preserves_python_rust_parity"),
+        21: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation"),
+        22: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference"),
+        23: ("PERF-04", "tests/test_phase67_rust_shared_portfolio.py::test_v2_registry_normalizes_symbol_input_order_before_shared_pro_rata_execution"),
+        40: ("PERF-04", "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production"),
+        41: ("PERF-04", "tests/test_phase68_rust_package_authority.py::test_multi_currency_and_multi_venue_arbitrage_fail_closed"),
         42: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical"),
     }
     for identifier in range(1, 45):

@@ -6,7 +6,6 @@
 //! compatibility with pre-47 wheels; the PyO3 layer exposes this module under a
 //! versioned full-contract class.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::execution_model::{
@@ -17,7 +16,7 @@ use crate::generated_contracts::{
     CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE, CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
 };
 use crate::metrics_v2::{MetricContractV2, MetricFinishInputV2, OnlineMetricReducerV2};
-use crate::orders::{IndexOrderState, LifecycleIndexes, OrderArena};
+use crate::orders::{ExternalOrderAliases, IndexOrderState, LifecycleIndexes, OrderArena};
 use crate::output::{
     AuditRetentionV1, NativeAuditOutputV1, NativeCompactOutputV1, NativeEventOutputV1,
     NativeExecutionOutputV1, NativeFillOutputV1, NativePathOutputV1, NativeScoreOutputV1,
@@ -848,13 +847,21 @@ pub struct FullSession {
     // Vec<OrderState> + hot compaction path.
     orders: OrderArena<OrderState>,
     // The Python oracle resolves target_order_id through the latest command
-    // slot, including the alias created by REPLACE. Keep that indirection
-    // explicit so a later CANCEL/AMEND using the replaced target has the same
-    // lifecycle result without changing insertion priority.
-    id_to_handle: HashMap<i64, OrderHandle>,
+    // slot, including the alias created by REPLACE. The bidirectional index
+    // keeps that public behavior while terminal cleanup remains local to the
+    // released order instead of scanning every live alias.
+    order_aliases: ExternalOrderAliases,
     lifecycle_indexes: LifecycleIndexes,
     next_order_sequence: u64,
+    // Exact sequence priority remains the matching authority. This vector is
+    // caller-owned scratch populated from lifecycle indexes without a fresh
+    // allocation each bar; same-phase activated children append to it under
+    // the existing continuation semantics.
     matching_candidates: Vec<OrderHandle>,
+    // Expiry, cancel-all, parent and OCO operations need a mutable snapshot
+    // before they update lifecycle indexes. Reuse one buffer because these
+    // phases never retain concurrent snapshots.
+    lifecycle_candidates: Vec<OrderHandle>,
     /// Reused per-bar scratch; no market-volume allocation occurs in the
     /// matching loop.
     bar_volumes: Vec<f64>,
@@ -955,10 +962,11 @@ impl FullSession {
             liquidation_bar: -1,
             liquidation_reason: LIQ_NONE,
             orders: OrderArena::new(DEFAULT_MAX_LIVE_ORDERS, DEFAULT_MAX_TOTAL_ORDERS),
-            id_to_handle: HashMap::new(),
+            order_aliases: ExternalOrderAliases::default(),
             lifecycle_indexes: LifecycleIndexes::with_symbols(n_symbols),
             next_order_sequence: 0,
             matching_candidates: Vec::new(),
+            lifecycle_candidates: Vec::new(),
             bar_volumes: vec![0.0; n_symbols],
             liquidity_ledger: LiquidityLedgerV1::unlimited(n_symbols),
             step_buffers: StepBuffers::default(),
@@ -999,10 +1007,11 @@ impl FullSession {
         self.liquidation_bar = -1;
         self.liquidation_reason = LIQ_NONE;
         self.orders.clear();
-        self.id_to_handle.clear();
+        self.order_aliases.clear();
         self.lifecycle_indexes.clear();
         self.next_order_sequence = 0;
         self.matching_candidates.clear();
+        self.lifecycle_candidates.clear();
         self.bar_volumes.fill(0.0);
         self.liquidity_ledger.reset_unlimited();
         self.step_buffers.clear();
@@ -1072,7 +1081,7 @@ impl FullSession {
     /// public standard/audit report. This stays outside the per-bar hot path.
     pub fn terminal_active_order_rows(&self) -> Vec<Vec<f64>> {
         let mut buffer = ActiveOrderBuffer::default();
-        for handle in self.lifecycle_indexes.live_priority_handles() {
+        for handle in self.lifecycle_indexes.live_priority_iter() {
             if let Some(order) = self.orders.get(handle) {
                 buffer.push(order);
             }
@@ -1155,6 +1164,16 @@ impl FullSession {
         self.matching_candidates.capacity()
     }
 
+    #[must_use]
+    pub fn lifecycle_candidate_capacity(&self) -> usize {
+        self.lifecycle_candidates.capacity()
+    }
+
+    #[must_use]
+    pub fn active_external_alias_count(&self) -> usize {
+        self.order_aliases.len()
+    }
+
     pub fn release_step_buffer_capacity(&mut self, max_capacity: usize) {
         self.step_buffers.release_excess_capacity(max_capacity);
     }
@@ -1168,8 +1187,16 @@ impl FullSession {
     /// full-rebuild path because its handle generations are lifecycle state.
     pub fn release_resettable_scratch_capacity(&mut self, max_capacity: usize) {
         self.step_buffers.release_excess_capacity(max_capacity);
+        // These are only snapshots assembled around a completed phase. Clear
+        // their logical length before shrinking; otherwise a just-completed
+        // cancel-all/OCO pass can pin its full candidate capacity indefinitely.
+        self.matching_candidates.clear();
+        self.lifecycle_candidates.clear();
         if self.matching_candidates.capacity() > max_capacity {
             self.matching_candidates.shrink_to(max_capacity);
+        }
+        if self.lifecycle_candidates.capacity() > max_capacity {
+            self.lifecycle_candidates.shrink_to(max_capacity);
         }
     }
 
@@ -1644,7 +1671,7 @@ impl FullSession {
     }
 
     fn find_pending(&self, order_id: i64) -> Option<OrderHandle> {
-        let handle = *self.id_to_handle.get(&order_id)?;
+        let handle = self.order_aliases.resolve(order_id)?;
         let order = self.orders.get(handle)?;
         if (order.active || order.waiting_parent) && order.status == STATUS_PENDING {
             Some(handle)
@@ -1686,11 +1713,7 @@ impl FullSession {
             .map(Self::order_index_state)
             .ok_or_else(|| "arena lost freshly inserted order".to_owned())?;
         self.lifecycle_indexes.insert(handle, state);
-        for &alias in aliases {
-            if alias >= 0 {
-                self.id_to_handle.insert(alias, handle);
-            }
-        }
+        self.order_aliases.bind_all(handle, aliases);
         Ok(handle)
     }
 
@@ -1700,7 +1723,7 @@ impl FullSession {
     fn release_order(&mut self, handle: OrderHandle) -> Option<OrderState> {
         let order = self.orders.remove(handle).ok()?;
         self.lifecycle_indexes.remove(handle);
-        self.id_to_handle.retain(|_, mapped| *mapped != handle);
+        self.order_aliases.release(handle);
         self.terminal_orders_removed += 1;
         Some(order)
     }
@@ -1711,11 +1734,16 @@ impl FullSession {
         self.lifecycle_indexes
             .validate(|handle| self.orders.get(handle).map(Self::order_index_state))
             .map_err(str::to_owned)?;
-        for handle in self.id_to_handle.values() {
-            if !self.orders.contains(*handle) {
-                return Err("external order ID resolves to a stale handle".to_owned());
-            }
-        }
+        self.lifecycle_indexes
+            .validate_complete(
+                self.orders
+                    .iter()
+                    .map(|(handle, order)| (handle, Self::order_index_state(order))),
+            )
+            .map_err(str::to_owned)?;
+        self.order_aliases
+            .validate(|handle| self.orders.contains(handle))
+            .map_err(str::to_owned)?;
         Ok(())
     }
 
@@ -2058,13 +2086,14 @@ impl FullSession {
         }
     }
 
-    fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) -> Vec<OrderHandle> {
-        let handles = self
-            .lifecycle_indexes
-            .children_of(ExternalOrderId(parent_id));
-        self.relationship_scan_count += handles.len() as u64;
-        let mut activated = Vec::with_capacity(handles.len());
-        for handle in handles {
+    fn activate_children(&mut self, parent_id: i64, sink: &mut DetailSink<'_>) {
+        self.lifecycle_candidates.clear();
+        self.lifecycle_indexes
+            .append_children_of(ExternalOrderId(parent_id), &mut self.lifecycle_candidates);
+        self.relationship_scan_count += self.lifecycle_candidates.len() as u64;
+        let candidate_count = self.lifecycle_candidates.len();
+        for candidate_index in 0..candidate_count {
+            let handle = self.lifecycle_candidates[candidate_index];
             let Some(child) = self.orders.get(handle).copied() else {
                 continue;
             };
@@ -2086,10 +2115,12 @@ impl FullSession {
                     parent_id,
                     child.symbol as i64,
                 );
-                activated.push(handle);
+                // Preserve existing same-phase continuation semantics: a
+                // child activated by the current fill is considered after
+                // the already eligible priority snapshot, not dropped.
+                self.matching_candidates.push(handle);
             }
         }
-        activated
     }
 
     fn cancel_oco_siblings(
@@ -2101,10 +2132,14 @@ impl FullSession {
         if oco_id < 0 {
             return 0;
         }
-        let handles = self.lifecycle_indexes.oco_members(oco_id);
-        self.relationship_scan_count += handles.len() as u64;
+        self.lifecycle_candidates.clear();
+        self.lifecycle_indexes
+            .append_oco_members(oco_id, &mut self.lifecycle_candidates);
+        self.relationship_scan_count += self.lifecycle_candidates.len() as u64;
         let mut canceled = 0;
-        for handle in handles {
+        let candidate_count = self.lifecycle_candidates.len();
+        for candidate_index in 0..candidate_count {
+            let handle = self.lifecycle_candidates[candidate_index];
             let Some(sibling) = self.orders.get(handle).copied() else {
                 continue;
             };
@@ -2331,9 +2366,13 @@ impl FullSession {
 
         // GTD expiry precedes commands at the current bar. The timing index
         // visits due handles only; historical terminal orders are not scanned.
-        let due_expiry = self.lifecycle_indexes.due_expiry_handles(bar as u32);
-        self.expiry_scan_count += due_expiry.len() as u64;
-        for handle in due_expiry {
+        self.lifecycle_candidates.clear();
+        self.lifecycle_indexes
+            .append_due_expiry_handles(bar as u32, &mut self.lifecycle_candidates);
+        self.expiry_scan_count += self.lifecycle_candidates.len() as u64;
+        let expiry_count = self.lifecycle_candidates.len();
+        for candidate_index in 0..expiry_count {
+            let handle = self.lifecycle_candidates[candidate_index];
             let Some(order) = self.orders.get(handle).copied() else {
                 continue;
             };
@@ -2474,14 +2513,10 @@ impl FullSession {
                     if let Some(handle) = self.find_pending(target_id) {
                         // Preserve every historical external ID resolving to
                         // the target before terminal release removes stale
-                        // map entries. Replacement chains therefore retain
-                        // `a -> b -> c` alias semantics without keeping a
-                        // second order table or a Python-side resolver.
-                        let mut aliases = self
-                            .id_to_handle
-                            .iter()
-                            .filter_map(|(alias, mapped)| (*mapped == handle).then_some(*alias))
-                            .collect::<Vec<_>>();
+                        // entries. The reverse index makes this O(aliases of
+                        // this order), preserving `a -> b -> c` chains
+                        // without scanning all live aliases.
+                        let mut aliases = self.order_aliases.aliases_for(handle);
                         if !aliases.contains(&target_id) {
                             aliases.push(target_id);
                         }
@@ -2544,10 +2579,14 @@ impl FullSession {
                     }
                 }
                 ACTION_CANCEL_ALL => {
-                    let handles = self.lifecycle_indexes.live_priority_handles();
-                    self.relationship_scan_count += handles.len() as u64;
-                    let mut to_cancel = Vec::new();
-                    for handle in handles {
+                    self.lifecycle_candidates.clear();
+                    self.lifecycle_indexes
+                        .append_live_priority_handles(&mut self.lifecycle_candidates);
+                    self.relationship_scan_count += self.lifecycle_candidates.len() as u64;
+                    let candidate_count = self.lifecycle_candidates.len();
+                    let mut retained = 0;
+                    for candidate_index in 0..candidate_count {
+                        let handle = self.lifecycle_candidates[candidate_index];
                         let Some(order) = self.orders.get(handle) else {
                             continue;
                         };
@@ -2560,10 +2599,13 @@ impl FullSession {
                             && (code[9] < 0 || code[9] == order.group_id)
                             && (code[10] < 0 || code[10] == order.oco_id);
                         if matches {
-                            to_cancel.push(handle);
+                            self.lifecycle_candidates[retained] = handle;
+                            retained += 1;
                         }
                     }
-                    for handle in to_cancel {
+                    self.lifecycle_candidates.truncate(retained);
+                    for candidate_index in 0..retained {
+                        let handle = self.lifecycle_candidates[candidate_index];
                         if self.release_order(handle).is_some() {
                             canceled += 1;
                         }
@@ -2604,7 +2646,10 @@ impl FullSession {
             .begin_bar(&self.bar_volumes, &mut self.liquidity_ledger)?;
         // Stable monotonic sequence is priority. The index contains only
         // active orders; terminal history never participates in matching.
-        self.matching_candidates = self.lifecycle_indexes.active_priority_handles();
+        // Reusing the session-owned buffer avoids an allocation per bar.
+        self.matching_candidates.clear();
+        self.lifecycle_indexes
+            .append_active_priority_handles(&mut self.matching_candidates);
         let mut cursor = 0;
         while cursor < self.matching_candidates.len() {
             let handle = self.matching_candidates[cursor];
@@ -2763,7 +2808,7 @@ impl FullSession {
                 -1,
                 order.symbol as i64,
             );
-            let activated = self.activate_children(order.order_id, &mut sink);
+            self.activate_children(order.order_id, &mut sink);
             canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut sink);
             if fill.partial {
                 if order.tif as i64 == TIF_IOC {
@@ -2784,7 +2829,6 @@ impl FullSession {
             } else {
                 self.release_order(handle);
             }
-            self.matching_candidates.extend(activated);
             cursor += 1;
         }
 
@@ -2793,7 +2837,7 @@ impl FullSession {
             self.liquidate(bar, LIQ_AFTER_ORDER);
         }
         if output_mask & OUTPUT_ACTIVE_ORDERS != 0 {
-            for handle in self.lifecycle_indexes.live_priority_handles() {
+            for handle in self.lifecycle_indexes.live_priority_iter() {
                 if let Some(order) = self.orders.get(handle) {
                     buffers.active_orders.push(order);
                 }
@@ -4034,6 +4078,55 @@ mod tests {
         assert_eq!(engine.terminal_orders_removed, 96);
         assert!(engine.orders_capacity() <= 4);
         assert!(engine.matching_scan_count <= 96);
+        assert_eq!(engine.active_external_alias_count(), 0);
+    }
+
+    #[test]
+    fn matching_and_lifecycle_scratch_reuse_preserves_cancel_all_semantics() {
+        let mut engine = multi_bar_session(3);
+        let mut codes = Vec::new();
+        let mut values = Vec::new();
+        let mut expiry = Vec::new();
+        for order_id in 1..=8 {
+            let mut code = [0_i64; CODE_WIDTH];
+            code[0] = ACTION_PLACE;
+            code[1] = 0;
+            code[2] = SIDE_BUY;
+            code[3] = ORDER_LIMIT;
+            code[4] = TIF_GTC;
+            code[6] = order_id;
+            code[11] = ACTIVATION_IMMEDIATE;
+            codes.extend_from_slice(&code);
+            values.extend_from_slice(&[1.0, 1.0, 0.0]);
+            expiry.push(-1);
+        }
+        let placed = engine
+            .step_with_output(0, &codes, &values, &expiry, 8, false)
+            .unwrap();
+        assert_eq!(placed.fill_count, 0);
+        assert_eq!(engine.orders_len(), 8);
+        assert!(engine.matching_candidate_capacity() >= 8);
+        engine.validate_lifecycle_indexes().unwrap();
+
+        let mut cancel_all = [0_i64; CODE_WIDTH];
+        cancel_all[0] = ACTION_CANCEL_ALL;
+        cancel_all[1] = -1;
+        cancel_all[3] = -1;
+        cancel_all[8] = -1;
+        cancel_all[9] = -1;
+        cancel_all[10] = -1;
+        let canceled = engine
+            .step_with_output(1, &cancel_all, &[0.0; VALUE_WIDTH], &[-1], 1, false)
+            .unwrap();
+        assert_eq!(canceled.canceled_count, 8);
+        assert_eq!(engine.orders_len(), 0);
+        assert_eq!(engine.active_external_alias_count(), 0);
+        assert!(engine.lifecycle_candidate_capacity() >= 8);
+        engine.validate_lifecycle_indexes().unwrap();
+
+        engine.release_resettable_scratch_capacity(0);
+        assert_eq!(engine.matching_candidate_capacity(), 0);
+        assert_eq!(engine.lifecycle_candidate_capacity(), 0);
     }
 
     #[test]

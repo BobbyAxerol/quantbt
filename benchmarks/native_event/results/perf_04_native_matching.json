@@ -1,0 +1,139 @@
+{
+  "algorithm": {
+    "active_prefilter": "exact active lifecycle index ordered by stable sequence",
+    "fallback": "generic active-index scan remains the certified route",
+    "same_phase_children": "append to existing continuation queue",
+    "small_shape": "same generic exact scan; no price-index specialization is enabled"
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "a1a8a92ba5722cd6dd250d5e37761a008c5ae85ca8a8cc6a91b47e96608d63bb",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": null,
+    "git_commit": "c216935adaf6a837e59b3b86b1de479e44ee9f0c",
+    "git_dirty": true,
+    "git_status_sha256": "74b7ab8e1d7325699b06fe0c4ee148bd199800de7b7967fbea0f9442f856820a",
+    "intent_sha256": null,
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one audit parity run plus one score warmup per workload"
+  },
+  "rss_mb": {
+    "after": 187.65234375,
+    "before": 152.2890625,
+    "delta": 35.36328125,
+    "tail_spread": 0.0
+  },
+  "schema": "quantbt-perf-04-native-matching-v1",
+  "scope": "prepared static lifecycle matcher only; no generic endpoint or L2 claim",
+  "workload": {
+    "bars": 2000,
+    "high_orders": 64,
+    "repeats": 9,
+    "symbols": 1
+  },
+  "workloads": {
+    "high_churn_indexed": {
+      "bars_per_second": 41366.74398386895,
+      "command_count": 96307,
+      "commands_per_second": 1991953.5064272338,
+      "cycles": 499,
+      "matching": {
+        "active_external_alias_count": 0,
+        "expiry_scan_count": 0,
+        "lifecycle_candidate_capacity": 64,
+        "matching_candidate_capacity": 64,
+        "matching_scan_count": 95808,
+        "relationship_scan_count": 31936,
+        "released_lifecycle_candidate_capacity": 0,
+        "released_matching_candidate_capacity": 0,
+        "terminal_orders_removed": 63872
+      },
+      "median_seconds": 0.048348016,
+      "orders_per_cycle": 64,
+      "rss_mb": {
+        "samples": [
+          225.9453125,
+          225.9453125,
+          225.9453125,
+          225.9453125,
+          225.9453125
+        ],
+        "tail_spread": 0.0
+      },
+      "terminal": {
+        "canceled_count": 31936,
+        "event_count": 96307,
+        "fill_count": 0,
+        "final_equity": 20000.0,
+        "final_position_sum": 0.0,
+        "rejected_count": 0,
+        "score_audit_parity": true
+      }
+    },
+    "small_exact_scan": {
+      "bars_per_second": 1973468.6869723436,
+      "command_count": 1996,
+      "commands_per_second": 1969521.749598399,
+      "cycles": 499,
+      "matching": {
+        "active_external_alias_count": 0,
+        "expiry_scan_count": 0,
+        "lifecycle_candidate_capacity": 4,
+        "matching_candidate_capacity": 4,
+        "matching_scan_count": 1497,
+        "relationship_scan_count": 499,
+        "released_lifecycle_candidate_capacity": 0,
+        "released_matching_candidate_capacity": 0,
+        "terminal_orders_removed": 998
+      },
+      "median_seconds": 0.001013444,
+      "orders_per_cycle": 1,
+      "rss_mb": {
+        "samples": [
+          157.2265625,
+          157.2265625,
+          157.2265625,
+          157.2265625,
+          157.2265625
+        ],
+        "tail_spread": 0.0
+      },
+      "terminal": {
+        "canceled_count": 499,
+        "event_count": 1996,
+        "fill_count": 0,
+        "final_equity": 20000.0,
+        "final_position_sum": 0.0,
+        "rejected_count": 0,
+        "score_audit_parity": true
+      }
+    }
+  }
+}

@@ -846,6 +846,28 @@ R1 remains A3 explicit. `backend="auto"` continues to use the Python callback
 route. Sparse wakes, block intent, candidate batches, and any general reactive
 auto-promotion are later contracts, not fallbacks hidden inside R1.
 
+### PERF-04 lifecycle matcher specialization
+
+The static lifecycle matcher keeps `FullSession` and its `OrderArena<OrderState>`
+as the single account/order authority. The active candidate source is the exact
+stable-sequence `LifecycleIndexes.active_by_sequence` index. Session-owned
+matching and lifecycle scratch buffers are reused across bars and can be
+released explicitly after a run; this removes allocation/alias-cleanup work
+without changing fill priority, same-phase child continuation, OCO, expiry, or
+cancel-all semantics.
+
+The bidirectional `ExternalOrderAliases` index retains replacement-chain public
+IDs while terminal cleanup visits only aliases owned by the released order.
+`validate_complete(...)` compares the index with the full arena in test/debug
+validation, so a missing candidate or priority mutation fails rather than
+silently changing a fill. Direct target, shared portfolio, and bounded package
+paths retain their own typed contracts and shared accounting primitives; none
+pretends to emit generic order-lifecycle traces when it does not create orders.
+
+See [PERF-04 native matching](performance/perf_04_native_matching.md) and its
+specialization registry for supported shapes, evidence, rollback, and the
+explicit exclusion of L2, queue-priority, and venue-native matching.
+
 ### Phase 75 Reactive Scalar Retention And Rust Hot State
 
 The prepared scalar surface applies the same retention policy to R1 every-bar,

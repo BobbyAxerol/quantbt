@@ -103,40 +103,40 @@
       "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_04_native_matching.py::test_perf04_prepared_runner_reuses_and_releases_matching_scratch",
       "id": "AC-18",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/native_event/contract/test_phase51a_v3_next_open.py::test_python_and_rust_command_outcomes_cover_replace_cancel_all_and_reject",
       "id": "AC-19",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_04_native_matching.py::test_perf04_public_high_churn_lifecycle_preserves_python_rust_parity",
       "id": "AC-20",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation",
       "id": "AC-21",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference",
       "id": "AC-22",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase67_rust_shared_portfolio.py::test_v2_registry_normalizes_symbol_input_order_before_shared_pro_rata_execution",
       "id": "AC-23",
       "owner": "PERF-04",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF04"
     },
     {
       "evidence": null,
@@ -235,16 +235,16 @@
       "state": "OWNED_BY_LATER_PHASE"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production",
       "id": "AC-40",
-      "owner": "PERF-07",
-      "state": "OWNED_BY_LATER_PHASE"
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_multi_currency_and_multi_venue_arbitrage_fail_closed",
       "id": "AC-41",
-      "owner": "PERF-07",
-      "state": "OWNED_BY_LATER_PHASE"
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
     },
     {
       "evidence": "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical",
@@ -305,19 +305,28 @@
     },
     {
       "evidence": [
-        "src/quantbt/backends/native_event.py"
+        "rust/crates/quantbt-engine/src/session.rs",
+        "rust/crates/quantbt-engine/src/orders/indexes.rs",
+        "rust/crates/quantbt-engine/src/orders/aliases.rs",
+        "tests/test_perf_04_native_matching.py",
+        "benchmarks/native_event/benchmark_perf04_native_matching.py"
       ],
       "id": "AP-05",
       "owner": "PERF-04",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
-        "src/quantbt/backends/native_vectorized.py"
+        "rust/crates/quantbt-execution/src/target.rs",
+        "rust/crates/quantbt-execution/src/package.rs",
+        "tests/test_phase66_rust_target_vectorized.py",
+        "tests/test_phase67_rust_shared_portfolio.py",
+        "tests/test_phase68_rust_package_authority.py",
+        "benchmarks/native_event/registries/perf_04_specialization_registry_v1.json"
       ],
       "id": "AP-06",
       "owner": "PERF-04",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -511,7 +520,7 @@
       ],
       "id": "static_orders",
       "metrics_result": "native-event ledger -> BacktestResult/report adapters",
-      "optimization_target": "AP-04 matcher/specialization later; PERF-01 records baseline only",
+      "optimization_target": "AP-05 exact lifecycle matching, reusable scratch, and bounded aliases verified by PERF-04",
       "oracle_tests": [
         "tests/native_event/contract/test_phase54b2_rust_first_routes.py"
       ],
@@ -572,7 +581,7 @@
       ],
       "id": "target_signal",
       "metrics_result": "vectorized account result -> BacktestResult/report adapters",
-      "optimization_target": "AP-06 target specialization later",
+      "optimization_target": "AP-06 direct-target specialization verified by PERF-04; preserve its distinct no-order-arena contract",
       "oracle_tests": [
         "tests/test_phase66_rust_target_vectorized.py"
       ],
@@ -639,7 +648,7 @@
       ],
       "id": "static_dca",
       "metrics_result": "account result -> standard metrics and audit adapters",
-      "optimization_target": "AP-04/AP-05 high-churn work stays downstream",
+      "optimization_target": "AP-05 static lifecycle matching is verified; DCA/grid remains on its declared structured-order contract",
       "oracle_tests": [
         "tests/test_phase47a_grid_adapter.py"
       ],
@@ -741,7 +750,7 @@
       ],
       "id": "bounded_package_arbitrage",
       "metrics_result": "package result, residuals and account result -> report adapters",
-      "optimization_target": "AP-04/AP-05 package admission and matcher work later",
+      "optimization_target": "AP-06 bounded package authority is verified; unsupported venue contracts remain fail-closed",
       "oracle_tests": [
         "tests/test_phase68_rust_package_authority.py"
       ],
@@ -775,7 +784,7 @@
       ],
       "id": "intrabar",
       "metrics_result": "intrabar account path -> standard metrics and audit adapters",
-      "optimization_target": "AP-06 specialization is measured before any promotion",
+      "optimization_target": "AP-06 direct target specialization is verified; intrabar remains a distinct declared contract",
       "oracle_tests": [
         "tests/test_phase69_rust_intrabar_authority.py"
       ],

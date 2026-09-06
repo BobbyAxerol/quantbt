@@ -107,33 +107,81 @@ impl LifecycleIndexes {
 
     #[must_use]
     pub fn active_priority_handles(&self) -> Vec<OrderHandle> {
-        self.active_by_sequence.values().copied().collect()
+        let mut handles = Vec::with_capacity(self.active_by_sequence.len());
+        self.append_active_priority_handles(&mut handles);
+        handles
     }
 
     #[must_use]
     pub fn live_priority_handles(&self) -> Vec<OrderHandle> {
-        self.live_by_sequence.values().copied().collect()
+        let mut handles = Vec::with_capacity(self.live_by_sequence.len());
+        self.append_live_priority_handles(&mut handles);
+        handles
     }
 
     #[must_use]
     pub fn due_expiry_handles(&self, bar: u32) -> Vec<OrderHandle> {
-        self.expiry_by_bar
-            .range(..=bar)
-            .flat_map(|(_, handles)| handles.iter().copied())
-            .collect()
+        let mut handles = Vec::new();
+        self.append_due_expiry_handles(bar, &mut handles);
+        handles
     }
 
     #[must_use]
     pub fn children_of(&self, parent_id: ExternalOrderId) -> Vec<OrderHandle> {
-        self.children_by_parent
-            .get(&parent_id)
-            .cloned()
-            .unwrap_or_default()
+        let mut handles = Vec::new();
+        self.append_children_of(parent_id, &mut handles);
+        handles
     }
 
     #[must_use]
     pub fn oco_members(&self, oco_id: i64) -> Vec<OrderHandle> {
-        self.oco_groups.get(&oco_id).cloned().unwrap_or_default()
+        let mut handles = Vec::new();
+        self.append_oco_members(oco_id, &mut handles);
+        handles
+    }
+
+    /// Append priority-ordered active handles to caller-owned scratch.
+    ///
+    /// `FullSession` clears and reuses this buffer once per bar, avoiding a
+    /// fresh candidate allocation while preserving the exact sequence order.
+    pub fn append_active_priority_handles(&self, output: &mut Vec<OrderHandle>) {
+        output.extend(self.active_by_sequence.values().copied());
+    }
+
+    pub fn active_priority_iter(&self) -> impl Iterator<Item = OrderHandle> + '_ {
+        self.active_by_sequence.values().copied()
+    }
+
+    /// Append priority-ordered live handles to caller-owned scratch.
+    pub fn append_live_priority_handles(&self, output: &mut Vec<OrderHandle>) {
+        output.extend(self.live_by_sequence.values().copied());
+    }
+
+    pub fn live_priority_iter(&self) -> impl Iterator<Item = OrderHandle> + '_ {
+        self.live_by_sequence.values().copied()
+    }
+
+    /// Append only expiry entries due at `bar` to caller-owned scratch.
+    pub fn append_due_expiry_handles(&self, bar: u32, output: &mut Vec<OrderHandle>) {
+        output.extend(
+            self.expiry_by_bar
+                .range(..=bar)
+                .flat_map(|(_, handles)| handles.iter().copied()),
+        );
+    }
+
+    /// Append children for one parent to caller-owned scratch.
+    pub fn append_children_of(&self, parent_id: ExternalOrderId, output: &mut Vec<OrderHandle>) {
+        if let Some(handles) = self.children_by_parent.get(&parent_id) {
+            output.extend(handles.iter().copied());
+        }
+    }
+
+    /// Append one OCO group to caller-owned scratch.
+    pub fn append_oco_members(&self, oco_id: i64, output: &mut Vec<OrderHandle>) {
+        if let Some(handles) = self.oco_groups.get(&oco_id) {
+            output.extend(handles.iter().copied());
+        }
     }
 
     #[must_use]
@@ -193,6 +241,39 @@ impl LifecycleIndexes {
             if state.active != self.active_by_sequence.contains_key(&state.sequence) {
                 return Err("active state missing from priority index");
             }
+        }
+        Ok(())
+    }
+
+    /// Debug/test differential guard against a reference full arena scan.
+    ///
+    /// The supplied iterator is the arena's authoritative live set. This
+    /// catches a missing indexed candidate and an accidental priority drift;
+    /// neither error can be detected by checking index internals alone.
+    pub fn validate_complete<I>(&self, states: I) -> Result<(), &'static str>
+    where
+        I: IntoIterator<Item = (OrderHandle, IndexOrderState)>,
+    {
+        let expected: HashMap<_, _> = states.into_iter().collect();
+        if expected.len() != self.states.len() {
+            return Err("lifecycle index live-set cardinality disagrees with arena");
+        }
+        for (&handle, &state) in &expected {
+            if self.states.get(&handle) != Some(&state) {
+                return Err("lifecycle index state disagrees with arena");
+            }
+        }
+        let mut reference_active = expected
+            .iter()
+            .filter_map(|(&handle, state)| state.active.then_some((state.sequence, handle)))
+            .collect::<Vec<_>>();
+        reference_active.sort_unstable_by_key(|(sequence, _)| *sequence);
+        let reference_active = reference_active
+            .into_iter()
+            .map(|(_, handle)| handle)
+            .collect::<Vec<_>>();
+        if self.active_priority_handles() != reference_active {
+            return Err("active priority index disagrees with full arena scan");
         }
         Ok(())
     }
@@ -297,6 +378,41 @@ mod tests {
             indexes
                 .validate(|handle| states.get(&handle).copied())
                 .is_ok()
+        );
+        assert!(
+            indexes
+                .validate_complete(states.iter().map(|(&handle, &state)| (handle, state)))
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn complete_validator_detects_missing_candidate_and_priority_mutation() {
+        let first = OrderHandle {
+            slot: 0,
+            generation: 0,
+        };
+        let second = OrderHandle {
+            slot: 1,
+            generation: 0,
+        };
+        let mut indexes = LifecycleIndexes::with_symbols(1);
+        indexes.insert(first, state(3, true));
+        indexes.insert(second, state(4, true));
+        let expected = HashMap::from([(first, state(3, true)), (second, state(4, true))]);
+        assert!(
+            indexes
+                .validate_complete(expected.iter().map(|(&handle, &state)| (handle, state)))
+                .is_ok()
+        );
+
+        // This is the failure a broad-phase optimization must never hide:
+        // the arena still has an eligible order but the matcher candidate
+        // index no longer contains it.
+        indexes.active_by_sequence.remove(&3);
+        assert_eq!(
+            indexes.validate_complete(expected.iter().map(|(&handle, &state)| (handle, state))),
+            Err("active priority index disagrees with full arena scan")
         );
     }
 }

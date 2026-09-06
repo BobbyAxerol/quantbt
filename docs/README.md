@@ -44,6 +44,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Review the V1.1 independent oracle, execution-clock, accounting, and trace foundation | [Canonical Trace V2](contracts/v1_1_canonical_trace_v2.md) |
 | Understand safe native session reuse, reset scopes, retained outputs, and derived-account invalidation | [PERF-02 session reuse](contracts/perf_02_session_reuse.md) |
 | Choose dynamic versus run-stable reactive callback binding and inspect command-boundary telemetry | [PERF-03 reactive boundary](performance/perf_03_reactive_boundary.md) |
+| Inspect exact native lifecycle matching, scratch reuse, aliases, and certified specialization boundaries | [PERF-04 native matching](performance/perf_04_native_matching.md) |
 | Use the explicit Rust same-close target, static-DCA, or prepared target-WFO contract | [V1.1 Direct Target Execution Clock](contracts/v1_1_target_execution_clock.md) |
 | Replay supplied fills with Rust-owned linear accounting, funding, margin, and liquidation evidence | [Linear Accounting And FillReplay V2](contracts/v1_1_linear_accounting_fill_replay_v2.md) |
 | Understand shared execution costs, online metrics, and lazy native score/compact/audit results | [Execution, Metrics, And Native Result V2](contracts/v1_1_execution_metrics_result.md) |

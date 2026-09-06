@@ -4347,6 +4347,14 @@ impl ReactiveNumericRunnerCore {
             self.inner.matching_candidate_capacity(),
         )?;
         payload.set_item(
+            "lifecycle_candidate_capacity",
+            self.inner.lifecycle_candidate_capacity(),
+        )?;
+        payload.set_item(
+            "active_external_alias_count",
+            self.inner.active_external_alias_count(),
+        )?;
+        payload.set_item(
             "order_arena_retired_slots",
             self.inner.order_arena_retired_slots(),
         )?;

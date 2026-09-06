@@ -18175,7 +18175,7 @@ work, not hidden requirements for this phase.
 
 ### Phase PERF-04 - Native Matching, Layout, And Contract Specialization
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: IMPLEMENTED_VERIFIED (2026-09-06).**
 **Goal:** remove measured native matching/account/kernel work while preserving
 all declared priorities, transactions and unsupported-domain behavior.
 **Proposal owners:** AP-05 and AP-06; consumes AP-04.
@@ -18185,7 +18185,7 @@ all declared priorities, transactions and unsupported-domain behavior.
 [6.5: domain tests before speed](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#65-pf-045--domain-tests-trước-throughput) and
 [11.2: non-negotiable hard gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#112-hard-gates-không-được-trade-off).
 
-**Implementation sequence (all pending):**
+**Implementation sequence (completed):**
 
 1. PF-04.1, [6.1: existing-index prefilter](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#61-pf-041--broad-phase-filter-dùng-indexes-hiện-có): profile examined,
    eligible and active orders plus maintenance cost. Use existing arena,
@@ -18243,6 +18243,49 @@ portfolio/package/target usage and rollback docs.
 account-cache stale state, incomplete transaction rollback or duplicated
 authority at exit. Retain the baseline scan/generic certified loop and
 compatible schemas wherever measured specialization is not beneficial.
+
+**Implementation record (PERF-04):**
+
+1. **PF-04.1 / PF-04.2:** `FullSession` now retains matching and lifecycle
+   candidate scratch instead of allocating a candidate vector per bar/operation.
+   `LifecycleIndexes` appends its exact active/live/expiry/parent/OCO members
+   into that scratch in existing stable-sequence order. Same-phase child orders
+   append to the current continuation queue exactly as before. The new
+   `validate_complete(...)` debug/test oracle compares the index against a full
+   arena traversal and rejects a missing candidate or priority mutation.
+   `ExternalOrderAliases` provides one bidirectional live alias authority:
+   replacement chains retain last-writer-wins public behavior, while terminal
+   cleanup is proportional to aliases owned by the released order.
+2. **PF-04.3:** the specialization registry
+   [`perf_04_specialization_registry_v1.json`](../benchmarks/native_event/registries/perf_04_specialization_registry_v1.json)
+   records the existing certified shapes: direct target, static command tape,
+   reactive compact, shared-account portfolio, and bounded package. It states
+   precisely which prepare-time values may be hoisted and which account/market
+   values remain dynamic. No duplicate accounting formula or second order arena
+   was introduced.
+3. **PF-04.4 / PF-04.5:** the new lifecycle corpus verifies public Python/Rust
+   parity for high-churn place/amend/replace/cancel-all, score/audit parity,
+   scratch release/reset, and zero residual aliases. Existing independent Phase
+   51/54A.5, 66, 67, and 68 corpora retain next-open/gap/stop-limit, direct
+   target, shared-account priority/rollback, actual-fill hedge, funding,
+   liquidation, package atomicity, and fail-closed unsupported-domain evidence.
+
+**Measured evidence:**
+[`benchmark_perf04_native_matching.py`](../benchmarks/native_event/benchmark_perf04_native_matching.py)
+ran the prepared one-symbol 2,000-bar lifecycle fixture with nine score repeats
+after an audit-parity warmup. The 64-live-order churn case processed `96,307`
+commands in about `48.3 ms` (`1.99M commands/s`); the one-order control
+processed `1,996` commands in about `1.01 ms` (`1.97M commands/s`). Both had exact
+score/audit terminal account parity, zero live aliases after cancel-all, and
+zero timed RSS tail spread. This is scoped matcher evidence only, not a public
+endpoint, WFO, generic grid, L2, or venue-native speed claim.
+
+**Exit disposition:** AP-05 and AP-06 plus AC-18 through AC-23 and AC-40/41
+are `IMPLEMENTED_VERIFIED` for their declared static lifecycle/direct
+target/shared-account/bounded-package contracts. The documented generic
+lifecycle matcher and compatible output schema remain the rollback route.
+L2/order-book depth, queue priority, venue-native matching, cross-margin, and
+new order-domain semantics remain outside PERF-04 rather than hidden debt.
 
 ### Phase PERF-05 - WFO Evaluation Reuse, Streaming Analysis, And Locality
 
