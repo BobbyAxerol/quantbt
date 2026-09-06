@@ -14,6 +14,7 @@ from ..core.runtime_governance import (
     RuntimeCanceledError,
     RuntimeCancellationV1,
 )
+from ..core.research_audit import ResearchRetentionPlanV1, build_walkforward_research_audit
 from ..strategies.reactive_wfo import (
     PreparedReactiveWfoStrategyAdapterV1,
     ReactiveWfoTaskV1,
@@ -387,6 +388,64 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     "candidate_batch": dict(self._candidate_batch_metadata),
                 },
             )
+            retention_plan = ResearchRetentionPlanV1.from_config(self.config)
+            requested_scope = str(retention_plan.financial_scope)
+            declared_scope = dict(self.config.metadata or {}).get("financial_retention_scope")
+            if declared_scope is not None and str(declared_scope).lower().strip() != "segmented_reset_flat_execution":
+                raise ReactiveWalkForwardUnsupported(
+                    "reactive WFO has reset-flat fold accounts; financial_retention_scope must be "
+                    "'segmented_reset_flat_execution' when declared explicitly"
+                )
+            retention_plan = ResearchRetentionPlanV1(
+                financial_retention=retention_plan.financial_retention,
+                research_retention=retention_plan.research_retention,
+                financial_scope="segmented_reset_flat_execution",
+                chunk_rows=retention_plan.chunk_rows,
+                max_retained_chunks=retention_plan.max_retained_chunks,
+                max_materialized_frames=retention_plan.max_materialized_frames,
+            )
+            reactive_result.metadata["financial_retention_scope"] = retention_plan.financial_scope
+            reactive_result.metadata["financial_retention_scope_requested"] = requested_scope
+            audit_requested = (
+                retention_plan.research_retention != "none"
+                or retention_plan.financial_retention != "score"
+            )
+            if audit_requested:
+                audit_trial_records = (
+                    engine._research_full_trial_records
+                    if retention_plan.research_retention == "full_trial_ledger"
+                    and engine._research_full_trial_records
+                    else trial_records
+                )
+                audit_candidate_records = (
+                    engine._research_full_candidate_records
+                    if retention_plan.research_retention == "full_trial_ledger"
+                    and engine._research_full_candidate_records
+                    else candidate_records
+                )
+                research_audit = build_walkforward_research_audit(
+                    config=self.config,
+                    result_metadata=reactive_result.metadata,
+                    param_ranges=param_ranges,
+                    trial_records=audit_trial_records,
+                    candidate_records=audit_candidate_records,
+                    selected_record=selected,
+                    folds=folds,
+                    params_by_fold=params_by_fold,
+                    result_kind="reactive_wfo_segmented_reset_flat",
+                    plan=retention_plan,
+                )
+                research_audit.finalize_segmented_financial(final_rows)
+                reactive_result.metadata["research_audit"] = research_audit
+                reactive_result.metadata["research_audit_summary"] = research_audit.metadata()
+            else:
+                reactive_result.metadata["research_audit"] = None
+                reactive_result.metadata["research_audit_summary"] = {
+                    "schema": "quantbt-research-audit-v1",
+                    "enabled": False,
+                    "retention": retention_plan.metadata(),
+                    "reason": "research_retention='none' and financial_retention='score'",
+                }
             return reactive_result
         finally:
             self._shutdown_process_worker()
@@ -399,6 +458,13 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 # runtime provenance so callers see the actual deterministic
                 # post-run ownership state rather than a mid-run snapshot.
                 reactive_result.metadata["runtime"] = self.runtime_metadata()
+                research_audit = reactive_result.metadata.get("research_audit")
+                if research_audit is not None:
+                    research_audit.finalize_runtime(
+                        runtime=reactive_result.metadata["runtime"],
+                        performance=None,
+                    )
+                    reactive_result.metadata["research_audit_summary"] = research_audit.metadata()
 
     def runtime_metadata(self) -> dict[str, object]:
         worker_metadata = (
@@ -481,6 +547,21 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             fold_seed = _derive_fold_seed(int(self.config.random_seed), int(fold.fold_id))
             nested_mode1 = schedule == "per_fold_causal" and mode == "mode_1_decay"
             inner_folds = _build_inner_folds(fold, self.config) if nested_mode1 else []
+            # This metadata is captured only by the opt-in cold-path research
+            # ledger before public trial compaction. It cannot feed selection,
+            # execution, candidate order, or a reactive strategy callback.
+            research_context = {
+                "optimization_schedule": schedule,
+                "schedule_fold_id": int(fold.fold_id),
+                "study_id": int(fold.fold_id),
+                "fold_seed": int(fold_seed),
+                "selection_data_start": fold.train_start,
+                "selection_data_end": fold.train_end,
+                "test_start": fold.test_start,
+                "test_end": fold.test_end,
+                "inner_fold_count": int(len(inner_folds)),
+                "reactive_wfo": True,
+            }
             selected, fold_trials, fold_candidates = engine.optimize_params(
                 data=self.data,
                 folds=inner_folds if nested_mode1 else [fold],
@@ -488,6 +569,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 random_seed=fold_seed,
                 evaluate_oos_candidates=schedule == "per_fold_decay" or nested_mode1,
                 study_id=int(fold.fold_id),
+                research_context=research_context,
             )
             # Outer OOS is always a cold realization with the already frozen
             # candidate.  In per_fold_decay it reproduces the same declared

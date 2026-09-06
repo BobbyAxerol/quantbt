@@ -305,6 +305,50 @@ def test_phase76_reactive_wfo_keeps_absolute_clock_and_reset_flat_score_audit_pa
     runtime.close()
 
 
+def test_phase76_reactive_wfo_opt_in_research_audit_keeps_reset_flat_financial_scope():
+    data = _bars()
+    config = WalkForwardConfig(
+        **{
+            **_config(mode="mode_1_decay").__dict__,
+            "optimization_schedule": "per_fold_decay",
+            "optuna_trials": 2,
+            "metadata": {
+                "research_retention": "full_trial_ledger",
+                "financial_retention": "audit",
+                "research_audit_chunk_rows": 2,
+            },
+        }
+    )
+    runtime = _endpoint(data).prepare_reactive_walk_forward(
+        data=data,
+        strategy_factory=_ReactiveFactory(),
+        walkforward_config=config,
+        symbols=["BTC"],
+    )
+    try:
+        result = runtime.backtest(param_ranges={"direction": [-1.0, 1.0]})
+    finally:
+        runtime.close()
+
+    audit = result.metadata["research_audit"]
+    assert audit is not None
+    assert result.metadata["financial_retention_scope"] == "segmented_reset_flat_execution"
+    financial = audit.metadata()["financial"]
+    assert financial["continuous_equity_available"] is False
+    assert financial["financial_retention"] == "audit"
+    path = audit.to_pandas("financial_path")
+    assert len(path) == sum(len(item.result.equity) for item in result.fold_results)
+    assert set(path["fold_id"].astype(int)) == {int(item.fold_id) for item in result.fold_results}
+    full_trials = audit.legacy_exports()["trial_table_full"]
+    assert any(bool(value) for value in full_trials["fold_metrics"])
+    contexts = audit.to_pandas("trials")["selection_metadata"].tolist()
+    expected_folds = {int(item.fold_id) for item in result.fold_results}
+    assert {int(item["schedule_fold_id"]) for item in contexts} == expected_folds
+    assert {int(item["study_id"]) for item in contexts} == expected_folds
+    assert all(item["reactive_wfo"] is True for item in contexts)
+    assert not audit.to_pandas("financial_fills").empty
+
+
 def test_phase76_reactive_wfo_rejects_sbb_and_non_reset_account_policy_before_execution():
     data = _bars()
     endpoint = _endpoint(data)

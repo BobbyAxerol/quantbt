@@ -2764,9 +2764,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 256152,
+      "bytes": 259192,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+      "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
     },
     "guide": {
       "bytes": 144542,
@@ -2786,7 +2786,7 @@
     "public_api_inventory": {
       "bytes": 17902,
       "path": "contracts/generated_public_api_inventory.json",
-      "sha256": "a281b920fb99477b773340ee46c64401aa6f229c4fc1560975353341415947b2"
+      "sha256": "407bf69c9e09462bc4899c9b97be04cf8912dc087786e5bb212d007b3b0cfaf2"
     }
   }
 }

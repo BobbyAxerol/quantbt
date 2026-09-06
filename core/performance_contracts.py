@@ -17,6 +17,8 @@ from threading import Lock
 from time import perf_counter_ns
 from typing import Any, Iterator, Mapping
 
+from .research_audit import ResearchRetentionPlanV1
+
 
 REQUIRED_COMPUTATION_PLAN_SCHEMA_V1 = "quantbt-required-computation-plan-v1"
 EXCLUSIVE_WORK_PROFILER_SCHEMA_V1 = "quantbt-exclusive-work-profiler-v1"
@@ -233,6 +235,7 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
     custom_requirements = metadata.get("custom_metric_requirements", _MISSING)
     opaque_custom_metric = custom_requirements is not _MISSING and not isinstance(custom_requirements, Mapping)
     compact_ledger = bool(metadata.get("compact_trial_ledger", True))
+    retention_plan = ResearchRetentionPlanV1.from_config(config)
 
     observation_kinds = ["bar_close_equity", "return_sample", "trade_count", "selection_metric"]
     intermediate_paths = ["terminal_account_snapshot", "return_observation_stream", "candidate_fold_metric_rows"]
@@ -276,6 +279,10 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
         "trial_ledger_compact" if compact_ledger else "trial_ledger_full",
         "candidate_ledger",
     ]
+    if retention_plan.research_retention != "none" or retention_plan.financial_retention != "score":
+        sinks.append("columnar_research_audit")
+    if retention_plan.financial_retention != "score":
+        sinks.append(f"selected_financial_{retention_plan.financial_retention}")
     if bool(getattr(config, "optuna_trials", 0)):
         sinks.append("pruner_checkpoint_stream")
     return RequiredComputationPlanV1(
@@ -283,8 +290,8 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
         optimization_mode=mode,
         optimization_schedule=schedule,
         scoring_backend=scoring_backend,
-        financial_retention="candidate_score_plus_final_endpoint_account",
-        research_retention="compact_trial_ledger" if compact_ledger else "full_trial_ledger",
+        financial_retention=retention_plan.financial_retention,
+        research_retention=retention_plan.research_retention,
         required_observation_kinds=tuple(observation_kinds),
         required_intermediate_paths=tuple(intermediate_paths),
         reducers=tuple(reducers),

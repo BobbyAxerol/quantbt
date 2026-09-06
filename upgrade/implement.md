@@ -18444,7 +18444,7 @@ parts of this cache contract.
 
 ### Phase PERF-06 - Columnar Research Audit, Retention, And Compatibility
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: COMPLETE (2026-09-06); AP-10 is IMPLEMENTED_VERIFIED.**
 **Goal:** reduce object/serialization and retained-memory cost while preserving
 requested financial outputs and complete research interpretation.
 **Proposal owner:** AP-10; integrates AP-01/AP-07/AP-11.
@@ -18522,6 +18522,57 @@ selection provenance and original versus reconstructed audit.
 reuse, unbounded queue or unsupported durability promise at exit. Restore the
 existing serializer/sink with the same requested retention; do not disable
 audit as rollback. Cross-domain combined qualification belongs to PERF-07.
+
+**Implementation record (PERF-06):**
+
+1. Added the versioned `ResearchRetentionPlanV1` contract with independent
+   `financial_retention={score,compact,audit}` and
+   `research_retention={none,selected_only,full_trial_ledger}` axes. Defaults
+   remain `score/none`, so existing WFO callers neither retain a sidecar nor
+   pay an allocation cost without opting in.
+2. Added an immutable, typed NumPy SoA research sidecar. The codec preserves
+   exact logical float, timestamp, range, tuple, mapping, category-order and
+   conditional-space values; it rejects unsupported values instead of using
+   an arbitrary `repr`. `research_audit.py` owns the compact codec/writer and
+   `research_audit_artifact.py` owns cold-path artifact/manifest/export work,
+   keeping both owned modules below the architecture size gate.
+3. Added immutable run/search-space/instrument manifests, stable logical
+   digests, bounded idempotent chunks, lazy defensive pandas/legacy exports,
+   explicit cancellation/fault/completion metadata, and truthful
+   `crash_durable="not_provided"` semantics. Full audit only stores original
+   selected-execution evidence; an active route without an original fill
+   ledger raises rather than reconstructing a fictional lifecycle record.
+4. Wired the sidecar through normal and reactive WFO. Per-fold static studies
+   retain their real study/fold/seed/boundary identities before compact public
+   tables are constructed. Reactive reset-flat runs retain independent
+   segments and never claim a synthetic compounded audit curve.
+5. Public surface/docs: `QuantBTEndpoint.research_audit`, result metadata,
+   [PERF-06 research-audit guide](../docs/performance/perf_06_research_audit.md),
+   endpoint reference, README, benchmark guide, traceability mapping AP-10 and
+   AC-35..AC-39.
+
+**Evidence and exit gate:**
+
+- Focused WFO/reuse/reactive/audit corpus: `40 passed, 3 skipped`.
+- Full local regression excluding environment-dependent real-data lanes:
+  `1236 passed, 25 skipped`; module ownership, source-mirror, public API,
+  V1.1 baseline and PERF traceability checks pass. Rust `cargo fmt --check`
+  and strict workspace clippy pass.
+- `benchmark_perf06_research_audit.py --bars 2048 --trials 16 --repeats 5`
+  passed exact public/equity/position/selected-parameter parity for all five
+  WFO modes. Full-ledger retention overhead was deliberately reported as
+  transparency cost: Mode 1 `+26.92%`, Mode 2 `+16.62%`, Mode 3 `+32.98%`,
+  Mode 4 `+18.84%`, Mode 5 `+43.79%`; owned ledgers were bounded to
+  `89,643`–`436,534` bytes with `0.000`–`0.258 MiB` paired warm RSS delta.
+  The slow-sink probe confirmed owned synchronous backpressure and made no
+  crash-durability claim.
+
+**Exit disposition:** AP-10 is `IMPLEMENTED_VERIFIED`. There is no unresolved
+PERF-06 correctness, compatibility, ownership, or durability debt. A request
+for `financial_retention="audit"` on a route that does not expose original
+fills is an explicit rejected capability by design, not a fallback or
+technical debt. PERF-07 remains the separate combined/wheel qualification
+phase.
 
 ### Phase PERF-07 - Combined Qualification, Build Tuning, And Phase 78 Handoff
 

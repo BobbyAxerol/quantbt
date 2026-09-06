@@ -205,34 +205,34 @@
       "state": "OWNED_BY_LATER_PHASE"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_dynamic_conditional_space_is_observed_only_and_keeps_category_order",
       "id": "AC-35",
       "owner": "PERF-06",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF06"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes",
       "id": "AC-36",
       "owner": "PERF-06",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF06"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes",
       "id": "AC-37",
       "owner": "PERF-06",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF06"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_full_trial_ledger_keeps_full_fold_metrics_while_public_table_stays_compact",
       "id": "AC-38",
       "owner": "PERF-06",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF06"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_columnar_codec_is_immutable_exact_and_never_uses_repr_identity",
       "id": "AC-39",
       "owner": "PERF-06",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF06"
     },
     {
       "evidence": "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production",
@@ -363,11 +363,17 @@
     },
     {
       "evidence": [
-        "src/quantbt/core/runtime_governance.py"
+        "src/quantbt/core/research_audit.py",
+        "src/quantbt/core/research_audit_artifact.py",
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/reactive_wfo.py",
+        "tests/test_perf_06_research_audit.py",
+        "benchmarks/native_event/benchmark_perf06_research_audit.py",
+        "docs/performance/perf_06_research_audit.md"
       ],
       "id": "AP-10",
       "owner": "PERF-06",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -391,7 +397,7 @@
     "endpoint": {
       "exists": true,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+      "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
     },
     "identity_mode": "content-addressed source anchors; runtime identity captured separately",
     "measurement_contract_tool": {
@@ -407,12 +413,12 @@
     "performance_contracts": {
       "exists": true,
       "path": "src/quantbt/core/performance_contracts.py",
-      "sha256": "618c0d9cb1d1ee96830121f746d7cc91633f861b0616f3a3376544d14043b29c"
+      "sha256": "e364c8e4a0e7e36d751bb34f9a430f368da4317d9d46f124c0f67eb137b19f4d"
     },
     "walkforward": {
       "exists": true,
       "path": "src/quantbt/walkforward.py",
-      "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+      "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
     }
   },
   "benchmark_classes": [
@@ -539,7 +545,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -572,7 +578,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -600,7 +606,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -633,7 +639,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -667,7 +673,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -702,7 +708,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -736,7 +742,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -769,7 +775,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -803,7 +809,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
@@ -836,12 +842,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
         },
         {
           "exists": true,
@@ -869,12 +875,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
         }
       ]
     },
@@ -897,12 +903,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
         }
       ]
     },
@@ -925,12 +931,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
         },
         {
           "exists": true,
@@ -958,12 +964,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
+          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
         }
       ]
     },
@@ -987,7 +993,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
+          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
         },
         {
           "exists": true,

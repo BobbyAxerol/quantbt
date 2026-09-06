@@ -3206,6 +3206,39 @@ the full mode/schedule matrix, fallback rules, W0/W1/W2 contract, and
 benchmark scope. See [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md)
 for the run-local terminal-metric reuse eligibility and audit metadata.
 
+### Optional Columnar Research Audit
+
+Walk-forward defaults retain the existing public trial/candidate tables and no
+additional sidecar. An explicit research request separates full optimizer
+provenance from selected-final financial retention:
+
+```python
+bt = QuantBTEndpoint.walk_forward(
+    strategy_class=strategy,
+    target_mode="signal_notional",
+    optimization_mode="mode_1_decay",
+    optimization_config={
+        "research_retention": "full_trial_ledger",  # none | selected_only | full_trial_ledger
+        "financial_retention": "compact",           # score | compact | audit
+        "financial_retention_scope": "selected_final_execution",
+        "research_audit_chunk_rows": 256,
+        "research_audit_max_chunks": 4096,
+    },
+)
+result = bt.backtest(data=data, param_ranges=param_ranges)
+audit = bt.research_audit
+```
+
+`audit` is a cold-path immutable artifact. `audit.to_pandas("trials")` and
+`audit.legacy_exports()` materialize compatibility tables lazily; they do not
+alter selection or execution. `financial_retention="audit"` is deliberately
+strict: it retains original fill/order/trade evidence only when the chosen
+route actually exposes it. A target/equity path is not reverse-engineered into
+fills, so unsupported active routes raise rather than making an audit claim.
+Reactive reset-flat WFO stores independent fold segments, not a synthetic
+compounded curve. See [PERF-06 columnar research audit](performance/perf_06_research_audit.md)
+for manifests, retention/durability semantics, and the five-mode parity benchmark.
+
 ### Native WFO Runtime V2 (explicit prepared StrategyIR)
 
 `NativeWfoRuntimeV2` is a lower-level opt-in companion for a finite numeric

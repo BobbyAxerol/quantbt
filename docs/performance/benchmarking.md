@@ -196,6 +196,26 @@ workload-scoped result, not a default-route promise.
 Read [PERF-05 WFO evaluation reuse](perf_05_wfo_evaluation_reuse.md)
 for semantic eligibility, identity, retention, and rollback.
 
+## PERF-06 Columnar Research Audit
+
+PERF-06 measures an opt-in research retention product, not a scoring speedup.
+The paired fixture runs the same public WFO request with no sidecar and with a
+full trial ledger, requires public selection/equity/position/table parity, and
+then records the retention overhead separately: owned typed bytes, chunks, lazy
+legacy DataFrame adaptation, queue/backpressure state, and RSS. Financial
+retention is an independent axis: `score`, `compact`, and strict original
+`audit` evidence. A generic target path with nonzero activity but no original
+fill ledger is rejected for an audit request rather than reconstructed.
+
+```bash
+PYTHONPATH=src .venv/bin/python \
+  benchmarks/native_event/benchmark_perf06_research_audit.py \
+  --bars 2048 --trials 16 --repeats 5
+```
+
+Read [PERF-06 columnar research audit](perf_06_research_audit.md) for the
+record schema, lazy exports, bounded sink/durability contract, and rollback.
+
 ## Required controls
 
 1. Use the same deterministic fixture for compared routes.

@@ -83,6 +83,7 @@ from .core.results import (
     NativeEventScoreResult,
 )
 from .core.runtime_governance import RuntimeBudgetV1
+from .core.research_audit import ResearchRetentionPlanV1
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -1944,6 +1945,38 @@ class QuantBTEndpoint:
         wf_metadata.setdefault("compact_trial_ledger", bool(optimization_config.get("compact_trial_ledger", True)))
         wf_metadata.setdefault("profile_walkforward", bool(optimization_config.get("profile_walkforward", False)))
         wf_metadata.setdefault("perf_01_profile", bool(optimization_config.get("perf_01_profile", False)))
+        retention_plan = ResearchRetentionPlanV1(
+            financial_retention=optimization_config.get(
+                "financial_retention",
+                wf_metadata.get("financial_retention", "score"),
+            ),
+            research_retention=optimization_config.get(
+                "research_retention",
+                wf_metadata.get("research_retention", "none"),
+            ),
+            financial_scope=optimization_config.get(
+                "financial_retention_scope",
+                wf_metadata.get("financial_retention_scope", "selected_final_execution"),
+            ),
+            chunk_rows=optimization_config.get(
+                "research_audit_chunk_rows",
+                wf_metadata.get("research_audit_chunk_rows", 256),
+            ),
+            max_retained_chunks=optimization_config.get(
+                "research_audit_max_chunks",
+                wf_metadata.get("research_audit_max_chunks", 4_096),
+            ),
+            max_materialized_frames=optimization_config.get(
+                "research_audit_max_materialized_frames",
+                wf_metadata.get("research_audit_max_materialized_frames", 3),
+            ),
+        )
+        wf_metadata.setdefault("financial_retention", retention_plan.financial_retention)
+        wf_metadata.setdefault("research_retention", retention_plan.research_retention)
+        wf_metadata.setdefault("financial_retention_scope", retention_plan.financial_scope)
+        wf_metadata.setdefault("research_audit_chunk_rows", retention_plan.chunk_rows)
+        wf_metadata.setdefault("research_audit_max_chunks", retention_plan.max_retained_chunks)
+        wf_metadata.setdefault("research_audit_max_materialized_frames", retention_plan.max_materialized_frames)
         wfo_execution_reuse = str(optimization_config.get("wfo_execution_reuse", "auto")).lower().strip()
         if wfo_execution_reuse not in {"off", "auto", "require"}:
             raise ValueError("wfo_execution_reuse must be 'off', 'auto', or 'require'")
@@ -2492,6 +2525,18 @@ class QuantBTEndpoint:
     def fills_report(self) -> pd.DataFrame:
         """Return latest fills report, or an empty DataFrame."""
         return self._require_result().metadata.get("fills_report", pd.DataFrame())
+
+    @property
+    def research_audit(self):
+        """Return the optional immutable WFO research-audit artifact.
+
+        The artifact exists only when ``research_retention`` or non-score
+        ``financial_retention`` requested it.  Its DataFrame exports are cold
+        path operations via ``artifact.legacy_exports()`` / ``to_pandas()``.
+        """
+
+        walk_forward = self._require_result().metadata.get("walk_forward", {})
+        return walk_forward.get("research_audit") if isinstance(walk_forward, Mapping) else None
 
     def nautilus_pct_equity_diagnostic(
         self,
@@ -3750,6 +3795,12 @@ class QuantBTEndpoint:
                 )
 
         wf_result.backtest_result = result
+        research_audit = wf_result.metadata.get("research_audit")
+        if research_audit is not None:
+            # This attaches the original selected-final account only. It never
+            # replays a candidate or fabricates a full fill audit from a score.
+            research_audit.finalize_financial(result)
+            wf_result.metadata["research_audit_summary"] = research_audit.metadata()
         result.metadata["walk_forward"] = {
             "engine": wf_result.metadata["engine"],
             "target_mode": target_mode,
@@ -3801,6 +3852,10 @@ class QuantBTEndpoint:
             "n_optuna_trial_rows": wf_result.metadata.get("n_optuna_trial_rows"),
             "trial_ledger_mode": wf_result.metadata.get("trial_ledger_mode"),
             "full_trial_metrics_retained": wf_result.metadata.get("full_trial_metrics_retained"),
+            "research_audit": research_audit,
+            "research_audit_summary": wf_result.metadata.get("research_audit_summary"),
+            "financial_retention": wf_result.metadata.get("financial_retention"),
+            "research_retention": wf_result.metadata.get("research_retention"),
             "prepared_wfo_context": wf_result.metadata.get("prepared_wfo_context"),
             "prepared_wfo_strategy": wf_result.metadata.get("prepared_wfo_strategy"),
             "wfo_evaluation_runtime": wf_result.metadata.get("wfo_evaluation_runtime"),

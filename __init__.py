@@ -227,6 +227,16 @@ from .core.results import (
     OptionBacktestResult,
 )
 from .core.native_result_v2 import NativeResultHeaderV2, NativeResultV2Adapter
+from .core.research_audit import (
+    ColumnarResearchTableV1,
+    ResearchAuditArtifactV1,
+    ResearchAuditBudgetError,
+    ResearchAuditError,
+    ResearchAuditSchemaError,
+    ResearchAuditWriteError,
+    ResearchAuditWriterV1,
+    ResearchRetentionPlanV1,
+)
 from .core.execution_contract import (
     EXECUTION_CONTRACT_REGISTRY,
     AmbiguityPolicy,

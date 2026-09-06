@@ -345,6 +345,16 @@ for the identical execution in the same run. The recorded high-hit lane saved
 Mode 5 or strict Mode 4 causal runs self-disable reuse when no exact replay can
 exist. See [PERF-05 evidence](docs/performance/perf_05_wfo_evaluation_reuse.md).
 
+For research governance, WFO can now retain a bounded immutable columnar
+sidecar independently of financial output: `research_retention` is `none`,
+`selected_only`, or `full_trial_ledger`; `financial_retention` is `score`,
+`compact`, or strict original `audit`. The default remains no sidecar. The audit
+lane preserves actual optimizer/fold/selection provenance and lazy legacy
+exports, but refuses to invent fills from a target/equity path. Its five-mode
+benchmark reports retention overhead, owned bytes, chunks, lazy export time,
+and RSS after exact public parity, rather than advertising a lower-retention
+lane as a speedup. See [PERF-06 research audit](docs/performance/perf_06_research_audit.md).
+
 The reactive scalar row measures a separate prepared optimization contract:
 R1/R2/R3 preserve their exact Rust execution and Python decision boundaries,
 but stream metrics and final account state instead of retaining an equity path,

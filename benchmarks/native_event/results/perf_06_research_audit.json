@@ -1,0 +1,202 @@
+{
+  "evidence": {
+    "all_full_ledgers_memory_complete": true,
+    "all_legacy_trial_exports_present": true,
+    "all_public_parity": true,
+    "mode2_proxy_retained": true,
+    "slow_sink_owned_chunks_complete": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "6a6e9d7d3e50c7bd532755308b7269461eb97d2c92b7bd7828dde1368dcc508c",
+    "git_commit": "c0c31c5ed754fc471b06ad309b0f1268ba1e675f",
+    "git_dirty": true,
+    "git_status_sha256": "314ac42b4bffb28da7d41653a1dcad82a1ac7d1e1e704039cfb886b4781e5be3",
+    "intent_sha256": "07886cba16ba8e6c554a4ee299e01a9a1f8ed63c574637d81af92f3129bdaffa",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one unrecorded Mode 1 public WFO run without the research sidecar"
+  },
+  "mode_matrix": [
+    {
+      "audit": {
+        "candidate_rows": 2,
+        "committed_chunks": 9,
+        "enabled": true,
+        "evaluation_rows": 126,
+        "financial_completion": "score_complete_selected_final_account",
+        "legacy_adapt_seconds": 0.0311955651268363,
+        "physical_bytes": 356288,
+        "trial_rows": 18,
+        "writer_state": "memory_complete"
+      },
+      "full_overhead_pct": 26.91935462720003,
+      "full_rss_delta_mb_median": 0.2578125,
+      "full_seconds_median": 0.4240073896944523,
+      "mode": "mode_1_decay",
+      "none_rss_delta_mb_median": 0.0,
+      "none_seconds_median": 0.3340762257575989,
+      "public_parity": true,
+      "retention_rss_delta_mb_median": 0.2578125
+    },
+    {
+      "audit": {
+        "candidate_rows": 2,
+        "committed_chunks": 9,
+        "enabled": true,
+        "evaluation_rows": 126,
+        "financial_completion": "score_complete_selected_final_account",
+        "legacy_adapt_seconds": 0.041657935827970505,
+        "physical_bytes": 425533,
+        "trial_rows": 18,
+        "writer_state": "memory_complete"
+      },
+      "full_overhead_pct": 16.62159324494313,
+      "full_rss_delta_mb_median": 0.0,
+      "full_seconds_median": 1.0030483333393931,
+      "mode": "mode_2_sbb",
+      "none_rss_delta_mb_median": 0.0,
+      "none_seconds_median": 0.8600880037993193,
+      "public_parity": true,
+      "retention_rss_delta_mb_median": 0.0
+    },
+    {
+      "audit": {
+        "candidate_rows": 2,
+        "committed_chunks": 9,
+        "enabled": true,
+        "evaluation_rows": 126,
+        "financial_completion": "score_complete_selected_final_account",
+        "legacy_adapt_seconds": 0.0399631280452013,
+        "physical_bytes": 362766,
+        "trial_rows": 18,
+        "writer_state": "memory_complete"
+      },
+      "full_overhead_pct": 32.98315316501185,
+      "full_rss_delta_mb_median": 0.2578125,
+      "full_seconds_median": 0.49909286852926016,
+      "mode": "mode_3_flat_minima",
+      "none_rss_delta_mb_median": 0.0,
+      "none_seconds_median": 0.37530533503741026,
+      "public_parity": true,
+      "retention_rss_delta_mb_median": 0.2578125
+    },
+    {
+      "audit": {
+        "candidate_rows": 2,
+        "committed_chunks": 9,
+        "enabled": true,
+        "evaluation_rows": 126,
+        "financial_completion": "score_complete_selected_final_account",
+        "legacy_adapt_seconds": 0.03858897089958191,
+        "physical_bytes": 436534,
+        "trial_rows": 18,
+        "writer_state": "memory_complete"
+      },
+      "full_overhead_pct": 18.843503802734112,
+      "full_rss_delta_mb_median": 0.0,
+      "full_seconds_median": 0.7688042288646102,
+      "mode": "mode_4_is_only_robust",
+      "none_rss_delta_mb_median": 0.0,
+      "none_seconds_median": 0.6469047144055367,
+      "public_parity": true,
+      "retention_rss_delta_mb_median": 0.0
+    },
+    {
+      "audit": {
+        "candidate_rows": 3,
+        "committed_chunks": 6,
+        "enabled": true,
+        "evaluation_rows": 8,
+        "financial_completion": "score_complete_selected_final_account",
+        "legacy_adapt_seconds": 0.0150569137185812,
+        "physical_bytes": 89643,
+        "trial_rows": 19,
+        "writer_state": "memory_complete"
+      },
+      "full_overhead_pct": 43.790350012378006,
+      "full_rss_delta_mb_median": 0.0,
+      "full_seconds_median": 0.21265980135649443,
+      "mode": "mode_5_full_robust",
+      "none_rss_delta_mb_median": 0.0,
+      "none_seconds_median": 0.14789573941379786,
+      "public_parity": true,
+      "retention_rss_delta_mb_median": 0.0
+    }
+  ],
+  "rss_mb": {
+    "peak": 288.93359375,
+    "samples": [
+      224.8515625,
+      225.62109375,
+      225.62109375,
+      225.87890625,
+      225.87890625,
+      225.87890625,
+      226.59375,
+      226.59375,
+      226.59375,
+      226.59375,
+      287.89453125,
+      288.41015625,
+      288.41015625,
+      288.66796875,
+      288.66796875,
+      288.66796875,
+      288.92578125,
+      288.93359375,
+      288.93359375,
+      288.93359375,
+      288.93359375,
+      288.93359375,
+      288.93359375,
+      288.93359375,
+      288.93359375
+    ],
+    "tail_spread": 0.5234375
+  },
+  "schema": "quantbt-perf-06-research-audit-v1",
+  "scope": "public five-mode WFO sidecar retention and lazy compatibility export",
+  "slow_sink": {
+    "chunks": 4,
+    "crash_durable": "not_provided",
+    "exported_chunks": 4,
+    "median_hook_seconds": 0.0010693245567381382,
+    "queue_high_watermark_chunks": 1,
+    "queue_mode": "synchronous_backpressure_v1"
+  },
+  "workload": {
+    "bars": 2048,
+    "repeats": 5,
+    "symbols": 1,
+    "trials": 16
+  }
+}

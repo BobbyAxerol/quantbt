@@ -37,7 +37,7 @@ This artifact pins source ownership and measurement obligations before later per
 | `AP-07` | `IMPLEMENTED_VERIFIED` | `PERF-05` |
 | `AP-08` | `IMPLEMENTED_VERIFIED` | `PERF-05` |
 | `AP-09` | `IMPLEMENTED_VERIFIED` | `PERF-05` |
-| `AP-10` | `OPEN` | `PERF-06` |
+| `AP-10` | `IMPLEMENTED_VERIFIED` | `PERF-06` |
 | `AP-11` | `IMPLEMENTED_VERIFIED` | `PERF-01` |
 | `AP-12` | `OPEN` | `PERF-07` |
 

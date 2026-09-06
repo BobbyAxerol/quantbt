@@ -27,6 +27,7 @@ from .core.performance_contracts import (
     compile_walkforward_computation_plan,
 )
 from .core.wfo_evaluation import WfoExecutionReuseRuntimeV1
+from .core.research_audit import ResearchRetentionPlanV1, build_walkforward_research_audit
 from .core.market_calendar_v2 import (
     CalendarPlanV2,
     CalendarPolicyV2,
@@ -913,6 +914,9 @@ class WalkForwardEngine:
             raise ValueError("WalkForwardEngine requires a strategy callable or strategy class/object")
         self.strategy = strategy
         self.config = config or WalkForwardConfig()
+        self._research_retention_plan = ResearchRetentionPlanV1.from_config(self.config)
+        self._research_full_trial_records: List[WalkForwardTrialRecord] = []
+        self._research_full_candidate_records: List[WalkForwardTrialRecord] = []
         self.scorer = scorer
         self.native_scorer = native_scorer
         if self.config.scoring_backend == "endpoint" and self.scorer is None:
@@ -936,6 +940,9 @@ class WalkForwardEngine:
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
         self._perf01_profile_enabled = perf01_enabled
         self._required_computation_plan: RequiredComputationPlanV1 = compile_walkforward_computation_plan(self.config)
+        self._research_retention_plan = ResearchRetentionPlanV1.from_config(self.config)
+        self._research_full_trial_records = []
+        self._research_full_candidate_records = []
         self._perf01_profiler = ExclusiveWorkProfilerV1(
             enabled=perf01_enabled,
             route_id="QuantBTEndpoint.walk_forward",
@@ -1051,6 +1058,13 @@ class WalkForwardEngine:
                 result.metadata["perf_01_profile"] = self._perf01_profiler.snapshot()
                 if runtime_metadata is not None:
                     result.metadata["wfo_evaluation_runtime"] = runtime_metadata
+                research_audit = result.metadata.get("research_audit")
+                if research_audit is not None:
+                    research_audit.finalize_runtime(
+                        runtime=runtime_metadata,
+                        performance=result.metadata.get("perf_01_profile"),
+                    )
+                    result.metadata["research_audit_summary"] = research_audit.metadata()
             self._prepared_wfo_strategy_adapter = None
             self._prepared_wfo_strategy_lifecycle_record = None
             self._prepared_context = None
@@ -1338,6 +1352,44 @@ class WalkForwardEngine:
                 ),
             },
         )
+        audit_requested = (
+            self._research_retention_plan.research_retention != "none"
+            or self._research_retention_plan.financial_retention != "score"
+        )
+        if audit_requested:
+            audit_trial_records = (
+                self._research_full_trial_records
+                if self._research_retention_plan.research_retention == "full_trial_ledger"
+                and self._research_full_trial_records
+                else trial_records
+            )
+            audit_candidate_records = (
+                self._research_full_candidate_records
+                if self._research_retention_plan.research_retention == "full_trial_ledger"
+                and self._research_full_candidate_records
+                else candidate_records
+            )
+            research_audit = build_walkforward_research_audit(
+                config=self.config,
+                result_metadata=result.metadata,
+                param_ranges=param_ranges,
+                trial_records=audit_trial_records,
+                candidate_records=audit_candidate_records,
+                selected_record=selected_record,
+                folds=folds,
+                params_by_fold=params_by_fold,
+                result_kind="signal_wfo",
+            )
+            result.metadata["research_audit"] = research_audit
+            result.metadata["research_audit_summary"] = research_audit.metadata()
+        else:
+            result.metadata["research_audit"] = None
+            result.metadata["research_audit_summary"] = {
+                "schema": "quantbt-research-audit-v1",
+                "enabled": False,
+                "retention": self._research_retention_plan.metadata(),
+                "reason": "research_retention='none' and financial_retention='score'",
+            }
         if bool(getattr(self, "_perf01_profile_enabled", False)):
             self._perf01_profile_add(
                 "metrics_analysis_audit_encode_flush_public_adapt",
@@ -1370,6 +1422,19 @@ class WalkForwardEngine:
             inner_folds: List[WalkForwardFold] = []
             if is_nested_mode1:
                 inner_folds = _build_inner_folds(fold, self.config)
+            common_metadata = {
+                "optimization_schedule": schedule,
+                "schedule_fold_id": int(fold.fold_id),
+                "study_id": int(fold.fold_id),
+                "fold_seed": int(fold_seed),
+                "selection_data_start": fold.train_start,
+                "selection_data_end": fold.train_end,
+                "test_start": fold.test_start,
+                "test_end": fold.test_end,
+                "inner_fold_count": int(len(inner_folds)),
+                "inner_validation": _inner_validation_metadata(self.config),
+            }
+            if is_nested_mode1:
                 selected, fold_trials, fold_candidates = self.optimize_params(
                     data=data,
                     folds=inner_folds,
@@ -1377,6 +1442,7 @@ class WalkForwardEngine:
                     random_seed=fold_seed,
                     study_id=int(fold.fold_id),
                     evaluate_oos_candidates=True,
+                    research_context=common_metadata,
                 )
                 inner_fold_rows.extend(
                     _inner_fold_audit_rows(
@@ -1392,6 +1458,7 @@ class WalkForwardEngine:
                     random_seed=fold_seed,
                     study_id=int(fold.fold_id),
                     evaluate_oos_candidates=schedule == "per_fold_decay",
+                    research_context=common_metadata,
                 )
 
             oos_used = schedule == "per_fold_decay"
@@ -1404,18 +1471,6 @@ class WalkForwardEngine:
                     else "strict_fold_local_retraining"
                 )
             )
-            common_metadata = {
-                "optimization_schedule": schedule,
-                "schedule_fold_id": int(fold.fold_id),
-                "study_id": int(fold.fold_id),
-                "fold_seed": int(fold_seed),
-                "selection_data_start": fold.train_start,
-                "selection_data_end": fold.train_end,
-                "test_start": fold.test_start,
-                "test_end": fold.test_end,
-                "inner_fold_count": int(len(inner_folds)),
-                "inner_validation": _inner_validation_metadata(self.config),
-            }
             tagged_trials = [
                 _with_selection_metadata(
                     record,
@@ -1532,6 +1587,38 @@ class WalkForwardEngine:
             inner_fold_rows=inner_fold_rows,
         )
 
+    def _capture_research_records(
+        self,
+        *,
+        trial_records: Sequence[WalkForwardTrialRecord],
+        candidate_records: Sequence[WalkForwardTrialRecord],
+        context: Mapping[str, Any] | None = None,
+    ) -> None:
+        """Keep full records only for an explicitly requested research ledger.
+
+        Public ``trial_table`` may stay compact for compatibility.  This side
+        channel is populated before compaction and is never used by selection,
+        pruning, score reuse, or the final stitched account.
+        """
+
+        if self._research_retention_plan.research_retention != "full_trial_ledger":
+            return
+        common = dict(context or {})
+
+        def tagged(records: Sequence[WalkForwardTrialRecord]) -> list[WalkForwardTrialRecord]:
+            if not common:
+                return list(records)
+            return [
+                _with_selection_metadata(
+                    record,
+                    {**dict(record.selection_metadata), **common},
+                )
+                for record in records
+            ]
+
+        self._research_full_trial_records.extend(tagged(trial_records))
+        self._research_full_candidate_records.extend(tagged(candidate_records))
+
     def optimize_params(
         self,
         data,
@@ -1541,6 +1628,7 @@ class WalkForwardEngine:
         evaluate_oos_candidates: bool = True,
         *,
         study_id: int = 0,
+        research_context: Mapping[str, Any] | None = None,
     ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
         """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
         if not param_ranges:
@@ -1634,6 +1722,11 @@ class WalkForwardEngine:
                 },
             )
             records.extend(candidates)
+            self._capture_research_records(
+                trial_records=records,
+                candidate_records=candidates,
+                context=research_context,
+            )
             return selected, self._compact_trial_records(records), self._compact_trial_records(candidates)
         if not evaluate_oos_candidates:
             if self.config.optimization_mode != "mode_4_is_only_robust":
@@ -1651,6 +1744,11 @@ class WalkForwardEngine:
                     "oos_seen_by_optuna": False,
                     "oos_used_for_selection": False,
                 },
+            )
+            self._capture_research_records(
+                trial_records=records,
+                candidate_records=candidates,
+                context=research_context,
             )
             return selected, self._compact_trial_records(records), self._compact_trial_records(candidates)
         candidate_records = []
@@ -1686,6 +1784,11 @@ class WalkForwardEngine:
             raise ValueError("anti-leakage optimization produced no OOS candidates")
         best = _select_oos_candidate_record(candidate_records, self.config)
         records.extend(candidate_records)
+        self._capture_research_records(
+            trial_records=records,
+            candidate_records=candidate_records,
+            context=research_context,
+        )
         return best, self._compact_trial_records(records), self._compact_trial_records(candidate_records)
 
     def _compact_trial_records(
