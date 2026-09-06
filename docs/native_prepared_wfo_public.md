@@ -146,6 +146,35 @@ contract.
 
 ## Audit And Diagnostics
 
+### Run-local exact score reuse
+
+PERF-05 adds an optional, bounded reuse layer beneath this scorer. It can reuse
+only a completed fresh-account native terminal metric mapping when a later
+candidate-analysis pass asks for the exact same run-local economic execution.
+It never serves an adaptive Optuna objective, strategy callback, partial/pruned
+execution, full audit, or another WFO run.
+
+```python
+optimization_config={
+    "scoring_backend": "endpoint",
+    "native_prepared_wfo": "require",
+    "wfo_execution_reuse": "auto",       # off | auto | require
+    "wfo_execution_reuse_max_entries": 4096,
+    "wfo_execution_reuse_trace_limit": 2048,
+}
+```
+
+`auto` is compatible by default and records a disabled reason outside the
+certified route. `require` fails closed. The semantic key includes prepared
+market/template identities, execution/numeric contract, strategy/params and
+intent digest, fold/account window, study ID and actual seed, plus trial or
+replicate identity. The scorer must declare deterministic terminal semantics
+and whether its diagnostic context label affects the metric; otherwise reuse is
+not eligible. Cache entries are released at WFO teardown. See
+[PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md)
+for the five-mode matrix, attempt identities, optimizer safety boundary, and
+benchmark scope.
+
 Inspect the normal result metadata:
 
 ```python
@@ -153,6 +182,9 @@ wf = result.metadata["walk_forward"]
 wf["native_prepared_wfo"]
 wf["prepared_scoring_cache"]["native_prepared_wfo"]
 wf["prepared_wfo_strategy"]
+wf["wfo_evaluation_runtime"]
+# When reuse is eligible: exact completed score work avoided in this run.
+wf["wfo_evaluation_runtime"]["terminal_score_bars_reused"]
 ```
 
 The entries report requested/resolved policy, fallback reason, market/template

@@ -76,6 +76,25 @@ python3 benchmarks/run_phase49b_wfo_performance.py --rows 1000 --trials 16
   scorer, market preparation, signal packing and metric-report timing;
 - does not cache arbitrary strategy indicators or signal output.
 
+PERF-05 WFO terminal-score reuse evidence:
+
+```bash
+PYTHONPATH=src .venv/bin/python \
+  benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py \
+  --bars 2048 --trials 16 --repeats 15
+```
+
+- compares real public prepared-native Mode 1 cache-off, bounded-LRU/mixed,
+  and high-hit lanes with identical strategy, seed, selector, and final account;
+- checks public parity and cache release, then records one fixed small matrix
+  across all five modes;
+- reports full-facade and isolated scorer medians against cache-off; the
+  committed fifteen-repeat high-hit fixture avoided `11,680` terminal-score
+  bars, reduced scorer time by `8.14%` and full public time by `2.61%`, with a
+  `0.000 MiB` RSS tail spread;
+- keeps Mode 2 on its proxy/resampling authority and does not present the
+  result as a generic callback, reactive, portfolio, package, or all-WFO claim.
+
 Phase 60 native result/RSS closure:
 
 ```bash

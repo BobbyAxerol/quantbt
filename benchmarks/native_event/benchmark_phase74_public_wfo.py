@@ -72,7 +72,14 @@ def _strategy(data, params, train_index, test_index, fold):
     return pd.Series(signal, index=test_index, dtype=float)
 
 
-def _run(data: pd.DataFrame, *, policy: str, trials: int):
+def _run(
+    data: pd.DataFrame,
+    *,
+    policy: str,
+    trials: int,
+    reuse_policy: str = "off",
+    reuse_max_entries: int = 4_096,
+):
     endpoint = QuantBTEndpoint.walk_forward(
         strategy_class=_strategy,
         split_mode="2021-01-01",
@@ -88,6 +95,11 @@ def _run(data: pd.DataFrame, *, policy: str, trials: int):
             "scoring_backend": "endpoint",
             "native_prepared_wfo": policy,
             "native_prepared_wfo_workers": 1,
+            # PERF-05 uses this only for a later report-only candidate
+            # analysis.  Keep the historical Phase 74 default explicitly off
+            # so its published baseline stays apples-to-apples.
+            "wfo_execution_reuse": reuse_policy,
+            "wfo_execution_reuse_max_entries": int(reuse_max_entries),
             "profile_walkforward": True,
         },
         optuna_trials=trials,

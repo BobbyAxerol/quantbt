@@ -265,6 +265,23 @@ package, target-weight, and reactive routes are not promoted by this scorer. See
 [Public prepared-native WFO scoring](native_prepared_wfo_public.md) for the
 compatibility matrix, W0/W1/W2 protocol, fallback policy, and audit metadata.
 
+## Run-local score reuse
+
+Eligible prepared-native endpoint scoring can reuse a completed exact terminal
+score only during later report-only candidate analysis in the same WFO run.
+Adaptive Optuna calls always execute and remain cache-read bypasses, so
+ask/tell ordering, pruning behavior, strategy callbacks, fold causality, and
+selection mathematics do not change. The cache is not a cross-run strategy or
+indicator cache; it stores compact completed metrics, is bounded, and is
+released before the result returns.
+
+Mode 2 remains proxy-owned. The current Mode 5 full-IS selector and strict
+Mode 4 `per_fold_causal` schedule have no later identical replay, so `auto`
+disables reuse rather than paying cache overhead. See
+[PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md)
+for exact eligibility, semantic identity, diagnostics, five-mode evidence, and
+the `wfo_execution_reuse` controls.
+
 ## Repository Certification Gate
 
 Maintainers can run the deterministic Phase 50 audit from a source checkout:

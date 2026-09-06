@@ -89,6 +89,22 @@ bound. Native score rows/bars are reported separately because Mode 1 inner
 folds, Mode 2 paths and mode-specific shard evaluations are not interchangeable
 units of work.
 
+## PERF-05 Exact Evaluation Reuse
+
+The public baseline remains valid with PERF-05 enabled because cache reuse is
+not permitted during adaptive Optuna evaluation. It can only return an exact
+completed prepared-native terminal metric later during report-only candidate
+analysis in the same run. The cache is bounded and released at teardown;
+duplicate trials, separate per-fold studies, and stochastic identities retain
+their own execution-attempt provenance.
+
+Its evidence is deliberately separate from this Phase 77 baseline:
+[PERF-05 WFO evaluation reuse](perf_05_wfo_evaluation_reuse.md). It records
+policy-off, bounded-LRU, and high-hit Mode 1 lanes plus cache-off/on parity for
+all five modes. Mode 2 remains proxy-preserved; current Mode 5 has no identical
+post-study execution, so `auto` disables the cache rather than retaining dead
+entries.
+
 ## Phase 77.2 Evidence And Phase 77.3 Boundary
 
 Phase 77.2 is complete for the explicit transition-sized `%_equity` route.

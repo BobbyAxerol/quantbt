@@ -330,27 +330,36 @@
     },
     {
       "evidence": [
-        "src/quantbt/walkforward.py"
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "docs/performance/perf_05_wfo_evaluation_reuse.md"
       ],
       "id": "AP-07",
       "owner": "PERF-05",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
-        "src/quantbt/walkforward.py"
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
       ],
       "id": "AP-08",
       "owner": "PERF-05",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
-        "src/quantbt/backends/native_prepared_evaluation.py"
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/native_wfo_public.py",
+        "src/quantbt/core/wfo_evaluation.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
       ],
       "id": "AP-09",
       "owner": "PERF-05",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -382,7 +391,7 @@
     "endpoint": {
       "exists": true,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+      "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
     },
     "identity_mode": "content-addressed source anchors; runtime identity captured separately",
     "measurement_contract_tool": {
@@ -403,7 +412,7 @@
     "walkforward": {
       "exists": true,
       "path": "src/quantbt/walkforward.py",
-      "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+      "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
     }
   },
   "benchmark_classes": [
@@ -530,7 +539,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -563,7 +572,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -591,7 +600,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -624,12 +633,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6faf4b017990ca34d3c96cb01f31c02f1279a8de4600e65c79292c1a94870ecd"
+          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
         },
         {
           "exists": true,
@@ -658,7 +667,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -693,7 +702,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -727,7 +736,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -760,7 +769,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -794,7 +803,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
@@ -817,7 +826,7 @@
       ],
       "id": "walk_forward_mode_1",
       "metrics_result": "trial/fold metrics -> decay selector -> stitched endpoint account",
-      "optimization_target": "AP-01 plan and AP-07/AP-08 WFO work later",
+      "optimization_target": "AP-07/AP-08 run-local evaluation graph and streaming retention verified by PERF-05",
       "oracle_tests": [
         "tests/test_phase74_public_wfo_native.py"
       ],
@@ -827,17 +836,17 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6faf4b017990ca34d3c96cb01f31c02f1279a8de4600e65c79292c1a94870ecd"
+          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
         }
       ]
     },
@@ -850,7 +859,7 @@
       ],
       "id": "walk_forward_mode_2",
       "metrics_result": "bootstrap statistics -> candidate selection -> stitched endpoint account",
-      "optimization_target": "AP-07/AP-08, no hidden top-K reduction",
+      "optimization_target": "AP-08 streaming replicate-vector retention verified by PERF-05; no hidden top-K reduction",
       "oracle_tests": [
         "tests/test_walkforward_phase1.py"
       ],
@@ -860,12 +869,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
         }
       ]
     },
@@ -878,7 +887,7 @@
       ],
       "id": "walk_forward_mode_3",
       "metrics_result": "cluster selection -> stitched endpoint account",
-      "optimization_target": "AP-07/AP-08 selection DAG work later",
+      "optimization_target": "AP-07/AP-08 evaluation identity and plateau retention verified by PERF-05",
       "oracle_tests": [
         "tests/test_walkforward_phase1.py"
       ],
@@ -888,12 +897,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
         }
       ]
     },
@@ -906,7 +915,7 @@
       ],
       "id": "walk_forward_mode_4",
       "metrics_result": "IS-only candidate selector -> stitched endpoint account",
-      "optimization_target": "AP-07/AP-08 and prepared public WFO score reuse",
+      "optimization_target": "AP-07/AP-08 exact prepared-native score reuse and IS-only retention verified by PERF-05",
       "oracle_tests": [
         "tests/test_phase49a_walkforward_schedules.py"
       ],
@@ -916,17 +925,17 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6faf4b017990ca34d3c96cb01f31c02f1279a8de4600e65c79292c1a94870ecd"
+          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
         }
       ]
     },
@@ -939,7 +948,7 @@
       ],
       "id": "walk_forward_mode_5",
       "metrics_result": "full-IS selection -> endpoint account on supplied evaluation tape",
-      "optimization_target": "AP-01 retention plan and AP-07 selector DAG later",
+      "optimization_target": "AP-07 full-IS execution/analysis identity verified by PERF-05",
       "oracle_tests": [
         "tests/test_walkforward_phase1.py"
       ],
@@ -949,12 +958,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "ab95d4e676d06a6af10307384c383e5953cafd84af42468a52a5c4b60aae4e02"
+          "sha256": "b465ef0abe6e4c9d4e4512c07c1cd608757596d23276039d6eb2f335dca2d88e"
         }
       ]
     },
@@ -978,7 +987,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+          "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
         },
         {
           "exists": true,

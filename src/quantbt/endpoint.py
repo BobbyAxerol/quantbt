@@ -1944,6 +1944,16 @@ class QuantBTEndpoint:
         wf_metadata.setdefault("compact_trial_ledger", bool(optimization_config.get("compact_trial_ledger", True)))
         wf_metadata.setdefault("profile_walkforward", bool(optimization_config.get("profile_walkforward", False)))
         wf_metadata.setdefault("perf_01_profile", bool(optimization_config.get("perf_01_profile", False)))
+        wfo_execution_reuse = str(optimization_config.get("wfo_execution_reuse", "auto")).lower().strip()
+        if wfo_execution_reuse not in {"off", "auto", "require"}:
+            raise ValueError("wfo_execution_reuse must be 'off', 'auto', or 'require'")
+        wfo_execution_reuse_max_entries = int(optimization_config.get("wfo_execution_reuse_max_entries", 4096))
+        wfo_execution_reuse_trace_limit = int(optimization_config.get("wfo_execution_reuse_trace_limit", 2048))
+        if wfo_execution_reuse_max_entries < 0 or wfo_execution_reuse_trace_limit < 0:
+            raise ValueError("WFO execution reuse capacities must be >= 0")
+        wf_metadata.setdefault("wfo_execution_reuse", wfo_execution_reuse)
+        wf_metadata.setdefault("wfo_execution_reuse_max_entries", wfo_execution_reuse_max_entries)
+        wf_metadata.setdefault("wfo_execution_reuse_trace_limit", wfo_execution_reuse_trace_limit)
         native_prepared_wfo = str(optimization_config.get("native_prepared_wfo", "off")).lower().strip()
         if native_prepared_wfo not in {"off", "auto", "require"}:
             raise ValueError("native_prepared_wfo must be 'off', 'auto', or 'require'")
@@ -3793,6 +3803,7 @@ class QuantBTEndpoint:
             "full_trial_metrics_retained": wf_result.metadata.get("full_trial_metrics_retained"),
             "prepared_wfo_context": wf_result.metadata.get("prepared_wfo_context"),
             "prepared_wfo_strategy": wf_result.metadata.get("prepared_wfo_strategy"),
+            "wfo_evaluation_runtime": wf_result.metadata.get("wfo_evaluation_runtime"),
             "required_computation_plan": wf_result.metadata.get("required_computation_plan"),
             "perf_01_profile": wf_result.metadata.get("perf_01_profile"),
             "performance_profile": wf_result.metadata.get("performance_profile"),
@@ -4804,6 +4815,20 @@ class _WalkForwardEndpointScorer:
         self._stats["walkforward_context_signature"] = context.signature
         if self._native_prepared_wfo is not None:
             self._native_prepared_wfo.bind_walkforward_context(context)
+
+    def wfo_execution_reuse_contract(self) -> Dict[str, object] | None:
+        """Expose only the narrow pure-native score contract to WFO reuse.
+
+        The ordinary prepared/vectorized scorer may construct Python reports or
+        route through user-visible callbacks.  PERF-05 intentionally does not
+        cache that broader surface.  It can reuse only the typed fresh-account
+        terminal metrics provided by the prepared Rust scorer below it.
+        """
+
+        if self._native_prepared_wfo is None:
+            return None
+        contract = self._native_prepared_wfo.wfo_execution_reuse_contract()
+        return None if contract is None else dict(contract)
 
     def score_batch(self, tasks: Sequence[Dict[str, object]]) -> list[Dict[str, float]]:
         """Score one candidate's fold/shard batch without changing WFO selection.

@@ -487,6 +487,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 param_ranges=dict(param_ranges),
                 random_seed=fold_seed,
                 evaluate_oos_candidates=schedule == "per_fold_decay" or nested_mode1,
+                study_id=int(fold.fold_id),
             )
             # Outer OOS is always a cold realization with the already frozen
             # candidate.  In per_fold_decay it reproduces the same declared

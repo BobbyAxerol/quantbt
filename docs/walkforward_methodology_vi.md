@@ -969,3 +969,14 @@ equity-fraction rebalance. Với strict per-fold schedule, prepared alpha phải
 declare `causal_cache_contract="causal_parameter_independent_v1"`; engine không
 tự biến Python cache thành chứng nhận no-look-ahead. Xem
 [Public prepared-native WFO scoring](native_prepared_wfo_public.md).
+
+PERF-05 thêm cache runtime-local còn hẹp hơn prepared scorer. Mỗi Optuna trial
+vẫn sinh strategy output và chạy score mới; terminal metric đã hoàn tất chỉ có
+thể được đọc lại ở candidate analysis sau study, khi market/template, params,
+intent, fold/account window, actual study ID/seed và trial identity giống hệt.
+Vì vậy cache không thay sampler, prune, objective hay final stitched account.
+Mode 2 giữ proxy/bootstrap authority. Mode 5 và Mode 4 `per_fold_causal` không
+có exact post-study replay trong contract hiện tại nên `auto` tự tắt cache thay
+vì giữ entry không thể hit. Metadata `wfo_evaluation_runtime` lưu identity,
+hit/miss/store, bypass adaptive và trạng thái release; xem
+[PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md).

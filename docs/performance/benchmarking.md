@@ -163,6 +163,39 @@ has a `0.698 s` median versus `1.558 s` legacy (`2.231x`) while preserving the
 public selection/accounting fingerprint. This is not a default-route, reactive,
 portfolio, generic callback, or Mode 2 sampling speed claim.
 
+## PERF-05 WFO Evaluation Reuse
+
+PERF-05 measures a different and intentionally narrower optimization: one
+run-local prepared-native terminal metric may serve a later report-only
+candidate analysis if the economic request is exactly identical. Adaptive
+Optuna trial evaluation remains store-only and is never satisfied from cache,
+so this evidence does not claim a changed sampler, pruner, callback, or WFO
+mode. The benchmark records three real public Mode 1 lanes: cache policy off,
+bounded LRU, and high-capacity reuse. It then validates cache-off/on public
+parity across Modes 1 through 5, while explicitly recording Mode 2 as
+proxy-preserved.
+
+Run it with:
+
+```bash
+PYTHONPATH=src .venv/bin/python \
+  benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py \
+  --bars 2048 --trials 16 --repeats 15
+```
+
+The artifact reports full-facade and score-stage timing separately, actual
+hit/store/eviction counts, adaptive-read bypasses, released-cache state, mode
+parity, and RSS tail observations. A high-hit lane may still show only modest
+full-facade improvement because strategy generation, Optuna control, selector
+analysis, final stitched account execution, and public result adaptation remain
+real work. The current alternating fifteen-repeat high-hit fixture avoided
+`11,680` terminal-score bars, recorded `131.516 ms` scorer time versus
+`143.177 ms` cache-off (`8.14%` faster), and `399.369 ms` full facade versus
+`410.082 ms` (`2.61%` faster), with zero RSS tail spread. This is a
+workload-scoped result, not a default-route promise.
+Read [PERF-05 WFO evaluation reuse](perf_05_wfo_evaluation_reuse.md)
+for semantic eligibility, identity, retention, and rollback.
+
 ## Required controls
 
 1. Use the same deterministic fixture for compared routes.

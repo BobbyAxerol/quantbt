@@ -3149,6 +3149,9 @@ bt = QuantBTEndpoint.walk_forward(
         "scoring_backend": "endpoint",
         "native_prepared_wfo": "require",  # off | auto | require
         "native_prepared_wfo_workers": 1,
+        "wfo_execution_reuse": "auto",    # off | auto | require
+        "wfo_execution_reuse_max_entries": 4096,
+        "wfo_execution_reuse_trace_limit": 2048,
         "scoring_trading_days": 365,
     },
     target_runtime="rust",
@@ -3195,11 +3198,13 @@ wf = result.metadata["walk_forward"]
 wf["native_prepared_wfo"]
 wf["prepared_scoring_cache"]["native_prepared_wfo"]
 wf["prepared_wfo_strategy"]
+wf["wfo_evaluation_runtime"]
 ```
 
 See [Public prepared-native WFO scoring](native_prepared_wfo_public.md) for
 the full mode/schedule matrix, fallback rules, W0/W1/W2 contract, and
-benchmark scope.
+benchmark scope. See [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md)
+for the run-local terminal-metric reuse eligibility and audit metadata.
 
 ### Native WFO Runtime V2 (explicit prepared StrategyIR)
 

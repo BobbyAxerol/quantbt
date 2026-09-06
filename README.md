@@ -286,6 +286,7 @@ timing is accepted.
 | Native WFO V2 prepared score | 64 candidates x 4 folds x 4,096 supplied bars | 232.514 ms | 0.94M actual candidate-test-bar visits/s | 319.437 ms prior fold oracle | 1.37x | exact metrics/counts |
 | Native WFO V2 warm prepared soak | 32 candidates x 4 folds x 4,096 supplied bars | 13.325 ms | 8.20M actual candidate-test-bar visits/s | n/a | persistent runtime | deterministic terminal/reset/cancel; RSS flat |
 | Public prepared-native WFO score | Mode 1 global, W0 callback, 2,048 bars x 16 trials | 166.156 ms scorer; 431.730 ms full facade | 127,181 candidate-bar visits/s | 800.033 ms scorer; 1.053 s full facade | 4.81x scorer; 2.44x facade | exact selection/final account; 0.008 MiB RSS tail |
+| Public WFO exact analysis reuse | Mode 1 global, W0 callback, 2,048 bars x 16 trials, 15 repeats | 131.516 ms scorer; 399.369 ms full facade | 32 hits; 11,680 score bars reused | 143.177 ms scorer; 410.082 ms full facade cache-off | 1.09x scorer; 1.03x facade | five-mode parity; cache released; 0.000 MiB RSS tail |
 | Portfolio `target_units` score | 2,000 bars x 8 symbols | 3.594 ms | 556,551 bars/s | 33.493 ms | 9.3x | exact, `atol=1e-12` |
 | Atomic package score | 2,000 bars x 8 symbols | 3.512 ms | 569,514 bars/s | 19.735 ms | 5.6x | exact, `atol=1e-12` |
 | Direct `target_units` prepared score | 20,000 bars x 1 symbol | 1.607 ms | 12.45M bars/s | Numba warmed kernel: 0.607 ms | 0.38x | exact accounting/positions |
@@ -335,6 +336,14 @@ package WFO. Five warm repeats had a `0.008 MiB` RSS tail spread. See the
 [Phase 74 artifact](benchmarks/native_event/results/phase74_public_wfo.md).
 It is reproducible source-tree evidence for this in-progress phase, not a
 claim about an already-published wheel.
+
+The WFO exact-analysis reuse row is intentionally narrower again: it does not
+serve an adaptive Optuna trial and does not cache strategy output. It only
+reuses a completed prepared-native terminal metric when candidate analysis asks
+for the identical execution in the same run. The recorded high-hit lane saved
+`8.14%` in scorer time and `2.61%` end-to-end; Mode 2 remains proxy-owned and
+Mode 5 or strict Mode 4 causal runs self-disable reuse when no exact replay can
+exist. See [PERF-05 evidence](docs/performance/perf_05_wfo_evaluation_reuse.md).
 
 The reactive scalar row measures a separate prepared optimization contract:
 R1/R2/R3 preserve their exact Rust execution and Python decision boundaries,
@@ -488,6 +497,7 @@ Start with the [documentation map](docs/README.md).
 | Causal WFO schedules and claims | [Causal walk-forward](docs/walkforward_causal.md) |
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
+| Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |
 | Stateful Rust/Python reactive WFO, R3B batch scheduling, and reset-flat segment audit | [Reactive WFO (W3)](docs/reactive_wfo.md) |
 | Prepared static-IR native WFO runtime | [Native WFO Runtime V2](docs/native_wfo_runtime.md) |
 | Runtime budgets, cancellation, RSS soak, and shadow kill switch | [Native runtime governance](docs/native_runtime_governance.md) |

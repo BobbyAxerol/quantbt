@@ -26,6 +26,7 @@ from .core.performance_contracts import (
     RequiredComputationPlanV1,
     compile_walkforward_computation_plan,
 )
+from .core.wfo_evaluation import WfoExecutionReuseRuntimeV1
 from .core.market_calendar_v2 import (
     CalendarPlanV2,
     CalendarPolicyV2,
@@ -956,6 +957,8 @@ class WalkForwardEngine:
             "selection_mutated": False,
             "selection_scope": "is_only",
         }
+        self._wfo_execution_scope: Dict[str, object] | None = None
+        self._wfo_execution_runtime: WfoExecutionReuseRuntimeV1 | None = None
         prepare_started = time.perf_counter()
         with self._perf01_profiler.stage("prepare_validate_ingest"):
             requested_index = _infer_datetime_index(data, datetime_index)
@@ -1002,6 +1005,12 @@ class WalkForwardEngine:
                     scorer.bind_computation_plan(self._required_computation_plan)
                 if scorer is not None and hasattr(scorer, "bind_performance_profiler"):
                     scorer.bind_performance_profiler(self._perf01_profiler)
+            self._wfo_execution_runtime = WfoExecutionReuseRuntimeV1(
+                config=self.config,
+                prepared_context=prepared_context,
+                strategy_fingerprint=strategy_fingerprint(self.strategy),
+                scorer=self.scorer,
+            )
         result: WalkForwardResult | None = None
         try:
             (
@@ -1033,14 +1042,19 @@ class WalkForwardEngine:
             lifecycle_record = self._prepared_wfo_strategy_lifecycle_record
             if lifecycle_record is not None:
                 self._append_lifecycle_record(lifecycle_record)
+            runtime = self._wfo_execution_runtime
+            runtime_metadata = runtime.close() if runtime is not None else None
             if result is not None:
                 result.metadata["prepared_wfo_strategy"] = dict(self._prepared_wfo_strategy_metadata)
                 result.metadata["strategy_lifecycle_table"] = pd.DataFrame(self._lifecycle_records)
                 result.metadata["required_computation_plan"] = self._required_computation_plan.metadata()
                 result.metadata["perf_01_profile"] = self._perf01_profiler.snapshot()
+                if runtime_metadata is not None:
+                    result.metadata["wfo_evaluation_runtime"] = runtime_metadata
             self._prepared_wfo_strategy_adapter = None
             self._prepared_wfo_strategy_lifecycle_record = None
             self._prepared_context = None
+            self._wfo_execution_runtime = None
             self._strategy_market_fingerprints = {}
 
     def _run_aligned(
@@ -1203,6 +1217,18 @@ class WalkForwardEngine:
             }
             params_semantics = "single_global_parameter_set"
 
+        execution_runtime = getattr(self, "_wfo_execution_runtime", None)
+        if execution_runtime is not None:
+            execution_runtime.finalize_selection(
+                selected_params=chosen_params,
+                deployment_scope={
+                    "fold_count": int(len(folds)),
+                    "fold_account_policy": self.config.fold_account_policy,
+                    "target_mode": self.config.target_mode,
+                    "stitched_output": "oos_only",
+                },
+            )
+
         result = WalkForwardResult(
             folds=folds,
             oos_output=stitched,
@@ -1305,6 +1331,11 @@ class WalkForwardEngine:
                 ),
                 "required_computation_plan": self._required_computation_plan.metadata(),
                 "performance_profile": dict(getattr(self, "_performance_profile", {})),
+                "wfo_evaluation_runtime": (
+                    execution_runtime.metadata()
+                    if execution_runtime is not None
+                    else {"schema": "quantbt-wfo-evaluation-runtime-v1", "resolved_policy": "unavailable"}
+                ),
             },
         )
         if bool(getattr(self, "_perf01_profile_enabled", False)):
@@ -1344,6 +1375,7 @@ class WalkForwardEngine:
                     folds=inner_folds,
                     param_ranges=param_ranges,
                     random_seed=fold_seed,
+                    study_id=int(fold.fold_id),
                     evaluate_oos_candidates=True,
                 )
                 inner_fold_rows.extend(
@@ -1358,6 +1390,7 @@ class WalkForwardEngine:
                     folds=[fold],
                     param_ranges=param_ranges,
                     random_seed=fold_seed,
+                    study_id=int(fold.fold_id),
                     evaluate_oos_candidates=schedule == "per_fold_decay",
                 )
 
@@ -1506,6 +1539,8 @@ class WalkForwardEngine:
         param_ranges: Dict[str, Any],
         random_seed: Optional[int] = None,
         evaluate_oos_candidates: bool = True,
+        *,
+        study_id: int = 0,
     ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
         """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
         if not param_ranges:
@@ -1519,6 +1554,8 @@ class WalkForwardEngine:
         records: List[WalkForwardTrialRecord] = []
         seen_params = set()
         compact_ledger = bool(self.config.metadata.get("compact_trial_ledger", True))
+        study_seed = int(self.config.random_seed if random_seed is None else random_seed)
+        study_identifier = int(study_id)
 
         def objective(trial):
             params = _sample_params(trial, param_ranges)
@@ -1539,9 +1576,23 @@ class WalkForwardEngine:
                 raise optuna.TrialPruned("duplicate parameter set")
             seen_params.add(params_key)
             if self.config.optimization_mode == "mode_2_sbb":
-                record = self.evaluate_params_sbb(data=data, folds=folds, params=params, trial_id=trial.number)
+                record = self.evaluate_params_sbb(
+                    data=data,
+                    folds=folds,
+                    params=params,
+                    trial_id=trial.number,
+                    execution_seed=study_seed,
+                    study_id=study_identifier,
+                )
             else:
-                record = self.evaluate_params_is(data=data, folds=folds, params=params, trial_id=trial.number)
+                record = self.evaluate_params_is(
+                    data=data,
+                    folds=folds,
+                    params=params,
+                    trial_id=trial.number,
+                    execution_seed=study_seed,
+                    study_id=study_identifier,
+                )
             records.append(record)
             if not compact_ledger:
                 trial.set_user_attr("fold_metrics", record.fold_metrics)
@@ -1552,7 +1603,6 @@ class WalkForwardEngine:
                 trial.set_user_attr("std_decay", record.std_decay)
             return record.objective
 
-        study_seed = int(self.config.random_seed if random_seed is None else random_seed)
         sampler = optuna.samplers.TPESampler(seed=study_seed)
         pruner = DuplicatePruner()
         study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner)
@@ -1615,6 +1665,10 @@ class WalkForwardEngine:
                 folds=folds,
                 params=dict(candidate.params),
                 trial_id=int(candidate.trial_id),
+                stage="oos_candidate_selection",
+                adaptive_optimizer=False,
+                execution_seed=study_seed,
+                study_id=study_identifier,
             )
             evaluated = _with_selection_metadata(
                 evaluated,
@@ -1648,6 +1702,9 @@ class WalkForwardEngine:
         folds: Sequence[WalkForwardFold],
         params: Dict[str, Any],
         trial_id: int = 0,
+        *,
+        execution_seed: Optional[int] = None,
+        study_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """Score params on in-sample folds only for anti-leakage Optuna search."""
         fold_metrics = []
@@ -1686,7 +1743,16 @@ class WalkForwardEngine:
                     )
             fold_work.append((fold, is_task, shard_tasks))
 
-        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        scored = self._score_strategy_outputs_with_scope(
+            data,
+            score_tasks,
+            trial_id=trial_id,
+            params=params,
+            stage="is_search",
+            adaptive_optimizer=True,
+            execution_seed=execution_seed,
+            study_id=study_id,
+        )
         for fold, is_task, shard_tasks in fold_work:
             is_metrics = scored[is_task]
             required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
@@ -1816,6 +1882,11 @@ class WalkForwardEngine:
         folds: Sequence[WalkForwardFold],
         params: Dict[str, Any],
         trial_id: int = 0,
+        *,
+        stage: str = "fixed_or_post_selection_evaluation",
+        adaptive_optimizer: bool = False,
+        execution_seed: Optional[int] = None,
+        study_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """Score params with mode_1_decay return-proxy metrics."""
         fold_metrics = []
@@ -1851,7 +1922,16 @@ class WalkForwardEngine:
             )
             fold_work.append((fold, is_task, oos_task))
 
-        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        scored = self._score_strategy_outputs_with_scope(
+            data,
+            score_tasks,
+            trial_id=trial_id,
+            params=params,
+            stage=stage,
+            adaptive_optimizer=adaptive_optimizer,
+            execution_seed=execution_seed,
+            study_id=study_id,
+        )
         for fold, is_task, oos_task in fold_work:
             is_metrics = scored[is_task]
             oos_metrics = scored[oos_task]
@@ -1917,6 +1997,9 @@ class WalkForwardEngine:
         folds: Sequence[WalkForwardFold],
         params: Dict[str, Any],
         trial_id: int = 0,
+        *,
+        execution_seed: Optional[int] = None,
+        study_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """
         Score params with train-only synthetic OOS robustness.
@@ -1949,7 +2032,16 @@ class WalkForwardEngine:
             )
             fold_work.append((fold, is_output, is_task))
 
-        scored = self._score_strategy_outputs_batch(data, score_tasks)
+        scored = self._score_strategy_outputs_with_scope(
+            data,
+            score_tasks,
+            trial_id=trial_id,
+            params=params,
+            stage="sbb_search",
+            adaptive_optimizer=True,
+            execution_seed=execution_seed,
+            study_id=study_id,
+        )
         for fold, is_output, is_task in fold_work:
             is_metrics = scored[is_task]
             returns = strategy_return_series(
@@ -2170,10 +2262,49 @@ class WalkForwardEngine:
         params: Dict[str, Any],
         context: str,
     ) -> Dict[str, float]:
-        return self._score_strategy_outputs_batch(
+        return self._score_strategy_outputs_with_scope(
             data,
             [(output, index, fold, params, context)],
+            trial_id=-1,
+            params=params,
+            stage=context,
+            adaptive_optimizer=False,
+            execution_seed=int(self.config.random_seed),
+            study_id=int(fold.fold_id),
         )[0]
+
+    def _score_strategy_outputs_with_scope(
+        self,
+        data,
+        tasks: Sequence[tuple[StrategyOutput, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]],
+        *,
+        trial_id: int,
+        params: Mapping[str, Any],
+        stage: str,
+        adaptive_optimizer: bool,
+        execution_seed: Optional[int] = None,
+        study_id: int = 0,
+    ) -> list[Dict[str, float]]:
+        """Score a batch while attaching an explicit optimizer interaction scope.
+
+        The scope is observation-only.  It lets the run-local reuse runtime
+        prove that adaptive Optuna objective evaluation always executes rather
+        than reading a terminal result produced by another interaction.
+        """
+
+        previous = getattr(self, "_wfo_execution_scope", None)
+        self._wfo_execution_scope = {
+            "trial_id": int(trial_id),
+            "candidate_id": _strategy_candidate_id(params),
+            "stage": str(stage),
+            "adaptive_optimizer": bool(adaptive_optimizer),
+            "rng_seed": int(self.config.random_seed if execution_seed is None else execution_seed),
+            "study_id": int(study_id),
+        }
+        try:
+            return self._score_strategy_outputs_batch(data, tasks)
+        finally:
+            self._wfo_execution_scope = previous
 
     def _score_strategy_outputs_batch(
         self,
@@ -2192,8 +2323,20 @@ class WalkForwardEngine:
         if not entries:
             return []
         score_started = time.perf_counter()
+        reuse_runtime = getattr(self, "_wfo_execution_runtime", None)
+        reuse_lookup = None
+        if reuse_runtime is not None and reuse_runtime.enabled:
+            reuse_lookup = reuse_runtime.lookup(
+                entries,
+                scope=getattr(self, "_wfo_execution_scope", None),
+            )
+            missing_positions = tuple(reuse_lookup.miss_positions)
+        else:
+            missing_positions = tuple(range(len(entries)))
+
         payloads = []
-        for output, index, fold, params, context in entries:
+        for position in missing_positions:
+            output, index, fold, params, context = entries[position]
             scoring_data = (
                 data
                 if self.config.optimization_schedule == "global"
@@ -2210,26 +2353,51 @@ class WalkForwardEngine:
                     "trading_days": int(self.config.scoring_trading_days),
                 }
             )
-        if self.config.scoring_backend == "endpoint":
-            assert self.scorer is not None
-            batch = getattr(self.scorer, "score_batch", None)
-            if callable(batch):
-                metrics = list(batch(payloads))
+        try:
+            if not payloads:
+                scored_misses = []
+            elif self.config.scoring_backend == "endpoint":
+                assert self.scorer is not None
+                batch = getattr(self.scorer, "score_batch", None)
+                if callable(batch):
+                    scored_misses = list(batch(payloads))
+                else:
+                    scored_misses = [self.scorer(**payload) for payload in payloads]
             else:
-                metrics = [self.scorer(**payload) for payload in payloads]
-        else:
-            metrics = [
-                score_strategy_output(
-                    payload["data"],
-                    payload["output"],
-                    payload["index"],
-                    trading_days=int(self.config.scoring_trading_days),
-                    use_numba=bool(self.config.use_numba),
-                )
-                for payload in payloads
-            ]
-        if len(metrics) != len(entries):
+                scored_misses = [
+                    score_strategy_output(
+                        payload["data"],
+                        payload["output"],
+                        payload["index"],
+                        trading_days=int(self.config.scoring_trading_days),
+                        use_numba=bool(self.config.use_numba),
+                    )
+                    for payload in payloads
+                ]
+        except Exception:
+            if reuse_runtime is not None and reuse_lookup is not None:
+                reuse_runtime.mark_batch_failure(reuse_lookup)
+            raise
+        if len(scored_misses) != len(missing_positions):
             raise RuntimeError("walk-forward scorer returned a metric row count different from its task batch")
+
+        metrics: list[Dict[str, float] | None]
+        if reuse_lookup is None:
+            metrics = list(scored_misses)
+        else:
+            metrics = list(reuse_lookup.cached_metrics)
+            completed = {
+                int(position): dict(metric)
+                for position, metric in zip(missing_positions, scored_misses, strict=True)
+            }
+            reuse_runtime.commit(reuse_lookup, metrics_by_position=completed)
+            for position, metric in completed.items():
+                metrics[position] = metric
+            profiler = getattr(self, "_perf01_profiler", None)
+            if profiler is not None and profiler.enabled and reuse_lookup.lookup_count:
+                profiler.add_activity("cache_lookup_events", int(reuse_lookup.lookup_count))
+        if any(metric is None for metric in metrics):
+            raise RuntimeError("walk-forward execution reuse left a score task unresolved")
         profile = getattr(self, "_performance_profile", None)
         score_elapsed = time.perf_counter() - score_started
         if profile and profile.get("enabled"):
@@ -2241,7 +2409,7 @@ class WalkForwardEngine:
                 elapsed_ns=int(score_elapsed * 1_000_000_000.0),
                 activity={"metric_observation_passes": len(entries)},
             )
-        return metrics
+        return [dict(metric) for metric in metrics if metric is not None]
 
     def _validate_proxy_screening(
         self,

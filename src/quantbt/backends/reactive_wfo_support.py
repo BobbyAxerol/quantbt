@@ -348,6 +348,9 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         folds: Sequence[WalkForwardFold],
         params: Dict[str, Any],
         trial_id: int = 0,
+        *,
+        execution_seed: int | None = None,
+        study_id: int = 0,
     ) -> WalkForwardTrialRecord:
         """Score Mode 4/5 exclusively through absolute native task windows.
 
@@ -359,6 +362,11 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         clock, and command coordinates honest.
         """
 
+        # Reactive WFO deliberately keeps its own task-state authority. These
+        # fields are accepted so WalkForwardEngine can retain one provenance
+        # signature across static and reactive schedules; they do not enable
+        # static terminal-score reuse for reactive callbacks.
+        del execution_seed, study_id
         fold_metrics: list[dict[str, object]] = []
         is_scores: list[float] = []
         score_tasks: list[tuple[ReactiveWfoScoreMarkerV1, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]] = []

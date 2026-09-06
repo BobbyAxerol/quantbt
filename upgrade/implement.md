@@ -18289,7 +18289,7 @@ new order-domain semantics remain outside PERF-04 rather than hidden debt.
 
 ### Phase PERF-05 - WFO Evaluation Reuse, Streaming Analysis, And Locality
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: IMPLEMENTED_VERIFIED.**
 **Goal:** avoid redundant economic evaluations while preserving all five modes,
 optimizer interaction, chronological accounts and full trial identity.
 **Proposal owners:** AP-07, AP-08 and AP-09.
@@ -18299,7 +18299,7 @@ optimizer interaction, chronological accounts and full trial identity.
 [8.2: research identities](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#82-pf-062--manifests-bất-biến-và-record-identities) and
 [13: public endpoint integration](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#13-đường-chạy-tích-hợp-tối-thiểu-để-tránh-helper-only).
 
-**Implementation sequence (all pending):**
+**Implementation sequence (implemented; detailed source guide remains normative):**
 
 1. PF-05.1, [7.1: five-mode evaluation/retention matrix](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#71-pf-051--chốt-mode-by-mode-evaluationretention-matrix): map
    actual `mode_1_decay`, `mode_2_sbb`, `mode_3_flat_minima`,
@@ -18387,6 +18387,60 @@ join at exit. Disable cache or restore baseline reducers/layout on the same
 schedule while preserving research IDs/records. PERF-06 supplies the qualified
 writer against the schema already locked in PERF-01; PERF-07 tests the combined
 runtime/writer. Prefix checkpoint reuse is not introduced here.
+
+**Implementation record (PERF-05):**
+
+1. Added `core/wfo_evaluation.py` with a bounded, run-local terminal-metric
+   cache and versioned `run_id`, `trial_id`, `candidate_id`, `execution_id`,
+   `execution_attempt_id`, `analysis_id`, `selection_id`, and `deployment_id`.
+   The key commits prepared data/config/template signatures, engine/numeric
+   contract, strategy fingerprint/params/intent, fold window/account policy,
+   actual study ID/seed, trial identity, and completed horizon. A scorer must
+   explicitly declare deterministic terminal semantics and whether diagnostic
+   score context affects metrics; otherwise reuse is fail-closed.
+2. Integrated the runtime into the existing `WalkForwardEngine` public path,
+   without adding a second scheduler or worker pool. Adaptive Optuna reads are
+   always bypassed and store only completed metric rows; only a later exact
+   candidate-analysis pass may hit. Failed/partial rows never enter the cache.
+   Per-fold studies receive their own study identity. Runtime teardown clears
+   cache/index digests on both success and exception paths.
+3. Kept the existing five-mode authorities: Modes 1/3 and eligible global Mode
+   4 may reuse exact prepared-native score rows; Mode 2 keeps the proxy/SBB
+   path and its existing one-path-plus-replicate-vector retention; Mode 5 and
+   strict Mode 4 `per_fold_causal` disable an unusable cache rather than retain
+   dead entries. Reactive WFO R1/R2/R3/R3B remains its own strategy-state and
+   replay contract; only its per-fold study provenance is aligned.
+4. Added public controls `wfo_execution_reuse={off,auto,require}`,
+   `wfo_execution_reuse_max_entries`, and `wfo_execution_reuse_trace_limit`.
+   Existing callers remain compatible: `auto` is inert unless the certified
+   prepared-native endpoint scorer is active, and `off` restores the previous
+   score path exactly.
+
+**Evidence and exit gate:**
+
+- `tests/test_perf_05_wfo_evaluation_reuse.py` covers global Modes 1/3/4/5,
+  Mode 2 proxy preservation, Mode 1 per-fold decay study isolation, Mode 4
+  causal non-reuse, data/config/seed/study key separation, duplicate attempts,
+  deterministic-contract rejection, real prepared-native endpoint parity, and
+  cache release.
+- Targeted WFO/reactive suite: `87 passed, 3 skipped` on the local native
+  extension environment.
+- `benchmark_perf05_wfo_evaluation_reuse.py --bars 2048 --trials 16 --repeats 15`
+  passed exact public parity across all five modes. In the alternating Mode 1
+  high-hit lane, 32 exact post-study hits avoided `11,680` terminal-score bars,
+  reduced median scorer time from `143.177 ms` to `131.516 ms` (`8.14%`), and
+  full facade time from `410.082 ms` to `399.369 ms` (`2.61%`); RSS tail spread
+  was `0.000 MiB`. The bounded
+  capacity-one lane is intentionally reported separately and is not presented
+  as a speed win.
+
+**Exit disposition:** AP-07/AP-08/AP-09 are `IMPLEMENTED_VERIFIED` for the
+declared prepared-native, terminal-metric, run-local scope. Selection formulas,
+OOS roles, Optuna ordering, strategy lifecycle, final stitched account, and
+reactive state authority are unchanged. There is no unresolved PERF-05
+correctness or retention debt. PERF-06 durable columnar research writing and
+PERF-07 combined qualification remain separate planned scopes, not deferred
+parts of this cache contract.
 
 ### Phase PERF-06 - Columnar Research Audit, Retention, And Compatibility
 

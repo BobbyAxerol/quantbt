@@ -1074,9 +1074,9 @@
           "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
         },
         {
-          "bytes": 11312,
+          "bytes": 12227,
           "path": "docs/walkforward_causal.md",
-          "sha256": "51b058c1f17a8c7078a922a2f791f539a330c847bf1dc3a77b263f174bb4ec64"
+          "sha256": "13ae0cb1b546fbe6a60c691c46757133bb74158705ac452cb7b80926834e1056"
         }
       ],
       "canonical_trace": "fold_metadata_and_causal_cutoff",
@@ -1159,9 +1159,9 @@
           "sha256": "439bfde09275c8d7a5d3ca8bf354eda0e29d630adf44605ba52dc7212d54eeaf"
         },
         {
-          "bytes": 11312,
+          "bytes": 12227,
           "path": "docs/walkforward_causal.md",
-          "sha256": "51b058c1f17a8c7078a922a2f791f539a330c847bf1dc3a77b263f174bb4ec64"
+          "sha256": "13ae0cb1b546fbe6a60c691c46757133bb74158705ac452cb7b80926834e1056"
         }
       ],
       "canonical_trace": "fold_metadata_and_causal_cutoff",

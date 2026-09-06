@@ -23,6 +23,7 @@ import pandas as pd
 
 from ..core.constraints import build_quantity_constraints
 from ..core.performance_contracts import ExclusiveWorkProfilerV1, RequiredComputationPlanV1
+from ..core.wfo_evaluation import WFO_TERMINAL_SCORE_CACHE_CONTRACT_V1
 from ..core.preprocessor import make_funding_mask, prepare_funding
 from ..preparation.native_execution import CachePolicy, NativeExecutionPreparationCache
 from ..sizing.fast import scale_signal_notional_matrix
@@ -110,6 +111,34 @@ class NativePreparedPublicWfoScorerV1:
     @property
     def enabled(self) -> bool:
         return self._state is not None
+
+    def wfo_execution_reuse_contract(self) -> dict[str, object] | None:
+        """Return the narrow terminal-score cache contract after preparation.
+
+        Each native row is a deterministic fresh-account execution over one
+        immutable market/template window.  The contract deliberately excludes
+        strategy generation, Optuna interaction, audit rows, and all cross-run
+        reuse; those remain controlled by their existing owners.
+        """
+
+        state = self._state
+        if state is None or self._resolved != "native_prepared":
+            return None
+        return {
+            "schema": "quantbt-wfo-terminal-score-cache-contract-v1",
+            "contract": WFO_TERMINAL_SCORE_CACHE_CONTRACT_V1,
+            "pure_terminal_metrics": True,
+            "fresh_account_per_evaluation": True,
+            "deterministic_given_contract": True,
+            "cross_run_reuse": False,
+            "engine_semantic_build": "native_prepared_public_wfo_v1",
+            "numeric_contract": "native_prepared_scalar_columns_v1",
+            "market_identity": str(state.template.market.signature),
+            "template_identity": str(state.template.signature),
+            "execution_clock": _RUST_DIRECT_TIMING,
+            "retention": "completed_terminal_metric_mapping_only",
+            "score_context_affects_terminal_metrics": False,
+        }
 
     def bind_walkforward_context(self, context) -> None:
         """Prepare exactly one full market/template owner for this WFO run."""

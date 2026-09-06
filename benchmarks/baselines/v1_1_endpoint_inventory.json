@@ -2764,9 +2764,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 254467,
+      "bytes": 256152,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "66103424eb929343b6fbfbbcd0bee6f674bc378595e3fb6225d72117a7dca562"
+      "sha256": "98f5cdd743facd0106d802aeeccbecb13a6e50b9f5ffc1155b860e2c01bcd11c"
     },
     "guide": {
       "bytes": 144542,
