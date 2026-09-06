@@ -17931,7 +17931,10 @@ implementation; PERF-05 owns evaluation cache; PERF-06 owns durable writer.
   latency p95, and pair-order noise diagnostics. These measures are evaluated
   against provisional `3%`/`5%` proposals without pretending a local baseline
   is backend-promotion evidence; the artifact is generated only from a clean
-  source candidate and redacts machine-local extension paths.
+  source candidate and redacts machine-local extension paths. The current
+  `3634f65` evidence has exact economics, `+0.17%` p50 observer overhead and
+  `-13.66%` p95 quantile ratio, both within the provisional budget; its
+  `11.41%` pair-delta p95 is retained only as scheduling-noise context.
 - Focused evidence: `tests/test_perf_01_traceability_and_computation.py` covers
   reducer de-duplication, conservative custom-metric fallback, Optuna trial
   ledger/order equivalence, observer on/off economics, exclusive-stage safety,

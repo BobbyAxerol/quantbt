@@ -203,6 +203,13 @@ data/intent hashes. It reports observer-off/on latency p50 and p95 separately
 from the paired order/scheduler-noise diagnostic. This is a measured follow-up
 target for later PERF phases, not a release or route-promotion gate.
 
+Current evidence was captured from clean candidate `3634f65`: p50 was
+`93.95 ms` off and `94.11 ms` on (`+0.17%`), while p95 was `130.02 ms` off and
+`112.26 ms` on (`-13.66%`). Both fall inside the provisional `3%` p50 and `5%`
+p95 observer budgets. The pair-delta p95 was `11.41%`, which is preserved as
+an order/scheduler-noise diagnostic, not reported as a speedup or latency
+percentile regression.
+
 ## Commands
 
 ```bash
