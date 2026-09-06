@@ -18,6 +18,7 @@ from time import perf_counter_ns
 from typing import Any, Mapping
 
 import numpy as np
+import optuna
 import pandas as pd
 
 from quantbt import QuantBTEndpoint
@@ -148,6 +149,17 @@ def _summary(samples: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _percent_summary(samples: list[float]) -> dict[str, float | int]:
+    values = np.asarray(samples, dtype=np.float64)
+    return {
+        "samples": int(len(values)),
+        "median_pct": float(np.median(values)),
+        "p95_pct": float(np.quantile(values, 0.95, method="linear")),
+        "min_pct": float(np.min(values)),
+        "max_pct": float(np.max(values)),
+    }
+
+
 def _median_profile(samples: list[dict[str, Any]]) -> dict[str, int | None]:
     stage_names = samples[0]["perf_01_profile"]["exclusive_stage_elapsed_ns"].keys()
     return {
@@ -171,17 +183,36 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
             _run_once(frame=frame, perf_01_profile=profile, trials=trials)
 
     samples = {False: [], True: []}
-    for ordinal in range(int(repeats)):
-        order = (False, True) if ordinal % 2 == 0 else (True, False)
-        for profile in order:
-            samples[profile].append(_run_once(frame=frame, perf_01_profile=profile, trials=trials))
+    pairs: list[dict[bool, dict[str, Any]]] = []
+    previous_verbosity = optuna.logging.get_verbosity()
+    optuna.logging.set_verbosity(optuna.logging.WARNING)
+    try:
+        for ordinal in range(int(repeats)):
+            order = (False, True) if ordinal % 2 == 0 else (True, False)
+            pair: dict[bool, dict[str, Any]] = {}
+            for profile in order:
+                sample = _run_once(frame=frame, perf_01_profile=profile, trials=trials)
+                samples[profile].append(sample)
+                pair[profile] = sample
+            pairs.append(pair)
+    finally:
+        optuna.logging.set_verbosity(previous_verbosity)
 
     signatures = {sample["economic_signature"] for group in samples.values() for sample in group}
     if len(signatures) != 1:
         raise AssertionError("PERF-01 observer changed public WFO economics or selection")
     off_summary = _summary(samples[False])
     on_summary = _summary(samples[True])
-    overhead_pct = 100.0 * (on_summary["median_ns"] - off_summary["median_ns"]) / off_summary["median_ns"]
+    paired_overhead_pct = [
+        100.0 * (pair[True]["elapsed_ns"] - pair[False]["elapsed_ns"]) / pair[False]["elapsed_ns"]
+        for pair in pairs
+    ]
+    paired_overhead_summary = _percent_summary(paired_overhead_pct)
+    proposed_budget = {"p50_pct": 3.0, "p95_pct": 5.0}
+    within_proposed_budget = bool(
+        paired_overhead_summary["median_pct"] <= proposed_budget["p50_pct"]
+        and paired_overhead_summary["p95_pct"] <= proposed_budget["p95_pct"]
+    )
     measurement = _load_measurement_tool()
     data_sha256 = measurement.typed_array_sha256(
         frame.index.asi8,
@@ -212,7 +243,13 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
         ),
         "observer_off": off_summary,
         "observer_on": on_summary,
-        "observer_overhead_median_pct": float(overhead_pct),
+        "observer_overhead_median_pct": float(paired_overhead_summary["median_pct"]),
+        "observer_overhead_pairs_pct": paired_overhead_summary,
+        "observer_overhead_proposed_budget": {
+            **proposed_budget,
+            "within_proposed_budget": within_proposed_budget,
+            "binding_release_gate": False,
+        },
         "observer_on_exclusive_stage_median_ns": _median_profile(samples[True]),
         "economic_parity": {
             "passed": True,
