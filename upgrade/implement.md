@@ -17925,8 +17925,13 @@ implementation; PERF-05 owns evaluation cache; PERF-06 owns durable writer.
 - The paired public-facade harness
   [`benchmark_perf01_observer.py`](../benchmarks/native_event/benchmark_perf01_observer.py)
   alternates observer-off/on Mode 1 runs and fails on any selection/accounting
-  fingerprint difference. It emits a clearly non-promotional local baseline;
-  the committed run artifact is generated only from a clean source candidate.
+  fingerprint difference. Its committed [100-pair clean-source artifact]
+  (../benchmarks/native_event/results/perf_01_observer_baseline_v1.json)
+  contains the exact candidate/data/intent provenance and separate latency p50,
+  latency p95, and pair-order noise diagnostics. These measures are evaluated
+  against provisional `3%`/`5%` proposals without pretending a local baseline
+  is backend-promotion evidence; the artifact is generated only from a clean
+  source candidate and redacts machine-local extension paths.
 - Focused evidence: `tests/test_perf_01_traceability_and_computation.py` covers
   reducer de-duplication, conservative custom-metric fallback, Optuna trial
   ledger/order equivalence, observer on/off economics, exclusive-stage safety,
@@ -17941,7 +17946,9 @@ planned phase scope, not hidden PERF-01 debt. No execution, accounting,
 selection, Optuna ordering, strategy lifecycle, audit retention policy or
 public endpoint name changed. The rollback is to disable `perf_01_profile` and
 use the existing scorer path; the plan metadata is observational and does not
-alter economic state.
+alter economic state. The measured p95 observation is a PERF-01 baseline fact,
+not a qualification failure or an unowned correctness debt; PERF-07 owns
+cross-workload performance qualification and promotion decisions.
 
 ### Phase PERF-02 - Safe Session Reuse And Shared Derived Account State
 

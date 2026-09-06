@@ -196,6 +196,13 @@ then fails if selection or public-account fingerprints differ. Its output is a
 measurement baseline only, never a backend-promotion certificate or a generic
 WFO throughput claim.
 
+The committed [PERF-01 observer baseline](../../benchmarks/native_event/results/perf_01_observer_baseline_v1.json)
+records a clean-source 100-pair, 540-bar, 4-trial public Mode 1 workload.
+Its self-contained provenance holds the candidate commit plus typed
+data/intent hashes. It reports observer-off/on latency p50 and p95 separately
+from the paired order/scheduler-noise diagnostic. This is a measured follow-up
+target for later PERF phases, not a release or route-promotion gate.
+
 ## Commands
 
 ```bash

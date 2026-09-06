@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import numpy as np
@@ -249,3 +250,4 @@ def test_public_observer_harness_preserves_economics_on_paired_runs():
     assert payload["observer_overhead_proposed_budget"]["binding_release_gate"] is False
     assert payload["candidate_identity"]["data_sha256"]
     assert payload["candidate_identity"]["intent_sha256"]
+    assert "/root/" not in json.dumps(payload)

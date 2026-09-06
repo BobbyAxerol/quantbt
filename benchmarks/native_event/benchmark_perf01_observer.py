@@ -39,6 +39,17 @@ def _load_measurement_tool():
     return module
 
 
+def _public_candidate_identity(identity: Mapping[str, Any]) -> dict[str, Any]:
+    """Preserve extension provenance without publishing machine-local paths."""
+
+    public_identity = dict(identity)
+    extension = dict(public_identity.get("native_extension") or {})
+    extension.pop("module_path", None)
+    extension.pop("wrapper_path", None)
+    public_identity["native_extension"] = extension
+    return public_identity
+
+
 def _bars(rows: int) -> pd.DataFrame:
     index = pd.date_range("2020-01-01", periods=rows, freq="1D", tz="UTC")
     ordinal = np.arange(rows, dtype=np.float64)
@@ -253,11 +264,13 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
             "paired_repeats": int(repeats),
             "pairing": "alternating observer-off/observer-on order",
         },
-        "candidate_identity": measurement.capture_measurement_identity(
-            root=ROOT,
-            warmup_procedure=f"{warmup} unrecorded public WFO runs per profile before alternating pairs",
-            data_sha256=data_sha256,
-            intent_sha256=intent_sha256,
+        "candidate_identity": _public_candidate_identity(
+            measurement.capture_measurement_identity(
+                root=ROOT,
+                warmup_procedure=f"{warmup} unrecorded public WFO runs per profile before alternating pairs",
+                data_sha256=data_sha256,
+                intent_sha256=intent_sha256,
+            )
         ),
         "observer_off": off_summary,
         "observer_on": on_summary,

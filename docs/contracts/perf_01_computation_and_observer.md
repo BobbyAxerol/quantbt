@@ -86,3 +86,18 @@ PYTHONPATH=src .venv/bin/python tools/generate_perf01_traceability.py \
 
 That temporary identity is input to a workload-specific benchmark record. It
 must not contain credentials, private market data, or private strategy paths.
+The public observer artifact retains native extension version/API/content hashes
+but redacts machine-local extension paths before it is committed.
+
+## Baseline Interpretation
+
+The checked-in [observer baseline]
+(../../benchmarks/native_event/results/perf_01_observer_baseline_v1.json)
+uses alternating observer-off/on samples. Its p50 and p95 budget comparisons
+are ratios of the corresponding latency quantiles from each condition. The
+per-pair delta distribution is a separate order and scheduler-noise diagnostic;
+it must not be misreported as the p95 latency regression. A source candidate
+must be clean when the artifact is generated, and its commit/data/intent hashes
+must match the artifact provenance. The local PERF-01 record is deliberately
+non-promotional: it establishes a regression baseline for later phases rather
+than authorizing a backend or release decision.
