@@ -21,6 +21,11 @@ import numpy as np
 import pandas as pd
 
 from .core.preprocessor import validate_datetime
+from .core.performance_contracts import (
+    ExclusiveWorkProfilerV1,
+    RequiredComputationPlanV1,
+    compile_walkforward_computation_plan,
+)
 from .core.market_calendar_v2 import (
     CalendarPlanV2,
     CalendarPolicyV2,
@@ -926,7 +931,14 @@ class WalkForwardEngine:
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
         profile_enabled = bool(self.config.metadata.get("profile_walkforward", False))
+        perf01_enabled = bool(self.config.metadata.get("perf_01_profile", False))
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
+        self._perf01_profile_enabled = perf01_enabled
+        self._required_computation_plan: RequiredComputationPlanV1 = compile_walkforward_computation_plan(self.config)
+        self._perf01_profiler = ExclusiveWorkProfilerV1(
+            enabled=perf01_enabled,
+            route_id="QuantBTEndpoint.walk_forward",
+        )
         self._lifecycle_records: List[Dict[str, Any]] = []
         self._lifecycle_records_dropped = 0
         self._strategy_market_fingerprints: Dict[int, str] = {}
@@ -945,44 +957,51 @@ class WalkForwardEngine:
             "selection_scope": "is_only",
         }
         prepare_started = time.perf_counter()
-        requested_index = _infer_datetime_index(data, datetime_index)
-        calendar_plan = _prepare_walkforward_calendar_plan(
-            data,
-            requested_index=requested_index,
-            config=self.config,
-        )
-        idx = requested_index if calendar_plan is None else calendar_plan.datetime_index
-        if datetime_index is not None and not requested_index.equals(idx):
-            raise ValueError(
-                "walk-forward datetime_index must exactly match the CalendarPlanV2 canonical clock; "
-                "omit datetime_index to use the configured canonical calendar"
-            )
-        data_for_strategy = _align_data_to_datetime_index(
-            data,
-            idx,
-            calendar_contract=self.config.calendar_contract,
-            calendar_plan=calendar_plan,
-        )
-        folds = self.build_folds(idx)
-        use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
-        prepared_context = (
-            PreparedWalkForwardContext.prepare(
-                data=data_for_strategy,
-                datetime_index=idx,
-                folds=folds,
+        with self._perf01_profiler.stage("prepare_validate_ingest"):
+            requested_index = _infer_datetime_index(data, datetime_index)
+            calendar_plan = _prepare_walkforward_calendar_plan(
+                data,
+                requested_index=requested_index,
                 config=self.config,
+            )
+            idx = requested_index if calendar_plan is None else calendar_plan.datetime_index
+            if datetime_index is not None and not requested_index.equals(idx):
+                raise ValueError(
+                    "walk-forward datetime_index must exactly match the CalendarPlanV2 canonical clock; "
+                    "omit datetime_index to use the configured canonical calendar"
+                )
+            data_for_strategy = _align_data_to_datetime_index(
+                data,
+                idx,
+                calendar_contract=self.config.calendar_contract,
                 calendar_plan=calendar_plan,
             )
-            if use_prepared_context
-            else None
-        )
+            folds = self.build_folds(idx)
+            use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
+            prepared_context = (
+                PreparedWalkForwardContext.prepare(
+                    data=data_for_strategy,
+                    datetime_index=idx,
+                    folds=folds,
+                    config=self.config,
+                    calendar_plan=calendar_plan,
+                )
+                if use_prepared_context
+                else None
+            )
         if profile_enabled:
             self._performance_profile["data_alignment_fold_prepare_seconds"] = time.perf_counter() - prepare_started
         self._prepared_context = prepared_context
-        if prepared_context is not None and hasattr(self.scorer, "bind_walkforward_context"):
-            self.scorer.bind_walkforward_context(prepared_context)
-        if prepared_context is not None and hasattr(self.native_scorer, "bind_walkforward_context"):
-            self.native_scorer.bind_walkforward_context(prepared_context)
+        with self._perf01_profiler.stage("prepare_validate_ingest"):
+            if prepared_context is not None and hasattr(self.scorer, "bind_walkforward_context"):
+                self.scorer.bind_walkforward_context(prepared_context)
+            if prepared_context is not None and hasattr(self.native_scorer, "bind_walkforward_context"):
+                self.native_scorer.bind_walkforward_context(prepared_context)
+            for scorer in (self.scorer, self.native_scorer):
+                if scorer is not None and hasattr(scorer, "bind_computation_plan"):
+                    scorer.bind_computation_plan(self._required_computation_plan)
+                if scorer is not None and hasattr(scorer, "bind_performance_profiler"):
+                    scorer.bind_performance_profiler(self._perf01_profiler)
         result: WalkForwardResult | None = None
         try:
             (
@@ -1017,6 +1036,8 @@ class WalkForwardEngine:
             if result is not None:
                 result.metadata["prepared_wfo_strategy"] = dict(self._prepared_wfo_strategy_metadata)
                 result.metadata["strategy_lifecycle_table"] = pd.DataFrame(self._lifecycle_records)
+                result.metadata["required_computation_plan"] = self._required_computation_plan.metadata()
+                result.metadata["perf_01_profile"] = self._perf01_profiler.snapshot()
             self._prepared_wfo_strategy_adapter = None
             self._prepared_wfo_strategy_lifecycle_record = None
             self._prepared_context = None
@@ -1109,6 +1130,7 @@ class WalkForwardEngine:
             selected=selected_record,
         )
 
+        result_adaptation_started = time.perf_counter()
         stitched = stitch_oos_outputs(
             outputs=outputs,
             folds=folds,
@@ -1181,7 +1203,7 @@ class WalkForwardEngine:
             }
             params_semantics = "single_global_parameter_set"
 
-        return WalkForwardResult(
+        result = WalkForwardResult(
             folds=folds,
             oos_output=stitched,
             fold_table=fold_table,
@@ -1190,6 +1212,7 @@ class WalkForwardEngine:
             candidate_table=_trial_table(candidate_records),
             best_trial=_trial_to_dict(selected_record),
             metadata={
+                **self.config.metadata,
                 "engine": "walk_forward_phase49a" if schedule != "global" else "walk_forward_phase4",
                 "split_mode": str(self.config.split_mode),
                 "split_frequency": self.config.split_frequency,
@@ -1280,10 +1303,16 @@ class WalkForwardEngine:
                     if prepared_context is not None
                     else {"enabled": False, "run_local": True}
                 ),
+                "required_computation_plan": self._required_computation_plan.metadata(),
                 "performance_profile": dict(getattr(self, "_performance_profile", {})),
-                **self.config.metadata,
             },
         )
+        if bool(getattr(self, "_perf01_profile_enabled", False)):
+            self._perf01_profile_add(
+                "metrics_analysis_audit_encode_flush_public_adapt",
+                elapsed_ns=int((time.perf_counter() - result_adaptation_started) * 1_000_000_000.0),
+            )
+        return result
 
     def _run_per_fold_schedule(
         self,
@@ -2202,11 +2231,16 @@ class WalkForwardEngine:
         if len(metrics) != len(entries):
             raise RuntimeError("walk-forward scorer returned a metric row count different from its task batch")
         profile = getattr(self, "_performance_profile", None)
+        score_elapsed = time.perf_counter() - score_started
         if profile and profile.get("enabled"):
-            profile["score_seconds"] = float(profile.get("score_seconds", 0.0)) + (
-                time.perf_counter() - score_started
-            )
+            profile["score_seconds"] = float(profile.get("score_seconds", 0.0)) + score_elapsed
             profile["score_calls"] = int(profile.get("score_calls", 0)) + len(entries)
+        if bool(getattr(self, "_perf01_profile_enabled", False)):
+            self._perf01_profile_add(
+                "advance_match_account_wake",
+                elapsed_ns=int(score_elapsed * 1_000_000_000.0),
+                activity={"metric_observation_passes": len(entries)},
+            )
         return metrics
 
     def _validate_proxy_screening(
@@ -2393,7 +2427,14 @@ class WalkForwardEngine:
                     f"train=[{fold.train_start}, {fold.train_end}], "
                     f"test=[{test_index[0]}, {test_index[-1]}]: {exc}"
                 ) from exc
-            self._profile_add("strategy_seconds", time.perf_counter() - strategy_started, count_key="strategy_calls")
+            strategy_elapsed = time.perf_counter() - strategy_started
+            self._profile_add("strategy_seconds", strategy_elapsed, count_key="strategy_calls")
+            if bool(getattr(self, "_perf01_profile_enabled", False)):
+                self._perf01_profile_add(
+                    "projection_python_decision_command_write_ingest",
+                    elapsed_ns=int(strategy_elapsed * 1_000_000_000.0),
+                    activity={"python_strategy_entries": 1},
+                )
             return validated
         strategy_data = (
             data
@@ -2502,7 +2543,14 @@ class WalkForwardEngine:
             context=f"{context} fold_id={fold.fold_id}",
             intent_contract=self.config.intent_contract,
         )
-        self._profile_add("strategy_seconds", time.perf_counter() - strategy_started, count_key="strategy_calls")
+        strategy_elapsed = time.perf_counter() - strategy_started
+        self._profile_add("strategy_seconds", strategy_elapsed, count_key="strategy_calls")
+        if bool(getattr(self, "_perf01_profile_enabled", False)):
+            self._perf01_profile_add(
+                "projection_python_decision_command_write_ingest",
+                elapsed_ns=int(strategy_elapsed * 1_000_000_000.0),
+                activity={"python_strategy_entries": 1},
+            )
         return validated
 
     def _prepared_data_through(self, data, end: pd.Timestamp, *, strategy_copy: bool):
@@ -2530,6 +2578,22 @@ class WalkForwardEngine:
             return
         profile[key] = float(profile.get(key, 0.0)) + float(elapsed)
         profile[count_key] = int(profile.get(count_key, 0)) + 1
+
+    def _perf01_profile_add(
+        self,
+        stage: str,
+        *,
+        elapsed_ns: int,
+        activity: Mapping[str, int] | None = None,
+    ) -> None:
+        """Record one non-overlapping public-WFO phase without affecting execution."""
+
+        profiler = getattr(self, "_perf01_profiler", None)
+        if profiler is None or not profiler.enabled:
+            return
+        profiler.record_elapsed(stage, elapsed_ns)
+        for name, amount in dict(activity or {}).items():
+            profiler.add_activity(name, amount)
 
     def _append_lifecycle_record(self, record: Dict[str, Any]) -> None:
         """Keep lifecycle provenance bounded during large Optuna WFO runs."""

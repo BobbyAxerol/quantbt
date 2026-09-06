@@ -2760,6 +2760,7 @@ wfo = QuantBTEndpoint.walk_forward(
         # "use_scalar_trial_scoring": True,
         # "compact_trial_ledger": True,
         # "profile_walkforward": False,
+        # "perf_01_profile": False,  # exclusive public-WFO stage/counter audit
         # "prepared_scoring_report_level": "minimal",
         # "plateau_quantile": 0.25,
         # "plateau_median_weight": 0.25,
@@ -3051,8 +3052,10 @@ Phase 49B enables three compatible defaults for endpoint-backed optimization:
 These options change retention and preparation only. They do not change the
 Optuna seed, objective, candidate ordering, selected params, target stitching,
 or final account run. Set all three to `False` when reproducing the Phase 49A
-reference lifecycle. `profile_walkforward=True` adds timing counters without
-changing selection.
+reference lifecycle. `profile_walkforward=True` adds the legacy aggregate
+strategy/scorer timer. `perf_01_profile=True` adds the opt-in PERF-01 exclusive
+stage profile and explicit boundary counters; neither changes selection,
+checkpoint order, target stitching, or final-account accounting.
 
 ```python
 wf = result.metadata["walk_forward"]
@@ -3060,7 +3063,20 @@ wf["prepared_wfo_context"]       # content/config signature and slice counts
 wf["prepared_scoring_cache"]     # cache hits, scalar runs, kernel/report time
 wf["trial_ledger_mode"]          # "compact" or "full"
 wf["performance_profile"]        # strategy and scorer timing when enabled
+wf["required_computation_plan"]   # retention/reducer/output requirements for this WFO run
+wf["perf_01_profile"]             # exclusive stages and measured boundary counters
 ```
+
+`perf_01_profile` has five non-overlapping timing buckets:
+`prepare_validate_ingest`, `advance_match_account_wake`,
+`projection_python_decision_command_write_ingest`,
+`metrics_analysis_audit_encode_flush_public_adapt`, and
+`reset_cache_lookup_queue_wait`. A `null` counter means that a route did not
+measure that boundary; it is not a synthetic zero. Opaque undeclared custom
+metric requirements conservatively retain the full input stream and disable a
+scalar-only prepared-native score route instead of silently dropping inputs.
+The static route/ownership map lives in
+[PERF-01 traceability](performance/perf_01_traceability.md).
 
 Prepared state is run-local. QuantBT never caches an arbitrary strategy's
 indicator or signal output, and content signatures include all DataFrame

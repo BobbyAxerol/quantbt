@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from ..core.constraints import build_quantity_constraints
+from ..core.performance_contracts import ExclusiveWorkProfilerV1, RequiredComputationPlanV1
 from ..core.preprocessor import make_funding_mask, prepare_funding
 from ..preparation.native_execution import CachePolicy, NativeExecutionPreparationCache
 from ..sizing.fast import scale_signal_notional_matrix
@@ -83,6 +84,8 @@ class NativePreparedPublicWfoScorerV1:
         self.policy = policy
         self.workers = workers
         self._state: _PreparedPublicWfoState | None = None
+        self._computation_plan: RequiredComputationPlanV1 | None = None
+        self._perf01_profiler: ExclusiveWorkProfilerV1 | None = None
         self._resolved = "off" if policy == "off" else "pending"
         self._reason: str | None = None
         self._stats: dict[str, object] = {
@@ -101,6 +104,7 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_policy": "fresh_account_per_evaluation",
             "final_account_policy": "endpoint_stitched_continuous_account",
             "execution_clock": _RUST_DIRECT_TIMING,
+            "required_computation_plan": None,
         }
 
     @property
@@ -130,6 +134,21 @@ class NativePreparedPublicWfoScorerV1:
             self._stats["market_signature"] = self._state.template.market.signature
             self._stats["template_signature"] = self._state.template.signature
 
+    def bind_computation_plan(self, plan: RequiredComputationPlanV1) -> None:
+        """Attach the run-local plan before any score batch crosses into Rust."""
+
+        if not isinstance(plan, RequiredComputationPlanV1):
+            raise TypeError("native prepared WFO requires RequiredComputationPlanV1")
+        self._computation_plan = plan
+        self._stats["required_computation_plan"] = plan.metadata()
+
+    def bind_performance_profiler(self, profiler: ExclusiveWorkProfilerV1) -> None:
+        """Attach an opt-in outer profiler; it never controls scoring behavior."""
+
+        if not isinstance(profiler, ExclusiveWorkProfilerV1):
+            raise TypeError("native prepared WFO requires ExclusiveWorkProfilerV1")
+        self._perf01_profiler = profiler
+
     def score_batch(self, tasks: Sequence[Mapping[str, Any]]) -> list[dict[str, float]] | None:
         """Return native scalar metrics or ``None`` for an explicit auto fallback."""
 
@@ -142,6 +161,17 @@ class NativePreparedPublicWfoScorerV1:
             if self.policy == "require":  # defensive: bind normally raises first
                 raise NativePreparedPublicWfoUnsupported(self._reason or "prepared WFO runtime is unavailable")
             return None
+        plan = self._computation_plan
+        if plan is not None:
+            try:
+                plan.require_native_score_eligibility()
+            except ValueError as exc:
+                message = str(exc)
+                if self.policy == "require":
+                    raise NativePreparedPublicWfoUnsupported(message) from exc
+                self._set_unavailable(message)
+                self._record_fallback(len(entries))
+                return None
         try:
             bindings = self._bindings_for_tasks(state, entries)
         except NativePreparedPublicWfoUnsupported as exc:
@@ -161,6 +191,10 @@ class NativePreparedPublicWfoScorerV1:
         )
         self._stats["native_boundary_calls"] = int(self._stats["native_boundary_calls"]) + 1
         self._stats["native_score_seconds"] = float(self._stats["native_score_seconds"]) + elapsed
+        profiler = self._perf01_profiler
+        if profiler is not None and profiler.enabled:
+            profiler.add_activity("native_outer_entries", 1)
+            profiler.add_activity("command_ingest_batches", 1)
 
         by_scenario = result.index_by_scenario()
         metrics: list[dict[str, float]] = []

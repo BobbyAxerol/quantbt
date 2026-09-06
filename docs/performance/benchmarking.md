@@ -177,6 +177,25 @@ The [Native Measurement Contract V1](measurement_contract_v1.md) defines the
 versioned actual-work counters, source/wheel/data/intent identity, profile
 matching, and the rule that historical evidence cannot auto-promote a route.
 
+Before later performance work changes an execution route, consult the
+[PERF-01 Traceability And Computation Plan](perf_01_traceability.md). It maps
+the public factory to its request, runtime, result/export path, current AP
+owner and workload class. Its static source hashes are intentionally separate
+from the machine-local runtime identity capture used by a candidate benchmark.
+
+The paired observer baseline can be regenerated after the source candidate is
+clean:
+
+```bash
+PYTHONPATH=src .venv/bin/python benchmarks/native_event/benchmark_perf01_observer.py \
+  --output benchmarks/native_event/results/perf_01_observer_baseline_v1.json
+```
+
+It alternates the public Mode 1 WFO facade with `perf_01_profile` off and on,
+then fails if selection or public-account fingerprints differ. Its output is a
+measurement baseline only, never a backend-promotion certificate or a generic
+WFO throughput claim.
+
 ## Commands
 
 ```bash

@@ -17650,9 +17650,11 @@ the user separately approves the release-certification phase.
 
 ## Additional Performance Closure - PERF-01 To PERF-07
 
-**Status: PLANNED. Planning authorized on 2026-09-06; no PERF implementation,
-benchmark qualification, or promotion is authorized by this entry. Each phase
-requires the user's individual approval before its implementation starts.**
+**Status: PERF-01 COMPLETE (2026-09-06); PERF-02 through PERF-07 remain
+PLANNED. Planning was authorized on 2026-09-06. PERF-01 adds source/profiler
+contracts only; no benchmark qualification or promotion is authorized by this
+group until its later phase gates are closed. Each remaining phase requires the
+user's individual approval before its implementation starts.**
 
 **Canonical detailed guide:**
 [APC-1.0: seven-phase pre-78 performance closure](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md).
@@ -17816,7 +17818,7 @@ outputs out of Git and public distributions.
 
 ### Phase PERF-01 - Source Traceability, Profiling, And Computation/Output Plan
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: COMPLETE (2026-09-06).**
 **Goal:** pin the real public-workload baseline, identify repeated work, and
 implement or verify the computation/output plan and low-cost observation path.
 **Proposal owners:** AP-01 and AP-11.
@@ -17828,7 +17830,7 @@ implement or verify the computation/output plan and low-cost observation path.
 [8.1: financial versus research retention](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#81-pf-061--hai-chiều-retention-độc-lập).
 The common AC/benchmark/approval rules above apply in full.
 
-**Implementation sequence (all pending):**
+**Implementation sequence (completed):**
 
 1. PF-01.1, [3.1: pin and public inventory](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#31-pf-011--pin-baseline-và-map-public-workloads): record source SHA,
    dirty state, lockfile/toolchain/native module origins and available artifact
@@ -17895,6 +17897,51 @@ decision at exit. Reuse verified existing logic; reject measured harmful
 optimizations. Roll back the performance plan/profiler to the pinned compatible
 path, preserving any separately approved correctness repair. PERF-02 owns reset
 implementation; PERF-05 owns evaluation cache; PERF-06 owns durable writer.
+
+**Completed implementation and evidence:**
+
+- PF-01.1: [`perf_01_traceability_v1.json`](../benchmarks/native_event/traceability/perf_01_traceability_v1.json)
+  and its generated [human route map](../docs/performance/perf_01_traceability.md)
+  record every required public family, all five WFO modes, options containment,
+  AP-01 through AP-12 disposition, AC-01 through AC-44 ownership, B-01 through
+  B-14 workload registration, concrete source hashes and actual oracle/fixture
+  anchors. Dynamic commit/dirty/toolchain/module identity is intentionally
+  captured separately rather than baked into a static artifact that would go
+  stale after a documentation commit.
+- PF-01.2 and PF-01.4: [`performance_contracts.py`](../src/quantbt/core/performance_contracts.py)
+  provides the opt-in `ExclusiveWorkProfilerV1` with five non-overlapping
+  buckets and explicit nullable boundary counters. `WalkForwardEngine` records
+  preparation, strategy projection, candidate score/account work and WFO
+  result adaptation; prepared-native score batches report native outer calls
+  without double-timing the outer scorer. The disabled path skips per-strategy
+  and per-score observer calls.
+- PF-01.3 and PF-01.5: `RequiredComputationPlanV1` is compiled for each WFO
+  invocation and exported through both engine and endpoint metadata. It locks
+  objective/selector paths, retention, reducer identity, sinks and checkpoint
+  needs. Opaque custom metric requirements retain complete inputs and reject a
+  scalar-only native score route; existing `OnlineMetricReducerV2` remains the
+  financial authority. The durable contract is documented in
+  [`perf_01_computation_and_observer.md`](../docs/contracts/perf_01_computation_and_observer.md).
+- The paired public-facade harness
+  [`benchmark_perf01_observer.py`](../benchmarks/native_event/benchmark_perf01_observer.py)
+  alternates observer-off/on Mode 1 runs and fails on any selection/accounting
+  fingerprint difference. It emits a clearly non-promotional local baseline;
+  the committed run artifact is generated only from a clean source candidate.
+- Focused evidence: `tests/test_perf_01_traceability_and_computation.py` covers
+  reducer de-duplication, conservative custom-metric fallback, Optuna trial
+  ledger/order equivalence, observer on/off economics, exclusive-stage safety,
+  public endpoint forwarding, generator validation and the paired facade
+  harness. Existing WFO schedule/prepared/native tests remain the compatibility
+  lock.
+
+**Exit disposition:** AP-01 and AP-11 are `IMPLEMENTED_VERIFIED` for the WFO
+computation-plan/observer scope. The traceability artifact explicitly leaves
+AP-02 through AP-10 and AP-12 with their named downstream PERF owners; that is
+planned phase scope, not hidden PERF-01 debt. No execution, accounting,
+selection, Optuna ordering, strategy lifecycle, audit retention policy or
+public endpoint name changed. The rollback is to disable `perf_01_profile` and
+use the existing scorer path; the plan metadata is observational and does not
+alter economic state.
 
 ### Phase PERF-02 - Safe Session Reuse And Shared Derived Account State
 

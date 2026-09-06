@@ -1943,6 +1943,7 @@ class QuantBTEndpoint:
         wf_metadata.setdefault("use_scalar_trial_scoring", bool(optimization_config.get("use_scalar_trial_scoring", True)))
         wf_metadata.setdefault("compact_trial_ledger", bool(optimization_config.get("compact_trial_ledger", True)))
         wf_metadata.setdefault("profile_walkforward", bool(optimization_config.get("profile_walkforward", False)))
+        wf_metadata.setdefault("perf_01_profile", bool(optimization_config.get("perf_01_profile", False)))
         native_prepared_wfo = str(optimization_config.get("native_prepared_wfo", "off")).lower().strip()
         if native_prepared_wfo not in {"off", "auto", "require"}:
             raise ValueError("native_prepared_wfo must be 'off', 'auto', or 'require'")
@@ -3792,6 +3793,8 @@ class QuantBTEndpoint:
             "full_trial_metrics_retained": wf_result.metadata.get("full_trial_metrics_retained"),
             "prepared_wfo_context": wf_result.metadata.get("prepared_wfo_context"),
             "prepared_wfo_strategy": wf_result.metadata.get("prepared_wfo_strategy"),
+            "required_computation_plan": wf_result.metadata.get("required_computation_plan"),
+            "perf_01_profile": wf_result.metadata.get("perf_01_profile"),
             "performance_profile": wf_result.metadata.get("performance_profile"),
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
