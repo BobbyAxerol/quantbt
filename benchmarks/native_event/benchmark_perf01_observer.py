@@ -161,6 +161,15 @@ def _percent_summary(samples: list[float]) -> dict[str, float | int]:
     }
 
 
+def _latency_quantile_overhead(*, off: Mapping[str, Any], on: Mapping[str, Any]) -> dict[str, float]:
+    """Compare p50/p95 latency distributions; pair deltas remain a noise diagnostic."""
+
+    return {
+        "p50_pct": 100.0 * (float(on["median_ns"]) - float(off["median_ns"])) / float(off["median_ns"]),
+        "p95_pct": 100.0 * (float(on["p95_ns"]) - float(off["p95_ns"])) / float(off["p95_ns"]),
+    }
+
+
 def _median_profile(samples: list[dict[str, Any]]) -> dict[str, int | None]:
     stage_names = samples[0]["perf_01_profile"]["exclusive_stage_elapsed_ns"].keys()
     return {
@@ -209,12 +218,13 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
         for pair in pairs
     ]
     paired_overhead_summary = _percent_summary(paired_overhead_pct)
+    latency_quantile_overhead = _latency_quantile_overhead(off=off_summary, on=on_summary)
     proposed_budget = {"p50_pct": 3.0, "p95_pct": 5.0}
-    p50_status = "PASS" if paired_overhead_summary["median_pct"] <= proposed_budget["p50_pct"] else "FAIL"
+    p50_status = "PASS" if latency_quantile_overhead["p50_pct"] <= proposed_budget["p50_pct"] else "FAIL"
     p95_sample_count_is_sufficient = int(repeats) >= P95_MINIMUM_PAIRED_SAMPLES
     if not p95_sample_count_is_sufficient:
         p95_status = "INCONCLUSIVE_INSUFFICIENT_PAIRED_SAMPLES"
-    elif paired_overhead_summary["p95_pct"] <= proposed_budget["p95_pct"]:
+    elif latency_quantile_overhead["p95_pct"] <= proposed_budget["p95_pct"]:
         p95_status = "PASS"
     else:
         p95_status = "FAIL"
@@ -251,12 +261,18 @@ def run_benchmark(*, bars: int, trials: int, warmup: int, repeats: int) -> dict[
         ),
         "observer_off": off_summary,
         "observer_on": on_summary,
-        "observer_overhead_median_pct": float(paired_overhead_summary["median_pct"]),
+        "observer_overhead_median_pct": float(latency_quantile_overhead["p50_pct"]),
+        "observer_overhead_latency_quantiles_pct": latency_quantile_overhead,
         "observer_overhead_pairs_pct": paired_overhead_summary,
         "observer_overhead_proposed_budget": {
-            "p50": {"threshold_pct": proposed_budget["p50_pct"], "status": p50_status},
+            "p50": {
+                "threshold_pct": proposed_budget["p50_pct"],
+                "measurement": "p50_latency_quantile_ratio",
+                "status": p50_status,
+            },
             "p95": {
                 "threshold_pct": proposed_budget["p95_pct"],
+                "measurement": "p95_latency_quantile_ratio",
                 "status": p95_status,
                 "minimum_paired_samples": P95_MINIMUM_PAIRED_SAMPLES,
             },

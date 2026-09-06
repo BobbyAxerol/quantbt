@@ -244,6 +244,7 @@ def test_public_observer_harness_preserves_economics_on_paired_runs():
     assert payload["observer_off"]["samples"] == 2
     assert payload["observer_on"]["samples"] == 2
     assert payload["observer_overhead_pairs_pct"]["samples"] == 2
+    assert set(payload["observer_overhead_latency_quantiles_pct"]) == {"p50_pct", "p95_pct"}
     assert payload["observer_overhead_proposed_budget"]["p95"]["status"] == "INCONCLUSIVE_INSUFFICIENT_PAIRED_SAMPLES"
     assert payload["observer_overhead_proposed_budget"]["binding_release_gate"] is False
     assert payload["candidate_identity"]["data_sha256"]
