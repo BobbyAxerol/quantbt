@@ -272,7 +272,17 @@ ROUTE_ROWS: tuple[dict[str, Any], ...] = (
 AP_DISPOSITIONS: tuple[dict[str, Any], ...] = (
     {"id": "AP-01", "state": "IMPLEMENTED_VERIFIED", "owner": "PERF-01", "evidence": ("src/quantbt/core/performance_contracts.py", "rust/crates/quantbt-engine/src/metrics_v2.rs", "src/quantbt/core/native_result_v2.py")},
     {"id": "AP-02", "state": "OPEN", "owner": "PERF-02", "evidence": ("src/quantbt/backends/native_prepared_evaluation.py",)},
-    {"id": "AP-03", "state": "OPEN", "owner": "PERF-03", "evidence": ("src/quantbt/api/event_driven.py",)},
+    {
+        "id": "AP-03",
+        "state": "IMPLEMENTED_VERIFIED",
+        "owner": "PERF-03",
+        "evidence": (
+            "rust/native_event/src/reactive_numeric.rs",
+            "src/quantbt/backends/native_event.py",
+            "tests/test_perf_03_reactive_boundary.py",
+            "benchmarks/native_event/benchmark_perf03_reactive_boundary.py",
+        ),
+    },
     {"id": "AP-04", "state": "OPEN", "owner": "PERF-02", "evidence": ("src/quantbt/core/runtime_governance.py",)},
     {"id": "AP-05", "state": "OPEN", "owner": "PERF-04", "evidence": ("src/quantbt/backends/native_event.py",)},
     {"id": "AP-06", "state": "OPEN", "owner": "PERF-04", "evidence": ("src/quantbt/backends/native_vectorized.py",)},
@@ -379,19 +389,32 @@ def build_manifest() -> dict[str, Any]:
 
     ac_rows = []
     covered = {
-        1: "tests/test_perf_01_traceability_and_computation.py::test_observation_ledger_deduplicates_per_reducer",
-        2: "tests/test_perf_01_traceability_and_computation.py::test_opaque_custom_metric_requires_conservative_full_input",
-        3: "tests/test_perf_01_traceability_and_computation.py::test_profiled_wfo_preserves_trial_checkpoint_order_and_result",
-        4: "tests/test_phase49b_wfo_performance.py::test_prepared_walkforward_context_has_content_signature_and_isolated_strategy_slice",
-        42: "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical",
+        1: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_observation_ledger_deduplicates_per_reducer"),
+        2: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_opaque_custom_metric_requires_conservative_full_input"),
+        3: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_profiled_wfo_preserves_trial_checkpoint_order_and_result"),
+        4: ("PERF-01", "tests/test_phase49b_wfo_performance.py::test_prepared_walkforward_context_has_content_signature_and_isolated_strategy_slice"),
+        11: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset"),
+        12: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_business_rejection_remains_per_command_not_callback_atomicity"),
+        13: ("PERF-03", "tests/test_phase62_reactive_numeric_coruntime.py::test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically"),
+        14: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_silent_every_bar_callback_still_advances_private_state"),
+        15: ("PERF-03", "tests/test_perf_03_reactive_boundary.py::test_perf03_future_ohlc_suffix_cannot_change_prior_effective_command"),
+        16: ("PERF-03", "tests/test_phase63_sparse_block_reactive.py::test_r2_coalesces_fill_order_event_and_liquidation_on_one_boundary"),
+        17: ("PERF-03", "tests/test_phase63_sparse_block_reactive.py::test_r3b_candidate_batch_coalesces_callbacks_and_isolates_failures"),
+        42: ("PERF-01", "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical"),
     }
     for identifier in range(1, 45):
+        if identifier in covered:
+            owner, evidence = covered[identifier]
+            state = f"COVERED_{owner.replace('-', '')}"
+        else:
+            owner, evidence = _LATER_AC_OWNER[identifier], None
+            state = "OWNED_BY_LATER_PHASE"
         ac_rows.append(
             {
                 "id": f"AC-{identifier:02d}",
-                "state": "COVERED_PERF01" if identifier in covered else "OWNED_BY_LATER_PHASE",
-                "owner": "PERF-01" if identifier in covered else _LATER_AC_OWNER[identifier],
-                "evidence": covered.get(identifier),
+                "state": state,
+                "owner": owner,
+                "evidence": evidence,
             }
         )
 

@@ -18053,7 +18053,7 @@ budgets remain enforced across leases, scratch and outputs.
 
 ### Phase PERF-03 - Reactive Boundary, Context Projection, And Command Staging
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: IMPLEMENTED_VERIFIED (2026-09-06).**
 **Goal:** reduce the real cost per Python decision/wake while retaining
 first-class Python strategy behavior and Rust execution ownership.
 **Proposal owner:** AP-03; integrates AP-01/02/04.
@@ -18063,7 +18063,7 @@ first-class Python strategy behavior and Rust execution ownership.
 [5.6: four-way comparison](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#56-four-way-parity-và-benchmark),
 [14.3: runtime changes outside this critical path](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#143-free-threadedcompiled-strategy-paths-gpu-và-thêm-domain).
 
-**Implementation sequence (all pending):**
+**Implementation sequence (completed):**
 
 1. PF-03.1, [5.1: callback access plan](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#51-pf-031--lập-callback-access-plan): compile declared context
    fields, handles and delta cursors once at a valid strategy lifecycle
@@ -18106,6 +18106,44 @@ first-class Python strategy behavior and Rust execution ownership.
 `rust/native_event/src/{reactive_numeric,reactive_hot_loop,reactive_score}.rs`.
 Preserve the existing public facade and callbacks; use narrow delegation.
 
+**Implementation record (2026-09-06):**
+
+1. PF-03.1: `ReactiveCallbackAccessPlanV1` compiles the optional
+   `quantbt_reactive_callback_binding_v1="run_stable"` plan once per native
+   run. The default stays `dynamic_compatibility_v1`, resolving lifecycle
+   methods on each boundary so in-run Python method replacement remains
+   compatible. R1, R2, and R3 share the access plan; a pinned plan is scoped
+   to one fresh run and never crosses reset/candidate/fold/WFO boundaries.
+2. PF-03.2: the persistent numeric writer is an explicit callback-local staged
+   primitive buffer. Rust validates the full structural timing envelope before
+   scheduling any row; normal quantity/notional/margin admission remains
+   per-command. Callback exception, invalid return, or invalid envelope clears
+   every unsubmitted row, marks strategy state dirty, and poisons the reusable
+   runner until explicit reset. Capacity remains bounded and no view is resized
+   while active.
+3. PF-03.3: lifecycle callable resolution now happens before projection. An
+   absent optional hook allocates no context; every declared every-bar callback
+   still runs. Sparse and block wake detection remains before projection and
+   keeps existing event-clock/availability ordering.
+4. PF-03.4/03.5: existing `held_for_session` and
+   `release_between_callbacks` policies remain the only policies. R1/R2/R3
+   and candidate-batch semantics retain isolated strategy/account/RNG state;
+   no pool or callback compilation route was introduced.
+5. Observability now separates callback-plan compilation, dynamic lookups,
+   context projections/getters, writer entries, completed command callbacks,
+   discarded staged rows, and callback dirty state. It is telemetry only and
+   never enters financial state or scoring.
+
+**Evidence:** `tests/test_perf_03_reactive_boundary.py` adds A/B/C/D financial
+parity, dynamic mutation, R2/R3 pinned-plan, staged exception/invalid-output,
+business-rejection, and absent-hook coverage. Existing Phase 62/63/75/76/77.3
+corpora retain stale-handle, wake ordering, future availability, capacity, and
+candidate failure-isolation coverage. The public 2,000-bar artifact
+[`perf_03_reactive_boundary.json`](../benchmarks/native_event/results/perf_03_reactive_boundary.json)
+alternates dynamic/pinned sample order across a no-op control and B-02 through
+B-06; it reports full facade timing, counters, and RSS without making a
+general promotion claim.
+
 **Tests and exit gate:** [5.7: PERF-03 gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#57-gates-và-output).
 AC-11 through AC-17 compare independent small-corpus oracle, pinned baseline
 bridge, optimized bridge, and captured effective-command static replay.
@@ -18127,6 +18165,13 @@ availability leak, deadlock or unexplained callback difference at exit.
 Restore the compatible baseline bridge/snapshot writer when a fast shape
 fails safety/performance. Arbitrary Python compilation and free-threaded
 deployment remain outside this phase.
+
+**Exit disposition:** AP-03 and AC-11 through AC-17 are
+`IMPLEMENTED_VERIFIED` for the declared numeric reactive contract. Python-heavy
+callbacks remain Python-bound by design; that measured Amdahl residual is not
+an unowned correctness or performance debt. PERF-04 matching specialization,
+PERF-05 WFO reuse, and later runtime capabilities remain separately planned
+work, not hidden requirements for this phase.
 
 ### Phase PERF-04 - Native Matching, Layout, And Contract Specialization
 

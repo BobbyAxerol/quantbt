@@ -1587,6 +1587,52 @@ callback: copy scalar values rather than retaining either object. Context
 fields not declared in `quantbt_requirements` raise instead of causing hidden
 projection work.
 
+#### Callback binding and staged-command boundary
+
+The default is `dynamic_compatibility_v1`: QuantBT resolves a Python lifecycle
+method at each callback boundary, so an existing strategy that replaces an
+instance callback during a run keeps its historic behavior. This is the safe
+default for research code.
+
+An immutable strategy surface may explicitly opt into a one-run callback plan:
+
+```python
+class StableNumericGridR1:
+    quantbt_reactive_numeric_v1 = True
+    quantbt_reactive_callback_binding_v1 = "run_stable"
+    quantbt_requirements = StrategyContextRequirements(
+        market=("close",), account=("equity",), positions=("qty",),
+        fills="none", events="none", active_orders="none", context_mode="numeric",
+    )
+
+    def on_bar_close(self, ctx, out):
+        # Do not replace initialize/on_bar_close/on_wake/next_block/finalize
+        # while this run is active.
+        if ctx.bar_index == 0:
+            out.market(0, 1, 0.25, tif="ioc")
+```
+
+`"run_stable"` binds the available lifecycle callbacks once for that single
+native run; it never shares a bound callback or strategy state across a reset,
+candidate, fold, or WFO task. Do not use it for a strategy that monkey-patches
+its lifecycle methods during execution. Omit the marker, or set it to
+`"dynamic"`, for that compatibility behavior.
+
+The writer is one staged primitive batch per callback. A normal callback
+returns `None`, then Rust validates its envelope and processes each command
+with the normal per-command business admission rules. Therefore a minimum
+quantity, notional, or margin rejection does not roll back other valid rows.
+If a callback raises, returns an invalid value, or emits an invalid timing
+envelope, every unsubmitted staged row is discarded and the reusable runner is
+marked dirty/poisoned until an explicit `reset()`; QuantBT never retries a
+mutated Python strategy implicitly.
+
+Context projection is materialized only after a live callback has been
+resolved. Missing optional `initialize` or `finalize` methods do not allocate
+an unused numeric snapshot. Every-bar `on_bar_close` callbacks are never
+silently skipped because an apparently idle callback may advance private state
+or RNG.
+
 R1 supports `CallbackSchedule(every_n_bars=1)` only. It rejects sparse wake
 schedules, `audit_mode="verify_against_oracle"`, `audit_mode="dual_run_sampled"`,
 and sidecar audit sinks. Those combinations would add a second execution/replay
@@ -1625,6 +1671,12 @@ policy. Inspect:
 obs = result.metadata["reactive_numeric_observability"]
 obs["native_entry_calls"]          # exactly 1 for one R1 session
 obs["python_callback_calls"]       # every declared bar, plus lifecycle hooks
+obs["callback_binding_mode"]       # dynamic_compatibility_v1 | run_stable_pinned_v1
+obs["callback_dynamic_lookup_count"]
+obs["context_projection_count"]
+obs["context_getter_calls"]        # Python -> native scalar/context accesses
+obs["command_writer_calls"]        # primitive writer method entries
+obs["command_staged_rows_discarded"]
 obs["gil_policy"]                  # held_for_session | release_between_callbacks
 obs["context_projection_copy_bytes"]
 obs["command_ingest_copy_bytes"]

@@ -24,6 +24,13 @@ Each score window uses absolute bar coordinates of the single prepared tape, but
 
 The factory prepares parameter-independent causal data once, then builds one fresh strategy for each candidate/fold/window task.
 
+For R1/R2/R3 numeric strategies, the optional
+`quantbt_reactive_callback_binding_v1 = "run_stable"` marker pins lifecycle
+method bindings only within one fresh candidate/fold run. It does not reuse a
+strategy object, callback, command buffer, account, or RNG across tasks. Leave
+the marker unset for strategies that deliberately monkey-patch callbacks while
+running; that uses the compatible dynamic lookup route instead.
+
 ```python
 from quantbt import ExecutionConfig, QuantBTEndpoint, RuntimeBudgetV1
 from quantbt.backends import ReactiveWfoRuntimeConfigV1

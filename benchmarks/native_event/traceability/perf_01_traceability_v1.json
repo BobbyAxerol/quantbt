@@ -61,46 +61,46 @@
       "state": "OWNED_BY_LATER_PHASE"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset",
       "id": "AC-11",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_business_rejection_remains_per_command_not_callback_atomicity",
       "id": "AC-12",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase62_reactive_numeric_coruntime.py::test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically",
       "id": "AC-13",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_silent_every_bar_callback_still_advances_private_state",
       "id": "AC-14",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_future_ohlc_suffix_cannot_change_prior_effective_command",
       "id": "AC-15",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase63_sparse_block_reactive.py::test_r2_coalesces_fill_order_event_and_liquidation_on_one_boundary",
       "id": "AC-16",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
-      "evidence": null,
+      "evidence": "tests/test_phase63_sparse_block_reactive.py::test_r3b_candidate_batch_coalesces_callbacks_and_isolates_failures",
       "id": "AC-17",
       "owner": "PERF-03",
-      "state": "OWNED_BY_LATER_PHASE"
+      "state": "COVERED_PERF03"
     },
     {
       "evidence": null,
@@ -286,11 +286,14 @@
     },
     {
       "evidence": [
-        "src/quantbt/api/event_driven.py"
+        "rust/native_event/src/reactive_numeric.rs",
+        "src/quantbt/backends/native_event.py",
+        "tests/test_perf_03_reactive_boundary.py",
+        "benchmarks/native_event/benchmark_perf03_reactive_boundary.py"
       ],
       "id": "AP-03",
       "owner": "PERF-03",
-      "state": "OPEN"
+      "state": "IMPLEMENTED_VERIFIED"
     },
     {
       "evidence": [
@@ -523,7 +526,7 @@
         {
           "exists": true,
           "path": "src/quantbt/backends/native_event.py",
-          "sha256": "17edf9e97ef8055c48861f8dd6e2693ff2f448315f7b0f1fda7c2897713ba0da"
+          "sha256": "62fe5674a911027e1b1bc33275655f4c9bb542dbb3addca527a03ce558ac7f46"
         },
         {
           "exists": true,

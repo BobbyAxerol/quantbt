@@ -3555,10 +3555,21 @@ class RustReactiveNumericCoRuntime:
                 payload.get("terminal_path_original_bars", payload["bars_processed"])
             ),
             "python_callback_calls": int(payload["python_callback_calls"]),
+            "callback_binding_mode": str(
+                payload.get("callback_binding_mode", "dynamic_compatibility_v1")
+            ),
+            "callback_plan_compile_ns": int(payload.get("callback_plan_compile_ns", 0)),
+            "callback_lookup_ns": int(payload.get("callback_lookup_ns", 0)),
+            "callback_dynamic_lookup_count": int(payload.get("callback_dynamic_lookup_count", 0)),
+            "callback_plan_compile_lookup_count": int(
+                payload.get("callback_plan_compile_lookup_count", 0)
+            ),
             "gil_acquisitions": int(payload["gil_acquisitions"]),
             "gil_policy": str(payload["gil_policy"]),
             "bars_processed_without_callback": max(0, int(payload["bars_processed"]) - decision_callbacks),
             "context_projection_copy_bytes": int(payload["context_copy_bytes"]),
+            "context_projection_count": int(payload.get("context_projection_count", 0)),
+            "context_getter_calls": int(payload.get("context_getter_calls", 0)),
             "wake_observation_refreshes": int(payload.get("wake_observation_refreshes", 0)),
             "wake_observation_buffer_allocations": int(
                 payload.get("wake_observation_buffer_allocations", 0)
@@ -3571,6 +3582,12 @@ class RustReactiveNumericCoRuntime:
             "command_rows": int(payload["command_rows"]),
             "command_rows_dropped": int(payload["command_rows_dropped"]),
             "command_rows_quantized": int(payload["command_rows_quantized"]),
+            "command_writer_calls": int(payload.get("command_writer_calls", 0)),
+            "command_callbacks_completed": int(payload.get("command_callbacks_completed", 0)),
+            "command_staged_rows_discarded": int(
+                payload.get("command_staged_rows_discarded", 0)
+            ),
+            "callback_state_dirty": bool(payload.get("callback_state_dirty", False)),
             "callback_ns": int(payload["python_callback_ns"]),
             "context_projection_ns": int(payload["context_projection_ns"]),
             "command_ingest_ns": int(payload["command_ingest_ns"]),
@@ -3672,12 +3689,23 @@ class RustReactiveNumericCoRuntime:
                 payload.get("terminal_path_original_bars", payload["bars_processed"])
             ),
             "python_callback_calls": int(payload["python_callback_calls"]),
+            "callback_binding_mode": str(
+                payload.get("callback_binding_mode", "dynamic_compatibility_v1")
+            ),
+            "callback_plan_compile_ns": int(payload.get("callback_plan_compile_ns", 0)),
+            "callback_lookup_ns": int(payload.get("callback_lookup_ns", 0)),
+            "callback_dynamic_lookup_count": int(payload.get("callback_dynamic_lookup_count", 0)),
+            "callback_plan_compile_lookup_count": int(
+                payload.get("callback_plan_compile_lookup_count", 0)
+            ),
             "gil_acquisitions": int(payload["gil_acquisitions"]),
             "gil_policy": str(payload["gil_policy"]),
             "bars_processed_without_callback": max(
                 0, int(payload["bars_processed"]) - decision_callbacks
             ),
             "context_projection_copy_bytes": int(payload["context_copy_bytes"]),
+            "context_projection_count": int(payload.get("context_projection_count", 0)),
+            "context_getter_calls": int(payload.get("context_getter_calls", 0)),
             "wake_observation_refreshes": int(payload.get("wake_observation_refreshes", 0)),
             "wake_observation_buffer_allocations": int(
                 payload.get("wake_observation_buffer_allocations", 0)
@@ -3690,6 +3718,12 @@ class RustReactiveNumericCoRuntime:
             "command_rows": int(payload["command_rows"]),
             "command_rows_dropped": int(payload["command_rows_dropped"]),
             "command_rows_quantized": int(payload["command_rows_quantized"]),
+            "command_writer_calls": int(payload.get("command_writer_calls", 0)),
+            "command_callbacks_completed": int(payload.get("command_callbacks_completed", 0)),
+            "command_staged_rows_discarded": int(
+                payload.get("command_staged_rows_discarded", 0)
+            ),
+            "callback_state_dirty": bool(payload.get("callback_state_dirty", False)),
             "callback_ns": int(payload["python_callback_ns"]),
             "context_projection_ns": int(payload["context_projection_ns"]),
             "command_ingest_ns": int(payload["command_ingest_ns"]),

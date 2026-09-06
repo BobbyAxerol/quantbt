@@ -767,6 +767,40 @@ has bounded growth, numeric symbol/order handles, immediate Rust validation,
 and deterministic stale/capacity errors. Both wrappers are invalid outside a
 callback generation.
 
+### PERF-03 callback boundary contract
+
+Reactive callback lookup is compatible by default. Without an explicit marker,
+the co-runtime resolves a Python lifecycle method at each required boundary;
+this preserves a strategy that changes an instance method while it is running.
+A strategy whose lifecycle methods are immutable for one run may set:
+
+```python
+quantbt_reactive_callback_binding_v1 = "run_stable"
+```
+
+Rust then pins the available `initialize`, `on_bar_close`, `on_wake`,
+`next_block`, and `finalize` methods once at run start. The marker is scoped to
+one native session and never carries state across reset/fold/candidate. A
+strategy that mutates callbacks must use the default dynamic route. This is an
+access optimization only: callback ordering, data availability, command
+effective times, fills, fees, funding, margin, and liquidation remain the
+same contract.
+
+The numeric context is projected only after a live callback is known to exist.
+That avoids unused snapshots for absent optional lifecycle hooks but does not
+skip an every-bar decision callback. The command writer owns one primitive
+staging region per callback. A callback exception, invalid return value, or
+invalid command envelope discards every row not yet admitted to Rust and
+poisons the reusable session until reset. A successful callback still applies
+business admission independently per row, so one legitimate min-quantity or
+post-cost rejection does not turn its whole batch into an all-or-none package.
+
+`reactive_numeric_observability` exposes the boundary ledger:
+`callback_binding_mode`, callback-plan/lookup time and counts, context
+projection and getter counts, writer calls, completed command callbacks, and
+discarded staged rows. These counters are observability only; they do not
+participate in strategy decisions or account state.
+
 R1 deliberately rejects hidden second execution: oracle-audit mode, sidecar
 audit sinks, and sparse schedules are not accepted by the every-bar runtime.
 Phase 75 adds a distinct prepared **scalar-score** surface for R1/R2/R3. It is

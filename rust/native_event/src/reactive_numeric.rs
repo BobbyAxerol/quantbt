@@ -8,7 +8,7 @@
 
 use std::collections::{BTreeMap, HashSet};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use numpy::{PyArray1, PyReadonlyArray1};
@@ -193,6 +193,9 @@ pub(crate) struct ReactiveContextBufferV1 {
     active_qty: Vec<f64>,
     active_price: Vec<f64>,
     active_trigger: Vec<f64>,
+    /// Boundary-only telemetry. The counter is reset with each fresh context
+    /// projection and never participates in strategy/accounting semantics.
+    getter_calls: AtomicU64,
 }
 
 impl ReactiveContextBufferV1 {
@@ -243,6 +246,7 @@ impl ReactiveContextBufferV1 {
             active_qty: Vec::new(),
             active_price: Vec::new(),
             active_trigger: Vec::new(),
+            getter_calls: AtomicU64::new(0),
         }
     }
 
@@ -250,6 +254,7 @@ impl ReactiveContextBufferV1 {
         if !self.active {
             return Err(stale_context_error());
         }
+        self.getter_calls.fetch_add(1, Ordering::Relaxed);
         Ok(())
     }
 
@@ -311,6 +316,7 @@ impl ReactiveContextBufferV1 {
     ) -> PyResult<usize> {
         self.generation = self.generation.wrapping_add(1);
         self.active = true;
+        self.getter_calls.store(0, Ordering::Relaxed);
         self.bar_index = bar;
         self.wake_reason_mask = wake_reason_mask;
         self.timestamp_ns = session
@@ -388,6 +394,10 @@ impl ReactiveContextBufferV1 {
 
     fn invalidate_internal(&mut self) {
         self.active = false;
+    }
+
+    fn getter_call_count(&self) -> u64 {
+        self.getter_calls.load(Ordering::Relaxed)
     }
 }
 
@@ -680,6 +690,10 @@ pub(crate) struct ReactiveCommandBufferV2 {
     qty: Vec<f64>,
     price: Vec<f64>,
     trigger_price: Vec<f64>,
+    /// Counts Python writer method entries for observability only. It is reset
+    /// at each callback boundary and is intentionally not a capacity/account
+    /// input.
+    writer_calls: AtomicU64,
 }
 
 impl ReactiveCommandBufferV2 {
@@ -715,6 +729,7 @@ impl ReactiveCommandBufferV2 {
             qty: Vec::with_capacity(initial_capacity),
             price: Vec::with_capacity(initial_capacity),
             trigger_price: Vec::with_capacity(initial_capacity),
+            writer_calls: AtomicU64::new(0),
         })
     }
 
@@ -722,10 +737,11 @@ impl ReactiveCommandBufferV2 {
         if !self.active {
             return Err(stale_command_error());
         }
+        self.writer_calls.fetch_add(1, Ordering::Relaxed);
         Ok(())
     }
 
-    fn begin_callback(&mut self) {
+    fn clear_rows(&mut self) {
         self.length = 0;
         self.action.clear();
         self.symbol_id.clear();
@@ -743,12 +759,31 @@ impl ReactiveCommandBufferV2 {
         self.qty.clear();
         self.price.clear();
         self.trigger_price.clear();
+    }
+
+    fn begin_callback(&mut self) {
+        self.clear_rows();
+        self.writer_calls.store(0, Ordering::Relaxed);
         self.generation = self.generation.wrapping_add(1);
         self.active = true;
     }
 
     fn end_callback(&mut self) {
         self.active = false;
+    }
+
+    /// Discard only the rows that have not crossed into native admission.
+    /// Capacity and high-water history remain reusable, while a failed Python
+    /// callback cannot leave a later run with stale staged commands.
+    fn discard_callback(&mut self) -> usize {
+        let discarded = self.length;
+        self.clear_rows();
+        self.active = false;
+        discarded
+    }
+
+    fn writer_call_count(&self) -> u64 {
+        self.writer_calls.load(Ordering::Relaxed)
     }
 
     fn reset_session(&mut self) {
@@ -1689,6 +1724,17 @@ struct ReactiveRunData {
     liquidation_reason: i64,
     bars_processed: usize,
     python_callback_calls: usize,
+    callback_plan_compile_ns: u128,
+    callback_lookup_ns: u128,
+    callback_dynamic_lookup_count: usize,
+    callback_plan_compile_lookup_count: usize,
+    callback_binding_mode: String,
+    context_projection_count: usize,
+    context_getter_calls: u64,
+    command_writer_calls: u64,
+    command_callbacks_completed: usize,
+    command_staged_rows_discarded: usize,
+    callback_state_dirty: bool,
     callback_ns: u128,
     context_projection_ns: u128,
     context_copy_bytes: usize,
@@ -1896,6 +1942,29 @@ impl ReactiveNumericRunOutputCore {
         payload.set_item("liquidation_reason", data.liquidation_reason)?;
         payload.set_item("bars_processed", data.bars_processed)?;
         payload.set_item("python_callback_calls", data.python_callback_calls)?;
+        payload.set_item("callback_plan_compile_ns", data.callback_plan_compile_ns)?;
+        payload.set_item("callback_lookup_ns", data.callback_lookup_ns)?;
+        payload.set_item(
+            "callback_dynamic_lookup_count",
+            data.callback_dynamic_lookup_count,
+        )?;
+        payload.set_item(
+            "callback_plan_compile_lookup_count",
+            data.callback_plan_compile_lookup_count,
+        )?;
+        payload.set_item("callback_binding_mode", data.callback_binding_mode)?;
+        payload.set_item("context_projection_count", data.context_projection_count)?;
+        payload.set_item("context_getter_calls", data.context_getter_calls)?;
+        payload.set_item("command_writer_calls", data.command_writer_calls)?;
+        payload.set_item(
+            "command_callbacks_completed",
+            data.command_callbacks_completed,
+        )?;
+        payload.set_item(
+            "command_staged_rows_discarded",
+            data.command_staged_rows_discarded,
+        )?;
+        payload.set_item("callback_state_dirty", data.callback_state_dirty)?;
         payload.set_item("python_callback_ns", data.callback_ns)?;
         payload.set_item("context_projection_ns", data.context_projection_ns)?;
         payload.set_item("context_copy_bytes", data.context_copy_bytes)?;
@@ -1987,6 +2056,8 @@ pub(crate) struct ReactiveNumericRunnerCore {
     reset_count: u64,
     last_callback_name: String,
     last_callback_bar: i64,
+    last_callback_state_dirty: bool,
+    last_callback_staged_rows_discarded: usize,
 }
 
 #[derive(Default)]
@@ -2110,6 +2181,134 @@ struct BlockPlanInternal {
     invalidate_on_fill: bool,
     invalidate_on_reject: bool,
     invalidate_on_margin_change: bool,
+}
+
+/// Callback lookup is dynamic by default for full Python compatibility. A
+/// strategy may explicitly declare a run-stable callback surface when it does
+/// not monkey-patch lifecycle methods during a run. Only that opt-in shape is
+/// allowed to cache bound Python callables across bar boundaries.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CallbackBindingModeV1 {
+    DynamicCompatibility,
+    RunStablePinned,
+}
+
+impl CallbackBindingModeV1 {
+    fn label(self) -> &'static str {
+        match self {
+            Self::DynamicCompatibility => "dynamic_compatibility_v1",
+            Self::RunStablePinned => "run_stable_pinned_v1",
+        }
+    }
+}
+
+struct ReactiveCallbackAccessPlanV1 {
+    mode: CallbackBindingModeV1,
+    initialize: Option<Py<PyAny>>,
+    on_bar_close: Option<Py<PyAny>>,
+    on_wake: Option<Py<PyAny>>,
+    next_block: Option<Py<PyAny>>,
+    finalize: Option<Py<PyAny>>,
+}
+
+impl ReactiveCallbackAccessPlanV1 {
+    fn optional_callback(
+        py: Python<'_>,
+        strategy: &Py<PyAny>,
+        callback: &str,
+    ) -> PyResult<Option<Py<PyAny>>> {
+        match strategy.bind(py).getattr(callback) {
+            Ok(value) => Ok(Some(value.unbind())),
+            Err(error) if error.is_instance_of::<PyAttributeError>(py) => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn run_stable_opt_in(py: Python<'_>, strategy: &Py<PyAny>) -> PyResult<bool> {
+        let marker = match strategy
+            .bind(py)
+            .getattr("quantbt_reactive_callback_binding_v1")
+        {
+            Ok(value) => value,
+            Err(error) if error.is_instance_of::<PyAttributeError>(py) => return Ok(false),
+            Err(error) => return Err(error),
+        };
+        if let Ok(value) = marker.extract::<bool>() {
+            return Ok(value);
+        }
+        let value = marker.extract::<String>().map_err(|_| {
+            PyValueError::new_err(
+                "quantbt_reactive_callback_binding_v1 must be bool, 'run_stable', or 'dynamic'",
+            )
+        })?;
+        match value.to_ascii_lowercase().as_str() {
+            "run_stable" | "pinned" => Ok(true),
+            "dynamic" | "compatibility" => Ok(false),
+            _ => Err(PyValueError::new_err(
+                "quantbt_reactive_callback_binding_v1 must be 'run_stable' or 'dynamic'",
+            )),
+        }
+    }
+
+    fn compile(py: Python<'_>, strategy: &Py<PyAny>) -> PyResult<(Self, usize)> {
+        if !Self::run_stable_opt_in(py, strategy)? {
+            return Ok((
+                Self {
+                    mode: CallbackBindingModeV1::DynamicCompatibility,
+                    initialize: None,
+                    on_bar_close: None,
+                    on_wake: None,
+                    next_block: None,
+                    finalize: None,
+                },
+                0,
+            ));
+        }
+        Ok((
+            Self {
+                mode: CallbackBindingModeV1::RunStablePinned,
+                initialize: Self::optional_callback(py, strategy, "initialize")?,
+                on_bar_close: Self::optional_callback(py, strategy, "on_bar_close")?,
+                on_wake: Self::optional_callback(py, strategy, "on_wake")?,
+                next_block: Self::optional_callback(py, strategy, "next_block")?,
+                finalize: Self::optional_callback(py, strategy, "finalize")?,
+            },
+            5,
+        ))
+    }
+
+    fn pinned_callback(&self, callback: &str) -> Option<&Py<PyAny>> {
+        match callback {
+            "initialize" => self.initialize.as_ref(),
+            "on_bar_close" => self.on_bar_close.as_ref(),
+            "on_wake" => self.on_wake.as_ref(),
+            "next_block" => self.next_block.as_ref(),
+            "finalize" => self.finalize.as_ref(),
+            _ => None,
+        }
+    }
+
+    fn resolve(
+        &self,
+        py: Python<'_>,
+        strategy: &Py<PyAny>,
+        callback: &str,
+        output: &mut ReactiveRunData,
+    ) -> PyResult<Option<Py<PyAny>>> {
+        if self.mode == CallbackBindingModeV1::RunStablePinned {
+            return Ok(self
+                .pinned_callback(callback)
+                .map(|value| value.clone_ref(py)));
+        }
+        let started = Instant::now();
+        let resolved = Self::optional_callback(py, strategy, callback);
+        output.callback_lookup_ns = output
+            .callback_lookup_ns
+            .saturating_add(started.elapsed().as_nanos());
+        output.callback_dynamic_lookup_count =
+            output.callback_dynamic_lookup_count.saturating_add(1);
+        resolved
+    }
 }
 
 impl ReactiveNumericRunnerCore {
@@ -2815,7 +3014,32 @@ impl ReactiveNumericRunnerCore {
         )?;
         output.context_projection_ns += started.elapsed().as_nanos();
         output.context_copy_bytes += copied;
+        output.context_projection_count = output.context_projection_count.saturating_add(1);
         Ok(())
+    }
+
+    fn record_callback_boundary_calls(&self, py: Python<'_>, output: &mut ReactiveRunData) {
+        output.context_getter_calls = output
+            .context_getter_calls
+            .saturating_add(self.context.bind(py).borrow().getter_call_count());
+        output.command_writer_calls = output
+            .command_writer_calls
+            .saturating_add(self.writer.bind(py).borrow().writer_call_count());
+    }
+
+    /// A callback failure is a strategy-state failure boundary, not a partial
+    /// order batch. Rows are dropped before they reach the scheduled native
+    /// command map; the reusable runner remains poisoned until reset.
+    fn abort_callback_boundary(&mut self, py: Python<'_>, output: &mut ReactiveRunData) {
+        let discarded = self.writer.bind(py).borrow_mut().discard_callback();
+        self.context.bind(py).borrow_mut().invalidate_internal();
+        output.command_staged_rows_discarded = output
+            .command_staged_rows_discarded
+            .saturating_add(discarded);
+        output.callback_state_dirty = true;
+        self.last_callback_state_dirty = true;
+        self.last_callback_staged_rows_discarded = discarded;
+        self.poisoned = true;
     }
 
     fn quantize_qty(
@@ -2847,6 +3071,61 @@ impl ReactiveNumericRunnerCore {
         Ok(Some(quantity))
     }
 
+    fn effective_bar_for_request(
+        requested: i64,
+        source_bar: usize,
+        default_effective_bar: usize,
+        allow_future: bool,
+        block_range: Option<(usize, usize)>,
+    ) -> PyResult<usize> {
+        let effective_bar = if requested < 0 {
+            default_effective_bar
+        } else {
+            usize::try_from(requested)
+                .map_err(|_| PyValueError::new_err("reactive command effective_bar must be >= 0"))?
+        };
+        if effective_bar <= source_bar {
+            return Err(PyValueError::new_err(
+                "reactive command effective_bar must be after its callback bar",
+            ));
+        }
+        if !allow_future && effective_bar != default_effective_bar {
+            return Err(PyValueError::new_err(
+                "this reactive runtime only accepts commands effective on the next bar",
+            ));
+        }
+        if let Some((start_bar, stop_bar)) = block_range
+            && (effective_bar < start_bar || effective_bar >= stop_bar)
+        {
+            return Err(PyValueError::new_err(format!(
+                "block command effective_bar={effective_bar} is outside [{start_bar}, {stop_bar})",
+            )));
+        }
+        Ok(effective_bar)
+    }
+
+    fn validate_writer_envelope(
+        writer: &ReactiveCommandBufferV2,
+        source_bar: usize,
+        default_effective_bar: usize,
+        allow_future: bool,
+        block_range: Option<(usize, usize)>,
+    ) -> PyResult<()> {
+        // Validate every structural timing field before scheduling any row.
+        // Dynamic quantity/margin admission remains per-command below so a
+        // normal business rejection never becomes accidental batch atomicity.
+        for row in 0..writer.length {
+            Self::effective_bar_for_request(
+                writer.effective_bar[row],
+                source_bar,
+                default_effective_bar,
+                allow_future,
+                block_range,
+            )?;
+        }
+        Ok(())
+    }
+
     fn ingest_writer(
         &mut self,
         py: Python<'_>,
@@ -2858,6 +3137,13 @@ impl ReactiveNumericRunnerCore {
     ) -> PyResult<()> {
         let started = Instant::now();
         let mut writer = self.writer.bind(py).borrow_mut();
+        Self::validate_writer_envelope(
+            &writer,
+            source_bar,
+            default_effective_bar,
+            allow_future,
+            block_range,
+        )?;
         for row in 0..writer.length {
             let action = writer.action[row];
             let symbol = writer.symbol_id[row];
@@ -2865,30 +3151,13 @@ impl ReactiveNumericRunnerCore {
             let price = writer.price[row];
             let trigger = writer.trigger_price[row];
             let requested = writer.effective_bar[row];
-            let effective_bar = if requested < 0 {
-                default_effective_bar
-            } else {
-                usize::try_from(requested).map_err(|_| {
-                    PyValueError::new_err("reactive command effective_bar must be >= 0")
-                })?
-            };
-            if effective_bar <= source_bar {
-                return Err(PyValueError::new_err(
-                    "reactive command effective_bar must be after its callback bar",
-                ));
-            }
-            if !allow_future && effective_bar != default_effective_bar {
-                return Err(PyValueError::new_err(
-                    "this reactive runtime only accepts commands effective on the next bar",
-                ));
-            }
-            if let Some((start_bar, stop_bar)) = block_range
-                && (effective_bar < start_bar || effective_bar >= stop_bar)
-            {
-                return Err(PyValueError::new_err(format!(
-                    "block command effective_bar={effective_bar} is outside [{start_bar}, {stop_bar})",
-                )));
-            }
+            let effective_bar = Self::effective_bar_for_request(
+                requested,
+                source_bar,
+                default_effective_bar,
+                allow_future,
+                block_range,
+            )?;
             let executable = effective_bar < self.inner.n_bars();
             let place_like = matches!(action, ACTION_PLACE | ACTION_REPLACE);
             let mut accepted = executable;
@@ -2965,122 +3234,132 @@ impl ReactiveNumericRunnerCore {
         writer.end_callback();
         drop(writer);
         self.context.bind(py).borrow_mut().invalidate_internal();
+        output.command_callbacks_completed = output.command_callbacks_completed.saturating_add(1);
         output.command_ingest_ns += started.elapsed().as_nanos();
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn invoke_callback(
         &mut self,
         py: Python<'_>,
         strategy: &Py<PyAny>,
+        access_plan: &ReactiveCallbackAccessPlanV1,
         callback: &str,
         callback_kind: i64,
         bar: usize,
+        wake_reason_mask: i64,
+        step: &full::FullStepResult,
         output: &mut ReactiveRunData,
     ) -> PyResult<bool> {
-        let callable = match strategy.bind(py).getattr(callback) {
-            Ok(callable) => callable,
-            Err(error) if error.is_instance_of::<PyAttributeError>(py) => return Ok(false),
-            Err(error) => return Err(error),
+        let Some(callable) = access_plan.resolve(py, strategy, callback, output)? else {
+            return Ok(false);
         };
+        self.project_context(py, bar, wake_reason_mask, step, output)?;
         self.last_callback_name = callback.to_owned();
         self.last_callback_bar = bar as i64;
         self.writer.bind(py).borrow_mut().begin_callback();
         let context = self.context.bind(py);
         let writer = self.writer.bind(py);
         if output.retention.callback_trace {
+            let context_values = context.borrow();
             output.callback_kind.push(callback_kind);
             output.callback_bar.push(bar as i64);
             output
                 .callback_timestamp_ns
-                .push(context.borrow().timestamp_ns);
-            output.callback_equity.push(context.borrow().equity);
+                .push(context_values.timestamp_ns);
+            output.callback_equity.push(context_values.equity);
             output
                 .callback_position_0
-                .push(context.borrow().positions.first().copied().unwrap_or(0.0));
+                .push(context_values.positions.first().copied().unwrap_or(0.0));
         }
         let started = Instant::now();
-        let response = callable.call1((context, writer));
+        let response = callable.bind(py).call1((context, writer));
         output.callback_ns += started.elapsed().as_nanos();
         output.python_callback_calls += 1;
+        self.record_callback_boundary_calls(py, output);
         match response {
             Ok(value) => {
                 if !value.is_none() {
-                    self.writer.bind(py).borrow_mut().end_callback();
-                    self.context.bind(py).borrow_mut().invalidate_internal();
+                    self.abort_callback_boundary(py, output);
                     return Err(PyTypeError::new_err(
                         "numeric strategy callbacks must write to ReactiveCommandBufferV2 and return None",
                     ));
                 }
             }
             Err(error) => {
-                self.poisoned = true;
-                self.writer.bind(py).borrow_mut().end_callback();
-                self.context.bind(py).borrow_mut().invalidate_internal();
+                self.abort_callback_boundary(py, output);
                 return Err(error);
             }
         }
-        self.ingest_writer(py, bar, bar + 1, false, None, output)?;
+        if let Err(error) = self.ingest_writer(py, bar, bar + 1, false, None, output) {
+            self.abort_callback_boundary(py, output);
+            return Err(error);
+        }
         Ok(true)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn invoke_sparse_wake(
         &mut self,
         py: Python<'_>,
         strategy: &Py<PyAny>,
+        access_plan: &ReactiveCallbackAccessPlanV1,
         bar: usize,
         wake_reason_mask: i64,
+        step: &full::FullStepResult,
         output: &mut ReactiveRunData,
     ) -> PyResult<WakePlanInternal> {
-        let callable = strategy.bind(py).getattr("on_wake").map_err(|error| {
-            if error.is_instance_of::<PyAttributeError>(py) {
+        let callable = access_plan
+            .resolve(py, strategy, "on_wake", output)?
+            .ok_or_else(|| {
                 PyTypeError::new_err(
                     "numeric sparse strategies must implement on_wake(context, out) -> WakePlanV1",
                 )
-            } else {
-                error
-            }
-        })?;
+            })?;
+        self.project_context(py, bar, wake_reason_mask, step, output)?;
         self.last_callback_name = "on_wake".to_owned();
         self.last_callback_bar = bar as i64;
         self.writer.bind(py).borrow_mut().begin_callback();
         let context = self.context.bind(py);
         let writer = self.writer.bind(py);
         if output.retention.callback_trace {
+            let context_values = context.borrow();
             output.callback_kind.push(CALLBACK_WAKE);
             output.callback_bar.push(bar as i64);
             output
                 .callback_timestamp_ns
-                .push(context.borrow().timestamp_ns);
-            output.callback_equity.push(context.borrow().equity);
+                .push(context_values.timestamp_ns);
+            output.callback_equity.push(context_values.equity);
             output
                 .callback_position_0
-                .push(context.borrow().positions.first().copied().unwrap_or(0.0));
+                .push(context_values.positions.first().copied().unwrap_or(0.0));
             output.wake_bar.push(bar as i64);
             output.wake_reason_mask.push(wake_reason_mask);
         }
         let started = Instant::now();
-        let response = callable.call1((context, writer));
+        let response = callable.bind(py).call1((context, writer));
         output.callback_ns += started.elapsed().as_nanos();
         output.python_callback_calls += 1;
+        self.record_callback_boundary_calls(py, output);
         let plan = match response {
             Ok(value) => self.parse_wake_plan(&value, bar),
             Err(error) => {
-                self.poisoned = true;
-                self.writer.bind(py).borrow_mut().end_callback();
-                self.context.bind(py).borrow_mut().invalidate_internal();
+                self.abort_callback_boundary(py, output);
                 return Err(error);
             }
         };
         let plan = match plan {
             Ok(plan) => plan,
             Err(error) => {
-                self.writer.bind(py).borrow_mut().end_callback();
-                self.context.bind(py).borrow_mut().invalidate_internal();
+                self.abort_callback_boundary(py, output);
                 return Err(error);
             }
         };
-        self.ingest_writer(py, bar, bar + 1, false, None, output)?;
+        if let Err(error) = self.ingest_writer(py, bar, bar + 1, false, None, output) {
+            self.abort_callback_boundary(py, output);
+            return Err(error);
+        }
         Ok(plan)
     }
 
@@ -3089,68 +3368,73 @@ impl ReactiveNumericRunnerCore {
         &mut self,
         py: Python<'_>,
         strategy: &Py<PyAny>,
+        access_plan: &ReactiveCallbackAccessPlanV1,
         bar: usize,
         start_bar: usize,
         max_stop_bar: usize,
         wake_reason_mask: i64,
+        step: &full::FullStepResult,
         output: &mut ReactiveRunData,
     ) -> PyResult<BlockPlanInternal> {
-        let callable = strategy.bind(py).getattr("next_block").map_err(|error| {
-            if error.is_instance_of::<PyAttributeError>(py) {
+        let callable = access_plan
+            .resolve(py, strategy, "next_block", output)?
+            .ok_or_else(|| {
                 PyTypeError::new_err(
                     "numeric block strategies must implement next_block(context, start_bar, max_stop_bar, out) -> BlockPlanV1",
                 )
-            } else {
-                error
-            }
-        })?;
+            })?;
+        self.project_context(py, bar, wake_reason_mask, step, output)?;
         self.last_callback_name = "next_block".to_owned();
         self.last_callback_bar = bar as i64;
         self.writer.bind(py).borrow_mut().begin_callback();
         let context = self.context.bind(py);
         let writer = self.writer.bind(py);
         if output.retention.callback_trace {
+            let context_values = context.borrow();
             output.callback_kind.push(CALLBACK_BLOCK);
             output.callback_bar.push(bar as i64);
             output
                 .callback_timestamp_ns
-                .push(context.borrow().timestamp_ns);
-            output.callback_equity.push(context.borrow().equity);
+                .push(context_values.timestamp_ns);
+            output.callback_equity.push(context_values.equity);
             output
                 .callback_position_0
-                .push(context.borrow().positions.first().copied().unwrap_or(0.0));
+                .push(context_values.positions.first().copied().unwrap_or(0.0));
             output.wake_bar.push(bar as i64);
             output.wake_reason_mask.push(wake_reason_mask);
         }
         let started = Instant::now();
-        let response = callable.call1((context, start_bar, max_stop_bar, writer));
+        let response = callable
+            .bind(py)
+            .call1((context, start_bar, max_stop_bar, writer));
         output.callback_ns += started.elapsed().as_nanos();
         output.python_callback_calls += 1;
+        self.record_callback_boundary_calls(py, output);
         let plan = match response {
             Ok(value) => self.parse_block_plan(&value, start_bar, max_stop_bar),
             Err(error) => {
-                self.poisoned = true;
-                self.writer.bind(py).borrow_mut().end_callback();
-                self.context.bind(py).borrow_mut().invalidate_internal();
+                self.abort_callback_boundary(py, output);
                 return Err(error);
             }
         };
         let plan = match plan {
             Ok(plan) => plan,
             Err(error) => {
-                self.writer.bind(py).borrow_mut().end_callback();
-                self.context.bind(py).borrow_mut().invalidate_internal();
+                self.abort_callback_boundary(py, output);
                 return Err(error);
             }
         };
-        self.ingest_writer(
+        if let Err(error) = self.ingest_writer(
             py,
             bar,
             start_bar,
             true,
             Some((start_bar, plan.stop_bar)),
             output,
-        )?;
+        ) {
+            self.abort_callback_boundary(py, output);
+            return Err(error);
+        }
         Ok(plan)
     }
 
@@ -3189,6 +3473,9 @@ impl ReactiveNumericRunnerCore {
         Ok(ReactiveRunData {
             final_positions: vec![0.0; n_symbols],
             native_entry_calls: 1,
+            callback_binding_mode: CallbackBindingModeV1::DynamicCompatibility
+                .label()
+                .to_owned(),
             gil_acquisitions: if release_between_callbacks { 0 } else { 1 },
             gil_policy: if release_between_callbacks {
                 "release_between_callbacks".to_owned()
@@ -3325,6 +3612,8 @@ impl ReactiveNumericRunnerCore {
             reset_count: 0,
             last_callback_name: String::new(),
             last_callback_bar: -1,
+            last_callback_state_dirty: false,
+            last_callback_staged_rows_discarded: 0,
         })
     }
 
@@ -3399,6 +3688,9 @@ impl ReactiveNumericRunnerCore {
         }
         let (start_bar, end_bar) = self.validate_window(start_bar, end_bar)?;
         let release_between_callbacks = Self::normalize_gil_policy(gil_policy)?;
+        let callback_plan_started = Instant::now();
+        let (callback_plan, callback_plan_lookups) =
+            ReactiveCallbackAccessPlanV1::compile(py, &strategy)?;
         self.started = true;
         self.run_count = self.run_count.saturating_add(1);
         self.begin_fresh_window(start_bar)?;
@@ -3409,14 +3701,34 @@ impl ReactiveNumericRunnerCore {
             start_bar,
             end_bar,
         )?;
+        output.callback_plan_compile_ns = callback_plan_started.elapsed().as_nanos();
+        output.callback_plan_compile_lookup_count = callback_plan_lookups;
+        output.callback_binding_mode = callback_plan.mode.label().to_owned();
 
         let first = self.advance_bar(py, start_bar, release_between_callbacks, &mut output)?;
-        self.project_context(py, start_bar, 0, &first, &mut output)?;
-        let _ = self.invoke_callback(py, &strategy, "initialize", 0, start_bar, &mut output)?;
+        let _ = self.invoke_callback(
+            py,
+            &strategy,
+            &callback_plan,
+            "initialize",
+            CALLBACK_INITIALIZE,
+            start_bar,
+            0,
+            &first,
+            &mut output,
+        )?;
         if !first.liquidated {
-            self.project_context(py, start_bar, 0, &first, &mut output)?;
-            let _ =
-                self.invoke_callback(py, &strategy, "on_bar_close", 1, start_bar, &mut output)?;
+            let _ = self.invoke_callback(
+                py,
+                &strategy,
+                &callback_plan,
+                "on_bar_close",
+                1,
+                start_bar,
+                0,
+                &first,
+                &mut output,
+            )?;
         }
 
         for bar in start_bar.saturating_add(1)..end_bar {
@@ -3424,20 +3736,31 @@ impl ReactiveNumericRunnerCore {
             if step.liquidated {
                 continue;
             }
-            self.project_context(py, bar, 0, &step, &mut output)?;
-            let _ = self.invoke_callback(py, &strategy, "on_bar_close", 1, bar, &mut output)?;
+            let _ = self.invoke_callback(
+                py,
+                &strategy,
+                &callback_plan,
+                "on_bar_close",
+                1,
+                bar,
+                0,
+                &step,
+                &mut output,
+            )?;
         }
 
         if !self.inner.liquidated {
             let last_bar = end_bar.saturating_sub(1);
             let step = self.final_step(&output);
-            self.project_context(py, last_bar, 0, &step, &mut output)?;
             let _ = self.invoke_callback(
                 py,
                 &strategy,
+                &callback_plan,
                 "finalize",
                 CALLBACK_FINALIZE,
                 last_bar,
+                0,
+                &step,
                 &mut output,
             )?;
         }
@@ -3468,6 +3791,9 @@ impl ReactiveNumericRunnerCore {
         }
         let (start_bar, end_bar) = self.validate_window(start_bar, end_bar)?;
         let release_between_callbacks = Self::normalize_gil_policy(gil_policy)?;
+        let callback_plan_started = Instant::now();
+        let (callback_plan, callback_plan_lookups) =
+            ReactiveCallbackAccessPlanV1::compile(py, &strategy)?;
         self.started = true;
         self.run_count = self.run_count.saturating_add(1);
         self.begin_fresh_window(start_bar)?;
@@ -3478,15 +3804,20 @@ impl ReactiveNumericRunnerCore {
             start_bar,
             end_bar,
         )?;
+        output.callback_plan_compile_ns = callback_plan_started.elapsed().as_nanos();
+        output.callback_plan_compile_lookup_count = callback_plan_lookups;
+        output.callback_binding_mode = callback_plan.mode.label().to_owned();
 
         let first = self.advance_bar(py, start_bar, release_between_callbacks, &mut output)?;
-        self.project_context(py, start_bar, 0, &first, &mut output)?;
         let _ = self.invoke_callback(
             py,
             &strategy,
+            &callback_plan,
             "initialize",
             CALLBACK_INITIALIZE,
             start_bar,
+            0,
+            &first,
             &mut output,
         )?;
         let mut previous = ReusableWakeObservationV1::with_symbols(self.inner.market.n_symbols);
@@ -3497,8 +3828,15 @@ impl ReactiveNumericRunnerCore {
         let mut active_plan = if first.liquidated {
             WakePlanInternal::default()
         } else {
-            self.project_context(py, start_bar, WAKE_INITIAL, &first, &mut output)?;
-            self.invoke_sparse_wake(py, &strategy, start_bar, WAKE_INITIAL, &mut output)?
+            self.invoke_sparse_wake(
+                py,
+                &strategy,
+                &callback_plan,
+                start_bar,
+                WAKE_INITIAL,
+                &first,
+                &mut output,
+            )?
         };
 
         let mut bar = start_bar.saturating_add(1);
@@ -3514,12 +3852,13 @@ impl ReactiveNumericRunnerCore {
                 &mut output,
             )?;
             if wake_reason_mask != 0 {
-                self.project_context(py, processed_bar, wake_reason_mask, &step, &mut output)?;
                 active_plan = self.invoke_sparse_wake(
                     py,
                     &strategy,
+                    &callback_plan,
                     processed_bar,
                     wake_reason_mask,
+                    &step,
                     &mut output,
                 )?;
             }
@@ -3536,13 +3875,15 @@ impl ReactiveNumericRunnerCore {
         if !self.inner.liquidated {
             let last_bar = end_bar.saturating_sub(1);
             let step = self.final_step(&output);
-            self.project_context(py, last_bar, 0, &step, &mut output)?;
             let _ = self.invoke_callback(
                 py,
                 &strategy,
+                &callback_plan,
                 "finalize",
                 CALLBACK_FINALIZE,
                 last_bar,
+                0,
+                &step,
                 &mut output,
             )?;
         }
@@ -3573,6 +3914,9 @@ impl ReactiveNumericRunnerCore {
         }
         let (start_bar, end_bar) = self.validate_window(start_bar, end_bar)?;
         let release_between_callbacks = Self::normalize_gil_policy(gil_policy)?;
+        let callback_plan_started = Instant::now();
+        let (callback_plan, callback_plan_lookups) =
+            ReactiveCallbackAccessPlanV1::compile(py, &strategy)?;
         self.started = true;
         self.run_count = self.run_count.saturating_add(1);
         self.begin_fresh_window(start_bar)?;
@@ -3583,15 +3927,20 @@ impl ReactiveNumericRunnerCore {
             start_bar,
             end_bar,
         )?;
+        output.callback_plan_compile_ns = callback_plan_started.elapsed().as_nanos();
+        output.callback_plan_compile_lookup_count = callback_plan_lookups;
+        output.callback_binding_mode = callback_plan.mode.label().to_owned();
 
         let first = self.advance_bar(py, start_bar, release_between_callbacks, &mut output)?;
-        self.project_context(py, start_bar, 0, &first, &mut output)?;
         let _ = self.invoke_callback(
             py,
             &strategy,
+            &callback_plan,
             "initialize",
             CALLBACK_INITIALIZE,
             start_bar,
+            0,
+            &first,
             &mut output,
         )?;
         let mut previous = ReusableWakeObservationV1::with_symbols(self.inner.market.n_symbols);
@@ -3602,14 +3951,15 @@ impl ReactiveNumericRunnerCore {
         let mut active_block = if first.liquidated || end_bar <= start_bar.saturating_add(1) {
             None
         } else {
-            self.project_context(py, start_bar, WAKE_INITIAL, &first, &mut output)?;
             Some(self.invoke_block_provider(
                 py,
                 &strategy,
+                &callback_plan,
                 start_bar,
                 start_bar.saturating_add(1),
                 end_bar,
                 WAKE_INITIAL,
+                &first,
                 &mut output,
             )?)
         };
@@ -3648,14 +3998,15 @@ impl ReactiveNumericRunnerCore {
                 if reached_stop {
                     wake_reason_mask |= WAKE_TIME;
                 }
-                self.project_context(py, bar, wake_reason_mask, &step, &mut output)?;
                 active_block = Some(self.invoke_block_provider(
                     py,
                     &strategy,
+                    &callback_plan,
                     bar,
                     next_start,
                     end_bar,
                     wake_reason_mask,
+                    &step,
                     &mut output,
                 )?);
             }
@@ -3668,13 +4019,15 @@ impl ReactiveNumericRunnerCore {
         if !self.inner.liquidated {
             let last_bar = end_bar.saturating_sub(1);
             let step = self.final_step(&output);
-            self.project_context(py, last_bar, 0, &step, &mut output)?;
             let _ = self.invoke_callback(
                 py,
                 &strategy,
+                &callback_plan,
                 "finalize",
                 CALLBACK_FINALIZE,
                 last_bar,
+                0,
+                &step,
                 &mut output,
             )?;
         }
@@ -3945,6 +4298,8 @@ impl ReactiveNumericRunnerCore {
         self.active_deadline = None;
         self.last_callback_name.clear();
         self.last_callback_bar = -1;
+        self.last_callback_state_dirty = false;
+        self.last_callback_staged_rows_discarded = 0;
         self.reset_count = self.reset_count.checked_add(1).ok_or_else(|| {
             PyRuntimeError::new_err("reactive session reset generation exhausted; recreate runner")
         })?;
@@ -3997,6 +4352,11 @@ impl ReactiveNumericRunnerCore {
         )?;
         payload.set_item("scheduled_command_buckets", self.scheduled_commands.len())?;
         payload.set_item("poisoned", self.poisoned)?;
+        payload.set_item("last_callback_state_dirty", self.last_callback_state_dirty)?;
+        payload.set_item(
+            "last_callback_staged_rows_discarded",
+            self.last_callback_staged_rows_discarded,
+        )?;
         Ok(payload.unbind())
     }
 }
