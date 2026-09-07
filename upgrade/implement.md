@@ -19218,7 +19218,7 @@ requested outputs. Only a new approval admits Phase 78 after this gate.
 
 ### Phase 78 - Public Rust-Primary Promotion And Release Certification
 
-**Status: in_progress (2026-09-07).**
+**Status: COMPLETE (2026-09-07; local source/candidate certification).**
 
 **Goal:** close the actual guide definition of done with truthful public routing,
 current installed artifacts, supported-user workflows and a safe release handoff.
@@ -19336,6 +19336,53 @@ of the exact final artifacts intended for distribution.
 **Rollback and evidence:** include exact previous/new core-native package pins,
 contract reproduction examples, promotion kill switch, downgrade verification,
 platform matrix, parity bundles, and final list of genuine out-of-scope domains.
+
+**Completion record (2026-09-07):**
+
+- P78-01/P78-02: reconciled the generated product registry with the measured
+  public routes. `native-event-promotion-v4-phase78-ir-score-a4` promotes only
+  exact one-symbol `NativeStrategyIR` v1 `score` requests at >=2,000 bars.
+  Static V2/V3 command tapes remain Python-auto with the explicit reason
+  `public_score_performance_not_stable_enough_for_auto`; explicit certified
+  Rust remains fail-fast and Python/oracle routes remain intact.
+- P78-03: exercised cancellation/budget/worker/cache/resource regression in
+  the affected prepared/reactive suite (`56 passed, 3 skipped`). Existing
+  retained-output, poison recovery, worker teardown and independent account
+  authority contracts remain unchanged.
+- P78-04/P78-05: built `quantbt-engine==1.1.0` and
+  `quantbt-native==0.4.1` from the candidate, including a CPython 3.12
+  manylinux x86_64 wheel. Clean core-only and exact-pair installs passed
+  source-hash parity and site-packages-only behavior. Core-only auto returns
+  `native_unavailable`; the exact pair returns Rust for IR score, Python for
+  IR audit/static auto, and preserves static explicit-Rust parity. Native CI
+  and publish workflows retain their required CPython 3.11/3.12/3.13 matrix;
+  remote execution remains a release-ref action, not a fabricated local claim.
+- P78-06: checked immutable pre-enable public evidence and a current clean
+  runtime certificate. The recorded 2,000-bar IR score fixture is
+  `0.958 ms` Rust versus `34.566 ms` Python before enablement; the current
+  clean runtime remains Rust-auto with exact accounting/trace parity. The
+  static comparison stays a performance hold rather than being promoted on a
+  selectively favorable microbenchmark.
+- P78-07/P78-08: A4 route promotion is complete. A5 source/mirror removal is
+  intentionally not claimed: the Python oracle and compatibility mirror stay
+  retained until a separately observed shadow-release cycle and explicit user
+  approval. This is governed release observation, not an unresolved in-scope
+  implementation defect.
+- P78-09/P78-10: updated public route, install, endpoint/backend, migration,
+  generated contract/inventory and release documentation; corrected stale
+  Phase 48 release-surface wording and regenerated PERF-01 traceability.
+  No merge, tag, TestPyPI or PyPI publication was performed by this phase.
+- Certification: focused Phase 78/release tests `17 passed`; full isolated
+  release profile `1,258 passed, 25 skipped`; Rust `fmt`, `clippy -D warnings`,
+  workspace tests, `cargo audit`, docs, generated-contract, baseline,
+  inventory, mirror, module-architecture, benchmark-governance, release-handoff,
+  A5-review and Phase 78 certificate gates all passed. The installed-wheel
+  certificate additionally validates portfolio/package Python-oracle parity at
+  `atol=1e-12`.
+- Rollback: set `QUANTBT_DISABLE_NATIVE=1` or
+  `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only`; pin the prior core/native pair
+  or choose `backend="python"`. The public release handoff still requires the
+  matching remote wheel matrix and separately authorized tag/publish workflow.
 
 ### Cross-Phase Certification Matrix
 

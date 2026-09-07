@@ -403,7 +403,7 @@
     "endpoint": {
       "exists": true,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+      "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
     },
     "identity_mode": "content-addressed source anchors; runtime identity captured separately",
     "measurement_contract_tool": {
@@ -424,7 +424,7 @@
     "walkforward": {
       "exists": true,
       "path": "src/quantbt/walkforward.py",
-      "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+      "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
     }
   },
   "benchmark_classes": [
@@ -551,12 +551,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_event.py",
-          "sha256": "62fe5674a911027e1b1bc33275655f4c9bb542dbb3addca527a03ce558ac7f46"
+          "sha256": "bb7951d375bf11a05b84c75a2818fdfbc8e80f5376be2c26dfcc6a01ab027428"
         },
         {
           "exists": true,
@@ -584,7 +584,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -612,12 +612,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_vectorized.py",
-          "sha256": "7260b399f37f299d7fb94adce03214363f8fd44f6648400c1b8bf38580fe61c7"
+          "sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b"
         },
         {
           "exists": true,
@@ -645,12 +645,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
         },
         {
           "exists": true,
@@ -679,7 +679,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -714,7 +714,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -748,7 +748,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -781,7 +781,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -815,7 +815,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
@@ -848,17 +848,17 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
         }
       ]
     },
@@ -881,12 +881,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
         }
       ]
     },
@@ -909,12 +909,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
         }
       ]
     },
@@ -937,17 +937,17 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
         },
         {
           "exists": true,
           "path": "src/quantbt/backends/native_wfo_public.py",
-          "sha256": "6ce067bd1ae22fd6d95fe87eadd4b45d8a110f2c9b23c8f7b2af942bd0b54fb7"
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
         }
       ]
     },
@@ -970,12 +970,12 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,
           "path": "src/quantbt/walkforward.py",
-          "sha256": "be807cdb5b62ac9963907d1229b48fd0b5d9d7a2a461dd4917d981b91a93b76d"
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
         }
       ]
     },
@@ -999,7 +999,7 @@
         {
           "exists": true,
           "path": "src/quantbt/endpoint.py",
-          "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
         },
         {
           "exists": true,

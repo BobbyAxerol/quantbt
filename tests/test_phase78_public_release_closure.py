@@ -123,6 +123,31 @@ def test_phase78_kill_switch_and_explicit_rust_contract_remain_fail_closed() -> 
     assert (explicit.resolved_backend, explicit.reason) == ("rust", "explicit_rust_certified")
 
 
+def test_phase78_core_only_wheel_probe_exercises_the_promoted_ir_score_shape() -> None:
+    """A missing companion must be tested against a route eligible for auto Rust."""
+
+    from tools.certify_native_release import _installed_core_script
+
+    script = _installed_core_script("1.1.0")
+    assert 'workload_id="native_strategy_ir_v1"' in script
+    assert 'strategy_mode="ir_v1"' in script
+    assert 'profile="score"' in script
+    assert "bars=2_000" in script
+    assert 'selection.promotion.reason == "native_unavailable"' in script
+    assert 'disabled.promotion.reason == "emergency_native_disabled"' in script
+
+
+def test_phase78_installed_static_parity_uses_the_public_result_equity_series() -> None:
+    """The endpoint facade returns BacktestResultV2, not a scalar native result."""
+
+    from tools.certify_native_release import _installed_native_script
+
+    script = _installed_native_script("1.1.0", "0.4.1")
+    assert "static_rust_result.equity.iloc[-1]" in script
+    assert "static_result.equity.iloc[-1]" in script
+    assert "static_rust_result.final_equity" not in script
+
+
 def test_phase78_public_docs_and_inventory_describe_the_same_narrow_route() -> None:
     document = PUBLIC_PROMOTION_DOC.read_text(encoding="utf-8")
     assert "`score` only" in document

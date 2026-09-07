@@ -157,24 +157,24 @@ def _installed_core_script(core_version: str) -> str:
         assert metadata.version("quantbt-engine") == __CORE_VERSION__
         selection = resolve_native_event_backend(
             "auto",
-            workload_id="event_static_tape_v2_v3",
+            workload_id="native_strategy_ir_v1",
             execution_contract_id="event_lifecycle_v2_next_bar_close",
-            strategy_mode="static_commands",
-            profile="audit",
+            strategy_mode="ir_v1",
+            profile="score",
             account_model="linear_quote_settled_gross_cross",
-            bars=10_000,
+            bars=2_000,
             environment={},
         )
         assert selection.resolved == "python"
         assert selection.promotion.reason == "native_unavailable"
         disabled = resolve_native_event_backend(
             "auto",
-            workload_id="event_static_tape_v2_v3",
+            workload_id="native_strategy_ir_v1",
             execution_contract_id="event_lifecycle_v2_next_bar_close",
-            strategy_mode="static_commands",
-            profile="audit",
+            strategy_mode="ir_v1",
+            profile="score",
             account_model="linear_quote_settled_gross_cross",
-            bars=10_000,
+            bars=2_000,
             environment={"QUANTBT_DISABLE_NATIVE": "1"},
         )
         assert disabled.resolved == "python"
@@ -370,7 +370,13 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
         assert static_rust_result.metadata["native_static_execution_boundary_calls"] == 1
         assert static_rust_result.metadata["native_result_v2"]["result_version"] == 2
         assert static_rust_result.metadata["native_result_v2"]["workload_kind"] == "command_tape_v5"
-        assert abs(static_rust_result.final_equity - static_result.final_equity) <= 1e-12
+        # ``event_driven().simulate`` returns the public BacktestResultV2
+        # adapter. Its canonical equity output is the time series, rather
+        # than the scalar-only native result convenience property.
+        assert abs(
+            float(static_rust_result.equity.iloc[-1])
+            - float(static_result.equity.iloc[-1])
+        ) <= 1e-12
 
         ir_bars = 2_000
         ir_index = pd.date_range("2025-02-01", periods=ir_bars, freq="1h", tz="UTC")
