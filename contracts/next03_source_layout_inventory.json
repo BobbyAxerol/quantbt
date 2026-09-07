@@ -1,0 +1,2815 @@
+{
+  "build": {
+    "distribution": "quantbt-engine",
+    "manifest": "MANIFEST.in",
+    "native_distribution": "rust/native_event/pyproject.toml",
+    "package_find_include": [
+      "quantbt*"
+    ],
+    "package_find_where": [
+      "src"
+    ],
+    "version": "1.1.0"
+  },
+  "canonical_modules": [
+    {
+      "canonical_path": "src/quantbt/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "__init__.py",
+      "root_sha256": "492b6e4bf8971dea207c096ee077410621dae9058693b91ac73ce60d6d156e20",
+      "sha256": "492b6e4bf8971dea207c096ee077410621dae9058693b91ac73ce60d6d156e20"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/__init__.py",
+      "root_sha256": "0e8c4c0712efe5397e07ea7717fae96018d68707bed510258d2ab5ce3ecc2343",
+      "sha256": "0e8c4c0712efe5397e07ea7717fae96018d68707bed510258d2ab5ce3ecc2343"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/__init__.py",
+      "root_sha256": "b7a8a7c60a67e76abb68c1d6d7c9d03eafd700d4c1ce235eaeef4f435f4e1701",
+      "sha256": "b7a8a7c60a67e76abb68c1d6d7c9d03eafd700d4c1ce235eaeef4f435f4e1701"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/_dependency.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/_dependency.py",
+      "root_sha256": "0e3cd279f40d261a60b40395c9e1ea86545819ea588e2747278f1702c583d3be",
+      "sha256": "0e3cd279f40d261a60b40395c9e1ea86545819ea588e2747278f1702c583d3be"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/backend.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/backend.py",
+      "root_sha256": "e0a8a635364e1d817f47defd513bd2fb21050f039e9e9c5deffcd90f197e5808",
+      "sha256": "e0a8a635364e1d817f47defd513bd2fb21050f039e9e9c5deffcd90f197e5808"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/instruments.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/instruments.py",
+      "root_sha256": "b25a29ea46d2ce0f5e2713326ab9bf2b36363db5fe6eb37c738f2242ead97e72",
+      "sha256": "b25a29ea46d2ce0f5e2713326ab9bf2b36363db5fe6eb37c738f2242ead97e72"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/options.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/options.py",
+      "root_sha256": "d182d2c601b1911273088cd0c63ec52e93ca20df3644e9ea04cf7540e57cdd9e",
+      "sha256": "d182d2c601b1911273088cd0c63ec52e93ca20df3644e9ea04cf7540e57cdd9e"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/reports.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "adapters/nautilus/reports.py",
+      "root_sha256": "351274d73f8ecf4f2486d8c0b815a198aed608a1d69af20e064a90ddcadb21ea",
+      "sha256": "351274d73f8ecf4f2486d8c0b815a198aed608a1d69af20e064a90ddcadb21ea"
+    },
+    {
+      "canonical_path": "src/quantbt/api/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "api/__init__.py",
+      "root_sha256": "b636a8ee258eb54be88fb2bea78bd8556ced333d8bdc6ef1fd46d2192afec269",
+      "sha256": "b636a8ee258eb54be88fb2bea78bd8556ced333d8bdc6ef1fd46d2192afec269"
+    },
+    {
+      "canonical_path": "src/quantbt/api/event_driven.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "api/event_driven.py",
+      "root_sha256": "59fbd0e77ff70aaac429eac01550af519a430a5133ffa51883420fbb6943b6d2",
+      "sha256": "59fbd0e77ff70aaac429eac01550af519a430a5133ffa51883420fbb6943b6d2"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/__init__.py",
+      "root_sha256": "3b935f6a1abbb359ae6343ec9398e9e3ac7080c05b8f8e249b6fe765ffecc87a",
+      "sha256": "3b935f6a1abbb359ae6343ec9398e9e3ac7080c05b8f8e249b6fe765ffecc87a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/_native_event_rust.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/_native_event_rust.py",
+      "root_sha256": "4514fde9fc9920ae0978297084de7b3a19b2dd5ee63def8fda86cbd58f9d1391",
+      "sha256": "4514fde9fc9920ae0978297084de7b3a19b2dd5ee63def8fda86cbd58f9d1391"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_event.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_event.py",
+      "root_sha256": "4e8d00d81d427580b57eb58cbe1bf32688733068c19bf899c32c847810d274b6",
+      "sha256": "4e8d00d81d427580b57eb58cbe1bf32688733068c19bf899c32c847810d274b6"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_intrabar_rust.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_intrabar_rust.py",
+      "root_sha256": "700a2813c4b7803c11c68ddc6ad7369405bfde4eccabf8aedfd8a87dafc5767a",
+      "sha256": "700a2813c4b7803c11c68ddc6ad7369405bfde4eccabf8aedfd8a87dafc5767a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_option.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_option.py",
+      "root_sha256": "ba284c53a4ccca9cb2c043f53ecdacd67ac69deea5233f5a44b71c3103d2ed23",
+      "sha256": "ba284c53a4ccca9cb2c043f53ecdacd67ac69deea5233f5a44b71c3103d2ed23"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_package_arbitrage.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_package_arbitrage.py",
+      "root_sha256": "a017ed7c1bdb9bed2d38fd9475b478dfaa2b5656108c9a745c26bc766eb879a8",
+      "sha256": "a017ed7c1bdb9bed2d38fd9475b478dfaa2b5656108c9a745c26bc766eb879a8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_portfolio.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_portfolio.py",
+      "root_sha256": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b",
+      "sha256": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_portfolio_package.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_portfolio_package.py",
+      "root_sha256": "212a43c9627773e175f14a5428c94667302f49cae097365cac109266cf91391a",
+      "sha256": "212a43c9627773e175f14a5428c94667302f49cae097365cac109266cf91391a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_prepared_evaluation.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_prepared_evaluation.py",
+      "root_sha256": "3471748537cc95465bb580852db8a50afc46c7c5da8e3921469671e9cbca210d",
+      "sha256": "3471748537cc95465bb580852db8a50afc46c7c5da8e3921469671e9cbca210d"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_strategy_ir.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_strategy_ir.py",
+      "root_sha256": "e4d0dc9b74e6a7faa94e7671fba917ba31684c7f7400bc58812b724c84a7fdc0",
+      "sha256": "e4d0dc9b74e6a7faa94e7671fba917ba31684c7f7400bc58812b724c84a7fdc0"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_vectorized.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_vectorized.py",
+      "root_sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b",
+      "sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_wfo.py",
+      "root_sha256": "33b0354234aec59527fcb7a1f7ac122abeced2da492df0bc12774af2e074b691",
+      "sha256": "33b0354234aec59527fcb7a1f7ac122abeced2da492df0bc12774af2e074b691"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_public.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_wfo_public.py",
+      "root_sha256": "e4725ad1f841b42454b2aff967f3e82949b3a9545ad23d7aa85bc4ebf5f232ee",
+      "sha256": "e4725ad1f841b42454b2aff967f3e82949b3a9545ad23d7aa85bc4ebf5f232ee"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_support.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_wfo_support.py",
+      "root_sha256": "23d3841095bdc11fdab53cbae8b2309e1b2150905ed81e0ef82c9e61372830e8",
+      "sha256": "23d3841095bdc11fdab53cbae8b2309e1b2150905ed81e0ef82c9e61372830e8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_target.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/native_wfo_target.py",
+      "root_sha256": "43af9ed0668eee19ebd6d6a9377beed6246bda0d932514be8b48d369e12d6c8d",
+      "sha256": "43af9ed0668eee19ebd6d6a9377beed6246bda0d932514be8b48d369e12d6c8d"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo.py",
+      "root_sha256": "a1a1b55abab40dab2b3b6c7fdb37234181e9b23e4d8947576c936289825b2d4a",
+      "sha256": "a1a1b55abab40dab2b3b6c7fdb37234181e9b23e4d8947576c936289825b2d4a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_batch.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo_batch.py",
+      "root_sha256": "0c820db4e78097e2b50b1e5fe5c46837c6fc9c408eafa70dd473e6009aa5ded8",
+      "sha256": "0c820db4e78097e2b50b1e5fe5c46837c6fc9c408eafa70dd473e6009aa5ded8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_batch_selection.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo_batch_selection.py",
+      "root_sha256": "811d48fefa4008fc70b5e7cbe2ea9a271b7a4a50265c10fb6f6ed34cd987512b",
+      "sha256": "811d48fefa4008fc70b5e7cbe2ea9a271b7a4a50265c10fb6f6ed34cd987512b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_preparation.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo_preparation.py",
+      "root_sha256": "e8735b6e70633d7f43cbacf9441541d80326178d7a43567d49928736a7957180",
+      "sha256": "e8735b6e70633d7f43cbacf9441541d80326178d7a43567d49928736a7957180"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_support.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo_support.py",
+      "root_sha256": "4b30b79aa8949864d1f7ce9f030f909f692a2fbe58b2c4b08aa806b663e91839",
+      "sha256": "4b30b79aa8949864d1f7ce9f030f909f692a2fbe58b2c4b08aa806b663e91839"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_workers.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backends/reactive_wfo_workers.py",
+      "root_sha256": "cb3b572de8165df2b561c92f9ac9dffff494ae051be439f224886150e8b9e02f",
+      "sha256": "cb3b572de8165df2b561c92f9ac9dffff494ae051be439f224886150e8b9e02f"
+    },
+    {
+      "canonical_path": "src/quantbt/backtester.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "backtester.py",
+      "root_sha256": "786c2df170b544f07cba0baa8a80dd4f3540d24a1e7916d8759041e82dee3b4a",
+      "sha256": "786c2df170b544f07cba0baa8a80dd4f3540d24a1e7916d8759041e82dee3b4a"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "f9304fa943a085bc83deac55dc324c2e9927a55279208a4d5175952f2f9b5a90"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/compare_phase9_parity.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "423d8dfa193311de66b22da5fb6fbc47b1d688406e1bc46ed4f176f6db25d493"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/gamma_scalping_backtestsample.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "00b820c2093a15fd72e28ec78cd6d5532afe09c618c337fd5c1312748075c2bf"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/profile_phase7.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "78d859da684b2fa9001fbb49097c612a2e14d791700d1bcbe1031696525d72a9"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_arbitrage_phase_e.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "e4af74dd5eefbbd370f7bbc9ef529f1855d499aac19c2fdcd868ff8010e43919"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_optimization_overhead.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "f8dbb2a4160f20e0bb5f444566b0c2e30da62b16ee922e2dabadf9adba8567a6"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_options_engine.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "f23a0dc2c2dc4c375a2d29e1818a31229b04d9328d76143ce989a6b7b962f5bf"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_pct_equity_nautilus_smoke.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "70afc73b1868be9dbebae41fb7796168eb52671890a569173172f288a41a4de2"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase12_arbitrage_cert.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "9b053d85c0ff1b35158c309b10ce90e45578970b8a3a5366de144945e86a120d"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase12_benchmark_nautilus_cert.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "382f31d74467d017c576ed79142128b53661bb552252bce57bfdc343b72fe1ab"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase13_portfolio_report.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "725090aa656fb79cf7c0dbbb56833950ea0d2306ac5a5d908e1d907bb97a4fd2"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase13_wfo_cache.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "77c81d6f3488126b8e4ce2fb2e50c1ed9a8ddb3852c929789107d94b7ddff6a7"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase14_service_loop.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "67757fd3186a921bfa2223b6019de332e7292fe8f41c718567a596b4429f65ba"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase15a_nautilus_certification.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "025da7872ce5a9ff49e09f78c5867a128766d8be4bc84b0acf8e84ec3a606058"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase15b_synthetic_depth.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "1585916f04893f75d3c77feac37e087aae39d626f375ecdf1b1b499856ecfe0b"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase16_performance_debt.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "57605a5a82b3f7ee119cba47896d5724cfd5a7943420768d281b28b337c88f3a"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase30e_reactive_runner.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "98fdf05be0d1588fd970fab3b55af2266e4d84e5665f1039337596667b868367"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase31_intrabar.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "621b936ca6a4d4d6706b399a15ab891bc1cda27407d315aa21c0fff307682fb9"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase34a_native_event_memory.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "1a868fcf0693b5a2411fcf76e167477e17dd2da2000d681a059e9e6f5f178ccb"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase34b_native_event_prepared_score.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "e5f15c76542427d2d16494f67c5a7e7fab3c11feb82994d6b51087b085dfbd01"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase34c_native_event_single_pass.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "f5128db0fed86e333cb8872cef41abf2353da339e8597ddae1d15d9418bc8331"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase49b_wfo_performance.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "4d87a3530003a98439dffb1c8fc27773bc8534c386bf7602c2f9694c1dc2f341"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_phase7.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "f4d0f659e51bb5e1369cfc4e1b571cd50d12332be4805b5a5329f09cba7989c4"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/run_portfolio_real_parity.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "7771927da61f8ff2c7f205757015f29b2cd9694d101a7a6f1fe0508015a6c98b"
+    },
+    {
+      "canonical_path": "src/quantbt/benchmarks/v1_1_measurement.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "sha256": "04c95b903f9afdaa8bd80282a55dcb5ebe480d5456b664fac441dd90de0032a6"
+    },
+    {
+      "canonical_path": "src/quantbt/core/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/__init__.py",
+      "root_sha256": "13934f04c11849698712fc7fb500e3e4fb0f8a6b693da75c5d8e3ab7be552f41",
+      "sha256": "13934f04c11849698712fc7fb500e3e4fb0f8a6b693da75c5d8e3ab7be552f41"
+    },
+    {
+      "canonical_path": "src/quantbt/core/_trace_columns.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/_trace_columns.py",
+      "root_sha256": "710803cedaf72cd49b5464c7571dd8281ae1b3bd5fb2e45f101ab89e020df0f8",
+      "sha256": "710803cedaf72cd49b5464c7571dd8281ae1b3bd5fb2e45f101ab89e020df0f8"
+    },
+    {
+      "canonical_path": "src/quantbt/core/accounting_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/accounting_contracts.py",
+      "root_sha256": "58dc454cff177fcdc67efbd59f072e9d6a48c6ec63a1db11715c431078577b8a",
+      "sha256": "58dc454cff177fcdc67efbd59f072e9d6a48c6ec63a1db11715c431078577b8a"
+    },
+    {
+      "canonical_path": "src/quantbt/core/arbitrage.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/arbitrage.py",
+      "root_sha256": "3a639611672643006f6ab2be89655e15dfd889ce70913219b0305e147aa54e56",
+      "sha256": "3a639611672643006f6ab2be89655e15dfd889ce70913219b0305e147aa54e56"
+    },
+    {
+      "canonical_path": "src/quantbt/core/basket.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/basket.py",
+      "root_sha256": "ea046573d9245d771ec429f92916a87a8afbbc5d0d8811516eb90847a89df0f4",
+      "sha256": "ea046573d9245d771ec429f92916a87a8afbbc5d0d8811516eb90847a89df0f4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/certification.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/certification.py",
+      "root_sha256": "9b1e9ff44f70850165fb48cc035887d688a5ef55989ac9899f12c23a8781ec35",
+      "sha256": "9b1e9ff44f70850165fb48cc035887d688a5ef55989ac9899f12c23a8781ec35"
+    },
+    {
+      "canonical_path": "src/quantbt/core/constraints.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/constraints.py",
+      "root_sha256": "e4dec81fedddb817e60cc1ad02e4b5dea9fe400981a66f53e83355bad3299d09",
+      "sha256": "e4dec81fedddb817e60cc1ad02e4b5dea9fe400981a66f53e83355bad3299d09"
+    },
+    {
+      "canonical_path": "src/quantbt/core/engine.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/engine.py",
+      "root_sha256": "d9a8003c86290a854f740eec4040822b1c99a124528c582cae4bbc8d58a240f5",
+      "sha256": "d9a8003c86290a854f740eec4040822b1c99a124528c582cae4bbc8d58a240f5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/event.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/event.py",
+      "root_sha256": "f6af2e2c1b94d955513520030f8d62be622a1e25ca5fc68169d3dd2726c775af",
+      "sha256": "f6af2e2c1b94d955513520030f8d62be622a1e25ca5fc68169d3dd2726c775af"
+    },
+    {
+      "canonical_path": "src/quantbt/core/event_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/event_contracts.py",
+      "root_sha256": "850f9b632348265ff22b488aed67ab31d86c581740daad9b9f85696c479f06e5",
+      "sha256": "850f9b632348265ff22b488aed67ab31d86c581740daad9b9f85696c479f06e5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_contract.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/execution_contract.py",
+      "root_sha256": "7ae9868f6922538444860143b86795c9f6e867661950c0182c340b24b8b63fed",
+      "sha256": "7ae9868f6922538444860143b86795c9f6e867661950c0182c340b24b8b63fed"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_depth.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/execution_depth.py",
+      "root_sha256": "74cb874cb58795c441c77568e6e5c12750a1b06fcebb7529cd0c85d2c8450a5f",
+      "sha256": "74cb874cb58795c441c77568e6e5c12750a1b06fcebb7529cd0c85d2c8450a5f"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_trace.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/execution_trace.py",
+      "root_sha256": "47803939a4e03c0a289a4fd955033682f7e5b61c47387d2b0bfe5d19786b4c36",
+      "sha256": "47803939a4e03c0a289a4fd955033682f7e5b61c47387d2b0bfe5d19786b4c36"
+    },
+    {
+      "canonical_path": "src/quantbt/core/fill_replay_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/fill_replay_v2.py",
+      "root_sha256": "37f9ee84bdf45f334390bd7182cc5aaff2715d3a0ba1347ff58d23fc2d90bd1b",
+      "sha256": "37f9ee84bdf45f334390bd7182cc5aaff2715d3a0ba1347ff58d23fc2d90bd1b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/generated_native_event_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/generated_native_event_contracts.py",
+      "root_sha256": "6b2923216bb43f24e4a015e95375c008e60640ad31778c1aff5c4a83c5fd851b",
+      "sha256": "6b2923216bb43f24e4a015e95375c008e60640ad31778c1aff5c4a83c5fd851b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/generated_product_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/generated_product_contracts.py",
+      "root_sha256": "ccdfd9a0ca6c82b66eed2c1451cd97c6976a927a68c6ee6d914939a30fb60078",
+      "sha256": "ccdfd9a0ca6c82b66eed2c1451cd97c6976a927a68c6ee6d914939a30fb60078"
+    },
+    {
+      "canonical_path": "src/quantbt/core/instrument_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/instrument_contracts.py",
+      "root_sha256": "b74c78b63c3d794aadab96203d5dc2ed280ccce6c75cf2f453540f2d8d71074a",
+      "sha256": "b74c78b63c3d794aadab96203d5dc2ed280ccce6c75cf2f453540f2d8d71074a"
+    },
+    {
+      "canonical_path": "src/quantbt/core/instrument_registry_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/instrument_registry_v2.py",
+      "root_sha256": "09df11a1334a6e818106c2de477511199092bf010de4e264cc4226f715f55c37",
+      "sha256": "09df11a1334a6e818106c2de477511199092bf010de4e264cc4226f715f55c37"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_kernel.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/intrabar_kernel.py",
+      "root_sha256": "3a191fd95ee7a3c3607ef1fa9f6449a88a28b55e27731ae478444362522151fd",
+      "sha256": "3a191fd95ee7a3c3607ef1fa9f6449a88a28b55e27731ae478444362522151fd"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_reference.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/intrabar_reference.py",
+      "root_sha256": "5c6dd10cbbc5803448ea4b0aef43a2ad6c76bc0ac7a75a62839d41988b49b5f5",
+      "sha256": "5c6dd10cbbc5803448ea4b0aef43a2ad6c76bc0ac7a75a62839d41988b49b5f5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_session.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/intrabar_session.py",
+      "root_sha256": "9e8e7e0b9f5a7ddb4dd9a90a71282655f2c7636782bb4a20be868074665e3b9f",
+      "sha256": "9e8e7e0b9f5a7ddb4dd9a90a71282655f2c7636782bb4a20be868074665e3b9f"
+    },
+    {
+      "canonical_path": "src/quantbt/core/market_calendar_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/market_calendar_v2.py",
+      "root_sha256": "cbc92b27a07a643f65b95d764f728cd71dd7fc16c186c2744589bef28ba98af2",
+      "sha256": "cbc92b27a07a643f65b95d764f728cd71dd7fc16c186c2744589bef28ba98af2"
+    },
+    {
+      "canonical_path": "src/quantbt/core/market_tape.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/market_tape.py",
+      "root_sha256": "9d1fef7124b76f07fbd13aa7e4a9ae575a2d5fc5ba5f2d4c64088799592cd1ee",
+      "sha256": "9d1fef7124b76f07fbd13aa7e4a9ae575a2d5fc5ba5f2d4c64088799592cd1ee"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_capabilities.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/native_event_capabilities.py",
+      "root_sha256": "d9a25ba8ebb86976bd1915da68267fd9acf8b5a40516a91cb74c6246bb6e7963",
+      "sha256": "d9a25ba8ebb86976bd1915da68267fd9acf8b5a40516a91cb74c6246bb6e7963"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_parity.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/native_event_parity.py",
+      "root_sha256": "887798f28b7df6bd680b681a7662da9aa24602d74430e7c6832daf199cfe0153",
+      "sha256": "887798f28b7df6bd680b681a7662da9aa24602d74430e7c6832daf199cfe0153"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_promotion.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/native_event_promotion.py",
+      "root_sha256": "c5d2bb150db6161641feb90241a365509c4ef4b1d214536ce4a84ece873b2d54",
+      "sha256": "c5d2bb150db6161641feb90241a365509c4ef4b1d214536ce4a84ece873b2d54"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_result_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/native_result_v2.py",
+      "root_sha256": "9d6260ead695621e86a683a0f8a4d32b9225d40e0e76c84d29cb42b8e51e096b",
+      "sha256": "9d6260ead695621e86a683a0f8a4d32b9225d40e0e76c84d29cb42b8e51e096b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/order_compiler.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/order_compiler.py",
+      "root_sha256": "f34b389180480c859b33c13a44f57414da59219b0ec054d3b6540b333baaabb1",
+      "sha256": "f34b389180480c859b33c13a44f57414da59219b0ec054d3b6540b333baaabb1"
+    },
+    {
+      "canonical_path": "src/quantbt/core/orders.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/orders.py",
+      "root_sha256": "bf8095486a085641ad9e6db085ec7c1bf6336f5fe4c5badf339d274c39a712bd",
+      "sha256": "bf8095486a085641ad9e6db085ec7c1bf6336f5fe4c5badf339d274c39a712bd"
+    },
+    {
+      "canonical_path": "src/quantbt/core/package_execution_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/package_execution_contracts.py",
+      "root_sha256": "49d736a403e3d065554993d4a1c47d82d2774b8a1206e1d602807728e4abf7bf",
+      "sha256": "49d736a403e3d065554993d4a1c47d82d2774b8a1206e1d602807728e4abf7bf"
+    },
+    {
+      "canonical_path": "src/quantbt/core/package_execution_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/package_execution_v2.py",
+      "root_sha256": "81cd0b56d8265410be1df383bcb2f8eb9689bd5ea3167bf5731e89744727a3b2",
+      "sha256": "81cd0b56d8265410be1df383bcb2f8eb9689bd5ea3167bf5731e89744727a3b2"
+    },
+    {
+      "canonical_path": "src/quantbt/core/performance_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/performance_contracts.py",
+      "root_sha256": "e364c8e4a0e7e36d751bb34f9a430f368da4317d9d46f124c0f67eb137b19f4d",
+      "sha256": "e364c8e4a0e7e36d751bb34f9a430f368da4317d9d46f124c0f67eb137b19f4d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/portfolio.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/portfolio.py",
+      "root_sha256": "6b4a9ed8a08206e74dbfc6cb9b6fb6d0c2de629d061b5e36572cba9eee24c8f4",
+      "sha256": "6b4a9ed8a08206e74dbfc6cb9b6fb6d0c2de629d061b5e36572cba9eee24c8f4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/portfolio_execution_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/portfolio_execution_contracts.py",
+      "root_sha256": "3109fc239c27c09f457014a660cf95a3704799c70f1d5e3e9262db9c1f5d28d4",
+      "sha256": "3109fc239c27c09f457014a660cf95a3704799c70f1d5e3e9262db9c1f5d28d4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/prepared_execution_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/prepared_execution_v2.py",
+      "root_sha256": "e8ae915a8b2fddd9a8906fe70678f99801f94e767922eda3ddd7c8046c58a36e",
+      "sha256": "e8ae915a8b2fddd9a8906fe70678f99801f94e767922eda3ddd7c8046c58a36e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/preprocessor.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/preprocessor.py",
+      "root_sha256": "676ca488602c43d1fd03b1ef46867323efb740ebb35e0940b0279935ac0c141d",
+      "sha256": "676ca488602c43d1fd03b1ef46867323efb740ebb35e0940b0279935ac0c141d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/product_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/product_contracts.py",
+      "root_sha256": "444639f80f7d31d05ce78608947637f085c681e9fdf2dd7ba223d4deb152292e",
+      "sha256": "444639f80f7d31d05ce78608947637f085c681e9fdf2dd7ba223d4deb152292e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/reactive.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/reactive.py",
+      "root_sha256": "813e8a2f6fcdcaa066c6c9d0220a45459fa55429fe46c42e5fc7070516828055",
+      "sha256": "813e8a2f6fcdcaa066c6c9d0220a45459fa55429fe46c42e5fc7070516828055"
+    },
+    {
+      "canonical_path": "src/quantbt/core/research_audit.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/research_audit.py",
+      "root_sha256": "b7347591cdc7b71b0def67a3417847c56dc33dabf311f6640a8a50633f13c70e",
+      "sha256": "b7347591cdc7b71b0def67a3417847c56dc33dabf311f6640a8a50633f13c70e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/research_audit_artifact.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/research_audit_artifact.py",
+      "root_sha256": "85e6f9270b958b97a6bd430c1d6af16b08b493f0f5e124612c7de1fd7d0b1e5d",
+      "sha256": "85e6f9270b958b97a6bd430c1d6af16b08b493f0f5e124612c7de1fd7d0b1e5d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/results.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/results.py",
+      "root_sha256": "559e17ded4d561b8e98968e0d276fbda4256c322ac2af78cfff06ef5383cbbe3",
+      "sha256": "559e17ded4d561b8e98968e0d276fbda4256c322ac2af78cfff06ef5383cbbe3"
+    },
+    {
+      "canonical_path": "src/quantbt/core/runtime_governance.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/runtime_governance.py",
+      "root_sha256": "c45533abe509cb630c5d9609199d1baeaea402f8d0fdce1167c48b7485826b7d",
+      "sha256": "c45533abe509cb630c5d9609199d1baeaea402f8d0fdce1167c48b7485826b7d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/schema.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/schema.py",
+      "root_sha256": "f3100f136858271f4e20ac900c0d455d10a34546ca54017a5af6742330780304",
+      "sha256": "f3100f136858271f4e20ac900c0d455d10a34546ca54017a5af6742330780304"
+    },
+    {
+      "canonical_path": "src/quantbt/core/scopes.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/scopes.py",
+      "root_sha256": "d9f458fdd525ebfdfdb5f51d2d8ca92f5e37b5b2e3d61c98f9f254ae224d4a7b",
+      "sha256": "d9f458fdd525ebfdfdb5f51d2d8ca92f5e37b5b2e3d61c98f9f254ae224d4a7b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/structured_orders.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/structured_orders.py",
+      "root_sha256": "734b44de5614e5f12a4549aa00d60ba3995b244df84607c6960ab64c63b9f378",
+      "sha256": "734b44de5614e5f12a4549aa00d60ba3995b244df84607c6960ab64c63b9f378"
+    },
+    {
+      "canonical_path": "src/quantbt/core/target_intents.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/target_intents.py",
+      "root_sha256": "8b5466cb6798b686e54ac64efc5a12ac615d2b207c4cdfb8b3142eced1bf1a95",
+      "sha256": "8b5466cb6798b686e54ac64efc5a12ac615d2b207c4cdfb8b3142eced1bf1a95"
+    },
+    {
+      "canonical_path": "src/quantbt/core/types.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/types.py",
+      "root_sha256": "c52a409aeeb21799b393b47b1c658c2f42b371dca1cbc969cc8985c9f7a34eaa",
+      "sha256": "c52a409aeeb21799b393b47b1c658c2f42b371dca1cbc969cc8985c9f7a34eaa"
+    },
+    {
+      "canonical_path": "src/quantbt/core/vectorized.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/vectorized.py",
+      "root_sha256": "80e47a3f2072fd531a789fdfaf1756e2468b60ef73fec3998f1d9187f5f05158",
+      "sha256": "80e47a3f2072fd531a789fdfaf1756e2468b60ef73fec3998f1d9187f5f05158"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_contracts.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/wfo_contracts.py",
+      "root_sha256": "890d73813da6c5e5f464ccb6379e3fda7d6d4957ad645e54428c91956d83f9cf",
+      "sha256": "890d73813da6c5e5f464ccb6379e3fda7d6d4957ad645e54428c91956d83f9cf"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_evaluation.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/wfo_evaluation.py",
+      "root_sha256": "9148c257954c1c29ee4484984cec15c058d5dbc5c93eb0b5bcd9e3187b5566e6",
+      "sha256": "9148c257954c1c29ee4484984cec15c058d5dbc5c93eb0b5bcd9e3187b5566e6"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_preparation.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "core/wfo_preparation.py",
+      "root_sha256": "c675b1323e2396eafad9ebc26f74151758e5cd24d7a39417f480e5d2596cd551",
+      "sha256": "c675b1323e2396eafad9ebc26f74151758e5cd24d7a39417f480e5d2596cd551"
+    },
+    {
+      "canonical_path": "src/quantbt/endpoint.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "endpoint.py",
+      "root_sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6",
+      "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engine_spi/__init__.py",
+      "root_sha256": "4258e082784435d7e2bd1674a6c1b32d981f8a702123829abca42b35d73b6226",
+      "sha256": "4258e082784435d7e2bd1674a6c1b32d981f8a702123829abca42b35d73b6226"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/errors.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engine_spi/errors.py",
+      "root_sha256": "5eba238f764a57cd17fe6fb0980a0fa052d6ff40f661adb731145212301f9193",
+      "sha256": "5eba238f764a57cd17fe6fb0980a0fa052d6ff40f661adb731145212301f9193"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/native_event.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engine_spi/native_event.py",
+      "root_sha256": "ccde997bc9a18bd5683e30bf5d6e07b04e5b5ddc735b34181b8dd5743432d474",
+      "sha256": "ccde997bc9a18bd5683e30bf5d6e07b04e5b5ddc735b34181b8dd5743432d474"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/protocol.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engine_spi/protocol.py",
+      "root_sha256": "167b3b1d7e06088d2878c58fc6754560ca56ba58eac521554524a23f1f3bfb42",
+      "sha256": "167b3b1d7e06088d2878c58fc6754560ca56ba58eac521554524a23f1f3bfb42"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/registry.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engine_spi/registry.py",
+      "root_sha256": "4d4fbda9c6ed9da48bb56eaabb8a482c91fdf8a18821513008d58a0d46115b18",
+      "sha256": "4d4fbda9c6ed9da48bb56eaabb8a482c91fdf8a18821513008d58a0d46115b18"
+    },
+    {
+      "canonical_path": "src/quantbt/engines.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "engines.py",
+      "root_sha256": "56d06df1404ff179a03d008e1d44d5ebf3eeda2dbde31f9ed35ebe07059b9821",
+      "sha256": "56d06df1404ff179a03d008e1d44d5ebf3eeda2dbde31f9ed35ebe07059b9821"
+    },
+    {
+      "canonical_path": "src/quantbt/errors.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "errors.py",
+      "root_sha256": "0281de619c4144457f2b81892a1ac7752a32dea0066810a1d129f36e36cc206a",
+      "sha256": "0281de619c4144457f2b81892a1ac7752a32dea0066810a1d129f36e36cc206a"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "metrics/__init__.py",
+      "root_sha256": "0fbb26b47f0417770c2e8ae03280806937a98d9ef34f1eec767a3ea3ded25fa7",
+      "sha256": "0fbb26b47f0417770c2e8ae03280806937a98d9ef34f1eec767a3ea3ded25fa7"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/options_analytics.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "metrics/options_analytics.py",
+      "root_sha256": "ff74b11243b583b83724b38bf3a0cd57330887166cf81d855d115d31e443c90a",
+      "sha256": "ff74b11243b583b83724b38bf3a0cd57330887166cf81d855d115d31e443c90a"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/performance.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "metrics/performance.py",
+      "root_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+      "sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/__init__.py",
+      "root_sha256": "f7a7524fd1b8856b63262ceae2fb7fb6bf05b1a1aa7c0adf0dd1448ede23efd2",
+      "sha256": "f7a7524fd1b8856b63262ceae2fb7fb6bf05b1a1aa7c0adf0dd1448ede23efd2"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/callbacks.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/callbacks.py",
+      "root_sha256": "6bb8ab0c890f2a2ebdacfae8dd84dcde6db17387acec56ad0aea65636f399d07",
+      "sha256": "6bb8ab0c890f2a2ebdacfae8dd84dcde6db17387acec56ad0aea65636f399d07"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/candidate_selection.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/candidate_selection.py",
+      "root_sha256": "b33831c811941893f8ac3ca20363f7569637e6edb1d019a8c682bdf951f944ea",
+      "sha256": "b33831c811941893f8ac3ca20363f7569637e6edb1d019a8c682bdf951f944ea"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/config.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/config.py",
+      "root_sha256": "6b66dc66ef7851720d152d3f06d0d8f792d707b318e450f3d00042c35066a4eb",
+      "sha256": "6b66dc66ef7851720d152d3f06d0d8f792d707b318e450f3d00042c35066a4eb"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/constraints.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/constraints.py",
+      "root_sha256": "20102f6c672040b8a58f290a4c9ecb3116622b24b54ec9c2787085f3700762df",
+      "sha256": "20102f6c672040b8a58f290a4c9ecb3116622b24b54ec9c2787085f3700762df"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluator.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluator.py",
+      "root_sha256": "3c53a0dc6ff8dd63cde22b62e369ed3c5637459614327108f019b08deac3d13a",
+      "sha256": "3c53a0dc6ff8dd63cde22b62e369ed3c5637459614327108f019b08deac3d13a"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/__init__.py",
+      "root_sha256": "e74b86ae2ff3990510d5812659064b5ecdf1e701ca2916c431fd6619d7ee75e5",
+      "sha256": "e74b86ae2ff3990510d5812659064b5ecdf1e701ca2916c431fd6619d7ee75e5"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/arbitrage.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/arbitrage.py",
+      "root_sha256": "551a13bd6c474e62e911ae54fb7fb65f54b991fa461c72c0f3fdb2e0f246c8fc",
+      "sha256": "551a13bd6c474e62e911ae54fb7fb65f54b991fa461c72c0f3fdb2e0f246c8fc"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/generic.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/generic.py",
+      "root_sha256": "bcf66f607681229db112b2865b4821700a53acf8865aa775826484a5d9fd652b",
+      "sha256": "bcf66f607681229db112b2865b4821700a53acf8865aa775826484a5d9fd652b"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/grid_dca.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/grid_dca.py",
+      "root_sha256": "63467ab935751a0e32a369b77630fb95c5f716d4aff66e1e60590aeb8392af39",
+      "sha256": "63467ab935751a0e32a369b77630fb95c5f716d4aff66e1e60590aeb8392af39"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/intrabar.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/intrabar.py",
+      "root_sha256": "d479e294ea726fcf6ff00d24fea246674245e28ddee081e8e53905067fa16e9d",
+      "sha256": "d479e294ea726fcf6ff00d24fea246674245e28ddee081e8e53905067fa16e9d"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/native_event.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/native_event.py",
+      "root_sha256": "fc15924a85f706d4095400fe18a47dd57f984034ee61992ac9fea8a46537d3f9",
+      "sha256": "fc15924a85f706d4095400fe18a47dd57f984034ee61992ac9fea8a46537d3f9"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/options.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/options.py",
+      "root_sha256": "24543d7dfbb282fa86e042c22a1b46399cfb2f42696226ad1742592f8a436460",
+      "sha256": "24543d7dfbb282fa86e042c22a1b46399cfb2f42696226ad1742592f8a436460"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/portfolio.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/portfolio.py",
+      "root_sha256": "b046c2c76c1ece2b700e0f841c761aec647c21470e6daff707eccd4724260f4e",
+      "sha256": "b046c2c76c1ece2b700e0f841c761aec647c21470e6daff707eccd4724260f4e"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/signal.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/evaluators/signal.py",
+      "root_sha256": "76af955826ffb8d518922f95c18aece472447d750db7028175528c69a869924f",
+      "sha256": "76af955826ffb8d518922f95c18aece472447d750db7028175528c69a869924f"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/multiseed.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/multiseed.py",
+      "root_sha256": "c176ee75b2f78ede05e91617c6fce96fed6be22ce85b0c33823d7a8d3547f7ef",
+      "sha256": "c176ee75b2f78ede05e91617c6fce96fed6be22ce85b0c33823d7a8d3547f7ef"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/objectives.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/objectives.py",
+      "root_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+      "sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/optimizer.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/optimizer.py",
+      "root_sha256": "1c801a4a867b352cc53d8740878eea4b73a8a063248293e0b35987a39a8d94b7",
+      "sha256": "1c801a4a867b352cc53d8740878eea4b73a8a063248293e0b35987a39a8d94b7"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/result.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/result.py",
+      "root_sha256": "4a0aa633d6349344bcd0e0101584c48eb51dd7afe5e7293128df64ea8dd1e13f",
+      "sha256": "4a0aa633d6349344bcd0e0101584c48eb51dd7afe5e7293128df64ea8dd1e13f"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/samplers.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/samplers.py",
+      "root_sha256": "21469f4d7c3541342935ad735c86045f3333bba086685719b093c5fc5d6d5c3d",
+      "sha256": "21469f4d7c3541342935ad735c86045f3333bba086685719b093c5fc5d6d5c3d"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/space.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/space.py",
+      "root_sha256": "b8897853d0a2ee8e8db9a02a96a4d35c1f66ec680338ce29a287ff317643d979",
+      "sha256": "b8897853d0a2ee8e8db9a02a96a4d35c1f66ec680338ce29a287ff317643d979"
+    },
+    {
+      "canonical_path": "src/quantbt/options/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/__init__.py",
+      "root_sha256": "38a4fd52822e8a6da18deb16f018c3ea1c24597f303256dc3453cac4769aca19",
+      "sha256": "38a4fd52822e8a6da18deb16f018c3ea1c24597f303256dc3453cac4769aca19"
+    },
+    {
+      "canonical_path": "src/quantbt/options/authority.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/authority.py",
+      "root_sha256": "6aa7dd07410f3a6f7e369ca4b844dc2555b562f097c47d9ca46d06be4d3a3622",
+      "sha256": "6aa7dd07410f3a6f7e369ca4b844dc2555b562f097c47d9ca46d06be4d3a3622"
+    },
+    {
+      "canonical_path": "src/quantbt/options/cache.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/cache.py",
+      "root_sha256": "2aa7d17c1ab6c7f4e808c56dcc061a2329d679c27a489fa3bf15000b24a4cf42",
+      "sha256": "2aa7d17c1ab6c7f4e808c56dcc061a2329d679c27a489fa3bf15000b24a4cf42"
+    },
+    {
+      "canonical_path": "src/quantbt/options/capabilities.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/capabilities.py",
+      "root_sha256": "e7998b5baee8bd7af959ddb9560f6b97962623fd2bcd3a8fb1a246a996cebb89",
+      "sha256": "e7998b5baee8bd7af959ddb9560f6b97962623fd2bcd3a8fb1a246a996cebb89"
+    },
+    {
+      "canonical_path": "src/quantbt/options/conventions.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/conventions.py",
+      "root_sha256": "99253429d2c86a52793c774475ff3b843ff68c050defdec294cc59ce4ee1a238",
+      "sha256": "99253429d2c86a52793c774475ff3b843ff68c050defdec294cc59ce4ee1a238"
+    },
+    {
+      "canonical_path": "src/quantbt/options/data.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/data.py",
+      "root_sha256": "a4a424c7318b2280c712893a79e5162c073e7c9e0a86035b31c5a05237e952ca",
+      "sha256": "a4a424c7318b2280c712893a79e5162c073e7c9e0a86035b31c5a05237e952ca"
+    },
+    {
+      "canonical_path": "src/quantbt/options/execution.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/execution.py",
+      "root_sha256": "1d7263b60dfdb3728e3d8d905200f2e264bd76491c5681de089296df455066db",
+      "sha256": "1d7263b60dfdb3728e3d8d905200f2e264bd76491c5681de089296df455066db"
+    },
+    {
+      "canonical_path": "src/quantbt/options/fees.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/fees.py",
+      "root_sha256": "e0216ce64999731648983e4ab5f0da069157819eec6e0b5f854bb910be7462bc",
+      "sha256": "e0216ce64999731648983e4ab5f0da069157819eec6e0b5f854bb910be7462bc"
+    },
+    {
+      "canonical_path": "src/quantbt/options/greeks.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/greeks.py",
+      "root_sha256": "12533ad2c2dc46f017180600d6c6d83958cabe902c6dbfa4010e21643d450ea4",
+      "sha256": "12533ad2c2dc46f017180600d6c6d83958cabe902c6dbfa4010e21643d450ea4"
+    },
+    {
+      "canonical_path": "src/quantbt/options/hedging.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/hedging.py",
+      "root_sha256": "5cf6c1c7698570e320b2a0efdec2175d8e93ce1e206b36043fdd27c2f14db4b0",
+      "sha256": "5cf6c1c7698570e320b2a0efdec2175d8e93ce1e206b36043fdd27c2f14db4b0"
+    },
+    {
+      "canonical_path": "src/quantbt/options/iv.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/iv.py",
+      "root_sha256": "f1ac18d1e417afd056b2a8d863a21b74474cf8687299d3c1a0be799d1592b050",
+      "sha256": "f1ac18d1e417afd056b2a8d863a21b74474cf8687299d3c1a0be799d1592b050"
+    },
+    {
+      "canonical_path": "src/quantbt/options/ledger.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/ledger.py",
+      "root_sha256": "2edb76cd61638c4d06e0bca6d391f05c68abcdcd4a31335c5d95c764192c73ae",
+      "sha256": "2edb76cd61638c4d06e0bca6d391f05c68abcdcd4a31335c5d95c764192c73ae"
+    },
+    {
+      "canonical_path": "src/quantbt/options/lifecycle.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/lifecycle.py",
+      "root_sha256": "5c457a63109422c36a6ac70ec323097521d75ab07e250fca01819509304c8f86",
+      "sha256": "5c457a63109422c36a6ac70ec323097521d75ab07e250fca01819509304c8f86"
+    },
+    {
+      "canonical_path": "src/quantbt/options/margin.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/margin.py",
+      "root_sha256": "9b5f2d92bd30f8e87c28192d8cd19e33c352bbfbe9042a9dddf1665c5b118784",
+      "sha256": "9b5f2d92bd30f8e87c28192d8cd19e33c352bbfbe9042a9dddf1665c5b118784"
+    },
+    {
+      "canonical_path": "src/quantbt/options/packages.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/packages.py",
+      "root_sha256": "8753c7651b4984a47ecc803fd1bb9b2f9605c15edaa81dde8698b90ac3849c32",
+      "sha256": "8753c7651b4984a47ecc803fd1bb9b2f9605c15edaa81dde8698b90ac3849c32"
+    },
+    {
+      "canonical_path": "src/quantbt/options/pricing.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/pricing.py",
+      "root_sha256": "092c9b85629e9802d9c597524dd0615320d76e8575e7af774ee218e94cb59ea8",
+      "sha256": "092c9b85629e9802d9c597524dd0615320d76e8575e7af774ee218e94cb59ea8"
+    },
+    {
+      "canonical_path": "src/quantbt/options/reporting.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/reporting.py",
+      "root_sha256": "e293644e55add28559ee0a256cdecc09ad1d1e0f3efd250282d1f87a908da4c1",
+      "sha256": "e293644e55add28559ee0a256cdecc09ad1d1e0f3efd250282d1f87a908da4c1"
+    },
+    {
+      "canonical_path": "src/quantbt/options/schema.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/schema.py",
+      "root_sha256": "dafb8be1ebdb304385a22cb7203f83b1fd7ad6060a72d1477a68df664861cf3c",
+      "sha256": "dafb8be1ebdb304385a22cb7203f83b1fd7ad6060a72d1477a68df664861cf3c"
+    },
+    {
+      "canonical_path": "src/quantbt/options/selectors.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/selectors.py",
+      "root_sha256": "46b32ded8b605e33d1c1865eb19d6b01a8c0787a5b4c84d018846a5414208dfc",
+      "sha256": "46b32ded8b605e33d1c1865eb19d6b01a8c0787a5b4c84d018846a5414208dfc"
+    },
+    {
+      "canonical_path": "src/quantbt/options/strategy.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/strategy.py",
+      "root_sha256": "58c3b92ffb0018b0595e16c6fd6619c3b6e5008003e765845f88336d6a8917eb",
+      "sha256": "58c3b92ffb0018b0595e16c6fd6619c3b6e5008003e765845f88336d6a8917eb"
+    },
+    {
+      "canonical_path": "src/quantbt/options/surface.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/surface.py",
+      "root_sha256": "e362dbc2a6e553b513829edc6494c0239cf0eed2904a63080449b9fa808b5907",
+      "sha256": "e362dbc2a6e553b513829edc6494c0239cf0eed2904a63080449b9fa808b5907"
+    },
+    {
+      "canonical_path": "src/quantbt/options/tape.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/tape.py",
+      "root_sha256": "88230d39bf1099e262aefdfb187b0f49d5f532d378d7b7d2019661a08494fc66",
+      "sha256": "88230d39bf1099e262aefdfb187b0f49d5f532d378d7b7d2019661a08494fc66"
+    },
+    {
+      "canonical_path": "src/quantbt/options/templates/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/templates/__init__.py",
+      "root_sha256": "7697d9c1ac2b2986c5b847aff5dee28826bcd368d7e057d3eb873d51fe4ca4d4",
+      "sha256": "7697d9c1ac2b2986c5b847aff5dee28826bcd368d7e057d3eb873d51fe4ca4d4"
+    },
+    {
+      "canonical_path": "src/quantbt/options/templates/packages.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "options/templates/packages.py",
+      "root_sha256": "7d7a5b9caad5496b2bfe8944214f6417cce2127889f1cf41c8b62b42957e3c80",
+      "sha256": "7d7a5b9caad5496b2bfe8944214f6417cce2127889f1cf41c8b62b42957e3c80"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/__init__.py",
+      "root_sha256": "3eab06fbf629a7acd79e2e562db6bfa9d606696f31af63ac87d699f061781cf9",
+      "sha256": "3eab06fbf629a7acd79e2e562db6bfa9d606696f31af63ac87d699f061781cf9"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/capabilities.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/capabilities.py",
+      "root_sha256": "be935d11443c20482e0cc4c71f49e922616e9e9a05898c9129ed8d5d08428dfa",
+      "sha256": "be935d11443c20482e0cc4c71f49e922616e9e9a05898c9129ed8d5d08428dfa"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/fingerprints.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/fingerprints.py",
+      "root_sha256": "1ebdb9984c999cce0ec0a963b4de7a5c4071c0c15fad09360ef4e0a972c8e764",
+      "sha256": "1ebdb9984c999cce0ec0a963b4de7a5c4071c0c15fad09360ef4e0a972c8e764"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/models.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/models.py",
+      "root_sha256": "3482c08ac569e748de289740c67f5b02e7c1cb7b73ed37ac9ed34132c8cbae1a",
+      "sha256": "3482c08ac569e748de289740c67f5b02e7c1cb7b73ed37ac9ed34132c8cbae1a"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/output.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/output.py",
+      "root_sha256": "c6f4a96de6ae113a00178c3d71d7f01ee8123530e8151cbe35c580db13760b9a",
+      "sha256": "c6f4a96de6ae113a00178c3d71d7f01ee8123530e8151cbe35c580db13760b9a"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/resolve.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "planning/resolve.py",
+      "root_sha256": "c979b6d29eb4cd0789d0fd7ec36e1f971ccd3b1eb03160d2a6f661e28d123c39",
+      "sha256": "c979b6d29eb4cd0789d0fd7ec36e1f971ccd3b1eb03160d2a6f661e28d123c39"
+    },
+    {
+      "canonical_path": "src/quantbt/portfolio.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "portfolio.py",
+      "root_sha256": "a15abfcaa5930a8dde733309d705bff8b2f1707ab1bf962cc0a667b976a8cd84",
+      "sha256": "a15abfcaa5930a8dde733309d705bff8b2f1707ab1bf962cc0a667b976a8cd84"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/__init__.py",
+      "root_sha256": "5cf27aac012869d4da67ee4013eade0fc591b45bf8cc37d6cf58fdc3f39dc1d0",
+      "sha256": "5cf27aac012869d4da67ee4013eade0fc591b45bf8cc37d6cf58fdc3f39dc1d0"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/cache.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/cache.py",
+      "root_sha256": "db1726ebf1a7758434f2f3a4df75f68f34dc98c975bdb8e3e2875bef196e2042",
+      "sha256": "db1726ebf1a7758434f2f3a4df75f68f34dc98c975bdb8e3e2875bef196e2042"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/models.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/models.py",
+      "root_sha256": "e73eefd9678dff8d225cd9445ae480fd79aad3c0f92da24475eafc214d69cab8",
+      "sha256": "e73eefd9678dff8d225cd9445ae480fd79aad3c0f92da24475eafc214d69cab8"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_event.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/native_event.py",
+      "root_sha256": "e86e3f21f30ed31917119f6792a00013fdbffbaaf75ec83e179f65f725a43328",
+      "sha256": "e86e3f21f30ed31917119f6792a00013fdbffbaaf75ec83e179f65f725a43328"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_execution.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/native_execution.py",
+      "root_sha256": "dcd56ea9ff1430ed976d6c12242b4b8d36b994b7ca4b3626d9c08f66f4a93383",
+      "sha256": "dcd56ea9ff1430ed976d6c12242b4b8d36b994b7ca4b3626d9c08f66f4a93383"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_intrabar_requests.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/native_intrabar_requests.py",
+      "root_sha256": "71f33a1dc9a1c40e10a29399a8c90be3843db97165ca06a13e18e038463a6b77",
+      "sha256": "71f33a1dc9a1c40e10a29399a8c90be3843db97165ca06a13e18e038463a6b77"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_package_requests.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/native_package_requests.py",
+      "root_sha256": "73ce4781fa601bb159a322cd5f2301205ffb2a2e4622a30bfd5366647c08ede3",
+      "sha256": "73ce4781fa601bb159a322cd5f2301205ffb2a2e4622a30bfd5366647c08ede3"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_target_requests.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "preparation/native_target_requests.py",
+      "root_sha256": "2a65a206fa1ef31b398e650cde0cda4e3e3df2861608752c213b9fcd8ce222b3",
+      "sha256": "2a65a206fa1ef31b398e650cde0cda4e3e3df2861608752c213b9fcd8ce222b3"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/__init__.py",
+      "root_sha256": "67f3aa4a9ab0e6f45ea924e59c5aa57abbc5a7740eb442a01c293d01567c8ae0",
+      "sha256": "67f3aa4a9ab0e6f45ea924e59c5aa57abbc5a7740eb442a01c293d01567c8ae0"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/arbitrage_audit.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/arbitrage_audit.py",
+      "root_sha256": "0c8d7cdfeeaf7b63513c1dd2d8f68458010f4dbb66eae37a1f38d16546ae2c16",
+      "sha256": "0c8d7cdfeeaf7b63513c1dd2d8f68458010f4dbb66eae37a1f38d16546ae2c16"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_bundle.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/nautilus_bundle.py",
+      "root_sha256": "0626ae658a2ba82ddf382e98e679f2bfe80e8df0146ecef42e1413d185c5d4f4",
+      "sha256": "0626ae658a2ba82ddf382e98e679f2bfe80e8df0146ecef42e1413d185c5d4f4"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_certification.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/nautilus_certification.py",
+      "root_sha256": "138079faf8e3ba29c3c94f5959306c751dee42d3f0c92d113abbc715ce6ce954",
+      "sha256": "138079faf8e3ba29c3c94f5959306c751dee42d3f0c92d113abbc715ce6ce954"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_diagnostics.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/nautilus_diagnostics.py",
+      "root_sha256": "8dc6b08cfb4f4684b26a29ae0985c4962c2f0ae21b140d36d5b605b7d4ae7d97",
+      "sha256": "8dc6b08cfb4f4684b26a29ae0985c4962c2f0ae21b140d36d5b605b7d4ae7d97"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/parity.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/parity.py",
+      "root_sha256": "85960df1286ab89e9c22de896b81717c0033eee6d0e95bd3ad31c72d80d37f24",
+      "sha256": "85960df1286ab89e9c22de896b81717c0033eee6d0e95bd3ad31c72d80d37f24"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/portfolio_audit.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/portfolio_audit.py",
+      "root_sha256": "cba2108155418532ef56f3b5ab493822b87da467140dc880013a148c83c9a200",
+      "sha256": "cba2108155418532ef56f3b5ab493822b87da467140dc880013a148c83c9a200"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/portfolio_nautilus.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "reporting/portfolio_nautilus.py",
+      "root_sha256": "e4d5b01a7dd6677dd80285c5f7268327b0a2f616eb9219707bf825de5f65fef4",
+      "sha256": "e4d5b01a7dd6677dd80285c5f7268327b0a2f616eb9219707bf825de5f65fef4"
+    },
+    {
+      "canonical_path": "src/quantbt/results/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "results/__init__.py",
+      "root_sha256": "2654b66643495e5f74d5b4f47db553507e7c5331156fee9522067d8b17506774",
+      "sha256": "2654b66643495e5f74d5b4f47db553507e7c5331156fee9522067d8b17506774"
+    },
+    {
+      "canonical_path": "src/quantbt/results/raw.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "results/raw.py",
+      "root_sha256": "9d8820c57164f8f4d74d0de03204fa9f398aa5b4778dbc3d7109707baa67668d",
+      "sha256": "9d8820c57164f8f4d74d0de03204fa9f398aa5b4778dbc3d7109707baa67668d"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "sizing/__init__.py",
+      "root_sha256": "022272717879a37661d665dce5a8d30f473941eca6002ba9c3fc377a19b303e7",
+      "sha256": "022272717879a37661d665dce5a8d30f473941eca6002ba9c3fc377a19b303e7"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/fast.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "sizing/fast.py",
+      "root_sha256": "9bdf758d6f19742fd461bfdfecdcb1adb48a87ebd1238f4fcde0c00a786ead82",
+      "sha256": "9bdf758d6f19742fd461bfdfecdcb1adb48a87ebd1238f4fcde0c00a786ead82"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/modes.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "sizing/modes.py",
+      "root_sha256": "41a7e60e5b57f68149912025484aae9b98875da83fea485f138748f6993db0b7",
+      "sha256": "41a7e60e5b57f68149912025484aae9b98875da83fea485f138748f6993db0b7"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/__init__.py",
+      "root_sha256": "c3faac928954e8724da7b7015224147ecc6c0d11430225ccee2edda0645aed9b",
+      "sha256": "c3faac928954e8724da7b7015224147ecc6c0d11430225ccee2edda0645aed9b"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/commands.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/commands.py",
+      "root_sha256": "93c4c38b8cb179c6173ac2d843239466fc6a3ac5f0f7f37aaae3a579c988abe4",
+      "sha256": "93c4c38b8cb179c6173ac2d843239466fc6a3ac5f0f7f37aaae3a579c988abe4"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/context.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/context.py",
+      "root_sha256": "567ec16ab7bfe69f47bf305a4eda440c4a15f8be98884734cbf4a38b831bab93",
+      "sha256": "567ec16ab7bfe69f47bf305a4eda440c4a15f8be98884734cbf4a38b831bab93"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/driver.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/driver.py",
+      "root_sha256": "a1115c2325fa440b27cdca5c4641bc3191b86e29b7e3227df138deacb3fa3cb2",
+      "sha256": "a1115c2325fa440b27cdca5c4641bc3191b86e29b7e3227df138deacb3fa3cb2"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/native_ir.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/native_ir.py",
+      "root_sha256": "8ad2ba51b691666140eb1478ae987a76fc0077015b6198ace366904d3f444626",
+      "sha256": "8ad2ba51b691666140eb1478ae987a76fc0077015b6198ace366904d3f444626"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/reactive_protocols.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/reactive_protocols.py",
+      "root_sha256": "d493814d961afdb2afa2962e5f800ba12ceab90c34ae294a6cdb6ff5f748d3f8",
+      "sha256": "d493814d961afdb2afa2962e5f800ba12ceab90c34ae294a6cdb6ff5f748d3f8"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/reactive_wfo.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/reactive_wfo.py",
+      "root_sha256": "cef9395fc29f026ae131cbd65ae03d3b99afefe9bff06e515308a93cdc91e1a8",
+      "sha256": "cef9395fc29f026ae131cbd65ae03d3b99afefe9bff06e515308a93cdc91e1a8"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/requirements.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/requirements.py",
+      "root_sha256": "de46852146cff1cd498656707fff01c2bab79d354e55820c259ab59d07a70d59",
+      "sha256": "de46852146cff1cd498656707fff01c2bab79d354e55820c259ab59d07a70d59"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/wfo_prepared.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "strategies/wfo_prepared.py",
+      "root_sha256": "e7a420c4ee61c29bfc60910886a4cbd4fa4fcfc0f163227b3397547995c83fa8",
+      "sha256": "e7a420c4ee61c29bfc60910886a4cbd4fa4fcfc0f163227b3397547995c83fa8"
+    },
+    {
+      "canonical_path": "src/quantbt/verification/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "verification/__init__.py",
+      "root_sha256": "c4c40d8fb984ceb16a7e3a67635a55a872e32e3c35aa266ea516802f1fe0a5b2",
+      "sha256": "c4c40d8fb984ceb16a7e3a67635a55a872e32e3c35aa266ea516802f1fe0a5b2"
+    },
+    {
+      "canonical_path": "src/quantbt/verification/canonical_trace_v2.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "verification/canonical_trace_v2.py",
+      "root_sha256": "cc3a2377738861928f536a97a0cf3d315e0763c6fd73bbe2f9232ef303fcc391",
+      "sha256": "cc3a2377738861928f536a97a0cf3d315e0763c6fd73bbe2f9232ef303fcc391"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/__init__.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "viz/__init__.py",
+      "root_sha256": "d3469dc0e606bdc5fecd644ff9165be05236763a764d57d9fb6ff93a25b09a47",
+      "sha256": "d3469dc0e606bdc5fecd644ff9165be05236763a764d57d9fb6ff93a25b09a47"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/plots.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "viz/plots.py",
+      "root_sha256": "68ce68eea6e2bfb51cd4c2ee035f04b08c03fb00036491dfd456f5c845911f81",
+      "sha256": "68ce68eea6e2bfb51cd4c2ee035f04b08c03fb00036491dfd456f5c845911f81"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/themes.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "viz/themes.py",
+      "root_sha256": "da1b6522bae3c8271eeb7001168ad86adb4b82215378bfba872ec41efed7885e",
+      "sha256": "da1b6522bae3c8271eeb7001168ad86adb4b82215378bfba872ec41efed7885e"
+    },
+    {
+      "canonical_path": "src/quantbt/walkforward.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "verified_byte_identical",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "walkforward.py",
+      "root_sha256": "eda2807e7d23e104b577738651d1460c0e650995090c4cf95df1246b844be251",
+      "sha256": "eda2807e7d23e104b577738651d1460c0e650995090c4cf95df1246b844be251"
+    }
+  ],
+  "canonical_source": "src/quantbt",
+  "consumer_inventory": {
+    "ci_consumers": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/native.yml",
+      ".github/workflows/native-release.yml",
+      ".github/workflows/publish.yml",
+      ".github/workflows/publish-native.yml",
+      ".github/workflows/publish-testpypi.yml"
+    ],
+    "migration_docs": [
+      "docs/release_packaging.md",
+      "docs/migration/native_release_handoff.md",
+      "CONTRIBUTING.md"
+    ],
+    "test_source_priority": "tests/conftest.py"
+  },
+  "mirror": {
+    "drifted_files": [],
+    "historical_entries": [
+      "__init__.py",
+      "backtester.py",
+      "endpoint.py",
+      "engines.py",
+      "errors.py",
+      "portfolio.py",
+      "walkforward.py",
+      "adapters",
+      "api",
+      "backends",
+      "core",
+      "engine_spi",
+      "metrics",
+      "optimization",
+      "options",
+      "planning",
+      "preparation",
+      "reporting",
+      "results",
+      "sizing",
+      "strategies",
+      "verification",
+      "viz"
+    ],
+    "present_entries": [
+      "__init__.py",
+      "backtester.py",
+      "endpoint.py",
+      "engines.py",
+      "errors.py",
+      "portfolio.py",
+      "walkforward.py",
+      "adapters",
+      "api",
+      "backends",
+      "core",
+      "engine_spi",
+      "metrics",
+      "optimization",
+      "options",
+      "planning",
+      "preparation",
+      "reporting",
+      "results",
+      "sizing",
+      "strategies",
+      "verification",
+      "viz"
+    ],
+    "retirement_owner": "packaging",
+    "retirement_test": "tests/test_next03_source_inventory.py",
+    "state": "verified_retirement_ready",
+    "verified_files": 182
+  },
+  "root_only_support": [
+    {
+      "path": "benchmarks/__init__.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f9304fa943a085bc83deac55dc324c2e9927a55279208a4d5175952f2f9b5a90"
+    },
+    {
+      "path": "benchmarks/benchmark_phase48c_event_driven.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "ede6982002b4e2423f6349a6d20cf009a6143d78bde37f70f16036941ca48e2b"
+    },
+    {
+      "path": "benchmarks/compare_phase9_parity.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "423d8dfa193311de66b22da5fb6fbc47b1d688406e1bc46ed4f176f6db25d493"
+    },
+    {
+      "path": "benchmarks/gamma_scalping_backtestsample.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "00b820c2093a15fd72e28ec78cd6d5532afe09c618c337fd5c1312748075c2bf"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_generic_callback_audit.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "1efd5191a03f4a04250a420b96fedc28e44f8e849c6c75e019ffc20ac06f415c"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_grid_2000.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "bfafcd2b15ecbb5bc3156784900c211e845facfdbc7408ae6e13d5a537426c8e"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_next02_fresh_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "33f5745fb7fb3289ac24d2c8fe021f433b5d7794a89d2f90de851d09aaf6caf2"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_next02_reactive_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "b32266131b1a0d0145bf8f8b598dd55ef7930cdff78d6a98367eaea983e598a0"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf01_observer.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4be9df732ddbb0eecf3c62c8592b2bd6f1458335f49682f10e6e657d4aa33e3e"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf03_reactive_boundary.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "162d8bd0ca84182776483b6656ebb763fdf2883a4e9b5bf1d4acbc10ad742aca"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf04_native_matching.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "2cf5aff9b81be63faa12c3e3f65d89e1a7b9c58715e707311d4f45ff736ccd0f"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "3c0d2357b11734ef27fd3b28e7666e3f5bdea0a1681dd713fccae37a66f72c2d"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf06_research_audit.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "6e0f000117c9e86448dd67b3dcb5f8cd865ef61c3c23de5198dc5842d2405be4"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf07_combined_qualification.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "b2a370c5fb4bdffdb898405cd0ccb69ebce68b0d64236986b98314f28874a14c"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf08_public_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f9b2b5b197461d811074039686f613b38d5d021e7a6b74f088dfc0c4a79c2e4f"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_perf09_reactive_boundary.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "0d7af56375bb22a71b5a1a644406ccf786696d47c0d3f690631776a1ebae1c92"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase45d_zero_object.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "c4b5592288a8d33c104a19250f6579d4da21ab5718a03395a4bf31fc15a7aa39"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase45e_rust_batched.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "139286e9a1a23467a5f2c97f207b511f0b7e73d656154b7a54b4d64d4981512d"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase45f_release_gate.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "999fda6b0e66614b4ecfdf4c4f8ba471b652d78751f95613781db3edd82d1136"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase46a_certification.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "63ef89df41faba35c532815e4b460dd0b7dbc84d97781260eccad1c83a3b5831"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase46b_score_rss.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "00104894ad6e26a7d4b3ede7570b75df367f6cdfd514883ecd1fb0bb304f2f3f"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase46c_import_rss.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "36f07cec6934cef150003d2f90f8f7386a064347af88f8f285ec48fdd301d43d"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase46d_ownership_r2.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "8dd2eff25caf2977e97b045b8e4adca929b4c467f6b88d0ff02bb1b5caed4dce"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase46e_release_gate.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "9b59537bdf5579c2cb6bd644d0dd8983a8dd8064012c92c57a3e921780358cf5"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase51a_contracts.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "8d5c41ac08d53a425856ed43984a8b91af23b934de8bcb06512f07dc77782ad3"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase53a_e0_profiles.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "ffeb740cfc8e519334fb584509936befdf6a0dfc57c39ca771224da5e3bb1d93"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase53b_native_drivers.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "e917810026f0023eccf172b1c1bc213e4a871412fdc5cf7e3a19571c9f72c72e"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase54a5_exit_gate.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "8818d4d01d6baa7dfffeb76128cd40c1831dd5910a24a61a6e937f63bd83bd10"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase54b2_public_routes.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "eeccd1a927140b51775d99e27cdb7259c222e349116bee1f11f32d640156c8b5"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase54b3_portfolio_package.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "3ca47e89ae28841cc11008d1203f9970f21d38b25f1b8cc59aefc62d83d4891a"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase60_result_rss.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "9da8580eab6f91fec7db0c1d34878c6ec1ef24388e6ab158e17aab311402c3e3"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase61_static_rust_primary.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "484a730eec3bc382d821918209120758e88086fcc75c86879f697b0c1d53da14"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase62_reactive_coruntime.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "2b63c12795aab823bb76e69bfcd0c0142d5411593f403721430c41a620634f2e"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase63_sparse_block_batch.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "5e2c5f5924c1aab2290d59e24afc5b63c44327719418187872926a26db6bd811"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase65_native_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "eb2ce0c592aa65e7cafd2b0b3eaab274b472db635d8a413e6b653d440efddba0"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase66_rust_target_vectorized.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "9dcdf5734b6df691fbfdde18fd6c9b9422ef07dfaf9446a316956882de573597"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase67_shared_portfolio.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "c3966e37dc77f5bdc8306919c9b8b41504e4495605b5d4ba66cb42462f8de025"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase68_bounded_package.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "1f03a84ca2638dd8111a4a680dca2990302d376b65907c65903493f1b06696c0"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase69_rust_intrabar.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "5f81d382729e4ec23d98373d4d4c773d77b57f1454d409de8039cf9772d7e24c"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase71_runtime_soak.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "8e02199c359d11613b6516d2d92b64743f5a7d45b1d296cfa0d0ddd827e8bf32"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase73_prepared_evaluation.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "078de1a5f45e9354ed99436d2796409125d7657f09c4dddd821972b7cb315c98"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase74_public_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "91135a26ddd6e0b77dadb8c49a0a08ef29441621943cb1ff74981d9b2388d3a9"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase75_reactive_scalar_retention.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "c2f618fdfe27c23d03ba9dcb8bdd26d32003d86dd876b6016d11b06fa9231589"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase76_reactive_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4372d25bab1abf22017812ee84c3fa533d0ae1ca076288553593ab8442bdb434"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase77_1_public_matrix.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4a102216489695f8bc7a343737785a3f109cb3ec90b5e63206799143568fcb1e"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase77_2_pct_equity_wfo.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "e26c61e6c52a8d4d71b11a8402fd146f8abd5f6e86104b1805cbf9e828583eac"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase77_3_reactive_closure.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "7e2885864db2f7c8561b46c5a48a1bb3d2b59d05010a490068c941b04b190d45"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_phase77_native_performance_closure.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "e4a632a05f32a42413504aba3c60812beaec649cb7271e57631fc66c273dc50f"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_pre48e.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4f52e7410683b4678df61e96b5885231085daf832b1a8eb3dd69e38cf262f50a"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_reactive_session.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4b615005a4f105d59c839ef4fa4e4fd06f45c02e97c2f944d8607b6b2a3aac0d"
+    },
+    {
+      "path": "benchmarks/native_event/profile_grid_optimizer_trial.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "761bdc3e9fafd27deefa228e144623e2c0874ca127144c0d09f403dda6a5f4b3"
+    },
+    {
+      "path": "benchmarks/profile_phase7.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "78d859da684b2fa9001fbb49097c612a2e14d791700d1bcbe1031696525d72a9"
+    },
+    {
+      "path": "benchmarks/run_arbitrage_phase_e.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "e4af74dd5eefbbd370f7bbc9ef529f1855d499aac19c2fdcd868ff8010e43919"
+    },
+    {
+      "path": "benchmarks/run_optimization_overhead.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f8dbb2a4160f20e0bb5f444566b0c2e30da62b16ee922e2dabadf9adba8567a6"
+    },
+    {
+      "path": "benchmarks/run_options_engine.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f23a0dc2c2dc4c375a2d29e1818a31229b04d9328d76143ce989a6b7b962f5bf"
+    },
+    {
+      "path": "benchmarks/run_pct_equity_nautilus_smoke.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "70afc73b1868be9dbebae41fb7796168eb52671890a569173172f288a41a4de2"
+    },
+    {
+      "path": "benchmarks/run_phase12_arbitrage_cert.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "9b053d85c0ff1b35158c309b10ce90e45578970b8a3a5366de144945e86a120d"
+    },
+    {
+      "path": "benchmarks/run_phase12_benchmark_nautilus_cert.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "382f31d74467d017c576ed79142128b53661bb552252bce57bfdc343b72fe1ab"
+    },
+    {
+      "path": "benchmarks/run_phase13_portfolio_report.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "725090aa656fb79cf7c0dbbb56833950ea0d2306ac5a5d908e1d907bb97a4fd2"
+    },
+    {
+      "path": "benchmarks/run_phase13_wfo_cache.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "77c81d6f3488126b8e4ce2fb2e50c1ed9a8ddb3852c929789107d94b7ddff6a7"
+    },
+    {
+      "path": "benchmarks/run_phase14_service_loop.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "67757fd3186a921bfa2223b6019de332e7292fe8f41c718567a596b4429f65ba"
+    },
+    {
+      "path": "benchmarks/run_phase15a_nautilus_certification.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "025da7872ce5a9ff49e09f78c5867a128766d8be4bc84b0acf8e84ec3a606058"
+    },
+    {
+      "path": "benchmarks/run_phase15b_synthetic_depth.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "1585916f04893f75d3c77feac37e087aae39d626f375ecdf1b1b499856ecfe0b"
+    },
+    {
+      "path": "benchmarks/run_phase16_performance_debt.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "57605a5a82b3f7ee119cba47896d5724cfd5a7943420768d281b28b337c88f3a"
+    },
+    {
+      "path": "benchmarks/run_phase30e_reactive_runner.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "98fdf05be0d1588fd970fab3b55af2266e4d84e5665f1039337596667b868367"
+    },
+    {
+      "path": "benchmarks/run_phase31_intrabar.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "621b936ca6a4d4d6706b399a15ab891bc1cda27407d315aa21c0fff307682fb9"
+    },
+    {
+      "path": "benchmarks/run_phase34a_native_event_memory.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "1a868fcf0693b5a2411fcf76e167477e17dd2da2000d681a059e9e6f5f178ccb"
+    },
+    {
+      "path": "benchmarks/run_phase34b_native_event_prepared_score.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "e5f15c76542427d2d16494f67c5a7e7fab3c11feb82994d6b51087b085dfbd01"
+    },
+    {
+      "path": "benchmarks/run_phase34c_native_event_single_pass.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f5128db0fed86e333cb8872cef41abf2353da339e8597ddae1d15d9418bc8331"
+    },
+    {
+      "path": "benchmarks/run_phase45b_native_event_score_rss.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "b4a659bef6f17fae90455bd7de6893a5916b5bf180e6fafbffb8168a862ab6f0"
+    },
+    {
+      "path": "benchmarks/run_phase49b_wfo_performance.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "4d87a3530003a98439dffb1c8fc27773bc8534c386bf7602c2f9694c1dc2f341"
+    },
+    {
+      "path": "benchmarks/run_phase7.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "f4d0f659e51bb5e1369cfc4e1b571cd50d12332be4805b5a5329f09cba7989c4"
+    },
+    {
+      "path": "benchmarks/run_portfolio_real_parity.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "7771927da61f8ff2c7f205757015f29b2cd9694d101a7a6f1fe0508015a6c98b"
+    },
+    {
+      "path": "examples/_bootstrap.py",
+      "role": "developer_examples",
+      "sha256": "dd10b7ededd2dfc9125efdfe173b50dbb44ba494316be54ae5e155b7ed417577"
+    },
+    {
+      "path": "examples/arbitrage_basis.py",
+      "role": "developer_examples",
+      "sha256": "d21253a7b8927e9046de1e645282880e6af647092a8f0c963159dbcd7cace704"
+    },
+    {
+      "path": "examples/dca_grid_ladder.py",
+      "role": "developer_examples",
+      "sha256": "7f2a0b1af1cc4ad20f84ecf527d1152bc94264f88a0123257f6b1b5f526a5c0b"
+    },
+    {
+      "path": "examples/multi_symbol_portfolio.py",
+      "role": "developer_examples",
+      "sha256": "6b8353ee1c9c4f62479561e84945bdd0b24ba0ffb374800a4f85214d8a6a508e"
+    },
+    {
+      "path": "examples/nautilus_explicit_orders.py",
+      "role": "developer_examples",
+      "sha256": "83e87150a0c653be6f4c8489c7bf045536fc7f1fcc02f0faf7ff68c5a8c86451"
+    },
+    {
+      "path": "examples/nautilus_validation.py",
+      "role": "developer_examples",
+      "sha256": "159f44182de97c0e7020666597842ad835bc12ba260c8b9c5202facd1bae66c5"
+    },
+    {
+      "path": "examples/optimization_workflow.py",
+      "role": "developer_examples",
+      "sha256": "9e16c65f049472da391041a38c73ffe5cfc3c8008eb7e935b280fe4ebee39ceb"
+    },
+    {
+      "path": "examples/options/_bootstrap.py",
+      "role": "developer_examples",
+      "sha256": "99b2f169e265ab3f416a0586b5a76bcbaf6afa896b4b9322f124cdbdf52ce79d"
+    },
+    {
+      "path": "examples/options/_mock.py",
+      "role": "developer_examples",
+      "sha256": "32600538ccf1eb8bbe548ac70d69584b9724d4a19b8961de4c71b11f9b41e019"
+    },
+    {
+      "path": "examples/options/calendar_spread.py",
+      "role": "developer_examples",
+      "sha256": "e596c983a74f2126afb53e5021f342280e8bdfde13b8c40f43b8502ed1e00463"
+    },
+    {
+      "path": "examples/options/covered_call.py",
+      "role": "developer_examples",
+      "sha256": "0a7e15abf337a2d48c90faf0104fadec4c4b7948e555b4916ac64fdaccdbdcbf"
+    },
+    {
+      "path": "examples/options/deribit_inverse_gamma_scalping.py",
+      "role": "developer_examples",
+      "sha256": "542b28553f0399c1fdda98438314db637c345a11b0131702b6c7c9dde7296a10"
+    },
+    {
+      "path": "examples/options/linear_spread.py",
+      "role": "developer_examples",
+      "sha256": "f858d09e364c572294b0b82b194b8bff33aa04cd639728f097cd84522b1c9590"
+    },
+    {
+      "path": "examples/pair_basket_event.py",
+      "role": "developer_examples",
+      "sha256": "91fdeadc44004da0327fba80b6fdcd220cb8cdf6b56968130c85de59a2e37f15"
+    },
+    {
+      "path": "examples/phase6_public_api.py",
+      "role": "developer_examples",
+      "sha256": "6e4e93080cda4edd9888647b054275156c729cbb4b5149e91ca1512d47578b97"
+    },
+    {
+      "path": "examples/single_order_event.py",
+      "role": "developer_examples",
+      "sha256": "32350ed2afa4b503642bfb17da0161359a94ed36256ce6be73fc27e4e6115233"
+    },
+    {
+      "path": "examples/walk_forward_train_test.py",
+      "role": "developer_examples",
+      "sha256": "562d2d0f6a9c96aa382c007ee629ae0c562f6638d1a003d698ae685671bff92a"
+    },
+    {
+      "path": "quantbt_phase34_merge_gate.py",
+      "role": "historical_migration_gate",
+      "sha256": "e70c1beba8d7c710fe09db24908687bc84a119ef34f0ef73acbd28d9b7c19bff"
+    },
+    {
+      "path": "reference/__init__.py",
+      "role": "independent_python_oracles",
+      "sha256": "4f26d37be4af908f9ac3383c446fcddc047f484391c82868d14a1ddf483b787d"
+    },
+    {
+      "path": "reference/python/__init__.py",
+      "role": "independent_python_oracles",
+      "sha256": "9f280c926f2d00202c084910ad57d7f8be22bad50d9825aa675f17d5733833b9"
+    },
+    {
+      "path": "reference/python/calendar_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "06b53e0c6e814367568e9faff5c2c17f58e35d4b73dbd93d09d9958d0a8b04c1"
+    },
+    {
+      "path": "reference/python/fill_replay_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "aa1edbb8fb945eb3d4e4be2e506ffa150b8a8b6d39ea0d2548aa5298fc747067"
+    },
+    {
+      "path": "reference/python/fill_replay_v2_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "162dad532227d70e6ebaa9e2b810eda3a467ac01e46d9c48ed4801baa586f79e"
+    },
+    {
+      "path": "reference/python/instrument_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "b1ff2bf25ae978cb1e31591be3ef7ec307cdf5f8572cbfdb23f3956125e05c30"
+    },
+    {
+      "path": "reference/python/linear_accounting_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "34de3d0fd6dff6c4dcfa13c9c702f66013f0867200013d7ba82b5711dc69d40a"
+    },
+    {
+      "path": "reference/python/timing_oracle.py",
+      "role": "independent_python_oracles",
+      "sha256": "e5c7dcab4191a87d19a5049c896c82b8d486ac839ce8d44cda0c2720f3e46c9a"
+    }
+  ],
+  "schema": "quantbt-next03-source-layout-v1"
+}

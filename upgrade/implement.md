@@ -20238,7 +20238,7 @@ engine deletion; unresolved older mandatory removal approvals need explicit revi
 
 #### N3.01 - Inventory Actual Source, Build And Root Divergence
 
-**Status: PLANNED. Required guide: [N3.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n301--inventory-sourcebuild-và-mirror-divergence).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n301--inventory-sourcebuild-và-mirror-divergence).**
 
 - Read setuptools/maturin discovery, archives/resources/workspace path crates,
   explicit mirror manifest, native distribution/module names and CI consumers.
@@ -20247,6 +20247,15 @@ engine deletion; unresolved older mandatory removal approvals need explicit revi
   into canonical first; equality of __init__.py files proves nothing about a tree.
 - Produce per-file hashes, disposition, owner, consumer and rollback/test proof.
   No automatic deletion from a regex scan or LOC percentage.
+
+**Completion evidence:** `tools/next03_source_inventory.py` generates the
+checked [source-layout inventory](../contracts/next03_source_layout_inventory.json)
+and its short [architecture record](../docs/architecture/source_layout.md).
+The current inventory records 182 byte-identical historical mirror modules,
+one canonical-only module, and root-only benchmark/example/oracle/tooling
+surfaces that are explicitly out of the retirement set. The generator and
+`tests/test_next03_source_inventory.py` lock the per-file SHA, disposition,
+owner, consumer proof, and rollback reference before any root deletion.
 
 #### N3.02 - Canonical Imports And Shared Type Identity
 
