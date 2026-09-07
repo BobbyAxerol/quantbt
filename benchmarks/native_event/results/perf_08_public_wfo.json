@@ -1,0 +1,548 @@
+{
+  "measurement_identity": {
+    "canonical_source_sha256": "90f217c0c03b9e3f5c8634f59dcf44152193bd57542f5ab2d458f9a9a2eb9656",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "c0e2b9c624776d54e944d2e9110e913dd54e08e8375bc1971004895a9037e2a1",
+    "git_commit": "4e0813bfd9f3494213b48089a44673c3571408ea",
+    "git_dirty": true,
+    "git_status_sha256": "57faf2d9897b095ebae8935eb6595b672c4e867a579ea1cdc4bd4d5588c492cd",
+    "intent_sha256": "e32e54e2995ae7353bd77130fa9c1f25d2f6ca8614d0de72511d038d6f335d62",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed reference/prepared pair per mode, then alternating paired public runs"
+  },
+  "profile": {
+    "bars": 2000,
+    "description": "All four modes, paired public-facade smoke measurement.",
+    "frequency": "1D",
+    "id": "smoke",
+    "is_subperiods": 4,
+    "repeats": 3,
+    "sbb_samples": 32,
+    "split_bar": 720,
+    "split_frequency": "quarterly",
+    "train_window": "365D",
+    "trials": 4,
+    "window_mode": "rolling"
+  },
+  "rows": [
+    {
+      "memory_samples": [
+        {
+          "before_mb": {
+            "pss_mb": 214.6337890625,
+            "rss_mb": 223.6640625
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 215.9931640625,
+            "rss_mb": 225.21875
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 1.359375,
+            "rss_mb": 1.5546875
+          },
+          "reference_after_mb": {
+            "pss_mb": 215.4853515625,
+            "rss_mb": 224.703125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.8515625,
+            "rss_mb": 1.0390625
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 215.9931640625,
+            "rss_mb": 225.21875
+          },
+          "order": "prepared_then_reference",
+          "prepared_after_mb": {
+            "pss_mb": 216.5283203125,
+            "rss_mb": 225.734375
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.53515625,
+            "rss_mb": 0.515625
+          },
+          "reference_after_mb": {
+            "pss_mb": 217.3955078125,
+            "rss_mb": 226.5078125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 1.40234375,
+            "rss_mb": 1.2890625
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 217.3955078125,
+            "rss_mb": 226.5078125
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 217.4072265625,
+            "rss_mb": 226.5078125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.01171875,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 217.4072265625,
+            "rss_mb": 226.5078125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.01171875,
+            "rss_mb": 0.0
+          }
+        }
+      ],
+      "mode": "mode_1_decay",
+      "optimization_schedule": "global",
+      "parity": true,
+      "prepared_profile_seconds": {
+        "data_alignment_fold_prepare": 0.04361424595117569,
+        "score": 0.28217935375869274,
+        "strategy": 0.10830517672002316
+      },
+      "prepared_seconds": {
+        "median": 0.49790812376886606,
+        "samples": [
+          0.5472721047699451,
+          0.49790812376886606,
+          0.48789145331829786
+        ]
+      },
+      "prepared_windows": {
+        "canonical_windows": 30,
+        "prepared_shard_sets": 0,
+        "prepared_shards": 0,
+        "prepared_trade_requirements": 0,
+        "schema": "quantbt-prepared-wfo-window-registry-v1",
+        "shard_lookup_hits": 0,
+        "shard_lookup_misses": 0,
+        "trade_requirement_hits": 0,
+        "trade_requirement_misses": 0,
+        "window_lookup_hits": 105,
+        "window_lookup_misses": 0
+      },
+      "reference_profile_seconds": {
+        "data_alignment_fold_prepare": 0.03498197067528963,
+        "score": 0.6021390845999122,
+        "strategy": 0.19148076139390469
+      },
+      "reference_seconds": {
+        "median": 0.8870670320466161,
+        "samples": [
+          0.8475641524419188,
+          0.9360841847956181,
+          0.8870670320466161
+        ]
+      },
+      "scoring_backend": "endpoint",
+      "speedup_x": 1.781587786381251,
+      "work": {
+        "folds": 15,
+        "optuna_trial_rows": 4,
+        "studies": 1
+      }
+    },
+    {
+      "memory_samples": [
+        {
+          "before_mb": {
+            "pss_mb": 218.0986328125,
+            "rss_mb": 227.17578125
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 218.1025390625,
+            "rss_mb": 227.17578125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 218.1025390625,
+            "rss_mb": 227.17578125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 218.1025390625,
+            "rss_mb": 227.17578125
+          },
+          "order": "prepared_then_reference",
+          "prepared_after_mb": {
+            "pss_mb": 218.1064453125,
+            "rss_mb": 227.17578125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 218.1142578125,
+            "rss_mb": 227.17578125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.01171875,
+            "rss_mb": 0.0
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 218.1142578125,
+            "rss_mb": 227.17578125
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 218.1142578125,
+            "rss_mb": 227.17578125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.0,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 218.1142578125,
+            "rss_mb": 227.17578125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.0,
+            "rss_mb": 0.0
+          }
+        }
+      ],
+      "mode": "mode_2_sbb",
+      "optimization_schedule": "global",
+      "parity": true,
+      "prepared_profile_seconds": {
+        "data_alignment_fold_prepare": 0.04034701082855463,
+        "score": 0.29425380006432533,
+        "strategy": 0.10535549931228161
+      },
+      "prepared_seconds": {
+        "median": 1.1465080780908465,
+        "samples": [
+          1.1468285992741585,
+          1.1465080780908465,
+          1.136344751343131
+        ]
+      },
+      "prepared_windows": {
+        "canonical_windows": 30,
+        "prepared_shard_sets": 0,
+        "prepared_shards": 0,
+        "prepared_trade_requirements": 0,
+        "schema": "quantbt-prepared-wfo-window-registry-v1",
+        "shard_lookup_hits": 0,
+        "shard_lookup_misses": 0,
+        "trade_requirement_hits": 0,
+        "trade_requirement_misses": 0,
+        "window_lookup_hits": 105,
+        "window_lookup_misses": 0
+      },
+      "reference_profile_seconds": {
+        "data_alignment_fold_prepare": 0.03572944924235344,
+        "score": 0.3060931880027056,
+        "strategy": 0.19400317035615444
+      },
+      "reference_seconds": {
+        "median": 1.2722486816346645,
+        "samples": [
+          1.2722486816346645,
+          1.372110864147544,
+          1.235968085937202
+        ]
+      },
+      "scoring_backend": "proxy",
+      "speedup_x": 1.1096726712586273,
+      "work": {
+        "folds": 15,
+        "optuna_trial_rows": 4,
+        "studies": 1
+      }
+    },
+    {
+      "memory_samples": [
+        {
+          "before_mb": {
+            "pss_mb": 277.2626953125,
+            "rss_mb": 286.28515625
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 278.5009765625,
+            "rss_mb": 287.57421875
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 1.23828125,
+            "rss_mb": 1.2890625
+          },
+          "reference_after_mb": {
+            "pss_mb": 278.0634765625,
+            "rss_mb": 287.05859375
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.80078125,
+            "rss_mb": 0.7734375
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 278.5009765625,
+            "rss_mb": 287.57421875
+          },
+          "order": "prepared_then_reference",
+          "prepared_after_mb": {
+            "pss_mb": 279.0712890625,
+            "rss_mb": 288.08203125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.5703125,
+            "rss_mb": 0.5078125
+          },
+          "reference_after_mb": {
+            "pss_mb": 279.9619140625,
+            "rss_mb": 289.11328125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 1.4609375,
+            "rss_mb": 1.5390625
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 279.9619140625,
+            "rss_mb": 289.11328125
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 279.9658203125,
+            "rss_mb": 289.11328125
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 279.9658203125,
+            "rss_mb": 289.11328125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          }
+        }
+      ],
+      "mode": "mode_3_flat_minima",
+      "optimization_schedule": "global",
+      "parity": true,
+      "prepared_profile_seconds": {
+        "data_alignment_fold_prepare": 0.04842367488890886,
+        "score": 0.3431670479476452,
+        "strategy": 0.12216431181877851
+      },
+      "prepared_seconds": {
+        "median": 0.5849901549518108,
+        "samples": [
+          0.5849901549518108,
+          0.6255093542858958,
+          0.47076849732548
+        ]
+      },
+      "prepared_windows": {
+        "canonical_windows": 30,
+        "prepared_shard_sets": 0,
+        "prepared_shards": 0,
+        "prepared_trade_requirements": 0,
+        "schema": "quantbt-prepared-wfo-window-registry-v1",
+        "shard_lookup_hits": 0,
+        "shard_lookup_misses": 0,
+        "trade_requirement_hits": 0,
+        "trade_requirement_misses": 0,
+        "window_lookup_hits": 105,
+        "window_lookup_misses": 0
+      },
+      "reference_profile_seconds": {
+        "data_alignment_fold_prepare": 0.03439721092581749,
+        "score": 0.6097574690356851,
+        "strategy": 0.21404443494975567
+      },
+      "reference_seconds": {
+        "median": 0.9326589265838265,
+        "samples": [
+          0.9326589265838265,
+          1.041343848221004,
+          0.8730769129469991
+        ]
+      },
+      "scoring_backend": "endpoint",
+      "speedup_x": 1.5943155943550114,
+      "work": {
+        "folds": 15,
+        "optuna_trial_rows": 4,
+        "studies": 1
+      }
+    },
+    {
+      "memory_samples": [
+        {
+          "before_mb": {
+            "pss_mb": 281.1064453125,
+            "rss_mb": 290.140625
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 281.1259765625,
+            "rss_mb": 290.140625
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.01953125,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 281.1220703125,
+            "rss_mb": 290.140625
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.015625,
+            "rss_mb": 0.0
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 281.1259765625,
+            "rss_mb": 290.140625
+          },
+          "order": "prepared_then_reference",
+          "prepared_after_mb": {
+            "pss_mb": 281.1298828125,
+            "rss_mb": 290.140625
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.00390625,
+            "rss_mb": 0.0
+          },
+          "reference_after_mb": {
+            "pss_mb": 281.33984375,
+            "rss_mb": 290.39453125
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.2138671875,
+            "rss_mb": 0.25390625
+          }
+        },
+        {
+          "before_mb": {
+            "pss_mb": 281.3408203125,
+            "rss_mb": 290.39453125
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 281.5322265625,
+            "rss_mb": 290.65234375
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 0.19140625,
+            "rss_mb": 0.2578125
+          },
+          "reference_after_mb": {
+            "pss_mb": 281.5244140625,
+            "rss_mb": 290.65234375
+          },
+          "reference_delta_mb": {
+            "pss_mb": 0.18359375,
+            "rss_mb": 0.2578125
+          }
+        }
+      ],
+      "mode": "mode_4_is_only_robust",
+      "optimization_schedule": "per_fold_causal",
+      "parity": true,
+      "prepared_profile_seconds": {
+        "data_alignment_fold_prepare": 0.05840800516307354,
+        "score": 0.8048313092440367,
+        "strategy": 0.118518752977252
+      },
+      "prepared_seconds": {
+        "median": 1.3531768899410963,
+        "samples": [
+          1.42751560267061,
+          1.3122363537549973,
+          1.3531768899410963
+        ]
+      },
+      "prepared_windows": {
+        "canonical_windows": 90,
+        "prepared_shard_sets": 15,
+        "prepared_shards": 60,
+        "prepared_trade_requirements": 0,
+        "schema": "quantbt-prepared-wfo-window-registry-v1",
+        "shard_lookup_hits": 58,
+        "shard_lookup_misses": 0,
+        "trade_requirement_hits": 0,
+        "trade_requirement_misses": 0,
+        "window_lookup_hits": 305,
+        "window_lookup_misses": 0
+      },
+      "reference_profile_seconds": {
+        "data_alignment_fold_prepare": 0.034202747978270054,
+        "score": 1.5171633157879114,
+        "strategy": 0.13216217793524265
+      },
+      "reference_seconds": {
+        "median": 2.09271989390254,
+        "samples": [
+          2.09271989390254,
+          1.9502924466505647,
+          2.707014254294336
+        ]
+      },
+      "scoring_backend": "endpoint",
+      "speedup_x": 1.546523525090379,
+      "work": {
+        "folds": 15,
+        "optuna_trial_rows": 60,
+        "studies": 15
+      }
+    }
+  ],
+  "schema": "quantbt-perf-08-public-wfo-v1",
+  "scope": "same public endpoint/strategy/Optuna/account/final-account retention; run-local WFO preparation false versus true",
+  "status": "paired_public_wfo_preparation_parity_passed"
+}

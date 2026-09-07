@@ -1,0 +1,132 @@
+{
+  "measurement_identity": {
+    "canonical_source_sha256": "90f217c0c03b9e3f5c8634f59dcf44152193bd57542f5ab2d458f9a9a2eb9656",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "a2886eba7a35d50077496ac5355c8e901e443f55ecad64e2b1f5e26f7f25dd80",
+    "git_commit": "4e0813bfd9f3494213b48089a44673c3571408ea",
+    "git_dirty": true,
+    "git_status_sha256": "d7fc355cbc750152d1ea506e11ecac9796a371c6383e99b79ca7e92d348697fd",
+    "intent_sha256": "f9e5c9122cd9514cd482c2eb98594e1bbb3a4cfd25545e4cdebc2d18f5ace265",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed reference/prepared pair per mode, then alternating paired public runs"
+  },
+  "profile": {
+    "bars": 50000,
+    "description": "Exploratory 50k-hourly expanding/semiannual Mode 4 causal workload; one paired sample, not a p95 claim.",
+    "frequency": "1h",
+    "id": "broad",
+    "is_subperiods": 8,
+    "repeats": 1,
+    "sbb_samples": 256,
+    "split_bar": 23000,
+    "split_frequency": "semi_yearly",
+    "train_window": null,
+    "trials": 100,
+    "window_mode": "expanding"
+  },
+  "rows": [
+    {
+      "memory_samples": [
+        {
+          "before_mb": {
+            "pss_mb": 344.6171875,
+            "rss_mb": 354.13671875
+          },
+          "order": "reference_then_prepared",
+          "prepared_after_mb": {
+            "pss_mb": 361.423828125,
+            "rss_mb": 370.59375
+          },
+          "prepared_delta_mb": {
+            "pss_mb": 16.806640625,
+            "rss_mb": 16.45703125
+          },
+          "reference_after_mb": {
+            "pss_mb": 359.35546875,
+            "rss_mb": 368.83984375
+          },
+          "reference_delta_mb": {
+            "pss_mb": 14.73828125,
+            "rss_mb": 14.703125
+          }
+        }
+      ],
+      "mode": "mode_4_is_only_robust",
+      "optimization_schedule": "per_fold_causal",
+      "parity": true,
+      "prepared_profile_seconds": {
+        "data_alignment_fold_prepare": 0.5656026070937514,
+        "score": 11.255895487964153,
+        "strategy": 0.9863520655781031
+      },
+      "prepared_seconds": {
+        "median": 21.11930379178375,
+        "samples": [
+          21.11930379178375
+        ]
+      },
+      "prepared_windows": {
+        "canonical_windows": 70,
+        "prepared_shard_sets": 7,
+        "prepared_shards": 56,
+        "prepared_trade_requirements": 0,
+        "schema": "quantbt-prepared-wfo-window-registry-v1",
+        "shard_lookup_hits": 167,
+        "shard_lookup_misses": 0,
+        "trade_requirement_hits": 0,
+        "trade_requirement_misses": 0,
+        "window_lookup_hits": 1510,
+        "window_lookup_misses": 0
+      },
+      "reference_profile_seconds": {
+        "data_alignment_fold_prepare": 0.503629201091826,
+        "score": 48.14984374027699,
+        "strategy": 1.1144646927714348
+      },
+      "reference_seconds": {
+        "median": 58.41978209745139,
+        "samples": [
+          58.41978209745139
+        ]
+      },
+      "scoring_backend": "endpoint",
+      "speedup_x": 2.766179352947184,
+      "work": {
+        "folds": 7,
+        "optuna_trial_rows": 700,
+        "studies": 7
+      }
+    }
+  ],
+  "schema": "quantbt-perf-08-public-wfo-v1",
+  "scope": "same public endpoint/strategy/Optuna/account/final-account retention; run-local WFO preparation false versus true",
+  "status": "paired_public_wfo_preparation_parity_passed"
+}

@@ -287,6 +287,7 @@ timing is accepted.
 | Native WFO V2 warm prepared soak | 32 candidates x 4 folds x 4,096 supplied bars | 13.325 ms | 8.20M actual candidate-test-bar visits/s | n/a | persistent runtime | deterministic terminal/reset/cancel; RSS flat |
 | Public prepared-native WFO score | Mode 1 global, W0 callback, 2,048 bars x 16 trials | 166.156 ms scorer; 431.730 ms full facade | 127,181 candidate-bar visits/s | 800.033 ms scorer; 1.053 s full facade | 4.81x scorer; 2.44x facade | exact selection/final account; 0.008 MiB RSS tail |
 | Public WFO exact analysis reuse | Mode 1 global, W0 callback, 2,048 bars x 16 trials, 15 repeats | 131.516 ms scorer; 399.369 ms full facade | 32 hits; 11,680 score bars reused | 143.177 ms scorer; 410.082 ms full facade cache-off | 1.09x scorer; 1.03x facade | five-mode parity; cache released; 0.000 MiB RSS tail |
+| Public WFO immutable preparation | Mode 4 causal, 10,000 hourly bars, 3 folds x 48 trials/fold x IS+8 shards | 3.703 s full facade | 336,013 candidate-score-bar visits/s | 6.723 s same public baseline | 1.82x | exact trials, selection, stitched account; no strategy/result cache |
 | Portfolio `target_units` score | 2,000 bars x 8 symbols | 3.594 ms | 556,551 bars/s | 33.493 ms | 9.3x | exact, `atol=1e-12` |
 | Atomic package score | 2,000 bars x 8 symbols | 3.512 ms | 569,514 bars/s | 19.735 ms | 5.6x | exact, `atol=1e-12` |
 | Direct `target_units` prepared score | 20,000 bars x 1 symbol | 1.607 ms | 12.45M bars/s | Numba warmed kernel: 0.607 ms | 0.38x | exact accounting/positions |
@@ -344,6 +345,16 @@ for the identical execution in the same run. The recorded high-hit lane saved
 `8.14%` in scorer time and `2.61%` end-to-end; Mode 2 remains proxy-owned and
 Mode 5 or strict Mode 4 causal runs self-disable reuse when no exact replay can
 exist. See [PERF-05 evidence](docs/performance/perf_05_wfo_evaluation_reuse.md).
+
+The immutable-preparation row is a separate public-facade optimization. It
+prepares only fold calendars, temporal shards, inner causal windows,
+trade-frequency constants, and eligible read-only OHLC/funding window views.
+It does not skip an Optuna observation, cache a strategy signal, alter the
+Mode 2 RNG, or change final account reconstruction. The paired smoke matrix
+records every chronological mode separately: Mode 1 `1.78x`, Mode 2 `1.11x`,
+Mode 3 `1.59x`, and Mode 4 `1.55x` on its smaller 2k fixture. Mode 2 remains
+intentionally dominated by its unchanged bootstrap path. See
+[PERF-08 WFO preparation](docs/performance/perf_08_wfo_preparation.md).
 
 For research governance, WFO can now retain a bounded immutable columnar
 sidecar independently of financial output: `research_retention` is `none`,
@@ -446,6 +457,9 @@ Evidence:
 - [Phase 77 matched kernel/result-adapter JSON](benchmarks/native_event/results/phase77_native_performance_closure.json)
 - [PERF-07 combined candidate qualification](benchmarks/native_event/results/perf_07_combined_qualification.md)
 - [PERF-07 route-scoped closure manifest](benchmarks/native_event/results/perf_07_performance_closure.json)
+- [PERF-08 public WFO preparation evidence](benchmarks/native_event/results/perf_08_public_wfo.md)
+- [PERF-08 public WFO preparation JSON](benchmarks/native_event/results/perf_08_public_wfo.json)
+- [PERF-08 Mode 4 standard JSON](benchmarks/native_event/results/perf_08_public_wfo_standard.json)
 - [benchmark governance](docs/performance/benchmarking.md)
 
 ## Core Capabilities
@@ -510,6 +524,7 @@ Start with the [documentation map](docs/README.md).
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |
+| Immutable calendar/shard preparation and Mode 4 causal WFO benchmark | [PERF-08 WFO preparation](docs/performance/perf_08_wfo_preparation.md) |
 | Stateful Rust/Python reactive WFO, R3B batch scheduling, and reset-flat segment audit | [Reactive WFO (W3)](docs/reactive_wfo.md) |
 | Prepared static-IR native WFO runtime | [Native WFO Runtime V2](docs/native_wfo_runtime.md) |
 | Runtime budgets, cancellation, RSS soak, and shadow kill switch | [Native runtime governance](docs/native_runtime_governance.md) |

@@ -3134,6 +3134,32 @@ Prepared state is run-local. QuantBT never caches an arbitrary strategy's
 indicator or signal output, and content signatures include all DataFrame
 columns, including volume and funding columns supplied to the strategy.
 
+### PERF-08 immutable WFO preparation
+
+The prepared context also owns exact positional fold windows, temporal IS
+shards, Mode 1 causal inner folds, and trade-frequency calendar constants. On
+eligible single-symbol endpoint scores it prepares one immutable market tape
+and passes read-only views for certified score windows. This reduces repeated
+OHLC/funding packing without caching a strategy decision, an Optuna result, or
+an account state.
+
+The default remains compatible:
+
+```python
+optimization_config = {
+    "use_prepared_wfo_context": True,  # default; set False only for baseline reproduction
+    "use_prepared_scoring_cache": True,
+    "use_scalar_trial_scoring": True,
+}
+```
+
+Inspect `wf["prepared_wfo_context"]["window_preparation"]` and
+`wf["prepared_scoring_cache"]` for run-local counters. An exact-index
+certificate is internal; custom/legacy scorers retain their public callable
+surface and fall back safely when they cannot consume batch tasks. Read
+[PERF-08 WFO preparation](performance/perf_08_wfo_preparation.md) for the
+mode matrix, parity contract, rollback and measured public workload.
+
 ### Public prepared-native WFO scorer
 
 Compatible single-symbol target WFO runs can opt into the Phase 74 scorer

@@ -18850,7 +18850,7 @@ Each coherent verified change must be committed on this feature branch.
 
 ### Phase PERF-08 - Public WFO Calendar, Shard, And Evaluation Preparation Closure
 
-**Status: PLANNED; implementation awaits user approval.**
+**Status: COMPLETE (2026-09-07).**
 
 **Goal:** remove repeated engine-owned work across Modes 1-4, and shared Mode 5
 paths, with the largest measured public gain targeted at Mode 4 causal WFO.
@@ -19012,6 +19012,42 @@ rejected experiment can retain the correct baseline; a failed primary gate
 remains open. User alpha execution time and unchanged Optuna sampling are
 explicit boundaries, not grounds to rewrite them. PERF-09 owns integrated
 reactive/wheel requalification; Phase 78 owns actual promotion and release.
+
+**Completion record (2026-09-07):**
+
+- PF-08.1/08.8: added the run-local `PreparedWfoWindowRegistryV1`, a paired
+  public benchmark, source/build identity capture, smoke/standard/broad JSON
+  and Markdown evidence, endpoint/README/docs navigation, and a rollback to
+  `use_prepared_wfo_context=False`.
+- PF-08.2/08.3: fold, Mode 4/5 shard, nested Mode 1 causal and annualized
+  trade-requirement windows are prevalidated once per WFO invocation. Eligible
+  single-symbol endpoint scoring now forms one immutable full OHLC/funding
+  tape and read-only contiguous window views. Identity and parent-clock checks
+  fail closed to the historical packer; no cross-run market, strategy, score,
+  result, or Optuna cache was introduced.
+- PF-08.4/08.5/08.6/08.7: only certified exact-index scalar signal transport
+  bypasses a redundant copy. Trial seeds/order, callbacks, Mode 2 RNG/draw
+  stream, reducers, penalties, plateau/cluster selectors, output ledgers and
+  final continuous OOS account are unchanged. Mode 2 retains its proxy/SBB
+  implementation and records a smaller but real preparation-only gain.
+- Focused certification: `133 passed` across PERF-05/08, Phase 49A/49B,
+  Phase 64, Phase 74 and WFO baseline tests; the new suite covers all Mode
+  1-4 schedules plus Mode 5 compatibility, DST/irregular split parity,
+  identity/stale-view fallback, legacy scorer payload compatibility, no-copy
+  signal non-mutation, validated-market guard, and generic/native endpoint
+  account parity.
+- Measured public parity: smoke Mode 1/2/3/4 was `1.78x`/`1.11x`/`1.59x`/
+  `1.55x`; the primary 10k-hourly Mode 4 causal workload (3 folds, 48 trials
+  per fold, 8 IS shards) was `6.723 s -> 3.703 s` (`1.82x`, 44.9% lower
+  median); the 50k-hourly expanding/semiannual 7-fold/100-trial exploratory
+  pair was `58.420 s -> 21.119 s` (`2.77x`). Every recorded pair passed exact
+  public selection and final-account parity. Broad evidence is explicitly one
+  paired sample, not a p95 claim; same-process RSS/PSS is a plateau diagnostic
+  and is not misrepresented as isolated memory savings.
+- No in-scope correctness, lifecycle, cache-ownership, retention,
+  compatibility, documentation, or measurement blocker remains. Reactive
+  callback/batch work remains wholly owned by the separately approved
+  PERF-09 phase below; publication/promotion remains Phase 78 scope.
 
 ### Phase PERF-09 - Reactive Boundary, Batch Runtime, And Integrated Performance Closure
 

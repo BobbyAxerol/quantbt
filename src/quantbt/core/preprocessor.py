@@ -232,6 +232,64 @@ def build_market_arrays(
     )
 
 
+def slice_prepared_market_arrays(
+    market: PreparedMarketArrays,
+    *,
+    start: int,
+    stop: int,
+    idx: pd.DatetimeIndex,
+) -> PreparedMarketArrays:
+    """Create a verified immutable contiguous view of one prepared tape.
+
+    A walk-forward scorer evaluates many overlapping calendar windows over one
+    immutable market tape.  Repacking OHLC/funding for each window is needless
+    allocation, but a positional shortcut is safe only when its clock is
+    proven identical to the parent slice.  This helper performs that proof,
+    then returns read-only NumPy views with a fresh window signature.
+
+    It intentionally does not accept an equivalent re-created index: callers
+    must pass the run-local canonical ``DatetimeIndex`` that was used to form
+    the positional window.  That prevents a cache hit from silently masking a
+    calendar normalization or data-alignment error.
+    """
+
+    if not isinstance(idx, pd.DatetimeIndex) or len(idx) == 0:
+        raise ValueError("prepared market view requires a non-empty DatetimeIndex")
+    begin = int(start)
+    end = int(stop)
+    if not 0 <= begin < end <= len(market.idx):
+        raise ValueError("prepared market view bounds are outside the parent tape")
+    if end - begin != len(idx):
+        raise ValueError("prepared market view bounds do not match its index length")
+    # ``equals`` compares values/frequency-compatible clocks without making a
+    # mutable market copy.  Identity ownership is enforced by the WFO layer;
+    # this lower-level helper validates the data contract independently.
+    if not market.idx[begin:end].equals(idx):
+        raise ValueError("prepared market view index does not match the parent tape slice")
+
+    arrays = (
+        market.closes[begin:end],
+        market.highs[begin:end],
+        market.lows[begin:end],
+        market.funding[begin:end],
+        market.is_funding_bar[begin:end],
+    )
+    for array in arrays:
+        if not array.flags.c_contiguous:
+            raise ValueError("prepared market view must remain contiguous")
+        array.setflags(write=False)
+    return PreparedMarketArrays(
+        idx=idx,
+        symbols=market.symbols,
+        closes=arrays[0],
+        highs=arrays[1],
+        lows=arrays[2],
+        funding=arrays[3],
+        is_funding_bar=arrays[4],
+        signature=market_data_signature(idx, list(market.symbols)),
+    )
+
+
 def build_signal_matrix(
     symbols: list,
     idx: pd.DatetimeIndex,
