@@ -110,7 +110,7 @@ implementation language.
 | Stateful event strategy (default) | `event_driven(input_mode="strategy")` | strategy protocol | Python callback engine |
 | Numeric every-bar reactive strategy (explicit) | `native_event_strategy(..., reactive_runtime="numeric_every_bar_v1")` | numeric context + primitive command writer | Rust simulation/accounting; Python decision |
 | Stateful reactive WFO (explicit) | `endpoint.prepare_reactive_walk_forward(...)` | prepared R1/R2/R3 strategy factory | Rust account scoring with reset-flat fold accounts; Python decision |
-| Canonical command tape | `event_driven(input_mode="orders")` | `OrderCommand` tape | auto: certified Rust or Python |
+| Canonical command tape | `event_driven(input_mode="orders")` | `OrderCommand` tape | auto: Python; Rust remains explicit and capability-gated |
 | Legacy explicit orders | `orders(...)` | `OrderIntent` list | native event |
 | Structural DCA/grid levels | `dca_ladder(...)` | ladder signal + OHLC | compatibility engine |
 | Multi-symbol portfolio | `portfolio(...)` | target matrix | native portfolio / Numba |
@@ -213,12 +213,21 @@ Rust is an execution implementation behind the normal endpoint, not a second
 user-facing API. `backend="auto"` is correctness-first: it promotes only
 governed rows and otherwise records a structured Python fallback.
 
-Current automatic Rust scope: none. Phase 72 holds `backend="auto"` on Python
-until each workload has fresh current-candidate promotion evidence. Exact Linux
-wheel pairs still make the certified static V2/V3 command-tape and bounded
-Native Strategy IR routes available through explicit Rust selection; the
-registry records this distinction rather than treating wheel availability as a
-speed or correctness promotion.
+Current automatic Rust scope is deliberately one narrow route: a one-symbol
+`NativeStrategyIR` v1 **score** request at 2,000 or more bars, with the exact
+supported core/native pair and declared contract. Its paired Phase 78 admission
+fixture measured `0.958 ms` Rust versus `34.566 ms` Python on 2,000 bars, with
+exact trace/accounting parity and a zero warm-RSS tail spread. This is a
+workload-specific score claim, not a generic event-driven, WFO, callback, or
+reporting claim.
+
+Static V2/V3 command tapes remain Python under `backend="auto"`: their matched
+public score fixture measured `52.850 ms` Rust versus `48.642 ms` Python, so
+the speed gate was intentionally held. Static tapes and diagnostic Native
+Strategy IR profiles remain available through explicit Rust selection where
+their documented capability contract applies. The full predicate, fallback
+reasons, benchmark scope, and rollback controls are in
+[Public Rust Promotion](docs/native/public_rust_promotion.md).
 
 Current explicit-only Rust scope:
 

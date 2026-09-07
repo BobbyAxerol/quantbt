@@ -21,9 +21,16 @@ list of booleans such as “supports limit orders”.
   row, installed-wheel handshake, scale threshold, and local rollback policy
   all pass.
 
-The current Stage-B table promotes only the bounded E0/E3/E6 families: static
-command tapes at 10,000 or more bars, and Native Strategy IR/batch requests at
-2,000 or more bars. Arbitrary callbacks, reactive strategies, and generic
+The current Stage-B table promotes one route only: a bounded Native Strategy
+IR v1 **score** request at 2,000 or more bars, with the exact companion,
+contract, one-symbol market shape, and supported template. Static command tapes
+remain Python-auto because the Phase 78 paired public score evidence did not
+show a stable Rust advantage; explicit Rust remains capability-gated there.
+`minimal`, `standard`, and `audit` IR profiles also remain Python-auto. See
+[Public Rust Promotion](public_rust_promotion.md) for the complete predicate,
+evidence and rollback controls.
+
+Arbitrary callbacks, reactive strategies, and generic
 portfolio/package/arbitrage endpoints remain Python. Phase 54B.3 additionally
 certifies explicit, bounded Rust helpers for `target_units` market targets and
 same-bar all-or-none market packages. Phase 68 extends the latter with typed

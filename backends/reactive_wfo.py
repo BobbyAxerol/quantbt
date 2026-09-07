@@ -29,6 +29,7 @@ from ..walkforward import (
     _inner_fold_audit_rows,
 )
 from .reactive_wfo_batch_selection import ReactiveWfoBatchSelectionMixinV1
+from .reactive_wfo_preparation import ReactiveWfoPreparationV1
 from .reactive_wfo_support import (
     ReactiveWalkForwardResultV1,
     ReactiveWalkForwardUnsupported,
@@ -63,6 +64,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         walkforward_config: WalkForwardConfig,
         runtime_config: ReactiveWfoRuntimeConfigV1 | None = None,
         symbols: Sequence[str] | None = None,
+        _use_prepared_wfo_preparation: bool = True,
     ) -> None:
         if not isinstance(data, pd.DataFrame):
             raise ReactiveWalkForwardUnsupported("public reactive WFO currently requires one canonical OHLCV DataFrame")
@@ -100,7 +102,11 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         self.symbols = tuple(symbols or endpoint.config.symbols or ("asset",))
         if len(self.symbols) != 1:
             raise ReactiveWalkForwardUnsupported("public reactive WFO is single-symbol in this release")
-        self._prepared_runner = endpoint.prepare_native_event_strategy(data=self.data, symbols=self.symbols)
+        self._prepared_runner = endpoint.prepare_native_event_strategy(
+            data=self.data,
+            symbols=self.symbols,
+            _validated_canonical_frame=_is_canonical_reactive_frame(self.data),
+        )
         self._adapter: PreparedReactiveWfoStrategyAdapterV1 | None = None
         self._cancel = RuntimeCancellationV1()
         self._closed = False
@@ -114,6 +120,13 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         self._last_scalar_session_metadata: dict[str, object] = {}
         self._active_candidate_scheduler: object | None = None
         self._candidate_batch_metadata: dict[str, object] = {}
+        self._use_prepared_wfo_preparation = bool(_use_prepared_wfo_preparation)
+        self._wfo_preparation: ReactiveWfoPreparationV1 | None = None
+        self._last_wfo_preparation_metadata: dict[str, object] = {
+            "schema": "quantbt-reactive-wfo-preparation-v1",
+            "enabled": bool(self._use_prepared_wfo_preparation),
+            "state": "not_started",
+        }
         self._sampling_contract = "optuna_certified_sequential_v1"
         requested_processes = 1
         self._parallelism_plan = self.runtime_config.parallelism_plan or ParallelismPlanV1.resolve(
@@ -150,6 +163,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         if self._adapter is not None:
             self._adapter.close()
             self._adapter = None
+        self._wfo_preparation = None
         self._closed = True
 
     def make_task(
@@ -162,12 +176,56 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
     ) -> ReactiveWfoTaskV1:
         if self._adapter is None:
             raise RuntimeError("reactive WFO strategy adapter is not prepared")
+        preparation = self._wfo_preparation
+        evaluation_window = None
+        history_window = None
+        owner_token = None
+        if preparation is not None:
+            evaluation_window = preparation.window_for(evaluation_index)
+            history_window = preparation.window_for(fold.train_index)
+            if evaluation_window is not None and history_window is not None:
+                owner_token = preparation.owner_token
         return self._adapter.task(
             params=params,
             fold=fold,
             evaluation_index=evaluation_index,
             stage=stage,
+            _prepared_evaluation_window=evaluation_window,
+            _prepared_history_window=history_window,
+            _prepared_window_owner=owner_token,
         )
+
+    def prepared_subperiods_for(
+        self,
+        index: pd.DatetimeIndex,
+        n_parts: int,
+    ) -> tuple[pd.DatetimeIndex, ...] | None:
+        """Return run-local temporal shards only for an exact canonical view."""
+
+        if self._wfo_preparation is None:
+            return None
+        return self._wfo_preparation.shards_for(index, int(n_parts))
+
+    def prepared_required_trades_for(
+        self,
+        index: pd.DatetimeIndex,
+        min_trades_per_year: float | None,
+    ) -> float | None:
+        """Return cached annualized requirement only when this run owns ``index``."""
+
+        if self._wfo_preparation is None:
+            return None
+        return self._wfo_preparation.required_trades_for(index, min_trades_per_year)
+
+    def prepared_inner_folds_for(
+        self,
+        fold: WalkForwardFold,
+    ) -> tuple[WalkForwardFold, ...] | None:
+        """Return exact prebuilt causal inner folds for one outer fold."""
+
+        if self._wfo_preparation is None:
+            return None
+        return self._wfo_preparation.inner_folds_for(fold)
 
     def score_markers(self, markers: Sequence[ReactiveWfoScoreMarkerV1]) -> list[dict[str, float]]:
         if self._adapter is None:
@@ -302,6 +360,14 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         engine = _ReactiveSelectionEngine(runtime=self, config=self.config)
         index = self._prepared_runner.idx
         folds = engine.build_folds(index)
+        if self._use_prepared_wfo_preparation:
+            self._wfo_preparation = ReactiveWfoPreparationV1.prepare(
+                index=index,
+                folds=folds,
+                config=self.config,
+            )
+        else:
+            self._wfo_preparation = None
         self.runtime_config.runtime_budget.require_preflight(
             bars=len(index),
             workers=1,
@@ -323,6 +389,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             random_seed=int(self.config.random_seed),
             static_config=static_config,
         )
+        if self._wfo_preparation is not None:
+            self._adapter.bind_prepared_window_owner(self._wfo_preparation.owner_token)
         reactive_result: ReactiveWalkForwardResultV1 | None = None
         try:
             if self.runtime_config.worker_mode == "process":
@@ -386,6 +454,15 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     "inner_fold_table": pd.DataFrame(inner_rows),
                     "worker_errors": tuple(self._worker_errors),
                     "candidate_batch": dict(self._candidate_batch_metadata),
+                    "wfo_preparation": (
+                        {"enabled": True, **dict(self._wfo_preparation.metadata())}
+                        if self._wfo_preparation is not None
+                        else {
+                            "schema": "quantbt-reactive-wfo-preparation-v1",
+                            "enabled": False,
+                            "state": "compatibility_baseline",
+                        }
+                    ),
                 },
             )
             retention_plan = ResearchRetentionPlanV1.from_config(self.config)
@@ -453,6 +530,18 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             if self._adapter is not None:
                 self._adapter.close()
                 self._adapter = None
+            if self._wfo_preparation is not None:
+                self._last_wfo_preparation_metadata = {
+                    "enabled": True,
+                    **dict(self._wfo_preparation.metadata()),
+                }
+                self._wfo_preparation = None
+            else:
+                self._last_wfo_preparation_metadata = {
+                    "schema": "quantbt-reactive-wfo-preparation-v1",
+                    "enabled": False,
+                    "state": "compatibility_baseline",
+                }
             if reactive_result is not None:
                 # The result is returned after the ``finally`` block.  Refresh
                 # runtime provenance so callers see the actual deterministic
@@ -501,6 +590,14 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 else dict(self._last_scalar_session_metadata)
             ),
             "candidate_batch": dict(self._candidate_batch_metadata),
+            "wfo_preparation": (
+                {
+                    "enabled": True,
+                    **dict(self._wfo_preparation.metadata()),
+                }
+                if self._wfo_preparation is not None
+                else dict(self._last_wfo_preparation_metadata)
+            ),
             "runtime_budget": self.runtime_config.runtime_budget.as_native_kwargs(),
             "native_deadline_enforcement": {
                 "enabled": self.runtime_config.runtime_budget.max_wall_time_ms is not None,
@@ -546,7 +643,10 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             self._check_canceled()
             fold_seed = _derive_fold_seed(int(self.config.random_seed), int(fold.fold_id))
             nested_mode1 = schedule == "per_fold_causal" and mode == "mode_1_decay"
-            inner_folds = _build_inner_folds(fold, self.config) if nested_mode1 else []
+            inner_folds = []
+            if nested_mode1:
+                prepared_inner = self.prepared_inner_folds_for(fold)
+                inner_folds = list(prepared_inner) if prepared_inner is not None else _build_inner_folds(fold, self.config)
             # This metadata is captured only by the opt-in cold-path research
             # ledger before public trial compaction. It cannot feed selection,
             # execution, candidate order, or a reactive strategy callback.
@@ -655,6 +755,19 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         if self._cancel.canceled:
             raise RuntimeCanceledError(f"reactive WFO canceled: {self._cancel.reason or 'requested'}")
 
+
+def _is_canonical_reactive_frame(data: object) -> bool:
+    """Match the private prepared-frame contract without importing endpoint internals."""
+
+    if not isinstance(data, pd.DataFrame) or not isinstance(data.index, pd.DatetimeIndex):
+        return False
+    index = data.index
+    return (
+        index.tz is not None
+        and index.is_monotonic_increasing
+        and not index.has_duplicates
+        and all(column in data.columns for column in ("open", "high", "low", "close", "volume"))
+    )
 
 
 __all__ = [

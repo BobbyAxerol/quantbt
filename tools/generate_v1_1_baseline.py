@@ -402,7 +402,9 @@ BASELINE_ENDPOINT_SPECS: tuple[dict[str, Any], ...] = (
             "auto": "Python with a recorded resolver reason outside the governed static-tape capability",
             "explicit": "Rust fails closed outside the exact certified capability",
         },
-        "notes": ("Phase 72 holds auto promotion until current-candidate evidence is recorded.",),
+        "notes": (
+            "Phase 78 retains static command-tape auto routing on Python because its matched public score gate is held; explicit Rust remains capability-gated.",
+        ),
     },
     {
         "id": "event_driven_strategy",
@@ -911,10 +913,10 @@ def _workload_rows(product: Mapping[str, Any]) -> list[dict[str, Any]]:
         strategy_modes = tuple(str(item) for item in workload["strategy_modes"])
         maturity = str(workload["maturity"])
         auto = bool(workload["auto_promotion"])
-        if workload_id in {"event_static_tape_v2_v3", "native_strategy_ir_v1"} and auto:
+        if workload_id == "native_strategy_ir_v1" and auto:
             authority = RUST_GATED_EVENT_AUTHORITY
             runtime_class = "WholeRunNative"
-            resolved = "rust when exact wheel, capability, timing, account, and threshold gates pass; Python otherwise"
+            resolved = "Rust for exact one-symbol score requests at 2,000+ bars with the matching wheel/capability/contract; Python otherwise"
         elif workload_id in {"event_static_tape_v2_v3", "native_strategy_ir_v1"}:
             authority = RUST_GATED_EVENT_AUTHORITY
             runtime_class = "PythonCompatibility"

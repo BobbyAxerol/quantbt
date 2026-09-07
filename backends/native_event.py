@@ -258,6 +258,19 @@ class NativeEventConfig:
             raise ValueError("prepared cache budgets must be >= 0")
 
 
+@dataclass(frozen=True, slots=True)
+class _PreparedReactiveMarketBindingV1:
+    """Opaque owner proof for one immutable prepared reactive market tape."""
+
+    owner_token: object
+    idx: pd.DatetimeIndex
+    symbols: tuple[str, ...]
+    market_arrays: PreparedMarketArrays
+    opens_arr: np.ndarray
+    volumes_arr: np.ndarray
+    cache_key: tuple[str, ...]
+
+
 @dataclass(frozen=True)
 class NativeEventArtifactPlan:
     keep_equity_path: bool
@@ -1788,6 +1801,7 @@ class NativeEventBackend:
                 max_entries=int(config.prepared_cache_max_entries),
             )
         )
+        self._prepared_reactive_market_owner = object()
         self._runtime_cancellation = RuntimeCancellationV1()
         self._runtime_telemetry = RuntimeTelemetryV1()
 
@@ -1936,6 +1950,77 @@ class NativeEventBackend:
         )
         return int(sum(np.asarray(array).nbytes for array in arrays))
 
+    def prepare_reactive_market_binding(
+        self,
+        *,
+        idx: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+    ) -> _PreparedReactiveMarketBindingV1:
+        """Freeze a content-key once for an immutable prepared-runner tape.
+
+        The binding is private to this backend instance.  It contains no
+        mutable account/strategy state and cannot certify a merely
+        value-equivalent tape from another run.
+        """
+
+        if not isinstance(idx, pd.DatetimeIndex) or market_arrays.idx is not idx:
+            raise ValueError("prepared reactive binding requires the exact market DatetimeIndex")
+        symbol_tuple = tuple(str(symbol) for symbol in symbols)
+        if tuple(market_arrays.symbols) != symbol_tuple:
+            raise ValueError("prepared reactive binding symbols do not match market arrays")
+        if not (
+            np.asarray(opens_arr).flags.c_contiguous
+            and np.asarray(volumes_arr).flags.c_contiguous
+            and not np.asarray(opens_arr).flags.writeable
+            and not np.asarray(volumes_arr).flags.writeable
+        ):
+            raise ValueError("prepared reactive binding requires read-only contiguous open/volume arrays")
+        cache_key = self._reactive_market_cache_key(
+            {
+                "market_arrays": market_arrays,
+                "opens_arr": opens_arr,
+                "volumes_arr": volumes_arr,
+            }
+        )
+        return _PreparedReactiveMarketBindingV1(
+            owner_token=self._prepared_reactive_market_owner,
+            idx=idx,
+            symbols=symbol_tuple,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+            cache_key=cache_key,
+        )
+
+    def _trusted_reactive_market_cache_key(
+        self,
+        binding: object | None,
+        *,
+        idx: pd.DatetimeIndex,
+        symbol_list: Sequence[str],
+        market_arrays: PreparedMarketArrays,
+        opens_arr: np.ndarray,
+        volumes_arr: np.ndarray,
+    ) -> tuple[str, ...] | None:
+        """Fail closed unless every prepared object is owned by this backend."""
+
+        if not isinstance(binding, _PreparedReactiveMarketBindingV1):
+            return None
+        if binding.owner_token is not self._prepared_reactive_market_owner:
+            return None
+        if (
+            binding.idx is not idx
+            or binding.market_arrays is not market_arrays
+            or binding.opens_arr is not opens_arr
+            or binding.volumes_arr is not volumes_arr
+            or binding.symbols != tuple(str(symbol) for symbol in symbol_list)
+        ):
+            return None
+        return binding.cache_key
+
     def _prepare_reactive_numeric_coruntime(
         self,
         *,
@@ -1955,6 +2040,7 @@ class NativeEventBackend:
         runtime: str,
         scalar_score: bool = False,
         score_trading_days: int = 365,
+        _prepared_market_cache_key: tuple[str, ...] | None = None,
     ) -> tuple[RustReactiveNumericCoRuntime, int]:
         """Prepare one Rust-owned reactive session with explicit retention.
 
@@ -1968,7 +2054,7 @@ class NativeEventBackend:
             "opens_arr": opens_arr,
             "volumes_arr": volumes_arr,
         }
-        cache_key = self._reactive_market_cache_key(cache_kwargs)
+        cache_key = _prepared_market_cache_key or self._reactive_market_cache_key(cache_kwargs)
         prepared_market_core = self._rust_prepared_market_cores.get(cache_key)
         started_ns = perf_counter_ns()
         runner = RustReactiveNumericCoRuntime(
@@ -2018,6 +2104,7 @@ class NativeEventBackend:
         clock: EventClockContract,
         requirements,
         score_trading_days: int,
+        _prepared_reactive_market_binding: object | None = None,
     ) -> RustReactiveCandidateBatchCoRuntime:
         """Build an R3B candidate batch over an already-prepared market core.
 
@@ -2045,6 +2132,14 @@ class NativeEventBackend:
             runtime="numeric_sparse_wake_v1",
             scalar_score=True,
             score_trading_days=int(score_trading_days),
+            _prepared_market_cache_key=self._trusted_reactive_market_cache_key(
+                _prepared_reactive_market_binding,
+                idx=idx,
+                symbol_list=symbol_list,
+                market_arrays=market_arrays,
+                opens_arr=opens_arr,
+                volumes_arr=volumes_arr,
+            ),
         )
         return RustReactiveCandidateBatchCoRuntime(
             candidate_count=int(candidate_count),
@@ -2099,6 +2194,7 @@ class NativeEventBackend:
         run_started_ns: int,
         start_bar: int = 0,
         end_bar: Optional[int] = None,
+        prepared_market_cache_key: tuple[str, ...] | None = None,
     ) -> BacktestResultV2:
         """Run one explicit R1/R2/R3 numeric co-runtime once.
 
@@ -2130,6 +2226,7 @@ class NativeEventBackend:
             retain_fills=bool(plan.keep_fill_ledger),
             retain_events=bool(plan.keep_event_ledger),
             runtime=runtime,
+            _prepared_market_cache_key=prepared_market_cache_key,
         )
         result_adapt_started_ns = perf_counter_ns()
         try:
@@ -2297,6 +2394,7 @@ class NativeEventBackend:
         run_started_ns: int,
         start_bar: int,
         end_bar: int,
+        prepared_market_cache_key: tuple[str, ...] | None = None,
     ) -> NativeEventScalarScoreResult:
         """Run R1/R2/R3 with O(symbols) scalar retention only.
 
@@ -2323,6 +2421,7 @@ class NativeEventBackend:
             runtime=runtime,
             scalar_score=True,
             score_trading_days=int(trading_days),
+            _prepared_market_cache_key=prepared_market_cache_key,
         )
         try:
             payload = runner.run_scalar_window(
@@ -3549,6 +3648,7 @@ class NativeEventBackend:
         _start_bar: int = 0,
         _end_bar: Optional[int] = None,
         _allow_prepared_window: bool = False,
+        _prepared_reactive_market_binding: object | None = None,
     ) -> Union[BacktestResultV2, NativeEventScoreResult]:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -3649,7 +3749,17 @@ class NativeEventBackend:
         planning_ns = perf_counter_ns() - planning_started_ns
 
         market_prepare_started_ns = perf_counter_ns()
-        idx = validate_datetime(datetime_index)
+        # A prepared runner may prove that this exact immutable market clock
+        # was validated once already.  It is a private, owner-token-bound fast
+        # path; every other call continues through public normalization.
+        if (
+            isinstance(_prepared_reactive_market_binding, _PreparedReactiveMarketBindingV1)
+            and _prepared_reactive_market_binding.owner_token is self._prepared_reactive_market_owner
+            and datetime_index is _prepared_reactive_market_binding.idx
+        ):
+            idx = _prepared_reactive_market_binding.idx
+        else:
+            idx = validate_datetime(datetime_index)
         if len(idx) == 0:
             raise ValueError("native-event strategy execution requires at least one market bar")
         score_start_bar = int(_start_bar)
@@ -3697,6 +3807,14 @@ class NativeEventBackend:
             raise ValueError("prepared opens/volumes arrays must match market array shape")
         opens_arr.setflags(write=False)
         volumes_arr.setflags(write=False)
+        prepared_market_cache_key = self._trusted_reactive_market_cache_key(
+            _prepared_reactive_market_binding,
+            idx=idx,
+            symbol_list=symbol_list,
+            market_arrays=market_arrays,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+        )
         market_prepare_ns = perf_counter_ns() - market_prepare_started_ns
 
         contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
@@ -3819,6 +3937,7 @@ class NativeEventBackend:
                     run_started_ns=run_started_ns,
                     start_bar=score_start_bar,
                     end_bar=score_end_bar,
+                    prepared_market_cache_key=prepared_market_cache_key,
                 )
             return self._run_reactive_numeric_coruntime(
                 idx=idx,
@@ -3847,6 +3966,7 @@ class NativeEventBackend:
                 run_started_ns=run_started_ns,
                 start_bar=score_start_bar,
                 end_bar=score_end_bar,
+                prepared_market_cache_key=prepared_market_cache_key,
             )
         engine_prepare_started_ns = perf_counter_ns()
         session = self._create_reactive_session(

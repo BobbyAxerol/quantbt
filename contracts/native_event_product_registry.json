@@ -136,28 +136,125 @@
   ],
   "performance_evidence": {
     "event_static_tape_v2_v3": {
-      "status": "historical_scope_only",
-      "manifest": "benchmarks/native_event/manifests/phase54b2_public_routes_v1.json",
-      "end_to_end_faster_than_python": true,
+      "status": "performance_hold",
+      "manifest": "benchmarks/native_event/results/phase78_public_promotion.json",
+      "end_to_end_faster_than_python": false,
       "rss_plateau": true,
       "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
       "route_id": "public_event_static",
-      "profile_pair": "compact_to_compact_v1",
-      "measurement_status": "historical_scope_only",
-      "identity_status": "historical_pre_phase72",
+      "profile_pair": "score_to_score_v1",
+      "measurement_status": "performance_hold",
+      "identity_status": "current_candidate",
       "promotion_eligible": false
     },
     "native_strategy_ir_v1": {
-      "status": "historical_scope_only",
-      "manifest": "benchmarks/native_event/manifests/phase54b2_public_routes_v1.json",
+      "candidate_identity": {
+        "canonical_source_sha256": "6a9fc17b85423d3159f07602a0f027e6e6d1715dd2ed47759332c02f6bf70a88",
+        "core_distribution": {
+          "distribution": "quantbt-engine",
+          "version": "1.1.0"
+        },
+        "cpu_count": 4,
+        "data_sha256": "9fe89cf9bdac2f90758fbfdd42562e0682f58edf580cdc5f3d42572b6c0b1493",
+        "git_commit": "5e534a5ab49e19398fe27d109e21514cfa28ee0a",
+        "git_dirty": false,
+        "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "intent_sha256": "fab600679152597200cbd3e1d7da4e470ff09cfbb279e5e13b273ea57057be54",
+        "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+        "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+        "native_distribution": {
+          "distribution": "quantbt-native",
+          "version": "0.4.1"
+        },
+        "native_extension": {
+          "api_version": "0.4",
+          "available": true,
+          "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+          "module_path": "<installed-native-extension>",
+          "module_sha256": "093cc41990a733e52d304b85508d51b8d4e5fa84aeb3c28aa1101db77acb4417",
+          "version": "0.4.1",
+          "wrapper_path": "<installed-native-wrapper>",
+          "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+        },
+        "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+        "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+        "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+        "thread_environment": {
+          "MKL_NUM_THREADS": null,
+          "NUMBA_NUM_THREADS": null,
+          "OMP_NUM_THREADS": null,
+          "OPENBLAS_NUM_THREADS": null
+        },
+        "warmup_procedure": "Phase 78 paired Python/Rust Native Strategy IR public audit routes after one warm-up; current RSS sampled before and after repeated calls"
+      },
+      "comparator_contract": {
+        "native": {
+          "account_contract_id": "linear-quote-gross-cross-v1",
+          "annualization_days": 365,
+          "fee_contract_id": "canonical-one-way-fee-v1",
+          "metric_contract_id": "metric-contract-v2-365",
+          "result_contract": "scalar_metrics_same_annualization_and_accounting_v1",
+          "timing_scope": "prepared_execution_and_metrics_only"
+        },
+        "python": {
+          "account_contract_id": "linear-quote-gross-cross-v1",
+          "annualization_days": 365,
+          "fee_contract_id": "canonical-one-way-fee-v1",
+          "metric_contract_id": "metric-contract-v2-365",
+          "result_contract": "scalar_metrics_same_annualization_and_accounting_v1",
+          "timing_scope": "prepared_execution_and_metrics_only"
+        }
+      },
       "end_to_end_faster_than_python": true,
+      "fixture_identity": {
+        "data_sha256": "9fe89cf9bdac2f90758fbfdd42562e0682f58edf580cdc5f3d42572b6c0b1493",
+        "intent_sha256": "fab600679152597200cbd3e1d7da4e470ff09cfbb279e5e13b273ea57057be54"
+      },
+      "identity_status": "current_candidate",
+      "manifest": "benchmarks/native_event/results/phase78_public_promotion.json",
+      "measurement": {
+        "artifact_sha256": "dcddab08f8fcd032e0deef7b664df695c2fe7ef9803c45f33c81d161fa8ec36b",
+        "cold_rss_mb": 521.140625,
+        "median_seconds": 0.0009575812146067619,
+        "p95_seconds": 0.00164851825684309,
+        "parity": {
+          "audit_backend": "python",
+          "auto_backend": "python",
+          "auto_reason": "measurement_evidence_not_current",
+          "canonical_trace_fingerprint": "f777a4b580411ff85503749c574fb5ffb7cddc9a0d485b7aa1398d27c0a1a689",
+          "minimum_bars": 0,
+          "passed": true
+        },
+        "sample_count": 5,
+        "warm_rss_mb": 521.140625
+      },
       "rss_plateau": true,
       "measurement_contract_id": "quantbt-phase72-measurement-contract-v1",
       "route_id": "public_native_strategy_ir",
       "profile_pair": "score_to_score_v1",
-      "measurement_status": "historical_scope_only",
-      "identity_status": "historical_pre_phase72",
-      "promotion_eligible": false
+      "measurement_status": "current_candidate_verified",
+      "promotion_eligible": true,
+      "python_measurement": {
+        "median_seconds": 0.03456639684736729,
+        "p95_seconds": 0.049878766015172,
+        "sample_count": 5,
+        "warm_rss_after_mb": 521.140625,
+        "warm_rss_before_mb": 521.140625,
+        "warm_rss_delta_mb": 0.0,
+        "warm_rss_samples_mb": [521.140625, 521.140625, 521.140625, 521.140625, 521.140625],
+        "warm_rss_tail_spread_mb": 0.0
+      },
+      "rust_measurement": {
+        "median_seconds": 0.0009575812146067619,
+        "p95_seconds": 0.00164851825684309,
+        "sample_count": 5,
+        "warm_rss_after_mb": 521.140625,
+        "warm_rss_before_mb": 521.140625,
+        "warm_rss_delta_mb": 0.0,
+        "warm_rss_samples_mb": [521.140625, 521.140625, 521.140625, 521.140625, 521.140625],
+        "warm_rss_tail_spread_mb": 0.0
+      },
+      "status": "pass"
     },
     "native_wfo_prepared_signal_v2": {
       "status": "historical_scope_only",
@@ -343,7 +440,7 @@
   },
   "promotion_policy": {
     "schema_version": 1,
-    "table_version": "native-event-promotion-v3-phase72-measurement-gate",
+    "table_version": "native-event-promotion-v4-phase78-ir-score-a4",
     "default_backend_policy": "certified_only",
     "default_stage": "static_ir",
     "stages": [
@@ -374,7 +471,7 @@
         "id": "native_ir_rust_stage_b",
         "workload_id": "native_strategy_ir_v1",
         "stage": "static_ir",
-        "enabled": false,
+        "enabled": true,
         "min_bars": 2000,
         "required_capabilities": [
           "native_event_v2_full_contract",
@@ -517,7 +614,7 @@
       "maturity": "certified",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
       "auto_promotion": false,
-      "promotion_hold_reason": "measurement_evidence_not_current"
+      "promotion_hold_reason": "public_score_performance_not_stable_enough_for_auto"
     },
     {
       "id": "event_python_callback_v2_v3",
@@ -543,16 +640,15 @@
         "event_lifecycle_v3_next_open"
       ],
       "strategy_modes": ["ir_v1"],
-      "profiles": ["score", "minimal", "standard", "audit"],
+      "profiles": ["score"],
       "max_symbols": 1,
       "account_models": ["linear_quote_settled_gross_cross"],
       "portfolio_modes": [],
       "package_policies": [],
       "trace_schemas": ["canonical-execution-trace-v1"],
-      "maturity": "certified",
+      "maturity": "promoted",
       "platforms": ["cpython-3.11+", "linux-x86_64-local"],
-      "auto_promotion": false,
-      "promotion_hold_reason": "measurement_evidence_not_current"
+      "auto_promotion": true
     },
     {
       "id": "native_wfo_prepared_signal_v2",

@@ -77,7 +77,8 @@ result = bt.simulate(data=df, order_commands=commands, symbols=["BTCUSDT"])
 
 `backend` controls implementation:
 
-- `auto`: Python until fresh exact route evidence enables a generated Rust rule;
+- `auto`: Rust only for the current exact promoted Native Strategy IR score
+  route; Python with a structured reason for every other shape;
 - `python`: portable canonical implementation;
 - `rust`: explicit capability-gated request; incompatible requests fail fast.
 
@@ -127,10 +128,12 @@ recover one-minute or L2 microstructure that was not supplied.
 
 ## Rust Promotion Is Workload-Scoped
 
-For `quantbt-engine==1.1.0` and `quantbt-native==0.4.1`, the static V2/V3 and
-bounded Native Strategy IR routes remain explicit certified Rust workloads.
-Their former auto-promotion evidence is historical scope-only, so `auto` stays
-Python until a fresh route/profile/data/intent matched measurement passes.
+For `quantbt-engine==1.1.0` and `quantbt-native==0.4.1`, only bounded Native
+Strategy IR v1 `score` requests with one symbol and at least 2,000 bars are
+Rust-auto after the exact wheel/capability/contract gate passes. Static V2/V3
+command tapes remain explicit Rust because their matched public score evidence
+did not preserve a speed advantage. IR materialized profiles and sub-threshold
+requests also remain Python-auto.
 
 Explicit bounded portfolio-target and Package V2 helpers are certified but not
 auto-promoted through generic endpoints. Callback, reactive, generic
@@ -144,5 +147,5 @@ result.metadata.get("native_event_promotion_v1")
 ```
 
 The generated [native compatibility matrix](contracts/generated_product_compatibility.md)
-and [measurement contract](performance/measurement_contract_v1.md) are the
+and [Public Rust Promotion](native/public_rust_promotion.md) are the
 release-facing source of truth.

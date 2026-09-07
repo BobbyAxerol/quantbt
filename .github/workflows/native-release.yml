@@ -66,6 +66,7 @@ jobs:
           .venv/bin/python tools/check_module_architecture.py
           .venv/bin/python tools/check_native_release_handoff.py
           .venv/bin/python tools/check_benchmark_governance.py
+          .venv/bin/python tools/certify_phase78_public_promotion.py --check
           .venv/bin/python tools/check_docs_links.py
 
       - name: Rust format, lint, and workspace tests
@@ -122,6 +123,8 @@ jobs:
           MPLCONFIGDIR: /tmp
         run: |
           uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+          .venv/bin/python tools/certify_phase78_public_promotion.py \
+            --output native-release-evidence/phase78-public-promotion.json
           .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8
           .venv/bin/python benchmarks/native_event/benchmark_phase54b2_public_routes.py \
             --static-bars 10000 --ir-bars 2000 --scenarios 64 --repeats 5 \

@@ -207,7 +207,7 @@ def test_auto_promotion_requires_generated_performance_and_rss_evidence():
         ),
         registry=registry,
         policy_table=registry["promotion_policy"],
-    ).reason == "measurement_evidence_not_current"
+    ).reason == "public_score_performance_not_stable_enough_for_auto"
 
     rule["enabled"] = True
     workload = next(row for row in registry["workloads"] if row["id"] == "event_static_tape_v2_v3")

@@ -135,7 +135,24 @@ class PreparedReactiveWfoStrategyAdapterV1:
     run_id: str
     _stats: dict[str, object] = field(default_factory=dict)
     _live_mutable_by_id: WeakValueDictionary[int, object] = field(default_factory=WeakValueDictionary)
+    _prepared_window_owner: object | None = field(default=None, repr=False)
     _closed: bool = False
+
+    def bind_prepared_window_owner(self, owner_token: object) -> None:
+        """Authorize exact run-local positional task descriptors.
+
+        This is an internal one-way binding from the reactive runtime's
+        calendar owner.  It is deliberately an opaque object identity rather
+        than a public cache key, so independently reconstructed indexes retain
+        the original checked-indexer task path.
+        """
+
+        if self._closed:
+            raise RuntimeError("prepared reactive WFO strategy adapter is closed")
+        if self._prepared_window_owner is not None and self._prepared_window_owner is not owner_token:
+            raise RuntimeError("prepared reactive WFO window owner cannot be rebound")
+        self._prepared_window_owner = owner_token
+        self._stats["prepared_window_owner_bound"] = True
 
     def task(
         self,
@@ -144,19 +161,47 @@ class PreparedReactiveWfoStrategyAdapterV1:
         fold,
         evaluation_index: pd.DatetimeIndex,
         stage: str,
+        _prepared_evaluation_window=None,
+        _prepared_history_window=None,
+        _prepared_window_owner: object | None = None,
     ) -> ReactiveWfoTaskV1:
         if self._closed:
             raise RuntimeError("prepared reactive WFO strategy adapter is closed")
         if not len(evaluation_index):
             raise ValueError("reactive WFO evaluation index must be non-empty")
-        start = int(self.full_index.get_indexer([evaluation_index[0]])[0])
-        end_last = int(self.full_index.get_indexer([evaluation_index[-1]])[0])
-        if start < 0 or end_last < start:
-            raise ValueError("reactive WFO evaluation index is not contained by the prepared market clock")
-        # The normal WFO calendar builds contiguous bars.  A dynamic command
-        # strategy cannot silently bridge a temporal gap with missing state.
-        if not self.full_index[start : end_last + 1].equals(evaluation_index):
-            raise ValueError("reactive WFO evaluation windows must be contiguous prepared-market bars")
+        prepared_fast_path = (
+            _prepared_window_owner is self._prepared_window_owner
+            and _prepared_evaluation_window is not None
+            and _prepared_history_window is not None
+            and getattr(_prepared_evaluation_window, "index", None) is evaluation_index
+            and getattr(_prepared_history_window, "index", None) is fold.train_index
+            and 0 <= int(getattr(_prepared_history_window, "start", -1))
+            <= int(getattr(_prepared_evaluation_window, "start", -2))
+            < int(getattr(_prepared_evaluation_window, "stop", -2))
+            <= len(self.full_index)
+        )
+        if prepared_fast_path:
+            start = int(_prepared_evaluation_window.start)
+            end_last = int(_prepared_evaluation_window.stop) - 1
+            history_start = int(_prepared_history_window.start)
+            self._stats["prepared_task_window_hits"] = int(
+                self._stats.get("prepared_task_window_hits", 0)
+            ) + 1
+        else:
+            # The historical path remains the fail-closed compatibility path
+            # for equivalent/reconstructed indexes and for direct adapters.
+            start = int(self.full_index.get_indexer([evaluation_index[0]])[0])
+            end_last = int(self.full_index.get_indexer([evaluation_index[-1]])[0])
+            if start < 0 or end_last < start:
+                raise ValueError("reactive WFO evaluation index is not contained by the prepared market clock")
+            # The normal WFO calendar builds contiguous bars.  A dynamic command
+            # strategy cannot silently bridge a temporal gap with missing state.
+            if not self.full_index[start : end_last + 1].equals(evaluation_index):
+                raise ValueError("reactive WFO evaluation windows must be contiguous prepared-market bars")
+            history_start = int(self.full_index.get_indexer([fold.train_index[0]])[0])
+            self._stats["prepared_task_window_fallbacks"] = int(
+                self._stats.get("prepared_task_window_fallbacks", 0)
+            ) + 1
         candidate_id = _candidate_id(params)
         task = ReactiveWfoTaskV1(
             run_id=self.run_id,
@@ -165,7 +210,7 @@ class PreparedReactiveWfoStrategyAdapterV1:
             stage=str(stage),
             start_bar=start,
             end_bar=end_last + 1,
-            history_start_bar=int(self.full_index.get_indexer([fold.train_index[0]])[0]),
+            history_start_bar=history_start,
             # The strategy obtains only causal history.  For IS scoring this
             # is the evaluation end; for OOS it is likewise the task cutoff.
             history_end_bar=end_last,

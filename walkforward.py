@@ -27,6 +27,11 @@ from .core.performance_contracts import (
     compile_walkforward_computation_plan,
 )
 from .core.wfo_evaluation import WfoExecutionReuseRuntimeV1
+from .core.wfo_preparation import (
+    PreparedWfoWindowRegistryV1,
+    PreparedWfoWindowV1,
+    split_datetime_index_into_subperiods_v1,
+)
 from .core.research_audit import ResearchRetentionPlanV1, build_walkforward_research_audit
 from .core.market_calendar_v2 import (
     CalendarPlanV2,
@@ -164,6 +169,12 @@ class PreparedWalkForwardContext:
     config_signature: str
     signature: str
     cutoff_stops: Mapping[int, int]
+    window_registry: PreparedWfoWindowRegistryV1 = field(repr=False, compare=False)
+    inner_folds_by_outer: Mapping[int, Tuple[WalkForwardFold, ...]] = field(
+        default_factory=dict,
+        repr=False,
+        compare=False,
+    )
     calendar_plan: Optional[CalendarPlanV2] = None
     _stats: Dict[str, int] = field(
         default_factory=lambda: {
@@ -187,14 +198,22 @@ class PreparedWalkForwardContext:
     ) -> "PreparedWalkForwardContext":
         idx = validate_datetime(datetime_index)
         fold_tuple = tuple(folds)
+        window_registry = PreparedWfoWindowRegistryV1(idx)
+        inner_folds_by_outer: Dict[int, Tuple[WalkForwardFold, ...]] = {}
         cutoffs = {
             int(timestamp.value)
             for fold in fold_tuple
             for timestamp in (fold.train_end, fold.test_end)
         }
+        for fold in fold_tuple:
+            window_registry.register(fold.train_index)
+            window_registry.register(fold.test_index)
         if config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
             for fold in fold_tuple:
-                for shard in _split_index_into_subperiods(fold.train_index, int(config.is_subperiods)):
+                for shard in window_registry.register_shards(
+                    fold.train_index,
+                    int(config.is_subperiods),
+                ):
                     if len(shard):
                         cutoffs.add(int(shard[-1].value))
         if (
@@ -202,7 +221,11 @@ class PreparedWalkForwardContext:
             and config.optimization_schedule == "per_fold_causal"
         ):
             for outer_fold in fold_tuple:
-                for inner_fold in _build_inner_folds(outer_fold, config):
+                inner_folds = tuple(_build_inner_folds(outer_fold, config))
+                inner_folds_by_outer[id(outer_fold)] = inner_folds
+                for inner_fold in inner_folds:
+                    window_registry.register(inner_fold.train_index)
+                    window_registry.register(inner_fold.test_index)
                     for timestamp in (
                         inner_fold.train_end,
                         inner_fold.test_end,
@@ -244,6 +267,8 @@ class PreparedWalkForwardContext:
             config_signature=config_signature,
             signature=hashlib.sha256(signature_payload).hexdigest(),
             cutoff_stops=cutoff_stops,
+            window_registry=window_registry,
+            inner_folds_by_outer=inner_folds_by_outer,
             calendar_plan=calendar_plan,
         )
 
@@ -268,6 +293,34 @@ class PreparedWalkForwardContext:
         if _complete_data_hash(data) != self.data_signature:
             raise ValueError("prepared walk-forward context source data signature changed")
 
+    def window_for(self, index: pd.DatetimeIndex) -> PreparedWfoWindowV1 | None:
+        """Return a parameter-independent positional score view when exact."""
+
+        return self.window_registry.window_for(index)
+
+    def subperiods_for(
+        self,
+        index: pd.DatetimeIndex,
+        n_parts: int,
+    ) -> Tuple[pd.DatetimeIndex, ...] | None:
+        """Return precomputed temporal shards only for this run's exact view."""
+
+        return self.window_registry.shards_for(index, int(n_parts))
+
+    def inner_folds_for(self, outer_fold: WalkForwardFold) -> Tuple[WalkForwardFold, ...] | None:
+        """Return one prevalidated nested Mode 1 plan without rebuilding it."""
+
+        return self.inner_folds_by_outer.get(id(outer_fold))
+
+    def required_trades_for(
+        self,
+        index: pd.DatetimeIndex,
+        min_trades_per_year: Optional[float],
+    ) -> float | None:
+        """Reuse an exact run-local trade-frequency calendar calculation."""
+
+        return self.window_registry.required_trades_for(index, min_trades_per_year)
+
     @property
     def metadata(self) -> Dict[str, Any]:
         return {
@@ -279,6 +332,8 @@ class PreparedWalkForwardContext:
             "bars": int(len(self.datetime_index)),
             "folds": int(len(self.folds)),
             "prepared_cutoffs": int(len(self.cutoff_stops)),
+            "prepared_inner_fold_groups": int(len(self.inner_folds_by_outer)),
+            "window_preparation": dict(self.window_registry.metadata()),
             "calendar_plan": None if self.calendar_plan is None else self.calendar_plan.metadata(),
             **dict(self._stats),
         }
@@ -1421,7 +1476,7 @@ class WalkForwardEngine:
             )
             inner_folds: List[WalkForwardFold] = []
             if is_nested_mode1:
-                inner_folds = _build_inner_folds(fold, self.config)
+                inner_folds = list(self._prepared_inner_folds(fold))
             common_metadata = {
                 "optimization_schedule": schedule,
                 "schedule_fold_id": int(fold.fold_id),
@@ -1524,10 +1579,7 @@ class WalkForwardEngine:
                     params=dict(selected.params),
                     context="post-selection outer OOS realization",
                 )
-                required = _required_trades_for_index(
-                    fold.test_index,
-                    self.config.min_trades_per_year,
-                )
+                required = self._required_trades(fold.test_index)
                 factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
                 penalty = trade_frequency_penalty(oos_metrics["trade_count"], required, factor)
                 outer_is = float(selected.mean_is_sharpe)
@@ -1830,7 +1882,7 @@ class WalkForwardEngine:
             shard_tasks = []
             if self.config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
                 for shard_id, shard_index in enumerate(
-                    _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
+                    self._prepared_subperiods(fold.train_index)
                 ):
                     if len(shard_index) < 2:
                         continue
@@ -1858,7 +1910,7 @@ class WalkForwardEngine:
         )
         for fold, is_task, shard_tasks in fold_work:
             is_metrics = scored[is_task]
-            required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            required_trades = self._required_trades(fold.train_index)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
             is_sharpe = is_metrics["sharpe"] - penalty
@@ -1926,7 +1978,7 @@ class WalkForwardEngine:
         trade_counts = []
         factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
         for shard_index, metrics in shard_metrics:
-            required = _required_trades_for_index(shard_index, self.config.min_trades_per_year)
+            required = self._required_trades(shard_index)
             penalty = trade_frequency_penalty(metrics["trade_count"], required, factor)
             raw = float(metrics["sharpe"])
             raw_scores.append(raw)
@@ -1962,7 +2014,7 @@ class WalkForwardEngine:
         tasks = []
         shard_indices = []
         for shard_id, shard_index in enumerate(
-            _split_index_into_subperiods(train_index, int(self.config.is_subperiods))
+            self._prepared_subperiods(train_index)
         ):
             if len(shard_index) < 2:
                 continue
@@ -2038,8 +2090,8 @@ class WalkForwardEngine:
         for fold, is_task, oos_task in fold_work:
             is_metrics = scored[is_task]
             oos_metrics = scored[oos_task]
-            is_required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
-            oos_required_trades = _required_trades_for_index(fold.test_index, self.config.min_trades_per_year)
+            is_required_trades = self._required_trades(fold.train_index)
+            oos_required_trades = self._required_trades(fold.test_index)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             is_penalty = trade_frequency_penalty(is_metrics["trade_count"], is_required_trades, factor)
             oos_penalty = trade_frequency_penalty(oos_metrics["trade_count"], oos_required_trades, factor)
@@ -2172,7 +2224,7 @@ class WalkForwardEngine:
             )
             synthetic_mean = float(np.mean(boot)) if len(boot) else 0.0
             synthetic_std = float(np.std(boot, ddof=1)) if len(boot) > 1 else 0.0
-            required_trades = _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+            required_trades = self._required_trades(fold.train_index)
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)
             is_sharpe = is_metrics["sharpe"] - penalty
@@ -2437,6 +2489,12 @@ class WalkForwardEngine:
         else:
             missing_positions = tuple(range(len(entries)))
 
+        endpoint_batch = (
+            getattr(self.scorer, "score_batch", None)
+            if self.config.scoring_backend == "endpoint" and self.scorer is not None
+            else None
+        )
+        accepts_prepared_window = callable(endpoint_batch)
         payloads = []
         for position in missing_positions:
             output, index, fold, params, context = entries[position]
@@ -2445,25 +2503,29 @@ class WalkForwardEngine:
                 if self.config.optimization_schedule == "global"
                 else self._prepared_data_through(data, index[-1], strategy_copy=False)
             )
-            payloads.append(
-                {
-                    "data": scoring_data,
-                    "output": output,
-                    "index": index,
-                    "fold": fold,
-                    "params": params,
-                    "context": context,
-                    "trading_days": int(self.config.scoring_trading_days),
-                }
-            )
+            payload = {
+                "data": scoring_data,
+                "output": output,
+                "index": index,
+                "fold": fold,
+                "params": params,
+                "context": context,
+                "trading_days": int(self.config.scoring_trading_days),
+            }
+            # This private value is a run-local positional certificate, not a
+            # cache key or user-facing scorer API. A legacy endpoint scorer
+            # without score_batch() must receive the historic kwargs exactly.
+            prepared_window = self._prepared_window_for(index)
+            if accepts_prepared_window and prepared_window is not None:
+                payload["_quantbt_prepared_window"] = prepared_window
+            payloads.append(payload)
         try:
             if not payloads:
                 scored_misses = []
             elif self.config.scoring_backend == "endpoint":
                 assert self.scorer is not None
-                batch = getattr(self.scorer, "score_batch", None)
-                if callable(batch):
-                    scored_misses = list(batch(payloads))
+                if accepts_prepared_window:
+                    scored_misses = list(endpoint_batch(payloads))
                 else:
                     scored_misses = [self.scorer(**payload) for payload in payloads]
             else:
@@ -2829,6 +2891,49 @@ class WalkForwardEngine:
         if prepared is not None and data is prepared.data:
             return prepared.data_through(end, strategy_copy=strategy_copy)
         return _slice_strategy_data_through(data, end)
+
+    def _prepared_window_for(self, index: pd.DatetimeIndex) -> PreparedWfoWindowV1 | None:
+        """Return a run-local positional score view without widening reuse.
+
+        Only the exact canonical index object registered during WFO setup is
+        eligible.  An independently-created but equal index deliberately uses
+        the established scorer path.
+        """
+
+        prepared = getattr(self, "_prepared_context", None)
+        if prepared is None:
+            return None
+        return prepared.window_for(index)
+
+    def _prepared_subperiods(self, index: pd.DatetimeIndex) -> Tuple[pd.DatetimeIndex, ...]:
+        """Return immutable precomputed temporal shards or the exact fallback."""
+
+        prepared = getattr(self, "_prepared_context", None)
+        if prepared is not None:
+            shards = prepared.subperiods_for(index, int(self.config.is_subperiods))
+            if shards is not None:
+                return shards
+        return tuple(_split_index_into_subperiods(index, int(self.config.is_subperiods)))
+
+    def _prepared_inner_folds(self, outer_fold: WalkForwardFold) -> Tuple[WalkForwardFold, ...]:
+        """Reuse the nested Mode 1 plan prepared before any Optuna trial."""
+
+        prepared = getattr(self, "_prepared_context", None)
+        if prepared is not None:
+            inner = prepared.inner_folds_for(outer_fold)
+            if inner is not None:
+                return inner
+        return tuple(_build_inner_folds(outer_fold, self.config))
+
+    def _required_trades(self, index: pd.DatetimeIndex) -> float:
+        """Use a prepared calendar value only when it belongs to this run."""
+
+        prepared = getattr(self, "_prepared_context", None)
+        if prepared is not None:
+            value = prepared.required_trades_for(index, self.config.min_trades_per_year)
+            if value is not None:
+                return float(value)
+        return _required_trades_for_index(index, self.config.min_trades_per_year)
 
     def _strategy_market_fingerprint(self, data, cutoff: pd.Timestamp) -> str:
         """Hash only the causal market view available to one strategy call."""
@@ -4265,11 +4370,9 @@ def _best_temporal_record(records: Sequence[WalkForwardTrialRecord]) -> WalkForw
 
 
 def _split_index_into_subperiods(index: pd.DatetimeIndex, n_parts: int) -> List[pd.DatetimeIndex]:
-    idx = validate_datetime(index)
-    if len(idx) == 0:
-        return []
-    n = max(1, min(int(n_parts), len(idx)))
-    return [pd.DatetimeIndex(part) for part in np.array_split(idx, n) if len(part) > 0]
+    """Return the historic shard surface through the positional helper."""
+
+    return list(split_datetime_index_into_subperiods_v1(index, int(n_parts)))
 
 
 def _collect_subperiod_sharpes(fold_metrics: Sequence[Dict[str, Any]]) -> List[float]:

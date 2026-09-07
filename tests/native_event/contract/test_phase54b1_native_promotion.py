@@ -182,12 +182,12 @@ def _request(**updates) -> BacktestRequest:
     return BacktestRequest(**values)
 
 
-def test_phase72_registry_is_versioned_and_holds_auto_promotion_without_current_evidence():
+def test_phase78_registry_keeps_static_auto_held_after_public_score_gate():
     decision = resolve_native_event_promotion(_context(), environment={})
 
     assert NATIVE_EVENT_PROMOTION_POLICY["table_version"] == NATIVE_EVENT_PROMOTION_TABLE_VERSION
     assert decision.resolved_backend == "python"
-    assert decision.reason == "measurement_evidence_not_current"
+    assert decision.reason == "public_score_performance_not_stable_enough_for_auto"
     assert decision.native_probe_required is False
     assert decision.configured_stage == "static_ir"
     assert decision.effective_stage == "static_ir"
@@ -286,7 +286,7 @@ def test_phase54b1_decision_fingerprint_changes_only_with_routing_inputs():
     assert first.fingerprint != policy_changed.fingerprint
 
 
-def test_phase72_planner_does_not_probe_a_withdrawn_auto_route_and_records_provenance():
+def test_phase78_planner_does_not_probe_a_publicly_held_static_route_and_records_provenance():
     calls = 0
 
     def unexpected_probe() -> CapabilitySnapshot:
@@ -305,7 +305,7 @@ def test_phase72_planner_does_not_probe_a_withdrawn_auto_route_and_records_prove
 
     assert calls == 0
     assert plan.backend is BackendKind.PYTHON
-    assert plan.promotion_reason == "measurement_evidence_not_current"
+    assert plan.promotion_reason == "public_score_performance_not_stable_enough_for_auto"
     assert plan.promotion_table_version == NATIVE_EVENT_PROMOTION_TABLE_VERSION
     assert plan.promotion_rule_id is None
     assert len(plan.promotion_fingerprint) == 64

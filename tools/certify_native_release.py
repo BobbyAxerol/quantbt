@@ -252,8 +252,32 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
             bars=10_000,
             environment={},
         )
-        assert static_selection.resolved == "rust"
-        assert static_selection.promotion.reason == "auto_rust_certified"
+        assert static_selection.resolved == "python"
+        assert static_selection.promotion.reason == "public_score_performance_not_stable_enough_for_auto"
+        ir_score_selection = resolve_native_event_backend(
+            "auto",
+            workload_id="native_strategy_ir_v1",
+            execution_contract_id="event_lifecycle_v2_next_bar_close",
+            strategy_mode="ir_v1",
+            profile="score",
+            account_model="linear_quote_settled_gross_cross",
+            bars=2_000,
+            environment={},
+        )
+        assert ir_score_selection.resolved == "rust"
+        assert ir_score_selection.promotion.reason == "auto_rust_certified"
+        ir_audit_selection = resolve_native_event_backend(
+            "auto",
+            workload_id="native_strategy_ir_v1",
+            execution_contract_id="event_lifecycle_v2_next_bar_close",
+            strategy_mode="ir_v1",
+            profile="audit",
+            account_model="linear_quote_settled_gross_cross",
+            bars=2_000,
+            environment={},
+        )
+        assert ir_audit_selection.resolved == "python"
+        assert ir_audit_selection.promotion.reason == "workload_shape_not_certified"
         portfolio_selection = resolve_native_event_backend(
             "auto",
             workload_id="portfolio_target_market_v1",
@@ -321,13 +345,32 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
             )],
             symbols=["BTC"],
         )
-        assert static_result.metadata["execution_plan_v1"]["backend"] == "rust"
-        assert static_result.metadata["rust_audit_replay"] is False
-        assert static_result.metadata["native_static_abi_requested"] == "0.5"
-        assert static_result.metadata["native_static_abi_resolved"] == "0.5"
-        assert static_result.metadata["native_static_execution_boundary_calls"] == 1
-        assert static_result.metadata["native_result_v2"]["result_version"] == 2
-        assert static_result.metadata["native_result_v2"]["workload_kind"] == "command_tape_v5"
+        assert static_result.metadata["execution_plan_v1"]["backend"] == "python"
+        static_rust_result = QuantBTEndpoint.event_driven(
+            input_mode="orders",
+            profile="optimize",
+            backend="rust",
+            execution_contract="event_lifecycle_v3_next_open",
+            initial_capital=10_000.0,
+            leverage=5.0,
+            fee_rate=0.0002,
+            use_funding=False,
+        ).simulate(
+            data=static_frame,
+            order_commands=[OrderCommand(
+                timestamp=static_index[1], symbol="BTC", side=OrderSide.BUY,
+                order_type=OrderType.MARKET, qty=0.5, order_id="installed-static",
+            )],
+            symbols=["BTC"],
+        )
+        assert static_rust_result.metadata["execution_plan_v1"]["backend"] == "rust"
+        assert static_rust_result.metadata["rust_audit_replay"] is False
+        assert static_rust_result.metadata["native_static_abi_requested"] == "0.5"
+        assert static_rust_result.metadata["native_static_abi_resolved"] == "0.5"
+        assert static_rust_result.metadata["native_static_execution_boundary_calls"] == 1
+        assert static_rust_result.metadata["native_result_v2"]["result_version"] == 2
+        assert static_rust_result.metadata["native_result_v2"]["workload_kind"] == "command_tape_v5"
+        assert abs(static_rust_result.final_equity - static_result.final_equity) <= 1e-12
 
         ir_bars = 2_000
         ir_index = pd.date_range("2025-02-01", periods=ir_bars, freq="1h", tz="UTC")
@@ -345,6 +388,7 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
             fee_rate=0.0002,
             use_funding=False,
             native_backend="auto",
+            report_level="score",
         ))
         ir_runner = ir_backend.prepare_native_strategy_ir(
             ir_index,
@@ -471,10 +515,13 @@ def _installed_native_script(core_version: str, native_version: str) -> str:
             "core_version": metadata.version("quantbt-engine"),
             "native_version": metadata.version("quantbt-native"),
             "static_auto_reason": static_selection.promotion.reason,
+            "ir_score_auto_reason": ir_score_selection.promotion.reason,
+            "ir_audit_auto_reason": ir_audit_selection.promotion.reason,
             "portfolio_auto_reason": portfolio_selection.promotion.reason,
             "disabled_reason": disabled.promotion.reason,
             "explicit_disable_fails_closed": explicit_disable_fails_closed,
             "static_backend": static_result.metadata["execution_plan_v1"]["backend"],
+            "static_explicit_rust_backend": static_rust_result.metadata["execution_plan_v1"]["backend"],
             "ir_batch_boundary_calls": int(batch.metadata["boundary_calls"]),
             "ir_fold_boundary_calls": int(fold_result.metadata["boundary_calls"]),
             "target_final_equity": float(target_audit.final_equity),

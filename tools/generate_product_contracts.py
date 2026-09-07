@@ -624,7 +624,9 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
         "",
         "## Workload Capabilities",
         "",
-        "| Workload | Contracts | Strategy mode | Profiles | Maturity | Auto |",
+        "The `Auto profiles` column is the exact profile shape eligible for generated `backend=\"auto\"` routing. It is intentionally narrower than an explicit Rust executor's diagnostic surface: explicit Rust remains fail-fast and governed by its own capability contract.",
+        "",
+        "| Workload | Contracts | Strategy mode | Auto profiles | Maturity | Auto |",
         "|---|---|---|---|---|---|",
         )
     )
@@ -698,6 +700,16 @@ def render_docs(product: dict[str, Any], product_fingerprint: str, lifecycle_fin
 def render_corpus(product: dict[str, Any], product_fingerprint: str) -> str:
     first_pair = product["compatibility"][0]
     promotion = product["promotion_policy"]
+    auto_promoted = [
+        str(workload["id"])
+        for workload in product["workloads"]
+        if bool(workload["auto_promotion"])
+    ]
+    explicit_or_python = [
+        str(workload["id"])
+        for workload in product["workloads"]
+        if not bool(workload["auto_promotion"])
+    ]
     payload = {
         "schema": "quantbt-product-contract-corpus-v1",
         "registry_fingerprint": product_fingerprint,
@@ -715,11 +727,12 @@ def render_corpus(product: dict[str, Any], product_fingerprint: str) -> str:
                 "expected": "incompatible",
             },
             {
-                "id": "auto_routing_remains_python",
-                "workloads": [item["id"] for item in product["workloads"]],
+                "id": "auto_routing_is_workload_scoped",
+                "auto_promoted_workloads": auto_promoted,
+                "explicit_or_python_workloads": explicit_or_python,
                 "promotion_table_version": promotion["table_version"],
                 "default_stage": promotion["default_stage"],
-                "expected": "not_promoted",
+                "expected": "registry_scoped",
             },
         ],
     }

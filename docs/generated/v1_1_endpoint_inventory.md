@@ -49,7 +49,7 @@ artifact is [`v1_1_endpoint_inventory.json`](../../benchmarks/baselines/v1_1_end
 | `event_reactive_sparse_wake_r2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `experimental` |
 | `event_static_tape_v2_v3` | no | Python by auto policy; Rust remains an explicit certified route | `PythonCompatibility` | `certified` |
 | `intrabar_bracket_rust_v1` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
-| `native_strategy_ir_v1` | no | Python by auto policy; Rust remains an explicit certified route | `PythonCompatibility` | `certified` |
+| `native_strategy_ir_v1` | yes | Rust for exact one-symbol score requests at 2,000+ bars with the matching wheel/capability/contract; Python otherwise | `WholeRunNative` | `promoted` |
 | `native_wfo_prepared_signal_v2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |
 | `package_atomic_market_v1` | no | Rust explicit helper only; generic endpoint remains Python | `WholeRunNative` | `certified` |
 | `package_market_v2` | no | Python baseline; no auto Rust authority | `PythonCompatibility` | `certified` |

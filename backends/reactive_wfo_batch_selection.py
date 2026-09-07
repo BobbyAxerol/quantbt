@@ -342,7 +342,11 @@ class ReactiveWfoBatchSelectionMixinV1:
                 data=self.data,
                 params=dict(candidate),
                 train_index=fold.train_index,
-                test_index=pd.DatetimeIndex(evaluation_index),
+                test_index=(
+                    evaluation_index
+                    if isinstance(evaluation_index, pd.DatetimeIndex)
+                    else pd.DatetimeIndex(evaluation_index)
+                ),
                 fold=fold,
                 context=stage,
             )
@@ -368,9 +372,16 @@ class ReactiveWfoBatchSelectionMixinV1:
                         stage="anti-leakage in-sample search",
                     )
                     if mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
-                        for shard_id, shard_index in enumerate(
-                            _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
-                        ):
+                        prepared_shards = self.prepared_subperiods_for(
+                            fold.train_index,
+                            int(self.config.is_subperiods),
+                        )
+                        shards = (
+                            prepared_shards
+                            if prepared_shards is not None
+                            else _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
+                        )
+                        for shard_id, shard_index in enumerate(shards):
                             if len(shard_index) >= 2:
                                 add(
                                     candidate=candidate,

@@ -888,6 +888,7 @@ class NativeVectorizedBackend:
         market_arrays: Optional[PreparedMarketArrays] = None,
         raw_signal_matrix: Optional[np.ndarray] = None,
         _scalar_score_trading_days: Optional[int] = None,
+        _validated_prepared_market: bool = False,
     ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         """
         Scale raw position signals into target units, then run the V2 kernel.
@@ -900,7 +901,22 @@ class NativeVectorizedBackend:
         if ht in ("%_equity", "pct_equity", "dca_ladder", "dca"):
             raise NotImplementedError(f"NativeVectorizedBackend.run_signals does not yet support hedge_type={hedge_type!r}")
 
-        idx = validate_datetime(datetime_index)
+        if _validated_prepared_market:
+            # Internal WFO-only fast path.  The caller must present the exact
+            # immutable clock owned by the prepared market snapshot; accepting
+            # merely equal timestamps would weaken the normal validation
+            # contract and make stale prepared views possible.
+            if (
+                market_arrays is None
+                or not isinstance(datetime_index, pd.DatetimeIndex)
+                or datetime_index is not market_arrays.idx
+            ):
+                raise ValueError(
+                    "_validated_prepared_market requires datetime_index to be the exact prepared market clock"
+                )
+            idx = datetime_index
+        else:
+            idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(positions.keys())
         pos_dict = None if raw_signal_matrix is not None else align_series(positions, symbol_list, idx, fill_val=0.0)
         close_dict = None if market_arrays is not None else align_series(closes, symbol_list, idx)

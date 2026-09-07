@@ -107,14 +107,14 @@ def test_product_registry_has_exact_pairing_and_generated_corpus() -> None:
 
     workloads = {str(item["id"]): item for item in workload_capabilities()}
     assert workloads["event_static_tape_v2_v3"]["maturity"] == "certified"
-    assert workloads["native_strategy_ir_v1"]["maturity"] == "certified"
+    assert workloads["native_strategy_ir_v1"]["maturity"] == "promoted"
     assert workloads["event_static_tape_v2_v3"]["auto_promotion"] is False
-    assert workloads["native_strategy_ir_v1"]["auto_promotion"] is False
+    assert workloads["native_strategy_ir_v1"]["auto_promotion"] is True
     measurement = registry["measurement_contract"]
     assert measurement["id"] == "quantbt-phase72-measurement-contract-v1"
-    for evidence in registry["performance_evidence"].values():
+    for workload_id, evidence in registry["performance_evidence"].items():
         assert evidence["measurement_contract_id"] == measurement["id"]
-        assert evidence["promotion_eligible"] is False
+        assert evidence["promotion_eligible"] is (workload_id == "native_strategy_ir_v1")
     assert workloads["portfolio_target_market_v1"]["maturity"] == "certified"
     assert workloads["package_atomic_market_v1"]["maturity"] == "certified"
     assert workloads["package_market_v2"]["maturity"] == "certified"

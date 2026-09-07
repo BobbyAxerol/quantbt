@@ -1,13 +1,16 @@
 # Native Strategy IR and Scenario Batch
 
 Native Strategy IR is the bounded, declarative route for deterministic event
-strategies. Earlier Stage-B measurements certified an explicit Rust execution
-route, but Phase 72 classifies that evidence as historical-only. Until a
-current-candidate, like-for-like measurement passes the promotion gate,
-`native_backend="auto"` deliberately stays on Python. A caller can still opt
-into the certified bounded Rust route with `native_backend="rust"`; Python
-remains the public facade, the explicit oracle (`native_backend="python"`),
-and the compatibility path for arbitrary callbacks.
+strategies. Phase 78 promotes exactly one public shape: a matching one-symbol
+IR v1 request using `report_level="score"` on 2,000 or more bars. In that
+shape, `native_backend="auto"` selects Rust after descriptor, capability,
+contract, and scale checks. Python remains the public facade, the explicit
+oracle (`native_backend="python"`), and the compatibility path for arbitrary
+callbacks. `minimal`, `standard`, and `audit` remain Python-auto so their
+materialized result surface is never covered by a score-only performance claim.
+
+The route matrix, benchmark fixture, audit parity evidence, and rollback
+controls are maintained in [Public Rust Promotion](native/public_rust_promotion.md).
 
 This route does **not** turn every event strategy into native code.
 `QuantBTEndpoint.event_driven()` callback strategies and ordinary
@@ -58,7 +61,9 @@ It resolves a typed, versioned execution plan before market execution:
 
 | Request | Result |
 |---|---|
-| `native_backend="auto"`, supported v1 template and wheel | Python while Phase 72 evidence is historical scope-only; records `measurement_evidence_not_current` |
+| `native_backend="auto"`, supported v1 template, exact wheel, `score`, and at least 2,000 bars | Rust; records `auto_rust_certified` |
+| `native_backend="auto"`, fewer than 2,000 bars | Python; records `below_promotion_min_bars` |
+| `native_backend="auto"`, `minimal` / `standard` / `audit` | Python; records `workload_shape_not_certified` |
 | `native_backend="auto"` outside the capability row | Python with a structured `native_event_promotion_v1.reason` |
 | `native_backend="python"` | Python oracle explicitly |
 | `native_backend="rust"` | Rust strictly, or a clear pre-execution error |

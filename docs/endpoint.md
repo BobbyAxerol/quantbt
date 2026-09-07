@@ -65,7 +65,7 @@ bt.metrics      # alias for bt.full_report()
 | `QuantBTEndpoint.fill_replay()` | `fill_replay` | `native_intrabar` | Numba V1 default; explicit Rust V2 | explicit-fill accounting replay; V2 adds multi-symbol funding, margin, liquidation, and canonical audit trace |
 | `QuantBTEndpoint.dca_ladder()` | `dca_ladder` | `legacy` | Python | structural DCA/grid levels with high/low limit-touch simulation |
 | `QuantBTEndpoint.orders()` | `orders` | `native_event` | Python compatibility | explicit `OrderIntent` market/limit/stop simulation |
-| `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | Python by auto; explicit Rust for certified static command tape | stable facade for reactive strategies or explicit lifecycle commands |
+| `QuantBTEndpoint.event_driven()` | strategy or orders | `auto` | Python by auto; static command tapes remain explicit Rust only | stable facade for reactive strategies or explicit lifecycle commands |
 | `QuantBTEndpoint.basket()` | `basket` | `native_event` | Python package | pair/basket entry with frozen hedge-ratio units |
 | `QuantBTEndpoint.arbitrage()` | `arbitrage` | `native_event` | Python package | package-style arbitrage specs and validation |
 | `QuantBTEndpoint.options()` | `options` | `native_option` | Python | option contracts, multi-leg packages, and delta-hedged workflows |
@@ -1812,14 +1812,18 @@ promoted in that table; `prefer_compatibility` pins `auto` to Python. None of
 these policies can bypass a missing capability, mismatched wheel, unsupported
 contract/profile/account model, or an emergency rollback switch.
 
-At the current Phase 72 measurement gate, `auto` stays Python for every
-workload. Static/IR historical evidence remains visible but cannot enable a
-route until fresh score/compact/audit evidence with matching identity passes:
+At the current Phase 78 gate, `auto` promotes only an exact one-symbol Native
+Strategy IR v1 `score` request at 2,000 or more bars. The score route has
+current paired evidence and a matching generated rule; it is not a promotion
+of the generic `event_driven()` callback facade or public audit/report path.
+Static command tapes remain Python-auto because their matched score benchmark
+did not show a stable Rust advantage:
 
 | Workload | Automatic Rust condition |
 |---|---|
-| Static V2/V3 command tape | Python auto; explicit Rust remains available |
-| Native Strategy IR v1 and its shared batch/fold scorer | Python auto; explicit Rust remains available |
+| Static V2/V3 command tape | Python auto; explicit Rust remains available (`public_score_performance_not_stable_enough_for_auto`) |
+| Native Strategy IR v1, one symbol, `score`, >= 2,000 bars | Rust auto with exact wheel/capability/contract; Python otherwise |
+| Native Strategy IR v1 `minimal` / `standard` / `audit`, or < 2,000 bars | Python auto with a structured profile/threshold reason; explicit Rust remains available |
 | Default Python callback/reactive strategy, generic portfolio, generic package/arbitrage | Python compatibility route |
 | Explicit R1 numeric every-bar callback | Never auto-promoted; Rust-led co-runtime only when requested |
 | Certified R2 sparse wake, R3 block intent, or R3B candidate batch | Never auto-promoted; explicit A3 contract only |
@@ -1836,8 +1840,8 @@ for a particular implementation language:
 | Certified sparse numeric callback | `native_event_strategy(..., reactive_runtime="numeric_sparse_wake_v1", native_backend="rust")` | Rust simulation/accounting; Python decision only at declared wakes |
 | Certified bounded block intents | `native_event_strategy(..., reactive_runtime="numeric_block_intent_v1", native_backend="rust")` | Rust simulation/accounting; Python supplies bounded future commands |
 | Prepared candidate-batch reactive workload | `RustReactiveCandidateBatchCoRuntime` | Rust shared tape/session state; Python batch decision callback |
-| Pre-built deterministic order timeline | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Rust only for a matching static tape at 10,000+ bars; otherwise Python |
-| Signal target, structural grid level, periodic DCA, or fixed bracket template | `NativeEventBackend.prepare_native_strategy_ir(...)` | Rust only for matching bounded IR at 2,000+ bars; otherwise Python |
+| Pre-built deterministic order timeline | `QuantBTEndpoint.event_driven(input_mode="orders", ...)` | Python auto; explicit Rust remains capability-gated |
+| Signal target, structural grid level, periodic DCA, or fixed bracket template | `NativeEventBackend.prepare_native_strategy_ir(...)` | Rust auto only for matching one-symbol `score` at >= 2,000 bars; otherwise Python |
 | Generic portfolio, basket, or arbitrage plan | Existing portfolio/arbitrage endpoint | Python/native-portfolio contract |
 | Legacy all-or-none `target_units` market target or one same-bar all-or-none package | `run_portfolio_target_market(...)` or `run_atomic_package_market(...)` | Explicit bounded Rust helper |
 | Planned multi-symbol linear target matrix with declared shared-account admission | `run_shared_portfolio_target_market(...)` | Explicit Rust shared-account helper |

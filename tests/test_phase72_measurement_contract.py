@@ -347,7 +347,7 @@ def test_auto_static_route_holds_but_explicit_rust_remains_available() -> None:
     )
     auto = resolve_native_event_promotion(context, environment={})
     assert auto.resolved_backend == "python"
-    assert auto.reason == "measurement_evidence_not_current"
+    assert auto.reason == "public_score_performance_not_stable_enough_for_auto"
 
     explicit = resolve_native_event_promotion(
         replace(

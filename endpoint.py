@@ -67,6 +67,7 @@ from .core.fill_replay_v2 import (
     run_fill_replay_v2_native,
 )
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
+from .core.preprocessor import PreparedMarketArrays, slice_prepared_market_arrays
 from .core.market_calendar_v2 import (
     CalendarPolicyV2,
     MissingObservationPolicyV1,
@@ -481,6 +482,7 @@ class PreparedNativeEventStrategyRunner:
     volumes_arr: np.ndarray
     market_arrays: object
     backend: NativeEventBackend
+    reactive_market_binding: object | None
     profile_metadata: Dict
     runs: int = 0
     scores: int = 0
@@ -520,6 +522,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
         object.__setattr__(self, "runs", self.runs + 1)
@@ -581,6 +584,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
             _start_bar=start,
             _end_bar=end,
             _allow_prepared_window=True,
@@ -639,6 +643,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
             trading_days=trading_days,
             score_requirements=score_requirements,
             _start_bar=int(start_bar),
@@ -707,6 +712,7 @@ class PreparedNativeEventStrategyRunner:
             clock=get_event_clock_contract(config.execution_contract),
             requirements=adapter.requirements,
             score_trading_days=int(trading_days),
+            _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         return runner, adapter.requirements
 
@@ -765,6 +771,14 @@ class PreparedNativeEventStrategyRunner:
             runtime=config.reactive_runtime,
             scalar_score=True,
             score_trading_days=int(trading_days),
+            _prepared_market_cache_key=self.backend._trusted_reactive_market_cache_key(
+                self.reactive_market_binding,
+                idx=self.idx,
+                symbol_list=symbols,
+                market_arrays=self.market_arrays,
+                opens_arr=self.opens_arr,
+                volumes_arr=self.volumes_arr,
+            ),
         )
         return runner, adapter.requirements
 
@@ -991,6 +1005,7 @@ class QuantBTEndpoint:
         lows=None,
         datetime_index=None,
         symbols: Optional[Sequence[str]] = None,
+        _validated_canonical_frame: bool = False,
     ) -> PreparedNativeEventStrategyRunner:
         """
         Prepare native-event reactive market state once for repeated scoring.
@@ -1010,7 +1025,17 @@ class QuantBTEndpoint:
         if data is not None and not isinstance(data, dict):
             if len(symbol_list) != 1:
                 raise ValueError("single DataFrame native-event preparation requires exactly one symbol")
-            frame = _standardize_frame(data, datetime_index=datetime_index)
+            if _validated_canonical_frame:
+                if datetime_index is not None or not _is_native_event_canonical_frame(data):
+                    raise ValueError(
+                        "internal canonical native-event preparation requires one UTC, unique, sorted OHLCV DataFrame"
+                    )
+                # The caller owns an isolated frame and has already proven the
+                # no-reindex/no-rename contract.  Avoid a second pandas deep
+                # copy before immediately packing immutable native arrays.
+                frame = data
+            else:
+                frame = _standardize_frame(data, datetime_index=datetime_index)
             symbol = symbol_list[0]
             idx = frame.index
             close_map = {symbol: frame["close"]}
@@ -1063,6 +1088,22 @@ class QuantBTEndpoint:
             funding_rate=config.funding_rate,
             symbols=symbol_list,
         )
+        # Keep the immutable prepared market as the single source of truth for
+        # repeated reactive WFO runs.  The private binding below is accepted
+        # only by this exact backend/tape identity; ordinary endpoints retain
+        # their historical content-validation path.
+        idx = market.idx
+        opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        opens_arr.setflags(write=False)
+        volumes_arr.setflags(write=False)
+        reactive_market_binding = backend.prepare_reactive_market_binding(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+        )
         profile = {
             "mode": config.mode,
             "backend": "native_event",
@@ -1090,6 +1131,7 @@ class QuantBTEndpoint:
             volumes_arr=volumes_arr,
             market_arrays=market,
             backend=backend,
+            reactive_market_binding=reactive_market_binding,
             profile_metadata=profile,
         )
 
@@ -4835,6 +4877,8 @@ class _WalkForwardEndpointScorer:
         self._single_backend = None
         self._single_market_maps = {}
         self._single_market_cache = {}
+        self._single_full_market_cache: dict[tuple[str, ...], PreparedMarketArrays] = {}
+        self._single_market_view_cache: dict[tuple[tuple[str, ...], int, int, int], PreparedMarketArrays] = {}
         self._portfolio_backend = None
         self._portfolio_market_maps = {}
         self._portfolio_market_cache = {}
@@ -4858,7 +4902,14 @@ class _WalkForwardEndpointScorer:
             "scalar_runs": 0,
             "fallback_runs": 0,
             "market_prepare_seconds": 0.0,
+            "full_market_prepare_seconds": 0.0,
+            "market_view_seconds": 0.0,
+            "full_market_cache_hits": 0,
+            "full_market_cache_misses": 0,
+            "prepared_window_view_hits": 0,
+            "prepared_window_view_misses": 0,
             "signal_pack_seconds": 0.0,
+            "signal_no_copy_hits": 0,
             "kernel_score_seconds": 0.0,
             "metric_report_seconds": 0.0,
         }
@@ -4909,17 +4960,29 @@ class _WalkForwardEndpointScorer:
                 params=task["params"],
                 context=str(task["context"]),
                 trading_days=int(task["trading_days"]),
+                _quantbt_prepared_window=task.get("_quantbt_prepared_window"),
             )
             for task in entries
         ]
 
-    def __call__(self, data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
+    def __call__(
+        self,
+        data,
+        output,
+        index,
+        fold,
+        params,
+        context: str,
+        trading_days: int,
+        _quantbt_prepared_window=None,
+    ) -> Dict[str, float]:
         try:
             if self._can_score_single_vectorized_prepared(output):
                 result = self._score_single_vectorized_prepared(
                     output=output,
                     index=index,
                     trading_days=trading_days,
+                    prepared_window=_quantbt_prepared_window,
                 )
             elif self._can_score_portfolio_prepared(output):
                 result = self._score_portfolio_prepared(
@@ -4949,7 +5012,12 @@ class _WalkForwardEndpointScorer:
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)
-        meta["market_cache_entries"] = len(self._portfolio_market_cache) + len(self._single_market_cache)
+        meta["market_cache_entries"] = (
+            len(self._portfolio_market_cache)
+            + len(self._single_market_cache)
+            + len(self._single_market_view_cache)
+        )
+        meta["prepared_full_market_entries"] = len(self._single_full_market_cache)
         meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
         meta["use_scalar_trial_scoring"] = self.use_scalar_trial_scoring
         if self._native_prepared_wfo is not None:
@@ -4971,6 +5039,8 @@ class _WalkForwardEndpointScorer:
         self.market_datetime_index = None
         self._single_market_maps.clear()
         self._single_market_cache.clear()
+        self._single_full_market_cache.clear()
+        self._single_market_view_cache.clear()
         self._portfolio_market_maps.clear()
         self._portfolio_market_cache.clear()
         self._single_backend = None
@@ -5006,32 +5076,63 @@ class _WalkForwardEndpointScorer:
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
 
-    def _score_single_vectorized_prepared(self, output: pd.Series, index, trading_days: int):
-        idx = _ensure_utc_index(index)
+    def _score_single_vectorized_prepared(
+        self,
+        output: pd.Series,
+        index,
+        trading_days: int,
+        prepared_window=None,
+    ):
+        # WFO owns UTC canonical indexes.  Preserve identity only when a
+        # private positional certificate accompanies the exact object; every
+        # ordinary caller retains the historic normalization path.
+        idx = (
+            index
+            if isinstance(index, pd.DatetimeIndex)
+            and str(index.tz) == "UTC"
+            and prepared_window is not None
+            else _ensure_utc_index(index)
+        )
         symbol_list = self._symbol_list(output)
         close_map, high_map, low_map = self._single_maps(symbol_list)
         backend = self._single_backend_instance()
-        cache_key = self._market_cache_key(idx, symbol_list)
-        market = self._single_market_cache.get(cache_key)
+        market = self._prepared_single_market_view(
+            backend=backend,
+            index=index,
+            normalized_index=idx,
+            symbols=symbol_list,
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            prepared_window=prepared_window,
+        )
         if market is None:
-            prepare_started = perf_counter()
-            market = backend.prepare_market_arrays(
-                datetime_index=idx,
-                closes=close_map,
-                highs=high_map,
-                lows=low_map,
-                funding_rate=self.score_config.funding_rate,
-                symbols=symbol_list,
-            )
-            self._single_market_cache[cache_key] = market
-            self._stats["market_cache_misses"] += 1
-            self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
+            cache_key = self._market_cache_key(idx, symbol_list)
+            market = self._single_market_cache.get(cache_key)
+            if market is None:
+                prepare_started = perf_counter()
+                market = backend.prepare_market_arrays(
+                    datetime_index=idx,
+                    closes=close_map,
+                    highs=high_map,
+                    lows=low_map,
+                    funding_rate=self.score_config.funding_rate,
+                    symbols=symbol_list,
+                )
+                self._single_market_cache[cache_key] = market
+                self._stats["market_cache_misses"] += 1
+                self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
+            else:
+                self._stats["market_cache_hits"] += 1
         else:
-            self._stats["market_cache_hits"] += 1
+            # A prepared tape view is an equivalent run-local market cache
+            # hit/miss from the historic public metadata perspective.
+            idx = market.idx
 
         signal_started = perf_counter()
-        raw_signals = _series_to_raw_matrix(output, idx)
+        raw_signals, signal_no_copy = _series_to_raw_matrix_prepared(output, idx)
         self._stats["signal_pack_seconds"] += perf_counter() - signal_started
+        self._stats["signal_no_copy_hits"] += int(signal_no_copy)
         self._stats["prepared_runs"] += 1
         run_started = perf_counter()
         runner = backend.score_signals if self.use_scalar_trial_scoring else backend.run_signals
@@ -5056,6 +5157,7 @@ class _WalkForwardEndpointScorer:
             slot_size=self.score_config.slot_size,
             min_qty=self.score_config.min_qty,
             min_notional=self.score_config.min_notional,
+            _validated_prepared_market=market.idx is idx,
         )
         if self.use_scalar_trial_scoring:
             result = runner(trading_days=int(trading_days), **kwargs)
@@ -5064,6 +5166,88 @@ class _WalkForwardEndpointScorer:
             result = runner(**kwargs)
         self._stats["kernel_score_seconds"] += perf_counter() - run_started
         return result
+
+    def _prepared_single_market_view(
+        self,
+        *,
+        backend: NativeVectorizedBackend,
+        index,
+        normalized_index: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        closes: Mapping[str, pd.Series],
+        highs: Mapping[str, pd.Series],
+        lows: Mapping[str, pd.Series],
+        prepared_window,
+    ) -> PreparedMarketArrays | None:
+        """Return a no-copy market view for one certified WFO window.
+
+        The descriptor is deliberately private and must originate from the
+        active ``PreparedWalkForwardContext``.  Any missing, recreated, or
+        inconsistent index falls back to the historical per-window packer.
+        """
+
+        if not isinstance(index, pd.DatetimeIndex) or prepared_window is None:
+            return None
+        window_index = getattr(prepared_window, "index", None)
+        try:
+            start = int(getattr(prepared_window, "start"))
+            stop = int(getattr(prepared_window, "stop"))
+        except (AttributeError, TypeError, ValueError):
+            return None
+        if (
+            window_index is not index
+            or normalized_index is not index
+            or not 0 <= start < stop
+            or stop - start != len(index)
+        ):
+            return None
+        full_index = self.market_datetime_index
+        if not isinstance(full_index, pd.DatetimeIndex):
+            return None
+        if (
+            not 0 <= start < stop <= len(full_index)
+            or full_index[start] != index[0]
+            or full_index[stop - 1] != index[-1]
+            or not full_index[start:stop].equals(index)
+        ):
+            return None
+
+        symbol_key = tuple(str(symbol) for symbol in symbols)
+        parent = self._single_full_market_cache.get(symbol_key)
+        if parent is None:
+            started = perf_counter()
+            parent = backend.prepare_market_arrays(
+                datetime_index=full_index,
+                closes=dict(closes),
+                highs=dict(highs),
+                lows=dict(lows),
+                funding_rate=self.score_config.funding_rate,
+                symbols=list(symbols),
+            )
+            self._single_full_market_cache[symbol_key] = parent
+            elapsed = perf_counter() - started
+            self._stats["full_market_cache_misses"] += 1
+            self._stats["full_market_prepare_seconds"] += elapsed
+            self._stats["market_prepare_seconds"] += elapsed
+        else:
+            self._stats["full_market_cache_hits"] += 1
+
+        view_key = (symbol_key, id(index), start, stop)
+        cached = self._single_market_view_cache.get(view_key)
+        if cached is not None and cached.idx is index:
+            self._stats["prepared_window_view_hits"] += 1
+            self._stats["market_cache_hits"] += 1
+            return cached
+        started = perf_counter()
+        try:
+            view = slice_prepared_market_arrays(parent, start=start, stop=stop, idx=index)
+        except ValueError:
+            return None
+        self._single_market_view_cache[view_key] = view
+        self._stats["prepared_window_view_misses"] += 1
+        self._stats["market_cache_misses"] += 1
+        self._stats["market_view_seconds"] += perf_counter() - started
+        return view
 
     def _score_portfolio_prepared(self, output, index, trading_days: int):
         idx = _ensure_utc_index(index)
@@ -5582,6 +5766,22 @@ def _standardize_frame(data, datetime_index=None) -> pd.DataFrame:
     return frame
 
 
+def _is_native_event_canonical_frame(data) -> bool:
+    """Return whether private prepared input can bypass frame normalization.
+
+    This is intentionally stricter than the public standardizer.  A false
+    answer merely uses the historical copy/normalization path; it never turns
+    an almost-compatible frame into a fast-path assumption.
+    """
+
+    if not isinstance(data, pd.DataFrame) or not isinstance(data.index, pd.DatetimeIndex):
+        return False
+    index = data.index
+    if index.tz is None or not index.is_monotonic_increasing or index.has_duplicates:
+        return False
+    return all(column in data.columns for column in ("open", "high", "low", "close", "volume"))
+
+
 def _signal_from_data(data, signal_col):
     if signal_col is None:
         return None
@@ -5608,6 +5808,27 @@ def _series_to_raw_matrix(signal, idx: pd.DatetimeIndex) -> np.ndarray:
     else:
         values = _align_series(ser, idx).fillna(0.0).to_numpy(dtype=np.float64, copy=True)
     return np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
+
+
+def _series_to_raw_matrix_prepared(signal, idx: pd.DatetimeIndex) -> tuple[np.ndarray, bool]:
+    """Pack a scalar score signal, preserving a certified exact NumPy view.
+
+    The regular helper intentionally copies user-facing input.  Prepared WFO
+    scoring has a narrower contract: the strategy output and canonical score
+    index are the exact objects created for the current task, while all native
+    kernels consume signals read-only.  In that case a contiguous float64
+    Series can cross the score boundary without another allocation.  Any
+    mismatch retains the defensive historic packer.
+    """
+
+    if isinstance(signal, pd.Series) and signal.index is idx:
+        values = signal.to_numpy(dtype=np.float64, copy=False)
+        matrix = np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
+        # ``ascontiguousarray`` may still allocate for an extension dtype or a
+        # strided Series.  Report a no-copy hit only when the returned matrix
+        # shares the original numeric storage.
+        return matrix, bool(np.shares_memory(matrix, values))
+    return _series_to_raw_matrix(signal, idx), False
 
 
 def _positions_to_raw_matrix(positions, idx: pd.DatetimeIndex, symbols: Sequence[str]) -> np.ndarray:

@@ -44,9 +44,11 @@ make release-manifest
 fingerprints, benchmark references, and hashes of the supply-chain report and
 CycloneDX SBOM. The core remains usable without native code on platforms outside
 the declared matrix. On the supported matrix, the exact pre-built companion
-enables the bounded Stage-B `backend="auto"` policy only for certified static
-command tapes and Native Strategy IR/batch rows; it does not promote callbacks,
-reactive strategies, portfolio, or package/arbitrage execution.
+enables `backend="auto"` only for the Phase 78 bounded one-symbol Native
+Strategy IR v1 `score` route at 2,000 or more bars. Static command tapes remain
+explicit Rust because their matched public score evidence is held; callbacks,
+reactive strategies, portfolio, and package/arbitrage execution are not
+promoted.
 
 The supply-chain report also records source/ref cleanliness, Python/Rust
 toolchain and target metadata, native build profile/features, the Cargo lock
@@ -374,7 +376,7 @@ from quantbt import QuantBTEndpoint
 its Rust distribution version and Native Event API version remain separate
 contracts. The core declares it directly for Linux x86_64 CPython 3.11-3.13,
 so normal supported installs resolve a pre-built wheel. `native_backend="auto"`
-follows the generated Stage-B policy only for its governed static/IR rows;
+follows the generated Phase 78 Native Strategy IR score rule only;
 `native_backend="rust"` remains explicit and fail-fast.
 
 Historical Phase 46F rerun evidence retained for comparison is:
@@ -387,7 +389,7 @@ Historical Phase 46F rerun evidence retained for comparison is:
 | Absolute peak RSS | pass (`184.11 MB < 512 MB`) |
 | 100-run RSS plateau | pass |
 | Prepared RSS reduction >= 40% | fail (`-26.1%` / `-7.6%`) |
-| Automatic Rust routing | governed Stage-B static/IR/batch rows only with the exact supported public pair |
+| Automatic Rust routing | one-symbol Native Strategy IR v1 `score` at >=2,000 bars with the exact supported public pair |
 | Native dependency contract | direct Linux x86_64 CPython 3.11-3.13 requirement, published native-first with Poetry consumer proof |
 
 The core package still has a full Python fallback, while the native wheel stays
@@ -403,7 +405,7 @@ are separate version contracts.
 
 `native_backend="rust"` is explicit and fail-fast. It does not silently
 downgrade to Python. With a matching API-0.4 companion,
-`native_backend="auto"` uses the generated Stage-B static/IR/batch policy;
+`native_backend="auto"` uses the generated Phase 78 IR-score policy;
 without that companion, the core fallback remains Python. The public pair is
 only released after Phase 55B's native-first and Poetry consumer gates.
 

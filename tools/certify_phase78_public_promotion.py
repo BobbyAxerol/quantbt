@@ -628,7 +628,7 @@ def _markdown(payload: Mapping[str, Any]) -> str:
         "",
         "This is route-scoped current-candidate evidence, not a blanket Rust claim.",
         "",
-        "| Workload | Rust median | Python median | Rust RSS delta | Auto route | Trace parity |",
+        "| Workload | Rust median | Python median | Rust RSS delta | Admission routing snapshot | Trace parity |",
         "| --- | ---: | ---: | ---: | --- | --- |",
     ]
     for workload_id, evidence in payload["routes"].items():
@@ -643,7 +643,7 @@ def _markdown(payload: Mapping[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "Native Strategy IR score at 2,000+ bars is the only auto-routing target in this certificate. Static command tapes are audited and measured here but remain Python-auto because their public score advantage did not remain stable across the longer paired sample. Python callbacks, reactive strategies, generic WFO, portfolio/package, intrabar, and options retain their declared policies.",
+            "This artifact is the immutable pre-enable admission snapshot. Its routing column records the resolver before the registry rule was enabled, avoiding a self-referential benchmark identity. The current Phase 78 policy promotes only Native Strategy IR score at 2,000+ bars. Static command tapes remain Python-auto because their public score advantage did not remain stable across the longer paired sample. Python callbacks, reactive strategies, generic WFO, portfolio/package, intrabar, and options retain their declared policies.",
             "",
             "A4 evidence is not A5 deletion approval. The Python oracle, rollback controls, and retained compatibility mirror remain required until a stable shadow release has been observed and separately approved.",
             "",

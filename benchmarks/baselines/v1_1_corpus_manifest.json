@@ -1261,9 +1261,9 @@
       "sha256": "04c95b903f9afdaa8bd80282a55dcb5ebe480d5456b664fac441dd90de0032a6"
     },
     "product_registry": {
-      "bytes": 28037,
+      "bytes": 32528,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f"
+      "sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0"
     }
   }
 }

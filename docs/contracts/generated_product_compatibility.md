@@ -7,14 +7,14 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `5459e9a9167e24f19ee4eefb9d334fe8803d2541db3e1869f6b681666369ee0a`
+- Product fingerprint: `a9447da50d653a821e7cdb4f907b085601c5dbc3ff65cc18939adde33118c70c`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
 - Core distribution: `quantbt-engine==1.1.0`
 - Native distribution: `quantbt-native==0.4.1` (published: `true`)
 
 ## Promotion Policy
 
-- Table version: `native-event-promotion-v3-phase72-measurement-gate` (schema `1`)
+- Table version: `native-event-promotion-v4-phase78-ir-score-a4` (schema `1`)
 - Default user policy: `certified_only`
 - Configured automatic stage: `static_ir`
 - Emergency controls: `QUANTBT_DISABLE_NATIVE=1` and `QUANTBT_NATIVE_PROMOTION_MAX=<stage>`.
@@ -23,7 +23,7 @@ This table is the release-facing contract for the optional Rust companion. Autom
 | Rule | Workload | Stage | Enabled | Required capabilities |
 |---|---|---|---|---|
 | `static_tape_rust_stage_b` | `event_static_tape_v2_v3` | `static_ir` | `false` | `native_event_v2_full_contract, native_event_v2_multisymbol, native_event_v2_funding, native_event_v2_liquidation, native_event_v2_cancel_all_oco, native_event_v2_tif_expiry, native_event_v2_relationships, native_event_v2_quantity_preflight` |
-| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `false` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
+| `native_ir_rust_stage_b` | `native_strategy_ir_v1` | `static_ir` | `true` | `native_event_v2_full_contract, native_strategy_ir_v1, native_strategy_ir_signal_target, native_strategy_ir_grid_level, native_strategy_ir_dca_periodic, native_strategy_ir_fixed_bracket, native_strategy_ir_batch_v1` |
 | `portfolio_target_rust_stage_c` | `portfolio_target_market_v1` | `portfolio` | `false` | `native_event_v2_full_contract, native_portfolio_target_market_v1` |
 | `package_transaction_rust_stage_d` | `package_atomic_market_v1` | `package` | `false` | `native_event_v2_full_contract, native_package_atomic_market_v1` |
 | `bounded_package_v2_rust_stage_d` | `package_market_v2` | `package` | `false` | `native_event_v2_full_contract, native_package_market_v2, native_package_actual_fill_hedge_v2, native_package_residual_unwind_v2` |
@@ -47,11 +47,13 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 ## Workload Capabilities
 
-| Workload | Contracts | Strategy mode | Profiles | Maturity | Auto |
+The `Auto profiles` column is the exact profile shape eligible for generated `backend="auto"` routing. It is intentionally narrower than an explicit Rust executor's diagnostic surface: explicit Rust remains fail-fast and governed by its own capability contract.
+
+| Workload | Contracts | Strategy mode | Auto profiles | Maturity | Auto |
 |---|---|---|---|---|---|
 | `event_static_tape_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `static_commands` | `score, minimal, standard, audit` | `certified` | `false` |
 | `event_python_callback_v2_v3` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `python_callback_compat` | `score, minimal, standard, audit` | `experimental` | `false` |
-| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score, minimal, standard, audit` | `certified` | `false` |
+| `native_strategy_ir_v1` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `ir_v1` | `score` | `promoted` | `true` |
 | `native_wfo_prepared_signal_v2` | `event_lifecycle_v2_next_bar_close, event_lifecycle_v3_next_open` | `prepared_signal_w1, prepared_signal_w2` | `score, audit` | `certified` | `false` |
 | `portfolio_target_preflight_v1` | `event_lifecycle_v3_next_open` | `portfolio_target_preflight` | `score, audit` | `experimental` | `false` |
 | `package_transaction_preflight_v1` | `event_lifecycle_v3_next_open` | `package_transaction_preflight` | `score, audit` | `experimental` | `false` |
@@ -95,8 +97,8 @@ This table is the release-facing contract for the optional Rust companion. Autom
 
 | Workload | Status | Measurement status | Route / profile | Promotion eligible | E2E faster | RSS plateau | Manifest |
 |---|---|---|---|---|---|---|---|
-| `event_static_tape_v2_v3` | `historical_scope_only` | `historical_scope_only` | `public_event_static` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json` |
-| `native_strategy_ir_v1` | `historical_scope_only` | `historical_scope_only` | `public_native_strategy_ir` / `score_to_score_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase54b2_public_routes_v1.json` |
+| `event_static_tape_v2_v3` | `performance_hold` | `performance_hold` | `public_event_static` / `score_to_score_v1` | `false` | `false` | `true` | `benchmarks/native_event/results/phase78_public_promotion.json` |
+| `native_strategy_ir_v1` | `pass` | `current_candidate_verified` | `public_native_strategy_ir` / `score_to_score_v1` | `true` | `true` | `true` | `benchmarks/native_event/results/phase78_public_promotion.json` |
 | `native_wfo_prepared_signal_v2` | `historical_scope_only` | `historical_scope_only` | `prepared_native_signal_wfo` / `score_to_score_v1` | `false` | `true` | `true` | `benchmarks/native_event/manifests/phase71_runtime_productization_v1.json` |
 | `portfolio_target_market_v1` | `explicit-only` | `historical_scope_only` | `direct_target_vectorized` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/results/phase66_rust_target_vectorized.json` |
 | `package_market_v2` | `explicit-only` | `historical_scope_only` | `bounded_package_arbitrage` / `compact_to_compact_v1` | `false` | `true` | `true` | `benchmarks/native_event/results/phase68_bounded_package.json` |

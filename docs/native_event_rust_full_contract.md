@@ -2,8 +2,11 @@
 
 Phase 47B upgrades the optional PyO3 backend from the earlier R1/R2
 single-symbol slice to the public Native Event V2 contract. Python/replay
-remains the correctness oracle and `auto` remains Python until the later Grid
-workload and release gates pass.
+remains the correctness oracle. This document preserves the phase history;
+the current public auto-routing scope is maintained in
+[Public Rust Promotion](native/public_rust_promotion.md): only one-symbol
+Native Strategy IR v1 `score` at 2,000 or more bars is promoted, while static
+command tapes and callback/reactive routes remain Python-auto.
 
 ## Phase 53A Pure Rust Core
 

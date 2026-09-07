@@ -10,7 +10,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 | Import | `from quantbt import QuantBTEndpoint` |
 | Core release | `quantbt-engine==1.1.0` |
 | Native companion | `quantbt-native==0.4.1`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
-| Native policy | Python auto-routing until fresh route evidence; explicit Rust for certified bounded workloads |
+| Native policy | Rust auto only for exact one-symbol Native Strategy IR `score` at >=2,000 bars; Python/Numba otherwise |
 
 The companion is an internal implementation package. Users do not import it
 or choose a second public API. Start with [Native installation](native/install.md)
@@ -21,6 +21,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Need | Read |
 |---|---|
 | Install the package and understand the core/native pair | [Native companion installation](native/install.md) |
+| Inspect the exact Rust-auto route, evidence, fallbacks, and rollback controls | [Public Rust Promotion](native/public_rust_promotion.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
 | Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |

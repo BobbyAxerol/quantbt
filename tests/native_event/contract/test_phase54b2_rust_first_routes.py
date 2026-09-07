@@ -79,7 +79,12 @@ def _assert_accounting_equal(left, right) -> None:
     )["passed"] is True
 
 
-def _static_context(*, bars: int, workload_id: str = "event_static_tape_v2_v3") -> NativePromotionContext:
+def _static_context(
+    *,
+    bars: int,
+    workload_id: str = "event_static_tape_v2_v3",
+    profile: str = "score",
+) -> NativePromotionContext:
     capabilities = _STATIC_CAPABILITIES if workload_id.startswith("event_static") else _IR_CAPABILITIES
     return NativePromotionContext(
         requested_backend="auto",
@@ -87,7 +92,7 @@ def _static_context(*, bars: int, workload_id: str = "event_static_tape_v2_v3") 
         workload_id=workload_id,
         execution_contract_id="event_lifecycle_v2_next_bar_close",
         strategy_mode="static_commands" if workload_id.startswith("event_static") else "ir_v1",
-        profile="audit",
+        profile=profile,
         account_model="linear_quote_settled_gross_cross",
         bars=bars,
         symbol_count=1,
@@ -99,7 +104,7 @@ def _static_context(*, bars: int, workload_id: str = "event_static_tape_v2_v3") 
     )
 
 
-def test_phase72_auto_routes_hold_until_current_candidate_evidence_exists():
+def test_phase78_auto_routing_is_scoped_to_ir_score_and_threshold():
     static_small = resolve_native_event_promotion(_static_context(bars=9_999), environment={})
     static_promoted = resolve_native_event_promotion(_static_context(bars=10_000), environment={})
     ir_small = resolve_native_event_promotion(
@@ -108,13 +113,27 @@ def test_phase72_auto_routes_hold_until_current_candidate_evidence_exists():
     ir_promoted = resolve_native_event_promotion(
         _static_context(bars=2_000, workload_id="native_strategy_ir_v1"), environment={}
     )
+    ir_audit = resolve_native_event_promotion(
+        _static_context(bars=2_000, workload_id="native_strategy_ir_v1", profile="audit"), environment={}
+    )
 
-    for decision in (static_small, static_promoted, ir_small, ir_promoted):
+    for decision in (static_small, static_promoted):
         assert (decision.resolved_backend, decision.reason, decision.minimum_bars) == (
             "python",
-            "measurement_evidence_not_current",
+            "public_score_performance_not_stable_enough_for_auto",
             0,
         )
+    assert (ir_small.resolved_backend, ir_small.reason, ir_small.minimum_bars) == (
+        "python",
+        "below_promotion_min_bars",
+        2_000,
+    )
+    assert (ir_promoted.resolved_backend, ir_promoted.reason, ir_promoted.minimum_bars) == (
+        "rust",
+        "auto_rust_certified",
+        2_000,
+    )
+    assert (ir_audit.resolved_backend, ir_audit.reason) == ("python", "workload_shape_not_certified")
 
 
 @pytest.mark.skipif(
@@ -155,7 +174,7 @@ def test_phase72_public_static_auto_holds_to_python_while_explicit_rust_matches_
     _assert_accounting_equal(auto, rust)
     _assert_accounting_equal(auto, python)
     assert auto.metadata["execution_plan_v1"]["backend"] == "python"
-    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "public_score_performance_not_stable_enough_for_auto"
     assert auto.metadata["native_event_promotion_v1"]["minimum_bars"] == 0
 
 
@@ -273,7 +292,7 @@ def test_phase72_v3_multisymbol_explicit_rust_and_auto_python_match_oracle():
     _assert_accounting_equal(rust_raw, python)
     _assert_accounting_equal(auto, python)
     assert auto.metadata["native_event_backend_resolved"] == "python"
-    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "public_score_performance_not_stable_enough_for_auto"
     assert rust_raw.metadata["native_event_backend_resolved"] == "rust"
     assert rust_raw.metadata["execution_contract_id"] == "event_lifecycle_v3_next_open"
     assert float(rust_raw.funding.sum()) != 0.0
@@ -321,7 +340,7 @@ def _ir_backend(
         ),
     ],
 )
-def test_phase72_native_ir_auto_holds_while_explicit_rust_matches_python(kind, parameters, signal):
+def test_phase78_native_ir_audit_stays_python_while_explicit_rust_matches_python(kind, parameters, signal):
     frame = _frame(2_000)
     values = signal(len(frame)).astype(np.float64)
     program = NativeStrategyIR(kind, "BTC", parameters=parameters)
@@ -344,7 +363,7 @@ def test_phase72_native_ir_auto_holds_while_explicit_rust_matches_python(kind, p
     _assert_accounting_equal(auto, rust)
     _assert_accounting_equal(auto, python)
     assert auto.metadata["execution_plan_v1"]["backend"] == "python"
-    assert auto.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert auto.metadata["native_event_promotion_v1"]["reason"] == "workload_shape_not_certified"
     assert rust.metadata["native_strategy_ir_execution_v1"]["python_callbacks"] == 0
     assert rust.metadata["native_strategy_ir_execution_v1"]["rust_audit_replay"] is False
 
@@ -469,4 +488,4 @@ def test_stage_b_native_ir_small_auto_request_falls_back_to_python_with_reason()
     )
     result = runner.backtest(np.where(np.arange(len(frame)) % 20 < 10, 1.0, 0.0), report_level="audit")
     assert result.metadata["execution_plan_v1"]["backend"] == "python"
-    assert result.metadata["native_event_promotion_v1"]["reason"] == "measurement_evidence_not_current"
+    assert result.metadata["native_event_promotion_v1"]["reason"] == "workload_shape_not_certified"

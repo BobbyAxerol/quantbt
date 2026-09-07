@@ -776,7 +776,7 @@
       "input_mode": "canonical_order_command_tape",
       "maturity": "certified_explicit_rust",
       "notes": [
-        "Phase 72 holds auto promotion until current-candidate evidence is recorded."
+        "Phase 78 retains static command-tape auto routing on Python because its matched public score gate is held; explicit Rust remains capability-gated."
       ],
       "package_versions": {
         "command_abi": "full-command-v1",
@@ -1583,7 +1583,7 @@
         "result": "Rust buffers adapted by Python on the cold path",
         "strategy": "external Python strategy or precomputed typed intent"
       },
-      "auto_promotion": false,
+      "auto_promotion": true,
       "endpoint": "native product capability registry",
       "factory": null,
       "fallback": {
@@ -1592,7 +1592,7 @@
       },
       "id": "native_workload::native_strategy_ir_v1",
       "input_mode": "ir_v1",
-      "maturity": "certified",
+      "maturity": "promoted",
       "notes": [
         "Declared strategy modes: ir_v1.",
         "This is a governed capability row, not blanket endpoint promotion."
@@ -1608,18 +1608,15 @@
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
-        "score",
-        "minimal",
-        "standard",
-        "audit"
+        "score"
       ],
       "requested_backends": [
         "auto",
         "python",
         "rust"
       ],
-      "resolved_backend_baseline": "Python by auto policy; Rust remains an explicit certified route",
-      "runtime_class": "PythonCompatibility",
+      "resolved_backend_baseline": "Rust for exact one-symbol score requests at 2,000+ bars with the matching wheel/capability/contract; Python otherwise",
+      "runtime_class": "WholeRunNative",
       "source_anchors": [
         "contracts/native_event_product_registry.json#workloads"
       ],
@@ -2764,9 +2761,9 @@
   "schema": "quantbt-rust-primary-v1_1-endpoint-inventory-v1",
   "source_fingerprints": {
     "endpoint": {
-      "bytes": 259192,
+      "bytes": 268786,
       "path": "src/quantbt/endpoint.py",
-      "sha256": "b5a33d7a8850c276633470299edc0bdc7e730dfb94c5755229a82c61811b4028"
+      "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
     },
     "guide": {
       "bytes": 144542,
@@ -2779,9 +2776,9 @@
       "sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa"
     },
     "product_registry": {
-      "bytes": 28037,
+      "bytes": 32528,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f"
+      "sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0"
     },
     "public_api_inventory": {
       "bytes": 17902,

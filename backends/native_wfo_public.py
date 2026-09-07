@@ -59,6 +59,7 @@ class _PreparedPublicWfoState:
     min_qty: np.ndarray
     min_notional: np.ndarray
     alloc: float
+    metric_contract: NativeEvaluationMetricContractV1
 
 
 class NativePreparedPublicWfoScorerV1:
@@ -100,6 +101,10 @@ class NativePreparedPublicWfoScorerV1:
             "native_scored_bars": 0,
             "native_boundary_calls": 0,
             "native_score_seconds": 0.0,
+            "prepared_window_hits": 0,
+            "prepared_window_fallbacks": 0,
+            "output_index_identity_hits": 0,
+            "output_index_normalizations": 0,
             "fallback_batches": 0,
             "fallback_rows": 0,
             "fresh_account_policy": "fresh_account_per_evaluation",
@@ -416,6 +421,10 @@ class NativePreparedPublicWfoScorerV1:
                 if self.target_mode in {"pct_equity", "%_equity"}
                 else self._symbol_value(self.config.alloc_per_trade, symbol, 100_000.0)
             ),
+            metric_contract=NativeEvaluationMetricContractV1(
+                trading_days=int(self.wf_config.scoring_trading_days),
+                scope="fold",
+            ),
         )
 
     def _bindings_for_tasks(
@@ -424,9 +433,13 @@ class NativePreparedPublicWfoScorerV1:
         tasks: Sequence[Mapping[str, Any]],
     ):
         prepared: list[tuple[Any, int, int]] = []
+        target_kind = "units"
+        workload = NativePreparedWorkloadV1.TARGET_UNITS
+        if self.target_mode in {"pct_equity", "%_equity"}:
+            target_kind = "pct_equity_transition"
+            workload = NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION
         for scenario_id, task in enumerate(tasks):
-            index = self._normalize_task_index(task.get("index"))
-            start, end = self._window_bounds(state.index, index)
+            index, start, end = self._task_index_and_window(state, task)
             output = task.get("output")
             if not isinstance(output, pd.Series):
                 raise NativePreparedPublicWfoUnsupported(
@@ -437,8 +450,6 @@ class NativePreparedPublicWfoScorerV1:
                 raise NativePreparedPublicWfoUnsupported(
                     "prepared public WFO refuses non-finite strategy output; use the ordinary endpoint route"
                 )
-            target_kind = "units"
-            workload = NativePreparedWorkloadV1.TARGET_UNITS
             equity_fraction = None
             if self.target_mode in {"pct_equity", "%_equity"}:
                 # Preserve the legacy processed-signal surface.  The Rust
@@ -447,8 +458,6 @@ class NativePreparedPublicWfoScorerV1:
                 if not bool(self.config.use_pyramiding):
                     raw = np.sign(raw)
                 targets = np.ascontiguousarray(raw, dtype=np.float64)
-                target_kind = "pct_equity_transition"
-                workload = NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION
                 equity_fraction = np.asarray([state.alloc], dtype=np.float64)
             else:
                 targets = self._target_units(raw, state.closes[start:end], index, state.alloc)
@@ -476,13 +485,40 @@ class NativePreparedPublicWfoScorerV1:
                 fold_id=fold_id,
                 scenario_id=scenario_id,
                 account_policy="fresh_account_per_evaluation",
-                metric_contract=NativeEvaluationMetricContractV1(
-                    trading_days=int(self.wf_config.scoring_trading_days),
-                    scope="fold",
-                ),
+                metric_contract=state.metric_contract,
             )
             for request, fold_id, scenario_id in prepared
         )
+
+    def _task_index_and_window(
+        self,
+        state: _PreparedPublicWfoState,
+        task: Mapping[str, Any],
+    ) -> tuple[pd.DatetimeIndex, int, int]:
+        """Use a context-owned positional view when the exact index matches."""
+
+        raw_index = task.get("index")
+        prepared_window = task.get("_quantbt_prepared_window")
+        if isinstance(raw_index, pd.DatetimeIndex) and prepared_window is not None:
+            prepared_index = getattr(prepared_window, "index", None)
+            try:
+                start = int(getattr(prepared_window, "start"))
+                end = int(getattr(prepared_window, "stop"))
+            except (AttributeError, TypeError, ValueError):
+                start = end = -1
+            if (
+                prepared_index is raw_index
+                and 0 <= start < end <= len(state.index)
+                and end - start == len(raw_index)
+                and state.index[start] == raw_index[0]
+                and state.index[end - 1] == raw_index[-1]
+            ):
+                self._stats["prepared_window_hits"] = int(self._stats["prepared_window_hits"]) + 1
+                return raw_index, start, end
+        self._stats["prepared_window_fallbacks"] = int(self._stats["prepared_window_fallbacks"]) + 1
+        index = self._normalize_task_index(raw_index)
+        start, end = self._window_bounds(state.index, index)
+        return index, start, end
 
     def _target_units(
         self,
@@ -509,19 +545,23 @@ class NativePreparedPublicWfoScorerV1:
         )
         return np.ascontiguousarray(units.to_numpy(dtype=np.float64).reshape(-1, 1))
 
-    @staticmethod
-    def _task_output_matrix(output: pd.Series, index: pd.DatetimeIndex) -> np.ndarray:
+    def _task_output_matrix(self, output: pd.Series, index: pd.DatetimeIndex) -> np.ndarray:
         """Extract one scalar output without needless reindexing/copies."""
 
-        normalized = pd.DatetimeIndex(output.index)
-        if normalized.tz is None:
-            normalized = normalized.tz_localize("UTC")
-        else:
-            normalized = normalized.tz_convert("UTC")
-        if normalized.equals(index):
+        if output.index is index:
+            self._stats["output_index_identity_hits"] = int(self._stats["output_index_identity_hits"]) + 1
             values = output.to_numpy(dtype=np.float64, copy=False)
         else:
-            values = output.reindex(index).fillna(0.0).to_numpy(dtype=np.float64)
+            self._stats["output_index_normalizations"] = int(self._stats["output_index_normalizations"]) + 1
+            normalized = pd.DatetimeIndex(output.index)
+            if normalized.tz is None:
+                normalized = normalized.tz_localize("UTC")
+            else:
+                normalized = normalized.tz_convert("UTC")
+            if normalized.equals(index):
+                values = output.to_numpy(dtype=np.float64, copy=False)
+            else:
+                values = output.reindex(index).fillna(0.0).to_numpy(dtype=np.float64)
         return np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
 
     def _pct_equity_allocation(self, symbol: str) -> float:
