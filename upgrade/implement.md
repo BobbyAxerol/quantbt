@@ -15960,9 +15960,11 @@ V1.1 is complete only when the guide section 91 checklist is met:
 ## Phase 72-78 - Rust-Primary Public Workload And Performance Closure
 
 **Status: Phase 72-77, 77.1-77.3, and PERF-01 through PERF-07 have scoped
-completion records below. Phase 78 remains planned and additionally depends on
-the validated `READY_FOR_PHASE78` handoff recorded by PERF-07. This does not
-authorize automatic promotion or release.**
+completion records below. PERF-08 and PERF-09 are planned follow-ups awaiting
+individual implementation approval. Phase 78 additionally depends on their
+exit gates and a refreshed `READY_FOR_PHASE78` handoff for the final candidate.
+The existing PERF-07 handoff remains evidence for its original candidate only.
+This does not authorize automatic promotion or release.**
 
 **Canonical detailed guide:**
 [QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md).
@@ -16093,14 +16095,17 @@ forward as the same unfinished technical debt.
 | PERF-05 | Five-mode WFO reuse, reducers and locality | PERF-03/04 and PERF-01 audit schema | APC-1.0 section 7; AP-07/AP-08/AP-09 |
 | PERF-06 | Full research audit, columnar retention and compatibility | PERF-01 schema and PERF-05 identities | APC-1.0 section 8; AP-10 |
 | PERF-07 | Combined qualification, build tuning and closure manifest | PERF-01 through PERF-06 gates | APC-1.0 section 9; AP-12 and all AP integration |
-| 78 | Public promotion, installed-wheel certification, release handoff | Original exit artifacts plus current READY_FOR_PHASE78 manifest | RP-123-135 and APC-1.0 handoff |
+| PERF-08 | Public WFO calendar/shard/request preparation and four-mode performance closure | PERF-07 evidence plus individual approval | Guide 31/32/62; APC-1.0 sections 3/7/8; September 7 profiling |
+| PERF-09 | Reactive boundary/batch optimization and integrated candidate requalification | PERF-08 exit plus individual approval | Guide 29/32.14/61; APC-1.0 sections 5/7.7/9 |
+| 78 | Public promotion, installed-wheel certification, release handoff | PERF-08/09 exits, original gates and refreshed READY_FOR_PHASE78 manifest | RP-123-135 and APC-1.0 handoff |
 
 Execution order is 72 -> 73 -> 74 -> 75 -> 76 -> 77 -> 77.1 -> 77.2 -> 77.3
 -> PERF-01 -> PERF-02 -> PERF-03 -> PERF-04 -> PERF-05 -> PERF-06 -> PERF-07
--> 78, one user approval at a time. The detailed
+-> PERF-08 -> PERF-09 -> 78, one user approval at a time. The detailed
 [additional performance plan](#additional-performance-closure---perf-01-to-perf-07)
-is inserted directly before Phase 78. Independent profiling may occur inside an
-approved phase; that does not authorize starting a later implementation phase.
+and the [two-phase WFO/reactive follow-up](#pre-78-wfo-and-reactive-follow-up---perf-08-and-perf-09)
+precede Phase 78. Independent profiling may occur inside an approved phase;
+that does not authorize starting a later implementation phase.
 
 ### Phase 72 - Measurement And Capability Gate Correction
 
@@ -17709,8 +17714,10 @@ Follow [1.3: dependency graph](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PH
 | PERF-06 | AP-10 columnar research audit | PERF-01 computation plan and PERF-05 evaluation/selection graph | PERF-01 schema; close integration after PERF-05 |
 | PERF-07 | AP-12 build/PGO; closure of AP-01 through AP-11 | Combined public workloads, candidate wheels and release handoff | All PERF-01 through PERF-06 gates |
 
-Default approval/closure order is PERF-01 -> PERF-02 -> PERF-03 -> PERF-04 ->
-PERF-05 -> PERF-06 -> PERF-07 -> Phase 78. The guide permits PERF-03/04 and
+The original seven-phase approval/closure order is PERF-01 -> PERF-02 ->
+PERF-03 -> PERF-04 -> PERF-05 -> PERF-06 -> PERF-07. The separately requested
+[PERF-08/09 follow-up](#pre-78-wfo-and-reactive-follow-up---perf-08-and-perf-09)
+now follows that group before Phase 78. The guide permits PERF-03/04 and
 parts of PERF-05/06 to overlap technically; that is not permission to start an
 unapproved phase. PERF-01 locks the PERF-06 schema early, so PERF-05 can use
 that contract without inventing a competing audit model or waiting for the
@@ -18778,6 +18785,361 @@ Source/build changes invalidate affected qualification even if package version
 strings remain equal. Phase 78 must verify that manifest and run affected
 integration/distribution gates against the final artifacts it will release.
 
+### Pre-78 WFO And Reactive Follow-Up - PERF-08 And PERF-09
+
+**Status: PLANNED (2026-09-07). Planning/documentation is authorized; neither
+implementation phase is approved or started. Execute PERF-08 first, then
+PERF-09 only after its own approval and the preceding exit gate.**
+
+**User objective:** optimize the engine-owned work in the four chronological
+WFO modes (1/2/3/4), with Mode 4 `per_fold_causal` the primary acceptance
+workload. Mode 5 full-sample calibration also receives shared-path improvements
+and has a mandatory compatibility/performance control. Optimize existing
+reactive execution/orchestration without taking ownership of user alpha logic.
+
+**Read before each phase:** the
+[agent execution contract](#mandatory-agent-execution-contract-for-phase-72-78),
+[shared performance rules](#perf-shared-domain-architecture-and-evidence-contract),
+[original coding rules](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#95-rules-for-coding-agents),
+[APC exactness and measurement contract](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#2-chuẩn-nghiệm-thu-dùng-chung),
+and the phase-specific sections linked below. The original guide owns financial
+semantics; this approved-for-planning addendum owns the two new delivery scopes.
+
+**Inspection evidence, not a release certificate:** source `7584e5c` on
+`feat/rust-primary-v1_1` was inspected with a clean worktree. A diagnostic ran
+10,000 hourly bars, three rolling quarterly folds, Mode 4 `per_fold_causal`,
+`pct_equity`, two IS shards and 48 trials per fold. The broader numeric search
+space produced 144 trial records, 143 distinct params and one duplicate prune.
+The existing 77.2 fixture uses only four possible parameter combinations; keep
+its evidence, but do not use its nominal 64 trials as proof of 64 expensive
+unique evaluations.
+
+Reproduction inputs for the diagnostic: reuse the unchanged synthetic market,
+transition strategy and account factory in
+`benchmarks/native_event/benchmark_phase77_1_public_matrix.py`, with seed 731,
+`amplitude=(0.2, 0.8, 0.001)`, `period=(2, 60, 1)`, OOS beginning 2020-07-01,
+`train_window="180D"`, explicit Rust prepared scoring and the stated Mode 4
+causal schedule. This fixture measures engine overhead, not real-alpha speed.
+
+- The diagnostic cProfile run attributed 3.530 s of 8.599 s (41.1%) to repeated
+  `_split_index_into_subperiods` work, including timestamp object conversion.
+  Optuna sampling was 1.855 s; request binding/preparation 0.991 s; the native
+  `execute_score` entry 0.157 s. These are named profile regions, not an invented
+  complete partition of end-to-end wall time.
+- A process-local positional-slicing prototype, with no source file edits,
+  recorded baseline samples `[6.905502, 5.729382, 5.927471]` s and prototype
+  samples `[2.874387, 3.151361, 3.402200]` s. Median 5.927471 -> 3.151361 s
+  means 1.88x, or 46.8% less elapsed time, on this diagnostic only.
+- The three alternating pairs preserved exact equity, returns, positions,
+  per-fold params and public selection/table fingerprints. A small index probe
+  covered UTC, naive and America/New_York/DST timestamps and uneven shard sizes.
+  This was not a full regression, persisted qualification bundle or p95 gate;
+  PERF-08 must reproduce and archive proper baseline/candidate evidence.
+- PERF-05 disables terminal-result reuse for Mode 4 `per_fold_causal`: that
+  schedule has no matching post-study replay. This is deliberate optimizer
+  safety, not a reason to disable prepared calendar/request reuse.
+
+**Shared boundaries:** continue on `feat/rust-primary-v1_1`; preserve endpoints,
+mode/schedule defaults, strategy signatures, trial counts, seeds, Optuna
+ask/report/prune/tell order, exact data-role boundaries and final account
+continuity. No mandatory `prepare_wfo` rewrite, indicator cache, strategy/IR
+translation, new search algorithm, implicit sparse certification, external
+alpha edits, blanket Rust promotion, merge, tag or publish is in these phases.
+Existing W0/W1/W2 and R1/R2/R3/R3B contracts remain available and truthful.
+Each coherent verified change must be committed on this feature branch.
+
+### Phase PERF-08 - Public WFO Calendar, Shard, And Evaluation Preparation Closure
+
+**Status: PLANNED; implementation awaits user approval.**
+
+**Goal:** remove repeated engine-owned work across Modes 1-4, and shared Mode 5
+paths, with the largest measured public gain targeted at Mode 4 causal WFO.
+Preserve every required evaluation, research record and mathematical selector.
+
+**Detailed guide mapping:**
+- [31: WFO correctness](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#31-upgrade-j--wfo-correctness-closure),
+  [32: native WFO runtime](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#32-upgrade-k--native-wfo-runtime-v2)
+  and [62: public benchmark protocol](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#62-wfo-benchmark-protocol).
+- [3.4: immutable preparation](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#34-pf-014--hoist-immutable-work-và-giảm-observer-cost),
+  [7.1-7.4: mode/identity/optimizer contracts](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#71-pf-051--chốt-mode-by-mode-evaluationretention-matrix),
+  [7.5: lifetime/locality](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#75-pf-055--public-lifetime-bounded-pipeline-và-locality),
+  [7.6: statistical reducers](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#76-pf-056--streaming-statistical-reducers)
+  and [8.2-8.5: audit ownership/encoding](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#82-pf-062--manifests-bất-biến-và-record-identities).
+
+**Architecture and source anchors:** extend `PreparedWalkForwardContext` and
+its existing native scorer/cache through focused preparation helpers, rather
+than adding an optimizer or simulation engine. Inspect `walkforward.py`
+(`evaluate_params_is`, `_split_index_into_subperiods`, `_call_strategy_for_indices`,
+`_score_strategy_outputs_batch`), `backends/native_wfo_public.py`,
+`backends/native_prepared_evaluation.py`, `preparation/native_execution.py`,
+`preparation/native_target_requests.py`, `core/wfo_evaluation.py`,
+`core/research_audit*.py` and `strategies/wfo_prepared.py` under `src/quantbt`.
+New responsibilities belong in small modules/classes with narrow delegation
+from existing large files. Reuse native prepared handles, scalar columns,
+metric contracts and lifetime management.
+
+**Work packages (all pending):**
+
+1. **PF-08.1 - Freeze representative baselines.** Pin source, native binary,
+   dependencies, CPU topology and financial/retention contracts. Reproduce the
+   diagnostic with unique candidate work, then freeze a fixed candidate matrix
+   and sequential Optuna counterpart. Record requested, attempted, unique,
+   pruned and executed counts separately. Profile all four WFO modes and the
+   Mode 5 shared path before choosing further optimizations.
+2. **PF-08.2 - Prepare canonical fold/shard views once.** Replace the repeated
+   datetime-object split with positional ranges using exactly the current
+   quotient/remainder allocation rule. Cache validated train/test/inner/shard
+   bounds, expected indexes and parameter-independent trade-frequency/calendar
+   constants per run. Reuse them in ordinary, per-fold and prepared routes.
+   Preserve timezone/unit/name/frequency metadata where observable; reject the
+   same invalid calendars as before. Do not sort/relabel timestamps, change
+   cutoffs or borrow authorization from a future/global view.
+3. **PF-08.3 - Reuse prepared evaluation envelopes.** Hoist repeated window
+   `get_indexer`, metric-contract construction, static masks and instrument
+   constraints into validated immutable window descriptors. Only candidate
+   signal/target content and actual mutable execution state should change per
+   evaluation. Keep content-sensitive invalidation and native authoritative
+   request fingerprints; do not replace them with object ID or length checks.
+   Measure full task preparation separately from native scoring.
+4. **PF-08.4 - Optimize the common scoring transport.** Preserve the existing
+   scalar-column runtime and ordered fold/shard batch. Reduce repeated dict
+   conversion, hashing and cache insertion where a fresh request has no reuse,
+   with measured zero/mixed/high-hit controls. Bound memory across template,
+   request, score and audit retention; do not increase caches blindly. A pure
+   same-request/full-IS shard alias (including `is_subperiods=1`) may share
+   terminal computation only with a proven context-independent native contract.
+   Preserve both logical evaluation records and all promised callbacks. Opaque
+   or stateful scorers execute normally; independent trials/replicates remain
+   distinct and adaptive result-cache reads remain disallowed.
+5. **PF-08.5 - Complete Mode 1/3/4/5 analysis integration.** Reuse prepared
+   numeric summaries/coordinates where the exact formula permits. Preserve
+   trade penalties, ddof, quantiles, temporal/plateau components, DBSCAN ordering,
+   medoid/centroid handling and tie-breaks. Never score only top-K shards if the
+   current objective scores every trial. Full-IS and reset-flat shard accounts
+   must retain their separate initial state; slicing full-IS equity cannot
+   substitute for a fresh shard backtest. Final OOS is still rebuilt through
+   the original continuous account with boundary fees/positions intact.
+6. **PF-08.6 - Optimize Mode 2's engine-owned resampling path.** Profile index
+   generation separately from return construction and Sharpe reduction at real
+   `sbb_samples` (including 256). Freeze NumPy bit-generator/state, conditional
+   draw consumption, restart/wraparound rules, indices and replicate ordering.
+   Evaluate compiled/native generation only if the identical RNG stream can
+   be proven; otherwise retain that generator and optimize measured surrounding
+   packing/reduction/allocation. Use bounded scratch/chunks without changing
+   indices, NaN filtering or reduction order. No generator substitution,
+   fewer samples, shared stochastic replicas or new GARCH fitting authority.
+   Stationary/stress/regime/GARCH compatibility controls remain mandatory;
+   expensive model fitting is reported separately and remains external logic.
+7. **PF-08.7 - Preserve complete reports efficiently.** Build immutable
+   manifests once; avoid repeated conversion of the same logical trial/fold
+   records into sidecar/legacy tables. Keep lazy exports and bounded retained
+   buffers. Compare equal `research_retention` and `financial_retention` in
+   each timing pair. No loss of failed/pruned trials, actual params, objective
+   components, selected/deployed params, original financial ledgers or plot
+   access. Lightweight default tables remain backward compatible.
+8. **PF-08.8 - Close public integration, docs and rollback.** Add focused tests,
+   a reproducible public benchmark with source identities, and a per-mode
+   result table. Update WFO methodology/backend/endpoint performance docs and
+   examples only where behavior or optional diagnostics changed. Existing
+   notebook calls gain eligible preparation improvements automatically; no
+   required additional user controls. Preserve a testable baseline and record
+   the exact rollback commit/config for each admitted optimization.
+
+**Mandatory mode/schedule matrix:** certify only combinations already supported
+by the branch; retain negative tests for unsupported combinations.
+
+| Mode | Required public coverage | Unchanged semantics |
+|---|---|---|
+| 1 decay | Global, per_fold_decay, supported nested per_fold_causal, train_test_split | Original IS search/candidate decay stage and declared inner/outer roles |
+| 2 SBB | Existing global/train_test routes; supported simulation variants | Exact resample indices, replicate scores, RNG and candidate ranking |
+| 3 flat minima | Existing global/train_test routes | Original top-IS, plateau/cluster and final selector math |
+| 4 IS-only robust | Global, train_test_split, especially per_fold_causal | Outer OOS never selects params; exact IS/subperiod/plateau objectives |
+| 5 full robust | Full-sample calibration on shared code | Full declared sample only; no invented OOS claim or chronological schedule |
+
+Cover `signal_notional`, `notional`, `unit` and explicit Rust
+`pct_equity_transition` on their eligible routes. Exercise existing Python/
+Numba fallbacks, missing/incompatible native wheels, and prepared W1/W2
+compatibility without changing strategy code. Portfolio/package/custom-output
+routes receive affected-path regression; this phase does not widen their
+native eligibility.
+
+**Tests and exit gates:**
+- Index/shard oracle: empty/short inputs, one shard, uneven splits, more shards
+  than bars, naive/UTC/DST, timestamp units/names/frequency, irregular calendars,
+  invalid/duplicate/unsorted indexes and nested/purge/embargo/warmup boundaries.
+  Preparation counters must demonstrate work proportional to declared unique
+  windows, not trials multiplied by windows.
+- For all matrix rows compare accepted positions, equity/returns, fills when
+  available, fees/slippage/funding, margin/liquidation/rejections, trade counts,
+  objectives/components, trial order/status, selected params and public tables.
+  Pure preparation changes require exact results; existing numeric tolerances
+  cannot be loosened. Fixed candidate and sequential study tests are separate.
+- Mode 4 causal mutation tests change/append outer OOS/future data and prove
+  earlier params/IS scores do not change. Cross-trial mutation, stale caches,
+  callback side effects, exceptions/pruning/cancel and account-boundary tests
+  must pass. Verify continuous final OOS against the established account oracle.
+- Reproduce the 10k/3-fold/48-trial Mode 4 workload, then expand the matrix to
+  rolling and expanding, quarterly and semi-yearly, and 1/2/4/8 shards. Include
+  a 50k-hourly-bar, expanding semi-yearly, 100-trials-per-fold workload with at
+  least six folds and enough search space to avoid a duplicate-dominated run.
+  Freeze exact dates/completed-work counts before A/B; use public/synthetic
+  strategies unchanged in both lanes, not private alpha code in artifacts.
+- Macro p50 qualification follows APC section 2.5: at least 30 alternating
+  warm pairs on named headline workloads; exploratory large-matrix/soak rows
+  declare fewer samples and cannot masquerade as qualified p95. Use at least
+  100 suitable observations for a p95 claim or label it exploratory.
+- Proposed approval gate for the reproduced primary Mode 4 causal workload:
+  at least 30% public median time reduction with identical work and parity.
+  The observed 46.8% is a prototype result, not a guaranteed gate outcome.
+  Other modes need measured public benefit for admitted fast paths, or a
+  documented measured NOT_BENEFICIAL decision for a specific attempted path.
+  No per-mode omission, generic aggregate speedup or weaker search workload.
+- Pin the existing noise/regression and memory budgets before changes; default
+  review ceilings are +3% public p50/+5% qualified p95 only where supported by
+  measurements. Report cold/warm RSS/PSS, owned bytes, request/cache churn and
+  retained-result plateau. Inconclusive noise is not PASS. No unbounded caches
+  or repeated immutable market copies may fund a speedup.
+
+**Deliverables:** proposed `tests/test_perf_08_wfo_preparation.py`, an extension
+of existing mode/schedule/parity tests, `benchmark_perf08_public_wfo.py`, pinned
+JSON/Markdown evidence, and `docs/performance/perf_08_wfo_preparation.md`.
+Names are implementation suggestions, not permission to duplicate existing
+helpers. Map every work package to actual symbols/tests/results at completion.
+
+**Technical debt/exit:** no unresolved correctness, preparation, retained-output,
+compatibility or required WFO measurement issue may pass to PERF-09. A measured
+rejected experiment can retain the correct baseline; a failed primary gate
+remains open. User alpha execution time and unchanged Optuna sampling are
+explicit boundaries, not grounds to rewrite them. PERF-09 owns integrated
+reactive/wheel requalification; Phase 78 owns actual promotion and release.
+
+### Phase PERF-09 - Reactive Boundary, Batch Runtime, And Integrated Performance Closure
+
+**Status: PLANNED; requires PERF-08 exit and separate user approval.**
+
+**Goal:** reduce engine/bridge cost in public reactive backtests and reactive
+WFO with the same strategy code and decisions, then requalify the combined
+WFO/reactive candidate for Phase 78.
+
+**Detailed guide mapping:**
+- [29: reactive co-runtime](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#29-upgrade-h--reactive-pythonrust-co-runtime-v2),
+  [32.14: reactive WFO](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#3214-reactive-wfo-paths),
+  [61: reactive benchmarks](QUANTBT_RUST_PRIMARY_V1_1_UPGRADE_GUIDE_VI.md#61-reactive-benchmark-protocol).
+- [5.1: callback access plan](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#51-pf-031--lập-callback-access-plan),
+  [5.2: staged commands](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#52-pf-032--shared-staged-command-batch),
+  [5.3-5.6: sparse/GIL/batch/four-way parity](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#53-pf-033--sparse-wake-giảm-projection-không-chỉ-invocation),
+  [7.7: reactive evaluation semantics](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#77-pf-057--reactive-wfo-và-deterministic-replay),
+  [9.1/9.4/9.5/9.6: combined/resource/wheel/handoff gates](QUANTBT_V1_1_PRE_PHASE78_PERFORMANCE_CLOSURE_7_PHASES_VI.md#9-perf-07--cross-domain-qualification-build-tuning-và-handoff-về-phase-78).
+
+**Architecture and anchors:** extend existing R1/R2/R3/R3B session and
+projection/command buffers, `reactive_wfo_workers.py`'s session pool,
+`reactive_wfo_batch.py` and `reactive_wfo_batch_selection.py`. Inspect
+`rust/native_event/src/reactive_numeric.rs` (`invoke_batch_callback`,
+`run_range`), `reactive_hot_loop.rs`, `reactive_score.rs` and the Python
+requirements/writer adapters. Keep `FullSession` the single execution/account
+authority. Use focused Rust structs/modules for additional scratch/access plans;
+no wholesale refactor of the large existing reactive module.
+
+**Work packages (all pending):**
+
+1. **PF-09.1 - Freeze same-strategy reactive baselines.** Pin public
+   `event_driven`/native-event, prepared scalar and reactive WFO surfaces with
+   their actual R1/R2/R3/R3B contracts. Measure callback lookup/projection,
+   getter/writer crossings, scheduling, native accounting, reset and adaptation
+   separately. Retain dynamic versus declared run-stable binding cases and
+   lightweight versus Python-heavy decisions; no strategy rewrite in A/B.
+2. **PF-09.2 - Close batch callback/access-plan gaps.** Extend proven stable
+   callback binding to batch routes only when declared mutation semantics allow.
+   Dynamic callbacks still observe replacements/exceptions. Reuse parsed
+   requirements and typed wake-plan descriptors within their certified lifetime;
+   remove repeated generic payload conversion where typed APIs already exist.
+   Measure native getter cost; improve backing numeric projection behind current
+   accessors, or use an existing declared bulk route. Preserve snapshot/lease
+   behavior for retained contexts. No mandatory new strategy getter API.
+3. **PF-09.3 - Reuse wake/command scratch and shorten boundaries.** Reuse
+   candidate wake lists and projection/command capacity across bars without
+   retaining stale lengths, reason masks or handles. Refresh only declared
+   observable fields at the correct phase. Consume staged typed commands with
+   their exact order and business admission. Capacity growth happens only at
+   a safe boundary; callback failure discards unsubmitted rows and poisons or
+   resets according to the original contract. Never reinterpret a callback
+   transaction as all-or-none trading or omit a valid rejected-order record.
+4. **PF-09.4 - Optimize existing reactive WFO scheduling.** Reuse PERF-08's
+   engine-owned calendar/window/metric preparation where contracts match, and
+   the existing worker/session ownership across candidates. Tune task grain,
+   reusable candidate mappings, GIL detachment and bounded transport based on
+   measured costs. Retain factory/reset semantics and isolated state/RNG for
+   every candidate/fold. Sequential ask/evaluate/tell stays sequential; R3B
+   throughput scheduling keeps its explicit, different sampling contract.
+   Compare fixed matrices separately from whole Optuna studies. Do not skip
+   strategy calls by replaying a command tape or changing a sparse certificate.
+5. **PF-09.5 - Close public result and requested audit costs.** Use the same
+   authoritative scalar/SoA output and retained trace; optimize adaptation with
+   equal financial/research retention. Preserve ordinary metrics, plots,
+   reports and detailed ledger access after runner reset/close. Reactive WFO
+   retains its segmented reset-flat account semantics; ordinary WFO retains
+   its continuous final account. Sharing preparation cannot merge those models.
+6. **PF-09.6 - Integrate, recertify and document.** Run the affected combined
+   WFO/reactive/target/portfolio/package/intrabar regression and resource gates,
+   preserve options/unsupported-domain containment, rebuild changed Rust and
+   test the new matching candidate wheel pair outside the checkout. Refresh
+   the existing closure mechanism to bind PERF-08/09 evidence and the current
+   source/native hashes. Archive the original PERF-07 manifest unchanged; it
+   cannot certify changed code. Update README with comparable public ms/s and
+   actual work units, and keep detailed reactive cases in the plan/artifacts.
+
+**Tests and exit gates:**
+- Four-way corpus: independent execution oracle + same Python strategy;
+  frozen co-runtime; optimized co-runtime; captured effective-command replay.
+  Compare callback inputs/phases, wake reasons, commands/IDs/order, strategy
+  state fingerprints where supplied and accepted positions/costs/equity.
+  Static replay certifies captured execution only, not reactive decisions.
+- Include no-op/every-bar, getter-heavy, command-heavy, Python-heavy,
+  sparse/block, high-churn grid-like and candidate-batch cases. Verify silent
+  per-bar state/RNG updates, callback replacement, old context/array retention,
+  stale generations, cancel/amend/OCO, partial fills, fee/funding/margin and
+  liquidation. Every-bar callback counts must stay identical.
+- Exercise callback exceptions after staged writes, per-command business
+  rejects, buffer exhaustion, candidate failure isolation, re-entry, active
+  cancellation/deadlines, poisoned-session recovery, huge-to-tiny reset and
+  worker teardown. No lock may span a re-entrant Python callback unsafely.
+- Public reactive timings use the same 2k-bar general benchmark and separate
+  10k-bar R1/R2/R3/R3B controls; reactive WFO includes the existing 2k/8-candidate
+  fixture plus a broader fixed-candidate and sequential workload. Preserve
+  actual bar visits and candidate counts. Compare each schedule against its
+  own baseline; never label batch-versus-sequential TPE as exact search parity.
+- Apply the same paired/noise/sample budgets as PERF-08. At least one measured
+  engine-bound reactive public workload and its corresponding reactive WFO
+  workload must improve beyond noise for newly admitted optimizations. Record
+  Python decision share and its speed ceiling; no arbitrary global multiplier.
+  A workload that does not benefit keeps the compatible baseline with evidence.
+  No regression outside the pinned public latency/memory budgets is hidden
+  behind a faster microbenchmark or fewer retained rows.
+- Repeat PERF-08's primary causal WFO benchmark after integration and preserve
+  its accepted gain and all four-mode/Mode-5 parity. Track owned memory,
+  cold/warm RSS/PSS, shared mappings, cache/pool capacity and retained results;
+  soak must plateau under predeclared budgets with no leaked workers or aliases.
+- Build/reuse certification tools for the exact candidate, run native-required
+  public wheel consumers and validate a refreshed `READY_FOR_PHASE78` manifest
+  with every new work package disposition, zero open correctness blockers and
+  route-specific rollback. Full cross-platform promotion/shadow/publish gates
+  remain Phase 78 responsibilities; no stale-wheel or skipped-native pass.
+
+**Deliverables:** proposed `tests/test_perf_09_reactive_boundary.py`, extension
+of existing R1/R2/R3/R3B/W3 parity/resource tests, a combined public benchmark,
+`docs/performance/perf_09_reactive_closure.md`, updated endpoint/backend guides,
+same-retention research/financial export evidence and refreshed closure files.
+Report WFO preparation, native execution, optimizer, Python strategy and export
+times separately, with actual baseline/candidate source identities.
+
+**Technical debt/exit:** all in-scope boundary, scheduler, ownership, public
+integration, audit, parity, benchmark and local candidate-wheel gates must
+close here. Required failures keep this phase open; do not transfer them to
+Phase 78 under a new debt label. User strategy logic, automatic Python-to-Rust
+translation, new platform support and production release remain outside scope.
+Rollback uses the same compatible baseline bridge/schedule and preserves all
+requested outputs. Only a new approval admits Phase 78 after this gate.
+
 ### Phase 78 - Public Rust-Primary Promotion And Release Certification
 
 **Status: planned; not started.**
@@ -18790,6 +19152,14 @@ including the public five-mode matrix, transition `%_equity` integration and
 reactive/resource closure. Historical Phase 77 completion alone does not admit
 this phase. Public promotion is separate from implementation and still needs
 this phase's individual approval and current installed-wheel evidence.
+
+**Additional prerequisite (2026-09-07 follow-up):**
+[PERF-08](#phase-perf-08---public-wfo-calendar-shard-and-evaluation-preparation-closure)
+and [PERF-09](#phase-perf-09---reactive-boundary-batch-runtime-and-integrated-performance-closure)
+must close before admission. PERF-09 refreshes the source/build-bound handoff
+after both phases; the original PERF-07 certificate alone is insufficient for
+the modified candidate. No new implementation phase is implicitly approved by
+this planning update.
 
 **Additional prerequisite (APC-1.0):** PERF-01 through PERF-07 must supply a
 validated `PerformanceClosureManifest` with status `READY_FOR_PHASE78` for
@@ -18816,7 +19186,7 @@ of the exact final artifacts intended for distribution.
 **Implementation sequence:**
 
 1. P78-01: reconcile the Phase 72 matrix with actual routes after 73-77,
-   77.1-77.3 and the qualified PERF-01 through PERF-07 changes. For
+   77.1-77.3 and the qualified PERF-01 through PERF-09 changes. For
    each endpoint/workload/profile/timing/platform, record state, control-flow,
    data, metric and result authority, native entry/callback counts, and exact
    supported/unsupported policy. No generic `Rust supported` stamp from one case.
@@ -18923,6 +19293,8 @@ its row passed. Planned filenames below are requirements, not tests already run.
 | WFO cache/reducers preserve optimizer, roles and accounts | PERF-05 | AC-03/17/24-34, five-mode fixed/full-study parity and actual work measurement |
 | Full research ledger and financial retention remain independent | PERF-06 | AC-24/35-39, legacy round-trip, writer faults and no requested audit loss |
 | Combined public qualification and scoped performance handoff | PERF-07 | Complete AC/B dispositions, exact candidate wheels and valid READY_FOR_PHASE78 manifest |
+| Representative four-mode WFO preparation and primary Mode 4 causal acceleration | PERF-08 | Unique-work fixed/study matrix, exact shard/calendar/request parity, Mode 2 RNG control, Mode 5 compatibility and paired public timings |
+| Reactive engine/bridge closure and refreshed WFO/native candidate handoff | PERF-09 | Same-strategy four-way parity, same-schedule W3 timings, retained-output/resource gates and current source/wheel closure |
 | Public promotion reflects exact measured capability | 78 | Registry negative tests and authority metadata |
 | Current installed core/native artifacts behave correctly | 78 | Behavioral wheel matrix plus pip/Poetry consumer runs |
 | A5/shadow/cleanup and final guide completion | 78 | Actual observation evidence, approval and rollback proof |
