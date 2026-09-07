@@ -65,7 +65,7 @@ class _DynamicReplacementStrategy:
         self.calls.append(("original", int(context.bar_index)))
         if context.bar_index == 0:
             self.retained_context = context
-            self.raw_timestamp = object.__getattribute__(context, "timestamp")
+            self.raw_timestamp = object.__getattribute__(context, "_timestamp_value")
 
             def replacement(next_context):
                 self.calls.append(("replacement", int(next_context.bar_index)))

@@ -101,6 +101,33 @@ class NativeCommandBatch:
         return bool(self.commands)
 
 
+class _LazyTimestampDescriptor:
+    """Materialize only ``NativeStrategyContext.timestamp`` on first read.
+
+    Assigning this descriptor after dataclass construction leaves ``timestamp``
+    in the generated constructor, repr, equality, and ``asdict`` field list.
+    Unlike an instance-wide ``__getattribute__`` hook, normal hot fields such
+    as ``bar_index`` and ``equity`` keep their ordinary attribute path.
+    """
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            return self
+        timestamp = object.__getattribute__(instance, "_timestamp_value")
+        if not object.__getattribute__(instance, "_timestamp_is_ns"):
+            return timestamp
+        materialized = pd.Timestamp(int(timestamp), unit="ns", tz="UTC")
+        object.__setattr__(instance, "_timestamp_value", materialized)
+        object.__setattr__(instance, "_timestamp_is_ns", False)
+        counter = object.__getattribute__(instance, "_timestamp_materialization_counter")
+        if counter is not None:
+            counter[0] += 1
+        return materialized
+
+    def __set__(self, instance, value) -> None:
+        object.__setattr__(instance, "_timestamp_value", value)
+
+
 @dataclass(frozen=True)
 class NativeStrategyContext:
     """Immutable callback snapshot with an optional lazy timestamp.
@@ -161,19 +188,11 @@ class NativeStrategyContext:
             **kwargs,
         )
 
-    def __getattribute__(self, name: str):
-        if name == "timestamp" and object.__getattribute__(self, "_timestamp_is_ns"):
-            timestamp_ns = object.__getattribute__(self, "timestamp")
-            timestamp = pd.Timestamp(int(timestamp_ns), unit="ns", tz="UTC")
-            # Dataclass immutability remains the public contract.  This private
-            # one-time cache does not mutate an observed field value.
-            object.__setattr__(self, "timestamp", timestamp)
-            object.__setattr__(self, "_timestamp_is_ns", False)
-            counter = object.__getattribute__(self, "_timestamp_materialization_counter")
-            if counter is not None:
-                counter[0] += 1
-            return timestamp
-        return object.__getattribute__(self, name)
+
+
+# Keep the dataclass field while specializing just this cold conversion. The
+# descriptor is installed after ``@dataclass`` has generated its constructor.
+NativeStrategyContext.timestamp = _LazyTimestampDescriptor()
 
 
 class NativeEventStrategyError(StrategyCallbackError):
