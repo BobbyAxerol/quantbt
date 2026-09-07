@@ -63,8 +63,35 @@ route là strict fold-local retraining nếu strategy implementation cũng causa
 
 Mỗi fold có study, duplicate state và deterministic seed riêng. Khi fold hoàn
 tất, QuantBT stitch target OOS theo chronology và chạy account engine đúng một
-lần. Policy `carry` giữ position/equity liên tục; boundary không tự reset vốn
-hay tạo close/reopen.
+lần. `carry_position` là policy continuous-account mặc định; boundary không tự
+reset vốn hay tạo close/reopen. `close_at_boundary` chỉ chạy trên stitched route
+khi có embargo bar rõ ràng để flatten target; `reset_flat` và
+`replay_prior_state` fail-closed cho đến khi dùng segmented-account hoặc
+order/fill-replay adapter thay vì bị âm thầm đổi thành carry.
+
+### 2.3. Causality Contract Phase 64
+
+Mỗi WFO run hiện gắn `CalendarPlanV2`: `exact_v2` reject timestamp lệch dù số
+row bằng nhau; `intersection_v2` chỉ dùng common observed clock; `legacy_v1`
+chỉ dành cho reproducibility. Với fold k, range audit được tách rõ:
+
+$$
+W_k \;\Vert\; D_k \;\Vert\; L_k \;\Vert\; P_k \;\Vert\; T_k \;\Vert\; E_k,
+$$
+
+trong đó $W_k$ là warmup, $D_k$ là train, $L_k$ là label-horizon tail,
+$P_k$ là purge, $T_k$ là OOS test, và $E_k$ là embargo. Chỉ $D_k$ được dùng
+để select params trong strict Mode 4; $T_k$ không được Optuna nhìn thấy.
+
+Strategy adapter có thể khai báo `intent_contract`: kind (signal/target/
+position), observation phase, effective phase, và `already_shifted`. Điều đó
+minh bạch timing với execution layer nhưng không biến một indicator Python bất
+kỳ thành causal tự động. Strategy vẫn phải tránh intra-fold look-ahead.
+
+Object strategy stateful dùng lifecycle isolated: class được instantiate theo
+call; object có `spawn/reset` nhận seed ổn định theo `(run, candidate, fold,
+cutoff)`; callable instance được deepcopy hoặc raise. Nếu object có `warmup`,
+nó chỉ nhận `W_k` và warmup PnL không đi vào kết quả fold.
 
 ### 2.2. Tối Ưu Lifecycle Phase 49B
 
@@ -112,6 +139,11 @@ proxy trực tiếp từ signal và data, nhanh hơn cho bootstrap/Optuna. `endp
 gọi đúng QuantBT endpoint như `pct_equity`, `signal_notional`, portfolio, basket
 hoặc arbitrage, chậm hơn nhưng sát accounting thật hơn. `mode_2_sbb` bắt buộc
 dùng `proxy`, vì nó cần mô phỏng nhiều synthetic paths từ IS return.
+
+Với public prepared-native scorer, `pct_equity` chỉ dùng Rust khi user explicit
+`target_runtime="rust"` cùng `native_prepared_wfo="require"`. Rust khi đó giữ
+đúng transition-sizing legacy, không đổi thành per-bar equity-fraction; `auto`
+vẫn là legacy compatibility route.
 
 ---
 
@@ -718,3 +750,33 @@ và outer IS phải đủ dài để chứa `inner_min_folds`. Metadata trả v�
 `chronological_validation_claim="strict_outer_oos_after_frozen_selection"`.
 Không đủ inner history là lỗi cấu hình/data, không phải lý do để fallback sang
 schedule khác.
+
+---
+
+## 16. Native WFO Runtime V2
+
+Native WFO Runtime V2 là acceleration capability, không phải mode chọn params
+thứ sáu. Public `WalkForwardEngine` vẫn quyết định chronology, `optimization_mode`,
+selection metadata, và ý nghĩa OOS. Runtime V2 chỉ chạy bounded
+candidate-by-fold execution sau khi strategy đã tạo signal numeric causal.
+
+Scope hiện tại là `strategy_ir_signal_target_v1`, single-symbol, với account
+reset-flat trên từng OOS fold. W0 vẫn là callback/pandas compatibility oracle;
+W1/W2 chỉ mô tả strategy prepared signal. Target weight/notional, orders,
+portfolio, package, và reactive strategy không được tự bridge qua runtime này.
+
+Vì vậy không được dùng kết quả native V2 như thay thế im lặng cho equity stitched
+`carry_position` của endpoint. Audit Top-K chỉ hợp lệ khi regenerated source
+batch có đúng intent fingerprint với score batch. Đây là invariant reproducibility,
+không phải một score heuristic. Xem [Native WFO Runtime V2](../docs/native_wfo_runtime.md).
+
+Phase 74 bổ sung một route public hẹp ngay dưới endpoint scorer: W0 callback
+scalar đã có, hoặc W1/W2 cache feature khai báo explicit, được Rust chấm các
+candidate/fold/shard fresh-account theo đúng metric hiện hữu. `WalkForwardEngine`
+vẫn giữ hoàn toàn Optuna, objective từng mode, selector và final continuous
+account. Scope là một symbol OHLCV, `signal_notional`/`single_signal`/
+`notional`/`unit`, `365` trading days; Mode 2 SBB vẫn giữ proxy path. Với
+per-fold schedule, W1/W2 phải declare
+`causal_cache_contract="causal_parameter_independent_v1"`, nên không biến cache
+của alpha thành một claim anti-leakage tự động. Xem
+[Public prepared-native WFO scoring](../docs/native_prepared_wfo_public.md).

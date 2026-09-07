@@ -18,6 +18,7 @@ from typing import Mapping
 
 from .generated_product_contracts import (
     NATIVE_EVENT_PRODUCT_REGISTRY,
+    NATIVE_EVENT_PERFORMANCE_EVIDENCE,
     NATIVE_EVENT_PROMOTION_POLICY,
     PRODUCT_CONTRACT_REGISTRY_FINGERPRINT,
 )
@@ -278,6 +279,65 @@ def _matches_workload_shape(
     )
 
 
+def _current_measurement_evidence_is_complete(
+    evidence: Mapping[str, object],
+    measurement: Mapping[str, object],
+) -> bool:
+    """Fail closed if a hand-edited registry lacks real current evidence.
+
+    CI performs full artifact/hash validation through the measurement contract.
+    Routing repeats the compact structural subset so a runtime-injected registry
+    cannot turn a bare ``pass`` flag into automatic Rust promotion.
+    """
+
+    specification = measurement.get("current_candidate_evidence")
+    if not isinstance(specification, Mapping):
+        return False
+    identity = evidence.get("candidate_identity")
+    comparator = evidence.get("comparator_contract")
+    metrics = evidence.get("measurement")
+    if not isinstance(identity, Mapping) or not isinstance(comparator, Mapping) or not isinstance(metrics, Mapping):
+        return False
+    if specification.get("require_clean_tree") is True and identity.get("git_dirty") is not False:
+        return False
+    required_identity = specification.get("identity_required_fields")
+    required_extension = specification.get("native_extension_required_fields")
+    required_comparator = specification.get("comparator_required_fields")
+    required_measurements = specification.get("measurement_required_fields")
+    if not all(
+        isinstance(values, list)
+        for values in (
+            required_identity,
+            required_extension,
+            required_comparator,
+            required_measurements,
+        )
+    ):
+        return False
+    if any(identity.get(str(field)) is None for field in required_identity):
+        return False
+    extension = identity.get("native_extension")
+    if not isinstance(extension, Mapping) or extension.get("available") is not True:
+        return False
+    if any(extension.get(str(field)) is None for field in required_extension):
+        return False
+    python_contract = comparator.get("python")
+    native_contract = comparator.get("native")
+    if not isinstance(python_contract, Mapping) or not isinstance(native_contract, Mapping):
+        return False
+    if any(
+        python_contract.get(str(field)) is None
+        or native_contract.get(str(field)) is None
+        or python_contract.get(str(field)) != native_contract.get(str(field))
+        for field in required_comparator
+    ):
+        return False
+    if any(metrics.get(str(field)) is None for field in required_measurements):
+        return False
+    parity = metrics.get("parity")
+    return isinstance(parity, Mapping) and parity.get("passed") is True
+
+
 def _decision(
     context: NativePromotionContext,
     *,
@@ -531,12 +591,17 @@ def resolve_native_event_promotion(
     ]
     enabled_rules = [item for item in matching_rules if bool(item["enabled"])]
     if not enabled_rules:
+        hold_reason = workload.get("promotion_hold_reason")
         return _decision(
             context,
             workload=workload,
             policy=policy,
             resolved="python",
-            reason="auto_python_release_policy",
+            reason=(
+                str(hold_reason)
+                if isinstance(hold_reason, str) and hold_reason.strip()
+                else "auto_python_release_policy"
+            ),
             policy_table=policy_table,
             configured_stage=configured_stage,
             effective_stage=effective_stage,
@@ -572,6 +637,51 @@ def resolve_native_event_promotion(
             promotion_max_stage=promotion_max_stage,
         )
     rule = eligible_rules[0]
+    evidence = dict(
+        (registry.get("performance_evidence") or NATIVE_EVENT_PERFORMANCE_EVIDENCE).get(
+            context.workload_id,
+            {},
+        )
+    )
+    measurement = registry.get("measurement_contract") or {}
+    if (
+        evidence.get("measurement_contract_id") != measurement.get("id")
+        or evidence.get("measurement_status") != "current_candidate_verified"
+        or evidence.get("identity_status") != "current_candidate"
+        or evidence.get("promotion_eligible") is not True
+        or not _current_measurement_evidence_is_complete(evidence, measurement)
+    ):
+        return _decision(
+            context,
+            workload=workload,
+            policy=policy,
+            resolved="python",
+            reason="measurement_evidence_not_current",
+            policy_table=policy_table,
+            configured_stage=configured_stage,
+            effective_stage=effective_stage,
+            promotion_max_stage=promotion_max_stage,
+            matched_rule_id=str(rule["id"]),
+            minimum_bars=int(rule["min_bars"]),
+        )
+    if (
+        evidence.get("status") != "pass"
+        or evidence.get("end_to_end_faster_than_python") is not True
+        or evidence.get("rss_plateau") is not True
+    ):
+        return _decision(
+            context,
+            workload=workload,
+            policy=policy,
+            resolved="python",
+            reason="performance_or_rss_gate_not_passed",
+            policy_table=policy_table,
+            configured_stage=configured_stage,
+            effective_stage=effective_stage,
+            promotion_max_stage=promotion_max_stage,
+            matched_rule_id=str(rule["id"]),
+            minimum_bars=int(rule["min_bars"]),
+        )
     minimum_bars = int(rule["min_bars"])
     if context.bars < minimum_bars:
         return _decision(

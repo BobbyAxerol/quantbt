@@ -1,0 +1,1042 @@
+{
+  "ac_coverage": [
+    {
+      "evidence": "tests/test_perf_01_traceability_and_computation.py::test_observation_ledger_deduplicates_per_reducer",
+      "id": "AC-01",
+      "owner": "PERF-01",
+      "state": "COVERED_PERF01"
+    },
+    {
+      "evidence": "tests/test_perf_01_traceability_and_computation.py::test_opaque_custom_metric_requires_conservative_full_input",
+      "id": "AC-02",
+      "owner": "PERF-01",
+      "state": "COVERED_PERF01"
+    },
+    {
+      "evidence": "tests/test_perf_01_traceability_and_computation.py::test_profiled_wfo_preserves_trial_checkpoint_order_and_result",
+      "id": "AC-03",
+      "owner": "PERF-01",
+      "state": "COVERED_PERF01"
+    },
+    {
+      "evidence": "tests/test_phase49b_wfo_performance.py::test_prepared_walkforward_context_has_content_signature_and_isolated_strategy_slice",
+      "id": "AC-04",
+      "owner": "PERF-01",
+      "state": "COVERED_PERF01"
+    },
+    {
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::reused_runner_has_no_large_predecessor_state_or_retained_output_alias",
+      "id": "AC-05",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_funding_sign_and_empty_tape_metamorphic",
+      "id": "AC-06",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "tests/test_perf_02_session_reuse.py::test_perf02_prepared_runner_reuse_has_no_residual_state_or_output_alias",
+      "id": "AC-07",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage",
+      "id": "AC-08",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "rust/crates/quantbt-execution/src/lib.rs::tests::request_fingerprint_covers_all_result_affecting_inputs",
+      "id": "AC-09",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_ledger_reconciles_scale_reduce_close_and_reverse_python_rust",
+      "id": "AC-10",
+      "owner": "PERF-02",
+      "state": "COVERED_PERF02"
+    },
+    {
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset",
+      "id": "AC-11",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_business_rejection_remains_per_command_not_callback_atomicity",
+      "id": "AC-12",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_phase62_reactive_numeric_coruntime.py::test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically",
+      "id": "AC-13",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_silent_every_bar_callback_still_advances_private_state",
+      "id": "AC-14",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_perf_03_reactive_boundary.py::test_perf03_future_ohlc_suffix_cannot_change_prior_effective_command",
+      "id": "AC-15",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_phase63_sparse_block_reactive.py::test_r2_coalesces_fill_order_event_and_liquidation_on_one_boundary",
+      "id": "AC-16",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_phase63_sparse_block_reactive.py::test_r3b_candidate_batch_coalesces_callbacks_and_isolates_failures",
+      "id": "AC-17",
+      "owner": "PERF-03",
+      "state": "COVERED_PERF03"
+    },
+    {
+      "evidence": "tests/test_perf_04_native_matching.py::test_perf04_prepared_runner_reuses_and_releases_matching_scratch",
+      "id": "AC-18",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/native_event/contract/test_phase51a_v3_next_open.py::test_python_and_rust_command_outcomes_cover_replace_cancel_all_and_reject",
+      "id": "AC-19",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_perf_04_native_matching.py::test_perf04_public_high_churn_lifecycle_preserves_python_rust_parity",
+      "id": "AC-20",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation",
+      "id": "AC-21",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference",
+      "id": "AC-22",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_phase67_rust_shared_portfolio.py::test_v2_registry_normalizes_symbol_input_order_before_shared_pro_rata_execution",
+      "id": "AC-23",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling",
+      "id": "AC-24",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_semantic_context_and_seed_changes_do_not_share_execution_keys",
+      "id": "AC-25",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_rejects_an_underspecified_terminal_scorer_contract",
+      "id": "AC-26",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling",
+      "id": "AC-27",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_cancel_reset_and_unsupported_intent_fail_closed",
+      "id": "AC-28",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_study_seed_and_study_identity_prevent_cross_study_reuse",
+      "id": "AC-29",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_phase64_wfo_correctness.py::test_per_fold_causal_selection_does_not_inspect_that_fold_external_test_labels",
+      "id": "AC-30",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_phase76_reactive_wfo.py::test_phase76_reactive_wfo_keeps_absolute_clock_and_reset_flat_score_audit_parity",
+      "id": "AC-31",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_matches_existing_fold_oracle_and_is_worker_count_invariant",
+      "id": "AC-32",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_mode2_keeps_proxy_path_and_streaming_retention_declaration",
+      "id": "AC-33",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_exact_native_score_reuse_preserves_all_supported_endpoint_mode_outputs",
+      "id": "AC-34",
+      "owner": "PERF-05",
+      "state": "COVERED_PERF05"
+    },
+    {
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_dynamic_conditional_space_is_observed_only_and_keeps_category_order",
+      "id": "AC-35",
+      "owner": "PERF-06",
+      "state": "COVERED_PERF06"
+    },
+    {
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes",
+      "id": "AC-36",
+      "owner": "PERF-06",
+      "state": "COVERED_PERF06"
+    },
+    {
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes",
+      "id": "AC-37",
+      "owner": "PERF-06",
+      "state": "COVERED_PERF06"
+    },
+    {
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_full_trial_ledger_keeps_full_fold_metrics_while_public_table_stays_compact",
+      "id": "AC-38",
+      "owner": "PERF-06",
+      "state": "COVERED_PERF06"
+    },
+    {
+      "evidence": "tests/test_perf_06_research_audit.py::test_perf06_columnar_codec_is_immutable_exact_and_never_uses_repr_identity",
+      "id": "AC-39",
+      "owner": "PERF-06",
+      "state": "COVERED_PERF06"
+    },
+    {
+      "evidence": "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production",
+      "id": "AC-40",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_phase68_rust_package_authority.py::test_multi_currency_and_multi_venue_arbitrage_fail_closed",
+      "id": "AC-41",
+      "owner": "PERF-04",
+      "state": "COVERED_PERF04"
+    },
+    {
+      "evidence": "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical",
+      "id": "AC-42",
+      "owner": "PERF-01",
+      "state": "COVERED_PERF01"
+    },
+    {
+      "evidence": "tests/test_perf_07_performance_closure.py::test_perf07_candidate_wheel_evidence_requires_clean_install",
+      "id": "AC-43",
+      "owner": "PERF-07",
+      "state": "COVERED_PERF07"
+    },
+    {
+      "evidence": "tests/test_perf_07_performance_closure.py::test_perf07_manifest_rejects_changed_evidence_or_source_identity",
+      "id": "AC-44",
+      "owner": "PERF-07",
+      "state": "COVERED_PERF07"
+    }
+  ],
+  "ap_dispositions": [
+    {
+      "evidence": [
+        "src/quantbt/core/performance_contracts.py",
+        "rust/crates/quantbt-engine/src/metrics_v2.rs",
+        "src/quantbt/core/native_result_v2.py"
+      ],
+      "id": "AP-01",
+      "owner": "PERF-01",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/backends/native_prepared_evaluation.py",
+        "rust/crates/quantbt-execution/examples/perf02_session_reuse.rs",
+        "tests/test_perf_02_session_reuse.py"
+      ],
+      "id": "AP-02",
+      "owner": "PERF-02",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "rust/native_event/src/reactive_numeric.rs",
+        "src/quantbt/backends/native_event.py",
+        "tests/test_perf_03_reactive_boundary.py",
+        "benchmarks/native_event/benchmark_perf03_reactive_boundary.py"
+      ],
+      "id": "AP-03",
+      "owner": "PERF-03",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/core/runtime_governance.py",
+        "rust/crates/quantbt-execution/src/lib.rs",
+        "tests/test_perf_02_session_reuse.py"
+      ],
+      "id": "AP-04",
+      "owner": "PERF-02",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "rust/crates/quantbt-engine/src/session.rs",
+        "rust/crates/quantbt-engine/src/orders/indexes.rs",
+        "rust/crates/quantbt-engine/src/orders/aliases.rs",
+        "tests/test_perf_04_native_matching.py",
+        "benchmarks/native_event/benchmark_perf04_native_matching.py"
+      ],
+      "id": "AP-05",
+      "owner": "PERF-04",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "rust/crates/quantbt-execution/src/target.rs",
+        "rust/crates/quantbt-execution/src/package.rs",
+        "tests/test_phase66_rust_target_vectorized.py",
+        "tests/test_phase67_rust_shared_portfolio.py",
+        "tests/test_phase68_rust_package_authority.py",
+        "benchmarks/native_event/registries/perf_04_specialization_registry_v1.json"
+      ],
+      "id": "AP-06",
+      "owner": "PERF-04",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "docs/performance/perf_05_wfo_evaluation_reuse.md"
+      ],
+      "id": "AP-07",
+      "owner": "PERF-05",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
+      ],
+      "id": "AP-08",
+      "owner": "PERF-05",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/native_wfo_public.py",
+        "src/quantbt/core/wfo_evaluation.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
+      ],
+      "id": "AP-09",
+      "owner": "PERF-05",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/core/research_audit.py",
+        "src/quantbt/core/research_audit_artifact.py",
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/reactive_wfo.py",
+        "tests/test_perf_06_research_audit.py",
+        "benchmarks/native_event/benchmark_perf06_research_audit.py",
+        "docs/performance/perf_06_research_audit.md"
+      ],
+      "id": "AP-10",
+      "owner": "PERF-06",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "src/quantbt/core/performance_contracts.py",
+        "src/quantbt/walkforward.py"
+      ],
+      "id": "AP-11",
+      "owner": "PERF-01",
+      "state": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "evidence": [
+        "rust/Cargo.toml",
+        "tools/run_perf07_pgo_experiment.py",
+        "tools/performance_closure.py"
+      ],
+      "id": "AP-12",
+      "owner": "PERF-07",
+      "state": "IMPLEMENTED_VERIFIED"
+    }
+  ],
+  "baseline_source": {
+    "endpoint": {
+      "exists": true,
+      "path": "src/quantbt/endpoint.py",
+      "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+    },
+    "identity_mode": "content-addressed source anchors; runtime identity captured separately",
+    "measurement_contract_tool": {
+      "exists": true,
+      "path": "tools/measurement_contract.py",
+      "sha256": "306ebfbd4a6ea683c7ddf67eeabf1c79adb9f5da104ba167f4cd16d3f96c82de"
+    },
+    "native_metrics": {
+      "exists": true,
+      "path": "rust/crates/quantbt-engine/src/metrics_v2.rs",
+      "sha256": "3c43b3c600ba125f8a89e8c1879adf6dd41ddf94e5b7b8c5a2862b5966ba49a4"
+    },
+    "performance_contracts": {
+      "exists": true,
+      "path": "src/quantbt/core/performance_contracts.py",
+      "sha256": "e364c8e4a0e7e36d751bb34f9a430f368da4317d9d46f124c0f67eb137b19f4d"
+    },
+    "walkforward": {
+      "exists": true,
+      "path": "src/quantbt/walkforward.py",
+      "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+    }
+  },
+  "benchmark_classes": [
+    {
+      "id": "B-01",
+      "owner": "PERF-01",
+      "state": "REGISTERED",
+      "workload": "no-trade short/long score/compact"
+    },
+    {
+      "id": "B-02",
+      "owner": "PERF-03",
+      "state": "REGISTERED",
+      "workload": "numeric every-bar strategy with repeated getters"
+    },
+    {
+      "id": "B-03",
+      "owner": "PERF-03",
+      "state": "REGISTERED",
+      "workload": "many commands per callback"
+    },
+    {
+      "id": "B-04",
+      "owner": "PERF-03",
+      "state": "REGISTERED",
+      "workload": "object-heavy Python decision"
+    },
+    {
+      "id": "B-05",
+      "owner": "PERF-03",
+      "state": "REGISTERED",
+      "workload": "sparse strategy with idle bars"
+    },
+    {
+      "id": "B-06",
+      "owner": "PERF-04",
+      "state": "REGISTERED",
+      "workload": "grid high churn resting/cancel/amend"
+    },
+    {
+      "id": "B-07",
+      "owner": "PERF-02",
+      "state": "REGISTERED",
+      "workload": "fresh versus reused heterogeneous trials"
+    },
+    {
+      "id": "B-08",
+      "owner": "PERF-04",
+      "state": "REGISTERED",
+      "workload": "target candidate/symbol shape sweep"
+    },
+    {
+      "id": "B-09",
+      "owner": "PERF-04",
+      "state": "REGISTERED",
+      "workload": "portfolio/package shared account"
+    },
+    {
+      "id": "B-10",
+      "owner": "PERF-05",
+      "state": "REGISTERED",
+      "workload": "fixed-matrix WFO across five modes"
+    },
+    {
+      "id": "B-11",
+      "owner": "PERF-05",
+      "state": "REGISTERED",
+      "workload": "zero/mixed/high cache reuse"
+    },
+    {
+      "id": "B-12",
+      "owner": "PERF-06",
+      "state": "REGISTERED",
+      "workload": "audit-full research with slow sink"
+    },
+    {
+      "id": "B-13",
+      "owner": "PERF-05",
+      "state": "REGISTERED",
+      "workload": "long WFO cancel/fail/retry"
+    },
+    {
+      "id": "B-14",
+      "owner": "PERF-07",
+      "state": "REGISTERED",
+      "workload": "held-out workload for PGO"
+    }
+  ],
+  "contracts": {
+    "audit": "financial retention and research retention are independent; requested audit cannot be silently dropped",
+    "callback": "callback exception/re-entry/cancel/capacity work is owned by PERF-03",
+    "economic_vs_performance": "economic fingerprints remain independent of kernel/cache/profile choices",
+    "numeric": "no fast-math, RNG substitution, relaxed tie-break or reordered sequential optimizer decisions",
+    "ownership": "prepared WFO context is run-local; strategy slices are isolated; mutable source identity is content-hashed"
+  },
+  "measurement_policy": {
+    "baseline_budget": {
+      "warm_public_p50_regression_pct": 3.0,
+      "warm_public_p95_regression_pct": 5.0
+    },
+    "comparison": "paired public samples; cache reuse must be reported separately from execution throughput",
+    "counter_null": "null means not measured by that route; zero means measured zero",
+    "timing": "exclusive stage buckets plus separate optional aggregate worker CPU time"
+  },
+  "phase": "PERF-01",
+  "route_matrix": [
+    {
+      "benchmark_fixture": "phase54b2 deterministic public static command tape",
+      "domain_contract": "event lifecycle timing, fee/funding/account contract",
+      "export": "fills, order logs, metrics, plots, report bundle",
+      "factories": [
+        "orders",
+        "native_event_lifecycle"
+      ],
+      "id": "static_orders",
+      "metrics_result": "native-event ledger -> BacktestResult/report adapters",
+      "optimization_target": "AP-05 exact lifecycle matching, reusable scratch, and bounded aliases verified by PERF-04",
+      "oracle_tests": [
+        "tests/native_event/contract/test_phase54b2_rust_first_routes.py"
+      ],
+      "resolved_request": "declared OrderCommand tape -> execution plan",
+      "runtime_kernel": "NativeEventBackend static lifecycle executor",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_event.py",
+          "sha256": "bb7951d375bf11a05b84c75a2818fdfbc8e80f5376be2c26dfcc6a01ab027428"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/native_event_promotion.py",
+          "sha256": "c5d2bb150db6161641feb90241a365509c4ef4b1d214536ce4a84ece873b2d54"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase59 linear accounting corpus",
+      "domain_contract": "linear accounting, fee/funding timing, deterministic fill order",
+      "export": "fill replay result, audit, metrics",
+      "factories": [
+        "fill_replay"
+      ],
+      "id": "fill_replay",
+      "metrics_result": "linear accounting result -> standard metrics and audit adapters",
+      "optimization_target": "AP-01 retention plan; no replay replacement in PERF-01",
+      "oracle_tests": [
+        "tests/test_phase59_linear_accounting_fill_replay.py"
+      ],
+      "resolved_request": "typed FillReplayTapeV2 and funding replay tape",
+      "runtime_kernel": "Rust FillReplay V2 where explicitly certified; reference otherwise",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/fill_replay_v2.py",
+          "sha256": "37f9ee84bdf45f334390bd7182cc5aaff2715d3a0ba1347ff58d23fc2d90bd1b"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase66 same-close direct target fixture",
+      "domain_contract": "target sizing, one-way fee, slippage, funding, margin",
+      "export": "equity, positions, metrics, report",
+      "factories": [
+        "signal_notional"
+      ],
+      "id": "target_signal",
+      "metrics_result": "vectorized account result -> BacktestResult/report adapters",
+      "optimization_target": "AP-06 direct-target specialization verified by PERF-04; preserve its distinct no-order-arena contract",
+      "oracle_tests": [
+        "tests/test_phase66_rust_target_vectorized.py"
+      ],
+      "resolved_request": "signal/target matrix -> prepared target request",
+      "runtime_kernel": "NativeVectorizedBackend NumPy/Numba or explicit typed Rust route",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_vectorized.py",
+          "sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/preparation/native_execution.py",
+          "sha256": "61d5eef2989830834b2198ec283a351e7e6db78b1af5b2deb53f3e9014e9c1ab"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase77.2 pct-equity WFO fixture",
+      "domain_contract": "legacy transition sizing with canonical fee/slippage provenance",
+      "export": "equity, raw positions, metrics, report",
+      "factories": [
+        "pct_equity"
+      ],
+      "id": "pct_equity",
+      "metrics_result": "endpoint-compatible account result -> BacktestResult/report adapters",
+      "optimization_target": "public WFO prepared score; preserve legacy final account behavior",
+      "oracle_tests": [
+        "tests/test_phase77_2_pct_equity_native.py"
+      ],
+      "resolved_request": "legacy signed signal -> pct-equity transition request",
+      "runtime_kernel": "legacy compatibility route or explicit prepared Rust transition scorer",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_wfo_public.py",
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_prepared_evaluation.py",
+          "sha256": "3471748537cc95465bb580852db8a50afc46c7c5da8e3921469671e9cbca210d"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "Phase47 grid adapter and parity fixture",
+      "domain_contract": "ladder activation, quantity constraints, margin and liquidation",
+      "export": "equity, orders, fills, metrics, report",
+      "factories": [
+        "dca_ladder",
+        "native_event_dca_grid"
+      ],
+      "id": "static_dca",
+      "metrics_result": "account result -> standard metrics and audit adapters",
+      "optimization_target": "AP-05 static lifecycle matching is verified; DCA/grid remains on its declared structured-order contract",
+      "oracle_tests": [
+        "tests/test_phase47a_grid_adapter.py"
+      ],
+      "resolved_request": "DCA/grid specification -> structured target/order plan",
+      "runtime_kernel": "native vectorized DCA or event lifecycle route",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/target_intents.py",
+          "sha256": "8b5466cb6798b686e54ac64efc5a12ac615d2b207c4cdfb8b3142eced1bf1a95"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/structured_orders.py",
+          "sha256": "734b44de5614e5f12a4549aa00d60ba3995b244df84607c6960ab64c63b9f378"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase62/63 low- and high-churn reactive fixtures",
+      "domain_contract": "wake ordering, callback state, staged command exception/cancel semantics",
+      "export": "event/fill logs, equity, metrics, report",
+      "factories": [
+        "event_driven",
+        "native_event_strategy"
+      ],
+      "id": "reactive_event_strategy",
+      "metrics_result": "reactive account ledger -> BacktestResult and audit adapters",
+      "optimization_target": "AP-03 boundary and AP-02 reset work in PERF-02/PERF-03",
+      "oracle_tests": [
+        "tests/test_phase62_reactive_numeric_coruntime.py",
+        "tests/test_phase63_sparse_block_reactive.py"
+      ],
+      "resolved_request": "reactive strategy protocol -> wake schedule and staged command batch",
+      "runtime_kernel": "hybrid Python strategy / Rust numeric co-runtime when eligible",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/api/event_driven.py",
+          "sha256": "59fbd0e77ff70aaac429eac01550af519a430a5133ffa51883420fbb6943b6d2"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/strategies/reactive_protocols.py",
+          "sha256": "d493814d961afdb2afa2962e5f800ba12ceab90c34ae294a6cdb6ff5f748d3f8"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase67 shared-account portfolio fixture",
+      "domain_contract": "shared equity, margin, quantities, fees/funding and rebalance policy",
+      "export": "equity, exposure, attribution, metrics, report",
+      "factories": [
+        "portfolio",
+        "basket"
+      ],
+      "id": "portfolio_basket",
+      "metrics_result": "portfolio attribution/account result -> report adapters",
+      "optimization_target": "AP-04 derived account snapshot and AP-09 tiling later",
+      "oracle_tests": [
+        "tests/test_phase67_rust_shared_portfolio.py"
+      ],
+      "resolved_request": "aligned target matrix or basket plan -> shared account admission",
+      "runtime_kernel": "NativePortfolioBackend; bounded Rust shared-account companion where certified",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_portfolio.py",
+          "sha256": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/portfolio_execution_contracts.py",
+          "sha256": "3109fc239c27c09f457014a660cf95a3704799c70f1d5e3e9262db9c1f5d28d4"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase68 bounded package fixture",
+      "domain_contract": "leg ordering, partial/residual policy, shared liquidity/account state",
+      "export": "leg package PnL, residuals, metrics, report",
+      "factories": [
+        "arbitrage"
+      ],
+      "id": "bounded_package_arbitrage",
+      "metrics_result": "package result, residuals and account result -> report adapters",
+      "optimization_target": "AP-06 bounded package authority is verified; unsupported venue contracts remain fail-closed",
+      "oracle_tests": [
+        "tests/test_phase68_rust_package_authority.py"
+      ],
+      "resolved_request": "arbitrage/package spec -> typed multi-leg intent package",
+      "runtime_kernel": "bounded package/arbitrage executor with explicit Rust companion",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_package_arbitrage.py",
+          "sha256": "a017ed7c1bdb9bed2d38fd9475b478dfaa2b5656108c9a745c26bc766eb879a8"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/package_execution_v2.py",
+          "sha256": "81cd0b56d8265410be1df383bcb2f8eb9689bd5ea3167bf5731e89744727a3b2"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase69 single-symbol bracket fixture",
+      "domain_contract": "intrabar ordering, protective exits, funding clock and ambiguity policy",
+      "export": "fills, lifecycle flags, equity, metrics, audit",
+      "factories": [
+        "intrabar_bracket",
+        "intrabar_bracket_rust"
+      ],
+      "id": "intrabar",
+      "metrics_result": "intrabar account path -> standard metrics and audit adapters",
+      "optimization_target": "AP-06 direct target specialization is verified; intrabar remains a distinct declared contract",
+      "oracle_tests": [
+        "tests/test_phase69_rust_intrabar_authority.py"
+      ],
+      "resolved_request": "OHLCV tape plus compact intrabar intent/session tape",
+      "runtime_kernel": "reference/Numba intrabar or explicit Rust intrabar kernel",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_intrabar_rust.py",
+          "sha256": "700a2813c4b7803c11c68ddc6ad7369405bfde4eccabf8aedfd8a87dafc5767a"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/core/intrabar_kernel.py",
+          "sha256": "3a191fd95ee7a3c3607ef1fa9f6449a88a28b55e27731ae478444362522151fd"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "PERF-01 paired public Mode 1 observer baseline",
+      "domain_contract": "declared global/per-fold schedule and mode-1 decay selection",
+      "export": "trial ledger, fold table, candidate table, stitched metrics/report",
+      "factories": [
+        "walk_forward"
+      ],
+      "id": "walk_forward_mode_1",
+      "metrics_result": "trial/fold metrics -> decay selector -> stitched endpoint account",
+      "optimization_target": "AP-07/AP-08 run-local evaluation graph and streaming retention verified by PERF-05",
+      "oracle_tests": [
+        "tests/test_phase74_public_wfo_native.py"
+      ],
+      "resolved_request": "Mode 1 candidate/fold tasks -> endpoint or prepared scalar score batch",
+      "runtime_kernel": "WalkForwardEngine plus optional NativePreparedPublicWfoScorerV1",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/walkforward.py",
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_wfo_public.py",
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase77.1 required mode schedule matrix",
+      "domain_contract": "seeded bootstrap indices and declared SBB simulation policy",
+      "export": "trial ledger, fold table, candidate table, stitched metrics/report",
+      "factories": [
+        "walk_forward"
+      ],
+      "id": "walk_forward_mode_2",
+      "metrics_result": "bootstrap statistics -> candidate selection -> stitched endpoint account",
+      "optimization_target": "AP-08 streaming replicate-vector retention verified by PERF-05; no hidden top-K reduction",
+      "oracle_tests": [
+        "tests/test_walkforward_phase1.py"
+      ],
+      "resolved_request": "Mode 2 return path -> stationary/bootstrap robustness selector",
+      "runtime_kernel": "WalkForwardEngine statistical bootstrap path",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/walkforward.py",
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase77.1 required mode schedule matrix",
+      "domain_contract": "parameter normalization, deterministic cluster/tie policy",
+      "export": "trial/candidate ledgers, selection metadata, metrics/report",
+      "factories": [
+        "walk_forward"
+      ],
+      "id": "walk_forward_mode_3",
+      "metrics_result": "cluster selection -> stitched endpoint account",
+      "optimization_target": "AP-07/AP-08 evaluation identity and plateau retention verified by PERF-05",
+      "oracle_tests": [
+        "tests/test_walkforward_phase1.py"
+      ],
+      "resolved_request": "Mode 3 candidate metrics and parameter coordinates -> flat-minima selector",
+      "runtime_kernel": "WalkForwardEngine plateau selector",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/walkforward.py",
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase77.1 public mode4 per-fold causal row",
+      "domain_contract": "IS-only selection and declared causal/global schedule semantics",
+      "export": "trial/candidate ledgers, shard metadata, metrics/report",
+      "factories": [
+        "walk_forward"
+      ],
+      "id": "walk_forward_mode_4",
+      "metrics_result": "IS-only candidate selector -> stitched endpoint account",
+      "optimization_target": "AP-07/AP-08 exact prepared-native score reuse and IS-only retention verified by PERF-05",
+      "oracle_tests": [
+        "tests/test_phase49a_walkforward_schedules.py"
+      ],
+      "resolved_request": "Mode 4 IS shard metrics and plateau coordinates -> IS-only robust selector",
+      "runtime_kernel": "WalkForwardEngine temporal/plateau selection path",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/walkforward.py",
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/backends/native_wfo_public.py",
+          "sha256": "3df507dc5074aa780394d33d94b6dac230856bc8fde4b50ceb9d640087b1ad6f"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "phase77.1 required mode schedule matrix",
+      "domain_contract": "full declared sample only; no implicit chronological OOS claim",
+      "export": "trial/candidate ledgers, selection metadata, metrics/report",
+      "factories": [
+        "walk_forward"
+      ],
+      "id": "walk_forward_mode_5",
+      "metrics_result": "full-IS selection -> endpoint account on supplied evaluation tape",
+      "optimization_target": "AP-07 full-IS execution/analysis identity verified by PERF-05",
+      "oracle_tests": [
+        "tests/test_walkforward_phase1.py"
+      ],
+      "resolved_request": "full declared IS candidates -> full-sample robust selector",
+      "runtime_kernel": "WalkForwardEngine full-sample selection path",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/walkforward.py",
+          "sha256": "1f50d9c13a904b2d913759f98aa37a230ae436f07b2ec4eed1bca90c9ec3fd12"
+        }
+      ]
+    },
+    {
+      "benchmark_fixture": "options P0 containment regression",
+      "domain_contract": "declared European/top-of-book scope and explicit approximation labels",
+      "export": "cash, marks, Greeks, margin, fills, packages, report",
+      "factories": [
+        "options"
+      ],
+      "id": "options_containment",
+      "metrics_result": "options ledger/Greeks/margin -> option result/report adapters",
+      "optimization_target": "contained outside PERF native promotion scope",
+      "oracle_tests": [
+        "tests/options/test_endpoint_contract.py",
+        "tests/options/test_result_contract.py"
+      ],
+      "resolved_request": "option chain, instruments and hedge policy -> options execution plan",
+      "runtime_kernel": "Python options domain backend",
+      "source_records": [
+        {
+          "exists": true,
+          "path": "src/quantbt/endpoint.py",
+          "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/options/execution.py",
+          "sha256": "1d7263b60dfdb3728e3d8d905200f2e264bd76491c5681de089296df455066db"
+        },
+        {
+          "exists": true,
+          "path": "src/quantbt/options/authority.py",
+          "sha256": "6aa7dd07410f3a6f7e369ca4b844dc2555b562f097c47d9ca46d06be4d3a3622"
+        }
+      ]
+    }
+  ],
+  "runtime_identity_capture": {
+    "command": "PYTHONPATH=src .venv/bin/python tools/generate_perf01_traceability.py --runtime-identity /tmp/perf01-runtime-identity.json",
+    "helper": "tools.measurement_contract.capture_measurement_identity",
+    "required_fields": [
+      "canonical_source_sha256",
+      "core_distribution",
+      "cpu_count",
+      "data_sha256",
+      "git_commit",
+      "git_dirty",
+      "git_status_sha256",
+      "intent_sha256",
+      "lifecycle_registry_sha256",
+      "measurement_contract_sha256",
+      "native_distribution",
+      "native_extension",
+      "platform",
+      "product_registry_sha256",
+      "python",
+      "thread_environment",
+      "warmup_procedure"
+    ],
+    "rule": "capture a clean candidate separately; do not commit credentials, private market data, or a machine-local extension path as public evidence"
+  },
+  "schema": "quantbt-perf-01-traceability-v1"
+}

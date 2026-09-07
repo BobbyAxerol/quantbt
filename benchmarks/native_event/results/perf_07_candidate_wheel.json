@@ -1,0 +1,96 @@
+{
+  "artifacts": [
+    {
+      "bytes": 885059,
+      "filename": "quantbt_engine-1.1.0-py3-none-any.whl",
+      "sha256": "52e2ac886a896fc0dc3dff272182b7de45f981058a8eaa0be8004d60b5c53956"
+    },
+    {
+      "bytes": 1022304,
+      "filename": "quantbt_engine-1.1.0.tar.gz",
+      "sha256": "5ab339560deb61f3ccb898b2acccb467c87bcf9bb0de5843e34a3fef08d66731"
+    },
+    {
+      "bytes": 1162457,
+      "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "0077e3a11ae83f943f75a5a1eada243bb0b44e2f9d87b77ce7e83e3f8e657441"
+    }
+  ],
+  "evidence": {
+    "clean_install": true,
+    "direct_target_smoke": true,
+    "exact_native_pair": true,
+    "source_hash_parity": true,
+    "source_tree_import_blocked": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "860d7c98094ee38bf82af89f79f1dd8d07ef3a6229baa3f0989b7d76bc3efe9c",
+    "git_commit": "2701193354794add3a27fee73b79733404607edd",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "4c10c4c4ed38307e8b5014dc1d9d26dbb45a67b5dc15e26eaf0362c09f67fd4d",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "candidate wheel build then isolated core/native clean-install smoke outside checkout"
+  },
+  "phase": "PERF-07",
+  "platform_scope": {
+    "certification": "one local clean Linux CPython candidate pair; CI owns the published manylinux matrix",
+    "machine": "x86_64",
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "python_implementation": "CPython"
+  },
+  "schema": "quantbt-perf-07-candidate-wheel-v1",
+  "verification": {
+    "clean_install": true,
+    "core_wheel": "quantbt_engine-1.1.0-py3-none-any.whl",
+    "direct_target_smoke": true,
+    "native_pair": {
+      "command_abis": [
+        "full-command-v1"
+      ],
+      "core_version": "1.1.0",
+      "fallback": "explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason",
+      "native_protocol_max": 1,
+      "native_protocol_min": 1,
+      "native_version": "0.4.1",
+      "result_abis": [
+        "native-event-result-v1"
+      ],
+      "status": "exact_staged_pair"
+    },
+    "native_wheel": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+    "schema": "quantbt-staged-wheel-verification-v1",
+    "source_hash_parity": true
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "contract_id": "quantbt-v1_1-linear-accounting-fill-replay-v2",
+  "schema_version": "linear-accounting-fill-replay-v2",
+  "authority": {
+    "runtime": "rust",
+    "account_model": "linear_quote_settled_gross_cross_v1",
+    "legacy_comparator": "fill_replay_v1_numba",
+    "fallback": "explicit_rust_v2_request_fails_if_matching_quantbt_native_is_unavailable"
+  },
+  "market": {
+    "bar_timestamp_semantics": "close_only",
+    "marks": "finite_positive_per_symbol_per_bar",
+    "timestamps": "strictly_increasing"
+  },
+  "fills": {
+    "required_fields": [
+      "bar_index",
+      "sequence",
+      "event_id",
+      "symbol",
+      "signed_qty",
+      "price",
+      "fee"
+    ],
+    "ordering": "strict_bar_index_then_sequence",
+    "event_id": "unique",
+    "fee": "explicit_one_way_quote_fee_per_fill",
+    "generation_scope": "outside_fill_replay"
+  },
+  "funding": {
+    "required_fields": ["bar_index", "sequence", "event_id", "symbol", "rate"],
+    "ordering": "strict_bar_index_then_sequence",
+    "apply_once": "event_id",
+    "phases": ["before_fills_at_close", "after_fills_at_close"],
+    "positive_rate": "charges_long_credits_short"
+  },
+  "accounting": {
+    "scale_reduce_reverse": "linear_signed_quantity_weighted_average",
+    "margin": "shared_gross_cross",
+    "post_cost_margin": "reject_immutable",
+    "reservation_protocol": ["preview", "reserve", "commit", "release"],
+    "liquidation": "deterministic_symbol_order_executable_close_fills",
+    "unsupported": ["inverse", "quanto", "multi_currency", "cross_venue_margin"]
+  },
+  "trace": {
+    "schema": "canonical-trace-v2",
+    "trace_hash": "fnv1a-dual-128-v1",
+    "internal_mutation_fingerprint": "raw_ieee754_dual_fnv",
+    "cross_backend_state_checkpoint": {
+      "encoding": "normalized_dual_fnv_first_u64_saturated_to_i64",
+      "quantity_quantum": 1e-12,
+      "price_quantum": 1e-10,
+      "financial_quantum": 1e-6
+    }
+  },
+  "profiles": {
+    "score": "terminal_scalars_only",
+    "compact": "bar_major_account_paths_without_trace_rows",
+    "audit": "compact_paths_plus_canonical_trace_v2"
+  },
+  "certification": {
+    "required_evidence": [
+      "independent_standard_library_oracle",
+      "legacy_numba_terminal_overlap_comparator",
+      "rust_canonical_trace_parity",
+      "randomized_invariant_streams",
+      "score_compact_audit_terminal_parity"
+    ],
+    "maturity": "a2_domain_certified"
+  }
+}

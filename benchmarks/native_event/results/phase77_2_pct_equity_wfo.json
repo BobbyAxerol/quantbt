@@ -1,0 +1,436 @@
+{
+  "compatibility_requirements": {
+    "auto_policy": "auto preserves the legacy scorer; require plus target_runtime='rust' is explicit opt-in",
+    "fee": "legacy fee / 2 must equal explicit canonical fee_rate when both are supplied",
+    "position_surface": "public positions remain processed weights; accepted units are metadata.pct_equity_transition.accepted_positions",
+    "slippage": "legacy slippage must equal ExecutionConfig.slippage_bps when both are supplied"
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "644ad261c1a78f353124e416968f4398a9dff9ec1a6001316bb31c12d0aa8479",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "013a3d9ab87045a46f9cdb86f68ac02183ce47c2d51ef61a42555942bfbeb1cf",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "cd3c786ca39f97c676cefbbaaae5123a85d33b8e0d3e8eaeb3c4533fb3552f08",
+    "intent_sha256": "39c4b1485d99fd4dcfc4fce169746134c95475c087755204d405dd6c29cfd184",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "c39670da0ccbc2fa0d114f03887bb97ec624368821b88314ef128400a5456614",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed legacy/Rust warm pair with complete public parity, then alternating paired endpoint runs using the unchanged Phase 77.1 generator and profile"
+  },
+  "paired_result": {
+    "native": {
+      "candidate_count": 5,
+      "causality_claim": "retrospective_global_calibration",
+      "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+      "fingerprint": {
+        "best_trial": {
+          "mean_decay": -0.318036956,
+          "mean_is_sharpe": -0.968618163,
+          "mean_oos_sharpe": -0.650581206,
+          "objective": -1.619866378,
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "std_decay": 1.938570344,
+          "trial_id": 0
+        },
+        "candidate_table_sha256": "9788bb570fe8ab3315cc7bc5e8e4e6ac6487753d56adea9b86a13ec88acc35f8",
+        "equity_sha256": "26678254549532ea8bbe16d7a0cb965dff74f27ab6be63bd6a63b1094cdd63be",
+        "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+        "params": {
+          "amplitude": 0.8,
+          "period": 13
+        },
+        "params_by_fold": {},
+        "positions_sha256": "261a213549828a3b1e986d84061654bbec09223dc42fe2130e5363abd111671f",
+        "trial_table_sha256": "8fcc1f3afa3a84a2a3a45e5e59e195881f9a87d203305ee44b5d22569fc60724"
+      },
+      "fold_count": 6,
+      "id": "pct_equity_rust_transition_native",
+      "lane": "rust_pct_equity_transition_prepared",
+      "mode": "mode_4_is_only_robust",
+      "native_prepared_reason": null,
+      "native_score_batches": 3,
+      "native_score_rows": 48,
+      "native_scored_bars": 5938,
+      "oos_used_for_selection": false,
+      "optimization_schedule": "global",
+      "paired_speedup_vs_reference": 3.8055166621302106,
+      "public_route": "walk_forward",
+      "requested_native_prepared_policy": "require",
+      "requested_target_runtime": "rust",
+      "resolved_final_backend": "native_vectorized",
+      "resolved_native_prepared_policy": "native_prepared",
+      "scoring_backend": "endpoint",
+      "selection_contract": "IS-only temporal/plateau selection; Rust owns fresh candidate scoring and the one final stitched transition account only under explicit opt-in",
+      "target_mode": "pct_equity",
+      "timing_seconds": {
+        "candidate_score": 0.03596572112292051,
+        "last": 0.1615416742861271,
+        "median": 0.1615416742861271,
+        "native_execute_within_score": 0.0025787651538848877,
+        "p95": 0.1615416742861271,
+        "prepare_fold_plan": 0.025266393087804317,
+        "samples": [
+          0.1615416742861271
+        ],
+        "strategy_generation": 0.02844830881804228
+      },
+      "validation_claim": "walk_forward_oos",
+      "work_counters": {
+        "actual_simulation_bar_visits": 2690,
+        "actual_simulation_symbol_bar_visits": 2690,
+        "actual_visit_basis": "derived_exhaustive_test_windows",
+        "candidate_count": 5,
+        "early_terminated_candidate_fold_scenario_tasks": 0,
+        "executed_candidate_fold_scenario_tasks": 30,
+        "fold_count": 6,
+        "folds": [
+          {
+            "fold_id": 0,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 1,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 2,
+            "planned_test_bar_visits": 90,
+            "test_end": 90,
+            "test_start": 0
+          },
+          {
+            "fold_id": 3,
+            "planned_test_bar_visits": 91,
+            "test_end": 91,
+            "test_start": 0
+          },
+          {
+            "fold_id": 4,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 5,
+            "planned_test_bar_visits": 81,
+            "test_end": 81,
+            "test_start": 0
+          }
+        ],
+        "logical_full_tape_candidate_fold_bar_visits": 21600,
+        "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+        "planned_candidate_fold_scenario_tasks": 30,
+        "planned_simulation_bar_visits": 2690,
+        "scenario_count": 1,
+        "schema": "quantbt-native-work-counters-v1",
+        "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+        "skipped_candidate_fold_scenario_tasks": 0,
+        "supplied_market_bars": 720,
+        "symbol_count": 1,
+        "warmup_bar_visits": 0
+      }
+    },
+    "native_prepared_wfo": {
+      "cache": {
+        "cache_hit": 4,
+        "cache_miss": 94,
+        "entry_count": 17,
+        "eviction_count": 77,
+        "generation": 0,
+        "ingress_copied_bytes": 0,
+        "ingress_copy_count": 0,
+        "resident_bytes": 52036,
+        "reuse_count": 0,
+        "schema": "native-execution-preparation-v1",
+        "tier_budgets": {
+          "market": 161061273,
+          "request": 67108864,
+          "template": 40265318
+        },
+        "tiers": {
+          "market": {
+            "cache_hit": 0,
+            "cache_miss": 1,
+            "clear_count": 0,
+            "entry_count": 1,
+            "eviction_count": 0,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 41040,
+            "reuse_count": 0
+          },
+          "request": {
+            "cache_hit": 2,
+            "cache_miss": 46,
+            "clear_count": 0,
+            "entry_count": 8,
+            "eviction_count": 38,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 10996,
+            "reuse_count": 0
+          },
+          "template": {
+            "cache_hit": 2,
+            "cache_miss": 47,
+            "clear_count": 0,
+            "entry_count": 8,
+            "eviction_count": 39,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 0,
+            "reuse_count": 0
+          }
+        }
+      },
+      "execution_clock": "close_target_v2_same_close",
+      "fallback_batches": 0,
+      "fallback_rows": 0,
+      "final_account_policy": "endpoint_stitched_continuous_account",
+      "fresh_account_policy": "fresh_account_per_evaluation",
+      "market_signature": "4e1d241251768664638a94a9615dc6a20bb838d8f426496545311e5770257447",
+      "native_batches": 3,
+      "native_boundary_calls": 3,
+      "native_rows": 48,
+      "native_score_seconds": 0.0025787651538848877,
+      "native_scored_bars": 5938,
+      "phase": "74",
+      "reason": null,
+      "requested_policy": "require",
+      "resolved_policy": "native_prepared",
+      "runtime": {
+        "active_batches": 0,
+        "cache_generation": 0,
+        "canceled": false,
+        "cancellation_reason": null,
+        "closed": false,
+        "failed_rows": 0,
+        "native_request_executions": 48,
+        "native_runtime": "native_prepared_evaluation_core_v1",
+        "native_runtime_generation": 1,
+        "native_runtime_id": 2,
+        "parallelism": {
+          "blas_threads": 4,
+          "constrained_by": [],
+          "host_cpus": 4,
+          "numba_threads": 4,
+          "openmp_threads": 4,
+          "python_processes": 1,
+          "rust_workers": 1
+        },
+        "poison_recoveries": 0,
+        "poisoned": false,
+        "runtime": "native_prepared_evaluation_v1",
+        "runtime_budget": {
+          "max_active_orders": null,
+          "max_audit_rows": null,
+          "max_bars": null,
+          "max_commands": null,
+          "max_error_rows": 64,
+          "max_fills": null,
+          "max_metric_rows": 1000000,
+          "max_native_memory_bytes": null,
+          "max_orders": null,
+          "max_wall_time_ms": null,
+          "max_workers": null
+        },
+        "runtime_generation": 1,
+        "runtime_id": "00d194ba8e3147cbbc64c92b69828123",
+        "score_batches": 3,
+        "worker_pool_creations": 1
+      },
+      "score_adapter": "scalar_columns_v1",
+      "score_python_row_objects": 0,
+      "target_mode": "pct_equity",
+      "template_signature": "1a21c739f9e080b41fb20fb8c139ea469a7850d879c3f4040ede34c7e83aab32",
+      "workers": 1
+    },
+    "reference": {
+      "candidate_count": 5,
+      "causality_claim": "retrospective_global_calibration",
+      "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+      "fingerprint": {
+        "best_trial": {
+          "mean_decay": -0.318036956,
+          "mean_is_sharpe": -0.968618163,
+          "mean_oos_sharpe": -0.650581206,
+          "objective": -1.619866378,
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "std_decay": 1.938570344,
+          "trial_id": 0
+        },
+        "candidate_table_sha256": "9788bb570fe8ab3315cc7bc5e8e4e6ac6487753d56adea9b86a13ec88acc35f8",
+        "equity_sha256": "26678254549532ea8bbe16d7a0cb965dff74f27ab6be63bd6a63b1094cdd63be",
+        "oos_output_sha256": "7cf78e9c4d1ba2b40276f36d2fe2620e837b1ff87a97d869d73b1120582164b0",
+        "params": {
+          "amplitude": 0.8,
+          "period": 13
+        },
+        "params_by_fold": {},
+        "positions_sha256": "261a213549828a3b1e986d84061654bbec09223dc42fe2130e5363abd111671f",
+        "trial_table_sha256": "8fcc1f3afa3a84a2a3a45e5e59e195881f9a87d203305ee44b5d22569fc60724"
+      },
+      "fold_count": 6,
+      "id": "pct_equity_rust_transition_native",
+      "lane": "legacy_pct_equity_transition_reference",
+      "mode": "mode_4_is_only_robust",
+      "native_prepared_reason": null,
+      "native_score_batches": 0,
+      "native_score_rows": 0,
+      "native_scored_bars": 0,
+      "oos_used_for_selection": false,
+      "optimization_schedule": "global",
+      "public_route": "walk_forward",
+      "requested_native_prepared_policy": "off",
+      "requested_target_runtime": "rust",
+      "resolved_final_backend": null,
+      "resolved_native_prepared_policy": "off",
+      "scoring_backend": "endpoint",
+      "selection_contract": "IS-only temporal/plateau selection; Rust owns fresh candidate scoring and the one final stitched transition account only under explicit opt-in",
+      "target_mode": "pct_equity",
+      "timing_seconds": {
+        "candidate_score": 0.49447815027087927,
+        "last": 0.614749533124268,
+        "median": 0.614749533124268,
+        "native_execute_within_score": 0.0,
+        "p95": 0.614749533124268,
+        "prepare_fold_plan": 0.025146862491965294,
+        "samples": [
+          0.614749533124268
+        ],
+        "strategy_generation": 0.02889299765229225
+      },
+      "validation_claim": "walk_forward_oos",
+      "work_counters": {
+        "actual_simulation_bar_visits": 2690,
+        "actual_simulation_symbol_bar_visits": 2690,
+        "actual_visit_basis": "derived_exhaustive_test_windows",
+        "candidate_count": 5,
+        "early_terminated_candidate_fold_scenario_tasks": 0,
+        "executed_candidate_fold_scenario_tasks": 30,
+        "fold_count": 6,
+        "folds": [
+          {
+            "fold_id": 0,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 1,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 2,
+            "planned_test_bar_visits": 90,
+            "test_end": 90,
+            "test_start": 0
+          },
+          {
+            "fold_id": 3,
+            "planned_test_bar_visits": 91,
+            "test_end": 91,
+            "test_start": 0
+          },
+          {
+            "fold_id": 4,
+            "planned_test_bar_visits": 92,
+            "test_end": 92,
+            "test_start": 0
+          },
+          {
+            "fold_id": 5,
+            "planned_test_bar_visits": 81,
+            "test_end": 81,
+            "test_start": 0
+          }
+        ],
+        "logical_full_tape_candidate_fold_bar_visits": 21600,
+        "logical_full_tape_candidate_fold_symbol_bar_visits": 21600,
+        "planned_candidate_fold_scenario_tasks": 30,
+        "planned_simulation_bar_visits": 2690,
+        "scenario_count": 1,
+        "schema": "quantbt-native-work-counters-v1",
+        "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+        "skipped_candidate_fold_scenario_tasks": 0,
+        "supplied_market_bars": 720,
+        "symbol_count": 1,
+        "warmup_bar_visits": 0
+      }
+    },
+    "rss_pss_samples_mb": [
+      {
+        "pss_mb": 210.4111328125,
+        "rss_mb": 220.05078125
+      }
+    ],
+    "rss_pss_tail_spread_mb": {
+      "pss_mb": 0.0,
+      "rss_mb": 0.0
+    },
+    "status": "measured_pair_parity_passed"
+  },
+  "phase": "77.2",
+  "profile": {
+    "bars": 720,
+    "description": "Complete public routing and selection-contract matrix; not a headline speed claim.",
+    "frequency": "1D",
+    "id": "smoke",
+    "repeats": 1,
+    "split_frequency": "quarterly",
+    "split_mode": "2020-07-01",
+    "train_window": "180D",
+    "trials": 4
+  },
+  "schema": "quantbt-phase77-2-pct-equity-public-wfo-v1",
+  "status": "paired_public_pct_equity_parity_passed",
+  "workload": {
+    "contract": "pct_equity_transition_v1",
+    "final_account": "rust_pct_equity_transition_v1",
+    "id": "pct_equity_rust_transition_native",
+    "native_score_adapter": "scalar_columns_v1",
+    "prepared_policy": "require",
+    "reference_authority": "legacy_pct_equity_transition_v1",
+    "target_mode": "pct_equity",
+    "target_runtime": "rust"
+  }
+}

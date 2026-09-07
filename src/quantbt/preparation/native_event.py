@@ -12,9 +12,18 @@ import pandas as pd
 
 from ..core.constraints import quantize_signed_quantity
 from ..core.instrument_contracts import compile_instrument_table
+from ..core.instrument_registry_v2 import InstrumentRegistryV2
+from ..core.market_calendar_v2 import PreparedMarketHandleV2
 from ..core.order_compiler import CompiledOrderCommandArrays, compile_order_commands
 from ..core.orders import OrderAction, OrderCommand
-from ..core.preprocessor import align_series, build_market_arrays, prepare_funding, validate_datetime
+from ..core.preprocessor import (
+    PreparedMarketArrays,
+    align_series,
+    build_market_arrays,
+    market_data_signature,
+    prepare_funding,
+    validate_datetime,
+)
 from ..core.schema import AccountConfig, ExecutionConfig, InstrumentSpec
 from ..planning import ExecutionPlan
 from .models import (
@@ -223,43 +232,89 @@ def prepare_native_event_lifecycle(
     account: AccountConfig,
     execution: ExecutionConfig,
     use_funding: bool = True,
+    market_handle: PreparedMarketHandleV2 | None = None,
+    instrument_registry: InstrumentRegistryV2 | None = None,
+    calendar_contract: str = "legacy_v1",
 ) -> NativeEventPreparation:
-    """Normalize and compile a static lifecycle request exactly once."""
+    """Normalize and compile a static lifecycle request exactly once.
 
-    index = validate_datetime(datetime_index)
-    if len(index) == 0:
-        raise ValueError("native-event preparation requires at least one market bar")
-    symbol_values = tuple(symbols or closes.keys())
-    if not symbol_values:
-        raise ValueError("native-event preparation requires symbols")
-    close_map = align_series(closes, list(symbol_values), index)
-    high_map = align_series(highs, list(symbol_values), index, fallback=close_map)
-    low_map = align_series(lows, list(symbol_values), index, fallback=close_map)
-    funding_map = prepare_funding(funding_rate if use_funding else 0.0, list(symbol_values), index)
-    market_arrays = build_market_arrays(
-        symbols=list(symbol_values),
-        idx=index,
-        closes_dict=close_map,
-        highs_dict=high_map,
-        lows_dict=low_map,
-        funding_dict=funding_map,
-    )
-    if opens is None:
-        if plan.contract_id == "event_lifecycle_v3_next_open":
-            raise ValueError("event_lifecycle_v3_next_open requires explicit open prices")
-        opens_array = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
-    else:
-        open_map = align_series(opens, list(symbol_values), index)
-        opens_array = np.ascontiguousarray(
-            np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_values])
+    Passing a V2 ``market_handle`` and ``instrument_registry`` selects the
+    certified no-relabel/no-fill preparation path.  The default remains the
+    historical compatibility contract for existing callers; using
+    ``calendar_contract='exact_v2'`` without a handle is intentionally
+    rejected so a source frame cannot be reconstructed from already-aligned
+    legacy series by accident.
+    """
+
+    contract_mode = str(calendar_contract).lower().strip()
+    if contract_mode not in {"legacy_v1", "exact_v2"}:
+        raise ValueError("calendar_contract must be legacy_v1 or exact_v2")
+    if contract_mode == "exact_v2" and market_handle is None:
+        raise ValueError(
+            "calendar_contract='exact_v2' requires a PreparedMarketHandleV2; "
+            "call QuantBTEndpoint.prepare_market(...) before lifecycle preparation"
         )
-    if volumes is None:
-        volumes_array = np.zeros_like(market_arrays.closes)
-    else:
-        volume_map = align_series(volumes, list(symbol_values), index, fill_val=0.0)
-        volumes_array = np.ascontiguousarray(
-            np.column_stack([volume_map[symbol].fillna(0.0).to_numpy(dtype=np.float64) for symbol in symbol_values])
+    if (market_handle is None) != (instrument_registry is None):
+        raise ValueError("V2 native-event preparation requires market_handle and instrument_registry together")
+
+    if market_handle is not None:
+        view = market_handle.execution_view()
+        symbol_values = tuple(symbols or view.symbols)
+        if symbol_values != view.symbols or symbol_values != instrument_registry.symbols:
+            raise ValueError(
+                "V2 native-event symbols must match the normalized prepared market/registry order"
+            )
+        index = pd.to_datetime(view.timestamps_ns, utc=True)
+        # The V2 path passes the handle-owned arrays directly into the native
+        # lifecycle runner.  Do not construct compatibility pandas Series that
+        # would never be consumed by this preparation or execution route.
+        market_arrays = PreparedMarketArrays(
+            idx=index,
+            symbols=symbol_values,
+            closes=view.closes,
+            highs=view.highs,
+            lows=view.lows,
+            funding=view.funding_rates,
+            is_funding_bar=view.funding_event_mask,
+            signature=market_data_signature(index, list(symbol_values)),
         )
+        opens_array = view.opens
+        volumes_array = view.volumes
+    else:
+        index = validate_datetime(datetime_index)
+        if len(index) == 0:
+            raise ValueError("native-event preparation requires at least one market bar")
+        symbol_values = tuple(symbols or closes.keys())
+        if not symbol_values:
+            raise ValueError("native-event preparation requires symbols")
+        close_map = align_series(closes, list(symbol_values), index)
+        high_map = align_series(highs, list(symbol_values), index, fallback=close_map)
+        low_map = align_series(lows, list(symbol_values), index, fallback=close_map)
+        funding_map = prepare_funding(funding_rate if use_funding else 0.0, list(symbol_values), index)
+        market_arrays = build_market_arrays(
+            symbols=list(symbol_values),
+            idx=index,
+            closes_dict=close_map,
+            highs_dict=high_map,
+            lows_dict=low_map,
+            funding_dict=funding_map,
+        )
+        if opens is None:
+            if plan.contract_id == "event_lifecycle_v3_next_open":
+                raise ValueError("event_lifecycle_v3_next_open requires explicit open prices")
+            opens_array = np.ascontiguousarray(market_arrays.closes, dtype=np.float64)
+        else:
+            open_map = align_series(opens, list(symbol_values), index)
+            opens_array = np.ascontiguousarray(
+                np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_values])
+            )
+        if volumes is None:
+            volumes_array = np.zeros_like(market_arrays.closes)
+        else:
+            volume_map = align_series(volumes, list(symbol_values), index, fill_val=0.0)
+            volumes_array = np.ascontiguousarray(
+                np.column_stack([volume_map[symbol].fillna(0.0).to_numpy(dtype=np.float64) for symbol in symbol_values])
+            )
     timestamps_ns = np.ascontiguousarray(index.view("int64"), dtype=np.int64)
     market_fingerprint = _hash_parts(
         plan.market_layout.value,
@@ -286,19 +341,25 @@ def prepare_native_event_lifecycle(
         fingerprint=market_fingerprint,
     )
 
-    specs = _resolved_instruments(
-        symbol_values,
-        instruments=instruments,
-        contract_size=contract_size,
-        qty_step=qty_step,
-        lot_size=lot_size,
-        slot_size=slot_size,
-        min_qty=min_qty,
-        min_notional=min_notional,
-    )
-    table = compile_instrument_table(symbol_values, specs)
-    leverages = _per_symbol(leverage, symbol_values, account.leverage)
-    fee_rates = _per_symbol(fee_rate, symbol_values, 0.0)
+    if instrument_registry is not None:
+        table = instrument_registry.prepared_table()
+        registry_arrays = instrument_registry.arrays()
+        leverages = registry_arrays["leverage"]
+        fee_rates = registry_arrays["fee_rate"]
+    else:
+        specs = _resolved_instruments(
+            symbol_values,
+            instruments=instruments,
+            contract_size=contract_size,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        table = compile_instrument_table(symbol_values, specs)
+        leverages = _per_symbol(leverage, symbol_values, account.leverage)
+        fee_rates = _per_symbol(fee_rate, symbol_values, 0.0)
     instrument_fingerprint = _hash_parts(table.fingerprint, leverages, fee_rates)
     prepared_instruments = PreparedInstruments(
         table=table,

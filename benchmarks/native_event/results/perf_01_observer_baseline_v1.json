@@ -1,0 +1,114 @@
+{
+  "candidate_identity": {
+    "canonical_source_sha256": "13bd952cb6eb0699ccd2d46ba4762df237697ebb16e602df2edaf4585032a0f1",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "920e6d6821810874b6119b67baede95eef282e7ef8220febaea230fef7f37794",
+    "git_commit": "3634f6522d89b75735b8b0c4f8b50fe781bcd5aa",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "2630946869baa164d8503acc3f7618e1eb57a3d914d6f962922aead4b8bb4f34",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_sha256": "fdb6140a7603d65bb250da13b15d2a28a24517d722dcb5ca56e3ea6f7c50d9d9",
+      "version": "0.4.1",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "5 unrecorded public WFO runs per profile before alternating pairs"
+  },
+  "economic_parity": {
+    "final_equity": 19996.801012789183,
+    "passed": true,
+    "public_result_signature": "d2a0d58cccf8a39be9e698c43d8ed2cbe4cc8aa53bf65f7ec6d0adb3163c0c77",
+    "selected_params": {
+      "direction": -1.0
+    },
+    "work_shape": {
+      "bars": 540,
+      "folds": 2,
+      "optuna_trial_rows": 4
+    }
+  },
+  "interpretation": "This paired source/profiler baseline does not promote a backend, claim generic WFO throughput, or qualify a candidate wheel. It only establishes observer on/off economics and a public Mode 1 timing shape.",
+  "observer_off": {
+    "max_ns": 188087865,
+    "median_ns": 93953351,
+    "min_ns": 84783327,
+    "p95_ns": 130022531,
+    "samples": 100
+  },
+  "observer_on": {
+    "max_ns": 149783455,
+    "median_ns": 94109824,
+    "min_ns": 87631667,
+    "p95_ns": 112257648,
+    "samples": 100
+  },
+  "observer_on_exclusive_stage_median_ns": {
+    "advance_match_account_wake": 44763162,
+    "metrics_analysis_audit_encode_flush_public_adapt": 9921773,
+    "prepare_validate_ingest": 12202580,
+    "projection_python_decision_command_write_ingest": 11210935,
+    "reset_cache_lookup_queue_wait": 0
+  },
+  "observer_overhead_latency_quantiles_pct": {
+    "p50_pct": 0.16654328806217886,
+    "p95_pct": -13.662926620002498
+  },
+  "observer_overhead_median_pct": 0.16654328806217886,
+  "observer_overhead_pairs_pct": {
+    "max_pct": 25.19364375251673,
+    "median_pct": 0.26211579320740647,
+    "min_pct": -51.64272293696353,
+    "p95_pct": 11.406137002810123,
+    "samples": 100
+  },
+  "observer_overhead_proposed_budget": {
+    "binding_release_gate": false,
+    "overall_status": "PASS",
+    "p50": {
+      "measurement": "p50_latency_quantile_ratio",
+      "status": "PASS",
+      "threshold_pct": 3.0
+    },
+    "p95": {
+      "measurement": "p95_latency_quantile_ratio",
+      "minimum_paired_samples": 100,
+      "status": "PASS",
+      "threshold_pct": 5.0
+    }
+  },
+  "schema": "quantbt-perf-01-observer-baseline-v1",
+  "status": "development_baseline_not_promotion_evidence",
+  "workload": {
+    "bars": 540,
+    "mode": "mode_1_decay",
+    "paired_repeats": 100,
+    "pairing": "alternating observer-off/observer-on order",
+    "route": "QuantBTEndpoint.walk_forward",
+    "schedule": "global",
+    "target_mode": "signal_notional",
+    "trials": 4,
+    "warmup_runs_per_profile": 5
+  }
+}

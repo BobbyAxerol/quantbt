@@ -1,0 +1,42 @@
+{
+  "schema": "quantbt-phase77-3-reactive-closure-manifest-v1",
+  "phase": "77.3",
+  "promotion_eligible": false,
+  "purpose": "Current-candidate reactive performance, retention, cancellation/deadline and cross-route regression evidence before Phase 78.",
+  "profiles": {
+    "smoke": {
+      "reactive_scalar": {"bars": 2000, "repeats": 2},
+      "reactive_wfo": {"bars": 720, "candidates": 4, "repeats": 2},
+      "cross_route_controls": {"bars": 512, "repeats": 2}
+    },
+    "standard": {
+      "reactive_scalar": {"bars": 10000, "repeats": 5},
+      "reactive_wfo": {"bars": 2000, "candidates": 8, "repeats": 5},
+      "cross_route_controls": {"bars": 1000, "repeats": 2}
+    }
+  },
+  "reactive_contract": {
+    "runtimes": ["numeric_every_bar_v1", "numeric_sparse_wake_v1", "numeric_block_intent_v1"],
+    "wfo_schedules": ["certified_sequential_v1", "throughput_batch_v1"],
+    "selection_modes": ["mode_1_decay", "mode_3_flat_minima", "mode_4_is_only_robust", "mode_5_full_robust"],
+    "account_policy": "segmented_reset_flat",
+    "deadline_safe_point": "completed_account_bar_v1",
+    "sparse_gap_max_interrupt_interval_bars": 64,
+    "partial_score_policy": "discard_before_selection"
+  },
+  "required_evidence": [
+    "same_reactive_accounting_public_and_scalar",
+    "scalar_retention_is_path_free",
+    "reactive_wfo_deterministic",
+    "reactive_wfo_r3b_shared_market",
+    "reactive_wfo_cow_worker",
+    "cross_route_control_parity",
+    "active_interrupts_have_focused_test_coverage"
+  ],
+  "non_claims": [
+    "No generic Python callback compilation or auto-route promotion.",
+    "No Mode 2 bootstrap path claim.",
+    "No generic portfolio/package WFO speed claim.",
+    "Historical Phase 75/76 artifacts are not used as promotion-eligible before/after comparisons."
+  ]
+}

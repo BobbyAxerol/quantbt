@@ -1,0 +1,96 @@
+{
+  "schema": "quantbt-perf-04-specialization-registry-v1",
+  "phase": "PERF-04",
+  "status": "implemented_verified",
+  "scope": "Certified Rust native lifecycle, direct target, shared portfolio, and bounded package shapes only.",
+  "matching": {
+    "candidate_source": "LifecycleIndexes.active_by_sequence",
+    "candidate_property": "Exact set of active orders in stable monotonic sequence order.",
+    "small_shape_policy": "Use the same exact active-index scan; no unmeasured price-index threshold is enabled.",
+    "same_phase_child_policy": "Append newly activated children to the existing continuation queue after the captured priority snapshot.",
+    "fallback": "The certified generic lifecycle matcher remains the only static-order fallback.",
+    "not_supported": [
+      "L2/order-book queue priority",
+      "venue-native matching",
+      "price-index priority replacing stable sequence priority"
+    ]
+  },
+  "ownership": {
+    "order_authority": "FullSession.OrderArena<OrderState>",
+    "hot_state": "OrderState contains only numeric lifecycle, quantity, price, timing, and relation fields.",
+    "cold_data": "Public strings/provenance are adapted outside the Rust order arena from command/output data.",
+    "alias_index": "ExternalOrderAliases is bidirectional and generation-safe through OrderHandle.",
+    "scratch": "FullSession owns reusable matching_candidates and lifecycle_candidates; result_buffers reset can release their capacity."
+  },
+  "workloads": [
+    {
+      "id": "linear_target_score",
+      "route": "DirectTargetRequestV1",
+      "generic_order_arena": false,
+      "contract": "Direct target rebalance with Rust-owned accounting; no synthetic order lifecycle is claimed.",
+      "evidence": [
+        "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production",
+        "tests/test_phase66_rust_target_vectorized.py::test_target_rejection_margin_and_liquidation_parity_are_explicit"
+      ]
+    },
+    {
+      "id": "static_orders_score_compact_audit",
+      "route": "FullSession command_tape_v5",
+      "generic_order_arena": true,
+      "contract": "Exact stable-sequence lifecycle matching with reusable scratch and bounded alias cleanup.",
+      "evidence": [
+        "tests/test_perf_04_native_matching.py::test_perf04_public_high_churn_lifecycle_preserves_python_rust_parity",
+        "tests/test_perf_04_native_matching.py::test_perf04_prepared_runner_reuses_and_releases_matching_scratch",
+        "tests/native_event/test_phase54a5_differential_corpus.py::test_full_session_differential_corpus_locks_python_adapter_typed_and_prepared"
+      ]
+    },
+    {
+      "id": "reactive_linear_compact",
+      "route": "NativeEvent reactive numeric co-runtime",
+      "generic_order_arena": true,
+      "contract": "Python decisions remain dynamic; Rust retains lifecycle/accounting and uses the same FullSession matcher.",
+      "evidence": [
+        "tests/test_perf_03_reactive_boundary.py",
+        "tests/test_phase63_sparse_block_reactive.py"
+      ]
+    },
+    {
+      "id": "shared_account_portfolio_rebalance",
+      "route": "SharedPortfolioTargetRequestV1",
+      "generic_order_arena": false,
+      "contract": "Shared-account target admission preserves declared sequential, reduce-first, pro-rata, and all-or-none policies.",
+      "evidence": [
+        "tests/test_phase67_rust_shared_portfolio.py::test_all_or_none_rebalance_has_no_partial_account_mutation",
+        "tests/test_phase67_rust_shared_portfolio.py::test_funding_and_liquidation_attribution_reconcile_to_shared_account_equity"
+      ]
+    },
+    {
+      "id": "bounded_package_audit",
+      "route": "Native package execution request",
+      "generic_order_arena": false,
+      "contract": "Atomic/best-effort package policies preserve committed-account and actual-fill hedge semantics.",
+      "evidence": [
+        "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation",
+        "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference"
+      ]
+    }
+  ],
+  "decision_rules": {
+    "stable_prepare_hoists": [
+      "market and instrument mapping",
+      "contract validation",
+      "output profile selection"
+    ],
+    "runtime_dynamic_state": [
+      "equity-dependent sizing",
+      "margin admission",
+      "marks",
+      "funding",
+      "fees/slippage",
+      "tradability",
+      "shared liquidity"
+    ],
+    "promotion_rule": "A shape is enabled only through its existing explicit contract and must retain independent financial parity evidence."
+  },
+  "benchmark_evidence": "benchmarks/native_event/results/perf_04_native_matching.json"
+}

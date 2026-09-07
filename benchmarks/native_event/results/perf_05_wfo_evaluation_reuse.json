@@ -1,0 +1,234 @@
+{
+  "evidence": {
+    "adaptive_reads_bypassed": true,
+    "all_public_mode1_parity": true,
+    "cache_released": true,
+    "high_hit_lane_has_hits": true,
+    "mode2_proxy_preserved": true,
+    "mode_matrix_parity": true
+  },
+  "lanes": {
+    "high_hit_run_local": {
+      "full_seconds_median": 0.3993690498173237,
+      "full_speedup_pct_vs_off": 2.6124880413822384,
+      "runtime": {
+        "adaptive_read_bypasses": 104,
+        "attempt_rows_retained": 168,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 32,
+        "cache_misses": 32,
+        "cache_stores": 136,
+        "reason": "run_local_pure_terminal_native_metrics",
+        "resolved_policy": "enabled_then_released",
+        "terminal_score_bars_executed": 43228,
+        "terminal_score_bars_reused": 11680
+      },
+      "score_seconds_median": 0.13151597324758768,
+      "score_speedup_pct_vs_off": 8.144471795818879
+    },
+    "mixed_bounded_lru": {
+      "full_seconds_median": 0.4260438233613968,
+      "full_speedup_pct_vs_off": -3.8922469367165933,
+      "runtime": {
+        "adaptive_read_bypasses": 104,
+        "attempt_rows_retained": 168,
+        "cache_entries_released": true,
+        "cache_evictions": 167,
+        "cache_hits": 0,
+        "cache_misses": 64,
+        "cache_stores": 168,
+        "reason": "run_local_pure_terminal_native_metrics",
+        "resolved_policy": "enabled_then_released",
+        "terminal_score_bars_executed": 54908,
+        "terminal_score_bars_reused": 0
+      },
+      "score_seconds_median": 0.15739753004163504,
+      "score_speedup_pct_vs_off": -9.932146666245682
+    },
+    "zero_hit_policy_off": {
+      "full_seconds_median": 0.4100824035704136,
+      "full_speedup_pct_vs_off": 0.0,
+      "runtime": {
+        "adaptive_read_bypasses": 0,
+        "attempt_rows_retained": 0,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_stores": 0,
+        "reason": "policy_off",
+        "resolved_policy": "disabled",
+        "terminal_score_bars_executed": 0,
+        "terminal_score_bars_reused": 0
+      },
+      "score_seconds_median": 0.1431769821792841,
+      "score_speedup_pct_vs_off": 0.0
+    }
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "df48526b14a8dc89ec86471cc329d3d8b519bbab75f284347999e4ae2b679497",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "58cf666a4086eb4620fde93e3c4a33faf6a221796e72f0ba2535a05b2d1529cb",
+    "git_commit": "4c67b73021e810b0efaa6498f81e6de23cdf8c32",
+    "git_dirty": true,
+    "git_status_sha256": "c1f52619d827b1b6660c3978a3ee0a6166bc814e2f4fa1f4be0b71d1f54437da",
+    "intent_sha256": "ef44015afb298d2b9ed6562f115af6f0845cc651e97b31c36dcc98b327b07bf6",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one unrecorded public WFO run for each zero/mixed/high cache lane"
+  },
+  "mode_matrix": [
+    {
+      "baseline_seconds": 0.10940905474126339,
+      "exact_public_parity": true,
+      "mode": "mode_1_decay",
+      "reuse_seconds": 0.10457787942141294,
+      "runtime": {
+        "adaptive_read_bypasses": 8,
+        "attempt_rows_retained": 24,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 8,
+        "cache_misses": 8,
+        "cache_stores": 16,
+        "reason": "run_local_pure_terminal_native_metrics",
+        "resolved_policy": "enabled_then_released",
+        "terminal_score_bars_executed": 2093,
+        "terminal_score_bars_reused": 1440
+      }
+    },
+    {
+      "baseline_seconds": 0.20575827173888683,
+      "exact_public_parity": true,
+      "mode": "mode_2_sbb",
+      "reuse_seconds": 0.2094348417595029,
+      "runtime": {
+        "adaptive_read_bypasses": 0,
+        "attempt_rows_retained": 0,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_stores": 0,
+        "reason": "scorer_has_no_pure_terminal_reuse_contract",
+        "resolved_policy": "disabled",
+        "terminal_score_bars_executed": 0,
+        "terminal_score_bars_reused": 0
+      }
+    },
+    {
+      "baseline_seconds": 0.11926588788628578,
+      "exact_public_parity": true,
+      "mode": "mode_3_flat_minima",
+      "reuse_seconds": 0.1186017133295536,
+      "runtime": {
+        "adaptive_read_bypasses": 8,
+        "attempt_rows_retained": 24,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 8,
+        "cache_misses": 8,
+        "cache_stores": 16,
+        "reason": "run_local_pure_terminal_native_metrics",
+        "resolved_policy": "enabled_then_released",
+        "terminal_score_bars_executed": 2093,
+        "terminal_score_bars_reused": 1440
+      }
+    },
+    {
+      "baseline_seconds": 0.1690513575449586,
+      "exact_public_parity": true,
+      "mode": "mode_4_is_only_robust",
+      "reuse_seconds": 0.1649532224982977,
+      "runtime": {
+        "adaptive_read_bypasses": 24,
+        "attempt_rows_retained": 40,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 8,
+        "cache_misses": 8,
+        "cache_stores": 32,
+        "reason": "run_local_pure_terminal_native_metrics",
+        "resolved_policy": "enabled_then_released",
+        "terminal_score_bars_executed": 3533,
+        "terminal_score_bars_reused": 1440
+      }
+    },
+    {
+      "baseline_seconds": 0.06520169321447611,
+      "exact_public_parity": true,
+      "mode": "mode_5_full_robust",
+      "reuse_seconds": 0.06929898913949728,
+      "runtime": {
+        "adaptive_read_bypasses": 0,
+        "attempt_rows_retained": 0,
+        "cache_entries_released": true,
+        "cache_evictions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_stores": 0,
+        "reason": "mode_5_has_no_post_study_exact_score_reuse",
+        "resolved_policy": "disabled",
+        "terminal_score_bars_executed": 0,
+        "terminal_score_bars_reused": 0
+      }
+    }
+  ],
+  "rss_mb": {
+    "peak": 226.10546875,
+    "samples": [
+      225.58984375,
+      225.84765625,
+      225.84765625,
+      225.84765625,
+      225.84765625,
+      225.84765625,
+      225.84765625,
+      226.10546875,
+      226.10546875,
+      226.10546875,
+      226.10546875,
+      226.10546875,
+      226.10546875,
+      226.10546875,
+      226.10546875
+    ],
+    "tail_spread": 0.0
+  },
+  "schema": "quantbt-perf-05-wfo-evaluation-reuse-v1",
+  "scope": "public Mode 1 prepared-native terminal metric reuse plus five-mode contract matrix",
+  "workload": {
+    "bars": 2048,
+    "repeats": 15,
+    "symbols": 1,
+    "trials": 16
+  }
+}

@@ -1,0 +1,448 @@
+{
+  "evidence": {
+    "clean_cow_worker": true,
+    "public_reactive_wfo_runs": true,
+    "r3b_bounded_inflight": true,
+    "r3b_shared_market": true,
+    "repeat_determinism": true
+  },
+  "phase": 76,
+  "rows": [
+    {
+      "candidate_batch": {},
+      "candidate_fold_bar_visits_per_second": 96516.70684607941,
+      "folds": 6,
+      "median_callbacks": 21710,
+      "median_milliseconds": 224.93515070527792,
+      "median_score_bars": 21710,
+      "median_score_calls": 66,
+      "median_seconds": 0.22493515070527792,
+      "p95_seconds": 0.22753877602517605,
+      "python_work_per_callback": 0,
+      "repeat_fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "repeats": 3,
+      "rss_pss_after": {
+        "private_bytes": 160927744,
+        "pss_bytes": 163573760,
+        "rss_bytes": 173797376,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_before": {
+        "private_bytes": 159330304,
+        "pss_bytes": 162057216,
+        "rss_bytes": 172167168,
+        "shared_bytes": 12836864
+      },
+      "rss_pss_delta": {
+        "private_bytes": 1597440,
+        "pss_bytes": 1516544,
+        "rss_bytes": 1630208,
+        "shared_bytes": 32768
+      },
+      "schedule": "certified_sequential_v1",
+      "score_stage_seconds": 0.061080850660800934
+    },
+    {
+      "candidate_batch": {
+        "batch_size": 8,
+        "batches": 18,
+        "callbacks": 36,
+        "candidate_failures": 0,
+        "candidate_matrix_size": 8,
+        "candidates": 72,
+        "market_copies_per_candidate": 0,
+        "market_ipc_bytes_per_candidate": 0,
+        "optimizer_schedule": "throughput_batch_v1",
+        "param_ranges_source": "caller_declared",
+        "runner_creations": 2,
+        "sampling_contract": "fixed_candidate_matrix_r3b_v1",
+        "schema": "quantbt-reactive-wfo-candidate-batch-v1",
+        "sequential_equivalent": false,
+        "wake_candidate_dispatches": 144
+      },
+      "candidate_fold_bar_visits_per_second": 102245.12948924485,
+      "folds": 6,
+      "median_callbacks": 36,
+      "median_milliseconds": 233.7519656866789,
+      "median_score_bars": 23900,
+      "median_score_calls": 72,
+      "median_seconds": 0.2337519656866789,
+      "p95_seconds": 0.24200227465480567,
+      "python_work_per_callback": 0,
+      "repeat_fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "repeats": 3,
+      "rss_pss_after": {
+        "private_bytes": 161300480,
+        "pss_bytes": 163905536,
+        "rss_bytes": 174170112,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_before": {
+        "private_bytes": 161148928,
+        "pss_bytes": 163794944,
+        "rss_bytes": 174018560,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_delta": {
+        "private_bytes": 151552,
+        "pss_bytes": 110592,
+        "rss_bytes": 151552,
+        "shared_bytes": 0
+      },
+      "schedule": "throughput_batch_v1",
+      "score_stage_seconds": 0.02388647012412548
+    },
+    {
+      "candidate_batch": {},
+      "candidate_fold_bar_visits_per_second": 46692.16832594649,
+      "folds": 6,
+      "median_callbacks": 21710,
+      "median_milliseconds": 464.96020164340734,
+      "median_score_bars": 21710,
+      "median_score_calls": 66,
+      "median_seconds": 0.46496020164340734,
+      "p95_seconds": 0.5753581896424294,
+      "python_work_per_callback": 96,
+      "repeat_fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "repeats": 3,
+      "rss_pss_after": {
+        "private_bytes": 161341440,
+        "pss_bytes": 163942400,
+        "rss_bytes": 174211072,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_before": {
+        "private_bytes": 161337344,
+        "pss_bytes": 163938304,
+        "rss_bytes": 174206976,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_delta": {
+        "private_bytes": 4096,
+        "pss_bytes": 4096,
+        "rss_bytes": 4096,
+        "shared_bytes": 0
+      },
+      "schedule": "certified_sequential_v1",
+      "score_stage_seconds": 0.29950523003935814
+    },
+    {
+      "candidate_batch": {
+        "batch_size": 8,
+        "batches": 18,
+        "callbacks": 36,
+        "candidate_failures": 0,
+        "candidate_matrix_size": 8,
+        "candidates": 72,
+        "market_copies_per_candidate": 0,
+        "market_ipc_bytes_per_candidate": 0,
+        "optimizer_schedule": "throughput_batch_v1",
+        "param_ranges_source": "caller_declared",
+        "runner_creations": 2,
+        "sampling_contract": "fixed_candidate_matrix_r3b_v1",
+        "schema": "quantbt-reactive-wfo-candidate-batch-v1",
+        "sequential_equivalent": false,
+        "wake_candidate_dispatches": 144
+      },
+      "candidate_fold_bar_visits_per_second": 94654.7998991487,
+      "folds": 6,
+      "median_callbacks": 36,
+      "median_milliseconds": 252.49643996357918,
+      "median_score_bars": 23900,
+      "median_score_calls": 72,
+      "median_seconds": 0.2524964399635792,
+      "p95_seconds": 0.2604523111134768,
+      "python_work_per_callback": 96,
+      "repeat_fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "repeats": 3,
+      "rss_pss_after": {
+        "private_bytes": 161439744,
+        "pss_bytes": 164040704,
+        "rss_bytes": 174309376,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_before": {
+        "private_bytes": 161341440,
+        "pss_bytes": 163942400,
+        "rss_bytes": 174211072,
+        "shared_bytes": 12869632
+      },
+      "rss_pss_delta": {
+        "private_bytes": 98304,
+        "pss_bytes": 98304,
+        "rss_bytes": 98304,
+        "shared_bytes": 0
+      },
+      "schedule": "throughput_batch_v1",
+      "score_stage_seconds": 0.027576357126235962
+    }
+  ],
+  "schema": "quantbt-phase76-reactive-wfo-benchmark-v1",
+  "worker_probe": {
+    "fingerprint": {
+      "folds": [
+        {
+          "fees": 0.04917549688965768,
+          "final_equity": 19999.57029448499,
+          "fold_id": 0,
+          "funding": 0.0
+        },
+        {
+          "fees": 0.05174653288991158,
+          "final_equity": 20000.91236468527,
+          "fold_id": 1,
+          "funding": 0.0
+        },
+        {
+          "fees": 0.05550502913992331,
+          "final_equity": 19999.398618547362,
+          "fold_id": 2,
+          "funding": 0.0
+        },
+        {
+          "fees": 0.058768065043644284,
+          "final_equity": 20000.904353893045,
+          "fold_id": 3,
+          "funding": 0.0
+        },
+        {
+          "fees": 0.06177672881375537,
+          "final_equity": 19999.483941978615,
+          "fold_id": 4,
+          "funding": 0.0
+        },
+        {
+          "fees": 0.06574478187866667,
+          "final_equity": 20000.92435267816,
+          "fold_id": 5,
+          "funding": 0.0
+        }
+      ],
+      "objective": -0.9345778666911283,
+      "params": {
+        "direction": 1.0,
+        "quantity": 0.38
+      }
+    },
+    "folds": 6,
+    "parallelism": {
+      "blas_threads": 1,
+      "constrained_by": [],
+      "host_cpus": 4,
+      "numba_threads": 1,
+      "openmp_threads": 1,
+      "python_processes": 1,
+      "rust_workers": 1
+    },
+    "schema": "quantbt-phase76-reactive-wfo-worker-probe-v1",
+    "score_calls": 66,
+    "worker_market_ipc_bytes_per_task": 0,
+    "worker_memory": {
+      "private_bytes": 8724480,
+      "pss_bytes": 53408768,
+      "rss_bytes": 105058304,
+      "shared_bytes": 96333824
+    },
+    "worker_scalar_sessions": {
+      "closed": false,
+      "gil_acquisitions": 66,
+      "python_callback_calls": 21710,
+      "python_callback_ns": 33571200,
+      "schema": "quantbt-reactive-scalar-session-pool-v1",
+      "session_count": 1,
+      "session_creations": 1,
+      "session_poison_discards": 0,
+      "session_runs": 66
+    },
+    "worker_tasks_completed": 66,
+    "worker_transport": "fork_copy_on_write_v1"
+  },
+  "workload": {
+    "account_policy": "segmented_reset_flat",
+    "bars": 2000,
+    "candidates": 8,
+    "optimization_mode": "mode_1_decay",
+    "optimization_schedule": [
+      "certified_sequential_v1",
+      "throughput_batch_v1"
+    ],
+    "repeats": 3,
+    "symbols": 1
+  }
+}

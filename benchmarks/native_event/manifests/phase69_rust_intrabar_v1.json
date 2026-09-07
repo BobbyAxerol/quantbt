@@ -1,0 +1,34 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase69-rust-intrabar-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_only; no generic endpoint auto-route; Numba intrabar remains the version-pinned rollback comparator for at least one stable release",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "RUST_INTRABAR_BRACKET_V1",
+      "contract_ids": ["event_lifecycle_v3_next_open"],
+      "intrabar_contract": "contracts/intrabar_contract_v1.json",
+      "strategy_mode": "intrabar_intent_v1",
+      "profiles": ["score", "minimal", "standard", "audit"],
+      "fixture": "deterministic 2,000 one-hour bars; one strict OHLC symbol; long/short entries, SL/TP/trailing, technical exits, fee/slippage, close-timestamp funding",
+      "baseline_path": "benchmarks/native_event/results/phase69_rust_intrabar.json",
+      "baseline_sha256": "a7d906cc64d30cc13d501cbe0fa23c8794ead0122a34695c10f7464edf6127d6",
+      "required_result_fields": [
+        "fixture",
+        "timing_seconds",
+        "throughput_bars_per_second",
+        "rss_mb",
+        "evidence"
+      ],
+      "required_evidence": [
+        "terminal_and_path_parity",
+        "score_has_no_dense_paths",
+        "boundary_calls",
+        "python_callbacks",
+        "prepared_market_copy_bytes"
+      ]
+    }
+  ]
+}

@@ -101,6 +101,13 @@ def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder
     )
 
 
+def test_phase55b_native_workspace_has_one_authoritative_cargo_lock() -> None:
+    """A member-level lock can silently diverge from the workspace release graph."""
+
+    assert (ROOT / "rust" / "Cargo.lock").is_file()
+    assert not (ROOT / "rust" / "native_event" / "Cargo.lock").exists()
+
+
 def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch) -> None:
     from tools import verify_public_native_consumer as consumer
 

@@ -171,9 +171,10 @@ impl PositionBook {
         let index = symbol.0 as usize;
         if self.qty[index] == 0.0 {
             if let Some(position) = self.active_position[index].take() {
-                let removed = self.active_symbols.swap_remove(position);
+                self.active_symbols.swap_remove(position);
                 if position < self.active_symbols.len() {
-                    self.active_position[removed.0 as usize] = Some(position);
+                    let moved = self.active_symbols[position];
+                    self.active_position[moved.0 as usize] = Some(position);
                 }
             }
         } else if self.active_position[index].is_none() {

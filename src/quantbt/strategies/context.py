@@ -92,6 +92,21 @@ class StrategyContextView:
     def close(self, symbol_id: int) -> float:
         return float(self.close_values[int(symbol_id)])
 
+    # Scalar field access is the common numeric callback surface shared by
+    # the compatibility bridge and Rust-led R1 co-runtime. The array-valued
+    # properties above remain available for legacy numeric strategies.
+    def open(self, symbol_id: int) -> float:
+        return float(self.open_values[int(symbol_id)])
+
+    def high(self, symbol_id: int) -> float:
+        return float(self.high_values[int(symbol_id)])
+
+    def low(self, symbol_id: int) -> float:
+        return float(self.low_values[int(symbol_id)])
+
+    def volume(self, symbol_id: int) -> float:
+        return float(self.volume_values[int(symbol_id)])
+
     def position_qty(self, symbol_id: int) -> float:
         self._check()
         if not self._requirements.positions:

@@ -292,10 +292,10 @@ class _PythonNativeEventSession:
 class RustNativeEventBackend:
     _descriptor = BackendDescriptor(
         name=BackendKind.RUST,
-        implementation_version="native-api-0.4",
+        implementation_version="native-api-0.5-typed",
         protocol_version=1,
         command_abi_version="full-command-v1",
-        result_abi_version="raw-engine-result-v1",
+        result_abi_version="native-result-v2-soa",
         contracts=_CONTRACTS,
         workloads=("static_command_tape",),
         build="pyo3",
@@ -312,6 +312,15 @@ class RustNativeEventBackend:
 
 
 class _RustNativeEventSession:
+    """Prepared static Engine SPI route backed by immutable ABI-0.5 requests.
+
+    The legacy full-command arrays are compiled once at preparation because the
+    public semantic compiler remains the command authority. They are then
+    copied once into a Rust-owned ``CommandTapeV5`` request. Every run crosses
+    Python only once, executes while the GIL is detached, and returns typed SoA
+    buffers without a compatibility dictionary or Python execution replay.
+    """
+
     def __init__(self, plan, prepared, descriptor):
         self.plan = plan
         self.prepared = prepared
@@ -329,17 +338,10 @@ class _RustNativeEventSession:
             market.funding_rates,
             market.funding_event_mask,
         )
-        self._session = self._new_session()
         self._command_arrays = self._compile_commands()
-
-    @property
-    def descriptor(self):
-        return self._descriptor
-
-    def _new_session(self):
         instruments = self.prepared.instruments
         account = self.prepared.account
-        session = self._module.FullReactiveSessionCore.from_prepared(
+        self._template = self._module.NativeExecutionTemplateCore.from_prepared(
             self._market_core,
             instruments.table.contract_size,
             instruments.leverages,
@@ -348,9 +350,15 @@ class _RustNativeEventSession:
             account.maintenance_ratio,
             account.slippage_rate,
             account.use_funding,
+            event_contract_code=get_event_clock_contract(self.plan.contract_id).contract_code,
         )
-        session.set_event_contract(get_event_clock_contract(self.plan.contract_id).contract_code)
-        return session
+        self._requests: dict[int, object] = {}
+        self._runners: dict[int, object] = {}
+        self._last_diagnostics: dict[str, object] = {}
+
+    @property
+    def descriptor(self):
+        return self._descriptor
 
     def _compile_commands(self):
         tape = self.prepared.command_tape
@@ -378,43 +386,66 @@ class _RustNativeEventSession:
             values[:, 2] = tape.command_trigger_price
         return tape.command_ptr, codes, values, tape.command_expires_bar
 
+    def _typed_runner(self, output_profile: int):
+        request = self._requests.get(output_profile)
+        runner = self._runners.get(output_profile)
+        if request is None or runner is None:
+            ptr, codes, values, expiry = self._command_arrays
+            request = self._module.NativeExecutionRequestCore.from_template_command_tape(
+                self._template,
+                ptr,
+                codes,
+                values,
+                expiry,
+                output_profile=output_profile,
+            )
+            runner = request.new_runner()
+            self._requests[output_profile] = request
+            self._runners[output_profile] = runner
+        return request, runner
+
     def run(self, request: EngineRunRequest) -> RawEngineResult:
         if self._closed:
             raise RuntimeError("prepared engine session is closed")
         if request.output.fingerprint != self.plan.output.fingerprint:
             raise ValueError("EngineRunRequest output differs from the immutable execution plan")
-        ptr, codes, values, expiry = self._command_arrays
         score_only = request.output.dense_paths == PathMask.NONE
+        detail_requested = (
+            request.output.fill_detail not in {DetailLevel.NONE, DetailLevel.COUNT}
+            or request.output.event_detail not in {DetailLevel.NONE, DetailLevel.COUNT}
+        )
+        output_profile = 0 if score_only else (2 if detail_requested else 1)
+        typed_request, typed_runner = self._typed_runner(output_profile)
+        payload = typed_runner.execute_typed()
+        self._last_diagnostics = dict(typed_runner.diagnostics())
         if score_only:
-            payload = self._session.run_tape_score(ptr, codes, values, expiry)
             summary = RawEngineSummary(
-                final_equity=float(payload["final_equity"]),
-                final_positions=np.asarray(payload["final_positions"], dtype=np.float64),
-                total_fee=float(payload["total_fee"]),
-                total_funding=float(payload["total_funding"]),
-                total_turnover=float(payload["total_turnover"]),
-                fill_count=int(payload["fill_count"]),
-                event_count=int(payload["event_count"]),
-                rejected_count=int(payload["rejected_count"]),
-                canceled_count=int(payload["canceled_count"]),
-                max_initial_margin=float(payload["max_initial_margin"]),
-                max_maintenance_margin=float(payload["max_maintenance_margin"]),
-                liquidated=bool(payload["liquidated"]),
-                liquidation_bar=int(payload["liquidation_bar"]),
-                liquidation_reason=int(payload["liquidation_reason"]),
+                final_equity=float(payload.final_equity),
+                final_positions=np.asarray(payload.final_positions, dtype=np.float64),
+                total_fee=float(payload.total_fee),
+                total_funding=float(payload.total_funding),
+                total_turnover=float(payload.total_turnover),
+                fill_count=int(payload.fill_count),
+                event_count=int(payload.event_count),
+                rejected_count=int(payload.rejected_count),
+                canceled_count=int(payload.canceled_count),
+                max_initial_margin=float(payload.max_initial_margin),
+                max_maintenance_margin=float(payload.max_maintenance_margin),
+                liquidated=bool(payload.liquidated),
+                liquidation_bar=int(payload.liquidation_bar),
+                liquidation_reason=int(payload.liquidation_reason),
             )
             paths = fills = events = None
         else:
-            payload = self._session.run_tape_audit(ptr, codes, values, expiry)
-            equity = np.asarray(payload["equity"], dtype=np.float64)
-            positions = np.asarray(payload["positions"], dtype=np.float64).reshape(
+            equity = np.asarray(payload.equity, dtype=np.float64)
+            positions = np.asarray(payload.positions, dtype=np.float64).reshape(
                 self.prepared.market.n_bars, self.prepared.market.n_symbols
             )
-            fees = np.asarray(payload["fees"], dtype=np.float64)
-            turnover = np.asarray(payload["turnover"], dtype=np.float64)
-            funding = np.asarray(payload["funding"], dtype=np.float64)
-            initial_margin = np.asarray(payload["initial_margin"], dtype=np.float64)
-            maintenance_margin = np.asarray(payload["maintenance_margin"], dtype=np.float64)
+            fees = np.asarray(payload.fees, dtype=np.float64)
+            turnover = np.asarray(payload.turnover, dtype=np.float64)
+            funding = np.asarray(payload.funding, dtype=np.float64)
+            initial_margin = np.asarray(payload.initial_margin, dtype=np.float64)
+            maintenance_margin = np.asarray(payload.maintenance_margin, dtype=np.float64)
             zeros = np.zeros(len(equity), dtype=np.int64)
             paths = RawEnginePaths(
                 equity=equity,
@@ -427,33 +458,33 @@ class _RustNativeEventSession:
                 rejected_orders=zeros,
                 canceled_orders=zeros,
             )
-            fill_size = int(payload["fill_count"])
+            fill_size = int(payload.fill_count)
             fills = None
-            if request.output.fill_detail not in {DetailLevel.NONE, DetailLevel.COUNT}:
+            if output_profile == 2 and request.output.fill_detail not in {DetailLevel.NONE, DetailLevel.COUNT}:
                 fills = RawFillBuffer(
-                    bar=np.asarray(payload["fill_bar"][:fill_size]),
+                    bar=np.asarray(payload.fill_bar[:fill_size]),
                     command_index=np.full(fill_size, -1, dtype=np.int64),
-                    order_id_code=np.asarray(payload["fill_order_id"][:fill_size]),
-                    symbol_code=np.asarray(payload["fill_symbol"][:fill_size]),
-                    side=np.asarray(payload["fill_side"][:fill_size]),
-                    qty=np.asarray(payload["fill_qty"][:fill_size]),
-                    price=np.asarray(payload["fill_price"][:fill_size]),
-                    fee=np.asarray(payload["fill_fee"][:fill_size]),
-                    reason=np.asarray(payload["fill_reason"][:fill_size]),
-                    ambiguity=np.asarray(payload["fill_ambiguity"][:fill_size]),
+                    order_id_code=np.asarray(payload.fill_order_id[:fill_size]),
+                    symbol_code=np.asarray(payload.fill_symbol[:fill_size]),
+                    side=np.asarray(payload.fill_side[:fill_size]),
+                    qty=np.asarray(payload.fill_qty[:fill_size]),
+                    price=np.asarray(payload.fill_price[:fill_size]),
+                    fee=np.asarray(payload.fill_fee[:fill_size]),
+                    reason=np.asarray(payload.fill_reason[:fill_size]),
+                    ambiguity=np.asarray(payload.fill_ambiguity[:fill_size]),
                 )
-            event_size = int(payload["event_count"])
+            event_size = int(payload.event_count)
             events = None
-            if request.output.event_detail not in {DetailLevel.NONE, DetailLevel.COUNT}:
+            if output_profile == 2 and request.output.event_detail not in {DetailLevel.NONE, DetailLevel.COUNT}:
                 events = RawEventBuffer(
-                    bar=np.asarray(payload["event_bar"][:event_size]),
-                    kind=np.asarray(payload["event_kind"][:event_size]),
-                    status=np.asarray(payload["event_status"][:event_size]),
+                    bar=np.asarray(payload.event_bar[:event_size]),
+                    kind=np.asarray(payload.event_kind[:event_size]),
+                    status=np.asarray(payload.event_status[:event_size]),
                     command_index=np.full(event_size, -1, dtype=np.int64),
-                    order_id_code=np.asarray(payload["event_order_id"][:event_size]),
-                    target_id_code=np.asarray(payload["event_target_id"][:event_size]),
-                    symbol_code=np.asarray(payload["event_symbol"][:event_size]),
-                    reject_code=np.asarray(payload["event_reject_code"][:event_size]),
+                    order_id_code=np.asarray(payload.event_order_id[:event_size]),
+                    target_id_code=np.asarray(payload.event_target_id[:event_size]),
+                    symbol_code=np.asarray(payload.event_symbol[:event_size]),
+                    reject_code=np.asarray(payload.event_reject_code[:event_size]),
                 )
             summary = _summary(
                 equity=equity,
@@ -463,13 +494,13 @@ class _RustNativeEventSession:
                 turnover=turnover,
                 initial_margin=initial_margin,
                 maintenance_margin=maintenance_margin,
-                fill_count=payload["fill_count"],
-                event_count=payload["event_count"],
-                rejected_count=payload["rejected_count"],
-                canceled_count=payload["canceled_count"],
-                liquidated=payload["liquidated"],
-                liquidation_bar=payload["liquidation_bar"],
-                liquidation_reason=payload["liquidation_reason"],
+                fill_count=payload.fill_count,
+                event_count=payload.event_count,
+                rejected_count=payload.rejected_count,
+                canceled_count=payload.canceled_count,
+                liquidated=payload.liquidated,
+                liquidation_bar=payload.liquidation_bar,
+                liquidation_reason=payload.liquidation_reason,
             )
         return RawEngineResult(
             summary=summary,
@@ -498,18 +529,27 @@ class _RustNativeEventSession:
             ),
             plan_fingerprint=self.plan.plan_fingerprint,
             prepared_fingerprint=self.prepared.keys.combined,
-            backend_metadata=(("engine", "event_v2_p1_rust_raw"), ("pycalls", "1")),
+            backend_metadata=(
+                ("engine", "event_v2_p1_rust_typed"),
+                ("native_static_abi", "0.5"),
+                ("native_result_version", str(payload.native_result_version)),
+                ("native_request_fingerprint", typed_request.fingerprint),
+                ("pycalls", "1"),
+            ),
         )
 
     def reset(self, reset: ResetRequest = ResetRequest()) -> None:
         if self._closed:
             raise RuntimeError("prepared engine session is closed")
-        self._session.reset()
-        self._session.set_event_contract(get_event_clock_contract(self.plan.contract_id).contract_code)
+        for runner in self._runners.values():
+            runner.reset("account_and_orders", 0)
 
     def close(self) -> None:
         self._closed = True
-        self._session = None
+        for runner in self._runners.values():
+            runner.close()
+        self._runners.clear()
+        self._requests.clear()
 
 
 __all__ = ["PythonNativeEventBackend", "RustNativeEventBackend"]

@@ -32,8 +32,9 @@ mirror, edit both trees, or treat a root-tree import as installed-wheel proof.
 
 | Workload | `backend="auto"` with matching native wheel | Default elsewhere |
 |---|---|---|
-| Static V2/V3 command tape, at least 10,000 bars | Rust | Python |
-| Bounded Native Strategy IR, batch, causal-fold score, at least 2,000 bars | Rust | Python |
+| Static V2/V3 command tape, any size | Python; explicit Rust only | Python |
+| Bounded one-symbol Native Strategy IR v1 `score`, at least 2,000 bars | Rust | Python |
+| Native Strategy IR `minimal` / `standard` / `audit`, or fewer than 2,000 bars | Python; explicit Rust only where supported | Python |
 | Direct `run_portfolio_target_market(...)` | Explicit Rust helper only | Not a generic endpoint route |
 | Direct `run_atomic_package_market(...)` | Explicit Rust helper only | Not a generic endpoint route |
 | Callback, reactive, generic portfolio/basket/arbitrage, unsupported account/contract | Python | Python |
@@ -63,7 +64,8 @@ export QUANTBT_NATIVE_PROMOTION_MAX=explicit_only
 
 Every eligible result records the resolved backend, policy-table version and
 fallback reason in execution metadata. An internal Rust failure is not silently
-replayed by Python.
+replayed by Python. The exact Phase 78 route predicate and measured admission
+evidence are documented in [Public Rust Promotion](../native/public_rust_promotion.md).
 
 ## Reproduce A Candidate Gate
 

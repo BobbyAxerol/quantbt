@@ -1,0 +1,436 @@
+{
+  "excluded_workload_ids": [
+    "mode1_per_fold_decay_w0_native_eligible",
+    "mode1_per_fold_causal_w0_native_eligible",
+    "mode1_train_test_w0_native_eligible",
+    "mode2_global_proxy_preserved",
+    "mode2_train_test_proxy_preserved",
+    "mode3_global_w0_native_eligible",
+    "mode3_train_test_w0_native_eligible",
+    "mode4_global_w0_native_eligible",
+    "mode4_per_fold_causal_w0_native_eligible",
+    "mode4_train_test_w0_native_eligible",
+    "mode5_full_sample_w0_native_eligible",
+    "pct_equity_auto_fallback"
+  ],
+  "findings_to_next_phase": [
+    {
+      "baseline_loss": "legacy pct_equity executes only on raw-weight transition and reports raw weights, so direct per-bar EquityFraction cannot be substituted.",
+      "comparator": "legacy_pct_equity_transition_sizing_v1 hand fixtures plus public fold parity.",
+      "domain_risk": "silent drift-rebalance or rejection-retry changes fees, margin and final equity.",
+      "gate": "exact accepted-unit/equity/cost/rejection parity before any Rust eligibility widening.",
+      "measured_or_inspected": "inspected_and_contract_locked",
+      "mechanism": "introduce a typed transition-sizing request with accepted-unit state and a separate public adapter.",
+      "owner": "77.2",
+      "priority": 1
+    },
+    {
+      "baseline_loss": "W0 endpoint scoring enters Rust only for certified scalar signal/notional/unit routes; callback generation and selection/report adaptation remain Python-owned.",
+      "comparator": "paired reference/native rows in this artifact, fixed candidate fingerprint and same-seed trial-table fingerprint.",
+      "domain_risk": "candidate ordering, strict causal boundaries and final stitched account parity.",
+      "gate": "same params, trial ordering, output, fees, funding and final account within declared tolerance.",
+      "measured_or_inspected": "measured_public_matrix",
+      "mechanism": "share prepared market ownership and compact metric columns without changing strategy lifecycle or Optuna order.",
+      "owner": "77.2",
+      "priority": 2
+    },
+    {
+      "baseline_loss": "Mode 2 proxy and W3 reactive routes have different execution and sampling contracts; they must not inherit a W0 score speedup claim.",
+      "comparator": "Mode 2 proxy-preserved row and Phase 76 reactive artifacts.",
+      "domain_risk": "changed bootstrap RNG/path semantics, missed reactive wake, or TPE-sequence relabeling.",
+      "gate": "identical path fingerprints or explicit non-comparability labels; no auto-promotion from this baseline.",
+      "measured_or_inspected": "scope_lock",
+      "mechanism": "separate sparse/reactive native state and bounded SBB work only after their own comparator is defined.",
+      "owner": "77.3",
+      "priority": 3
+    }
+  ],
+  "fixed_candidate_reproducibility": {
+    "best_trial": {
+      "mean_decay": -0.106244164,
+      "mean_is_sharpe": -0.016632341,
+      "mean_oos_sharpe": 0.089611823,
+      "objective": -0.203950592,
+      "params": {
+        "amplitude": 0.8,
+        "period": 7
+      },
+      "std_decay": 0.58712483,
+      "trial_id": 0
+    },
+    "candidate_table_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "equity_sha256": "d6a49f4ca054f31ac043f640f78d58c0d2e6fe61b38b5a38f19ae1ac41ac04b5",
+    "oos_output_sha256": "353936f01d747bfd03648f973fed64e8df0e812125c8f5efcdb7022d463e3a9b",
+    "params": {
+      "amplitude": 0.8,
+      "period": 7
+    },
+    "params_by_fold": {},
+    "positions_sha256": "56e9269ccd28cf17b68549955f9d66249bdee96f022ac2c746046f604511a5d1",
+    "trial_table_sha256": "71c52c731b446893e5de88adb5da697d1ccf2bf0d066e68b0f7ea0c8d8031857"
+  },
+  "matrix_manifest": "benchmarks/native_event/manifests/phase77_1_public_matrix_v1.json",
+  "measurement_identity": {
+    "canonical_source_sha256": "644ad261c1a78f353124e416968f4398a9dff9ec1a6001316bb31c12d0aa8479",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "72d3170dea8dec01fe06c5bfd74d14aa9f4d0dbdc3bea1a803536457e6d19cc1",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "10bdc0363da800d6e7c84cfadca70b8c4b13df60e6f2adf081f2afe4b0f14f5b",
+    "intent_sha256": "c4ab3b7a4dbd56223ade096340c39a41bab24745044547b2581c8869f7a26bfc",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "c39670da0ccbc2fa0d114f03887bb97ec624368821b88314ef128400a5456614",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "per eligible row warm reference/native public WFO once, assert full result fingerprint parity, then alternate paired order; unpaired fallback rows are recorded without a speed ratio"
+  },
+  "memory_mb": {
+    "after": {
+      "pss_mb": 227.45703125,
+      "rss_mb": 237.125
+    },
+    "before": {
+      "pss_mb": 149.263671875,
+      "rss_mb": 158.7578125
+    },
+    "delta": {
+      "pss_mb": 78.193359375,
+      "rss_mb": 78.3671875
+    },
+    "interpretation": "same-process baseline; no per-backend ownership or cold-process peak claim"
+  },
+  "pct_equity_transition_contract": {
+    "alloc_fraction_and_percent_alias_match": true,
+    "contract_id": "legacy_pct_equity_transition_sizing_v1",
+    "entry_hold_reversal_equity": [
+      10000.0,
+      10000.0,
+      11000.0,
+      11000.0,
+      10450.0
+    ],
+    "expected_entry_hold_reversal_equity": [
+      10000.0,
+      10000.0,
+      11000.0,
+      11000.0,
+      10450.0
+    ],
+    "first_bar_is_snapshot": true,
+    "funding_on_carried_position": true,
+    "rejected_unchanged_signal_is_not_retried": true,
+    "reported_positions_are_raw_weights": true
+  },
+  "phase": "77.1",
+  "profile": {
+    "bars": 10000,
+    "description": "Five-repeat paired headline W0 Mode 1 global comparator on the declared standard profile.",
+    "frequency": "1h",
+    "id": "standard",
+    "repeats": 5,
+    "split_frequency": "quarterly",
+    "split_mode": "2020-07-01",
+    "train_window": "180D",
+    "trials": 64
+  },
+  "rows": [
+    {
+      "native": {
+        "candidate_count": 66,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.123981242,
+            "mean_is_sharpe": 0.001050114,
+            "mean_oos_sharpe": -0.122931128,
+            "objective": -0.699810878,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 1.029778257,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "927bb497b8b0515762a5c2ff97a6923eea73ea6c5353751cd0c590be0b178b40",
+          "equity_sha256": "6a21b779ff1f897e293a1c07926e0a620ff555a10f53877bca0ae2cc3507647e",
+          "oos_output_sha256": "599953c206c4951c41f4bb808bdcce54c109e62fd2245141e4f2a514fd663521",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "c9fb55a7fb4fe67898617ec562d8cbb8435511cc01c4f164fac9bc2a00b4a249",
+          "trial_table_sha256": "4e31e35b2527ed39660c8e94ef2be98e64153ee6bc520403505980b48bdcc636"
+        },
+        "fold_count": 3,
+        "id": "mode1_global_w0_native_eligible",
+        "lane": "prepared_native",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 6,
+        "native_score_rows": 24,
+        "native_scored_bars": 89024,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "paired_speedup_vs_reference": 2.103807272275218,
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "require",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "native_prepared",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; declared fold OOS participates in decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.0415884954854846,
+          "last": 0.40215842705219984,
+          "median": 0.40215842705219984,
+          "native_execute_within_score": 0.011438963934779167,
+          "p95": 0.4434305103495717,
+          "prepare_fold_plan": 0.1263150991871953,
+          "samples": [
+            0.36965273786336184,
+            0.4504409469664097,
+            0.4153887638822198,
+            0.3833551090210676,
+            0.40215842705219984
+          ],
+          "strategy_generation": 0.03518933895975351
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 371712,
+          "actual_simulation_symbol_bar_visits": 371712,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 66,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 198,
+          "fold_count": 3,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 2208,
+              "test_end": 2208,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 2208,
+              "test_end": 2208,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 1216,
+              "test_end": 1216,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 1980000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 1980000,
+          "planned_candidate_fold_scenario_tasks": 198,
+          "planned_simulation_bar_visits": 371712,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 10000,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "reference": {
+        "candidate_count": 66,
+        "causality_claim": "retrospective_global_calibration",
+        "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+        "fingerprint": {
+          "best_trial": {
+            "mean_decay": 0.123981242,
+            "mean_is_sharpe": 0.001050114,
+            "mean_oos_sharpe": -0.122931128,
+            "objective": -0.699810878,
+            "params": {
+              "amplitude": 0.8,
+              "period": 13
+            },
+            "std_decay": 1.029778257,
+            "trial_id": 0
+          },
+          "candidate_table_sha256": "927bb497b8b0515762a5c2ff97a6923eea73ea6c5353751cd0c590be0b178b40",
+          "equity_sha256": "6a21b779ff1f897e293a1c07926e0a620ff555a10f53877bca0ae2cc3507647e",
+          "oos_output_sha256": "599953c206c4951c41f4bb808bdcce54c109e62fd2245141e4f2a514fd663521",
+          "params": {
+            "amplitude": 0.8,
+            "period": 13
+          },
+          "params_by_fold": {},
+          "positions_sha256": "c9fb55a7fb4fe67898617ec562d8cbb8435511cc01c4f164fac9bc2a00b4a249",
+          "trial_table_sha256": "4e31e35b2527ed39660c8e94ef2be98e64153ee6bc520403505980b48bdcc636"
+        },
+        "fold_count": 3,
+        "id": "mode1_global_w0_native_eligible",
+        "lane": "reference_endpoint",
+        "mode": "mode_1_decay",
+        "native_prepared_reason": null,
+        "native_score_batches": 0,
+        "native_score_rows": 0,
+        "native_scored_bars": 0,
+        "oos_used_for_selection": true,
+        "optimization_schedule": "global",
+        "public_route": "walk_forward",
+        "requested_native_prepared_policy": "off",
+        "requested_target_runtime": "rust",
+        "resolved_final_backend": "native_vectorized",
+        "resolved_native_prepared_policy": "off",
+        "scoring_backend": "endpoint",
+        "selection_contract": "one retrospective study; declared fold OOS participates in decay selection",
+        "target_mode": "signal_notional",
+        "timing_seconds": {
+          "candidate_score": 0.48938012309372425,
+          "last": 0.8213272551074624,
+          "median": 0.8460638234391809,
+          "native_execute_within_score": 0.0,
+          "p95": 1.0655069150030612,
+          "prepare_fold_plan": 0.12018775846809149,
+          "samples": [
+            0.8246889198198915,
+            1.1096444576978683,
+            0.8460638234391809,
+            0.8889567442238331,
+            0.8213272551074624
+          ],
+          "strategy_generation": 0.03586698696017265
+        },
+        "validation_claim": "walk_forward_oos",
+        "work_counters": {
+          "actual_simulation_bar_visits": 371712,
+          "actual_simulation_symbol_bar_visits": 371712,
+          "actual_visit_basis": "derived_exhaustive_test_windows",
+          "candidate_count": 66,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "executed_candidate_fold_scenario_tasks": 198,
+          "fold_count": 3,
+          "folds": [
+            {
+              "fold_id": 0,
+              "planned_test_bar_visits": 2208,
+              "test_end": 2208,
+              "test_start": 0
+            },
+            {
+              "fold_id": 1,
+              "planned_test_bar_visits": 2208,
+              "test_end": 2208,
+              "test_start": 0
+            },
+            {
+              "fold_id": 2,
+              "planned_test_bar_visits": 1216,
+              "test_end": 1216,
+              "test_start": 0
+            }
+          ],
+          "logical_full_tape_candidate_fold_bar_visits": 1980000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 1980000,
+          "planned_candidate_fold_scenario_tasks": 198,
+          "planned_simulation_bar_visits": 371712,
+          "scenario_count": 1,
+          "schema": "quantbt-native-work-counters-v1",
+          "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "supplied_market_bars": 10000,
+          "symbol_count": 1,
+          "warmup_bar_visits": 0
+        }
+      },
+      "rss_pss_samples_mb": [
+        {
+          "pss_mb": 224.20703125,
+          "rss_mb": 233.828125
+        },
+        {
+          "pss_mb": 228.77734375,
+          "rss_mb": 238.4375
+        },
+        {
+          "pss_mb": 228.85546875,
+          "rss_mb": 238.4375
+        },
+        {
+          "pss_mb": 229.015625,
+          "rss_mb": 238.4375
+        },
+        {
+          "pss_mb": 229.015625,
+          "rss_mb": 238.4375
+        }
+      ],
+      "rss_pss_tail_spread_mb": {
+        "pss_mb": 4.80859375,
+        "rss_mb": 4.609375
+      },
+      "status": "measured_pair_parity_passed"
+    }
+  ],
+  "schema": "quantbt-phase77-1-public-workload-baseline-v1",
+  "selected_workload_ids": [
+    "mode1_global_w0_native_eligible"
+  ],
+  "separate_scope_evidence": [
+    {
+      "boundary": "No W0 comparator or generic walk_forward speedup claim.",
+      "contract": "prepared reactive callback; reset-flat segmented accounts",
+      "coverage": "Mode 1 global timing; Modes 1/3/4/5 fixed-candidate selector parity in tests/test_phase76_reactive_wfo.py",
+      "evidence": "benchmarks/native_event/results/phase76_reactive_wfo.json",
+      "route": "reactive_w3"
+    },
+    {
+      "boundary": "Not generic callback WFO or legacy pct_equity.",
+      "contract": "typed direct target tape",
+      "coverage": "separate target/vectorized authority benchmark",
+      "evidence": "benchmarks/native_event/results/phase66_rust_target_vectorized.json",
+      "route": "direct_target_vectorized"
+    },
+    {
+      "boundary": "Not a single-symbol public WFO score route.",
+      "contract": "bounded shared-account portfolio",
+      "coverage": "separate portfolio parity and throughput benchmark",
+      "evidence": "benchmarks/native_event/results/phase67_shared_portfolio.json",
+      "route": "shared_account_portfolio"
+    },
+    {
+      "boundary": "Not a generic package/arbitrage WFO promotion claim.",
+      "contract": "same-account bounded package",
+      "coverage": "separate package reconciliation benchmark",
+      "evidence": "benchmarks/native_event/results/phase68_bounded_package.json",
+      "route": "bounded_package"
+    }
+  ],
+  "status": "baseline_only_not_promotion_eligible"
+}

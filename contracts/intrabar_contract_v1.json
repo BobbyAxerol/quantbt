@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "contract_id": "intrabar_bracket_v1",
+  "capability": "bounded_single_symbol_ohlc_intrabar",
+  "authority": {
+    "python_oracle": "run_intrabar_reference",
+    "numba_production_comparator": "run_intrabar_kernel / run_intrabar_session_kernel",
+    "rust_authority_target": "BracketIntrabarKernelV1 / SessionIntrabarKernelV1",
+    "fill_replay": "separate_accounting_anchor"
+  },
+  "scope": {
+    "symbols": 1,
+    "market_model": "deterministic_ohlc_bar_path",
+    "not_a_claim": [
+      "l2_order_book_reconstruction",
+      "queue_priority",
+      "partial_fill_matching",
+      "portfolio_cross_margin",
+      "grid_or_dca_state_machine"
+    ]
+  },
+  "clock": {
+    "signal_observation": "bar_t_minus_1",
+    "entry_execution": "open_t",
+    "bar_timestamp_semantics": {
+      "open": "funding_at_open_before_pending_orders",
+      "close": "funding_at_close_after_intrabar_execution"
+    },
+    "final_bar": "optional_market_flatten_after_close"
+  },
+  "ordering": [
+    "mark_open_gap",
+    "open_maintenance_liquidation",
+    "funding_at_open_when_declared",
+    "session_reset_and_force_flat",
+    "stale_pending_signal_cancellation",
+    "technical_exit_or_reversal",
+    "entry_admission_and_fill",
+    "same_bar_bracket_resolution",
+    "worst_path_maintenance_liquidation_or_close_mark",
+    "trailing_update_after_close_mark",
+    "funding_at_close_when_declared",
+    "snapshot"
+  ],
+  "bracket": {
+    "level_modes": ["absolute_price", "price_distance", "percent_distance"],
+    "same_bar_policies": {
+      "supported": [
+        "conservative",
+        "stop_first",
+        "tp_first",
+        "ohlc_path",
+        "olhc_path"
+      ],
+      "fail_closed": [
+        "reject_ambiguous",
+        "lower_timeframe_required"
+      ]
+    },
+    "stop_gap": "open_worse_than_trigger_with_market_slippage",
+    "take_profit_gap": ["limit_price_conservative", "open_price_improvement"],
+    "trailing": "initial_bracket_then_close_mark_update"
+  },
+  "session": {
+    "supported": [
+      "entry_window",
+      "force_flat",
+      "session_entry_quota",
+      "stale_signal_cancellation",
+      "flat_only_or_reverse_policy",
+      "protective_exit_reentry_suppression"
+    ]
+  },
+  "audit": {
+    "required_fields": [
+      "bar_index",
+      "sequence",
+      "side",
+      "qty",
+      "price",
+      "fee",
+      "reason",
+      "ambiguity_flag",
+      "same_bar_policy_id"
+    ],
+    "retention": "bounded_explicit_limit"
+  }
+}

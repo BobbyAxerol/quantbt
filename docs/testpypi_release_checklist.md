@@ -124,8 +124,10 @@ For normal PyPI, omit the two `poetry source add` commands and run the same
 
 ## Release Boundaries
 
-- `backend="auto"` promotes Rust only for exact-pair static command tapes at
-  10,000+ bars and bounded Native Strategy IR/batch at 2,000+ bars.
+- `backend="auto"` promotes only the Phase 78 one-symbol Native Strategy IR
+  v1 `score` route at >=2,000 bars after the exact core/native pair and
+  capability gate pass. Static command tapes and IR materialized profiles stay
+  Python-auto; see [Public Rust Promotion](native/public_rust_promotion.md).
 - `backend="python"` remains the oracle and always forces Python.
 - `backend="rust"` is explicit and fails before execution if the companion or
   capability contract is unavailable.

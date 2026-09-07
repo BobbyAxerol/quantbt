@@ -19,9 +19,11 @@ QuantBTEndpoint / BacktestEngineV2
 
 The planning layer resolves report aliases, event clock, workload, strategy
 mode, output projection, backend policy, capabilities, numeric policy, and
-fingerprints once. `auto` remains Python under the release policy and does not
-import `_quantbt_native`. Explicit Rust probes the native semantic descriptor
-and fails before market preparation when the wheel is absent or incompatible.
+fingerprints once. The historical Phase 52A snapshot used Python for every
+`auto` route. Current policy is narrower than a generic native flag: only the
+Phase 78 Native Strategy IR score route may auto-promote; all other shapes
+remain Python-auto. Explicit Rust probes the native semantic descriptor and
+fails before market preparation when the wheel is absent or incompatible.
 
 ## Immutable Contracts
 

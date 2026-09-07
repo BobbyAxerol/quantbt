@@ -13,6 +13,15 @@ from .conventions import (
     deribit_linear_usdc_option_convention,
 )
 from .cache import OptionPreparedRunCache, option_package_cache_key
+from .capabilities import (
+    OptionCapabilityAssessment,
+    OptionCapabilityError,
+    OptionCapabilityStatus,
+    OptionSettlementPolicy,
+    assess_option_capability,
+    option_capability_registry_v1,
+    validate_option_capabilities,
+)
 from .data import CANONICAL_OPTION_CHAIN_COLUMNS, validate_option_chain_frame
 from .execution import (
     OptionDepthFidelity,
@@ -124,6 +133,9 @@ __all__ = [
     "GammaScalpingConfig",
     "InstrumentRegistrySignature",
     "OptionDecisionFillPolicy",
+    "OptionCapabilityAssessment",
+    "OptionCapabilityError",
+    "OptionCapabilityStatus",
     "OptionDepthFidelity",
     "OptionExecutionConfig",
     "OptionFeeResult",
@@ -148,6 +160,7 @@ __all__ = [
     "OptionSelection",
     "OptionSelectionFilters",
     "OptionSettlementRepresentation",
+    "OptionSettlementPolicy",
     "OptionSettlementResult",
     "OptionStrategyRun",
     "OptionTapeSignature",
@@ -184,12 +197,14 @@ __all__ = [
     "ImpliedVolResult",
     "linear_black76_greeks",
     "available_option_rows",
+    "assess_option_capability",
     "compute_net_option_delta",
     "execute_option_package",
     "hedge_decision",
     "liquidate_option_positions",
     "option_expiry_payoff_per_unit",
     "option_package_cache_key",
+    "option_capability_registry_v1",
     "prepare_option_tape",
     "run_delta_hedge_path",
     "scale_greeks_to_reporting_currency",
@@ -212,4 +227,5 @@ __all__ = [
     "strangle",
     "vertical",
     "validate_option_chain_frame",
+    "validate_option_capabilities",
 ]

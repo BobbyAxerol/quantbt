@@ -1,0 +1,424 @@
+{
+  "compatibility_requirements": {
+    "auto_policy": "auto preserves the legacy scorer; require plus target_runtime='rust' is explicit opt-in",
+    "fee": "legacy fee / 2 must equal explicit canonical fee_rate when both are supplied",
+    "position_surface": "public positions remain processed weights; accepted units are metadata.pct_equity_transition.accepted_positions",
+    "slippage": "legacy slippage must equal ExecutionConfig.slippage_bps when both are supplied"
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "644ad261c1a78f353124e416968f4398a9dff9ec1a6001316bb31c12d0aa8479",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "72d3170dea8dec01fe06c5bfd74d14aa9f4d0dbdc3bea1a803536457e6d19cc1",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "5a919a21baae72af1a3a68029bd2eb4be3123cd9a4a1f9fbee59be8dca18eec4",
+    "intent_sha256": "6ce5d5b9da48a6d19ac3b2cc2bda0c3924388411921ea0affed0dc4ca8ad6b1e",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "c39670da0ccbc2fa0d114f03887bb97ec624368821b88314ef128400a5456614",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed legacy/Rust warm pair with complete public parity, then alternating paired endpoint runs using the unchanged Phase 77.1 generator and profile"
+  },
+  "paired_result": {
+    "native": {
+      "candidate_count": 66,
+      "causality_claim": "retrospective_global_calibration",
+      "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+      "fingerprint": {
+        "best_trial": {
+          "mean_decay": 0.040595458,
+          "mean_is_sharpe": -0.131603025,
+          "mean_oos_sharpe": -0.172198483,
+          "objective": -0.275299198,
+          "params": {
+            "amplitude": 0.8,
+            "period": 7
+          },
+          "std_decay": 0.165605972,
+          "trial_id": 1
+        },
+        "candidate_table_sha256": "4e084f4e8ce059271f23c37caf68852f72b12d6da69541e1cf8fc63fd8f6106f",
+        "equity_sha256": "ce32ba0dd46ea909d5a4acf2d69ec6d51e1e77e69e8c400937d58b5989a32e48",
+        "oos_output_sha256": "353936f01d747bfd03648f973fed64e8df0e812125c8f5efcdb7022d463e3a9b",
+        "params": {
+          "amplitude": 0.8,
+          "period": 7
+        },
+        "params_by_fold": {},
+        "positions_sha256": "f6294133b03ba4b4d65c66e25640b8b6470cc13d34c6381dccb5e337bd0d2de0",
+        "trial_table_sha256": "2dd2434f6224993e3d1cfd2ec9d69c36280cd9e3f8e5624d5eea5f4b6375adad"
+      },
+      "fold_count": 3,
+      "id": "pct_equity_rust_transition_native",
+      "lane": "rust_pct_equity_transition_prepared",
+      "mode": "mode_4_is_only_robust",
+      "native_prepared_reason": null,
+      "native_score_batches": 6,
+      "native_score_rows": 48,
+      "native_scored_bars": 140864,
+      "oos_used_for_selection": false,
+      "optimization_schedule": "global",
+      "paired_speedup_vs_reference": 2.230567236012287,
+      "public_route": "walk_forward",
+      "requested_native_prepared_policy": "require",
+      "requested_target_runtime": "rust",
+      "resolved_final_backend": "native_vectorized",
+      "resolved_native_prepared_policy": "native_prepared",
+      "scoring_backend": "endpoint",
+      "selection_contract": "IS-only temporal/plateau selection; Rust owns fresh candidate scoring and the one final stitched transition account only under explicit opt-in",
+      "target_mode": "pct_equity",
+      "timing_seconds": {
+        "candidate_score": 0.09717598650604486,
+        "last": 0.7972623025998473,
+        "median": 0.6983554279431701,
+        "native_execute_within_score": 0.020100221037864685,
+        "p95": 0.7909713637083768,
+        "prepare_fold_plan": 0.1676360946148634,
+        "samples": [
+          0.682012970559299,
+          0.7658076081424952,
+          0.6955275228247046,
+          0.6983554279431701,
+          0.7972623025998473
+        ],
+        "strategy_generation": 0.036813728511333466
+      },
+      "validation_claim": "walk_forward_oos",
+      "work_counters": {
+        "actual_simulation_bar_visits": 371712,
+        "actual_simulation_symbol_bar_visits": 371712,
+        "actual_visit_basis": "derived_exhaustive_test_windows",
+        "candidate_count": 66,
+        "early_terminated_candidate_fold_scenario_tasks": 0,
+        "executed_candidate_fold_scenario_tasks": 198,
+        "fold_count": 3,
+        "folds": [
+          {
+            "fold_id": 0,
+            "planned_test_bar_visits": 2208,
+            "test_end": 2208,
+            "test_start": 0
+          },
+          {
+            "fold_id": 1,
+            "planned_test_bar_visits": 2208,
+            "test_end": 2208,
+            "test_start": 0
+          },
+          {
+            "fold_id": 2,
+            "planned_test_bar_visits": 1216,
+            "test_end": 1216,
+            "test_start": 0
+          }
+        ],
+        "logical_full_tape_candidate_fold_bar_visits": 1980000,
+        "logical_full_tape_candidate_fold_symbol_bar_visits": 1980000,
+        "planned_candidate_fold_scenario_tasks": 198,
+        "planned_simulation_bar_visits": 371712,
+        "scenario_count": 1,
+        "schema": "quantbt-native-work-counters-v1",
+        "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+        "skipped_candidate_fold_scenario_tasks": 0,
+        "supplied_market_bars": 10000,
+        "symbol_count": 1,
+        "warmup_bar_visits": 0
+      }
+    },
+    "native_prepared_wfo": {
+      "cache": {
+        "cache_hit": 8,
+        "cache_miss": 90,
+        "entry_count": 17,
+        "eviction_count": 73,
+        "generation": 0,
+        "ingress_copied_bytes": 0,
+        "ingress_copy_count": 0,
+        "resident_bytes": 811536,
+        "reuse_count": 8,
+        "schema": "native-execution-preparation-v1",
+        "tier_budgets": {
+          "market": 161061273,
+          "request": 67108864,
+          "template": 40265318
+        },
+        "tiers": {
+          "market": {
+            "cache_hit": 0,
+            "cache_miss": 1,
+            "clear_count": 0,
+            "entry_count": 1,
+            "eviction_count": 0,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 570000,
+            "reuse_count": 0
+          },
+          "request": {
+            "cache_hit": 0,
+            "cache_miss": 48,
+            "clear_count": 0,
+            "entry_count": 8,
+            "eviction_count": 40,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 241536,
+            "reuse_count": 0
+          },
+          "template": {
+            "cache_hit": 8,
+            "cache_miss": 41,
+            "clear_count": 0,
+            "entry_count": 8,
+            "eviction_count": 33,
+            "generation": 0,
+            "pinned_entries": 0,
+            "resident_bytes": 0,
+            "reuse_count": 8
+          }
+        }
+      },
+      "execution_clock": "close_target_v2_same_close",
+      "fallback_batches": 0,
+      "fallback_rows": 0,
+      "final_account_policy": "endpoint_stitched_continuous_account",
+      "fresh_account_policy": "fresh_account_per_evaluation",
+      "market_signature": "cacdeaa850e7a0cde1fe1f173a41510ef02472490dfa47727e9b61b020b08d72",
+      "native_batches": 6,
+      "native_boundary_calls": 6,
+      "native_rows": 48,
+      "native_score_seconds": 0.020100221037864685,
+      "native_scored_bars": 140864,
+      "phase": "74",
+      "reason": null,
+      "requested_policy": "require",
+      "resolved_policy": "native_prepared",
+      "runtime": {
+        "active_batches": 0,
+        "cache_generation": 0,
+        "canceled": false,
+        "cancellation_reason": null,
+        "closed": false,
+        "failed_rows": 0,
+        "native_request_executions": 48,
+        "native_runtime": "native_prepared_evaluation_core_v1",
+        "native_runtime_generation": 1,
+        "native_runtime_id": 6,
+        "parallelism": {
+          "blas_threads": 4,
+          "constrained_by": [],
+          "host_cpus": 4,
+          "numba_threads": 4,
+          "openmp_threads": 4,
+          "python_processes": 1,
+          "rust_workers": 1
+        },
+        "poison_recoveries": 0,
+        "poisoned": false,
+        "runtime": "native_prepared_evaluation_v1",
+        "runtime_budget": {
+          "max_active_orders": null,
+          "max_audit_rows": null,
+          "max_bars": null,
+          "max_commands": null,
+          "max_error_rows": 64,
+          "max_fills": null,
+          "max_metric_rows": 1000000,
+          "max_native_memory_bytes": null,
+          "max_orders": null,
+          "max_wall_time_ms": null,
+          "max_workers": null
+        },
+        "runtime_generation": 1,
+        "runtime_id": "0e5d88377cd44dea8e887a5b2eddf8e7",
+        "score_batches": 6,
+        "worker_pool_creations": 1
+      },
+      "score_adapter": "scalar_columns_v1",
+      "score_python_row_objects": 0,
+      "target_mode": "pct_equity",
+      "template_signature": "bc166dfa6e9747b5b9424001e67d9865dcf98bdd05b995b5dc6885c3dac6a630",
+      "workers": 1
+    },
+    "reference": {
+      "candidate_count": 66,
+      "causality_claim": "retrospective_global_calibration",
+      "chronological_validation_claim": "not_causal_multi_fold_global_calibration",
+      "fingerprint": {
+        "best_trial": {
+          "mean_decay": 0.040595458,
+          "mean_is_sharpe": -0.131603025,
+          "mean_oos_sharpe": -0.172198483,
+          "objective": -0.275299198,
+          "params": {
+            "amplitude": 0.8,
+            "period": 7
+          },
+          "std_decay": 0.165605972,
+          "trial_id": 1
+        },
+        "candidate_table_sha256": "4e084f4e8ce059271f23c37caf68852f72b12d6da69541e1cf8fc63fd8f6106f",
+        "equity_sha256": "ce32ba0dd46ea909d5a4acf2d69ec6d51e1e77e69e8c400937d58b5989a32e48",
+        "oos_output_sha256": "353936f01d747bfd03648f973fed64e8df0e812125c8f5efcdb7022d463e3a9b",
+        "params": {
+          "amplitude": 0.8,
+          "period": 7
+        },
+        "params_by_fold": {},
+        "positions_sha256": "f6294133b03ba4b4d65c66e25640b8b6470cc13d34c6381dccb5e337bd0d2de0",
+        "trial_table_sha256": "2dd2434f6224993e3d1cfd2ec9d69c36280cd9e3f8e5624d5eea5f4b6375adad"
+      },
+      "fold_count": 3,
+      "id": "pct_equity_rust_transition_native",
+      "lane": "legacy_pct_equity_transition_reference",
+      "mode": "mode_4_is_only_robust",
+      "native_prepared_reason": null,
+      "native_score_batches": 0,
+      "native_score_rows": 0,
+      "native_scored_bars": 0,
+      "oos_used_for_selection": false,
+      "optimization_schedule": "global",
+      "public_route": "walk_forward",
+      "requested_native_prepared_policy": "off",
+      "requested_target_runtime": "rust",
+      "resolved_final_backend": null,
+      "resolved_native_prepared_policy": "off",
+      "scoring_backend": "endpoint",
+      "selection_contract": "IS-only temporal/plateau selection; Rust owns fresh candidate scoring and the one final stitched transition account only under explicit opt-in",
+      "target_mode": "pct_equity",
+      "timing_seconds": {
+        "candidate_score": 0.8741240091621876,
+        "last": 1.4770673606544733,
+        "median": 1.5577287366613746,
+        "native_execute_within_score": 0.0,
+        "p95": 1.8563501184806226,
+        "prepare_fold_plan": 0.17191609553992748,
+        "samples": [
+          1.927908195182681,
+          1.5701178116723895,
+          1.518843642435968,
+          1.5577287366613746,
+          1.4770673606544733
+        ],
+        "strategy_generation": 0.03662121016532183
+      },
+      "validation_claim": "walk_forward_oos",
+      "work_counters": {
+        "actual_simulation_bar_visits": 371712,
+        "actual_simulation_symbol_bar_visits": 371712,
+        "actual_visit_basis": "derived_exhaustive_test_windows",
+        "candidate_count": 66,
+        "early_terminated_candidate_fold_scenario_tasks": 0,
+        "executed_candidate_fold_scenario_tasks": 198,
+        "fold_count": 3,
+        "folds": [
+          {
+            "fold_id": 0,
+            "planned_test_bar_visits": 2208,
+            "test_end": 2208,
+            "test_start": 0
+          },
+          {
+            "fold_id": 1,
+            "planned_test_bar_visits": 2208,
+            "test_end": 2208,
+            "test_start": 0
+          },
+          {
+            "fold_id": 2,
+            "planned_test_bar_visits": 1216,
+            "test_end": 1216,
+            "test_start": 0
+          }
+        ],
+        "logical_full_tape_candidate_fold_bar_visits": 1980000,
+        "logical_full_tape_candidate_fold_symbol_bar_visits": 1980000,
+        "planned_candidate_fold_scenario_tasks": 198,
+        "planned_simulation_bar_visits": 371712,
+        "scenario_count": 1,
+        "schema": "quantbt-native-work-counters-v1",
+        "scope": "outer_fold_test_windows_only_not_all_internal_IS_or_SBB_paths",
+        "skipped_candidate_fold_scenario_tasks": 0,
+        "supplied_market_bars": 10000,
+        "symbol_count": 1,
+        "warmup_bar_visits": 0
+      }
+    },
+    "rss_pss_samples_mb": [
+      {
+        "pss_mb": 284.015625,
+        "rss_mb": 293.69921875
+      },
+      {
+        "pss_mb": 286.1328125,
+        "rss_mb": 295.7421875
+      },
+      {
+        "pss_mb": 287.1484375,
+        "rss_mb": 296.75390625
+      },
+      {
+        "pss_mb": 287.16796875,
+        "rss_mb": 296.75390625
+      },
+      {
+        "pss_mb": 287.0703125,
+        "rss_mb": 296.9921875
+      }
+    ],
+    "rss_pss_tail_spread_mb": {
+      "pss_mb": 3.15234375,
+      "rss_mb": 3.29296875
+    },
+    "status": "measured_pair_parity_passed"
+  },
+  "phase": "77.2",
+  "profile": {
+    "bars": 10000,
+    "description": "Five-repeat paired headline W0 Mode 1 global comparator on the declared standard profile.",
+    "frequency": "1h",
+    "id": "standard",
+    "repeats": 5,
+    "split_frequency": "quarterly",
+    "split_mode": "2020-07-01",
+    "train_window": "180D",
+    "trials": 64
+  },
+  "schema": "quantbt-phase77-2-pct-equity-public-wfo-v1",
+  "status": "paired_public_pct_equity_parity_passed",
+  "workload": {
+    "contract": "pct_equity_transition_v1",
+    "final_account": "rust_pct_equity_transition_v1",
+    "id": "pct_equity_rust_transition_native",
+    "native_score_adapter": "scalar_columns_v1",
+    "prepared_policy": "require",
+    "reference_authority": "legacy_pct_equity_transition_v1",
+    "target_mode": "pct_equity",
+    "target_runtime": "rust"
+  }
+}

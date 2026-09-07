@@ -1,0 +1,54 @@
+{
+  "evidence": {
+    "batch_selected_single_parity": true,
+    "generic_arbitrage_auto_promoted": false,
+    "l2_or_venue_atomicity_claimed": false,
+    "profile_terminal_parity": true,
+    "scenario_batch_account_reset": true
+  },
+  "fixture": {
+    "bars": 2000,
+    "leg_counts": [
+      2,
+      4,
+      20
+    ],
+    "repeats": 5,
+    "scenarios": 16
+  },
+  "per_leg_count": {
+    "2": {
+      "prepared_audit_seconds": 0.0008824160322546959,
+      "prepared_compact_seconds": 0.0008914154022932053,
+      "prepared_score_seconds": 0.00041302386671304703,
+      "score_bar_symbols_per_second": 9684670.360173266
+    },
+    "20": {
+      "prepared_audit_seconds": 0.002218427136540413,
+      "prepared_compact_seconds": 0.002229577861726284,
+      "prepared_score_seconds": 0.0008729947730898857,
+      "score_bar_symbols_per_second": 45819289.224864006
+    },
+    "4": {
+      "prepared_audit_seconds": 0.0010548057034611702,
+      "prepared_compact_seconds": 0.0009771836921572685,
+      "prepared_score_seconds": 0.00046459678560495377,
+      "score_bar_symbols_per_second": 17219232.34915016
+    }
+  },
+  "rss_mb": {
+    "after_batch": 170.90625,
+    "after_profiles": 168.0703125,
+    "process_start": 149.84375
+  },
+  "scenario_batch": {
+    "bar_symbols_per_second": 48801663.42787426,
+    "leg_count": 20,
+    "market_copy_bytes": 0,
+    "native_entry_calls": 1,
+    "scenarios": 16,
+    "seconds": 0.013114307075738907,
+    "worker_count": 1
+  },
+  "schema": "phase68-bounded-package-benchmark-v1"
+}

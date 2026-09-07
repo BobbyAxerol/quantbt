@@ -153,6 +153,7 @@ def build_arrays(
     lows_dict:     Dict[str, pd.Series],
     signals_dict:  Dict[str, pd.Series],
     funding_dict:  Dict[str, pd.Series],
+    preserve_signal_nan: bool = False,
 ) -> tuple:
     """
     Pack all per-symbol Series into contiguous float64 numpy arrays
@@ -171,7 +172,12 @@ def build_arrays(
         lows_dict=lows_dict,
         funding_dict=funding_dict,
     )
-    signals = build_signal_matrix(symbols=symbols, idx=idx, signals_dict=signals_dict)
+    signals = build_signal_matrix(
+        symbols=symbols,
+        idx=idx,
+        signals_dict=signals_dict,
+        preserve_nan=preserve_signal_nan,
+    )
     return market.closes, market.highs, market.lows, signals, market.funding, market.is_funding_bar
 
 
@@ -226,16 +232,81 @@ def build_market_arrays(
     )
 
 
+def slice_prepared_market_arrays(
+    market: PreparedMarketArrays,
+    *,
+    start: int,
+    stop: int,
+    idx: pd.DatetimeIndex,
+) -> PreparedMarketArrays:
+    """Create a verified immutable contiguous view of one prepared tape.
+
+    A walk-forward scorer evaluates many overlapping calendar windows over one
+    immutable market tape.  Repacking OHLC/funding for each window is needless
+    allocation, but a positional shortcut is safe only when its clock is
+    proven identical to the parent slice.  This helper performs that proof,
+    then returns read-only NumPy views with a fresh window signature.
+
+    It intentionally does not accept an equivalent re-created index: callers
+    must pass the run-local canonical ``DatetimeIndex`` that was used to form
+    the positional window.  That prevents a cache hit from silently masking a
+    calendar normalization or data-alignment error.
+    """
+
+    if not isinstance(idx, pd.DatetimeIndex) or len(idx) == 0:
+        raise ValueError("prepared market view requires a non-empty DatetimeIndex")
+    begin = int(start)
+    end = int(stop)
+    if not 0 <= begin < end <= len(market.idx):
+        raise ValueError("prepared market view bounds are outside the parent tape")
+    if end - begin != len(idx):
+        raise ValueError("prepared market view bounds do not match its index length")
+    # ``equals`` compares values/frequency-compatible clocks without making a
+    # mutable market copy.  Identity ownership is enforced by the WFO layer;
+    # this lower-level helper validates the data contract independently.
+    if not market.idx[begin:end].equals(idx):
+        raise ValueError("prepared market view index does not match the parent tape slice")
+
+    arrays = (
+        market.closes[begin:end],
+        market.highs[begin:end],
+        market.lows[begin:end],
+        market.funding[begin:end],
+        market.is_funding_bar[begin:end],
+    )
+    for array in arrays:
+        if not array.flags.c_contiguous:
+            raise ValueError("prepared market view must remain contiguous")
+        array.setflags(write=False)
+    return PreparedMarketArrays(
+        idx=idx,
+        symbols=market.symbols,
+        closes=arrays[0],
+        highs=arrays[1],
+        lows=arrays[2],
+        funding=arrays[3],
+        is_funding_bar=arrays[4],
+        signature=market_data_signature(idx, list(market.symbols)),
+    )
+
+
 def build_signal_matrix(
     symbols: list,
     idx: pd.DatetimeIndex,
     signals_dict: Dict[str, pd.Series],
+    preserve_nan: bool = False,
 ) -> np.ndarray:
     n = len(idx)
     s = len(symbols)
     signals = np.zeros((n, s), dtype=np.float64)
     for k, sym in enumerate(symbols):
-        signals[:, k] = signals_dict[sym].fillna(0).values
+        series = signals_dict[sym]
+        # The historical vectorized signal route treats missing values as flat
+        # targets.  Explicit Rust direct-target execution has a stricter
+        # reject-run contract: an omitted/invalid target must reach the native
+        # request unchanged so it can fail closed rather than becoming zero.
+        values = series.values if preserve_nan else series.fillna(0).values
+        signals[:, k] = values
     return np.ascontiguousarray(signals, dtype=np.float64)
 
 

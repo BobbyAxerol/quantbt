@@ -288,6 +288,9 @@ class NativePortfolioBackend:
                 liquidation_bar=int(liq_idx),
                 metadata={
                     "backend": "native_portfolio",
+                    "planning_authority": "python_portfolio_planner_v1",
+                    "execution_authority": "numba_native_portfolio_v1",
+                    "rust_shared_portfolio_route": "not_requested",
                     "score_scalar": True,
                     "score_pandas_materialized": False,
                     "trading_days": int(_scalar_score_trading_days),
@@ -577,6 +580,9 @@ class NativePortfolioBackend:
 
         metadata = {
             "backend": "native_portfolio",
+            "planning_authority": "python_portfolio_planner_v1",
+            "execution_authority": "numba_native_portfolio_v1",
+            "rust_shared_portfolio_route": "not_requested",
             "mode": mode,
             "asset_type": asset_type,
             "hedge_type": hedge_type,

@@ -48,6 +48,31 @@ class OptionLedger:
             ledger.cash[str(currency).upper()] = float(amount)
         return ledger
 
+    def clone(self) -> "OptionLedger":
+        """Copy all financial state for an all-or-nothing admission preview."""
+
+        return OptionLedger(
+            cash=dict(self.cash),
+            positions={
+                symbol: OptionPosition(
+                    symbol=position.symbol,
+                    qty=float(position.qty),
+                    avg_entry=float(position.avg_entry),
+                    realized_pnl=float(position.realized_pnl),
+                    premium_currency=position.premium_currency,
+                    settlement_currency=position.settlement_currency,
+                    multiplier=float(position.multiplier),
+                )
+                for symbol, position in self.positions.items()
+            },
+            realized_pnl=dict(self.realized_pnl),
+            fees=dict(self.fees),
+            settlement_cashflows=dict(self.settlement_cashflows),
+            margin_locked=dict(self.margin_locked),
+            events=[dict(event) for event in self.events],
+            settled_symbols=set(self.settled_symbols),
+        )
+
     def apply_fill(
         self,
         fill: Fill,

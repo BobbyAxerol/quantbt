@@ -1,0 +1,405 @@
+{
+  "controls": {
+    "bounded_package": {
+      "required_evidence": {
+        "batch_selected_single_parity": true,
+        "profile_terminal_parity": true,
+        "scenario_batch_account_reset": true
+      },
+      "rss_mb": {
+        "after_batch": 228.78125,
+        "after_profiles": 228.0078125,
+        "process_start": 224.2265625
+      },
+      "scenario_batch": {
+        "bar_symbols_per_second": 23145498.838472422,
+        "leg_count": 20,
+        "market_copy_bytes": 0,
+        "native_entry_calls": 1,
+        "scenarios": 4,
+        "seconds": 0.003456395585089922,
+        "worker_count": 1
+      }
+    },
+    "intrabar": {
+      "required_evidence": {
+        "score_has_no_dense_paths": true,
+        "terminal_and_path_parity": true
+      },
+      "rss_mb": {
+        "after_prepared_market": 227.8984375,
+        "after_profiles": 227.8984375,
+        "process_start": 227.8984375
+      },
+      "throughput_bars_per_second": {
+        "numba_warm": 559786.7627604331,
+        "rust_adapter_compact_warm": 390290.701632618,
+        "rust_cold_prepare_score": 1261273.668810212,
+        "rust_compact_kernel_warm": 6023340.8633848205,
+        "rust_score_warm": 8415003.499257436
+      },
+      "timing_seconds": {
+        "numba_warm": 0.0017863945104181767,
+        "rust_adapter_compact_warm": 0.0025621927343308926,
+        "rust_cold_prepare_score": 0.0007928493432700634,
+        "rust_compact_kernel_warm": 0.00016602082177996635,
+        "rust_score_warm": 0.00011883536353707314
+      }
+    },
+    "public_wfo": {
+      "required_evidence": {
+        "full_facade_non_regression": true,
+        "native_route_active": true,
+        "public_parity": true,
+        "rss_plateau": true,
+        "score_stage_reduced": true,
+        "stable_native_work_counts": true
+      },
+      "rss_mb": {
+        "peak": 223.66796875,
+        "plateau_limit": 11.183398437500001,
+        "samples": [
+          223.41015625,
+          223.66796875
+        ],
+        "tail_median": 223.66796875,
+        "tail_spread": 0.0
+      },
+      "speedup": {
+        "full_facade_x": 1.3382131460850484,
+        "score_stage_x": 5.000326441492035
+      },
+      "timings_seconds": {
+        "native_full_facade_median": 0.10321240918710828,
+        "native_score_median": 0.014724095817655325,
+        "reference_full_facade_median": 0.1381202028132975,
+        "reference_score_median": 0.07362528564408422
+      }
+    },
+    "shared_portfolio": {
+      "required_evidence": {
+        "score_compact_terminal_parity": true,
+        "wfo_prepared_parity": true
+      },
+      "rss_mb": {
+        "after_prepare": 223.9140625,
+        "after_score": 223.9140625,
+        "after_wfo": 224.2265625,
+        "process_start": 223.9140625
+      },
+      "throughput_bar_symbols_per_second": {
+        "prepared_score": 6713897.163259149,
+        "prepared_wfo_score": 14082748.816113804
+      },
+      "timing_seconds": {
+        "prepared_compact": 0.00066372100263834,
+        "prepared_score": 0.0002978895790874958,
+        "prepared_wfo_score": 0.0011361418291926384,
+        "request_preparation": 0.0025130892172455788
+      }
+    }
+  },
+  "evidence": {
+    "active_interrupts_have_focused_test_coverage": true,
+    "cross_route_control_parity": true,
+    "reactive_wfo_cow_worker": true,
+    "reactive_wfo_deterministic": true,
+    "reactive_wfo_r3b_shared_market": true,
+    "same_reactive_accounting_public_and_scalar": true,
+    "scalar_retention_is_path_free": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "fb9189f95b2109048d93d99569e7ff9e33c8927a27e1a801fad9ae0b10cb8dec",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "8cae814ae0a96032b6f689f0a7cb7d21bb8662a83d477b6402c55c2aeb058c0f",
+    "git_commit": "db39959f36e117d4ce64a5a0b07bae901245b2be",
+    "git_dirty": true,
+    "git_status_sha256": "9d10f2918085bcdee6c25ed14165a20c97500495e8da6816bc14560b8b79e6fe",
+    "intent_sha256": "b206a9a7a7a2ae77dc2a6a0d1ccda8db6f2d0256fcfbb80db022cc70596d1a4e",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "fdb6140a7603d65bb250da13b15d2a28a24517d722dcb5ca56e3ea6f7c50d9d9",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "each imported benchmark warms its declared route before measured repeats; Phase 77.3 records scalar retention, W3 scheduling, and small cross-route parity controls"
+  },
+  "phase": "77.3",
+  "profile": {
+    "control_bars": 1000,
+    "control_repeats": 2,
+    "id": "standard",
+    "scalar_bars": 10000,
+    "scalar_repeats": 5,
+    "wfo_bars": 2000,
+    "wfo_candidates": 8,
+    "wfo_repeats": 5
+  },
+  "reactive_scalar": {
+    "gates": {
+      "same_rust_accounting_for_public_and_scalar": true,
+      "scalar_retains_no_account_or_audit_path": true
+    },
+    "rows": [
+      {
+        "bars_per_second": 270260.6613766069,
+        "callbacks": 10000,
+        "final_equity": 19989.44953547596,
+        "median_milliseconds": 37.001315504312515,
+        "median_seconds": 0.037001315504312515,
+        "p95_seconds": 0.059674897789955134,
+        "rss_delta_bytes": 2138112,
+        "runtime": "numeric_every_bar_v1",
+        "surface": "prepared_public_minimal"
+      },
+      {
+        "bars_per_second": 498086.04728706065,
+        "callbacks": 10000,
+        "final_equity": 19989.44953547596,
+        "median_milliseconds": 20.076852291822433,
+        "median_seconds": 0.020076852291822433,
+        "p95_seconds": 0.030608929879963397,
+        "rss_delta_bytes": 0,
+        "runtime": "numeric_every_bar_v1",
+        "surface": "prepared_scalar_score"
+      },
+      {
+        "bars_per_second": 364792.3317842692,
+        "callbacks": 313,
+        "final_equity": 19998.533185965403,
+        "median_milliseconds": 27.412856929004192,
+        "median_seconds": 0.027412856929004192,
+        "p95_seconds": 0.029581990279257297,
+        "rss_delta_bytes": 0,
+        "runtime": "numeric_sparse_wake_v1",
+        "surface": "prepared_public_minimal"
+      },
+      {
+        "bars_per_second": 735953.9162882116,
+        "callbacks": 313,
+        "final_equity": 19998.533185965403,
+        "median_milliseconds": 13.587807305157185,
+        "median_seconds": 0.013587807305157185,
+        "p95_seconds": 0.01828671209514141,
+        "rss_delta_bytes": 0,
+        "runtime": "numeric_sparse_wake_v1",
+        "surface": "prepared_scalar_score"
+      },
+      {
+        "bars_per_second": 298478.8689389669,
+        "callbacks": 1,
+        "final_equity": 19989.44953547596,
+        "median_milliseconds": 33.50320924073458,
+        "median_seconds": 0.03350320924073458,
+        "p95_seconds": 0.04508478920906782,
+        "rss_delta_bytes": 0,
+        "runtime": "numeric_block_intent_v1",
+        "surface": "prepared_public_minimal"
+      },
+      {
+        "bars_per_second": 477345.98678447295,
+        "callbacks": 1,
+        "final_equity": 19989.44953547596,
+        "median_milliseconds": 20.9491653367877,
+        "median_seconds": 0.0209491653367877,
+        "p95_seconds": 0.02385658249258995,
+        "rss_delta_bytes": 0,
+        "runtime": "numeric_block_intent_v1",
+        "surface": "prepared_scalar_score"
+      }
+    ]
+  },
+  "reactive_wfo": {
+    "evidence": {
+      "clean_cow_worker": true,
+      "public_reactive_wfo_runs": true,
+      "r3b_bounded_inflight": true,
+      "r3b_shared_market": true,
+      "repeat_determinism": true
+    },
+    "rows": [
+      {
+        "candidate_fold_bar_visits_per_second": 110452.05744284907,
+        "median_callbacks": 21710,
+        "median_milliseconds": 196.55586779117584,
+        "median_score_bars": 21710,
+        "median_score_calls": 66,
+        "median_seconds": 0.19655586779117584,
+        "p95_seconds": 0.22257211189717055,
+        "python_work_per_callback": 0,
+        "rss_delta_bytes": {
+          "private_bytes": 0,
+          "pss_bytes": 0,
+          "rss_bytes": 0,
+          "shared_bytes": 0
+        },
+        "schedule": "certified_sequential_v1"
+      },
+      {
+        "candidate_fold_bar_visits_per_second": 105403.54580020581,
+        "median_callbacks": 36,
+        "median_milliseconds": 226.7475901171565,
+        "median_score_bars": 23900,
+        "median_score_calls": 72,
+        "median_seconds": 0.2267475901171565,
+        "p95_seconds": 0.2336987743154168,
+        "python_work_per_callback": 0,
+        "rss_delta_bytes": {
+          "private_bytes": 0,
+          "pss_bytes": 0,
+          "rss_bytes": 0,
+          "shared_bytes": 0
+        },
+        "schedule": "throughput_batch_v1"
+      },
+      {
+        "candidate_fold_bar_visits_per_second": 47902.02468689952,
+        "median_callbacks": 21710,
+        "median_milliseconds": 453.2167511060834,
+        "median_score_bars": 21710,
+        "median_score_calls": 66,
+        "median_seconds": 0.4532167511060834,
+        "p95_seconds": 0.4544628651812673,
+        "python_work_per_callback": 96,
+        "rss_delta_bytes": {
+          "private_bytes": 0,
+          "pss_bytes": 0,
+          "rss_bytes": 0,
+          "shared_bytes": 0
+        },
+        "schedule": "certified_sequential_v1"
+      },
+      {
+        "candidate_fold_bar_visits_per_second": 100735.97460845886,
+        "median_callbacks": 36,
+        "median_milliseconds": 237.25387174636126,
+        "median_score_bars": 23900,
+        "median_score_calls": 72,
+        "median_seconds": 0.23725387174636126,
+        "p95_seconds": 0.2584337528795004,
+        "python_work_per_callback": 96,
+        "rss_delta_bytes": {
+          "private_bytes": 0,
+          "pss_bytes": 0,
+          "rss_bytes": 0,
+          "shared_bytes": 0
+        },
+        "schedule": "throughput_batch_v1"
+      }
+    ],
+    "worker_probe": {
+      "fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "folds": 6,
+      "parallelism": {
+        "blas_threads": 1,
+        "constrained_by": [],
+        "host_cpus": 4,
+        "numba_threads": 1,
+        "openmp_threads": 1,
+        "python_processes": 1,
+        "rust_workers": 1
+      },
+      "schema": "quantbt-phase76-reactive-wfo-worker-probe-v1",
+      "score_calls": 66,
+      "worker_market_ipc_bytes_per_task": 0,
+      "worker_memory": {
+        "private_bytes": 8810496,
+        "pss_bytes": 53747712,
+        "rss_bytes": 105517056,
+        "shared_bytes": 96706560
+      },
+      "worker_scalar_sessions": {
+        "active_native_score": false,
+        "closed": false,
+        "gil_acquisitions": 66,
+        "max_wall_time_ms": null,
+        "native_cancel_requests": 0,
+        "python_callback_calls": 21710,
+        "python_callback_ns": 24773399,
+        "schema": "quantbt-reactive-scalar-session-pool-v1",
+        "session_count": 1,
+        "session_creations": 1,
+        "session_poison_discards": 0,
+        "session_runs": 66
+      },
+      "worker_tasks_completed": 66,
+      "worker_transport": "fork_copy_on_write_v1"
+    }
+  },
+  "runtime_contract": {
+    "legacy_wake_plan_adapter": "payload_only_supported",
+    "partial_score_policy": "discard_before_python_adaptation_or_selection",
+    "reactive_deadline_safe_point": "completed_account_bar_v1",
+    "sparse_gap_max_interrupt_interval_bars": 64,
+    "typed_wake_plan": "quantbt-wake-wire-v1"
+  },
+  "schema": "quantbt-phase77-3-reactive-closure-v1",
+  "status": "development_candidate_evidence_not_release_promotion"
+}

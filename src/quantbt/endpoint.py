@@ -15,7 +15,7 @@ import hashlib
 import json
 from pathlib import Path
 from time import perf_counter
-from typing import TYPE_CHECKING, Dict, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, Mapping, Optional, Sequence, Union
 import warnings
 
 import numpy as np
@@ -50,6 +50,7 @@ from .core.execution_depth import (
     simulate_nautilus_order_package_depth,
 )
 from .core.execution_contract import ExecutionContract
+from .core.event_contracts import get_event_clock_contract
 from .core.constraints import build_quantity_constraints
 from .core.intrabar_reference import (
     IntrabarIntentTape,
@@ -59,13 +60,31 @@ from .core.intrabar_reference import (
 )
 from .core.intrabar_session import IntrabarSessionTape, SessionExecutionPolicy
 from .core.intrabar_kernel import FillReplayTape, run_fill_replay_kernel, run_intrabar_kernel, run_intrabar_session_kernel
+from .backends.native_intrabar_rust import prepare_rust_intrabar_market, run_rust_intrabar_kernel
+from .core.fill_replay_v2 import (
+    FillReplayTapeV2,
+    FundingReplayTapeV2,
+    run_fill_replay_v2_native,
+)
 from .core.market_tape import PreparedMarketTape, prepare_market_tape
+from .core.preprocessor import PreparedMarketArrays, slice_prepared_market_arrays
+from .core.market_calendar_v2 import (
+    CalendarPolicyV2,
+    MissingObservationPolicyV1,
+    PreparedMarketCacheV2,
+    PreparedMarketHandleV2,
+    prepare_market_handle_v2,
+)
+from .core.instrument_registry_v2 import InstrumentRegistryV2, prepare_instrument_registry_v2
+from .core.prepared_execution_v2 import PreparedExecutionPlanV2, prepare_execution_plan_v2
 from .core.orders import OrderCommand, OrderIntent, order_intents_to_lifecycle_commands
 from .core.results import (
     BacktestResultV2,
     NativeEventScalarScoreResult,
     NativeEventScoreResult,
 )
+from .core.runtime_governance import RuntimeBudgetV1
+from .core.research_audit import ResearchRetentionPlanV1
 from .core.schema import AccountConfig, BasketLegSpec, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
 from .core.structured_orders import (
     BracketOrderSpec,
@@ -77,13 +96,15 @@ from .core.types import BacktestResult
 from .engines import BacktestEngineV2, OptionBacktestEngine, PortfolioBacktestEngine
 from .sizing.modes import compute_target_units
 from .options.execution import OptionExecutionConfig
+from .options.capabilities import OptionSettlementPolicy, option_capability_registry_v1
 from .options.fees import OptionFeeSchedule
 from .options.hedging import OptionHedgeConfig
-from .options.margin import OptionMarginConfig
+from .options.margin import ExternalOptionMarginValidator, OptionMarginConfig
 from .options.cache import OptionPreparedRunCache
 from .options.packages import OptionPackageIntent
 from .options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .options.strategy import OptionStrategyRun
+from .strategies import PreparedStrategyAdapter
 
 if TYPE_CHECKING:
     from .walkforward import WalkForwardConfig
@@ -261,6 +282,13 @@ class EndpointConfig:
         Native portfolio artifact policy. `full` preserves all audit reports;
         `standard` keeps core audit tables; `minimal` keeps accounting outputs
         for optimizer/service loops. Existing calls default to `full`.
+    runtime_budget:
+        Optional `RuntimeBudgetV1` admission and safe-point limits for native
+        event and prepared runtime workloads. Omitted limits preserve existing
+        behavior.
+    shadow_evidence_dir:
+        Optional directory for sampled Rust/Python mismatch bundles. A
+        mismatch activates the backend-instance native kill switch.
     option_config:
         Optional `NativeOptionConfig` for native option simulations.
     strategy_class:
@@ -276,6 +304,8 @@ class EndpointConfig:
     backend: str = "auto"
     native_backend: Optional[str] = None
     backend_policy: Optional[str] = None
+    native_static_abi: str = "0.5"
+    target_runtime: str = "numba"
     sizing: str = "signal_notional"
     account: AccountConfig = field(default_factory=lambda: AccountConfig(initial_capital=100_000.0))
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
@@ -304,6 +334,8 @@ class EndpointConfig:
     execution_contract: object = None
     reactive_execution_mode: str = "fast"
     reactive_kernel_mode: str = "replay_certified"
+    reactive_runtime: str = "legacy_python_loop"
+    reactive_gil_policy: str = "held_for_session"
     audit_mode: Optional[str] = None
     oracle_sample_rate: float = 0.0
     oracle_sample_seed: int = 0
@@ -315,6 +347,8 @@ class EndpointConfig:
     report_level: str = "full"
     audit_sink: str = "memory"
     audit_sink_path: Optional[str] = None
+    runtime_budget: RuntimeBudgetV1 = field(default_factory=RuntimeBudgetV1)
+    shadow_evidence_dir: Optional[str] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
     walkforward_target_mode: str = "signal_notional"
@@ -340,6 +374,7 @@ class PreparedIntrabarRunner:
     profile_metadata: Dict
     session_policy: Optional[SessionExecutionPolicy] = None
     session_tape: Optional[IntrabarSessionTape] = None
+    rust_prepared_market: object = None
 
     @property
     def market(self) -> PreparedMarketTape:
@@ -359,7 +394,26 @@ class PreparedIntrabarRunner:
             **self.endpoint._intrabar_execution_kwargs(self.symbol),
             "report_level": level,
         }
-        if self.session_policy is not None:
+        if str(config.mode).lower().strip() == "intrabar_bracket_rust":
+            cache = getattr(self.endpoint, "_rust_intrabar_preparation", None)
+            if cache is None:
+                from .preparation.native_execution import NativeExecutionPreparationCache
+
+                cache = NativeExecutionPreparationCache()
+                self.endpoint._rust_intrabar_preparation = cache
+            kernel = run_rust_intrabar_kernel(
+                **kwargs,
+                session_policy=self.session_policy,
+                session_tape=self.session_tape,
+                native_preparation_cache=cache,
+                audit_detail_limit=config.metadata.get("intrabar_audit_detail_limit"),
+                prepared_market=self.rust_prepared_market,
+                # A prepared runner has already bound the immutable market. A
+                # candidate intent is mutable and one-shot, so retain all
+                # validation but do not hash/cache it a second time.
+                reuse_request=False,
+            )
+        elif self.session_policy is not None:
             kernel = run_intrabar_session_kernel(
                 **kwargs,
                 session_policy=self.session_policy,
@@ -428,6 +482,7 @@ class PreparedNativeEventStrategyRunner:
     volumes_arr: np.ndarray
     market_arrays: object
     backend: NativeEventBackend
+    reactive_market_binding: object | None
     profile_metadata: Dict
     runs: int = 0
     scores: int = 0
@@ -459,12 +514,15 @@ class PreparedNativeEventStrategyRunner:
             min_notional=config.min_notional,
             execution_mode=config.reactive_execution_mode,
             reactive_kernel_mode=config.reactive_kernel_mode,
+            reactive_runtime=config.reactive_runtime,
+            reactive_gil_policy=config.reactive_gil_policy,
             report_level=level,
             audit_sink=config.audit_sink,
             audit_sink_path=config.audit_sink_path,
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
         object.__setattr__(self, "runs", self.runs + 1)
@@ -473,12 +531,81 @@ class PreparedNativeEventStrategyRunner:
 
     simulate = run
 
+    def run_window(
+        self,
+        strategy,
+        *,
+        start_bar: int,
+        end_bar: int,
+        report_level: Optional[str] = None,
+    ) -> BacktestResultV2:
+        """Run one fresh account on an absolute prepared-market window.
+
+        This is the cold audit companion to :meth:`score` for reactive WFO.
+        It preserves absolute callback/event-bar coordinates and the shared
+        Rust market tape; it intentionally does not overwrite the endpoint's
+        last public result because a segmented WFO owns several fold results.
+        """
+
+        if strategy is None:
+            raise ValueError("prepared native-event window runner requires strategy=...")
+        start = int(start_bar)
+        end = int(end_bar)
+        if not 0 <= start < end <= len(self.idx):
+            raise ValueError("prepared native-event window must satisfy 0 <= start_bar < end_bar <= market bars")
+        config = self.endpoint.config
+        level = report_level or config.report_level
+        result = self.backend.run_strategy(
+            datetime_index=self.idx,
+            strategy=strategy,
+            closes=self.close_map,
+            highs=self.high_map,
+            lows=self.low_map,
+            opens=None,
+            volumes=None,
+            funding_rate=config.funding_rate,
+            contract_size=config.contract_size,
+            leverage=config.account.leverage,
+            fee_rate=config.v2_fee_rate,
+            symbols=self.symbols,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+            execution_mode=config.reactive_execution_mode,
+            reactive_kernel_mode=config.reactive_kernel_mode,
+            reactive_runtime=config.reactive_runtime,
+            reactive_gil_policy=config.reactive_gil_policy,
+            report_level=level,
+            audit_sink=config.audit_sink,
+            audit_sink_path=config.audit_sink_path,
+            market_arrays=self.market_arrays,
+            opens_arr=self.opens_arr,
+            volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
+            _start_bar=start,
+            _end_bar=end,
+            _allow_prepared_window=True,
+        )
+        result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
+        result.metadata["prepared_native_event_window"] = {
+            "start_bar": start,
+            "end_bar": end,
+            "bar_coordinate": "absolute_prepared_market",
+        }
+        object.__setattr__(self, "runs", self.runs + 1)
+        return result
+
     def score(
         self,
         strategy,
         *,
         trading_days: int = 365,
         score_requirements: Optional[NativeEventScoreRequirements] = None,
+        start_bar: int = 0,
+        end_bar: Optional[int] = None,
     ) -> Union[NativeEventScoreResult, NativeEventScalarScoreResult]:
         """
         Run the prepared strategy through the direct score path.
@@ -511,11 +638,16 @@ class PreparedNativeEventStrategyRunner:
             min_qty=config.min_qty,
             min_notional=config.min_notional,
             execution_mode=config.reactive_execution_mode,
+            reactive_runtime=config.reactive_runtime,
+            reactive_gil_policy=config.reactive_gil_policy,
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
             trading_days=trading_days,
             score_requirements=score_requirements,
+            _start_bar=int(start_bar),
+            _end_bar=None if end_bar is None else int(end_bar),
         )
         object.__setattr__(self, "scores", self.scores + 1)
         return replace(
@@ -525,6 +657,130 @@ class PreparedNativeEventStrategyRunner:
                 "prepared_native_event_strategy": self.metadata,
             },
         )
+
+    def prepare_reactive_candidate_batch_score(
+        self,
+        strategy,
+        *,
+        candidate_count: int,
+        trading_days: int = 365,
+    ):
+        """Return the R3B scalar runner over this immutable prepared market.
+
+        This is intentionally a low-level prepared surface.  The public WFO
+        adapter supplies same-window candidate bindings and owns selection;
+        this method only verifies one numeric batch callback contract and
+        constructs the shared Rust account batch with no market re-packing.
+        """
+
+        if strategy is None:
+            raise ValueError("prepared reactive candidate batch requires strategy=...")
+        if int(candidate_count) <= 0:
+            raise ValueError("prepared reactive candidate batch requires candidate_count > 0")
+        adapter = PreparedStrategyAdapter.prepare(strategy)
+        if adapter.requirements.context_mode != "numeric":
+            raise NotImplementedError("reactive candidate batches require numeric StrategyContextRequirements")
+        config = self.endpoint.config
+        symbols = list(self.symbols)
+        constraints = build_quantity_constraints(
+            symbols,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+        )
+        contract_sizes = self.backend._per_symbol_array(config.contract_size, symbols, default=1.0)
+        leverages = self.backend._per_symbol_array(
+            config.account.leverage,
+            symbols,
+            default=config.account.leverage,
+        )
+        fee_rates = self.backend._per_symbol_array(config.v2_fee_rate, symbols, default=0.0)
+        runner = self.backend.prepare_reactive_candidate_batch_coruntime(
+            candidate_count=int(candidate_count),
+            idx=self.idx,
+            symbol_list=symbols,
+            market_arrays=self.market_arrays,
+            opens_arr=self.opens_arr,
+            volumes_arr=self.volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            clock=get_event_clock_contract(config.execution_contract),
+            requirements=adapter.requirements,
+            score_trading_days=int(trading_days),
+            _prepared_reactive_market_binding=self.reactive_market_binding,
+        )
+        return runner, adapter.requirements
+
+    def prepare_reactive_scalar_score(
+        self,
+        strategy,
+        *,
+        trading_days: int = 365,
+    ):
+        """Build one reusable scalar R1/R2/R3 session for a prepared tape.
+
+        This is a narrow prepared-runtime primitive for reactive WFO workers.
+        It owns no Python result or audit ledger: callers reset the returned
+        Rust session before each fresh absolute window and consume only its
+        scalar payload.  The ordinary :meth:`score` method remains the stable
+        compatibility surface and deliberately retains its existing behavior.
+        """
+
+        if strategy is None:
+            raise ValueError("prepared reactive scalar score requires strategy=...")
+        adapter = PreparedStrategyAdapter.prepare(strategy)
+        if adapter.requirements.context_mode != "numeric":
+            raise NotImplementedError("prepared reactive scalar sessions require numeric StrategyContextRequirements")
+        config = self.endpoint.config
+        symbols = list(self.symbols)
+        constraints = build_quantity_constraints(
+            symbols,
+            instruments=config.instruments,
+            qty_step=config.qty_step,
+            lot_size=config.lot_size,
+            slot_size=config.slot_size,
+            min_qty=config.min_qty,
+            min_notional=config.min_notional,
+        )
+        contract_sizes = self.backend._per_symbol_array(config.contract_size, symbols, default=1.0)
+        leverages = self.backend._per_symbol_array(
+            config.account.leverage,
+            symbols,
+            default=config.account.leverage,
+        )
+        fee_rates = self.backend._per_symbol_array(config.v2_fee_rate, symbols, default=0.0)
+        runner, _ = self.backend._prepare_reactive_numeric_coruntime(
+            idx=self.idx,
+            symbol_list=symbols,
+            market_arrays=self.market_arrays,
+            opens_arr=self.opens_arr,
+            volumes_arr=self.volumes_arr,
+            constraints=constraints,
+            contract_sizes=contract_sizes,
+            leverages=leverages,
+            fee_rates=fee_rates,
+            clock=get_event_clock_contract(config.execution_contract),
+            requirements=adapter.requirements,
+            retain_fills=False,
+            retain_events=False,
+            runtime=config.reactive_runtime,
+            scalar_score=True,
+            score_trading_days=int(trading_days),
+            _prepared_market_cache_key=self.backend._trusted_reactive_market_cache_key(
+                self.reactive_market_binding,
+                idx=self.idx,
+                symbol_list=symbols,
+                market_arrays=self.market_arrays,
+                opens_arr=self.opens_arr,
+                volumes_arr=self.volumes_arr,
+            ),
+        )
+        return runner, adapter.requirements
 
     @property
     def metadata(self) -> Dict[str, object]:
@@ -558,6 +814,82 @@ class QuantBTEndpoint:
         self.config = config or _config_from_kwargs(**kwargs)
         self.result: Optional[Union[BacktestResult, BacktestResultV2]] = None
         self.engine = None
+
+    @classmethod
+    def prepare_market(
+        cls,
+        data,
+        *,
+        symbols: Optional[Sequence[str]] = None,
+        calendar_policy: CalendarPolicyV2 | str = "exact",
+        missing_policy: MissingObservationPolicyV1 | str = "no_observation",
+        primary_symbol: Optional[str] = None,
+        cutoff_timestamp=None,
+        cache: Optional[PreparedMarketCacheV2] = None,
+    ) -> PreparedMarketHandleV2:
+        """Prepare an immutable V2 canonical market clock.
+
+        This opt-in certified surface never aligns equal-length source frames
+        by row count.  ``exact`` is the default; ``intersection``, ``union``
+        and ``primary_clock`` preserve explicit per-symbol observation maps.
+        Existing endpoint methods retain their compatibility paths until they
+        are explicitly passed a prepared V2 handle.
+        """
+        return prepare_market_handle_v2(
+            data,
+            symbols=symbols,
+            calendar_policy=calendar_policy,
+            missing_policy=missing_policy,
+            primary_symbol=primary_symbol,
+            cutoff_timestamp=cutoff_timestamp,
+            cache=cache,
+        )
+
+    @classmethod
+    def prepare_instruments(
+        cls,
+        *,
+        specs: Optional[Union[Dict[str, InstrumentSpec], Sequence[InstrumentSpec]]] = None,
+        symbols: Optional[Sequence[str]] = None,
+        contract_size: Optional[Union[float, Dict[str, float]]] = None,
+        leverage: Union[float, Dict[str, float]] = 1.0,
+        fee_rate: Union[float, Dict[str, float]] = 0.0,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
+    ) -> InstrumentRegistryV2:
+        """Prepare one canonical V2 venue-rule registry for normalized symbols."""
+        return prepare_instrument_registry_v2(
+            specs=specs,
+            symbols=symbols,
+            contract_size=contract_size,
+            leverage=leverage,
+            fee_rate=fee_rate,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+
+    @classmethod
+    def prepare_execution_plan(
+        cls,
+        *,
+        market: PreparedMarketHandleV2,
+        instruments: InstrumentRegistryV2,
+        account_contract: str = "linear_gross_cross_v1",
+        timing_contract: str = "event_lifecycle_v3_next_open",
+        execution_model: Optional[Dict[str, object]] = None,
+        metric_contract: str = "standard_daily_v2",
+    ) -> PreparedExecutionPlanV2:
+        """Bind matching V2 market/instrument handles before execution."""
+        return prepare_execution_plan_v2(
+            market=market,
+            instruments=instruments,
+            account_contract=account_contract,
+            timing_contract=timing_contract,
+            execution_model=execution_model,
+            metric_contract=metric_contract,
+        )
 
     def prepare_service_context(
         self,
@@ -641,6 +973,18 @@ class QuantBTEndpoint:
             "session_tape_signature": None if session_tape is None else session_tape.signature,
         }
         profile["prepared_signature"] = _prepared_profile_signature(tape.signature, profile)
+        rust_prepared_market = None
+        if str(self.config.mode).lower().strip() == "intrabar_bracket_rust":
+            from .preparation.native_execution import NativeExecutionPreparationCache
+
+            cache = getattr(self, "_rust_intrabar_preparation", None)
+            if cache is None:
+                cache = NativeExecutionPreparationCache()
+                self._rust_intrabar_preparation = cache
+            rust_prepared_market = prepare_rust_intrabar_market(
+                tape=tape,
+                native_preparation_cache=cache,
+            )
         return PreparedIntrabarRunner(
             endpoint=self,
             tape=tape,
@@ -649,6 +993,7 @@ class QuantBTEndpoint:
             profile_metadata=profile,
             session_policy=session_policy,
             session_tape=session_tape,
+            rust_prepared_market=rust_prepared_market,
         )
 
     def prepare_native_event_strategy(
@@ -660,6 +1005,7 @@ class QuantBTEndpoint:
         lows=None,
         datetime_index=None,
         symbols: Optional[Sequence[str]] = None,
+        _validated_canonical_frame: bool = False,
     ) -> PreparedNativeEventStrategyRunner:
         """
         Prepare native-event reactive market state once for repeated scoring.
@@ -679,7 +1025,17 @@ class QuantBTEndpoint:
         if data is not None and not isinstance(data, dict):
             if len(symbol_list) != 1:
                 raise ValueError("single DataFrame native-event preparation requires exactly one symbol")
-            frame = _standardize_frame(data, datetime_index=datetime_index)
+            if _validated_canonical_frame:
+                if datetime_index is not None or not _is_native_event_canonical_frame(data):
+                    raise ValueError(
+                        "internal canonical native-event preparation requires one UTC, unique, sorted OHLCV DataFrame"
+                    )
+                # The caller owns an isolated frame and has already proven the
+                # no-reindex/no-rename contract.  Avoid a second pandas deep
+                # copy before immediately packing immutable native arrays.
+                frame = data
+            else:
+                frame = _standardize_frame(data, datetime_index=datetime_index)
             symbol = symbol_list[0]
             idx = frame.index
             close_map = {symbol: frame["close"]}
@@ -707,11 +1063,16 @@ class QuantBTEndpoint:
                 audit_sink=config.audit_sink,
                 audit_sink_path=config.audit_sink_path,
                 reactive_kernel_mode=config.reactive_kernel_mode,
+                reactive_runtime=config.reactive_runtime,
+                reactive_gil_policy=config.reactive_gil_policy,
                 audit_mode=config.audit_mode,
                 oracle_sample_rate=config.oracle_sample_rate,
                 oracle_sample_seed=config.oracle_sample_seed,
+                runtime_budget=config.runtime_budget,
+                shadow_evidence_dir=config.shadow_evidence_dir,
                 native_backend=config.native_backend,
                 backend_policy=config.backend_policy,
+                native_static_abi=config.native_static_abi,
                 execution_contract=(
                     config.execution_contract
                     if config.execution_contract is not None
@@ -727,12 +1088,30 @@ class QuantBTEndpoint:
             funding_rate=config.funding_rate,
             symbols=symbol_list,
         )
+        # Keep the immutable prepared market as the single source of truth for
+        # repeated reactive WFO runs.  The private binding below is accepted
+        # only by this exact backend/tape identity; ordinary endpoints retain
+        # their historical content-validation path.
+        idx = market.idx
+        opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        opens_arr.setflags(write=False)
+        volumes_arr.setflags(write=False)
+        reactive_market_binding = backend.prepare_reactive_market_binding(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+        )
         profile = {
             "mode": config.mode,
             "backend": "native_event",
             "event_engine_version": "v2",
             "reactive_execution_mode": config.reactive_execution_mode,
             "reactive_kernel_mode": config.reactive_kernel_mode,
+            "reactive_runtime": config.reactive_runtime,
+            "reactive_gil_policy": config.reactive_gil_policy,
             "account": asdict(config.account),
             "execution": asdict(config.execution),
             "fee_rate": config.v2_fee_rate,
@@ -752,7 +1131,37 @@ class QuantBTEndpoint:
             volumes_arr=volumes_arr,
             market_arrays=market,
             backend=backend,
+            reactive_market_binding=reactive_market_binding,
             profile_metadata=profile,
+        )
+
+    def prepare_reactive_walk_forward(
+        self,
+        *,
+        data: pd.DataFrame,
+        strategy_factory: object,
+        walkforward_config: WalkForwardConfig,
+        runtime_config=None,
+        symbols: Optional[Sequence[str]] = None,
+    ):
+        """Prepare the explicit W3 reactive walk-forward route.
+
+        Unlike :meth:`walk_forward`, this route scores native command/account
+        lifecycles rather than converting a dynamic strategy into a signal
+        series.  It is currently certified for a reset-flat account per fold;
+        the returned result intentionally exposes segmented OOS accounts and
+        never fabricates one compounded carry-equity curve.
+        """
+
+        from .backends.reactive_wfo import ReactivePreparedWfoRuntimeV1
+
+        return ReactivePreparedWfoRuntimeV1(
+            endpoint=self,
+            data=data,
+            strategy_factory=strategy_factory,
+            walkforward_config=walkforward_config,
+            runtime_config=runtime_config,
+            symbols=symbols,
         )
 
     @classmethod
@@ -869,17 +1278,105 @@ class QuantBTEndpoint:
         )
 
     @classmethod
-    def fill_replay(cls, *, report_level: str = "audit", **kwargs) -> "QuantBTEndpoint":
+    def intrabar_bracket_rust(
+        cls,
+        *,
+        level_mode: Union[str, IntrabarLevelMode] = IntrabarLevelMode.PERCENT_DISTANCE,
+        intrabar_sizing_mode: Union[str, IntrabarSizingMode] = IntrabarSizingMode.UNITS,
+        close_on_last_bar: bool = True,
+        execution_contract: Optional[ExecutionContract] = None,
+        session_policy: Optional[SessionExecutionPolicy] = None,
+        report_level: str = "standard",
+        audit_detail_limit: Optional[int] = None,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
+        """Create the explicit Rust route for bounded intrabar brackets.
+
+        This is a one-full-tape Rust execution route for the frozen
+        ``intrabar_bracket_v1`` contract. It supports one strict OHLC symbol,
+        bracket/trailing/session behavior, fees, funding, margin, liquidation,
+        and bounded audit SoA. It does not silently replace
+        :meth:`intrabar_bracket`, whose Numba path remains the version-pinned
+        reproducibility comparator and rollback route.
+        """
+        normalized_report_level = str(report_level).lower().strip()
+        if normalized_report_level in {"score", "optimizer", "scoring"}:
+            raise ValueError(
+                "intrabar_bracket_rust() returns BacktestResultV2 and supports report_level "
+                "minimal, standard, or audit; score is reserved for NativeIntrabarRequestCore"
+            )
+        metadata = dict(kwargs.pop("metadata", {}))
+        mode_value = level_mode.value if hasattr(level_mode, "value") else str(level_mode)
+        metadata.setdefault("intrabar_level_mode", mode_value)
+        metadata.setdefault("intrabar_sizing_mode", IntrabarSizingMode(intrabar_sizing_mode).value)
+        metadata.setdefault("execution_contract_id", "intrabar_bracket_v1")
+        metadata.setdefault("rust_intrabar_explicit", True)
+        if audit_detail_limit is not None:
+            if int(audit_detail_limit) <= 0:
+                raise ValueError("audit_detail_limit must be > 0 when supplied")
+            metadata["intrabar_audit_detail_limit"] = int(audit_detail_limit)
+        contract = execution_contract or ExecutionContract.intrabar_bracket(close_on_last_bar=close_on_last_bar)
+        metadata.setdefault("execution_contract", contract.to_metadata())
+        if session_policy is not None:
+            metadata["session_policy"] = session_policy.to_metadata()
+        return cls(
+            _config_from_kwargs(
+                mode="intrabar_bracket_rust",
+                backend="rust_intrabar",
+                sizing="intrabar_intent",
+                report_level=normalized_report_level,
+                metadata=metadata,
+                **kwargs,
+            )
+        )
+
+    @classmethod
+    def fill_replay(
+        cls,
+        *,
+        report_level: str = "audit",
+        accounting_backend: str = "numba_v1",
+        funding_phase: str = "after_fills_at_close",
+        liquidation_fee_rate: float = 0.0,
+        invariant_checks: Optional[bool] = None,
+        **kwargs,
+    ) -> "QuantBTEndpoint":
         """
         Create a fast accounting replay endpoint for explicit fills.
 
         Use `backtest(data=df, fill_replay=FillReplayTape_or_DataFrame)`. This
         certifies accounting from supplied fills but does not certify how those
-        fills were generated.
+        fills were generated. `accounting_backend="numba_v1"` preserves the
+        historical single-symbol comparator. `"rust_v2"` selects the typed
+        linear gross-cross authority with explicit funding replay support.
         """
+        backend = str(accounting_backend).lower().strip()
+        if backend not in {"numba_v1", "rust_v2"}:
+            raise ValueError("accounting_backend must be numba_v1 or rust_v2")
+        phase = str(funding_phase).lower().strip()
+        if phase not in {"before_fills_at_close", "after_fills_at_close"}:
+            raise ValueError("funding_phase must be before_fills_at_close or after_fills_at_close")
+        if float(liquidation_fee_rate) < 0.0:
+            raise ValueError("liquidation_fee_rate must be >= 0")
         metadata = dict(kwargs.pop("metadata", {}))
-        metadata.setdefault("execution_contract_id", "fill_replay_v1")
-        metadata.setdefault("execution_contract", ExecutionContract.fill_replay().to_metadata())
+        contract = ExecutionContract.fill_replay_v2() if backend == "rust_v2" else ExecutionContract.fill_replay()
+        _require_matching_metadata(metadata, "execution_contract_id", contract.engine_id)
+        if "execution_contract" in metadata:
+            try:
+                supplied_contract = ExecutionContract.from_metadata(metadata["execution_contract"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError("metadata.execution_contract is not a valid ExecutionContract record") from exc
+            if supplied_contract != contract:
+                raise ValueError(
+                    f"metadata.execution_contract conflicts with fill replay {backend!r}; "
+                    f"expected {contract.engine_id!r}"
+                )
+        metadata["execution_contract"] = contract.to_metadata()
+        _require_matching_metadata(metadata, "fill_replay_accounting_backend", backend)
+        _require_matching_metadata(metadata, "fill_replay_funding_phase", phase)
+        _require_matching_metadata(metadata, "fill_replay_liquidation_fee_rate", float(liquidation_fee_rate))
+        if invariant_checks is not None:
+            _require_matching_metadata(metadata, "fill_replay_invariant_checks", bool(invariant_checks))
         return cls(
             _config_from_kwargs(
                 mode="fill_replay",
@@ -1022,6 +1519,11 @@ class QuantBTEndpoint:
         initial_balances: Optional[Dict[str, float]] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
         settle_expired: bool = False,
+        settlement_policy: Optional[OptionSettlementPolicy | str] = None,
+        allow_future_then_cash_research: bool = False,
+        require_venue_exact_margin: bool = False,
+        external_margin_validator: Optional[ExternalOptionMarginValidator] = None,
+        liquidate_on_maintenance_breach: bool = True,
         max_spread_bps: Optional[float] = None,
         max_source_latency_ns: Optional[int] = None,
         **kwargs,
@@ -1057,6 +1559,11 @@ class QuantBTEndpoint:
                 initial_balances=initial_balances,
                 conversion_rates=dict(conversion_rates or {}),
                 settle_expired=settle_expired,
+                settlement_policy=settlement_policy,
+                allow_future_then_cash_research=allow_future_then_cash_research,
+                require_venue_exact_margin=require_venue_exact_margin,
+                external_margin_validator=external_margin_validator,
+                liquidate_on_maintenance_breach=liquidate_on_maintenance_breach,
                 max_spread_bps=max_spread_bps,
                 max_source_latency_ns=max_source_latency_ns,
                 metadata=metadata,
@@ -1269,7 +1776,7 @@ class QuantBTEndpoint:
         current native option components. `future` means the public schema is
         intentionally reserved but should wait for later phases.
         """
-        return {
+        matrix = {
             "canonical_chain_tape": {
                 "status": "supported",
                 "backend": "native_option",
@@ -1307,6 +1814,8 @@ class QuantBTEndpoint:
                 "notes": "Phase 9 pins Nautilus option constructors and BBO quote semantics; full Nautilus option engine replay remains future",
             },
         }
+        matrix.update(option_capability_registry_v1())
+        return matrix
 
     @staticmethod
     def nautilus_support_matrix() -> Dict[str, Dict[str, str]]:
@@ -1431,6 +1940,7 @@ class QuantBTEndpoint:
         optimization_mode: str = "none",
         optimization_schedule: str = "global",
         fold_boundary_position_policy: str = "carry",
+        calendar_contract: str = "exact_v2",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1452,9 +1962,13 @@ class QuantBTEndpoint:
         study per fold and uses that fold's OOS metrics for decay candidate
         selection. `per_fold_causal` runs Mode 4 as strict fold-local IS-only
         selection, or Mode 1 with explicit nested inner validation entirely
-        inside each outer IS window. Per-fold schedules keep one continuous
-        final account run; `fold_boundary_position_policy="carry"` is the
-        only supported policy.
+        inside each outer IS window. The default final account policy is
+        `carry_position`. `close_at_boundary` is supported only when an
+        embargo provides an auditable flatten gap; `reset_flat` and
+        `replay_prior_state` fail closed on this stitched-target endpoint
+        until a segmented-account or order/fill-replay adapter is selected.
+        `optimization_config` can also declare the calendar, temporal guards,
+        intent timing, lifecycle isolation, and proxy/native rank audit.
         Fixed-parameter runs can leave
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
@@ -1465,13 +1979,104 @@ class QuantBTEndpoint:
                 "scoring_backend",
                 _default_walkforward_scoring_backend(target_mode=target_mode, optimization_mode=optimization_mode),
             )
-        )
+        ).lower().strip()
         wf_metadata = dict(optimization_config.get("metadata", {}) or {})
         wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
         wf_metadata.setdefault("use_prepared_wfo_context", bool(optimization_config.get("use_prepared_wfo_context", True)))
         wf_metadata.setdefault("use_scalar_trial_scoring", bool(optimization_config.get("use_scalar_trial_scoring", True)))
         wf_metadata.setdefault("compact_trial_ledger", bool(optimization_config.get("compact_trial_ledger", True)))
         wf_metadata.setdefault("profile_walkforward", bool(optimization_config.get("profile_walkforward", False)))
+        wf_metadata.setdefault("perf_01_profile", bool(optimization_config.get("perf_01_profile", False)))
+        retention_plan = ResearchRetentionPlanV1(
+            financial_retention=optimization_config.get(
+                "financial_retention",
+                wf_metadata.get("financial_retention", "score"),
+            ),
+            research_retention=optimization_config.get(
+                "research_retention",
+                wf_metadata.get("research_retention", "none"),
+            ),
+            financial_scope=optimization_config.get(
+                "financial_retention_scope",
+                wf_metadata.get("financial_retention_scope", "selected_final_execution"),
+            ),
+            chunk_rows=optimization_config.get(
+                "research_audit_chunk_rows",
+                wf_metadata.get("research_audit_chunk_rows", 256),
+            ),
+            max_retained_chunks=optimization_config.get(
+                "research_audit_max_chunks",
+                wf_metadata.get("research_audit_max_chunks", 4_096),
+            ),
+            max_materialized_frames=optimization_config.get(
+                "research_audit_max_materialized_frames",
+                wf_metadata.get("research_audit_max_materialized_frames", 3),
+            ),
+        )
+        wf_metadata.setdefault("financial_retention", retention_plan.financial_retention)
+        wf_metadata.setdefault("research_retention", retention_plan.research_retention)
+        wf_metadata.setdefault("financial_retention_scope", retention_plan.financial_scope)
+        wf_metadata.setdefault("research_audit_chunk_rows", retention_plan.chunk_rows)
+        wf_metadata.setdefault("research_audit_max_chunks", retention_plan.max_retained_chunks)
+        wf_metadata.setdefault("research_audit_max_materialized_frames", retention_plan.max_materialized_frames)
+        wfo_execution_reuse = str(optimization_config.get("wfo_execution_reuse", "auto")).lower().strip()
+        if wfo_execution_reuse not in {"off", "auto", "require"}:
+            raise ValueError("wfo_execution_reuse must be 'off', 'auto', or 'require'")
+        wfo_execution_reuse_max_entries = int(optimization_config.get("wfo_execution_reuse_max_entries", 4096))
+        wfo_execution_reuse_trace_limit = int(optimization_config.get("wfo_execution_reuse_trace_limit", 2048))
+        if wfo_execution_reuse_max_entries < 0 or wfo_execution_reuse_trace_limit < 0:
+            raise ValueError("WFO execution reuse capacities must be >= 0")
+        wf_metadata.setdefault("wfo_execution_reuse", wfo_execution_reuse)
+        wf_metadata.setdefault("wfo_execution_reuse_max_entries", wfo_execution_reuse_max_entries)
+        wf_metadata.setdefault("wfo_execution_reuse_trace_limit", wfo_execution_reuse_trace_limit)
+        native_prepared_wfo = str(optimization_config.get("native_prepared_wfo", "off")).lower().strip()
+        if native_prepared_wfo not in {"off", "auto", "require"}:
+            raise ValueError("native_prepared_wfo must be 'off', 'auto', or 'require'")
+        wf_metadata.setdefault("native_prepared_wfo", native_prepared_wfo)
+        wf_metadata.setdefault(
+            "native_prepared_wfo_workers",
+            int(optimization_config.get("native_prepared_wfo_workers", 1)),
+        )
+        prepared_wfo_strategy = str(
+            optimization_config.get("prepared_wfo_strategy", "off")
+        ).lower().strip()
+        if prepared_wfo_strategy not in {"off", "auto", "require"}:
+            raise ValueError("prepared_wfo_strategy must be 'off', 'auto', or 'require'")
+        prepared_wfo_strategy_adapter = str(
+            optimization_config.get("prepared_wfo_strategy_adapter", "auto")
+        ).lower().strip()
+        if prepared_wfo_strategy_adapter not in {"auto", "w1", "w2"}:
+            raise ValueError("prepared_wfo_strategy_adapter must be 'auto', 'w1', or 'w2'")
+        wf_metadata.setdefault("prepared_wfo_strategy", prepared_wfo_strategy)
+        wf_metadata.setdefault("prepared_wfo_strategy_adapter", prepared_wfo_strategy_adapter)
+        if "prepared_wfo_strategy_static_config" in optimization_config:
+            static_config = optimization_config["prepared_wfo_strategy_static_config"]
+            if not isinstance(static_config, Mapping):
+                raise TypeError("prepared_wfo_strategy_static_config must be a mapping")
+            wf_metadata.setdefault("prepared_wfo_strategy_static_config", dict(static_config))
+        if scoring_backend != "endpoint":
+            if native_prepared_wfo == "require":
+                raise NotImplementedError(
+                    "native_prepared_wfo='require' is not available with "
+                    f"scoring_backend={scoring_backend!r}; mode_2_sbb deliberately "
+                    "retains its bounded train-path proxy scorer"
+                )
+            wf_metadata.setdefault(
+                "native_prepared_wfo_resolution",
+                {
+                    "requested_policy": native_prepared_wfo,
+                    "resolved_policy": "proxy_preserved"
+                    if scoring_backend == "proxy"
+                    else "off",
+                    "reason": (
+                        "mode_2_sbb retains the certified proxy path-resampling scorer"
+                        if scoring_backend == "proxy"
+                        else "endpoint scorer was not selected"
+                    ),
+                    "native_batches": 0,
+                    "native_rows": 0,
+                },
+            )
         if wf_config is None:
             from .walkforward import WalkForwardConfig
 
@@ -1488,6 +2093,26 @@ class QuantBTEndpoint:
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
                 inner_min_folds=int(optimization_config.get("inner_min_folds", 2)),
+                calendar_contract=str(optimization_config.get("calendar_contract", calendar_contract)),
+                calendar_primary_symbol=optimization_config.get("calendar_primary_symbol"),
+                calendar_missing_policy=str(optimization_config.get("calendar_missing_policy", "no_observation")),
+                label_horizon_bars=int(optimization_config.get("label_horizon_bars", 0)),
+                purge_bars=int(optimization_config.get("purge_bars", 0)),
+                embargo_bars=int(optimization_config.get("embargo_bars", 0)),
+                warmup_policy=str(optimization_config.get("warmup_policy", "none")),
+                warmup_bars=optimization_config.get("warmup_bars"),
+                fold_account_policy=str(
+                    optimization_config.get("fold_account_policy", fold_boundary_position_policy)
+                ),
+                intent_contract=optimization_config.get("intent_contract"),
+                strategy_lifecycle_policy=str(optimization_config.get("strategy_lifecycle_policy", "isolated_v1")),
+                trusted_strategy_global=bool(optimization_config.get("trusted_strategy_global", False)),
+                proxy_validation_mode=str(optimization_config.get("proxy_validation_mode", "off")),
+                proxy_validation_top_fraction=float(optimization_config.get("proxy_validation_top_fraction", 0.10)),
+                proxy_min_spearman=float(optimization_config.get("proxy_min_spearman", 0.70)),
+                proxy_min_top_k_overlap=float(optimization_config.get("proxy_min_top_k_overlap", 0.50)),
+                proxy_max_winner_regret=float(optimization_config.get("proxy_max_winner_regret", 0.25)),
+                proxy_max_false_positive_rate=float(optimization_config.get("proxy_max_false_positive_rate", 0.25)),
                 optuna_trials=optuna_trials,
                 optuna_early_stopping=optuna_early_stopping,
                 random_seed=random_seed,
@@ -1572,6 +2197,7 @@ class QuantBTEndpoint:
         optimization_mode: str = "none",
         optimization_schedule: str = "global",
         fold_boundary_position_policy: str = "carry",
+        calendar_contract: str = "exact_v2",
         optimization_config: Optional[Dict] = None,
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
@@ -1603,6 +2229,7 @@ class QuantBTEndpoint:
             optimization_mode=optimization_mode,
             optimization_schedule=optimization_schedule,
             fold_boundary_position_policy=fold_boundary_position_policy,
+            calendar_contract=calendar_contract,
             optimization_config=optimization_config,
             optuna_trials=optuna_trials,
             optuna_early_stopping=optuna_early_stopping,
@@ -1637,13 +2264,17 @@ class QuantBTEndpoint:
         session_tape: Optional[IntrabarSessionTape] = None,
         funding_event_timestamps=None,
         funding_event_rates=None,
-        fill_replay: Optional[Union[FillReplayTape, pd.DataFrame]] = None,
+        fill_replay: Optional[Union[FillReplayTape, FillReplayTapeV2, pd.DataFrame]] = None,
+        funding_replay: Optional[Union[FundingReplayTapeV2, pd.DataFrame]] = None,
         underlying: Optional[Union[pd.DataFrame, pd.Series]] = None,
         hedge_policy: Optional[OptionHedgeConfig] = None,
         net_option_delta: Optional[pd.Series] = None,
         settlement_events: Optional[Sequence] = None,
         conversion_rates: Optional[Dict[str, float]] = None,
         prepared_cache: Optional[OptionPreparedRunCache] = None,
+        prepared_market: Optional[PreparedMarketHandleV2] = None,
+        prepared_instruments: Optional[InstrumentRegistryV2] = None,
+        calendar_contract: str = "legacy_v1",
     ):
         """
         Run the configured backtest and store the result.
@@ -1668,6 +2299,11 @@ class QuantBTEndpoint:
             Explicit per-symbol price series maps.
         datetime_index:
             Optional common datetime index. Defaults to data/signal index.
+        fill_replay/funding_replay:
+            Explicit accounting tape inputs for ``fill_replay``. The
+            compatibility V1 backend accepts only a single-symbol fill tape;
+            explicit ``accounting_backend="rust_v2"`` also accepts
+            multi-symbol signed fills and scheduled funding rows.
         symbols:
             Optional symbol override for this run.
         """
@@ -1738,12 +2374,26 @@ class QuantBTEndpoint:
                 funding_event_timestamps=funding_event_timestamps,
                 funding_event_rates=funding_event_rates,
             )
+        if mode == "intrabar_bracket_rust":
+            return self._run_intrabar_bracket_rust(
+                data=data,
+                signal=signal,
+                signal_col=signal_col,
+                datetime_index=datetime_index,
+                symbols=symbols,
+                intent=intent,
+                intent_cols=intent_cols,
+                session_tape=session_tape,
+                funding_event_timestamps=funding_event_timestamps,
+                funding_event_rates=funding_event_rates,
+            )
         if mode == "fill_replay":
             return self._run_fill_replay(
                 data=data,
                 datetime_index=datetime_index,
                 symbols=symbols,
                 fill_replay=fill_replay,
+                funding_replay=funding_replay,
             )
         if mode in ("single_signal", "pct_equity", "signal_notional", "dca_ladder", "nautilus_validation"):
             return self._run_single(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index, symbols=symbols)
@@ -1754,6 +2404,9 @@ class QuantBTEndpoint:
                 order_commands=order_commands,
                 datetime_index=datetime_index,
                 symbols=symbols,
+                prepared_market=prepared_market,
+                prepared_instruments=prepared_instruments,
+                calendar_contract=calendar_contract,
             )
         if mode == "native_event_strategy":
             return self._run_native_event_strategy(
@@ -1914,6 +2567,18 @@ class QuantBTEndpoint:
     def fills_report(self) -> pd.DataFrame:
         """Return latest fills report, or an empty DataFrame."""
         return self._require_result().metadata.get("fills_report", pd.DataFrame())
+
+    @property
+    def research_audit(self):
+        """Return the optional immutable WFO research-audit artifact.
+
+        The artifact exists only when ``research_retention`` or non-score
+        ``financial_retention`` requested it.  Its DataFrame exports are cold
+        path operations via ``artifact.legacy_exports()`` / ``to_pandas()``.
+        """
+
+        walk_forward = self._require_result().metadata.get("walk_forward", {})
+        return walk_forward.get("research_audit") if isinstance(walk_forward, Mapping) else None
 
     def nautilus_pct_equity_diagnostic(
         self,
@@ -2128,12 +2793,108 @@ class QuantBTEndpoint:
         self._store_result(result)
         return self.result
 
-    def _run_fill_replay(self, data, datetime_index, symbols, fill_replay):
+    def _run_intrabar_bracket_rust(self, data, signal, signal_col, datetime_index, symbols, intent, intent_cols, session_tape=None, funding_event_timestamps=None, funding_event_rates=None):
+        tape, intent, symbol = self._prepare_intrabar_run(
+            data,
+            signal,
+            signal_col,
+            datetime_index,
+            symbols,
+            intent,
+            intent_cols,
+            funding_event_timestamps,
+            funding_event_rates,
+        )
+        contract = _execution_contract_from_config(self.config)
+        session_policy = _session_policy_from_config(self.config)
+        if session_policy is not None and session_tape is None:
+            raise ValueError("session_tape is required when session_policy is configured")
+        if session_policy is None and session_tape is not None:
+            raise ValueError("session_policy is required when session_tape is supplied")
+        cache = getattr(self, "_rust_intrabar_preparation", None)
+        if cache is None:
+            from .preparation.native_execution import NativeExecutionPreparationCache
+
+            cache = NativeExecutionPreparationCache()
+            self._rust_intrabar_preparation = cache
+        kernel = run_rust_intrabar_kernel(
+            tape=tape,
+            intent=intent,
+            account=self.config.account,
+            contract=contract,
+            fee_rate=self.config.v2_fee_rate,
+            slippage_rate=float(self.config.execution.slippage_rate),
+            contract_size=_scalar_for_symbol(self.config.contract_size, symbol),
+            session_policy=session_policy,
+            session_tape=session_tape,
+            report_level=self.config.report_level,
+            native_preparation_cache=cache,
+            audit_detail_limit=self.config.metadata.get("intrabar_audit_detail_limit"),
+            **self._intrabar_execution_kwargs(symbol),
+        )
+        idx = kernel.equity.index
+        returns = kernel.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        diagnostics = pd.DataFrame(
+            {
+                "average_entry": kernel.average_entry,
+                "active_stop": kernel.active_stop,
+                "active_take_profit": kernel.active_take_profit,
+                "event_flags": kernel.event_flags,
+                "initial_margin": kernel.initial_margin,
+                "maintenance_margin": kernel.maintenance_margin,
+                "fees": kernel.fees,
+                "funding": kernel.funding,
+            },
+            index=idx,
+        )
+        metadata = {
+            **kernel.metadata,
+            "input_mode": "intrabar_intent",
+            "symbol": symbol,
+            "phase": "69_rust_intrabar_authority",
+            "fills_report": kernel.fills_report,
+            "positions_report": pd.DataFrame({f"Position_{symbol}": kernel.position}, index=idx),
+        }
+        result = BacktestResultV2(
+            equity=kernel.equity,
+            returns=returns,
+            positions=pd.DataFrame({f"Position_{symbol}": kernel.position.to_numpy(dtype=float)}, index=idx),
+            closes=pd.DataFrame({f"Close_{symbol}": tape.closes[:, 0]}, index=idx),
+            symbols=[symbol],
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            liquidated=bool(kernel.liquidated),
+            liquidation_bar=int(kernel.liquidation_bar),
+            fills=kernel.fills,
+            fees=kernel.fees,
+            funding=kernel.funding,
+            margin=diagnostics[["initial_margin", "maintenance_margin"]],
+            diagnostics=diagnostics,
+            metadata=metadata,
+        )
+        self.engine = kernel
+        self._store_result(result)
+        return self.result
+
+    def _run_fill_replay(self, data, datetime_index, symbols, fill_replay, funding_replay=None):
         if fill_replay is None:
             raise ValueError("fill_replay endpoint requires fill_replay=FillReplayTape or DataFrame")
         symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        backend = str(self.config.metadata.get("fill_replay_accounting_backend", "numba_v1")).lower().strip()
+        if backend == "rust_v2":
+            return self._run_fill_replay_v2(
+                data=data,
+                datetime_index=datetime_index,
+                symbols=symbol_list,
+                fill_replay=fill_replay,
+                funding_replay=funding_replay,
+            )
+        if backend != "numba_v1":
+            raise ValueError(f"unsupported fill replay accounting backend {backend!r}")
+        if funding_replay is not None:
+            raise ValueError("funding_replay requires accounting_backend='rust_v2'")
         if len(symbol_list) != 1:
-            raise ValueError("fill_replay currently supports exactly one symbol")
+            raise ValueError("fill_replay numba_v1 currently supports exactly one symbol")
         symbol = symbol_list[0]
         tape = prepare_market_tape(
             data=data,
@@ -2179,6 +2940,102 @@ class QuantBTEndpoint:
             leverage=float(self.config.account.leverage),
             fees=replay.fees,
             diagnostics=pd.DataFrame({"event_flags": replay.event_flags, "fees": replay.fees}, index=idx),
+            metadata=metadata,
+        )
+        self.engine = replay
+        self._store_result(result)
+        return self.result
+
+    def _run_fill_replay_v2(self, data, datetime_index, symbols, fill_replay, funding_replay):
+        if str(self.config.metadata.get("bar_timestamp_semantics", "close")).lower().strip() != "close":
+            raise NotImplementedError(
+                "fill_replay rust_v2 is certified for close-timestamp bars only"
+            )
+        tape = prepare_market_tape(
+            data=data,
+            datetime_index=datetime_index,
+            symbols=symbols,
+            funding_rate=0.0,
+            use_funding=False,
+            validation_mode="strict",
+            source_timezone=self.config.metadata.get("source_timezone"),
+            bar_timestamp_semantics="close",
+        )
+        contract_sizes = [_scalar_for_symbol(self.config.contract_size, symbol) for symbol in tape.symbols]
+        if isinstance(fill_replay, FillReplayTapeV2):
+            fill_tape = fill_replay
+        elif isinstance(fill_replay, FillReplayTape):
+            fill_tape = FillReplayTapeV2.from_legacy(fill_replay, symbols=tape.symbols)
+        elif isinstance(fill_replay, pd.DataFrame):
+            fill_tape = FillReplayTapeV2.from_frame(
+                fill_replay,
+                symbols=tape.symbols,
+                contract_sizes=contract_sizes,
+                fee_rate=self.config.v2_fee_rate,
+            )
+        else:
+            raise TypeError("fill_replay must be a FillReplayTapeV2, FillReplayTape, or pandas DataFrame")
+        if funding_replay is None:
+            funding_tape = FundingReplayTapeV2.empty()
+        elif isinstance(funding_replay, FundingReplayTapeV2):
+            funding_tape = funding_replay
+        elif isinstance(funding_replay, pd.DataFrame):
+            funding_tape = FundingReplayTapeV2.from_frame(funding_replay, symbols=tape.symbols)
+        else:
+            raise TypeError("funding_replay must be a FundingReplayTapeV2 or pandas DataFrame")
+        report_level = str(self.config.report_level).lower().strip()
+        profile_map = {
+            "minimal": "compact",
+            "standard": "compact",
+            "full": "audit",
+            "audit": "audit",
+        }
+        if report_level not in profile_map:
+            raise ValueError("FillReplay rust_v2 report_level must be minimal, standard, full, or audit")
+        replay = run_fill_replay_v2_native(
+            tape=tape,
+            fills=fill_tape,
+            funding=funding_tape,
+            account=self.config.account,
+            contract_sizes=contract_sizes,
+            leverages=[float(self.config.account.leverage)] * tape.n_symbols,
+            funding_phase=str(self.config.metadata.get("fill_replay_funding_phase", "after_fills_at_close")),
+            liquidation_fee_rate=float(self.config.metadata.get("fill_replay_liquidation_fee_rate", 0.0)),
+            output_profile=profile_map[report_level],
+            invariant_checks=bool(
+                self.config.metadata.get("fill_replay_invariant_checks", profile_map[report_level] == "audit")
+            ),
+        )
+        if replay.equity is None or replay.positions is None or replay.fees is None or replay.funding is None:
+            raise RuntimeError("FillReplay rust_v2 endpoint requires a compact or audit result path")
+        closes = pd.DataFrame(
+            {f"Close_{symbol}": tape.closes[:, column] for column, symbol in enumerate(tape.symbols)},
+            index=replay.equity.index,
+        )
+        metadata = {
+            **dict(self.config.metadata),
+            **dict(replay.metadata),
+            "symbol": tape.symbols[0] if len(tape.symbols) == 1 else None,
+            "symbols": list(tape.symbols),
+            "phase": "59_linear_accounting_fill_replay_v2",
+            "fill_replay_profile": replay.profile,
+            "fills_report": fill_tape.to_frame(tape.symbols),
+            "funding_report": funding_tape.to_frame(tape.symbols),
+            "canonical_trace_v2": replay.canonical_trace,
+        }
+        result = BacktestResultV2(
+            equity=replay.equity,
+            returns=replay.equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0),
+            positions=replay.positions,
+            closes=closes,
+            symbols=list(tape.symbols),
+            initial_capital=float(self.config.account.initial_capital),
+            leverage=float(self.config.account.leverage),
+            liquidated=bool(replay.score["liquidated"]),
+            fees=replay.fees,
+            funding=replay.funding,
+            margin=replay.margin if replay.margin is not None else pd.DataFrame(index=replay.equity.index),
+            diagnostics=replay.diagnostics if replay.diagnostics is not None else pd.DataFrame(index=replay.equity.index),
             metadata=metadata,
         )
         self.engine = replay
@@ -2245,6 +3102,18 @@ class QuantBTEndpoint:
         frame, idx, sig = _normalize_single_data(data=data, signal=signal, signal_col=signal_col, datetime_index=datetime_index)
         backend = _resolve_backend(self.config)
         symbol_list = list(symbols or self.config.symbols or ["DEFAULT"])
+        if (
+            self.config.mode.lower().strip() == "pct_equity"
+            and str(self.config.target_runtime).lower().strip() == "rust"
+        ):
+            result = self._run_pct_equity_transition_native(
+                frame=frame,
+                idx=idx,
+                signal=sig,
+                symbols=symbol_list,
+            )
+            self._store_result(result)
+            return self.result
         if backend == "legacy":
             self.engine = BacktestEngine(
                 Datetime=idx,
@@ -2282,6 +3151,8 @@ class QuantBTEndpoint:
             backend=backend,
             native_backend=self.config.native_backend,
             backend_policy=self.config.backend_policy,
+            native_static_abi=self.config.native_static_abi,
+            target_runtime=self.config.target_runtime,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2305,6 +3176,8 @@ class QuantBTEndpoint:
             audit_mode=self.config.audit_mode,
             oracle_sample_rate=self.config.oracle_sample_rate,
             oracle_sample_seed=self.config.oracle_sample_seed,
+            runtime_budget=self.config.runtime_budget,
+            shadow_evidence_dir=self.config.shadow_evidence_dir,
         )
         markers = _intrabar_marker_columns(frame)
         if backend == "native_vectorized" and markers:
@@ -2319,10 +3192,150 @@ class QuantBTEndpoint:
         self._store_result(self.engine.result)
         return self.result
 
-    def _run_orders(self, data, orders, order_commands, datetime_index, symbols):
+    def _run_pct_equity_transition_native(
+        self,
+        *,
+        frame: pd.DataFrame,
+        idx: pd.DatetimeIndex,
+        signal: pd.Series,
+        symbols: Sequence[str],
+    ) -> BacktestResultV2:
+        """Execute the frozen legacy `%_equity` transition contract in Rust.
+
+        This is deliberately narrow and explicit.  The historical endpoint
+        still defaults to the Numba/legacy implementation; callers request
+        this route with ``target_runtime='rust'``.  Rust owns the accepted
+        unit/account trace while the public compatibility result continues to
+        expose processed signal weights, as the legacy endpoint has always
+        done for report trade-count and hit-rate semantics.
+        """
+
+        symbol_list = list(symbols)
+        if len(symbol_list) != 1:
+            raise NotImplementedError(
+                "rust pct_equity_transition currently certifies one canonical symbol; "
+                "use the legacy pct_equity endpoint for multi-symbol compatibility"
+            )
+        requested_symbol = str(symbol_list[0])
+        # The legacy BacktestEngine receives ``symbols=None`` for this route
+        # and therefore resolves its one compatible position column and its
+        # scalar/mapping constraints through DEFAULT.  Do the same here: a
+        # caller-provided label must not silently change old pct_equity math.
+        symbol = "DEFAULT"
+        raw_signal = pd.to_numeric(signal, errors="raise").astype(float)
+        if not bool(self.config.use_pyramiding):
+            raw_signal = pd.Series(np.sign(raw_signal.to_numpy(dtype=np.float64)), index=idx, dtype=float)
+
+        legacy_one_way_fee = float(self.config.fee) / 2.0
+        if not np.isclose(
+            float(self.config.v2_fee_rate),
+            legacy_one_way_fee,
+            rtol=0.0,
+            atol=1.0e-15,
+        ):
+            raise ValueError(
+                "rust pct_equity_transition requires fee_rate to equal legacy fee / 2 "
+                "for exact compatibility; remove fee_rate or make the two conventions equivalent"
+            )
+
+        # ``pct_equity`` historically accepts ``slippage`` as a fractional
+        # compatibility input. Native V2 uses explicit bps, so retain an
+        # explicitly supplied V2 rate when present and otherwise translate the
+        # legacy field exactly once at this compatibility boundary.
+        execution = self.config.execution
+        if execution.slippage_rate != 0.0 and not np.isclose(
+            float(execution.slippage_rate),
+            float(self.config.slippage),
+            rtol=0.0,
+            atol=1.0e-15,
+        ):
+            raise ValueError(
+                "rust pct_equity_transition requires ExecutionConfig.slippage_bps to equal legacy slippage "
+                "for exact compatibility; remove slippage_bps or make both conventions equivalent"
+            )
+        if execution.slippage_rate == 0.0 and float(self.config.slippage) != 0.0:
+            execution = replace(execution, slippage_bps=float(self.config.slippage) * 10_000.0)
+
+        self.engine = NativeVectorizedBackend(
+            NativeVectorizedConfig(
+                account=self.config.account,
+                execution=execution,
+                fee_rate=self.config.v2_fee_rate,
+                use_funding=bool(self.config.use_funding),
+                target_runtime="rust",
+            )
+        )
+        result = self.engine.run_pct_equity_transition_targets(
+            datetime_index=idx,
+            target_weights={symbol: raw_signal},
+            closes={symbol: frame["close"]},
+            highs={symbol: frame.get("high", frame["close"])},
+            lows={symbol: frame.get("low", frame["close"])},
+            funding_rate=self.config.funding_rate,
+            contract_size=self.config.contract_size,
+            leverage=self.config.account.leverage,
+            fee_rate=self.config.v2_fee_rate,
+            symbols=[symbol],
+            instruments=self.config.instruments,
+            qty_step=self.config.qty_step,
+            lot_size=self.config.lot_size,
+            slot_size=self.config.slot_size,
+            min_qty=self.config.min_qty,
+            min_notional=self.config.min_notional,
+            equity_fraction=self.config.alloc_per_trade,
+        )
+        accepted_positions = result.positions.copy(deep=True)
+        result.positions = pd.DataFrame(
+            {f"Position_{symbol}": raw_signal.to_numpy(dtype=np.float64)}, index=idx
+        )
+        result.metadata.update(
+            {
+                "target_runtime": "rust_pct_equity_transition_v1",
+                "canonical_one_way_fee_rate": float(self.config.v2_fee_rate),
+                "legacy_slippage_rate": float(self.config.slippage),
+                "canonical_slippage_rate": float(execution.slippage_rate),
+                "pct_equity_transition": {
+                    "contract": "pct_equity_transition_v1",
+                    "requested_authority": "rust",
+                    "resolved_authority": "rust",
+                    "first_bar_policy": "processed_signal[0]_not_executed",
+                    "sizing_policy": "live_equity_on_processed_signal_transition_only",
+                    "drift_rebalance": False,
+                    "rejection_retry_policy": "no_retry_until_processed_signal_changes",
+                    "public_position_surface": "processed_signal_weights",
+                    "accepted_position_surface": "metadata.accepted_positions",
+                    "legacy_symbol_surface": symbol,
+                    "requested_symbol_ignored_for_legacy_compatibility": requested_symbol,
+                    "accepted_positions": accepted_positions,
+                },
+            }
+        )
+        return result
+
+    def _run_orders(
+        self,
+        data,
+        orders,
+        order_commands,
+        datetime_index,
+        symbols,
+        prepared_market: Optional[PreparedMarketHandleV2] = None,
+        prepared_instruments: Optional[InstrumentRegistryV2] = None,
+        calendar_contract: str = "legacy_v1",
+    ):
         if not orders and not order_commands:
             raise ValueError("orders endpoint requires orders=[OrderIntent(...)] or order_commands=[OrderCommand(...)]")
-        frame, idx, _ = _normalize_single_data(data=data, signal=pd.Series(0.0, index=_infer_index(data, datetime_index)), signal_col=None, datetime_index=datetime_index)
+        if prepared_market is not None:
+            prepared_market.require_open()
+            idx = prepared_market.datetime_index
+            frame = data
+        else:
+            frame, idx, _ = _normalize_single_data(
+                data=data,
+                signal=pd.Series(0.0, index=_infer_index(data, datetime_index)),
+                signal_col=None,
+                datetime_index=datetime_index,
+            )
         backend = _resolve_backend(self.config)
         event_version = str(self.config.event_engine_version).lower().strip()
         if order_commands is not None:
@@ -2333,6 +3346,7 @@ class QuantBTEndpoint:
             backend=backend,
             native_backend=self.config.native_backend,
             backend_policy=self.config.backend_policy,
+            native_static_abi=self.config.native_static_abi,
             orders=orders,
             order_commands=order_commands,
             event_engine_version=event_version,
@@ -2356,6 +3370,11 @@ class QuantBTEndpoint:
             audit_mode=self.config.audit_mode,
             oracle_sample_rate=self.config.oracle_sample_rate,
             oracle_sample_seed=self.config.oracle_sample_seed,
+            runtime_budget=self.config.runtime_budget,
+            shadow_evidence_dir=self.config.shadow_evidence_dir,
+            prepared_market=prepared_market,
+            prepared_instruments=prepared_instruments,
+            calendar_contract=calendar_contract,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2376,10 +3395,13 @@ class QuantBTEndpoint:
             backend="native_event",
             native_backend=self.config.native_backend,
             backend_policy=self.config.backend_policy,
+            native_static_abi=self.config.native_static_abi,
             strategy=strategy,
             event_engine_version="v2",
             execution_contract=self.config.execution_contract,
             reactive_execution_mode=self.config.reactive_execution_mode,
+            reactive_runtime=self.config.reactive_runtime,
+            reactive_gil_policy=self.config.reactive_gil_policy,
             account=self.config.account,
             execution=self.config.execution,
             fee_rate=self.config.v2_fee_rate,
@@ -2399,6 +3421,8 @@ class QuantBTEndpoint:
             audit_mode=self.config.audit_mode,
             oracle_sample_rate=self.config.oracle_sample_rate,
             oracle_sample_seed=self.config.oracle_sample_seed,
+            runtime_budget=self.config.runtime_budget,
+            shadow_evidence_dir=self.config.shadow_evidence_dir,
         )
         self._store_result(self.engine.result)
         return self.result
@@ -2436,6 +3460,7 @@ class QuantBTEndpoint:
                 backend="native_event",
                 native_backend=self.config.native_backend,
                 backend_policy=self.config.backend_policy,
+                native_static_abi=self.config.native_static_abi,
                 order_commands=commands,
                 event_engine_version="v2",
                 execution_contract=self.config.execution_contract,
@@ -2524,6 +3549,7 @@ class QuantBTEndpoint:
             backend="native_event",
             native_backend=self.config.native_backend,
             backend_policy=self.config.backend_policy,
+            native_static_abi=self.config.native_static_abi,
             basket=spec,
             signal=sig,
             closes=close_map,
@@ -2604,6 +3630,9 @@ class QuantBTEndpoint:
                     audit_sink_path=self.config.audit_sink_path,
                     native_backend=self.config.native_backend,
                     backend_policy=self.config.backend_policy,
+                    native_static_abi=self.config.native_static_abi,
+                    runtime_budget=self.config.runtime_budget,
+                    shadow_evidence_dir=self.config.shadow_evidence_dir,
                 )
             )
         else:
@@ -2678,6 +3707,10 @@ class QuantBTEndpoint:
 
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
         target_mode = self.config.walkforward_target_mode.lower().strip()
+        native_proxy_scorer_required = (
+            wf_config.scoring_backend == "proxy"
+            and str(wf_config.proxy_validation_mode).lower().strip() != "off"
+        )
         scorer = (
             _make_walkforward_endpoint_scorer(
                 self.config,
@@ -2690,10 +3723,15 @@ class QuantBTEndpoint:
                 market_lows=lows,
                 market_datetime_index=datetime_index,
             )
-            if wf_config.scoring_backend == "endpoint"
+            if wf_config.scoring_backend == "endpoint" or native_proxy_scorer_required
             else None
         )
-        engine = WalkForwardEngine(strategy=self.config.strategy_class, config=wf_config, scorer=scorer)
+        engine = WalkForwardEngine(
+            strategy=self.config.strategy_class,
+            config=wf_config,
+            scorer=scorer if wf_config.scoring_backend == "endpoint" else None,
+            native_scorer=scorer if native_proxy_scorer_required else None,
+        )
         wf_result = engine.run(
             data=data if data is not None else closes,
             params=params,
@@ -2703,6 +3741,25 @@ class QuantBTEndpoint:
         stitched = wf_result.oos_output
         if stitched is None:
             raise ValueError("walk-forward strategy produced no OOS output")
+        account_policy = str(wf_result.metadata.get("fold_account_policy", "carry_position"))
+        account_plan = dict(wf_result.metadata.get("account_execution_plan", {}) or {})
+        if account_policy == "reset_flat":
+            raise NotImplementedError(
+                "fold_account_policy='reset_flat' produces independent fold accounts and cannot be "
+                "represented by this endpoint's single continuous BacktestResult. Use the WFO fold "
+                "artifact for segmented diagnostics or select carry_position."
+            )
+        if account_policy == "replay_prior_state":
+            raise NotImplementedError(
+                "fold_account_policy='replay_prior_state' requires an explicit order/fill replay adapter; "
+                "this stitched target route does not silently treat it as carry_position."
+            )
+        if account_policy == "close_at_boundary" and not bool(account_plan.get("all_boundaries_have_gap", True)):
+            raise NotImplementedError(
+                "fold_account_policy='close_at_boundary' requires embargo/gap bars between adjacent folds "
+                "for the declared target route; a contiguous target tape cannot encode both close and next "
+                "fold target at one timestamp without an explicit order-tape adapter."
+            )
 
         if target_mode == "portfolio":
             if isinstance(stitched, pd.Series):
@@ -2747,15 +3804,45 @@ class QuantBTEndpoint:
         else:
             if not isinstance(stitched, pd.Series):
                 raise TypeError(f"{target_mode} walk_forward target_mode requires a scalar signal Series output")
-            result = self._run_single(
-                data=data,
-                signal=stitched,
-                signal_col=None,
-                datetime_index=datetime_index,
-                symbols=symbols,
+            native_pct_equity_final = (
+                target_mode in {"pct_equity", "%_equity"}
+                and str(self.config.target_runtime).lower().strip() == "rust"
+                and str(wf_config.metadata.get("native_prepared_wfo", "off")).lower().strip() == "require"
             )
+            if native_pct_equity_final:
+                frame, idx, normalized_signal = _normalize_single_data(
+                    data=data,
+                    signal=stitched,
+                    signal_col=None,
+                    datetime_index=datetime_index,
+                )
+                result = self._run_pct_equity_transition_native(
+                    frame=frame,
+                    idx=idx,
+                    signal=normalized_signal,
+                    symbols=list(symbols or self.config.symbols or ["DEFAULT"]),
+                )
+                result.metadata["walk_forward_native_final_execution"] = {
+                    "requested": "rust_pct_equity_transition_v1",
+                    "resolved": "rust_pct_equity_transition_v1",
+                    "reason": "target_runtime='rust' and native_prepared_wfo='require'",
+                }
+            else:
+                result = self._run_single(
+                    data=data,
+                    signal=stitched,
+                    signal_col=None,
+                    datetime_index=datetime_index,
+                    symbols=symbols,
+                )
 
         wf_result.backtest_result = result
+        research_audit = wf_result.metadata.get("research_audit")
+        if research_audit is not None:
+            # This attaches the original selected-final account only. It never
+            # replays a candidate or fabricates a full fill audit from a score.
+            research_audit.finalize_financial(result)
+            wf_result.metadata["research_audit_summary"] = research_audit.metadata()
         result.metadata["walk_forward"] = {
             "engine": wf_result.metadata["engine"],
             "target_mode": target_mode,
@@ -2771,6 +3858,24 @@ class QuantBTEndpoint:
             "optimization_mode": wf_result.metadata.get("optimization_mode"),
             "optimization_schedule": wf_result.metadata.get("optimization_schedule"),
             "fold_boundary_position_policy": wf_result.metadata.get("fold_boundary_position_policy"),
+            "fold_account_policy": wf_result.metadata.get("fold_account_policy"),
+            "account_execution_plan": wf_result.metadata.get("account_execution_plan"),
+            "intent_contract": wf_result.metadata.get("intent_contract"),
+            "causality_schedule_v2": wf_result.metadata.get("causality_schedule_v2"),
+            "wfo_contract_schema": wf_result.metadata.get("wfo_contract_schema"),
+            "signal_causality_scope": wf_result.metadata.get("signal_causality_scope"),
+            "strategy_lifecycle_policy": wf_result.metadata.get("strategy_lifecycle_policy"),
+            "strategy_fingerprint": wf_result.metadata.get("strategy_fingerprint"),
+            "strategy_lifecycle_table": wf_result.metadata.get("strategy_lifecycle_table"),
+            "strategy_lifecycle_records_dropped": wf_result.metadata.get("strategy_lifecycle_records_dropped"),
+            "calendar_plan": wf_result.metadata.get("calendar_plan"),
+            "calendar_contract": wf_result.metadata.get("calendar_contract"),
+            "label_horizon_bars": wf_result.metadata.get("label_horizon_bars"),
+            "purge_bars": wf_result.metadata.get("purge_bars"),
+            "embargo_bars": wf_result.metadata.get("embargo_bars"),
+            "warmup_policy": wf_result.metadata.get("warmup_policy"),
+            "warmup_bars": wf_result.metadata.get("warmup_bars"),
+            "proxy_validation": wf_result.metadata.get("proxy_validation"),
             "validation_claim": wf_result.metadata.get("validation_claim"),
             "causality_claim": wf_result.metadata.get("causality_claim"),
             "chronological_validation_claim": wf_result.metadata.get("chronological_validation_claim"),
@@ -2789,7 +3894,15 @@ class QuantBTEndpoint:
             "n_optuna_trial_rows": wf_result.metadata.get("n_optuna_trial_rows"),
             "trial_ledger_mode": wf_result.metadata.get("trial_ledger_mode"),
             "full_trial_metrics_retained": wf_result.metadata.get("full_trial_metrics_retained"),
+            "research_audit": research_audit,
+            "research_audit_summary": wf_result.metadata.get("research_audit_summary"),
+            "financial_retention": wf_result.metadata.get("financial_retention"),
+            "research_retention": wf_result.metadata.get("research_retention"),
             "prepared_wfo_context": wf_result.metadata.get("prepared_wfo_context"),
+            "prepared_wfo_strategy": wf_result.metadata.get("prepared_wfo_strategy"),
+            "wfo_evaluation_runtime": wf_result.metadata.get("wfo_evaluation_runtime"),
+            "required_computation_plan": wf_result.metadata.get("required_computation_plan"),
+            "perf_01_profile": wf_result.metadata.get("perf_01_profile"),
             "performance_profile": wf_result.metadata.get("performance_profile"),
             "data_hash": wf_result.metadata.get("data_hash"),
             "config_hash": wf_result.metadata.get("config_hash"),
@@ -2824,6 +3937,7 @@ class QuantBTEndpoint:
             "use_complexity_penalty": wf_result.metadata.get("use_complexity_penalty"),
             "scoring_backend": wf_result.metadata.get("scoring_backend"),
             "numba_enabled": wf_result.metadata.get("numba_enabled"),
+            "native_prepared_wfo": wf_result.metadata.get("native_prepared_wfo_resolution"),
         }
         if scorer is not None and hasattr(scorer, "prepared_cache_metadata"):
             cache_metadata = scorer.prepared_cache_metadata()
@@ -2831,6 +3945,10 @@ class QuantBTEndpoint:
                 scorer.release_prepared_state()
                 cache_metadata["released_after_run"] = True
             result.metadata["walk_forward"]["prepared_scoring_cache"] = cache_metadata
+            result.metadata["walk_forward"]["native_prepared_wfo"] = cache_metadata.get(
+                "native_prepared_wfo",
+                result.metadata["walk_forward"].get("native_prepared_wfo"),
+            )
         result.metadata["walk_forward_result"] = wf_result
         self.engine = engine
         self.result = result
@@ -3199,7 +4317,12 @@ def _sync_applied_nautilus_config(payload: Dict, metadata: Dict) -> None:
 
 
 def _endpoint_run_config_payload(config: EndpointConfig) -> Dict:
-    intrabar_mode = str(config.mode).lower().strip() in {"intrabar_bracket", "intrabar_bracket_reference", "fill_replay"}
+    intrabar_mode = str(config.mode).lower().strip() in {
+        "intrabar_bracket",
+        "intrabar_bracket_reference",
+        "intrabar_bracket_rust",
+        "fill_replay",
+    }
     payload = {
         "mode": config.mode,
         "backend": config.backend,
@@ -3346,6 +4469,16 @@ def _fmt_int(value) -> str:
     return f"{int(value):>14,d}"
 
 
+def _require_matching_metadata(metadata: Dict, key: str, value: object) -> None:
+    """Set authoritative endpoint provenance without silently rewriting input."""
+
+    if key in metadata and metadata[key] != value:
+        raise ValueError(
+            f"metadata.{key}={metadata[key]!r} conflicts with the explicit endpoint value {value!r}"
+        )
+    metadata[key] = value
+
+
 def _config_from_kwargs(**kwargs) -> EndpointConfig:
     mode_name = str(kwargs.get("mode", "")).lower().strip()
     metadata = dict(kwargs.pop("metadata", {}) or {})
@@ -3383,7 +4516,12 @@ def _config_from_kwargs(**kwargs) -> EndpointConfig:
     if execution is None:
         if slippage_bps is not None:
             execution = ExecutionConfig(slippage_bps=float(slippage_bps))
-        elif mode_name in {"intrabar_bracket", "intrabar_bracket_reference", "portfolio"} and legacy_slippage_supplied:
+        elif mode_name in {
+            "intrabar_bracket",
+            "intrabar_bracket_reference",
+            "intrabar_bracket_rust",
+            "portfolio",
+        } and legacy_slippage_supplied:
             warnings.warn(
                 "QuantBT native endpoints use slippage_bps as the source of truth; "
                 "legacy slippage was converted to slippage_bps for compatibility.",
@@ -3427,7 +4565,15 @@ def _resolve_backend(config: EndpointConfig) -> str:
     if backend != "auto":
         if backend == "legacy_portfolio":
             return backend
-        if backend not in {"legacy", "native_vectorized", "native_event", "native_portfolio", "native_option", "nautilus"}:
+        if backend not in {
+            "legacy",
+            "native_vectorized",
+            "native_event",
+            "native_portfolio",
+            "native_option",
+            "nautilus",
+            "rust_intrabar",
+        }:
             raise ValueError(f"unsupported backend={config.backend!r}")
         return backend
     mode = config.mode.lower().strip()
@@ -3731,9 +4877,20 @@ class _WalkForwardEndpointScorer:
         self._single_backend = None
         self._single_market_maps = {}
         self._single_market_cache = {}
+        self._single_full_market_cache: dict[tuple[str, ...], PreparedMarketArrays] = {}
+        self._single_market_view_cache: dict[tuple[tuple[str, ...], int, int, int], PreparedMarketArrays] = {}
         self._portfolio_backend = None
         self._portfolio_market_maps = {}
         self._portfolio_market_cache = {}
+        self._native_prepared_wfo = None
+        if wf_config is not None:
+            from .backends.native_wfo_public import NativePreparedPublicWfoScorerV1
+
+            self._native_prepared_wfo = NativePreparedPublicWfoScorerV1(
+                config=config,
+                target_mode=self.target_mode,
+                wf_config=wf_config,
+            )
         self._stats = {
             "enabled": bool(self.use_prepared_cache),
             "target_mode": self.target_mode,
@@ -3745,7 +4902,14 @@ class _WalkForwardEndpointScorer:
             "scalar_runs": 0,
             "fallback_runs": 0,
             "market_prepare_seconds": 0.0,
+            "full_market_prepare_seconds": 0.0,
+            "market_view_seconds": 0.0,
+            "full_market_cache_hits": 0,
+            "full_market_cache_misses": 0,
+            "prepared_window_view_hits": 0,
+            "prepared_window_view_misses": 0,
             "signal_pack_seconds": 0.0,
+            "signal_no_copy_hits": 0,
             "kernel_score_seconds": 0.0,
             "metric_report_seconds": 0.0,
         }
@@ -3755,14 +4919,70 @@ class _WalkForwardEndpointScorer:
         self.market_data = context.data
         self.market_datetime_index = context.datetime_index
         self._stats["walkforward_context_signature"] = context.signature
+        if self._native_prepared_wfo is not None:
+            self._native_prepared_wfo.bind_walkforward_context(context)
 
-    def __call__(self, data, output, index, fold, params, context: str, trading_days: int) -> Dict[str, float]:
+    def wfo_execution_reuse_contract(self) -> Dict[str, object] | None:
+        """Expose only the narrow pure-native score contract to WFO reuse.
+
+        The ordinary prepared/vectorized scorer may construct Python reports or
+        route through user-visible callbacks.  PERF-05 intentionally does not
+        cache that broader surface.  It can reuse only the typed fresh-account
+        terminal metrics provided by the prepared Rust scorer below it.
+        """
+
+        if self._native_prepared_wfo is None:
+            return None
+        contract = self._native_prepared_wfo.wfo_execution_reuse_contract()
+        return None if contract is None else dict(contract)
+
+    def score_batch(self, tasks: Sequence[Dict[str, object]]) -> list[Dict[str, float]]:
+        """Score one candidate's fold/shard batch without changing WFO selection.
+
+        The native adapter can return a complete fresh-account scalar batch in
+        one Rust boundary. Any unsupported ``auto`` route falls back to this
+        class's historical one-task endpoint scorer in exactly task order.
+        """
+
+        entries = tuple(tasks)
+        if not entries:
+            return []
+        if self._native_prepared_wfo is not None:
+            metrics = self._native_prepared_wfo.score_batch(entries)
+            if metrics is not None:
+                return metrics
+        return [
+            self(
+                data=task["data"],
+                output=task["output"],
+                index=task["index"],
+                fold=task["fold"],
+                params=task["params"],
+                context=str(task["context"]),
+                trading_days=int(task["trading_days"]),
+                _quantbt_prepared_window=task.get("_quantbt_prepared_window"),
+            )
+            for task in entries
+        ]
+
+    def __call__(
+        self,
+        data,
+        output,
+        index,
+        fold,
+        params,
+        context: str,
+        trading_days: int,
+        _quantbt_prepared_window=None,
+    ) -> Dict[str, float]:
         try:
             if self._can_score_single_vectorized_prepared(output):
                 result = self._score_single_vectorized_prepared(
                     output=output,
                     index=index,
                     trading_days=trading_days,
+                    prepared_window=_quantbt_prepared_window,
                 )
             elif self._can_score_portfolio_prepared(output):
                 result = self._score_portfolio_prepared(
@@ -3792,9 +5012,16 @@ class _WalkForwardEndpointScorer:
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)
-        meta["market_cache_entries"] = len(self._portfolio_market_cache) + len(self._single_market_cache)
+        meta["market_cache_entries"] = (
+            len(self._portfolio_market_cache)
+            + len(self._single_market_cache)
+            + len(self._single_market_view_cache)
+        )
+        meta["prepared_full_market_entries"] = len(self._single_full_market_cache)
         meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
         meta["use_scalar_trial_scoring"] = self.use_scalar_trial_scoring
+        if self._native_prepared_wfo is not None:
+            meta["native_prepared_wfo"] = self._native_prepared_wfo.metadata()
         meta["available"] = (
             self._prepared_single_available()
             or (self.target_mode == "portfolio" and self.score_config.backend == "native_portfolio")
@@ -3803,6 +5030,8 @@ class _WalkForwardEndpointScorer:
 
     def release_prepared_state(self) -> None:
         """Release run-local market snapshots after WFO metadata is captured."""
+        if self._native_prepared_wfo is not None:
+            self._native_prepared_wfo.close()
         self.market_data = None
         self.market_closes = None
         self.market_highs = None
@@ -3810,6 +5039,8 @@ class _WalkForwardEndpointScorer:
         self.market_datetime_index = None
         self._single_market_maps.clear()
         self._single_market_cache.clear()
+        self._single_full_market_cache.clear()
+        self._single_market_view_cache.clear()
         self._portfolio_market_maps.clear()
         self._portfolio_market_cache.clear()
         self._single_backend = None
@@ -3845,32 +5076,63 @@ class _WalkForwardEndpointScorer:
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
 
-    def _score_single_vectorized_prepared(self, output: pd.Series, index, trading_days: int):
-        idx = _ensure_utc_index(index)
+    def _score_single_vectorized_prepared(
+        self,
+        output: pd.Series,
+        index,
+        trading_days: int,
+        prepared_window=None,
+    ):
+        # WFO owns UTC canonical indexes.  Preserve identity only when a
+        # private positional certificate accompanies the exact object; every
+        # ordinary caller retains the historic normalization path.
+        idx = (
+            index
+            if isinstance(index, pd.DatetimeIndex)
+            and str(index.tz) == "UTC"
+            and prepared_window is not None
+            else _ensure_utc_index(index)
+        )
         symbol_list = self._symbol_list(output)
         close_map, high_map, low_map = self._single_maps(symbol_list)
         backend = self._single_backend_instance()
-        cache_key = self._market_cache_key(idx, symbol_list)
-        market = self._single_market_cache.get(cache_key)
+        market = self._prepared_single_market_view(
+            backend=backend,
+            index=index,
+            normalized_index=idx,
+            symbols=symbol_list,
+            closes=close_map,
+            highs=high_map,
+            lows=low_map,
+            prepared_window=prepared_window,
+        )
         if market is None:
-            prepare_started = perf_counter()
-            market = backend.prepare_market_arrays(
-                datetime_index=idx,
-                closes=close_map,
-                highs=high_map,
-                lows=low_map,
-                funding_rate=self.score_config.funding_rate,
-                symbols=symbol_list,
-            )
-            self._single_market_cache[cache_key] = market
-            self._stats["market_cache_misses"] += 1
-            self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
+            cache_key = self._market_cache_key(idx, symbol_list)
+            market = self._single_market_cache.get(cache_key)
+            if market is None:
+                prepare_started = perf_counter()
+                market = backend.prepare_market_arrays(
+                    datetime_index=idx,
+                    closes=close_map,
+                    highs=high_map,
+                    lows=low_map,
+                    funding_rate=self.score_config.funding_rate,
+                    symbols=symbol_list,
+                )
+                self._single_market_cache[cache_key] = market
+                self._stats["market_cache_misses"] += 1
+                self._stats["market_prepare_seconds"] += perf_counter() - prepare_started
+            else:
+                self._stats["market_cache_hits"] += 1
         else:
-            self._stats["market_cache_hits"] += 1
+            # A prepared tape view is an equivalent run-local market cache
+            # hit/miss from the historic public metadata perspective.
+            idx = market.idx
 
         signal_started = perf_counter()
-        raw_signals = _series_to_raw_matrix(output, idx)
+        raw_signals, signal_no_copy = _series_to_raw_matrix_prepared(output, idx)
         self._stats["signal_pack_seconds"] += perf_counter() - signal_started
+        self._stats["signal_no_copy_hits"] += int(signal_no_copy)
         self._stats["prepared_runs"] += 1
         run_started = perf_counter()
         runner = backend.score_signals if self.use_scalar_trial_scoring else backend.run_signals
@@ -3895,6 +5157,7 @@ class _WalkForwardEndpointScorer:
             slot_size=self.score_config.slot_size,
             min_qty=self.score_config.min_qty,
             min_notional=self.score_config.min_notional,
+            _validated_prepared_market=market.idx is idx,
         )
         if self.use_scalar_trial_scoring:
             result = runner(trading_days=int(trading_days), **kwargs)
@@ -3903,6 +5166,88 @@ class _WalkForwardEndpointScorer:
             result = runner(**kwargs)
         self._stats["kernel_score_seconds"] += perf_counter() - run_started
         return result
+
+    def _prepared_single_market_view(
+        self,
+        *,
+        backend: NativeVectorizedBackend,
+        index,
+        normalized_index: pd.DatetimeIndex,
+        symbols: Sequence[str],
+        closes: Mapping[str, pd.Series],
+        highs: Mapping[str, pd.Series],
+        lows: Mapping[str, pd.Series],
+        prepared_window,
+    ) -> PreparedMarketArrays | None:
+        """Return a no-copy market view for one certified WFO window.
+
+        The descriptor is deliberately private and must originate from the
+        active ``PreparedWalkForwardContext``.  Any missing, recreated, or
+        inconsistent index falls back to the historical per-window packer.
+        """
+
+        if not isinstance(index, pd.DatetimeIndex) or prepared_window is None:
+            return None
+        window_index = getattr(prepared_window, "index", None)
+        try:
+            start = int(getattr(prepared_window, "start"))
+            stop = int(getattr(prepared_window, "stop"))
+        except (AttributeError, TypeError, ValueError):
+            return None
+        if (
+            window_index is not index
+            or normalized_index is not index
+            or not 0 <= start < stop
+            or stop - start != len(index)
+        ):
+            return None
+        full_index = self.market_datetime_index
+        if not isinstance(full_index, pd.DatetimeIndex):
+            return None
+        if (
+            not 0 <= start < stop <= len(full_index)
+            or full_index[start] != index[0]
+            or full_index[stop - 1] != index[-1]
+            or not full_index[start:stop].equals(index)
+        ):
+            return None
+
+        symbol_key = tuple(str(symbol) for symbol in symbols)
+        parent = self._single_full_market_cache.get(symbol_key)
+        if parent is None:
+            started = perf_counter()
+            parent = backend.prepare_market_arrays(
+                datetime_index=full_index,
+                closes=dict(closes),
+                highs=dict(highs),
+                lows=dict(lows),
+                funding_rate=self.score_config.funding_rate,
+                symbols=list(symbols),
+            )
+            self._single_full_market_cache[symbol_key] = parent
+            elapsed = perf_counter() - started
+            self._stats["full_market_cache_misses"] += 1
+            self._stats["full_market_prepare_seconds"] += elapsed
+            self._stats["market_prepare_seconds"] += elapsed
+        else:
+            self._stats["full_market_cache_hits"] += 1
+
+        view_key = (symbol_key, id(index), start, stop)
+        cached = self._single_market_view_cache.get(view_key)
+        if cached is not None and cached.idx is index:
+            self._stats["prepared_window_view_hits"] += 1
+            self._stats["market_cache_hits"] += 1
+            return cached
+        started = perf_counter()
+        try:
+            view = slice_prepared_market_arrays(parent, start=start, stop=stop, idx=index)
+        except ValueError:
+            return None
+        self._single_market_view_cache[view_key] = view
+        self._stats["prepared_window_view_misses"] += 1
+        self._stats["market_cache_misses"] += 1
+        self._stats["market_view_seconds"] += perf_counter() - started
+        return view
 
     def _score_portfolio_prepared(self, output, index, trading_days: int):
         idx = _ensure_utc_index(index)
@@ -3976,6 +5321,7 @@ class _WalkForwardEndpointScorer:
                     execution=self.score_config.execution,
                     fee_rate=self.score_config.v2_fee_rate,
                     use_funding=bool(self.score_config.use_funding),
+                    target_runtime=self.score_config.target_runtime,
                 )
             )
         return self._single_backend
@@ -4054,6 +5400,8 @@ def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> End
         return replace(config, mode="dca_ladder", backend="legacy", sizing="dca_ladder")
     if mode in {"signal_notional", "single_signal"}:
         return replace(config, mode="signal_notional", backend=config.backend, sizing="signal_notional")
+    if mode in {"notional", "unit"}:
+        return replace(config, mode="single_signal", backend=config.backend, sizing=mode)
     if mode == "portfolio":
         return replace(config, mode="portfolio", backend="native_portfolio")
     raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
@@ -4418,6 +5766,22 @@ def _standardize_frame(data, datetime_index=None) -> pd.DataFrame:
     return frame
 
 
+def _is_native_event_canonical_frame(data) -> bool:
+    """Return whether private prepared input can bypass frame normalization.
+
+    This is intentionally stricter than the public standardizer.  A false
+    answer merely uses the historical copy/normalization path; it never turns
+    an almost-compatible frame into a fast-path assumption.
+    """
+
+    if not isinstance(data, pd.DataFrame) or not isinstance(data.index, pd.DatetimeIndex):
+        return False
+    index = data.index
+    if index.tz is None or not index.is_monotonic_increasing or index.has_duplicates:
+        return False
+    return all(column in data.columns for column in ("open", "high", "low", "close", "volume"))
+
+
 def _signal_from_data(data, signal_col):
     if signal_col is None:
         return None
@@ -4444,6 +5808,27 @@ def _series_to_raw_matrix(signal, idx: pd.DatetimeIndex) -> np.ndarray:
     else:
         values = _align_series(ser, idx).fillna(0.0).to_numpy(dtype=np.float64, copy=True)
     return np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
+
+
+def _series_to_raw_matrix_prepared(signal, idx: pd.DatetimeIndex) -> tuple[np.ndarray, bool]:
+    """Pack a scalar score signal, preserving a certified exact NumPy view.
+
+    The regular helper intentionally copies user-facing input.  Prepared WFO
+    scoring has a narrower contract: the strategy output and canonical score
+    index are the exact objects created for the current task, while all native
+    kernels consume signals read-only.  In that case a contiguous float64
+    Series can cross the score boundary without another allocation.  Any
+    mismatch retains the defensive historic packer.
+    """
+
+    if isinstance(signal, pd.Series) and signal.index is idx:
+        values = signal.to_numpy(dtype=np.float64, copy=False)
+        matrix = np.ascontiguousarray(values.reshape(-1, 1), dtype=np.float64)
+        # ``ascontiguousarray`` may still allocate for an extension dtype or a
+        # strided Series.  Report a no-copy hit only when the returned matrix
+        # shares the original numeric storage.
+        return matrix, bool(np.shares_memory(matrix, values))
+    return _series_to_raw_matrix(signal, idx), False
 
 
 def _positions_to_raw_matrix(positions, idx: pd.DatetimeIndex, symbols: Sequence[str]) -> np.ndarray:

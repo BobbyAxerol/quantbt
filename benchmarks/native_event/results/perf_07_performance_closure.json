@@ -1,0 +1,725 @@
+{
+  "ac_coverage": [
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_01_traceability_and_computation.py::test_observation_ledger_deduplicates_per_reducer"
+      ],
+      "id": "AC-01"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_01_traceability_and_computation.py::test_opaque_custom_metric_requires_conservative_full_input"
+      ],
+      "id": "AC-02"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_01_traceability_and_computation.py::test_profiled_wfo_preserves_trial_checkpoint_order_and_result"
+      ],
+      "id": "AC-03"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase49b_wfo_performance.py::test_prepared_walkforward_context_has_content_signature_and_isolated_strategy_slice"
+      ],
+      "id": "AC-04"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/crates/quantbt-execution/src/lib.rs::tests::reused_runner_has_no_large_predecessor_state_or_retained_output_alias"
+      ],
+      "id": "AC-05"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_funding_sign_and_empty_tape_metamorphic"
+      ],
+      "id": "AC-06"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_02_session_reuse.py::test_perf02_prepared_runner_reuse_has_no_residual_state_or_output_alias"
+      ],
+      "id": "AC-07"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/crates/quantbt-execution/src/lib.rs::tests::windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage"
+      ],
+      "id": "AC-08"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/crates/quantbt-execution/src/lib.rs::tests::request_fingerprint_covers_all_result_affecting_inputs"
+      ],
+      "id": "AC-09"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/native_event/contract/test_phase51b_accounting_numeric.py::test_accounting_ledger_reconciles_scale_reduce_close_and_reverse_python_rust"
+      ],
+      "id": "AC-10"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_03_reactive_boundary.py::test_perf03_exception_discards_unsubmitted_staged_rows_and_requires_reset"
+      ],
+      "id": "AC-11"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_03_reactive_boundary.py::test_perf03_business_rejection_remains_per_command_not_callback_atomicity"
+      ],
+      "id": "AC-12"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase62_reactive_numeric_coruntime.py::test_r1_direct_runner_rejects_command_capacity_exhaustion_deterministically"
+      ],
+      "id": "AC-13"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_03_reactive_boundary.py::test_perf03_silent_every_bar_callback_still_advances_private_state"
+      ],
+      "id": "AC-14"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_03_reactive_boundary.py::test_perf03_future_ohlc_suffix_cannot_change_prior_effective_command"
+      ],
+      "id": "AC-15"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase63_sparse_block_reactive.py::test_r2_coalesces_fill_order_event_and_liquidation_on_one_boundary"
+      ],
+      "id": "AC-16"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase63_sparse_block_reactive.py::test_r3b_candidate_batch_coalesces_callbacks_and_isolates_failures"
+      ],
+      "id": "AC-17"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_04_native_matching.py::test_perf04_prepared_runner_reuses_and_releases_matching_scratch"
+      ],
+      "id": "AC-18"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/native_event/contract/test_phase51a_v3_next_open.py::test_python_and_rust_command_outcomes_cover_replace_cancel_all_and_reject"
+      ],
+      "id": "AC-19"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_04_native_matching.py::test_perf04_public_high_churn_lifecycle_preserves_python_rust_parity"
+      ],
+      "id": "AC-20"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase68_rust_package_authority.py::test_atomic_partial_fill_rejects_without_position_mutation"
+      ],
+      "id": "AC-21"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase68_rust_package_authority.py::test_hedge_after_primary_uses_actual_fill_and_matches_reference"
+      ],
+      "id": "AC-22"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase67_rust_shared_portfolio.py::test_v2_registry_normalizes_symbol_input_order_before_shared_pro_rata_execution"
+      ],
+      "id": "AC-23"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling"
+      ],
+      "id": "AC-24"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_semantic_context_and_seed_changes_do_not_share_execution_keys"
+      ],
+      "id": "AC-25"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_rejects_an_underspecified_terminal_scorer_contract"
+      ],
+      "id": "AC-26"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_cache_keeps_duplicate_trial_attempts_distinct_and_never_reads_during_adaptive_sampling"
+      ],
+      "id": "AC-27"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_cancel_reset_and_unsupported_intent_fail_closed"
+      ],
+      "id": "AC-28"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_study_seed_and_study_identity_prevent_cross_study_reuse"
+      ],
+      "id": "AC-29"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase64_wfo_correctness.py::test_per_fold_causal_selection_does_not_inspect_that_fold_external_test_labels"
+      ],
+      "id": "AC-30"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase76_reactive_wfo.py::test_phase76_reactive_wfo_keeps_absolute_clock_and_reset_flat_score_audit_parity"
+      ],
+      "id": "AC-31"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase65_native_wfo_runtime.py::test_native_wfo_matches_existing_fold_oracle_and_is_worker_count_invariant"
+      ],
+      "id": "AC-32"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_mode2_keeps_proxy_path_and_streaming_retention_declaration"
+      ],
+      "id": "AC-33"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_05_wfo_evaluation_reuse.py::test_perf05_exact_native_score_reuse_preserves_all_supported_endpoint_mode_outputs"
+      ],
+      "id": "AC-34"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_06_research_audit.py::test_perf06_dynamic_conditional_space_is_observed_only_and_keeps_category_order"
+      ],
+      "id": "AC-35"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes"
+      ],
+      "id": "AC-36"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_06_research_audit.py::test_perf06_writer_is_bounded_idempotent_and_reports_fault_or_cancel_prefixes"
+      ],
+      "id": "AC-37"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_06_research_audit.py::test_perf06_full_trial_ledger_keeps_full_fold_metrics_while_public_table_stays_compact"
+      ],
+      "id": "AC-38"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_06_research_audit.py::test_perf06_columnar_codec_is_immutable_exact_and_never_uses_repr_identity"
+      ],
+      "id": "AC-39"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase66_rust_target_vectorized.py::test_target_units_three_way_parity_with_independent_oracle_and_numba_production"
+      ],
+      "id": "AC-40"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_phase68_rust_package_authority.py::test_multi_currency_and_multi_venue_arbitrage_fail_closed"
+      ],
+      "id": "AC-41"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_01_traceability_and_computation.py::test_observer_on_off_keeps_walkforward_economics_identical"
+      ],
+      "id": "AC-42"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_07_performance_closure.py::test_perf07_candidate_wheel_evidence_requires_clean_install"
+      ],
+      "id": "AC-43"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "tests/test_perf_07_performance_closure.py::test_perf07_manifest_rejects_changed_evidence_or_source_identity"
+      ],
+      "id": "AC-44"
+    }
+  ],
+  "ap_dispositions": [
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/performance_contracts.py",
+        "rust/crates/quantbt-engine/src/metrics_v2.rs",
+        "src/quantbt/core/native_result_v2.py"
+      ],
+      "id": "AP-01"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/backends/native_prepared_evaluation.py",
+        "rust/crates/quantbt-execution/examples/perf02_session_reuse.rs",
+        "tests/test_perf_02_session_reuse.py"
+      ],
+      "id": "AP-02"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/native_event/src/reactive_numeric.rs",
+        "src/quantbt/backends/native_event.py",
+        "tests/test_perf_03_reactive_boundary.py",
+        "benchmarks/native_event/benchmark_perf03_reactive_boundary.py"
+      ],
+      "id": "AP-03"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/runtime_governance.py",
+        "rust/crates/quantbt-execution/src/lib.rs",
+        "tests/test_perf_02_session_reuse.py"
+      ],
+      "id": "AP-04"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/crates/quantbt-engine/src/session.rs",
+        "rust/crates/quantbt-engine/src/orders/indexes.rs",
+        "rust/crates/quantbt-engine/src/orders/aliases.rs",
+        "tests/test_perf_04_native_matching.py",
+        "benchmarks/native_event/benchmark_perf04_native_matching.py"
+      ],
+      "id": "AP-05"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "rust/crates/quantbt-execution/src/target.rs",
+        "rust/crates/quantbt-execution/src/package.rs",
+        "tests/test_phase66_rust_target_vectorized.py",
+        "tests/test_phase67_rust_shared_portfolio.py",
+        "tests/test_phase68_rust_package_authority.py",
+        "benchmarks/native_event/registries/perf_04_specialization_registry_v1.json"
+      ],
+      "id": "AP-06"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "docs/performance/perf_05_wfo_evaluation_reuse.md"
+      ],
+      "id": "AP-07"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/wfo_evaluation.py",
+        "src/quantbt/walkforward.py",
+        "tests/test_perf_05_wfo_evaluation_reuse.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
+      ],
+      "id": "AP-08"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/native_wfo_public.py",
+        "src/quantbt/core/wfo_evaluation.py",
+        "benchmarks/native_event/benchmark_perf05_wfo_evaluation_reuse.py"
+      ],
+      "id": "AP-09"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/research_audit.py",
+        "src/quantbt/core/research_audit_artifact.py",
+        "src/quantbt/walkforward.py",
+        "src/quantbt/backends/reactive_wfo.py",
+        "tests/test_perf_06_research_audit.py",
+        "benchmarks/native_event/benchmark_perf06_research_audit.py",
+        "docs/performance/perf_06_research_audit.md"
+      ],
+      "id": "AP-10"
+    },
+    {
+      "disposition": "IMPLEMENTED_VERIFIED",
+      "evidence": [
+        "src/quantbt/core/performance_contracts.py",
+        "src/quantbt/walkforward.py"
+      ],
+      "id": "AP-11"
+    },
+    {
+      "disposition": "NOT_BENEFICIAL",
+      "evidence": [
+        "rust/Cargo.toml",
+        "tools/run_perf07_pgo_experiment.py",
+        "tools/performance_closure.py",
+        "benchmarks/native_event/results/perf_07_pgo_decision.json"
+      ],
+      "id": "AP-12"
+    }
+  ],
+  "audit_compatibility": {
+    "evidence": "tests/test_perf_06_research_audit.py::test_perf06_columnar_codec_is_immutable_exact_and_never_uses_repr_identity",
+    "roundtrip_passed": true
+  },
+  "candidate_wheel": {
+    "path": "benchmarks/native_event/results/perf_07_candidate_wheel.json",
+    "sha256": "eaaa476f10680b4a2d354815318a54eeeb4aeeb6999c48a5178ffd99b9e83c56"
+  },
+  "combined_qualification": {
+    "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+    "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+  },
+  "cross_domain_regression": {
+    "path": "benchmarks/native_event/results/perf_07_cross_domain_regression.json",
+    "sha256": "f08ee6b7b2765030ffd1a32ad0c4d1d47d62188cf6aa913e6c4fd4be1dfa8755"
+  },
+  "open_correctness_blockers": [],
+  "performance": {
+    "combined_status": "qualified per route; no aggregate speedup",
+    "evidence": {
+      "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+      "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+    },
+    "uncertainty": "each referenced benchmark reports its own paired sample count/median/p95 or RSS scope"
+  },
+  "pgo_decision": {
+    "path": "benchmarks/native_event/results/perf_07_pgo_decision.json",
+    "sha256": "1e85fd2a08eb1e679c1d57921f686d8e584903b82661ec8ee8300d03706693c9"
+  },
+  "phase_results": [
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-01",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-01"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-02",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-02"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-03",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-03"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-04",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-04"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-05",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-05"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-06",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-06"
+    },
+    {
+      "evidence": [
+        {
+          "path": "benchmarks/native_event/results/perf_07_combined_qualification.json",
+          "pointer": "#/phase_inputs/PERF-07",
+          "sha256": "2664c37e42aa0298fd7875f0e4d91b87888d76d7af4b865b285e167ee54ae054"
+        },
+        {
+          "path": "benchmarks/native_event/traceability/perf_01_traceability_v1.json",
+          "sha256": "84d6cc50e45c74afb1bffde0af3d2ec8e7799c2603426b30f39903ef5e6d4629"
+        }
+      ],
+      "phase": "PERF-07"
+    }
+  ],
+  "research_scope": {
+    "free_threaded_compiled_gpu_new_domains": "outside this closure and require a separate capability/evidence decision",
+    "inert_blocks": "not a public performance claim",
+    "prefix_checkpoints": "not promoted beyond each route's declared reducer/checkpoint contract"
+  },
+  "rollback": {
+    "action": "disable the affected explicit native selection and rerun the same contract-compatible baseline; never replay or reconstruct missing audit data",
+    "baseline_contract": "retain existing Python/Numba compatibility routes and declared result/audit schemas",
+    "candidate_scope": "only the explicit/auto-eligible rows in route_matrix"
+  },
+  "route_matrix": [
+    {
+      "execution_contract": "event_lifecycle_v2/v3 typed static tape",
+      "id": "event_static_orders",
+      "reason": "current static lifecycle, canonical trace, and wheel smoke evidence",
+      "retention": "score/compact/audit as declared",
+      "state": "explicit_support",
+      "surface": "QuantBTEndpoint.event_driven(input_mode='orders')",
+      "worker_scope": "single prepared native execution request"
+    },
+    {
+      "execution_contract": "typed static/IR lifecycle request",
+      "id": "native_strategy_ir",
+      "reason": "bounded IR has an explicit native authority and oracle corpus",
+      "retention": "score/compact/audit as declared",
+      "state": "explicit_support",
+      "surface": "QuantBTEndpoint.event_driven(strategy=NativeStrategyIR)",
+      "worker_scope": "one Rust-owned prepared request per run/batch"
+    },
+    {
+      "execution_contract": "Python orchestration, causal fold lifecycle, endpoint scorer",
+      "id": "walk_forward_generic_callback",
+      "reason": "generic callback semantics retain Python decision authority; no blanket Rust promotion",
+      "retention": "financial/research plan exactly as requested",
+      "state": "safe_baseline",
+      "surface": "QuantBTEndpoint.walk_forward with arbitrary Python strategy callback",
+      "worker_scope": "declared sequential or supported reactive schedule"
+    },
+    {
+      "execution_contract": "typed native candidate-fold score request",
+      "id": "walk_forward_prepared_signal",
+      "reason": "explicit static/IR contract only; not a generic callback substitution",
+      "retention": "score or explicit cold audit replay",
+      "state": "explicit_support",
+      "surface": "prepared static signal/IR WFO companion",
+      "worker_scope": "run-local prepared market and bounded native batch"
+    },
+    {
+      "execution_contract": "legacy transition semantics with canonical one-way fees",
+      "id": "walk_forward_pct_equity_transition",
+      "reason": "explicit opt-in route preserves legacy transition/account parity",
+      "retention": "prepared scalar score and standard final account result",
+      "state": "explicit_support",
+      "surface": "pct_equity target runtime='rust' plus native_prepared_wfo='require'",
+      "worker_scope": "single-symbol prepared candidate scorer"
+    },
+    {
+      "execution_contract": "close-target V2 same-close typed request",
+      "id": "direct_target_vectorized",
+      "reason": "direct-target oracle, accounting, and clean-wheel smoke are explicit",
+      "retention": "score/compact/audit profile contract",
+      "state": "explicit_support",
+      "surface": "NativeVectorizedBackend typed target units/notional/weight/fraction",
+      "worker_scope": "one prepared Rust request with no generic order arena"
+    },
+    {
+      "execution_contract": "linear quote-settled shared account and declared admission policy",
+      "id": "shared_account_portfolio",
+      "reason": "bounded target portfolio only; generic planning remains a safe baseline",
+      "retention": "score/compact/audit under a common attribution contract",
+      "state": "explicit_support",
+      "surface": "NativePortfolioBackend declared shared-account target policy",
+      "worker_scope": "one prepared shared-account native executor"
+    },
+    {
+      "execution_contract": "same-account deterministic bar transaction with explicit package policy",
+      "id": "bounded_package_arbitrage",
+      "reason": "cross-venue/multi-currency unsupported shapes remain rejected",
+      "retention": "score/compact/audit with actual-fill dependency provenance",
+      "state": "explicit_support",
+      "surface": "typed bounded package/scenario execution",
+      "worker_scope": "one native package request or bounded scenario batch"
+    },
+    {
+      "execution_contract": "single-symbol intrabar bracket V1 with Numba oracle",
+      "id": "single_symbol_intrabar",
+      "reason": "bounded contract has path/fill/account parity; no generic intrabar auto-promotion",
+      "retention": "score/compact/audit as explicitly requested",
+      "state": "explicit_support",
+      "surface": "QuantBTEndpoint.intrabar_bracket_rust explicit route",
+      "worker_scope": "one prepared Rust intrabar request"
+    },
+    {
+      "execution_contract": "Python decision boundary with Rust numeric co-runtime when explicitly supported",
+      "id": "reactive_python_strategy",
+      "reason": "Python callback authority, dynamic mutation, and unsupported schedules remain explicit",
+      "retention": "public/score/audit according to reactive protocol",
+      "state": "safe_baseline",
+      "surface": "QuantBTEndpoint.event_driven with arbitrary reactive Python strategy",
+      "worker_scope": "declared R1/R2/R3 or W3 schedule only"
+    },
+    {
+      "execution_contract": "declared option capability registry and Python option engine",
+      "id": "options_containment",
+      "reason": "outside Rust-primary scope; unsupported exercise/quanto/physical shapes fail or label explicitly",
+      "retention": "option ledger/report contract",
+      "state": "safe_baseline",
+      "surface": "QuantBTEndpoint.options",
+      "worker_scope": "Python option execution only"
+    },
+    {
+      "execution_contract": "no nearest supported native specialization",
+      "id": "unsupported_cross_venue_or_inverse_package",
+      "reason": "fail-closed capability containment is part of the certified behavior",
+      "retention": "none because execution is rejected before tape preparation",
+      "state": "rejected",
+      "surface": "generic cross-venue, multi-currency, inverse/quanto package request",
+      "worker_scope": "not applicable"
+    }
+  ],
+  "schema": "quantbt.performance_closure.v1",
+  "source_identity": {
+    "canonical_source_sha256": "29017fff343e43a843c6a0f57cdf463792a6742291602e0e7ef526cb5b5ebccd",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "fcd577da1bc4812beca95362bfb1bba94d3156c43b4c1416c19738514c0ee767",
+    "git_commit": "73a262fd9beeee5589d7ecd52b2701983f2fe84f",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "11ab037a9c51ed2154465ee5abae8bdc90e6a2091adcd4fb03a8643fc5b93307",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "42465869fc575d0288b4b4051e8135584df918b2a553982f81650698935425ef",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "PERF-07 closure provenance only; workload identities live in referenced evidence"
+  },
+  "status": "READY_FOR_PHASE78"
+}

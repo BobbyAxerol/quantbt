@@ -1,0 +1,42 @@
+{
+  "boundary_counters": [
+    "native_entry_calls",
+    "python_callback_calls",
+    "gil_acquisitions",
+    "context_projection_bytes",
+    "command_ingest_bytes",
+    "market_copy_bytes",
+    "intent_copy_bytes",
+    "result_copy_bytes",
+    "worker_pool_starts",
+    "session_resets"
+  ],
+  "measurement_statuses": [
+    "historical_artifact",
+    "measured",
+    "not_applicable"
+  ],
+  "memory_bytes": [
+    "cold_peak_rss_bytes",
+    "warm_steady_rss_bytes",
+    "native_allocated_bytes",
+    "python_allocated_bytes",
+    "cache_bytes",
+    "result_retained_bytes"
+  ],
+  "null_semantics": "null means not measured by the referenced artifact; zero means measured zero",
+  "phase_timings_ns": [
+    "input_adaptation_ns",
+    "market_prepare_ns",
+    "instrument_prepare_ns",
+    "strategy_prepare_ns",
+    "strategy_generate_ns",
+    "intent_ingest_ns",
+    "native_execution_ns",
+    "native_metrics_ns",
+    "native_result_ns",
+    "python_materialization_ns",
+    "report_ns"
+  ],
+  "schema": "quantbt-rust-primary-measurement-v1"
+}

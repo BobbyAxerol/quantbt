@@ -40,9 +40,12 @@ rerun with `audit` before a research decision is presented.
 
 `backend="python"` is the readable reference/oracle. `backend="rust"` is an
 explicit fail-fast request and verifies the native descriptor before execution.
-`backend="auto"` remains Python-first in this release. Installed Rust alone
-does not promote an execution path; promotion requires a separately published,
-workload-specific compatibility and performance decision.
+`backend="auto"` is Python-first except for the one current promoted shape:
+bounded one-symbol Native Strategy IR v1 `score` at 2,000 or more bars with an
+exact compatible wheel. Installed Rust alone does not promote an execution
+path; every other route requires its own workload-specific compatibility and
+performance decision.
 
-See [Native Rust Architecture](native-rust.md) and the generated
+See [Public Rust Promotion](../native/public_rust_promotion.md), [Native Rust
+Architecture](native-rust.md), and the generated
 [product compatibility table](../contracts/generated_product_compatibility.md).

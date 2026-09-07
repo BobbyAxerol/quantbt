@@ -1,7 +1,8 @@
 # Native Event Score And RSS Evidence
 
 Phase 46B defines the fair comparison between the Python and Rust static-tape
-execution paths.
+execution paths. Phase 61 keeps that comparison and promotes its Rust side to
+the typed static ABI `0.5` on the certified prepared-command route.
 
 ## Artifact Contract
 
@@ -23,9 +24,17 @@ max_initial_margin
 max_maintenance_margin
 ```
 
-The Python implementation is available through the internal
-`NativeEventBackend.run_compiled_tape_score(...)` method. Existing public
-`run_order_commands(..., report_level="audit")` behavior is unchanged.
+`NativeEventBackend.run_compiled_tape_score(...)` prepares a compact typed
+result for exact metrics without fill/event ledger retention. Its default Rust
+route is ABI `0.5`; `native_static_abi="0.4_compat"` is an explicit rollback,
+not an automatic fallback. Existing public
+`run_order_commands(..., report_level="audit")` behavior is unchanged and
+adapts a typed audit result without replaying the tape.
+
+For `event_lifecycle_v3_next_open`, the score API requires an explicit `opens`
+array. A missing open price raises instead of silently substituting close. V2
+uses its declared close-timing contract and can use the close array when no
+separate open source is supplied.
 
 ## Certification Before Timing
 
@@ -79,6 +88,18 @@ MPLCONFIGDIR=/tmp PYTHONPATH=. poetry run python \
   --json-out benchmarks/native_event/phase46b_score_rss.json
 ```
 
-The JSON is evidence, not a universal hardware claim. Rust remains explicit
-and capability-gated until later phases close import-floor, ownership, wheel,
-and release gates.
+The JSON is evidence, not a universal hardware claim. The Phase 61 companion
+benchmark is the current static Rust-primary gate:
+
+```bash
+PYTHONPATH=src poetry run python \
+  benchmarks/native_event/benchmark_phase61_static_rust_primary.py \
+  --bars 10000 --repeats 5
+```
+
+It records direct typed-kernel, cold compact-adaptation, and prepared
+Python/Rust score timings separately. The benchmark gate is the prepared score
+route, not the public pandas-report facade. On the recorded local fixture it
+achieved `1.34M bars/s` Rust versus `56.5k bars/s` Python (`23.74x`) with no
+observed score RSS increase; reproduce it on the target host before comparing
+hardware.

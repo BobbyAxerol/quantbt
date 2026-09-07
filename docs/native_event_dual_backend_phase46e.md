@@ -1,5 +1,8 @@
 # Native Event Dual Backend: Phase 46E
 
+> Historical Phase 46E policy snapshot. For the current public resolver table,
+> use [Public Rust Promotion](native/public_rust_promotion.md).
+
 Phase 46E closes the Python/Rust selection and reporting boundary for the
 single-symbol explicit-order scope. It does not claim that Rust replaces the
 full Python reactive engine.
@@ -12,7 +15,7 @@ full Python reactive engine.
 | --- | --- |
 | `python` | Full reactive Python implementation. This is the canonical and compatibility backend. |
 | `rust` | Explicit, fail-fast Rust batched tape path. Only certified single-symbol static tapes are accepted. |
-| `auto` | Python for the current release policy. It does not silently enable an experimental wheel. |
+| `auto` | Python in this Phase 46E snapshot. Current policy is route-scoped; see Public Rust Promotion. |
 | `replay_certified` | Deterministic audit/replay oracle used for candidate certification. |
 
 The endpoint also accepts `native_backend=...` and passes it through

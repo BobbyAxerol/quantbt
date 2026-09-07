@@ -1,0 +1,53 @@
+{
+  "schema": "quantbt-native-benchmark-manifest-v1",
+  "manifest_id": "native-event-phase67-shared-portfolio-v1",
+  "owner": "performance",
+  "promotion_policy": "explicit_shared_linear_target_units_and_prepared_wfo_only_with_declared_admission_policy_and_no_generic_portfolio_auto_route",
+  "product_registry_fingerprint": "4e18dd578b42dfae151ac8efbd3c558087899de5e9e00775bb6b28a94775253d",
+  "lifecycle_registry_fingerprint": "601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d",
+  "workloads": [
+    {
+      "id": "SHARED_PORTFOLIO_TARGET_UNITS_SAME_CLOSE",
+      "contract_ids": [
+        "close_target_v2_same_close"
+      ],
+      "strategy_mode": "shared_portfolio_target",
+      "profiles": [
+        "score",
+        "compact",
+        "audit"
+      ],
+      "fixture": "deterministic 2,000-bar 20-symbol linear gross-cross target-units tape with funding, fees, slippage, and reduce-first shared-account admission",
+      "baseline_path": "benchmarks/native_event/results/phase67_shared_portfolio.json",
+      "baseline_sha256": "907d4e5c2bdab59013b82422b3524cb8f6d21dae7001cd4dab62d81f1c3076be",
+      "required_result_fields": [
+        "fixture",
+        "timing_seconds",
+        "throughput_bar_symbols_per_second",
+        "rss_mb",
+        "evidence"
+      ]
+    },
+    {
+      "id": "PREPARED_SHARED_PORTFOLIO_TARGET_WFO",
+      "contract_ids": [
+        "close_target_v2_same_close"
+      ],
+      "strategy_mode": "prepared_shared_portfolio_target_wfo",
+      "profiles": [
+        "score",
+        "audit"
+      ],
+      "fixture": "sixteen candidate target matrices over two reset-flat causal folds on one immutable 2,000-bar 20-symbol market tape",
+      "baseline_path": "benchmarks/native_event/results/phase67_shared_portfolio.json",
+      "baseline_sha256": "907d4e5c2bdab59013b82422b3524cb8f6d21dae7001cd4dab62d81f1c3076be",
+      "required_result_fields": [
+        "fixture",
+        "timing_seconds",
+        "throughput_bar_symbols_per_second",
+        "rss_mb",
+        "evidence"
+      ]
+    }
+  ]
+}

@@ -30,6 +30,8 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
@@ -49,16 +51,18 @@ jobs:
           .venv/bin/python tools/generate_native_event_contracts.py --check
           .venv/bin/python tools/generate_product_contracts.py --check
           .venv/bin/python tools/generate_public_api_inventory.py --check
+          .venv/bin/python tools/certify_phase78_public_promotion.py --check
+          .venv/bin/python tools/check_native_a5_review.py
           .venv/bin/python tools/check_module_architecture.py
           .venv/bin/python tools/check_benchmark_governance.py
           .venv/bin/python tools/check_docs_links.py
 
       - name: Rust format, lint, and tests
-        working-directory: rust/native_event
+        working-directory: rust
         run: |
-          cargo fmt --check
-          cargo clippy -- -D warnings
-          cargo test
+          cargo fmt --all --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
 
       - name: Build core wheel from this ref
         run: uv build --out-dir dist/core
@@ -69,6 +73,7 @@ jobs:
           command: build
           args: >-
             --release
+            --locked
             --manifest-path rust/native_event/Cargo.toml
             --interpreter python${{ matrix.python-version }}
             --out dist/native

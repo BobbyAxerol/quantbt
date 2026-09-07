@@ -16,6 +16,11 @@ to roll it back.
 | [0007](0007-portfolio-target-contract.md) | Separate target preflight from full portfolio execution |
 | [0008](0008-package-atomicity.md) | Model package policy explicitly |
 | [0009](0009-native-wheel-compatibility.md) | Require exact core/native package pairing |
+| [RP-001](ADR-RP-001-rust-primary-authority.md) | Define Rust-primary authority and A0-A5 promotion |
+| [RP-002](ADR-RP-002-strategy-engine-boundary.md) | Keep research/strategy outside QuantBT simulation authority |
+| [RP-003](ADR-RP-003-correctness-before-performance.md) | Require specification, oracle, trace, and parity before promotion |
+| [RP-004](ADR-RP-004-runtime-classes.md) | Report reactive/native authority and boundary cost truthfully |
+| [RP-005](ADR-RP-005-wfo-optimizer-schedules.md) | Version WFO causality and optimizer schedule semantics |
 
 New cross-layer behavior requires an ADR update or a new ADR before code is
 promoted. Existing results retain their original contract identifiers.

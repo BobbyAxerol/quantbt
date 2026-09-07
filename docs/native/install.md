@@ -34,7 +34,7 @@ installs for this release line. Their public endpoint behavior is unchanged.
 
 | Consumer platform | Resolver behavior | Runtime policy |
 | --- | --- | --- |
-| Linux x86_64 glibc, CPython 3.11-3.13 | core plus exact pre-built `quantbt-native` wheel | Rust only for governed static/IR rows; Python otherwise |
+| Linux x86_64 glibc, CPython 3.11-3.13 | core plus exact pre-built `quantbt-native` wheel | Rust auto only for exact Native Strategy IR `score`; Python otherwise |
 | macOS, Windows, Linux ARM64/musl, PyPy, unsupported Python | core only | Python/Numba fallback |
 
 ## Verify A Consumer Install
@@ -85,11 +85,13 @@ imports, and checks the exact core/native mapping from the product registry.
 
 - Missing native extension: core remains fully functional.
 - `backend="python"`: always selects the reference implementation.
-- `backend="rust"`: verifies the extension descriptor and fails clearly when
-  the pair or workload is not compatible.
-- `backend="auto"`: selects Rust only for certified static command tapes at
-  10,000+ bars and bounded Native Strategy IR/batch runs at 2,000+ bars; all
-  other workloads stay Python with a structured decision reason.
+- `backend="rust"`: explicitly requests a certified static command-tape or
+  bounded Native Strategy IR/batch route, verifies the extension descriptor,
+  and fails clearly when the pair or workload is not compatible.
+- `backend="auto"`: selects Rust only for the exact one-symbol
+  `NativeStrategyIR` v1 `score` route at 2,000 or more bars. Static command
+  tapes and IR `minimal`/`standard`/`audit` profiles remain Python-auto. Every
+  other request retains a structured Python fallback reason.
 
 The direct `run_portfolio_target_market(...)` and
 `run_atomic_package_market(...)` helpers are separately certified bounded Rust
@@ -112,5 +114,6 @@ Set `QUANTBT_DISABLE_NATIVE=1` to force the Python route, or
 `QUANTBT_NATIVE_PROMOTION_MAX=explicit_only` to cap local automatic promotion
 without changing code. Explicit `backend="rust"` remains fail-fast.
 
-See [Capabilities](capabilities.md), the [native release handoff](../migration/native_release_handoff.md),
-and [Troubleshooting](troubleshooting.md).
+See [Public Rust Promotion](public_rust_promotion.md), [Capabilities](capabilities.md),
+the [native release handoff](../migration/native_release_handoff.md), and
+[Troubleshooting](troubleshooting.md).

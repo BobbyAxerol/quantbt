@@ -1,0 +1,52 @@
+{
+  "contract_id": "quantbt-v1_1-market-instrument-v2",
+  "schema_version": "market-instrument-v2",
+  "certified_calendar_default": "exact_v2",
+  "legacy_calendar_contract": "legacy_v1",
+  "calendar": {
+    "policies": ["exact", "intersection", "union", "primary_clock"],
+    "missing_observation_policies": [
+      "no_observation",
+      "mark_to_last_no_execution",
+      "forward_fill_quote_no_volume",
+      "reject_intent"
+    ],
+    "invariants": [
+      "timestamps_strictly_increasing",
+      "no_duplicate_timestamps",
+      "no_length_based_relabel",
+      "raw_missing_ohlcv_is_never_forward_filled",
+      "stale_observation_is_never_tradable",
+      "future_rows_after_cutoff_do_not_change_prior_mapping"
+    ]
+  },
+  "instrument_registry": {
+    "schema": "instrument-registry-v2",
+    "fields": [
+      "price_tick",
+      "quantity_step",
+      "min_quantity",
+      "max_quantity",
+      "min_notional",
+      "contract_multiplier",
+      "leverage_limit",
+      "settlement_currency",
+      "fee_schedule_id",
+      "funding_schedule_id",
+      "one_way_fee_rate"
+    ],
+    "rounding": {
+      "limit_buy": "floor_to_tick",
+      "limit_sell": "ceil_to_tick",
+      "non_limit_buy": "ceil_to_tick",
+      "non_limit_sell": "floor_to_tick",
+      "risk_increasing_quantity": "floor_to_step",
+      "risk_reducing_quantity": "floor_to_step_or_exact_remaining_close"
+    }
+  },
+  "execution_lowering": {
+    "all_observed_required_for_current_v1_kernel": true,
+    "shared_funding_clock_required_for_current_v1_kernel": true,
+    "unsupported_missing_execution_behavior": "fail_closed"
+  }
+}

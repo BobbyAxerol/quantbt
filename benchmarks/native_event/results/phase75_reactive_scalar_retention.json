@@ -1,0 +1,111 @@
+{
+  "bars": 10000,
+  "gates": {
+    "same_rust_accounting_for_public_and_scalar": true,
+    "scalar_retains_no_account_or_audit_path": true
+  },
+  "phase": "75",
+  "repeats": 3,
+  "rows": [
+    {
+      "bars_per_second": 263148.40327685303,
+      "callbacks": 10000,
+      "final_equity": 19989.44953547596,
+      "median_milliseconds": 38.00137061625719,
+      "median_seconds": 0.03800137061625719,
+      "p95_seconds": 0.04814955200999975,
+      "retention": "public_full",
+      "rss_after_bytes": 174608384,
+      "rss_before_bytes": 172466176,
+      "rss_delta_bytes": 2142208,
+      "runtime": "numeric_every_bar_v1",
+      "surface": "prepared_public_minimal"
+    },
+    {
+      "bars_per_second": 548773.956305761,
+      "callbacks": 10000,
+      "final_equity": 19989.44953547596,
+      "median_milliseconds": 18.222439102828503,
+      "median_seconds": 0.018222439102828503,
+      "p95_seconds": 0.021145309321582317,
+      "retention": {
+        "account_paths": false,
+        "callback_trace": false,
+        "command_rows": false,
+        "terminal_active_orders": false
+      },
+      "rss_after_bytes": 174608384,
+      "rss_before_bytes": 174608384,
+      "rss_delta_bytes": 0,
+      "runtime": "numeric_every_bar_v1",
+      "surface": "prepared_scalar_score"
+    },
+    {
+      "bars_per_second": 330099.4228603807,
+      "callbacks": 313,
+      "final_equity": 19998.533185965403,
+      "median_milliseconds": 30.293903313577175,
+      "median_seconds": 0.030293903313577175,
+      "p95_seconds": 0.030448878835886716,
+      "retention": "public_full",
+      "rss_after_bytes": 176517120,
+      "rss_before_bytes": 176517120,
+      "rss_delta_bytes": 0,
+      "runtime": "numeric_sparse_wake_v1",
+      "surface": "prepared_public_minimal"
+    },
+    {
+      "bars_per_second": 661847.5113912605,
+      "callbacks": 313,
+      "final_equity": 19998.533185965403,
+      "median_milliseconds": 15.109220519661903,
+      "median_seconds": 0.015109220519661903,
+      "p95_seconds": 0.017314679455012083,
+      "retention": {
+        "account_paths": false,
+        "callback_trace": false,
+        "command_rows": false,
+        "terminal_active_orders": false
+      },
+      "rss_after_bytes": 176517120,
+      "rss_before_bytes": 176517120,
+      "rss_delta_bytes": 0,
+      "runtime": "numeric_sparse_wake_v1",
+      "surface": "prepared_scalar_score"
+    },
+    {
+      "bars_per_second": 261177.00108044792,
+      "callbacks": 1,
+      "final_equity": 19989.44953547596,
+      "median_milliseconds": 38.28821051865816,
+      "median_seconds": 0.03828821051865816,
+      "p95_seconds": 0.04872220894321799,
+      "retention": "public_full",
+      "rss_after_bytes": 177319936,
+      "rss_before_bytes": 177319936,
+      "rss_delta_bytes": 0,
+      "runtime": "numeric_block_intent_v1",
+      "surface": "prepared_public_minimal"
+    },
+    {
+      "bars_per_second": 510268.32786112424,
+      "callbacks": 1,
+      "final_equity": 19989.44953547596,
+      "median_milliseconds": 19.597532227635384,
+      "median_seconds": 0.019597532227635384,
+      "p95_seconds": 0.021035955660045146,
+      "retention": {
+        "account_paths": false,
+        "callback_trace": false,
+        "command_rows": false,
+        "terminal_active_orders": false
+      },
+      "rss_after_bytes": 177319936,
+      "rss_before_bytes": 177319936,
+      "rss_delta_bytes": 0,
+      "runtime": "numeric_block_intent_v1",
+      "surface": "prepared_scalar_score"
+    }
+  ],
+  "workload_contract": "reactive_prepared_scalar_retention_v1"
+}

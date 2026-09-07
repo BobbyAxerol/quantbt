@@ -99,3 +99,12 @@ its audit ledger, deterministic numeric policy, trace/replay surface, and
 reference portfolio/package semantics. It does not claim venue-exact partial
 fills, L2 queue simulation, inverse/quanto/options valuation, Rust portfolio
 execution, or the P1 ownership refactor.
+
+## V1.1 Successor Foundation
+
+Phase 57 retains this V1 audit surface for compatibility and adds a separate,
+backend-neutral successor contract: [V1.1 linear accounting](v1_1_linear_accounting.md),
+[V1.1 execution clock](v1_1_execution_clock.md), and [Canonical Trace V2](v1_1_canonical_trace_v2.md).
+The V2 model is additive until a later route-specific migration has independent
+oracle and canonical-trace evidence. It does not silently reinterpret this V1
+ledger or change any existing endpoint default.

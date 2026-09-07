@@ -36,6 +36,10 @@ class OptionExecutionConfig:
     max_quote_age_ns: Optional[int] = None
     limit_fidelity: OptionLimitFidelity = OptionLimitFidelity.CROSS_ONLY
     depth_fidelity: OptionDepthFidelity = OptionDepthFidelity.TOP_OF_BOOK
+    # NativeOptionBackend disables this only while it performs the same guard
+    # against the authoritative fee schedule and ledger preview. Standalone
+    # snapshot execution retains its established cash-guard behavior.
+    enforce_package_cash_guard: bool = True
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -159,7 +163,7 @@ def _execute_atomic_all_or_none(
     trial = state.copy()
     evaluations = [_evaluate_order(order, tape, cfg, trial, package.package_id) for order in orders]
     all_full = all(row.row["status"] == "filled" for row in evaluations)
-    guard_ok, guard_reason = _package_cash_guard(package, evaluations)
+    guard_ok, guard_reason = _package_cash_guard(package, evaluations, cfg)
     if not all_full or not guard_ok:
         reason = guard_reason or "atomic_all_or_none_unfilled_leg"
         rows = [_rejected_row(ev.row, reason) for ev in evaluations]
@@ -187,7 +191,7 @@ def _execute_best_effort(
         if ev.fill is not None:
             _apply_evaluation(trial, ev)
             fills.append(ev.fill)
-    guard_ok, guard_reason = _package_cash_guard(package, evaluations)
+    guard_ok, guard_reason = _package_cash_guard(package, evaluations, cfg)
     if not guard_ok:
         rows = [_rejected_row(ev.row, guard_reason) for ev in evaluations]
         return _final_result(package, cfg, state, state, [], rows, "rejected", guard_reason)
@@ -218,7 +222,7 @@ def _execute_sequential(
             fills.append(ev.fill)
         if ev.row["status"] not in {"filled", "partial"}:
             stopped = True
-    guard_ok, guard_reason = _package_cash_guard(package, evaluations)
+    guard_ok, guard_reason = _package_cash_guard(package, evaluations, cfg)
     if not guard_ok:
         rows = [_rejected_row(ev.row, guard_reason) for ev in evaluations]
         return _final_result(package, cfg, state, state, [], rows, "rejected", guard_reason)
@@ -251,7 +255,7 @@ def _execute_hedge_after_primary(
         if ev.fill is not None:
             _apply_evaluation(trial, ev)
             fills.append(ev.fill)
-    guard_ok, guard_reason = _package_cash_guard(package, evaluations)
+    guard_ok, guard_reason = _package_cash_guard(package, evaluations, cfg)
     if not guard_ok:
         rows = [_rejected_row(ev.row, guard_reason) for ev in evaluations]
         return _final_result(package, cfg, state, state, [], rows, "rejected", guard_reason)
@@ -294,7 +298,7 @@ def _execute_rebalance_only(
         if ev.fill is not None:
             _apply_evaluation(trial, ev)
             fills.append(ev.fill)
-    guard_ok, guard_reason = _package_cash_guard(package, evaluations)
+    guard_ok, guard_reason = _package_cash_guard(package, evaluations, cfg)
     if not guard_ok:
         rows = [_rejected_row(ev.row, guard_reason) for ev in evaluations]
         return _final_result(package, cfg, state, state, [], rows, "rejected", guard_reason)
@@ -399,7 +403,13 @@ def _apply_evaluation(state: _ExecutionState, evaluation: _OrderEvaluation) -> N
     state.positions[evaluation.fill.symbol] = state.positions.get(evaluation.fill.symbol, 0.0) + evaluation.position_delta
 
 
-def _package_cash_guard(package: OptionPackageIntent, evaluations: List[_OrderEvaluation]) -> tuple[bool, str]:
+def _package_cash_guard(
+    package: OptionPackageIntent,
+    evaluations: List[_OrderEvaluation],
+    cfg: OptionExecutionConfig,
+) -> tuple[bool, str]:
+    if not cfg.enforce_package_cash_guard:
+        return True, ""
     net_cash_delta = sum(ev.cash_delta for ev in evaluations if ev.fill is not None)
     debit = max(-net_cash_delta, 0.0)
     credit = max(net_cash_delta, 0.0)
