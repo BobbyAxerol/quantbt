@@ -12,7 +12,7 @@ NATIVE_DIST ?= dist/native
 	test-python-unit test-rust-unit test-contracts test-differential test-property \
 	test-binding test-installed test-all fuzz-smoke bench-smoke bench-native \
 	bench-facade bench-release build-core-wheel build-native-wheel stage-wheels \
-	verify-wheels verify-staged-wheels supply-chain-report sbom release-manifest benchmark-governance \
+	verify-wheels verify-staged-wheels verify-staged-public-surface supply-chain-report sbom release-manifest benchmark-governance \
 	release-manifest-staged migration-audit certify-native-release \
 	docs-check v1_1-baseline-check
 
@@ -46,7 +46,7 @@ test-rust-unit:
 	cargo test --manifest-path $(RUST_WORKSPACE_MANIFEST) --workspace
 
 test-contracts:
-	$(PYTHON) tools/sync_source_mirror.py --check
+	$(PYTHON) tools/check_canonical_source_layout.py --check
 	$(PYTHON) tools/generate_native_event_contracts.py --check
 	$(PYTHON) tools/generate_product_contracts.py --check
 	$(PYTHON) tools/generate_public_api_inventory.py --check
@@ -101,6 +101,9 @@ stage-wheels:
 
 verify-staged-wheels: stage-wheels
 	$(PYTHON) tools/verify_wheels.py --dist dist/staged --require-native
+
+verify-staged-public-surface: stage-wheels
+	$(PYTHON) tools/verify_wheels.py --dist dist/staged --require-native --direct-target-smoke --public-surface-smoke --editable-source-smoke
 
 migration-audit:
 	$(PYTHON) tools/check_native_release_handoff.py

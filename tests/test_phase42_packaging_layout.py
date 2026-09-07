@@ -25,6 +25,6 @@ def test_phase42_src_quantbt_layout_exists() -> None:
     assert (package_root / "py.typed").is_file()
 
 
-def test_phase42_root_source_kept_during_migration() -> None:
-    assert (PROJECT_ROOT / "__init__.py").is_file()
-    assert (PROJECT_ROOT / "endpoint.py").is_file()
+def test_phase42_root_source_is_not_a_second_importable_package() -> None:
+    assert not (PROJECT_ROOT / "__init__.py").exists()
+    assert not (PROJECT_ROOT / "endpoint.py").exists()

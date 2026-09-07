@@ -47,7 +47,7 @@ def _run_tool(name: str, *arguments: str) -> None:
 
 
 def test_generated_product_and_lifecycle_artifacts_are_clean() -> None:
-    _run_tool("sync_source_mirror.py", "--check")
+    _run_tool("check_canonical_source_layout.py", "--check")
     _run_tool("generate_native_event_contracts.py", "--check")
     _run_tool("generate_product_contracts.py", "--check")
     _run_tool("generate_public_api_inventory.py", "--check")

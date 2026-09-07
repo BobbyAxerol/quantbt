@@ -89,7 +89,9 @@ The fix is limited to audit construction:
    a second full list of dictionaries. Full trace replay remains enabled.
 
 There is no endpoint/config change, no matching or strategy-state modification,
-no default routing promotion, and no Rust/ABI change. Source/root mirrors match.
+no default routing promotion, and no Rust/ABI change. The source/root mirror
+statement was true for the historical fixture; NEXT-03 later retired that
+mirror and replaced parity-sync with a canonical-origin gate.
 
 ## Correctness Gate
 

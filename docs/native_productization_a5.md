@@ -37,8 +37,9 @@ manifest.
 
 No Phase 71 route currently qualifies for source deletion. Static command tape
 and Native Strategy IR are A4; prepared WFO, bounded portfolio/package, and
-intrabar routes are A3 or held by route-specific evidence. The root mirror and
-Python/Numba production routes therefore remain. This is an enforced safety
+intrabar routes are A3 or held by route-specific evidence. The historical root
+mirror was retired in NEXT-03, while Python/Numba production routes remain.
+This is an enforced safety
 decision, not an undocumented implementation gap.
 
 The Python public facade, strategy protocol, independent oracle, reports,

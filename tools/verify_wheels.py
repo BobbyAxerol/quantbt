@@ -96,9 +96,12 @@ def _installed_script(
     expect_native: bool,
     *,
     direct_target_smoke: bool = False,
+    public_surface_smoke: bool = False,
 ) -> str:
     if direct_target_smoke and not expect_native:
         raise ValueError("direct target wheel smoke requires a staged native wheel")
+    if public_surface_smoke and not expect_native:
+        raise ValueError("public surface wheel smoke requires a staged native wheel")
     native_check = ""
     if expect_native:
         native_check = """
@@ -198,6 +201,145 @@ assert_direct_target(
     "units",
 )
 """
+    public_surface_check = ""
+    if public_surface_smoke:
+        public_surface_check = """
+import numpy as np
+import pandas as pd
+from quantbt import OrderCommand, OrderSide, OrderType, QuantBTEndpoint, TimeInForce
+
+index = pd.date_range("2020-01-01", periods=420, freq="1D", tz="UTC")
+close = 100.0 + np.arange(len(index), dtype=np.float64) * 0.1
+bars = pd.DataFrame(
+    {
+        "open": close - 0.1,
+        "high": close + 0.5,
+        "low": close - 0.5,
+        "close": close,
+        "volume": np.full(len(index), 1_000.0),
+    },
+    index=index,
+)
+
+# Ordinary static facade: the installed result must be populated without a
+# repository-relative import or a native-only execution requirement.
+static_result = QuantBTEndpoint.pct_equity(
+    initial_capital=10_000.0,
+    fee_rate=0.0002,
+    use_funding=False,
+).backtest(
+    data=bars,
+    signal=pd.Series(np.where(np.arange(len(index)) % 7 < 4, 1.0, 0.0), index=index),
+    symbols=["BTC"],
+)
+assert len(static_result.equity) == len(bars)
+
+class _InstalledReactiveStrategy:
+    def on_bar_close(self, context):
+        if context.bar_index == 0:
+            return (
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol=context.symbols[0],
+                    side=OrderSide.BUY,
+                    order_type=OrderType.MARKET,
+                    qty=1.0,
+                    tif=TimeInForce.IOC,
+                    order_id="installed-entry",
+                ),
+            )
+        if context.bar_index == 4:
+            return (
+                OrderCommand(
+                    timestamp=context.timestamp,
+                    symbol=context.symbols[0],
+                    side=OrderSide.SELL,
+                    order_type=OrderType.MARKET,
+                    qty=1.0,
+                    tif=TimeInForce.IOC,
+                    reduce_only=True,
+                    order_id="installed-exit",
+                ),
+            )
+        return ()
+
+
+# The generic callback is intentionally exercised through the Python route.
+# It remains a supported public fallback regardless of an installed native
+# companion.
+reactive_result = QuantBTEndpoint.event_driven(
+    profile="research",
+    backend="python",
+    initial_capital=10_000.0,
+    use_funding=False,
+).simulate(data=bars.iloc[:12], strategy=_InstalledReactiveStrategy(), symbols=["BTC"])
+assert len(reactive_result.equity) == 12
+
+# A capability the installed native descriptor does not advertise must fail
+# during immutable planning. This is more precise than treating every Python
+# callback as unsupported: the callback route itself is an explicit
+# experimental co-runtime surface.
+from quantbt.planning.models import BacktestRequest, RunProfile, StrategyMode, WorkloadClass
+from quantbt.planning.resolve import PlanningError, resolve_execution_plan
+
+try:
+    resolve_execution_plan(
+        BacktestRequest(
+            endpoint_mode="event_driven",
+            input_mode="strategy",
+            requested_backend="rust",
+            execution_contract_id="event_lifecycle_v2_next_bar_close",
+            strategy_mode=StrategyMode.PYTHON_CALLBACK_COMPAT,
+            workload=WorkloadClass.PYTHON_CALLBACK,
+            profile=RunProfile.MINIMAL,
+            report_level="minimal",
+            audit_sink="none",
+            symbols=("BTC",),
+            bars=12,
+            required_capabilities=("next03_intentionally_unsupported_capability",),
+        )
+    )
+except PlanningError as exc:
+    assert "failed before preparation" in str(exc)
+else:
+    raise AssertionError("unsupported native capability unexpectedly bypassed planning")
+
+def _installed_wfo_strategy(data, params, train_index, test_index, fold):
+    del data, train_index, fold
+    return pd.Series(float(params["side"]), index=test_index, dtype=float)
+
+
+# The small Mode 4 causal run proves that the normal WFO facade, Optuna
+# dependency, strategy callback, and final stitched result work from a clean
+# installed package. It is not a performance benchmark.
+wfo_result = QuantBTEndpoint.walk_forward(
+    strategy_class=_installed_wfo_strategy,
+    split_mode="2020-07-01",
+    split_frequency="quarterly",
+    window_mode="rolling",
+    train_window="120D",
+    target_mode="signal_notional",
+    optimization_mode="mode_4_is_only_robust",
+    optimization_schedule="per_fold_causal",
+    optimization_config={
+        "candidate_selection_metric": "is_only_robust",
+        "top_is_fraction": 1.0,
+        "flat_eps": 1.0,
+        "flat_min_samples": 1,
+        "is_subperiods": 2,
+        "scoring_backend": "proxy",
+    },
+    optuna_trials=1,
+    optuna_early_stopping=None,
+    random_seed=41,
+    initial_capital=10_000.0,
+    alloc_per_trade=1_000.0,
+    fee_rate=0.0,
+    use_funding=False,
+).backtest(data=bars, symbols=["BTC"], param_ranges={"side": [1]})
+assert len(wfo_result.equity) == len(bars)
+assert wfo_result.metadata["walk_forward"]["n_folds"] == 3
+"""
     return f"""
 import importlib.metadata as metadata
 import pathlib
@@ -208,8 +350,71 @@ assert "site-packages" in path.parts or "dist-packages" in path.parts, path
 assert metadata.version("quantbt-engine") == {core_version!r}
 {native_check}
 {direct_target_check}
+{public_surface_check}
 print(path)
 """
+
+
+def _editable_developer_script(core_version: str) -> str:
+    """Return the isolated editable-install identity probe.
+
+    An editable developer install is deliberately allowed to resolve to the
+    repository's canonical ``src/quantbt`` package. It must never resolve to
+    the retired root mirror, and its public classes must remain singletons.
+    """
+
+    return f"""
+import importlib.metadata as metadata
+import pathlib
+import sys
+import quantbt
+from quantbt import NativeEventBackend, QuantBTEndpoint, ResearchAuditArtifactV1
+from quantbt.backends import NativeEventBackend as DirectNativeEventBackend
+from quantbt.core.research_audit import ResearchAuditArtifactV1 as DirectResearchAuditArtifactV1
+from quantbt.endpoint import QuantBTEndpoint as DirectQuantBTEndpoint
+
+repository = pathlib.Path(sys.argv[1]).resolve()
+path = pathlib.Path(quantbt.__file__).resolve()
+assert path == repository / "src" / "quantbt" / "__init__.py", path
+assert metadata.version("quantbt-engine") == {core_version!r}
+assert QuantBTEndpoint is DirectQuantBTEndpoint
+assert NativeEventBackend is DirectNativeEventBackend
+assert ResearchAuditArtifactV1 is DirectResearchAuditArtifactV1
+print(path)
+"""
+
+
+def editable_developer_smoke(
+    *,
+    core_version: str,
+    native_wheel: Path,
+) -> None:
+    """Prove a fresh editable developer install resolves only canonical ``src``.
+
+    This intentionally has a different origin assertion from the wheel/sdist
+    lanes. It is a package-layout proof, not a substitute for distributed
+    artifact qualification.
+    """
+
+    with tempfile.TemporaryDirectory(prefix="quantbt-editable-") as raw:
+        root = Path(raw)
+        venv = root / "venv"
+        env = _clean_env()
+        _run([sys.executable, "-m", "venv", str(venv)], cwd=root, env=env)
+        python = _venv_python(venv)
+        _run([str(python), "-m", "pip", "install", "--upgrade", "pip"], cwd=root, env=env)
+        _run([str(python), "-m", "pip", "install", str(native_wheel)], cwd=root, env=env)
+        _run(
+            [str(python), "-m", "pip", "install", "-e", f"{ROOT}[optimization]"],
+            cwd=root,
+            env=env,
+        )
+        _run([str(python), "-m", "pip", "check"], cwd=root, env=env)
+        _run(
+            [str(python), "-I", "-c", _editable_developer_script(core_version), str(ROOT)],
+            cwd=root,
+            env=env,
+        )
 
 
 def clean_install_smoke(
@@ -218,6 +423,7 @@ def clean_install_smoke(
     core_version: str,
     native_wheel: Path | None = None,
     direct_target_smoke: bool = False,
+    public_surface_smoke: bool = False,
 ) -> None:
     """Install artifacts in a fresh venv and assert imports cannot leak from the repo."""
 
@@ -228,12 +434,18 @@ def clean_install_smoke(
         _run([sys.executable, "-m", "venv", str(venv)], cwd=root, env=env)
         python = _venv_python(venv)
         _run([str(python), "-m", "pip", "install", "--upgrade", "pip"], cwd=root, env=env)
+        core_install_target = str(core_artifact)
+        if public_surface_smoke:
+            # WFO optimization is intentionally an optional dependency. The
+            # public consumer proof asks pip for the declared extra instead of
+            # accidentally relying on the developer environment's Optuna.
+            core_install_target = f"{core_artifact}[optimization]"
         if native_wheel is not None:
             # Core metadata now requires the exact companion on supported Linux.
             # Install the staged binary first so pip never attempts an index or
             # source build during the consumer-pair proof.
             _run([str(python), "-m", "pip", "install", str(native_wheel)], cwd=root, env=env)
-            _run([str(python), "-m", "pip", "install", str(core_artifact)], cwd=root, env=env)
+            _run([str(python), "-m", "pip", "install", core_install_target], cwd=root, env=env)
             _run([str(python), "-m", "pip", "check"], cwd=root, env=env)
         else:
             # This is only a core fallback import probe. The normal supported
@@ -242,11 +454,13 @@ def clean_install_smoke(
         _run(
             [
                 str(python),
+                "-I",
                 "-c",
                 _installed_script(
                     core_version,
                     native_wheel is not None,
                     direct_target_smoke=direct_target_smoke,
+                    public_surface_smoke=public_surface_smoke,
                 ),
             ],
             cwd=root,
@@ -260,6 +474,8 @@ def verify_staged_wheels(
     require_native: bool,
     install: bool,
     direct_target_smoke: bool = False,
+    public_surface_smoke: bool = False,
+    editable_source_smoke: bool = False,
 ) -> dict[str, Any]:
     """Return an auditable wheel verification result or raise on a release blocker."""
 
@@ -280,6 +496,10 @@ def verify_staged_wheels(
         raise RuntimeError("native wheel required but absent from staged directory")
     if direct_target_smoke and native_wheel is None:
         raise RuntimeError("direct target wheel smoke requires a staged native wheel")
+    if public_surface_smoke and native_wheel is None:
+        raise RuntimeError("public surface wheel smoke requires a staged native wheel")
+    if editable_source_smoke and native_wheel is None:
+        raise RuntimeError("editable source smoke requires a staged native wheel")
     pair = None
     if native_wheel is not None:
         pair = _registry_pair(str(core_metadata["version"]), str(native_metadata["version"]))
@@ -291,13 +511,21 @@ def verify_staged_wheels(
             core_version=str(core_metadata["version"]),
             native_wheel=native_wheel,
             direct_target_smoke=direct_target_smoke,
+            public_surface_smoke=public_surface_smoke,
         )
+        if editable_source_smoke:
+            assert native_wheel is not None
+            editable_developer_smoke(
+                core_version=str(core_metadata["version"]),
+                native_wheel=native_wheel,
+            )
         sdist = find_artifact(dist, core_metadata["distribution"], ".tar.gz")
         clean_install_smoke(
             sdist,
             core_version=str(core_metadata["version"]),
             native_wheel=native_wheel,
             direct_target_smoke=direct_target_smoke,
+            public_surface_smoke=public_surface_smoke,
         )
     return {
         "schema": "quantbt-staged-wheel-verification-v1",
@@ -307,6 +535,9 @@ def verify_staged_wheels(
         "native_pair": pair,
         "clean_install": bool(install),
         "direct_target_smoke": bool(direct_target_smoke and install),
+        "public_surface_smoke": bool(public_surface_smoke and install),
+        "public_surface_extras": ["optimization"] if public_surface_smoke else [],
+        "editable_source_smoke": bool(editable_source_smoke and install),
     }
 
 
@@ -320,6 +551,19 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the explicit Rust direct-target smoke after each clean staged install",
     )
+    parser.add_argument(
+        "--editable-source-smoke",
+        action="store_true",
+        help="prove a fresh editable install resolves src/quantbt with one public type identity",
+    )
+    parser.add_argument(
+        "--public-surface-smoke",
+        action="store_true",
+        help=(
+            "run installed static, Python-reactive, Mode 4 causal WFO, and "
+            "unsupported-explicit-Rust capability smokes after each clean install"
+        ),
+    )
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args(argv)
     try:
@@ -328,6 +572,8 @@ def main(argv: list[str] | None = None) -> int:
             require_native=args.require_native,
             install=not args.skip_install,
             direct_target_smoke=args.direct_target_smoke,
+            public_surface_smoke=args.public_surface_smoke,
+            editable_source_smoke=args.editable_source_smoke,
         )
     except (OSError, RuntimeError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         print(f"staged wheel verification failed: {exc}", file=sys.stderr)

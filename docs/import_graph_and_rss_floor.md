@@ -2,8 +2,8 @@
 
 Phase 46C makes the core `quantbt-engine` import independent from optional
 visualization, optimization, reporting, and Nautilus packages. The source
-layout remains `src/quantbt`, while the root compatibility mirror remains
-present and is checked byte-for-byte during this packaging transition.
+layout remains `src/quantbt`; the historical root compatibility mirror was
+retired in NEXT-03 and its provenance is recorded by the canonical-layout gate.
 
 ## Dependency contract
 
@@ -57,7 +57,7 @@ MPLCONFIGDIR=/tmp PYTHONPATH=src poetry run python \
   --output benchmarks/native_event/phase46c_import_rss.json
 ```
 
-The child process runs from `/tmp`, preventing the root mirror from shadowing
+The child process runs from `/tmp`, preventing a checkout path from shadowing
 the distribution source. The gate records current RSS after `import quantbt`,
 RSS after resolving the core `QuantBTEndpoint`, the module count, forbidden
 optional modules, and `python -X importtime` summary lines. These values are
@@ -80,7 +80,7 @@ Phase 46C is accepted when:
    direct-import identity.
 3. Metadata and `uv.lock` agree that visualization/reporting/optimization/
    validation dependencies are optional.
-4. The source mirror is byte-identical to `src/quantbt` for every mirrored
+4. The canonical source-layout gate rejects a root production mirror and
    module.
 5. Focused import tests and the full regression suite pass.
 

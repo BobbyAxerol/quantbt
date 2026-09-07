@@ -52,7 +52,7 @@ registry, then run the clean checks:
 python tools/generate_native_event_contracts.py
 python tools/generate_product_contracts.py
 python tools/generate_public_api_inventory.py
-python tools/sync_source_mirror.py --src-to-root
+python tools/check_canonical_source_layout.py --check
 make test-contracts
 ```
 

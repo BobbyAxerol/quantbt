@@ -1,0 +1,943 @@
+{
+  "canonical_source": "src/quantbt",
+  "historical_entries": [
+    "__init__.py",
+    "backtester.py",
+    "endpoint.py",
+    "engines.py",
+    "errors.py",
+    "portfolio.py",
+    "walkforward.py",
+    "adapters",
+    "api",
+    "backends",
+    "core",
+    "engine_spi",
+    "metrics",
+    "optimization",
+    "options",
+    "planning",
+    "preparation",
+    "reporting",
+    "results",
+    "sizing",
+    "strategies",
+    "verification",
+    "viz"
+  ],
+  "records": [
+    {
+      "canonical_path": "src/quantbt/__init__.py",
+      "historical_root_path": "__init__.py",
+      "sha256": "492b6e4bf8971dea207c096ee077410621dae9058693b91ac73ce60d6d156e20"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/__init__.py",
+      "historical_root_path": "adapters/__init__.py",
+      "sha256": "0e8c4c0712efe5397e07ea7717fae96018d68707bed510258d2ab5ce3ecc2343"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/__init__.py",
+      "historical_root_path": "adapters/nautilus/__init__.py",
+      "sha256": "b7a8a7c60a67e76abb68c1d6d7c9d03eafd700d4c1ce235eaeef4f435f4e1701"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/_dependency.py",
+      "historical_root_path": "adapters/nautilus/_dependency.py",
+      "sha256": "0e3cd279f40d261a60b40395c9e1ea86545819ea588e2747278f1702c583d3be"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/backend.py",
+      "historical_root_path": "adapters/nautilus/backend.py",
+      "sha256": "e0a8a635364e1d817f47defd513bd2fb21050f039e9e9c5deffcd90f197e5808"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/instruments.py",
+      "historical_root_path": "adapters/nautilus/instruments.py",
+      "sha256": "b25a29ea46d2ce0f5e2713326ab9bf2b36363db5fe6eb37c738f2242ead97e72"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/options.py",
+      "historical_root_path": "adapters/nautilus/options.py",
+      "sha256": "d182d2c601b1911273088cd0c63ec52e93ca20df3644e9ea04cf7540e57cdd9e"
+    },
+    {
+      "canonical_path": "src/quantbt/adapters/nautilus/reports.py",
+      "historical_root_path": "adapters/nautilus/reports.py",
+      "sha256": "351274d73f8ecf4f2486d8c0b815a198aed608a1d69af20e064a90ddcadb21ea"
+    },
+    {
+      "canonical_path": "src/quantbt/api/__init__.py",
+      "historical_root_path": "api/__init__.py",
+      "sha256": "b636a8ee258eb54be88fb2bea78bd8556ced333d8bdc6ef1fd46d2192afec269"
+    },
+    {
+      "canonical_path": "src/quantbt/api/event_driven.py",
+      "historical_root_path": "api/event_driven.py",
+      "sha256": "59fbd0e77ff70aaac429eac01550af519a430a5133ffa51883420fbb6943b6d2"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/__init__.py",
+      "historical_root_path": "backends/__init__.py",
+      "sha256": "3b935f6a1abbb359ae6343ec9398e9e3ac7080c05b8f8e249b6fe765ffecc87a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/_native_event_rust.py",
+      "historical_root_path": "backends/_native_event_rust.py",
+      "sha256": "4514fde9fc9920ae0978297084de7b3a19b2dd5ee63def8fda86cbd58f9d1391"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_event.py",
+      "historical_root_path": "backends/native_event.py",
+      "sha256": "4e8d00d81d427580b57eb58cbe1bf32688733068c19bf899c32c847810d274b6"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_intrabar_rust.py",
+      "historical_root_path": "backends/native_intrabar_rust.py",
+      "sha256": "700a2813c4b7803c11c68ddc6ad7369405bfde4eccabf8aedfd8a87dafc5767a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_option.py",
+      "historical_root_path": "backends/native_option.py",
+      "sha256": "ba284c53a4ccca9cb2c043f53ecdacd67ac69deea5233f5a44b71c3103d2ed23"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_package_arbitrage.py",
+      "historical_root_path": "backends/native_package_arbitrage.py",
+      "sha256": "a017ed7c1bdb9bed2d38fd9475b478dfaa2b5656108c9a745c26bc766eb879a8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_portfolio.py",
+      "historical_root_path": "backends/native_portfolio.py",
+      "sha256": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_portfolio_package.py",
+      "historical_root_path": "backends/native_portfolio_package.py",
+      "sha256": "212a43c9627773e175f14a5428c94667302f49cae097365cac109266cf91391a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_prepared_evaluation.py",
+      "historical_root_path": "backends/native_prepared_evaluation.py",
+      "sha256": "3471748537cc95465bb580852db8a50afc46c7c5da8e3921469671e9cbca210d"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_strategy_ir.py",
+      "historical_root_path": "backends/native_strategy_ir.py",
+      "sha256": "e4d0dc9b74e6a7faa94e7671fba917ba31684c7f7400bc58812b724c84a7fdc0"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_vectorized.py",
+      "historical_root_path": "backends/native_vectorized.py",
+      "sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo.py",
+      "historical_root_path": "backends/native_wfo.py",
+      "sha256": "33b0354234aec59527fcb7a1f7ac122abeced2da492df0bc12774af2e074b691"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_public.py",
+      "historical_root_path": "backends/native_wfo_public.py",
+      "sha256": "e4725ad1f841b42454b2aff967f3e82949b3a9545ad23d7aa85bc4ebf5f232ee"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_support.py",
+      "historical_root_path": "backends/native_wfo_support.py",
+      "sha256": "23d3841095bdc11fdab53cbae8b2309e1b2150905ed81e0ef82c9e61372830e8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/native_wfo_target.py",
+      "historical_root_path": "backends/native_wfo_target.py",
+      "sha256": "43af9ed0668eee19ebd6d6a9377beed6246bda0d932514be8b48d369e12d6c8d"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo.py",
+      "historical_root_path": "backends/reactive_wfo.py",
+      "sha256": "a1a1b55abab40dab2b3b6c7fdb37234181e9b23e4d8947576c936289825b2d4a"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_batch.py",
+      "historical_root_path": "backends/reactive_wfo_batch.py",
+      "sha256": "0c820db4e78097e2b50b1e5fe5c46837c6fc9c408eafa70dd473e6009aa5ded8"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_batch_selection.py",
+      "historical_root_path": "backends/reactive_wfo_batch_selection.py",
+      "sha256": "811d48fefa4008fc70b5e7cbe2ea9a271b7a4a50265c10fb6f6ed34cd987512b"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_preparation.py",
+      "historical_root_path": "backends/reactive_wfo_preparation.py",
+      "sha256": "e8735b6e70633d7f43cbacf9441541d80326178d7a43567d49928736a7957180"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_support.py",
+      "historical_root_path": "backends/reactive_wfo_support.py",
+      "sha256": "4b30b79aa8949864d1f7ce9f030f909f692a2fbe58b2c4b08aa806b663e91839"
+    },
+    {
+      "canonical_path": "src/quantbt/backends/reactive_wfo_workers.py",
+      "historical_root_path": "backends/reactive_wfo_workers.py",
+      "sha256": "cb3b572de8165df2b561c92f9ac9dffff494ae051be439f224886150e8b9e02f"
+    },
+    {
+      "canonical_path": "src/quantbt/backtester.py",
+      "historical_root_path": "backtester.py",
+      "sha256": "786c2df170b544f07cba0baa8a80dd4f3540d24a1e7916d8759041e82dee3b4a"
+    },
+    {
+      "canonical_path": "src/quantbt/core/__init__.py",
+      "historical_root_path": "core/__init__.py",
+      "sha256": "13934f04c11849698712fc7fb500e3e4fb0f8a6b693da75c5d8e3ab7be552f41"
+    },
+    {
+      "canonical_path": "src/quantbt/core/_trace_columns.py",
+      "historical_root_path": "core/_trace_columns.py",
+      "sha256": "710803cedaf72cd49b5464c7571dd8281ae1b3bd5fb2e45f101ab89e020df0f8"
+    },
+    {
+      "canonical_path": "src/quantbt/core/accounting_contracts.py",
+      "historical_root_path": "core/accounting_contracts.py",
+      "sha256": "58dc454cff177fcdc67efbd59f072e9d6a48c6ec63a1db11715c431078577b8a"
+    },
+    {
+      "canonical_path": "src/quantbt/core/arbitrage.py",
+      "historical_root_path": "core/arbitrage.py",
+      "sha256": "3a639611672643006f6ab2be89655e15dfd889ce70913219b0305e147aa54e56"
+    },
+    {
+      "canonical_path": "src/quantbt/core/basket.py",
+      "historical_root_path": "core/basket.py",
+      "sha256": "ea046573d9245d771ec429f92916a87a8afbbc5d0d8811516eb90847a89df0f4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/certification.py",
+      "historical_root_path": "core/certification.py",
+      "sha256": "9b1e9ff44f70850165fb48cc035887d688a5ef55989ac9899f12c23a8781ec35"
+    },
+    {
+      "canonical_path": "src/quantbt/core/constraints.py",
+      "historical_root_path": "core/constraints.py",
+      "sha256": "e4dec81fedddb817e60cc1ad02e4b5dea9fe400981a66f53e83355bad3299d09"
+    },
+    {
+      "canonical_path": "src/quantbt/core/engine.py",
+      "historical_root_path": "core/engine.py",
+      "sha256": "d9a8003c86290a854f740eec4040822b1c99a124528c582cae4bbc8d58a240f5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/event.py",
+      "historical_root_path": "core/event.py",
+      "sha256": "f6af2e2c1b94d955513520030f8d62be622a1e25ca5fc68169d3dd2726c775af"
+    },
+    {
+      "canonical_path": "src/quantbt/core/event_contracts.py",
+      "historical_root_path": "core/event_contracts.py",
+      "sha256": "850f9b632348265ff22b488aed67ab31d86c581740daad9b9f85696c479f06e5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_contract.py",
+      "historical_root_path": "core/execution_contract.py",
+      "sha256": "7ae9868f6922538444860143b86795c9f6e867661950c0182c340b24b8b63fed"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_depth.py",
+      "historical_root_path": "core/execution_depth.py",
+      "sha256": "74cb874cb58795c441c77568e6e5c12750a1b06fcebb7529cd0c85d2c8450a5f"
+    },
+    {
+      "canonical_path": "src/quantbt/core/execution_trace.py",
+      "historical_root_path": "core/execution_trace.py",
+      "sha256": "47803939a4e03c0a289a4fd955033682f7e5b61c47387d2b0bfe5d19786b4c36"
+    },
+    {
+      "canonical_path": "src/quantbt/core/fill_replay_v2.py",
+      "historical_root_path": "core/fill_replay_v2.py",
+      "sha256": "37f9ee84bdf45f334390bd7182cc5aaff2715d3a0ba1347ff58d23fc2d90bd1b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/generated_native_event_contracts.py",
+      "historical_root_path": "core/generated_native_event_contracts.py",
+      "sha256": "6b2923216bb43f24e4a015e95375c008e60640ad31778c1aff5c4a83c5fd851b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/generated_product_contracts.py",
+      "historical_root_path": "core/generated_product_contracts.py",
+      "sha256": "ccdfd9a0ca6c82b66eed2c1451cd97c6976a927a68c6ee6d914939a30fb60078"
+    },
+    {
+      "canonical_path": "src/quantbt/core/instrument_contracts.py",
+      "historical_root_path": "core/instrument_contracts.py",
+      "sha256": "b74c78b63c3d794aadab96203d5dc2ed280ccce6c75cf2f453540f2d8d71074a"
+    },
+    {
+      "canonical_path": "src/quantbt/core/instrument_registry_v2.py",
+      "historical_root_path": "core/instrument_registry_v2.py",
+      "sha256": "09df11a1334a6e818106c2de477511199092bf010de4e264cc4226f715f55c37"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_kernel.py",
+      "historical_root_path": "core/intrabar_kernel.py",
+      "sha256": "3a191fd95ee7a3c3607ef1fa9f6449a88a28b55e27731ae478444362522151fd"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_reference.py",
+      "historical_root_path": "core/intrabar_reference.py",
+      "sha256": "5c6dd10cbbc5803448ea4b0aef43a2ad6c76bc0ac7a75a62839d41988b49b5f5"
+    },
+    {
+      "canonical_path": "src/quantbt/core/intrabar_session.py",
+      "historical_root_path": "core/intrabar_session.py",
+      "sha256": "9e8e7e0b9f5a7ddb4dd9a90a71282655f2c7636782bb4a20be868074665e3b9f"
+    },
+    {
+      "canonical_path": "src/quantbt/core/market_calendar_v2.py",
+      "historical_root_path": "core/market_calendar_v2.py",
+      "sha256": "cbc92b27a07a643f65b95d764f728cd71dd7fc16c186c2744589bef28ba98af2"
+    },
+    {
+      "canonical_path": "src/quantbt/core/market_tape.py",
+      "historical_root_path": "core/market_tape.py",
+      "sha256": "9d1fef7124b76f07fbd13aa7e4a9ae575a2d5fc5ba5f2d4c64088799592cd1ee"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_capabilities.py",
+      "historical_root_path": "core/native_event_capabilities.py",
+      "sha256": "d9a25ba8ebb86976bd1915da68267fd9acf8b5a40516a91cb74c6246bb6e7963"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_parity.py",
+      "historical_root_path": "core/native_event_parity.py",
+      "sha256": "887798f28b7df6bd680b681a7662da9aa24602d74430e7c6832daf199cfe0153"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_event_promotion.py",
+      "historical_root_path": "core/native_event_promotion.py",
+      "sha256": "c5d2bb150db6161641feb90241a365509c4ef4b1d214536ce4a84ece873b2d54"
+    },
+    {
+      "canonical_path": "src/quantbt/core/native_result_v2.py",
+      "historical_root_path": "core/native_result_v2.py",
+      "sha256": "9d6260ead695621e86a683a0f8a4d32b9225d40e0e76c84d29cb42b8e51e096b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/order_compiler.py",
+      "historical_root_path": "core/order_compiler.py",
+      "sha256": "f34b389180480c859b33c13a44f57414da59219b0ec054d3b6540b333baaabb1"
+    },
+    {
+      "canonical_path": "src/quantbt/core/orders.py",
+      "historical_root_path": "core/orders.py",
+      "sha256": "bf8095486a085641ad9e6db085ec7c1bf6336f5fe4c5badf339d274c39a712bd"
+    },
+    {
+      "canonical_path": "src/quantbt/core/package_execution_contracts.py",
+      "historical_root_path": "core/package_execution_contracts.py",
+      "sha256": "49d736a403e3d065554993d4a1c47d82d2774b8a1206e1d602807728e4abf7bf"
+    },
+    {
+      "canonical_path": "src/quantbt/core/package_execution_v2.py",
+      "historical_root_path": "core/package_execution_v2.py",
+      "sha256": "81cd0b56d8265410be1df383bcb2f8eb9689bd5ea3167bf5731e89744727a3b2"
+    },
+    {
+      "canonical_path": "src/quantbt/core/performance_contracts.py",
+      "historical_root_path": "core/performance_contracts.py",
+      "sha256": "e364c8e4a0e7e36d751bb34f9a430f368da4317d9d46f124c0f67eb137b19f4d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/portfolio.py",
+      "historical_root_path": "core/portfolio.py",
+      "sha256": "6b4a9ed8a08206e74dbfc6cb9b6fb6d0c2de629d061b5e36572cba9eee24c8f4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/portfolio_execution_contracts.py",
+      "historical_root_path": "core/portfolio_execution_contracts.py",
+      "sha256": "3109fc239c27c09f457014a660cf95a3704799c70f1d5e3e9262db9c1f5d28d4"
+    },
+    {
+      "canonical_path": "src/quantbt/core/prepared_execution_v2.py",
+      "historical_root_path": "core/prepared_execution_v2.py",
+      "sha256": "e8ae915a8b2fddd9a8906fe70678f99801f94e767922eda3ddd7c8046c58a36e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/preprocessor.py",
+      "historical_root_path": "core/preprocessor.py",
+      "sha256": "676ca488602c43d1fd03b1ef46867323efb740ebb35e0940b0279935ac0c141d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/product_contracts.py",
+      "historical_root_path": "core/product_contracts.py",
+      "sha256": "444639f80f7d31d05ce78608947637f085c681e9fdf2dd7ba223d4deb152292e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/reactive.py",
+      "historical_root_path": "core/reactive.py",
+      "sha256": "813e8a2f6fcdcaa066c6c9d0220a45459fa55429fe46c42e5fc7070516828055"
+    },
+    {
+      "canonical_path": "src/quantbt/core/research_audit.py",
+      "historical_root_path": "core/research_audit.py",
+      "sha256": "b7347591cdc7b71b0def67a3417847c56dc33dabf311f6640a8a50633f13c70e"
+    },
+    {
+      "canonical_path": "src/quantbt/core/research_audit_artifact.py",
+      "historical_root_path": "core/research_audit_artifact.py",
+      "sha256": "85e6f9270b958b97a6bd430c1d6af16b08b493f0f5e124612c7de1fd7d0b1e5d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/results.py",
+      "historical_root_path": "core/results.py",
+      "sha256": "559e17ded4d561b8e98968e0d276fbda4256c322ac2af78cfff06ef5383cbbe3"
+    },
+    {
+      "canonical_path": "src/quantbt/core/runtime_governance.py",
+      "historical_root_path": "core/runtime_governance.py",
+      "sha256": "c45533abe509cb630c5d9609199d1baeaea402f8d0fdce1167c48b7485826b7d"
+    },
+    {
+      "canonical_path": "src/quantbt/core/schema.py",
+      "historical_root_path": "core/schema.py",
+      "sha256": "f3100f136858271f4e20ac900c0d455d10a34546ca54017a5af6742330780304"
+    },
+    {
+      "canonical_path": "src/quantbt/core/scopes.py",
+      "historical_root_path": "core/scopes.py",
+      "sha256": "d9f458fdd525ebfdfdb5f51d2d8ca92f5e37b5b2e3d61c98f9f254ae224d4a7b"
+    },
+    {
+      "canonical_path": "src/quantbt/core/structured_orders.py",
+      "historical_root_path": "core/structured_orders.py",
+      "sha256": "734b44de5614e5f12a4549aa00d60ba3995b244df84607c6960ab64c63b9f378"
+    },
+    {
+      "canonical_path": "src/quantbt/core/target_intents.py",
+      "historical_root_path": "core/target_intents.py",
+      "sha256": "8b5466cb6798b686e54ac64efc5a12ac615d2b207c4cdfb8b3142eced1bf1a95"
+    },
+    {
+      "canonical_path": "src/quantbt/core/types.py",
+      "historical_root_path": "core/types.py",
+      "sha256": "c52a409aeeb21799b393b47b1c658c2f42b371dca1cbc969cc8985c9f7a34eaa"
+    },
+    {
+      "canonical_path": "src/quantbt/core/vectorized.py",
+      "historical_root_path": "core/vectorized.py",
+      "sha256": "80e47a3f2072fd531a789fdfaf1756e2468b60ef73fec3998f1d9187f5f05158"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_contracts.py",
+      "historical_root_path": "core/wfo_contracts.py",
+      "sha256": "890d73813da6c5e5f464ccb6379e3fda7d6d4957ad645e54428c91956d83f9cf"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_evaluation.py",
+      "historical_root_path": "core/wfo_evaluation.py",
+      "sha256": "9148c257954c1c29ee4484984cec15c058d5dbc5c93eb0b5bcd9e3187b5566e6"
+    },
+    {
+      "canonical_path": "src/quantbt/core/wfo_preparation.py",
+      "historical_root_path": "core/wfo_preparation.py",
+      "sha256": "c675b1323e2396eafad9ebc26f74151758e5cd24d7a39417f480e5d2596cd551"
+    },
+    {
+      "canonical_path": "src/quantbt/endpoint.py",
+      "historical_root_path": "endpoint.py",
+      "sha256": "45ede55d0d66dd3a30089584b92199a455acca83e8f0418df3305874c28929a6"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/__init__.py",
+      "historical_root_path": "engine_spi/__init__.py",
+      "sha256": "4258e082784435d7e2bd1674a6c1b32d981f8a702123829abca42b35d73b6226"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/errors.py",
+      "historical_root_path": "engine_spi/errors.py",
+      "sha256": "5eba238f764a57cd17fe6fb0980a0fa052d6ff40f661adb731145212301f9193"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/native_event.py",
+      "historical_root_path": "engine_spi/native_event.py",
+      "sha256": "ccde997bc9a18bd5683e30bf5d6e07b04e5b5ddc735b34181b8dd5743432d474"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/protocol.py",
+      "historical_root_path": "engine_spi/protocol.py",
+      "sha256": "167b3b1d7e06088d2878c58fc6754560ca56ba58eac521554524a23f1f3bfb42"
+    },
+    {
+      "canonical_path": "src/quantbt/engine_spi/registry.py",
+      "historical_root_path": "engine_spi/registry.py",
+      "sha256": "4d4fbda9c6ed9da48bb56eaabb8a482c91fdf8a18821513008d58a0d46115b18"
+    },
+    {
+      "canonical_path": "src/quantbt/engines.py",
+      "historical_root_path": "engines.py",
+      "sha256": "56d06df1404ff179a03d008e1d44d5ebf3eeda2dbde31f9ed35ebe07059b9821"
+    },
+    {
+      "canonical_path": "src/quantbt/errors.py",
+      "historical_root_path": "errors.py",
+      "sha256": "0281de619c4144457f2b81892a1ac7752a32dea0066810a1d129f36e36cc206a"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/__init__.py",
+      "historical_root_path": "metrics/__init__.py",
+      "sha256": "0fbb26b47f0417770c2e8ae03280806937a98d9ef34f1eec767a3ea3ded25fa7"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/options_analytics.py",
+      "historical_root_path": "metrics/options_analytics.py",
+      "sha256": "ff74b11243b583b83724b38bf3a0cd57330887166cf81d855d115d31e443c90a"
+    },
+    {
+      "canonical_path": "src/quantbt/metrics/performance.py",
+      "historical_root_path": "metrics/performance.py",
+      "sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/__init__.py",
+      "historical_root_path": "optimization/__init__.py",
+      "sha256": "f7a7524fd1b8856b63262ceae2fb7fb6bf05b1a1aa7c0adf0dd1448ede23efd2"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/callbacks.py",
+      "historical_root_path": "optimization/callbacks.py",
+      "sha256": "6bb8ab0c890f2a2ebdacfae8dd84dcde6db17387acec56ad0aea65636f399d07"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/candidate_selection.py",
+      "historical_root_path": "optimization/candidate_selection.py",
+      "sha256": "b33831c811941893f8ac3ca20363f7569637e6edb1d019a8c682bdf951f944ea"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/config.py",
+      "historical_root_path": "optimization/config.py",
+      "sha256": "6b66dc66ef7851720d152d3f06d0d8f792d707b318e450f3d00042c35066a4eb"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/constraints.py",
+      "historical_root_path": "optimization/constraints.py",
+      "sha256": "20102f6c672040b8a58f290a4c9ecb3116622b24b54ec9c2787085f3700762df"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluator.py",
+      "historical_root_path": "optimization/evaluator.py",
+      "sha256": "3c53a0dc6ff8dd63cde22b62e369ed3c5637459614327108f019b08deac3d13a"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/__init__.py",
+      "historical_root_path": "optimization/evaluators/__init__.py",
+      "sha256": "e74b86ae2ff3990510d5812659064b5ecdf1e701ca2916c431fd6619d7ee75e5"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/arbitrage.py",
+      "historical_root_path": "optimization/evaluators/arbitrage.py",
+      "sha256": "551a13bd6c474e62e911ae54fb7fb65f54b991fa461c72c0f3fdb2e0f246c8fc"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/generic.py",
+      "historical_root_path": "optimization/evaluators/generic.py",
+      "sha256": "bcf66f607681229db112b2865b4821700a53acf8865aa775826484a5d9fd652b"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/grid_dca.py",
+      "historical_root_path": "optimization/evaluators/grid_dca.py",
+      "sha256": "63467ab935751a0e32a369b77630fb95c5f716d4aff66e1e60590aeb8392af39"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/intrabar.py",
+      "historical_root_path": "optimization/evaluators/intrabar.py",
+      "sha256": "d479e294ea726fcf6ff00d24fea246674245e28ddee081e8e53905067fa16e9d"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/native_event.py",
+      "historical_root_path": "optimization/evaluators/native_event.py",
+      "sha256": "fc15924a85f706d4095400fe18a47dd57f984034ee61992ac9fea8a46537d3f9"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/options.py",
+      "historical_root_path": "optimization/evaluators/options.py",
+      "sha256": "24543d7dfbb282fa86e042c22a1b46399cfb2f42696226ad1742592f8a436460"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/portfolio.py",
+      "historical_root_path": "optimization/evaluators/portfolio.py",
+      "sha256": "b046c2c76c1ece2b700e0f841c761aec647c21470e6daff707eccd4724260f4e"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/evaluators/signal.py",
+      "historical_root_path": "optimization/evaluators/signal.py",
+      "sha256": "76af955826ffb8d518922f95c18aece472447d750db7028175528c69a869924f"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/multiseed.py",
+      "historical_root_path": "optimization/multiseed.py",
+      "sha256": "c176ee75b2f78ede05e91617c6fce96fed6be22ce85b0c33823d7a8d3547f7ef"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/objectives.py",
+      "historical_root_path": "optimization/objectives.py",
+      "sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/optimizer.py",
+      "historical_root_path": "optimization/optimizer.py",
+      "sha256": "1c801a4a867b352cc53d8740878eea4b73a8a063248293e0b35987a39a8d94b7"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/result.py",
+      "historical_root_path": "optimization/result.py",
+      "sha256": "4a0aa633d6349344bcd0e0101584c48eb51dd7afe5e7293128df64ea8dd1e13f"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/samplers.py",
+      "historical_root_path": "optimization/samplers.py",
+      "sha256": "21469f4d7c3541342935ad735c86045f3333bba086685719b093c5fc5d6d5c3d"
+    },
+    {
+      "canonical_path": "src/quantbt/optimization/space.py",
+      "historical_root_path": "optimization/space.py",
+      "sha256": "b8897853d0a2ee8e8db9a02a96a4d35c1f66ec680338ce29a287ff317643d979"
+    },
+    {
+      "canonical_path": "src/quantbt/options/__init__.py",
+      "historical_root_path": "options/__init__.py",
+      "sha256": "38a4fd52822e8a6da18deb16f018c3ea1c24597f303256dc3453cac4769aca19"
+    },
+    {
+      "canonical_path": "src/quantbt/options/authority.py",
+      "historical_root_path": "options/authority.py",
+      "sha256": "6aa7dd07410f3a6f7e369ca4b844dc2555b562f097c47d9ca46d06be4d3a3622"
+    },
+    {
+      "canonical_path": "src/quantbt/options/cache.py",
+      "historical_root_path": "options/cache.py",
+      "sha256": "2aa7d17c1ab6c7f4e808c56dcc061a2329d679c27a489fa3bf15000b24a4cf42"
+    },
+    {
+      "canonical_path": "src/quantbt/options/capabilities.py",
+      "historical_root_path": "options/capabilities.py",
+      "sha256": "e7998b5baee8bd7af959ddb9560f6b97962623fd2bcd3a8fb1a246a996cebb89"
+    },
+    {
+      "canonical_path": "src/quantbt/options/conventions.py",
+      "historical_root_path": "options/conventions.py",
+      "sha256": "99253429d2c86a52793c774475ff3b843ff68c050defdec294cc59ce4ee1a238"
+    },
+    {
+      "canonical_path": "src/quantbt/options/data.py",
+      "historical_root_path": "options/data.py",
+      "sha256": "a4a424c7318b2280c712893a79e5162c073e7c9e0a86035b31c5a05237e952ca"
+    },
+    {
+      "canonical_path": "src/quantbt/options/execution.py",
+      "historical_root_path": "options/execution.py",
+      "sha256": "1d7263b60dfdb3728e3d8d905200f2e264bd76491c5681de089296df455066db"
+    },
+    {
+      "canonical_path": "src/quantbt/options/fees.py",
+      "historical_root_path": "options/fees.py",
+      "sha256": "e0216ce64999731648983e4ab5f0da069157819eec6e0b5f854bb910be7462bc"
+    },
+    {
+      "canonical_path": "src/quantbt/options/greeks.py",
+      "historical_root_path": "options/greeks.py",
+      "sha256": "12533ad2c2dc46f017180600d6c6d83958cabe902c6dbfa4010e21643d450ea4"
+    },
+    {
+      "canonical_path": "src/quantbt/options/hedging.py",
+      "historical_root_path": "options/hedging.py",
+      "sha256": "5cf6c1c7698570e320b2a0efdec2175d8e93ce1e206b36043fdd27c2f14db4b0"
+    },
+    {
+      "canonical_path": "src/quantbt/options/iv.py",
+      "historical_root_path": "options/iv.py",
+      "sha256": "f1ac18d1e417afd056b2a8d863a21b74474cf8687299d3c1a0be799d1592b050"
+    },
+    {
+      "canonical_path": "src/quantbt/options/ledger.py",
+      "historical_root_path": "options/ledger.py",
+      "sha256": "2edb76cd61638c4d06e0bca6d391f05c68abcdcd4a31335c5d95c764192c73ae"
+    },
+    {
+      "canonical_path": "src/quantbt/options/lifecycle.py",
+      "historical_root_path": "options/lifecycle.py",
+      "sha256": "5c457a63109422c36a6ac70ec323097521d75ab07e250fca01819509304c8f86"
+    },
+    {
+      "canonical_path": "src/quantbt/options/margin.py",
+      "historical_root_path": "options/margin.py",
+      "sha256": "9b5f2d92bd30f8e87c28192d8cd19e33c352bbfbe9042a9dddf1665c5b118784"
+    },
+    {
+      "canonical_path": "src/quantbt/options/packages.py",
+      "historical_root_path": "options/packages.py",
+      "sha256": "8753c7651b4984a47ecc803fd1bb9b2f9605c15edaa81dde8698b90ac3849c32"
+    },
+    {
+      "canonical_path": "src/quantbt/options/pricing.py",
+      "historical_root_path": "options/pricing.py",
+      "sha256": "092c9b85629e9802d9c597524dd0615320d76e8575e7af774ee218e94cb59ea8"
+    },
+    {
+      "canonical_path": "src/quantbt/options/reporting.py",
+      "historical_root_path": "options/reporting.py",
+      "sha256": "e293644e55add28559ee0a256cdecc09ad1d1e0f3efd250282d1f87a908da4c1"
+    },
+    {
+      "canonical_path": "src/quantbt/options/schema.py",
+      "historical_root_path": "options/schema.py",
+      "sha256": "dafb8be1ebdb304385a22cb7203f83b1fd7ad6060a72d1477a68df664861cf3c"
+    },
+    {
+      "canonical_path": "src/quantbt/options/selectors.py",
+      "historical_root_path": "options/selectors.py",
+      "sha256": "46b32ded8b605e33d1c1865eb19d6b01a8c0787a5b4c84d018846a5414208dfc"
+    },
+    {
+      "canonical_path": "src/quantbt/options/strategy.py",
+      "historical_root_path": "options/strategy.py",
+      "sha256": "58c3b92ffb0018b0595e16c6fd6619c3b6e5008003e765845f88336d6a8917eb"
+    },
+    {
+      "canonical_path": "src/quantbt/options/surface.py",
+      "historical_root_path": "options/surface.py",
+      "sha256": "e362dbc2a6e553b513829edc6494c0239cf0eed2904a63080449b9fa808b5907"
+    },
+    {
+      "canonical_path": "src/quantbt/options/tape.py",
+      "historical_root_path": "options/tape.py",
+      "sha256": "88230d39bf1099e262aefdfb187b0f49d5f532d378d7b7d2019661a08494fc66"
+    },
+    {
+      "canonical_path": "src/quantbt/options/templates/__init__.py",
+      "historical_root_path": "options/templates/__init__.py",
+      "sha256": "7697d9c1ac2b2986c5b847aff5dee28826bcd368d7e057d3eb873d51fe4ca4d4"
+    },
+    {
+      "canonical_path": "src/quantbt/options/templates/packages.py",
+      "historical_root_path": "options/templates/packages.py",
+      "sha256": "7d7a5b9caad5496b2bfe8944214f6417cce2127889f1cf41c8b62b42957e3c80"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/__init__.py",
+      "historical_root_path": "planning/__init__.py",
+      "sha256": "3eab06fbf629a7acd79e2e562db6bfa9d606696f31af63ac87d699f061781cf9"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/capabilities.py",
+      "historical_root_path": "planning/capabilities.py",
+      "sha256": "be935d11443c20482e0cc4c71f49e922616e9e9a05898c9129ed8d5d08428dfa"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/fingerprints.py",
+      "historical_root_path": "planning/fingerprints.py",
+      "sha256": "1ebdb9984c999cce0ec0a963b4de7a5c4071c0c15fad09360ef4e0a972c8e764"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/models.py",
+      "historical_root_path": "planning/models.py",
+      "sha256": "3482c08ac569e748de289740c67f5b02e7c1cb7b73ed37ac9ed34132c8cbae1a"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/output.py",
+      "historical_root_path": "planning/output.py",
+      "sha256": "c6f4a96de6ae113a00178c3d71d7f01ee8123530e8151cbe35c580db13760b9a"
+    },
+    {
+      "canonical_path": "src/quantbt/planning/resolve.py",
+      "historical_root_path": "planning/resolve.py",
+      "sha256": "c979b6d29eb4cd0789d0fd7ec36e1f971ccd3b1eb03160d2a6f661e28d123c39"
+    },
+    {
+      "canonical_path": "src/quantbt/portfolio.py",
+      "historical_root_path": "portfolio.py",
+      "sha256": "a15abfcaa5930a8dde733309d705bff8b2f1707ab1bf962cc0a667b976a8cd84"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/__init__.py",
+      "historical_root_path": "preparation/__init__.py",
+      "sha256": "5cf27aac012869d4da67ee4013eade0fc591b45bf8cc37d6cf58fdc3f39dc1d0"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/cache.py",
+      "historical_root_path": "preparation/cache.py",
+      "sha256": "db1726ebf1a7758434f2f3a4df75f68f34dc98c975bdb8e3e2875bef196e2042"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/models.py",
+      "historical_root_path": "preparation/models.py",
+      "sha256": "e73eefd9678dff8d225cd9445ae480fd79aad3c0f92da24475eafc214d69cab8"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_event.py",
+      "historical_root_path": "preparation/native_event.py",
+      "sha256": "e86e3f21f30ed31917119f6792a00013fdbffbaaf75ec83e179f65f725a43328"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_execution.py",
+      "historical_root_path": "preparation/native_execution.py",
+      "sha256": "dcd56ea9ff1430ed976d6c12242b4b8d36b994b7ca4b3626d9c08f66f4a93383"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_intrabar_requests.py",
+      "historical_root_path": "preparation/native_intrabar_requests.py",
+      "sha256": "71f33a1dc9a1c40e10a29399a8c90be3843db97165ca06a13e18e038463a6b77"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_package_requests.py",
+      "historical_root_path": "preparation/native_package_requests.py",
+      "sha256": "73ce4781fa601bb159a322cd5f2301205ffb2a2e4622a30bfd5366647c08ede3"
+    },
+    {
+      "canonical_path": "src/quantbt/preparation/native_target_requests.py",
+      "historical_root_path": "preparation/native_target_requests.py",
+      "sha256": "2a65a206fa1ef31b398e650cde0cda4e3e3df2861608752c213b9fcd8ce222b3"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/__init__.py",
+      "historical_root_path": "reporting/__init__.py",
+      "sha256": "67f3aa4a9ab0e6f45ea924e59c5aa57abbc5a7740eb442a01c293d01567c8ae0"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/arbitrage_audit.py",
+      "historical_root_path": "reporting/arbitrage_audit.py",
+      "sha256": "0c8d7cdfeeaf7b63513c1dd2d8f68458010f4dbb66eae37a1f38d16546ae2c16"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_bundle.py",
+      "historical_root_path": "reporting/nautilus_bundle.py",
+      "sha256": "0626ae658a2ba82ddf382e98e679f2bfe80e8df0146ecef42e1413d185c5d4f4"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_certification.py",
+      "historical_root_path": "reporting/nautilus_certification.py",
+      "sha256": "138079faf8e3ba29c3c94f5959306c751dee42d3f0c92d113abbc715ce6ce954"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/nautilus_diagnostics.py",
+      "historical_root_path": "reporting/nautilus_diagnostics.py",
+      "sha256": "8dc6b08cfb4f4684b26a29ae0985c4962c2f0ae21b140d36d5b605b7d4ae7d97"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/parity.py",
+      "historical_root_path": "reporting/parity.py",
+      "sha256": "85960df1286ab89e9c22de896b81717c0033eee6d0e95bd3ad31c72d80d37f24"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/portfolio_audit.py",
+      "historical_root_path": "reporting/portfolio_audit.py",
+      "sha256": "cba2108155418532ef56f3b5ab493822b87da467140dc880013a148c83c9a200"
+    },
+    {
+      "canonical_path": "src/quantbt/reporting/portfolio_nautilus.py",
+      "historical_root_path": "reporting/portfolio_nautilus.py",
+      "sha256": "e4d5b01a7dd6677dd80285c5f7268327b0a2f616eb9219707bf825de5f65fef4"
+    },
+    {
+      "canonical_path": "src/quantbt/results/__init__.py",
+      "historical_root_path": "results/__init__.py",
+      "sha256": "2654b66643495e5f74d5b4f47db553507e7c5331156fee9522067d8b17506774"
+    },
+    {
+      "canonical_path": "src/quantbt/results/raw.py",
+      "historical_root_path": "results/raw.py",
+      "sha256": "9d8820c57164f8f4d74d0de03204fa9f398aa5b4778dbc3d7109707baa67668d"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/__init__.py",
+      "historical_root_path": "sizing/__init__.py",
+      "sha256": "022272717879a37661d665dce5a8d30f473941eca6002ba9c3fc377a19b303e7"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/fast.py",
+      "historical_root_path": "sizing/fast.py",
+      "sha256": "9bdf758d6f19742fd461bfdfecdcb1adb48a87ebd1238f4fcde0c00a786ead82"
+    },
+    {
+      "canonical_path": "src/quantbt/sizing/modes.py",
+      "historical_root_path": "sizing/modes.py",
+      "sha256": "41a7e60e5b57f68149912025484aae9b98875da83fea485f138748f6993db0b7"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/__init__.py",
+      "historical_root_path": "strategies/__init__.py",
+      "sha256": "c3faac928954e8724da7b7015224147ecc6c0d11430225ccee2edda0645aed9b"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/commands.py",
+      "historical_root_path": "strategies/commands.py",
+      "sha256": "93c4c38b8cb179c6173ac2d843239466fc6a3ac5f0f7f37aaae3a579c988abe4"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/context.py",
+      "historical_root_path": "strategies/context.py",
+      "sha256": "567ec16ab7bfe69f47bf305a4eda440c4a15f8be98884734cbf4a38b831bab93"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/driver.py",
+      "historical_root_path": "strategies/driver.py",
+      "sha256": "a1115c2325fa440b27cdca5c4641bc3191b86e29b7e3227df138deacb3fa3cb2"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/native_ir.py",
+      "historical_root_path": "strategies/native_ir.py",
+      "sha256": "8ad2ba51b691666140eb1478ae987a76fc0077015b6198ace366904d3f444626"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/reactive_protocols.py",
+      "historical_root_path": "strategies/reactive_protocols.py",
+      "sha256": "d493814d961afdb2afa2962e5f800ba12ceab90c34ae294a6cdb6ff5f748d3f8"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/reactive_wfo.py",
+      "historical_root_path": "strategies/reactive_wfo.py",
+      "sha256": "cef9395fc29f026ae131cbd65ae03d3b99afefe9bff06e515308a93cdc91e1a8"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/requirements.py",
+      "historical_root_path": "strategies/requirements.py",
+      "sha256": "de46852146cff1cd498656707fff01c2bab79d354e55820c259ab59d07a70d59"
+    },
+    {
+      "canonical_path": "src/quantbt/strategies/wfo_prepared.py",
+      "historical_root_path": "strategies/wfo_prepared.py",
+      "sha256": "e7a420c4ee61c29bfc60910886a4cbd4fa4fcfc0f163227b3397547995c83fa8"
+    },
+    {
+      "canonical_path": "src/quantbt/verification/__init__.py",
+      "historical_root_path": "verification/__init__.py",
+      "sha256": "c4c40d8fb984ceb16a7e3a67635a55a872e32e3c35aa266ea516802f1fe0a5b2"
+    },
+    {
+      "canonical_path": "src/quantbt/verification/canonical_trace_v2.py",
+      "historical_root_path": "verification/canonical_trace_v2.py",
+      "sha256": "cc3a2377738861928f536a97a0cf3d315e0763c6fd73bbe2f9232ef303fcc391"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/__init__.py",
+      "historical_root_path": "viz/__init__.py",
+      "sha256": "d3469dc0e606bdc5fecd644ff9165be05236763a764d57d9fb6ff93a25b09a47"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/plots.py",
+      "historical_root_path": "viz/plots.py",
+      "sha256": "68ce68eea6e2bfb51cd4c2ee035f04b08c03fb00036491dfd456f5c845911f81"
+    },
+    {
+      "canonical_path": "src/quantbt/viz/themes.py",
+      "historical_root_path": "viz/themes.py",
+      "sha256": "da1b6522bae3c8271eeb7001168ad86adb4b82215378bfba872ec41efed7885e"
+    },
+    {
+      "canonical_path": "src/quantbt/walkforward.py",
+      "historical_root_path": "walkforward.py",
+      "sha256": "eda2807e7d23e104b577738651d1460c0e650995090c4cf95df1246b844be251"
+    }
+  ],
+  "rollback": "git-revert of the isolated root-mirror retirement commit",
+  "schema": "quantbt-next03-root-mirror-retirement-baseline-v1",
+  "verified_files": 182
+}

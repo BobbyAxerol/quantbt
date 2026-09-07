@@ -27,9 +27,9 @@ rollback boundary are in the [TestPyPI release checklist](testpypi_release_check
 
 ## P3 Product Evidence
 
-The shipped Python package is built from `src/quantbt`. The repository root
-mirror is a temporary checked compatibility mirror and is never an independent
-release source. Before a release candidate, run:
+The shipped Python package is built only from `src/quantbt`. The historical
+repository-root compatibility mirror was retired in NEXT-03 and is not an
+import or release source. Before a release candidate, run:
 
 ```bash
 make test-contracts
@@ -67,6 +67,23 @@ make certify-native-release
 The staged verifier creates clean environments, checks source-to-wheel module
 hashes, rejects source-tree import leakage, and requires an exact pair declared
 by the generated product registry.
+
+For the stronger public-surface lane, which also installs the declared
+`optimization` extra and exercises a small static endpoint, Python reactive
+endpoint, Mode 4 causal WFO, and pre-execution unsupported-capability gate,
+run:
+
+```bash
+make verify-staged-public-surface
+```
+
+It runs with `python -I` from temporary directories outside the checkout and
+checks the editable developer lane, ordinary wheel lane, and core-sdist rebuild
+lane. The editable lane must resolve exactly to `src/quantbt`; the two
+distributed lanes must resolve to `site-packages`. This is a functional
+consumer proof, not a performance benchmark. `optuna` remains optional for
+ordinary static/reactive installs; only WFO/optimization users need
+`quantbt-engine[optimization]`.
 
 `make certify-native-release` adds the native release-candidate proof: it
 creates a core-only environment and an exact core/native-pair environment,
@@ -127,8 +144,8 @@ from quantbt import QuantBTEndpoint
 ```
 
 - Source layout is `src/quantbt`.
-- Root source is retained during migration until later compatibility gates
-  explicitly remove it.
+- Root production source is retired; `src/quantbt` is the only importable
+  implementation tree.
 - The current package release line is `1.1.x`, continuing the existing GitHub
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
@@ -141,10 +158,11 @@ from quantbt import QuantBTEndpoint
   `1.1.0`; its native-first OIDC upload and consumer proof are mandatory
   before a release is represented as publicly available.
 
-Phase 45C keeps the root source mirror temporarily for rollback and editable
-compatibility. Distribution artifacts are built from `src/quantbt`, while the
-SHA256 source-sync test prevents the two source locations from drifting.
-Deleting the root mirror is a later, separately approved migration step.
+NEXT-03 retired the reviewed root source mirror after a clean candidate-wheel,
+canonical-origin, and type-identity proof. Distribution artifacts are built
+from `src/quantbt`; the retirement baseline and no-regrowth gate are recorded
+in [Canonical Source Layout](architecture/source_layout.md). Rollback is a
+scoped Git revert of that retirement commit, not a sync operation.
 
 ## CI Contract
 
@@ -202,9 +220,8 @@ current `main` tip. Do not reuse a final tag for TestPyPI.
 Do not publish from an uncommitted local tree.
 
 The release workflow runs `pip check` after both wheel and sdist installation.
-The package build source is `src/quantbt`; the root mirror is retained for
-editable Pool Alpha compatibility and is protected by the source-sync tests.
-It is not a second distribution source.
+The package build source is `src/quantbt`; the canonical-source gate rejects a
+root production mirror and checks import origin/type identity before release.
 
 The exact handoff fields, artifact hashes, RC tag procedure, and post-upload
 smoke steps are maintained in the
@@ -459,25 +476,21 @@ the early explicit-order subset. They are not the current public Rust
 contract, and their restrictions must not be used as the release policy for
 API 0.4.
 
-## Repository Mirror And Artifact Safety
+## Canonical Source And Artifact Safety
 
-The Python wheel source of truth is `src/quantbt`. The root-level Python tree
-is a temporary compatibility mirror for local Pool Alpha imports. Its scope is
-explicitly limited by `tools/source_mirror_manifest.py`; benchmark scripts,
-tests, and tools are not package mirror entries.
-
-Check or synchronize one direction at a time:
+The Python wheel source of truth is `src/quantbt`; NEXT-03 removed the reviewed
+root production mirror. Root benchmark harnesses, examples, independent Python
+oracles, and migration tooling remain developer surfaces, not package source.
 
 ```bash
-poetry run python tools/sync_source_mirror.py --check
-poetry run python tools/sync_source_mirror.py --src-to-root
-poetry run python tools/sync_source_mirror.py --root-to-src
+poetry run python tools/next03_source_inventory.py --check
+poetry run python tools/check_canonical_source_layout.py --check
 ```
 
-The sync tool never merges both trees automatically and never deletes an
-unknown root-only file. A missing, extra, or byte-different Python file is a
-reviewable failure. `src/quantbt` remains the wheel source until the mirror is
-formally retired.
+The generated inventory records every canonical module, the frozen historical
+mirror hashes, explicit retained root-only surfaces, and the scoped rollback
+boundary. The no-regrowth gate rejects a new root package/module that overlaps
+the canonical production namespace; it does not ban legitimate tooling.
 
 Before a public release, CI verifies that `upgrade/implement.md` remains
 tracked and visible, scans tracked files for high-confidence credential

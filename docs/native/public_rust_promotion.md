@@ -71,8 +71,9 @@ back to Python.
 
 ## Certification Boundary
 
-This is A4 route promotion, not A5 source-removal approval. The Python oracle,
-compatibility mirror, fail-closed explicit route, and rollback controls remain
-required until a separately observed shadow-release cycle is approved. The
+This is A4 route promotion, not A5 engine-source-removal approval. The Python
+oracle, historical compatibility-mirror retirement record, fail-closed explicit
+route, and rollback controls remain required until a separately observed
+shadow-release cycle is approved. The
 generated [compatibility table](../contracts/generated_product_compatibility.md)
 is the executable source of truth.

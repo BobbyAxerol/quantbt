@@ -38,7 +38,7 @@ def _write_core_artifacts(dist: Path, core_version: str) -> None:
         archive.addfile(member, io.BytesIO(payload))
 
 
-def test_phase54b4_deletion_manifest_retains_every_compatibility_surface() -> None:
+def test_phase54b4_deletion_manifest_preserves_history_and_records_next03_retirement() -> None:
     from tools.check_native_release_handoff import validate_migration_audit
 
     assert validate_migration_audit() == []
@@ -46,13 +46,20 @@ def test_phase54b4_deletion_manifest_retains_every_compatibility_surface() -> No
         (ROOT / "contracts" / "native_event_deletion_manifest.json").read_text(encoding="utf-8")
     )
     root = next(item for item in payload["candidates"] if item["id"] == "root_python_mirror")
-    assert root["state"] == "retained"
-    assert root["deletion_approved"] is False
+    assert payload["phase_history"][0]["phase"] == "54B.4"
+    assert payload["phase_history"][0]["status"] == "superseded_by_NEXT-03_canonical_source_retirement"
+    assert payload["phase_history"][1] == {
+        "phase": "NEXT-03",
+        "root_source_policy": "canonical_src_only_after_next03_retirement",
+        "status": "active",
+    }
+    assert root["state"] == "removed"
+    assert root["deletion_approved"] is True
     assert {"__init__.py", "endpoint.py", "walkforward.py", "backends", "core"}.issubset(
         root["paths"]
     )
     assert root["replacement_paths"] == ["src/quantbt"]
-    assert all(item["deletion_approved"] is False for item in payload["candidates"])
+    assert (ROOT / "contracts" / "next03_root_mirror_retirement_baseline.json").is_file()
 
 
 def test_phase54b4_release_manifest_derives_native_surface_from_registry(tmp_path: Path) -> None:

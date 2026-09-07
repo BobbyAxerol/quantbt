@@ -43,7 +43,7 @@ or GTD semantics for the Rust path.
 
 ## Packaging baseline
 
-The wheel source remains under `src/quantbt`. During the migration the root
-compatibility mirror is retained and checked byte-for-byte by
-`tests/test_phase45a_source_tree_sync.py`. Phase 46A does not delete or
-rewrite that mirror.
+The wheel source remains under `src/quantbt`. The old root compatibility mirror
+was retired in NEXT-03; `tests/test_next03_canonical_source_layout.py` now
+asserts canonical origin and rejects mirror regrowth. The earlier Phase 46A
+retention statement is historical context, not current packaging policy.

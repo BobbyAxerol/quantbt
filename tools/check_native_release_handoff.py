@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate the Phase 54B.4 native migration/deletion audit.
+"""Validate the active native migration/deletion audit.
 
-The audit deliberately records retained compatibility surfaces as well as
-future deletion candidates.  It prevents a release note from describing a
-path as removed merely because a newer Rust path exists.
+Phase 54B.4 originally retained a byte-identical root Python mirror.  NEXT-03
+retired that mirror after an independent canonical-source inventory and clean
+consumer proof.  The manifest keeps that historical policy visible while the
+active gate verifies the current canonical-only source layout.
 """
 
 from __future__ import annotations
@@ -18,6 +19,10 @@ from typing import Any, Mapping
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "contracts" / "native_event_deletion_manifest.json"
 _STATES = {"retained", "deferred", "removed"}
+_ROOT_POLICIES = {
+    "retained_byte_identity_gated_until_separate_approved_breaking_cleanup",
+    "canonical_src_only_after_next03_retirement",
+}
 _REQUIRED = {
     "id",
     "paths",
@@ -40,6 +45,21 @@ def _relative_path(root: Path, value: object, *, label: str) -> Path:
     return root / candidate
 
 
+def _removed_path_still_contains_source(path: Path, *, root_mirror: bool) -> bool:
+    """Ignore ignored cache directories left after root-mirror ``git rm``.
+
+    Other removed candidates retain strict path absence. Only the retired root
+    Python mirror may leave an empty/``__pycache__`` directory in a live local
+    checkout without recreating an importable production namespace.
+    """
+
+    if not path.exists() and not path.is_symlink():
+        return False
+    if not root_mirror or path.is_symlink() or path.is_file():
+        return True
+    return any(candidate.is_file() for candidate in path.rglob("*.py"))
+
+
 def _non_empty_strings(value: object, *, label: str) -> list[str]:
     if not isinstance(value, list) or not value or not all(str(item).strip() for item in value):
         raise ValueError(f"{label} must be a non-empty list of strings")
@@ -55,12 +75,16 @@ def validate_migration_audit(
 
     payload: Mapping[str, Any] = json.loads(manifest_path.read_text(encoding="utf-8"))
     violations: list[str] = []
-    if payload.get("schema") != "quantbt-native-deletion-manifest-v1":
+    if payload.get("schema") not in {
+        "quantbt-native-deletion-manifest-v1",
+        "quantbt-native-deletion-manifest-v2",
+    }:
         violations.append("unsupported native deletion manifest schema")
     if str(payload.get("phase", "")) != "54B.4":
         violations.append("native deletion manifest must be owned by Phase 54B.4")
-    if payload.get("root_source_policy") != "retained_byte_identity_gated_until_separate_approved_breaking_cleanup":
-        violations.append("root source policy must retain the byte-identity-gated mirror")
+    root_source_policy = str(payload.get("root_source_policy", ""))
+    if root_source_policy not in _ROOT_POLICIES:
+        violations.append("root source policy is not recognized")
 
     candidates = payload.get("candidates")
     if not isinstance(candidates, list) or not candidates:
@@ -99,7 +123,10 @@ def validate_migration_audit(
             continue
         for value in paths:
             path = _relative_path(root, value, label=f"{identifier}.paths")
-            if state == "removed" and path.exists():
+            if state == "removed" and _removed_path_still_contains_source(
+                path,
+                root_mirror=identifier == "root_python_mirror",
+            ):
                 violations.append(f"{identifier}: removed path still exists: {value}")
             if state != "removed" and not path.exists():
                 violations.append(f"{identifier}: retained/deferred path is missing: {value}")
@@ -115,17 +142,20 @@ def validate_migration_audit(
 
     if root_candidate is None:
         violations.append("root_python_mirror candidate is required")
-    elif (
-        str(root_candidate.get("state")) != "retained"
-        or bool(root_candidate.get("deletion_approved"))
-        or not {"__init__.py", "endpoint.py", "walkforward.py", "backends", "core"}.issubset(
-            {str(item) for item in root_candidate.get("paths", ())}
-        )
-    ):
-        violations.append(
-            "root_python_mirror must retain the root module/package compatibility markers "
-            "and remain not deletion-approved"
-        )
+    else:
+        root_paths = {str(item) for item in root_candidate.get("paths", ())}
+        required_markers = {"__init__.py", "endpoint.py", "walkforward.py", "backends", "core"}
+        if not required_markers.issubset(root_paths):
+            violations.append("root_python_mirror must list the reviewed root module/package markers")
+        if root_source_policy == "retained_byte_identity_gated_until_separate_approved_breaking_cleanup":
+            if str(root_candidate.get("state")) != "retained" or bool(root_candidate.get("deletion_approved")):
+                violations.append("retained root source policy requires a non-approved retained mirror")
+        else:
+            if str(root_candidate.get("state")) != "removed" or not bool(root_candidate.get("deletion_approved")):
+                violations.append("canonical source policy requires the reviewed root mirror to be removed")
+            baseline = root / "contracts" / "next03_root_mirror_retirement_baseline.json"
+            if not baseline.is_file():
+                violations.append("canonical source policy requires the NEXT-03 retirement baseline")
     return sorted(set(violations))
 
 

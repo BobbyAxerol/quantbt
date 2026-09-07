@@ -126,11 +126,11 @@ For production-like research:
 
 ## Native Product Status
 
-`src/quantbt` is the authoritative Python source tree. A byte-identical,
-manifest-limited root mirror remains for local Pool Alpha compatibility; test
-bootstrap explicitly prioritizes `src/` so local tests cannot accidentally
-exercise a stale installed wheel or a mirror instead of the source under
-review.
+`src/quantbt` is the sole Python source tree. The historical root mirror was
+retired in NEXT-03; canonical-origin and clean-consumer checks now protect the
+layout. Test bootstrap explicitly prioritizes `src/` so local tests cannot
+accidentally exercise a stale installed wheel or a historical mirror instead of
+the source under review.
 The platform-governed Rust companion exposes explicit certified static command
 tapes, bounded Native Strategy IR/batch rows, V2 `target_units`, and same-bar
 atomic package market helpers. Phase 78 promotes one deliberately narrow

@@ -11,40 +11,16 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from tools.check_release_artifacts import inspect_artifact  # noqa: E402
 from tools.scan_public_secrets import content_matches  # noqa: E402
-from tools.source_mirror_manifest import (  # noqa: E402
-    MIRROR_ENTRIES,
-    compare_file_maps,
-    mirror_differences,
-)
+from tools.check_canonical_source_layout import root_mirror_regrowth  # noqa: E402
 
 
-def test_phase48b_explicit_mirror_is_byte_identical_and_excludes_benchmarks() -> None:
-    differences = mirror_differences(PROJECT_ROOT)
-
-    assert not any(differences.values()), differences
-    assert "benchmarks" not in MIRROR_ENTRIES
+def test_phase48b_retired_mirror_cannot_regrow_and_excludes_root_benchmarks() -> None:
+    assert root_mirror_regrowth(PROJECT_ROOT) == []
+    assert (PROJECT_ROOT / "benchmarks").is_dir()
 
 
-def test_phase48b_manifest_comparison_detects_missing_extra_and_drift(tmp_path: Path) -> None:
-    canonical_path = tmp_path / "canonical.py"
-    mirror_path = tmp_path / "mirror.py"
-    extra_path = tmp_path / "extra.py"
-    canonical_path.write_bytes(b"canonical")
-    mirror_path.write_bytes(b"different")
-    extra_path.write_bytes(b"extra")
-
-    differences = compare_file_maps(
-        {Path("module.py"): canonical_path, Path("missing.py"): canonical_path},
-        {Path("module.py"): mirror_path, Path("extra.py"): extra_path},
-    )
-
-    assert differences["missing"] == (Path("missing.py"),)
-    assert differences["extra"] == (Path("extra.py"),)
-    assert differences["drift"] == (Path("module.py"),)
-
-
-def test_phase48b_sync_check_mode_and_agent_plan_visibility() -> None:
-    tool = PROJECT_ROOT / "tools" / "sync_source_mirror.py"
+def test_phase48b_canonical_layout_check_mode_and_agent_plan_visibility() -> None:
+    tool = PROJECT_ROOT / "tools" / "check_canonical_source_layout.py"
     completed = subprocess.run(
         [sys.executable, str(tool), "--check"],
         cwd=PROJECT_ROOT,
@@ -53,7 +29,7 @@ def test_phase48b_sync_check_mode_and_agent_plan_visibility() -> None:
         check=False,
     )
     assert completed.returncode == 0, completed.stderr or completed.stdout
-    assert "mirror check: PASS" in completed.stdout
+    assert "canonical source layout/no-regrowth gate: PASS" in completed.stdout
 
     tracked = subprocess.run(
         ["git", "ls-files", "--error-unmatch", "upgrade/implement.md"],

@@ -102,13 +102,17 @@ contract gates before opening a PR:
 make test-contracts
 ```
 
-`src/quantbt` is the authoritative Python tree. The root mirror is transitional
-and generated from `src`; after a source edit, synchronize it with:
+`src/quantbt` is the sole production Python tree. Do not add a root-level
+`__init__.py`, production module, or package directory that shadows it. Check
+the canonical layout before opening a PR:
 
 ```bash
-python tools/sync_source_mirror.py --src-to-root
-python tools/sync_source_mirror.py --check
+python tools/check_canonical_source_layout.py --check
 ```
+
+The reviewed historical mirror hashes are retained in
+`contracts/next03_root_mirror_retirement_baseline.json`; rollback is a scoped
+Git revert, never a second live source tree.
 
 Do not hand-edit generated product artifacts. Update the source registry, run
 the generators, and commit source plus generated output together.

@@ -645,7 +645,7 @@ def _markdown(payload: Mapping[str, Any]) -> str:
             "",
             "This artifact is the immutable pre-enable admission snapshot. Its routing column records the resolver before the registry rule was enabled, avoiding a self-referential benchmark identity. The current Phase 78 policy promotes only Native Strategy IR score at 2,000+ bars. Static command tapes remain Python-auto because their public score advantage did not remain stable across the longer paired sample. Python callbacks, reactive strategies, generic WFO, portfolio/package, intrabar, and options retain their declared policies.",
             "",
-            "A4 evidence is not A5 deletion approval. The Python oracle, rollback controls, and retained compatibility mirror remain required until a stable shadow release has been observed and separately approved.",
+            "A4 evidence is not A5 engine-deletion approval. The Python oracle, rollback controls, and the historical NEXT-03 mirror-retirement record remain required until a stable shadow release has been observed and separately approved.",
             "",
         ]
     )

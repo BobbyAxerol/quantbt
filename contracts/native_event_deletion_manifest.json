@@ -1,7 +1,19 @@
 {
-  "schema": "quantbt-native-deletion-manifest-v1",
+  "schema": "quantbt-native-deletion-manifest-v2",
   "phase": "54B.4",
-  "root_source_policy": "retained_byte_identity_gated_until_separate_approved_breaking_cleanup",
+  "phase_history": [
+    {
+      "phase": "54B.4",
+      "root_source_policy": "retained_byte_identity_gated_until_separate_approved_breaking_cleanup",
+      "status": "superseded_by_NEXT-03_canonical_source_retirement"
+    },
+    {
+      "phase": "NEXT-03",
+      "root_source_policy": "canonical_src_only_after_next03_retirement",
+      "status": "active"
+    }
+  ],
+  "root_source_policy": "canonical_src_only_after_next03_retirement",
   "candidates": [
     {
       "id": "root_python_mirror",
@@ -12,22 +24,23 @@
         "backends",
         "core"
       ],
-      "state": "retained",
-      "deletion_approved": false,
-      "replacement": "src/quantbt is the authoritative wheel source; the root tree remains a checked Pool Alpha compatibility mirror.",
+      "state": "removed",
+      "deletion_approved": true,
+      "replacement": "src/quantbt is the authoritative package source; the reviewed root compatibility mirror was retired by NEXT-03 after canonical-origin and clean-consumer evidence.",
       "replacement_paths": [
         "src/quantbt"
       ],
       "migration_docs": [
+        "docs/architecture/source_layout.md",
         "docs/release_packaging.md",
         "docs/migration/native_release_handoff.md"
       ],
       "tests": [
-        "tests/test_phase42_packaging_layout.py",
-        "tests/test_phase45a_source_tree_sync.py"
+        "tests/test_next03_canonical_source_layout.py",
+        "tests/test_next03_source_inventory.py"
       ],
-      "compatibility_window": "Until a separately approved breaking cleanup validates editable, wheel, and Pool Alpha path-import migration.",
-      "rollback": "tools/sync_source_mirror.py --src-to-root restores the checked compatibility mirror; never merge both trees automatically.",
+      "compatibility_window": "Retired in NEXT-03. Existing users retain the stable quantbt.* import namespace through src/quantbt; root-local imports were never a distributed package contract.",
+      "rollback": "Revert the isolated NEXT-03 root-mirror retirement commit; do not recreate or synchronize a second live source tree.",
       "owner": "packaging"
     },
     {

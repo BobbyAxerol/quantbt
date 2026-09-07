@@ -35,7 +35,7 @@ jobs:
 
       - name: Validate registries and baseline governance
         run: |
-          .venv/bin/python tools/sync_source_mirror.py --check
+          .venv/bin/python tools/check_canonical_source_layout.py --check
           .venv/bin/python tools/generate_native_event_contracts.py --check
           .venv/bin/python tools/generate_product_contracts.py --check
           .venv/bin/python tools/check_benchmark_governance.py

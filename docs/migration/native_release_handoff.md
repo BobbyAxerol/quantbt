@@ -23,10 +23,12 @@ poetry add quantbt-engine
 On the supported matrix this resolves the exact companion; elsewhere it keeps
 the same Python endpoint surface without attempting a source build.
 
-The root-level module/package set (`endpoint.py`, `backends/`, `core/`, and
-related mirror entries) is retained as a byte-identity-gated Pool Alpha
-compatibility mirror. `src/quantbt/` is the wheel source. Do not delete the
-mirror, edit both trees, or treat a root-tree import as installed-wheel proof.
+`src/quantbt/` is the sole package and wheel source. NEXT-03 retired the former
+root-level mirror (`endpoint.py`, `backends/`, `core/`, and related entries)
+after canonical-origin and clean-consumer evidence. Do not recreate root source
+entries or treat a repository-root import as installed-wheel proof; use an
+editable install for local development or an isolated candidate wheel for
+consumer verification.
 
 ## Runtime Route Matrix
 

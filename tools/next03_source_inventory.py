@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the Phase NEXT-03 source-layout inventory.
+"""Generate the Phase NEXT-03 canonical-source inventory.
 
-``src/quantbt`` is the canonical production package.  Until the reviewed
-retirement change lands, a subset of it is mirrored at repository root for
-legacy local imports.  This tool records every canonical module, the exact
-mirror relation where one exists, and the root-only developer/oracle surfaces
-that must not be deleted as part of mirror retirement.
+``src/quantbt`` is the sole production package.  The repository once carried
+a byte-identical root compatibility mirror; its reviewed hashes are retained in
+a separate immutable baseline so the source tree can stay single-source while
+the retirement remains auditable and reversible by a scoped Git revert.
 """
 
 from __future__ import annotations
@@ -22,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CANONICAL_ROOT = ROOT / "src" / "quantbt"
 DEFAULT_INVENTORY = ROOT / "contracts" / "next03_source_layout_inventory.json"
 DEFAULT_DOC = ROOT / "docs" / "architecture" / "source_layout.md"
+DEFAULT_RETIREMENT_BASELINE = ROOT / "contracts" / "next03_root_mirror_retirement_baseline.json"
 
 # This is an inventory of the historical compatibility mirror, not a second
 # package-discovery rule.  The list deliberately excludes root tooling,
@@ -74,6 +74,22 @@ def _python_files(root: Path) -> list[Path]:
     return sorted(path for path in root.rglob("*.py") if path.is_file())
 
 
+def root_mirror_entry_present(entry: str, *, root: Path = ROOT) -> bool:
+    """Return whether a retired entry contains importable root production code.
+
+    ``git rm`` may leave ignored ``__pycache__`` directories behind in a live
+    developer checkout. They are not a production mirror and must not block a
+    canonical layout, while a symlink or any Python file remains a hard failure.
+    """
+
+    path = root / entry
+    if path.is_symlink():
+        return True
+    if path.is_file():
+        return path.suffix == ".py"
+    return path.is_dir() and any(candidate.is_file() for candidate in path.rglob("*.py"))
+
+
 def _root_only_records() -> list[dict[str, str]]:
     records: list[dict[str, str]] = []
     for surface, role in sorted(ROOT_ONLY_SURFACES.items()):
@@ -112,9 +128,57 @@ def _build_metadata() -> dict[str, Any]:
     }
 
 
-def build_inventory() -> dict[str, Any]:
+def _retirement_baseline(payload: dict[str, Any]) -> dict[str, Any]:
+    """Freeze reviewed root hashes before the compatibility tree is removed."""
+
+    records = []
+    for record in payload["canonical_modules"]:
+        if record.get("mirror_status") != "verified_byte_identical":
+            continue
+        records.append(
+            {
+                "canonical_path": record["canonical_path"],
+                "historical_root_path": record["root_path"],
+                "sha256": record["sha256"],
+            }
+        )
+    return {
+        "schema": "quantbt-next03-root-mirror-retirement-baseline-v1",
+        "canonical_source": "src/quantbt",
+        "historical_entries": list(RETIRED_MIRROR_ENTRIES),
+        "verified_files": len(records),
+        "records": records,
+        "rollback": "git-revert of the isolated root-mirror retirement commit",
+    }
+
+
+def _load_retirement_baseline(path: Path = DEFAULT_RETIREMENT_BASELINE) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _baseline_hashes(payload: dict[str, Any] | None) -> dict[str, str]:
+    if payload is None:
+        return {}
+    if payload.get("schema") != "quantbt-next03-root-mirror-retirement-baseline-v1":
+        return {}
+    return {
+        str(record["historical_root_path"]): str(record["sha256"])
+        for record in payload.get("records", [])
+        if isinstance(record, dict)
+        and str(record.get("historical_root_path", ""))
+        and str(record.get("sha256", ""))
+    }
+
+
+def build_inventory(
+    *,
+    retirement_baseline: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return an inventory without changing the source tree."""
 
+    baseline_hashes = _baseline_hashes(retirement_baseline)
     canonical_records: list[dict[str, Any]] = []
     mirror_present: list[str] = []
     mirror_drift: list[str] = []
@@ -143,12 +207,21 @@ def build_inventory() -> dict[str, Any]:
                 mirror_present.append(relative.as_posix())
                 if status == "drift":
                     mirror_drift.append(relative.as_posix())
+            elif relative.as_posix() in baseline_hashes:
+                record.update(
+                    {
+                        "root_path": relative.as_posix(),
+                        "historical_root_sha256": baseline_hashes[relative.as_posix()],
+                        "disposition": "retired_to_canonical",
+                        "mirror_status": "retired",
+                    }
+                )
             else:
                 record.update(
                     {
                         "root_path": relative.as_posix(),
                         "disposition": "retirement_candidate",
-                        "mirror_status": "absent",
+                        "mirror_status": "absent_unproven",
                     }
                 )
         else:
@@ -160,11 +233,15 @@ def build_inventory() -> dict[str, Any]:
             )
         canonical_records.append(record)
 
-    root_entries_present = [entry for entry in RETIRED_MIRROR_ENTRIES if (ROOT / entry).exists()]
+    root_entries_present = [entry for entry in RETIRED_MIRROR_ENTRIES if root_mirror_entry_present(entry)]
+    expected_entries = set(RETIRED_MIRROR_ENTRIES)
+    present_entry_set = set(root_entries_present)
     if mirror_drift:
         mirror_state = "blocked_drift"
-    elif root_entries_present:
+    elif present_entry_set == expected_entries:
         mirror_state = "verified_retirement_ready"
+    elif root_entries_present:
+        mirror_state = "partial_root_mirror"
     else:
         mirror_state = "canonical_only"
 
@@ -176,8 +253,14 @@ def build_inventory() -> dict[str, Any]:
             "historical_entries": list(RETIRED_MIRROR_ENTRIES),
             "state": mirror_state,
             "present_entries": root_entries_present,
-            "verified_files": len(mirror_present),
+            "present_verified_files": len(mirror_present),
+            "historical_verified_files": len(baseline_hashes) if baseline_hashes else len(mirror_present),
             "drifted_files": mirror_drift,
+            "retirement_baseline": (
+                "contracts/next03_root_mirror_retirement_baseline.json"
+                if retirement_baseline is not None
+                else None
+            ),
             "retirement_owner": "packaging",
             "retirement_test": "tests/test_next03_source_inventory.py",
         },
@@ -202,7 +285,44 @@ def build_inventory() -> dict[str, Any]:
     }
 
 
-def validate_inventory(payload: dict[str, Any]) -> list[str]:
+def validate_retirement_baseline(payload: dict[str, Any] | None) -> list[str]:
+    """Validate the frozen pre-retirement hash ledger without reading root code."""
+
+    if payload is None:
+        return ["root-mirror retirement baseline is missing"]
+    violations: list[str] = []
+    if payload.get("schema") != "quantbt-next03-root-mirror-retirement-baseline-v1":
+        violations.append("unsupported root-mirror retirement baseline schema")
+    if payload.get("canonical_source") != "src/quantbt":
+        violations.append("retirement baseline must name src/quantbt as canonical")
+    if payload.get("historical_entries") != list(RETIRED_MIRROR_ENTRIES):
+        violations.append("retirement baseline historical entry list is not exact")
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        violations.append("retirement baseline records must be non-empty")
+    else:
+        paths = [str(record.get("historical_root_path", "")) for record in records if isinstance(record, dict)]
+        if len(paths) != len(set(paths)):
+            violations.append("retirement baseline has duplicate historical root paths")
+        if int(payload.get("verified_files", -1)) != len(records):
+            violations.append("retirement baseline verified file count is inconsistent")
+        for record in records:
+            if not isinstance(record, dict):
+                violations.append("retirement baseline record must be an object")
+                continue
+            canonical = ROOT / str(record.get("canonical_path", ""))
+            if not canonical.is_file():
+                violations.append(f"retirement baseline canonical path is missing: {record.get('canonical_path')}")
+            if not str(record.get("sha256", "")):
+                violations.append("retirement baseline record is missing sha256")
+    return sorted(set(violations))
+
+
+def validate_inventory(
+    payload: dict[str, Any],
+    *,
+    retirement_baseline: dict[str, Any] | None = None,
+) -> list[str]:
     """Return deterministic violations for a generated inventory."""
 
     violations: list[str] = []
@@ -235,6 +355,11 @@ def validate_inventory(payload: dict[str, Any]) -> list[str]:
             violations.append(f"partial root mirror is not retirement-ready: {sorted(missing)}")
     if state == "canonical_only" and mirror.get("present_entries"):
         violations.append("canonical-only inventory still has root mirror entries")
+    if state == "canonical_only":
+        violations.extend(validate_retirement_baseline(retirement_baseline))
+        retired = [record for record in records if record.get("mirror_status") == "retired"]
+        if len(retired) != int(mirror.get("historical_verified_files", 0)):
+            violations.append("canonical-only inventory is missing retired mirror provenance")
     for record in payload.get("root_only_support", []):
         if not (ROOT / record["path"]).is_file():
             violations.append(f"root-only support file is missing: {record['path']}")
@@ -245,6 +370,12 @@ def render_markdown(payload: dict[str, Any]) -> str:
     mirror = payload["mirror"]
     canonical_modules = payload["canonical_modules"]
     package_only = sum(item["disposition"] == "canonical_package_only" for item in canonical_modules)
+    retired = sum(item["disposition"] == "retired_to_canonical" for item in canonical_modules)
+    status_text = (
+        "The historical root compatibility mirror has been retired."
+        if mirror["state"] == "canonical_only"
+        else "The historical root compatibility entries are a reviewed retirement candidate only."
+    )
     return "\n".join(
         (
             "# Canonical Source Layout",
@@ -257,21 +388,20 @@ def render_markdown(payload: dict[str, Any]) -> str:
             f"- Distribution: `{payload['build']['distribution']}=={payload['build']['version']}`.",
             f"- Setuptools discovery: `{payload['build']['package_find_where']}` / `{payload['build']['package_find_include']}`.",
             f"- Historical root-mirror state: `{mirror['state']}`.",
-            f"- Canonical Python modules: `{len(canonical_modules)}`; historical mirror files verified: `{mirror['verified_files']}`; canonical-only modules: `{package_only}`.",
+            f"- Canonical Python modules: `{len(canonical_modules)}`; retired mirror modules: `{retired}`; canonical-only modules: `{package_only}`.",
             "",
             "## Retirement Scope",
             "",
-            "The historical root compatibility entries are a reviewed retirement candidate only. "
-            "Root benchmark harnesses, examples, independent reference oracles, and migration tooling are not mirror files and are retained.",
+            status_text + " Root benchmark harnesses, examples, independent reference oracles, and migration tooling are not mirror files and are retained.",
             "",
-            "Before a root-mirror deletion, clean wheel/consumer and type-identity proofs must pass. "
-            "After deletion, `canonical_only` is the required state and CI must prevent regrowth instead of recreating a second source tree.",
+            "`canonical_only` is the required state. CI prevents mirror regrowth instead of recreating a second source tree; rollback is a scoped Git revert of the retirement commit.",
             "",
             "## Evidence",
             "",
             "The machine-readable inventory contains per-file hashes, disposition, owner, consumer proof, and rollback reference:",
             "",
             "- [`contracts/next03_source_layout_inventory.json`](../../contracts/next03_source_layout_inventory.json)",
+            "- [`contracts/next03_root_mirror_retirement_baseline.json`](../../contracts/next03_root_mirror_retirement_baseline.json)",
             "- [`tests/test_next03_source_inventory.py`](../../tests/test_next03_source_inventory.py)",
         )
     )
@@ -286,10 +416,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--inventory", type=Path, default=DEFAULT_INVENTORY)
     parser.add_argument("--doc", type=Path, default=DEFAULT_DOC)
+    parser.add_argument("--retirement-baseline", type=Path, default=DEFAULT_RETIREMENT_BASELINE)
     parser.add_argument("--check", action="store_true", help="verify generated artifacts without writing")
     args = parser.parse_args(argv)
-    payload = build_inventory()
-    violations = validate_inventory(payload)
+    retirement_baseline = _load_retirement_baseline(args.retirement_baseline)
+    provisional = build_inventory(retirement_baseline=retirement_baseline)
+    if provisional["mirror"]["state"] == "verified_retirement_ready" and retirement_baseline is None:
+        retirement_baseline = _retirement_baseline(provisional)
+    payload = build_inventory(retirement_baseline=retirement_baseline)
+    violations = validate_inventory(payload, retirement_baseline=retirement_baseline)
     if violations:
         raise SystemExit("NEXT-03 source inventory failed: " + "; ".join(violations))
     inventory = json.dumps(payload, indent=2, sort_keys=True) + "\n"
@@ -302,6 +437,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     _write(args.inventory, inventory)
     _write(args.doc, markdown)
+    if retirement_baseline is not None:
+        _write(
+            args.retirement_baseline,
+            json.dumps(retirement_baseline, indent=2, sort_keys=True) + "\n",
+        )
     return 0
 
 
