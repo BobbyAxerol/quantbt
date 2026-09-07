@@ -962,6 +962,10 @@ class _NativeEventReactiveSession:
         score_requirements: Optional[NativeEventScoreRequirements] = None,
     ) -> None:
         self.idx = idx
+        # ``DatetimeIndex.asi8`` is immutable for this validated market clock.
+        # Keep one direct view for hot contexts instead of resolving the Pandas
+        # property once per callback.
+        self.timestamp_ns = idx.asi8
         self.symbols = symbols
         self.symbols_tuple = tuple(symbols)
         self.n_symbols = len(symbols)
@@ -1143,10 +1147,13 @@ class _NativeEventReactiveSession:
         if not self.emit_context_margin:
             init_margin = 0.0
             maint_margin = 0.0
-        return NativeStrategyContext.from_timestamp_ns(
+        # Construct the public dataclass directly. The timestamp descriptor
+        # defers Pandas boxing, so an extra ``**kwargs`` factory layer would be
+        # pure hot-path allocation with no compatibility benefit.
+        return NativeStrategyContext(
             bar_index=int(bar),
-            timestamp_ns=int(self.idx.asi8[int(bar)]),
-            timestamp_materialization_counter=self._timestamp_materialization_counter,
+            timestamp=int(self.timestamp_ns[int(bar)]),
+            _timestamp_materialization_counter=self._timestamp_materialization_counter,
             open=self.opens_arr[int(bar)],
             high=self.market_arrays.highs[int(bar)],
             low=self.market_arrays.lows[int(bar)],
@@ -1163,6 +1170,7 @@ class _NativeEventReactiveSession:
             liquidated=bool(self.liquidated),
             symbols=self.symbols_tuple,
             size_order=self.size_helper,
+            _timestamp_is_ns=True,
         )
 
     def finalize_context_observability(self) -> None:
