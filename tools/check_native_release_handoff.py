@@ -28,6 +28,8 @@ _REQUIRED = {
     "paths",
     "state",
     "deletion_approved",
+    "a5_review_required",
+    "approval_scope",
     "replacement",
     "replacement_paths",
     "migration_docs",
@@ -109,6 +111,8 @@ def validate_migration_audit(
             violations.append(f"{identifier}: invalid state {state!r}")
         if not isinstance(item["deletion_approved"], bool):
             violations.append(f"{identifier}: deletion_approved must be boolean")
+        if not isinstance(item["a5_review_required"], bool):
+            violations.append(f"{identifier}: a5_review_required must be boolean")
         if state != "removed" and bool(item["deletion_approved"]):
             violations.append(f"{identifier}: only a removed candidate may be deletion-approved")
         try:
@@ -134,7 +138,13 @@ def validate_migration_audit(
             path = _relative_path(root, value, label=f"{identifier}.references")
             if not path.exists():
                 violations.append(f"{identifier}: referenced replacement/doc/test is missing: {value}")
-        for key in ("replacement", "compatibility_window", "rollback", "owner"):
+        for key in (
+            "approval_scope",
+            "replacement",
+            "compatibility_window",
+            "rollback",
+            "owner",
+        ):
             if not str(item[key]).strip():
                 violations.append(f"{identifier}: {key} must be non-empty")
         if identifier == "root_python_mirror":
@@ -153,6 +163,8 @@ def validate_migration_audit(
         else:
             if str(root_candidate.get("state")) != "removed" or not bool(root_candidate.get("deletion_approved")):
                 violations.append("canonical source policy requires the reviewed root mirror to be removed")
+            if bool(root_candidate.get("a5_review_required", True)):
+                violations.append("canonical source policy must keep root-mirror retirement outside runtime A5")
             baseline = root / "contracts" / "next03_root_mirror_retirement_baseline.json"
             if not baseline.is_file():
                 violations.append("canonical source policy requires the NEXT-03 retirement baseline")

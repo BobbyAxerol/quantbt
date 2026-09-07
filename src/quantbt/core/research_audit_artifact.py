@@ -108,6 +108,10 @@ class ResearchAuditArtifactV1:
             "replay_table": self.to_pandas("replay"),
             "performance_table": self.to_pandas("performance"),
             "financial_table": self.to_pandas("financial"),
+            # Additive cold-path surface. Existing legacy exports retain their
+            # names and schemas; this table makes the recorded objective terms
+            # directly inspectable without replaying a candidate.
+            "objective_components_table": self.to_pandas("objective_components"),
         }
         return exports
 
@@ -383,6 +387,41 @@ class ResearchAuditArtifactV1:
             "writer": writer,
             "financial": dict(self._financial_payload),
             "tables": table_metadata,
+            "record_families": {
+                "RunManifest": {
+                    "manifest": "run_manifest",
+                    "id": self.run_manifest.get("run_manifest_id"),
+                },
+                "SearchSpaceManifest": {
+                    "manifest": "search_space_manifest",
+                    "id": self.search_space_manifest.get("search_space_manifest_id"),
+                },
+                "TrialLedger": {
+                    "tables": ["trials", "analysis"],
+                    "identity": ["record_kind", "record_ordinal", "trial_id", "study_id", "candidate_id"],
+                },
+                "EvaluationPanel": {
+                    "tables": ["evaluations"],
+                    "join_to_trial": ["record_kind", "record_ordinal", "trial_id", "study_id", "candidate_id"],
+                },
+                "ObjectiveComponents": {
+                    "tables": ["objective_components"],
+                    "contract": self.run_manifest.get("objective_contract_id"),
+                    "join_to_trial": ["record_kind", "record_ordinal", "trial_id", "study_id", "candidate_id"],
+                },
+                "SelectionDecision": {
+                    "tables": ["selection", "deployment"],
+                    "selected_candidate_id": "selection.selected_candidate_id",
+                },
+                "ExecutionEvidence": {
+                    "tables": ["replay", "financial", "financial_path", "financial_fills", "financial_orders", "financial_trades", "financial_diagnostics", "financial_margin", "financial_positions"],
+                    "reconstructed_policy": self._financial_payload.get("reconstructed"),
+                },
+                "PerformanceEvidence": {
+                    "tables": ["performance"],
+                    "runtime_source": "result_metadata.wfo_evaluation_runtime",
+                },
+            },
             "materialized_frames": list(self._materialized),
             "original_vs_reconstructed": {
                 "selected_final_financial": self._financial_payload.get("financial_completion"),
@@ -396,8 +435,13 @@ def _record_field(record: Any, name: str, default: Any = None) -> Any:
     return getattr(record, name, default)
 
 
-def _record_to_rows(records: Sequence[Any], *, kind: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Build trial and evaluation logical rows before chunk ownership transfer."""
+def _record_to_rows(
+    records: Sequence[Any],
+    *,
+    kind: str,
+    objective_contract: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build trial, evaluation, and objective rows before chunk ownership transfer."""
 
     try:
         # Local import avoids a module cycle: walkforward imports this module.
@@ -406,13 +450,30 @@ def _record_to_rows(records: Sequence[Any], *, kind: str) -> tuple[list[dict[str
         _trial_to_dict = None
     trial_rows: list[dict[str, Any]] = []
     evaluation_rows: list[dict[str, Any]] = []
+    objective_rows: list[dict[str, Any]] = []
     for ordinal, record in enumerate(records):
         params = dict(_record_field(record, "params", {}) or {})
         metadata = dict(_record_field(record, "selection_metadata", {}) or {})
+        fold_metrics = list(_record_field(record, "fold_metrics", []) or [])
         candidate_id = _logical_digest(params)
         stage = str(metadata.get("stage", "fixed_or_post_selection_evaluation"))
         pruned = bool(_record_field(record, "pruned", False))
         status = "pruned" if pruned else "complete"
+        objective_formula = _objective_formula_for_record(
+            objective_contract,
+            stage=stage,
+            selection_metadata=metadata,
+            pruned=pruned,
+        )
+        synthetic_stds = []
+        for metric in fold_metrics:
+            value = dict(metric).get("synthetic_oos_std")
+            if value is None:
+                continue
+            numeric = float(value)
+            if np.isfinite(numeric):
+                synthetic_stds.append(numeric)
+        mean_synthetic_oos_std = float(np.mean(synthetic_stds)) if synthetic_stds else float("nan")
         compact = (
             _trial_to_dict(record, include_fold_metrics=False)
             if _trial_to_dict is not None
@@ -448,7 +509,32 @@ def _record_to_rows(records: Sequence[Any], *, kind: str) -> tuple[list[dict[str
                 "legacy_full_row": full,
             }
         )
-        for metric_ordinal, metric in enumerate(list(_record_field(record, "fold_metrics", []) or [])):
+        objective_rows.append(
+            {
+                "record_kind": kind,
+                "record_ordinal": int(ordinal),
+                "trial_id": int(_record_field(record, "trial_id", ordinal)),
+                "study_id": int(metadata.get("study_id", -1)),
+                "candidate_id": candidate_id,
+                "stage": stage,
+                "status": status,
+                "objective_contract_id": str(objective_contract["objective_contract_id"]),
+                "objective_formula_id": objective_formula["formula_id"],
+                "objective": float(_record_field(record, "objective", float("nan"))),
+                "mean_is_sharpe": float(_record_field(record, "mean_is_sharpe", float("nan"))),
+                "mean_oos_sharpe": float(_record_field(record, "mean_oos_sharpe", float("nan"))),
+                "mean_decay": float(_record_field(record, "mean_decay", float("nan"))),
+                "std_decay": float(_record_field(record, "std_decay", float("nan"))),
+                "positive_mean_decay": max(0.0, float(_record_field(record, "mean_decay", float("nan")))),
+                "mean_synthetic_oos_std": mean_synthetic_oos_std,
+                "evaluation_count": int(len(fold_metrics)),
+                "selection_metadata_ref": {
+                    "record_kind": kind,
+                    "record_ordinal": int(ordinal),
+                },
+            }
+        )
+        for metric_ordinal, metric in enumerate(fold_metrics):
             payload = dict(metric)
             evaluation_rows.append(
                 {
@@ -464,7 +550,7 @@ def _record_to_rows(records: Sequence[Any], *, kind: str) -> tuple[list[dict[str
                     "fold_metric": payload,
                 }
             )
-    return trial_rows, evaluation_rows
+    return trial_rows, evaluation_rows, objective_rows
 
 
 def _search_space_entry(name: str, spec: Any) -> dict[str, Any]:
@@ -510,6 +596,152 @@ def _search_space_entry(name: str, spec: Any) -> dict[str, Any]:
 
 def _manifest_id(payload: Mapping[str, Any]) -> str:
     return _logical_digest(dict(payload))
+
+
+def _config_value(config: Any, name: str, default: Any = None) -> Any:
+    """Read an audit-relevant configuration field without requiring a concrete config type."""
+
+    return getattr(config, name, default)
+
+
+def _objective_contract(config: Any, result_metadata: Mapping[str, Any]) -> dict[str, Any]:
+    """Describe the exact recorded WFO objective without reimplementing scoring.
+
+    The audit stores measured trial components and references this immutable
+    contract. It deliberately does not replay a strategy or a scorer to
+    reconstruct an objective after the run.
+    """
+
+    mode = str(result_metadata.get("optimization_mode") or _config_value(config, "optimization_mode", "unknown"))
+    metric = str(_config_value(config, "candidate_selection_metric", "robust_decay"))
+    candidate_lambda = _config_value(config, "candidate_decay_lambda")
+    candidate_gamma = _config_value(config, "candidate_decay_gamma")
+    decay_lambda = _config_value(config, "decay_lambda", 0.0) if candidate_lambda is None else candidate_lambda
+    decay_gamma = _config_value(config, "decay_gamma", 0.0) if candidate_gamma is None else candidate_gamma
+    contract: dict[str, Any] = {
+        "schema": "quantbt-research-objective-contract-v1",
+        "optimization_mode": mode,
+        "candidate_selection_metric": metric,
+        "direction": "maximize",
+        "recorded_components": [
+            "objective",
+            "mean_is_sharpe",
+            "mean_oos_sharpe",
+            "mean_decay",
+            "std_decay",
+            "positive_mean_decay",
+            "mean_synthetic_oos_std",
+        ],
+        "selection_component_source": "trials/analysis.selection_metadata and selection table",
+        "evaluation_component_source": "evaluations.fold_metric",
+        "default_formula": {
+            "formula_id": "recorded_selection_score_v1",
+            "formula": "recorded objective; inspect selection_metadata for selector-specific terms",
+        },
+        "stage_formulas": {},
+        "candidate_decay_lambda": float(decay_lambda),
+        "candidate_decay_gamma": float(decay_gamma),
+    }
+    if mode in {"mode_1_decay", "mode_3_flat_minima"}:
+        contract.update(
+            {
+                "decay_lambda": float(decay_lambda),
+                "decay_gamma": float(decay_gamma),
+                "selection_note": (
+                    "mode_3_flat_minima may replace a deployed candidate with a recorded "
+                    "plateau/medoid selection; its geometry remains in selection_metadata"
+                ),
+            }
+        )
+        contract["stage_formulas"] = {
+            "is_search": {
+                "formula_id": "mean_is_sharpe_v1",
+                "formula": "mean_is_sharpe",
+            },
+            "oos_candidate_selection": {
+                "formula_id": "mean_oos_minus_decay_penalties_v1",
+                "formula": "mean_oos_sharpe - candidate_decay_lambda * std_decay - candidate_decay_gamma * max(0, mean_decay)",
+            },
+            "fixed_or_post_selection_evaluation": {
+                "formula_id": "mean_oos_minus_decay_penalties_v1",
+                "formula": "mean_oos_sharpe - decay_lambda * std_decay - decay_gamma * max(0, mean_decay)",
+            },
+        }
+    elif mode == "mode_2_sbb":
+        contract.update(
+            {
+                "sbb_decay_lambda": float(_config_value(config, "sbb_decay_lambda", 0.0)),
+                "sbb_std_penalty": float(_config_value(config, "sbb_std_penalty", 0.0)),
+                "selection_note": "per-fold synthetic components are retained in evaluations.fold_metric",
+            }
+        )
+        contract["stage_formulas"] = {
+            "is_search": {
+                "formula_id": "mean_synthetic_oos_minus_sbb_penalties_v1",
+                "formula": "mean_synthetic_oos_sharpe - sbb_decay_lambda * max(0, mean_decay) - sbb_std_penalty * mean_synthetic_oos_std",
+            },
+            "oos_candidate_selection": {
+                "formula_id": "mean_oos_minus_decay_penalties_v1",
+                "formula": "mean_oos_sharpe - decay_lambda * std_decay - decay_gamma * max(0, mean_decay)",
+            },
+        }
+    elif mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
+        contract.update(
+            {
+                "selection_note": (
+                    "temporal/plateau selection terms are retained verbatim in selection_metadata; "
+                    "they do not inspect an external OOS tape"
+                ),
+            }
+        )
+        contract["stage_formulas"] = {
+            "is_search": {
+                "formula_id": "mean_is_sharpe_v1",
+                "formula": "mean_is_sharpe",
+            },
+        }
+    else:
+        contract.update(
+            {
+                "selection_note": "no generic reconstruction is claimed",
+            }
+        )
+    contract["objective_contract_id"] = _manifest_id(contract)
+    return contract
+
+
+def _objective_formula_for_record(
+    objective_contract: Mapping[str, Any],
+    *,
+    stage: str,
+    selection_metadata: Mapping[str, Any],
+    pruned: bool,
+) -> Mapping[str, Any]:
+    """Resolve the recorded formula for one row without replaying its score."""
+
+    if pruned:
+        return {
+            "formula_id": "optuna_pruned_sentinel_v1",
+            "formula": "-inf duplicate/pruned sentinel; not an evaluated objective",
+        }
+    selected_by = selection_metadata.get("selected_by")
+    if selected_by not in {None, "robust_decay", "mean_oos_sharpe", "mean_is_sharpe"}:
+        return {
+            "formula_id": "selection_metadata_score_v1",
+            "formula": "selector-derived score retained in selection_metadata",
+        }
+    stage_formulas = objective_contract.get("stage_formulas", {})
+    if isinstance(stage_formulas, Mapping):
+        formula = stage_formulas.get(stage)
+        if isinstance(formula, Mapping):
+            return formula
+    default_formula = objective_contract.get("default_formula")
+    if isinstance(default_formula, Mapping):
+        return default_formula
+    return {
+        "formula_id": "recorded_objective_only_v1",
+        "formula": "recorded objective; no generic reconstruction is claimed",
+    }
 
 
 def _runtime_build_identity() -> dict[str, Any]:
@@ -572,6 +804,7 @@ def _build_manifests(
         "declared_execution_contract": config_metadata.get("execution_contract"),
     }
     instrument["instrument_manifest_id"] = _manifest_id(instrument)
+    objective_contract = _objective_contract(config, result_metadata)
     run_manifest = {
         "schema": "quantbt-research-run-manifest-v1",
         "result_kind": str(result_kind),
@@ -590,6 +823,8 @@ def _build_manifests(
         "required_computation_plan": result_metadata.get("required_computation_plan"),
         "prepared_wfo_context": result_metadata.get("prepared_wfo_context"),
         "wfo_execution_runtime": result_metadata.get("wfo_evaluation_runtime"),
+        "objective_contract": objective_contract,
+        "objective_contract_id": objective_contract["objective_contract_id"],
         "search_space_manifest_id": search_space["search_space_manifest_id"],
         "instrument_manifest_id": instrument["instrument_manifest_id"],
     }
@@ -642,11 +877,21 @@ def build_walkforward_research_audit(
         else:
             retained_trials = list(trial_records)
             retained_candidates = list(candidate_records)
-        trial_rows, evaluation_rows = _record_to_rows(retained_trials, kind="trial")
-        analysis_rows, analysis_evaluations = _record_to_rows(retained_candidates, kind="candidate_analysis")
+        objective_contract = dict(run_manifest["objective_contract"])
+        trial_rows, evaluation_rows, trial_objectives = _record_to_rows(
+            retained_trials,
+            kind="trial",
+            objective_contract=objective_contract,
+        )
+        analysis_rows, analysis_evaluations, analysis_objectives = _record_to_rows(
+            retained_candidates,
+            kind="candidate_analysis",
+            objective_contract=objective_contract,
+        )
         writer.append_records("trials", trial_rows)
         writer.append_records("evaluations", [*evaluation_rows, *analysis_evaluations])
         writer.append_records("analysis", analysis_rows)
+        writer.append_records("objective_components", [*trial_objectives, *analysis_objectives])
         selected_params = dict(_record_field(selected_record, "params", {}) or {})
         selected_metadata = dict(_record_field(selected_record, "selection_metadata", {}) or {})
         writer.append_records(
@@ -711,4 +956,3 @@ __all__ = [
     "ResearchAuditArtifactV1",
     "build_walkforward_research_audit",
 ]
-

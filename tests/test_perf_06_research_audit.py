@@ -21,6 +21,7 @@ from quantbt.core.research_audit import (
     ResearchRetentionPlanV1,
     build_walkforward_research_audit,
 )
+from quantbt.core import research_audit_artifact
 from quantbt.core.schema import OrderSide
 from quantbt.walkforward import WalkForwardConfig, WalkForwardEngine, WalkForwardTrialRecord
 
@@ -230,6 +231,118 @@ def test_perf06_full_trial_ledger_keeps_full_fold_metrics_while_public_table_sta
         audit.run_manifest["engine"] = "mutated"  # type: ignore[index]
     with pytest.raises(TypeError):
         audit.instrument_manifest["target_mode"] = "mutated"  # type: ignore[index]
+
+
+def test_perf06_audit_links_all_record_families_and_recomputes_mode1_trial_objectives():
+    """NEXT-03: provenance is joinable without a hidden candidate replay."""
+
+    result = _run_engine(research_retention="full_trial_ledger")
+    audit = result.metadata["research_audit"]
+    assert audit is not None
+
+    families = audit.metadata()["record_families"]
+    assert set(families) == {
+        "RunManifest",
+        "SearchSpaceManifest",
+        "TrialLedger",
+        "EvaluationPanel",
+        "ObjectiveComponents",
+        "SelectionDecision",
+        "ExecutionEvidence",
+        "PerformanceEvidence",
+    }
+    contract = audit.run_manifest["objective_contract"]
+    assert contract["stage_formulas"]["is_search"]["formula_id"] == "mean_is_sharpe_v1"
+    assert (
+        contract["stage_formulas"]["oos_candidate_selection"]["formula_id"]
+        == "mean_oos_minus_decay_penalties_v1"
+    )
+    assert families["ObjectiveComponents"]["contract"] == contract["objective_contract_id"]
+
+    trials = audit.to_pandas("trials")
+    analysis = audit.to_pandas("analysis")
+    evaluations = audit.to_pandas("evaluations")
+    objectives = audit.to_pandas("objective_components")
+    assert not objectives.empty
+    assert set(objectives["objective_contract_id"]) == {contract["objective_contract_id"]}
+
+    key = ["record_kind", "record_ordinal", "trial_id", "study_id", "candidate_id"]
+    ledger = pd.concat([trials, analysis], ignore_index=True)
+    assert set(map(tuple, objectives[key].to_numpy())) == set(map(tuple, ledger[key].to_numpy()))
+    assert set(map(tuple, evaluations[key].to_numpy())).issubset(set(map(tuple, ledger[key].to_numpy())))
+
+    is_search_objectives = objectives.loc[
+        (objectives["status"] == "complete")
+        & (objectives["objective_formula_id"] == "mean_is_sharpe_v1")
+    ]
+    np.testing.assert_allclose(
+        is_search_objectives["objective"],
+        is_search_objectives["mean_is_sharpe"],
+        rtol=0.0,
+        atol=1e-12,
+    )
+    decay_objectives = objectives.loc[
+        (objectives["status"] == "complete")
+        & (objectives["objective_formula_id"] == "mean_oos_minus_decay_penalties_v1")
+    ]
+    expected = (
+        decay_objectives["mean_oos_sharpe"]
+        - float(contract["decay_lambda"]) * decay_objectives["std_decay"]
+        - float(contract["decay_gamma"]) * decay_objectives["positive_mean_decay"]
+    )
+    np.testing.assert_allclose(decay_objectives["objective"], expected, rtol=0.0, atol=1e-12)
+    pruned = objectives.loc[
+        (objectives["record_kind"] == "trial") & (objectives["status"] == "pruned")
+    ]
+    assert all(np.isneginf(pruned["objective"]))
+    assert set(pruned["objective_formula_id"]) == {"optuna_pruned_sentinel_v1"}
+
+    selection = audit.to_pandas("selection")
+    selected_candidate_id = selection.iloc[0]["selected_candidate_id"]
+    assert selected_candidate_id in set(analysis["candidate_id"])
+    assert "objective_components_table" in audit.legacy_exports()
+
+
+def test_perf06_mode2_objective_components_retain_the_synthetic_dispersion_term():
+    config = SimpleNamespace(
+        optimization_mode="mode_2_sbb",
+        candidate_selection_metric="robust_decay",
+        candidate_decay_lambda=None,
+        candidate_decay_gamma=None,
+        decay_lambda=0.5,
+        decay_gamma=0.25,
+        sbb_decay_lambda=0.5,
+        sbb_std_penalty=0.2,
+    )
+    record = WalkForwardTrialRecord(
+        trial_id=3,
+        params={"window": 12},
+        objective=0.94,
+        mean_is_sharpe=1.6,
+        mean_oos_sharpe=1.2,
+        mean_decay=0.4,
+        std_decay=0.1,
+        fold_metrics=[{"fold_id": 0, "synthetic_oos_std": 0.3}],
+        selection_metadata={"stage": "is_search", "study_id": 9},
+    )
+    contract = research_audit_artifact._objective_contract(
+        config,
+        {"optimization_mode": "mode_2_sbb"},
+    )
+    _trials, _evaluations, components = research_audit_artifact._record_to_rows(
+        [record],
+        kind="trial",
+        objective_contract=contract,
+    )
+
+    row = components[0]
+    assert row["objective_formula_id"] == "mean_synthetic_oos_minus_sbb_penalties_v1"
+    assert row["mean_synthetic_oos_std"] == pytest.approx(0.3)
+    assert row["objective"] == pytest.approx(
+        row["mean_oos_sharpe"]
+        - contract["sbb_decay_lambda"] * row["positive_mean_decay"]
+        - contract["sbb_std_penalty"] * row["mean_synthetic_oos_std"]
+    )
 
 
 def test_perf06_per_fold_full_ledger_keeps_distinct_study_and_fold_identities_before_compaction():

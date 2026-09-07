@@ -11,6 +11,24 @@ portfolio/package policy, maturity, supported platform evidence, and whether
 automatic promotion is allowed. This is deliberately more precise than a flat
 list of booleans such as “supports limit orders”.
 
+## Resolution Authority
+
+Native-event public routes resolve once through the immutable
+`BacktestRequest -> resolve_execution_plan(...) -> preparation` path. The
+generated product registry supplies capability and promotion facts;
+`workload_capabilities()` and `native_product_registry()` return defensive
+copies for inspection, not a second mutable source of truth. `backend="auto"`
+uses only a promoted row with current evidence. `backend="rust"` checks the
+same request contract and fails before market/account preparation if the wheel,
+ABI, or a required capability is absent. It never catches that failure and
+silently reruns Python.
+
+This does not make an arbitrary Python callback a Rust strategy. The callback
+can remain an explicit co-runtime route, with Python owning decisions and Rust
+owning only the certified accounting work beneath it. That boundary is recorded
+in result metadata and preserves the fallback contract rather than hiding a
+cross-language transition.
+
 ## Reading maturity
 
 - **Certified**: covered by the declared contract and its current conformance

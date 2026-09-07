@@ -32,8 +32,10 @@ never silently falls back.
 
 `contracts/native_event_a5_review.json` records stable release cycles, shadow
 mismatches, measured fallback use, rollback, approval, and blocking reasons by
-route. `tools/check_native_a5_review.py` reconciles it with the deletion
-manifest.
+route. `tools/check_native_a5_review.py` reconciles it with the runtime-route
+entries in the deletion manifest. The retired root package mirror is explicitly
+marked `a5_review_required=false`: its NEXT-03 source-layout evidence is not a
+claim that any execution oracle is safe to delete.
 
 No Phase 71 route currently qualifies for source deletion. Static command tape
 and Native Strategy IR are A4; prepared WFO, bounded portfolio/package, and

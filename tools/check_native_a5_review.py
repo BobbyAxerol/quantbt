@@ -80,10 +80,17 @@ def validate_a5_review(
         violations.append("deletions_performed must be a list")
         performed = []
     candidates = deletion.get("candidates", [])
+    # NEXT-03 package-source retirement is independently governed by the
+    # canonical-origin / clean-consumer proof. A5 remains the gate for
+    # deleting executable native/Python route surfaces after runtime soak.
     removed = {
         str(candidate.get("id"))
         for candidate in candidates
-        if isinstance(candidate, Mapping) and candidate.get("state") == "removed"
+        if (
+            isinstance(candidate, Mapping)
+            and candidate.get("state") == "removed"
+            and bool(candidate.get("a5_review_required", True))
+        )
     }
     if set(map(str, performed)) != removed:
         violations.append("A5 review deletions_performed disagrees with deletion manifest")

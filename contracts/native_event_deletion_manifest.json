@@ -26,6 +26,8 @@
       ],
       "state": "removed",
       "deletion_approved": true,
+      "a5_review_required": false,
+      "approval_scope": "NEXT-03 canonical package-source retirement",
       "replacement": "src/quantbt is the authoritative package source; the reviewed root compatibility mirror was retired by NEXT-03 after canonical-origin and clean-consumer evidence.",
       "replacement_paths": [
         "src/quantbt"
@@ -50,6 +52,8 @@
       ],
       "state": "retained",
       "deletion_approved": false,
+      "a5_review_required": true,
+      "approval_scope": "native runtime A5 route review",
       "replacement": "FullSession and typed ABI-0.5 execution own runtime state; legacy.rs retains only frozen compatibility constants for the documented API window.",
       "replacement_paths": [
         "rust/crates/quantbt-engine/src/session.rs"
@@ -74,6 +78,8 @@
       ],
       "state": "retained",
       "deletion_approved": false,
+      "a5_review_required": true,
+      "approval_scope": "native runtime A5 route review",
       "replacement": "Rust FullSession is authoritative only for certified native requests; the Python event backend remains the explicit oracle, fallback, and compatibility route.",
       "replacement_paths": [
         "rust/crates/quantbt-engine/src/session.rs",
@@ -99,6 +105,8 @@
       ],
       "state": "deferred",
       "deletion_approved": false,
+      "a5_review_required": true,
+      "approval_scope": "native runtime A5 route review",
       "replacement": "Only bounded target_units and same-bar atomic package helpers have a Rust contract. Generic allocation, risk parity, cross-margin, and non-atomic package policies remain Python by design.",
       "replacement_paths": [
         "src/quantbt/backends/native_portfolio_package.py"

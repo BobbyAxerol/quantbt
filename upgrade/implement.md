@@ -20221,7 +20221,11 @@ implemented, certified NEXT-02 scope.
 
 ### Phase NEXT-03 - Single-Source Package, Audit/Docs And Product Qualification
 
-**Status: PLANNED; awaiting NEXT-01/02 acceptance and individual approval.**
+**Status: IMPLEMENTED_VERIFIED locally.** Canonical-source, audit, package and
+cross-domain qualification are complete on the candidate tree. A future public
+upload still requires a new, unpublished core/native version and its remote
+CPython 3.11-3.13 wheel matrix; those are release-channel gates, not an
+unresolved source or accounting debt in this phase.
 **Goal:** retire proven duplicate root production code without losing behavior,
 preserve one canonical import identity, qualify the exact installable
 core/native pair and hand off an actionable TestPyPI/PyPI release procedure.
@@ -20252,14 +20256,14 @@ engine deletion; unresolved older mandatory removal approvals need explicit revi
 checked [source-layout inventory](../contracts/next03_source_layout_inventory.json)
 and its short [architecture record](../docs/architecture/source_layout.md).
 The current inventory records 182 byte-identical historical mirror modules,
-one canonical-only module, and root-only benchmark/example/oracle/tooling
+25 canonical-only modules, and root-only benchmark/example/oracle/tooling
 surfaces that are explicitly out of the retirement set. The generator and
 `tests/test_next03_source_inventory.py` lock the per-file SHA, disposition,
 owner, consumer proof, and rollback reference before any root deletion.
 
 #### N3.02 - Canonical Imports And Shared Type Identity
 
-**Status: PLANNED. Required guide: [N3.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n302--canonical-imports-và-một-type-identity).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n302--canonical-imports-và-một-type-identity).**
 
 - Migrate supplied/authorized notebooks, examples, tests, worker entrypoints and
   tools to supported quantbt imports. Preserve stable endpoint/type/exception/
@@ -20271,9 +20275,15 @@ owner, consumer proof, and rollback reference before any root deletion.
   External Pool Alpha consumers require authorized fixtures; no claim of
   universal compatibility without access or evidence.
 
+**Completion evidence:** `tests/test_next03_canonical_source_layout.py` proves
+the sole package origin is `src/quantbt/__init__.py`; the fresh editable lane in
+`tools/verify_wheels.py` proves public endpoint, backend and audit types retain
+one identity. Root-local imports were never a distributed package contract, so
+no compatibility shim or duplicate financial definition was introduced.
+
 #### N3.03 - Separate Mirror Retirement And No-Regrowth Gate
 
-**Status: PLANNED. Required guide: [N3.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n303--retire-mirror-bằng-pr-độc-lập-no-regrowth-ci).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n303--retire-mirror-bằng-pr-độc-lập-no-regrowth-ci).**
 
 - Delete only reviewed, reconciled production mirrors after ordinary installed
   consumer and alias tests pass; commit this axis separately from performance.
@@ -20284,9 +20294,17 @@ owner, consumer proof, and rollback reference before any root deletion.
 - Any required root-only logic or unverified consumer blocks deletion of that
   surface. No leftover duplicate engine disguised as a compatibility shim.
 
+**Completion evidence:** isolated commit `b43b457` retired only the reviewed
+root mirror. `contracts/next03_root_mirror_retirement_baseline.json`,
+`tools/check_canonical_source_layout.py`, and no-regrowth tests preserve the
+Rust workspace, canonical Python/Numba engines, reference oracles, examples,
+benchmarks and tooling. The native A5 review explicitly excludes this
+package-layout retirement, preventing it from being mistaken for approval to
+delete Python execution oracles.
+
 #### N3.04 - Consolidate Internal Contracts Without API Fragmentation
 
-**Status: PLANNED. Required guide: [N3.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n304--chuẩn-hóa-internal-api-và-giảm-fragmentation-sau-các-phase).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n304--chuẩn-hóa-internal-api-và-giảm-fragmentation-sau-các-phase).**
 
 - Use existing stable endpoint entrypoints and one config/route/ownership
   resolver; remove redundant forwarding layers only with parity/evidence.
@@ -20296,9 +20314,15 @@ owner, consumer proof, and rollback reference before any root deletion.
 - One source for capability metadata; explicit Rust errors and auto reasons
   are truthful. No blanket exception fallback or promotion from enum existence.
 
+**Completion evidence:** `native_product_registry()` and
+`workload_capabilities()` return defensive inspection copies from one generated
+registry; `tests/test_next03_capability_surface.py` locks auto routing, explicit
+Rust pre-preparation rejection and no silent fallback. The phase deliberately
+does not add another public endpoint, config representation or FFI callback.
+
 #### N3.05 - Close Wheel And Sdist Builds With Existing Topology
 
-**Status: PLANNED. Required guide: [N3.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại).**
 
 - Keep quantbt-engine (setuptools, import quantbt) and quantbt-native (maturin,
   import _quantbt_native); no new features distribution or backend migration.
@@ -20311,9 +20335,17 @@ owner, consumer proof, and rollback reference before any root deletion.
 - Validate exact compatible pair/platform markers and runtime functions.
   pip check or matching version strings alone cannot certify ABI/execution.
 
+**Completion evidence:** the final local candidate builds a core wheel and
+sdist through the configured setuptools backend plus the Linux x86_64 CPython
+3.12 native maturin wheel. `tools/check_release_artifacts.py` passes the
+allowlist/secret scan and `tools/verify_wheels.py --require-native` confirms
+source-hash parity and the exact `1.1.0`/`0.4.1` protocol pair. Native remains
+binary-only by declared platform matrix; no unsupported native source upload is
+implied.
+
 #### N3.06 - Clean Consumer, Worker And Import-Cost Proof
 
-**Status: PLANNED. Required guide: [N3.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n306--clean-consumer-tests-và-cold-start-profile).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n306--clean-consumer-tests-và-cold-start-profile).**
 
 - Run fresh isolated processes outside checkout; assert all quantbt/native
   origins, class identities and resources, including .pth/site effects.
@@ -20323,9 +20355,17 @@ owner, consumer proof, and rollback reference before any root deletion.
   Lazy imports are allowed only with dependency/capability rejection before
   account mutation and tested errors; cold-import gains do not replace O-R/W.
 
+**Completion evidence:** the clean verifier uses temporary environments and
+`python -I` outside the checkout for ordinary wheel and sdist lanes, then
+separately proves the editable developer lane resolves only `src/quantbt`.
+The installed public smoke runs static, Python-callback reactive, Mode 4 causal
+WFO, explicit Rust direct targets and an unsupported-capability failure before
+preparation. Worker/fault lifecycle behavior remains covered by the release
+suite rather than being hidden in the package probe.
+
 #### N3.07 - Full Research/Financial Audit And Durable Completion
 
-**Status: PLANNED. Required guide: [N3.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n307--audit-transparency-được-giữ-nguyên-và-mở-rộng-provenance).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n307--audit-transparency-được-giữ-nguyên-và-mở-rộng-provenance).**
 
 - Integrate existing store/schema with all eight required record families.
   Keep failed/pruned/canceled/pending/attempt history and actual search-space
@@ -20336,9 +20376,18 @@ owner, consumer proof, and rollback reference before any root deletion.
   adapters. Recompute objectives and validate joins/revisions/idempotent recovery.
   Reconstructed selected reruns are not original retained evidence.
 
+**Completion evidence:** `ResearchAuditArtifactV1` retains legacy exports and
+adds an `objective_components` projection plus eight explicit record-family
+links. It is stage-aware: IS search, OOS candidate selection, SBB dispersion
+and selector-derived scores are never mislabeled as one formula.
+`tests/test_perf_06_research_audit.py` recomputes Mode 1 and Mode 2 objective
+components, validates joins and locks additive export compatibility. A terminal
+hard optimizer exception still produces no fictional successful final artifact;
+actual completed/pruned records are retained without a second audit engine.
+
 #### N3.08 - Executable Documentation And Stable User Workflows
 
-**Status: PLANNED. Required guide: [N3.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n308--documentation-là-tested-public-contract).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N3.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n308--documentation-là-tested-public-contract).**
 
 - Update canonical endpoint, reactive, WFO methodology/mode/schedule, reactive
   WFO topology/reset, result/audit, migration, install/release and benchmark docs;
@@ -20352,9 +20401,15 @@ owner, consumer proof, and rollback reference before any root deletion.
 - Report seconds/ms and honest work units; separate cache/resume/protocol/CPU
   gains. Generated capability tables require actual public-route proof.
 
+**Completion evidence:** the canonical source-layout, native capability and
+research-audit documents are linked from `docs/README.md`; their examples and
+claims are backed by installed public smoke or exact registry tests. Docs
+separate Python callback decision authority from native execution support and
+do not advertise Rust solely because an extension is installed.
+
 #### N3.09 - Final Artifact-Bound Combined Qualification
 
-**Status: PLANNED. Required guide: [N3.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n309--combined-qualification-và-product-outcome-gate).**
+**Status: IMPLEMENTED_VERIFIED locally. Required guide: [N3.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n309--combined-qualification-và-product-outcome-gate).**
 
 - Run B1, NEXT-01, NEXT-02, combined and final-package ablations without
   multiplying overlapping speedups. Preserve corrected-contract comparison lanes.
@@ -20366,9 +20421,18 @@ owner, consumer proof, and rollback reference before any root deletion.
   fast-math, widened tolerance, disabled safety, panic=abort or reference-pool
   shortcuts to manufacture a release benchmark.
 
+**Completion evidence:** the final release profile completed 24 isolated
+pytest shards after the last source/layout change, including market/calendar,
+fee/funding, portfolio/package, intrabar, options containment, reactive,
+five-mode WFO, audit and packaging gates. Rust `fmt`, `clippy -D warnings` and
+workspace tests pass. Existing NEXT-01/NEXT-02 performance evidence remains
+the performance record; this documentation/audit/layout phase does not multiply
+or re-label overlapping speedups. Remote CPython matrix evidence belongs to
+the next versioned release candidate.
+
 #### N3.10 - Candidate Manifest And Safe Release Handoff
 
-**Status: PLANNED. Required guide: [N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n310--handoff-về-release-phase-thật).**
+**Status: IMPLEMENTED_VERIFIED; publication remains version-gated. Required guide: [N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n310--handoff-về-release-phase-thật).**
 
 - Generate validated NextPerformanceClosureManifest using guide 10.4:
   actual source/build/dirty identity, reconciliation ledger, wheel/sdist hashes,
@@ -20380,6 +20444,13 @@ owner, consumer proof, and rollback reference before any root deletion.
   for the new candidate, not permission to upload or rewrite published versions.
 - Hand off release steps below; require the user's separate merge/tag/publish
   approval. Any mandatory NOT_MET/INCONCLUSIVE keeps closure blocked.
+
+**Completion evidence:** release docs, artifact checks, channel validation,
+wheel verifier and native handoff audit are all present and checked. The local
+artifact proof intentionally uses the currently declared `1.1.0`/`0.4.1` pair
+only as a consumer qualification fixture. It must not be uploaded after this
+source change: select a new un-published compatible pair, push it through the
+remote CPython matrix, then approve tag/release/publish.
 
 #### NEXT-03 Release Deliverables And Workflow Gate
 

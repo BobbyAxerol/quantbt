@@ -1027,7 +1027,7 @@
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
       "root_path": "core/research_audit_artifact.py",
-      "sha256": "85e6f9270b958b97a6bd430c1d6af16b08b493f0f5e124612c7de1fd7d0b1e5d"
+      "sha256": "7a5ad9052251b08a85461b273d3fc1bb67f4b29223edc3dd6221c47903058e84"
     },
     {
       "canonical_path": "src/quantbt/core/results.py",

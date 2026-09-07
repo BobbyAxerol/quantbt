@@ -269,7 +269,13 @@ def test_checked_a5_manifest_has_no_unapproved_deletion_claim():
     )
     assert review["deletions_performed"] == []
     assert all(not row["a5_eligible"] for row in review["routes"])
-    assert all(not row["deletion_approved"] for row in deletion["candidates"])
+    a5_candidates = [
+        row for row in deletion["candidates"] if row.get("a5_review_required", True)
+    ]
+    assert all(not row["deletion_approved"] for row in a5_candidates)
+    root_mirror = next(row for row in deletion["candidates"] if row["id"] == "root_python_mirror")
+    assert root_mirror["a5_review_required"] is False
+    assert root_mirror["approval_scope"] == "NEXT-03 canonical package-source retirement"
 
 
 def test_a5_validator_and_platform_wheel_matrix_are_checked_assets():

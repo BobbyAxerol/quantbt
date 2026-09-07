@@ -69,6 +69,7 @@ audit = result.metadata["walk_forward"]["research_audit"]
 metadata = audit.metadata()
 trials = audit.to_pandas("trials")
 evaluations = audit.to_pandas("evaluations")
+objective_components = audit.to_pandas("objective_components")
 selection = audit.to_pandas("selection")
 deployments = audit.to_pandas("deployment")
 legacy = audit.legacy_exports()
@@ -85,7 +86,8 @@ other supported values.
 `legacy_exports()` provides `trial_table`, `trial_table_full`,
 `candidate_table`, `candidate_table_full`, `evaluation_table`,
 `selection_table`, `deployment_table`, `replay_table`, `performance_table`,
-and `financial_table`. The ordinary public `trial_table` and `candidate_table`
+`financial_table`, and the additive `objective_components_table`. The ordinary
+public `trial_table` and `candidate_table`
 are not replaced. Full-ledger records retain actual params, objective inputs,
 statuses, fold metrics, study/fold IDs and selection metadata before the public
 compact ledger discards optional detail.
@@ -99,6 +101,27 @@ run_manifest -> search_space_manifest
              -> instrument_manifest
 trial/evaluation -> analysis -> selection -> deployment -> replay/performance
 ```
+
+The sidecar exposes the eight audit record families through
+`audit.metadata()["record_families"]` without a second audit engine:
+
+| Family | Stored surface | Join/provenance |
+|---|---|---|
+| RunManifest | `run_manifest` | Immutable run, source/build, data and contract identity. |
+| SearchSpaceManifest | `search_space_manifest` | Declared distributions, category order, fixed overrides and observed parameters. |
+| TrialLedger | `trials`, `analysis` | `record_kind`, `record_ordinal`, `trial_id`, `study_id`, `candidate_id`. |
+| EvaluationPanel | `evaluations` | Same row identity plus `fold_id`; contains measured fold metrics. |
+| ObjectiveComponents | `objective_components` | Scalar terms and `objective_contract_id`; Mode 1 rows can be recomputed directly from the recorded formula. |
+| SelectionDecision | `selection`, `deployment` | Selected candidate, reason/metadata, and actual fold deployment intervals. |
+| ExecutionEvidence | `replay`, `financial`, optional original financial rows | Never reconstructed unless explicitly labelled. |
+| PerformanceEvidence | `performance` | Runtime/profile evidence captured after execution. |
+
+`run_manifest["objective_contract"]` states the optimization mode, objective
+direction, recorded terms, and exact formula where it is mechanically
+recomputable. Plateau, temporal, and selector geometry remains in the original
+candidate/selection metadata rather than being approximated by a second scorer.
+For Mode 4/5 this distinction matters: the selector is IS-only and its stored
+terms are evidence of selection, not an invented OOS metric.
 
 The instrument manifest records the WFO target, calendar and intent contracts,
 fold-account policy, prepared-market identity, and any declared symbol or

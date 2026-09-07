@@ -59,6 +59,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Resolve tick, lot, multiplier, leverage, and fee rules once per market | [Instrument Registry V2](contracts/v1_1_instrument_registry_v2.md) |
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
+| Verify canonical `src/quantbt` source ownership and a clean consumer install | [Canonical source layout](architecture/source_layout.md) |
 | Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |
 | Troubleshoot a native descriptor or wheel mismatch | [Native troubleshooting](native/troubleshooting.md) |
 | Reproduce native-event performance claims | [Benchmarking governance](performance/benchmarking.md) |
