@@ -8,6 +8,7 @@ stitched account reconstruction.
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 import importlib.util
 
 import numpy as np
@@ -16,7 +17,10 @@ import pytest
 
 from quantbt import QuantBTEndpoint
 from quantbt.backends.native_wfo_public import NativePreparedPublicWfoUnsupported
-from quantbt.strategies.wfo_prepared import PreparedWfoStrategyUnsupported
+from quantbt.strategies.wfo_prepared import (
+    PreparedWfoStrategyAdapterV1,
+    PreparedWfoStrategyUnsupported,
+)
 
 
 pytestmark = pytest.mark.skipif(
@@ -119,6 +123,59 @@ class _W0OnlyStrategyClass:
             index=test_index,
             dtype=float,
         )
+
+
+def _projection_adapter(index: pd.DatetimeIndex) -> PreparedWfoStrategyAdapterV1:
+    return PreparedWfoStrategyAdapterV1(
+        prepared=_PreparedW1Intent(index),
+        adapter="w1",
+        full_index=index,
+        lifecycle=nullcontext(),
+        lifecycle_record={},
+        requested_policy="require",
+        cache_contract="causal_parameter_independent_v1",
+    )
+
+
+def test_phase_next02_prepared_projection_matches_series_reindex_for_span_gather_and_missing_labels():
+    """N2.03 may skip full-Series work, never label or value semantics."""
+
+    index = pd.date_range("2020-01-01", periods=12, freq="1D", tz="UTC")
+    adapter = _projection_adapter(index)
+    full_values = _absolute_transition_signal(index, 1.0)
+    historical = pd.Series(full_values, index=index, dtype=float)
+    expected_indexes = (
+        index,
+        index[3:9],
+        index[[1, 4, 8, 10]],
+        index.append(pd.DatetimeIndex([index[-1] + pd.Timedelta(days=1)])),
+    )
+
+    for ordinal, expected_index in enumerate(expected_indexes):
+        observed = adapter.generate(
+            params={"direction": 1.0},
+            fold_id=ordinal,
+            expected_index=expected_index,
+            context="next02_projection",
+        )
+        pd.testing.assert_series_equal(observed, historical.reindex(expected_index), check_exact=True)
+
+    # Reusing the exact prepared span proves the descriptor cache is a
+    # run-local acceleration rather than a value-level trial/result cache.
+    repeated = adapter.generate(
+        params={"direction": 1.0},
+        fold_id=99,
+        expected_index=expected_indexes[1],
+        context="next02_projection",
+    )
+    pd.testing.assert_series_equal(repeated, historical.reindex(expected_indexes[1]), check_exact=True)
+    provenance = adapter.metadata()
+    assert provenance["projection_identity_hits"] == 1
+    assert provenance["projection_span_hits"] >= 3
+    assert provenance["projection_gather_fallbacks"] == 1
+    assert provenance["projection_missing_label_fallbacks"] == 1
+    assert provenance["projection_cache_hits"] >= 1
+    assert provenance["projection_full_series_materializations"] == 0
 
 
 def _mode_config(mode: str, *, native_policy: str) -> dict[str, object]:

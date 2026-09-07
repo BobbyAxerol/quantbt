@@ -28,6 +28,29 @@ _ADAPTERS = frozenset({"auto", "w1", "w2"})
 _STRICT_CAUSAL_CACHE_CONTRACT = "causal_parameter_independent_v1"
 
 
+def _adapter_stats() -> dict[str, object]:
+    """Create detached run-local counters for one prepared strategy adapter."""
+
+    return {
+        "prepare_calls": 0,
+        "generate_calls": 0,
+        "w1_generate_calls": 0,
+        "w2_generate_batch_calls": 0,
+        "contexts": {},
+        # Projection is intentionally observable.  A span hit shares the
+        # generated full-tape ndarray; a gather/missing-label result has the
+        # same label semantics as the historical Series.reindex path.
+        "projection_requests": 0,
+        "projection_cache_hits": 0,
+        "projection_cache_misses": 0,
+        "projection_identity_hits": 0,
+        "projection_span_hits": 0,
+        "projection_gather_fallbacks": 0,
+        "projection_missing_label_fallbacks": 0,
+        "projection_full_series_materializations": 0,
+    }
+
+
 class PreparedWfoStrategyUnsupported(NotImplementedError):
     """An optional public W1/W2 strategy adapter cannot be admitted safely."""
 
@@ -51,7 +74,15 @@ class PreparedWfoStrategyAdapterV1:
     requested_policy: str
     cache_contract: str
     _stats: dict[str, object] = field(default_factory=dict)
+    _projection_cache: dict[int, tuple[pd.DatetimeIndex, tuple[str, object]]] = field(default_factory=dict)
     _closed: bool = False
+
+    def __post_init__(self) -> None:
+        """Fill counters for direct/internal construction without shared state."""
+
+        defaults = _adapter_stats()
+        for key, value in defaults.items():
+            self._stats.setdefault(key, value)
 
     def generate(
         self,
@@ -80,8 +111,73 @@ class PreparedWfoStrategyAdapterV1:
         contexts = self._stats["contexts"]
         assert isinstance(contexts, dict)
         contexts[str(context)] = int(contexts.get(str(context), 0)) + 1
-        full = pd.Series(values, index=self.full_index, dtype=float)
-        return full.reindex(expected_index)
+        return self._project(values=values, expected_index=expected_index)
+
+    def _project(self, *, values: np.ndarray, expected_index: pd.DatetimeIndex) -> pd.Series:
+        """Project a full-tape signal without materializing a full Series per task.
+
+        The compatibility implementation created ``Series(values, full_index)``
+        and called ``reindex(expected_index)`` for every candidate/fold/shard.
+        WFO windows are normally exact contiguous slices of ``full_index``;
+        retain that shape as a NumPy view.  An explicit positional gather and a
+        missing-label path preserve the old ``Series.reindex`` result for any
+        non-contiguous or externally supplied index.
+        """
+
+        expected = (
+            expected_index
+            if isinstance(expected_index, pd.DatetimeIndex)
+            else pd.DatetimeIndex(expected_index)
+        )
+        self._stats["projection_requests"] = int(self._stats["projection_requests"]) + 1
+        if expected is self.full_index:
+            self._stats["projection_identity_hits"] = int(self._stats["projection_identity_hits"]) + 1
+            self._stats["projection_span_hits"] = int(self._stats["projection_span_hits"]) + 1
+            return pd.Series(values, index=expected, dtype=float, copy=False)
+
+        descriptor = self._projection_descriptor(expected)
+        kind, payload = descriptor
+        if kind == "span":
+            start, stop = payload
+            self._stats["projection_span_hits"] = int(self._stats["projection_span_hits"]) + 1
+            return pd.Series(values[int(start) : int(stop)], index=expected, dtype=float, copy=False)
+
+        locations = np.asarray(payload, dtype=np.intp)
+        if kind == "gather":
+            self._stats["projection_gather_fallbacks"] = int(self._stats["projection_gather_fallbacks"]) + 1
+            return pd.Series(values[locations], index=expected, dtype=float, copy=False)
+
+        # ``Index.get_indexer`` marks absent labels with -1.  Build the same
+        # float/NaN result that the legacy full Series.reindex call returned.
+        projected = np.full(len(expected), np.nan, dtype=np.float64)
+        present = locations >= 0
+        projected[present] = values[locations[present]]
+        self._stats["projection_missing_label_fallbacks"] = (
+            int(self._stats["projection_missing_label_fallbacks"]) + 1
+        )
+        return pd.Series(projected, index=expected, dtype=float, copy=False)
+
+    def _projection_descriptor(self, expected: pd.DatetimeIndex) -> tuple[str, object]:
+        """Resolve an identity-safe positional descriptor for one output index."""
+
+        key = id(expected)
+        cached = self._projection_cache.get(key)
+        if cached is not None and cached[0] is expected:
+            self._stats["projection_cache_hits"] = int(self._stats["projection_cache_hits"]) + 1
+            return cached[1]
+
+        self._stats["projection_cache_misses"] = int(self._stats["projection_cache_misses"]) + 1
+        locations = self.full_index.get_indexer(expected)
+        if len(locations) and np.all(locations >= 0) and (
+            len(locations) == 1 or np.all(np.diff(locations) == 1)
+        ):
+            descriptor: tuple[str, object] = ("span", (int(locations[0]), int(locations[-1]) + 1))
+        elif np.all(locations >= 0):
+            descriptor = ("gather", np.ascontiguousarray(locations, dtype=np.intp))
+        else:
+            descriptor = ("missing", np.ascontiguousarray(locations, dtype=np.intp))
+        self._projection_cache[key] = (expected, descriptor)
+        return descriptor
 
     def metadata(self) -> dict[str, object]:
         """Return detached strategy preparation provenance."""
@@ -136,11 +232,7 @@ def prepare_public_wfo_strategy(
         "resolved_adapter": "w0",
         "reason": "disabled" if policy == "off" else None,
         "cache_contract": None,
-        "prepare_calls": 0,
-        "generate_calls": 0,
-        "w1_generate_calls": 0,
-        "w2_generate_batch_calls": 0,
-        "contexts": {},
+        **_adapter_stats(),
     }
     if policy == "off":
         return None, baseline, None
@@ -215,13 +307,7 @@ def prepare_public_wfo_strategy(
             lifecycle_record=lifecycle_record,
             requested_policy=policy,
             cache_contract=cache_contract,
-            _stats={
-                "prepare_calls": 1,
-                "generate_calls": 0,
-                "w1_generate_calls": 0,
-                "w2_generate_batch_calls": 0,
-                "contexts": {},
-            },
+            _stats={**_adapter_stats(), "prepare_calls": 1},
         )
     except Exception:
         lifecycle.__exit__(*sys.exc_info())
