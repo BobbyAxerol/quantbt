@@ -19,7 +19,7 @@ The existing Grid adapter accepts four values in `GridExecutionConfig`:
 | `python` | Canonical full reactive implementation and default. |
 | `rust` | Explicit capability-gated Rust V2. Failure is raised; no fallback. |
 | `replay_certified` | Python replay oracle used for audit evidence. |
-| `auto` | Historical Phase 47C result: Python. Current Stage-B auto policy only promotes bounded static/IR rows, not reactive Grid callbacks. |
+| `auto` | Historical Phase 47C result: Python. The current Phase 78 policy promotes only an exact one-symbol Native Strategy IR v1 `score` route; reactive Grid callbacks remain Python-auto. |
 
 The public endpoint remains:
 

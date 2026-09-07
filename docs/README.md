@@ -131,13 +131,15 @@ exercise a stale installed wheel or a mirror instead of the source under
 review.
 The platform-governed Rust companion exposes explicit certified static command
 tapes, bounded Native Strategy IR/batch rows, V2 `target_units`, and same-bar
-atomic package market helpers. Automatic Rust promotion is held until fresh,
-route-matched current-candidate evidence replaces the historical records. The
-Phase 62 numeric every-bar co-runtime and Phase 63 sparse/block/candidate-batch
-reactive contracts are explicit: Rust owns
-simulation/accounting while Python remains the declared strategy-decision
-authority. Default callbacks, generic portfolio, and package/arbitrage routes
-remain Python. See [Native capabilities](native/capabilities.md) and [Rust full
+atomic package market helpers. Phase 78 promotes one deliberately narrow
+automatic route: an exact one-symbol Native Strategy IR v1 `score` request at
+2,000 or more bars with the matching companion wheel. Static command tapes,
+callback/reactive strategies, generic WFO, portfolio/package, options, and
+intrabar requests remain Python under `auto` unless their separately documented
+explicit contract is selected. The Phase 62 numeric every-bar co-runtime and
+Phase 63 sparse/block/candidate-batch reactive contracts remain explicit: Rust
+owns simulation/accounting while Python remains the declared strategy-decision
+authority. See [Native capabilities](native/capabilities.md) and [Rust full
 contract](native_event_rust_full_contract.md).
 
 The release benchmark is summarized in the repository [README](../README.md#release-benchmark).
