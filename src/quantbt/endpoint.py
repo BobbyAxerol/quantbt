@@ -482,6 +482,7 @@ class PreparedNativeEventStrategyRunner:
     volumes_arr: np.ndarray
     market_arrays: object
     backend: NativeEventBackend
+    reactive_market_binding: object | None
     profile_metadata: Dict
     runs: int = 0
     scores: int = 0
@@ -521,6 +522,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
         object.__setattr__(self, "runs", self.runs + 1)
@@ -582,6 +584,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
             _start_bar=start,
             _end_bar=end,
             _allow_prepared_window=True,
@@ -640,6 +643,7 @@ class PreparedNativeEventStrategyRunner:
             market_arrays=self.market_arrays,
             opens_arr=self.opens_arr,
             volumes_arr=self.volumes_arr,
+            _prepared_reactive_market_binding=self.reactive_market_binding,
             trading_days=trading_days,
             score_requirements=score_requirements,
             _start_bar=int(start_bar),
@@ -708,6 +712,7 @@ class PreparedNativeEventStrategyRunner:
             clock=get_event_clock_contract(config.execution_contract),
             requirements=adapter.requirements,
             score_trading_days=int(trading_days),
+            _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         return runner, adapter.requirements
 
@@ -766,6 +771,14 @@ class PreparedNativeEventStrategyRunner:
             runtime=config.reactive_runtime,
             scalar_score=True,
             score_trading_days=int(trading_days),
+            _prepared_market_cache_key=self.backend._trusted_reactive_market_cache_key(
+                self.reactive_market_binding,
+                idx=self.idx,
+                symbol_list=symbols,
+                market_arrays=self.market_arrays,
+                opens_arr=self.opens_arr,
+                volumes_arr=self.volumes_arr,
+            ),
         )
         return runner, adapter.requirements
 
@@ -992,6 +1005,7 @@ class QuantBTEndpoint:
         lows=None,
         datetime_index=None,
         symbols: Optional[Sequence[str]] = None,
+        _validated_canonical_frame: bool = False,
     ) -> PreparedNativeEventStrategyRunner:
         """
         Prepare native-event reactive market state once for repeated scoring.
@@ -1011,7 +1025,17 @@ class QuantBTEndpoint:
         if data is not None and not isinstance(data, dict):
             if len(symbol_list) != 1:
                 raise ValueError("single DataFrame native-event preparation requires exactly one symbol")
-            frame = _standardize_frame(data, datetime_index=datetime_index)
+            if _validated_canonical_frame:
+                if datetime_index is not None or not _is_native_event_canonical_frame(data):
+                    raise ValueError(
+                        "internal canonical native-event preparation requires one UTC, unique, sorted OHLCV DataFrame"
+                    )
+                # The caller owns an isolated frame and has already proven the
+                # no-reindex/no-rename contract.  Avoid a second pandas deep
+                # copy before immediately packing immutable native arrays.
+                frame = data
+            else:
+                frame = _standardize_frame(data, datetime_index=datetime_index)
             symbol = symbol_list[0]
             idx = frame.index
             close_map = {symbol: frame["close"]}
@@ -1064,6 +1088,22 @@ class QuantBTEndpoint:
             funding_rate=config.funding_rate,
             symbols=symbol_list,
         )
+        # Keep the immutable prepared market as the single source of truth for
+        # repeated reactive WFO runs.  The private binding below is accepted
+        # only by this exact backend/tape identity; ordinary endpoints retain
+        # their historical content-validation path.
+        idx = market.idx
+        opens_arr = np.ascontiguousarray(opens_arr, dtype=np.float64)
+        volumes_arr = np.ascontiguousarray(volumes_arr, dtype=np.float64)
+        opens_arr.setflags(write=False)
+        volumes_arr.setflags(write=False)
+        reactive_market_binding = backend.prepare_reactive_market_binding(
+            idx=idx,
+            symbols=symbol_list,
+            market_arrays=market,
+            opens_arr=opens_arr,
+            volumes_arr=volumes_arr,
+        )
         profile = {
             "mode": config.mode,
             "backend": "native_event",
@@ -1091,6 +1131,7 @@ class QuantBTEndpoint:
             volumes_arr=volumes_arr,
             market_arrays=market,
             backend=backend,
+            reactive_market_binding=reactive_market_binding,
             profile_metadata=profile,
         )
 
@@ -5723,6 +5764,22 @@ def _standardize_frame(data, datetime_index=None) -> pd.DataFrame:
     if "volume" not in frame.columns:
         frame["volume"] = 0.0
     return frame
+
+
+def _is_native_event_canonical_frame(data) -> bool:
+    """Return whether private prepared input can bypass frame normalization.
+
+    This is intentionally stricter than the public standardizer.  A false
+    answer merely uses the historical copy/normalization path; it never turns
+    an almost-compatible frame into a fast-path assumption.
+    """
+
+    if not isinstance(data, pd.DataFrame) or not isinstance(data.index, pd.DatetimeIndex):
+        return False
+    index = data.index
+    if index.tz is None or not index.is_monotonic_increasing or index.has_duplicates:
+        return False
+    return all(column in data.columns for column in ("open", "high", "low", "close", "volume"))
 
 
 def _signal_from_data(data, signal_col):

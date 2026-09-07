@@ -313,7 +313,12 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         task = self._reactive_runtime.make_task(
             params=params,
             fold=fold,
-            evaluation_index=pd.DatetimeIndex(test_index),
+            # Preserve the exact WFO-owned index identity when available.
+            # Reconstructed or user-supplied index-like input still receives
+            # the legacy checked adapter path downstream.
+            evaluation_index=(
+                test_index if isinstance(test_index, pd.DatetimeIndex) else pd.DatetimeIndex(test_index)
+            ),
             stage=str(context),
         )
         return ReactiveWfoScoreMarkerV1(task=task, params=dict(params))
@@ -386,9 +391,16 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
             )
             shard_tasks: list[tuple[int, pd.DatetimeIndex, int]] = []
             if self.config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}:
-                for shard_id, shard_index in enumerate(
-                    _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
-                ):
+                prepared_shards = self._reactive_runtime.prepared_subperiods_for(
+                    fold.train_index,
+                    int(self.config.is_subperiods),
+                )
+                shards = (
+                    prepared_shards
+                    if prepared_shards is not None
+                    else _split_index_into_subperiods(fold.train_index, int(self.config.is_subperiods))
+                )
+                for shard_id, shard_index in enumerate(shards):
                     if len(shard_index) < 2:
                         continue
                     shard_output = self._call_strategy_for_indices(
@@ -415,9 +427,14 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         scored = self._score_strategy_outputs_batch(data, score_tasks)
         for fold, is_task, shard_tasks in fold_work:
             is_metrics = scored[is_task]
-            required_trades = _required_trades_for_index(
+            prepared_required_trades = self._reactive_runtime.prepared_required_trades_for(
                 fold.train_index,
                 self.config.min_trades_per_year,
+            )
+            required_trades = (
+                _required_trades_for_index(fold.train_index, self.config.min_trades_per_year)
+                if prepared_required_trades is None
+                else float(prepared_required_trades)
             )
             factor = 1.0 if self.config.trade_penalty_factor is None else float(self.config.trade_penalty_factor)
             penalty = trade_frequency_penalty(is_metrics["trade_count"], required_trades, factor)

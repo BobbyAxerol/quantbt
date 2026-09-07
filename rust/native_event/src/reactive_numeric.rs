@@ -2311,6 +2311,75 @@ impl ReactiveCallbackAccessPlanV1 {
     }
 }
 
+/// R3B has one callback surface rather than the R1/R2/R3 lifecycle set.
+/// Keep its access plan separate so existing single-candidate telemetry and
+/// callback-plan accounting remain byte-for-byte compatible.
+struct ReactiveBatchCallbackAccessPlanV1 {
+    mode: CallbackBindingModeV1,
+    on_wake_batch: Option<Py<PyAny>>,
+}
+
+impl ReactiveBatchCallbackAccessPlanV1 {
+    fn compile(py: Python<'_>, strategy: &Py<PyAny>) -> PyResult<(Self, usize)> {
+        if !ReactiveCallbackAccessPlanV1::run_stable_opt_in(py, strategy)? {
+            return Ok((
+                Self {
+                    mode: CallbackBindingModeV1::DynamicCompatibility,
+                    on_wake_batch: None,
+                },
+                0,
+            ));
+        }
+        Ok((
+            Self {
+                mode: CallbackBindingModeV1::RunStablePinned,
+                on_wake_batch: ReactiveCallbackAccessPlanV1::optional_callback(
+                    py,
+                    strategy,
+                    "on_wake_batch",
+                )?,
+            },
+            1,
+        ))
+    }
+
+    fn resolve(
+        &self,
+        py: Python<'_>,
+        strategy: &Py<PyAny>,
+        outputs: &mut [ReactiveRunData],
+        candidates: &[usize],
+    ) -> PyResult<Py<PyAny>> {
+        if self.mode == CallbackBindingModeV1::RunStablePinned {
+            return self.on_wake_batch.as_ref().map(|value| value.clone_ref(py)).ok_or_else(|| {
+                PyTypeError::new_err(
+                    "numeric candidate batch strategies must implement on_wake_batch(context_batch, out_batch) -> CandidateWakePlansV1",
+                )
+            });
+        }
+        let started = Instant::now();
+        let callable = strategy.bind(py).getattr("on_wake_batch").map_err(|error| {
+            if error.is_instance_of::<PyAttributeError>(py) {
+                PyTypeError::new_err(
+                    "numeric candidate batch strategies must implement on_wake_batch(context_batch, out_batch) -> CandidateWakePlansV1",
+                )
+            } else {
+                error
+            }
+        })?;
+        let elapsed = started.elapsed().as_nanos();
+        for &candidate in candidates {
+            outputs[candidate].callback_lookup_ns = outputs[candidate]
+                .callback_lookup_ns
+                .saturating_add(elapsed);
+            outputs[candidate].callback_dynamic_lookup_count = outputs[candidate]
+                .callback_dynamic_lookup_count
+                .saturating_add(1);
+        }
+        Ok(callable.unbind())
+    }
+}
+
 impl ReactiveNumericRunnerCore {
     fn normalize_gil_policy(value: &str) -> PyResult<bool> {
         match value.to_ascii_lowercase().as_str() {
@@ -4469,6 +4538,7 @@ impl ReactiveCandidateBatchRunnerCore {
         &mut self,
         py: Python<'_>,
         strategy: &Py<PyAny>,
+        access_plan: &ReactiveBatchCallbackAccessPlanV1,
         bar: usize,
         candidates: &[usize],
         outputs: &mut [ReactiveRunData],
@@ -4478,15 +4548,7 @@ impl ReactiveCandidateBatchRunnerCore {
         if candidates.is_empty() {
             return Ok(());
         }
-        let callable = strategy.bind(py).getattr("on_wake_batch").map_err(|error| {
-            if error.is_instance_of::<PyAttributeError>(py) {
-                PyTypeError::new_err(
-                    "numeric candidate batch strategies must implement on_wake_batch(context_batch, out_batch) -> CandidateWakePlansV1",
-                )
-            } else {
-                error
-            }
-        })?;
+        let callable = access_plan.resolve(py, strategy, outputs, candidates)?;
         let timestamp_ns = self.candidates[candidates[0]]
             .core
             .inner
@@ -4534,7 +4596,7 @@ impl ReactiveCandidateBatchRunnerCore {
         let context = self.context.bind(py);
         let writer = self.writer.bind(py);
         let started = Instant::now();
-        let response = callable.call1((context, writer));
+        let response = callable.bind(py).call1((context, writer));
         let callback_ns = started.elapsed().as_nanos();
         batch_callback_bar.push(bar as i64);
         batch_callback_candidate_count.push(candidates.len() as i64);
@@ -4707,6 +4769,10 @@ impl ReactiveCandidateBatchRunnerCore {
             .validate_window(start_bar, end_bar)?;
         let release_between_callbacks =
             ReactiveNumericRunnerCore::normalize_gil_policy(gil_policy)?;
+        let callback_plan_started = Instant::now();
+        let (callback_access_plan, callback_plan_lookups) =
+            ReactiveBatchCallbackAccessPlanV1::compile(py, &strategy)?;
+        let callback_plan_ns = callback_plan_started.elapsed().as_nanos();
         self.started = true;
         self.run_count = self.run_count.saturating_add(1);
         // WFO windows retain absolute prepared-market coordinates while every
@@ -4735,6 +4801,9 @@ impl ReactiveCandidateBatchRunnerCore {
             // reused for the full candidate window and never shared across
             // candidates or folds.
             output.wake_observation_buffer_allocations = 2;
+            output.callback_plan_compile_ns = callback_plan_ns;
+            output.callback_plan_compile_lookup_count = callback_plan_lookups;
+            output.callback_binding_mode = callback_access_plan.mode.label().to_owned();
         }
         let mut batch_callback_bar = Vec::new();
         let mut batch_callback_candidate_count = Vec::new();
@@ -4779,6 +4848,7 @@ impl ReactiveCandidateBatchRunnerCore {
                 self.invoke_batch_callback(
                     py,
                     &strategy,
+                    &callback_access_plan,
                     bar,
                     &wakes,
                     &mut outputs,

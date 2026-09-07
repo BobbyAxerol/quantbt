@@ -20,6 +20,21 @@ Each score window uses absolute bar coordinates of the single prepared tape, but
 
 `result.oos_output` is therefore always `None`. Inspect reset-flat OOS segments through `result.segmented_equity`, `result.fold_metrics()`, `result.fold_table`, and `result.fold_results`.
 
+## Prepared Runtime Performance
+
+The W3 runtime automatically prepares run-local fold windows, Mode 4/5 IS
+shards, annualized trade requirements and eligible Mode 1 causal inner folds.
+It also reuses the exact immutable Rust market core across task-local scoring
+sessions. These are identity-checked internal optimizations: user strategy
+code, task count, callback timing, seeds, accounts, selection mathematics and
+public API do not change. A reconstructed or mismatched index/tape uses the
+historical validated fallback.
+
+The supported W3 modes are still Mode 1, 3, 4 and 5. Mode 2 remains explicitly
+unsupported because its bootstrap return-path proxy cannot be substituted for a
+dynamic order-lifecycle score. For current parity controls and measured
+same-contract evidence, see [PERF-09 Reactive Boundary Closure](performance/perf_09_reactive_boundary.md).
+
 ## Minimal Sequential Route
 
 The factory prepares parameter-independent causal data once, then builds one fresh strategy for each candidate/fold/window task.

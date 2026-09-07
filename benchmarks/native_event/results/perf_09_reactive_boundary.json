@@ -1,0 +1,222 @@
+{
+  "evidence": {
+    "exact_public_fingerprints": true,
+    "mode4_prepared_shards": true,
+    "no_baseline_task_fast_path": true,
+    "prepared_task_fast_path": true
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "6a9fc17b85423d3159f07602a0f027e6e6d1715dd2ed47759332c02f6bf70a88",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "416df82f0d115d1369342511b2d7adccf598122b1f908b22bad519dbed29a22a",
+    "git_commit": "d5a5e5d0a383ddfbe9ef8c9d6950832e76306fdb",
+    "git_dirty": true,
+    "git_status_sha256": "9c3ecae22142df926d21071e08cea903ef9512c58ea6a12e7b591cc7c2acbe40",
+    "intent_sha256": "c1d02735609b358ee26ba139f95e7d52a029e4e63758d17b04ef076ed20ed53c",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "093cc41990a733e52d304b85508d51b8d4e5fa84aeb3c28aa1101db77acb4417",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "952de17a95e1919f6e4b7703a264424892480f9997130532a774ed53f5695f5f",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed baseline/prepared public reactive WFO pair for each workload, then alternating paired baseline/prepared repeats with the same tape, candidates, strategy factory, account contract, seed, and retention"
+  },
+  "rows": [
+    {
+      "baseline_median_milliseconds": 624.7089328244328,
+      "baseline_median_seconds": 0.6247089328244328,
+      "baseline_prepared_task_window_fallbacks": 378,
+      "baseline_prepared_task_window_hits": 0,
+      "candidate_rows": 46,
+      "fingerprint": {
+        "folds": [
+          {
+            "fees": 0.033646392608713147,
+            "final_equity": 19999.705990963408,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.035405522503623714,
+            "final_equity": 20000.6242495215,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.026291835748378227,
+            "final_equity": 20000.219135284053,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.0463958408239297,
+            "final_equity": 20000.713963599766,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.0422682641151695,
+            "final_equity": 20000.24742164011,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.044983271811719294,
+            "final_equity": 20000.63245183243,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": 3.095405726345079,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.26
+        }
+      },
+      "folds": 6,
+      "mode": "mode_4_is_only_robust",
+      "optimized_median_milliseconds": 316.9751474633813,
+      "optimized_median_seconds": 0.3169751474633813,
+      "prepared_shard_hits": 40,
+      "prepared_task_window_fallbacks": 0,
+      "prepared_task_window_hits": 378,
+      "repeats": 5,
+      "rss_pss_after": {
+        "private_bytes": 238665728,
+        "pss_bytes": 241135616,
+        "rss_bytes": 251125760,
+        "shared_bytes": 12460032
+      },
+      "rss_pss_before": {
+        "private_bytes": 238309376,
+        "pss_bytes": 240918528,
+        "rss_bytes": 250769408,
+        "shared_bytes": 12460032
+      },
+      "rss_pss_delta": {
+        "private_bytes": 356352,
+        "pss_bytes": 217088,
+        "rss_bytes": 356352,
+        "shared_bytes": 0
+      },
+      "schedule": "certified_sequential_v1",
+      "score_bars": 32390,
+      "score_calls": 372,
+      "speedup": 1.970845152447173,
+      "trial_rows": 48
+    },
+    {
+      "baseline_median_milliseconds": 315.86521212011576,
+      "baseline_median_seconds": 0.31586521212011576,
+      "baseline_prepared_task_window_fallbacks": 294,
+      "baseline_prepared_task_window_hits": 0,
+      "candidate_rows": 8,
+      "fingerprint": {
+        "folds": [
+          {
+            "fees": 0.04917549688965768,
+            "final_equity": 19999.57029448499,
+            "fold_id": 0,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05174653288991158,
+            "final_equity": 20000.91236468527,
+            "fold_id": 1,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.05550502913992331,
+            "final_equity": 19999.398618547362,
+            "fold_id": 2,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.058768065043644284,
+            "final_equity": 20000.904353893045,
+            "fold_id": 3,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06177672881375537,
+            "final_equity": 19999.483941978615,
+            "fold_id": 4,
+            "funding": 0.0
+          },
+          {
+            "fees": 0.06574478187866667,
+            "final_equity": 20000.92435267816,
+            "fold_id": 5,
+            "funding": 0.0
+          }
+        ],
+        "objective": -0.9345778666911283,
+        "params": {
+          "direction": 1.0,
+          "quantity": 0.38
+        }
+      },
+      "folds": 6,
+      "mode": "mode_1_decay",
+      "optimized_median_milliseconds": 129.56781778484583,
+      "optimized_median_seconds": 0.12956781778484583,
+      "prepared_shard_hits": 0,
+      "prepared_task_window_fallbacks": 0,
+      "prepared_task_window_hits": 294,
+      "repeats": 5,
+      "rss_pss_after": {
+        "private_bytes": 239013888,
+        "pss_bytes": 241483776,
+        "rss_bytes": 251473920,
+        "shared_bytes": 12460032
+      },
+      "rss_pss_before": {
+        "private_bytes": 238809088,
+        "pss_bytes": 241278976,
+        "rss_bytes": 251269120,
+        "shared_bytes": 12460032
+      },
+      "rss_pss_delta": {
+        "private_bytes": 204800,
+        "pss_bytes": 204800,
+        "rss_bytes": 204800,
+        "shared_bytes": 0
+      },
+      "schedule": "throughput_batch_v1",
+      "score_bars": 43040,
+      "score_calls": 144,
+      "speedup": 2.437836937599941,
+      "trial_rows": 16
+    }
+  ],
+  "schema": "quantbt-perf-09-reactive-boundary-v1",
+  "workload": {
+    "bars": 2000,
+    "candidates": 8,
+    "repeats": 5,
+    "symbols": 1
+  }
+}

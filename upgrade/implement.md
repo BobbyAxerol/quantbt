@@ -18878,7 +18878,7 @@ New responsibilities belong in small modules/classes with narrow delegation
 from existing large files. Reuse native prepared handles, scalar columns,
 metric contracts and lifetime management.
 
-**Work packages (all pending):**
+**Work packages (completion mapping below):**
 
 1. **PF-08.1 - Freeze representative baselines.** Pin source, native binary,
    dependencies, CPU topology and financial/retention contracts. Reproduce the
@@ -19051,7 +19051,7 @@ reactive/wheel requalification; Phase 78 owns actual promotion and release.
 
 ### Phase PERF-09 - Reactive Boundary, Batch Runtime, And Integrated Performance Closure
 
-**Status: PLANNED; requires PERF-08 exit and separate user approval.**
+**Status: COMPLETE (2026-09-07).**
 
 **Goal:** reduce engine/bridge cost in public reactive backtests and reactive
 WFO with the same strategy code and decisions, then requalify the combined
@@ -19076,7 +19076,7 @@ requirements/writer adapters. Keep `FullSession` the single execution/account
 authority. Use focused Rust structs/modules for additional scratch/access plans;
 no wholesale refactor of the large existing reactive module.
 
-**Work packages (all pending):**
+**Work packages (completed; see completion mapping below):**
 
 1. **PF-09.1 - Freeze same-strategy reactive baselines.** Pin public
    `event_driven`/native-event, prepared scalar and reactive WFO surfaces with
@@ -19163,7 +19163,7 @@ no wholesale refactor of the large existing reactive module.
 
 **Deliverables:** proposed `tests/test_perf_09_reactive_boundary.py`, extension
 of existing R1/R2/R3/R3B/W3 parity/resource tests, a combined public benchmark,
-`docs/performance/perf_09_reactive_closure.md`, updated endpoint/backend guides,
+`docs/performance/perf_09_reactive_boundary.md`, updated endpoint/backend guides,
 same-retention research/financial export evidence and refreshed closure files.
 Report WFO preparation, native execution, optimizer, Python strategy and export
 times separately, with actual baseline/candidate source identities.
@@ -19175,6 +19175,46 @@ Phase 78 under a new debt label. User strategy logic, automatic Python-to-Rust
 translation, new platform support and production release remain outside scope.
 Rollback uses the same compatible baseline bridge/schedule and preserves all
 requested outputs. Only a new approval admits Phase 78 after this gate.
+
+**Completion record (2026-09-07):**
+
+- PF-09.1/09.3: added a Rust R3B callback-access plan. Dynamic callback lookup
+  remains the default and observes runtime replacement; only the existing
+  explicit `quantbt_reactive_callback_binding_v1="run_stable"` opt-in pins
+  `on_wake_batch` once per fresh run. This is isolated from the single-candidate
+  R1/R2/R3 access plan, preserving its telemetry and behavior.
+- PF-09.4: added run-local `ReactiveWfoPreparationV1`, reusing exact
+  contiguous fold/task views, Mode 4/5 temporal shards, cached trade
+  requirements and Mode 1 `per_fold_causal` inner folds. It owns no strategy,
+  score, account, Optuna or result state. Equivalent indexes retain the checked
+  indexer fallback.
+- PF-09.4/09.5: prepared native-event strategy runners now create a
+  backend-owned immutable market binding once. The binding has an opaque owner
+  token plus exact index/array identities and skips repeated content hashing
+  only when every object matches. Foreign or mismatched bindings fail closed;
+  direct/public callers retain validation and content signatures.
+- PF-09.5: `tests/test_perf_09_reactive_boundary.py` locks Mode 1 causal,
+  Mode 3 global, Mode 4 causal and Mode 5 global result parity, task/fold/table
+  provenance, dynamic-vs-pinned R3B callback semantics, and prepared/unbound
+  scalar-score parity. Existing Phase 76, Phase 77.3 and PERF-03 reactive
+  regressions remain in the affected suite.
+- PF-09.6: added `benchmark_perf09_reactive_boundary.py`, JSON/Markdown
+  evidence and documentation. The paired current-source 2k-bar/eight-candidate
+  five-repeat result is Mode 4 causal `624.709 ms -> 316.975 ms` (`1.97x`) and
+  distinct fixed-matrix Mode 1 R3B `315.865 ms -> 129.568 ms` (`2.44x`), both
+  with exact fingerprints and source/build plus typed tape/intent identity.
+  RSS/PSS remains explicitly a same-process plateau diagnostic, not isolated
+  attribution.
+- PF-09.6 local artifact gate: a fresh matching core/native Linux CPython pair
+  passed source-hash parity, isolated install, direct native-target smoke and
+  source-tree import blocking. The attempt first exposed a sandbox DNS block
+  for isolated build dependencies; the approved network retry passed. This is
+  exact local candidate evidence, while cross-platform publication remains
+  deliberately owned by Phase 78.
+- No in-scope correctness, lifecycle, ownership, retention, compatibility,
+  measurement or documentation blocker remains. Mode 2 reactive WFO remains
+  explicitly unsupported by its existing return-path contract, and arbitrary
+  user callback computation remains the declared non-engine speed ceiling.
 
 ### Phase 78 - Public Rust-Primary Promotion And Release Certification
 

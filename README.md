@@ -399,6 +399,23 @@ arbitrary Python callback compute. The artifact also proves active Rust
 deadline/cancellation behavior and cross-route parity controls:
 [Phase 77.3 reactive closure](benchmarks/native_event/results/phase77_3_reactive_closure.md).
 
+PERF-09 adds run-local calendar/task preparation and exact prepared-market
+binding to the explicit Reactive WFO W3 route without changing strategy calls,
+Optuna ordering, account boundaries or selection. On a paired 2,000-bar,
+eight-candidate, five-repeat source-tree benchmark, Mode 4
+`per_fold_causal` sequential W3 fell from `624.709 ms` to `316.975 ms`
+(`1.97x`, 32,390 actual score bars); separate Mode 1 fixed-matrix R3B fell from
+`315.865 ms` to `129.568 ms` (`2.44x`, 43,040 actual score bars). R3B is a
+distinct throughput sampling contract, not a sequential-TPE comparison. Exact
+fold tables, selected parameters, segment equity, fees, funding, positions and
+strategy fingerprints match the compatibility path. See the
+[PERF-09 evidence](docs/performance/perf_09_reactive_boundary.md).
+
+The local Linux CPython candidate-pair gate also passed source-hash parity,
+isolated core/native install, direct native-target smoke, and source-tree import
+blocking. Published-wheel platform certification remains a separate Phase 78
+release responsibility.
+
 The direct target rows are intentionally split. The narrow typed Rust score
 is slower than the frozen Numba pure kernel on this fixture, while the explicit
 Rust compact facade is faster because it eliminates repeated compatibility
@@ -460,6 +477,8 @@ Evidence:
 - [PERF-08 public WFO preparation evidence](benchmarks/native_event/results/perf_08_public_wfo.md)
 - [PERF-08 public WFO preparation JSON](benchmarks/native_event/results/perf_08_public_wfo.json)
 - [PERF-08 Mode 4 standard JSON](benchmarks/native_event/results/perf_08_public_wfo_standard.json)
+- [PERF-09 reactive WFO preparation evidence](benchmarks/native_event/results/perf_09_reactive_boundary.md)
+- [PERF-09 reactive WFO preparation JSON](benchmarks/native_event/results/perf_09_reactive_boundary.json)
 - [benchmark governance](docs/performance/benchmarking.md)
 
 ## Core Capabilities
@@ -525,6 +544,7 @@ Start with the [documentation map](docs/README.md).
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |
 | Immutable calendar/shard preparation and Mode 4 causal WFO benchmark | [PERF-08 WFO preparation](docs/performance/perf_08_wfo_preparation.md) |
+| Prepared reactive WFO calendar/task and Rust market binding evidence | [PERF-09 reactive closure](docs/performance/perf_09_reactive_boundary.md) |
 | Stateful Rust/Python reactive WFO, R3B batch scheduling, and reset-flat segment audit | [Reactive WFO (W3)](docs/reactive_wfo.md) |
 | Prepared static-IR native WFO runtime | [Native WFO Runtime V2](docs/native_wfo_runtime.md) |
 | Runtime budgets, cancellation, RSS soak, and shadow kill switch | [Native runtime governance](docs/native_runtime_governance.md) |
