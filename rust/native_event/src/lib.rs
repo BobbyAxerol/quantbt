@@ -6388,8 +6388,10 @@ impl NativeWfoRuntimeCore {
             ));
         }
         let fold_values = folds.as_slice()?;
-        let fold_plan = fold_values
-            .chunks_exact(6)
+        let (fold_rows, remainder) = fold_values.as_chunks::<6>();
+        debug_assert!(remainder.is_empty());
+        let fold_plan = fold_rows
+            .iter()
             .map(|values| batch::FoldPlan {
                 fold_id: values[0],
                 warmup_start: values[1],
@@ -6880,8 +6882,10 @@ impl NativeTargetWfoRuntimeCore {
             ));
         }
         let fold_values = folds.as_slice()?;
-        let fold_plan = fold_values
-            .chunks_exact(6)
+        let (fold_rows, remainder) = fold_values.as_chunks::<6>();
+        debug_assert!(remainder.is_empty());
+        let fold_plan = fold_rows
+            .iter()
             .map(|values| batch::FoldPlan {
                 fold_id: values[0],
                 warmup_start: values[1],
@@ -7123,7 +7127,9 @@ fn parse_fingerprint(value: &str) -> PyResult<[u8; 32]> {
         ));
     }
     let mut bytes = [0_u8; 32];
-    for (index, pair) in value.as_bytes().chunks_exact(2).enumerate() {
+    let (pairs, remainder) = value.as_bytes().as_chunks::<2>();
+    debug_assert!(remainder.is_empty());
+    for (index, pair) in pairs.iter().enumerate() {
         let high = hex_digit(pair[0]).ok_or_else(|| {
             pyo3::exceptions::PyValueError::new_err("native WFO fingerprint is not hexadecimal")
         })?;
