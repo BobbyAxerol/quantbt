@@ -381,6 +381,8 @@ def test_phase74_native_prepared_public_modes_preserve_selection_and_final_accou
     assert prepared["native_batches"] > 0
     assert prepared["native_rows"] > 0
     assert prepared["native_scored_bars"] > 0
+    assert prepared["transient_request_rows"] == prepared["native_rows"]
+    assert prepared["transient_request_bytes"] > 0
     assert prepared["fresh_account_policy"] == "fresh_account_per_evaluation"
     assert prepared["final_account_policy"] == "endpoint_stitched_continuous_account"
     assert native.metadata["walk_forward"]["prepared_scoring_cache"]["released_after_run"] is True

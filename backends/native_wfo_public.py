@@ -58,6 +58,8 @@ class _PreparedPublicWfoState:
     qty_step: np.ndarray
     min_qty: np.ndarray
     min_notional: np.ndarray
+    tradable: np.ndarray
+    stale: np.ndarray
     alloc: float
     metric_contract: NativeEvaluationMetricContractV1
 
@@ -101,6 +103,8 @@ class NativePreparedPublicWfoScorerV1:
             "native_scored_bars": 0,
             "native_boundary_calls": 0,
             "native_score_seconds": 0.0,
+            "transient_request_rows": 0,
+            "transient_request_bytes": 0,
             "prepared_window_hits": 0,
             "prepared_window_fallbacks": 0,
             "output_index_identity_hits": 0,
@@ -416,6 +420,8 @@ class NativePreparedPublicWfoScorerV1:
             qty_step=np.ascontiguousarray(constraints.qty_step, dtype=np.float64),
             min_qty=np.ascontiguousarray(constraints.min_qty, dtype=np.float64),
             min_notional=np.ascontiguousarray(constraints.min_notional, dtype=np.float64),
+            tradable=np.ones((len(index), 1), dtype=np.bool_),
+            stale=np.zeros((len(index), 1), dtype=np.bool_),
             alloc=(
                 self._pct_equity_allocation(symbol)
                 if self.target_mode in {"pct_equity", "%_equity"}
@@ -462,17 +468,23 @@ class NativePreparedPublicWfoScorerV1:
             else:
                 targets = self._target_units(raw, state.closes[start:end], index, state.alloc)
             local_template = state.cache.window_template(state.template, start=start, end=end)
-            request = state.cache.direct_target_request(
+            request = state.cache.transient_direct_target_request(
                 local_template,
                 targets=targets,
                 target_kind=target_kind,
                 timing=_RUST_DIRECT_TIMING,
                 invalid_target_policy="reject_run",
+                tradable=state.tradable[start:end],
+                stale=state.stale[start:end],
                 qty_step=state.qty_step,
                 min_qty=state.min_qty,
                 min_notional=state.min_notional,
                 equity_fraction=equity_fraction,
                 output_profile=0,
+            )
+            self._stats["transient_request_rows"] = int(self._stats["transient_request_rows"]) + 1
+            self._stats["transient_request_bytes"] = int(self._stats["transient_request_bytes"]) + int(
+                request.request_bytes
             )
             fold = task.get("fold")
             fold_id = int(getattr(fold, "fold_id", 0))

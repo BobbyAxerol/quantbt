@@ -28,7 +28,12 @@ from quantbt.backends.native_portfolio_package import (
     run_portfolio_target_market_v2,
 )
 from quantbt.core.market_calendar_v2 import prepare_market_handle_v2
-from quantbt.walkforward import WalkForwardConfig, WalkForwardEngine, _align_data_to_datetime_index
+from quantbt.walkforward import (
+    WalkForwardConfig,
+    WalkForwardEngine,
+    _align_data_to_datetime_index,
+    _first_wfo_calendar_divergence,
+)
 from reference.python.calendar_oracle import build_calendar_plan
 from reference.python.instrument_oracle import quantize_price as oracle_price
 from reference.python.instrument_oracle import quantize_quantity as oracle_quantity
@@ -144,6 +149,24 @@ def test_phase58_explicit_legacy_wfo_contract_preserves_historical_row_count_ada
     canonical = _index(0, 1, 3)
     aligned = _align_data_to_datetime_index(frames, canonical, calendar_contract="legacy_v1")
     assert aligned["ETH"].index.equals(canonical)
+
+
+def test_phase_next02_calendar_divergence_reports_the_same_first_mismatch() -> None:
+    reference = _index(0, 1, 2, 3)
+    candidate = _index(0, 1, 4, 3)
+
+    divergence = _first_wfo_calendar_divergence(reference, candidate)
+
+    assert divergence == (2, reference[2], candidate[2])
+
+
+def test_phase_next02_calendar_divergence_preserves_length_mismatch_surface() -> None:
+    reference = _index(0, 1, 2)
+    shorter = _index(0, 1)
+    longer = _index(0, 1, 2, 3)
+
+    assert _first_wfo_calendar_divergence(reference, shorter) == (2, reference[2], "<end>")
+    assert _first_wfo_calendar_divergence(reference, longer) == (3, "<end>", longer[3])
 
 
 @pytest.mark.parametrize("policy", ["intersection", "union", "primary_clock"])

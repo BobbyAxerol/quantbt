@@ -4717,9 +4717,21 @@ def _strict_wfo_datetime_index(values, *, label: str) -> pd.DatetimeIndex:
 
 
 def _first_wfo_calendar_divergence(reference: pd.DatetimeIndex, candidate: pd.DatetimeIndex):
+    """Return the first exact-clock mismatch without boxing every timestamp.
+
+    Both callers pass indexes already normalized by
+    :func:`_strict_wfo_datetime_index`, so their int64 UTC nanosecond values
+    are the canonical equality surface.  Comparing those arrays avoids one
+    Python ``Timestamp`` allocation per bar on every fresh WFO study, while
+    retaining the historical timestamp objects in the diagnostic only when a
+    mismatch actually exists.
+    """
+
     shared = min(len(reference), len(candidate))
-    for row in range(shared):
-        if reference[row] != candidate[row]:
+    if shared:
+        mismatch = np.flatnonzero(reference.asi8[:shared] != candidate.asi8[:shared])
+        if len(mismatch):
+            row = int(mismatch[0])
             return row, reference[row], candidate[row]
     if len(reference) != len(candidate):
         row = shared

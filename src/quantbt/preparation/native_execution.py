@@ -21,6 +21,7 @@ import numpy as np
 from .cache import CachePolicy, PreparedObjectCache
 from .native_target_requests import (
     prepare_direct_target_request,
+    prepare_transient_direct_target_request,
     prepare_shared_portfolio_target_request,
 )
 from .native_package_requests import (
@@ -539,6 +540,46 @@ class NativeExecutionPreparationCache:
         """Prepare/reuse one Rust-owned direct close-target request."""
 
         return prepare_direct_target_request(
+            self,
+            template,
+            targets=targets,
+            target_kind=target_kind,
+            timing=timing,
+            invalid_target_policy=invalid_target_policy,
+            tradable=tradable,
+            stale=stale,
+            qty_step=qty_step,
+            min_qty=min_qty,
+            min_notional=min_notional,
+            equity_fraction=equity_fraction,
+            output_profile=output_profile,
+        )
+
+    def transient_direct_target_request(
+        self,
+        template: NativePreparedTemplate,
+        *,
+        targets: object,
+        target_kind: str | int = "units",
+        timing: str | int = "close_target_v2_same_close",
+        invalid_target_policy: str | int = "reject_run",
+        tradable: object | None = None,
+        stale: object | None = None,
+        qty_step: object | None = None,
+        min_qty: object | None = None,
+        min_notional: object | None = None,
+        equity_fraction: object | None = None,
+        output_profile: int = 0,
+    ) -> NativePreparedRequest:
+        """Build a one-shot validated direct target request without L4 caching.
+
+        The method is for callers with an explicitly bounded request lifetime,
+        such as one fresh candidate/fold score. Ordinary APIs must keep using
+        :meth:`direct_target_request` so identical immutable tapes retain the
+        established content-addressed cache contract.
+        """
+
+        return prepare_transient_direct_target_request(
             self,
             template,
             targets=targets,

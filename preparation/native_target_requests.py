@@ -85,6 +85,7 @@ def _build_target_request(
     equity_fraction: object | None,
     output_profile: int,
     admission_policy: str | int | None,
+    cache_request: bool = True,
 ):
     """Build one cached target request without owning any cache state.
 
@@ -171,29 +172,50 @@ def _build_target_request(
         raise ValueError("native direct target output_profile must be 0 (score), 1 (compact), or 2 (audit)")
 
     workload = "shared_portfolio_target_v1" if admission_code is not None else "direct_target_v1"
-    signature = _digest(
-        _REQUEST_SCHEMA,
-        _PREPARATION_SCHEMA,
-        template.signature,
-        workload,
-        kind_code,
-        admission_code,
-        timing_code,
-        invalid_code,
-        profile,
-        target_array,
-        tradable_array,
-        stale_array,
-        qty_step_array,
-        min_qty_array,
-        min_notional_array,
-        equity_fraction_array,
+    request_bytes = int(
+        target_array.nbytes
+        + tradable_array.nbytes
+        + stale_array.nbytes
+        + qty_step_array.nbytes
+        + min_qty_array.nbytes
+        + min_notional_array.nbytes
+        + equity_fraction_array.nbytes
     )
-    key = (_REQUEST_SCHEMA, signature)
+
+    # Content-addressed requests are the ordinary public contract. Fresh WFO
+    # candidates, however, produce one unique target tape per evaluation and
+    # dispose it after the scalar result returns. They must not pay an O(tape)
+    # digest/cache lookup that cannot produce a hit. The caller opts into this
+    # path explicitly; all ingress shape/dtype/constraint validation remains
+    # identical to the cached builder.
+    signature = None
+    key = None
+    if cache_request:
+        signature = _digest(
+            _REQUEST_SCHEMA,
+            _PREPARATION_SCHEMA,
+            template.signature,
+            workload,
+            kind_code,
+            admission_code,
+            timing_code,
+            invalid_code,
+            profile,
+            target_array,
+            tradable_array,
+            stale_array,
+            qty_step_array,
+            min_qty_array,
+            min_notional_array,
+            equity_fraction_array,
+        )
+        key = (_REQUEST_SCHEMA, signature)
+
     with cache._lock:
-        cached = cache._request_cache.get(key)
-        if cached is not None:
-            return cached
+        if key is not None:
+            cached = cache._request_cache.get(key)
+            if cached is not None:
+                return cached
         native = cache._native()
         if admission_code is None:
             if not hasattr(native, "NativeTargetExecutionRequestCore"):
@@ -236,15 +258,6 @@ def _build_target_request(
                 equity_fraction=equity_fraction_array,
                 output_profile=profile,
             )
-        request_bytes = int(
-            target_array.nbytes
-            + tradable_array.nbytes
-            + stale_array.nbytes
-            + qty_step_array.nbytes
-            + min_qty_array.nbytes
-            + min_notional_array.nbytes
-            + equity_fraction_array.nbytes
-        )
         record = NativePreparedRequest(
             core=core,
             template=template,
@@ -253,7 +266,8 @@ def _build_target_request(
             request_bytes=request_bytes,
             market_signature=template.market.signature,
         )
-        cache._request_cache.put(key, record, size_bytes=request_bytes)
+        if key is not None:
+            cache._request_cache.put(key, record, size_bytes=request_bytes)
         cache._ingress_copy_count += (
             target_copies
             + tradable_copies
@@ -278,7 +292,19 @@ def _build_target_request(
 def prepare_direct_target_request(cache: Any, template: Any, **kwargs: object):
     """Prepare/reuse a direct target request through the owning cache."""
 
-    return _build_target_request(cache, template, admission_policy=None, **kwargs)
+    return _build_target_request(cache, template, admission_policy=None, cache_request=True, **kwargs)
+
+
+def prepare_transient_direct_target_request(cache: Any, template: Any, **kwargs: object):
+    """Build one validated direct target request without L4 content caching.
+
+    This is intentionally narrow: callers must own a one-shot immutable target
+    tape and release the request after execution. It exists for fresh study
+    scoring where every candidate/fold target is distinct, so request hashing
+    and cache residency cannot improve either correctness or reuse.
+    """
+
+    return _build_target_request(cache, template, admission_policy=None, cache_request=False, **kwargs)
 
 
 def prepare_shared_portfolio_target_request(
@@ -290,7 +316,11 @@ def prepare_shared_portfolio_target_request(
 ):
     """Prepare/reuse a shared-account target request through the owning cache."""
 
-    return _build_target_request(cache, template, admission_policy=admission_policy, **kwargs)
+    return _build_target_request(cache, template, admission_policy=admission_policy, cache_request=True, **kwargs)
 
 
-__all__ = ["prepare_direct_target_request", "prepare_shared_portfolio_target_request"]
+__all__ = [
+    "prepare_direct_target_request",
+    "prepare_transient_direct_target_request",
+    "prepare_shared_portfolio_target_request",
+]
