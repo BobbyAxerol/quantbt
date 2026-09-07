@@ -19452,6 +19452,72 @@ Rollback:
 Conclusion: what is usable, what is certified, and whether next phase may start
 ```
 
+### Post-78 - Generic Callback Audit Regression Mitigation
+
+Status: complete for the bounded audit-projection patch; historical runtime
+parity remains open. User approval: investigate and optimize the historical
+generic callback/reactive regression without replacing it with numeric R1/R2/R3.
+
+Scope and guide: retain Phase 57 canonical trace/replay contracts, PERF-06 full
+audit retention, and PERF-07/Phase 78 matched public-workload measurement rules.
+This is a focused follow-up on `dev`, not a backend promotion or release.
+
+1. Measure the unchanged historical generic callback fixture, including explicit
+   audit output. Distinguish saved Phase 43A evidence from an actual `v1.1.0` run.
+   Profile facade components before selecting the hot path to change.
+2. Optimize canonical trace construction/fingerprinting using column-oriented
+   storage and aligned account access. Extend the same projection-only scope to
+   ledger cost-basis retention: broadcast unchanged state between actual fills,
+   preserving the independent fill accounting oracle and arithmetic order.
+   Do not discard snapshots, lifecycle rows,
+   replay verification, financial precision, or requested audit output.
+3. Lock the pre-change projection as a differential oracle. Compare every trace
+   field/dtype/order, SHA-256 fingerprint, event count and replay result; test
+   sparse/missing calendars, multi-symbol snapshots, liquidation, funding,
+   parent/OCO/GTD orders and minimal/audit accounting equivalence.
+4. Benchmark low-order and high-churn 100k-bar public callbacks in isolated
+   processes with identical dependencies/data/strategy/report level; report
+   medians, wall seconds, bars/s, peak RSS and retained RSS. Include a prepared
+   score control; no timing extrapolation from a different numeric strategy.
+
+Exit gate: full unchanged-output parity, focused shared-boundary regression,
+meaningful public wall-time/RSS reduction, source-mirror check and documented
+remaining overhead. No execution-state replay or changes to accounting rules.
+Rebuild Rust only if Rust changes; no redundant full-wheel rebuild for this
+Python cold-path patch. Record actual results below before marking complete.
+
+Completion record (2026-09-07):
+
+- Root cause: the new full-audit ledger/trace/replay attachment consumed about
+  81% of a profiled 5k-bar generic callback run. The old callback at `v1.1.0`
+  did not attach these artifacts. The regression is real, but a saved Phase 43A
+  artifact must not be labeled a direct measurement of the release tag.
+- Implemented `TraceColumns` and `AccountSnapshotProjection`, bounded exact
+  canonical encoding, streaming DataFrame hashing, and event-segment ledger
+  state broadcasting. Matching, callbacks, endpoint defaults and Rust unchanged.
+- Exact-output differential oracles frozen from `ea7f7c5`; source/root mirrors
+  pass. No private strategy, notebook, service, environment or native ABI changed.
+- Validation: `pytest -q tests/test_generic_callback_audit_regression.py
+  tests/native_event/contract
+  tests/native_event/test_phase54a5_differential_corpus.py
+  tests/native_event/test_phase52b_ownership_cache_audit.py
+  tests/test_phase57_v1_1_specs_oracle_trace.py
+  tests/test_phase77_3_reactive_parity.py
+  tests/test_perf_06_research_audit.py`: **218 passed in 226.41s**.
+- Benchmark: 45 isolated runs, three samples per lane/case. Low-order 100k audit
+  **16.284 -> 5.655 s**, high-churn **18.268 -> 6.226 s**; peak RSS
+  **537.9 -> 305.9 MiB**, **544.9 -> 310.2 MiB**. Accounting path hashes,
+  ledger hashes, trace fingerprints/row counts and replay parity passed.
+- Actual tag rerun: **3.701 / 4.296 s**. Full current audit remains **52.8% /
+  44.9% slower**; do not claim the original performance gap is fully closed.
+  Prepared score control **19.510 -> 19.913 s** shows no speedup from this patch.
+- [Report and reproduction](../docs/performance/generic_callback_audit_regression.md),
+  [raw samples/source identity](../benchmarks/native_event/results/generic_callback_audit_closure.json).
+- Remaining scope: generic callback/score overhead and the cost of additional
+  audited output. Numeric R1/R2/R3 performance cannot discharge this gap.
+- Rollback: revert only this focused projection commit; no migration or backend
+  default switch is required. No merge, publish or release performed here.
+
 The original guide's full completion claim is made only after Phase 78's
 mandatory checks pass. Until then, reports must state exact completed phases
 and capabilities, not an unweighted completion percentage or a promise that

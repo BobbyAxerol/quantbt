@@ -11,6 +11,8 @@ from typing import Iterable, Mapping
 import numpy as np
 import pandas as pd
 
+from ._trace_columns import AccountSnapshotProjection, TraceColumns
+
 
 TRACE_SCHEMA_VERSION = "canonical-execution-trace-v1"
 TRACE_FLOAT_CANONICAL_DECIMALS = 12
@@ -134,7 +136,6 @@ def build_canonical_execution_trace(
     index = pd.DatetimeIndex(result.equity.index)
     timestamp_to_bar = {int(ts): bar for bar, ts in enumerate(index.asi8)}
     symbol_codes = {str(symbol): code for code, symbol in enumerate(result.symbols)}
-    rows: list[dict[str, object]] = []
     sequence = 0
 
     phase_report = _frame(metadata.get("event_phase_trace_v1"))
@@ -152,21 +153,25 @@ def build_canonical_execution_trace(
         bar = timestamp_to_bar.get(int(pd.Timestamp(fill.timestamp).value), -1)
         fills_by_bar.setdefault(bar, []).append(fill)
     liquidation_by_bar = _group_rows(liquidation, "bar")
-    symbol_rows_by_bar = _group_rows(
-        symbol_accounting.assign(bar=symbol_accounting["timestamp"].map(lambda value: timestamp_to_bar[int(pd.Timestamp(value).value)]))
-        if not symbol_accounting.empty
-        else symbol_accounting,
-        "bar",
-    )
-
-    previous_snapshot: dict[str, float] = {str(symbol): 0.0 for symbol in result.symbols}
+    snapshots = AccountSnapshotProjection(symbol_accounting, index, timestamp_to_bar)
+    sparse_counts = np.zeros(len(index), dtype=np.int64)
+    for groups in (phase_by_bar, lifecycle_by_bar, fills_by_bar, liquidation_by_bar):
+        for bar, sources in groups.items():
+            if 0 <= bar < len(index):
+                sparse_counts[bar] += len(sources)
+    counts = sparse_counts + snapshots.counts
+    offsets = np.cumsum(counts) - counts
+    rows = TraceColumns(int(counts.sum()), _row(), _FLOAT_FIELDS, _INT_FIELDS)
+    rows.size = int(counts.sum())
+    snapshots.write(rows, offsets, sparse_counts, index, accounting, result, symbol_codes, run_id)
     previous_fill: dict[str, float] = {str(symbol): 0.0 for symbol in result.symbols}
-    previous_equity = float(result.initial_capital)
-    for bar, timestamp in enumerate(index):
-        timestamp_ns = int(timestamp.value)
+    for bar in np.flatnonzero(sparse_counts):
+        timestamp_ns = int(index[bar].value)
+        sequence = int(offsets[bar])
+        rows.cursor = sequence
         for source in phase_by_bar.get(bar, ()):
             rows.append(
-                _row(
+                dict(
                     run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase=str(source.get("phase", "")),
                     sequence=sequence, event_kind="PHASE", reason_code="OK",
                 )
@@ -177,7 +182,7 @@ def build_canonical_execution_trace(
             order_id = _text(source.get("order_id"))
             detail = command_details.get(order_id, {})
             rows.append(
-                _row(
+                dict(
                     run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase="LIFECYCLE",
                     sequence=sequence, event_kind="LIFECYCLE", command_id=order_id,
                     order_id=order_id,
@@ -203,7 +208,7 @@ def build_canonical_execution_trace(
             after = before + delta
             detail = command_details.get(_text(fill.order_id), {})
             rows.append(
-                _row(
+                dict(
                     run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase="FILL_ACCOUNTING",
                     sequence=sequence, event_kind="FILL_ACCOUNTING", command_id=_text(fill.order_id),
                     order_id=_text(fill.order_id), parent_id=_text(detail.get("parent_order_id")),
@@ -220,7 +225,7 @@ def build_canonical_execution_trace(
 
         for source in liquidation_by_bar.get(bar, ()):
             rows.append(
-                _row(
+                dict(
                     run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase="LIQUIDATION",
                     sequence=sequence, event_kind="LIQUIDATION_ALLOCATION",
                     equity_before=float(source.get("liquidation_cost", 0.0)),
@@ -230,38 +235,9 @@ def build_canonical_execution_trace(
             )
             sequence += 1
 
-        account_row = accounting.loc[timestamp] if not accounting.empty and timestamp in accounting.index else None
-        for source in symbol_rows_by_bar.get(bar, ()):
-            symbol = str(source["symbol"])
-            before = previous_snapshot.get(symbol, 0.0)
-            after = float(source["position_qty"])
-            rows.append(
-                _row(
-                    run_id=run_id, bar=bar, timestamp_ns=timestamp_ns, phase="SNAPSHOT",
-                    sequence=sequence, event_kind="ACCOUNT_SNAPSHOT", symbol_code=symbol_codes[symbol], venue_code=0,
-                    qty_before=before, qty_delta=after - before, qty_after=after,
-                    price=float(source["mark_price"]), position_before=before, position_after=after,
-                    equity_before=previous_equity,
-                    equity_after=float(account_row["equity_actual"]) if account_row is not None else float(result.equity.iloc[bar]),
-                    initial_margin_after=float(account_row["initial_margin"]) if account_row is not None else math.nan,
-                    maintenance_margin_after=float(account_row["maintenance_margin"]) if account_row is not None else math.nan,
-                    fee=float(account_row["fee"]) if account_row is not None and symbol_codes[symbol] == 0 else 0.0,
-                    funding=float(account_row["funding"]) if account_row is not None and symbol_codes[symbol] == 0 else 0.0,
-                    reason_code="OK",
-                )
-            )
-            previous_snapshot[symbol] = after
-            sequence += 1
-        if account_row is not None:
-            previous_equity = float(account_row["equity_actual"])
-
-    fingerprint = canonical_trace_fingerprint(rows)
-    event_counts: dict[str, int] = {}
-    for row in rows:
-        key = str(row["event_kind"])
-        event_counts[key] = event_counts.get(key, 0) + 1
-    trace = pd.DataFrame(rows, columns=TRACE_FIELDS) if materialize else pd.DataFrame(columns=TRACE_FIELDS)
-    return CanonicalTraceArtifact(trace, fingerprint, len(rows), event_counts)
+    fingerprint = rows.fingerprint(TRACE_SCHEMA_VERSION, _normalized_value_bytes)
+    trace = rows.frame() if materialize else pd.DataFrame(columns=TRACE_FIELDS)
+    return CanonicalTraceArtifact(trace, fingerprint, rows.size, rows.event_counts)
 
 
 def attach_canonical_execution_trace(result, *, run_id: str = "native-event-run"):
@@ -285,7 +261,10 @@ def canonical_trace_fingerprint(trace: pd.DataFrame | Iterable[Mapping[str, obje
 
     if isinstance(trace, pd.DataFrame):
         _validate_trace_frame(trace)
-        records = trace.to_dict("records")
+        # Keep the public arbitrary-value serializer, without a second dense
+        # list of row dictionaries for callers fingerprinting an audit frame.
+        records = (dict(zip(TRACE_FIELDS, values))
+                   for values in trace.loc[:, TRACE_FIELDS].itertuples(index=False, name=None))
     else:
         records = trace
     digest = sha256(TRACE_SCHEMA_VERSION.encode("ascii"))

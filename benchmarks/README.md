@@ -1,5 +1,13 @@
 # QuantBT Benchmarks
 
+Generic callback full-audit regression follow-up:
+[matched tag/reference/current report](../docs/performance/generic_callback_audit_regression.md).
+The 100k-bar Python callback fixtures now take 5.655/6.226 seconds versus
+16.284/18.268 seconds before the audit-projection patch, with about 43% lower
+peak RSS. These are not prepared numeric co-runtime timings; they still exceed
+the actual `v1.1.0` tag's 3.701/4.296 seconds. The report includes raw samples,
+exact-output parity, memory definitions and a reproduction command.
+
 Phase 7 introduces a reproducible benchmark harness for the upgraded backtest
 backends.
 

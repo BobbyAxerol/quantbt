@@ -396,6 +396,13 @@ PSS (`105.1 MiB` RSS, mostly shared mappings). See the
 [Phase 76 artifact](benchmarks/native_event/results/phase76_reactive_wfo.md)
 and [Reactive WFO guide](docs/reactive_wfo.md).
 
+Generic Python callback **full-audit** performance is tracked separately:
+100k-bar low-order/high-churn fixtures take **5.655 / 6.226 s** after the audit
+projection fix, versus **16.284 / 18.268 s** before, with about **43% lower peak
+RSS**. They still exceed the actual `v1.1.0` tag's **3.701 / 4.296 s**; this is
+not a claim that every callback is faster than the old release. See the
+[matched audit regression report](docs/performance/generic_callback_audit_regression.md).
+
 Phase 77.3 records current-candidate reactive closure separately from the
 released table above. On its matched 10,000-bar prepared scalar fixture, R1,
 R2, and R3 score-only runs measured `20.077 ms`, `13.588 ms`, and `20.949 ms`

@@ -91,7 +91,7 @@ def build_native_accounting_audit(
     maintenance_margin = _margin_values(result.margin, index, "maintenance_margin")
     actual_equity = np.asarray(result.equity.reindex(index), dtype=np.float64)
 
-    fills_by_bar: list[list[Fill]] = [[] for _ in range(n_bars)]
+    fills_by_bar: dict[int, list[Fill]] = {}
     timestamp_to_bar = {int(ts): bar for bar, ts in enumerate(index.asi8)}
     unknown_fills: list[str] = []
     for fill in tuple(getattr(result, "fills", ()) or ()):
@@ -100,7 +100,7 @@ def build_native_accounting_audit(
         if bar is None or str(fill.symbol) not in symbol_to_col:
             unknown_fills.append(str(fill.order_id))
             continue
-        fills_by_bar[bar].append(fill)
+        fills_by_bar.setdefault(bar, []).append(fill)
 
     qty = np.zeros(n_symbols, dtype=np.float64)
     average_entry = np.zeros(n_symbols, dtype=np.float64)
@@ -109,9 +109,13 @@ def build_native_accounting_audit(
     position_path = np.zeros((n_bars, n_symbols), dtype=np.float64)
     average_entry_path = np.zeros((n_bars, n_symbols), dtype=np.float64)
     realized_path = np.zeros((n_bars, n_symbols), dtype=np.float64)
-    unrealized_path = np.zeros((n_bars, n_symbols), dtype=np.float64)
-
-    for bar in range(n_bars):
+    # Cost basis changes only at fills. Retain every bar, but broadcast the
+    # unchanged state between events instead of assigning each row in Python.
+    start = 0
+    for bar in sorted(fills_by_bar):
+        position_path[start:bar] = qty
+        average_entry_path[start:bar] = average_entry
+        realized_path[start:bar] = cumulative_realized
         for fill in fills_by_bar[bar]:
             col = symbol_to_col[str(fill.symbol)]
             delta = float(fill.signed_qty)
@@ -120,10 +124,11 @@ def build_native_accounting_audit(
                 qty[col], average_entry[col], delta, float(fill.price), contract_size[col]
             )
             cumulative_realized[col] += realized
-        position_path[bar] = qty
-        average_entry_path[bar] = average_entry
-        realized_path[bar] = cumulative_realized
-        unrealized_path[bar] = qty * (closes[bar] - average_entry) * contract_size
+        start = bar
+    position_path[start:] = qty
+    average_entry_path[start:] = average_entry
+    realized_path[start:] = cumulative_realized
+    unrealized_path = position_path * (closes - average_entry_path) * contract_size
 
     cumulative_fees = np.cumsum(fees)
     cumulative_funding = np.cumsum(funding)
