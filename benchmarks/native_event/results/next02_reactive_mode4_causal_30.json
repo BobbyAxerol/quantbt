@@ -1,0 +1,754 @@
+{
+  "limitations": {
+    "fixture": "deterministic economic command fixture; not a B0 product-alpha reproduction",
+    "mode_2_sbb": "unsupported_no_return_path_proxy",
+    "p95": "not_claimed_requires_100_paired_samples",
+    "r3b": "separate_opt_in_sampling_contract_not_compared_here"
+  },
+  "measurement_identity": {
+    "canonical_source_sha256": "0dfadcfdc87e7779f9b7b5f922407e454139dd2fd58fe5fae9274662a9809422",
+    "core_distribution": {
+      "distribution": "quantbt-engine",
+      "version": "1.1.0"
+    },
+    "cpu_count": 4,
+    "data_sha256": "32ad090d8686388b6aa8f42ad7a7fe8b9e81f1499cd4ba89bb035f2b4b8e51eb",
+    "git_commit": "2c5d99d08235d98875161e284798c5fdea91c561",
+    "git_dirty": false,
+    "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "intent_sha256": "f9e5c9122cd9514cd482c2eb98594e1bbb3a4cfd25545e4cdebc2d18f5ace265",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+    "native_distribution": {
+      "distribution": "quantbt-native",
+      "version": "0.4.1"
+    },
+    "native_extension": {
+      "api_version": "0.4",
+      "available": true,
+      "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a",
+      "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+      "version": "0.4.1",
+      "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+      "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9"
+    },
+    "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+    "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": null,
+      "NUMBA_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "warmup_procedure": "one untimed public run per policy, then alternating B1 compatibility/B2 prepared fresh endpoints and runtimes"
+  },
+  "outcomes": {
+    "all_fresh_gates_passed": true,
+    "all_public_parity_passed": true,
+    "o_w2_target_ratio": 0.7,
+    "paired_results": [
+      {
+        "p95_status": "not_claimed_requires_100_paired_samples",
+        "paired_samples": 30,
+        "qualification": "paired_p50_qualified",
+        "ratio_ci95": [
+          0.6647514928050575,
+          0.7162868097582786
+        ],
+        "ratio_p50": 0.6961263411715569
+      }
+    ],
+    "statistical_qualification": "paired_p50_qualified_no_p95"
+  },
+  "profile": {
+    "bars": 2000,
+    "frequency": "1D",
+    "id": "smoke",
+    "is_subperiods": 4,
+    "repeats": 30,
+    "split_bar": 720,
+    "split_frequency": "quarterly",
+    "train_window": "365D",
+    "trials": 4,
+    "window_mode": "rolling"
+  },
+  "rows": [
+    {
+      "fresh_gate": true,
+      "memory_samples": [
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 232.3515625,
+              "rss_mb": 240.9453125
+            },
+            "prepared": {
+              "pss_mb": 233.5078125,
+              "rss_mb": 242.234375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 231.49609375,
+            "rss_mb": 240.171875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.65234375,
+              "rss_mb": 242.234375
+            },
+            "prepared": {
+              "pss_mb": 233.63671875,
+              "rss_mb": 242.234375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.5078125,
+            "rss_mb": 242.234375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.65625,
+              "rss_mb": 242.234375
+            },
+            "prepared": {
+              "pss_mb": 233.6875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.65234375,
+            "rss_mb": 242.234375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.37109375,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.3916015625,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.240234375,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.2470703125,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.37109375,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.2783203125,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.2666015625,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.2470703125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.2783203125,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.2939453125,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.2783203125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.3017578125,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.2939453125,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.2939453125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.4375,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.78515625,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.3017578125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.79296875,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.79296875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.78515625,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.79296875,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.80078125,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.79296875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.8046875,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.8046875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.80078125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.8046875,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.8203125,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.8046875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.8359375,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.8359375,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.8203125,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.8359375,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.8671875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.8359375,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.87890625,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.87890625,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.8671875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.87890625,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.88671875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.87890625,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.90625,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.90234375,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.88671875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.90625,
+              "rss_mb": 242.4921875
+            },
+            "prepared": {
+              "pss_mb": 233.91796875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.90625,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6064453125,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.921875,
+              "rss_mb": 242.4921875
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.91796875,
+            "rss_mb": 242.4921875
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.5810546875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.5849609375,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6064453125,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.5849609375,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.5849609375,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.5849609375,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.5849609375,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.5849609375,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.5849609375,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.5849609375,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6123046875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6123046875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6123046875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6201171875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6123046875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6201171875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6201171875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6201171875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6201171875,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6357421875,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6201171875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "compatibility",
+            "prepared"
+          ]
+        },
+        {
+          "after_mb": {
+            "compatibility": {
+              "pss_mb": 233.6474609375,
+              "rss_mb": 242.734375
+            },
+            "prepared": {
+              "pss_mb": 233.6474609375,
+              "rss_mb": 242.734375
+            }
+          },
+          "before_mb": {
+            "pss_mb": 233.6357421875,
+            "rss_mb": 242.734375
+          },
+          "order": [
+            "prepared",
+            "compatibility"
+          ]
+        }
+      ],
+      "mode": "mode_4_is_only_robust",
+      "optimization_schedule": "per_fold_causal",
+      "parity": true,
+      "rows": {
+        "compatibility": {
+          "fresh_gate": {
+            "all_fresh_endpoints": true,
+            "all_fresh_runtimes": true,
+            "all_reused_prefix_bars_zero": true
+          },
+          "median_python_callback_calls": 38508,
+          "median_score_bars": 38508,
+          "median_score_calls": 248,
+          "median_score_seconds": 0.1293481276370585,
+          "median_seconds": 0.6096741226501763,
+          "preparation": {
+            "enabled": false,
+            "policy": "compatibility",
+            "schema": "quantbt-reactive-wfo-preparation-v1",
+            "state": "compatibility_baseline"
+          }
+        },
+        "prepared": {
+          "fresh_gate": {
+            "all_fresh_endpoints": true,
+            "all_fresh_runtimes": true,
+            "all_reused_prefix_bars_zero": true
+          },
+          "median_python_callback_calls": 38508,
+          "median_score_bars": 38508,
+          "median_score_calls": 248,
+          "median_score_seconds": 0.12570581817999482,
+          "median_seconds": 0.4227566043846309,
+          "preparation": {
+            "contract": "run_local_identity_calendar_v1",
+            "enabled": true,
+            "inner_fold_lookup_hits": 0,
+            "inner_fold_lookup_misses": 0,
+            "nested_mode1_inner_folds": 0,
+            "nested_mode1_outer_folds": 0,
+            "policy": "prepared",
+            "schema": "quantbt-reactive-wfo-preparation-v1",
+            "window_registry": {
+              "canonical_windows": 84,
+              "prepared_shard_sets": 14,
+              "prepared_shards": 56,
+              "prepared_trade_requirements": 0,
+              "schema": "quantbt-prepared-wfo-window-registry-v1",
+              "shard_lookup_hits": 44,
+              "shard_lookup_misses": 0,
+              "trade_requirement_hits": 0,
+              "trade_requirement_misses": 0,
+              "window_lookup_hits": 524,
+              "window_lookup_misses": 0
+            }
+          }
+        }
+      },
+      "timing": {
+        "p95_status": "not_claimed_requires_100_paired_samples",
+        "paired_samples": 30,
+        "qualification": "paired_p50_qualified",
+        "ratio_ci95": [
+          0.6647514928050575,
+          0.7162868097582786
+        ],
+        "ratio_p50": 0.6961263411715569
+      }
+    }
+  ],
+  "schema": "quantbt-next02-reactive-wfo-v1",
+  "scope": "fresh public W3 scalar reactive-WFO B1/B2 comparison; same strategy, market, seed, account, folds, selection, audit and reset-flat contract"
+}

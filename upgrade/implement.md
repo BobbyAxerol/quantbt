@@ -20190,10 +20190,10 @@ implemented, certified NEXT-02 scope.
   standard reports retain their prior artifact surface. Dedicated parity tests
   lock this retention boundary.
 - **O-W1 MET:** 30 paired fresh/cache-cold Mode 4 causal samples, ordinary
-  public endpoint B2/B1 p50 0.4845, bootstrap CI95 [0.4694, 0.4966]; exact
+  public endpoint B2/B1 p50 0.4997, bootstrap CI95 [0.4835, 0.5387]; exact
   public parity and fresh-account gates pass.
 - **O-W2 MET:** 30 paired fresh/cache-cold Mode 4 causal samples, public W3
-  prepared/compatibility B2/B1 p50 0.6753, bootstrap CI95 [0.6570, 0.7180];
+  prepared/compatibility B2/B1 p50 0.6961, bootstrap CI95 [0.6648, 0.7163];
   exact public parity and fresh-account gates pass. Both artifacts qualify
   paired p50 only; p95 is deliberately not claimed below 100 samples.
 - **Supporting-mode disposition:** all documented ordinary and reactive W3

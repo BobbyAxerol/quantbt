@@ -33,8 +33,8 @@ warm cache/resume path.
 
 | Outcome | Samples | B1 median | B2 median | Paired B2/B1 p50 | Bootstrap CI95 | Result |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| O-W1 ordinary WFO | 30 | 1.379 s | 0.655 s | 0.4845 | [0.4694, 0.4966] | MET, about 2.06x faster |
-| O-W2 reactive WFO | 30 | 0.663 s | 0.448 s | 0.6753 | [0.6570, 0.7180] | MET, about 1.48x faster |
+| O-W1 ordinary WFO | 30 | 1.360 s | 0.672 s | 0.4997 | [0.4835, 0.5387] | MET, about 2.00x faster |
+| O-W2 reactive WFO | 30 | 0.610 s | 0.423 s | 0.6961 | [0.6648, 0.7163] | MET, about 1.44x faster |
 
 The ordinary B2 route makes 73 native score batches for 305 candidate/fold
 rows and 43,620 scored bars. The reactive fixture makes 248 fresh scalar score
