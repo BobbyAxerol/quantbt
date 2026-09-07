@@ -60,6 +60,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Check exact core/native compatibility or generated maturity claims | [Generated product compatibility](contracts/generated_product_compatibility.md) |
 | Build and verify staged core/native wheels | [Native companion installation](native/install.md) |
 | Verify canonical `src/quantbt` source ownership and a clean consumer install | [Canonical source layout](architecture/source_layout.md) |
+| Inspect the final local package/audit qualification and the remaining versioned-release gate | [Packaging and release](release_packaging.md#next-03-local-product-qualification) |
 | Review native release scope, rollback, and release-owner steps | [Native release handoff](migration/native_release_handoff.md) |
 | Troubleshoot a native descriptor or wheel mismatch | [Native troubleshooting](native/troubleshooting.md) |
 | Reproduce native-event performance claims | [Benchmarking governance](performance/benchmarking.md) |

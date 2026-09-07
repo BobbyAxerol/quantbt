@@ -68,6 +68,25 @@ The staged verifier creates clean environments, checks source-to-wheel module
 hashes, rejects source-tree import leakage, and requires an exact pair declared
 by the generated product registry.
 
+## NEXT-03 Local Product Qualification
+
+The checked local NEXT-03 record is
+[`contracts/next03_product_qualification.json`](../contracts/next03_product_qualification.json).
+It binds the canonical package-source and registry hashes to the local core
+wheel, sdist, native wheel, clean-consumer proof, full release-profile result,
+and Rust workspace gates. Revalidate it with:
+
+```bash
+poetry run python tools/check_next03_product_qualification.py
+```
+
+Its status, `LOCAL_QUALIFIED_RELEASE_VERSION_REQUIRED`, is deliberately not a
+publish certificate. The proof was built for the already-declared
+`quantbt-engine==1.1.0` / `quantbt-native==0.4.1` pair and must not be uploaded
+again after source changes. Select a new unpublished compatible pair, produce
+the Linux x86_64 CPython 3.11-3.13 native wheel matrix from the frozen ref, then
+follow the native-first publication sequence below.
+
 For the stronger public-surface lane, which also installs the declared
 `optimization` extra and exercises a small static endpoint, Python reactive
 endpoint, Mode 4 causal WFO, and pre-execution unsupported-capability gate,

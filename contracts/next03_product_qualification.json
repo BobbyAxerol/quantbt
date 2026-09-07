@@ -1,0 +1,74 @@
+{
+  "schema": "quantbt-next03-product-qualification-v1",
+  "status": "LOCAL_QUALIFIED_RELEASE_VERSION_REQUIRED",
+  "candidate": {
+    "commit": "930d2bbd05d23ef46330d38a7bce315cf4252faa",
+    "candidate_tree_was_clean": true,
+    "canonical_source_sha256": "295a71a18a2ad396dcbe2b5525410d58f7ae634a40227672770689e8e0a3181b",
+    "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+    "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+    "source_layout": "canonical_only"
+  },
+  "artifacts": {
+    "core_wheel": {
+      "filename": "quantbt_engine-1.1.0-py3-none-any.whl",
+      "sha256": "1d25c2236469d489c559f69e235b7ec0ee05eab5cbe138946bbd0cf0250abfd2"
+    },
+    "core_sdist": {
+      "filename": "quantbt_engine-1.1.0.tar.gz",
+      "sha256": "2e43a7d124f22123feeb43e7c571666af789a16d3c658cac2577bac24f0ce638"
+    },
+    "native_wheel": {
+      "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "675af42dc8f32aef98d72797beb072245fa5c4965a91be8c0ee31eceadf87af5",
+      "platform": "linux-x86_64-cp312"
+    }
+  },
+  "consumer_proof": {
+    "path": "contracts/next03_wheel_consumer_proof.json",
+    "sha256": "82d28d6c1d748edad92dc221d5e1327684fc8dffe72a44d00c01bfbd24a1d373",
+    "required": [
+      "source_hash_parity",
+      "clean_install",
+      "direct_target_smoke",
+      "public_surface_smoke",
+      "editable_source_smoke"
+    ]
+  },
+  "qualification": {
+    "release_profile": {
+      "status": "passed",
+      "shards": 24,
+      "command": "MPLCONFIGDIR=/tmp PYTHONPATH=src poetry run python tools/run_test_shards.py --profile release --max-files-per-shard 8"
+    },
+    "rust_workspace": {
+      "fmt": "passed",
+      "clippy": "passed",
+      "tests": "passed"
+    },
+    "contract_checks": {
+      "canonical_source_layout": "passed",
+      "native_a5_review": "passed",
+      "native_release_handoff": "passed",
+      "artifact_allowlist": "passed",
+      "documentation_links": "passed"
+    },
+    "open_correctness_blockers": []
+  },
+  "outcomes": {
+    "single_source_distribution": "MET",
+    "installed_docs_examples": "MET",
+    "research_audit_compatibility": "PASS",
+    "cross_domain_regression": "PASS",
+    "remote_cpython_matrix": "PENDING_REMOTE",
+    "public_publish": "VERSION_REQUIRED"
+  },
+  "release_handoff": {
+    "required_before_publication": [
+      "Select a new unpublished compatible quantbt-engine/quantbt-native version pair.",
+      "Build and certify the Linux x86_64 CPython 3.11, 3.12 and 3.13 native wheel matrix from that frozen ref.",
+      "Publish native wheels first, then publish the exact core pair after downloadable-wheel verification."
+    ],
+    "rollback": "Pin the prior published compatible core/native pair; root-mirror retirement rolls back only through its isolated commit."
+  }
+}

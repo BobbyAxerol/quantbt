@@ -1,0 +1,27 @@
+{
+  "clean_install": true,
+  "core_wheel": "quantbt_engine-1.1.0-py3-none-any.whl",
+  "direct_target_smoke": true,
+  "editable_source_smoke": true,
+  "native_pair": {
+    "command_abis": [
+      "full-command-v1"
+    ],
+    "core_version": "1.1.0",
+    "fallback": "explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason",
+    "native_protocol_max": 1,
+    "native_protocol_min": 1,
+    "native_version": "0.4.1",
+    "result_abis": [
+      "native-event-result-v1"
+    ],
+    "status": "exact_staged_pair"
+  },
+  "native_wheel": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+  "public_surface_extras": [
+    "optimization"
+  ],
+  "public_surface_smoke": true,
+  "schema": "quantbt-staged-wheel-verification-v1",
+  "source_hash_parity": true
+}

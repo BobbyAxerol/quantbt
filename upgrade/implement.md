@@ -20450,7 +20450,9 @@ wheel verifier and native handoff audit are all present and checked. The local
 artifact proof intentionally uses the currently declared `1.1.0`/`0.4.1` pair
 only as a consumer qualification fixture. It must not be uploaded after this
 source change: select a new un-published compatible pair, push it through the
-remote CPython matrix, then approve tag/release/publish.
+remote CPython matrix, then approve tag/release/publish. The fail-closed
+[NEXT-03 local product qualification](../contracts/next03_product_qualification.json)
+locks the exact source/registry/artifact hashes and records this distinction.
 
 #### NEXT-03 Release Deliverables And Workflow Gate
 
