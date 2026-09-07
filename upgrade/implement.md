@@ -19218,7 +19218,7 @@ requested outputs. Only a new approval admits Phase 78 after this gate.
 
 ### Phase 78 - Public Rust-Primary Promotion And Release Certification
 
-**Status: planned; not started.**
+**Status: in_progress (2026-09-07).**
 
 **Goal:** close the actual guide definition of done with truthful public routing,
 current installed artifacts, supported-user workflows and a safe release handoff.
