@@ -20,6 +20,7 @@ class TraceColumns:
             for field, value in defaults.items()
         }
         self.int_fields = int_fields
+        self.float_fields = frozenset(float_fields)
         self.size = 0
         self.cursor = 0
         self.event_counts = {}
@@ -34,6 +35,22 @@ class TraceColumns:
 
     def fingerprint(self, schema_version, normalize):
         digest = sha256(schema_version.encode("ascii"))
+        constant_encoded = {}
+        for field, column in self.columns.items():
+            if field in self.int_fields or not self.size:
+                continue
+            values = column[: self.size]
+            first = values[0]
+            if field in self.float_fields and bool(np.isnan(values).all()):
+                constant_encoded[field] = normalize(field, first)
+                continue
+            try:
+                if bool(np.all(values == first)):
+                    constant_encoded[field] = normalize(field, first)
+            except (TypeError, ValueError):
+                # Preserve the established general-purpose serialization path
+                # for unusual object payloads.
+                pass
         # Encode bounded blocks, sharing identical canonical values within a
         # column. Python's round/NaN/text rules remain the serialization oracle.
         for start in range(0, self.size, 4096):
@@ -42,6 +59,8 @@ class TraceColumns:
                 values = column[start:min(start + 4096, self.size)]
                 if field in self.int_fields:
                     encoded = values.astype("<i8", copy=False).view("V8")
+                elif field in constant_encoded:
+                    encoded = (constant_encoded[field],) * len(values)
                 else:
                     unique, inverse = np.unique(values, return_inverse=True)
                     encoded_unique = np.empty(len(unique), dtype=object)

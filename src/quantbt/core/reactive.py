@@ -8,7 +8,7 @@ engine state after each bar and return `OrderCommand` objects for the next bar.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Mapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
+from typing import Callable, Mapping, MutableSequence, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
 import numpy as np
 import pandas as pd
@@ -103,8 +103,19 @@ class NativeCommandBatch:
 
 @dataclass(frozen=True)
 class NativeStrategyContext:
+    """Immutable callback snapshot with an optional lazy timestamp.
+
+    The public ``timestamp`` attribute always resolves to the same
+    timezone-aware :class:`pandas.Timestamp` supplied by the historical
+    contract.  Native event sessions may initially store a UTC nanosecond
+    value, however, because most every-bar strategies do not inspect a
+    timestamp on bars where they emit no command.  Materializing it on first
+    access keeps retained snapshots independent without paying Pandas boxing
+    cost for every callback.
+    """
+
     bar_index: int
-    timestamp: pd.Timestamp
+    timestamp: pd.Timestamp | int
     open: np.ndarray
     high: np.ndarray
     low: np.ndarray
@@ -121,6 +132,48 @@ class NativeStrategyContext:
     liquidated: bool
     symbols: Tuple[str, ...] = field(default_factory=tuple)
     size_order: Callable[..., float] = field(default=lambda **_: 0.0, repr=False, compare=False)
+    _timestamp_is_ns: bool = field(default=False, repr=False, compare=False)
+    _timestamp_materialization_counter: MutableSequence[int] | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
+
+    @classmethod
+    def from_timestamp_ns(
+        cls,
+        *,
+        timestamp_ns: int,
+        timestamp_materialization_counter: MutableSequence[int] | None = None,
+        **kwargs,
+    ) -> "NativeStrategyContext":
+        """Build a normal public context while deferring Timestamp boxing.
+
+        This is intentionally an internal construction helper.  Callers of
+        ``context.timestamp`` observe a ``pd.Timestamp`` immediately; only the
+        inactive backing representation differs before that first access.
+        """
+
+        return cls(
+            timestamp=int(timestamp_ns),
+            _timestamp_is_ns=True,
+            _timestamp_materialization_counter=timestamp_materialization_counter,
+            **kwargs,
+        )
+
+    def __getattribute__(self, name: str):
+        if name == "timestamp" and object.__getattribute__(self, "_timestamp_is_ns"):
+            timestamp_ns = object.__getattribute__(self, "timestamp")
+            timestamp = pd.Timestamp(int(timestamp_ns), unit="ns", tz="UTC")
+            # Dataclass immutability remains the public contract.  This private
+            # one-time cache does not mutate an observed field value.
+            object.__setattr__(self, "timestamp", timestamp)
+            object.__setattr__(self, "_timestamp_is_ns", False)
+            counter = object.__getattribute__(self, "_timestamp_materialization_counter")
+            if counter is not None:
+                counter[0] += 1
+            return timestamp
+        return object.__getattribute__(self, name)
 
 
 class NativeEventStrategyError(StrategyCallbackError):

@@ -1057,11 +1057,18 @@ class _NativeEventReactiveSession:
         self.empty_active_orders: tuple[NativeActiveOrderSnapshot, ...] = ()
         self._active_snapshot_cache: tuple[NativeActiveOrderSnapshot, ...] = self.empty_active_orders
         self._active_snapshot_dirty = True
+        # Retained user contexts share only this tiny counter, never a bound
+        # reference to the complete mutable session.
+        self._timestamp_materialization_counter = [0]
         self.execution_counters = {
             "bars_processed": 0,
             "bars_with_commands": 0,
             "contexts_materialized": 0,
+            "timestamp_contexts_deferred": 0,
+            # Legacy key retained for metadata consumers. It is finalized to
+            # the actual materialization count below rather than removed.
             "timestamp_objects_materialized": 0,
+            "timestamp_objects_materialized_during_run": 0,
             "active_snapshot_materializations": 0,
             "empty_command_batches_skipped": 0,
             "constraint_preflight_calls": 0,
@@ -1094,8 +1101,13 @@ class _NativeEventReactiveSession:
         self.scheduled.setdefault(int(bar), []).extend(commands)
 
     def release_bar_payload(self, bar: int) -> None:
-        self.fills_by_bar.pop(int(bar), None)
-        self.events_by_bar.pop(int(bar), None)
+        # The overwhelmingly common every-bar path has no event payload.  Do
+        # not pay two dictionary deletion lookups in that case; a retained
+        # callback still sees the exact same tuples before this release point.
+        if self.fills_by_bar:
+            self.fills_by_bar.pop(int(bar), None)
+        if self.events_by_bar:
+            self.events_by_bar.pop(int(bar), None)
 
     def process_bar(self, bar: int) -> None:
         if bar <= self.processed_bar:
@@ -1112,7 +1124,7 @@ class _NativeEventReactiveSession:
     def context(self, bar: int) -> NativeStrategyContext:
         self.process_bar(bar)
         self.execution_counters["contexts_materialized"] += 1
-        self.execution_counters["timestamp_objects_materialized"] += 1
+        self.execution_counters["timestamp_contexts_deferred"] += 1
         init_margin, maint_margin = self._refresh_close_margin(bar)
         if self.emit_context_positions and self.n_symbols == 1:
             positions = {self.symbols[0]: float(self.current_pos[0])}
@@ -1131,9 +1143,10 @@ class _NativeEventReactiveSession:
         if not self.emit_context_margin:
             init_margin = 0.0
             maint_margin = 0.0
-        return NativeStrategyContext(
+        return NativeStrategyContext.from_timestamp_ns(
             bar_index=int(bar),
-            timestamp=self.idx[int(bar)],
+            timestamp_ns=int(self.idx.asi8[int(bar)]),
+            timestamp_materialization_counter=self._timestamp_materialization_counter,
             open=self.opens_arr[int(bar)],
             high=self.market_arrays.highs[int(bar)],
             low=self.market_arrays.lows[int(bar)],
@@ -1151,6 +1164,13 @@ class _NativeEventReactiveSession:
             symbols=self.symbols_tuple,
             size_order=self.size_helper,
         )
+
+    def finalize_context_observability(self) -> None:
+        """Freeze lazy Timestamp work performed during this engine run."""
+
+        materialized = int(self._timestamp_materialization_counter[0])
+        self.execution_counters["timestamp_objects_materialized"] = materialized
+        self.execution_counters["timestamp_objects_materialized_during_run"] = materialized
 
     def _process_single_bar(self, bar: int) -> None:
         if self.liquidated:
@@ -4050,7 +4070,11 @@ class NativeEventBackend:
         def expand_scoped(commands, bar: int, *, context=None):
             if isinstance(commands, CommandBatchView):
                 return commands
-            rows = tuple(commands or ())
+            if commands is None:
+                return ()
+            rows = commands if isinstance(commands, tuple) else tuple(commands)
+            if not rows:
+                return ()
             if not any(
                 command.action is OrderAction.CANCEL_ALL and self._has_string_cancel_scope(command)
                 for command in rows
@@ -4212,11 +4236,24 @@ class NativeEventBackend:
             if session.liquidated:
                 session.release_bar_payload(bar)
                 break
-            bar_context = session.context(bar) if compatibility_context else None
-            last_context = bar_context
+            callback_allowed = strategy_adapter.should_callback(session, bar)
+            # Sparse compatibility strategies should pay for a snapshot only
+            # when their declared schedule actually wakes them. ``finalize``
+            # historically receives the terminal-bar snapshot, so retain that
+            # one even if its on-bar callback is suppressed.
+            needs_context = compatibility_context and (callback_allowed or bar == len(idx) - 1)
+            bar_context = session.context(bar) if needs_context else None
+            if bar_context is not None:
+                last_context = bar_context
             before_callbacks = strategy_adapter.callback_count
             commands = expand_scoped(
-                strategy_adapter.call(session, "on_bar_close", bar, context=bar_context),
+                strategy_adapter.call(
+                    session,
+                    "on_bar_close",
+                    bar,
+                    context=bar_context,
+                    callback_allowed=callback_allowed,
+                ),
                 bar,
                 context=bar_context,
             )
@@ -4252,6 +4289,10 @@ class NativeEventBackend:
                     ),
                     count=ignored,
                 )
+
+        finalize_context_observability = getattr(session, "finalize_context_observability", None)
+        if callable(finalize_context_observability):
+            finalize_context_observability()
 
         # Standard/audit reports retain a terminal active-order artifact even
         # when the strategy does not consume active-order projections. Build it

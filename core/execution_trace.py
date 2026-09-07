@@ -41,6 +41,7 @@ class CanonicalTraceArtifact:
     fingerprint: str
     row_count: int
     event_counts: Mapping[str, int]
+    column_store: TraceColumns | None = None
 
     def to_metadata(self) -> dict[str, object]:
         return {
@@ -114,6 +115,75 @@ class TraceReplayer:
             if not package_ok:
                 errors.append("package reconciliation row reports a residual")
 
+        return TraceReplayResult(
+            final_positions=dict(snapshots),
+            final_equity=final_equity,
+            transitions_valid=not any("transition" in error for error in errors),
+            terminal_orders_valid=not any("terminal order" in error for error in errors),
+            package_reconciliation_valid=package_ok,
+            errors=tuple(errors),
+        )
+
+    def replay_columns(
+        self,
+        columns: TraceColumns,
+        *,
+        tolerance: float = 1e-12,
+    ) -> TraceReplayResult:
+        """Replay the just-built column store before pandas adaptation.
+
+        The public audit frame is still materialized unchanged.  This simply
+        avoids a second dense Python/Pandas row traversal while the canonical
+        columns are already owned by the trace builder.
+        """
+
+        fills: dict[str, float] = {}
+        snapshots: dict[str, float] = {}
+        final_equity = math.nan
+        order_states: dict[str, str] = {}
+        errors: list[str] = []
+        package_ok = True
+        data = columns.columns
+        for row in range(columns.size):
+            kind = str(data["event_kind"][row])
+            symbol = str(data["symbol_code"][row])
+            if kind == "FILL_ACCOUNTING" and symbol not in {"", "-1"}:
+                before = fills.get(symbol, 0.0)
+                delta = float(data["qty_delta"][row])
+                after = before + delta
+                if (
+                    abs(float(data["qty_before"][row]) - before) > tolerance
+                    or abs(float(data["qty_after"][row]) - after) > tolerance
+                ):
+                    errors.append(f"fill position transition mismatch at sequence={data['sequence'][row]}")
+                fills[symbol] = after
+            elif kind == "ACCOUNT_SNAPSHOT" and symbol not in {"", "-1"}:
+                before = snapshots.get(symbol, 0.0)
+                delta = float(data["qty_delta"][row])
+                after = before + delta
+                if (
+                    abs(float(data["qty_before"][row]) - before) > tolerance
+                    or abs(float(data["qty_after"][row]) - after) > tolerance
+                ):
+                    errors.append(f"snapshot position transition mismatch at sequence={data['sequence'][row]}")
+                snapshots[symbol] = float(data["qty_after"][row])
+                final_equity = float(data["equity_after"][row])
+            elif kind == "LIFECYCLE":
+                order_id = str(data["order_id"][row])
+                status = str(data["order_status"][row])
+                if order_id:
+                    previous = order_states.get(order_id)
+                    if previous in {"FILLED", "CANCELED", "REJECTED", "EXPIRED"} and status != previous:
+                        errors.append(f"terminal order {order_id!r} transitioned from {previous} to {status}")
+                    order_states[order_id] = status
+            elif kind == "PACKAGE_RECONCILIATION":
+                if str(data["package_id"][row]) != "" and str(data["reason_code"][row]) != "OK":
+                    package_ok = False
+                    errors.append("package reconciliation row reports a residual")
+        if not snapshots and fills:
+            errors.append("trace contains fills but no account snapshots")
+        if not np.isfinite(final_equity):
+            errors.append("trace does not contain a finite terminal equity snapshot")
         return TraceReplayResult(
             final_positions=dict(snapshots),
             final_equity=final_equity,
@@ -237,12 +307,17 @@ def build_canonical_execution_trace(
 
     fingerprint = rows.fingerprint(TRACE_SCHEMA_VERSION, _normalized_value_bytes)
     trace = rows.frame() if materialize else pd.DataFrame(columns=TRACE_FIELDS)
-    return CanonicalTraceArtifact(trace, fingerprint, rows.size, rows.event_counts)
+    return CanonicalTraceArtifact(trace, fingerprint, rows.size, rows.event_counts, rows)
 
 
 def attach_canonical_execution_trace(result, *, run_id: str = "native-event-run"):
     artifact = build_canonical_execution_trace(result, run_id=run_id, materialize=True)
-    replay = TraceReplayer().replay(artifact.trace)
+    column_store = getattr(artifact, "column_store", None)
+    replay = (
+        TraceReplayer().replay_columns(column_store)
+        if column_store is not None
+        else TraceReplayer().replay(artifact.trace)
+    )
     result.metadata.update(artifact.to_metadata())
     result.metadata["canonical_trace_replay_v1"] = {
         "passed": replay.passed,
