@@ -1,5 +1,10 @@
 # QuantBT Upgrade Implementation Plan
 
+**Active planning (2026-09-07):**
+[NEXT-01 to NEXT-03: public reactive, fresh WFO and final package closure](#next-performance-closure).
+The [revision-2 detailed guide](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md)
+is required reading. These phases are planned only and need individual approval.
+
 Mục tiêu: nâng cấp `quantbt` thành hệ backtest hai lớp:
 
 1. **Native fast path**: core riêng của quantbt, dùng Numba trước tiên, sau đó Cython/C++ nếu benchmark chứng minh cần.
@@ -19522,3 +19527,864 @@ The original guide's full completion claim is made only after Phase 78's
 mandatory checks pass. Until then, reports must state exact completed phases
 and capabilities, not an unweighted completion percentage or a promise that
 every possible Python strategy is now fully native.
+
+<a id="next-performance-closure"></a>
+
+## Post-PERF Product Performance Closure - NEXT-01 To NEXT-03
+
+**Status: PLANNED (2026-09-07); planning approval only.**
+No NEXT implementation, mirror deletion, build, version bump, branch operation,
+remote action or publication is authorized by this planning record.
+Each phase requires the user's separate approval before implementation.
+
+**Canonical detailed guide, revision 2:**
+[Reactive, WFO and Reactive-WFO Performance Closure](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md).
+Read it in full, including appendices. This plan specifies delivery and
+checkout-specific integration; the linked work packages specify implementation
+and economic constraints. Do not implement from the summary alone.
+
+**History:** Phase 78 is recorded COMPLETE for its previous local candidate.
+Keep Phase 56-78, PERF-01-09 and the Post-78 mitigation records intact.
+NEXT is new candidate-bound work, not a renumbering to 79/80/81 or a retroactive
+certificate for the prior artifacts. Older planned-status summaries remain
+historical; the detailed completion records identify their actual scope.
+The new `READY_FOR_RELEASE_PHASE` gate applies to the next candidate only.
+
+### NEXT Scope And Agent Execution Contract
+
+Before each approved phase, read:
+[guide 0: evidence limits](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#0-phạm-vi-kiểm-chứng-và-quyết-định-thiết-kế),
+[guide 1: source reconciliation](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#1-reconcile-commit-mới-trước-khi-sửa-bắt-buộc-nhưng-không-phải-phase-thứ-tư),
+[guide 2: ownership and economic contracts](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#2-architecture-đích-hoàn-thiện-dataflow-hiện-có-không-thêm-stack-thứ-hai),
+[guide 3: independent product outcomes](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#3-outcome-contract--lần-này-không-đóng-bằng-checkbox-đơn-thuần),
+the phase's complete work-package section, and
+[guide 7: research/audit](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#7-researchaudit-contract-tốc-độ-không-được-mua-bằng-mất-dữ-liệu),
+[guide 8: adversarial tests](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#8-adversarial-test-requirements--60-cases),
+[guide 9: measurement](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#9-workload-suite-profiling-và-cách-chứng-minh-gain),
+[guide 10: integration/handoff](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#10-pr-sequencing-và-ghép-vào-implementmd),
+[guide 11: forbidden shortcuts](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#11-failure-rules-những-đường-không-được-dùng-để-tăng-tốc).
+
+Also reread repository `AGENTS.md`, the historical
+[agent execution addendum](#phase-42-44-agent-execution-addendum), and the
+[Phase 72-78 execution contract](#mandatory-agent-execution-contract-for-phase-72-78).
+For NEXT, the new guide's read-only checkout reconciliation supersedes the old
+addendum's automatic fetch/branch commands: do not fetch all remotes, pull,
+checkout, reset, merge, retag or publish implicitly. Work on approved `dev`;
+ask before a branch change. Preserve unrelated work and private strategies.
+
+- Priority: domain/oracle -> public-path parity -> research/financial audit ->
+  ownership/fault safety -> measured product performance -> distribution.
+- Strategy remains Python, including first-class unmodified object callbacks.
+  No `quantbt-features`, arbitrary-Python compiler, alpha/indicator engine,
+  replacement optimizer, second account state machine, pool or audit store.
+- Reuse existing immutable plans, native owners, writers, reducers, caches and
+  workers. Record why any new abstraction is necessary. New responsibilities
+  go in small composed Python classes/Protocols and Rust structs/traits; avoid
+  enlarging monoliths or adding per-bar virtual dispatch solely for OOP style.
+- Keep public endpoints and existing imports stable. Numeric/borrowed/batched
+  protocols remain explicit where semantics differ; no required notebook
+  rewrite to make an unmodified-strategy performance claim.
+- Explicit unsupported Rust requests fail before financial mutation; auto
+  reports its actual route/reason. Python decisions are never `fully_native`.
+- Preserve clocks, lot/tick rules, fee/funding, liquidation, orders/reservations,
+  metrics, sampling/pruning and fold-boundary contracts. Proved domain bugs get
+  a separate correctness change and corrected baseline before optimization.
+- Keep mirrors synchronized through NEXT-01/02. Only the separately reviewed
+  NEXT-03 retirement change may delete manifest-approved copies, after consumer
+  proof; no deletion of unique code, Rust/workspace files or independent oracles.
+- No in-scope debt rollover: failed mandatory outcome remains NOT_MET or
+  INCONCLUSIVE. A technique's NOT_BENEFICIAL status cannot close the phase.
+  Genuine downstream work has its named NEXT owner; exceptions need user approval.
+- After each coherent verified change, update work-package status/evidence and
+  commit scoped files. Do not amend pushed history or auto-push/merge/release.
+
+### Planning-Time Checkout Findings
+
+Inspected local `dev` at **`3de425187d816c8856c7b212e109d25b910c98c2`**.
+At inspection the only untracked input was the supplied detailed guide.
+This is source inspection, not a fresh source/wheel/performance certification
+or a new remote-HEAD verification. Reresolve identities when a phase starts.
+
+| Existing surface | Verified anchor on this SHA | Consequence for implementation |
+| --- | --- | --- |
+| Public reactive dispatch | [NativeEventBackend.run_strategy](../src/quantbt/backends/native_event.py#L3614), [PreparedStrategyAdapter](../src/quantbt/strategies/driver.py#L15), [event-driven adapter](../src/quantbt/api/event_driven.py#L44) | Trace object/numeric/sparse public routes; optimize current adapters rather than introducing another facade. |
+| Immutable plan and account owner | [ExecutionPlan](../src/quantbt/planning/models.py#L199), [FullSession](../rust/crates/quantbt-engine/src/session.rs#L817) | One owner per evaluation; resolve immutable policy once, keep dynamic economic checks. |
+| Prepared public WFO | [_make_walkforward_endpoint_scorer](../src/quantbt/endpoint.py#L4604), [NativePreparedPublicWfoScorerV1.score_batch](../src/quantbt/backends/native_wfo_public.py#L186), [NativePreparedEvaluationRuntimeV1](../src/quantbt/backends/native_prepared_evaluation.py#L297) | Binding, columnar score output and fallback already exist; profile actual lifetime/eligibility/coverage before changing them. |
+| Reactive WFO | [ReactivePreparedWfoRuntimeV1.backtest](../src/quantbt/backends/reactive_wfo.py#L343), [ReactiveScalarSessionPoolV1](../src/quantbt/backends/reactive_wfo_workers.py#L127), [candidate scheduler](../src/quantbt/backends/reactive_wfo_batch.py#L64) | Reuse these. Current reactive WFO explicitly starts each score/OOS account flat; do not relabel it continuous carry. |
+| Mode/schedule contracts | [WalkForwardConfig validation](../src/quantbt/walkforward.py#L516), [prepared fold context](../src/quantbt/walkforward.py#L156) | Five mode names exist; per-fold decay is Mode 1, causal is Mode 1/4. Mode 1 causal needs its existing inner configuration. Do not benchmark invalid combinations or silently substitute a mode. |
+| Research retention | [RequiredComputationPlanV1](../src/quantbt/core/performance_contracts.py#L129), [ResearchAuditWriterV1](../src/quantbt/core/research_audit.py#L479), [artifact](../src/quantbt/core/research_audit_artifact.py#L37) | Separate research/financial retention and keep full trial lineage, not another reporting stack. |
+| Generic audit mitigation | [3de4251 report](../docs/performance/generic_callback_audit_regression.md), [frozen projection tests](../tests/test_generic_callback_audit_regression.py) | Reuse the exact-parity fix. Its 218-test and three-sample results are prior evidence, not NEXT's 30-pair/installed-product certificate. |
+| Canonical distribution | [core pyproject](../pyproject.toml), [MANIFEST.in](../MANIFEST.in), [mirror manifest](../tools/source_mirror_manifest.py) | Setuptools discovers `src/quantbt`; root mirror is outside the wheel. Inventory unique content before deleting anything. |
+| Native distribution | [native pyproject](../rust/native_event/pyproject.toml), [Cargo config](../rust/native_event/Cargo.toml), [workspace](../rust/Cargo.toml) | Existing `quantbt-native` / `_quantbt_native`, maturin and PyO3 0.29. Preserve topology and pin actual toolchain/API identities. |
+| Release channels | [core publish](../.github/workflows/publish.yml), [TestPyPI](../.github/workflows/publish-testpypi.yml), [native publish](../.github/workflows/publish-native.yml) | Native dispatch and core publication are distinct workflows; core GitHub Release alone does not publish native. |
+
+Current source version declarations are core **1.1.0**, native **0.4.1**;
+they are not unique identities for the upgraded development binaries.
+Do not infer public PyPI state from these files. Linux x86_64 CPython 3.11-3.13
+is the current direct native dependency/publish matrix; a broader CI platform
+test is not authorization to expand published wheel support.
+
+### Baselines, Outcomes And Measurement Lock
+
+Required guide:
+[1.1: three baselines](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#11-baseline-phải-là-ba-mốc-khác-nhau),
+[3.1-3.4: independent outcomes](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#31-bốn-performance-outcomes-độc-lập),
+[9.1-9.5: workloads and statistics](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#91-required-workload-families),
+[Appendix A: inventory utility](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#phụ-lục-a--công-cụ-đọc-checkout-và-map-commit-mới),
+[Appendix B: timing utility](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#phụ-lục-b--paired-timing-gate-cho-fresh-workloads).
+
+- **B0:** pin the actual last-known-good consumer core/native pair, source,
+  artifacts, environment and workload. The prior actual `v1.1.0` source rerun
+  is a lead, not installed-pair proof. The saved Phase 43A JSON is not B0 by
+  virtue of being present in that tag. Missing artifacts leave B0 INCONCLUSIVE.
+- **B1:** capture current dev after fixes; planning pointer is `3de4251`.
+  Separate code from installed extension/version/build and source-dirty state.
+  Inventory the whole relevant fix range, not automatically `HEAD^`.
+- **B2:** bind every patch/final candidate to exact source/tree, lockfiles,
+  core/native wheel hashes, imported module origins, compiler/profile/platform,
+  market/instrument/calendar, strategy/params/seed and output contract.
+- The mitigation measured 100k-bar audit at 5.655/6.226 s versus its pre-patch
+  16.284/18.268 s; actual old tag was 3.701/4.296 s. Preserve this unresolved
+  historical gap. More audit output at B1 must be disclosed in separate legacy
+  reproduction/equal-output lanes; do not delete required audit or force old
+  bugs for parity. Pin B0 regression budgets before performance patches.
+- Separate economic and performance fingerprints. Add role/cutoff authorization
+  to reuse; byte equality does not grant access to holdout information.
+- Freeze B1 profiles, Amdahl removable-cost estimate and workload contracts before
+  code. Initial targets below are proposals for phase approval, not measured
+  promises; any change requires evidence and user approval before the patch.
+
+| Mandatory outcome | Primary work | Proposed B2/B1 p50 runtime ratio | Owner |
+| --- | --- | --- | --- |
+| O-R1 | Fresh unmodified every-bar object strategy | <= 0.80 | NEXT-01 |
+| O-R2 | Fresh declared sparse strategy, including setup/index costs | <= 0.70 | NEXT-01 |
+| O-W1 | Fresh ordinary WFO, same candidates and CPU budget | <= 0.70 | NEXT-02 |
+| O-W2 | Fresh reactive WFO, unmodified and opt-in protocols separated | <= 0.70 | NEXT-02 |
+
+Mandatory B0 regression, memory/fault, audit and package gates are independent
+of these ratios. For WFO, report each supported mode/schedule; prioritize
+Mode 4 `per_fold_causal`, not an average dominated by a cheap mode.
+
+Fresh gates require completed-result hits = 0 and reused-prefix bars = 0 on
+both sides; market preparation reuse inside a fresh study is valid.
+Randomize paired AB/BA execution; >=30 independent pairs for p50/intervals.
+Observed p95 needs >=100 samples plus uncertainty/noise review; the guide
+utility cannot exit PASS with 30 pairs alone. Freeze p95/RSS budgets before
+patching (guide's 1.05 p95 value is a starting proposal, not a silent default
+release concession). Do not replicate rows to meet counts.
+
+Measure import-cold, first-run, warm-prepared, full fresh study, cache-hit and
+resume separately. Same-core and additional-core gains get different tables.
+Include strategy generation, requested final reports and audit flush in public
+work; decompose exclusive costs without double-counting nested callback/native
+spans. Count actual visited bars/events/copies/rows, not cache-served logical
+work as native throughput. Keep seconds/ms and explicitly labeled bars/s,
+bar-symbols/s or candidate-fold-visits/s.
+
+Existing synthetic PeriodicStrategy/Grid fixtures support diagnosis and parity.
+N1.01 must obtain an approved representative strategy/data manifest for the
+primary user workload or explicitly block that qualification. Do not access
+other repositories, modify alpha code, mismatch symbols, or publish private
+strategies/data to manufacture a real benchmark.
+
+### Phase Order And Review Boundaries
+
+| Phase | Entry | Exit product requirement |
+| --- | --- | --- |
+| [NEXT-01](#next-01) | Individual approval; current source/fix map and frozen economics | O-R1/O-R2 accepted with public-path and ownership evidence |
+| [NEXT-02](#next-02) | Individual approval; NEXT-01 qualified runtime | O-W1/O-W2 accepted, five-mode/schedule semantics and research history preserved |
+| [NEXT-03](#next-03) | Individual approval; NEXT-01/02 outcome artifacts | Single-source consumer/build proof and final artifact-bound product gates |
+
+N2 mode/retention mapping and N3 mirror/docs inventory may be read within the
+approved NEXT-01 discovery scope, not implemented ahead of approval.
+No fourth phase for discovery or packaging; use coherent, separately reviewable
+commits/PRs inside each phase. In particular, mirror deletion is not combined
+with a numeric rewrite or backend promotion.
+
+<a id="next-01"></a>
+
+### Phase NEXT-01 - Reactive Public Runtime And Economic Hot-Path Closure
+
+**Status: PLANNED; awaiting individual implementation approval.**
+**Goal:** make the real public object every-bar route faster without rewriting
+the strategy; optimize sparse/numeric paths under their declared semantics.
+**Read all:** [guide 4](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#4-next-01--reactive-public-runtime--economic-hot-path-closure) plus common sections above.
+
+**Entry:** B0/B1 identities and limitations, fix-reconciliation ledger, economic
+clock/fee/funding/lot/metric/output contracts, representative workload manifest
+and frozen performance budgets. Missing B0 is reported, not silently replaced.
+**Existing owners:** `NativeEventBackend.run_strategy`, `PreparedStrategyAdapter`,
+`ExecutionPlan`, `FullSession`, current native binding/writers/wake indexes,
+`ReactiveScalarSessionPoolV1`, `TraceColumns` and account/audit helpers.
+#### N1.01 - Reconcile Fixes And Public Routes
+
+**Status: PLANNED. Required guide: [N1.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n101--reconcile-fixes-và-public-call-graph).**
+
+- Map each finding to commit/diff, actual public caller/runtime, contract/test,
+  environment, prior/current result and remaining delta. Use FIXED_WITH_TEST,
+  PARTIAL_FIX, NOT_REPRODUCED, REGRESSION or UNVERIFIED without inventing evidence.
+- Include the 3de4251 mitigation as existing work; profile remaining object,
+  numeric, sparse, high-churn, audit and reactive-WFO paths on the inspected SHA.
+- Resolve the complete public -> plan -> runtime -> account -> reducer ->
+  report -> installed-consumer chain, with real file/symbol/line references.
+  Assert runtime-emitted route tokens/origins/counters, not helper monkeypatches.
+- Adapt Appendix A to current tooling after review; its pattern hits are leads,
+  not profiling. Verify stable source hashes as well as Git status during capture.
+
+#### N1.02 - Resolve Once And Reuse One Runtime Entry Path
+
+**Status: PLANNED. Required guide: [N1.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n102--một-run-plan-một-runtime-entry-path).**
+
+- Reuse immutable prepared request/config resolution; trace repeated kwargs,
+  alias/capability/version checks and whole-tape hashing before removing work.
+- Keep mandatory ingress validation and state-dependent command checks.
+  Do not demand one native call for pause/resume/progress protocols.
+- Output: measured call/copy census and one canonical plan-to-owner route;
+  invalid/conflicting inputs and economic fingerprints remain identical.
+
+#### N1.03 - Compile Callback Access And Invocation Plans
+
+**Status: PLANNED. Required guide: [N1.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n103--compile-callback-access-plan-và-bỏ-hidden-getter-crossings).**
+
+- Resolve requested fields/symbols/availability and supported callable arity once.
+  Compare fixed Python scalar attributes, numeric views and native getters on
+  actual access patterns; remove hidden repeated crossings/type extraction.
+- Preserve permitted callable replacement; do not bind stale methods when the
+  legacy protocol allows mutation. Use docs for the installed PyO3 version.
+- Test field values, requested payloads and generated commands; report getter
+  crossings, allocations, projection bytes and exclusive invocation cost.
+
+#### N1.04 - Preserve Snapshot, Borrow And Lease Semantics
+
+**Status: PLANNED. Required guide: [N1.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n104--context-lifetime-đúng-trước-khi-giảm-allocation).**
+
+- Legacy retained contexts remain immutable snapshots. Borrowed views are
+  opt-in; generation tokens do not protect an exported raw ndarray.
+- Backing storage cannot be overwritten/reset while leased. Bound page/lease
+  capacity with declared copy/backpressure/failure, never stale aliases.
+- Keep field availability causal: observing open cannot expose future H/L/C.
+  Test views held across >=100 callbacks, reset, cancel, retained results and
+  worker failure; read-only flags alone do not prove alias safety.
+
+#### N1.05 - Transactional Primitive Command Staging
+
+**Status: PLANNED. Required guide: [N1.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n105--transactional-command-batch-không-per-command-native-roundtrip).**
+
+- Reuse the current writer. Compare scalar and staged transports for actual
+  batch sizes; consume a validated prefix without per-command round trips
+  where the protocol permits after-return submission.
+- Distinguish malformed transport, callback exception, business rejection and
+  explicitly atomic package behavior. Preserve immediate-side-effect legacy
+  protocols rather than silently changing their submission timing.
+- Preserve command ordinal, partial acceptance, parent/OCO and capacity limits.
+  Test cancel/place/amend permutations, duplicate IDs, mid-batch invalid rows,
+  callback raises, overflow and rollback of unsubmitted staged commands.
+
+#### N1.06 - Interpreter Scheduling And Session Failure State
+
+**Status: PLANNED. Required guide: [N1.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n106--interpreterengine-scheduling-không-deadlock).**
+
+- Use current co-runtime/pool and measured GIL policy. Never hold a financial
+  mutex/borrow across callbacks or the GIL while waiting for Python workers.
+- Reject re-entry into a running owner explicitly. Preserve lifecycle states,
+  map panics/errors at the outer boundary, poison/discard when required.
+- Test Ctrl+C/cancel safe points, deadlock, worker failure and reset-after-error.
+  No automatic callback retry without demonstrated strategy-state restoration.
+
+#### N1.07 - Share Derived Financial State At Valid Phases
+
+**Status: PLANNED. Required guide: [N1.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer).**
+
+- Reuse versioned mark/position/wallet/reservation/risk projections for admission,
+  context, metrics and audit only when phase and dependencies agree.
+- Invalidate on changed marks, costs, funding, risk schedules and reservation
+  release. Incrementalize only certified additive terms; retain full nonlinear
+  margin/tiering recomputation and reference from-scratch debug checks.
+- Gate on exact admission/liquidation decisions, not only close equity; preserve
+  wallet versus attribution and distinct spot/derivative economic contracts.
+
+#### N1.08 - Profile Order Layout, Matching And Index Maintenance
+
+**Status: PLANNED. Required guide: [N1.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n108--order-hot-path-giảm-work-mỗi-event-và-mỗi-active-order).**
+
+- Reuse arena/indexes and hot/cold descriptors; avoid terminal-history scans
+  and metadata clones only where the profile establishes cost.
+- Broad-phase indexes return a conservative superset. Exact priority/liquidity
+  allocation, same-phase child activation, amend/cancel/partial-fill/expiry and
+  dynamic instrument schedule invalidation remain authoritative.
+- Benchmark few-order scans as well as indexed many-order cases. Compare to
+  scan oracle on equal-price ties, stop-limit triggers, gaps and competing OCO.
+
+#### N1.09 - Declared Sparse Execution Relations
+
+**Status: PLANNED. Required guide: [N1.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n109--giảm-callbacks-bằng-execution-semantics-được-khai-báo-không-chuyển-alpha-vào-core).**
+
+- Reduce polling via existing fill/order/expiry/wake relations only when the
+  strategy permits it. Every-bar cooldown/RNG/decision changes cannot be skipped.
+- New generic child/hedge relations, if actually missing, need a separate typed
+  domain contract/oracle using cumulative actual fills and lot rounding;
+  never hard-code Grid/MRS entries or alpha logic into the engine.
+- Coalesce wakes only with payload/order proof; close range-touch cannot issue
+  an order retroactively at open. Compare future actions and declared terminal
+  strategy state, not captured commands alone.
+
+#### N1.10 - Bounded Specialization And Optional Exact Spans
+
+**Status: PLANNED. Required guide: [N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n110--specialized-economic-loop-bounded-exact-span-là-phần-bổ-sung).**
+
+- Resolve a small set of concrete certified loop shapes at prepare time, using
+  shared accounting/matching primitives; avoid a Cartesian flag explosion.
+- Every-bar acceleration must remove overhead, not decisions. Exact-span or
+  first-hit indexing is conditional on no missed orders, financial events,
+  callbacks, pruning, RNG or required per-bar audit/digest work.
+- Record index/setup and memory cost; do not expose future hits to strategies.
+  NOT_BENEFICIAL for spans does not waive the every-bar outcome.
+
+#### N1.11 - Wire The Same Runtime Into Reactive WFO
+
+**Status: PLANNED. Required guide: [N1.11](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n111--nối-cùng-runtime-vào-reactive-wfo-tách-state-mỗi-evaluation).**
+
+- Reuse prepared market/config and private session/writer/wake/strategy state
+  per evaluation; do not instantiate full reports in certified scalar trials.
+- Factory/reset semantics must yield fresh candidate state, not persistent
+  campaign/RNG/global leaks. Reuse capacity, not prior financial decisions.
+- One-candidate public reactive versus reactive-WFO parity includes timing,
+  fees/funding, metrics and declared boundary policy. Preserve current reset-flat
+  behavior; genuine carried-state support requires its own existing contract.
+- Measure actual ingress/create/reset counts and retained-view isolation from
+  the public wrapper, including high-churn/error/cancel recovery.
+
+#### N1.12 - Reactive Product Outcome Qualification
+
+**Status: PLANNED. Required guide: [N1.12](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n112--nghiệm-thu-reactive-không-rút-về-hybrid-nên-không-nhanh-được).**
+
+- Run unmodified object, numeric every-bar, sparse, many-resting-order,
+  high-churn, long event history, minimal and full requested audit fixtures.
+- Four-way proof: independent small-domain oracle; B1 public baseline; B2 public
+  reactive route; captured B2 tape execution replay. The replay only isolates
+  execution and cannot replace closed-loop strategy parity.
+- Gate O-R1/O-R2, B0 regression and safety at the same CPU/output contracts.
+  Separate Python decision time and opt-in protocol gains; do not claim
+  unmodified acceleration from a strategy rewrite or promote a failed route.
+
+#### NEXT-01 Tests, Deliverables And Exit
+
+- Map **R01-R16**, **D01-D09/D14**, **W06/W15**, **P08/P11/P12** to existing or
+  new independent tests; run other affected domain tests when shared primitives
+  change. Include normal/prepared, fresh/reset, Python/Rust/oracle, original
+  snapshot/borrowed and memory/streamed audit variants without changing outputs.
+- Extend the existing generic-callback benchmark, Phase 47/51/54/57 contract
+  corpus and Phase 62/63/75/77.3/PERF-03/04/09 evidence where applicable.
+  Proposed new test/artifact names are chosen after checking existing owners,
+  not used as a reason to duplicate modules.
+- Deliver source/fix/route maps, baseline and economic/performance manifests,
+  exclusive profiles, parity/fault records, installed public-route smoke,
+  paired BR-01-04 measurements and per-outcome status. N1.11 has one-candidate
+  BR-07 parity; full fresh-study speed is owned by NEXT-02.
+- Exit only with O-R1/O-R2 accepted, no unresolved introduced/in-scope correctness,
+  ownership, audit or public-wiring blocker. If the every-bar target is NOT_MET,
+  continue this phase or seek explicit exception before NEXT-02.
+- Technical-debt register initially UNVERIFIED, not empty-by-declaration.
+  Discovery may classify existing work verified; no speculation labeled fixed.
+- Rollback: revert the coherent performance patch or use the prior certified
+  runtime under identical economics. Do not switch account/timing policy.
+- Completion record: pending approval and measured implementation; no tests or
+  gains from this new phase are claimed by this planning commit.
+
+<a id="next-02"></a>
+
+### Phase NEXT-02 - Fresh WFO And Reactive-WFO Evaluation Closure
+
+**Status: PLANNED; awaiting NEXT-01 acceptance and individual approval.**
+**Goal:** fresh/cache-cold full studies faster across the supported five-mode
+matrix, especially Mode 4 `per_fold_causal`, including unmodified reactive
+strategies and full research transparency.
+**Read all:** [guide 5](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#5-next-02--fresh-wfo--reactive-wfo-evaluation-closure) plus common contracts.
+
+**Entry:** qualified NEXT-01 runtime, preserved mode/schedule mathematics,
+workload/retention/CPU budgets and current source identities.
+**Existing owners:** `WalkForwardEngine`, `PreparedWalkForwardContext`,
+`NativePreparedPublicWfoScorerV1`, `NativePreparedEvaluationRuntimeV1`,
+reactive WFO runtime/scalar pool/batch scheduler, `OptunaOptimizer`,
+required-computation plans, analysis reuse and research-audit store.
+
+#### N2.01 - Map Five Modes And Selection Schedules
+
+**Status: PLANNED. Required guide: [N2.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n201--khóa-mode-by-mode-execution-graph).**
+
+- Map generation -> evaluation -> statistics -> objective -> reports/pruning ->
+  selection -> deployed parameters -> final OOS account for every supported pair.
+- Preserve Mode 1 decay, Mode 2 path/bootstrap inputs, Mode 3 landscape/plateau,
+  Mode 4 strict IS selection and Mode 5 full-sample components/replicates.
+- Test global, per_fold_decay and per_fold_causal only where valid. Distinguish
+  outer-OOS selection in per_fold_decay from causal validation; do not swap to a
+  cheaper schedule. Prioritize expanding/rolling Mode 4 causal with actual
+  shard/plateau configuration and full fold-parameter deployment.
+- Include train_test_split/full-sample compatibility and custom-objective
+  fallback; no silent proxy when the requested exact route lacks capability.
+
+#### N2.02 - Bind Prepared Evaluation Once Per Public Study
+
+**Status: PLANNED. Required guide: [N2.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n202--public-wfo-không-gọi-full-public-backtest-theo-trialfold).**
+
+- Reuse the existing public scorer/runtime binding with one legitimate market/
+  calendar/instrument lifetime. Trials submit candidate/fold/intent references
+  and receive required numeric/path refs, not another full endpoint/report.
+- Certified scalar objectives require full-report builds per trial = 0 while
+  research records remain complete. Custom objectives receive declared paths;
+  undeclared needs retain conservative compatible inputs.
+- Rerun selected candidates only when requested original outputs were not
+  retained, with the same economics/seed/state and reconstructed provenance.
+
+#### N2.03 - Compile Exact Fold And Availability Descriptors
+
+**Status: PLANNED. Required guide: [N2.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n203--foldindexplan-không-alignreindexcopy-trong-inner-loop).**
+
+- Reuse prepared window/fold helpers for slices, explicit non-contiguous gathers,
+  train/test/warmup, inner folds, shards and any supported purge/embargo.
+- Preserve local/global clocks, known-at times, first/last bars, funding and
+  per-symbol stale/tradable calendars; same length does not imply alignment.
+- Eliminate repeated pandas/index/symbol packing only under ownership proof.
+  Keep isolated mutable inputs for legacy strategies; read-only providers are
+  opt-in and causal views are not a sandbox for arbitrary Python globals.
+
+#### N2.04 - Bound Distinct Intent Storage And Ingress
+
+**Status: PLANNED. Required guide: [N2.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n204--một-prepared-intent-batch-layout-có-budget).**
+
+- One controlled ingestion per distinct intent tape/batch, not per fold/scenario.
+  Validate dtype/shape/strides/offsets/IDs/generation once; count required packing.
+- Budget shared market/indexes, in-flight intents, private worker state, retained
+  paths and audit queues before enqueue. Use existing chunk/spill facilities.
+- Constant weight/notional can still rebalance; rejected unchanged targets may
+  need retry. Do not compress them into signal-change-only execution.
+  Constant accepted units can avoid redundant orders, not MTM or financial events.
+
+#### N2.05 - Optimize Without Changing Optimizer Scheduling
+
+**Status: PLANNED. Required guide: [N2.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n205--scheduler-tối-ưu-trong-đúng-algorithm-contract).**
+
+- Keep sequential-compatible ask/report/prune/tell order, fixed-candidate
+  throughput and explicitly versioned adaptive batch distinct.
+- Use public Optuna APIs. Native inner-fold parallelism must preserve ordered
+  intermediates/pruning and strategy side effects; avoid implicit speculation.
+- Collect by deterministic ordinal where required, not worker completion order.
+  Never fill workers by asking future adaptive trials in sequential mode.
+
+#### N2.06 - Choose Supported Reactive Worker Topology
+
+**Status: PLANNED. Required guide: [N2.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n206--reactive-wfo-topology-theo-decision-cost-không-theo-tên-backend).**
+
+- Reuse persistent workers/session pools: native workers for numeric tapes,
+  Python processes for Python-heavy strategies, explicit vectorized candidates
+  for batch protocols, sparse queues for declared mixed workloads.
+- Initializer imports strategy/package and attaches immutable market once.
+  Tasks carry IDs/params/descriptors, not whole DataFrames/endpoints/sessions.
+- Start method and effective CPU/BLAS/native budgets are explicit; no fork after
+  native pools/locks. Importability failures for notebook callables get a
+  supported adapter or actionable error, not arbitrary unsafe serialization.
+- Measure IPC/startup/private/shared memory and fresh state per candidate/fold;
+  summed RSS must not double-count shared mappings as private memory.
+
+#### N2.07 - True Candidate-Indexed Decision Batches
+
+**Status: PLANNED. Required guide: [N2.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n207--batch-decision-thật-không-vòng-python-object-đặt-tên-batch).**
+
+- Distinguish Python loops over object callbacks from an actual candidate-vector
+  protocol. Keep an unmodified-strategy lane and a separate opt-in batch lane.
+- Reuse ready IDs, scalar/position/fill spans and command offsets with boundary,
+  generation, lease and capacity contracts; never mix open and close visibility.
+- Stable candidate/replicate identity owns RNG, not lane position. Test lane
+  permutation where order-independent, single-candidate failures and whole-batch
+  exceptions; dirty strategy instances are recreated, not guessed safe.
+
+#### N2.08 - Fuse Required Metrics And Exact Statistics
+
+**Status: PLANNED. Required guide: [N2.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n208--native-metricstatistical-plan-phục-vụ-năm-mode).**
+
+- Resolve required reducers from objective, constraints/pruner, callback,
+  research-audit and result contracts; avoid repeated scans of the same stream.
+- Keep frequency/timezone/risk-free/ddof/zero-variance/missing/negative-equity/
+  liquidation policies. Exact account returns cannot become proxy signals.
+- Modes needing paths retain them once; bootstrap/stress uses original RNG/
+  indices/block/replicate descriptors and bounded scratch/tiles. No iid
+  substitution, fewer replicates, approximate quantiles or reordered tie/prune
+  decisions. Leave external GARCH/alpha fitting outside the engine.
+
+#### N2.09 - Remove Proven QuantBT History Reconstruction
+
+**Status: PLANNED. Required guide: [N2.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n209--loại-full-history-on²-work-do-quantbt-tự-thêm).**
+
+- Profile full-history calls/scans/copies per trial separately from sampler and
+  storage work. Do not label every get_trials/concat occurrence an O(N^2) bug.
+- Reuse append-only revisions and immutable distribution manifests; build final
+  or explicitly requested paginated views without deleting live audit/history.
+- No private Optuna storage/sampler patch. Read-only access without deepcopy
+  requires demonstrated non-mutation. Exact neighbor/plateau distances,
+  categories, eligible sets and tie-breaks remain unchanged.
+- Run cheap-evaluator 100/500/1000+ trial scaling with counters and real-study
+  controls; diagnostic cheap workloads do not replace O-W1.
+
+#### N2.10 - Respect Pruning, Roles And Reuse Identity
+
+**Status: PLANNED. Required guide: [N2.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n210--pruning-và-cache-là-phần-của-trial-lifecycle-không-chỉ-final-score).**
+
+- Reuse current evaluation/analysis cache only with complete versus prefix,
+  control/pruning, seed/replicate, market/cost, role/cutoff and retained-path keys.
+- Reapply current study's intermediate reporting and pruning; canceled/pruned
+  prefixes cannot be successful finals. Every trial/attempt retains its own ID.
+- Reactive costs can change decisions: old fixed-tape counterfactual replay is
+  not a new closed-loop run. Independent stochastic replicas cannot deduplicate.
+- Disable completed-result/prefix reuse for fresh gates. Cache/resume bonuses
+  have separate net-time/memory/hit/miss evidence.
+
+#### N2.11 - Bound Pipeline Queues And Persist Trial Progress
+
+**Status: PLANNED. Required guide: [N2.11](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n211--bounded-pipeline-không-thay-study-ordering).**
+
+- Overlap independent generation/evaluation/audit only in allowed schedules,
+  using existing bounded queues and byte/task backpressure.
+- Keep completion order, trial order and journal order separate. No GIL-held
+  wait for workers that need Python; no unbounded pending results.
+- Verify slow producers/sinks, crash/cancel during wait, duplicate delivery and
+  idempotent recovery across optimizer/audit stores. Do not claim distributed
+  exactly-once without a shared transaction or silently lose completed trials.
+
+#### N2.12 - Improve Fresh Native Evaluation Locality
+
+**Status: PLANNED. Required guide: [N2.12](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n212--fresh-target-evaluation-và-locality-aware-scheduling).**
+
+- Reuse existing specialized target/event/portfolio/package kernels; do not
+  expand targets into generic Python order objects solely to unify execution.
+- Benchmark candidate/time-major tiles and cost-aware chunks with private
+  chronological account state, ordered collection and the same CPU budget.
+- Hoist only immutable validated inputs. Keep dynamic fee/risk/margin updates;
+  SIMD/reduction changes require numeric and threshold-decision proof.
+- Portable wheel flags remain mandatory. Consider held-out PGO only after
+  macrobench evidence, never target-cpu=native or unsafe shortcuts for public wheels.
+
+#### N2.13 - Optional Safe Continuation, Not Fresh-Speed Substitution
+
+**Status: PLANNED. Required guide: [N2.13](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n213--checkpointresume-là-tăng-cường-không-outcome-thay-thế).**
+
+- Reuse supported quiescent snapshot/continuation machinery only with full
+  strategy/account/order/reservation/liquidity/funding/reducer/RNG/wake state.
+- No arbitrary __dict__/pickle checkpoint; no cross-candidate prefix reuse
+  without explicit equivalence and role/cutoff permissions.
+- Journal restored reports/pruning/tell/audit and avoid double cost/fill events.
+  Label reconstructed versus originally retained trace accurately.
+- NOT_APPLICABLE or not-beneficial continuation does not waive O-W1/O-W2.
+
+#### N2.14 - Five-Mode Public Qualification And Selection Transparency
+
+**Status: PLANNED. Required guide: [N2.14](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n214--wforeactionaudit-qualification-và-outcomes).**
+
+- Compare B0/B1/B2, current Python/native, sequential-compatible pairs,
+  fixed-candidate same-topology pairs, unmodified reactive WFO, and opt-in
+  scalar/batch equivalents as distinct measurement lanes.
+- Cover optimizer end-to-end plus evaluator-only stages; do not average away a
+  slow mode or claim Rust-only time as study speed.
+- Verify selected/deployed parameters, objective components, trials/pruning,
+  final boundary/account reconstruction and selected audit reruns.
+- Require accepted fresh O-W1/O-W2 and no missing released-mode/audit integration;
+  report irreducible Python generation separately without moving alpha into core.
+
+#### NEXT-02 Tests, Deliverables And Exit
+
+- Primary IDs: **W01-W18**, **R01/R04/R10/R12-R16**, **D01-D06/D09-D14**,
+  **P08-P12**. Reuse Phase 49/50/64/65/73/74/76/PERF-05/06/08/09 tests and add
+  missing adversarial cases with exact public route and independent expectations.
+- Freeze supported mode x schedule x target/reactive x retention x worker
+  matrix; test all required cells. Mode 2 path/RNG and Mode 5 full-sample
+  selectors are mandatory compatibility gates, not excluded to obtain a win.
+- Primary workload: Mode 4 per-fold causal, rolling and expanding, unchanged
+  IS subperiod/plateau scoring, one study per declared fold and untouched outer
+  OOS. Mutating future OOS must not affect earlier selection. Preserve Mode 1
+  outer decay versus nested-causal distinctions in metadata and examples.
+- Carry boundaries preserve actual positions/orders/reservations and costs for
+  routes that support carry. Existing reset-flat reactive WFO remains explicitly
+  reset-flat; do not construct synthetic compounded equity as carry proof.
+- Deliver per-mode call/retention maps, fixed/full-study and score/audit parity,
+  full search-space/components/trial lineage, workload/timing/copy/CPU/RSS
+  reports, BR-05-09 evidence and actual installed public-WFO smoke.
+- Exit O-W1/O-W2 = MET or individually approved exception, with no introduced
+  in-scope correctness, transparency, memory/worker or integration debt.
+  Missing real-fixture/worker/platform evidence blocks that claimed scope.
+- Rollback scheduler/performance changes independently using identical
+  economic/pruning/sampling contracts; invalidate incompatible prepared/cache
+  identities and preserve the study/audit journals.
+- Completion record: pending NEXT-01 gate and user approval; no new speed claim.
+
+<a id="next-03"></a>
+
+### Phase NEXT-03 - Single-Source Package, Audit/Docs And Product Qualification
+
+**Status: PLANNED; awaiting NEXT-01/02 acceptance and individual approval.**
+**Goal:** retire proven duplicate root production code without losing behavior,
+preserve one canonical import identity, qualify the exact installable
+core/native pair and hand off an actionable TestPyPI/PyPI release procedure.
+**Read all:** [guide 6](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#6-next-03--single-source-package-auditdocs--product-qualification), [guide 7](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#7-researchaudit-contract-tốc-độ-không-được-mua-bằng-mất-dữ-liệu),
+[P01-P12](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#84-package-docs-và-evidence--p01p12), [closure manifest](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#104-final-closure-manifest),
+[Appendix C evidence](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#phụ-lục-c--hồ-sơ-phải-bàn-giao-sau-ba-phase).
+
+**Entry:** outcome/contract artifacts from NEXT-01/02; per-file mirror/consumer
+inventory; approved retirement scope. Final qualification occurs after the last
+runtime/layout/build change, not before deleting mirrors.
+Mirror retirement is distinct from retiring canonical Python financial engines,
+independent oracles or Python strategies. Do not reinterpret it as blanket A5
+engine deletion; unresolved older mandatory removal approvals need explicit review.
+
+#### N3.01 - Inventory Actual Source, Build And Root Divergence
+
+**Status: PLANNED. Required guide: [N3.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n301--inventory-sourcebuild-và-mirror-divergence).**
+
+- Read setuptools/maturin discovery, archives/resources/workspace path crates,
+  explicit mirror manifest, native distribution/module names and CI consumers.
+- Classify each counterpart as identical, semantic divergence, root-only
+  production, forwarding shim, oracle or tooling. Reconcile unique logic/tests
+  into canonical first; equality of __init__.py files proves nothing about a tree.
+- Produce per-file hashes, disposition, owner, consumer and rollback/test proof.
+  No automatic deletion from a regex scan or LOC percentage.
+
+#### N3.02 - Canonical Imports And Shared Type Identity
+
+**Status: PLANNED. Required guide: [N3.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n302--canonical-imports-và-một-type-identity).**
+
+- Migrate supplied/authorized notebooks, examples, tests, worker entrypoints and
+  tools to supported quantbt imports. Preserve stable endpoint/type/exception/
+  enum/registry identities, not just equality of values.
+- Approved legacy shims only re-export canonical objects, with sunset/migration
+  documentation. No copied financial code, symlink mirror or two import names
+  instantiating independent class registries.
+- Test trusted legacy artifact aliases without unpickling untrusted inputs.
+  External Pool Alpha consumers require authorized fixtures; no claim of
+  universal compatibility without access or evidence.
+
+#### N3.03 - Separate Mirror Retirement And No-Regrowth Gate
+
+**Status: PLANNED. Required guide: [N3.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n303--retire-mirror-bằng-pr-độc-lập-no-regrowth-ci).**
+
+- Delete only reviewed, reconciled production mirrors after ordinary installed
+  consumer and alias tests pass; commit this axis separately from performance.
+- Replace equality-sync/generation tests with canonical origin, forbidden
+  duplicate financial definitions, alias identity, resource and archive gates.
+- Preserve Rust workspace/crates, canonical Python/Numba backends, independent
+  oracles, tests, benchmarks/examples, tooling and non-mirror root files.
+- Any required root-only logic or unverified consumer blocks deletion of that
+  surface. No leftover duplicate engine disguised as a compatibility shim.
+
+#### N3.04 - Consolidate Internal Contracts Without API Fragmentation
+
+**Status: PLANNED. Required guide: [N3.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n304--chuẩn-hóa-internal-api-và-giảm-fragmentation-sau-các-phase).**
+
+- Use existing stable endpoint entrypoints and one config/route/ownership
+  resolver; remove redundant forwarding layers only with parity/evidence.
+- Keep research/optimize/audit defaults and economic semantics. Document
+  intentional deprecations/aliases; package version, command ABI, request API
+  and result schema are separate compatibility axes.
+- One source for capability metadata; explicit Rust errors and auto reasons
+  are truthful. No blanket exception fallback or promotion from enum existence.
+
+#### N3.05 - Close Wheel And Sdist Builds With Existing Topology
+
+**Status: PLANNED. Required guide: [N3.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại).**
+
+- Keep quantbt-engine (setuptools, import quantbt) and quantbt-native (maturin,
+  import _quantbt_native); no new features distribution or backend migration.
+- Prove editable install, clean ordinary wheel install, and core sdist -> clean
+  wheel rebuild outside the checkout. Inspect actual archive content/resources,
+  licenses, type markers and dependency metadata; no local-path leakage.
+- If native source distribution is supported/published, build it using only its
+  archived workspace/local crates/resources and explicit toolchain dependencies.
+  Otherwise declare binary-only support honestly; decide before release gating.
+- Validate exact compatible pair/platform markers and runtime functions.
+  pip check or matching version strings alone cannot certify ABI/execution.
+
+#### N3.06 - Clean Consumer, Worker And Import-Cost Proof
+
+**Status: PLANNED. Required guide: [N3.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n306--clean-consumer-tests-và-cold-start-profile).**
+
+- Run fresh isolated processes outside checkout; assert all quantbt/native
+  origins, class identities and resources, including .pth/site effects.
+- Test process-spawn workers and supported notebook-factory adapters, no stale
+  running-kernel success or hidden PYTHONPATH/sys.path fallback.
+- Profile optional chart/Nautilus/report/optimizer import costs separately.
+  Lazy imports are allowed only with dependency/capability rejection before
+  account mutation and tested errors; cold-import gains do not replace O-R/W.
+
+#### N3.07 - Full Research/Financial Audit And Durable Completion
+
+**Status: PLANNED. Required guide: [N3.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n307--audit-transparency-được-giữ-nguyên-và-mở-rộng-provenance).**
+
+- Integrate existing store/schema with all eight required record families.
+  Keep failed/pruned/canceled/pending/attempt history and actual search-space
+  distributions/components/deployment intervals, not only best_params.
+- Reuse immutable manifests/columnar references and bounded sinks. No dropping
+  rows on pressure; execution_complete and audit_complete stay distinct.
+- Export old schema/dtypes/nulls/statuses exactly through additive/versioned
+  adapters. Recompute objectives and validate joins/revisions/idempotent recovery.
+  Reconstructed selected reruns are not original retained evidence.
+
+#### N3.08 - Executable Documentation And Stable User Workflows
+
+**Status: PLANNED. Required guide: [N3.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n308--documentation-là-tested-public-contract).**
+
+- Update canonical endpoint, reactive, WFO methodology/mode/schedule, reactive
+  WFO topology/reset, result/audit, migration, install/release and benchmark docs;
+  link from README/implement rather than creating conflicting documentation.
+- Run documented examples against ordinary installed candidates without local
+  paths, uncommitted data or implicit notebook state. Use synthetic public
+  fixtures plus approved private consumer evidence kept out of artifacts.
+- Explain pip/Poetry consumption versus isolated editable developer worktrees,
+  explicit/auto backend policy, reported authority, supported platform matrix,
+  borrowed lifetimes/errors and remaining measured limits.
+- Report seconds/ms and honest work units; separate cache/resume/protocol/CPU
+  gains. Generated capability tables require actual public-route proof.
+
+#### N3.09 - Final Artifact-Bound Combined Qualification
+
+**Status: PLANNED. Required guide: [N3.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n309--combined-qualification-và-product-outcome-gate).**
+
+- Run B1, NEXT-01, NEXT-02, combined and final-package ablations without
+  multiplying overlapping speedups. Preserve corrected-contract comparison lanes.
+- Cross-domain gate: market/calendar, fee/funding, target/portfolio/package,
+  intrabar, options containment, reset/leases/memory/cancel/worker/audit faults.
+- Same final core/native artifacts must pass financial/oracle, O-R1/O-R2/O-W1/
+  O-W2, B0 product-regression, safety, audit, single-source and installed-doc gates.
+- Record portable CPU/toolchain/build/PGO identity; no target-cpu=native,
+  fast-math, widened tolerance, disabled safety, panic=abort or reference-pool
+  shortcuts to manufacture a release benchmark.
+
+#### N3.10 - Candidate Manifest And Safe Release Handoff
+
+**Status: PLANNED. Required guide: [N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n310--handoff-về-release-phase-thật).**
+
+- Generate validated NextPerformanceClosureManifest using guide 10.4:
+  actual source/build/dirty identity, reconciliation ledger, wheel/sdist hashes,
+  outcomes and test/benchmark evidence, migrated consumers, capability matrix,
+  compatibility, exclusions/approved exceptions and rollback package pins.
+- Reject placeholder booleans, missing hashes/tests, mixed artifacts and stale
+  certificates. Source/build changes invalidate affected evidence.
+- Preserve historical Phase 78 completion; READY_FOR_RELEASE_PHASE is a gate
+  for the new candidate, not permission to upload or rewrite published versions.
+- Hand off release steps below; require the user's separate merge/tag/publish
+  approval. Any mandatory NOT_MET/INCONCLUSIVE keeps closure blocked.
+
+#### NEXT-03 Release Deliverables And Workflow Gate
+
+Reuse and update
+[release packaging](../docs/release_packaging.md),
+[release handoff](../docs/migration/native_release_handoff.md),
+[TestPyPI checklist](../docs/testpypi_release_checklist.md),
+[release-channel validation](../tools/check_release_channel.py),
+[artifact checks](../tools/check_release_artifacts.py),
+[wheel verifier](../tools/verify_wheels.py), and
+[native certification](../tools/certify_native_release.py).
+Validate their actual CLI/workflow inputs before documenting commands.
+
+1. Select new core/native versions and exact compatible dependency pins with
+   the maintainer. Inspect index existence during the approved release work;
+   never reuse published 1.1.0/0.4.1 identities for changed artifacts. No version
+   change is made by this plan. Native ABI compatibility is checked separately.
+2. Prove installed release candidates on the existing approved Linux x86_64
+   CPython 3.11/3.12/3.13 matrix with portable manylinux wheels, plus declared
+   Python fallback and explicit-Rust failure off that matrix. Broader-platform
+   certification is not new published support without approval.
+3. Build/inspect wheel and sdist artifacts, verify exact hashes, secret/private
+   source allowlist, dependency resolution and pip/Poetry clean consumers.
+   Native execution must actually run, not skip when its wheel is missing.
+4. Document the existing RC-at-dev/TestPyPI and final-main/PyPI provenance rules.
+   Native publish is manually dispatched with ref/index; core TestPyPI uses its
+   existing RC/manual workflow, core PyPI uses the GitHub Release trigger.
+   Do not claim a tag push or core release also publishes native automatically.
+5. Publish the compatible native dependency first on the selected index when
+   authorized; confirm downloadable wheels for every required row, then publish
+   the exact core pair. Avoid publishing core with an unavailable dependency.
+   Explain trusted publisher/environment approval and failed-job recovery.
+6. Provide dev CI -> reviewed main PR -> frozen final ref -> tag/release/publish
+   instructions matching the channel checker. Validate tag SHA before dispatch;
+   do not move tags, force push or merge on the user's behalf without approval.
+7. Validate post-publish clean pip/Poetry installs and actual native imports/
+   execution from the index. This action awaits separate release approval;
+   a pre-publish local candidate manifest never claims public availability.
+
+**Exit:** P01-P12 pass, all affected R/W/D gates pass, docs examples and exact
+final candidate artifacts certified, and four product outcomes plus B0 accepted.
+Remote matrix jobs may be pending external prerequisites, never local PASS.
+No in-scope unique-source-loss, dependency/ABI, audit, worker or public-route
+blocker remains. No promise that no future version will need optimization.
+
+**Rollback:** previous core/native pair and documented aliases; versioned cache/
+artifact invalidation; per-file mirror-retirement reversal from its isolated
+commit if needed. Keep independent oracles. No blanket engine rollback across
+different financial semantics. Completion record remains pending approval.
+
+### NEXT Requirement Coverage, Transparency And Final Record
+
+Full required scenarios: [guide 8](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#8-adversarial-test-requirements--60-cases). These are acceptance
+requirements, not claims that HEAD lacks all 60 tests. Each ID maps to actual
+test node IDs, oracle/contract expectations, source SHA, command, environment
+and result. Existing tests may be VERIFIED_EXISTING only after checking coverage.
+
+| Required IDs | Primary owner | Additional integration gate |
+| --- | --- | --- |
+| R01-R16: callback/writer/wake/lifetime/re-entry/fault safety | NEXT-01 | NEXT-02 batch/worker reuse; NEXT-03 installed pair |
+| W01-W18: scheduling, causality, reuse, carry, statistics/history | NEXT-02 | NEXT-01 one-candidate runtime parity; NEXT-03 installed WFO |
+| D01-D09: fill/account/funding/atomicity/liquidity/cache | NEXT-01 | NEXT-02/03 every affected route |
+| D10-D14: target/portfolio/unsupported/settlement/retention | NEXT-02 | NEXT-03 shared-domain certification |
+| P01-P07: mirror/import/archive/ABI/docs | NEXT-03 | Early inventory only in approved discovery |
+| P08-P12: audit/fault/joins/evidence/B0/missing samples | NEXT-01/02 by touched surface | NEXT-03 final manifest |
+
+Do not impose false metamorphic properties: fill splitting depends on fee
+minimum/rounding, symbol permutation depends on configured priority, and
+price scaling depends on tick/lot/min-notional/tiering. Use guide 8.5 conditions.
+
+Workload coverage: **BR-01-04** reactive NEXT-01; **BR-05-08** fresh WFO/reactive
+NEXT-02; **BR-09** full audit/slow sink across all; **BR-10** affected target/
+portfolio/package/intrabar routes throughout, with final installed qualification.
+Every family has an explicit status; no omission hidden by an aggregate speedup.
+
+Preserve all eight guide-7 families in the existing audit architecture:
+RunManifest, SearchSpaceManifest, TrialLedger, EvaluationPanel,
+ObjectiveComponents, SelectionDecision, ExecutionEvidence, PerformanceEvidence.
+Check trial/evaluation/attempt cardinality and joins, objective recomputation,
+actual distributions/conditional activity, selected/deployed intervals, failure
+revisions, missing/truncated counts and original-versus-reconstructed provenance.
+Neither a digest nor an interpolated landscape replaces original observed data.
+Post-selection deep execution used to reselect parameters is validation data,
+not untouched holdout.
+
+**Utility review obligations:** Appendix A is a tracked-worktree inventory,
+not remote truth or a full call graph; prevent same-status dirty-byte drift.
+Appendix B checks supplied timing data, not correctness; validate evidence
+references/artifact identities independently, fresh constraints on both sides,
+actual work/retention/topology and sufficient samples. Harden/reuse existing
+measurement tools rather than copying templates and calling them certificates.
+
+**Work-package dispositions:** PLANNED -> IN_PROGRESS ->
+IMPLEMENTED_VERIFIED / VERIFIED_EXISTING / NOT_BENEFICIAL_WITH_EVIDENCE / BLOCKED.
+Conditional work may be NOT_APPLICABLE only with its documented precondition.
+**Product outcomes:** MET / NOT_MET / INCONCLUSIVE / USER_APPROVED_EXCEPTION.
+A phase remains open until mandatory outcomes are accepted. Completion counts
+and Rust LOC do not measure outcome completion.
+
+After each approved phase record the following, with links to real artifacts:
+
+```text
+Phase / approval / guide revision and sections
+Base and candidate SHA/tree/dirty state; build/lock/toolchain/import identities
+WP dispositions and requirement -> symbol -> public route -> test mapping
+Prior fixed findings versus new fixes; intentional economic deltas, if any
+Exact test/build commands; passed/failed/skipped with scope and reasons
+Parity: clocks/orders/account/metrics/prune/selection/deployment/audit
+Performance: B2/B1 and B2/B0; paired intervals and per-workload outcome
+Time decomposition and actual work/copy/history/audit counters
+RSS/private/shared memory, retained-output, lease/reset/cancel/fault evidence
+Docs/examples/schema/migration impact; installed pair and source-build proof
+Remaining in-scope blockers; approved exceptions; named downstream owner
+Rollback, scoped commit IDs and explicit permission boundary for the next phase
+```
+
+Final status is `READY_FOR_RELEASE_PHASE` only when the actual final candidate
+has all mandatory evidence and accepted outcomes; otherwise `BLOCKED`.
+Only separately approved release actions can establish that it is published.
