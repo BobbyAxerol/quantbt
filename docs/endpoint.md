@@ -1497,6 +1497,31 @@ result.metadata["strategy_context_requirements"]  # declared callback projection
 result.metadata["reactive_retention_requirements"]  # public paths/ledgers retained
 ```
 
+#### Generic callback schedule and binding
+
+The ordinary object-callback protocol remains the default. A strategy that
+declares `StrategyContextRequirements(callback=CallbackSchedule(...),
+context_mode="compatibility")` may declare sparse, causal wake bars. QuantBT
+still processes accounting and lifecycle on every market bar, but it does not
+construct a compatibility context or resolve `on_bar_close` on bars that the
+declared schedule cannot wake.
+
+The default callback binding is dynamic, so replacing an instance lifecycle
+method before its next declared wake remains supported. A strategy whose
+lifecycle methods are deliberately immutable for one run may opt in to:
+
+```python
+quantbt_reactive_callback_binding_v1 = "run_stable"
+```
+
+That marker pins the available callbacks only for the active run. It must not
+be used by a strategy that monkey-patches lifecycle methods while it runs. The
+endpoint/configuration surface is unchanged. Inspect
+`result.metadata["strategy_boundary"]` and
+`result.metadata["execution_counters"]` for callback-plan, wake, context, and
+timestamp-materialization counters. See [NEXT-01 reactive runtime closure](performance/next01_reactive_public_runtime.md)
+for the measured public-route scope.
+
 ### Typed numeric reactive strategy
 
 Existing callbacks which return `OrderCommand` objects remain fully supported.

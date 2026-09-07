@@ -32,6 +32,26 @@ bounded portfolio and package score paths are 9.3x and 5.6x faster. These
 ratios are derived from same-fixture medians; they are not comparisons with
 external frameworks or guarantees for a full report facade.
 
+## NEXT-01 Public Compatibility Callback Closure
+
+NEXT-01 measures a distinct source-tree B1-to-B2 public complete-audit route;
+it must not be blended into the Rust numeric/co-runtime rows above. The
+100-pair every-bar compatibility fixture improved from `6.075 s` to `4.233 s`
+(`16,461` to `23,625` bars/s), with a median paired ratio of `0.7079`, CI95
+`[0.6848, 0.7176]`, and observed p95 ratio `0.6933`. The 100-pair declared
+sparse compatibility fixture improved from `5.477 s` to `2.430 s` (`18,259` to
+`41,145` bars/s), with a median ratio of `0.4473`, CI95 `[0.4411, 0.4622]`,
+and observed p95 ratio `0.4773`. Peak RSS remained around `305 MiB` because
+both lanes retain the same public complete-audit output.
+
+The benchmark asserts exact final account, fill/command/event counts, full
+financial array hash, canonical trace/replay, and ledger hash before recording
+timings. It uses one isolated CPython child at a time with ABBA ordering. B0 is
+deliberately `INCONCLUSIVE` here because no independently pinned installed
+historical product artifact was available under the same corrected contract.
+See [NEXT-01 reactive runtime closure](next01_reactive_public_runtime.md) and
+the committed raw/evidence artifacts linked there.
+
 Native WFO V2 is a separate prepared single-symbol static-IR score contract.
 Its measured persistent-runtime versus prior fold-oracle ratio is 1.37x with
 exact scalar metrics and counts. Its corrected execution denominator is 0.94M

@@ -19705,7 +19705,7 @@ with a numeric rewrite or backend promotion.
 
 ### Phase NEXT-01 - Reactive Public Runtime And Economic Hot-Path Closure
 
-**Status: PLANNED; awaiting individual implementation approval.**
+**Status: IMPLEMENTED_VERIFIED for B1-to-B2 public-route closure; B0 installed-product comparison remains INCONCLUSIVE locally.**
 **Goal:** make the real public object every-bar route faster without rewriting
 the strategy; optimize sparse/numeric paths under their declared semantics.
 **Read all:** [guide 4](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#4-next-01--reactive-public-runtime--economic-hot-path-closure) plus common sections above.
@@ -19718,7 +19718,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 `ReactiveScalarSessionPoolV1`, `TraceColumns` and account/audit helpers.
 #### N1.01 - Reconcile Fixes And Public Routes
 
-**Status: PLANNED. Required guide: [N1.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n101--reconcile-fixes-và-public-call-graph).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N1.01](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n101--reconcile-fixes-và-public-call-graph).**
 
 - Map each finding to commit/diff, actual public caller/runtime, contract/test,
   environment, prior/current result and remaining delta. Use FIXED_WITH_TEST,
@@ -19733,7 +19733,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.02 - Resolve Once And Reuse One Runtime Entry Path
 
-**Status: PLANNED. Required guide: [N1.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n102--một-run-plan-một-runtime-entry-path).**
+**Status: VERIFIED_EXISTING plus public-route evidence. Required guide: [N1.02](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n102--một-run-plan-một-runtime-entry-path).**
 
 - Reuse immutable prepared request/config resolution; trace repeated kwargs,
   alias/capability/version checks and whole-tape hashing before removing work.
@@ -19744,7 +19744,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.03 - Compile Callback Access And Invocation Plans
 
-**Status: PLANNED. Required guide: [N1.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n103--compile-callback-access-plan-và-bỏ-hidden-getter-crossings).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N1.03](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n103--compile-callback-access-plan-và-bỏ-hidden-getter-crossings).**
 
 - Resolve requested fields/symbols/availability and supported callable arity once.
   Compare fixed Python scalar attributes, numeric views and native getters on
@@ -19756,7 +19756,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.04 - Preserve Snapshot, Borrow And Lease Semantics
 
-**Status: PLANNED. Required guide: [N1.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n104--context-lifetime-đúng-trước-khi-giảm-allocation).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N1.04](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n104--context-lifetime-đúng-trước-khi-giảm-allocation).**
 
 - Legacy retained contexts remain immutable snapshots. Borrowed views are
   opt-in; generation tokens do not protect an exported raw ndarray.
@@ -19768,7 +19768,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.05 - Transactional Primitive Command Staging
 
-**Status: PLANNED. Required guide: [N1.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n105--transactional-command-batch-không-per-command-native-roundtrip).**
+**Status: VERIFIED_EXISTING with lifecycle regression evidence. Required guide: [N1.05](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n105--transactional-command-batch-không-per-command-native-roundtrip).**
 
 - Reuse the current writer. Compare scalar and staged transports for actual
   batch sizes; consume a validated prefix without per-command round trips
@@ -19782,7 +19782,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.06 - Interpreter Scheduling And Session Failure State
 
-**Status: PLANNED. Required guide: [N1.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n106--interpreterengine-scheduling-không-deadlock).**
+**Status: VERIFIED_EXISTING with focused reset/failure corpus. Required guide: [N1.06](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n106--interpreterengine-scheduling-không-deadlock).**
 
 - Use current co-runtime/pool and measured GIL policy. Never hold a financial
   mutex/borrow across callbacks or the GIL while waiting for Python workers.
@@ -19793,7 +19793,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.07 - Share Derived Financial State At Valid Phases
 
-**Status: PLANNED. Required guide: [N1.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer).**
+**Status: VERIFIED_EXISTING; retained accounting/audit parity rechecked. Required guide: [N1.07](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer).**
 
 - Reuse versioned mark/position/wallet/reservation/risk projections for admission,
   context, metrics and audit only when phase and dependencies agree.
@@ -19805,7 +19805,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.08 - Profile Order Layout, Matching And Index Maintenance
 
-**Status: PLANNED. Required guide: [N1.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n108--order-hot-path-giảm-work-mỗi-event-và-mỗi-active-order).**
+**Status: VERIFIED_EXISTING; high-churn, parent/OCO, and GTD parity smoke rechecked. Required guide: [N1.08](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n108--order-hot-path-giảm-work-mỗi-event-và-mỗi-active-order).**
 
 - Reuse arena/indexes and hot/cold descriptors; avoid terminal-history scans
   and metadata clones only where the profile establishes cost.
@@ -19817,7 +19817,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.09 - Declared Sparse Execution Relations
 
-**Status: PLANNED. Required guide: [N1.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n109--giảm-callbacks-bằng-execution-semantics-được-khai-báo-không-chuyển-alpha-vào-core).**
+**Status: IMPLEMENTED_VERIFIED. Required guide: [N1.09](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n109--giảm-callbacks-bằng-execution-semantics-được-khai-báo-không-chuyển-alpha-vào-core).**
 
 - Reduce polling via existing fill/order/expiry/wake relations only when the
   strategy permits it. Every-bar cooldown/RNG/decision changes cannot be skipped.
@@ -19830,7 +19830,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.10 - Bounded Specialization And Optional Exact Spans
 
-**Status: PLANNED. Required guide: [N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n110--specialized-economic-loop-bounded-exact-span-là-phần-bổ-sung).**
+**Status: NOT_BENEFICIAL_WITH_EVIDENCE for generic Rust/per-bar bridge and exact-span promotion; safe Python hot-path closure met O-R1. Required guide: [N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n110--specialized-economic-loop-bounded-exact-span-là-phần-bổ-sung).**
 
 - Resolve a small set of concrete certified loop shapes at prepare time, using
   shared accounting/matching primitives; avoid a Cartesian flag explosion.
@@ -19842,7 +19842,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.11 - Wire The Same Runtime Into Reactive WFO
 
-**Status: PLANNED. Required guide: [N1.11](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n111--nối-cùng-runtime-vào-reactive-wfo-tách-state-mỗi-evaluation).**
+**Status: VERIFIED_EXISTING for one-candidate/reactive-WFO parity; fresh-study speed remains explicitly owned by NEXT-02. Required guide: [N1.11](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n111--nối-cùng-runtime-vào-reactive-wfo-tách-state-mỗi-evaluation).**
 
 - Reuse prepared market/config and private session/writer/wake/strategy state
   per evaluation; do not instantiate full reports in certified scalar trials.
@@ -19856,7 +19856,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 #### N1.12 - Reactive Product Outcome Qualification
 
-**Status: PLANNED. Required guide: [N1.12](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n112--nghiệm-thu-reactive-không-rút-về-hybrid-nên-không-nhanh-được).**
+**Status: IMPLEMENTED_VERIFIED for O-R1/O-R2 B1-to-B2; B0 is explicitly INCONCLUSIVE, not replaced by B1. Required guide: [N1.12](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n112--nghiệm-thu-reactive-không-rút-về-hybrid-nên-không-nhanh-được).**
 
 - Run unmodified object, numeric every-bar, sparse, many-resting-order,
   high-churn, long event history, minimal and full requested audit fixtures.
@@ -19888,8 +19888,44 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
   Discovery may classify existing work verified; no speculation labeled fixed.
 - Rollback: revert the coherent performance patch or use the prior certified
   runtime under identical economics. Do not switch account/timing policy.
-- Completion record: pending approval and measured implementation; no tests or
-  gains from this new phase are claimed by this planning commit.
+#### NEXT-01 Completion Record
+
+- **Source/fix ledger:** `3de4251` remains the prior full-audit mitigation;
+  `0ee88f5` compiles callback/sparse plans and reuses trace columns;
+  `f66351d` replaces the global timestamp attribute hook with a timestamp-only
+  descriptor; `bbd21ef` removes the context kwargs-factory allocation;
+  `fe7ebfd` adds the evidence-only paired-timing/materialization gate. The
+  public route is documented in
+  [NEXT-01 reactive runtime closure](../docs/performance/next01_reactive_public_runtime.md).
+- **O-R1 MET:** 100 paired, fresh-cache-cold complete-audit 100k every-bar
+  compatibility runs, B2/B1 median `0.7079`, bootstrap CI95
+  `[0.6848, 0.7176]`, observed p95 `0.6933` against `1.05`; exact financial,
+  trace, replay, and ledger equality. See
+  [`quantbt-next01-final-everybar-100.pairs.json`](../benchmarks/native_event/results/quantbt-next01-final-everybar-100.pairs.json).
+- **O-R2 MET:** 100 paired, fresh-cache-cold declared-sparse complete-audit
+  runs, B2/B1 median `0.4473`, CI95 `[0.4411, 0.4622]`, observed p95 `0.4773`;
+  same exact equality. See
+  [`quantbt-next01-final-sparse-100.pairs.json`](../benchmarks/native_event/results/quantbt-next01-final-sparse-100.pairs.json).
+- **Lifecycle regression:** three final-candidate paired samples each for
+  high-churn, parent/OCO, and GTD all retain exact parity; this is smoke proof,
+  not a tail claim. See
+  [`quantbt-next01-final-lifecycle-3.json`](../benchmarks/native_event/results/quantbt-next01-final-lifecycle-3.json).
+- **Correctness gates:** focused affected corpus `260 passed in 238.07s`; full
+  source suite excluding external real-data modules `1310 passed, 25 skipped in
+  346.27s`. The unfiltered suite is blocked at collection only because the
+  optional `tests/test_real.py` imports unavailable `pyarrow`; no unit/domain
+  failure was hidden. Source mirror, generated PERF-01 traceability, doc-link,
+  and whitespace gates passed.
+- **B0 disposition:** `INCONCLUSIVE` locally because no separately pinned,
+  installed historical core/native artifact with the same corrected output
+  contract was available. This is an evidence limitation for later product
+  qualification, not a fallback or in-scope execution correctness debt.
+- **No introduced in-scope correctness, ownership, audit, or public-wiring
+  blocker remains.** Generic Python callback decision authority remains Python
+  by design; generic fresh WFO/reactive-WFO throughput remains NEXT-02 scope.
+- **Rollback:** revert `0ee88f5`, `f66351d`, and `bbd21ef` as a coherent runtime
+  patch, retaining the same event/accounting contract. Do not compare by
+  changing timing, fee, funding, or audit retention.
 
 <a id="next-02"></a>
 

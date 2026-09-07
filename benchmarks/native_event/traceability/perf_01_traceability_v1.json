@@ -556,7 +556,7 @@
         {
           "exists": true,
           "path": "src/quantbt/backends/native_event.py",
-          "sha256": "bb7951d375bf11a05b84c75a2818fdfbc8e80f5376be2c26dfcc6a01ab027428"
+          "sha256": "4215f18916c9dc9210be0944037307cf71c1e20ad0a0d5618932103d3362921d"
         },
         {
           "exists": true,

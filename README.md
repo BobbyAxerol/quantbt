@@ -403,6 +403,19 @@ RSS**. They still exceed the actual `v1.1.0` tag's **3.701 / 4.296 s**; this is
 not a claim that every callback is faster than the old release. See the
 [matched audit regression report](docs/performance/generic_callback_audit_regression.md).
 
+NEXT-01 adds a separate clean-source, paired B1-to-B2 closure for the same
+public complete-audit compatibility route. On 100 independent 100k-bar pairs,
+the ordinary every-bar callback fell from **6.075 s** (**16,461 bars/s**) to
+**4.233 s** (**23,625 bars/s**): median paired ratio **0.7079**, bootstrap CI95
+`[0.6848, 0.7176]`, and observed p95 ratio **0.6933**. A declared sparse
+compatibility callback fell from **5.477 s** (**18,259 bars/s**) to **2.430 s**
+(**41,145 bars/s**): median paired ratio **0.4473** and CI95
+`[0.4411, 0.4622]`. Both retain the public full-audit result and exact
+accounting/trace parity; isolated peak RSS stays effectively flat around
+**305 MiB**. These are current source-tree B1-to-B2 measurements, not a
+published-release comparison, a generic WFO claim, or a Rust decision-callback
+claim. Read the [NEXT-01 evidence](docs/performance/next01_reactive_public_runtime.md).
+
 Phase 77.3 records current-candidate reactive closure separately from the
 released table above. On its matched 10,000-bar prepared scalar fixture, R1,
 R2, and R3 score-only runs measured `20.077 ms`, `13.588 ms`, and `20.949 ms`
