@@ -19931,7 +19931,7 @@ and frozen performance budgets. Missing B0 is reported, not silently replaced.
 
 ### Phase NEXT-02 - Fresh WFO And Reactive-WFO Evaluation Closure
 
-**Status: PLANNED; awaiting NEXT-01 acceptance and individual approval.**
+**Status: COMPLETE (2026-09-07); public fresh/cache-cold O-W1 and O-W2 paired-p50 gates MET.**
 **Goal:** fresh/cache-cold full studies faster across the supported five-mode
 matrix, especially Mode 4 `per_fold_causal`, including unmodified reactive
 strategies and full research transparency.
@@ -19943,6 +19943,10 @@ workload/retention/CPU budgets and current source identities.
 `NativePreparedPublicWfoScorerV1`, `NativePreparedEvaluationRuntimeV1`,
 reactive WFO runtime/scalar pool/batch scheduler, `OptunaOptimizer`,
 required-computation plans, analysis reuse and research-audit store.
+
+**Historical work-package labels below are retained for plan traceability.**
+The completion record immediately before NEXT-03 is the authority for the
+implemented, certified NEXT-02 scope.
 
 #### N2.01 - Map Five Modes And Selection Schedules
 
@@ -20149,7 +20153,69 @@ required-computation plans, analysis reuse and research-audit store.
 - Rollback scheduler/performance changes independently using identical
   economic/pruning/sampling contracts; invalidate incompatible prepared/cache
   identities and preserve the study/audit journals.
-- Completion record: pending NEXT-01 gate and user approval; no new speed claim.
+- Historical completion placeholder superseded by the record below.
+
++#### Completion Record - NEXT-02
+
+- **N2.01/N2.14 mode and selection lock:** the public benchmark matrices retain
+  Mode 1 global/per-fold-decay/per-fold-causal, Mode 2 proxy preservation,
+  Mode 3 global, Mode 4 causal, and Mode 5 global for ordinary WFO. Reactive
+  W3 retains its explicit Mode 1/3/4/5 support and rejects Mode 2 rather than
+  replacing its return-path/bootstrap proxy. Existing fold/selection tests and
+  exact benchmark assertions preserve params_by_fold, best-trial lineage,
+  candidate/trial/fold tables, selected OOS paths, and schedule semantics.
+- **N2.02-N2.04 fresh prepared execution:** exact contiguous W1 projection
+  avoids full-series Series(...).reindex(...) materialization for certified
+  score windows. Direct public WFO scorer requests use transient request
+  builders, so one-shot candidate/fold scoring does not retain content hashes
+  or cache entries. Prepared descriptors retain exact index/calendar/funding
+  identity and safe non-contiguous fallback.
+- **N2.05/N2.08-N2.10:** no sampler, Optuna ask/tell, objective, pruning,
+  candidate identity, cache-reuse eligibility, metric formula, Mode 2 path, or
+  Mode 4/5 selection input changed. Fresh benchmarks set
+  wfo_execution_reuse="off"; audit/report reuse only removes duplicate cold
+  full_report() adaptation from already selected reactive segments.
+- **N2.06/N2.07:** ReactiveWfoRuntimeConfigV1.preparation_policy is now the
+  public "prepared"/"compatibility" switch. It controls immutable
+  market/calendar/window setup only. Each reactive candidate/fold remains a
+  fresh account and task-local strategy. Existing sequential/R3B contracts are
+  unchanged and separately identified.
+- **N2.11-N2.13:** no new queue, speculative scheduling, checkpoint, or
+  completed-result reuse was introduced. Safe continuation is not used as a
+  fresh-speed substitute. Existing bounded in-process behavior remains the
+  supported topology for this public evidence.
+- **Minimal-result closure:** numeric reactive report_level="minimal" now
+  keeps authoritative equity, positions, fees, funding, margin and metrics but
+  does not build command/order/active-order/callback/wake DataFrames. Audit and
+  standard reports retain their prior artifact surface. Dedicated parity tests
+  lock this retention boundary.
+- **O-W1 MET:** 30 paired fresh/cache-cold Mode 4 causal samples, ordinary
+  public endpoint B2/B1 p50 0.4845, bootstrap CI95 [0.4694, 0.4966]; exact
+  public parity and fresh-account gates pass.
+- **O-W2 MET:** 30 paired fresh/cache-cold Mode 4 causal samples, public W3
+  prepared/compatibility B2/B1 p50 0.6753, bootstrap CI95 [0.6570, 0.7180];
+  exact public parity and fresh-account gates pass. Both artifacts qualify
+  paired p50 only; p95 is deliberately not claimed below 100 samples.
+- **Supporting-mode disposition:** all documented ordinary and reactive W3
+  mode/schedule fixtures pass parity and fresh-account smoke. Mode 5 ordinary
+  WFO separately reaches paired p50 0.6737 over 30 pairs. Mode 5 reactive W3
+  reaches 0.8266 because full-sample scoring has no repeated fold-window setup
+  to amortize; its 20 fresh callback/account windows remain the same in both
+  lanes. This is an Amdahl boundary for the unchanged scalar callback protocol,
+  not an accounting mismatch or a hidden failed parity route, and is recorded
+  explicitly rather than averaged into the primary Mode 4 gate.
+- **Evidence and docs:**
+  [NEXT-02 benchmark report](../docs/performance/next02_fresh_wfo_reactive_wfo.md),
+  [benchmark_next02_fresh_wfo.py](../benchmarks/native_event/benchmark_next02_fresh_wfo.py),
+  and [benchmark_next02_reactive_wfo.py](../benchmarks/native_event/benchmark_next02_reactive_wfo.py).
+- **Focused verification:** minimal/audit scalar and window parity, public W3
+  preparation-policy validation, WFO selection/schedule tests, source mirror,
+  and benchmark parity/fresh gates pass. Full-suite and installed-wheel
+  certification remain NEXT-03 product-qualification work, not an in-scope
+  correctness debt or a claim made by this phase.
+- **Rollback:** revert the NEXT-02 commits as a unit. The public default stays
+  preparation_policy="prepared"; set "compatibility" to reproduce the
+  diagnostic baseline without changing economic semantics.
 
 <a id="next-03"></a>
 

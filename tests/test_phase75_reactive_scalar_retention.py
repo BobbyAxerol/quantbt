@@ -107,7 +107,13 @@ class _Liquidating:
             out.market(0, OrderSide.BUY, 500.0)
 
 
-def _endpoint(*, runtime: str, frame: pd.DataFrame, gil_policy: str = "held_for_session"):
+def _endpoint(
+    *,
+    runtime: str,
+    frame: pd.DataFrame,
+    gil_policy: str = "held_for_session",
+    report_level: str = "audit",
+):
     return QuantBTEndpoint.native_event_strategy(
         initial_capital=20_000.0,
         leverage=3.0,
@@ -118,7 +124,7 @@ def _endpoint(*, runtime: str, frame: pd.DataFrame, gil_policy: str = "held_for_
         qty_step=0.25,
         min_qty=0.5,
         min_notional=25.0,
-        report_level="audit",
+        report_level=report_level,
         native_backend="rust",
         reactive_kernel_mode="single_pass",
         reactive_runtime=runtime,
@@ -215,6 +221,45 @@ def test_phase75_scalar_short_tape_uses_the_python_annualization_contract():
         frame=_frame(bars=12),
     )
     _assert_metrics_equal(scalar, audit)
+
+
+def test_phase75_minimal_window_keeps_accounting_without_python_detail_reports():
+    """Minimal WFO windows retain economics but do not build cold audit frames."""
+
+    frame = _frame()
+    audit_prepared = _endpoint(runtime="numeric_every_bar_v1", frame=frame).prepare_native_event_strategy(
+        data=frame,
+        symbols=["BTC"],
+    )
+    minimal_prepared = _endpoint(
+        runtime="numeric_every_bar_v1",
+        frame=frame,
+        report_level="minimal",
+    ).prepare_native_event_strategy(data=frame, symbols=["BTC"])
+
+    audit = audit_prepared.run_window(_EveryBar(), start_bar=8, end_bar=72)
+    minimal = minimal_prepared.run_window(_EveryBar(), start_bar=8, end_bar=72)
+
+    np.testing.assert_allclose(minimal.equity, audit.equity, rtol=0.0, atol=1e-10)
+    np.testing.assert_allclose(minimal.positions, audit.positions, rtol=0.0, atol=1e-10)
+    np.testing.assert_allclose(minimal.fees, audit.fees, rtol=0.0, atol=1e-10)
+    np.testing.assert_allclose(minimal.funding, audit.funding, rtol=0.0, atol=1e-10)
+    _assert_metrics_equal(
+        minimal_prepared.score(
+            _EveryBar(),
+            start_bar=8,
+            end_bar=72,
+            score_requirements=NativeEventScoreRequirements.scalar_score_contract(),
+        ),
+        audit,
+    )
+
+    assert minimal.metadata["command_report"].empty
+    assert minimal.metadata["order_events"].empty
+    assert minimal.metadata["active_orders"].empty
+    observability = minimal.metadata["reactive_numeric_observability"]
+    assert observability["strategy_callback_trace"].empty
+    assert observability["wake_trace"].empty
 
 
 def test_phase75_scalar_gil_policies_preserve_metrics_and_keep_hot_state_bounded():

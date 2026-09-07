@@ -368,6 +368,38 @@ def _median_snapshot(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _paired_ratio_summary(
+    baseline: Sequence[Mapping[str, Any]],
+    observed: Sequence[Mapping[str, Any]],
+    *,
+    seed: int,
+) -> dict[str, Any]:
+    """Summarize paired ratios without claiming unsupported tail evidence."""
+
+    if len(baseline) != len(observed) or not baseline:
+        raise ValueError("paired timing rows must be non-empty and have equal length")
+    values = np.asarray(
+        [float(right["seconds"]) / float(left["seconds"]) for left, right in zip(baseline, observed)],
+        dtype=np.float64,
+    )
+    if not np.isfinite(values).all() or np.any(values <= 0.0):
+        raise ValueError("paired timing ratios must be finite and positive")
+    # This is a deterministic non-parametric bootstrap for the median only.
+    # A p95 claim remains unavailable until the guide's 100-pair requirement.
+    generator = np.random.default_rng(int(seed))
+    draws = generator.integers(0, len(values), size=(4_000, len(values)))
+    medians = np.median(values[draws], axis=1)
+    return {
+        "paired_samples": int(len(values)),
+        "ratio_p50": float(np.median(values)),
+        "ratio_ci95": [float(np.quantile(medians, 0.025)), float(np.quantile(medians, 0.975))],
+        "p95_status": "not_claimed_requires_100_paired_samples",
+        "qualification": (
+            "paired_p50_qualified" if len(values) >= 30 else "diagnostic_only_requires_30_paired_samples"
+        ),
+    }
+
+
 def _measure_mode(data: pd.DataFrame, *, spec: _ModeSpec, profile: Mapping[str, Any]) -> dict[str, Any]:
     lanes: dict[str, tuple[str, bool]] = {
         "w0_endpoint": ("off", False),
@@ -417,6 +449,15 @@ def _measure_mode(data: pd.DataFrame, *, spec: _ModeSpec, profile: Mapping[str, 
         row["ratio_to_w0_endpoint"] = float(row["median_seconds"]) / baseline
         row["speedup_vs_w0_endpoint_x"] = baseline / float(row["median_seconds"])
     native_ratio = rows.get("w0_native_prepared_score", {}).get("ratio_to_w0_endpoint")
+    native_timing = (
+        _paired_ratio_summary(
+            samples["w0_endpoint"],
+            samples["w0_native_prepared_score"],
+            seed=731 + len(spec.mode) + len(spec.schedule),
+        )
+        if "w0_native_prepared_score" in samples
+        else None
+    )
     return {
         "mode": spec.mode,
         "optimization_schedule": spec.schedule,
@@ -425,6 +466,7 @@ def _measure_mode(data: pd.DataFrame, *, spec: _ModeSpec, profile: Mapping[str, 
         "mode_2_contract": "proxy_path_preserved" if spec.mode == "mode_2_sbb" else None,
         "rows": rows,
         "native_w0_ratio": native_ratio,
+        "native_w0_timing": native_timing,
         "fresh_gate": all(
             row["fresh_gate"]["all_cache_hits_zero"]
             and row["fresh_gate"]["all_reused_prefix_bars_zero"]
@@ -477,10 +519,14 @@ def run(
         "profile": {"id": profile, **settings},
         "rows": rows,
         "outcomes": {
-            "o_w1_native_prepared_w0_ratio_p50": [row["native_w0_ratio"] for row in native_rows],
+            "o_w1_native_prepared_w0": [row["native_w0_timing"] for row in native_rows],
             "o_w1_target_ratio": 0.70,
             "sample_count": int(settings["repeats"]),
-            "statistical_qualification": "qualified" if int(settings["repeats"]) >= 30 else "diagnostic_only",
+            "statistical_qualification": (
+                "paired_p50_qualified_no_p95"
+                if int(settings["repeats"]) >= 30
+                else "diagnostic_only_requires_30_paired_samples"
+            ),
             "mode_2_scalar_rust": "not_applicable_proxy_path_preserved",
             "all_fresh_gates_passed": all(bool(row["fresh_gate"]) for row in rows),
             "all_public_parity_passed": all(bool(row["parity"]) for row in rows),
@@ -510,7 +556,7 @@ def _markdown(payload: Mapping[str, Any]) -> str:
         "`w0_native_prepared_score` changes only the compatible fresh-account scorer; `w1_*` is a separate opt-in",
         "strategy-preparation protocol. Mode 2 retains its path/bootstrap proxy and has no scalar Rust row.",
         "",
-        "| Mode | Schedule | W0 endpoint | W0 native score | Native/W0 ratio | W1 native score |",
+        "| Mode | Schedule | W0 endpoint | W0 native score | Native/W0 p50 [CI95] | W1 native score |",
         "|---|---|---:|---:|---:|---:|",
     ]
     for row in payload["rows"]:
@@ -518,13 +564,18 @@ def _markdown(payload: Mapping[str, Any]) -> str:
         baseline = float(lanes["w0_endpoint"]["median_seconds"])
         native = lanes.get("w0_native_prepared_score")
         w1_native = lanes.get("w1_native_prepared_score")
+        timing = row.get("native_w0_timing")
+        ratio = "N/A"
+        if isinstance(timing, Mapping):
+            ci = timing["ratio_ci95"]
+            ratio = f"{float(timing['ratio_p50']):.3f} [{float(ci[0]):.3f}, {float(ci[1]):.3f}]"
         lines.append(
             "| `{mode}` | `{schedule}` | {base:.4f} s | {native_seconds} | {ratio} | {w1_seconds} |".format(
                 mode=row["mode"],
                 schedule=row["optimization_schedule"],
                 base=baseline,
                 native_seconds=(f"{float(native['median_seconds']):.4f} s" if native else "N/A (proxy)"),
-                ratio=(f"{float(native['ratio_to_w0_endpoint']):.3f}" if native else "N/A"),
+                ratio=ratio,
                 w1_seconds=(f"{float(w1_native['median_seconds']):.4f} s" if w1_native else "N/A (proxy)"),
             )
         )

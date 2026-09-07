@@ -18,7 +18,7 @@ from quantbt import (
     StrategyContextRequirements,
     WakePlanV1,
 )
-from quantbt.backends.reactive_wfo import ReactivePreparedWfoRuntimeV1
+from quantbt.backends import ReactiveWfoRuntimeConfigV1
 from quantbt.strategies import STRICT_CAUSAL_CACHE_CONTRACT_V1, ReactiveWfoTaskV1
 from quantbt.walkforward import WalkForwardConfig
 
@@ -173,13 +173,14 @@ def _run(
     prepared: bool,
 ):
     endpoint = _endpoint(frame)
-    runtime = ReactivePreparedWfoRuntimeV1(
-        endpoint=endpoint,
+    runtime = endpoint.prepare_reactive_walk_forward(
         data=frame,
         strategy_factory=_Factory(),
         walkforward_config=_config(mode=mode, schedule=schedule),
         symbols=["BTC"],
-        _use_prepared_wfo_preparation=prepared,
+        runtime_config=ReactiveWfoRuntimeConfigV1(
+            preparation_policy="prepared" if prepared else "compatibility",
+        ),
     )
     return runtime.backtest(param_ranges={"direction": [-1.0, 1.0]})
 
@@ -227,15 +228,37 @@ def test_perf09_reactive_wfo_preparation_preserves_mode_and_schedule_results(mod
     _assert_segmented_parity(optimized, baseline)
     prepared_meta = optimized.metadata["wfo_preparation"]
     assert prepared_meta["enabled"] is True
+    assert prepared_meta["policy"] == "prepared"
+    assert optimized.metadata["runtime"]["preparation_policy"] == "prepared"
     assert prepared_meta["window_registry"]["window_lookup_hits"] > 0
     adapter_meta = optimized.metadata["prepared_strategy"]
     assert adapter_meta["prepared_task_window_hits"] > 0
     baseline_adapter = baseline.metadata["prepared_strategy"]
+    baseline_meta = baseline.metadata["wfo_preparation"]
+    assert baseline_meta["enabled"] is False
+    assert baseline_meta["policy"] == "compatibility"
+    assert baseline.metadata["runtime"]["preparation_policy"] == "compatibility"
     assert baseline_adapter["prepared_task_window_fallbacks"] > 0
     if mode == "mode_4_is_only_robust":
         assert prepared_meta["window_registry"]["shard_lookup_hits"] > 0
     if mode == "mode_1_decay" and schedule == "per_fold_causal":
         assert prepared_meta["inner_fold_lookup_hits"] > 0
+
+    fold_table = optimized.fold_table.set_index("fold_id")
+    for segment in optimized.fold_results:
+        report = segment.result.full_report()
+        row = fold_table.loc[int(segment.fold_id)]
+        np.testing.assert_allclose(row["oos_final_equity"], report["final_equity"], rtol=0.0, atol=1.0e-10)
+        np.testing.assert_allclose(row["oos_sharpe"], report["sharpe"], rtol=0.0, atol=1.0e-10)
+        np.testing.assert_allclose(
+            row["oos_max_drawdown_pct"], report["max_drawdown_pct"], rtol=0.0, atol=1.0e-10
+        )
+        assert int(row["oos_num_trades"]) == int(report["num_trades"])
+
+
+def test_perf09_reactive_wfo_preparation_policy_is_validated():
+    with pytest.raises(ValueError, match="preparation_policy"):
+        ReactiveWfoRuntimeConfigV1(preparation_policy="unknown")
 
 
 class _MutatingBatchStrategy:

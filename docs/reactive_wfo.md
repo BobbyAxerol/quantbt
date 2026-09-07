@@ -99,6 +99,7 @@ runtime = endpoint.prepare_reactive_walk_forward(
     walkforward_config=config,
     runtime_config=ReactiveWfoRuntimeConfigV1(
         runtime_budget=RuntimeBudgetV1(max_wall_time_ms=60_000),
+        preparation_policy="prepared",  # Default: reuse immutable market/fold descriptors.
     ),
     symbols=["BTCUSDT"],
 )
@@ -168,6 +169,21 @@ result.fold_table                # one reset-flat OOS account per fold
 
 The selected cold OOS audit reruns each fold through the prepared Rust result route. Its equity, fees, and terminal account state are checked against the corresponding scalar score window. The optimization path deliberately retains no account paths, fill ledger, or callback trace by default.
 
+## Preparation Policy
+
+`ReactiveWfoRuntimeConfigV1.preparation_policy` controls only run-local,
+immutable market/calendar/fold descriptor preparation:
+
+| Policy | Behavior |
+| --- | --- |
+| `"prepared"` (default) | Prepare the finite market tape, exact fold windows, IS shards, and scoring calendar once for the public W3 run. Every candidate/fold still receives a fresh Rust account and task-local strategy. |
+| `"compatibility"` | Retain the same selection, callbacks, accounting, and reset-flat boundary while intentionally bypassing that preparation. This is useful as a diagnostic comparator. |
+
+Neither policy carries strategy state, account state, orders, RNG, or a
+completed trial between tasks. Resolved metadata is available through
+`result.metadata["runtime"]["preparation_policy"]` and
+`result.metadata["wfo_preparation"]`.
+
 ## Active Work Limits
 
 `ReactiveWfoRuntimeConfigV1(runtime_budget=RuntimeBudgetV1(...))` applies its
@@ -205,3 +221,5 @@ PYTHONPATH=src poetry run python \
 The artifact separates lightweight and Python-heavy strategies, sequential and R3B schedules, callback counts, candidate-fold bar visits, and process RSS/PSS where the COW worker is safe. It is not a claim that arbitrary callbacks, generic WFO, portfolio/package WFO, or `backend="auto"` are Rust-promoted.
 
 For signal WFO, see [Public prepared-native WFO scoring](native_prepared_wfo_public.md). For runtime semantics, see [Rust native-event full contract](native_event_rust_full_contract.md).
+For fresh-study WFO and Reactive-WFO benchmark evidence, see
+[NEXT-02 closure](performance/next02_fresh_wfo_reactive_wfo.md).

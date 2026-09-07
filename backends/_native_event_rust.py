@@ -3514,7 +3514,14 @@ class RustReactiveNumericCoRuntime:
         *,
         gil_policy: str = "held_for_session",
         runtime: str | None = None,
+        include_detail_reports: bool = True,
     ) -> tuple[RustFullAuditResult, Mapping[str, object]]:
+        """Run one prepared reactive tape.
+
+        ``include_detail_reports=False`` keeps the authoritative Rust account
+        paths and compact lifecycle data, but avoids constructing Python
+        DataFrames which are outside the ``minimal`` public artifact contract.
+        """
         selected_runtime = self.runtime if runtime is None else str(runtime)
         runner_method = {
             "numeric_every_bar_v1": "run",
@@ -3527,7 +3534,7 @@ class RustReactiveNumericCoRuntime:
             )
         output = getattr(self._core, runner_method)(strategy, gil_policy)
         payload = self._pad_terminal_paths(dict(output.consume()))
-        command_report = self._command_report(payload)
+        command_report = self._command_report(payload) if include_detail_reports else None
         audit = RustFullAuditResult.from_audit_payload(
             payload,
             n_bars=len(self.idx),
@@ -3596,24 +3603,32 @@ class RustReactiveNumericCoRuntime:
             "command_writer_python_objects": 0,
             "context_pandas_allocations": 0,
             "context_dataclass_allocations": 0,
-            "strategy_callback_trace": pd.DataFrame(
-                {
-                    "kind": self._value(payload, "callback_kind").astype(np.int64, copy=False),
-                    "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
-                    "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
-                    "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
-                    "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
-                }
+            "strategy_callback_trace": (
+                pd.DataFrame(
+                    {
+                        "kind": self._value(payload, "callback_kind").astype(np.int64, copy=False),
+                        "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
+                        "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
+                        "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
+                        "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
+                    }
+                )
+                if include_detail_reports
+                else pd.DataFrame()
             ),
-            "wake_trace": pd.DataFrame(
-                {
-                    "bar": wake_bar,
-                    "timestamp": [
-                        self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
-                        for bar in wake_bar
-                    ],
-                    "reason_mask": wake_reason_mask,
-                }
+            "wake_trace": (
+                pd.DataFrame(
+                    {
+                        "bar": wake_bar,
+                        "timestamp": [
+                            self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
+                            for bar in wake_bar
+                        ],
+                        "reason_mask": wake_reason_mask,
+                    }
+                )
+                if include_detail_reports
+                else pd.DataFrame()
             ),
         }
         fingerprint = getattr(strategy, "quantbt_state_fingerprint", None)
@@ -3628,6 +3643,7 @@ class RustReactiveNumericCoRuntime:
         end_bar: int,
         gil_policy: str = "held_for_session",
         runtime: str | None = None,
+        include_detail_reports: bool = True,
     ) -> tuple[RustFullAuditResult, Mapping[str, object]]:
         """Run a fresh account over one absolute prepared-market bar window.
 
@@ -3657,7 +3673,7 @@ class RustReactiveNumericCoRuntime:
         expected_bars = int(payload["bars_processed"])
         if not 0 < expected_bars <= end - start:
             raise NativeEventRustBackendError("reactive window result bars_processed is outside its requested range")
-        command_report = self._command_report(payload)
+        command_report = self._command_report(payload) if include_detail_reports else None
         audit = RustFullAuditResult.from_audit_payload(
             payload,
             n_bars=end - start,
@@ -3732,24 +3748,32 @@ class RustReactiveNumericCoRuntime:
             "command_writer_python_objects": 0,
             "context_pandas_allocations": 0,
             "context_dataclass_allocations": 0,
-            "strategy_callback_trace": pd.DataFrame(
-                {
-                    "kind": callback_kind,
-                    "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
-                    "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
-                    "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
-                    "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
-                }
+            "strategy_callback_trace": (
+                pd.DataFrame(
+                    {
+                        "kind": callback_kind,
+                        "bar": self._value(payload, "callback_bar").astype(np.int64, copy=False),
+                        "timestamp_ns": self._value(payload, "callback_timestamp_ns").astype(np.int64, copy=False),
+                        "equity": self._value(payload, "callback_equity").astype(np.float64, copy=False),
+                        "position_0": self._value(payload, "callback_position_0").astype(np.float64, copy=False),
+                    }
+                )
+                if include_detail_reports
+                else pd.DataFrame()
             ),
-            "wake_trace": pd.DataFrame(
-                {
-                    "bar": wake_bar,
-                    "timestamp": [
-                        self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
-                        for bar in wake_bar
-                    ],
-                    "reason_mask": wake_reason_mask,
-                }
+            "wake_trace": (
+                pd.DataFrame(
+                    {
+                        "bar": wake_bar,
+                        "timestamp": [
+                            self.idx[int(bar)] if 0 <= int(bar) < len(self.idx) else pd.NaT
+                            for bar in wake_bar
+                        ],
+                        "reason_mask": wake_reason_mask,
+                    }
+                )
+                if include_detail_reports
+                else pd.DataFrame()
             ),
         }
         fingerprint = getattr(strategy, "quantbt_state_fingerprint", None)

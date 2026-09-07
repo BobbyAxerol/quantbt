@@ -64,7 +64,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         walkforward_config: WalkForwardConfig,
         runtime_config: ReactiveWfoRuntimeConfigV1 | None = None,
         symbols: Sequence[str] | None = None,
-        _use_prepared_wfo_preparation: bool = True,
+        _use_prepared_wfo_preparation: bool | None = None,
     ) -> None:
         if not isinstance(data, pd.DataFrame):
             raise ReactiveWalkForwardUnsupported("public reactive WFO currently requires one canonical OHLCV DataFrame")
@@ -120,11 +120,20 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         self._last_scalar_session_metadata: dict[str, object] = {}
         self._active_candidate_scheduler: object | None = None
         self._candidate_batch_metadata: dict[str, object] = {}
-        self._use_prepared_wfo_preparation = bool(_use_prepared_wfo_preparation)
+        self._use_prepared_wfo_preparation = (
+            self.runtime_config.preparation_policy == "prepared"
+            if _use_prepared_wfo_preparation is None
+            else bool(_use_prepared_wfo_preparation)
+        )
         self._wfo_preparation: ReactiveWfoPreparationV1 | None = None
         self._last_wfo_preparation_metadata: dict[str, object] = {
             "schema": "quantbt-reactive-wfo-preparation-v1",
             "enabled": bool(self._use_prepared_wfo_preparation),
+            "policy": (
+                self.runtime_config.preparation_policy
+                if _use_prepared_wfo_preparation is None
+                else "private_compatibility_override"
+            ),
             "state": "not_started",
         }
         self._sampling_contract = "optuna_certified_sequential_v1"
@@ -455,11 +464,16 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     "worker_errors": tuple(self._worker_errors),
                     "candidate_batch": dict(self._candidate_batch_metadata),
                     "wfo_preparation": (
-                        {"enabled": True, **dict(self._wfo_preparation.metadata())}
+                        {
+                            "enabled": True,
+                            "policy": self.runtime_config.preparation_policy,
+                            **dict(self._wfo_preparation.metadata()),
+                        }
                         if self._wfo_preparation is not None
                         else {
                             "schema": "quantbt-reactive-wfo-preparation-v1",
                             "enabled": False,
+                            "policy": self.runtime_config.preparation_policy,
                             "state": "compatibility_baseline",
                         }
                     ),
@@ -533,6 +547,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             if self._wfo_preparation is not None:
                 self._last_wfo_preparation_metadata = {
                     "enabled": True,
+                    "policy": self.runtime_config.preparation_policy,
                     **dict(self._wfo_preparation.metadata()),
                 }
                 self._wfo_preparation = None
@@ -540,6 +555,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 self._last_wfo_preparation_metadata = {
                     "schema": "quantbt-reactive-wfo-preparation-v1",
                     "enabled": False,
+                    "policy": self.runtime_config.preparation_policy,
                     "state": "compatibility_baseline",
                 }
             if reactive_result is not None:
@@ -567,6 +583,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             "worker_mode_requested": self.runtime_config.worker_mode,
             "worker_mode_resolved": self.runtime_config.worker_mode,
             "optimizer_schedule": self.runtime_config.optimizer_schedule,
+            "preparation_policy": self.runtime_config.preparation_policy,
             "candidate_batch_size": int(self.runtime_config.candidate_batch_size),
             "max_inflight_tasks": int(self.runtime_config.max_inflight_tasks),
             "score_calls": int(self._score_calls),
@@ -593,6 +610,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             "wfo_preparation": (
                 {
                     "enabled": True,
+                    "policy": self.runtime_config.preparation_policy,
                     **dict(self._wfo_preparation.metadata()),
                 }
                 if self._wfo_preparation is not None

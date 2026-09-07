@@ -2261,7 +2261,12 @@ class NativeEventBackend:
             window_start = int(start_bar)
             window_end = len(idx) if end_bar is None else int(end_bar)
             if window_start == 0 and window_end == len(idx):
-                audit, payload = runner.run(strategy, gil_policy=gil_policy, runtime=runtime)
+                audit, payload = runner.run(
+                    strategy,
+                    gil_policy=gil_policy,
+                    runtime=runtime,
+                    include_detail_reports=bool(plan.materialize_python_objects),
+                )
             else:
                 audit, payload = runner.run_window(
                     strategy,
@@ -2269,6 +2274,7 @@ class NativeEventBackend:
                     end_bar=window_end,
                     gil_policy=gil_policy,
                     runtime=runtime,
+                    include_detail_reports=bool(plan.materialize_python_objects),
                 )
         except Exception as exc:
             callback = runner.last_callback_name or "reactive_numeric"
@@ -2292,8 +2298,12 @@ class NativeEventBackend:
             "command_writer_python_objects": int(runtime_metadata["command_writer_python_objects"]),
             "runtime": runtime,
         }
-        terminal_active = runner.terminal_active_orders(payload)
-        order_events = runner.order_events(payload, idx=idx)
+        if plan.materialize_python_objects:
+            terminal_active = runner.terminal_active_orders(payload)
+            order_events = runner.order_events(payload, idx=idx)
+        else:
+            terminal_active = pd.DataFrame()
+            order_events = pd.DataFrame()
         emitted_tape = runner.emitted_commands(payload) if plan.keep_command_tape else ()
         window_start = int(start_bar)
         window_end = len(idx) if end_bar is None else int(end_bar)

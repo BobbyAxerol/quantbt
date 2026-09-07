@@ -201,6 +201,17 @@ before Optuna's current reducer.
 
 ## Reproducible Evidence
 
+### NEXT-02 fresh-study closure
+
+The current source-tree closure measures the primary Mode 4
+`per_fold_causal` workload with fresh endpoints and `wfo_execution_reuse="off"`.
+The ordinary prepared-native route reached a paired B2/B1 p50 of `0.4845`
+over 30 samples, with exact selection and stitched-account parity. This is a
+same-contract public facade measurement, not a proxy-kernel claim. See
+[NEXT-02 Fresh WFO And Reactive-WFO Closure](performance/next02_fresh_wfo_reactive_wfo.md)
+for the environment, bootstrap interval, raw artifact, Mode 2 boundary, and
+the separately reset-flat reactive W3 comparison.
+
 After building the local native extension, run:
 
 ```bash

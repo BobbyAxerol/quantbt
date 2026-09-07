@@ -65,6 +65,7 @@ class ReactiveWfoRuntimeConfigV1:
     optimizer_schedule: str = "certified_sequential_v1"
     candidate_batch_size: int = 1
     max_inflight_tasks: int = 1
+    preparation_policy: str = "prepared"
     reference_best_objective: float | None = None
     max_quality_regret: float | None = None
     runtime_budget: RuntimeBudgetV1 = field(default_factory=RuntimeBudgetV1)
@@ -93,6 +94,9 @@ class ReactiveWfoRuntimeConfigV1:
                 "reactive WFO currently has one bounded native batch in flight; "
                 "max_inflight_tasks must be 1"
             )
+        preparation_policy = str(self.preparation_policy).lower().strip()
+        if preparation_policy not in {"prepared", "compatibility"}:
+            raise ValueError("reactive WFO preparation_policy must be 'prepared' or 'compatibility'")
         reference = self.reference_best_objective
         threshold = self.max_quality_regret
         if (reference is None) != (threshold is None):
@@ -106,6 +110,7 @@ class ReactiveWfoRuntimeConfigV1:
         object.__setattr__(self, "optimizer_schedule", schedule)
         object.__setattr__(self, "candidate_batch_size", int(self.candidate_batch_size))
         object.__setattr__(self, "max_inflight_tasks", int(self.max_inflight_tasks))
+        object.__setattr__(self, "preparation_policy", preparation_policy)
 
 
 @dataclass(frozen=True, slots=True)
@@ -570,6 +575,7 @@ def _resolve_candidate_matrix_ranges(
 def _score_row_from_result(result) -> dict[str, float]:
     report = result.full_report()
     return {
+        "final_equity": float(report["final_equity"]),
         "sharpe": float(report["sharpe"]),
         "turnover": float(result.metadata.get("total_turnover", 0.0)),
         "trade_count": float(report["num_trades"]),
@@ -594,7 +600,10 @@ def _fold_table_with_segments(folds: Sequence[WalkForwardFold], results: Sequenc
     rows = []
     for fold in folds:
         item = by_fold[int(fold.fold_id)]
-        report = item.result.full_report()
+        # ``run_cold_oos_segments`` already materialized this exact metric
+        # reducer when binding the retained OOS account to its score row.
+        # Reuse those scalars instead of scanning every equity path twice.
+        metrics = item.score_metrics
         rows.append(
             {
                 "fold_id": int(fold.fold_id),
@@ -604,10 +613,10 @@ def _fold_table_with_segments(folds: Sequence[WalkForwardFold], results: Sequenc
                 "test_end": fold.test_end,
                 "account_policy": "reset_flat",
                 "selected_params": dict(item.params),
-                "oos_final_equity": float(report["final_equity"]),
-                "oos_sharpe": float(report["sharpe"]),
-                "oos_max_drawdown_pct": float(report["max_drawdown_pct"]),
-                "oos_num_trades": int(report["num_trades"]),
+                "oos_final_equity": float(metrics["final_equity"]),
+                "oos_sharpe": float(metrics["sharpe"]),
+                "oos_max_drawdown_pct": float(metrics["max_drawdown_pct"]),
+                "oos_num_trades": int(metrics["trade_count"]),
                 "strategy_state_fingerprint": item.strategy_state_fingerprint,
             }
         )

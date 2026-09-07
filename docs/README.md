@@ -72,6 +72,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Run prepared static-IR candidate x fold scoring in a persistent Rust worker pool | [Native WFO Runtime V2](native_wfo_runtime.md) |
 | Inspect the shared typed Rust scheduler used by prepared candidate/fold/scenario work | [Shared prepared native evaluation](native_prepared_evaluation.md) |
 | Opt into public single-symbol prepared-native WFO scoring and inspect W0/W1/W2 metadata | [Public prepared-native WFO scoring](native_prepared_wfo_public.md) |
+| Reproduce fresh cache-cold ordinary and reactive WFO performance, parity, and policy boundaries | [NEXT-02 WFO closure](performance/next02_fresh_wfo_reactive_wfo.md) |
 | Inspect run-local exact WFO score reuse, its Optuna safety boundary, and five-mode evidence | [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md) |
 | Retain a bounded immutable WFO trial/selection ledger or selected-execution audit without changing optimizer behavior | [PERF-06 columnar research audit](performance/perf_06_research_audit.md) |
 | Review the clean-candidate combined performance, wheel, PGO, regression, route, and rollback handoff before Phase 78 | [PERF-07 performance closure](performance/perf_07_closure.md) |
