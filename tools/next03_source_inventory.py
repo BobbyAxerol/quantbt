@@ -179,6 +179,7 @@ def build_inventory(
     """Return an inventory without changing the source tree."""
 
     baseline_hashes = _baseline_hashes(retirement_baseline)
+    retirement_verified = retirement_baseline is not None and not validate_retirement_baseline(retirement_baseline)
     canonical_records: list[dict[str, Any]] = []
     mirror_present: list[str] = []
     mirror_drift: list[str] = []
@@ -214,6 +215,15 @@ def build_inventory(
                         "historical_root_sha256": baseline_hashes[relative.as_posix()],
                         "disposition": "retired_to_canonical",
                         "mirror_status": "retired",
+                    }
+                )
+            elif retirement_verified:
+                # The frozen ledger records files, not all future modules in
+                # their directories. New src-only modules need no root mirror.
+                record.update(
+                    {
+                        "disposition": "canonical_package_only",
+                        "mirror_status": "not_in_historical_mirror_scope",
                     }
                 )
             else:

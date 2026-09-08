@@ -20648,6 +20648,12 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 
 ### Follow-Up Evidence And Dispositions
 
+- Packaging regression found during final release shards: a new canonical
+  module under a formerly mirrored directory was labeled `absent_unproven`.
+  Correct the inventory using the validated frozen retirement ledger, not
+  directory membership alone. Test valid/absent retirement evidence and keep
+  root-mirror regrowth checks unchanged; no historical hashes are rewritten.
+
 - Statistical/report changes: 228 focused and integration tests passed in
   18.66 s, including old/new evaluators, WFO Phase 49/50 schedules, generic
   callback NEXT-01, reactive WFO NEXT-02, Rust target/portfolio/intrabar.

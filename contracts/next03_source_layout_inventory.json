@@ -1285,11 +1285,10 @@
     {
       "canonical_path": "src/quantbt/optimization/bootstrap.py",
       "consumer_proof": "tests/test_next03_source_inventory.py",
-      "disposition": "retirement_candidate",
-      "mirror_status": "absent_unproven",
+      "disposition": "canonical_package_only",
+      "mirror_status": "not_in_historical_mirror_scope",
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
-      "root_path": "optimization/bootstrap.py",
       "sha256": "c2607d3c064eaa00ae07d1883f0eb6b029c2787d08bdd221972ed15471a14b4d"
     },
     {
@@ -2331,7 +2330,7 @@
     {
       "path": "benchmarks/native_event/benchmark_followup_statistical_work.py",
       "role": "developer_benchmark_tooling",
-      "sha256": "d63d67cb3f9bca9f42137e93e191cecb07a8a5ae113867b92222e8fa79660ce3"
+      "sha256": "ca2ecccd698eddeedf9fef8a3f5e9a2bd24d3013030fa06424e64e0bacc7ed50"
     },
     {
       "path": "benchmarks/native_event/benchmark_generic_callback_audit.py",
