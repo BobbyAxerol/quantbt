@@ -12,6 +12,7 @@ htmlcov/
 
 # Python packaging and native build output
 dist/
+native-release-evidence/
 build/
 *.egg-info/
 *.egg

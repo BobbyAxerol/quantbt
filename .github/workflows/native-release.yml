@@ -125,6 +125,15 @@ jobs:
           MPLCONFIGDIR: /tmp
         run: |
           uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
+          # Evidence is written before the certificate captures candidate
+          # identity. Keep generated evidence ignored and make any future
+          # violation immediately diagnosable instead of surfacing later as a
+          # generic promotion-gate failure.
+          git status --short
+          test -z "$(git status --porcelain)" || {
+            echo "release candidate became dirty before benchmark certification" >&2
+            exit 1
+          }
           .venv/bin/python tools/certify_phase78_public_promotion.py \
             --output native-release-evidence/phase78-public-promotion.json
           .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8

@@ -281,6 +281,27 @@ but reset-flats each account. This is not automatic promotion of generic
 `basket()` / `arbitrage()`, and it does not claim L2, venue-native atomicity,
 cross-currency, or cross-exchange semantics.
 
+## Performance Evolution
+
+![QuantBT Performance Evolution](docs/assets/quantbt-performance-evolution.png)
+
+The chart is generated from committed raw benchmark artifacts, not a manually
+maintained marketing table. Its release timeline communicates capability scope;
+each timing comparison is limited to a matched fixture and declared parity
+contract. Do not compare bar heights across different rows as though they were
+one synthetic engine benchmark.
+
+Rebuild or audit the visual with:
+
+```bash
+python tools/generate_performance_evolution.py --check
+python tools/generate_performance_evolution.py
+```
+
+Read [Performance Evolution](docs/performance/release_evolution.md) for the
+source manifest and [Benchmarking Governance](docs/performance/benchmarking.md)
+for measurement methodology.
+
 ### Release Benchmark
 
 The table below retains committed warm-median evidence from the historical
