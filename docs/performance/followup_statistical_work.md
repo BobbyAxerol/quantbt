@@ -36,17 +36,38 @@ creates a new study; no completed candidate result is reused.
 
 | Work | Before | After | Interpretation |
 | --- | ---: | ---: | --- |
-| Stationary bootstrap: 2,000 observations x 200 replicates | 384.154 ms | 9.314 ms | Warm index construction plus unchanged Sharpe reduction |
-| Report objective: 2,000-hourly-bar account, five evaluations | 7.524 ms/evaluation | 1.978 ms/evaluation | Same required/display metrics and values |
-| Mode 2 global: 2,000 daily bars, four trials, 32 replicates | 1.185 s | 0.633 s | Fresh public study, same selected params/account |
-| Child-process peak RSS across these operations | 223.473 MiB | 224.211 MiB | No memory-reduction claim |
+| Stationary bootstrap: 2,000 observations x 200 replicates | 376.686 ms | 10.310 ms | Warm index construction plus unchanged Sharpe reduction |
+| Report objective: 2,000-hourly-bar account, five evaluations | 7.304 ms/evaluation | 2.104 ms/evaluation | Same required/display metrics and values |
+| Mode 2 global: 2,000 daily bars, four trials, 32 replicates | 1.147 s | 0.657 s | Fresh public study, same selected params/account |
+| Child-process peak RSS across these operations | 223.613 MiB | 224.137 MiB | No memory-reduction claim |
 
-Ratios of the displayed medians are approximately 41.2x, 3.8x and 1.87x,
+Ratios of the displayed medians are approximately 36.5x, 3.5x and 1.74x,
 respectively. The first number is **not** whole-WFO throughput. Seven pairs are
 local performance evidence, not a general guarantee or a multi-platform release
 certificate. Compilation/cache loading occurs before warm measurements; each
 child's first bootstrap call is retained separately in the raw artifact. Input
 size, sample count, requested reports and account calculations are identical.
+
+The final measurements use clean source `0e8776d` and the unchanged certified
+native extension `dbe336b9...de7de` on both lanes. Full source/build identities
+are in the [raw paired artifact](../../benchmarks/native_event/results/followup_statistical_work.json).
+The default report-objective fixture reduced full-report invocations from five
+to one; this count, not a dropped metric or a result cache, explains the gain.
+
+## Callback And Native Review
+
+Existing generic callback optimizations were retained and regression-tested,
+not counted as new work or speedups. Python strategy decisions remain Python
+unless the strategy uses a supported native/numeric protocol.
+
+A rebuilt Rust wheel experiment hoisted the immutable risk-free division and
+inlined `OnlineMetricReducerV2.observe`. Seven alternating wheel pairs on the
+20,000-bar direct-target fixture passed accounting parity but measured prepared
+score medians of 1.836 ms before and 2.014 ms after. The experiment was rejected;
+both native source and the original installed wheel were restored. It is not
+part of the delivered package. The [wheel experiment artifact](../../benchmarks/native_event/results/followup_native_metrics_experiment.json)
+records wheel hashes and native module identities. Direct-target Rust score
+still trails the narrower Numba kernel; no claim of complete optimization is made.
 
 ## Verification And Reproduction
 

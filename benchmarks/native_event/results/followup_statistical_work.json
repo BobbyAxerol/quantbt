@@ -11,10 +11,10 @@
     "bootstrap_samples": 200,
     "threads": 1
   },
-  "candidate_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+  "candidate_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
   "candidate_sources": {
     "src/quantbt/walkforward.py": "b3da15189cb87d5e6f0080123aeb7f245b4991d61354112049030335c8f3b256",
-    "src/quantbt/optimization/bootstrap.py": "d6ed80e6f6799eac960b91c96c7e87dfb39bb9a814e5a87d287fa96d2a59481d",
+    "src/quantbt/optimization/bootstrap.py": "c2607d3c064eaa00ae07d1883f0eb6b029c2787d08bdd221972ed15471a14b4d",
     "src/quantbt/optimization/objectives.py": "b7a661633d5bc77f7e2eef66e1b5f7df1f1439d83c3888de013c39c6859221a8"
   },
   "parity": "exact",
@@ -22,258 +22,804 @@
     {
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.37434652633965015,
-        "bootstrap_first_call_seconds": 0.4134100815281272,
+        "bootstrap_seconds": 0.4268425879999995,
+        "bootstrap_first_call_seconds": 0.43085580971091986,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.007417193986475468,
+        "report_objective_seconds": 0.007293840125203133,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.1846347618848085,
+        "mode2_fresh_study_seconds": 1.1387107260525227,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.703125,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.3671875,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.009764088317751884,
-        "bootstrap_first_call_seconds": 0.46184297278523445,
+        "bootstrap_seconds": 0.010309633798897266,
+        "bootstrap_first_call_seconds": 0.4556579599156976,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.002041584625840187,
+        "report_objective_seconds": 0.0019581841304898264,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6854983298107982,
+        "mode2_fresh_study_seconds": 0.8541833534836769,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.921875,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.03515625,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.0096635352820158,
-        "bootstrap_first_call_seconds": 0.4279878521338105,
+        "bootstrap_seconds": 0.00926126167178154,
+        "bootstrap_first_call_seconds": 0.4672087952494621,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.002135298401117325,
+        "report_objective_seconds": 0.002117614261806011,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.723182063549757,
+        "mode2_fresh_study_seconds": 0.7440775539726019,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 224.28515625,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.13671875,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.39225036930292845,
-        "bootstrap_first_call_seconds": 0.46394515596330166,
+        "bootstrap_seconds": 0.35727511532604694,
+        "bootstrap_first_call_seconds": 0.39787924755364656,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.008418109454214572,
+        "report_objective_seconds": 0.007091654837131501,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.4161124266684055,
+        "mode2_fresh_study_seconds": 1.146967200562358,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.40625,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.61328125,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.387076654471457,
-        "bootstrap_first_call_seconds": 0.44498965702950954,
+        "bootstrap_seconds": 0.42525861598551273,
+        "bootstrap_first_call_seconds": 0.5115337586030364,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.007966329902410507,
+        "report_objective_seconds": 0.008655322715640068,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.2620653919875622,
+        "mode2_fresh_study_seconds": 1.3901577265933156,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.96484375,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.515625,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.00901840440928936,
-        "bootstrap_first_call_seconds": 0.41484901402145624,
+        "bootstrap_seconds": 0.009502455592155457,
+        "bootstrap_first_call_seconds": 0.47573907021433115,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0020024247467517855,
+        "report_objective_seconds": 0.0021043075248599052,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6096004014834762,
+        "mode2_fresh_study_seconds": 0.654441243968904,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 224.01171875,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 225.02734375,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.009314100258052349,
-        "bootstrap_first_call_seconds": 0.4345651473850012,
+        "bootstrap_seconds": 0.01187205035239458,
+        "bootstrap_first_call_seconds": 0.42588450852781534,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0018636595457792282,
+        "report_objective_seconds": 0.0023119961842894554,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6023061275482178,
+        "mode2_fresh_study_seconds": 0.6258040927350521,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 224.2109375,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.09765625,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.3841542024165392,
-        "bootstrap_first_call_seconds": 0.4270317470654845,
+        "bootstrap_seconds": 0.3725436059758067,
+        "bootstrap_first_call_seconds": 0.41755103692412376,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0075238443911075596,
+        "report_objective_seconds": 0.007303822226822377,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.1063144048675895,
+        "mode2_fresh_study_seconds": 1.2062276117503643,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.60546875,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.109375,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.43362213764339685,
-        "bootstrap_first_call_seconds": 0.45224728900939226,
+        "bootstrap_seconds": 0.3524653483182192,
+        "bootstrap_first_call_seconds": 0.4244811963289976,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.007437851093709469,
+        "report_objective_seconds": 0.007040273025631904,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.2627839958295226,
+        "mode2_fresh_study_seconds": 1.1244500614702702,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.47265625,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.57421875,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.009703334420919418,
-        "bootstrap_first_call_seconds": 0.4335625497624278,
+        "bootstrap_seconds": 0.023284848779439926,
+        "bootstrap_first_call_seconds": 0.7710923599079251,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0019420616328716279,
+        "report_objective_seconds": 0.002696532756090164,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6374501846730709,
+        "mode2_fresh_study_seconds": 0.8707358725368977,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.8984375,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 224.1640625,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.009124012663960457,
-        "bootstrap_first_call_seconds": 0.42379092890769243,
+        "bootstrap_seconds": 0.010524655692279339,
+        "bootstrap_first_call_seconds": 0.49183571618050337,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.001978215388953686,
+        "report_objective_seconds": 0.0019018808379769325,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6326805576682091,
+        "mode2_fresh_study_seconds": 0.6573896054178476,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 224.8515625,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.4921875,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.37154814787209034,
-        "bootstrap_first_call_seconds": 0.4209477435797453,
+        "bootstrap_seconds": 0.5002532349899411,
+        "bootstrap_first_call_seconds": 0.6129576144739985,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0076942117884755135,
+        "report_objective_seconds": 0.0075407933443784715,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.1302482094615698,
+        "mode2_fresh_study_seconds": 1.2518667038530111,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.18359375,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.3984375,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     },
     {
       "before": {
         "lane": "before",
-        "bootstrap_seconds": 0.3808337049558759,
-        "bootstrap_first_call_seconds": 0.49687230307608843,
+        "bootstrap_seconds": 0.3766863429918885,
+        "bootstrap_first_call_seconds": 0.44563259836286306,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.00747132059186697,
+        "report_objective_seconds": 0.0073531422764062885,
         "report_calls_per_objective": 5.0,
-        "mode2_fresh_study_seconds": 1.1419607400894165,
+        "mode2_fresh_study_seconds": 1.1151038398966193,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 223.26171875,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 223.86328125,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       },
       "after": {
         "lane": "after",
-        "bootstrap_seconds": 0.009012226946651936,
-        "bootstrap_first_call_seconds": 0.4281463325023651,
+        "bootstrap_seconds": 0.009469288401305676,
+        "bootstrap_first_call_seconds": 0.4578840462490916,
         "bootstrap_sha256": "40be8ba9853bb8009362254141ddc084b54a0d016e977b89b2d42234da44f07b",
-        "report_objective_seconds": 0.0019763506948947906,
+        "report_objective_seconds": 0.0020829951390624046,
         "report_calls_per_objective": 1.0,
-        "mode2_fresh_study_seconds": 0.6136346617713571,
+        "mode2_fresh_study_seconds": 0.6301848152652383,
         "mode2_selected_params": {
           "amplitude": 0.4,
           "period": 10
         },
         "mode2_selection_accounting_sha256": "5d06928bce7a286b59817bc6dd44c588b657c9683360f1186a2fe75dbc03bfe2",
-        "peak_rss_mib": 224.2421875,
-        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+        "peak_rss_mib": 225.10546875,
+        "baseline_objective_sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19",
+        "measurement_identity": {
+          "git_commit": "0e8776d8ade9baf1dab570deae5cf91060a3fc18",
+          "git_dirty": false,
+          "git_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1"
+          },
+          "data_sha256": "bc371c489fc116d95bc682237db4863e571ed140f5e1fcb5131800b1625e95cc",
+          "intent_sha256": "mode2-global-four-trials-stationary-32-seed731",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "two bootstrap replicates and one report objective before timing; fresh WFO study"
+        }
       }
     }
   ],
   "medians": {
     "bootstrap_seconds": {
-      "before": 0.3841542024165392,
-      "after": 0.009314100258052349
+      "before": 0.3766863429918885,
+      "after": 0.010309633798897266
     },
     "report_objective_seconds": {
-      "before": 0.0075238443911075596,
-      "after": 0.001978215388953686
+      "before": 0.007303822226822377,
+      "after": 0.0021043075248599052
     },
     "mode2_fresh_study_seconds": {
-      "before": 1.1846347618848085,
-      "after": 0.6326805576682091
+      "before": 1.146967200562358,
+      "after": 0.6573896054178476
     },
     "peak_rss_mib": {
-      "before": 223.47265625,
-      "after": 224.2109375
+      "before": 223.61328125,
+      "after": 224.13671875
     }
   }
 }

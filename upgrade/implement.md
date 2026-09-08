@@ -20652,10 +20652,10 @@ and guide sections 8.1, 8.3, 8.4 and 9.
   18.66 s, including old/new evaluators, WFO Phase 49/50 schedules, generic
   callback NEXT-01, reactive WFO NEXT-02, Rust target/portfolio/intrabar.
 - Seven fresh-process alternating pairs: stationary indices + unchanged
-  compiled Sharpe reduction 384.154 -> 9.314 ms; report objective
-  7.524 -> 1.978 ms; complete Mode 2 study 1.185 -> 0.633 s. Exact bootstrap,
-  selection/metric/account hashes match on every pair. Peak RSS 223.473 ->
-  224.211 MiB; no memory improvement claimed. Fixture: 2,000 daily bars,
+  compiled Sharpe reduction 376.686 -> 10.310 ms; report objective
+  7.304 -> 2.104 ms; complete Mode 2 study 1.147 -> 0.657 s. Exact bootstrap,
+  selection/metric/account hashes match on every pair. Peak RSS 223.613 ->
+  224.137 MiB; no memory improvement claimed. Fixture: 2,000 daily bars,
   four trials, 32 bootstrap samples, global schedule, same native wheel.
 - Generic callback: VERIFIED_EXISTING for lazy timestamp, prepared callback
   schedule, stable-binding opt-in, shared margin refresh and conditional

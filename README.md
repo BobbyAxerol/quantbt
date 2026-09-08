@@ -367,9 +367,9 @@ measurement, Mode 2 was dominated by its unchanged bootstrap path. See
 
 A subsequent source-tree follow-up accelerates stationary bootstrap indices
 without changing NumPy's RNG stream. Seven alternating fresh-process pairs on
-the 2,000-daily-bar, four-trial Mode 2 fixture measured **1.185 s -> 0.633 s**
+the 2,000-daily-bar, four-trial Mode 2 fixture measured **1.147 s -> 0.657 s**
 for a fresh study. A report-based objective on a 2,000-hourly-bar result measured
-**7.524 ms -> 1.978 ms** by extracting one report per evaluation. Selection,
+**7.304 ms -> 2.104 ms** by extracting one report per evaluation. Selection,
 objective and final account hashes match; peak RSS stayed approximately
 **223-224 MiB**. These are separate workload measurements, not gains to multiply
 into prior tables or a claim for every WFO mode. See the
