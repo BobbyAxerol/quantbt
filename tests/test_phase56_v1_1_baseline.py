@@ -87,12 +87,15 @@ def test_phase56_inventory_covers_every_public_factory_and_separates_authority()
 
     public_rows = [row for row in inventory["rows"] if row["surface_type"] == "public_endpoint"]
     assert {row["factory"] for row in public_rows} == factories
+    product = _load_json(ROOT / "contracts" / "native_event_product_registry.json")
+    expected_core_version = str(product["versions"]["core_package"]["version"])
+    expected_native_version = str(product["versions"]["native_package"]["version"])
     for row in inventory["rows"]:
         assert set(row["authority"]) == set(generator.AUTHORITY_FIELDS)
         assert row["fallback"]["auto"]
         assert row["fallback"]["explicit"]
-        assert row["package_versions"]["quantbt_engine"] == "1.1.0"
-        assert row["package_versions"]["quantbt_native"] == "0.4.1"
+        assert row["package_versions"]["quantbt_engine"] == expected_core_version
+        assert row["package_versions"]["quantbt_native"] == expected_native_version
 
     by_id = {row["id"]: row for row in inventory["rows"]}
     assert by_id["event_driven_strategy"]["runtime_class"] == "PythonCompatibility"

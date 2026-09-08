@@ -2,31 +2,31 @@
   "schema": "quantbt-next03-product-qualification-v1",
   "status": "LOCAL_QUALIFIED_RELEASE_VERSION_REQUIRED",
   "candidate": {
-    "commit": "da5ec610aa8c3b1525e78a6b73827e47a9b4dab3",
+    "commit": "1fddb13d3b483a1c87bdba9e98cdf36ef1ec99ac",
     "candidate_tree_was_clean": true,
-    "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
-    "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+    "canonical_source_sha256": "77b711944c12c528d984b16ca19591e739a1a92a0404bb39e845dd2a81297e42",
+    "product_registry_sha256": "b9cb1f5efb261bac951071433b260d0fd0eba2f89f7baa610fc6ae163b6cc2c4",
     "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
     "source_layout": "canonical_only"
   },
   "artifacts": {
     "core_wheel": {
-      "filename": "quantbt_engine-1.1.0-py3-none-any.whl",
-      "sha256": "da561cc72a7a3ec1bb19390ae36ea8d6843fdad8f6f66183f5d5b9b79bf600ac"
+      "filename": "quantbt_engine-1.1.1-py3-none-any.whl",
+      "sha256": "c9e274b69abba2c06cfa74307439e5e451aca7dc7310c4450613b35165458603"
     },
     "core_sdist": {
-      "filename": "quantbt_engine-1.1.0.tar.gz",
-      "sha256": "a3d4f0049b076ebcca0ec188e5cc143687394615a7cb3b757f2a500b6fbc51db"
+      "filename": "quantbt_engine-1.1.1.tar.gz",
+      "sha256": "6ef74e5afa0a3b916f212212b5400fda6176370edde078c03ba4758e02ffec4e"
     },
     "native_wheel": {
-      "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
-      "sha256": "675af42dc8f32aef98d72797beb072245fa5c4965a91be8c0ee31eceadf87af5",
+      "filename": "quantbt_native-0.4.2-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "dc2773cca8e6d114eb0480b6857e897a952d557f15351b6094555cdd3763ef85",
       "platform": "linux-x86_64-cp312"
     }
   },
   "consumer_proof": {
     "path": "contracts/next03_wheel_consumer_proof.json",
-    "sha256": "82d28d6c1d748edad92dc221d5e1327684fc8dffe72a44d00c01bfbd24a1d373",
+    "sha256": "6f87bc2dbbf210bf0da210a0317bc7d3d88fa330a64906ee5071c1c38708ca9b",
     "required": [
       "source_hash_parity",
       "clean_install",
@@ -43,15 +43,15 @@
       "run_date": "2026-09-08",
       "passed": 1384,
       "skipped": 25,
-      "summed_pytest_seconds": 362.04,
-      "log_sha256": "9dc102c4bfdf8464bba12cb9477bfd7d819b4e4707eb0a6a9fe9d4757fc811da",
+      "summed_pytest_seconds": 346.4,
+      "log_sha256": "d7af60ef50ed3358e9553532fb69548b19cd5ccc4c523d26e704c727fc6c1ea8",
       "scope": "public release profile; optional-environment skips; private alpha and real-data suites excluded"
     },
     "rust_workspace": {
       "fmt": "passed",
       "clippy": "passed",
       "tests": "passed",
-      "evidence_basis": "unchanged native source and exact wheel reused from 930d2bb; experimental metrics change rejected"
+      "evidence_basis": "fresh Linux x86_64 CPython 3.12 wheel built from the frozen 1.1.1/0.4.2 candidate; fmt, clippy, and workspace tests passed"
     },
     "contract_checks": {
       "canonical_source_layout": "passed",
@@ -72,8 +72,7 @@
   },
   "release_handoff": {
     "required_before_publication": [
-      "Select a new unpublished compatible quantbt-engine/quantbt-native version pair.",
-      "Build and certify the Linux x86_64 CPython 3.11, 3.12 and 3.13 native wheel matrix from that frozen ref.",
+      "Build and certify the Linux x86_64 CPython 3.11, 3.12 and 3.13 native wheel matrix from the frozen v1.1.1 ref.",
       "Publish native wheels first, then publish the exact core pair after downloadable-wheel verification."
     ],
     "rollback": "Pin the prior published compatible core/native pair; root-mirror retirement rolls back only through its isolated commit."
