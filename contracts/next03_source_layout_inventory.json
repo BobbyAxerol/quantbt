@@ -9,7 +9,7 @@
     "package_find_where": [
       "src"
     ],
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "canonical_modules": [
     {
@@ -21,7 +21,7 @@
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
       "root_path": "__init__.py",
-      "sha256": "492b6e4bf8971dea207c096ee077410621dae9058693b91ac73ce60d6d156e20"
+      "sha256": "1b3e6280930667cfead1d983010b1997055b60fcd0decea402c44a2a21703566"
     },
     {
       "canonical_path": "src/quantbt/adapters/__init__.py",
@@ -763,7 +763,7 @@
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
       "root_path": "core/generated_product_contracts.py",
-      "sha256": "ccdfd9a0ca6c82b66eed2c1451cd97c6976a927a68c6ee6d914939a30fb60078"
+      "sha256": "aef8df43f24ec81b7cc1199c12e29d7292ff03595fc43059ec54e6e811d3741c"
     },
     {
       "canonical_path": "src/quantbt/core/instrument_contracts.py",

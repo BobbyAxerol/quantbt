@@ -67,7 +67,8 @@ def test_phase55a_core_declares_exact_linux_native_dependency() -> None:
     core_version, native_version = _native_versions()
     requirement = next(item for item in core["project"]["dependencies"] if item.startswith("quantbt-native=="))
 
-    assert core["project"]["version"] == core_version == "1.1.0"
+    assert core["project"]["version"] == core_version
+    assert core_version.count(".") == 2
     runtime_source = (ROOT / "src" / "quantbt" / "__init__.py").read_text(encoding="utf-8")
     assert f'__version__ = "{core_version}"' in runtime_source
     assert requirement.startswith(f"quantbt-native=={native_version};")
@@ -83,7 +84,8 @@ def test_phase55a_native_metadata_and_registry_are_exact_release_candidate_pair(
     cargo = tomllib.loads((ROOT / "rust" / "native_event" / "Cargo.toml").read_text())
     core_version, native_version = _native_versions()
 
-    assert native_pyproject["project"]["version"] == native_version == "0.4.1"
+    assert native_pyproject["project"]["version"] == native_version
+    assert native_version.count(".") == 2
     assert cargo["package"]["version"] == native_version
     assert registry["versions"]["native_package"]["published"] is True
     assert registry["versions"]["native_package"]["release_policy"] == "public_manylinux_x86_64_cpython_311_313_phase55b"
@@ -164,8 +166,9 @@ def test_phase55a_certifier_keeps_the_core_only_probe_native_free(monkeypatch, t
     monkeypatch.setattr(certification, "_run", fake_run)
     monkeypatch.setattr(certification, "_venv_python", lambda target: target / "bin" / "python")
     interpreter = tmp_path / "python"
-    core = tmp_path / "quantbt_engine-1.1.0-py3-none-any.whl"
-    native = tmp_path / "quantbt_native-0.4.1-cp312-cp312-manylinux_2_17_x86_64.whl"
+    core_version, native_version = _native_versions()
+    core = tmp_path / f"quantbt_engine-{core_version}-py3-none-any.whl"
+    native = tmp_path / f"quantbt_native-{native_version}-cp312-cp312-manylinux_2_17_x86_64.whl"
 
     certification._build_venv(interpreter, tmp_path / "core-only", core=core, native=None)
 

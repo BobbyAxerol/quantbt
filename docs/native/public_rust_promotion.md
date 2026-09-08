@@ -6,8 +6,8 @@ match. Installing `quantbt-native` alone does not make an endpoint Rust-first.
 
 ## Current Automatic Scope
 
-With the exact supported pair `quantbt-engine==1.1.0` and
-`quantbt-native==0.4.1`, `native_backend="auto"` may select Rust for one
+With the exact supported pair `quantbt-engine==1.1.1` and
+`quantbt-native==0.4.2`, `native_backend="auto"` may select Rust for one
 bounded workload:
 
 | Requirement | Required value |

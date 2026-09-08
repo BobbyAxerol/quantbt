@@ -315,7 +315,7 @@ dependencies = [
 
 [[package]]
 name = "quantbt-native"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "numpy",
  "proptest",

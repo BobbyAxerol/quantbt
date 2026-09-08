@@ -13,8 +13,8 @@ The Python core is sufficient for all public QuantBT endpoints:
 pip install quantbt-engine
 ```
 
-The governed public pair is `quantbt-engine==1.1.0` with
-`quantbt-native==0.4.1`. The core declares the companion as a direct,
+The governed public pair is `quantbt-engine==1.1.1` with
+`quantbt-native==0.4.2`. The core declares the companion as a direct,
 platform-marked dependency, so a normal supported consumer command remains:
 
 ```bash
@@ -59,8 +59,8 @@ PY
 Supported Linux output for this release pair contains:
 
 ```text
-quantbt-engine: 1.1.0
-quantbt-native: 0.4.1
+quantbt-engine: 1.1.1
+quantbt-native: 0.4.2
 ```
 
 The native package being installed does not mean every endpoint executes in

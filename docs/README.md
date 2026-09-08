@@ -8,8 +8,8 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|
 | Install | `pip install quantbt-engine` or `poetry add quantbt-engine` |
 | Import | `from quantbt import QuantBTEndpoint` |
-| Core release | `quantbt-engine==1.1.0` |
-| Native companion | `quantbt-native==0.4.1`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
+| Core release | `quantbt-engine==1.1.1` |
+| Native companion | `quantbt-native==0.4.2`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
 | Native policy | Rust auto only for exact one-symbol Native Strategy IR `score` at >=2,000 bars; Python/Numba otherwise |
 
 The companion is an internal implementation package. Users do not import it

@@ -39,8 +39,8 @@ Release pair:
 
 | Distribution | Version | Purpose |
 |---|---:|---|
-| `quantbt-engine` | `1.1.0` | Public API, Python/Numba engines, reports, compatibility oracle |
-| `quantbt-native` | `0.4.1` | Internal PyO3 extension for certified Rust workloads |
+| `quantbt-engine` | `1.1.1` | Public API, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-native` | `0.4.2` | Internal PyO3 extension for certified Rust workloads |
 
 Optional features:
 
@@ -283,8 +283,9 @@ cross-currency, or cross-exchange semantics.
 
 ### Release Benchmark
 
-The table below reports committed warm-median evidence for the governed
-`1.1.0` / `0.4.1` pair. Accounting and canonical-trace parity pass before any
+The table below retains committed warm-median evidence from the historical
+`1.1.0` / `0.4.1` qualification pair. The governed release pair is now
+`1.1.1` / `0.4.2`; accounting and canonical-trace parity pass before any
 timing is accepted.
 
 | Workload | Fixture | Rust median | Rust throughput | Compatibility comparator | Relative speed | Parity |

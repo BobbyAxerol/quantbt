@@ -9,11 +9,20 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tomllib
 
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _declared_versions() -> tuple[str, str]:
+    core = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    registry = json.loads(
+        (ROOT / "contracts" / "native_event_product_registry.json").read_text(encoding="utf-8")
+    )
+    return str(core["project"]["version"]), str(registry["versions"]["native_package"]["version"])
 
 
 def _load_yaml(path: Path) -> dict:
@@ -111,10 +120,11 @@ def test_phase55b_native_workspace_has_one_authoritative_cargo_lock() -> None:
 def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch) -> None:
     from tools import verify_public_native_consumer as consumer
 
+    core_version, native_version = _declared_versions()
     spec = consumer.ConsumerProofSpec(
         index="testpypi",
-        core_version="1.1.0",
-        native_version="0.4.1",
+        core_version=core_version,
+        native_version=native_version,
         poetry="poetry",
         python=Path("/usr/bin/python3"),
         timeout_seconds=30,
@@ -130,14 +140,14 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
         command = tuple(command)
         seen.append(command)
         if command[1:3] == ("show", "quantbt-engine"):
-            return "quantbt-engine 1.1.0"
+            return f"quantbt-engine {core_version}"
         if command[1:3] == ("show", "quantbt-native"):
-            return "quantbt-native 0.4.1"
+            return f"quantbt-native {native_version}"
         if command[1:3] == ("run", "python"):
             return json.dumps(
                 {
-                    "core_version": "1.1.0",
-                    "native_version": "0.4.1",
+                    "core_version": core_version,
+                    "native_version": native_version,
                     "automatic_backend": "rust",
                     "explicit_disable_fails_closed": True,
                 }
@@ -150,7 +160,7 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
     assert report["probe"]["automatic_backend"] == "rust"
     assert any(command[1:3] == ("add", "quantbt-engine") for command in seen)
 
-    probe = consumer.public_probe_script("1.1.0", "0.4.1")
+    probe = consumer.public_probe_script(core_version, native_version)
     for expected in (
         "automatic.resolved == \"rust\"",
         "forced_python.resolved == \"python\"",
@@ -162,6 +172,7 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
 
 
 def test_phase55b_release_docs_describe_native_first_then_core_and_public_consumer_proof() -> None:
+    _, native_version = _declared_versions()
     for relative in (
         "docs/testpypi_release_checklist.md",
         "docs/migration/native_release_handoff.md",
@@ -169,7 +180,7 @@ def test_phase55b_release_docs_describe_native_first_then_core_and_public_consum
         "docs/release_packaging.md",
     ):
         text = (ROOT / relative).read_text(encoding="utf-8")
-        assert "quantbt-native==0.4.1" in text
+        assert f"quantbt-native=={native_version}" in text
         assert "poetry add quantbt-engine" in text
     checklist = (ROOT / "docs" / "testpypi_release_checklist.md").read_text(encoding="utf-8")
     assert "Publish quantbt-native" in checklist

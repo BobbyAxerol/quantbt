@@ -128,7 +128,7 @@ recover one-minute or L2 microstructure that was not supplied.
 
 ## Rust Promotion Is Workload-Scoped
 
-For `quantbt-engine==1.1.0` and `quantbt-native==0.4.1`, only bounded Native
+For `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`, only bounded Native
 Strategy IR v1 `score` requests with one symbol and at least 2,000 bars are
 Rust-auto after the exact wheel/capability/contract gate passes. Static V2/V3
 command tapes remain explicit Rust because their matched public score evidence
