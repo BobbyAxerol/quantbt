@@ -133,7 +133,19 @@ def public_probe_script(core_version: str, native_version: str) -> str:
 
         import _quantbt_native
         import quantbt
-        from quantbt import OrderCommand, OrderSide, OrderType, QuantBTEndpoint
+        from quantbt import (
+            AccountConfig,
+            ExecutionConfig,
+            NativeEventBackend,
+            NativeEventConfig,
+            NativeStrategyIR,
+            NativeStrategyKind,
+            NativeStrategyParameters,
+            OrderCommand,
+            OrderSide,
+            OrderType,
+            QuantBTEndpoint,
+        )
         from quantbt.backends._native_event_rust import (
             NativeEventRustBackendError,
             probe_native_event_rust_extension,
@@ -150,39 +162,48 @@ def public_probe_script(core_version: str, native_version: str) -> str:
         status = probe_native_event_rust_extension()
         assert status.available and status.compatible and status.executable, status.reason
 
-        selection_kwargs = dict(
-            workload_id="event_static_tape_v2_v3",
-            execution_contract_id="event_lifecycle_v2_next_bar_close",
-            strategy_mode="static_commands",
-            # ``event_driven(profile="optimize")`` normalizes to score at the
-            # endpoint boundary. The direct policy probe must use a canonical
-            # declared workload profile instead of the user-facing alias.
-            profile="audit",
+        ir_selection_kwargs = dict(
+            workload_id="native_strategy_ir_v1",
+            execution_contract_id="event_lifecycle_v3_next_open",
+            strategy_mode="ir_v1",
+            profile="score",
             account_model="linear_quote_settled_gross_cross",
-            bars=10_000,
+            bars=2_000,
         )
-        automatic = resolve_native_event_backend("auto", environment={{}}, **selection_kwargs)
+        automatic = resolve_native_event_backend("auto", environment={{}}, **ir_selection_kwargs)
         assert automatic.resolved == "rust", automatic
         assert automatic.promotion.reason == "auto_rust_certified", automatic.promotion
 
-        forced_python = resolve_native_event_backend("python", environment={{}}, **selection_kwargs)
+        forced_python = resolve_native_event_backend("python", environment={{}}, **ir_selection_kwargs)
         assert forced_python.resolved == "python", forced_python
 
         disabled = resolve_native_event_backend(
-            "auto", environment={{"QUANTBT_DISABLE_NATIVE": "1"}}, **selection_kwargs
+            "auto", environment={{"QUANTBT_DISABLE_NATIVE": "1"}}, **ir_selection_kwargs
         )
         assert disabled.resolved == "python", disabled
         assert disabled.promotion.reason == "emergency_native_disabled", disabled.promotion
         try:
             resolve_native_event_backend(
-                "rust", environment={{"QUANTBT_DISABLE_NATIVE": "1"}}, **selection_kwargs
+                "rust", environment={{"QUANTBT_DISABLE_NATIVE": "1"}}, **ir_selection_kwargs
             )
         except NativeEventRustBackendError:
             explicit_disable_fails_closed = True
         else:
             raise AssertionError("explicit Rust unexpectedly fell back while native was disabled")
 
-        bars = 10_000
+        static_selection_kwargs = dict(
+            workload_id="event_static_tape_v2_v3",
+            execution_contract_id="event_lifecycle_v3_next_open",
+            strategy_mode="static_commands",
+            profile="audit",
+            account_model="linear_quote_settled_gross_cross",
+            bars=10_000,
+        )
+        static_auto = resolve_native_event_backend("auto", environment={{}}, **static_selection_kwargs)
+        assert static_auto.resolved == "python", static_auto
+        assert static_auto.promotion.reason == "public_score_performance_not_stable_enough_for_auto", static_auto.promotion
+
+        bars = 2_000
         index = pd.date_range("2025-01-01", periods=bars, freq="1h", tz="UTC")
         close = 100.0 + 0.01 * np.arange(bars, dtype=np.float64)
         frame = pd.DataFrame(
@@ -195,31 +216,66 @@ def public_probe_script(core_version: str, native_version: str) -> str:
             }},
             index=index,
         )
-        result = QuantBTEndpoint.event_driven(
-            input_mode="orders",
-            profile="optimize",
-            backend="auto",
-            initial_capital=10_000.0,
-            leverage=5.0,
-            fee_rate=0.0002,
-            use_funding=False,
-        ).simulate(
-            data=frame,
-            order_commands=[
+        runner = NativeEventBackend(
+            NativeEventConfig(
+                account=AccountConfig(initial_capital=10_000.0, leverage=5.0, maintenance_ratio=0.005),
+                execution=ExecutionConfig(slippage_bps=2.0),
+                fee_rate=0.0002,
+                use_funding=False,
+                native_backend="auto",
+                execution_contract="event_lifecycle_v3_next_open",
+            )
+        ).prepare_native_strategy_ir(
+            index,
+            closes={{"BTC": frame["close"]}},
+            highs={{"BTC": frame["high"]}},
+            lows={{"BTC": frame["low"]}},
+            opens={{"BTC": frame["open"]}},
+            program=NativeStrategyIR(
+                NativeStrategyKind.GRID_LEVEL,
+                "BTC",
+                parameters=NativeStrategyParameters(quantity=0.5),
+            ),
+            symbols=["BTC"],
+        )
+        signal = np.where(np.arange(bars) % 120 < 40, 1.0, 0.0).astype(np.float64)
+        score = runner.run_score(signal)
+        score_plan = runner.last_plans["score:scalar"]
+        assert score_plan["backend"] == "rust", score_plan
+
+        static_frame = frame.iloc[:128]
+
+        def run_static(backend):
+            return QuantBTEndpoint.event_driven(
+                input_mode="orders",
+                profile="optimize",
+                backend=backend,
+                initial_capital=10_000.0,
+                leverage=5.0,
+                fee_rate=0.0002,
+                use_funding=False,
+            ).simulate(
+                data=static_frame,
+                order_commands=[
                 OrderCommand(
-                    timestamp=index[1],
+                    timestamp=static_frame.index[1],
                     symbol="BTC",
                     side=OrderSide.BUY,
                     order_type=OrderType.MARKET,
                     qty=0.5,
                     order_id="public-consumer-static",
                 )
-            ],
-            symbols=["BTC"],
-        )
-        execution = result.metadata["execution_plan_v1"]
-        assert execution["backend"] == "rust", execution
-        assert result.metadata["rust_audit_replay"] is False
+                ],
+                symbols=["BTC"],
+            )
+
+        static_result = run_static("auto")
+        static_execution = static_result.metadata["execution_plan_v1"]
+        assert static_execution["backend"] == "python", static_execution
+        assert static_result.metadata["native_event_promotion_v1"]["reason"] == "public_score_performance_not_stable_enough_for_auto"
+        static_rust_result = run_static("rust")
+        static_rust_execution = static_rust_result.metadata["execution_plan_v1"]
+        assert static_rust_execution["backend"] == "rust", static_rust_execution
 
         print(json.dumps(
             {{
@@ -228,13 +284,16 @@ def public_probe_script(core_version: str, native_version: str) -> str:
                 "native_version": metadata.version("quantbt-native"),
                 "core_path": str(core_path),
                 "native_path": str(native_path),
-                "automatic_backend": execution["backend"],
+                "automatic_backend": score_plan["backend"],
                 "automatic_reason": automatic.promotion.reason,
                 "forced_python_backend": forced_python.resolved,
                 "disabled_auto_backend": disabled.resolved,
                 "disabled_auto_reason": disabled.promotion.reason,
                 "explicit_disable_fails_closed": explicit_disable_fails_closed,
-                "final_equity": float(result.equity.iloc[-1]),
+                "static_auto_backend": static_execution["backend"],
+                "static_auto_reason": static_auto.promotion.reason,
+                "static_explicit_backend": static_rust_execution["backend"],
+                "final_equity": float(score.final_equity),
             }},
             sort_keys=True,
         ))
