@@ -1283,6 +1283,16 @@
       "sha256": "f7a7524fd1b8856b63262ceae2fb7fb6bf05b1a1aa7c0adf0dd1448ede23efd2"
     },
     {
+      "canonical_path": "src/quantbt/optimization/bootstrap.py",
+      "consumer_proof": "tests/test_next03_source_inventory.py",
+      "disposition": "retirement_candidate",
+      "mirror_status": "absent_unproven",
+      "owner": "canonical_quantbt_package",
+      "rollback": "git-revert of the isolated root-mirror retirement commit",
+      "root_path": "optimization/bootstrap.py",
+      "sha256": "c2607d3c064eaa00ae07d1883f0eb6b029c2787d08bdd221972ed15471a14b4d"
+    },
+    {
       "canonical_path": "src/quantbt/optimization/callbacks.py",
       "consumer_proof": "tests/test_next03_source_inventory.py",
       "disposition": "retired_to_canonical",
@@ -1456,7 +1466,7 @@
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
       "root_path": "optimization/objectives.py",
-      "sha256": "690b683e98c362239890b7dc1df30939117be34fdc60ac1f961ba0a5a8736c19"
+      "sha256": "b7a661633d5bc77f7e2eef66e1b5f7df1f1439d83c3888de013c39c6859221a8"
     },
     {
       "canonical_path": "src/quantbt/optimization/optimizer.py",
@@ -2237,7 +2247,7 @@
       "owner": "canonical_quantbt_package",
       "rollback": "git-revert of the isolated root-mirror retirement commit",
       "root_path": "walkforward.py",
-      "sha256": "eda2807e7d23e104b577738651d1460c0e650995090c4cf95df1246b844be251"
+      "sha256": "b3da15189cb87d5e6f0080123aeb7f245b4991d61354112049030335c8f3b256"
     }
   ],
   "canonical_source": "src/quantbt",
@@ -2312,6 +2322,16 @@
       "path": "benchmarks/gamma_scalping_backtestsample.py",
       "role": "developer_benchmark_tooling",
       "sha256": "00b820c2093a15fd72e28ec78cd6d5532afe09c618c337fd5c1312748075c2bf"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_followup_native_metrics.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "42b7345d9b8197a687dc2a09988f5358097f44e865b7ad1a5ef2aa12f9343b3d"
+    },
+    {
+      "path": "benchmarks/native_event/benchmark_followup_statistical_work.py",
+      "role": "developer_benchmark_tooling",
+      "sha256": "d63d67cb3f9bca9f42137e93e191cecb07a8a5ae113867b92222e8fa79660ce3"
     },
     {
       "path": "benchmarks/native_event/benchmark_generic_callback_audit.py",

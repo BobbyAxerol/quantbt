@@ -3317,8 +3317,8 @@ def stationary_bootstrap_sharpes(
     """
     Generate Sharpe values from stationary block bootstrap samples.
 
-    Random index generation stays in NumPy for transparent seeding. The repeated
-    sample scoring loop is numba-accelerated when numba is available.
+    The index and scoring loops are numba-accelerated when requested. Index
+    generation uses the same NumPy Generator and draw order as the reference.
     """
     clean = np.asarray(returns, dtype=np.float64)
     clean = clean[np.isfinite(clean)]
@@ -3329,6 +3329,7 @@ def stationary_bootstrap_sharpes(
         n_samples=int(n_samples),
         block_length=int(block_length),
         seed=int(seed),
+        use_numba=bool(use_numba) and _NUMBA_AVAILABLE,
     )
     if bool(use_numba) and _NUMBA_AVAILABLE:
         return _bootstrap_sharpes_numba(clean, indices, float(trading_days))
@@ -3492,22 +3493,12 @@ def benchmark_walkforward_kernels(
     )
 
 
-def _stationary_bootstrap_indices(n_obs: int, n_samples: int, block_length: int, seed: int) -> np.ndarray:
-    if n_obs <= 0:
-        raise ValueError("n_obs must be > 0")
-    rng = np.random.default_rng(int(seed))
-    p = 1.0 / max(1.0, float(block_length))
-    indices = np.empty((int(n_samples), int(n_obs)), dtype=np.int64)
-    for sample in range(int(n_samples)):
-        current = int(rng.integers(0, n_obs))
-        indices[sample, 0] = current
-        for i in range(1, n_obs):
-            if rng.random() < p:
-                current = int(rng.integers(0, n_obs))
-            else:
-                current = (current + 1) % n_obs
-            indices[sample, i] = current
-    return indices
+def _stationary_bootstrap_indices(
+    n_obs: int, n_samples: int, block_length: int, seed: int, *, use_numba: bool = False
+) -> np.ndarray:
+    from .optimization.bootstrap import stationary_indices
+
+    return stationary_indices(n_obs, n_samples, block_length, seed, use_numba=use_numba)
 
 
 def _regime_bootstrap_indices(

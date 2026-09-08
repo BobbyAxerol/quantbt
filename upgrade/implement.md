@@ -20601,6 +20601,8 @@ afterward. Existing methods retain their exact semantics in this work.
 
 ### FOLLOWUP-01 - Shared Statistical And Objective Work Reduction
 
+Status: IMPLEMENTED_VERIFIED (2026-09-08), final packaging tracked in FOLLOWUP-02.
+
 Guide: [N2.08 metric/statistical plan](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n208--native-metricstatistical-plan-phục-vụ-năm-mode),
 [N2.09 repeated work](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n209--loại-full-history-on²-work-do-quantbt-tự-thêm),
 and guide sections 8.2, 9 and 11 (selection parity, measurement, failure rules).
@@ -20621,6 +20623,9 @@ and guide sections 8.2, 9 and 11 (selection parity, measurement, failure rules).
 
 ### FOLLOWUP-02 - Callback/Native Review And Candidate Qualification
 
+Status: IN_PROGRESS (2026-09-08); review and matched experiments complete,
+final source-bound wheel verification pending.
+
 Guide: [N1.07-N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer),
 [N3.05-N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại),
 and guide sections 8.1, 8.3, 8.4 and 9.
@@ -20640,3 +20645,32 @@ and guide sections 8.1, 8.3, 8.4 and 9.
   unchanged bottlenecks and remaining limits honestly. No claim that every
   possible future optimization has been exhausted. Commit coherent verified
   changes on dev; publication remains a separately approved action.
+
+### Follow-Up Evidence And Dispositions
+
+- Statistical/report changes: 228 focused and integration tests passed in
+  18.66 s, including old/new evaluators, WFO Phase 49/50 schedules, generic
+  callback NEXT-01, reactive WFO NEXT-02, Rust target/portfolio/intrabar.
+- Seven fresh-process alternating pairs: stationary indices + unchanged
+  compiled Sharpe reduction 384.154 -> 9.314 ms; report objective
+  7.524 -> 1.978 ms; complete Mode 2 study 1.185 -> 0.633 s. Exact bootstrap,
+  selection/metric/account hashes match on every pair. Peak RSS 223.473 ->
+  224.211 MiB; no memory improvement claimed. Fixture: 2,000 daily bars,
+  four trials, 32 bootstrap samples, global schedule, same native wheel.
+- Generic callback: VERIFIED_EXISTING for lazy timestamp, prepared callback
+  schedule, stable-binding opt-in, shared margin refresh and conditional
+  projection. These are not new speedups. Arbitrary callback decisions still
+  run in Python; no callback/audit dropping or lifecycle rewrite in this pass.
+- Rust metric experiment: NOT_BENEFICIAL_WITH_EVIDENCE. Hoisted immutable
+  risk-free division and cross-crate observe inlining were tested in a rebuilt
+  wheel; seven alternating wheel pairs passed account parity but prepared
+  target median was 1.836 -> 2.014 ms. Both changes were removed; the original
+  native source and exact certified companion wheel were restored.
+- Remaining limits: direct-target Rust score is still slower than the narrower
+  Numba accounting comparator; arbitrary Python decisions, regime/GARCH index
+  generation and requested report rendering still cost time. These are named
+  performance limits, not claims that future research methods are restricted
+  or all optimization is exhausted. No economic defect was found in this review.
+- Scripts: `benchmark_followup_statistical_work.py` and
+  `benchmark_followup_native_metrics.py` under `benchmarks/native_event/`.
+  See [follow-up report](../docs/performance/followup_statistical_work.md).

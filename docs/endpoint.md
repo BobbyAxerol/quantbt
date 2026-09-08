@@ -2800,6 +2800,14 @@ Routing:
 
 ## Walk-Forward
 
+Performance compatibility: `optimization_config={"use_numba": True}` also
+accelerates stationary bootstrap index construction using the same NumPy RNG
+and draw order. `False` keeps the reference loop; sample counts, objectives,
+mode/schedule selection and final account behavior are unchanged. Generic
+`ReportMetricObjective` extracts one report snapshot per invocation, with no
+cross-evaluation result cache. No new endpoint or migration is required.
+See [measured scope and parity](performance/followup_statistical_work.md).
+
 Use this to generate OOS signals/positions fold by fold, stitch them into one
 continuous timeline, and run one final QuantBT backtest. The final simulation
 uses the same engines as normal research, so fold-boundary trades are charged
