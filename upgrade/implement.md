@@ -20155,7 +20155,7 @@ implemented, certified NEXT-02 scope.
   identities and preserve the study/audit journals.
 - Historical completion placeholder superseded by the record below.
 
-+#### Completion Record - NEXT-02
+#### Completion Record - NEXT-02
 
 - **N2.01/N2.14 mode and selection lock:** the public benchmark matrices retain
   Mode 1 global/per-fold-decay/per-fold-causal, Mode 2 proxy preservation,
@@ -20220,6 +20220,21 @@ implemented, certified NEXT-02 scope.
 <a id="next-03"></a>
 
 ### Phase NEXT-03 - Single-Source Package, Audit/Docs And Product Qualification
+
+**Pre-merge follow-up (2026-09-08):** source/endpoint review confirms no factory
+signature changes across NEXT-01/02/03. The release and endpoint docs now spell
+out editable-source migration, optional reactive preparation, minimal-output
+diagnostics and the required new version pair. The earlier N2 `PLANNED` labels
+are the original design checklist; its completion record states the implemented
+scope and explicitly identifies continuation/new scheduling as not introduced.
+They must not be read as proof that every proposed optimization was implemented.
+
+The `bdba49f` remote Native Event matrix passed, while core CI failed. A local
+depth-one checkout reproduces the qualification ancestry failure: Git cannot
+prove the recorded candidate is an ancestor with missing history. CI, core
+publish tests and native release tests now request `fetch-depth: 0`; no domain
+logic or ancestry validation is relaxed. Remote green checks on the follow-up
+commit remain the main-merge gate.
 
 **Status: IMPLEMENTED_VERIFIED locally.** Canonical-source, audit, package and
 cross-domain qualification are complete on the candidate tree. A future public

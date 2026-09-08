@@ -1,11 +1,23 @@
 # QuantBT Public Core/Native Release Checklist
 
-This is the release-owner handoff for the governed public pair:
+This is the release-owner handoff for the governed public pair. The version
+values below describe the existing baseline:
 
 ```text
 quantbt-engine==1.1.0
 quantbt-native==0.4.1
 ```
+
+For NEXT-03, select new unpublished core/native versions before following the
+dispatch examples. Replace every baseline version/tag below with that exact
+pair. The local qualification artifacts cannot be uploaded again under their
+old filenames. Update versions, generated contracts and lockfiles on `dev`,
+then merge the checked commit to `main` before creating the final tag.
+
+CI and native-release tests require full Git history (`fetch-depth: 0`) because
+the source qualification validates ancestry of its recorded candidate commit.
+Before merging, require both CI and Native Event API 0.4 Gate to pass on the
+current PR/commit. A source hash or local test pass does not replace that matrix.
 
 The core remains a complete Python package. On Linux x86_64 with CPython
 3.11-3.13, its direct platform marker resolves a pre-built native wheel. No
@@ -71,7 +83,8 @@ binary wheel.
    ```
 
    The proof requires the matching native distribution, validates the native
-   descriptor, confirms a governed 10,000-bar static route selects Rust, then
+   descriptor, confirms the governed Native Strategy IR score route selects Rust
+   at the supported threshold (static command tapes remain Python-auto), then
    proves forced Python, disabled-native fallback, and explicit-Rust
    fail-closed behavior.
 6. Download and archive the native wheel matrix, installed-pair certificate,

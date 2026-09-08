@@ -1,8 +1,9 @@
 # QuantBT Packaging And Release
 
-This document records the Phase 48F final release contract for `quantbt-engine`.
-The older Phase 42C rules remain valid unless this document explicitly updates
-them.
+This document describes the current single-source package and native-first
+release workflow. The NEXT-03 candidate has local qualification; publishing its
+changed source requires a new unused core/native version pair. Historical
+version examples below are not instructions to overwrite published artifacts.
 
 ## Phase 55B Public Native Pair
 
@@ -391,8 +392,15 @@ pip install -e /root/bobby/pool_alpha/quantbt
 Or a Poetry path dependency:
 
 ```toml
-quantbt = { path = "../quantbt", develop = true }
+quantbt-engine = { path = "../quantbt", develop = true, extras = ["optimization"] }
 ```
+
+Run the install in the environment used by the notebook or service. After the
+mirror retirement, adding `/root/bobby/pool_alpha` to `sys.path` alone does not
+select this checkout. Check `quantbt.__file__`: an editable developer install
+must resolve to `quantbt/src/quantbt/__init__.py`. Reloading an existing notebook
+kernel is a separate user action; installation does not replace objects already
+loaded in memory.
 
 After the governed public-pair release:
 
@@ -526,7 +534,14 @@ accepted benchmark evidence remain trackable.
 
 ## TestPyPI To PyPI Workflow
 
-### TestPyPI release candidate
+For the current candidate use the
+[public core/native checklist](testpypi_release_checklist.md). Choose and commit
+the new compatible versions on `dev` before merging to `main`, regenerate the
+registry/lockfiles, and certify the resulting pair. Publish native wheels before
+the core GitHub Release. The legacy steps below document previous releases
+only; do not use their fixed versions or core-only sequence for NEXT-03.
+
+### Historical TestPyPI release candidate
 
 1. Update the package version to an unused RC version such as `1.0.9rc1`.
 2. Commit the version and changelog on a release candidate ref.
@@ -551,7 +566,7 @@ python3 -m venv /tmp/quantbt-testpypi-smoke
 /tmp/quantbt-testpypi-smoke/bin/python -m pip check
 ```
 
-### Production PyPI release
+### Historical production PyPI release
 
 1. Merge the verified release commit to protected `main`.
 2. Set the final version, for example `1.0.9`, and add the changelog entry.

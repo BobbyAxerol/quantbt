@@ -23,6 +23,32 @@ The endpoint separates two responsibilities:
 This lets QuantBT upgrade the internal engine while service code keeps a stable
 call contract.
 
+## NEXT-01 To NEXT-03 Compatibility
+
+These phases preserve the existing endpoint factories and their call signatures,
+including `event_driven`, `native_event_strategy`, `walk_forward`, `backtest`,
+and `simulate`. Existing alpha configuration remains valid.
+
+- Reactive WFO adds the optional
+  `ReactiveWfoRuntimeConfigV1(preparation_policy="prepared")` setting. The
+  default reuses immutable market/window setup; `"compatibility"` is the
+  diagnostic comparator. Both retain fresh candidate/fold accounts.
+- Numeric reactive `report_level="minimal"` retains financial paths and metrics
+  but omits command/order/callback/wake diagnostic DataFrames. Use `standard`
+  or `audit` when consuming those diagnostics. Scalar score results require a
+  selected-candidate rerun to obtain chartable paths.
+- Research audit adds `objective_components` and record-family metadata;
+  existing trial/candidate tables and legacy exports remain available.
+- NEXT-03 retires the repository-root source mirror. Install the local checkout
+  into the notebook environment with `python -m pip install -e
+  '/root/bobby/pool_alpha/quantbt[optimization]'`, then keep
+  `from quantbt import QuantBTEndpoint`. A parent-directory `sys.path` injection
+  no longer selects the local checkout; check `quantbt.__file__` before running.
+
+See the [reactive WFO guide](reactive_wfo.md),
+[research audit contract](performance/perf_06_research_audit.md), and
+[package migration](release_packaging.md#pool-alpha-development).
+
 ## Lifecycle
 
 ```python

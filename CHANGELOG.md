@@ -2,7 +2,32 @@
 
 All notable changes to `quantbt-engine` are documented here.
 
-## [1.1.0] - Unreleased
+## [Unreleased]
+
+### Changed
+
+- NEXT-01 reduces generic every-bar and declared sparse callback overhead while
+  retaining full financial/audit output and dynamic callback compatibility.
+- NEXT-02 reuses immutable WFO market/window preparation and native score
+  requests while preserving candidate ordering, selection and fresh accounts.
+- NEXT-03 makes `src/quantbt` the sole Python package source; the reviewed
+  duplicate root modules are retired. Local developers should use an editable
+  install rather than a parent-directory import-path override.
+- Research audit exposes objective components and eight record-family links
+  while preserving existing public trial/candidate tables and legacy exports.
+
+### Compatibility And Qualification
+
+- Endpoint factory signatures are unchanged across NEXT-01 through NEXT-03.
+  Reactive WFO adds optional `preparation_policy="prepared"`; numeric reactive
+  minimal output omits diagnostic tables while retaining financial paths.
+- Local release shards and isolated wheel/sdist/editable consumer checks pass.
+  Publication requires new compatible core/native versions and remote matrix
+  certification. Performance claims remain limited to the measured workloads.
+- CI and release test checkouts retain Git history for qualification ancestry
+  verification; the validator continues to reject unverified source ancestry.
+
+## [1.1.0]
 
 ### Changed
 
