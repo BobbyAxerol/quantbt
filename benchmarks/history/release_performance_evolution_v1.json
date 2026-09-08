@@ -1,0 +1,88 @@
+{
+  "schema": "quantbt-release-performance-evolution-v1",
+  "title": "QuantBT Performance Evolution",
+  "subtitle": "Evidence-backed release milestones, paired runtime measurements, and public callback recovery.",
+  "release_timeline": [
+    {
+      "release": "v1.0.7",
+      "label": "Native packaging",
+      "detail": "PyO3 companion, dual-backend fallback, and wheel certification"
+    },
+    {
+      "release": "v1.0.9",
+      "label": "Typed Rust runtime",
+      "detail": "Whole-tape execution, prepared state, and explicit strategy IR"
+    },
+    {
+      "release": "1.1 evidence",
+      "label": "Domain authority",
+      "detail": "Prepared WFO, portfolio, package, intrabar, and reactive evidence"
+    },
+    {
+      "release": "v1.1.1",
+      "label": "Governed release pair",
+      "detail": "Core/native release pair, CI certification, and callback closure"
+    }
+  ],
+  "paired_routes": [
+    {
+      "label": "Native Strategy IR\nscore",
+      "fixture": "2,000 bars",
+      "evidence_path": "benchmarks/native_event/results/phase54b2/public_routes.json",
+      "rust_path": "measurements.native_ir.score_auto_rust.median_seconds",
+      "reference_path": "measurements.native_ir.score_python_oracle.median_seconds",
+      "reference_label": "Python oracle"
+    },
+    {
+      "label": "Public WFO\nMode 1 facade",
+      "fixture": "2,048 bars x 16 trials",
+      "evidence_path": "benchmarks/native_event/results/phase74_public_wfo.json",
+      "rust_path": "timings_seconds.native_full_facade_median",
+      "reference_path": "timings_seconds.reference_full_facade_median",
+      "reference_label": "Python facade"
+    },
+    {
+      "label": "Portfolio\ntarget-units",
+      "fixture": "2,000 bars x 8 symbols",
+      "evidence_path": "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+      "rust_path": "performance.e4_portfolio_target_score.engine_median_seconds",
+      "reference_path": "performance.e4_python_event_oracle_score.engine_median_seconds",
+      "reference_label": "Python oracle"
+    },
+    {
+      "label": "Atomic package\nscore",
+      "fixture": "2,000 bars x 8 symbols",
+      "evidence_path": "benchmarks/native_event/results/phase54b3/portfolio_package.json",
+      "rust_path": "performance.e5_package_atomic_score.engine_median_seconds",
+      "reference_path": "performance.e5_python_event_oracle_score.engine_median_seconds",
+      "reference_label": "Python oracle"
+    },
+    {
+      "label": "Intrabar\nprepared runner",
+      "fixture": "20,000 bars",
+      "evidence_path": "benchmarks/native_event/results/phase77_native_performance_closure.json",
+      "rust_path": "intrabar.timings.rust_prepared_runner.median_seconds",
+      "reference_path": "intrabar.timings.numba_prepared_runner.median_seconds",
+      "reference_label": "Numba runner"
+    }
+  ],
+  "callback_closure": [
+    {
+      "label": "Every-bar\n100,000 bars",
+      "evidence_path": "benchmarks/native_event/results/quantbt-next01-final-everybar-100.json",
+      "baseline_selector": {"case": "100k_low_orders", "lane": "baseline"},
+      "candidate_selector": {"case": "100k_low_orders", "lane": "candidate"}
+    },
+    {
+      "label": "Declared sparse\n100,000 bars",
+      "evidence_path": "benchmarks/native_event/results/quantbt-next01-final-sparse-100.json",
+      "baseline_selector": {"case": "100k_declared_sparse", "lane": "baseline"},
+      "candidate_selector": {"case": "100k_declared_sparse", "lane": "candidate"}
+    }
+  ],
+  "notes": [
+    "Only paired bars within the same named fixture are direct performance comparisons.",
+    "Release milestones describe product scope; they are not a synthetic cross-domain speed series.",
+    "Each speed row is accepted only after its declared parity gate passes."
+  ]
+}
