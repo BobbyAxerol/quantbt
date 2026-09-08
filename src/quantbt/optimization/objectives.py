@@ -59,6 +59,13 @@ def metric_from_result(
 
     canonical = normalize_metric_name(name)
     report = result_full_report(result, trading_days=trading_days, scope=scope)
+    return _metric_from_report(result, report, canonical, required=required, default=default)
+
+
+def _metric_from_report(
+    result: Any, report: Mapping[str, Any], canonical: str,
+    *, required: bool = True, default: Optional[float] = None,
+) -> float:
     if canonical in report:
         return float(report[canonical])
     metadata = dict(getattr(result, "metadata", {}) or {})
@@ -91,15 +98,19 @@ def metrics_from_result(
     required=True)` or the constraint helper functions below.
     """
 
-    metrics: dict[str, float] = {}
     report = result_full_report(result, trading_days=trading_days, scope=scope)
+    return _metrics_from_report(result, report, names)
+
+
+def _metrics_from_report(result: Any, report: Mapping[str, Any], names: Sequence[str]) -> dict[str, float]:
+    metrics: dict[str, float] = {}
     for name in names:
         canonical = normalize_metric_name(name)
         if canonical in report:
             metrics[canonical] = float(report[canonical])
         else:
             try:
-                metrics[canonical] = metric_from_result(result, canonical, trading_days=trading_days, scope=scope, required=True)
+                metrics[canonical] = _metric_from_report(result, report, canonical)
             except MissingOptimizationMetricError:
                 pass
     return metrics
@@ -165,8 +176,9 @@ class ReportMetricObjective:
     metadata_builder: Optional[Callable[[Any, Mapping[str, Any], MetricMap], Mapping[str, Any]]] = None
 
     def __call__(self, result: Any, params: Mapping[str, Any]) -> ObjectiveResult:
-        metrics = metrics_from_result(result, names=self.metric_names, trading_days=self.trading_days, scope=self.scope)
-        values = tuple(metric_from_result(result, name, trading_days=self.trading_days, scope=self.scope, required=True) for name in self.value_metrics)
+        report = result_full_report(result, trading_days=self.trading_days, scope=self.scope)
+        metrics = _metrics_from_report(result, report, self.metric_names)
+        values = tuple(_metric_from_report(result, report, normalize_metric_name(name)) for name in self.value_metrics)
         constraints = tuple(float(builder(metrics, params, result)) for builder in self.constraints)
         metadata = {} if self.metadata_builder is None else dict(self.metadata_builder(result, params, metrics))
         return ObjectiveResult(values=values, metrics=metrics, constraints=constraints, metadata=metadata)

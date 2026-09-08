@@ -2,9 +2,9 @@
   "schema": "quantbt-next03-product-qualification-v1",
   "status": "LOCAL_QUALIFIED_RELEASE_VERSION_REQUIRED",
   "candidate": {
-    "commit": "930d2bbd05d23ef46330d38a7bce315cf4252faa",
+    "commit": "da5ec610aa8c3b1525e78a6b73827e47a9b4dab3",
     "candidate_tree_was_clean": true,
-    "canonical_source_sha256": "295a71a18a2ad396dcbe2b5525410d58f7ae634a40227672770689e8e0a3181b",
+    "canonical_source_sha256": "a89abd2708062772550c6ff300bea790ae556cab9bff26e3809ca0d2da11b342",
     "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
     "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
     "source_layout": "canonical_only"
@@ -12,11 +12,11 @@
   "artifacts": {
     "core_wheel": {
       "filename": "quantbt_engine-1.1.0-py3-none-any.whl",
-      "sha256": "1d25c2236469d489c559f69e235b7ec0ee05eab5cbe138946bbd0cf0250abfd2"
+      "sha256": "da561cc72a7a3ec1bb19390ae36ea8d6843fdad8f6f66183f5d5b9b79bf600ac"
     },
     "core_sdist": {
       "filename": "quantbt_engine-1.1.0.tar.gz",
-      "sha256": "2e43a7d124f22123feeb43e7c571666af789a16d3c658cac2577bac24f0ce638"
+      "sha256": "a3d4f0049b076ebcca0ec188e5cc143687394615a7cb3b757f2a500b6fbc51db"
     },
     "native_wheel": {
       "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
@@ -39,12 +39,19 @@
     "release_profile": {
       "status": "passed",
       "shards": 24,
-      "command": "MPLCONFIGDIR=/tmp PYTHONPATH=src poetry run python tools/run_test_shards.py --profile release --max-files-per-shard 8"
+      "command": ".venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8",
+      "run_date": "2026-09-08",
+      "passed": 1384,
+      "skipped": 25,
+      "summed_pytest_seconds": 362.04,
+      "log_sha256": "9dc102c4bfdf8464bba12cb9477bfd7d819b4e4707eb0a6a9fe9d4757fc811da",
+      "scope": "public release profile; optional-environment skips; private alpha and real-data suites excluded"
     },
     "rust_workspace": {
       "fmt": "passed",
       "clippy": "passed",
-      "tests": "passed"
+      "tests": "passed",
+      "evidence_basis": "unchanged native source and exact wheel reused from 930d2bb; experimental metrics change rejected"
     },
     "contract_checks": {
       "canonical_source_layout": "passed",

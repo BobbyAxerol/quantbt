@@ -346,6 +346,12 @@ Tham số chính: `sbb_samples`, `sbb_block_length`, `sbb_decay_lambda`,
 `stress` scale volatility bằng `stress_vol_multiplier`. `garch` mô phỏng
 volatility clustering nếu có dependency `arch`.
 
+Chi tiết triển khai hiệu năng: `use_numba=True` biên dịch vòng sinh indices
+cho `stationary` và `stress`, nhưng vẫn dùng cùng NumPy Generator, seed và thứ tự
+random draws. `False` giữ vòng tham chiếu Python. Không đổi số bootstrap samples,
+công thức objective hay lịch chọn tham số; đây không phải methodology mới.
+Xem [parity và benchmark](../docs/performance/followup_statistical_work.md).
+
 Dụng ý chuẩn quỹ là kiểm tra path dependency, giữ autocorrelation cục bộ, và
 stress alpha mà không mở OOS thật cho optimizer.
 

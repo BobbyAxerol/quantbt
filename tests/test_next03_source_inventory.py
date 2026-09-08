@@ -42,3 +42,26 @@ def test_next03_inventory_locks_canonical_src_and_retired_mirror_provenance(tmp_
     document = tmp_path / "inventory.md"
     assert tool.main(["--inventory", str(inventory), "--doc", str(document)]) == 0
     assert tool.main(["--inventory", str(inventory), "--doc", str(document), "--check"]) == 0
+
+
+def test_new_module_in_former_mirror_directory_is_canonical_only():
+    tool = _load_tool()
+    baseline = tool._load_retirement_baseline()
+    module = "src/quantbt/optimization/bootstrap.py"
+    assert "optimization/bootstrap.py" not in tool._baseline_hashes(baseline)
+    payload = tool.build_inventory(retirement_baseline=baseline)
+    record = next(row for row in payload["canonical_modules"] if row["canonical_path"] == module)
+    assert record["mirror_status"] == "not_in_historical_mirror_scope"
+    assert record["disposition"] == "canonical_package_only"
+    assert "historical_root_sha256" not in record
+    assert "root_path" not in record
+    assert tool.validate_inventory(payload, retirement_baseline=baseline) == []
+
+
+def test_new_module_does_not_bypass_absent_retirement_evidence():
+    tool = _load_tool()
+    payload = tool.build_inventory(retirement_baseline=None)
+    record = next(row for row in payload["canonical_modules"]
+                  if row["canonical_path"] == "src/quantbt/optimization/bootstrap.py")
+    assert record["mirror_status"] == "absent_unproven"
+    assert "root-mirror retirement baseline is missing" in tool.validate_inventory(payload)
