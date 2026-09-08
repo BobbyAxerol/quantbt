@@ -9,6 +9,11 @@
 
 ## Shared Architecture And Future WFO Methodology
 
+- These rules govern implementation quality, not the choice of mathematical
+  methodology. Future objectives, models, validation designs and sampling
+  methods remain open research decisions. Extend shared contracts when a new
+  method needs new capabilities; do not distort the method to fit today's
+  interfaces or require a separate performance retrofit after implementation.
 - Before an approved upgrade phase, read its section in `upgrade/implement.md`
   and every linked detailed guide. Record the agreed scope, tests, exit gates,
   evidence and remaining limitations in that plan; do not silently expand it.

@@ -20587,3 +20587,56 @@ Rollback, scoped commit IDs and explicit permission boundary for the next phase
 Final status is `READY_FOR_RELEASE_PHASE` only when the actual final candidate
 has all mandatory evidence and accepted outcomes; otherwise `BLOCKED`.
 Only separately approved release actions can establish that it is published.
+
+## Post-NEXT Architecture Rules And Measured Performance Follow-Up
+
+Status: IN_PROGRESS. User approved implementation on dev; no methodology,
+version, publishing or merge change is authorized by this follow-up.
+
+The architecture rules in [AGENTS.md](../AGENTS.md) constrain engineering,
+not the future choice of mathematical models, objectives or validation designs.
+New methods may explicitly extend shared contracts. Efficient ownership,
+batch boundaries and retention must be designed with the method, not bolted on
+afterward. Existing methods retain their exact semantics in this work.
+
+### FOLLOWUP-01 - Shared Statistical And Objective Work Reduction
+
+Guide: [N2.08 metric/statistical plan](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n208--native-metricstatistical-plan-phục-vụ-năm-mode),
+[N2.09 repeated work](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n209--loại-full-history-on²-work-do-quantbt-tự-thêm),
+and guide sections 8.2, 9 and 11 (selection parity, measurement, failure rules).
+
+- Extract a report once within one objective evaluation, preserving aliases,
+  missing-metric errors, constraints, scopes and custom metadata builders.
+  Do not cache mutable results across evaluations or omit requested reports.
+- Accelerate stationary bootstrap index construction only if the actual
+  default_rng stream, restart decisions and complete index matrix match the
+  reference. Preserve seed, replicate count, nonfinite filtering and reducers.
+  Keep the Python fallback and use_numba policy; do not change stationary to iid.
+- Tests: independent reference indices, edge sizes/seeds/block lengths, global
+  RNG isolation, public bootstrap outputs, required/optional metrics and report
+  call counts, optimizer/WFO selection and schedule regression.
+- Exit: focused tests pass; matched timings with cold compilation separated;
+  no change to objective values or financial execution. Record rejected
+  experiments as such, not as shipped improvements.
+
+### FOLLOWUP-02 - Callback/Native Review And Candidate Qualification
+
+Guide: [N1.07-N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer),
+[N3.05-N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại),
+and guide sections 8.1, 8.3, 8.4 and 9.
+
+- Inspect remaining generic callback projections and direct-target Rust hot
+  paths. Retain already verified optimizations; change only demonstrated
+  redundant work with snapshot/lifetime and independent accounting parity.
+- No forced Rust conversion of arbitrary Python decisions, no new engine or
+  parallel accounting authority, no callback skipping or lost audit records.
+- Benchmark public WFO and callback routes separately from statistical and
+  native kernels, with identical work, source identity and output retention.
+  A kernel improvement is not a claimed whole-study improvement.
+- Verify affected callback/account/target/portfolio and cross-mode tests.
+  Rebuild and requalify changed package artifacts, source inventories and
+  qualification hashes; never reuse an old wheel proof for changed source.
+- Exit: tests and relevant artifact gates pass; docs report measured wins,
+  unchanged bottlenecks and remaining limits honestly. No claim that every
+  possible future optimization has been exhausted. Commit coherent verified
+  changes on dev; publication remains a separately approved action.
