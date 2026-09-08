@@ -91,7 +91,12 @@ def test_phase55b_workflow_dispatch_version_checks_scope_the_requested_tag_to_th
     assert 'GITHUB_REF_NAME="${{ inputs.ref }}" .venv/bin/python tools/check_release_version.py' in native_publish
     assert 'GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" .venv/bin/python tools/check_release_version.py' in native_certification
     assert 'GITHUB_REF_NAME="${{ inputs.ref || github.ref_name }}" uv run python tools/check_release_version.py' in testpypi
-    assert 'GITHUB_REF_NAME="${{ inputs.ref }}" python tools/check_release_version.py' in consumer
+    assert 'GITHUB_REF_NAME="${{ inputs.ref }}" python release/tools/check_release_version.py' in consumer
+    assert "path: release" in consumer
+    assert "path: consumer-verifier" in consumer
+    assert "consumer-verifier/tools/verify_public_native_consumer.py" in consumer
+    assert '--core-version "$core_version"' in consumer
+    assert '--native-version "$native_version"' in consumer
 
 
 def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder() -> None:
@@ -162,11 +167,14 @@ def test_phase55b_consumer_tool_keeps_the_normal_poetry_add_contract(monkeypatch
 
     probe = consumer.public_probe_script(core_version, native_version)
     for expected in (
+        "workload_id=\"native_strategy_ir_v1\"",
+        "profile=\"score\"",
         "automatic.resolved == \"rust\"",
         "forced_python.resolved == \"python\"",
         "emergency_native_disabled",
         "explicit Rust unexpectedly fell back",
-        "execution[\"backend\"] == \"rust\"",
+        "score_plan[\"backend\"] == \"rust\"",
+        "static_execution[\"backend\"] == \"python\"",
     ):
         assert expected in probe
 

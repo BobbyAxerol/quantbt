@@ -30,10 +30,20 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - name: Checkout exact release ref
+      - name: Checkout immutable release contract
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+          path: release
+          fetch-depth: 0
+
+      # The verifier is maintained independently from an immutable release
+      # tag. The tag still supplies the version contract tested below.
+      - name: Checkout current consumer verifier
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: consumer-verifier
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,12 +57,16 @@ jobs:
 
       - name: Verify release tag and public Poetry resolution
         run: |
-          GITHUB_REF_NAME="${{ inputs.ref }}" python tools/check_release_version.py
+          GITHUB_REF_NAME="${{ inputs.ref }}" python release/tools/check_release_version.py
+          core_version="$(python -c 'import tomllib; from pathlib import Path; print(tomllib.loads(Path("release/pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])')"
+          native_version="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("release/contracts/native_event_product_registry.json").read_text(encoding="utf-8"))["versions"]["native_package"]["version"])')"
           poetry --version
-          python tools/verify_public_native_consumer.py \
+          python consumer-verifier/tools/verify_public_native_consumer.py \
             --index "${{ inputs.index }}" \
             --poetry poetry \
             --python "$(command -v python)" \
+            --core-version "$core_version" \
+            --native-version "$native_version" \
             --output "public-native-consumer-${{ matrix.runner }}-cp${{ matrix.python-version }}.json"
 
       - name: Upload consumer evidence
