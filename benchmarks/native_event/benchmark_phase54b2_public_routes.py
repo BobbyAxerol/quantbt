@@ -1,10 +1,11 @@
 """Phase 54B.2 public Rust-first Stage-B benchmark.
 
-The benchmark intentionally measures only routes that the generated promotion
-table may select automatically:
+The benchmark measures the callback-free Rust routes with an explicit and
+truthful promotion distinction:
 
-* E0 static V2/V3 command tapes at the 10,000-bar threshold;
-* E3 bounded Native Strategy IR at the 2,000-bar threshold; and
+* E0 static V2/V3 command tapes with explicit Rust, while recording the
+  current ``auto`` policy observation separately;
+* E3 bounded Native Strategy IR score at the 2,000-bar automatic threshold; and
 * E6 shared-market native IR batch/fold scoring.
 
 It performs one exact Python/Rust audit parity check before timing.  The Rust
@@ -198,11 +199,13 @@ def _assert_static_parity(frame: pd.DataFrame, commands: tuple[OrderCommand, ...
     )
     assert_native_event_full_parity(auto, rust)
     assert_native_event_full_parity(auto, python)
-    assert auto.metadata["execution_plan_v1"]["backend"] == "rust"
+    assert rust.metadata["execution_plan_v1"]["backend"] == "rust"
     return {
         "canonical_trace_fingerprint": auto.metadata["canonical_trace_fingerprint"],
+        "auto_backend": auto.metadata["execution_plan_v1"]["backend"],
         "auto_reason": auto.metadata["native_event_promotion_v1"]["reason"],
         "minimum_bars": auto.metadata["native_event_promotion_v1"]["minimum_bars"],
+        "explicit_rust_backend": rust.metadata["execution_plan_v1"]["backend"],
     }
 
 
@@ -221,8 +224,12 @@ def _assert_ir_parity(frame: pd.DataFrame, signal: np.ndarray, matrix: np.ndarra
     assert auto_batch.metadata["execution_plan_v1"]["backend"] == "rust"
     return {
         "canonical_trace_fingerprint": auto_audit.metadata["canonical_trace_fingerprint"],
-        "auto_reason": auto_audit.metadata["native_event_promotion_v1"]["reason"],
-        "minimum_bars": auto_audit.metadata["native_event_promotion_v1"]["minimum_bars"],
+        "audit_auto_backend": auto_audit.metadata["execution_plan_v1"]["backend"],
+        "audit_auto_reason": auto_audit.metadata["native_event_promotion_v1"]["reason"],
+        "audit_minimum_bars": auto_audit.metadata["native_event_promotion_v1"]["minimum_bars"],
+        "batch_auto_backend": auto_batch.metadata["execution_plan_v1"]["backend"],
+        "batch_auto_reason": auto_batch.metadata["native_event_promotion_v1"]["reason"],
+        "batch_minimum_bars": auto_batch.metadata["native_event_promotion_v1"]["minimum_bars"],
         "batch_boundary_calls": int(auto_batch.metadata["boundary_calls"]),
         "shared_market_copies_per_scenario": int(auto_batch.metadata["shared_market_copies_per_scenario"]),
     }
@@ -240,26 +247,26 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
     static_frame = _frame(static_bars)
     commands = _static_commands(static_frame.index)
     static_parity = _assert_static_parity(static_frame, commands)
-    static_auto = _static_endpoint(native_backend="auto")
+    static_rust = _static_endpoint(native_backend="rust")
     static_python = _static_endpoint(native_backend="python")
-    auto_static_stats, auto_static_result = _measure(
-        lambda: static_auto.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]), repeats=repeats
+    rust_static_stats, rust_static_result = _measure(
+        lambda: static_rust.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]), repeats=repeats
     )
     python_static_stats, _ = _measure(
         lambda: static_python.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]), repeats=repeats
     )
-    assert auto_static_result.metadata["execution_plan_v1"]["backend"] == "rust"
-    static_auto_compact = _static_endpoint(native_backend="auto", profile="optimize")
+    assert rust_static_result.metadata["execution_plan_v1"]["backend"] == "rust"
+    static_rust_compact = _static_endpoint(native_backend="rust", profile="optimize")
     static_python_compact = _static_endpoint(native_backend="python", profile="optimize")
-    auto_static_compact_stats, auto_static_compact_result = _measure(
-        lambda: static_auto_compact.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]),
+    rust_static_compact_stats, rust_static_compact_result = _measure(
+        lambda: static_rust_compact.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]),
         repeats=repeats,
     )
     python_static_compact_stats, _ = _measure(
         lambda: static_python_compact.simulate(data=static_frame, order_commands=commands, symbols=["BTC"]),
         repeats=repeats,
     )
-    assert auto_static_compact_result.metadata["execution_plan_v1"]["backend"] == "rust"
+    assert rust_static_compact_result.metadata["execution_plan_v1"]["backend"] == "rust"
 
     ir_frame = _frame(ir_bars)
     phase = np.arange(ir_bars, dtype=np.float64)
@@ -267,15 +274,19 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
     signals = np.vstack([np.roll(signal, shift) for shift in range(scenarios)]).astype(np.float64)
     ir_parity = _assert_ir_parity(ir_frame, signal, signals)
     ir_auto = _ir_runner(ir_frame, native_backend="auto")
+    ir_rust = _ir_runner(ir_frame, native_backend="rust")
     ir_python = _ir_runner(ir_frame, native_backend="python")
     ir_score_stats, _ = _measure(lambda: ir_auto.run_score(signal), repeats=repeats)
     ir_python_score_stats, _ = _measure(lambda: ir_python.run_score(signal), repeats=repeats)
-    ir_audit_output = ir_auto.run_audit(signal)
+    ir_rust_audit_output = ir_rust.run_audit(signal)
     ir_cold_adapt_stats, _ = _measure(
-        lambda: ir_auto._ensure_rust_runner().to_backtest_result(ir_audit_output, signal),  # noqa: SLF001
+        lambda: ir_rust._ensure_rust_runner().to_backtest_result(ir_rust_audit_output, signal),  # noqa: SLF001
         repeats=repeats,
     )
-    ir_audit_stats, _ = _measure(lambda: ir_auto.backtest(signal, report_level="audit"), repeats=repeats)
+    ir_rust_audit_stats, ir_rust_audit_result = _measure(
+        lambda: ir_rust.backtest(signal, report_level="audit"), repeats=repeats
+    )
+    assert ir_rust_audit_result.metadata["execution_plan_v1"]["backend"] == "rust"
     ir_batch_stats, batch_result = _measure(
         lambda: ir_auto.run_batch_score(signals, workers=2, chunk_size=16), repeats=repeats
     )
@@ -305,7 +316,8 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
         "policy": {
             "static_minimum_bars": 10_000,
             "native_ir_minimum_bars": 2_000,
-            "promoted_workloads": ["E0 static command tape", "E3 Native Strategy IR", "E6 IR batch/fold"],
+            "auto_promoted_workloads": ["E3 Native Strategy IR score", "E6 IR batch/fold"],
+            "explicit_rust_evidence": ["E0 static command tape"],
             "non_promoted_workloads": ["Python callback", "reactive", "portfolio", "package/arbitrage"],
         },
         "parity": {"static": static_parity, "native_ir": ir_parity},
@@ -313,8 +325,8 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
             "static_public_audit": {
                 "bars": static_bars,
                 "commands": len(commands),
-                "auto_rust": _route_summary(
-                    auto_static_stats,
+                "explicit_rust": _route_summary(
+                    rust_static_stats,
                     bars=static_bars,
                     extra={"boundary_calls": 1, "python_callbacks": 0, "audit_replay": False},
                 ),
@@ -323,8 +335,8 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
             "static_public_compact": {
                 "bars": static_bars,
                 "commands": len(commands),
-                "auto_rust": _route_summary(
-                    auto_static_compact_stats,
+                "explicit_rust": _route_summary(
+                    rust_static_compact_stats,
                     bars=static_bars,
                     extra={"boundary_calls": 1, "python_callbacks": 0, "audit_replay": False},
                 ),
@@ -343,10 +355,14 @@ def run(*, static_bars: int, ir_bars: int, scenarios: int, repeats: int) -> dict
                     bars=ir_bars,
                     extra={"execution_replayed": False, "precomputed_typed_audit_output": True},
                 ),
-                "public_audit_auto_rust": _route_summary(
-                    ir_audit_stats,
+                "public_audit_explicit_rust": _route_summary(
+                    ir_rust_audit_stats,
                     bars=ir_bars,
-                    extra={"cold_report_adaptation_included": True, "audit_replay": False},
+                    extra={
+                        "cold_report_adaptation_included": True,
+                        "audit_replay": False,
+                        "resolved_backend": ir_rust_audit_result.metadata["execution_plan_v1"]["backend"],
+                    },
                 ),
             },
             "native_ir_batch": {
@@ -374,11 +390,11 @@ def _markdown(evidence: dict[str, Any]) -> str:
     ir = measurements["native_ir"]
     batch = measurements["native_ir_batch"]
     rows = [
-        ("Static public audit", static["bars"], static["auto_rust"], static["python_oracle"]),
-        ("Static public compact", static_compact["bars"], static_compact["auto_rust"], static_compact["python_oracle"]),
+        ("Static public audit (explicit Rust)", static["bars"], static["explicit_rust"], static["python_oracle"]),
+        ("Static public compact (explicit Rust)", static_compact["bars"], static_compact["explicit_rust"], static_compact["python_oracle"]),
         ("Native IR score", ir["bars"], ir["score_auto_rust"], ir["score_python_oracle"]),
         ("Native IR cold audit adaptation", ir["bars"], ir["cold_audit_adaptation"], None),
-        ("Native IR public audit", ir["bars"], ir["public_audit_auto_rust"], None),
+        ("Native IR public audit (explicit Rust)", ir["bars"], ir["public_audit_explicit_rust"], None),
         ("Native IR batch", batch["bars_per_scenario"] * batch["scenarios"], batch["auto_rust"], None),
         ("Native IR causal fold", (batch["bars_per_scenario"] // 2) * batch["scenarios"], batch["fold_auto_rust"], None),
     ]
@@ -387,7 +403,7 @@ def _markdown(evidence: dict[str, Any]) -> str:
         "",
         "Local Stage-B evidence only. Exact Python/Rust audit parity passed before timing.",
         "",
-        "| Workload | Bars | Rust median | Rust throughput | Python median | Python throughput | RSS peak |",
+        "| Workload | Bars | Primary route median | Primary throughput | Python median | Python throughput | RSS peak |",
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for name, bars, rust, python in rows:
@@ -401,7 +417,7 @@ def _markdown(evidence: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "Score is a typed scalar/compact path. Public audit includes cold Python result adaptation from Rust buffers; neither route replays Python execution.",
+            "Score is a typed scalar/compact path. Static command-tape Rust measurements are explicit because the current auto policy intentionally retains static routes on Python. Public audit includes cold result adaptation; neither benchmark route replays Python execution.",
             "Callbacks, reactive strategies, portfolio, and package/arbitrage are excluded and remain Python compatibility routes.",
         ]
     )
