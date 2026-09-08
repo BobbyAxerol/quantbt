@@ -26,6 +26,12 @@ final main tag is not retested through TestPyPI.
 The exact OIDC configuration, manual dispatch inputs, consumer evidence, and
 rollback boundary are in the [TestPyPI release checklist](testpypi_release_checklist.md).
 
+The public consumer workflow first verifies the immutable release tag and
+derives its exact core/native version pair from that checkout. It then runs the
+maintained verifier separately, so a later verifier correction can certify a
+published pair without rewriting a tag or pretending that PyPI artifacts are
+mutable.
+
 ## P3 Product Evidence
 
 The shipped Python package is built only from `src/quantbt`. The historical
