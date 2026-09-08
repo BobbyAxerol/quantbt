@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import tomllib
 
@@ -65,9 +66,13 @@ def test_phase46f_production_publish_rejects_prereleases() -> None:
 
 def test_phase55a_linux_native_companion_is_an_exact_core_dependency() -> None:
     metadata = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    registry = json.loads(
+        (PROJECT_ROOT / "contracts" / "native_event_product_registry.json").read_text(encoding="utf-8")
+    )
+    native_version = str(registry["versions"]["native_package"]["version"])
     dependencies = metadata["project"]["dependencies"]
     native_dependency = next(item for item in dependencies if item.startswith("quantbt-native=="))
-    assert native_dependency.startswith("quantbt-native==0.4.1;")
+    assert native_dependency.startswith(f"quantbt-native=={native_version};")
     assert "sys_platform == 'linux'" in native_dependency
     assert "platform_machine == 'x86_64'" in native_dependency
     assert "implementation_name == 'cpython'" in native_dependency

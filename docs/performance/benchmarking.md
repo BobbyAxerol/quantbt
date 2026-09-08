@@ -6,8 +6,9 @@ produces the same declared accounting and trace under a declared workload?”.
 
 ## Current Release Evidence
 
-The governed pair is `quantbt-engine==1.1.0` and
-`quantbt-native==0.4.1`. The current committed evidence reports:
+The governed pair is `quantbt-engine==1.1.1` and
+`quantbt-native==0.4.2`. Historical benchmark artifacts retain their original
+pair identity; the current committed evidence reports:
 
 | Workload | Rust median | Throughput | Compatibility comparator | Parity gate |
 |---|---:|---:|---:|---|

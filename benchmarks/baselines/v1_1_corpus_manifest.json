@@ -1244,8 +1244,8 @@
       "maximum": 1,
       "minimum": 1
     },
-    "quantbt_engine": "1.1.0",
-    "quantbt_native": "0.4.1",
+    "quantbt_engine": "1.1.1",
+    "quantbt_native": "0.4.2",
     "result_abi": "native-event-result-v1"
   },
   "schema": "quantbt-rust-primary-v1_1-corpus-manifest-v1",
@@ -1263,7 +1263,7 @@
     "product_registry": {
       "bytes": 32528,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0"
+      "sha256": "b9cb1f5efb261bac951071433b260d0fd0eba2f89f7baa610fc6ae163b6cc2c4"
     }
   }
 }

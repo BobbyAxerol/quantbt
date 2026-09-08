@@ -20587,3 +20587,110 @@ Rollback, scoped commit IDs and explicit permission boundary for the next phase
 Final status is `READY_FOR_RELEASE_PHASE` only when the actual final candidate
 has all mandatory evidence and accepted outcomes; otherwise `BLOCKED`.
 Only separately approved release actions can establish that it is published.
+
+## Post-NEXT Architecture Rules And Measured Performance Follow-Up
+
+Status: COMPLETED_LOCAL. User approved implementation on dev; no methodology,
+version, publishing or merge change is authorized by this follow-up.
+
+The architecture rules in [AGENTS.md](../AGENTS.md) constrain engineering,
+not the future choice of mathematical models, objectives or validation designs.
+New methods may explicitly extend shared contracts. Efficient ownership,
+batch boundaries and retention must be designed with the method, not bolted on
+afterward. Existing methods retain their exact semantics in this work.
+
+### FOLLOWUP-01 - Shared Statistical And Objective Work Reduction
+
+Status: IMPLEMENTED_VERIFIED (2026-09-08), final packaging tracked in FOLLOWUP-02.
+
+Guide: [N2.08 metric/statistical plan](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n208--native-metricstatistical-plan-phục-vụ-năm-mode),
+[N2.09 repeated work](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n209--loại-full-history-on²-work-do-quantbt-tự-thêm),
+and guide sections 8.2, 9 and 11 (selection parity, measurement, failure rules).
+
+- Extract a report once within one objective evaluation, preserving aliases,
+  missing-metric errors, constraints, scopes and custom metadata builders.
+  Do not cache mutable results across evaluations or omit requested reports.
+- Accelerate stationary bootstrap index construction only if the actual
+  default_rng stream, restart decisions and complete index matrix match the
+  reference. Preserve seed, replicate count, nonfinite filtering and reducers.
+  Keep the Python fallback and use_numba policy; do not change stationary to iid.
+- Tests: independent reference indices, edge sizes/seeds/block lengths, global
+  RNG isolation, public bootstrap outputs, required/optional metrics and report
+  call counts, optimizer/WFO selection and schedule regression.
+- Exit: focused tests pass; matched timings with cold compilation separated;
+  no change to objective values or financial execution. Record rejected
+  experiments as such, not as shipped improvements.
+
+### FOLLOWUP-02 - Callback/Native Review And Candidate Qualification
+
+Status: COMPLETED_LOCAL (2026-09-08); review, matched experiments and
+source-bound wheel verification passed. No native performance promotion.
+
+Guide: [N1.07-N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer),
+[N3.05-N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại),
+and guide sections 8.1, 8.3, 8.4 and 9.
+
+- Inspect remaining generic callback projections and direct-target Rust hot
+  paths. Retain already verified optimizations; change only demonstrated
+  redundant work with snapshot/lifetime and independent accounting parity.
+- No forced Rust conversion of arbitrary Python decisions, no new engine or
+  parallel accounting authority, no callback skipping or lost audit records.
+- Benchmark public WFO and callback routes separately from statistical and
+  native kernels, with identical work, source identity and output retention.
+  A kernel improvement is not a claimed whole-study improvement.
+- Verify affected callback/account/target/portfolio and cross-mode tests.
+  Rebuild and requalify changed package artifacts, source inventories and
+  qualification hashes; never reuse an old wheel proof for changed source.
+- Exit: tests and relevant artifact gates pass; docs report measured wins,
+  unchanged bottlenecks and remaining limits honestly. No claim that every
+  possible future optimization has been exhausted. Commit coherent verified
+  changes on dev; publication remains a separately approved action.
+
+### Follow-Up Evidence And Dispositions
+
+- Final release regression: 24 isolated shards, 1,384 passed, 25 skipped,
+  no failures, 362.04 s summed pytest runtime. Command:
+  `.venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8`.
+  Optional-environment skips remain explicit; this public profile excludes
+  private/out-of-tree alpha tests and the two real-data suites by design.
+- Clean CPython 3.12 wheel, sdist, editable install, direct-target and public
+  surface smoke: PASS. Core artifact source is clean commit `da5ec61`; native
+  source/wheel are unchanged. Updated exact artifact hashes and qualification
+  provenance in `contracts/next03_product_qualification.json`.
+- Source inventory, PERF-01 traceability, public API inventory, architecture,
+  product/lifecycle contracts, docs links and artifact allowlist gates: PASS.
+  The remote CPython matrix and new-version publication remain separate release
+  actions; no push, merge, tag or publish was performed in this follow-up.
+
+- Packaging regression found during final release shards: a new canonical
+  module under a formerly mirrored directory was labeled `absent_unproven`.
+  Correct the inventory using the validated frozen retirement ledger, not
+  directory membership alone. Test valid/absent retirement evidence and keep
+  root-mirror regrowth checks unchanged; no historical hashes are rewritten.
+
+- Statistical/report changes: 228 focused and integration tests passed in
+  18.66 s, including old/new evaluators, WFO Phase 49/50 schedules, generic
+  callback NEXT-01, reactive WFO NEXT-02, Rust target/portfolio/intrabar.
+- Seven fresh-process alternating pairs: stationary indices + unchanged
+  compiled Sharpe reduction 376.686 -> 10.310 ms; report objective
+  7.304 -> 2.104 ms; complete Mode 2 study 1.147 -> 0.657 s. Exact bootstrap,
+  selection/metric/account hashes match on every pair. Peak RSS 223.613 ->
+  224.137 MiB; no memory improvement claimed. Fixture: 2,000 daily bars,
+  four trials, 32 bootstrap samples, global schedule, same native wheel.
+- Generic callback: VERIFIED_EXISTING for lazy timestamp, prepared callback
+  schedule, stable-binding opt-in, shared margin refresh and conditional
+  projection. These are not new speedups. Arbitrary callback decisions still
+  run in Python; no callback/audit dropping or lifecycle rewrite in this pass.
+- Rust metric experiment: NOT_BENEFICIAL_WITH_EVIDENCE. Hoisted immutable
+  risk-free division and cross-crate observe inlining were tested in a rebuilt
+  wheel; seven alternating wheel pairs passed account parity but prepared
+  target median was 1.836 -> 2.014 ms. Both changes were removed; the original
+  native source and exact certified companion wheel were restored.
+- Remaining limits: direct-target Rust score is still slower than the narrower
+  Numba accounting comparator; arbitrary Python decisions, regime/GARCH index
+  generation and requested report rendering still cost time. These are named
+  performance limits, not claims that future research methods are restricted
+  or all optimization is exhausted. No economic defect was found in this review.
+- Scripts: `benchmark_followup_statistical_work.py` and
+  `benchmark_followup_native_metrics.py` under `benchmarks/native_event/`.
+  See [follow-up report](../docs/performance/followup_statistical_work.md).

@@ -39,8 +39,8 @@ Release pair:
 
 | Distribution | Version | Purpose |
 |---|---:|---|
-| `quantbt-engine` | `1.1.0` | Public API, Python/Numba engines, reports, compatibility oracle |
-| `quantbt-native` | `0.4.1` | Internal PyO3 extension for certified Rust workloads |
+| `quantbt-engine` | `1.1.1` | Public API, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-native` | `0.4.2` | Internal PyO3 extension for certified Rust workloads |
 
 Optional features:
 
@@ -283,8 +283,9 @@ cross-currency, or cross-exchange semantics.
 
 ### Release Benchmark
 
-The table below reports committed warm-median evidence for the governed
-`1.1.0` / `0.4.1` pair. Accounting and canonical-trace parity pass before any
+The table below retains committed warm-median evidence from the historical
+`1.1.0` / `0.4.1` qualification pair. The governed release pair is now
+`1.1.1` / `0.4.2`; accounting and canonical-trace parity pass before any
 timing is accepted.
 
 | Workload | Fixture | Rust median | Rust throughput | Compatibility comparator | Relative speed | Parity |
@@ -361,9 +362,19 @@ trade-frequency constants, and eligible read-only OHLC/funding window views.
 It does not skip an Optuna observation, cache a strategy signal, alter the
 Mode 2 RNG, or change final account reconstruction. The paired smoke matrix
 records every chronological mode separately: Mode 1 `1.78x`, Mode 2 `1.11x`,
-Mode 3 `1.59x`, and Mode 4 `1.55x` on its smaller 2k fixture. Mode 2 remains
-intentionally dominated by its unchanged bootstrap path. See
+Mode 3 `1.59x`, and Mode 4 `1.55x` on its smaller 2k fixture. In that historical
+measurement, Mode 2 was dominated by its unchanged bootstrap path. See
 [PERF-08 WFO preparation](docs/performance/perf_08_wfo_preparation.md).
+
+A subsequent source-tree follow-up accelerates stationary bootstrap indices
+without changing NumPy's RNG stream. Seven alternating fresh-process pairs on
+the 2,000-daily-bar, four-trial Mode 2 fixture measured **1.147 s -> 0.657 s**
+for a fresh study. A report-based objective on a 2,000-hourly-bar result measured
+**7.304 ms -> 2.104 ms** by extracting one report per evaluation. Selection,
+objective and final account hashes match; peak RSS stayed approximately
+**223-224 MiB**. These are separate workload measurements, not gains to multiply
+into prior tables or a claim for every WFO mode. See the
+[statistical work follow-up](docs/performance/followup_statistical_work.md).
 
 For research governance, WFO can now retain a bounded immutable columnar
 sidecar independently of financial output: `research_retention` is `none`,

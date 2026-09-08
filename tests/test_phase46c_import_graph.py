@@ -110,6 +110,10 @@ def test_phase46c_lazy_export_access_is_thread_safe_after_resolution() -> None:
 
 def test_phase46c_dependency_ownership_is_explicit() -> None:
     metadata = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    registry = json.loads(
+        (PROJECT_ROOT / "contracts" / "native_event_product_registry.json").read_text(encoding="utf-8")
+    )
+    native_version = str(registry["versions"]["native_package"]["version"])
     project = metadata["project"]
     dependencies = list(project["dependencies"])
     dependency_names = {
@@ -119,7 +123,7 @@ def test_phase46c_dependency_ownership_is_explicit() -> None:
     assert dependency_names == {"numpy", "pandas", "numba", "quantbt-native"}
 
     native_dependency = next(item for item in dependencies if item.startswith("quantbt-native=="))
-    assert native_dependency.startswith("quantbt-native==0.4.1;")
+    assert native_dependency.startswith(f"quantbt-native=={native_version};")
     for marker in (
         "sys_platform == 'linux'",
         "platform_machine == 'x86_64'",

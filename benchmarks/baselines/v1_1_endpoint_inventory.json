@@ -95,8 +95,8 @@
       "maximum": 1,
       "minimum": 1
     },
-    "quantbt_engine": "1.1.0",
-    "quantbt_native": "0.4.1",
+    "quantbt_engine": "1.1.1",
+    "quantbt_native": "0.4.2",
     "result_abi": "native-event-result-v1"
   },
   "public_root_exports": [
@@ -645,8 +645,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -692,8 +692,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -739,8 +739,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -784,8 +784,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -832,8 +832,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -880,8 +880,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -927,8 +927,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -974,8 +974,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1020,8 +1020,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1066,8 +1066,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1112,8 +1112,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1158,8 +1158,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1204,8 +1204,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1252,8 +1252,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1302,8 +1302,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1353,8 +1353,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1403,8 +1403,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1451,8 +1451,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1501,8 +1501,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1552,8 +1552,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1603,8 +1603,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1651,8 +1651,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1700,8 +1700,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1751,8 +1751,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1802,8 +1802,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1850,8 +1850,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1899,8 +1899,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1950,8 +1950,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -1999,8 +1999,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2050,8 +2050,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2101,8 +2101,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2148,8 +2148,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2193,8 +2193,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2238,8 +2238,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2283,8 +2283,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2329,8 +2329,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2376,8 +2376,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2421,8 +2421,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2467,8 +2467,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2511,8 +2511,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2555,8 +2555,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2599,8 +2599,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2646,8 +2646,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2692,8 +2692,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2738,8 +2738,8 @@
           "maximum": 1,
           "minimum": 1
         },
-        "quantbt_engine": "1.1.0",
-        "quantbt_native": "0.4.1",
+        "quantbt_engine": "1.1.1",
+        "quantbt_native": "0.4.2",
         "result_abi": "native-event-result-v1"
       },
       "profiles": [
@@ -2778,12 +2778,12 @@
     "product_registry": {
       "bytes": 32528,
       "path": "contracts/native_event_product_registry.json",
-      "sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0"
+      "sha256": "b9cb1f5efb261bac951071433b260d0fd0eba2f89f7baa610fc6ae163b6cc2c4"
     },
     "public_api_inventory": {
       "bytes": 17902,
       "path": "contracts/generated_public_api_inventory.json",
-      "sha256": "407bf69c9e09462bc4899c9b97be04cf8912dc087786e5bb212d007b3b0cfaf2"
+      "sha256": "aba03c5872bff12d17ea25487aa81bc3426eaf49c979b09df3561b26b32b8023"
     }
   }
 }

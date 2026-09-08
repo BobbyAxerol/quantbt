@@ -4,6 +4,25 @@ All notable changes to `quantbt-engine` are documented here.
 
 ## [Unreleased]
 
+## [1.1.1]
+
+### Changed
+
+- Released the completed statistical WFO follow-up: stationary-bootstrap index
+  construction now preserves the existing RNG draw sequence while avoiding
+  repeated Python work, and report-metric objectives share one report snapshot
+  per evaluation.
+- Updated the governed wheel-only companion contract to
+  `quantbt-native==0.4.2`; `quantbt-engine==1.1.1` keeps the exact
+  platform-marked dependency for supported Linux x86_64 CPython 3.11-3.13
+  consumers.
+
+### Compatibility And Verification
+
+- No public endpoint, methodology, selection, accounting, trace, or backend
+  promotion policy changed. The release remains native-first: publish the
+  complete native wheel matrix before publishing the matching core package.
+
 ### Changed
 
 - NEXT-01 reduces generic every-bar and declared sparse callback overhead while

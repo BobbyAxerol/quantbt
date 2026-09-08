@@ -1,8 +1,8 @@
 # quantbt-native
 
 `quantbt-native` is the PyO3/Rust accelerator companion to `quantbt-engine`.
-The governed `0.4.1` release is a wheel-only Linux companion for
-`quantbt-engine==1.1.0`. Its native-first OIDC publish flow and Poetry
+The governed `0.4.2` release is a wheel-only Linux companion for
+`quantbt-engine==1.1.1`. Its native-first OIDC publish flow and Poetry
 consumer proof are documented in `docs/testpypi_release_checklist.md`.
 
 ## Scope
@@ -18,7 +18,7 @@ silently falling back:
 - reactive per-bar strategy callbacks.
 
 The Rust distribution version and native API version are separate contracts.
-The distribution is `0.4.1` and advertises Native Event API `0.4`. It targets
+The distribution is `0.4.2` and advertises Native Event API `0.4`. It targets
 pre-built `manylinux_2_17_x86_64` wheels for CPython 3.11, 3.12, and 3.13 only.
 It never asks an end user to compile Rust locally.
 

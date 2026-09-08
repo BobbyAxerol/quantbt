@@ -1,0 +1,1629 @@
+{
+  "schema": "quantbt-followup-native-metrics-v1",
+  "wheels": {
+    "before": {
+      "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "675af42dc8f32aef98d72797beb072245fa5c4965a91be8c0ee31eceadf87af5"
+    },
+    "after": {
+      "filename": "quantbt_native-0.4.1-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "d8be3de2ed355c662a6430e9181750214d1c491180357f51527064a3c5e14fe9"
+    }
+  },
+  "pairs": [
+    {
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.016027262434363365,
+          "rust_prepared_score": 0.0018074093386530876,
+          "numba_warmed_kernel": 0.0006033405661582947,
+          "rust_public_compact": 0.023131190799176693,
+          "numba_public_compact": 0.05818965658545494
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 11065561.946749894,
+          "numba_warmed_kernel": 33148773.87964781,
+          "rust_public_compact": 864633.3936561475,
+          "numba_public_compact": 343703.6953574184
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.33381512049058815,
+          "rust_public_vs_numba_public": 2.515636012458385
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.78515625,
+          "after_score_warmup": 214.5,
+          "after_score_timing": 217.51171875,
+          "score_timing_delta": 3.01171875,
+          "after_public_compact": 231.203125
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01575784757733345,
+          "rust_prepared_score": 0.0023791445419192314,
+          "numba_warmed_kernel": 0.0007929215207695961,
+          "rust_public_compact": 0.02231673989444971,
+          "numba_public_compact": 0.06474083010107279
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 8406382.902598346,
+          "numba_warmed_kernel": 25223177.16965021,
+          "rust_public_compact": 896188.2467866242,
+          "numba_public_compact": 308924.05872424226
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.33328009576499057,
+          "rust_public_vs_numba_public": 2.9009985511895566
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 155.17578125,
+          "after_score_warmup": 215.1796875,
+          "after_score_timing": 218.1328125,
+          "score_timing_delta": 2.953125,
+          "after_public_compact": 231.859375
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01551390253007412,
+          "rust_prepared_score": 0.002069341018795967,
+          "numba_warmed_kernel": 0.0005941689014434814,
+          "rust_public_compact": 0.023540109395980835,
+          "numba_public_compact": 0.06038984935730696
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 9664912.558316208,
+          "numba_warmed_kernel": 33660462.456738725,
+          "rust_public_compact": 849613.7236904573,
+          "numba_public_compact": 331181.4851808381
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.28712952386610247,
+          "rust_public_vs_numba_public": 2.5654022392783666
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.921875,
+          "after_score_warmup": 215.05078125,
+          "after_score_timing": 217.74609375,
+          "score_timing_delta": 2.6953125,
+          "after_public_compact": 229.7578125
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01659460086375475,
+          "rust_prepared_score": 0.001835607923567295,
+          "numba_warmed_kernel": 0.0005780011415481567,
+          "rust_public_compact": 0.022272231988608837,
+          "numba_public_compact": 0.06098417658358812
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10895572.928848702,
+          "numba_warmed_kernel": 34602007.78571244,
+          "rust_public_compact": 897979.1522569011,
+          "numba_public_compact": 327953.9237950839
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.3148826795347872,
+          "rust_public_vs_numba_public": 2.738125959480781
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.7109375,
+          "after_score_warmup": 214.37890625,
+          "after_score_timing": 217.390625,
+          "score_timing_delta": 3.01171875,
+          "after_public_compact": 231.01953125
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.015836717560887337,
+          "rust_prepared_score": 0.0019463030621409416,
+          "numba_warmed_kernel": 0.0006852857768535614,
+          "rust_public_compact": 0.026219887658953667,
+          "numba_public_compact": 0.05855162441730499
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10275891.966177104,
+          "numba_warmed_kernel": 29184904.569052216,
+          "rust_public_compact": 762779.7746559117,
+          "numba_public_compact": 341578.90919400315
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.3520961304452474,
+          "rust_public_vs_numba_public": 2.233099743938474
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.71875,
+          "after_score_warmup": 214.8671875,
+          "after_score_timing": 217.5625,
+          "score_timing_delta": 2.6953125,
+          "after_public_compact": 230.28125
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.015734056010842323,
+          "rust_prepared_score": 0.001933160237967968,
+          "numba_warmed_kernel": 0.0006337715312838554,
+          "rust_public_compact": 0.022759661078453064,
+          "numba_public_compact": 0.056176139973104
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10345753.863126682,
+          "numba_warmed_kernel": 31557113.269959018,
+          "rust_public_compact": 878747.7076683854,
+          "numba_public_compact": 356023.0377091697
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.327842213405983,
+          "rust_public_vs_numba_public": 2.4682327113511744
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 155.51171875,
+          "after_score_warmup": 215.33203125,
+          "after_score_timing": 218.0859375,
+          "score_timing_delta": 2.75390625,
+          "after_public_compact": 231.7890625
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.015211202204227448,
+          "rust_prepared_score": 0.0018840907141566277,
+          "numba_warmed_kernel": 0.0006069159135222435,
+          "rust_public_compact": 0.023067016154527664,
+          "numba_public_compact": 0.05851972009986639
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10615200.133265646,
+          "numba_warmed_kernel": 32953494.14044817,
+          "rust_public_compact": 867038.8864350077,
+          "numba_public_compact": 341765.13431487966
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.32212669430511803,
+          "rust_public_vs_numba_public": 2.5369436474938247
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.91015625,
+          "after_score_warmup": 215.5,
+          "after_score_timing": 218.1953125,
+          "score_timing_delta": 2.6953125,
+          "after_public_compact": 230.6875
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01540463138371706,
+          "rust_prepared_score": 0.0018936507403850555,
+          "numba_warmed_kernel": 0.0006259344518184662,
+          "rust_public_compact": 0.023485975340008736,
+          "numba_public_compact": 0.05876705422997475
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10561609.685180485,
+          "numba_warmed_kernel": 31952227.492664695,
+          "rust_public_compact": 851572.0429089303,
+          "numba_public_compact": 340326.74024689826
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.33054376843070254,
+          "rust_public_vs_numba_public": 2.5022190213179747
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.125,
+          "after_score_warmup": 214.10546875,
+          "after_score_timing": 216.859375,
+          "score_timing_delta": 2.75390625,
+          "after_public_compact": 230.56640625
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.022675746120512486,
+          "rust_prepared_score": 0.0018312614411115646,
+          "numba_warmed_kernel": 0.0005872612819075584,
+          "rust_public_compact": 0.02320742979645729,
+          "numba_public_compact": 0.05798541195690632
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10921433.472579492,
+          "numba_warmed_kernel": 34056391.2795944,
+          "rust_public_compact": 861792.9764481322,
+          "numba_public_compact": 344914.338366064
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.3206867510687575,
+          "rust_public_vs_numba_public": 2.4985710380456707
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.3984375,
+          "after_score_warmup": 215.34375,
+          "after_score_timing": 217.921875,
+          "score_timing_delta": 2.578125,
+          "after_public_compact": 231.33984375
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.015264659188687801,
+          "rust_prepared_score": 0.0019140560179948807,
+          "numba_warmed_kernel": 0.0006311843171715736,
+          "rust_public_compact": 0.024476688355207443,
+          "numba_public_compact": 0.05765466298907995
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10449014.977603175,
+          "numba_warmed_kernel": 31686465.35709701,
+          "rust_public_compact": 817104.0015609374,
+          "numba_public_compact": 346893.0172011948
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.3297627191877003,
+          "rust_public_vs_numba_public": 2.355492791851225
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.24609375,
+          "after_score_warmup": 214.640625,
+          "after_score_timing": 217.39453125,
+          "score_timing_delta": 2.75390625,
+          "after_public_compact": 231.125
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01565657090395689,
+          "rust_prepared_score": 0.0020137615501880646,
+          "numba_warmed_kernel": 0.0005784370005130768,
+          "rust_public_compact": 0.025235707871615887,
+          "numba_public_compact": 0.06191227212548256
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 9931662.464273492,
+          "numba_warmed_kernel": 34575934.77294829,
+          "rust_public_compact": 792527.7983779167,
+          "numba_public_compact": 323037.7324783752
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.28724205229713357,
+          "rust_public_vs_numba_public": 2.4533598360091577
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.80078125,
+          "after_score_warmup": 214.82421875,
+          "after_score_timing": 217.51953125,
+          "score_timing_delta": 2.6953125,
+          "after_public_compact": 229.8984375
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.0156777985394001,
+          "rust_prepared_score": 0.00404741708189249,
+          "numba_warmed_kernel": 0.0010908087715506554,
+          "rust_public_compact": 0.02342400047928095,
+          "numba_public_compact": 0.0581167321652174
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 4941423.034823089,
+          "numba_warmed_kernel": 18335019.410935525,
+          "rust_public_compact": 853825.1191418156,
+          "numba_public_compact": 344134.9720617965
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.26950737951637427,
+          "rust_public_vs_numba_public": 2.4810762882549864
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 154.203125,
+          "after_score_warmup": 213.95703125,
+          "after_score_timing": 216.96875,
+          "score_timing_delta": 3.01171875,
+          "after_public_compact": 230.62109375
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    },
+    {
+      "before": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.01505676843225956,
+          "rust_prepared_score": 0.0018187863752245903,
+          "numba_warmed_kernel": 0.0005931295454502106,
+          "rust_public_compact": 0.02229885570704937,
+          "numba_public_compact": 0.059206404723227024
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 10996343.645652354,
+          "numba_warmed_kernel": 33719446.54151253,
+          "rust_public_compact": 896907.0100613894,
+          "numba_public_compact": 337801.2918280424
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.3261128154080046,
+          "rust_public_vs_numba_public": 2.6551319718397037
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 155.02734375,
+          "after_score_warmup": 214.8125,
+          "after_score_timing": 217.5078125,
+          "score_timing_delta": 2.6953125,
+          "after_public_compact": 231.1640625
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "dbe336b9f71fdbd8ed6f9ad563ed04fe579d848e32accedcd30dbd0cc60de7de",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/before/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      },
+      "after": {
+        "schema": "quantbt-phase66-rust-target-vectorized-v1",
+        "fixture": {
+          "bars": 20000,
+          "symbols": 1,
+          "repeats": 21,
+          "contract": "close_target_v2_same_close"
+        },
+        "timings_seconds": {
+          "rust_ingestion_market_template_request": 0.027400816790759563,
+          "rust_prepared_score": 0.0034784646704792976,
+          "numba_warmed_kernel": 0.0010219654068350792,
+          "rust_public_compact": 0.022642701864242554,
+          "numba_public_compact": 0.056138211861252785
+        },
+        "throughput_bars_per_second": {
+          "rust_prepared_score": 5749663.111353148,
+          "numba_warmed_kernel": 19570134.043908514,
+          "rust_public_compact": 883286.8144408191,
+          "numba_public_compact": 356263.57407732506
+        },
+        "work_counters": {
+          "schema": "quantbt-native-work-counters-v1",
+          "supplied_market_bars": 20000,
+          "symbol_count": 1,
+          "candidate_count": 1,
+          "scenario_count": 1,
+          "fold_count": 1,
+          "folds": [
+            {
+              "fold_id": 0,
+              "test_start": 0,
+              "test_end": 20000,
+              "planned_test_bar_visits": 20000
+            }
+          ],
+          "planned_candidate_fold_scenario_tasks": 1,
+          "executed_candidate_fold_scenario_tasks": 1,
+          "skipped_candidate_fold_scenario_tasks": 0,
+          "early_terminated_candidate_fold_scenario_tasks": 0,
+          "warmup_bar_visits": 0,
+          "planned_simulation_bar_visits": 20000,
+          "actual_simulation_bar_visits": 20000,
+          "actual_simulation_symbol_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_bar_visits": 20000,
+          "logical_full_tape_candidate_fold_symbol_bar_visits": 20000,
+          "actual_visit_basis": "derived_exhaustive_test_windows"
+        },
+        "ratios": {
+          "rust_prepared_vs_numba_kernel": 0.29379784003793336,
+          "rust_public_vs_numba_public": 2.479307116166489
+        },
+        "evidence": {
+          "exact_accounting_parity": true,
+          "score_retains_paths": false,
+          "native_execution_passes": 1,
+          "boundary_calls": 1,
+          "generic_order_arena_used": false,
+          "prepared_market_entries": 1,
+          "prepared_request_entries": 2,
+          "prepared_market_copy_per_score": 0,
+          "pandas_in_prepared_score": false
+        },
+        "rss_mb": {
+          "process_start": 155.07421875,
+          "after_score_warmup": 215.73828125,
+          "after_score_timing": 218.375,
+          "score_timing_delta": 2.63671875,
+          "after_public_compact": 231.96484375
+        },
+        "environment": {
+          "python": "3.12.13",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35"
+        },
+        "measurement_identity": {
+          "git_commit": "992781e3688c79a30d6dde95bffbf35c9ed28ae2",
+          "git_dirty": true,
+          "git_status_sha256": "c8692a46eedca0e8f2f9d3afe09933cf44b446c897fc0dc46f5264a282283708",
+          "canonical_source_sha256": "84a30b555026e06ce6109a22cbcb4d21aa8e56303ddc20e5796da794a4d9d865",
+          "product_registry_sha256": "13f9c8d50c06e484a63f76ec157274ae66bcbf72990e289a03d2f6380a745ae0",
+          "lifecycle_registry_sha256": "19b1b87d78e24441ec05de605dc452ad9bff1612ac24e65c7ef9c94403a230aa",
+          "core_distribution": {
+            "distribution": "quantbt-engine",
+            "version": "1.1.0"
+          },
+          "native_distribution": {
+            "distribution": "quantbt-native",
+            "version": "0.4.1"
+          },
+          "native_extension": {
+            "available": true,
+            "module_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+            "module_sha256": "cfb689e2dba0da732e05380657860219f7b68c0f421eeeeb6c7724f950872396",
+            "wrapper_path": "/tmp/quantbt-wheel-ab-o14sfds7/after/_quantbt_native/__init__.py",
+            "wrapper_sha256": "0f126297d1089905c778923e8b3afa883aa815b2a5e5b7ef208185d66bf9a1f9",
+            "version": "0.4.1",
+            "api_version": "0.4",
+            "capability_sha256": "809974cd5cf04bb94b36e0ba6177ff5bb9507107bbc69022b7d7d6439a51c57a"
+          },
+          "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+          "platform": "Linux-5.15.0-46-generic-x86_64-with-glibc2.35",
+          "cpu_count": 4,
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": null,
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "NUMBA_NUM_THREADS": null
+          },
+          "data_sha256": "b9f390931219e6871707dbcaec80425f3389038ab7156f63cd18a5aa2d1da721",
+          "intent_sha256": "a17efe324ff385cde3e4a09e52e763125a86312afa13e3275eaf13c4871e6dba",
+          "measurement_contract_sha256": "cdfb26a0a21a165157f270662e6ea4f15a5a5e3e3a830c134b37cfe53979f09d",
+          "warmup_procedure": "warm Numba and typed Rust score/compact requests before repeated median timing"
+        }
+      }
+    }
+  ],
+  "prepared_medians_seconds": {
+    "before": 0.001835607923567295,
+    "after": 0.0020137615501880646
+  }
+}

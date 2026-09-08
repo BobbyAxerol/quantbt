@@ -707,7 +707,7 @@ from .metrics import (
 )
 
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __author__  = "quantbt"
 
 __all__ = [
