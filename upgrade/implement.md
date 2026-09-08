@@ -20590,7 +20590,7 @@ Only separately approved release actions can establish that it is published.
 
 ## Post-NEXT Architecture Rules And Measured Performance Follow-Up
 
-Status: IN_PROGRESS. User approved implementation on dev; no methodology,
+Status: COMPLETED_LOCAL. User approved implementation on dev; no methodology,
 version, publishing or merge change is authorized by this follow-up.
 
 The architecture rules in [AGENTS.md](../AGENTS.md) constrain engineering,
@@ -20623,8 +20623,8 @@ and guide sections 8.2, 9 and 11 (selection parity, measurement, failure rules).
 
 ### FOLLOWUP-02 - Callback/Native Review And Candidate Qualification
 
-Status: IN_PROGRESS (2026-09-08); review and matched experiments complete,
-final source-bound wheel verification pending.
+Status: COMPLETED_LOCAL (2026-09-08); review, matched experiments and
+source-bound wheel verification passed. No native performance promotion.
 
 Guide: [N1.07-N1.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n107--chia-sẻ-account-projection-theo-event-phase-không-tính-lại-cho-từng-consumer),
 [N3.05-N3.10](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md#n305--wheelsdist-closure-theo-distribution-hiện-tại),
@@ -20647,6 +20647,20 @@ and guide sections 8.1, 8.3, 8.4 and 9.
   changes on dev; publication remains a separately approved action.
 
 ### Follow-Up Evidence And Dispositions
+
+- Final release regression: 24 isolated shards, 1,384 passed, 25 skipped,
+  no failures, 362.04 s summed pytest runtime. Command:
+  `.venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8`.
+  Optional-environment skips remain explicit; this public profile excludes
+  private/out-of-tree alpha tests and the two real-data suites by design.
+- Clean CPython 3.12 wheel, sdist, editable install, direct-target and public
+  surface smoke: PASS. Core artifact source is clean commit `da5ec61`; native
+  source/wheel are unchanged. Updated exact artifact hashes and qualification
+  provenance in `contracts/next03_product_qualification.json`.
+- Source inventory, PERF-01 traceability, public API inventory, architecture,
+  product/lifecycle contracts, docs links and artifact allowlist gates: PASS.
+  The remote CPython matrix and new-version publication remain separate release
+  actions; no push, merge, tag or publish was performed in this follow-up.
 
 - Packaging regression found during final release shards: a new canonical
   module under a formerly mirrored directory was labeled `absent_unproven`.

@@ -89,3 +89,14 @@ hashes and exact output hashes. It does not change a notebook, strategy, seed,
 optimizer schedule or installed package. The ordinary callback and native
 direct-target review are tracked separately in the implementation plan; these
 statistical results are not evidence of callback or Rust-kernel speedups.
+
+Final local release regression: **1,384 passed, 25 skipped across 24 isolated
+shards**. Optional-environment skips and the release profile's exclusions for
+private alpha/real-data suites are not claimed as passes. Clean wheel/sdist and
+editable consumer checks passed on CPython 3.12, including direct-target and
+public callback/WFO smokes. The exact rebuilt core artifacts are bound in
+[`next03_product_qualification.json`](../../contracts/next03_product_qualification.json).
+The inventory tool also now classifies new canonical modules using the frozen
+retirement ledger, without requiring new root mirrors. Public API and execution
+contracts are unchanged. Remote version-matrix certification and publishing
+remain separate, unperformed release actions.
