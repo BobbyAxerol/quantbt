@@ -1,9 +1,13 @@
 # QuantBT Upgrade Implementation Plan
 
-**Active planning (2026-09-07):**
-[NEXT-01 to NEXT-03: public reactive, fresh WFO and final package closure](#next-performance-closure).
-The [revision-2 detailed guide](QUANTBT_DEV_REACTIVE_WFO_PERFORMANCE_CLOSURE_3_PHASES_VI.md)
-is required reading. These phases are planned only and need individual approval.
+**Active planning (2026-10-03):**
+[QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
+The [QMS-V1.1 detailed guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
+is required reading before every phase. Plan authoring is approved; implementation
+requires individual phase approval. No QMS phase has started.
+
+Previous performance and package closure:
+[NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
 
 Mục tiêu: nâng cấp `quantbt` thành hệ backtest hai lớp:
 
@@ -20694,3 +20698,861 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 - Scripts: `benchmark_followup_statistical_work.py` and
   `benchmark_followup_native_metrics.py` under `benchmarks/native_event/`.
   See [follow-up report](../docs/performance/followup_statistical_work.md).
+
+---
+
+<a id="qms-meta-selection-samplers"></a>
+
+## Meta-Selection And WFO Sampler Integration - QMS-01 To QMS-08
+
+**Planning date:** 2026-10-03.
+**Status:** PLAN_RECORDED; implementation NOT_STARTED.
+**Authorization:** the owner approved writing these eight phases into the unified
+plan. Implementation, phase advancement, merge and publication require their
+respective explicit authorization; this record is not implementation approval.
+**Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
+**Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
+release tag `v1.1.1`, expected source commit
+`2c811a7faaed3c274e93c60650e16207949f0a59`.
+**Working branch:** `feat/meta-selection-samplers`, created from current
+`origin/dev` (`24f55c7`) for this plan. QMS-01 must record the actual entry SHA
+and reconcile any later changes before implementation.
+**Guide SHA256 at planning:**
+`adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d`.
+The guide is preserved unchanged; a future guide revision requires a recorded
+scope/requirement diff rather than silently replacing the accepted reference.
+
+### QMS Reading, Scope And Workflow Contract
+
+Before each phase, read this common contract, its entire phase below, its
+specific detailed-guide phase, and all linked specification sections. Follow
+[AGENTS.md](../AGENTS.md), [execution-plan ownership](../docs/architecture/execution-plan.md),
+[strategy/engine boundary](../docs/adr/ADR-RP-002-strategy-engine-boundary.md)
+and [WFO schedule provenance](../docs/adr/ADR-RP-005-wfo-optimizer-schedules.md).
+The guide's [R01-R30 rules](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s1),
+[report/review discipline](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
+and [Definition of Done](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15)
+are requirements, not optional background reading.
+
+- Extend shared preparation, configuration, evaluation, selection, retention
+  and result contracts. Use focused modules with typed interfaces; do not grow
+  a second optimizer factory, financial engine or monolithic WFO/FFI module.
+- Add one cohesive `src/quantbt/optimization/meta_selection/` package and thin
+  adapters only where the actual source requires them. Proposed contracts in
+  the guide are not existing APIs; choose exact names/bindings in QMS-01 and
+  publish executable examples only after integration tests.
+- Meta is opt-in: `off`, `shadow`, `active`. Omitted or off configuration keeps
+  legacy search, RNG, selected params, accounting, reports and retention behavior,
+  with zero new archive reads or auxiliary evaluations.
+- Active/shadow V1 supports `mode_4_is_only_robust + per_fold_causal` on qualified
+  routes. Unsupported combinations fail before optimizer/evaluator work.
+  Sampler-only configuration does not enable meta or change the chosen mode.
+- The four new WFO recipes are legacy TPE, multivariate/group TPE, CMA-ES and
+  Sobol/QMC. Preserve existing generic sampler choices; do not rewrite Optuna,
+  add a learned auto-sampler or change sequential ask/evaluate/tell semantics.
+- Keep current financial backend, fees, funding, sizing, timing, account/fold
+  policy, strategy lifecycle and final account authority. No Mode 6, new market
+  collector, alpha implementation, database service, portal or live controller.
+- Native selection remains the exact stock selector result. Meta runs after
+  native selection and any applicable native baseline floor, before final fold
+  params/OOS execution. No downstream raw-IS floor may overwrite a meta winner.
+- Current descriptors use current IS only. History uses permitted, compatible,
+  sealed task revisions whose labels were available at the frozen cutoff.
+  Observer evaluations happen after decision/panel sealing and never feed the
+  current Optuna objective or current selection.
+- Preserve full eligible current candidates and the registered historical
+  label panel. Reducing trials, labels, origins, descriptors, precision or
+  output requirements is a policy change, not a performance-only optimization.
+- Design new numeric work Rust-first using the existing crate/capability system.
+  Batch by task/pool, not by scalar/bar. Qualify NumPy/Numba reference/fallback
+  blocks with explicit reasons, costs and parity; `require` fails when missing.
+- Protect the released tag/wheels and user files. Work on the dev-based feature
+  branch; no direct commits/pushes to protected branches. After each coherent
+  verified change, create a scoped commit, update evidence and report for owner
+  review. Push, merge, version selection and publishing are separate actions.
+
+### QMS Mathematical, Information And Decision Contract
+
+Read [meta mathematics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[history/causality](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6)
+and [chronological flow](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7).
+
+- For candidate theta and the explicit same-task native anchor a, use raw
+  authoritative IS/FWD Sharpe: `D = I - O`, `Y = D_theta - D_anchor`.
+  Contrast descriptors are `v = phi(x_theta) - phi(x_anchor)`; the canonical
+  anchor has zero contrast, predicted Y and predicted Q.
+- Implement `ridge_origin_sum_v1`: each eligible origin has total non-anchor
+  row weight one; solve weighted Gram/b with positive lambda, no explicit
+  inverse or dense N-by-N weight matrix. Starting `lambda_reg=10.0` follows
+  the guide's origin-sum convention; do not silently switch to mean-loss.
+- Use versioned `origin_balanced_zscore_v1`, frozen category vocabulary and
+  conditional activity masks. Fit transformations on permitted history only.
+  Do not use ordinal category codes, arbitrary epsilon scales or current OOS.
+- Compute `Qhat = I_theta - I_anchor - Yhat`; apply the registered Q floor,
+  then minimize signed Y with the declared deterministic tie rule. Starting
+  `q_hat_floor=-0.10`, `tie_tolerance=1e-6`, `min_matured_origins=12` are
+  integration defaults, not statistical guarantees or universal tuning advice.
+- Native fallback is valid for no/insufficient history or registered support
+  failures. Corrupt schemas, duplicate/missing anchors and invalid labels do
+  not become successful fallback runs. Undefined metrics never become label 0.
+- A smaller signed decay can result from lower IS quality. Report actual
+  forward-Sharpe differences and IS/FWD decomposition separately; coefficient
+  magnitude, in-sample fit or predicted-Q acceptance does not certify edge.
+- Separate `task_id`, `compatibility_family_id` and `training_snapshot_id`.
+  Keep exact task revisions, corpus authorization, economic/metric identities,
+  source strategy semantics and sampler policy provenance.
+- Separate data cutoff, label/revision availability, computation completion,
+  decision seal, readiness and actual effect. Preserve distinct wall/replay
+  clocks; no backdating. Resolve equality using explicit event ordering.
+- Learn from past matured forward outcomes only. Final meta policy is adaptive
+  selection, not stock IS-only selection; distinguish native/final information
+  scopes, active same-anchor decisions, cold start and shadow proposals.
+
+### QMS Planning-Time Findings And Mandatory Resolution
+
+These are read-only source observations, not executed QMS gates or claims that
+every route is defective. QMS-01 must verify them against the actual baseline.
+
+| Finding | Required disposition and owner |
+|---|---|
+| WFO constructs `TPESampler` directly; generic `build_sampler` already exists | QMS-02 reuses the factory and preserves the omitted-config legacy trajectory. |
+| Generic factory lacks Sobol; `cmaes` is absent from the current dependency lock | QMS-02 adds tested optional dependency/capability wiring and preflight errors; QMS-08 proves installed wheels. |
+| Current search-space syntax does not declare general `active_if`/log schemas | QMS-01/02 freeze a minimal additive provider/normalized view or explicit unsupported status; do not infer alpha conditions from booleans. |
+| `fold_candidates` is native winner plus top IS, not the full eligible pool | QMS-01 traces the full source; QMS-03/05 capture compact numeric records before lossy compaction. |
+| `mean_is_sharpe` includes trade penalty; raw Sharpe lives in fold metrics | QMS-03 preserves raw metrics and their definitions separately from objective/temporal/plateau scores. |
+| Centroid may have `requires_evaluation=True` and cluster-average metrics on the causal return path | QMS-01 reproduces the distinction; QMS-03/05 require a same-IS authoritative evaluation of exact anchor params or reject that opt-in combination. Never label the centroid with cluster averages. |
+| Scorer `volatility=0.0` can be a placeholder; Sharpe 0 does not prove metric validity | QMS-01 maps authoritative validity evidence; QMS-03/06 preserve actual sample/variance/status evidence or block the affected lane. Do not infer validity from placeholders or recalculate Sharpe independently. |
+| Generic baseline floor is not automatically a WFO call-site dependency | QMS-01 maps actual callers; QMS-05 preserves only applicable native-stage floors, with no invented generic-optimizer dependency. |
+| W3 has a separate selection loop and reset-flat account contract | QMS-06 qualifies an adapter separately or records an approved unsupported route before enabling it. Scalar success is not generic reactive certification. |
+| Full history may be shorter than the default 12-origin support gate | QMS-01/08 report actual eligible origins and study feasibility. Do not count candidates/seeds as origins or lower support after seeing outcomes. |
+
+An existing economic defect requires a separate minimal reproducer and an
+approved repair scope; the meta PR must not absorb an accounting rewrite.
+Missing mandatory scalar functionality/evidence remains a blocker. Optional
+W3 deferral must be explicit and reviewed before its phase, not disguised as
+completed support. No required QMS work may be relabeled future technical debt.
+
+### QMS Phase Map, Test Cadence And Evidence
+
+| Phase | Goal/output | Entry dependency | Current status |
+|---|---|---|---|
+| [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and approved boundaries | Owner phase approval | NOT_STARTED |
+| [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | NOT_STARTED |
+| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | NOT_STARTED |
+| [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
+| [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
+| [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
+| [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | NOT_STARTED |
+| [QMS-08](#qms-08) | Regression, bounded economic evidence, docs and package qualification | QMS-01 through QMS-07 accepted | NOT_STARTED |
+
+All 64 guide test IDs Q1-T01 through Q8-T08 are retained below. Map each ID to
+actual test functions, command/log, expected/actual result and evidence hashes
+when executed. Extra discovered invariants become named subcases of their
+owning tests or a reviewed requirement addition; do not replace required tests
+with an uncalled helper or a success flag in a manifest.
+
+Run focused unit/integration and affected legacy tests in each phase. Run small
+public/real-alpha checks where specified; do not rebuild every wheel or repeat
+the full market study after an unrelated prose change. Native changes require
+their affected Rust/binding parity and installed-artifact checks. Final broad
+regression, remote CPython matrix and clean consumer proof belong to QMS-08.
+
+Proposed artifacts follow existing repository conventions, frozen in QMS-01:
+`docs/meta_selection.md`, focused `tests/meta_selection/`,
+`benchmarks/optimization/meta_selection/` manifests/small derived evidence,
+safe model/history artifacts and a current handoff record. Do not commit raw
+market tapes, private alpha source, user credentials or unbounded caches.
+
+After every phase/run, record implementation, technical, empirical, performance
+and owner-review status separately; see the completion template after QMS-08.
+Negative empirical results may still be technically valid. Missing required
+tests, invalid labels, stale artifacts or unqualified mandatory routes cannot
+be marked complete by a positive Sharpe result.
+
+<a id="qms-01"></a>
+
+### Phase QMS-01 - Source Reconciliation, Selection Boundary And Baseline Lock
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** identify the exact released/current source and prove the usable
+integration boundaries before adding sampler or meta behavior.
+**Entry:** individual owner approval, preserved dirty state and a dev-based
+feature branch; access to actual source and baseline artifacts.
+
+**Required guide:** [QMS-01 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-01--xác-minh-đúng-source-111-và-điểm-nối),
+[source identity and observed symbols, section 0](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s0),
+[integration boundaries, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[support matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[clock/history rules, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6)
+and [measurement contract, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+**To Do:**
+
+1. Record actual branch/SHA, tag/native manifests, dirty files, package versions,
+   module origins and source hashes. Reconcile the released tag with current
+   dev; preserve source and artifacts instead of resetting/downgrading them.
+2. Read full endpoint/config, `_run_per_fold_schedule`, `optimize_params`,
+   selection, raw-metric retention, post-selection OOS and prepared/native
+   scorer branches. Map actual successors if symbols differ; record exact
+   caller/file/range/hash, not just grep matches from this planning document.
+3. Trace a minimal public Mode 4 causal run with call counters. Identify native
+   anchor, raw-best, full eligible trial pool, compact-ledger boundary and the
+   point before `params_by_fold`/OOS materialization where a hook belongs.
+4. Cover medoid/fallback and centroid anchor cases. Determine how a same-IS
+   evaluation of exact anchor params can reuse the existing evaluator without
+   changing native selection/RNG or mistaking cluster averages for raw metrics.
+5. Map metric definition, daily marks/annualization, activity semantics and
+   authoritative validity evidence. Distinguish true zero Sharpe, undefined
+   variance, absent data and placeholder fields; block unsupported label lanes.
+6. Map cutoff, label/revision availability, wall/replay completion, seal,
+   readiness and effective-time owners. Record route limitations explicitly;
+   do not implement a new live clock/controller or backdate historical decisions.
+7. Capture valid existing modes/schedules on small deterministic fixtures and
+   one approved existing real strategy. Save proposals/objectives/params,
+   selected/output/account lineage, timings, evaluator/callback counts and RSS.
+8. Freeze the file allowlist, sampler roster/version, API/history-handle binding,
+   schemas, route matrix, numerical boundaries and registered benchmark budgets.
+   Check available matured-origin coverage before promising the economic study.
+9. Produce `SOURCE_AND_SEAM_MAP.md`, `legacy_baseline_manifest.json` and the
+   requirement-to-owner map. Separate reproducible existing financial defects
+   from the meta scope; request only a concrete additional repair when needed.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q1-T01 | Detect source/tag/distribution/import mismatch; canonical imports use `src/quantbt`, not retired mirrors. |
+| Q1-T02 | Actual Mode 4 causal excludes current outer OOS; cutoff and completion/seal/effect are distinct and ordered without backdating. |
+| Q1-T03 | Native-selected differs from raw-best in a required fixture; centroid anchor cannot use cluster-average raw metrics as its own evaluation. |
+| Q1-T04 | Full eligible pool IDs/counts have an actual source; filtered candidates and compaction losses are identified. |
+| Q1-T05 | Prepared/native timing, capability guards and reference routes match installed exports; placeholders do not certify metric validity. |
+| Q1-T06 | Baseline records cover actual supported five-mode/schedule combinations and preserve unsupported behavior. |
+| Q1-T07 | Protected financial source hashes and unrelated dirty/untracked state are recorded and preserved. |
+| Q1-T08 | Baseline outputs/resources are real; information budget, Rust-first blocks and fallback/route scope are frozen before comparisons. |
+
+**Deliverables:** source/caller map, verified baseline manifest, test receipts,
+capability/metric-validity matrix, allowed patch list and proposed final config
+binding. No new selection implementation is a deliverable of this phase.
+
+**Exit Gates:** `G1-SOURCE`, `G1-SEAMS`, `G1-BASELINE`, `G1-SCOPE`, `G1-OWNER`.
+Host hashes and actual call traces are mandatory; historical source excerpts
+alone do not pass the gate. Owner accepts the boundaries before QMS-02 begins.
+**Technical Debt Rule:** unresolved anchor, raw-metric, full-pool or mandatory
+scalar-route uncertainty blocks the affected scope; no assumed compatibility
+is carried forward as certification. Document optional route dispositions.
+
+<a id="qms-02"></a>
+
+### Phase QMS-02 - Shared Sampler Bridge And Search-Space Correctness
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** expose the four approved sampler recipes in WFO while preserving
+existing objectives, selection stages and default search trajectories.
+**Entry:** accepted QMS-01 source/API/stage/space map and phase approval.
+
+**Required guide:** [QMS-02 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-02--sampler-config-bridge-và-parameter-space-correctness),
+[endpoint matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[recipes/geometry/warm start/telemetry, section 4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4)
+and [fair costs/schedules, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+**To Do:**
+
+1. Reuse canonical `SamplerConfig` and `build_sampler`; add WFO plumbing and
+   recipe resolution instead of another factory in meta-selection. Omitted
+   config follows exact baseline constructor/default kwargs/seed behavior.
+2. Wire legacy TPE, multivariate/group TPE, CMA-ES and scrambled Sobol/QMC
+   through the locked Optuna version. Add required optional `cmaes` dependency
+   wiring and fail missing dependencies before the first expensive evaluation.
+3. Bind each existing study/stage and derived seed separately. Preserve Mode 1
+   candidate-stage and nested/decay behavior, Mode 2 proxy/bootstrap streams,
+   Mode 3 plateau and Mode 5 full-sample semantics; meta remains off here.
+4. Normalize existing ranges/fixed params through a shared view. Add only the
+   reviewed schema/provider support for conditional activity/log transforms;
+   preserve legacy syntax. Never reinterpret numeric categorical lists as
+   continuous or bool flags as an unregistered conditional branch.
+5. Preflight objective count, numeric dimensionality, dynamic/categorical
+   space, TPE group settings and constraints. CMA defaults reject unsupported
+   categorical/dynamic geometry; explicit independent dimensions are opt-in
+   only if supported and accurately reported. Sobol records its independent
+   first trial, fixed relative space, ordering, rounding/dedup and sequence.
+6. Apply existing formal-constraint or explicit post-filter conventions.
+   Parameter-only invalid cases can reject early; result constraints require
+   actual evaluator outputs. Do not manufacture COMPLETE/zero/-1e9 outcomes.
+7. Add reviewed historical-params-only warm start via enqueue, default off.
+   Validate availability/effective schema, rescore on current IS and charge
+   enqueued attempts within the declared budget. Preserve task-local sampler
+   state and supported resume; seed-only reconstruction is not exact resume.
+8. Emit actual sampler/version/kwargs, stages/seeds, attempts/status/unique
+   counts, joint/independent dimensions, constraint reasons, startup/adaptive
+   counts and ask/tell digest. Use public capabilities; unavailable telemetry
+   is `not_exposed`, not guessed from unstable private Optuna internals.
+9. Run geometry/stage tests and sampler-only legacy matrix; document recipes
+   and dependency/space errors. Sampler superiority is not this phase's gate.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q2-T01 | Omitted configuration matches legacy proposals, objective values, selected params and RNG/seed trace. |
+| Q2-T02 | Actual TPE class/kwargs match the recipe; group without multivariate fails preflight. |
+| Q2-T03 | CMA unsupported categorical space fails by default; approved independent dimensions and dependency failures have truthful metadata. |
+| Q2-T04 | Integer/log/step/conditional mapping is correct; inactive params do not create false effective identities; legacy range syntax is unchanged. |
+| Q2-T05 | Sobol startup/scramble/ordering/resume position is correct; total attempts are not mislabeled pure QMC points. |
+| Q2-T06 | Early rejects and formal/post-filter constraints retain real statuses; invalid work is not scored as successful. |
+| Q2-T07 | Warm-start availability, current evaluation and budget are correct; selector-only comparisons use the same arm-independent seed pool. |
+| Q2-T08 | Supported mode/study stages keep their real scorer/selector; unsupported sampler combinations fail before financial evaluation. |
+
+**Deliverables:** shared factory/WFO config bridge, capability/space report,
+dependency lock changes where needed, reproducibility fixtures and sampler-only
+examples/tests. Existing generic sampler choices remain supported.
+
+**Exit Gates:** `G2-SAMPLER4`, `G2-SPACE`, `G2-LEGACY`,
+`G2-REPRODUCIBILITY`, `G2-COST`, `G2-OWNER`.
+All four recipes require actual capability tests. A missing optional dependency
+is not full delivery; exact default parity is mandatory before QMS-03.
+**Technical Debt Rule:** no duplicate factory, silent independent-sampling
+claim, hidden warm-start budget or unqualified resume path. Unsupported spaces
+have explicit early errors; new DSLs/model-driven sampler choice stay outside scope.
+
+<a id="qms-03"></a>
+
+### Phase QMS-03 - Historical Tasks, Descriptors And Causal Label Records
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** produce trustworthy compact historical learning records and current
+IS descriptors with explicit anchor, information frontier and task revisions.
+**Entry:** accepted QMS-01/02 contracts and phase approval.
+
+**Required guide:** [QMS-03 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-03--historydescriptorslabels-đúng-task-và-thời-gian),
+[descriptors/normalization, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[records/clock/identity/panel/revisions, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[observer flow, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7)
+and [DSA/information budget, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+**To Do:**
+
+1. Implement/reuse versioned task, candidate IS/FWD, training snapshot and
+   status records in focused modules. Distinguish exact task identity,
+   compatible family and explicitly allowed corpus; keep one anchor evaluation
+   reference per task and requested/effective params separately.
+2. Capture the full eligible pool before native compaction into compact numeric
+   columns, with raw IS Sharpe, actual activity definition and validity/source
+   refs. Preserve native trial IDs and logical roles while deduplicating only
+   exact physical candidate evaluations under an approved purity contract.
+3. For synthetic/centroid native anchor params, obtain an authoritative same-IS
+   anchor evaluation using the existing scorer or reject the opt-in contract.
+   Keep stock selected params/provenance; never borrow a medoid/cluster score.
+4. Implement schema-driven numeric/log encoding, frozen categorical one-hot
+   blocks, conditional activity masks and logical-parameter distance. Fixed
+   params belong to identity, not variable distance dimensions. Optional
+   temporal/plateau features require available, qualified IS evidence.
+5. Define origin-balanced historical numeric standardization and support
+   validation. Unknown categories, dimension errors or unsupported constant
+   features do not become zero-filled valid inputs or extreme epsilon scores.
+6. Implement bounded in-memory history plus a reviewed adapter to existing
+   retention. Index compatible corpus/task revisions by availability; expose
+   immutable as-of snapshots, not unrestricted archive access to selection.
+7. Freeze panel membership before forward reveal: acceptance base cap 16 with
+   1 anchor + 5 top + 5 diversity + 5 controls, deterministic dedup/refill and
+   required winner union. Track any extra union evaluations separately; neither
+   history support nor label acquisition may use outcomes to choose membership.
+8. Implement a thin post-decision observer using existing financial evaluation
+   and metric extraction. Check same-origin/window/economics and valid raw
+   I/O before deriving D/Y/Q. Preserve failed, incomplete, no-variance and
+   undefined dispositions without training on invented zero labels.
+9. Seal tasks only after required terminal dispositions/reconciliation. Late
+   labels/corrections create immutable revisions; select at most one revision
+   per task and replace its entire contribution, including recalculated 1/M
+   weights. Earlier model/decision snapshots keep their original references.
+10. Validate imported history as verified/unverified by actual provenance;
+    retain research exposure/outcome origin. Use safe JSON/numeric artifacts,
+    `allow_pickle=False`, content digests, explicit pending maturity and strict
+    corrupt-checkpoint handling. Do not open a database/service/collector.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q3-T01 | STATIC/control insertion, role order and duplicate params do not change the explicit anchor; missing/duplicate anchor references fail. |
+| Q3-T02 | Actual same-task raw labels satisfy Y/Q identities; current anchor metrics are its own evaluation, not stale/penalized/cluster values. |
+| Q3-T03 | Future/unmatured/unavailable revisions are excluded; labels arriving during compute cannot enter a previously frozen snapshot; completion after cutoff is valid. |
+| Q3-T04 | Category permutation, conditional masks and feature shapes are correct; unknown/invalid schemas fail without padding/reset. |
+| Q3-T05 | Alpha-specific parameter keys use their actual schema; HMA-like geometry does not default to unrelated alpha names. |
+| Q3-T06 | Failed/censored/incomplete/no-variance outcomes remain typed non-training records; a genuine finite zero is distinguished from undefined. |
+| Q3-T07 | Incompatible families/corpora are excluded; valid folds with different dates/derived seeds share the registered family without authorizing other runs. |
+| Q3-T08 | Serialization, maturity, sealing/hashes and late revisions preserve earlier snapshots; each task contributes once with correct reweighted membership. |
+
+**Deliverables:** typed records/provider, full-pool descriptor view, as-of index,
+panel/observer contracts, safe history serialization and actual engine-produced
+label integration fixture. Raw paths/fills are referenced, not copied per row.
+
+**Exit Gates:** `G3-TASK`, `G3-CAUSALITY`, `G3-DESCRIPTORS`,
+`G3-LABELS`, `G3-PORTABLE_HISTORY`, `G3-OWNER`.
+At least one actual evaluator-produced label must reconcile; fake labels are
+appropriate for isolated math/time tests but do not prove financial integration.
+**Technical Debt Rule:** no stale anchor, placeholder validity, winner-only
+history, mutable revision, cross-corpus leakage or unsafe pickle path. Missing
+mandatory validity/provenance blocks that lane rather than entering the learner.
+
+<a id="qms-04"></a>
+
+### Phase QMS-04 - Ridge Mathematics, Rust-First Numeric Policy And Artifacts
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** implement the exact small-model policy and portable deterministic
+decisions, with Rust-first batch design and an independent numerical reference.
+**Entry:** accepted QMS-03 descriptors/history/labels and phase approval.
+
+**Required guide:** [QMS-04 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-04--ridge-reference-ranking-và-decision-artifacts),
+[learner/guard/fixtures, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[safe state/revisions, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[Rust blocks/numerical boundaries, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8)
+and [cost/DSA constraints, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+**To Do:**
+
+1. Implement `ridge_origin_sum_v1` using the declared historical transforms,
+   anchor contrasts, valid non-anchor rows and per-origin 1/M weights. Preserve
+   lambda/support/loss versions; no intercept that breaks the anchor identity.
+2. Accumulate weighted d-by-d Gram and d-vector b; solve/Cholesky without an
+   explicit inverse or N-by-N weight matrix. Use an independent whitened-row
+   reference and explicit nonfinite/conditioning/residual checks; no silent jitter.
+3. Design contiguous numeric batches and implement qualified Rust transforms,
+   accumulation and/or scoring through the current crate/bindings. Resolve
+   NumPy/Numba reference/fallback blocks with reasons, true ownership/copy costs
+   and `auto/require` behavior. Do not defer all native design until QMS-07.
+4. Score every eligible current candidate independently of its forward labels.
+   Preserve exact anchor zero contrast/Yhat/Qhat and raw metric definitions;
+   apply existing feasibility, finite/support checks and predicted-Q guard.
+5. Implement signed-min-Y selection, deterministic total-order ties, native
+   cold-start/registered OOD fallback and strict invalid-input errors. Winner
+   reduction is linear when full ranking is not requested; retained predictions
+   must still allow requested complete reports without an engine rerun.
+6. Export immutable model/decision artifacts with coefficients, transforms,
+   categories/activity masks, basis/lambda/target versions, corpus/family/exact
+   task revisions, input frontier, actual completion and support/guard settings.
+7. Support safe restore and pure inference/shadow proposals without yet wiring
+   the whole WFO loop. Missing scaler/schema or tampered payload fails; weights
+   alone cannot be loaded as a complete model.
+8. Test target coupling, standardized coefficient units and the origin-sum
+   lambda convention. Profile fixed matrices (N,d,P), conversion/dispatch and
+   backend blocks; do not treat training fit as demonstrated forward edge.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q4-T01 | G/b/solution match the independent weighted reference without dense N-by-N allocations. |
+| Q4-T02 | Anchor contrast/Yhat/Qhat are zero; canonical candidate ordering/permutation keeps model/ranking within fixed tolerances. |
+| Q4-T03 | Origins have equal total weight; 1-to-10-label revisions replace/reweight the whole origin; duplicates/revisions do not inflate support. |
+| Q4-T04 | Guide section 5.7 selects y, excludes x/z by Q floor and distinguishes min-Y from max-IS or absolute-gap selection. |
+| Q4-T05 | Lambda/basis versions, units, snapshots and actual Rust/NumPy/Numba block resolutions are reproducible with equivalent mathematics. |
+| Q4-T06 | NaN/Inf, unknown IDs, invalid anchor and impossible empty safe pool do not become successful decisions. |
+| Q4-T07 | Unmatured history does not change fit; removing all current forward labels still permits identical inference. |
+| Q4-T08 | Full artifact restore reproduces scores/winner; missing scaler/category/schema and tampered content fail. |
+
+**Deliverables:** reference/Rust-first numeric policy, guarded selector,
+portable model/decision schema, mathematical fixtures and fit/rank cost report.
+Near-boundary policy is explicit; scalar coefficient allclose alone is not
+winner certification.
+
+**Exit Gates:** `G4-MATH`, `G4-POLICY`, `G4-SERIALIZATION`,
+`G4-SUPPORT`, `G4-RESOURCE`, `G4-OWNER`.
+Resource evidence includes implemented/resolved native blocks and every used
+fallback, not an unqualified NumPy-only timing. No economic superiority claim
+is required or inferred at this phase.
+**Technical Debt Rule:** no missing basis/provenance, silent conditioning fix,
+invented native capability or incomplete selector. Native ABI additions require
+a new candidate build/version policy; released companion 0.4.2 is immutable.
+
+<a id="qms-05"></a>
+
+### Phase QMS-05 - Public Mode 4 Causal Integration And Actual Selection
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** make the public WFO endpoint consume meta decisions at the actual
+selection boundary, with verified off/shadow/active behavior and correct claims.
+**Entry:** accepted QMS-02/03/04 contracts and individual phase approval.
+
+**Required guide:** [QMS-05 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-05--gắn-vào-actual-mode-4-per_fold_causal),
+[native/final selection boundary and metadata, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[public support/errors, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[history/clocks, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[actual fold flow, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7)
+and [proposed config/result contracts, section 13](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s13).
+
+**To Do:**
+
+1. Parse/validate `optimization_config.sampler_config` and `meta_selection`
+   through shared normalized contracts. Bind the QMS-01 chosen runtime history
+   handle explicitly; do not serialize a provider/callable/database URI as config.
+2. Preflight meta mode/schedule/route/scorer/schema/native requirements before
+   any Optuna or financial evaluation. `off` and sampler-only preserve their
+   routes; unsupported active/shadow requests fail with informative typed codes.
+3. Insert one shared hook after native selection/applicable native floor, before
+   final `params_by_fold` and outer-OOS strategy execution. Capture exact native
+   anchor and full eligible current-IS pool with authoritative raw descriptors.
+   Never turn on current outer-OOS candidate evaluation to obtain meta labels.
+4. Freeze the authorized as-of history before search/fit. Resolve cold start,
+   model fit/cache and guarded proposal; seal decision/panel with actual clock
+   owners. Historical replay clocks and wall completion remain separately recorded.
+5. In shadow, export the proposal but run native params. In active, feed actual
+   selected effective params into the existing downstream strategy/account path.
+   Ensure no later raw-IS floor or reconstruction silently restores the anchor.
+6. Record raw-best/native-selected/meta-proposed/actual-selected separately.
+   Keep raw trial objectives/metrics unchanged; predicted Y/Q belongs to a
+   research sidecar. Explain native IS-only scope versus actual final policy,
+   current outer-OOS exclusion and actual past-matured-forward usage.
+7. Cover active same-anchor, native fallback and shadow metadata individually.
+   Past-forward usage must reflect actual model-based decisions, not simply
+   `enabled=True` or whether final params differ from the native anchor.
+8. Attach the post-seal label observer using isolated existing evaluation
+   contexts/RNG/state. Auxiliary work is charged separately and visible only
+   to later eligible snapshots; shadow feedback cannot alter native search.
+9. Preserve the existing boundary position policy, fees, timing, warmup,
+   lifecycle isolation and stitched-account authority. Counterfactual reset
+   scores remain reset diagnostics; do not stitch their equities as a live account.
+10. Add executable public examples and forced-switch/future-mutation tests
+    using real endpoint calls. Keep phase changes within the frozen allowlist;
+    no alpha source needs copying into the core package for a demonstration.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q5-T01 | Meta off matches legacy deterministic values/serialized outputs and selected params; zero archive reads, auxiliary evaluations or extra RNG draws. |
+| Q5-T02 | Shadow preserves native proposals/objectives/params and actual financial execution/account result; its diagnostics and added work have separate provenance. |
+| Q5-T03 | Active forced-switch fixture selects a different candidate and actual existing OOS strategy/result uses those effective params. |
+| Q5-T04 | An eligible lower-IS meta winner is not overwritten by a downstream raw-IS floor; exact anchor/raw metrics and native choice remain auditable. |
+| Q5-T05 | Unsupported meta fails before optimizer; active same-anchor, cold-start and shadow native/final-policy information flags are truthful. |
+| Q5-T06 | Public-run spies and future mutations preserve earlier decisions; cutoff 00:00/search 00:08/seal 00:09/effect 00:15 is valid and a label arriving 00:05 cannot enter that snapshot. |
+| Q5-T07 | Post-decision labels affect only later available snapshots; support/INIT fallback is actual and observer state/RNG cannot influence same-fold selection. |
+| Q5-T08 | Native/raw/meta/actual IDs, params, trial tables and executed result lineage reconcile without breaking existing result consumers. |
+
+**Deliverables:** actual endpoint/config/hook/observer integration, additive
+decision sidecar and claims, unsupported-combination errors and runnable examples.
+The evidence must prove the runner used the hook, not only that helpers passed.
+
+**Exit Gates:** `G5-ENDPOINT`, `G5-MODE4_CAUSAL`, `G5-LEGACY`,
+`G5-ACTUAL_SELECTION`, `G5-OBSERVATION`, `G5-OWNER`.
+Native off/shadow parity, active execution lineage, current-OOS exclusion and
+truthful information/completion clocks are required before route expansion.
+**Technical Debt Rule:** no unused hook, hidden native override, full-pool
+truncation, mutable callback sharing, falsely stock-IS-only final claim or
+observer-leaked label. Mandatory public functionality cannot be deferred.
+
+<a id="qms-06"></a>
+
+### Phase QMS-06 - Prepared Route Parity And Portable Decision Handoff
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** use the same mathematical policy on qualified existing reference and
+prepared routes, and export decisions/models that an existing host can consume.
+**Entry:** accepted QMS-05 public integration, actual native capability map and
+reviewed optional W3 disposition; individual phase approval.
+
+**Required guide:** [QMS-06 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-06--prepared-route-adapter-và-handoff-dùng-được-bởi-host),
+[route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[prepared/Rust/reference/W3 boundaries, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[host/readiness interface, section 9](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s9)
+and [actual endpoint/result contract, section 13](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s13).
+
+**To Do:**
+
+1. Run common candidate pools through supported reference and prepared-native
+   scorers with identical economics, metric definitions, fresh/carry account
+   roles and clocks. Compare raw metrics, native anchor and final meta decisions.
+2. Reuse run-local immutable market, calendar, shard and schema buffers through
+   existing prepared contracts. Keep exact-analysis/evaluation-cache restrictions;
+   mutable/stochastic callbacks cannot acquire params-only cache shortcuts.
+3. Preserve `native_prepared_wfo=off/auto/require` and prepared-strategy policy.
+   Validate target units/runtime, fees/slippage, symbols and annualization.
+   Prepared `close_target_v2_same_close` remains same-close, never relabeled or
+   signal-shifted into next-open semantics by the meta adapter.
+4. Finish additive authoritative raw-metric validity/provenance plumbing where
+   existing scorer contracts can supply it. Do not derive no-variance from
+   placeholder `volatility=0`; affected unsupported lanes fail explicitly.
+5. Resolve meta numeric backend blocks independently of the caller's financial
+   backend. Verify GIL/read-only/Rust-owned buffer lifetime and candidate/run
+   reset isolation; fit/rank/model boundaries occur per pool/fold, not per bar.
+6. Evaluate W3's actual sequential selection seam separately. Implement a thin
+   shared-hook adapter only if it preserves reactive callbacks/fill feedback,
+   label economics and reset-flat semantics. If integration requires new
+   account/scheduler machinery, record reviewed `META_ROUTE_UNSUPPORTED`;
+   do not extend the fixed-batch R3B schedule under a sequential claim.
+7. Export full model/decision bundles and a pure as-of host example. Include
+   params, anchor/model/pool/corpus/revision refs, availability, completion/seal,
+   readiness and existing effect references. No broker calls or strategy/account
+   reset occurs merely because a decision was exported or params are unchanged.
+8. Restore/replay permitted artifacts and snapshots. A current model trained on
+   later history cannot be inserted into a past replay; readiness/effect limits
+   remain explicit when the route cannot establish live-equivalence semantics.
+9. Update endpoint/capability and consumer docs to show exact supported routes,
+   versions, fallback/require behavior, W3 disposition and stable invocation.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q6-T01 | Same-contract reference/prepared pools have raw-metric and native/meta decision parity under registered tolerances. |
+| Q6-T02 | Same-close/next-open, units, runtime and incompatible economics are correctly distinguished and rejected where unsupported. |
+| Q6-T03 | Missing/unsupported required native capabilities fail; meta policy does not silently change financial backend auto resolution. |
+| Q6-T04 | Prepared ownership/lifetimes/reset/clear prevent stale views and cross-run candidate/strategy/account state sharing. |
+| Q6-T05 | Meta inference and boundary counts scale with folds/pools, not market bars; copied bytes and actual adapter paths are measured. |
+| Q6-T06 | Export/restore preserves basis/model/params/corpus/revisions and distinct clocks; future-trained artifacts cannot replay past decisions or fake fold-start effect. |
+| Q6-T07 | Host handoff is read/selection/export only; it sends no broker orders and performs no automatic account/indicator/position mutation. |
+| Q6-T08 | If W3 is qualified, actual reactive route tests pass; otherwise active/shadow config fails with the approved unsupported reason. |
+
+**Deliverables:** qualified reference/prepared adapter, portable consumer example,
+ownership/capability records and an explicit W3 support disposition. Required
+scalar/prepared parity is independent of whether optional W3 is approved.
+
+**Exit Gates:** `G6-ADAPTER`, `G6-PREPARED_PARITY`, `G6-CAPABILITY`,
+`G6-HANDOFF`, `G6-NO_SCOPE_CREEP`, `G6-OWNER`.
+Missing mandatory prepared capability/evidence is a blocker. Only a previously
+reviewed optional W3 deferral permits that route to remain unsupported.
+**Technical Debt Rule:** no new financial bridge, duplicated live selector,
+false native claim, per-bar meta call or ambiguous activation clock. The host
+retains position/pending-order policy; export is not automatic deployment.
+
+<a id="qms-07"></a>
+
+### Phase QMS-07 - Rust-First DSA Optimization And Chronological Parity
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** optimize the new module and its glue while preserving exact
+information membership, mathematical policy and chronological decisions.
+**Entry:** accepted QMS-04/05/06 paths, frozen resource/information budgets,
+reference receipts and individual phase approval.
+
+**Required guide:** [QMS-07 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-07--rust-first-dsa-tối-ưu-và-parity-xuyên-folds),
+[Rust/near-boundary/full-sequence parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[performance/information/DSA/benchmarks, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10)
+and [evidence/upgrade classification, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12).
+
+**To Do:**
+
+1. Profile plan/prepare, ask-tell, IS scoring, native selection, history,
+   meta fit/rank, label observer, OOS and reports separately. Record logical
+   versus physical work, scored bars, cache hits, copies, boundary/callback
+   counts, wall/CPU and peak RSS/PSS using a fixed measurement protocol.
+2. Optimize contiguous columnar features, compiled schema mapping, reusable
+   bounded workspaces and history family/corpus/availability indexes. Use binary
+   search/monotone cursor only where its lifetime/replay contract is valid.
+3. Cache fits/predictions by exact snapshot/task revisions/basis/lambda/policy
+   and input matrix identity. Update sufficient statistics only when basis and
+   weights are compatible; replace whole revised-origin contributions. Rebuild
+   small d systems when scaler/weights change rather than adding stale G/b rows.
+4. Profile and finish Rust batch transforms, accumulation, solve dispatch and
+   scoring/guard reduction. Compare representative small/mixed/high-d N,d,P
+   workloads with reference/fallback, charging FFI, conversion, owned/copied
+   bytes, cold JIT/build/import cost and warm runtime separately.
+5. Use linear winner reduction when requested; complete reports still retain
+   all required predictions/IDs. Keep float64, deterministic reduction/order,
+   full current pool, original panel/history/features and requested outputs.
+   Do not claim zero-copy unless actual ownership/lifetime evidence supports it.
+6. Freeze numeric/decision tolerances before judging results. Cover Q-floor
+   and tie boundaries; if numerical error can change eligibility/winner without
+   a reliable bound, recompute the full affected fit/rank by reference. A guessed
+   top-K check or relaxed threshold cannot replace decision parity.
+7. Replay the full chronological chain through reference and optimized paths:
+   same initial history, task revisions, pool/anchor IDs, model inputs, guarded
+   proposals, selected effective params, panels/winner refs and next snapshots.
+   Include early near-boundary decisions, mid-run resume and late-label revisions.
+8. Preserve exact sequential sampler ask/tell and observer RNG isolation.
+   Warm start is off or uses the same canonical arm-independent params list.
+   Backend coefficient/artifact bytes may differ within tolerance, while each
+   digest must verify its own payload and logical decisions must still match.
+9. Measure disabled overhead and memory plateau with paired repeated runs.
+   Proposed p50 <=3% / p95 <=5% budgets require QMS-01 owner acceptance and
+   adequate noise control. No hidden labels/features/trials reduction to pass.
+10. Record per-block Rust/fallback disposition and an optimization ledger.
+    Promote only parity-qualified measured improvements; retain a qualified
+    reference where native cost is worse. No overall speedup promise for a
+    feature that adds label acquisition and learning work.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q7-T01 | Reference/optimized scores meet frozen tolerances and selected params, guard/tie sets, panels and history decisions match across chronological folds. |
+| Q7-T02 | Near-boundary early decisions cannot diverge into later history; reference fallback covers every potentially affected fit/rank decision. |
+| Q7-T03 | Chunk/index/cache/resume resolve exact task revisions/frontiers/weights; late revisions replace contributions and observers preserve main RNG/state. |
+| Q7-T04 | No N-by-N weight matrix; measured allocations/RSS/PSS are bounded by declared retained data and workspace policy. |
+| Q7-T05 | Rust/GIL/buffer capabilities and actual block selection are correct; NumPy/Numba fallback reasons, nopython/JIT costs and require errors are verified. |
+| Q7-T06 | Ask/tell traces and stopping/proposal behavior match exact-parity lanes; no sequential-to-batch substitution. |
+| Q7-T07 | Information/work equality preserves trials, labels, features, origins, pool, precision and output contracts while charging I/O/FFI/JIT. |
+| Q7-T08 | Registered disabled overhead/memory gates pass or remain an explicit regression blocker; benchmarks contain no fabricated aggregate speedup. |
+
+**Deliverables:** fixed-pool and whole-study performance reports, block-level
+native/fallback receipts, allocation/copy history, full-sequence parity corpus
+and measured optimization dispositions with reproducible manifests.
+
+**Exit Gates:** `G7-PARITY`, `G7-COST_ACCOUNTING`, `G7-MEMORY`,
+`G7-DISABLED_OVERHEAD`, `G7-PERF_DISPOSITION`, `G7-OWNER`.
+Winning predictions/account metrics alone are insufficient: task membership,
+revisions, pool/label information and chronological decisions must reconcile.
+**Technical Debt Rule:** no policy change marketed as speed, stale sufficient
+statistics, uncertain tie winners, omitted label costs or fallback without a
+qualified reason. Preserve a correct measured reference instead of forcing Rust.
+
+<a id="qms-08"></a>
+
+### Phase QMS-08 - Regression, Economic Scope, Documentation And Package Gate
+
+**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+performance NOT_MEASURED; owner review PENDING.
+**Goal:** qualify an opt-in library capability with complete examples, accurate
+empirical claims and a reproducible installed core/native release candidate.
+**Entry:** accepted QMS-01 through QMS-07; owner-approved study/data/resource
+registration and candidate-version policy; individual phase approval.
+
+**Required guide:** [QMS-08 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói),
+[reporting/verifier discipline, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[public examples/result schema, section 13](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s13),
+[registered economic study/statistics, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[complete Definition of Done, section 15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15)
+and [native versioning, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
+
+**To Do:**
+
+1. Run the actual supported legacy five-mode/schedule matrix with meta off,
+   sampler-only capabilities, fixed backtest/train-test controls and existing
+   result/serialization/report consumers. Preserve prior explicit unsupported
+   combinations and financial domains beyond this module's scope.
+2. Run end-to-end new-feature matrix: cold start, permitted/imported history,
+   revisions, shadow/active/same-anchor, full-pool lower-IS selection, prepared/
+   reference/Rust/fallback, missing capabilities and informative preflight errors.
+   Require chronological sequence parity, resume and future-suffix mutation.
+3. Register bounded empirical scope before forward outcomes: one approved
+   existing real-alpha/BTC cell and a mixed-schema technical fixture. Use the
+   supported route without changing timeframe/instrument to fit a Rust path.
+   Choose at most two economic sampler recipes; all four have engineering tests.
+4. For scientific acceptance, require >=128 attempted trials/cutoff, >=12
+   matured origins before assessed meta decisions and >=12 paired-valid locked
+   evaluation folds. If selecting recipes/model settings on development, also
+   reserve >=12 development folds. Report actual data/time coverage and each
+   attempted/completed/failed/unique count; do not fabricate support from seeds.
+5. Native/meta within a sampler use common current pools and registered panel/
+   economics/window/initial-state policies. Warm-start stays off or canonical
+   across arms. Do not increase trials or reselect policies after locked OOS.
+   Insufficient data/budget means explicit incomplete empirical status.
+6. Report `R = D_native - D_meta`, actual forward difference `Q`, and
+   `R = I_native - I_meta + Q`; keep reset-fold metrics separate from existing
+   continuous-account performance. Use time-dependence-aware uncertainty for
+   the declared estimand; candidates/overlapping folds are not independent samples.
+7. Check target coupling/support/extrapolation and typed undefined outcomes.
+   Preserve negative/no-gain results. If requested, preregister any information-
+   disabled control within budget; do not add model/sampler tournaments after
+   seeing the result or reinterpret lower IS as demonstrated forward retention.
+8. Complete endpoint, optimization, causal-WFO, methodology, capability and
+   README navigation docs. Add executable legacy/off, sampler-only, local-history
+   causal meta, unsupported/require/fallback and pure host-handoff examples.
+   Give stable exact config/history binding, clock/claim scope and migration notes.
+9. Build clean allowed-source wheel/sdist and the coordinated native candidate
+   when exports change. Use the owner's new version, not overwritten 1.1.1/0.4.2
+   artifacts. Verify source inventories, imports, dependencies/extras, wheel
+   contents/privacy and native handshake/missing-capability behavior.
+10. Qualify installed core/native consumers on the supported Linux x86_64
+    CPython 3.11-3.13 matrix through existing CI conventions. Exercise public
+    meta/sampler calls from site-packages, including the optional dependency
+    errors and off path; source-tree unit success alone is not packaging proof.
+11. Independently verify required-gate membership, actual logs/counts, payload
+    digests and tampered flags/records; regenerate reports from saved outputs
+    without financial reruns or model inference. Package raw references safely.
+12. Produce final source/artifact-bound handoff, scoped PR/rollback instructions
+    and distinct software/empirical/performance/owner status. Explain native/core
+    publish order and public-consumer proof if a release is separately approved;
+    do not auto-enable meta, merge, tag, publish or deploy from this phase gate.
+
+**Tests And Expected Results:**
+
+| ID | Required expectation |
+|---|---|
+| Q8-T01 | Actual legacy five-mode/schedule/fixed-result matrix passes; omitted/off behavior remains unchanged. |
+| Q8-T02 | Public examples/schema and Rust-first/fallback/require/error paths match the implemented contracts and all V1.1 clarifications. |
+| Q8-T03 | Real-alpha native pool -> meta winner -> effective params -> actual existing financial result has reconciled lineage. |
+| Q8-T04 | Empirical attempted-trial/matured-origin/development/evaluation counts are actual; no-data/no-budget/incomplete disposition is explicit. |
+| Q8-T05 | Raw metrics/decomposition/final scopes and complete model/task-revision sequence reproduce without undefined-to-zero or date compression. |
+| Q8-T06 | Independent verification fails on tampered payload, model, scalar, hash, required-gate list or completion flag. |
+| Q8-T07 | Clean installed wheel/sdist/native pair, origin, optional dependencies/capabilities and legacy-off dependency behavior match docs on the supported matrix. |
+| Q8-T08 | Report regeneration calls neither engine nor inference; branch/protected-source/artifact references, scoped commits and real owner review reconcile. |
+
+**Deliverables:** all 64 test dispositions and logs, matched performance report,
+bounded empirical report or explicit incomplete status, updated public docs/
+examples, clean installed-artifact proof and final candidate/rollback manifest.
+
+**Exit Gates:** `G8-REGRESSION`, `G8-END_TO_END`, `G8-EMPIRICAL_SCOPE`,
+`G8-DOCS`, `G8-PACKAGE`, `G8-OWNER`.
+`G8-EMPIRICAL_SCOPE` may record valid no-gain/low precision. A study not run is
+`SOFTWARE_CANDIDATE_READY / EMPIRICAL_VALIDATION_NOT_RUN`, not completion of
+the planned scientific study. Positive edge is not a prerequisite for valid
+software; correctness, required evidence and truthful status are prerequisites.
+**Technical Debt Rule:** no omitted mandatory route/test/docs/artifact proof,
+uncertified native exports or stale release evidence. Optional scope exclusions
+remain explicit; software completion never implies universal edge or live approval.
+
+### QMS Requirement Coverage And Completion Records
+
+| Guide requirement | Primary owner | Final verification |
+|---|---|---|
+| Source/tag/wheel identity, exact caller map and approved scope, sections 0-2 | QMS-01 | QMS-08 artifact/source manifest |
+| Public support/preflight and four independent sampler recipes, sections 3-4 | QMS-02/05 | QMS-08 mode/sampler/installed matrix |
+| Full pool, exact anchor, raw validity and descriptor semantics, sections 2/5/6 | QMS-01/03/05 | QMS-07 sequence; QMS-08 lineage |
+| Target/Ridge/scaling/origin weights/lambda/Q guard/tie, section 5 | QMS-03/04 | QMS-07 numeric/decision parity |
+| Cutoff/completion/seal/effect, families/corpora/tasks/revisions, section 6 | QMS-03/05 | QMS-06 restore; QMS-07/08 replay |
+| Post-seal observer, full panel information and off/shadow/active, sections 6-7 | QMS-03/05 | QMS-07/08 chronology and counters |
+| Prepared/reference/Rust/W3 capabilities and ownership, section 8 | QMS-04/06 | QMS-07 resources; QMS-08 wheels |
+| Portable selection/host handoff without live controller, section 9 | QMS-06 | QMS-08 example/export verification |
+| Rust-first/DSA, same-work costs and decision-sequence parity, section 10 | QMS-04/06/07 | QMS-08 final candidate manifest |
+| Reports, independent verifier, upgrades and phase reviews, sections 11-12 | Every QMS phase | QMS-08 all 64 requirement receipts |
+| Stable API/config/result, docs and runnable examples, section 13 | QMS-05/06/08 | QMS-08 installed consumer |
+| Bounded paired empirical study, honest scope/claims and DoD, sections 14-15 | QMS-08 | Owner final review |
+
+After each authorized phase, append a real completion record using the guide's
+[report template and gate rules](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12).
+Update the current handoff reference in the same scoped commit. Required fields:
+
+```text
+phase / guide_version / actual authorization reference
+implementation_status / technical_gate / empirical_status / performance_status
+owner_review = PENDING | APPROVED | CHANGES_REQUESTED, with real decision reference
+baseline and actual source/native identities; changed/protected file manifests
+mode / schedule / route / sampler / meta requested and resolved configuration
+native anchor / full eligible pool / panel membership / actual selected params
+corpus / family / task revisions / training snapshot / basis / lambda / support
+information cutoff / availability / completion / seal / readiness / effect clocks
+actual native/final information scopes and past-forward usage
+test-ID mapping / commands / counts / logs / independent evidence digests
+numeric and chronological decision parity / disabled/shadow compatibility
+logical and physical evaluations / scored bars / callbacks / FFI / owned-copied bytes
+wall / CPU / RSS-PSS / cold-warm / cache / label-observer and report costs
+selected numeric blocks / qualified fallback reasons / optimization dispositions
+empirical sample counts / IS-FWD decomposition / uncertainty / remaining limits
+in-scope blockers and any explicitly reviewed optional scope exclusions
+docs/examples/capability/version/installed-wheel impact
+scoped commit IDs / rollback / next action awaiting owner approval
+```
+
+At planning time every test/gate remains NOT_RUN, every QMS phase NOT_STARTED
+and every owner phase review PENDING. Recording this plan or committing the
+unchanged guide does not manufacture a baseline measurement, implementation
+result, scientific finding or permission to advance a phase.
+
+### QMS Planning-Only Verification - 2026-10-03
+
+- Verified eight phase sections, each containing status, goal, entry, linked
+  detailed guide, to-do list, tests, deliverables, exit gates and debt disposition.
+- Verified all 64 unique guide test IDs and exact per-phase exit-gate coverage.
+- Verified all 61 local links/anchors in the new QMS section; the existing
+  `tools/check_docs_links.py` documentation gate also passed.
+- `git diff --check` passed; the detailed guide's bytes/SHA256 are unchanged.
+- These are documentation checks only. No QMS implementation, financial
+  backtest, empirical study, native rebuild or phase-gate execution has occurred.
