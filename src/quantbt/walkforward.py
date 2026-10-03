@@ -10,7 +10,7 @@ final market simulation to existing QuantBT endpoints.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 import hashlib
 import json
 import time
@@ -56,6 +56,8 @@ from .strategies.wfo_prepared import (
 )
 from .optimization.callbacks import SingleObjectiveEarlyStopping as _OptimizationEarlyStopping
 from .optimization.space import stable_params_key, suggest_params as _optimization_suggest_params
+from .optimization.config import SamplerConfig
+from .optimization.samplers import build_sampler
 
 try:  # optional acceleration; Python/NumPy baseline remains available
     from numba import njit
@@ -484,7 +486,17 @@ class WalkForwardConfig:
     use_numba: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    sampler_config: Optional[Union[SamplerConfig, Mapping[str, Any]]] = None
+    sampler_warm_start: Tuple[Mapping[str, Any], ...] = ()
+    parameter_constraints: Optional[Callable] = None
+    result_constraints: Optional[Callable] = None
+
     def __post_init__(self) -> None:
+        if self.sampler_config is not None and not isinstance(self.sampler_config, SamplerConfig):
+            object.__setattr__(self, "sampler_config", SamplerConfig(**dict(self.sampler_config)))
+        for name in ("parameter_constraints", "result_constraints"):
+            if getattr(self, name) is not None and not callable(getattr(self, name)):
+                raise TypeError(f"{name} must be callable")
         freq = self.split_frequency.lower().strip()
         if freq not in {"single", "yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
             raise ValueError("split_frequency must be single, yearly, semi_yearly, quarterly, monthly, or weekly")
@@ -1042,6 +1054,21 @@ class WalkForwardEngine:
                 calendar_plan=calendar_plan,
             )
             folds = self.build_folds(idx)
+            self._sampler_studies = []
+            self._sampler_bridges = None
+            sampler_requested = (self.config.sampler_config is not None or self.config.sampler_warm_start
+                or self.config.parameter_constraints is not None or self.config.result_constraints is not None
+                or any(isinstance(spec, Mapping) for spec in (param_ranges or {}).values()))
+            if sampler_requested:
+                from .optimization.wfo_study import prepare_wfo_studies
+                if params is not None or self.config.optimization_mode == "none" or self.config.optuna_trials <= 0:
+                    raise ValueError("SAMPLER_SPACE_UNSUPPORTED: sampler configuration requires an optimizing WFO study")
+                groups = [(0, folds)] if self.config.optimization_schedule == "global" else [
+                    (fold.fold_id, _build_inner_folds(fold, self.config) if
+                     self.config.optimization_schedule == "per_fold_causal" and self.config.optimization_mode == "mode_1_decay"
+                     else [fold]) for fold in folds]
+                self._sampler_bridges = prepare_wfo_studies(self.config, param_ranges, groups,
+                    strategy_identity=strategy_fingerprint(self.strategy), derive_seed=_derive_fold_seed)
             use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
             prepared_context = (
                 PreparedWalkForwardContext.prepare(
@@ -1407,6 +1434,8 @@ class WalkForwardEngine:
                 ),
             },
         )
+        if self._sampler_bridges is not None:
+            result.metadata["sampler_studies"] = list(self._sampler_studies)
         audit_requested = (
             self._research_retention_plan.research_retention != "none"
             or self._research_retention_plan.financial_retention != "score"
@@ -1696,11 +1725,32 @@ class WalkForwardEngine:
         compact_ledger = bool(self.config.metadata.get("compact_trial_ledger", True))
         study_seed = int(self.config.random_seed if random_seed is None else random_seed)
         study_identifier = int(study_id)
+        bridge = (getattr(self, "_sampler_bridges", None) or {}).get(study_identifier)
+        if bridge is None and (self.config.sampler_config is not None or self.config.sampler_warm_start
+            or self.config.parameter_constraints is not None or self.config.result_constraints is not None
+            or any(isinstance(spec, Mapping) for spec in param_ranges.values())):
+            from .optimization.wfo_study import prepare_wfo_studies
+            bridge = prepare_wfo_studies(self.config, param_ranges, [(study_identifier, folds)],
+                strategy_identity=strategy_fingerprint(self.strategy), derive_seed=_derive_fold_seed)[study_identifier]
+            if bridge.seed != study_seed:
+                raise ValueError("resolved sampler stage seed differs from execution seed")
+            if not hasattr(self, "_sampler_studies"):
+                self._sampler_studies = []
+
+        def rejected_record(trial, params, reason):
+            trial.set_user_attr("qms_rejection_reason", reason)
+            records.append(WalkForwardTrialRecord(trial_id=int(trial.number), params=dict(params),
+                objective=-np.inf, mean_is_sharpe=0.0, mean_oos_sharpe=0.0, mean_decay=0.0,
+                std_decay=0.0, fold_metrics=[], pruned=True,
+                selection_metadata={"reason": reason, "state": "PRUNED"}))
+            raise optuna.TrialPruned(reason)
 
         def objective(trial):
-            params = _sample_params(trial, param_ranges)
+            requested, params = bridge.suggest(trial) if bridge else (None, _sample_params(trial, param_ranges))
             params_key = stable_params_key(params)
             if params_key in seen_params:
+                if bridge:
+                    rejected_record(trial, params, "DUPLICATE_EFFECTIVE_PARAMS")
                 record = WalkForwardTrialRecord(
                     trial_id=int(trial.number),
                     params=dict(params),
@@ -1715,6 +1765,9 @@ class WalkForwardEngine:
                 records.append(record)
                 raise optuna.TrialPruned("duplicate parameter set")
             seen_params.add(params_key)
+            if bridge and self.config.parameter_constraints is not None:
+                if not bridge.constraints(trial, self.config.parameter_constraints(dict(params))):
+                    rejected_record(trial, params, "PARAMETER_CONSTRAINT")
             if self.config.optimization_mode == "mode_2_sbb":
                 record = self.evaluate_params_sbb(
                     data=data,
@@ -1733,6 +1786,18 @@ class WalkForwardEngine:
                     execution_seed=study_seed,
                     study_id=study_identifier,
                 )
+            if bridge:
+                if not np.isfinite(record.objective):
+                    rejected_record(trial, params, "NONFINITE_OBJECTIVE")
+                feasible = True
+                if self.config.result_constraints is not None:
+                    feasible = bridge.constraints(trial, self.config.result_constraints(record))
+                record = _with_selection_metadata(record, {**record.selection_metadata,
+                    "requested_params": requested, "effective_params": dict(params),
+                    "candidate_id": trial.user_attrs["qms_candidate_id"], "feasible": feasible,
+                    "source": trial.user_attrs["qms_source"], "optuna_state": "COMPLETE"})
+                if not feasible:
+                    trial.set_user_attr("qms_rejection_reason", "RESULT_CONSTRAINT")
             records.append(record)
             if not compact_ledger:
                 trial.set_user_attr("fold_metrics", record.fold_metrics)
@@ -1743,10 +1808,15 @@ class WalkForwardEngine:
                 trial.set_user_attr("std_decay", record.std_decay)
             return record.objective
 
-        sampler = optuna.samplers.TPESampler(seed=study_seed)
+        sampler = bridge.observed if bridge else build_sampler(SamplerConfig(), seed=study_seed,
+            search_space=param_ranges, objective_count=1)
         pruner = DuplicatePruner()
         study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner)
-        callbacks = [logging_callback]
+        if bridge:
+            bridge.enqueue(study, self.config.sampler_warm_start)
+        if bridge:
+            from .optimization.wfo_study import logging_completed
+        callbacks = [logging_callback if bridge is None else logging_completed]
         if self.config.optuna_early_stopping is not None:
             callbacks.append(EarlyStoppingCallback(self.config.optuna_early_stopping))
         study.optimize(
@@ -1755,8 +1825,13 @@ class WalkForwardEngine:
             callbacks=callbacks,
             show_progress_bar=False,
         )
+        if bridge:
+            self._sampler_studies.append({**bridge.metadata(study), "study_id": study_identifier,
+                "optimization_mode": self.config.optimization_mode,
+                "optimization_schedule": self.config.optimization_schedule})
         del study
-        candidates = _select_is_candidate_records(records, param_ranges, self.config)
+        selectable = records if bridge is None else [r for r in records if r.selection_metadata.get("feasible", True)]
+        candidates = _select_is_candidate_records(selectable, param_ranges, self.config)
         if self.config.optimization_mode == "mode_5_full_robust":
             if not candidates:
                 raise ValueError("full-sample robust optimization produced no candidates")
@@ -3174,6 +3249,10 @@ def validate_param_ranges(param_ranges: Dict[str, Any], context: str = "walk-for
     for name, spec in param_ranges.items():
         if not isinstance(name, str) or not name:
             raise ValueError(f"{context}: parameter names must be non-empty strings")
+        if isinstance(spec, Mapping):
+            from .optimization.parameter_space import NormalizedSearchSpace
+            NormalizedSearchSpace(param_ranges)
+            break
         if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
             low = float(spec[0])
             high = float(spec[1])
@@ -3885,6 +3964,7 @@ def select_flat_minima_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -4015,6 +4095,7 @@ def select_is_plateau_robust_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -4190,6 +4271,7 @@ def select_is_only_robust_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -4519,19 +4601,51 @@ def _param_matrix(
     if not names:
         return np.zeros((len(records), 0), dtype=np.float64), []
     matrix = np.zeros((len(records), len(names)), dtype=np.float64)
+    geometry_names = list(names)
+    extra_geometry_names = []
     for col, name in enumerate(names):
         spec = param_ranges[name]
         values = [record.params.get(name) for record in records]
-        matrix[:, col] = _normalize_param_values(values, spec)
-    return matrix, names
+        if isinstance(spec, Mapping) and spec.get("kind") in {"categorical", "boolean"}:
+            # New categorical geometry is unordered; legacy ordinal syntax stays unchanged.
+            choices = spec.get("choices", [True, False])
+            activity = np.array([float(name in record.params) for record in records])
+            blocks = [np.array([float(v == choice) for v in values]) * activity / np.sqrt(2.0) for choice in choices]
+            matrix[:, col] = blocks[0]
+            geometry_names[col] = f"{name}=={choices[0]}"
+            matrix = np.column_stack([matrix, *blocks[1:]])
+            extra_geometry_names.extend(f"{name}=={value}" for value in choices[1:])
+            if spec.get("active_if"):
+                matrix = np.column_stack([matrix, activity])
+                extra_geometry_names.append(f"{name}__active")
+        else:
+            matrix[:, col] = _normalize_param_values(values, spec)
+            if isinstance(spec, Mapping) and spec.get("active_if"):
+                matrix = np.column_stack([matrix, [float(v is not None) for v in values]])
+                extra_geometry_names.append(f"{name}__active")
+    return matrix, geometry_names + extra_geometry_names
 
 
 def _is_clusterable_param(name: str, spec: Any, records: Sequence[WalkForwardTrialRecord]) -> bool:
+    if isinstance(spec, Mapping):
+        if spec.get("kind") == "fixed":
+            return False
+        return len({stable_params_key({"active": name in record.params, "value": record.params.get(name)})
+                    for record in records}) > 1
     values = [record.params.get(name) for record in records]
     return any(value is not None for value in values) and len(set(map(str, values))) > 1
 
 
 def _normalize_param_values(values: Sequence[Any], spec: Any) -> np.ndarray:
+    if isinstance(spec, Mapping):
+        from .optimization.parameter_space import _parse
+        parsed = _parse("geometry", spec)
+        if parsed.fixed:
+            return np.zeros(len(values), dtype=np.float64)
+        low, high = float(parsed.low), float(parsed.high)
+        transform = np.log if parsed.log else float
+        low, high = transform(low), transform(high)
+        return np.array([0.0 if v is None or high == low else (transform(float(v)) - low) / (high - low) for v in values])
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
         low = float(spec[0])
         high = float(spec[1])
@@ -4561,7 +4675,14 @@ def _centroid_params(
     names: Sequence[str],
     param_ranges: Dict[str, Any],
     base_params: Dict[str, Any],
-) -> Dict[str, Any]:
+    *,
+    require_admissible: bool = True,
+) -> Optional[Dict[str, Any]]:
+    if any(isinstance(spec, Mapping) and (spec.get("active_if") or spec.get("kind") in {"categorical", "boolean"})
+           for spec in param_ranges.values()):
+        if require_admissible:
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: categorical/conditional centroid is not an admissible parameter vector; use medoid")
+        return None
     params = dict(base_params)
     for value, name in zip(centroid, names):
         params[name] = _denormalize_param_value(float(value), param_ranges[name])
@@ -4570,6 +4691,19 @@ def _centroid_params(
 
 def _denormalize_param_value(value: float, spec: Any) -> Any:
     clipped = min(1.0, max(0.0, float(value)))
+    if isinstance(spec, Mapping):
+        from .optimization.parameter_space import _parse
+        parsed = _parse("centroid", spec)
+        if parsed.fixed:
+            return parsed.value
+        low, high = float(parsed.low), float(parsed.high)
+        raw = np.exp(np.log(low) + clipped * (np.log(high) - np.log(low))) if parsed.log else low + clipped * (high - low)
+        step = parsed.step or (1 if parsed.kind == "integer" else None)
+        if step:
+            raw = low + round((raw - low) / step) * step
+            high = low + np.floor((high - low) / step + 1e-10) * step
+        raw = min(high, max(low, raw))
+        return int(round(raw)) if parsed.kind == "integer" else float(raw)
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
         low = float(spec[0])
         high = float(spec[1])
@@ -5423,4 +5557,11 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "trade_penalty_factor": config.trade_penalty_factor,
         "use_numba": config.use_numba,
     }
+    if config.sampler_config is not None or config.sampler_warm_start or config.parameter_constraints or config.result_constraints:
+        payload["sampler_policy"] = {
+            "config": None if config.sampler_config is None else asdict(config.sampler_config),
+            "warm_start": config.sampler_warm_start,
+            "parameter_constraints": None if config.parameter_constraints is None else strategy_fingerprint(config.parameter_constraints),
+            "result_constraints": None if config.result_constraints is None else strategy_fingerprint(config.result_constraints),
+        }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()

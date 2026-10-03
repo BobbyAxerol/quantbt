@@ -2089,6 +2089,10 @@ class QuantBTEndpoint:
                 optimization_mode=optimization_mode,
                 optimization_schedule=optimization_schedule,
                 fold_boundary_position_policy=fold_boundary_position_policy,
+                sampler_config=optimization_config.get("sampler_config"),
+                sampler_warm_start=tuple(optimization_config.get("sampler_warm_start", ())),
+                parameter_constraints=optimization_config.get("parameter_constraints"),
+                result_constraints=optimization_config.get("result_constraints"),
                 inner_split_frequency=optimization_config.get("inner_split_frequency"),
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
@@ -3950,6 +3954,8 @@ class QuantBTEndpoint:
                 result.metadata["walk_forward"].get("native_prepared_wfo"),
             )
         result.metadata["walk_forward_result"] = wf_result
+        if "sampler_studies" in wf_result.metadata:
+            result.metadata["walk_forward"]["sampler_studies"] = wf_result.metadata["sampler_studies"]
         self.engine = engine
         self.result = result
         return result

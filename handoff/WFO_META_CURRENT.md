@@ -1,13 +1,31 @@
 # WFO Meta Current Handoff
 
-- Branch: `feat/meta-selection-samplers`; phase entry `e2abce9`.
+- Branch: `feat/meta-selection-samplers`; QMS-02 entry `5f8a732`.
 - Baseline: core 1.1.1, native 0.4.2, tag `v1.1.1` unchanged.
-- Current scope: QMS-01 discovery/tooling/tests/evidence only.
+- Current scope: QMS-02 shared sampler/search-space bridge, COMPLETE.
 - Technical implementation complete; owner review PENDING.
-- Empirical: NOT_ASSESSED. Performance: measured baseline only, no speedup.
-- Next authorized action: owner review of
-  [source/boundary map](../docs/meta_selection/SOURCE_AND_SEAM_MAP.md).
-- Do not start QMS-02, push, merge, retag, publish or deploy without approval.
+- Empirical: NOT_ASSESSED. Performance: MEASURED_COST_ONLY, no speedup/edge claim.
+- QMS-01 advancement was authorized by the user's explicit QMS-02 approval.
+- Next authorized action: owner review of [QMS-02 report](../docs/meta_selection/QMS02_REPORT.md)
+  and [sampler usage/limits](../docs/meta_selection/SAMPLERS.md).
+- Do not start QMS-03, push, merge, retag, publish or deploy without approval.
+
+## Sampler Delivery
+
+Four recipes use the existing factory: legacy TPE, multivariate/group TPE,
+CMA-ES and Sobol. cmaes 0.12.0 is installed/locked in the optimization extra;
+Optuna and released core/native versions did not change. Defaults retain exact
+legacy trajectories across eight routes. The final affected suite has 228 passes,
+zero skips/failures, including all 96 QMS-02 checks and installed-native parity.
+
+Opt-in normalized ranges preserve requested/effective identities, explicit
+activity and log/step geometry. Warm seeds have pre-cutoff availability plus
+schema/strategy provenance and are rescored within budget. Unsupported constraints
+require explicit post-filtering; no fake successful scores are created.
+Sobol conditional spaces and inadmissible centroids fail preflight. Resume means
+the same owned in-process study, not a new persistent checkpoint facility.
+The current sampler surface does not enable meta, qualify reactive W3, or prove
+economic superiority. Financial ownership and methodology boundaries below remain.
 
 ## Boundaries To Carry Forward
 
@@ -27,10 +45,13 @@ the primary economic study remains subject to QMS-08 budget/data approval.
 ## Evidence
 
 - [Baseline manifest](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)
-- [Actual test receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
+- [QMS-01 historical receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
+- [QMS-02 cost/source evidence](../benchmarks/optimization/meta_selection/qms02_sampler_evidence.json)
+- [QMS-02 actual test receipt](../benchmarks/optimization/meta_selection/qms02_gate_receipt.json)
 - [Reader guide](../docs/meta_selection.md)
-- [Unified plan](../upgrade/implement.md#qms-01)
+- [Unified plan](../upgrade/implement.md#qms-02)
 
-The receipt pins source/evidence bytes and actual JUnit test groups. The guide
-and all 271 protected runtime/package files remain unchanged. Its owner gate
-is intentionally PENDING; technical PASS is not authorization to advance.
+QMS-02 pins measured source/evidence and actual JUnit test groups. QMS-01 remains
+an immutable historical snapshot reproducible at `5f8a732`, including its original
+owner-pending receipt; it was not rewritten as current-source certification.
+The QMS-02 owner gate is PENDING; technical PASS is not authorization to advance.

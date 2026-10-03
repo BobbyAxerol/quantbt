@@ -1,0 +1,153 @@
+{
+  "phase": "QMS-02",
+  "implementation_status": "COMPLETE",
+  "technical_gate": "PASS",
+  "required_gates": [
+    "G2-SAMPLER4",
+    "G2-SPACE",
+    "G2-LEGACY",
+    "G2-REPRODUCIBILITY",
+    "G2-COST"
+  ],
+  "gates": {
+    "G2-SAMPLER4": "PASS",
+    "G2-SPACE": "PASS",
+    "G2-LEGACY": "PASS",
+    "G2-REPRODUCIBILITY": "PASS",
+    "G2-COST": "PASS",
+    "G2-OWNER": "PENDING"
+  },
+  "tests": {
+    "path": "benchmarks/optimization/meta_selection/qms02_tests.xml",
+    "sha256": "c53ab59900af45968516360cd5393854aa8820f7a50259ebecb057495b04681e",
+    "passed": 228,
+    "groups": {
+      "Q2-T01": [
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-per_fold_decay]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-per_fold_causal]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_2_sbb-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_3_flat_minima-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_4_is_only_robust-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_5_full_robust-global]",
+        "test_q2_t01_explicit_legacy_matches_default_numeric_outcomes",
+        "test_q2_t01_adaptive_trajectory_factory_and_public_observer_are_lossless"
+      ],
+      "Q2-T02": [
+        "test_q2_t02_group_constructor_and_joint_proposals"
+      ],
+      "Q2-T03": [
+        "test_q2_t03_cma_default_rejection_and_explicit_independent",
+        "test_q2_t03_cma_margin_integer_contract"
+      ],
+      "Q2-T04": [
+        "test_q2_t04_mapping_conditional_activity_and_effective_identity",
+        "test_q2_t04_warm_numeric_representation_has_one_effective_identity",
+        "test_q2_t04_nullable_category_keeps_active_and_inactive_geometry_distinct",
+        "test_q2_t04_numeric_centroid_stays_on_the_declared_step_lattice",
+        "test_q2_t04_invalid_schema_fails[spec0]",
+        "test_q2_t04_invalid_schema_fails[spec1]",
+        "test_q2_t04_invalid_schema_fails[spec2]",
+        "test_q2_t04_invalid_schema_fails[spec3]",
+        "test_q2_t04_invalid_schema_fails[spec4]",
+        "test_q2_t04_invalid_schema_fails[spec5]",
+        "test_q2_t04_invalid_schema_fails[spec6]",
+        "test_q2_t04_invalid_schema_fails[spec7]",
+        "test_q2_t04_invalid_schema_fails[spec8]",
+        "test_q2_t04_invalid_schema_fails[spec9]",
+        "test_q2_t04_unordered_geometry_and_log_scale",
+        "test_q2_t04_generic_factory_shares_structured_space_and_fixed_params",
+        "test_q2_t04_fixed_parent_stays_in_conditional_factory_schema",
+        "test_q2_t04_public_conditional_space_is_admissible[tpe_multivariate_group]",
+        "test_q2_t04_public_conditional_space_is_admissible[cmaes]"
+      ],
+      "Q2-T05": [
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[tpe_legacy]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[tpe_multivariate_group]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[cmaes]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[sobol]",
+        "test_q2_t05_sobol_fixed_order_and_independent_categories",
+        "test_q2_t05_failed_trial_remains_failed_without_fake_objective"
+      ],
+      "Q2-T06": [
+        "test_q2_t06_early_constraints_are_pruned_and_skip_financial_work",
+        "test_q2_t06_post_filter_policy_required_and_real_values_retained[cmaes]",
+        "test_q2_t06_post_filter_policy_required_and_real_values_retained[sobol]",
+        "test_q2_t06_formal_tpe_constraints_and_all_rejected",
+        "test_q2_t06_parameter_constraints_require_explicit_post_filter[cmaes]",
+        "test_q2_t06_parameter_constraints_require_explicit_post_filter[sobol]"
+      ],
+      "Q2-T07": [
+        "test_q2_t07_warm_start_availability_rescore_and_budget",
+        "test_q2_t07_same_arm_independent_warm_pool_and_inactive_provenance"
+      ],
+      "Q2-T08": [
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_5_full_robust-global]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config0-ranges0]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config1-ranges1]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config2-ranges2]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config3-ranges3]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config4-ranges4]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[tpe_legacy]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[tpe_multivariate_group]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[cmaes]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[sobol]",
+        "test_q2_t08_package_dependency_and_protected_financial_modules",
+        "test_q2_t08_runnable_public_example[tpe_legacy]",
+        "test_q2_t08_runnable_public_example[tpe_multivariate_group]",
+        "test_q2_t08_runnable_public_example[cmaes]",
+        "test_q2_t08_runnable_public_example[sobol]",
+        "test_q2_t08_centroid_rejected_before_financial_work",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[failure]",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[error]",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[skipped]"
+      ]
+    }
+  },
+  "evidence_path": "benchmarks/optimization/meta_selection/qms02_sampler_evidence.json",
+  "evidence_sha256": "7bcc52c9c87fb4d52c40e79bfa55f7683f624ae4a0d88fbe2bfc75ba8c269e2a",
+  "empirical_status": "NOT_ASSESSED",
+  "owner_review": {
+    "status": "PENDING",
+    "decision_ref": null
+  },
+  "can_start_next_phase": false,
+  "scope_limits": [
+    "Sobol conditional space fails preflight",
+    "categorical/conditional/constrained centroid fails preflight",
+    "exact resume only with the same owned in-process study; no new persistent sampler checkpoint"
+  ],
+  "open_phase_blockers": []
+}

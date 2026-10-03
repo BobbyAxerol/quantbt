@@ -40,6 +40,11 @@ arbitrary indicator implementation itself uses future values.
 `optimization_mode` defines the scoring and candidate-selection mathematics.
 `optimization_schedule` defines when a new Optuna study is created.
 
+The QMS-02 feature-branch [sampler bridge](meta_selection/SAMPLERS.md) selects
+the proposal algorithm inside each existing study. It does not change this
+schedule/causality table or enable meta-selection. Warm-start requires params
+already available before each study's IS cutoff and always rescores them.
+
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
 | Any supported mode + `global` | One retrospective study across all folds | Compatible legacy calibration. Do not present early folds as strict chronological validation. |

@@ -182,7 +182,7 @@ print(json.dumps({
     }
 
 
-def validate_identity(identity: dict) -> None:
+def validate_identity(identity: dict, *, historical: bool = False) -> None:
     installed = identity["installed"]
     expected_origin = (Path(identity["repository_root"]) / "src/quantbt/__init__.py").resolve()
     if Path(installed["core_origin"]).resolve() != expected_origin:
@@ -199,7 +199,8 @@ def validate_identity(identity: dict) -> None:
     if identity["protected_sources"][GUIDE] != GUIDE_SHA:
         raise ValueError("detailed guide changed")
     for name, expected in identity["protected_sources"].items():
-        if digest((ROOT / name).read_bytes()) != expected:
+        source = git("show", identity["phase_entry_sha"] + ":" + name) if historical else (ROOT / name).read_bytes()
+        if digest(source) != expected:
             raise ValueError("protected source changed: " + name)
 
 
@@ -425,8 +426,8 @@ def build_manifest() -> dict:
     }
 
 
-def verify_manifest(manifest: dict) -> None:
-    validate_identity(manifest["source"])
+def verify_manifest(manifest: dict, *, historical: bool = False) -> None:
+    validate_identity(manifest["source"], historical=historical)
     if manifest["budget"] != BUDGET:
         raise ValueError("registered budget changed")
     if [(item["mode"], item["schedule"]) for item in manifest["lanes"]] != list(ROUTES):

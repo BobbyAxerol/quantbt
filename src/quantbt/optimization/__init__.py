@@ -35,6 +35,7 @@ from .optimizer import OptunaOptimizer
 from .multiseed import MultiSeedOptimization
 from .result import ObjectiveResult, OptimizationResult, OptimizationTrialRecord
 from .samplers import build_sampler
+from .parameter_space import NormalizedSearchSpace, ParameterSpec
 from .space import (
     SearchSpaceInfo,
     build_grid_search_space,
@@ -69,6 +70,8 @@ __all__ = [
     "ReportMetricObjective",
     "RobustSelectionConfig",
     "SamplerConfig",
+    "NormalizedSearchSpace",
+    "ParameterSpec",
     "SearchSpaceInfo",
     "SelectedCandidate",
     "SharpeObjective",

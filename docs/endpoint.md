@@ -2800,6 +2800,14 @@ Routing:
 
 ## Walk-Forward
 
+Feature-branch QMS-02: optional `optimization_config["sampler_config"]` accepts
+the canonical `SamplerConfig` or a mapping for TPE legacy, multivariate/group
+TPE, CMA-ES and Sobol. Omitted config preserves the existing trajectory.
+See [WFO sampler syntax, constraints, warm-start and telemetry](meta_selection/SAMPLERS.md)
+and the [complete runnable example](../examples/wfo_samplers.py). This addition
+is not yet published in core 1.1.1; it does not enable meta-selection, change
+the endpoint signature, objectives or financial execution contract.
+
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG
 and draw order. `False` keeps the reference loop; sample counts, objectives,

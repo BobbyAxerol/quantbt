@@ -71,6 +71,7 @@ class SamplerConfig:
     name: str = "tpe"
     kwargs: dict[str, Any] = field(default_factory=dict)
     constraint_mode: str = "sampler"
+    mixed_space_policy: str = "reject"
 
     def __post_init__(self) -> None:
         name = str(self.name).lower().strip()
@@ -82,3 +83,7 @@ class SamplerConfig:
         if constraint_mode not in {"sampler", "post_filter"}:
             raise ValueError("constraint_mode must be sampler or post_filter")
         object.__setattr__(self, "constraint_mode", constraint_mode)
+        mixed = str(self.mixed_space_policy).lower().strip()
+        if mixed not in {"reject", "explicit_independent"}:
+            raise ValueError("mixed_space_policy must be reject or explicit_independent")
+        object.__setattr__(self, "mixed_space_policy", mixed)

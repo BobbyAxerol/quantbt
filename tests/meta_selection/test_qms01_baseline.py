@@ -17,7 +17,8 @@ from tools import qms01_baseline as baseline
 
 @pytest.fixture(scope="module")
 def source():
-    return baseline.source_identity()
+    # QMS-01 is an immutable snapshot; later approved phases have new source.
+    return json.loads(baseline.MANIFEST.read_text())["source"]
 
 
 @pytest.fixture(scope="module")
@@ -34,7 +35,7 @@ def manifest():
 
 @pytest.mark.parametrize("mutation", ["tag", "import", "core", "native", "descriptor", "abi", "source", "guide"])
 def test_q1_t01_source_mismatch_is_detected(source, mutation):
-    baseline.validate_identity(source)
+    baseline.validate_identity(source, historical=True)
     bad = deepcopy(source)
     if mutation == "tag":
         bad["release_sha"] = "0" * 40
@@ -51,7 +52,7 @@ def test_q1_t01_source_mismatch_is_detected(source, mutation):
     else:
         bad["protected_sources"][baseline.GUIDE] = "0" * 64
     with pytest.raises(ValueError):
-        baseline.validate_identity(bad)
+        baseline.validate_identity(bad, historical=True)
 
 
 def test_q1_t02_actual_public_current_oos_mutation_cannot_change_first_selection(traced):
@@ -236,20 +237,22 @@ def test_q1_t06_nested_mode1_without_inner_config_still_fails():
 
 
 def test_q1_t07_financial_sources_and_entry_state_preserved(source, manifest):
-    assert baseline.protected_sources() == source["protected_sources"] == manifest["source"]["protected_sources"]
+    captured = {name: baseline.digest(baseline.git("show", source["phase_entry_sha"] + ":" + name))
+                for name in source["protected_sources"]}
+    assert captured == source["protected_sources"] == manifest["source"]["protected_sources"]
     assert source["entry_unrelated_dirty"] == manifest["source"]["entry_unrelated_dirty"] == []
-    changed = baseline.git("diff", "--name-only", baseline.RELEASE, "--", "src", "rust", "pyproject.toml", "uv.lock")
+    changed = baseline.git("diff", "--name-only", baseline.RELEASE, source["phase_entry_sha"], "--", "src", "rust", "pyproject.toml", "uv.lock")
     assert changed == b""
     bad = deepcopy(source)
     path = "src/quantbt/walkforward.py"
     bad["protected_sources"][path] = "0" * 64
     with pytest.raises(ValueError, match="protected source changed"):
-        baseline.validate_identity(bad)
+        baseline.validate_identity(bad, historical=True)
 
 
 @pytest.mark.parametrize("tamper", ["budget", "pool", "routes", "payload", "resource"])
 def test_q1_t08_manifest_verifier_rejects_false_evidence(manifest, tamper):
-    baseline.verify_manifest(manifest)
+    baseline.verify_manifest(manifest, historical=True)
     bad = deepcopy(manifest)
     if tamper == "budget":
         bad["budget"]["economic_matured_origins"] = 2
@@ -262,7 +265,7 @@ def test_q1_t08_manifest_verifier_rejects_false_evidence(manifest, tamper):
     else:
         bad["timing"] = []
     with pytest.raises(ValueError):
-        baseline.verify_manifest(bad)
+        baseline.verify_manifest(bad, historical=True)
 
 
 def test_q1_t08_real_baseline_budgets_no_fabricated_empirical_or_live_claim(manifest):

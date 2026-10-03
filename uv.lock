@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -207,6 +207,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/76/d4/81420972a676e8ffea40450d8c8c92943e7218a78fe9b64359836cc9876b/click-8.4.2.tar.gz", hash = "sha256:9a6cea6e60b17ebe0a44c5cc636d94f09bd66142c1cd7d8b4cd731c4917a15f6", size = 338000, upload-time = "2026-06-24T17:45:15.148Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/e2/79c688af8b210d232694e31e59da9f6ec747bae31c3f5946e4e9b98860d5/click-8.4.2-py3-none-any.whl", hash = "sha256:e6f9f66136c816745b9d65817da91d61d957fb16e02e4dcd0552553c5a197b76", size = 119243, upload-time = "2026-06-24T17:45:13.73Z" },
+]
+
+[[package]]
+name = "cmaes"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/4b/9633e72dcd9ac28ab72c661feeb7ece5d01b55e7c9b0ef3331fb102e1506/cmaes-0.12.0.tar.gz", hash = "sha256:6aab41eee2f38bf917560a7e7d1ba0060632cd44cdf7ac2a10704da994624182", size = 52779, upload-time = "2025-07-23T07:01:53.576Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/57/f78b7ed51b3536cc80b4322db2cbbb9d1f409736b852eef0493d9fd8474d/cmaes-0.12.0-py3-none-any.whl", hash = "sha256:d0e3e50ce28a36294bffa16a5626c15d23155824cf6b0a373db30dbbea9b2256", size = 64519, upload-time = "2025-07-23T07:01:52.358Z" },
 ]
 
 [[package]]
@@ -1523,6 +1535,7 @@ dependencies = [
 [package.optional-dependencies]
 all = [
     { name = "arch" },
+    { name = "cmaes" },
     { name = "matplotlib" },
     { name = "nautilus-trader", marker = "python_full_version >= '3.12'" },
     { name = "optuna" },
@@ -1532,6 +1545,7 @@ all = [
 ]
 optimization = [
     { name = "arch" },
+    { name = "cmaes" },
     { name = "optuna" },
     { name = "scikit-learn" },
 ]
@@ -1561,6 +1575,8 @@ dev = [
 requires-dist = [
     { name = "arch", marker = "extra == 'all'", specifier = ">=8.0.0,<8.1" },
     { name = "arch", marker = "extra == 'optimization'", specifier = ">=8.0.0,<8.1" },
+    { name = "cmaes", marker = "extra == 'all'", specifier = "==0.12.0" },
+    { name = "cmaes", marker = "extra == 'optimization'", specifier = "==0.12.0" },
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.9,<3.11" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.10.9,<3.11" },
     { name = "nautilus-trader", marker = "python_full_version >= '3.12' and extra == 'all'", specifier = ">=1.230.0,<1.231" },

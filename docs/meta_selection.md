@@ -2,13 +2,14 @@
 
 ## Availability
 
-QMS-01 is a source/boundary/baseline lock, not a new optimization feature.
-Released core `1.1.1` and native `0.4.2` are unchanged. Do not pass the proposed
-`sampler_config`, `meta_selection` or `meta_history` examples to this release:
-the WFO runtime does not yet implement them. Generic `OptunaOptimizer` already
-has its own sampler factory; that is not a WFO sampler-config bridge.
+QMS-01 froze source/boundaries/baselines. QMS-02 adds the shared WFO sampler
+bridge on the feature branch; see [sampler usage and limits](meta_selection/SAMPLERS.md).
+Released core `1.1.1` and native `0.4.2` remain unchanged: the new WFO sampler
+field is not in the published release yet. `meta_selection` and `meta_history`
+remain unimplemented; sampler configuration does not enable them.
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
+- [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [Detailed methodology and implementation guide](../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 - [Verified source, boundaries, clocks and requirement owners](meta_selection/SOURCE_AND_SEAM_MAP.md)
 - [Frozen host baseline](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)
@@ -32,6 +33,11 @@ will be opt-in, off by default, initially for qualified Mode 4 causal routes.
 No new account engine, WFO mode or live order controller is planned.
 
 ## Reproduce The Lock
+
+The commands below require the QMS-01 snapshot (`5f8a732`), not the later
+approved source changes. Baseline and sealed receipt remain immutable historical
+artifacts. On the new checkout, QMS-02 tests compare all scientific outputs with
+the frozen manifest and check that unrelated financial/native bytes are unchanged.
 
 From the repository root with the existing editable environment:
 

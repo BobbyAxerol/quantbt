@@ -20706,14 +20706,16 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 ## Meta-Selection And WFO Sampler Integration - QMS-01 To QMS-08
 
 **Planning date:** 2026-10-03.
-**Status:** QMS-01 technical implementation COMPLETE; owner review PENDING;
-QMS-02 through QMS-08 NOT_STARTED.
+**Status:** QMS-01 COMPLETE; owner authorized advancement to QMS-02;
+QMS-02 COMPLETE; owner review PENDING; QMS-03 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
 QMS-01 implementation was separately approved by the owner on 2026-10-03;
-approval of its final boundary evidence remains pending. No later phase is
-authorized by that implementation request.
+the owner subsequently approved QMS-02 implementation on 2026-10-03, accepting
+the source/boundary handoff for that advancement. No later phase, push, merge
+or release is authorized by this approval. The sealed QMS-01 receipt remains
+an immutable record of its original owner-pending state.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20840,8 +20842,8 @@ completed support. No required QMS work may be relabeled future technical debt.
 
 | Phase | Goal/output | Entry dependency | Current status |
 |---|---|---|---|
-| [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | TECHNICAL_COMPLETE; OWNER_PENDING |
-| [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | NOT_STARTED |
+| [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | COMPLETE; ADVANCEMENT_APPROVED |
+| [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; OWNER_REVIEW_PENDING |
 | [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | NOT_STARTED |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
 | [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
@@ -20878,7 +20880,8 @@ be marked complete by a positive Sharpe result.
 ### Phase QMS-01 - Source Reconciliation, Selection Boundary And Baseline Lock
 
 **Status:** implementation COMPLETE; technical PASS; empirical NOT_ASSESSED;
-performance MEASURED_BASELINE_ONLY; owner review PENDING.
+performance MEASURED_BASELINE_ONLY; owner ADVANCEMENT_APPROVED on 2026-10-03.
+The original QMS-01 gate receipt remains sealed with its historical PENDING state.
 **Goal:** identify the exact released/current source and prove the usable
 integration boundaries before adding sampler or meta behavior.
 **Entry:** individual owner approval, preserved dirty state and a dev-based
@@ -20970,7 +20973,8 @@ at the existing `backtest`/engine run boundary, passed outside serialized
 meta config stay nested under the current optimization config as in guide
 section 13. Numeric Rust-first blocks, supported route restrictions, validity
 requirements and requirement owners are frozen in the source map for review.
-Owner acceptance of this evidence is still required before QMS-02.
+Owner acceptance was required before QMS-02 and was supplied by the subsequent
+explicit phase approval recorded in the common QMS authorization section.
 
 **Executed Result And Handoff (2026-10-03):**
 
@@ -21028,11 +21032,30 @@ study still requires the existing QMS-08 dataset/history/budget approval.
 
 ### Phase QMS-02 - Shared Sampler Bridge And Search-Space Correctness
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** implementation COMPLETE; technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_COST_ONLY; owner review PENDING.
 **Goal:** expose the four approved sampler recipes in WFO while preserving
 existing objectives, selection stages and default search trajectories.
 **Entry:** accepted QMS-01 source/API/stage/space map and phase approval.
+
+**Registered Execution Scope (2026-10-03, before changes):** entry `5f8a732`,
+clean `feat/meta-selection-samplers`; owner explicitly authorized this phase.
+Reuse the existing optimization factory and a focused WFO study adapter.
+Additive range mappings declare `kind`, bounds/choices, `log`, `step`, and
+explicit parent `active_if`; legacy tuples/lists/ranges/scalars remain unchanged.
+Conditional inactive values are omitted from effective params, not inferred
+from alpha flags. Reject opt-in centroid/conditional combinations that cannot
+preserve an admissible native anchor. Warm-start accepts params-only records
+with schema identity and availability, charged inside each study's budget.
+Reuse existing nonpositive formal-constraint convention; explicit post-filter
+is mandatory for samplers without that capability. Exact sampler continuation
+is an in-process owned study/session, not seed-only reconstruction or unsafe
+pickle loading. Unsupported persistence is explicitly rejected/documented.
+No accounting/metric kernels, Rust ABI, meta learner/history, released versions,
+tags or user alpha files may change. Add pinned optional `cmaes` and verify
+actual installed capability; do not upgrade Optuna. Technical fixtures use
+bounded deterministic synthetic tapes and correlated/mixed parameter spaces;
+no market/economic superiority study, bulk wheel rebuild or remote CI here.
 
 **Required guide:** [QMS-02 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-02--sampler-config-bridge-và-parameter-space-correctness),
 [endpoint matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
@@ -21097,6 +21120,61 @@ is not full delivery; exact default parity is mandatory before QMS-03.
 **Technical Debt Rule:** no duplicate factory, silent independent-sampling
 claim, hidden warm-start budget or unqualified resume path. Unsupported spaces
 have explicit early errors; new DSLs/model-driven sampler choice stay outside scope.
+
+**Executed Result And Handoff (2026-10-03):**
+
+- Entry `5f8a732`, branch `feat/meta-selection-samplers`. Core/native versions
+  remain `1.1.1`/`0.4.2`, Optuna `4.8.0`, native API `0.4`, core ABI `0.5`.
+  The detailed guide and unrelated financial/Rust sources remain byte-identical.
+  Only canonical `src/quantbt` was changed; no retired mirror was recreated.
+- WFO now delegates to the existing generic sampler factory. Four actual recipes
+  are exercised: `tpe_legacy`, `tpe_multivariate_group`, `cmaes`, `sobol`.
+  `tpe` remains a compatibility alias. Added `cmaes==0.12.0` to optimization/all
+  extras, installed it in the QuantBT environment, and locked it without changing
+  other package versions. No native build, version bump, push or release.
+- Additive normalized schema supports integer/float bounds, log/step, unordered
+  categorical geometry, explicit conditional activity and fixed values.
+  Requested/effective params, canonical candidate identities, actual joint/
+  independent proposal dimensions, status/constraint reasons, study seeds/stages,
+  QMC consumption and ask/tell digests are retained. Unknown private counters
+  are `not_exposed`; no fabricated generation/group/resume claims.
+- Parameter violations are PRUNED before evaluation; result violations retain
+  actual COMPLETE objectives but cannot enter native selection. CMA/Sobol require
+  explicit `post_filter` with either constraint callback. Warm seeds contain
+  params/availability/schema/strategy identity only, are rescored on current IS,
+  and consume the declared attempted budget. No stale scores or future seeds.
+- **228 passed, zero skips/failures in 57.87 s**: 96 Q2-T01 through Q2-T08 checks
+  plus 132 prior-phase/affected regression checks. Exact omitted-config parity
+  covers all eight legacy mode/schedule routes and original financial outputs;
+  40-attempt TPE tests also cover adaptive proposals beyond startup. Four-recipe
+  installed native/Python tests preserve params, accepted positions and equity.
+- Bounded cost example: 547 daily input bars, two folds, 12 attempted trials/study,
+  seed 731, one worker, one warm-up plus three timings. Warm public wall medians:
+  TPE legacy **360.952 ms**, multivariate/group **353.233 ms**, CMA **374.030 ms**,
+  Sobol **359.537 ms**. Each run performs 26 strategy calls and 98 score calls;
+  process-wide cumulative peak RSS reaches **294.574 MiB**. These are different
+  sampler pools, not speedup/edge or isolated RSS-plateau certification.
+- [Phase report](../docs/meta_selection/QMS02_REPORT.md),
+  [usage and scope](../docs/meta_selection/SAMPLERS.md),
+  [runnable example](../examples/wfo_samplers.py),
+  [cost/source evidence](../benchmarks/optimization/meta_selection/qms02_sampler_evidence.json),
+  [JUnit](../benchmarks/optimization/meta_selection/qms02_tests.xml),
+  [gate receipt](../benchmarks/optimization/meta_selection/qms02_gate_receipt.json)
+  and [handoff](../handoff/WFO_META_CURRENT.md) are retained. Receipt validation
+  rejects missing/skipped/failed evidence. Source layout, dependency lock,
+  new-module lint, docs links, benchmark governance and whitespace gates PASS.
+- `G2-SAMPLER4`, `G2-SPACE`, `G2-LEGACY`, `G2-REPRODUCIBILITY`, `G2-COST`: PASS.
+  `G2-OWNER`: PENDING; no automatic QMS-03 advancement.
+
+**Scope Dispositions, Not Hidden Debt:** Sobol conditional spaces and opt-in
+categorical/conditional/constrained centroids fail preflight. Medoid diagnostics
+use `centroid_params=None` where the centroid cannot map to admissible params.
+Exact resume is qualified only for the same owned in-process study; no new
+persistent sampler checkpoint or unsafe deserializer is provided. Reactive W3,
+specialized fixed-batch qualification and final wheel/CI gates remain in their
+assigned later phases. Meta/history/learner work has not begun. No open technical
+blocker remains in QMS-02's registered sampler-only scope; sampler superiority
+and economic acceptance are explicitly NOT_ASSESSED.
 
 <a id="qms-03"></a>
 
