@@ -1,0 +1,109 @@
+{
+  "schema": "quantbt.meta_selection.gate.v1",
+  "phase": "QMS-01",
+  "guide_version": "QMS-V1.1",
+  "baseline_commit_expected": "2c811a7faaed3c274e93c60650e16207949f0a59",
+  "baseline_release": "1.1.1",
+  "generated_at": "2026-10-03T21:54:00.757139+00:00",
+  "implementation_status": "COMPLETE",
+  "technical_gate": "PASS",
+  "empirical_status": "NOT_ASSESSED",
+  "performance": "MEASURED_BASELINE_ONLY",
+  "required_gate_registry": [
+    "G1-SOURCE",
+    "G1-SEAMS",
+    "G1-BASELINE",
+    "G1-SCOPE",
+    "G1-OWNER"
+  ],
+  "gates": {
+    "G1-SOURCE": "PASS",
+    "G1-SEAMS": "PASS",
+    "G1-BASELINE": "PASS",
+    "G1-SCOPE": "PASS",
+    "G1-OWNER": "PENDING"
+  },
+  "tests": {
+    "total_passed": 87,
+    "required_tests": {
+      "Q1-T01": [
+        "test_q1_t01_source_mismatch_is_detected[tag]",
+        "test_q1_t01_source_mismatch_is_detected[import]",
+        "test_q1_t01_source_mismatch_is_detected[core]",
+        "test_q1_t01_source_mismatch_is_detected[native]",
+        "test_q1_t01_source_mismatch_is_detected[descriptor]",
+        "test_q1_t01_source_mismatch_is_detected[abi]",
+        "test_q1_t01_source_mismatch_is_detected[source]",
+        "test_q1_t01_source_mismatch_is_detected[guide]"
+      ],
+      "Q1-T02": [
+        "test_q1_t02_actual_public_current_oos_mutation_cannot_change_first_selection"
+      ],
+      "Q1-T03": [
+        "test_q1_t03_native_anchor_is_not_raw_best[medoid]",
+        "test_q1_t03_native_anchor_is_not_raw_best[centroid]",
+        "test_q1_t03_native_anchor_is_not_raw_best[fallback]",
+        "test_q1_t03_centroid_authoritative_same_is_replay_is_available",
+        "test_q1_t03_actual_public_anchor_is_not_raw_best"
+      ],
+      "Q1-T04": [
+        "test_q1_t04_pool_and_compaction_are_traced_before_loss",
+        "test_q1_t04_instrumentation_and_retention_do_not_change_public_outputs"
+      ],
+      "Q1-T05": [
+        "test_q1_t05_installed_prepared_rust_matches_public_oracle",
+        "test_q1_t05_zero_undefined_absent_and_placeholder_are_distinct",
+        "test_q1_t05_native_guards_are_fail_closed_or_observable"
+      ],
+      "Q1-T06": [
+        "test_q1_t06_all_supported_mode_schedule_baselines",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_2_sbb-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_2_sbb-per_fold_causal]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_3_flat_minima-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_3_flat_minima-per_fold_causal]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_4_is_only_robust-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_5_full_robust-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_5_full_robust-per_fold_causal]",
+        "test_q1_t06_nested_mode1_without_inner_config_still_fails"
+      ],
+      "Q1-T07": [
+        "test_q1_t07_financial_sources_and_entry_state_preserved"
+      ],
+      "Q1-T08": [
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[budget]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[pool]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[routes]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[payload]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[resource]",
+        "test_q1_t08_real_baseline_budgets_no_fabricated_empirical_or_live_claim",
+        "test_q1_t08_receipt_requires_all_executed_groups[missing_group]",
+        "test_q1_t08_receipt_requires_all_executed_groups[failure]",
+        "test_q1_t08_receipt_requires_all_executed_groups[skipped]"
+      ]
+    },
+    "qms_passed": 38,
+    "skipped": 0,
+    "failed": 0
+  },
+  "evidence_refs": {
+    "benchmarks/optimization/meta_selection/legacy_baseline_manifest.json": "f8066d5253d3b4c5d9f0641d771a0f2bd873c738c7c6d74045752b7c2e7c40da",
+    "benchmarks/optimization/meta_selection/qms01_tests.xml": "056e4cdf761ff1725af233889708f05d2bbfa9a8a0a8f5f15842aa33d931cf4a",
+    "tools/qms01_baseline.py": "6373bcd6d93d34bd6c56ba57107cba2bba3c3c8dddc998c3d725e01aa5ab43e9",
+    "tests/meta_selection/test_qms01_baseline.py": "88ea830d5a653409d8c55116890a425e86862ea89b0cae349515fa1e8d4d6446",
+    "docs/meta_selection/SOURCE_AND_SEAM_MAP.md": "df3ecfd2f7c5fb9606ef61b249aeb44041caa5d644e389e8c46ae5d8fca973e7",
+    "docs/meta_selection.md": "91f4cf22a132d77a60f9447a92a1c85364556c659255d71ed6144d6a6aa087e0",
+    "handoff/WFO_META_CURRENT.md": "2bf517fbf5edea63e881a64a6f85782f08095568f1177d559ce85b3dfbc500da"
+  },
+  "owner_review": {
+    "status": "PENDING",
+    "decision_ref": null
+  },
+  "can_start_next_phase": false,
+  "open_financial_repairs": [],
+  "blocked_until_owning_phase": {
+    "centroid_meta_labels": "QMS-03/05 exact same-IS evaluation inside live fold lifetime",
+    "scalar_metric_validity": "QMS-03/06 authoritative support/variance/activity; no placeholder inference",
+    "reactive_meta": "QMS-06 separate qualification of reset-flat route",
+    "economic_study": "QMS-08 needs authorized primary real-alpha data and 12 mature origins"
+  }
+}

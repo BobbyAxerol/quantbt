@@ -20706,10 +20706,14 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 ## Meta-Selection And WFO Sampler Integration - QMS-01 To QMS-08
 
 **Planning date:** 2026-10-03.
-**Status:** PLAN_RECORDED; implementation NOT_STARTED.
+**Status:** QMS-01 technical implementation COMPLETE; owner review PENDING;
+QMS-02 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
+QMS-01 implementation was separately approved by the owner on 2026-10-03;
+approval of its final boundary evidence remains pending. No later phase is
+authorized by that implementation request.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20836,7 +20840,7 @@ completed support. No required QMS work may be relabeled future technical debt.
 
 | Phase | Goal/output | Entry dependency | Current status |
 |---|---|---|---|
-| [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and approved boundaries | Owner phase approval | NOT_STARTED |
+| [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | TECHNICAL_COMPLETE; OWNER_PENDING |
 | [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | NOT_STARTED |
 | [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | NOT_STARTED |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
@@ -20873,8 +20877,8 @@ be marked complete by a positive Sharpe result.
 
 ### Phase QMS-01 - Source Reconciliation, Selection Boundary And Baseline Lock
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** implementation COMPLETE; technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_BASELINE_ONLY; owner review PENDING.
 **Goal:** identify the exact released/current source and prove the usable
 integration boundaries before adding sampler or meta behavior.
 **Entry:** individual owner approval, preserved dirty state and a dev-based
@@ -20941,6 +20945,84 @@ alone do not pass the gate. Owner accepts the boundaries before QMS-02 begins.
 **Technical Debt Rule:** unresolved anchor, raw-metric, full-pool or mandatory
 scalar-route uncertainty blocks the affected scope; no assumed compatibility
 is carried forward as certification. Document optional route dispositions.
+
+**QMS-01 registered execution contract (2026-10-03, before measurements):**
+Only tooling, focused tests, docs, small derived manifests and this plan may
+change. All tracked `src/`, `rust/`, package/lock files and the detailed guide
+are protected by byte hashes against the released tag and phase-entry source.
+Baseline: 547 deterministic daily bars, seed 731, six attempted trials per
+study, two outer quarterly folds (Mode 5 one full-sample fold), three IS shards,
+eight SBB samples, one CPU/native worker, no early stopping and reuse off.
+Capture all proposals, pruning, objectives, full eligible IDs, selected params,
+stitched signal, accepted positions, equity, raw reports and route counters.
+Timing repeats: three uninstrumented repetitions after one explicit warm-up;
+report all repetitions, process CPU and Linux RSS/PSS, not a speedup claim.
+The existing runnable SMA strategy from `examples/walk_forward_train_test.py`
+is the representative strategy smoke; its deterministic tape is not real
+market evidence or the QMS-08 primary BTC economic study. No private alpha or
+raw tape is committed. Required economic counts remain >=128 attempts/cutoff,
+>=12 matured origins and >=12 locked paired evaluation folds; the small phase
+fixture does not satisfy or lower these gates.
+
+History binding proposal is a keyword-only caller-owned `meta_history` handle
+at the existing `backtest`/engine run boundary, passed outside serialized
+`optimization_config`. QMS-01 does not add this keyword to runtime. Sampler and
+meta config stay nested under the current optimization config as in guide
+section 13. Numeric Rust-first blocks, supported route restrictions, validity
+requirements and requirement owners are frozen in the source map for review.
+Owner acceptance of this evidence is still required before QMS-02.
+
+**Executed Result And Handoff (2026-10-03):**
+
+- Entry `e2abce9`, branch `feat/meta-selection-samplers`, clean unrelated entry
+  state. Isolated editable imports resolve `src/quantbt`; core/native pair
+  `1.1.1`/`0.4.2`, native API `0.4`, core ABI `0.5`, Optuna `4.8.0`. Actual
+  runtime/package diff from released `v1.1.1` is empty. The guide and 271
+  protected files remain byte-identical; 38 source symbols have body/range hashes.
+- [Source, call, clock and scope map](../docs/meta_selection/SOURCE_AND_SEAM_MAP.md),
+  [reader guide](../docs/meta_selection.md),
+  [baseline manifest](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json),
+  [independent gate receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
+  and [current handoff](../handoff/WFO_META_CURRENT.md) are recorded.
+- All eight Q1 groups executed: **38 QMS checks plus 49 affected legacy checks,
+  87 passed, zero skips/failures**. Actual JUnit and hashed test functions are
+  retained in the receipt, covering supported five-mode/schedule combinations,
+  current-OOS mutation, original pool/compaction, centroid/fallback, guarded
+  installed Rust and prepared/oracle account parity. Canonical source,
+  benchmark governance, docs links and whitespace checks pass.
+- Public Mode 4 causal uses two independent studies, each six attempts/five
+  eligible trials. Fold 0 native anchor trial 4 (`window=11`) differs from
+  raw-best trial 2 (`window=9`); fold 1 selects trial 5 (`window=7`). Four
+  filtered candidate entries represent three unique params, not the five-member
+  full pool. Trial records are captured before compaction, not inferred later.
+- Same-IS centroid evaluation is available through the existing evaluator
+  **inside** the live fold lifetime. The stock cluster-average score is not an
+  exact centroid label. The initial probe attempted replay after cleanup and
+  failed; tooling was corrected to use the owned lifetime, with no runtime edit.
+- `volatility=0` is a placeholder; execution status alone does not establish
+  metric validity. Train-end information cutoff, fold execution cutoff and
+  observed wall completion are distinct. No historical seal/effect was invented.
+- Matching native Mode 4 uses 42 evaluated rows, 3,781 score-bars and 12 native
+  boundaries, zero fallback rows; params/metrics/report trade counts/positions/
+  equity match the ordinary prepared oracle. Native timing remains same-close,
+  not next-open. W3/reset-flat is not qualified by these scalar checks.
+- Uninstrumented warm Mode 4 runs: **175.080 / 180.802 / 177.585 ms**, median
+  **177.585 ms**; process-wide peak RSS **296.051 MiB**. CPU/RSS/PSS and all
+  repetitions are saved. This is a tiny host baseline, not a speedup or memory
+  plateau/3%-overhead certification. Source and financial behavior were unchanged.
+- Economic evidence is NOT_RUN_BUDGET: the actual existing SMA example was
+  exercised on synthetic bars; no primary real-market alpha outcome or sealed
+  meta history exists. Two smoke origins do not satisfy the 12-origin gate.
+- `G1-SOURCE`, `G1-SEAMS`, `G1-BASELINE`, `G1-SCOPE`: PASS.
+  `G1-OWNER`: PENDING, `can_start_next_phase=false`. No push/merge/release.
+
+**Owned Follow-Up, Not Deferred Debt:** QMS-02 completes sampler/space bridging;
+QMS-03/05 adds full-pool/raw-metric retention and same-IS centroid integration;
+QMS-03/06 qualifies scalar sample/variance/activity support before accepting
+labels; QMS-06 separately qualifies or rejects W3 meta. These mandatory tasks
+remain in their existing phases, not silently waived. No new financial repair
+or accounting subsystem is required by the QMS-01 findings. The primary market
+study still requires the existing QMS-08 dataset/history/budget approval.
 
 <a id="qms-02"></a>
 
