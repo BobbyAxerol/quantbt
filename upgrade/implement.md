@@ -22312,6 +22312,112 @@ patch, a new upgrade phase or any remote/publication action.
   and [current handoff](../handoff/WFO_META_CURRENT.md). Next step is owner review
   of costs/economic uncertainty and approval of any follow-up phase, not release.
 
+### QMS Local Debt Closure - Owner Authorization 2026-10-04
+
+**Authorization:** owner requested exact shared prepared calendar/market witness
+reuse, then Delta RSI meta-off/on decay comparison, and explicitly approved
+"Xu ly ca cac debt local con lai trong luot nay". No remote push, merge,
+release, deploy, PyPI upload or public activation is authorized.
+All gates below start NOT_RUN; implementation starts NOT_STARTED. Preserve the
+sealed QMS-01..08 and real-review receipts. New source changes need a new local
+receipt, not replacement of old source hashes or retroactive certification.
+
+#### QMS-L01 - Exact Prepared Witness Reuse
+
+**Goal:** remove repeated calendar serialization/market packing without changing
+the financial result, canonical witness bytes or selection information.
+Read guide [8.3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10)
+and [chronological parity](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
+
+**To do:** attach a bounded derived witness owner to the existing prepared WFO
+context; reuse exact UTC calendar/header SHA state and immutable prefix market
+hash material. Still hash actual equity, returns and positions every evaluation.
+Keys include complete schema/calendar/funding/input/economic/metric/capital
+identity. Never reuse financial outputs, strategy instances or RNG state.
+Copied/unknown frames use the reference path. Validate source/funding mutation;
+clear run-local ownership on success, failure and cancellation. Meta disabled
+does not allocate the owner. Keep a reference switch for differential evidence.
+
+**Tests/exit:** byte-exact old/new signatures and observations across prefixes,
+shards, timezone/precision, funding, volume/schema/order changes and incomplete
+results; bounded eviction and release; mutation fails explicitly. Whole-fold
+pool/anchor/panel/labels/objective/RNG/decision/account parity, including off and
+shadow. Count real reuse and measure matched public wall/CPU/RSS separately.
+No weakened signature, narrower label panel or reduced budget is acceptable.
+
+#### QMS-L02 - Qualified Numeric Dispatch And Observed Threads
+
+**Goal:** use qualified Rust for favorable blocks and measured NumPy/BLAS for
+unfavorable geometry; report actual thread state separately from requested caps.
+Read guide [8.5-8.6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8)
+and [10.4-10.6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+**To do:** establish same-input float64 fit/rank crossover evidence using the
+installed private native build and constrained runtime. Add explicit per-block
+auto dispatch with geometry/reason provenance; require stays native or raises,
+reference stays independent. Preserve near-floor/tie reference guards, no
+fast-math, jitter, dimensional reduction or sampler changes. Record observed
+BLAS/OpenMP/Numba and detectable native workers; unknown remains unknown rather
+than substituting a configured limit. Keep thread inspection lazy and optional
+dependency failure observable.
+
+**Tests/exit:** fit/residual/rank/eligibility/winner and chronological parity;
+low/high-dimensional dispatch, absent extension and forced-native behavior;
+cache and native call/copy counters reflect actual execution. Telemetry detects
+configured/observed mismatch and missing inspection tools without changing the
+financial result. Publish measured crossover, not a language-only speed claim.
+
+#### QMS-L03 - W3 Sequential Meta Adapter
+
+**Goal:** close the deferred W3 local adapter by reusing existing selection,
+Ridge/history/panel contracts and existing reactive native account execution.
+Read guide [3.3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7)
+and [8.4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
+
+**To do:** additive typed meta_history at existing reactive backtest boundary;
+Mode 4/per_fold_causal sequential only. Capture the full valid IS pool with
+authoritative original same-pass results/metric evidence, not placeholder scalar
+Sharpe validity. Freeze past matured history before each search; apply actual
+selected params before that fold's OOS, then collect the frozen full label panel
+with fresh native account/strategy/RNG. Use a distinct reactive/reset-flat family.
+Keep existing callback/fill scheduling and segmented reset-flat result; never
+invent continuous account stitching. Keep batch/process capability limitations
+explicit if an original-result witness cannot cross the existing boundary.
+
+**Tests/exit:** off/shadow parity; active actual selection; complete pool and
+same-pass validity; no current OOS access before seal; late labels/resume/history
+families; original/native financial parity, lifecycle/reset/cancellation and
+failure cleanup. Unsupported modes/schedules fail before execution. Docs and
+capability matrix show exact support, reset-flat scope and private native needs.
+If bridging would require a new financial model, stop that gate and report the
+specific missing contract instead of declaring success or falsifying metrics.
+
+#### QMS-L04 - Local Qualification And Delta RSI Decay Evidence
+
+**Goal:** verify all local changes and quantify economic effectiveness separately
+from engineering speed. Read guide [12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
+and [14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).
+
+**To do:** use protected Gradient RSI/ETHUSDT 1h and original registered review
+protocol (28 folds, 128 attempts/fold, seed 731, unchanged pools/account/model).
+Keep notebook, loader, raw data, alpha source/params ignored and unmodified.
+Run off/active plus reference/shadow parity as needed; compare new exact witnesses
+and accounts with saved pre-patch evidence. New private installed core/native
+consumer proof must use actual changed source, never edit a sealed wheel pair.
+No native rebuild if native bytes do not change; rebuild/qualify if ABI changes.
+
+**Tests/exit:** report explicit mean native/meta IS Sharpe, forward Sharpe and
+decay D=IS-FWD on all paired folds and supported folds. Report R=Dn-Dm,
+Q=Fm-Fn and R=(In-Im)+Q; retain the preregistered paired block bootstrap and
+honest uncertainty. Reconcile full stitched account separately, costs/wall/CPU/
+RSS, physical counts and cache/copies. Full affected QMS/WFO/reactive regression,
+local installed consumer, docs/link/secret/allowlist checks and new independently
+verified evidence must pass. Remote/public qualification stays PENDING by scope.
+Commit each coherent verified change locally and update current handoff/debt
+ledger; do not claim pristine/live superiority from previously exposed ETH.
+
 ### QMS Requirement Coverage And Completion Records
 
 | Guide requirement | Primary owner | Final verification |
