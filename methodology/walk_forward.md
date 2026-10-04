@@ -825,3 +825,10 @@ counterfactual scores are not stitched equities. Read
 [full mathematics/artifacts](../docs/meta_selection/MODEL.md) and
 [config, clocks, scopes and public metadata](../docs/meta_selection/INTEGRATION.md).
 This feature-branch addition is not yet in published core 1.1.1.
+
+QMS-06 preserves this mathematics through existing prepared scalar W0/W1/W2
+routes using original native sample/variance/first-mark evidence, not a replay
+or placeholder-volatility inference. Same-close timing, fresh diagnostic accounts
+and final boundary carry stay unchanged. [Capability and parity](../docs/meta_selection/QMS06_REPORT.md)
+are distinct from public-wheel/owner acceptance. [Portable handoff](../docs/meta_selection/HANDOFF.md)
+retains full model/schema/history/clocks; it does not authorize live deployment.

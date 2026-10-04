@@ -149,6 +149,11 @@ caller-reviewed expected ID and explicit `available_as_of`; a self-hashed payloa
 does not authorize itself. Weights alone are not a model. Missing scaler,
 vocabulary, basis, revisions or unknown winners fail.
 
+QMS-06 adds a [complete portable handoff](HANDOFF.md), including the current
+task/pool, native selection reason and exact history snapshot/revisions alongside
+these model/decision bundles. Restore checks trusted authorization and actual
+readiness; export has no automatic activation or state reset.
+
 ## Numeric Backend Policy
 
 `NumericRuntime(native_policy="auto" | "require" | "reference")` is internal
@@ -166,6 +171,11 @@ loads it in a private namespace for evidence. It does not overwrite the installe
 0.4.2, alter the published registry, certify financial pairing of this candidate,
 or publish a release. The local proof covers Linux x86_64 CPython 3.12 only.
 QMS-08 owns final public version/feature/wheel coordination.
+
+QMS-06's separate private 0.4.3.dev2 candidate also enables original-pass
+prepared score witnesses. Financial prepared policy and meta numeric policy
+remain independent; [the integration matrix](INTEGRATION.md#prepared-capability-and-policy)
+describes off/auto/require resolution and the published wheel's explicit fallback.
 
 Installed baseline 0.4.2 has no QMS numeric capability: auto records NumPy fallback;
 require fails. An injected candidate first passes a deterministic numerical

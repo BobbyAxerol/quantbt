@@ -8,12 +8,17 @@ Released core `1.1.1` and native `0.4.2` remain unchanged: the new WFO sampler
 field is not in the published release yet. QMS-03/04 implement history, Ridge
 and artifacts; QMS-05 now binds optional `meta_selection` and keyword-only
 `meta_history` into the actual public Mode-4/per-fold-causal scalar route.
+QMS-06 qualifies original-pass prepared witnesses and complete portable
+handoff. Published 0.4.2 lacks this witness; fallback/require and W3 limitations
+are explicit, not general reactive/native support claims.
 Sampler configuration alone does not enable meta. Start with
 [public integration, config and information/accounting contract](meta_selection/INTEGRATION.md).
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)
+- [QMS-06 prepared parity and capability report](meta_selection/QMS06_REPORT.md)
+- [Portable decision, trusted restore and host responsibilities](meta_selection/HANDOFF.md)
 - [Detailed methodology and implementation guide](../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 - [Verified source, boundaries, clocks and requirement owners](meta_selection/SOURCE_AND_SEAM_MAP.md)
 - [Frozen host baseline](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)

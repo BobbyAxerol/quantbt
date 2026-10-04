@@ -2,7 +2,7 @@
 
 ## Availability And Scope
 
-Implemented in QMS-05 on `feat/meta-selection-samplers`, not yet published.
+Implemented through QMS-06 on `feat/meta-selection-samplers`, not yet published.
 Released core/native remain `1.1.1` / `0.4.2`. The public entry remains
 `QuantBTEndpoint.walk_forward`; meta is an optional selector, not a new
 backtest endpoint, financial engine, WFO mode, or order dispatcher.
@@ -11,15 +11,54 @@ Supported opt-in route:
 
 - `mode_4_is_only_robust` with `optimization_schedule="per_fold_causal"`.
 - Scalar `signal_notional` or `pct_equity`, aware unique exact calendar.
-- `scoring_backend="endpoint"`, `use_scalar_trial_scoring=False`.
-- `native_prepared_wfo="off"`, `prepared_wfo_strategy="off"`.
+- `scoring_backend="endpoint"`, authoritative original-result or prepared score witness.
+- Reference: `use_scalar_trial_scoring=False`, `native_prepared_wfo="off"`.
+- Prepared: `native_prepared_wfo="auto" | "require"` and qualified native witness;
+  existing `prepared_wfo_strategy="off" | "auto" | "require"` stays independent.
 - `strategy_lifecycle_policy="isolated_v1"`, final `carry_position` account.
 - Optimizing `param_ranges`, not a fixed-params run.
 
 The original-result scorer provides authoritative raw metric witnesses without
-requiring full order-audit reports. Prepared/native scalar and reactive W3
-qualification are explicitly QMS-06 work, not silently enabled here. Numeric
-Rust dispatch is independent of financial backend/prepared-WFO selection.
+requiring full order-audit reports. QMS-06 qualifies prepared scalar W0/W1/W2
+adapters, using the existing runtime/cache and the same selection hook. Numeric
+Rust dispatch remains independent of financial backend/prepared-WFO selection.
+W3 reactive/reset-flat meta is explicitly unsupported; it lacks the equivalent
+full-pool/original-metric capture seam. Ordinary meta-off W3 is unchanged.
+
+## Prepared Capability And Policy
+
+| Financial policy with meta enabled | Behavior |
+|---|---|
+| `off` | Original-result endpoint scoring; no native witness request |
+| `auto` | Compatible prepared witness when available; otherwise recorded fallback to original-result scoring, not a placeholder scalar |
+| `require` | Qualified prepared witness or explicit failure before search; no timing/economic substitution |
+
+For a prepared run, use `target_runtime="rust"`, one symbol, 365-day
+annualization, at least three distinct UTC days per score window, and the
+existing `close_target_v2_same_close` contract. Next-open, portfolio/package
+and reactive-order execution are not coerced into this scalar path.
+`pct_equity` keeps its existing stricter fee/slippage/require guards; see
+[the prepared-native matrix](../native_prepared_wfo_public.md).
+
+Published native 0.4.2 lacks the QMS prepared witness. QMS-06 executed a local
+Linux x86_64 / CPython 3.12 candidate, **0.4.3.dev2**, with off-by-default
+`qms-prepared-witness-candidate` and `qms-numeric-candidate` features.
+No installed package, public version or global backend was replaced. The
+candidate build/test injection is evidence tooling, not a new public override.
+On the published wheel `auto` records `META_METRIC_SUPPORT_MISSING` and
+falls back; `require` fails. QMS-08 owns public artifact/version qualification.
+
+Witness ABI `same-pass-ddof1-daily-first-mark-v1` returns typed, detached,
+read-only sample-count/variance/first-mark/liquidation/metric-version/annualization
+columns from the **original native run**. It neither recomputes execution nor
+uses the old placeholder `volatility=0` to declare validity. Invalid/censored
+scores cannot become invented training labels. Reset/clear cannot make old
+request bindings valid; already returned detached arrays remain safe to read.
+
+W1/W2 must declare `causal_parameter_independent_v1` and keep the same full
+candidate pool. Sequential TPE is unchanged: W2 preparation does not turn this
+route into a fixed-candidate batch schedule. Boundary counters distinguish
+`execute_score` batches, witness materializations and meta numeric calls.
 
 ## Call Contract
 
@@ -187,10 +226,12 @@ keeps those native tables intact; its learned proposal is sidecar-only.
 - Shadow: actual past-forward usage remains false; the proposal's historical
   usage is separately recorded as `meta_proposal_uses_past_matured_forward`.
 
-`records`, `tasks`, `models`, `config_digest`, observer counters and timing belong
+`records`, `tasks`, `models`, `snapshots`, `config_digest`, observer counters and timing belong
 to the additive research sidecar. To export artifacts use the strict
-[model/decision bundles](MODEL.md#artifacts-and-restore); metadata is not a
-weights-only checkpoint or a live order instruction.
+[model/decision bundles](MODEL.md#artifacts-and-restore) or the complete
+[portable host handoff](HANDOFF.md); metadata is not a weights-only checkpoint
+or a live order instruction. Handoff export does not fill an activation clock
+from the backtest fold start and does not reset any state.
 
 Financial authority remains `existing_continuous_stitched_target_account`:
 stitch OOS targets, then run one account with existing timing, trade deltas,
@@ -203,7 +244,9 @@ clocks and `require` without qualified native blocks fail explicitly. The
 published native 0.4.2 has no QMS numeric block. QMS-04's actual 0.4.3.dev1
 candidate was tested via a private module handle; it is not a new public release.
 
-See [QMS-05 certification](QMS05_REPORT.md) and the
-[unified plan](../../upgrade/implement.md#qms-05). Prepared/portable-host gates,
-numeric optimization and final economic/wheel qualification remain the separately
-registered QMS-06/07/08 phases; this page does not advertise them as complete.
+See [QMS-05 historical certification](QMS05_REPORT.md),
+[QMS-06 prepared/handoff report](QMS06_REPORT.md) and the
+[unified plan](../../upgrade/implement.md#qms-06). Owner/W3-scope acceptance
+is separate from technical parity. Numeric optimization and final
+economic/public-wheel qualification remain QMS-07/08; no speed, edge or live
+deployment promotion is implied.

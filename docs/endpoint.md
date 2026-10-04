@@ -2823,7 +2823,7 @@ was separately gated QMS-05 work; see the [QMS-04 historical evidence](meta_sele
 Feature-branch QMS-05 now supports
 `optimization_config["meta_selection"]={"mode": "shadow" | "active", ...}`
 on `mode_4_is_only_robust + per_fold_causal`, with scalar endpoint original-result
-scoring (`use_scalar_trial_scoring=False`, `native_prepared_wfo="off"`), isolated
+or QMS-06 qualified original-pass prepared-witness scoring, isolated
 strategy lifecycle and continuous carry-position accounting. Bind the caller-owned
 typed context through keyword-only `backtest(..., meta_history=context)`.
 Off/omitted follows the existing path with no archive/observer/RNG work.
@@ -2833,8 +2833,12 @@ forward labels and gets distinct information-policy claims. Unsupported routes
 fail before search. Read [complete syntax, clocks, sidecar and account contract](meta_selection/INTEGRATION.md),
 the [executed report](meta_selection/QMS05_REPORT.md), and
 [runnable public example](../examples/wfo_meta_selection.py).
-This is not yet in published core 1.1.1; prepared/reactive meta qualification
-belongs to QMS-06 and must not be inferred from numeric Rust support.
+This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/W2
+under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
+and adds [portable host handoff](meta_selection/HANDOFF.md).
+Published native 0.4.2 lacks the witness: prepared `auto` falls back observably,
+`require` fails. W3 reactive/reset-flat meta remains explicitly unsupported;
+no automatic deployment or state reset is added.
 
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG

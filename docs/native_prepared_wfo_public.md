@@ -74,6 +74,15 @@ bt = QuantBTEndpoint.walk_forward(
 
 ## Mode And Schedule Semantics
 
+Feature-branch QMS-06 additionally qualifies Mode-4/per-fold-causal meta on
+W0/W1/W2 scalar targets using a same-pass raw-metric witness. This requires
+native capability absent from published 0.4.2; `auto` has an observable
+original-result fallback and `require` fails without it. The candidate proof
+does not change the released matrix. Meta numeric backend is independently
+resolved. See [meta prepared capability](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
+and [portable handoff](meta_selection/HANDOFF.md). W3 remains separate and
+unsupported for meta, not disabled for ordinary reactive WFO.
+
 | Optimization mode | Public native-scoring behavior |
 |---|---|
 | `mode_1_decay` | Rust scores existing IS/OOS tasks; the current decay formula, penalties, candidate admission, and selector stay unchanged. `global`, `per_fold_decay`, and nested `per_fold_causal` preserve their documented meaning. |

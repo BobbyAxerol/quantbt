@@ -20,6 +20,7 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `arbitrage_basis.py` | `QuantBTEndpoint.arbitrage(...)` | Basis arbitrage spec and package execution |
 | `walk_forward_train_test.py` | `QuantBTEndpoint.train_test_split(...)` | Single holdout train/test using the walk-forward adapter |
 | `wfo_meta_selection.py` | existing `QuantBTEndpoint.walk_forward(...)` | Feature-branch Mode-4 causal off/shadow/active, typed history, original-result observer and audit lineage; synthetic smoke only |
+| `wfo_meta_handoff.py` | existing meta result and pure selector | Full reviewed decision/model/snapshot export and restore; no broker, replay, activation or state reset |
 | `optimization_workflow.py` | `OptunaOptimizer` + prepared/generic evaluators | Domain-agnostic optimization smoke template |
 | `nautilus_validation.py` | `QuantBTEndpoint.nautilus_validation(...)` | Signal validation through NautilusTrader |
 | `nautilus_explicit_orders.py` | `BacktestEngineV2(backend="nautilus", orders=...)` | Explicit order replay and native-vs-Nautilus parity |

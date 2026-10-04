@@ -994,5 +994,8 @@ specified in [the model contract](meta_selection/MODEL.md). The
 [public integration guide](meta_selection/INTEGRATION.md) defines supported
 routes, actual completion/publication clocks, defaults and result lineage.
 Final accounting still uses one stitched target account with boundary carry,
-not concatenated counterfactual reset equities. Prepared/reactive qualification
-is separately registered QMS-06 work. This is not yet a published 1.1.1 feature.
+not concatenated counterfactual reset equities. QMS-06 qualifies prepared scalar
+W0/W1/W2 without changing timing/selection mathematics, and exports a complete
+[portable handoff](meta_selection/HANDOFF.md). Published native 0.4.2 lacks the
+new witness; fallback and require failure remain explicit. Reactive/reset-flat
+W3 meta is unsupported. This is not yet a published 1.1.1 feature.

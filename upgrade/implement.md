@@ -20710,8 +20710,9 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 QMS-02 COMPLETE; owner authorized advancement to QMS-03;
 QMS-03 COMPLETE; owner authorized advancement to QMS-04;
 QMS-04 COMPLETE; technical PASS; owner authorized advancement to QMS-05;
-QMS-05 COMPLETE; technical PASS; owner acceptance PENDING;
-QMS-06 through QMS-08 NOT_STARTED.
+QMS-05 COMPLETE; technical PASS; owner authorized advancement to QMS-06;
+QMS-06 COMPLETE; five technical gates PASS; owner/W3-scope acceptance PENDING;
+QMS-07 and QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20727,6 +20728,9 @@ QMS-03's receipt stays an immutable historical owner-pending record. No QMS-05,
 push, merge or release is authorized by that implementation approval.
 The owner subsequently approved QMS-05 on 2026-10-04. QMS-04's receipt remains
 historical; QMS-06, push, merge and publication require separate authorization.
+The owner subsequently authorized QMS-06 on 2026-10-04 and requested completion.
+This accepts QMS-05 for phase advancement only; its sealed receipt stays
+historical. QMS-07/08, push, merge, tags and publication remain unauthorized.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20857,8 +20861,8 @@ completed support. No required QMS work may be relabeled future technical debt.
 | [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | COMPLETE; OWNER_PENDING |
-| [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
+| [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | COMPLETE; ADVANCEMENT_APPROVED |
+| [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | COMPLETE; OWNER/W3_SCOPE_PENDING |
 | [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | NOT_STARTED |
 | [QMS-08](#qms-08) | Regression, bounded economic evidence, docs and package qualification | QMS-01 through QMS-07 accepted | NOT_STARTED |
 
@@ -21691,8 +21695,9 @@ observer-leaked label. Mandatory public functionality cannot be deferred.
 
 ### Phase QMS-06 - Prepared Route Parity And Portable Decision Handoff
 
-**Status:** IN_PROGRESS; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** COMPLETE (mandatory scalar/handoff implementation); five technical
+gates PASS; empirical NOT_ASSESSED; performance MEASURED_COST_ONLY;
+owner acceptance and optional W3 scope review PENDING.
 **Execution Registration (2026-10-04):** user approved this phase on
 `feat/meta-selection-samplers`, entry `3c69cb8`. Read sections 3, 8, 9, 13 and
 QMS-06 of the detailed guide before implementation. Keep QMS-05 receipts
@@ -21780,6 +21785,55 @@ reviewed optional W3 deferral permits that route to remain unsupported.
 **Technical Debt Rule:** no new financial bridge, duplicated live selector,
 false native claim, per-bar meta call or ambiguous activation clock. The host
 retains position/pending-order policy; export is not automatic deployment.
+
+**Executed Closure (2026-10-04):**
+
+- Local implementation `4635663`; additional hourly/cost/native-account and
+  evidence lock `6fc13b5`. Final docs/evidence commit follows them. No push,
+  merge, version change, publication or QMS-07/08 was performed.
+- Existing prepared score/runtime/cache supplies original ddof-1 sample
+  variance/count, first-mark equity, liquidation and metric-version witnesses.
+  Feature-gated detached typed output, not replay or placeholder-volatility
+  inference. Exact additive source allowlist keeps financial arithmetic locked.
+- Mode-4/per-fold-causal W0/W1/W2 reference/prepared pools preserve raw metrics,
+  objective, native anchor, model proposals/eligibility, actual params and final
+  continuous accounting. Daily/hourly, fees/slippage/funding/quantity constraints,
+  unsupported next-open/units/runtime/calendar and short-day windows are tested.
+- `off/auto/require` and financial/meta numeric policies stay independent.
+  Installed/published core/native remain 1.1.1/0.4.2. Actual compiled local
+  0.4.3.dev2 candidate has the witness; published 0.4.2 uses observable
+  original-result fallback or explicit require failure, not hidden promotion.
+- Full decision/task/pool/native-reason/model/snapshot/revision handoff has
+  strict trusted-ID/witness/permission restore, cached/future-model checks and
+  distinct cutoff/completion/seal/readiness/activation. Export defaults activation
+  to None; pure host selection/read performs no broker/reset/financial replay.
+- [Executed JUnit](../benchmarks/optimization/meta_selection/qms06_tests.xml):
+  **436 passed, zero failures/errors/skips**, 168.12 s; **46 Q6 cases**,
+  Q6-T01..08 = 8/14/2/6/2/10/2/2, plus 390 prior/affected regression checks.
+  Raw/account/inference tolerance is rtol=atol=1e-10; logical IDs/params/roles
+  match exactly. V2 costs compare directly; legacy pct-equity has no per-cost
+  fields. Its equity/returns/weights/raw-metric parity and an ordinary native
+  pct-equity accepted-unit/cost comparison preserve existing result schemas.
+- Focused Rust tests: 3 metric-reducer cases and 1 prepared binding case PASS.
+  Actual private extension executes in Python tests; no native skips/mocks.
+  Lint, module/import, canonical-source, docs links and benchmark governance PASS.
+- Cost evidence uses the same synthetic 850-bar/six-study/six-trial fixture,
+  seed 731, one worker, declared replay clocks and engineering support-one
+  override (product default twelve). Prepared: 134 rows/12,004 scored bars,
+  38 execution batches, 38 witness materializations, 4,690 witness output bytes;
+  numeric Rust: 16 calls + 3 probes, 5,076 owned input-copy bytes. These counts
+  exclude other output/diagnostic calls; no total-FFI/zero-copy claim.
+- W3 active/shadow fails before preparation with the registered missing
+  full-pool/original-metric seam reason. Optional W3 scope acceptance is PENDING;
+  ordinary reactive WFO is unchanged. No mandatory scalar/handoff work deferred.
+- [Report](../docs/meta_selection/QMS06_REPORT.md),
+  [capability/config](../docs/meta_selection/INTEGRATION.md),
+  [portable host API](../docs/meta_selection/HANDOFF.md),
+  [executed source/cost evidence](../benchmarks/optimization/meta_selection/qms06_prepared_evidence.json)
+  and [sealed receipt](../benchmarks/optimization/meta_selection/qms06_gate_receipt.json).
+  Earlier QMS receipts remain immutable. G6-ADAPTER/PREPARED_PARITY/CAPABILITY/
+  HANDOFF/NO_SCOPE_CREEP PASS; G6-OWNER PENDING. No edge, whole-WFO speedup,
+  public-wheel or live-equivalence certification is inferred.
 
 <a id="qms-07"></a>
 

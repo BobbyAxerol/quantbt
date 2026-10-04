@@ -53,6 +53,12 @@ It therefore reports adaptive-meta information scope rather than a stock
 IS-only claim. Shadow keeps native params/accounting with separate proposal
 diagnostics. The ordinary schedule table below describes meta-off behavior.
 
+QMS-06 qualifies the same hook on prepared scalar W0/W1/W2 with original-pass
+metric evidence, without changing same-close timing or sequential trials.
+Published native 0.4.2 still requires observable fallback or explicit `require`
+failure. [Portable handoff](meta_selection/HANDOFF.md) preserves snapshots and
+readiness; export is not activation. Reactive/reset-flat W3 meta is unsupported.
+
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
 | Any supported mode + `global` | One retrospective study across all folds | Compatible legacy calibration. Do not present early folds as strict chronological validation. |
