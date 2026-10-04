@@ -119,6 +119,10 @@ jobs:
             --dist dist/staged \
             --output native-release-evidence/cpython-${{ matrix.python-version }}.json
 
+      - name: Build isolated QMS regression fixtures
+        if: matrix.python-version == '3.12'
+        uses: ./.github/actions/qms-fixtures
+
       - name: Full source regression and certified workload benchmarks
         if: matrix.python-version == '3.12'
         env:

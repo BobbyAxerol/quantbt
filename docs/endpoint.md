@@ -2840,6 +2840,12 @@ Published native 0.4.2 lacks the witness: prepared `auto` falls back observably,
 `require` fails. W3 reactive/reset-flat meta remains explicitly unsupported;
 no automatic deployment or state reset is added.
 
+For QMS-08 candidate users, start with the [complete user guide](meta_selection/USAGE.md)
+and [installed-artifact qualification](meta_selection/QUALIFICATION.md). The
+public signature remains the same; `meta_history` is the additive keyword-only
+runtime binding. Core/native `1.1.1/0.4.2` are not overwritten. Private QMS
+candidate success does not enable meta by default or certify reactive W3.
+
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG
 and draw order. `False` keeps the reference loop; sample counts, objectives,

@@ -58,6 +58,9 @@ jobs:
           .venv/bin/python tools/check_benchmark_governance.py
           .venv/bin/python tools/check_docs_links.py
 
+      - name: Build isolated QMS test fixtures and installed candidate
+        uses: ./.github/actions/qms-fixtures
+
       - name: Test
         run: .venv/bin/python tools/run_test_shards.py --profile ci-core
 

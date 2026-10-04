@@ -14,10 +14,17 @@ are explicit, not general reactive/native support claims.
 Sampler configuration alone does not enable meta. Start with
 [public integration, config and information/accounting contract](meta_selection/INTEGRATION.md).
 
+QMS-07 closes exact reuse and chronological parity with scoped measured gains.
+QMS-08 adds [step-by-step usage](meta_selection/USAGE.md),
+[software/artifact and economic boundaries](meta_selection/QUALIFICATION.md)
+and [complete runnable cases](../examples/wfo_meta_contract.py). Private installed
+candidate proof is distinct from public release approval or real-market edge.
+
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)
 - [QMS-06 prepared parity and capability report](meta_selection/QMS06_REPORT.md)
+- [QMS-08 final software/package report and debt ledger](meta_selection/QMS08_REPORT.md)
 - [Portable decision, trusted restore and host responsibilities](meta_selection/HANDOFF.md)
 - [Detailed methodology and implementation guide](../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 - [Verified source, boundaries, clocks and requirement owners](meta_selection/SOURCE_AND_SEAM_MAP.md)
@@ -69,7 +76,7 @@ has different wall times and runtime IDs; compare scientific fields rather than
 requiring its complete JSON bytes to match.
 
 The representative strategy is the existing public SMA example on a synthetic
-daily tape. Its results are engineering evidence only. There is no sealed meta
-history or primary BTC economic acceptance result yet. QMS-08 still requires the
+daily tape. Its results and synthetic sealed histories are engineering evidence
+only; there is no primary BTC economic acceptance result yet. QMS-08 still requires the
 registered market dataset/budget and support counts; this smoke does not certify
 edge, a superior sampler, live readiness or a new speedup.

@@ -1,0 +1,59 @@
+name: QMS Installed Candidate Qualification
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "src/quantbt/optimization/**"
+      - "src/quantbt/walkforward.py"
+      - "src/quantbt/endpoint.py"
+      - "rust/**"
+      - "tools/qms08*"
+      - "tests/meta_selection/**"
+      - ".github/workflows/qms-candidate.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "contracts/**"
+      - "tools/generate_product_contracts.py"
+      - "docs/meta_selection/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installed-candidate:
+    name: ${{ matrix.runner }} / CPython ${{ matrix.python }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v6
+      - name: Install pinned tooling and populate Cargo cache
+        run: |
+          uv sync --locked --extra optimization --dev
+          uv pip install --python .venv/bin/python 'maturin>=1.9,<2'
+          cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
+      - name: Build and prove private installed artifacts (no publishing)
+        run: |
+          .venv/bin/python -m tools.qms08_package --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
+      - name: Retain installed consumer and build receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qms-candidate-${{ matrix.runner }}-cp${{ matrix.python }}
+          retention-days: 7
+          path: |
+            .maturin/qms08/qualified/cp*/proof.json
+            .maturin/qms08/qualified/cp*/*.log
+          if-no-files-found: error

@@ -1,0 +1,16 @@
+name: Build isolated QMS regression fixtures
+description: Private candidates only; never replace the installed financial native backend.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        uv pip install --python .venv/bin/python 'maturin>=1.9,<2'
+        cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
+        .venv/bin/python -m tools.build_qms04_candidate
+        .venv/bin/python -m tools.build_qms06_candidate
+        .venv/bin/python -m tools.build_qms07_candidate
+        .venv/bin/python -m tools.qms08_package --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
+        echo "QMS04_NATIVE_EXTENSION=$(find "$PWD/.maturin/qms04" -maxdepth 1 -name '_quantbt_native*.so')" >> "$GITHUB_ENV"
+        echo "QMS06_NATIVE_EXTENSION=$(find "$PWD/.maturin/qms06" -maxdepth 1 -name '_quantbt_native*.so')" >> "$GITHUB_ENV"
+        echo "QMS08_PACKAGE_PROOF=$(find "$PWD/.maturin/qms08/qualified" -name proof.json)" >> "$GITHUB_ENV"

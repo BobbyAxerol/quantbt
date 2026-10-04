@@ -1,0 +1,133 @@
+# QMS Qualification And Release Boundary
+
+## Scope
+
+The feature branch implements eight approved QMS phases. New behavior is opt-in
+and remains separate from published core/native `1.1.1/0.4.2`. QMS-08 exercises
+private build-only `1.1.1+qms08/0.4.3.dev4`, with QMS numeric and original-pass
+prepared witness feature flags enabled only in those builds.
+
+No public version, artifact, tag or default is changed. The final public pair
+and release activation still require Bobby's decision. A private successful
+build cannot retroactively certify the already published native 0.4.2 exports.
+
+Start with [usage](USAGE.md), [integration](INTEGRATION.md),
+[mathematical model](MODEL.md), [samplers](SAMPLERS.md) and
+[portable handoff](HANDOFF.md). See the [QMS-08 actual report/debt ledger](QMS08_REPORT.md).
+Detailed requirements remain the
+[approved guide](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói).
+
+## Software Gates
+
+The independent `tools/qms08_gate.py` registry contains all **64** Q1-T01..Q8-T08
+IDs and six QMS-08 gates. It reads actual JUnit cases/failures/errors/skips,
+checks source/guide and immutable earlier evidence, artifact bytes and retained
+command logs. Removing required gates, tampering scalar values/completion flags,
+or changing artifact bytes cannot manufacture a PASS receipt.
+
+Financial sources and deployed versions must be unchanged against QMS-08 entry.
+Legacy eight supported mode/schedule combinations span all five modes; four
+sampler recipes, fixed params, one train/test holdout and stitched accounting
+are exercised. New-feature tests cover cold/shadow/active/same-anchor, exact
+full pool, real lower-IS software switches, conditional geometry, future mutation,
+late revisions, checkpoint restore, origin weights, clocks and native boundaries.
+
+The software switch fixtures are synthetic/engineered. They prove actual
+candidate lineage, not **Q8-T03 real-alpha market** lineage. That scientific
+expectation remains explicitly NOT_RUN until registered market execution.
+
+## Artifact Qualification
+
+The builder copies only tracked canonical source and allowlisted packaging
+files. It performs six exact identity adaptations in the build copy: project
+version/dependency, import version, native Cargo/project version and generated
+Python/Rust product descriptor. Registry rendering reuses the existing generator;
+financial semantics and checkout files are not edited.
+Cargo also updates the copied lockfile's own native-package version; independent
+structured comparison verifies no dependency or other lock entry changed.
+
+Core wheel and sdist Python members match the staged canonical source byte for
+byte; only declared identity adaptations differ from checkout. All artifacts
+pass repository allowlist/secret scanning. Retained build/log/artifact refs
+remain under ignored `.maturin/qms08`; datasets, private alpha, `.venv`, source
+mirror and benchmark bundles do not enter distributions.
+
+Each interpreter uses fresh environments outside canonical source imports:
+
+| Lane | Expected proof |
+|---|---|
+| Core-only/off | Fixed-account result; no optional optimization dependency loaded |
+| Core-only/optimization | Off/shadow parity; native-missing auto reason and require failure |
+| Exact private wheel pair | Product handshake, all four samplers, actual prepared/meta Rust and reference account/selection parity |
+| Install from core sdist + private native | Same installed feature/account tests, dependency resolution and `pip check` |
+
+Supported interpreter target is Linux x86_64 CPython 3.11-3.13. Local execution
+on this host does **not** certify manylinux portability or both Ubuntu runner
+images. `.github/workflows/qms-candidate.yml` prepares non-publishing installed
+qualification on Ubuntu 22.04/24.04 x CPython 3.11-3.13. Remote success is not
+claimed before the separately authorized push and actual workflow execution.
+
+## Reproduce Locally
+
+Only use these build identities for private qualification:
+
+```bash
+.venv/bin/python -m tools.qms08_package --output "$PWD/.maturin/qms08/qualified"
+# Repeat with --python /path/to/python3.11 and /path/to/python3.13.
+# A sealed lane is immutable; choose a fresh output for a changed candidate.
+```
+
+The actual artifact consumer runs via `python -I` from a build directory and
+asserts `site-packages` origin. It neither loads repo `src` through PYTHONPATH
+nor substitutes a mock Rust extension. Build tools/dependencies live in their
+own venvs; installed research environments are unchanged.
+
+After the recorded regression and artifact matrix:
+
+```bash
+.venv/bin/python -m tools.qms08_gate --gather-checks
+# On a new candidate, seal once after tests: python -m tools.qms08_gate
+.venv/bin/python -m tools.qms08_gate --check
+.venv/bin/python -m tools.qms08_gate --report /tmp/qms08-summary.md
+```
+
+The report command revalidates stored evidence and renders it without account
+execution or model inference. Old sealed receipts remain historical, not silently
+updated when new test files are added. New qualification records bind the current
+source and all required test coverage instead.
+
+## Economic Disposition
+
+No approved real-alpha/BTC data/calendar/resource registration was supplied for
+QMS-08. Therefore market validation is **EMPIRICAL_VALIDATION_NOT_RUN**: zero
+assessed market trials/origins/development/evaluation folds and no estimated
+market edge. Reduced-support synthetic demos are never counted toward >=12
+independent valid origins or >=12 paired-valid locked market folds.
+
+Before a market study, register alpha/version/data digest and permissions,
+calendar/IS/FWD lengths, original execution economics, allowed history/cohorts,
+support, native pool/panel policy, <=2 sampler recipes, >=128 attempted trials
+per cutoff, >=12 matured origins and >=12 paired-valid locked folds. If choosing
+recipes/model settings, reserve >=12 development folds separately. Do not
+reselect budgets/settings after locked outcomes.
+
+Saved-output reporting preserves signed decay and
+`R = D_native - D_meta = I_native - I_meta + Q`, where `Q` is actual forward
+Sharpe difference. It preserves genuine zero and typed no-trade/zero-variance/
+failed outcomes, their calendar and denominator. Mean paired fold Sharpe is
+not continuous-account Sharpe. Uncertainty needs registered time-dependent
+inference; these engineering checks do not invent confidence intervals.
+
+## Review And Rollback
+
+Owner review, remote packaging matrix, public release version/capability
+activation and real market acceptance remain separate decisions. W3 reactive
+meta integration, configured-vs-observed thread telemetry and high-dimensional
+Rust/BLAS dispatch are recorded follow-ups, not silently claimed complete.
+
+To disable QMS, omit/remove its optional config/runtime binding. Qualified
+reference execution remains available when native numerics are slower or missing.
+Do not revert unrelated WFO/account upgrades. A future release must build and
+certify its own exact core/native pair, publish native before core resolution,
+then run the existing Public Native Consumer Proof; this phase does none of
+those actions automatically.

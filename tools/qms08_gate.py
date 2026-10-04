@@ -32,6 +32,7 @@ CHECKS = (
     "check_module_architecture.py",
     "check_benchmark_governance.py",
     "check_docs_links.py",
+    "scan_public_secrets.py",
 )
 
 
@@ -56,6 +57,14 @@ def source_manifest():
             "examples/wfo*",
             "docs/meta_selection/USAGE.md",
             "docs/meta_selection/QUALIFICATION.md",
+            "docs/meta_selection.md",
+            "docs/endpoint.md",
+            "docs/optimization.md",
+            "docs/native/capabilities.md",
+            "docs/walkforward_causal.md",
+            "methodology/walk_forward.md",
+            "examples/README.md",
+            "README.md",
             ".github/workflows/qms-candidate.yml",
             ".github/workflows/ci.yml",
             ".github/workflows/native-release.yml",
@@ -258,6 +267,7 @@ def verify_checks(records):
 def validate(evidence, junit):
     if (
         evidence["schema"] != "qms08-qualification-v1"
+        or evidence["entry"] != ENTRY
         or evidence["source_hashes"] != source_manifest()
     ):
         raise ValueError("QMS08 source/schema changed")
@@ -267,6 +277,20 @@ def validate(evidence, junit):
         "required_gates"
     ] != list(GATES):
         raise ValueError("untrusted required-gate/test registry")
+    required_history = subprocess.check_output(
+        [
+            "git",
+            "ls-tree",
+            "-r",
+            "--name-only",
+            ENTRY,
+            "benchmarks/optimization/meta_selection",
+        ],
+        cwd=ROOT,
+        text=True,
+    ).splitlines()
+    if set(evidence["historical_artifacts"]) != set(required_history):
+        raise ValueError("historical artifact registry missing")
     for name, expected in evidence["historical_artifacts"].items():
         original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
         if (
@@ -322,6 +346,17 @@ def validate(evidence, junit):
             ).encode()
         ).hexdigest(),
         "coverage": coverage,
+        "test_dispositions": {
+            test: (
+                {
+                    "Q8-T03": "NOT_RUN_REAL_ALPHA",
+                    "Q8-T04": "PASS_NOT_RUN_DISPOSITION",
+                    "Q8-T07": "PASS_LOCAL_REMOTE_PENDING",
+                    "Q8-T08": "PASS_SOFTWARE_OWNER_PENDING",
+                }.get(test, "PASS")
+            )
+            for test in TEST_IDS
+        },
         "required_gates": list(GATES),
         "gates": {
             "G8-REGRESSION": "PASS",

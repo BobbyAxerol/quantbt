@@ -223,6 +223,32 @@ def test_q8_t07_actual_candidate_wheel_sdist_consumers():
     for path in proofs:
         proof = json.loads(path.read_text())
         assert verify_pair(proof)
+        guard = subprocess.run(
+            [
+                str(path.parent / "core_off/bin/python"),
+                "-I",
+                "-c",
+                """
+import importlib.util
+from quantbt.optimization.config import SamplerConfig
+from quantbt.optimization.samplers import build_sampler
+assert importlib.util.find_spec('optuna') is None
+try:
+    build_sampler(SamplerConfig(name='tpe_legacy'), seed=731,
+                  search_space={'window': (3, 31, 2)}, objective_count=1)
+except ImportError as error:
+    assert str(error) == 'QuantBT optimization requires optuna'
+    print(str(error))
+else:
+    raise AssertionError('missing Optuna did not fail clearly')
+""",
+            ],
+            cwd=path.parent,
+            capture_output=True,
+            text=True,
+        )
+        assert guard.returncode == 0, guard.stderr
+        assert guard.stdout.strip() == "QuantBT optimization requires optuna"
         damaged = deepcopy(proof)
         damaged["consumers"]["pair"]["actual_meta_folds"] = 0
         with pytest.raises(ValueError):
@@ -267,6 +293,8 @@ def verifier_fixture(tmp_path_factory):
         "release",
         "checks",
         "check_log",
+        "entry",
+        "history",
     ],
 )
 def test_q8_t06_envelope_claim_and_execution_log_tamper_rejected(
@@ -294,10 +322,59 @@ def test_q8_t06_envelope_claim_and_execution_log_tamper_rejected(
         damaged["release_authorized"] = "false"
     elif mutation == "checks":
         damaged["source_checks"].clear()
+    elif mutation == "entry":
+        damaged["entry"] = "not-the-approved-entry"
+    elif mutation == "history":
+        damaged["historical_artifacts"].clear()
     else:
         next(iter(damaged["source_checks"].values()))["sha256"] = "0" * 64
     with pytest.raises(ValueError):
         validate(damaged, path)
+
+
+@pytest.mark.parametrize("workflow", ["ci.yml", "publish.yml", "native-release.yml"])
+def test_q8_t07_existing_test_jobs_prepare_isolated_qms_fixtures(workflow):
+    import yaml
+
+    path = ROOT / ".github/workflows" / workflow
+    jobs = yaml.safe_load(path.read_text())["jobs"]
+    steps = next(
+        job["steps"]
+        for job in jobs.values()
+        if any(
+            "run_test_shards.py" in step.get("run", "") for step in job.get("steps", [])
+        )
+    )
+    fixture = next(
+        i
+        for i, step in enumerate(steps)
+        if step.get("uses") == "./.github/actions/qms-fixtures"
+    )
+    regression = next(
+        i for i, step in enumerate(steps) if "run_test_shards.py" in step.get("run", "")
+    )
+    assert fixture < regression
+    action = yaml.safe_load(
+        (ROOT / ".github/actions/qms-fixtures/action.yml").read_text()
+    )
+    commands = action["runs"]["steps"][0]["run"]
+    assert "build_qms04_candidate" in commands and "build_qms06_candidate" in commands
+    assert "build_qms07_candidate" in commands and "tools.qms08_package" in commands
+    assert "GITHUB_ENV" in commands and "publish" not in commands
+
+
+def test_q8_t07_remote_candidate_matrix_is_non_publishing():
+    import yaml
+
+    path = ROOT / ".github/workflows/qms-candidate.yml"
+    workflow = yaml.safe_load(path.read_text())
+    assert workflow["permissions"] == {"contents": "read"}
+    matrix = workflow["jobs"]["installed-candidate"]["strategy"]["matrix"]
+    assert matrix == {
+        "runner": ["ubuntu-22.04", "ubuntu-24.04"],
+        "python": ["3.11", "3.12", "3.13"],
+    }
+    assert "pypi-publish" not in path.read_text() and "id-token" not in path.read_text()
 
 
 def test_q8_t08_report_regeneration_never_executes_or_infers(monkeypatch):

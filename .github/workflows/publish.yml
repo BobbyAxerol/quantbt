@@ -50,6 +50,9 @@ jobs:
         if: matrix.python-version == '3.12'
         run: uv run python tools/check_release_version.py
 
+      - name: Build isolated QMS regression fixtures
+        uses: ./.github/actions/qms-fixtures
+
       - name: Test
         run: .venv/bin/python tools/run_test_shards.py --profile ci-core
 

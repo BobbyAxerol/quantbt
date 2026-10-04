@@ -29,6 +29,16 @@ owning only the certified accounting work beneath it. That boundary is recorded
 in result metadata and preserves the fallback contract rather than hiding a
 cross-language transition.
 
+## QMS Candidate Boundary
+
+QMS numeric transforms/Gram-solve/ranking and original-pass prepared metric
+witnesses are private opt-in candidate capabilities. Published native `0.4.2`
+does not export them: meta auto records reference/original-result fallback and
+require fails. QMS-08 builds an isolated exact private pair with both existing
+candidate feature flags; it does not edit published descriptors or promote
+financial routes. See [QMS qualification](../meta_selection/QUALIFICATION.md)
+and [independent policy matrix](../meta_selection/USAGE.md#independent-runtime-policies).
+
 ## Reading maturity
 
 - **Certified**: covered by the declared contract and its current conformance

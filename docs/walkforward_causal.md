@@ -59,6 +59,11 @@ Published native 0.4.2 still requires observable fallback or explicit `require`
 failure. [Portable handoff](meta_selection/HANDOFF.md) preserves snapshots and
 readiness; export is not activation. Reactive/reset-flat W3 meta is unsupported.
 
+QMS-08 [usage](meta_selection/USAGE.md) and [qualification](meta_selection/QUALIFICATION.md)
+separate private installed-artifact proof from empirical/live acceptance. No
+global/per-fold schedule semantics are changed, and per-fold optimization still
+requires `param_ranges`, not one fixed parameter dictionary.
+
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
 | Any supported mode + `global` | One retrospective study across all folds | Compatible legacy calibration. Do not present early folds as strict chronological validation. |

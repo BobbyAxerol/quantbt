@@ -832,3 +832,29 @@ or placeholder-volatility inference. Same-close timing, fresh diagnostic account
 and final boundary carry stay unchanged. [Capability and parity](../docs/meta_selection/QMS06_REPORT.md)
 are distinct from public-wheel/owner acceptance. [Portable handoff](../docs/meta_selection/HANDOFF.md)
 retains full model/schema/history/clocks; it does not authorize live deployment.
+
+### QMS-08: Outcome And Acceptance Interpretation
+
+For an independently valid native/meta forward pair, report signed decay:
+
+\[
+R_k = D_{n,k} - D_{m,k}
+    = (I_{n,k} - I_{m,k}) + Q_k,
+\qquad Q_k = O_{m,k} - O_{n,k}.
+\]
+
+Positive \(R_k\) from lower IS alone does not demonstrate improved forward
+retention. Preserve zero Sharpe only when sample variance makes it a valid
+metric; no-trade, zero-variance, censored and failed windows remain typed and
+retain their calendar. Mean paired-valid fold decay is a different estimand
+from continuous-account Sharpe. Do not compress dates, treat overlapping folds
+as independent observations, or fabricate confidence intervals from a different
+daily-return estimand.
+
+Software qualification and signed-decay arithmetic tests are not an empirical
+study. Real-market acceptance needs registered data/economics/samplers and
+>=128 attempted trials per cutoff, >=12 matured origins and >=12 paired-valid
+locked evaluation folds, with separate development when choosing recipes.
+No such study is claimed by the QMS-08 synthetic/installed-consumer fixtures.
+Read [usage and clocks](../docs/meta_selection/USAGE.md) and
+[qualification/registration](../docs/meta_selection/QUALIFICATION.md).
