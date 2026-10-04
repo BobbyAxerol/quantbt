@@ -1,6 +1,7 @@
 """Object-owned derived values; never part of a portable record or its digest."""
 
 from functools import wraps
+from types import MappingProxyType
 
 
 class ImmutableMemo:
@@ -14,13 +15,20 @@ def derived_property(function):
 
     @wraps(function)
     def get(owner):
-        try:
-            values = owner._derived
-        except AttributeError:
-            values = {}
-            object.__setattr__(owner, "_derived", values)
-        if name not in values:
-            values[name] = function(owner)
-        return values[name]
+        values = getattr(owner, "_derived", {})
+        if name in values:
+            return values[name]
+        value = function(owner)
+        object.__setattr__(
+            owner,
+            "_derived",
+            MappingProxyType(
+                {
+                    **getattr(owner, "_derived", {}),
+                    name: value,
+                }
+            ),
+        )
+        return value
 
     return property(get)

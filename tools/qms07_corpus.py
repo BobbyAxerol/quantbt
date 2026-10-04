@@ -22,9 +22,42 @@ from tests.meta_selection.test_qms03_history import (
 from tests.meta_selection.test_qms04_ridge import policy_fixture
 
 
-def replay(runtime, *, resume=False):
+def replay(runtime, *, resume=False, tie_boundary=False):
     schema, initial, _, template = policy_fixture()
     initial_revision = initial.revisions[0]
+    if tie_boundary:
+        import numpy as np
+        from quantbt.optimization.meta_selection.descriptors import (
+            OriginBalancedStandardizer,
+        )
+
+        scaler = OriginBalancedStandardizer.fit(schema, initial)
+        old = initial_revision.task
+        values, _ = scaler.transform(schema.encode(old.candidates))
+        v = values[1:] - values[0]
+        gram = v.T @ v / 3 + 10 * np.eye(v.shape[1])
+        labels = np.linalg.solve(
+            v @ np.linalg.solve(gram, v.T / 3), np.array([-0.6, -0.6, 0.2])
+        )
+        outcomes = []
+        for outcome in initial_revision.outcomes:
+            index = next(
+                i
+                for i, c in enumerate(old.candidates)
+                if c.evaluation_id == outcome.evaluation_id
+            )
+            raw = (
+                1.8
+                if index == 0
+                else old.candidates[index].observation.raw_sharpe - labels[index - 1]
+            )
+            outcomes.append(
+                replace(
+                    outcome,
+                    observation=replace(outcome.observation, raw_sharpe=float(raw)),
+                )
+            )
+        initial_revision = replace(initial_revision, outcomes=tuple(outcomes))
     history = MetaHistory()
     history.append(initial_revision)
     published = [initial_revision]
@@ -150,6 +183,7 @@ def replay(runtime, *, resume=False):
         "warm_start": "off",
         "current_forward_used": False,
         "synthetic_engineering_only": True,
+        "early_boundary": "tie" if tie_boundary else "q_floor",
     }
 
 

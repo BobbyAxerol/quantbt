@@ -191,6 +191,34 @@ No new Numba variant is added just to duplicate these small blocks; its unused
 disposition is recorded. Native numeric performance remains candidate evidence,
 not a promoted public optimization when the same-work reference is faster.
 
+## Exact Reuse And Lifetime
+
+QMS-07 memoizes IDs and training rows on their immutable record owners.
+The read-only memo is not a dataclass field, JSON payload or digest input;
+replacement/deserialization starts a new memo. It has no global registry and
+cannot retain discarded records. Revision availability and authorization are
+still resolved by the existing family/corpus/cohort index and exact cutoff.
+
+Each `NumericRuntime` owns at most one fit and one prediction cache entry,
+bounded by `min(8_000_000, max_workspace_bytes // 8)` output bytes. Fit identity
+includes snapshot, schema, settings, numeric limits, lambda and all matrix,
+label and weight bytes. Prediction identity includes model, task, ordered pool,
+limits and every contrast/coefficient/IS-delta byte. Outputs returned on a hit
+are independent copies; `runtime.work_cache.clear()` drops retained buffers.
+Internal `work_cache=False` disables reuse for differential measurements.
+Metadata reports actual hits/misses, retained bytes and native calls/copies.
+
+This cache never suppresses logical Optuna trials, observer labels or ordinary
+financial evaluation. Changed as-of, labels, origin weights or scaler rebuild
+the fit. No cross-basis incremental G/b update is used. Changing folds normally
+produces cache misses; do not attribute ordinary fold speedup to nonexistent hits.
+Near-boundary and whole-pool reference verification remain enabled after a hit.
+
+The isolated QMS-07 build is `0.4.3.dev3`; QMS-08 still owns public wheel
+coordination. The published/installed core/native pair is unchanged. Rust
+uses the existing owned-batch ABI and deterministic float64 reduction; the
+numeric optimization does not change financial execution, sampler or API.
+
 ## Interpretation And Reproduction
 
 `Y = deltaIS - deltaForward` contains the IS feature in its target. A positive

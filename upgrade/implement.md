@@ -21864,6 +21864,18 @@ Disabled overhead is measured against entry source in paired fresh processes;
 3%/5% remain proposed, not owner-accepted cross-platform budgets. Preserve the
 complete reference fit/rank verification at uncertain decision boundaries.
 
+**Measurement Refinement Before Final Evidence:** initial exploratory samples
+showed disabled p50 +6.5% under concurrent test load; they are not a promotion
+receipt. Freeze final protocol: eight alternating disabled process pairs with
+three full fresh-account studies per process (108 attempted trials per aggregate),
+four alternating enabled/reference pairs and four enabled/prepared-Rust pairs.
+No test/build process runs concurrently with the final measured lane. Record
+all samples, per-run and aggregate wall/CPU, cold import/warm-up, current/peak
+RSS and PSS. Eleven instrumented stage spans and callback counts are collected
+in separate profiled runs, not included in latency medians. Preserve the pilot
+summary and classify noise/working-budget results explicitly. The working
+3%/5% targets are unchanged and still await owner acceptance.
+
 **Discovered/Inherent Debt Ledger:** record new findings here and in the QMS-07
 report rather than silently expanding scope. Inherited: W3 reactive meta needs
 its own full-pool/original-metric seam (ordinary meta-off W3 is unchanged), native

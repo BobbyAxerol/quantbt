@@ -59,6 +59,8 @@ def test_q7_t04_object_owned_memo_has_no_global_retention():
         assert len(revision.training_rows) == 3
         assert revision.revision_id
     assert set(revision._derived) == {"content_digest", "training_rows"}
+    with pytest.raises(TypeError):
+        revision._derived["training_rows"] = ()
     assert all(np.isfinite(row.origin_weight) for row in revision.training_rows)
     with pytest.raises((AttributeError, TypeError)):
         revision.outcomes = ()
@@ -76,18 +78,43 @@ def native():
 
 
 @pytest.mark.parametrize("resume", [False, True])
-def test_q7_t01_full_chronological_membership_and_actual_decisions(native, resume):
+@pytest.mark.parametrize("tie_boundary", [False, True])
+def test_q7_t01_full_chronological_membership_and_actual_decisions(
+    native, resume, tie_boundary
+):
     from tools.qms07_corpus import replay, compare_sequences
 
-    expected = replay(NumericRuntime(native_policy="reference", work_cache=False))
+    expected = replay(
+        NumericRuntime(native_policy="reference", work_cache=False),
+        tie_boundary=tie_boundary,
+    )
     actual = replay(
-        NumericRuntime(native_policy="require", native_module=native), resume=resume
+        NumericRuntime(native_policy="require", native_module=native),
+        resume=resume,
+        tie_boundary=tie_boundary,
     )
     compare_sequences(expected, actual)
     assert len(actual["decisions"]) == 6
     assert actual["retained_history"] == 8
     assert actual["decisions"][0]["reference_boundary_fallback"]
     assert actual["decisions"][0]["params"] != {"recipe": "anchor"}
+    if tie_boundary:
+        assert len(actual["decisions"][0]["ties"]) == 2
+
+
+def test_q7_t03_late_revision_reweights_entire_origin(native):
+    from tools.qms07_corpus import replay
+
+    actual = replay(
+        NumericRuntime(native_policy="require", native_module=native), resume=True
+    )
+    early, late = actual["decisions"][0], actual["decisions"][3]
+    origin = early["fit_rows"][0][0]
+    first = [row for row in early["fit_rows"] if row[0] == origin]
+    revised = [row for row in late["fit_rows"] if row[0] == origin]
+    assert len(first) == 3 and len(revised) == 2
+    assert sum(row[3] for row in first) == sum(row[3] for row in revised) == 1
+    assert first[0][1] != revised[0][1]
 
 
 def test_q7_t02_perturbed_floor_recomputes_whole_pool(native, monkeypatch):
@@ -213,6 +240,43 @@ def test_q7_t05_actual_native_resolution_and_required_capability(native):
         NumericRuntime(native_policy="require", native_module=object())
 
 
+def test_q7_t05_native_batch_releases_gil_and_detaches_outputs(native):
+    import threading
+    from time import perf_counter, sleep
+
+    v = np.ones((131072, 24), dtype=np.float64)
+    y = np.ones(len(v), dtype=np.float64)
+    w = np.full(len(v), 1 / len(v), dtype=np.float64)
+    go, stop, ready = threading.Event(), threading.Event(), threading.Event()
+    ticks = []
+
+    def witness():
+        ready.set()
+        go.wait()
+        while not stop.is_set():
+            if len(ticks) < 2000:
+                ticks.append(perf_counter())
+            sleep(0.0005)
+
+    thread = threading.Thread(target=witness)
+    thread.start()
+    ready.wait()
+    go.set()
+    started = perf_counter()
+    try:
+        gram, b, beta = native.qms_fit_v1(v, y, w, 10.0)
+        completed = perf_counter()
+    finally:
+        stop.set()
+        thread.join()
+    assert any(started + 0.001 < t < completed - 0.001 for t in ticks)
+    before = gram.copy()
+    v[0, 0] = 900
+    np.testing.assert_array_equal(gram, before)
+    assert not np.shares_memory(gram, v)
+    assert np.isfinite(b).all() and np.isfinite(beta).all()
+
+
 @pytest.mark.parametrize("n,d", [(180, 8), (4096, 8), (4096, 24), (512, 64)])
 def test_q7_t07_identical_numeric_information_and_precision(native, n, d):
     rng = np.random.default_rng(731)
@@ -224,3 +288,88 @@ def test_q7_t07_identical_numeric_information_and_precision(native, n, d):
         assert x.dtype == np.dtype("float64")
         np.testing.assert_allclose(x, z, rtol=1e-9, atol=1e-10)
     assert runtime.copied_bytes == v.nbytes + y.nbytes + w.nbytes
+
+
+def test_q7_t06_observer_rng_does_not_change_sequential_main_lane():
+    import random
+    from quantbt.optimization.meta_selection.runtime import isolated_observer_rng
+
+    rng = np.random.get_state()
+    python_rng = random.getstate()
+    with isolated_observer_rng(731):
+        np.random.normal(size=100)
+        random.random()
+    restored = np.random.get_state()
+    assert rng[0] == restored[0]
+    np.testing.assert_array_equal(rng[1], restored[1])
+    assert rng[2:] == restored[2:]
+    assert python_rng == random.getstate()
+
+
+def measured_evidence():
+    import json
+    from tools.qms07_performance import DIRECTORY
+
+    return json.loads((DIRECTORY / "qms07_performance_evidence.json").read_text())
+
+
+def test_q7_t06_actual_public_sequential_trace_is_entry_exact():
+    from tools.qms07_performance import compare_public
+
+    evidence = measured_evidence()
+    for arm in evidence["arms"].values():
+        for a, b in zip(
+            arm["samples"]["entry"], arm["samples"]["current"], strict=True
+        ):
+            compare_public(a, b)
+            assert a["trial_rows"] == b["trial_rows"] == 36
+
+
+def test_q7_t04_actual_rss_pss_plateau_and_bounded_retention():
+    evidence = measured_evidence()
+    plateau = evidence["memory_plateau"]["plateau"]
+    assert len(plateau) == 20
+    assert all(r["retained_cache_bytes"] <= 8_000_000 for r in plateau)
+    # Registered fixed N=4096,d=24,P=600 workspace lane, after first allocation.
+    for field in ("rss_mib", "pss_mib"):
+        assert (
+            max(r[field] for r in plateau[5:]) - min(r[field] for r in plateau[5:]) <= 8
+        )
+
+
+def test_q7_t08_disabled_gate_is_measured_not_owner_approval():
+    evidence = measured_evidence()
+    gate = evidence["disabled_gate"]
+    assert gate["owner_accepted"] is False
+    assert gate["status"] == "MEASURED_OWNER_BUDGET_PENDING"
+    arm = evidence["arms"]["disabled"]
+    assert len(arm["samples"]["entry"]) == len(arm["samples"]["current"]) == 8
+    expected = (
+        arm["relative_change"]["p50_seconds"] <= 0.03
+        and arm["relative_change"]["p95_seconds"] <= 0.05
+    )
+    assert gate["working_targets_pass"] is expected
+    assert all(
+        row["evidence"]["observer_attempts"] == 0
+        for rows in arm["samples"].values()
+        for row in rows
+    )
+
+
+def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
+    import subprocess
+    import importlib.metadata
+    from tools.qms07_performance import ROOT, ENTRY
+
+    changed = subprocess.check_output(
+        ["git", "diff", ENTRY, "--name-only", "--", "src/quantbt", "rust"],
+        cwd=ROOT,
+        text=True,
+    ).splitlines()
+    assert all(
+        p.startswith("src/quantbt/optimization/meta_selection/")
+        or p == "rust/native_event/src/qms_numeric.rs"
+        for p in changed
+    )
+    assert importlib.metadata.version("quantbt-native") == "0.4.2"
+    assert importlib.metadata.version("quantbt-engine") == "1.1.1"
