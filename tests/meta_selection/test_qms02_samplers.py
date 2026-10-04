@@ -617,6 +617,10 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
     allowed = {
         "src/quantbt/endpoint.py",
         "src/quantbt/walkforward.py",
+        # QMS-06 original-pass witness and fail-closed route glue, not kernels.
+        "src/quantbt/backends/native_prepared_evaluation.py",
+        "src/quantbt/backends/native_wfo_public.py",
+        "src/quantbt/backends/reactive_wfo.py",
         "src/quantbt/optimization/config.py",
         "src/quantbt/optimization/samplers.py",
         "src/quantbt/optimization/space.py",
@@ -629,6 +633,9 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         if name in allowed:
             continue
         current = (baseline.ROOT / name).read_bytes()
+        from tools.qms06_source_guard import without_qms06_witness
+
+        current = without_qms06_witness(current, name)
         # Approved QMS-04 is only an opt-in numeric export/feature addition.
         # Normalize those exact additions; all financial Rust bytes stay locked.
         if name == "rust/native_event/src/lib.rs":

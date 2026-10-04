@@ -332,9 +332,7 @@ def test_q5_t05_active_same_anchor_still_uses_history(cold):
 @pytest.mark.parametrize(
     "settings",
     [
-        {"native_prepared_wfo": "require"},
         {"use_scalar_trial_scoring": True},
-        {"prepared_wfo_strategy": "require"},
         {"strategy_lifecycle_policy": "legacy_reuse_v1"},
         {"scoring_backend": "proxy"},
     ],

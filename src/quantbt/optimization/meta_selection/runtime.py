@@ -303,6 +303,7 @@ class PublicMetaRuntime:
             "native_selected_evaluation_id": task.anchor.evaluation_id,
             "native_selected_params": wire(task.anchor.effective_params),
             "native_objective": float(native.objective),
+            "native_selection_reason": wire(native.selection_metadata),
             "native_raw_is_sharpe": task.anchor.observation.raw_sharpe,
             "raw_best_evaluation_id": proposal.raw_best_evaluation_id,
             "meta_proposed_candidate_id": current[
@@ -456,6 +457,7 @@ class PublicMetaRuntime:
             "records": tuple(self.records),
             "models": dict(self.models),
             "tasks": tuple(self.tasks),
+            "snapshots": tuple(self.snapshots),
             "elapsed_seconds": dict(self.elapsed),
             "observer_attempts": self.observer.attempts,
             "observer_failures": self.observer.failures,

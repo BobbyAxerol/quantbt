@@ -21691,8 +21691,27 @@ observer-leaked label. Mandatory public functionality cannot be deferred.
 
 ### Phase QMS-06 - Prepared Route Parity And Portable Decision Handoff
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** IN_PROGRESS; technical NOT_RUN; empirical NOT_ASSESSED;
 performance NOT_MEASURED; owner review PENDING.
+**Execution Registration (2026-10-04):** user approved this phase on
+`feat/meta-selection-samplers`, entry `3c69cb8`. Read sections 3, 8, 9, 13 and
+QMS-06 of the detailed guide before implementation. Keep QMS-05 receipts
+immutable; write separate QMS-06 tests/evidence. No QMS-07/08, release version
+change, push, merge, tag or private-alpha edits are authorized.
+
+**Adapter/Scope Disposition:** extend the existing prepared score boundary
+with authoritative sample/variance/first-mark evidence, never replay execution
+or infer validity from the historical placeholder `volatility=0`. Preserve
+same-close timing and financial off/auto/require resolution. Published native
+0.4.2 has no such witness capability: use an isolated versioned candidate for
+executed qualification, and observable compatible fallback or explicit require
+failure on the published wheel. Reuse the existing cache/runtime, not another
+financial bridge. W3's separate reactive selection loop has no equivalent
+full-pool/original-metric capture seam; qualifying it would require new reactive
+capture/label-account integration. Per guide section 8.4, this optional lane is
+registered unsupported, not replaced with R3B fixed batches. Q6-T08 must reject
+active/shadow before reactive evaluation; owner acceptance remains a separate
+gate. Mandatory target-series parity and full portable handoff are not deferred.
 **Goal:** use the same mathematical policy on qualified existing reference and
 prepared routes, and export decisions/models that an existing host can consume.
 **Entry:** accepted QMS-05 public integration, actual native capability map and

@@ -94,12 +94,11 @@ def validate_meta_route(config):
         or config.calendar_contract != "exact_v2"
         or config.strategy_lifecycle_policy != "isolated_v1"
         or config.fold_account_policy != "carry_position"
-        or config.metadata.get("use_scalar_trial_scoring", True)
-        or config.metadata.get("native_prepared_wfo", "off") != "off"
-        or config.metadata.get("prepared_wfo_strategy", "off") != "off"
+        or (config.metadata.get("use_scalar_trial_scoring", True)
+            and config.metadata.get("native_prepared_wfo", "off") == "off")
     ):
         raise MetaRecordError(
-            f"META_ROUTE_UNSUPPORTED: {requested}; QMS-05 requires exact scalar original-result endpoint, isolated_v1/carry_position, use_scalar_trial_scoring=False, native_prepared_wfo=off, prepared_wfo_strategy=off; prepared qualification is QMS-06"
+            f"META_ROUTE_UNSUPPORTED: {requested}; requires exact target-series endpoint, isolated_v1/carry_position and authoritative original-result or prepared witness; W3 reactive reset-flat lacks equivalent full-pool/metric seam (guide 8.4)"
         )
     if config.optuna_trials <= 0:
         raise MetaRecordError(

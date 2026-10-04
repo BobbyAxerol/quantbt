@@ -9403,6 +9403,11 @@ fn run_full_tape_profile(
 
 #[pymodule]
 fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    #[cfg(feature = "qms-prepared-witness-candidate")]
+    module.add(
+        "QMS_PREPARED_METRIC_SUPPORT_V1",
+        "same-pass-ddof1-daily-first-mark-v1",
+    )?;
     #[cfg(feature = "qms-numeric-candidate")]
     qms_numeric::register(module)?;
     module.add("__version__", VERSION)?;

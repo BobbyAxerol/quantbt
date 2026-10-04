@@ -6,6 +6,7 @@ publish = false
 
 [features]
 qms-numeric-candidate = []
+qms-prepared-witness-candidate = []
 
 [lib]
 name = "_quantbt_native"

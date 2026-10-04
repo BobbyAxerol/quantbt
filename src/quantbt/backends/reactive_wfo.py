@@ -66,6 +66,10 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         symbols: Sequence[str] | None = None,
         _use_prepared_wfo_preparation: bool | None = None,
     ) -> None:
+        if walkforward_config.meta_selection is not None:
+            raise ReactiveWalkForwardUnsupported(
+                "META_ROUTE_UNSUPPORTED: W3 reset-flat reactive lacks equivalent full-pool/original-metric capture seam; QMS-06 guide 8.4 disposition. Use qualified target-series Mode 4/per_fold_causal or disable meta."
+            )
         if not isinstance(data, pd.DataFrame):
             raise ReactiveWalkForwardUnsupported("public reactive WFO currently requires one canonical OHLCV DataFrame")
         if str(endpoint.config.mode).lower().strip() != "native_event_strategy":

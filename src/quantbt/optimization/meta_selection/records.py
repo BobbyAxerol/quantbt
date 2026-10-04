@@ -123,6 +123,7 @@ class MetricObservation:
             token(getattr(self, name), name)
         if self.verification not in {
             "original_result",
+            "original_native_score",
             "unverified",
             "reviewed_import",
         }:

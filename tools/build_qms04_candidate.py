@@ -19,7 +19,7 @@ OUTPUT = ROOT / ".maturin/qms04"
 CANDIDATE = "0.4.3.dev1"
 
 
-def load_candidate(path):
+def load_candidate(path, *, candidate=CANDIDATE):
     # A private tool namespace avoids replacing the installed financial module.
     spec = importlib.util.spec_from_file_location(
         "_quantbt_qms_candidate._quantbt_native", path
@@ -29,14 +29,14 @@ def load_candidate(path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     if (
-        module.version() != CANDIDATE
+        module.version() != candidate
         or module.qms_numeric_descriptor_v1()["abi"] != "qms-numeric-v1"
     ):
         raise ValueError("candidate version/ABI mismatch")
     return module
 
 
-def build(output=OUTPUT):
+def build(output=OUTPUT, *, candidate=CANDIDATE, features="qms-numeric-candidate"):
     output = Path(output).absolute()
     output.mkdir(parents=True, exist_ok=True)
     maturin = Path(sys.executable).parent / "maturin"
@@ -51,12 +51,16 @@ def build(output=OUTPUT):
         # the checkout stay untouched; released financial compatibility stays exact.
         cargo = stage / "native_event/Cargo.toml"
         cargo.write_text(
-            cargo.read_text().replace('version = "0.4.2"', 'version = "0.4.3-dev.1"', 1)
+            cargo.read_text().replace(
+                'version = "0.4.2"',
+                f'version = "{candidate.replace(".dev", "-dev.")}"',
+                1,
+            )
         )
         project = stage / "native_event/pyproject.toml"
         project.write_text(
             project.read_text().replace(
-                'version = "0.4.2"', f'version = "{CANDIDATE}"', 1
+                'version = "0.4.2"', f'version = "{candidate}"', 1
             )
         )
         generated = stage / "crates/quantbt-domain/src/generated_product_contracts.rs"
@@ -68,7 +72,7 @@ def build(output=OUTPUT):
             )
         generated.write_text(
             text.replace(
-                old, f'pub const NATIVE_PACKAGE_VERSION: &str = "{CANDIDATE}";'
+                old, f'pub const NATIVE_PACKAGE_VERSION: &str = "{candidate}";'
             )
         )
         env = dict(os.environ)
@@ -79,7 +83,7 @@ def build(output=OUTPUT):
             "--offline",
             "--release",
             "--features",
-            "qms-numeric-candidate",
+            features,
             "--manifest-path",
             str(cargo),
             "--interpreter",
@@ -88,7 +92,7 @@ def build(output=OUTPUT):
             str(output),
         ]
         subprocess.run(command, cwd=stage, env=env, check=True)
-    wheels = list(output.glob("quantbt_native-0.4.3.dev1-*.whl"))
+    wheels = list(output.glob(f"quantbt_native-{candidate}-*.whl"))
     if len(wheels) != 1:
         raise RuntimeError("candidate wheel must be unambiguous for this interpreter")
     wheel = wheels[0]
@@ -102,11 +106,14 @@ def build(output=OUTPUT):
             raise RuntimeError("candidate wheel extension missing/ambiguous")
         extension = output / Path(members[0]).name
         extension.write_bytes(archive.read(members[0]))
-    module = load_candidate(extension)
+    module = load_candidate(extension, candidate=candidate)
     proof = {
-        "candidate": CANDIDATE,
+        "candidate": candidate,
         "api": module.api_version(),
         "descriptor": module.qms_numeric_descriptor_v1(),
+        "prepared_metric_witness": getattr(
+            module, "QMS_PREPARED_METRIC_SUPPORT_V1", None
+        ),
         "wheel": wheel.name,
         "wheel_sha256": sha256(wheel.read_bytes()).hexdigest(),
         "extension": extension.name,

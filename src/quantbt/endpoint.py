@@ -4912,15 +4912,15 @@ class _WalkForwardEndpointScorer:
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
         if self.meta_metric_support:
-            if (wf_config is None or wf_config.metadata.get("use_scalar_trial_scoring", True)
-                    or wf_config.metadata.get("native_prepared_wfo", "auto") != "off"):
-                raise NotImplementedError("QMS-03 original-result support requires explicit scalar=false and native_prepared_wfo=off")
+            if wf_config is None:
+                raise NotImplementedError("META_METRIC_SUPPORT_MISSING: WFO metric contract required")
             from .optimization.meta_selection.observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
             self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(trading_days=wf_config.scoring_trading_days))
             self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
         self.use_scalar_trial_scoring = bool(
             (wf_config.metadata if wf_config is not None else {}).get("use_scalar_trial_scoring", True)
+            and not self.meta_metric_support
         )
         self.prepared_scoring_report_level = str(
             (wf_config.metadata if wf_config is not None else {}).get("prepared_scoring_report_level", "minimal")
@@ -4941,6 +4941,7 @@ class _WalkForwardEndpointScorer:
                 config=config,
                 target_mode=self.target_mode,
                 wf_config=wf_config,
+                meta_metric_support=self.meta_metric_support,
             )
         self._stats = {
             "enabled": bool(self.use_prepared_cache),
@@ -4964,6 +4965,12 @@ class _WalkForwardEndpointScorer:
             "kernel_score_seconds": 0.0,
             "metric_report_seconds": 0.0,
         }
+        if self.meta_metric_support:
+            self._stats["meta_metric_evidence"] = {
+                "requested_scalar_trial_scoring": bool(wf_config.metadata.get("use_scalar_trial_scoring", True)),
+                "reference_fallback": "original_result_required_not_scalar_placeholder",
+                "prepared_witness": "qualified_same_pass_native_support_only",
+            }
 
     def bind_walkforward_context(self, context) -> None:
         """Bind one run-local prepared WFO snapshot to this scorer instance."""

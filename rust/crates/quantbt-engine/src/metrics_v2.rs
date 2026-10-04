@@ -110,6 +110,7 @@ pub struct NativeMetricSnapshotV2 {
     pub cagr: f64,
     pub mean_return: f64,
     pub variance: f64,
+    pub initial_mark_equity: f64,
     pub sharpe: f64,
     pub sortino: f64,
     pub max_drawdown: f64,
@@ -182,6 +183,7 @@ impl OnlineMomentsV1 {
 pub struct OnlineMetricReducerV2 {
     contract: MetricContractV2,
     initial_equity: f64,
+    initial_mark_equity: Option<f64>,
     start_timestamp_ns: Option<i64>,
     end_timestamp_ns: Option<i64>,
     previous_sample_equity: Option<f64>,
@@ -216,6 +218,7 @@ impl OnlineMetricReducerV2 {
         Ok(Self {
             contract,
             initial_equity,
+            initial_mark_equity: None,
             start_timestamp_ns: None,
             end_timestamp_ns: None,
             previous_sample_equity: None,
@@ -252,6 +255,7 @@ impl OnlineMetricReducerV2 {
             return Err("native metric timestamps must be monotonic".to_owned());
         }
         self.start_timestamp_ns.get_or_insert(timestamp_ns);
+        self.initial_mark_equity.get_or_insert(equity);
         self.end_timestamp_ns = Some(timestamp_ns);
         self.peak_equity = self.peak_equity.max(equity);
         if self.peak_equity > 0.0 {
@@ -358,6 +362,7 @@ impl OnlineMetricReducerV2 {
             cagr,
             mean_return: self.moments.mean,
             variance,
+            initial_mark_equity: self.initial_mark_equity.unwrap_or(f64::NAN),
             sharpe,
             sortino,
             max_drawdown: self.max_drawdown,

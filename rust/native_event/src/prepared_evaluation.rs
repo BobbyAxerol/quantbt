@@ -186,6 +186,8 @@ struct PreparedRow {
     rejected_count: u64,
     canceled_count: u64,
     sample_count: u64,
+    sample_variance: f64,
+    initial_mark_equity: f64,
     liquidated: bool,
     request_fingerprint: String,
     terminal_fingerprint: String,
@@ -228,6 +230,8 @@ impl PreparedRow {
             rejected_count: 0,
             canceled_count: 0,
             sample_count: 0,
+            sample_variance: f64::NAN,
+            initial_mark_equity: f64::NAN,
             liquidated: false,
             request_fingerprint: binding.request_fingerprint.clone(),
             terminal_fingerprint: String::new(),
@@ -298,6 +302,8 @@ fn row_from_score(
         rejected_count: metrics.rejected_count,
         canceled_count: metrics.canceled_count,
         sample_count: metrics.sample_count,
+        sample_variance: metrics.variance,
+        initial_mark_equity: metrics.initial_mark_equity,
         liquidated: metrics.liquidated,
         request_fingerprint,
         terminal_fingerprint,
@@ -353,6 +359,8 @@ fn row_from_intrabar(
         rejected_count: metrics.rejected_count,
         canceled_count: metrics.canceled_count,
         sample_count: metrics.sample_count,
+        sample_variance: metrics.variance,
+        initial_mark_equity: metrics.initial_mark_equity,
         liquidated: metrics.liquidated,
         request_fingerprint,
         terminal_fingerprint,
@@ -1191,6 +1199,59 @@ impl NativePreparedEvaluationMatrixCore {
                 PyArray1::from_vec(
                     py,
                     self.inner.rows.iter().map(|row| row.error_slot).collect(),
+                )
+                .into_any()
+                .unbind(),
+            ],
+        )?
+        .unbind())
+    }
+
+    #[cfg(feature = "qms-prepared-witness-candidate")]
+    fn qms_metric_support_columns_v1(&self, py: Python<'_>) -> PyResult<Py<PyTuple>> {
+        // Detached Rust-owned arrays from the same execution/reducer pass.
+        Ok(PyTuple::new(
+            py,
+            [
+                PyArray1::from_vec(py, self.inner.rows.iter().map(|r| r.sample_count).collect())
+                    .into_any()
+                    .unbind(),
+                PyArray1::from_vec(
+                    py,
+                    self.inner.rows.iter().map(|r| r.sample_variance).collect(),
+                )
+                .into_any()
+                .unbind(),
+                PyArray1::from_vec(
+                    py,
+                    self.inner
+                        .rows
+                        .iter()
+                        .map(|r| r.initial_mark_equity)
+                        .collect(),
+                )
+                .into_any()
+                .unbind(),
+                PyArray1::from_vec(py, self.inner.rows.iter().map(|r| r.liquidated).collect())
+                    .into_any()
+                    .unbind(),
+                PyArray1::from_vec(
+                    py,
+                    self.inner
+                        .rows
+                        .iter()
+                        .map(|r| r.native_metric_contract_version)
+                        .collect(),
+                )
+                .into_any()
+                .unbind(),
+                PyArray1::from_vec(
+                    py,
+                    self.inner
+                        .rows
+                        .iter()
+                        .map(|r| r.native_metric_annualization_factor)
+                        .collect(),
                 )
                 .into_any()
                 .unbind(),

@@ -312,16 +312,16 @@ def test_q3_t06_actual_result_dispositions(case, status):
         {"use_scalar_trial_scoring": False, "native_prepared_wfo": "require"},
     ],
 )
-def test_q3_t06_unsupported_scalar_support_rejected_before_search(metadata):
+def test_q3_t06_meta_support_retains_original_result_not_scalar_placeholder(metadata):
     endpoint = baseline.endpoint()
     config = replace(endpoint.config.walkforward_config, metadata=metadata)
-    with pytest.raises(NotImplementedError, match="original-result"):
-        _WalkForwardEndpointScorer(
-            endpoint.config,
-            "signal_notional",
-            wf_config=config,
-            meta_metric_support=True,
-        )
+    # QMS-06 qualifies optional prepared witnesses. Ordinary/fallback calls
+    # must still retain the original result rather than use scalar placeholders.
+    scorer = _WalkForwardEndpointScorer(endpoint.config, "signal_notional",
+        wf_config=config, meta_metric_support=True)
+    assert scorer.meta_metric_support
+    assert not scorer.use_scalar_trial_scoring
+    assert scorer._native_prepared_wfo.policy == metadata.get("native_prepared_wfo", "off")
 
 
 @pytest.mark.parametrize(
@@ -441,12 +441,18 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
         .decode()
         .splitlines()
     )
-    allowed = {"src/quantbt/endpoint.py", "src/quantbt/walkforward.py"}
+    allowed = {"src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
+        # QMS-06 additive witness/glue; original arithmetic remains byte-locked
+        # below, and reference/prepared execution is differentially tested.
+        "src/quantbt/backends/native_prepared_evaluation.py",
+        "src/quantbt/backends/native_wfo_public.py",
+        "src/quantbt/backends/reactive_wfo.py"}
     for name in names:
         if name not in allowed:
+            from tools.qms06_source_guard import without_qms06_witness
+            current = without_qms06_witness((baseline.ROOT / name).read_bytes(), name)
             if name == "rust/native_event/src/lib.rs":
                 # QMS-04 adds only registered numeric exports, not execution math.
-                current = (baseline.ROOT / name).read_bytes()
                 current = current.replace(
                     b'#[cfg(feature = "qms-numeric-candidate")]\nmod qms_numeric;\n',
                     b"",
@@ -458,13 +464,12 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
                 continue
             if name == "rust/native_event/Cargo.toml":
                 current = (
-                    (baseline.ROOT / name)
-                    .read_bytes()
+                    current
                     .replace(b"\n[features]\nqms-numeric-candidate = []\n", b"")
                 )
                 assert baseline.git("show", "3ce42bf:" + name) == current, name
                 continue
             assert (
                 baseline.git("show", "3ce42bf:" + name)
-                == (baseline.ROOT / name).read_bytes()
+                == current
             ), name

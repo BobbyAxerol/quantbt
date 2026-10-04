@@ -265,6 +265,7 @@ class NativePreparedScoreColumnsV1:
     error_slot: np.ndarray
     errors: tuple[str, ...]
     metadata: Mapping[str, object]
+    metric_support: Mapping[str, np.ndarray] | None = None
 
     def index_by_scenario(self) -> Mapping[int, int]:
         """Return a small boundary lookup after validating unique scenarios."""
@@ -500,6 +501,8 @@ class NativePreparedEvaluationRuntimeV1:
     def evaluate_score_columns(
         self,
         bindings: Sequence[NativePreparedEvaluationBindingV1],
+        *,
+        metric_support: bool = False,
     ) -> NativePreparedScoreColumnsV1:
         """Execute one batch through the scalar-only Rust/Python boundary.
 
@@ -540,6 +543,10 @@ class NativePreparedEvaluationRuntimeV1:
                     "install a matching native wheel or use the explicit compatibility scorer"
                 )
             raw_columns = score_columns()
+            support = None
+            if metric_support:
+                from .native_metric_support import extract_prepared_metric_support_v1
+                support = extract_prepared_metric_support_v1(matrix, len(entries))
             errors = tuple(str(value) for value in matrix.errors())
             return _adapt_native_score_columns(
                 entries,
@@ -548,6 +555,7 @@ class NativePreparedEvaluationRuntimeV1:
                 native_bytes=native_bytes,
                 execution_seconds=(perf_counter_ns() - started) / 1_000_000_000.0,
                 runtime=self,
+                metric_support=support,
             )
         finally:
             with self._lock:
@@ -776,6 +784,7 @@ def _adapt_native_score_columns(
     native_bytes: int,
     execution_seconds: float,
     runtime: NativePreparedEvaluationRuntimeV1,
+    metric_support=None,
 ) -> NativePreparedScoreColumnsV1:
     """Validate the compact score boundary without materializing row objects.
 
@@ -841,6 +850,7 @@ def _adapt_native_score_columns(
         report_trade_count=columns["report_trade_count"],
         error_slot=columns["error_slot"],
         errors=errors,
+        metric_support=metric_support,
         metadata={
             "runtime": "native_prepared_evaluation_v1",
             "native_runtime": native["native_runtime"],

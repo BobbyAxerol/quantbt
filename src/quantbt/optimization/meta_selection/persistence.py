@@ -23,6 +23,20 @@ def observation_from_payload(payload):
     return MetricObservation(**strict_fields(MetricObservation, payload))
 
 
+def task_from_payload(payload):
+    """One strict decoder shared by checkpoints and portable host handoff."""
+    fields = strict_fields(MetaTask, payload)
+    fields["family"] = CompatibilityFamily(**strict_fields(CompatibilityFamily, fields["family"]))
+    candidates = []
+    for payload in fields["candidates"]:
+        candidate = strict_fields(CandidateISRecord, payload)
+        candidate["observation"] = observation_from_payload(candidate["observation"])
+        candidates.append(CandidateISRecord(**candidate))
+    fields["candidates"] = tuple(candidates)
+    fields["roles"] = tuple(CandidateRoleRef(**strict_fields(CandidateRoleRef, r)) for r in fields["roles"])
+    return MetaTask(**fields)
+
+
 def _unique_object(pairs):
     result = {}
     for key, value in pairs:
@@ -67,23 +81,7 @@ def loads_revision(
         ):
             raise MetaRecordError("checkpoint schema/content digest mismatch")
         fields = strict_fields(SealedTaskRevision, document["payload"])
-        task_fields = strict_fields(MetaTask, fields["task"])
-        task_fields["family"] = CompatibilityFamily(
-            **strict_fields(CompatibilityFamily, task_fields["family"])
-        )
-        candidates = []
-        for payload in task_fields["candidates"]:
-            candidate = strict_fields(CandidateISRecord, payload)
-            candidate["observation"] = observation_from_payload(
-                candidate["observation"]
-            )
-            candidates.append(CandidateISRecord(**candidate))
-        task_fields["candidates"] = tuple(candidates)
-        task_fields["roles"] = tuple(
-            CandidateRoleRef(**strict_fields(CandidateRoleRef, r))
-            for r in task_fields["roles"]
-        )
-        fields["task"] = MetaTask(**task_fields)
+        fields["task"] = task_from_payload(fields["task"])
         fields["panel"] = FrozenLabelPanel(
             **strict_fields(FrozenLabelPanel, fields["panel"])
         )
