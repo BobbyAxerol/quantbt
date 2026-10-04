@@ -857,7 +857,7 @@ def test_q6_t07_pure_selector_example_no_financial_replay(reference, monkeypatch
 
 
 @pytest.mark.parametrize("mode", ["shadow", "active"])
-def test_q6_t08_w3_reviewed_unsupported_before_prepare(mode):
+def test_q6_t08_w3_untyped_config_unsupported_before_prepare(mode):
     from quantbt.backends.reactive_wfo import (
         ReactivePreparedWfoRuntimeV1,
         ReactiveWalkForwardUnsupported,
@@ -865,7 +865,7 @@ def test_q6_t08_w3_reviewed_unsupported_before_prepare(mode):
 
     config = SimpleNamespace(meta_selection=SimpleNamespace(mode=mode))
     with pytest.raises(
-        ReactiveWalkForwardUnsupported, match="full-pool/original-metric capture seam"
+        ReactiveWalkForwardUnsupported, match="typed WalkForwardConfig required"
     ):
         ReactivePreparedWfoRuntimeV1(
             endpoint=None, data=None, strategy_factory=None, walkforward_config=config

@@ -202,7 +202,16 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         # This stub is never invoked because W3 overrides the batch score
         # boundary below, but retaining the normal config keeps all selection
         # formulas and parameter validation unchanged.
-        super().__init__(strategy=_reactive_marker_strategy, config=config, scorer=_reactive_unused_scorer)
+        from dataclasses import replace
+
+        super().__init__(strategy=_reactive_marker_strategy,
+                         config=replace(config, meta_selection=None), scorer=_reactive_unused_scorer)
+        self.config = config
+        if config.meta_selection is not None:
+            from ..optimization.meta_selection.reactive import ReactiveMetricBoundary
+
+            self.scorer = ReactiveMetricBoundary(runtime)
+            self.strategy = runtime.strategy_factory
         self._reactive_runtime = runtime
         self._precomputed_score_rows: dict[tuple[str, int, str, int, int], dict[str, float]] | None = None
         self._precomputed_failures: dict[tuple[str, int, str, int, int], dict[str, object]] = {}
@@ -462,6 +471,8 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
                     "is_required_trades": required_trades,
                     "is_trade_penalty": penalty,
                     "oos_evaluated": False,
+                    **({"meta_observation": is_metrics["meta_observation"]}
+                       if "meta_observation" in is_metrics else {}),
                     **shard_stats,
                 }
             )

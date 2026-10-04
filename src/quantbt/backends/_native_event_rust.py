@@ -3099,6 +3099,7 @@ class RustReactiveNumericCoRuntime:
         runtime: str = "numeric_every_bar_v1",
         scalar_score: bool = False,
         score_trading_days: int = 365,
+        retain_score_metrics: bool = False,
     ) -> None:
         self._module = _require_r1_extension()
         status = probe_native_event_rust_extension(module=self._module)
@@ -3183,7 +3184,7 @@ class RustReactiveNumericCoRuntime:
             retain_command_rows=not self.scalar_score,
             retain_callback_trace=not self.scalar_score,
             retain_terminal_active_orders=not self.scalar_score,
-            scalar_metrics=self.scalar_score,
+            scalar_metrics=self.scalar_score or bool(retain_score_metrics),
             score_trading_days=int(self.score_trading_days),
             score_bar_annualization=float(score_bar_annualization),
         )

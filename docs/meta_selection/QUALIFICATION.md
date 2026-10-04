@@ -121,9 +121,12 @@ inference; these engineering checks do not invent confidence intervals.
 ## Review And Rollback
 
 Owner review, remote packaging matrix, public release version/capability
-activation and real market acceptance remain separate decisions. W3 reactive
-meta integration, configured-vs-observed thread telemetry and high-dimensional
-Rust/BLAS dispatch are recorded follow-ups, not silently claimed complete.
+activation and real market acceptance remain separate decisions. The owner-approved
+local follow-up implements exact prepared witnesses, a bounded sequential W3
+adapter, measured Rust/BLAS fit dispatch and observed thread telemetry. Its
+new receipts are separate from sealed QMS-08; see the
+[integration contract](INTEGRATION.md#w3-sequential-meta). Process/batch W3 meta
+and public/remote qualification are not inferred from this local adapter.
 
 To disable QMS, omit/remove its optional config/runtime binding. Qualified
 reference execution remains available when native numerics are slower or missing.

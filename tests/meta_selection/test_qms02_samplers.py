@@ -621,6 +621,7 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         "src/quantbt/backends/native_prepared_evaluation.py",
         "src/quantbt/backends/native_wfo_public.py",
         "src/quantbt/backends/reactive_wfo.py",
+        "src/quantbt/backends/reactive_wfo_support.py",
         "src/quantbt/optimization/config.py",
         "src/quantbt/optimization/samplers.py",
         "src/quantbt/optimization/space.py",

@@ -222,7 +222,9 @@ def test_q8_t07_actual_candidate_wheel_sdist_consumers():
     )
     for path in proofs:
         proof = json.loads(path.read_text())
-        assert verify_pair(proof)
+        # Historical artifacts certify their sealed source, not later followup
+        # implementations. Current-source followup wheels have a separate gate.
+        assert verify_pair(proof, source_revision=None if supplied else "6c0f877")
         guard = subprocess.run(
             [
                 str(path.parent / "core_off/bin/python"),
@@ -392,6 +394,7 @@ def test_q8_t08_report_regeneration_never_executes_or_infers(monkeypatch):
             "git",
             "diff",
             "559b4d1",
+            "6c0f877",
             "--name-only",
             "--",
             "src",

@@ -22417,6 +22417,20 @@ specific missing contract instead of declaring success or falsifying metrics.
 
 #### QMS-L04 - Local Qualification And Delta RSI Decay Evidence
 
+**L03 implementation note:** reuse existing Rust `scalar_metrics` output flag
+while retaining original result paths, through narrowly scoped Python prepared
+runner/FFI plumbing. Native/Rust bytes and ABI remain unchanged. The same pass
+provides the exact old streaming objective plus original-result witnesses.
+Sequential inprocess W3 only; process/batch/deadline scalar transport remains
+explicit unsupported optional capability, not a claim of universal W3 support.
+Original result lane checks cancellation at candidate-window boundaries.
+Full affected QMS/W3 integration: 478 PASS / 3 explicit POSIX-fork skips
+(139.83s), including 13 new reactive cases, full-window same-pass parity,
+cleanup and source/financial locks. Active fixture switches actual applied
+params; shadow objective/account is exact. Archived QMS08 artifacts are checked
+against their sealed source, not silently relabeled as current-source artifacts.
+Current local package and real-alpha cost/economics evidence remain required.
+
 **Goal:** verify all local changes and quantify economic effectiveness separately
 from engineering speed. Read guide [12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
 and [14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).

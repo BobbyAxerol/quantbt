@@ -2,6 +2,36 @@
 
 
 def without_qms06_witness(source, name):
+    if name == "src/quantbt/backends/native_event.py":
+        additions = (
+            b"        retain_score_metrics: bool = False,\n",
+            b"            retain_score_metrics=bool(retain_score_metrics),\n",
+            b"        metric_witness_trading_days: int | None = None,\n",
+            b"            retain_score_metrics=metric_witness_trading_days is not None,\n",
+            b"            score_trading_days=metric_witness_trading_days or 365,\n",
+            b"        _metric_witness_trading_days: int | None = None,\n",
+            b"                metric_witness_trading_days=_metric_witness_trading_days,\n",
+            b'        if metric_witness_trading_days is not None:\n'
+            b'            runtime_metadata["same_pass_score"] = {\n'
+            b'                key: value for key, value in payload.items()\n'
+            b'                if key.startswith("score_") or key == "total_turnover"\n'
+            b'            }\n',
+        )
+        if additions[0] in source:
+            for addition in additions:
+                if source.count(addition) != 1:
+                    raise AssertionError("unregistered W3 native boundary change")
+                source = source.replace(addition, b"")
+    if name == "src/quantbt/backends/_native_event_rust.py":
+        # Authorized local W3 plumbing enables the existing same-pass reducer;
+        # no matcher, lifecycle or accounting arithmetic is exempted.
+        additions = b"        retain_score_metrics: bool = False,\n"
+        old = b"            scalar_metrics=self.scalar_score,\n"
+        new = b"            scalar_metrics=self.scalar_score or bool(retain_score_metrics),\n"
+        if additions in source or new in source:
+            if source.count(additions) != 1 or source.count(new) != 1:
+                raise AssertionError("unregistered W3 same-pass reducer change")
+            source = source.replace(additions, b"").replace(new, old)
     additions = {
         "rust/crates/quantbt-engine/src/metrics_v2.rs": (
             (b"    pub initial_mark_equity: f64,\n", 1),

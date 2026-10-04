@@ -131,7 +131,7 @@ class PublicMetaRuntime:
             ),
             scorer._meta_adapter.contract.metric_id,
             scorer._meta_economics_id,
-            "original-endpoint-reset-v1",
+            getattr(scorer, "meta_route_id", "original-endpoint-reset-v1"),
             digest(
                 {
                     "mode": c.optimization_mode,
@@ -385,6 +385,29 @@ class PublicMetaRuntime:
             return
         started = perf_counter()
         task, panel = self.tasks[-1], self.panel
+        evaluate, lifecycle = self.observer_evaluator(data, fold, task)
+        witness = getattr(self.engine.scorer, "_meta_witness", None)
+        # Physical outcomes stay inaccessible to selection until declared
+        # terminal/publication time, even when already present in replay storage.
+        available = task.forward_end + pd.Timedelta(seconds=self.config.reporting_lag_seconds)
+        outcomes = self.observer.observe(
+            task=task, panel=panel, evaluate=evaluate, expected_index=fold.test_index,
+            label_available_at=available, reporting_lag_seconds=self.config.reporting_lag_seconds,
+            prepared_witness=witness,
+        )
+        elapsed = perf_counter() - started
+        actual_available = available + pd.Timedelta(seconds=elapsed)
+        outcomes = tuple(replace(o, label_available_at=actual_available) for o in outcomes)
+        revision = SealedTaskRevision(task, panel, outcomes, actual_available)
+        self.context.history.append(revision)
+        self.records[-1].update(
+            observer_revision_id=revision.revision_id,
+            observer_label_available_at=wire(actual_available), observer_evaluations=len(outcomes),
+            observer_seconds=elapsed, observer_lifecycle=tuple(lifecycle), observer_reset_accounts=True,
+        )
+        self.elapsed["observer"] += elapsed
+
+    def observer_evaluator(self, data, fold, task):
         from ...endpoint import QuantBTEndpoint
         from ...walkforward import WalkForwardEngine
 
@@ -417,36 +440,7 @@ class PublicMetaRuntime:
                                 if witness is not None else market_signature(
                                     prefix, fold.test_index, config=self.engine.scorer.score_config))
 
-        # Physical outcomes are already on disk in replay, but stay inaccessible
-        # to selection until their declared terminal/publication time.
-        available = task.forward_end + pd.Timedelta(
-            seconds=self.config.reporting_lag_seconds
-        )
-        outcomes = self.observer.observe(
-            task=task,
-            panel=panel,
-            evaluate=evaluate,
-            expected_index=fold.test_index,
-            label_available_at=available,
-            reporting_lag_seconds=self.config.reporting_lag_seconds,
-            prepared_witness=witness,
-        )
-        elapsed = perf_counter() - started
-        actual_available = available + pd.Timedelta(seconds=elapsed)
-        outcomes = tuple(
-            replace(o, label_available_at=actual_available) for o in outcomes
-        )
-        revision = SealedTaskRevision(task, panel, outcomes, actual_available)
-        self.context.history.append(revision)
-        self.records[-1].update(
-            observer_revision_id=revision.revision_id,
-            observer_label_available_at=wire(actual_available),
-            observer_evaluations=len(outcomes),
-            observer_seconds=elapsed,
-            observer_lifecycle=tuple(auxiliary._lifecycle_records),
-            observer_reset_accounts=True,
-        )
-        self.elapsed["observer"] += elapsed
+        return evaluate, auxiliary._lifecycle_records
 
     def finalize(self, result):
         learned = any(
@@ -468,8 +462,11 @@ class PublicMetaRuntime:
             "meta_proposal_uses_past_matured_forward": any(
                 r["meta_proposal_uses_past_matured_forward"] for r in self.records
             ),
-            "account_authority": "existing_continuous_stitched_target_account",
+            "account_authority": getattr(self.engine.scorer, "meta_account_authority",
+                                         "existing_continuous_stitched_target_account"),
             "observer_account_scope": "independent_reset_counterfactual_diagnostics",
+            "witness_reuse": (self.engine.scorer._meta_witness.metadata
+                              if getattr(self.engine.scorer, "_meta_witness", None) is not None else None),
         }
         if self.config.mode == "active":
             fields = (

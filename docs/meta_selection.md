@@ -15,6 +15,11 @@ Sampler configuration alone does not enable meta. Start with
 [public integration, config and information/accounting contract](meta_selection/INTEGRATION.md).
 
 QMS-07 closes exact reuse and chronological parity with scoped measured gains.
+The owner-approved local debt closure adds exact prepared witness reuse,
+qualified large-geometry Rust/BLAS dispatch, observed thread telemetry and a
+bounded [W3 sequential meta adapter](meta_selection/INTEGRATION.md#w3-sequential-meta).
+Sealed QMS-08 receipts remain historical, not a certificate for changed source.
+
 QMS-08 adds [step-by-step usage](meta_selection/USAGE.md),
 [software/artifact and economic boundaries](meta_selection/QUALIFICATION.md)
 and [complete runnable cases](../examples/wfo_meta_contract.py). Private installed

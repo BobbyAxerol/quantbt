@@ -105,7 +105,7 @@ def test_coverage(junit):
     return {"tests": len(cases), "members": members, "junit_sha256": hash_file(junit)}
 
 
-def verify_pair(proof):
+def verify_pair(proof, *, source_revision=None):
     from tools.qms08_package import CORE, NATIVE, FEATURES
 
     if (proof["core"], proof["native"], proof["features"]) != (CORE, NATIVE, FEATURES):
@@ -189,8 +189,17 @@ def verify_pair(proof):
     }
     if set(proof["stage_differences"]) != expected_changes:
         raise ValueError("unapproved stage identity adaptation")
+    def source_bytes(name):
+        if source_revision is None:
+            return (ROOT / name).read_bytes()
+        return subprocess.check_output(
+            ["git", "show", f"{source_revision}:{name}"], cwd=ROOT
+        )
+
     names = subprocess.check_output(
-        ["git", "ls-files", "src/quantbt", "rust"], cwd=ROOT, text=True
+        (["git", "ls-files", "src/quantbt", "rust"] if source_revision is None
+         else ["git", "ls-tree", "-r", "--name-only", source_revision,
+               "src/quantbt", "rust"]), cwd=ROOT, text=True
     ).splitlines()
     for n in names + [
         "pyproject.toml",
@@ -199,12 +208,12 @@ def verify_pair(proof):
         "LICENSE",
         "MANIFEST.in",
     ]:
-        original, staged = hash_file(ROOT / n), hash_file(stage / n)
+        original, staged = sha256(source_bytes(n)).hexdigest(), hash_file(stage / n)
         if n in expected_changes:
             if proof["stage_differences"][n] != {"source": original, "staged": staged}:
                 raise ValueError("stage adaptation/source drift")
         elif n == "rust/Cargo.lock":
-            original_lock = tomllib.loads((ROOT / n).read_text())
+            original_lock = tomllib.loads(source_bytes(n).decode())
             staged_lock = tomllib.loads((stage / n).read_text())
             package = [
                 p for p in original_lock["package"] if p["name"] == "quantbt-native"

@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 import hashlib
+import sys
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,7 @@ class PreparedMetricWitness:
                           market_misses=0, reference_fallbacks=0, evictions=0)
         self.closed = False
 
-    def _get(self, key, create, size=256):
+    def _get(self, key, create):
         if self.closed:
             raise MetaRecordError("META_WITNESS_CLOSED")
         if key in self.cache:
@@ -35,6 +36,10 @@ class PreparedMetricWitness:
             self.cache.move_to_end(key)
             return value, True
         value = create()
+        def retained_size(item):
+            return sys.getsizeof(item) + (sum(retained_size(v) for v in item)
+                                          if isinstance(item, tuple) else 0)
+        size = retained_size(key) + sys.getsizeof(value)
         if size <= self.max_bytes:
             while self.cache and (len(self.cache) >= self.max_entries
                                   or self.bytes + size > self.max_bytes):
@@ -49,6 +54,8 @@ class PreparedMetricWitness:
     @staticmethod
     def calendar_key(index):
         index = pd.DatetimeIndex(index)
+        if index.tz is None:
+            raise MetaRecordError("META_WITNESS_CALENDAR_REQUIRES_AWARE_INDEX")
         # Same UTC instants yield the same original ISO calendar representation.
         values = index.as_unit("ns").asi8
         return len(index), hashlib.sha256(values.tobytes()).hexdigest()
@@ -85,7 +92,7 @@ class PreparedMetricWitness:
         return value
 
     def header(self, index, *, initial_capital, economics_id, metric_id, input_signature):
-        key = ("header", self.calendar_key(index), float(initial_capital),
+        key = ("header", self.calendar_key(index), digest(initial_capital),
                economics_id, metric_id, input_signature)
         value, hit = self._get(key, lambda: hashlib.sha256(digest({
             "index": [utc(t).isoformat() for t in index],

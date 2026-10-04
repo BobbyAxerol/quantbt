@@ -446,7 +446,8 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
         # below, and reference/prepared execution is differentially tested.
         "src/quantbt/backends/native_prepared_evaluation.py",
         "src/quantbt/backends/native_wfo_public.py",
-        "src/quantbt/backends/reactive_wfo.py"}
+        "src/quantbt/backends/reactive_wfo.py",
+        "src/quantbt/backends/reactive_wfo_support.py"}
     for name in names:
         if name not in allowed:
             from tools.qms06_source_guard import without_qms06_witness

@@ -2068,6 +2068,7 @@ class NativeEventBackend:
         runtime: str,
         scalar_score: bool = False,
         score_trading_days: int = 365,
+        retain_score_metrics: bool = False,
         _prepared_market_cache_key: tuple[str, ...] | None = None,
     ) -> tuple[RustReactiveNumericCoRuntime, int]:
         """Prepare one Rust-owned reactive session with explicit retention.
@@ -2107,6 +2108,7 @@ class NativeEventBackend:
             runtime=runtime,
             scalar_score=bool(scalar_score),
             score_trading_days=int(score_trading_days),
+            retain_score_metrics=bool(retain_score_metrics),
         )
         if prepared_market_core is None:
             self._rust_prepared_market_cores.put(
@@ -2223,6 +2225,7 @@ class NativeEventBackend:
         start_bar: int = 0,
         end_bar: Optional[int] = None,
         prepared_market_cache_key: tuple[str, ...] | None = None,
+        metric_witness_trading_days: int | None = None,
     ) -> BacktestResultV2:
         """Run one explicit R1/R2/R3 numeric co-runtime once.
 
@@ -2255,6 +2258,8 @@ class NativeEventBackend:
             retain_events=bool(plan.keep_event_ledger),
             runtime=runtime,
             _prepared_market_cache_key=prepared_market_cache_key,
+            retain_score_metrics=metric_witness_trading_days is not None,
+            score_trading_days=metric_witness_trading_days or 365,
         )
         result_adapt_started_ns = perf_counter_ns()
         try:
@@ -2290,6 +2295,11 @@ class NativeEventBackend:
             raise
 
         runtime_metadata = dict(payload["metadata"])
+        if metric_witness_trading_days is not None:
+            runtime_metadata["same_pass_score"] = {
+                key: value for key, value in payload.items()
+                if key.startswith("score_") or key == "total_turnover"
+            }
         strategy_boundary = {
             **strategy_adapter.diagnostics,
             "python_callbacks": int(runtime_metadata["python_callback_calls"]),
@@ -3687,6 +3697,7 @@ class NativeEventBackend:
         _end_bar: Optional[int] = None,
         _allow_prepared_window: bool = False,
         _prepared_reactive_market_binding: object | None = None,
+        _metric_witness_trading_days: int | None = None,
     ) -> Union[BacktestResultV2, NativeEventScoreResult]:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -3979,6 +3990,7 @@ class NativeEventBackend:
                 )
             return self._run_reactive_numeric_coruntime(
                 idx=idx,
+                metric_witness_trading_days=_metric_witness_trading_days,
                 strategy=strategy,
                 strategy_adapter=strategy_adapter,
                 symbol_list=symbol_list,

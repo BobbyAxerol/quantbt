@@ -538,6 +538,7 @@ class PreparedNativeEventStrategyRunner:
         start_bar: int,
         end_bar: int,
         report_level: Optional[str] = None,
+        _metric_witness_trading_days: int | None = None,
     ) -> BacktestResultV2:
         """Run one fresh account on an absolute prepared-market window.
 
@@ -588,6 +589,7 @@ class PreparedNativeEventStrategyRunner:
             _start_bar=start,
             _end_bar=end,
             _allow_prepared_window=True,
+            _metric_witness_trading_days=_metric_witness_trading_days,
         )
         result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
         result.metadata["prepared_native_event_window"] = {

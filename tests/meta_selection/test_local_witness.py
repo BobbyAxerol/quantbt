@@ -63,7 +63,7 @@ def test_mutation_guard(change):
 
 def test_bounded_timezone_precision_capital_input_and_result_calendar():
     frame = market().iloc[:40]
-    owner = PreparedMetricWitness(frame, config=SimpleNamespace(funding_rate=0), max_entries=2, max_bytes=512)
+    owner = PreparedMetricWitness(frame, config=SimpleNamespace(funding_rate=0), max_entries=2, max_bytes=4096)
     index = frame.index[:3] + pd.Timedelta(nanoseconds=7)
     kwargs = dict(initial_capital=20., economics_id="e", metric_id="m", input_signature="a")
     a = owner.header(index, **kwargs).hexdigest()
@@ -71,7 +71,10 @@ def test_bounded_timezone_precision_capital_input_and_result_calendar():
     assert owner.header(index[:-1], **kwargs).hexdigest() != a
     assert owner.header(index, **{**kwargs, "initial_capital": 21.}).hexdigest() != a
     assert owner.header(index, **{**kwargs, "input_signature": "b"}).hexdigest() != a
-    assert owner.metadata["entries"] <= 2 and owner.metadata["retained_bytes"] <= 512
+    assert owner.header(index, **{**kwargs, "initial_capital": 20}).hexdigest() != a
+    with pytest.raises(MetaRecordError, match="AWARE_INDEX"):
+        owner.header(index.tz_localize(None), **kwargs)
+    assert owner.metadata["entries"] <= 2 and owner.metadata["retained_bytes"] <= 4096
     assert owner.stats["evictions"] > 0
 
 

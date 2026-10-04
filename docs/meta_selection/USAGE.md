@@ -23,9 +23,10 @@ Installing a native wheel does not make arbitrary Python strategies Rust-owned.
 
 Meta supports **Mode 4 / `per_fold_causal`**, scalar `signal_notional` and
 `pct_equity`, exact aware calendar, isolated strategy lifecycle and final
-carry-position account. Other modes/schedules, portfolio/package/order targets
-and reactive W3 reset-flat meta are explicitly unsupported. They keep their old
-behavior when meta is off. No unsupported request is silently converted.
+carry-position account. A separate W3 sequential adapter supports reactive native
+reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
+Other modes/schedules and portfolio/package/order target meta remain unsupported.
+They keep their old behavior when meta is off. No request is silently converted.
 
 ## Minimal Call
 

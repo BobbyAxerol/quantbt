@@ -22,8 +22,84 @@ The original-result scorer provides authoritative raw metric witnesses without
 requiring full order-audit reports. QMS-06 qualifies prepared scalar W0/W1/W2
 adapters, using the existing runtime/cache and the same selection hook. Numeric
 Rust dispatch remains independent of financial backend/prepared-WFO selection.
-W3 reactive/reset-flat meta is explicitly unsupported; it lacks the equivalent
-full-pool/original-metric capture seam. Ordinary meta-off W3 is unchanged.
+The local debt-closure extension adds W3 sequential/reset-flat meta below.
+Ordinary meta-off W3 remains unchanged; its account is not a scalar target proxy.
+
+## W3 Sequential Meta
+
+Use the existing `prepare_reactive_walk_forward` boundary and pass typed
+`meta_history` to its `.backtest(...)`, just as for scalar WFO. No sixth mode or
+new financial engine is introduced. The factory follows the existing prepared
+reactive strategy protocol, including fresh candidate/task state and fill feedback.
+
+```python
+from dataclasses import replace
+
+# endpoint, data, strategy_factory, context and existing_config are caller-owned.
+config = replace(
+    existing_config,
+    optimization_mode="mode_4_is_only_robust",
+    optimization_schedule="per_fold_causal",
+    candidate_selection_metric="is_only_robust",
+    scoring_backend="endpoint",
+    calendar_contract="exact_v2",
+    strategy_lifecycle_policy="isolated_v1",
+    fold_account_policy="reset_flat",
+    fold_boundary_position_policy="reset_flat",
+    meta_selection={"mode": "active", "label_observer": True},
+)
+runtime = endpoint.prepare_reactive_walk_forward(
+    data=data, strategy_factory=strategy_factory,
+    walkforward_config=config, symbols=["BTCUSDT"],
+)
+try:
+    result = runtime.backtest(param_ranges=param_ranges, meta_history=context)
+finally:
+    runtime.close()
+```
+
+The endpoint must be `native_event_strategy`, `native_backend="rust"` and an
+existing supported numeric reactive co-runtime. W3 meta currently certifies
+`worker_mode="inprocess"`, `optimizer_schedule="certified_sequential_v1"`.
+Process transport, fixed/adaptive throughput batches and native scalar deadline
+budgets are explicitly rejected for meta; their existing meta-off routes remain
+available. Cancellation is checked at candidate-window boundaries. No claim of
+per-bar cancellation/deadline enforcement is made for this original-result lane.
+
+One native execution retains minimal original equity/position/return buffers and
+the existing streaming score in the same pass. Optuna receives the **unchanged
+native scalar objective**, while meta receives authoritative original daily,
+ddof=1 metric validity/witnesses. No replay, scalar-placeholder validity, shared
+account or strategy state is used. The full valid IS pool is captured before
+selection; the frozen panel is evaluated only after sealing. Each task has a
+distinct reactive/reset-flat compatibility family, so scalar carry-position
+archives cannot be substituted.
+
+`result.fold_results`, `segmented_equity` and `fold_metrics()` remain reset-flat;
+there is no compounded synthetic equity. Metadata describes actual selection,
+history cutoffs, witnesses, original-result cost and separate account authority.
+This is a local feature-branch qualification, not public wheel or live approval.
+
+## Witness Reuse And Numeric Dispatch
+
+When original-result meta scoring uses the shared prepared WFO context, a bounded
+run-owned witness cache reuses canonical calendar/header SHA state and prefix
+market hashes. Actual financial buffers are still hashed every evaluation.
+Funding Series, schema/dtypes, input signatures, capital and metric/economic
+contracts remain bound. Unknown/copied frames use the uncached reference path;
+source/funding mutation raises. Owners are validated and cleared on exit.
+`use_prepared_meta_witness=False` in optimization metadata retains the reference
+lane for differential tests; this is not an evaluation cache or RNG shortcut.
+
+Meta numeric `auto` keeps qualified Rust for transforms/ranks and favorable fit
+geometry. Only previously measured large/high-dimensional geometry classes are
+probed; three parity/timing probes per bounded bucket may select NumPy/BLAS if
+fit is more than 10% faster. Probe FFI/copy bytes/time and selected block/reason
+are reported. `require` remains Rust-only; `reference` remains independent.
+Existing whole-reference decision/floor/tie guards are preserved.
+`thread_telemetry` separates configured caps, environment and actually loaded
+BLAS/OpenMP/Numba pools; unknown native concurrency remains unknown. A reported
+configuration is not proof that a loaded pool obeys it.
 
 ## Prepared Capability And Policy
 

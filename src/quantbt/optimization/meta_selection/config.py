@@ -77,10 +77,13 @@ def normalize_meta_config(value):
     return None if value.mode == "off" else value
 
 
-def validate_meta_route(config):
+def validate_meta_route(config, *, route="target_series"):
     if config.meta_selection is None:
         return
     requested = f"{config.optimization_mode}/{config.optimization_schedule}/{config.target_mode}"
+    reactive = route == "reactive_reset"
+    if route not in {"target_series", "reactive_reset"}:
+        raise MetaRecordError("META_ROUTE_UNSUPPORTED: unknown route")
     if (
         config.optimization_mode != "mode_4_is_only_robust"
         or config.optimization_schedule != "per_fold_causal"
@@ -93,12 +96,12 @@ def validate_meta_route(config):
         or config.scoring_backend != "endpoint"
         or config.calendar_contract != "exact_v2"
         or config.strategy_lifecycle_policy != "isolated_v1"
-        or config.fold_account_policy != "carry_position"
-        or (config.metadata.get("use_scalar_trial_scoring", True)
+        or config.fold_account_policy != ("reset_flat" if reactive else "carry_position")
+        or (not reactive and config.metadata.get("use_scalar_trial_scoring", True)
             and config.metadata.get("native_prepared_wfo", "off") == "off")
     ):
         raise MetaRecordError(
-            f"META_ROUTE_UNSUPPORTED: {requested}; requires exact target-series endpoint, isolated_v1/carry_position and authoritative original-result or prepared witness; W3 reactive reset-flat lacks equivalent full-pool/metric seam (guide 8.4)"
+            f"META_ROUTE_UNSUPPORTED: {requested}; requires exact endpoint, isolated_v1 and declared {'reset_flat' if reactive else 'carry_position'} account with authoritative original-result or prepared witness"
         )
     if config.optuna_trials <= 0:
         raise MetaRecordError(
