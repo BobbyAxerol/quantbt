@@ -2,8 +2,9 @@
 
 ## Availability
 
-QMS-04 is an internal branch module, not a released public `meta_selection`
-endpoint. Public activation and WFO orchestration belong to QMS-05. This page
+QMS-04 supplies the internal mathematics. QMS-05 now integrates opt-in public
+Mode-4 causal selection on the feature branch, not a published release; see
+[the public contract](INTEGRATION.md). This page
 describes implemented mathematics, not a promise of forward alpha improvement.
 The financial endpoint, sampler objective and account engine remain unchanged.
 
@@ -128,7 +129,8 @@ from past-only inputs is not proof it was deployed in the past.
 QMS-04 `MetaSelector.propose` supports `proposal` or `shadow` only. Proposal
 records no executed winner. Shadow retains the native anchor as actual choice;
 it does not submit orders. Raw-best, native-anchor and meta-proposed IDs remain
-separate. QMS-05 will bind actual choices into existing WFO/account execution.
+separate. QMS-05 binds an `active` decision to the proposed candidate on the
+existing WFO/account execution path, or retains native in shadow/fallback.
 
 ## Artifacts And Restore
 

@@ -1,5 +1,13 @@
 # QMS-01 Source And Seam Map
 
+This page preserves the QMS-01 discovery snapshot below. QMS-02/03/04/05 are
+subsequent approved changes, not claims that current bytes still equal that
+snapshot. The current public hook is in `WalkForwardEngine._run_per_fold_schedule`
+after native selection and before `params_by_fold`/OOS. Focused
+`meta_selection/config.py` and `runtime.py` own policy, history binding and observer;
+the endpoint/engine add thin hooks only. Read [current integration](INTEGRATION.md)
+and [QMS-05 source-pinned evidence](QMS05_REPORT.md) for the implemented version.
+
 ## Identity And Scope
 
 Baseline tag `v1.1.1` resolves to

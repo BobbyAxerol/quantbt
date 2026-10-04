@@ -5,11 +5,15 @@
 QMS-01 froze source/boundaries/baselines. QMS-02 adds the shared WFO sampler
 bridge on the feature branch; see [sampler usage and limits](meta_selection/SAMPLERS.md).
 Released core `1.1.1` and native `0.4.2` remain unchanged: the new WFO sampler
-field is not in the published release yet. `meta_selection` and `meta_history`
-remain unimplemented; sampler configuration does not enable them.
+field is not in the published release yet. QMS-03/04 implement history, Ridge
+and artifacts; QMS-05 now binds optional `meta_selection` and keyword-only
+`meta_history` into the actual public Mode-4/per-fold-causal scalar route.
+Sampler configuration alone does not enable meta. Start with
+[public integration, config and information/accounting contract](meta_selection/INTEGRATION.md).
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
+- [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)
 - [Detailed methodology and implementation guide](../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 - [Verified source, boundaries, clocks and requirement owners](meta_selection/SOURCE_AND_SEAM_MAP.md)
 - [Frozen host baseline](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)
@@ -27,10 +31,13 @@ The stock robust selector can select a plateau member rather than the highest
 raw IS Sharpe. Its `mean_is_sharpe` is penalty-adjusted. Raw Sharpe and trade
 penalties belong to original fold metrics, which compact trial tables drop.
 
-The future meta module must retain the exact stock anchor, score the full
-eligible current IS pool, and use only compatible past matured labels. Meta
-will be opt-in, off by default, initially for qualified Mode 4 causal routes.
-No new account engine, WFO mode or live order controller is planned.
+The implemented optional meta module retains the exact stock anchor, scores the
+full eligible current IS pool and uses only compatible past matured labels.
+Off preserves native behavior; shadow exports a proposal but executes native;
+active uses the actual selected candidate on the existing OOS/account path.
+Active learned choices are past-forward-adaptive, even when choosing the anchor;
+they are not mislabeled as stock IS-only. No current outer OOS enters selection.
+There is no new account engine, WFO mode or live order controller.
 
 ## Reproduce The Lock
 

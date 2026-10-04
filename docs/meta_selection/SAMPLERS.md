@@ -6,7 +6,9 @@ QMS-02 adds sampler-only configuration on `feat/meta-selection-samplers`.
 It is not yet published: released core 1.1.1/native 0.4.2 are unchanged.
 This feature uses the same `SamplerConfig`/`build_sampler` as the generic
 optimizer. It does not enable meta-selection, change the financial backend,
-modify objectives or create a new endpoint. QMS-03 onward owns meta features.
+modify objectives or create a new endpoint. Optional meta is now integrated by
+QMS-05 through [a separate policy/history binding](INTEGRATION.md); sampler-only
+still does no meta work.
 
 Read the [unified phase](../../upgrade/implement.md#qms-02),
 [detailed specification sections 3-4](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),

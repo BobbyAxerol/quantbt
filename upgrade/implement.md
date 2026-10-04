@@ -20710,7 +20710,8 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 QMS-02 COMPLETE; owner authorized advancement to QMS-03;
 QMS-03 COMPLETE; owner authorized advancement to QMS-04;
 QMS-04 COMPLETE; technical PASS; owner authorized advancement to QMS-05;
-QMS-05 IN_PROGRESS; QMS-06 through QMS-08 NOT_STARTED.
+QMS-05 COMPLETE; technical PASS; owner acceptance PENDING;
+QMS-06 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20855,8 +20856,8 @@ completed support. No required QMS work may be relabeled future technical debt.
 | [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | COMPLETE; OWNER_PENDING |
-| [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
+| [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | COMPLETE; ADVANCEMENT_APPROVED |
+| [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | COMPLETE; OWNER_PENDING |
 | [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
 | [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | NOT_STARTED |
 | [QMS-08](#qms-08) | Regression, bounded economic evidence, docs and package qualification | QMS-01 through QMS-07 accepted | NOT_STARTED |
@@ -21523,8 +21524,8 @@ push/merge/version/tag/publication is authorized by this gate result.
 
 ### Phase QMS-05 - Public Mode 4 Causal Integration And Actual Selection
 
-**Status:** IN_PROGRESS; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** COMPLETE; technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_COST_ONLY; owner review PENDING.
 **Goal:** make the public WFO endpoint consume meta decisions at the actual
 selection boundary, with verified off/shadow/active behavior and correct claims.
 **Entry:** accepted QMS-02/03/04 contracts and individual phase approval.
@@ -21573,13 +21574,51 @@ Frozen implementation/test boundaries:
   honestly. Update endpoint/methodology/discovery docs, gate receipt and local
   scoped commits. Do not push/merge/advance without separate authorization.
 
-**Progress:** initial public integration and Q5-T01..08 fixtures pass 59
-checks together with QMS-03 original-engine regressions (34.14 s). Active
-fitted lower-IS switching, unchanged shadow/off accounting, full IS pool,
-late-publication closure and distinct replay completion/seal clocks execute
-through real public calls. Further native-candidate, stochastic/centroid,
-history mutation and affected legacy coverage/evidence/docs remain before
-the final phase gate; no public promotion or advancement is claimed yet.
+**Execution Result (2026-10-04):** completed the approved QMS-05 route on
+`feat/meta-selection-samplers`. Coherent local commits `ec73f43`, `980cec6`,
+`b6e8bfd` implement/test the actual public hook and consumer. Final docs/evidence
+closure is separately committed. Core/native remain 1.1.1/0.4.2; no financial
+kernel, metric formula, native rebuild, alpha edit, push or merge was performed.
+
+- Strict static policy and keyword-only runtime history binding are implemented.
+  Unsupported method/schedule/route/numeric requirement fails before search.
+  Off has zero archive/observer/extra RNG work. Shadow preserves native search,
+  params, global RNG and accounting, including centroid/conditional-space cases.
+- Full current eligible IS pool is captured before compaction, after exact
+  native selection. Active fitted lower-IS winner really drives params/OOS/account
+  and survives downstream native floors. Same-anchor learned selection still
+  records past-forward usage; fallback/shadow actual selection does not.
+- Snapshot is frozen before search. Actual strategy-frontier spies and future/
+  late-label mutations pass; 00:00/00:08/00:09/00:15 clock fixture is causal.
+  Replay completion/effect/wall clocks remain distinct; no backdating/live claim.
+- Frozen panel observer uses isolated strategy/RNG and original fresh financial
+  accounts. No-variance/failure dispositions are not fabricated training labels.
+  Complete immutable revisions publish only after terminal window/lag/completion;
+  later eligible snapshots alone can see them. Continuous stitched account
+  parity includes pct_equity with one-way fee, slippage and funding.
+- Raw/native/meta/actual IDs and chosen params reconcile. Active final fold/
+  best-trial claims are distinct from native causality. Existing raw trial/
+  candidate tables and shadow best-trial remain intact; metadata is additive.
+- Final affected suite: **392 passed**, zero failures/errors/skips, **104.77 s**,
+  including **40 Q5 checks** and 352 prior/affected checks. Actual private Rust
+  numeric candidate runs and complete native/reference decision checks pass.
+  Canonical-source, module/import, lint, docs-link and benchmark gates pass.
+- Public synthetic SMA runs exercise four actual history models and 32 original
+  observer outcomes, with explicitly reduced engineering support. Native and
+  reference active params/account signatures match. All extra observer/fit work
+  is charged; no whole-WFO acceleration, isolated RSS saving or economic edge
+  is asserted. Product minimum support remains twelve origins.
+
+Read [public integration](../docs/meta_selection/INTEGRATION.md),
+[phase report](../docs/meta_selection/QMS05_REPORT.md),
+[executed source/cost evidence](../benchmarks/optimization/meta_selection/qms05_public_evidence.json),
+[392-check JUnit](../benchmarks/optimization/meta_selection/qms05_tests.xml),
+[sealed gate receipt](../benchmarks/optimization/meta_selection/qms05_gate_receipt.json)
+and [runnable example](../examples/wfo_meta_selection.py).
+Five technical gates PASS; G5-OWNER remains PENDING. No missing functional
+block remains within QMS-05. Mandatory prepared/host qualification (QMS-06),
+measured further optimization (QMS-07) and final economic/wheel certification
+(QMS-08) remain registered future phases, not implied completed work.
 
 **Required guide:** [QMS-05 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-05--gắn-vào-actual-mode-4-per_fold_causal),
 [native/final selection boundary and metadata, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),

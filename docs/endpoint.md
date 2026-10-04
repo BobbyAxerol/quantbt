@@ -2818,7 +2818,23 @@ and result tables, with no new history/panel work. See
 with tested versioned native numeric candidate blocks and explicit baseline
 NumPy fallback. It does not activate a public selector, alter financial backend
 resolution or add an endpoint argument. Public active/shadow WFO integration
-remains separately gated QMS-05 work; see the [QMS-04 evidence](meta_selection/QMS04_REPORT.md).
+was separately gated QMS-05 work; see the [QMS-04 historical evidence](meta_selection/QMS04_REPORT.md).
+
+Feature-branch QMS-05 now supports
+`optimization_config["meta_selection"]={"mode": "shadow" | "active", ...}`
+on `mode_4_is_only_robust + per_fold_causal`, with scalar endpoint original-result
+scoring (`use_scalar_trial_scoring=False`, `native_prepared_wfo="off"`), isolated
+strategy lifecycle and continuous carry-position accounting. Bind the caller-owned
+typed context through keyword-only `backtest(..., meta_history=context)`.
+Off/omitted follows the existing path with no archive/observer/RNG work.
+Active selected params really generate the OOS signal; shadow keeps native.
+Current outer OOS is excluded, but active learned selection uses past matured
+forward labels and gets distinct information-policy claims. Unsupported routes
+fail before search. Read [complete syntax, clocks, sidecar and account contract](meta_selection/INTEGRATION.md),
+the [executed report](meta_selection/QMS05_REPORT.md), and
+[runnable public example](../examples/wfo_meta_selection.py).
+This is not yet in published core 1.1.1; prepared/reactive meta qualification
+belongs to QMS-06 and must not be inferred from numeric Rust support.
 
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG

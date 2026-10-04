@@ -602,6 +602,7 @@ Start with the [documentation map](docs/README.md).
 | Margin, buying power, and liquidation | [Margin and leverage](docs/margin_leverage.md) |
 | Causal WFO schedules and claims | [Causal walk-forward](docs/walkforward_causal.md) |
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
+| Feature-branch Mode-4 causal meta off/shadow/active, history, clocks and actual selection | [QMS public integration](docs/meta_selection/INTEGRATION.md) (not yet published) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Fresh cache-cold ordinary/reactive WFO performance, parity, and supported-mode boundaries | [NEXT-02 WFO closure](docs/performance/next02_fresh_wfo_reactive_wfo.md) |
 | Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |

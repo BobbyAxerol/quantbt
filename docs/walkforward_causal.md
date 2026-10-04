@@ -45,6 +45,14 @@ the proposal algorithm inside each existing study. It does not change this
 schedule/causality table or enable meta-selection. Warm-start requires params
 already available before each study's IS cutoff and always rescores them.
 
+Feature-branch QMS-05 adds a separate opt-in
+[causal meta-selector](meta_selection/INTEGRATION.md) to Mode 4/per-fold-causal.
+Native search still uses current IS only. Active final selection may additionally
+use compatible **past matured forward** labels, never the current fold's OOS.
+It therefore reports adaptive-meta information scope rather than a stock
+IS-only claim. Shadow keeps native params/accounting with separate proposal
+diagnostics. The ordinary schedule table below describes meta-off behavior.
+
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
 | Any supported mode + `global` | One retrospective study across all folds | Compatible legacy calibration. Do not present early folds as strict chronological validation. |

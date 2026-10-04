@@ -1,9 +1,11 @@
 # Causal History Records
 
-Feature branch QMS-03 only. These are **internal record/observation contracts**,
+QMS-03 introduced these **internal record/observation contracts**,
 not a released meta-selector or a new endpoint. Core/native versions remain
 `1.1.1`/`0.4.2`. Normal `QuantBTEndpoint.walk_forward(...)` calls do not load the
 module, collect panels, open history, change the winner or add evaluations.
+QMS-05 now explicitly opts into them through
+[the public causal meta contract](INTEGRATION.md); normal meta-off calls are unchanged.
 
 Read the [phase report](QMS03_REPORT.md), [unified plan](../../upgrade/implement.md#qms-03)
 and [detailed guide](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6).
@@ -33,7 +35,8 @@ QMS-03 qualifies original financial-result evidence. The internal scorer opt-in
 requires explicit `use_scalar_trial_scoring=False` and
 `native_prepared_wfo="off"`; it does not silently reroute scalar/native work.
 Scalar results without original sample/variance evidence are blocked.
-Native scalar qualification and public integration remain QMS-06/QMS-05.
+Native scalar qualification remains QMS-06. Public original-result integration
+was completed in QMS-05, with exact supported-route preflight.
 The tap itself is restricted to Mode 4 `per_fold_causal`, endpoint-backed scoring.
 
 ## Three Identities
@@ -213,6 +216,10 @@ For recorded evidence and the actual executed receipt:
 .venv/bin/python -m tools.qms03_history --check \
   --junit benchmarks/optimization/meta_selection/qms03_tests.xml
 ```
+
+Sealed QMS-03 evidence/source verification belongs to its historical checkout,
+not to the later QMS-04/05 source. Do not overwrite old receipts to make them
+appear current; use the QMS-05 receipt for current public integration.
 
 See the report for the exact pytest command. This does not resume a sampler,
 load a Ridge model, enable active/shadow selection or alter a production endpoint.

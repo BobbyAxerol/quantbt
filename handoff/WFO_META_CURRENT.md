@@ -1,57 +1,66 @@
 # WFO Meta Current Handoff
 
-- Branch: `feat/meta-selection-samplers`; QMS-02 entry `5f8a732`.
-- Baseline: core 1.1.1, native 0.4.2, tag `v1.1.1` unchanged.
-- Current scope: QMS-02 shared sampler/search-space bridge, COMPLETE.
-- Technical implementation complete; owner review PENDING.
-- Empirical: NOT_ASSESSED. Performance: MEASURED_COST_ONLY, no speedup/edge claim.
-- QMS-01 advancement was authorized by the user's explicit QMS-02 approval.
-- Next authorized action: owner review of [QMS-02 report](../docs/meta_selection/QMS02_REPORT.md)
-  and [sampler usage/limits](../docs/meta_selection/SAMPLERS.md).
-- Do not start QMS-03, push, merge, retag, publish or deploy without approval.
+- Branch: `feat/meta-selection-samplers`; QMS-05 entry `0be25c7`.
+- Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
+- QMS-01..04 were completed; owner explicitly authorized each advancement.
+  Their sealed owner-pending receipts remain immutable historical records.
+- Current approved scope: QMS-05 public Mode-4 causal integration, COMPLETE.
+- Technical: five gates PASS. Owner acceptance PENDING. Empirical NOT_ASSESSED.
+- Performance: MEASURED_COST_ONLY; no whole-WFO speedup, edge or live claim.
+- QMS-06/07/08 remain NOT_STARTED. Do not push, merge, retag, release, deploy
+  or advance without separate approval.
 
-## Sampler Delivery
+## Delivered
 
-Four recipes use the existing factory: legacy TPE, multivariate/group TPE,
-CMA-ES and Sobol. cmaes 0.12.0 is installed/locked in the optimization extra;
-Optuna and released core/native versions did not change. Defaults retain exact
-legacy trajectories across eight routes. The final affected suite has 228 passes,
-zero skips/failures, including all 96 QMS-02 checks and installed-native parity.
+Existing `QuantBTEndpoint.walk_forward` accepts optional strict static
+`optimization_config["meta_selection"]` and keyword-only runtime
+`backtest(meta_history=MetaHistoryContext(...))`. Supported route is Mode 4
+`per_fold_causal`, scalar signal_notional/pct_equity, original-result endpoint
+scoring, exact aware calendar, isolated lifecycle and carry-position accounting.
+Prepared/native scalar and reactive qualifications remain QMS-06.
 
-Opt-in normalized ranges preserve requested/effective identities, explicit
-activity and log/step geometry. Warm seeds have pre-cutoff availability plus
-schema/strategy provenance and are rescored within budget. Unsupported constraints
-require explicit post-filtering; no fake successful scores are created.
-Sobol conditional spaces and inadmissible centroids fail preflight. Resume means
-the same owned in-process study, not a new persistent checkpoint facility.
-The current sampler surface does not enable meta, qualify reactive W3, or prove
-economic superiority. Financial ownership and methodology boundaries below remain.
+Off is the old path. Shadow preserves native search, params, RNG and financial
+accounting. Active actually feeds the learned/fallback winner into fold params,
+OOS signals and the original continuous account. Full current eligible IS pools
+are captured, including authoritative centroid evaluation when needed. Snapshot
+is frozen before search; current OOS is never a fit/rank input.
 
-## Boundaries To Carry Forward
+Observer work occurs after seal in independent reset diagnostic accounts with
+isolated strategy/RNG. Complete terminal revisions publish only after forward
+end plus declared lag/measured completion; later snapshots alone may consume
+them. Active same-anchor learned choices still report past-forward-adaptive
+selection. Native fallback/shadow do not falsely claim actual historical usage.
+Raw/native/meta/actual identities and computation/effect clocks remain distinct.
 
-Mode 4 causal native selection must remain exact. Capture full eligible search
-records before compaction, and integrate the later meta decision before fold
-params/OOS materialization. Raw IS Sharpe is not penalty-adjusted objective.
-Centroid requires exact same-IS evaluation inside the still-live fold lifetime.
-Scalar `volatility=0` and execution-success status do not establish valid labels.
-Use train-end selection frontier, not the fold's output cutoff or wall time.
-W3 reset-flat qualification is separate from the scalar target-series proof.
+## Verification
 
-No existing financial defect was repaired or hidden. The mandatory metric
-support and centroid integration work is explicitly owned by QMS-03/05/06,
-not deferred outside this upgrade. No sealed meta history is available yet;
-the primary economic study remains subject to QMS-08 budget/data approval.
+392 checks passed, zero failures/errors/skips, including 40 QMS-05 public checks
+and actual private QMS-04 Rust numeric candidate execution. Affected optimizer,
+sampler, five-mode schedules, nested causal Mode 1, native WFO and research-audit
+regressions pass. Forced-switch, future/late-label mutation, centroid/conditional
+space/RNG, account fee/funding and result consumers are covered.
 
-## Evidence
+The public SMA example executes on synthetic 850 daily bars, six quarterly
+studies, six trials each. Four learned models and 32 original observer outcomes
+are exercised with explicit minimum-support-one engineering override. Native and
+reference active runs have identical params/account signatures. Published default
+stays twelve origins; these runs do not prove superior future Sharpe.
 
-- [Baseline manifest](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)
-- [QMS-01 historical receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
-- [QMS-02 cost/source evidence](../benchmarks/optimization/meta_selection/qms02_sampler_evidence.json)
-- [QMS-02 actual test receipt](../benchmarks/optimization/meta_selection/qms02_gate_receipt.json)
-- [Reader guide](../docs/meta_selection.md)
-- [Unified plan](../upgrade/implement.md#qms-02)
+Coherent local implementation commits: `ec73f43`, `980cec6`, `b6e8bfd`.
+The documentation/evidence closure commit follows them in this branch.
 
-QMS-02 pins measured source/evidence and actual JUnit test groups. QMS-01 remains
-an immutable historical snapshot reproducible at `5f8a732`, including its original
-owner-pending receipt; it was not rewritten as current-source certification.
-The QMS-02 owner gate is PENDING; technical PASS is not authorization to advance.
+## Read Next
+
+- [Actual endpoint/config/history and information/accounting contract](../docs/meta_selection/INTEGRATION.md)
+- [QMS-05 report](../docs/meta_selection/QMS05_REPORT.md)
+- [Executed receipt](../benchmarks/optimization/meta_selection/qms05_gate_receipt.json)
+- [Source/cost evidence](../benchmarks/optimization/meta_selection/qms05_public_evidence.json)
+- [Executed JUnit](../benchmarks/optimization/meta_selection/qms05_tests.xml)
+- [Runnable public example](../examples/wfo_meta_selection.py)
+- [Ridge/model artifacts](../docs/meta_selection/MODEL.md)
+- [Sampler syntax](../docs/meta_selection/SAMPLERS.md)
+- [Unified plan](../upgrade/implement.md#qms-05)
+
+No missing functional block remains in the registered QMS-05 route. Prepared
+handoff, measured further optimization and final economic/installed-wheel gates
+are explicit subsequent phases, not silent technical-debt deferrals.

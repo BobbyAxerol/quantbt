@@ -980,3 +980,19 @@ có exact post-study replay trong contract hiện tại nên `auto` tự tắt c
 vì giữ entry không thể hit. Metadata `wfo_evaluation_runtime` lưu identity,
 hit/miss/store, bypass adaptive và trạng thái release; xem
 [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md).
+
+## 19. Feature-Branch Causal Meta-Selection
+
+QMS-05 adds an optional final selector to Mode 4 `per_fold_causal`, not a new
+WFO mode. Native search stays current-IS-only; active final selection can use
+compatible past matured forward labels, never current outer OOS. Shadow retains
+native execution. Learned active same-anchor decisions still report adaptive
+historical-forward usage; cold/OOD fallback does not claim such usage.
+
+Signed relative-decay Ridge, origin balancing and predicted-Q guarding are
+specified in [the model contract](meta_selection/MODEL.md). The
+[public integration guide](meta_selection/INTEGRATION.md) defines supported
+routes, actual completion/publication clocks, defaults and result lineage.
+Final accounting still uses one stitched target account with boundary carry,
+not concatenated counterfactual reset equities. Prepared/reactive qualification
+is separately registered QMS-06 work. This is not yet a published 1.1.1 feature.

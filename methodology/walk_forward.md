@@ -786,3 +786,42 @@ per-fold schedule, W1/W2 phải declare
 `causal_cache_contract="causal_parameter_independent_v1"`, nên không biến cache
 của alpha thành một claim anti-leakage tự động. Xem
 [Public prepared-native WFO scoring](../docs/native_prepared_wfo_public.md).
+
+## 17. QMS-05: Causal Meta-Selection (Feature Branch)
+
+Optional meta-selection is implemented for Mode 4 `per_fold_causal` on the
+scalar original-result route. It is not a sixth WFO mode or a new account.
+Native search/plateau selection still uses only the current IS. Final active
+selection additionally fits compatible **past matured forward** outcomes;
+the current outer OOS is unavailable until after decision seal.
+
+For historical origin k and its explicit native anchor a, raw Sharpe gives
+
+\[
+Y_{k\theta}=(I_{k\theta}-O_{k\theta})-(I_{ka}-O_{ka}).
+\]
+
+Origin-sum Ridge predicts signed relative decay from a shared, frozen descriptor
+contrast. Each origin's non-anchor labels total one unit of fit weight. Current
+inference uses only current IS descriptors, with
+
+\[
+\widehat Q_{t\theta}=I_{t\theta}-I_{ta}-\widehat Y_{t\theta},
+\qquad
+\theta_t^*=\operatorname*{arg\,min}_{\theta:\widehat Q_{t\theta}\ge-0.10}
+\widehat Y_{t\theta}.
+\]
+
+This is not an absolute-decay objective or a statistical noninferiority test.
+Default regularizer is 10 and minimum valid support is twelve matured origins.
+Cold/OOD fallback retains native, without inventing a learned decision.
+Shadow proposes but executes native; active actually uses selected fold params.
+Even a learned active choice of the anchor is past-forward-adaptive and is not
+labeled stock IS-only. Observer publication can affect only later eligible
+snapshots, never retroactively change earlier fold decisions.
+
+OOS targets remain stitched into one existing continuous account; reset-flat
+counterfactual scores are not stitched equities. Read
+[full mathematics/artifacts](../docs/meta_selection/MODEL.md) and
+[config, clocks, scopes and public metadata](../docs/meta_selection/INTEGRATION.md).
+This feature-branch addition is not yet in published core 1.1.1.
