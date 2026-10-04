@@ -2077,6 +2077,12 @@ class QuantBTEndpoint:
                     "native_rows": 0,
                 },
             )
+        if wf_config is not None and "meta_selection" in optimization_config:
+            from .optimization.meta_selection.config import normalize_meta_config
+            normalized_meta = normalize_meta_config(optimization_config["meta_selection"])
+            if wf_config.meta_selection is not None and wf_config.meta_selection != normalized_meta:
+                raise ValueError("META_CONFIG_INVALID: conflicting walkforward_config/meta_selection policies")
+            wf_config = replace(wf_config, meta_selection=normalized_meta)
         if wf_config is None:
             from .walkforward import WalkForwardConfig
 
@@ -2093,6 +2099,7 @@ class QuantBTEndpoint:
                 sampler_warm_start=tuple(optimization_config.get("sampler_warm_start", ())),
                 parameter_constraints=optimization_config.get("parameter_constraints"),
                 result_constraints=optimization_config.get("result_constraints"),
+                meta_selection=optimization_config.get("meta_selection"),
                 inner_split_frequency=optimization_config.get("inner_split_frequency"),
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
@@ -2176,6 +2183,9 @@ class QuantBTEndpoint:
                 metadata=wf_metadata,
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
+        if wf_config.meta_selection is not None:
+            from .optimization.meta_selection.config import validate_meta_route
+            validate_meta_route(wf_config)
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
         backend = kwargs.pop("backend", "auto")
         return cls(
@@ -2279,6 +2289,8 @@ class QuantBTEndpoint:
         prepared_market: Optional[PreparedMarketHandleV2] = None,
         prepared_instruments: Optional[InstrumentRegistryV2] = None,
         calendar_contract: str = "legacy_v1",
+        *,
+        meta_history=None,
     ):
         """
         Run the configured backtest and store the result.
@@ -2312,6 +2324,8 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if meta_history is not None and mode != "walk_forward":
+            raise ValueError("META_ROUTE_UNSUPPORTED: meta_history is a walk_forward runtime handle")
         if mode == "options":
             return self._run_options(
                 chain=chain if chain is not None else data,
@@ -2339,6 +2353,7 @@ class QuantBTEndpoint:
                 symbols=symbols,
                 params=params,
                 param_ranges=param_ranges,
+                meta_history=meta_history,
             )
         if mode == "arbitrage":
             return self._run_arbitrage(
@@ -3704,6 +3719,7 @@ class QuantBTEndpoint:
         symbols,
         params,
         param_ranges,
+        meta_history=None,
     ):
         if self.config.strategy_class is None:
             raise ValueError("walk_forward endpoint requires strategy_class")
@@ -3711,6 +3727,16 @@ class QuantBTEndpoint:
 
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
         target_mode = self.config.walkforward_target_mode.lower().strip()
+        meta_enabled = wf_config.meta_selection is not None
+        if meta_enabled:
+            from .optimization.meta_selection.config import MetaHistoryContext, validate_meta_route
+            validate_meta_route(wf_config)
+            if target_mode != wf_config.target_mode:
+                raise ValueError("META_ROUTE_UNSUPPORTED: endpoint and walkforward_config target_mode differ")
+            if not isinstance(meta_history, MetaHistoryContext):
+                raise ValueError("META_HISTORY_INCOMPATIBLE: backtest(meta_history=MetaHistoryContext(...)) required")
+            if params is not None or not param_ranges:
+                raise ValueError("META_METHODOLOGY_UNSUPPORTED: optimizing param_ranges required")
         native_proxy_scorer_required = (
             wf_config.scoring_backend == "proxy"
             and str(wf_config.proxy_validation_mode).lower().strip() != "off"
@@ -3726,6 +3752,7 @@ class QuantBTEndpoint:
                 market_highs=highs,
                 market_lows=lows,
                 market_datetime_index=datetime_index,
+                meta_metric_support=meta_enabled,
             )
             if wf_config.scoring_backend == "endpoint" or native_proxy_scorer_required
             else None
@@ -3736,11 +3763,13 @@ class QuantBTEndpoint:
             scorer=scorer if wf_config.scoring_backend == "endpoint" else None,
             native_scorer=scorer if native_proxy_scorer_required else None,
         )
+        wf_run_kwargs = {"meta_history": meta_history} if meta_enabled else {}
         wf_result = engine.run(
             data=data if data is not None else closes,
             params=params,
             param_ranges=param_ranges,
             datetime_index=datetime_index,
+            **wf_run_kwargs,
         )
         stitched = wf_result.oos_output
         if stitched is None:
@@ -3956,6 +3985,10 @@ class QuantBTEndpoint:
         result.metadata["walk_forward_result"] = wf_result
         if "sampler_studies" in wf_result.metadata:
             result.metadata["walk_forward"]["sampler_studies"] = wf_result.metadata["sampler_studies"]
+        if "meta_selection" in wf_result.metadata:
+            result.metadata["walk_forward"]["meta_selection"] = wf_result.metadata["meta_selection"]
+            for key in ("validation_claim", "chronological_validation_claim", "causality_claim"):
+                result.metadata["walk_forward"][key] = wf_result.metadata[key]
         self.engine = engine
         self.result = result
         return result
@@ -4617,6 +4650,7 @@ def _make_walkforward_endpoint_scorer(
     market_highs=None,
     market_lows=None,
     market_datetime_index=None,
+    meta_metric_support=False,
 ):
     return _WalkForwardEndpointScorer(
         config=config,
@@ -4628,6 +4662,7 @@ def _make_walkforward_endpoint_scorer(
         market_highs=market_highs,
         market_lows=market_lows,
         market_datetime_index=market_datetime_index,
+        **({"meta_metric_support": True} if meta_metric_support else {}),
     )
 
 

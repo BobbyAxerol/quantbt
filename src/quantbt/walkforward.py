@@ -490,8 +490,12 @@ class WalkForwardConfig:
     sampler_warm_start: Tuple[Mapping[str, Any], ...] = ()
     parameter_constraints: Optional[Callable] = None
     result_constraints: Optional[Callable] = None
+    meta_selection: Any = None
 
     def __post_init__(self) -> None:
+        if self.meta_selection is not None:
+            from .optimization.meta_selection.config import normalize_meta_config
+            object.__setattr__(self, "meta_selection", normalize_meta_config(self.meta_selection))
         if self.sampler_config is not None and not isinstance(self.sampler_config, SamplerConfig):
             object.__setattr__(self, "sampler_config", SamplerConfig(**dict(self.sampler_config)))
         for name in ("parameter_constraints", "result_constraints"):
@@ -998,6 +1002,9 @@ class WalkForwardEngine:
                 "proxy_validation_mode='enforce' requires a native_scorer; "
                 "use an endpoint-backed scorer or disable proxy enforcement"
             )
+        if self.config.meta_selection is not None:
+            from .optimization.meta_selection.config import validate_meta_route
+            validate_meta_route(self.config)
 
     def run(
         self,
@@ -1005,8 +1012,17 @@ class WalkForwardEngine:
         params: Optional[Dict[str, Any]] = None,
         param_ranges: Optional[Dict[str, Any]] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
+        *,
+        meta_history=None,
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
+        self._meta_runtime = None
+        if self.config.meta_selection is not None:
+            from .optimization.meta_selection.runtime import PublicMetaRuntime
+            if params is not None or not param_ranges:
+                raise ValueError("META_METHODOLOGY_UNSUPPORTED: optimizing param_ranges required")
+            self._meta_runtime = PublicMetaRuntime(self, meta_history, param_ranges)
+            self._is_pool_observer = self._meta_runtime.capture
         profile_enabled = bool(self.config.metadata.get("profile_walkforward", False))
         perf01_enabled = bool(self.config.metadata.get("perf_01_profile", False))
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
@@ -1059,6 +1075,8 @@ class WalkForwardEngine:
                 calendar_plan=calendar_plan,
             )
             folds = self.build_folds(idx)
+            if self._meta_runtime is not None:
+                self._meta_runtime.validate_market(data_for_strategy, idx, folds)
             self._sampler_studies = []
             self._sampler_bridges = None
             sampler_requested = (self.config.sampler_config is not None or self.config.sampler_warm_start
@@ -1127,6 +1145,8 @@ class WalkForwardEngine:
                 prepared_context=prepared_context,
                 calendar_plan=calendar_plan,
             )
+            if self._meta_runtime is not None:
+                self._meta_runtime.finalize(result)
             return result
         finally:
             adapter = self._prepared_wfo_strategy_adapter
@@ -1157,6 +1177,8 @@ class WalkForwardEngine:
             self._prepared_context = None
             self._wfo_execution_runtime = None
             self._strategy_market_fingerprints = {}
+            if self._meta_runtime is not None:
+                self._is_pool_observer = None
 
     def _run_aligned(
         self,
@@ -1503,6 +1525,8 @@ class WalkForwardEngine:
         inner_fold_rows: List[Dict[str, Any]] = []
 
         for fold in folds:
+            if self._meta_runtime is not None:
+                self._meta_runtime.begin_fold(fold)
             fold_seed = _derive_fold_seed(self.config.random_seed, fold.fold_id)
             is_nested_mode1 = (
                 schedule == "per_fold_causal"
@@ -1594,11 +1618,15 @@ class WalkForwardEngine:
                     ),
                 },
             )
+            if self._meta_runtime is not None:
+                selected = self._meta_runtime.select(fold, selected)
             params_by_fold[int(fold.fold_id)] = dict(selected.params)
 
             out = self._call_strategy(data=data, params=dict(selected.params), fold=fold)
             out = _slice_output_to_test(out, fold.test_index)
             outputs.append(out)
+            if self._meta_runtime is not None:
+                self._meta_runtime.observe(data, fold)
 
             if oos_used:
                 outer_is = float(selected.mean_is_sharpe)

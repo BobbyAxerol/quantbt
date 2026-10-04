@@ -48,7 +48,7 @@ class MetaSelectionDecision:
             object.__setattr__(self, name, utc(getattr(self, name)))
         if self.fit_completed_at is not None:
             object.__setattr__(self, "fit_completed_at", utc(self.fit_completed_at))
-        if self.mode not in {"proposal", "shadow"} or self.clock_mode not in {
+        if self.mode not in {"proposal", "shadow", "active"} or self.clock_mode not in {
             "observed_live",
             "historical_replay",
         }:
@@ -59,10 +59,11 @@ class MetaSelectionDecision:
         ):
             raise MetaRecordError("META_DECISION_CLOCK_INVALID")
         if self.actual_evaluation_id != (
-            self.anchor_evaluation_id if self.mode == "shadow" else None
+            self.anchor_evaluation_id if self.mode == "shadow" else
+            self.proposed_evaluation_id if self.mode == "active" else None
         ):
             raise MetaRecordError(
-                "QMS-04 does not activate or fabricate an executed winner"
+                "META_ACTUAL_SELECTION_INVALID: actual ID must match the declared activation mode"
             )
         ids = [p["evaluation_id"] for p in self.predictions]
         if len(ids) != len(set(ids)) or any(

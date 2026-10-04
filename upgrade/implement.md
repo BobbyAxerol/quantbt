@@ -20709,8 +20709,8 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 **Status:** QMS-01 COMPLETE; owner authorized advancement to QMS-02;
 QMS-02 COMPLETE; owner authorized advancement to QMS-03;
 QMS-03 COMPLETE; owner authorized advancement to QMS-04;
-QMS-04 COMPLETE; technical PASS; owner review PENDING;
-QMS-05 through QMS-08 NOT_STARTED.
+QMS-04 COMPLETE; technical PASS; owner authorized advancement to QMS-05;
+QMS-05 IN_PROGRESS; QMS-06 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20723,7 +20723,9 @@ approved QMS-03, accepting the QMS-02 handoff for advancement; its sealed receip
 also remains a historical owner-pending record. No later phase is authorized.
 The owner approved QMS-04 on 2026-10-04, accepting QMS-03 for this advancement.
 QMS-03's receipt stays an immutable historical owner-pending record. No QMS-05,
-push, merge or release is authorized by this implementation approval.
+push, merge or release is authorized by that implementation approval.
+The owner subsequently approved QMS-05 on 2026-10-04. QMS-04's receipt remains
+historical; QMS-06, push, merge and publication require separate authorization.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -21521,11 +21523,63 @@ push/merge/version/tag/publication is authorized by this gate result.
 
 ### Phase QMS-05 - Public Mode 4 Causal Integration And Actual Selection
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** IN_PROGRESS; technical NOT_RUN; empirical NOT_ASSESSED;
 performance NOT_MEASURED; owner review PENDING.
 **Goal:** make the public WFO endpoint consume meta decisions at the actual
 selection boundary, with verified off/shadow/active behavior and correct claims.
 **Entry:** accepted QMS-02/03/04 contracts and individual phase approval.
+
+**Execution Registration (2026-10-04):** owner approved QMS-05; branch
+`feat/meta-selection-samplers`, entry `0be25c7`, clean worktree. QMS-04's sealed
+receipt remains historical owner-pending evidence; this approval authorizes
+advancement only, not release or QMS-06. Implement focused config/context and
+runtime adapter modules with minimal existing endpoint/fold hooks. No new
+financial engine, sampler, Rust ABI or change to published versions.
+
+Frozen implementation/test boundaries:
+
+- Keyword-only `meta_history` at existing backtest/engine-run boundary binds a
+  caller-owned typed context: bounded history, explicit corpus/cohort/exposure,
+  instrument/timeframe/run identity, replay clock and optional qualified numeric
+  handle. Runtime handles never enter serialized optimization config.
+- Parse strict versioned off/shadow/active config. Preflight before search:
+  Mode 4/per_fold_causal, scalar signal_notional/pct_equity, endpoint original
+  result witness, lifecycle isolation, exact calendar and supported account
+  policy. QMS-05 uses explicit scalar=false/native_prepared_wfo=off;
+  mandatory prepared parity remains QMS-06, never silent scorer replacement.
+- Snapshot authorized history before search. Capture the full eligible IS pool
+  with QMS-03 witnesses, including an evaluated centroid anchor when required;
+  never evaluate current forward candidates during selection. Native/trial
+  objectives and baseline floor remain unchanged before the hook.
+- Fit QMS-04 learner, score/guard all eligible current candidates, then bind
+  active winner to existing params/output/account path or retain native in
+  shadow. Store actual IDs/effective params and native-versus-final information
+  claims separately; same-anchor model decisions still used historical labels.
+- Historical replay records actual elapsed computation mapped to a logical
+  completion clock and separate wall time. Optional explicit replay clocks are
+  validated; no backdated completion or inferred live deployment. Seal after
+  fit/rank, before permitted forward action; unsupported readiness fails.
+- Freeze panel before observer reveal. Auxiliary work reuses isolated strategy
+  and original financial endpoint, reset diagnostics only. Preserve NumPy/Python
+  RNG state; publication waits for terminal dispositions and declared lag.
+  Append immutable revisions; only later as-of snapshots can see them.
+- Test Q5-T01..08 with actual public calls: off/shadow legacy parity; fitted
+  forced lower-IS switch and no downstream override; same-anchor/cold flags;
+  unsupported preflight spies; full-pool membership; future bars/history/labels
+  mutation; 00:00/00:08/00:09/00:15 clock fixture; late publication and observer
+  state isolation; raw/native/meta/actual and stitched-account reconciliation.
+- Execute focused tests, affected old mode/schedule/account regressions,
+  original-engine evidence and runnable example; record added work and costs
+  honestly. Update endpoint/methodology/discovery docs, gate receipt and local
+  scoped commits. Do not push/merge/advance without separate authorization.
+
+**Progress:** initial public integration and Q5-T01..08 fixtures pass 59
+checks together with QMS-03 original-engine regressions (34.14 s). Active
+fitted lower-IS switching, unchanged shadow/off accounting, full IS pool,
+late-publication closure and distinct replay completion/seal clocks execute
+through real public calls. Further native-candidate, stochastic/centroid,
+history mutation and affected legacy coverage/evidence/docs remain before
+the final phase gate; no public promotion or advancement is claimed yet.
 
 **Required guide:** [QMS-05 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-05--gắn-vào-actual-mode-4-per_fold_causal),
 [native/final selection boundary and metadata, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
