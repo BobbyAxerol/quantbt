@@ -22251,6 +22251,67 @@ tests, finalize the separate review report/handoff and commit locally. Preserve
 all sealed QMS-01..08 artifacts; this review does not approve a core performance
 patch, a new upgrade phase or any remote/publication action.
 
+**Completion record - 2026-10-04:** local review COMPLETE; technical
+`PASS_REAL_ETH`, empirical `DESCRIPTIVE_RESEARCH_ONLY`, performance
+`MATERIAL_ORIGINAL_RESULT_WITNESS_DEBT`, owner review PENDING.
+
+- Actual approved alpha: Gradient RSI / ETHUSDT 1h, 37,968 coherent hourly bars,
+  no missing hours. Notebook/loader untouched; alpha, market, ranges, params and
+  full original-result witnesses remain ignored. Financial authority stays
+  Numba; actual Rust transform/Gram-solve/rank uses the already-qualified
+  installed private 1.1.1+qms08/0.4.3.dev4 pair, not published 0.4.2.
+- Four full 28-fold studies completed sequentially; every arm has 3,584 attempts,
+  3,531 COMPLETE, 53 duplicate PRUNED, no FAIL. Each enabled arm has 459 observer
+  evaluations/no failures. No trials, labels, pools, dimensions or precision
+  were reduced to save time. No post-outcome recipe/model selection.
+- Off/shadow exact proposal/objective/params/account compatibility; active Rust/
+  reference chronological decision, support, raw-metric and account parity.
+  Positions/equity/returns differences all zero. Independent 28-segment direct
+  alpha/fixed-param replay reproduces both accounts with zero search/meta fits.
+  Cold verifier reconciles saved chronology, anchor/pool/panel, params actually
+  applied, terminal counts, original evidence and financial buffer hashes.
+- Focused added regression: **27 passed**, zero failures/errors/skips, 1.72s
+  (15 runner + 12 verifier checks), ruff PASS. These supplement the sealed 567
+  QMS-08 checks; no claim that a new 594-case unified suite was executed.
+  `tools/qms_real_evidence.py --check`, `tools.qms08_gate --check`, documentation
+  link gate and `git diff --check` PASS; protected notebook SHA unchanged and
+  no source/Rust/version/README/endpoint/methodology drift from QMS-08 closure.
+- Measured public wall off/shadow/active-Rust/active-reference:
+  **391.024 / 1,023.177 / 1,086.556 / 1,032.585s**. Active Rust +177.9% vs off,
+  execution peak RSS 342.934 -> 357.871MiB (+14.938MiB/4.36%). Single full-study
+  warm observations, not repeated medians. Serialization peak is not included.
+  Fit/select 1.342s, observer 19.308s; snapshot 0.009s. Latest cumulative native
+  counters: 60 numeric calls + 3 qualification probes, 1,174,823 owned-copy bytes,
+  zero cache hits/30 misses; no per-fold double-charging of cumulative snapshots.
+- Three-repeat two-fold cost medians TPE/MTPE/CMA/Sobol:
+  **5.543 / 4.732 / 4.407 / 4.278s**. All 64 attempts COMPLETE per run; same-recipe
+  trace/params/account identities repeat. Different recipes change candidate
+  trajectories, so these are engineering cost comparisons, not parity/sampler
+  edge conclusions. One fresh process per recipe, fresh studies within repeats.
+- Diagnostic profile (separate from latency/economic observations):
+  ResultMetricAdapter.observe 19.673/30.631s inclusive, 162 observations and
+  1,147,431 UTC calls. Repeated original IS calendar canonicalization/witness
+  hashing is confirmed costly; nested spans must not be summed. Next possible
+  core patch is shared immutable exact-window witness reuse with byte/decision/
+  account parity, not reduced audit information; requires separate approval.
+- First 13 folds fallback; first learned February2023 has 12 matured origins.
+  Fifteen supported learned decisions switch params. Continuous native/meta
+  equity 29,600.73/34,812.73, Sharpe 0.889/1.191, DD 19.29%/14.27%. Supported
+  mean R=3.132, Q=1.001; preregistered block95% R=[1.865,4.773],
+  Q=[-0.155,2.516]. Q includes zero: no certified superior future edge. Mean
+  fold Sharpe/decay is not stitched account Sharpe.
+- Functional real-alpha lineage debt closes for owner-selected ETH. Guide's
+  primary BTC scientific/pristine/live claim, W3 support, high-d dispatch/thread
+  telemetry, six remote candidate jobs and public pair/feature activation remain
+  explicit. Old QMS-08 NOT_RUN receipts are preserved, not retroactively changed.
+- Review tools/registration commits `69d19bd`, `76ad2d3`, `db6b131`; cold receipt
+  and tamper verifier `8b8c720`. No core, Rust, public version, default, financial
+  policy, notebook or loader change. No push/merge/tag/release/deploy/PyPI.
+- Read [full review and debt ledger](../docs/meta_selection/REAL_ALPHA_REVIEW.md),
+  [public aggregate/fold evidence](../benchmarks/optimization/meta_selection/qms_real_review_evidence.json)
+  and [current handoff](../handoff/WFO_META_CURRENT.md). Next step is owner review
+  of costs/economic uncertainty and approval of any follow-up phase, not release.
+
 ### QMS Requirement Coverage And Completion Records
 
 | Guide requirement | Primary owner | Final verification |

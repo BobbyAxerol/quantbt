@@ -4,12 +4,53 @@
 - Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-08 local regression, docs and installed candidate
-  qualification, SOFTWARE_COMPLETE_LOCAL.
+- Current approved scope: QMS-08 local software qualification, followed by the
+  owner-selected Gradient RSI / ETHUSDT 1h correctness/cost review. Both are
+  locally complete; the real review makes no financial/core/methodology changes.
 - Technical: regression/end-to-end/docs PASS; package PASS_LOCAL, remote pending.
-  Final owner/budget/W3-scope acceptance PENDING; empirical NOT_RUN_BUDGET.
-- Performance: QMS-07 MEASURED_SCOPED_GAIN retained, no new QMS-08 speed/edge/live claim.
+  Final owner/budget/W3-scope acceptance PENDING. Historical QMS-08 empirical
+  NOT_RUN_BUDGET stays sealed; follow-up PASS_REAL_ETH is a separate receipt,
+  not primary BTC, pristine locked-sample or live certification.
+- Performance: QMS-07 scoped gains retained. Real hourly meta has material
+  witness-generation overhead: 391.024 s off versus 1,086.556 s active Rust,
+  +177.9%; execution peak RSS +14.938 MiB. No whole-study Rust speed claim.
 - Do not push, merge, retag, release, deploy or start unapproved subphases.
+
+## Real-Alpha Follow-Up - Completed 2026-10-04
+
+Read [detailed report/debt ledger](../docs/meta_selection/REAL_ALPHA_REVIEW.md)
+and [sanitized evidence](../benchmarks/optimization/meta_selection/qms_real_review_evidence.json).
+Source notebook/loader and published pair are untouched. Local installed pair
+is 1.1.1+qms08/0.4.3.dev4; financial authority is Numba, compiled Rust owns only
+the declared meta numeric blocks. Full alpha/data/params/witnesses stay ignored.
+
+28 monthly folds, 128 attempts each, default 12-origin support, rolling 365D IS,
+Mode 4/per_fold_causal, seed731, no early stop/warm-start or post-outcome tuning.
+Each arm has 3,584 attempts/3,531 COMPLETE/53 duplicate PRUNED/zero FAIL.
+Enabled arms execute 459 original forward-panel evaluations with no failures.
+13 fallback decisions precede 15 learned decisions and actual param switches.
+Off/shadow and active Rust/reference trial/param/raw-metric/account parity pass;
+maximum positions/equity/returns difference is zero. Independent no-search
+fixed replay regenerates all 28 segments and exactly reproduces both accounts.
+Cold artifact/chronology/counter verification and 27 additional tests pass.
+
+Native versus meta continuous account: final equity 29,600.73/34,812.73;
+Sharpe 0.889/1.191; max DD 19.29%/14.27%. The 15 supported pairs have mean
+R=3.132 and Q=1.001. Registered three-month dependent block 95% intervals:
+R [1.865,4.773], Q [-0.155,2.516]. Q includes zero, so a durable future edge is
+not certified. Improved decay includes accepting lower IS; do not conceal it.
+
+Two-fold sampler cost medians: TPE 5.543s, MTPE 4.732s, CMA 4.407s, Sobol
+4.278s. Different algorithms/pools, not same-work speedup or edge comparison.
+Hourly diagnostic confirms ResultMetricAdapter.observe at 19.673/30.631s
+inclusive, with >1.1M UTC conversions. Spans are nested; no fabricated full-run
+component savings. Fit/select totals only 1.342s in active/Rust's full study.
+
+New actionable debt: lossless reuse of exact calendar/market witness material
+through the shared prepared WFO context; preserve all audit inputs, candidate
+pools/labels, hashes, RNG and accounting. Await owner-approved patch/plan.
+Inherited W3, high-d Rust/BLAS dispatch/thread telemetry, remote matrix and
+public-version/feature activation remain separate. No release has been started.
 
 ## Delivered
 
@@ -82,6 +123,10 @@ closure follows. No publication has started.
 
 ## QMS-08 Qualification And Remaining Decisions
 
+This section records the QMS-08 seal before the separately approved real-alpha
+review above. Its historical NOT_RUN receipt is immutable; the ETH follow-up
+does not rewrite it or certify the primary BTC study.
+
 Private wheel/sdist/native bytes and logs are retained under ignored
 `.maturin/qms08`; 12 installed lanes across actual CPython 3.11.17/3.12.13/3.13.16
 pass source inventories, site-packages origins, four samplers, original prepared
@@ -91,21 +136,22 @@ Local wheels are manylinux_2_34_x86_64, not a manylinux2014 portability claim.
 Read-only six-job Ubuntu22/24 candidate CI is prepared but NOT_RUN until an
 approved push. Private candidates are not public activation/version decisions.
 
-All 64 guide test IDs have actual coverage/dispositions. Q8-T03 real-alpha
-lineage is NOT_RUN_REAL_ALPHA, not passed by synthetic fixtures. No real-alpha
-dataset/calendar/economic budget was supplied: zero assessed market trials,
+All 64 guide test IDs have actual coverage/dispositions. At that seal, Q8-T03
+real-alpha lineage is NOT_RUN_REAL_ALPHA, not passed by synthetic fixtures.
+No real-alpha dataset/calendar/economic budget had been supplied: zero market trials,
 origins, dev/locked folds, no empirical gain/uncertainty. A study needs >=128
 attempted trials/cutoff, >=12 matured origins and >=12 paired-valid locked folds;
 reserve >=12 dev folds if selecting recipes. Preserve signed R/Q/IS decomposition,
 negative/undefined outcomes and calendar; mean fold Sharpe is not account Sharpe.
 
-Remaining review items: economic registration/acceptance, new public pair and
+Remaining QMS-08 decisions: primary scientific acceptance, new public pair and
 feature activation, remote matrix, optional W3, thread telemetry, measured
 geometry-aware Rust/BLAS dispatch and owner performance-budget acceptance.
 These are explicit decisions/debt, not unreported local software failures.
 
 ## Read Next
 
+- [New real ETH correctness, sampler/meta costs and actionable debt](../docs/meta_selection/REAL_ALPHA_REVIEW.md)
 - [QMS-08 final report and debt ledger](../docs/meta_selection/QMS08_REPORT.md)
 - [Complete user guide and migration](../docs/meta_selection/USAGE.md)
 - [Package/economic qualification boundary](../docs/meta_selection/QUALIFICATION.md)
