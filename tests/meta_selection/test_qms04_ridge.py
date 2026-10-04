@@ -31,7 +31,11 @@ from quantbt.optimization.meta_selection.numerics import (
     reference_fit,
     solution_diagnostics,
 )
-from quantbt.optimization.meta_selection.selection import MetaSelector, select_indices
+from quantbt.optimization.meta_selection.selection import (
+    MetaSelector,
+    select_indices,
+    rank_decision,
+)
 from quantbt.optimization.meta_selection.records import OutcomeStatus
 from tests.meta_selection.test_qms03_history import make_task, revision_for, stamp
 
@@ -411,6 +415,11 @@ def test_q4_t08_complete_model_and_decision_roundtrip(trained):
     )
     assert restored.decision_id == a.decision_id
     assert restored.actual_evaluation_id == task.anchor_candidate_evaluation_id
+    compact = selector.propose(task, fit, full_ranking=False)
+    assert not compact.ranked_ids
+    assert rank_decision(compact) == a.ranked_ids
+    with pytest.raises(MetaRecordError, match="WINNER"):
+        replace(a, proposed_evaluation_id="unknown")
 
 
 @pytest.mark.parametrize(
@@ -457,7 +466,10 @@ def test_q4_t08_rehashed_tampering_and_future_model_rejected(trained):
 
 
 def test_q4_t05_installed_baseline_auto_vs_require_and_candidate_blocks():
-    import _quantbt_native as baseline
+    try:
+        import _quantbt_native as baseline
+    except ImportError:
+        baseline = None
 
     candidate = os.environ.get("QMS04_NATIVE_EXTENSION")
     if not candidate:
@@ -497,4 +509,162 @@ def test_q4_t05_installed_baseline_auto_vs_require_and_candidate_blocks():
         a.proposed_evaluation_id == b.proposed_evaluation_id and a.tie_set == b.tie_set
     )
     assert runtime.metadata["selected_backend_by_block"]["gram_solve"] == "rust"
-    assert baseline.version() == "0.4.2"  # No financial baseline replacement.
+    if baseline is not None:
+        assert baseline.version() == "0.4.2"  # No financial baseline replacement.
+
+
+def test_q4_t06_constant_feature_support_uses_whole_pool_fallback():
+    pairs = [make_task(n=4, year=y) for y in (2020, 2021, 2022)]
+    schema = pairs[0][1]
+    tasks = []
+    for task, _ in pairs:
+        candidates = tuple(
+            replace(
+                c,
+                requested_params={**c.requested_params, "hma_length": 3},
+                effective_params={**c.effective_params, "hma_length": 3},
+            )
+            for c in task.candidates
+        )
+        tasks.append(replace(task, candidates=candidates))
+    past = snapshot(tuple(revision_for(t, schema) for t in tasks))
+    fit = RidgeLearner(settings=RidgeSettings(min_matured_origins=3)).fit(
+        schema, past, fit_completed_at=stamp("2023-12-31")
+    )
+    current, _ = make_task(n=4, year=2023, schema=schema)
+    decision = MetaSelector().propose(current, fit)
+    assert decision.status == "META_OOD_NATIVE_FALLBACK"
+    assert decision.proposed_evaluation_id == current.anchor_candidate_evaluation_id
+    assert decision.guard["unsupported_ids"]
+
+
+def test_q4_t06_undefined_anchor_and_unverified_candidate_not_success(trained):
+    _, _, _, fit, task = trained
+    anchor = replace(
+        task.anchor,
+        observation=replace(
+            task.anchor.observation,
+            status=OutcomeStatus.NO_VARIANCE,
+            raw_sharpe=None,
+            sample_std=0.0,
+        ),
+    )
+    invalid = replace(task, candidates=(anchor,) + task.candidates[1:])
+    decision = MetaSelector().propose(invalid, fit)
+    assert decision.status == "META_NOT_APPLICABLE_METRIC"
+    assert not decision.predictions
+    c = replace(
+        task.candidates[1],
+        observation=replace(
+            task.candidates[1].observation,
+            verification="unverified",
+            status=OutcomeStatus.UNVERIFIED,
+        ),
+    )
+    task = replace(task, candidates=(task.candidates[0], c) + task.candidates[2:])
+    decision = MetaSelector().propose(task, fit)
+    row = next(p for p in decision.predictions if p["evaluation_id"] == c.evaluation_id)
+    assert not row["eligible"] and row["yhat"] is None
+
+
+def test_q4_t07_family_and_future_model_are_typed_errors(trained):
+    _, _, _, fit, task = trained
+    with pytest.raises(MetaRecordError, match="INCOMPATIBLE"):
+        MetaSelector().propose(
+            replace(task, family=replace(task.family, window_policy_id="different")),
+            fit,
+        )
+    with pytest.raises(MetaRecordError, match="CLOCK"):
+        replace(
+            fit.model,
+            fit_completed_at=fit.model.information_as_of
+            - __import__("pandas").Timedelta(seconds=1),
+        )
+    future = replace(fit.model, fit_completed_at=task.forward_end)
+    with pytest.raises(MetaRecordError, match="UNAVAILABLE"):
+        MetaSelector().propose(task, FitOutcome(future, "FIT_VALID", fit.origin_count))
+
+
+def test_q4_t08_missing_scaler_category_and_weights_only_fail_with_reviewed_tamper(
+    trained,
+):
+    model = trained[3].model
+    for field in ("mean", "scale", "constant", "observed", "numeric_columns"):
+        doc = json.loads(dumps_model(model))
+        doc["payload"]["scaler"].pop(field)
+        doc["content_digest"] = digest(doc["payload"])
+        identity = digest({"schema": "qms-ridge-model-v1", "model": doc["payload"]})
+        with pytest.raises(MetaRecordError):
+            loads_model(
+                json.dumps(doc),
+                expected_model_id=identity,
+                available_as_of=stamp("2026-01-01"),
+            )
+    doc = json.loads(dumps_model(model))
+    doc["payload"]["schema"]["parameters"][1]["categories"] = []
+    doc["content_digest"] = digest(doc["payload"])
+    identity = digest({"schema": "qms-ridge-model-v1", "model": doc["payload"]})
+    with pytest.raises(MetaRecordError):
+        loads_model(
+            json.dumps(doc),
+            expected_model_id=identity,
+            available_as_of=stamp("2026-01-01"),
+        )
+
+
+def test_q4_t05_native_boundary_and_chunk_contract():
+    candidate = os.environ.get("QMS04_NATIVE_EXTENSION")
+    if not candidate:
+        # This tests missing-capability behavior, never claims native certification.
+        with pytest.raises(MetaRecordError):
+            NumericRuntime(native_policy="require", native_module=object())
+        return
+    from tools.build_qms04_candidate import load_candidate
+
+    module = load_candidate(candidate)
+    runtime = NumericRuntime(native_policy="require", native_module=module)
+    schema, past, fit, task = policy_fixture()
+    native_fit = RidgeLearner(
+        settings=replace(fit.model.settings, epsilon=0.3), runtime=runtime
+    ).fit(schema, past, fit_completed_at=fit.model.fit_completed_at)
+    reference_fit_out = FitOutcome(
+        replace(fit.model, settings=native_fit.model.settings), "FIT_VALID", 1
+    )
+    actual = MetaSelector(runtime=runtime).propose(task, native_fit, full_ranking=True)
+    reference = MetaSelector(runtime=NumericRuntime(native_policy="reference")).propose(
+        task, reference_fit_out, full_ranking=True
+    )
+    assert actual.numeric["reference_boundary_fallback"]
+    assert actual.numeric["complete_reference_decision_verified"]
+    assert actual.proposed_evaluation_id == reference.proposed_evaluation_id
+    assert (
+        actual.tie_set == reference.tie_set
+        and actual.ranked_ids == reference.ranked_ids
+    )
+    assert [p["eligible"] for p in actual.predictions] == [
+        p["eligible"] for p in reference.predictions
+    ]
+    rng = np.random.default_rng(718)
+    v, y, w = (
+        rng.normal(size=(71, 7)),
+        rng.normal(size=71),
+        rng.uniform(0.1, 1, size=71),
+    )
+    full = runtime.fit(v, y, w, 10.0)
+    for chunk_size in (1, 3, 17, 71):
+        grams, bs = [], []
+        for start in range(0, len(v), chunk_size):
+            g, b, _ = runtime.fit(
+                v[start : start + chunk_size],
+                y[start : start + chunk_size],
+                w[start : start + chunk_size],
+                10.0,
+            )
+            grams.append(g - 10 * np.eye(7))
+            bs.append(b)
+        assert np.allclose(
+            np.sum(grams, axis=0) + 10 * np.eye(7), full[0], rtol=1e-9, atol=1e-10
+        )
+        assert np.allclose(np.sum(bs, axis=0), full[1], rtol=1e-9, atol=1e-10)
+    with pytest.raises(ValueError):
+        module.qms_fit_v1(np.ones((2, 2)), np.ones(1), np.ones(2), 10.0)

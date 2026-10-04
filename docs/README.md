@@ -38,6 +38,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Configure feature-branch WFO samplers without changing legacy behavior | [QMS sampler contracts](meta_selection/SAMPLERS.md) |
 | Inspect internal causal history, descriptors, anchor labels and revision retention | [QMS-03 history foundation](meta_selection/HISTORY.md) and [phase evidence](meta_selection/QMS03_REPORT.md) |
+| Inspect internal origin-sum Ridge, predicted-Q guard, native blocks and complete model artifacts | [QMS-04 model methodology](meta_selection/MODEL.md) and [phase evidence](meta_selection/QMS04_REPORT.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
 | Publish the governed native/core pair or inspect a TestPyPI proof | [TestPyPI release checklist](testpypi_release_checklist.md) |

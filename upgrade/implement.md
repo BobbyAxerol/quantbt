@@ -20708,8 +20708,9 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 **Planning date:** 2026-10-03.
 **Status:** QMS-01 COMPLETE; owner authorized advancement to QMS-02;
 QMS-02 COMPLETE; owner authorized advancement to QMS-03;
-QMS-03 COMPLETE; technical PASS; owner review PENDING;
-QMS-04 through QMS-08 NOT_STARTED.
+QMS-03 COMPLETE; owner authorized advancement to QMS-04;
+QMS-04 COMPLETE; technical PASS; owner review PENDING;
+QMS-05 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20720,6 +20721,9 @@ or release is authorized by this approval. The sealed QMS-01 receipt remains
 an immutable record of its original owner-pending state. The owner subsequently
 approved QMS-03, accepting the QMS-02 handoff for advancement; its sealed receipt
 also remains a historical owner-pending record. No later phase is authorized.
+The owner approved QMS-04 on 2026-10-04, accepting QMS-03 for this advancement.
+QMS-03's receipt stays an immutable historical owner-pending record. No QMS-05,
+push, merge or release is authorized by this implementation approval.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20848,8 +20852,8 @@ completed support. No required QMS work may be relabeled future technical debt.
 |---|---|---|---|
 | [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; OWNER_PENDING |
-| [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
+| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; ADVANCEMENT_APPROVED |
+| [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | COMPLETE; OWNER_PENDING |
 | [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
 | [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
 | [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | NOT_STARTED |
@@ -21337,8 +21341,8 @@ scoped local commit. No push/merge or version/native ABI change.
 
 ### Phase QMS-04 - Ridge Mathematics, Rust-First Numeric Policy And Artifacts
 
-**Status:** IN_PROGRESS (owner authorized 2026-10-04); technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** COMPLETE (2026-10-04); technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_BLOCKS_NO_PUBLIC_PROMOTION; owner review PENDING.
 **Goal:** implement the exact small-model policy and portable deterministic
 decisions, with Rust-first batch design and an independent numerical reference.
 **Entry:** accepted QMS-03 descriptors/history/labels and phase approval.
@@ -21371,7 +21375,7 @@ Measure fixed identical matrices including conversion/FFI, fit/rank and retained
 buffers; qualify only measured native blocks, with all used fallback reasons.
 No economic superiority, full WFO integration, push or release is authorized.
 
-**Progress:** the initial focused reference/native/record regression passes
+**Historical Progress:** the initial focused reference/native/record regression passes
 119 tests. Two native Rust unit tests pass. Candidate 0.4.3.dev1 builds/loads
 locally on CPython 3.12 without replacing installed 0.4.2. Before a tighter
 numeric error bound is registered, every native proposal also verifies the
@@ -21441,6 +21445,77 @@ is required or inferred at this phase.
 **Technical Debt Rule:** no missing basis/provenance, silent conditioning fix,
 invented native capability or incomplete selector. Native ABI additions require
 a new candidate build/version policy; released companion 0.4.2 is immutable.
+
+**Execution Result (2026-10-04):** completed approved QMS-04 only on
+`feat/meta-selection-samplers`, entry `ac3bd15`. Initial scoped implementation
+commit `412f507`; final support/evidence/docs are a separate local commit.
+
+- Added focused numeric dispatch, origin-sum Ridge/model, guarded proposal/shadow
+  and strict bundle modules. Public WFO/endpoint/financial/sampler behavior stays
+  unchanged. Exact feature-gated numeric registration is the only existing Rust
+  source addition; baseline builds do not export the new ABI by default.
+- Implemented original weighted objective, independent whitened reference and
+  actual Rust transform/Gram-Cholesky/rank batches. One historical transform plus
+  one fit spans all origins; no per-candidate/origin FFI, inverse, N-by-N weights,
+  intercept, silent jitter, fast-math or lossy truncation. Workspace preflight
+  precedes descriptor/scaler construction; all input/support failures are explicit.
+- Complete current predictions retain raw IS/Yhat/Qhat and rejections. Exact
+  anchor identity, signed min-Y/Q floor, deterministic ties, whole-pool registered
+  OOD/native cold start and malformed-input errors are tested. Cold-path complete
+  rankings and complete bundle inference need no financial replay.
+- Complete reference decision certification is charged on native proposals.
+  Near-boundary or guard/tie/winner disagreement uses whole reference fit/rank,
+  not only coefficient allclose or a guessed top-K. Model/decision bundles retain
+  full basis, vocabulary/masks, versions, exact snapshot/revision/fit membership,
+  permissions and separate cutoff/completion/seal/ready clocks.
+- **352 tests PASS**, zero failure/error/skip, 76.70 s; **2 Rust unit tests PASS**.
+  Q4-T01..08 counts 5/2/3/6/3/11/2/9. Native cases executed actual local candidate;
+  311 prior/affected checks preserve search/selection/accounting/retention parity.
+  Historical source-lock tests strip only exact approved feature/export additions
+  and continue to lock all financial Rust, package versions, metrics and samplers.
+- Original-engine synthetic-market medoid/centroid: two supported origins each,
+  8/10 valid labels, complete native/reference fit and bundle restore parity;
+  support override=2 is visible, not twelve-origin economic acceptance. Fitter
+  adds zero financial evaluations; no current-forward inference input exists.
+- Candidate wheel 0.4.3.dev1 built/loaded locally, Linux x86_64 CPython 3.12,
+  private namespace and separate staging directory. Installed/published 0.4.2
+  is untouched. Auto missing-capability fallback is explicit NumPy; require
+  fails. Public native version/feature coordination belongs to QMS-08.
+- Fixed matrices (N,d,P): (180,8,64), (4096,8,600), (4096,24,600),
+  (16384,8,2000), same float64 inputs/weights/lambda, one warm-up and 15 timed
+  calls, single thread. Rust/NumPy primary fit medians 0.0515/0.0915,
+  0.4913/0.3058, 3.3525/0.6629, 1.9386/1.0797 ms. Small fit benefits, larger
+  loops/rank bridge lose to BLAS; reference certification and complete model
+  construction costs are separately recorded. No public performance promotion
+  or overall-WFO speedup is claimed. Process peak 290.027 MiB is cumulative,
+  not isolated native saving/plateau. No unimplemented Numba path is implied.
+- `G4-MATH`, `G4-POLICY`, `G4-SERIALIZATION`, `G4-SUPPORT`, `G4-RESOURCE`:
+  PASS. `G4-OWNER`: PENDING; empirical NOT_ASSESSED. No in-scope missing
+  functional blocker; QMS-05/06/07/08 remain their registered future work,
+  including measured performance follow-up, not fabricated delivered features.
+- Evidence: [source/cost record](../benchmarks/optimization/meta_selection/qms04_ridge_evidence.json),
+  [executed receipt](../benchmarks/optimization/meta_selection/qms04_gate_receipt.json),
+  [JUnit](../benchmarks/optimization/meta_selection/qms04_tests.xml),
+  [full phase report](../docs/meta_selection/QMS04_REPORT.md),
+  [model methodology](../docs/meta_selection/MODEL.md),
+  [runnable example](../examples/wfo_meta_ridge.py).
+
+Reproduce candidate and receipt (local Linux CPython 3.12 filename shown):
+
+```bash
+.venv/bin/python -m tools.build_qms04_candidate
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+.venv/bin/python -m tools.qms04_ridge \
+  --extension .maturin/qms04/_quantbt_native.cpython-312-x86_64-linux-gnu.so \
+  --junit benchmarks/optimization/meta_selection/qms04_tests.xml
+.venv/bin/python -m tools.qms04_ridge --check \
+  --extension .maturin/qms04/_quantbt_native.cpython-312-x86_64-linux-gnu.so \
+  --junit benchmarks/optimization/meta_selection/qms04_tests.xml
+```
+
+Tests must be rerun as documented in the phase report when source changes;
+receipt regeneration alone is not test execution. No automatic advancement,
+push/merge/version/tag/publication is authorized by this gate result.
 
 <a id="qms-05"></a>
 

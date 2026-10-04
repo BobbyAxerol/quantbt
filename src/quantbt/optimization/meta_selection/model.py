@@ -307,8 +307,22 @@ class RidgeLearner:
     def fit(
         self, schema, snapshot, *, fit_completed_at=None, clock_mode="historical_replay"
     ):
-        if not isinstance(snapshot, HistorySnapshot):
+        if not isinstance(snapshot, HistorySnapshot) or not isinstance(
+            schema, DescriptorSchema
+        ):
             raise MetaRecordError("META_FIT_SNAPSHOT_INVALID")
+        if any(
+            r.task.family.descriptor_schema_id != schema.schema_id
+            for r in snapshot.revisions
+        ):
+            raise MetaRecordError("META_HISTORICAL_SCHEMA_INVALID")
+        rows = sum(len(r.training_rows) for r in snapshot.revisions)
+        d = len(schema.feature_names)
+        estimated_bytes = (rows + snapshot.origin_count) * d * 64 + 6 * d * d * 8
+        if estimated_bytes > self.runtime.limits.max_workspace_bytes:
+            raise MetaRecordError(
+                "META_RESOURCE_LIMIT: preflight before descriptor/scaler materialization"
+            )
         if snapshot.origin_count < self.settings.min_matured_origins:
             return FitOutcome(None, "META_SUPPORT_INSUFFICIENT", snapshot.origin_count)
         scaler = OriginBalancedStandardizer.fit(schema, snapshot)

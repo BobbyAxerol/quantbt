@@ -4,6 +4,9 @@ version = "0.4.2"
 edition = "2024"
 publish = false
 
+[features]
+qms-numeric-candidate = []
+
 [lib]
 name = "_quantbt_native"
 crate-type = ["cdylib"]

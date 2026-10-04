@@ -69,6 +69,32 @@ class MetaSelectionDecision:
             eid not in ids for eid in self.tie_set + self.ranked_ids
         ):
             raise MetaRecordError("META_DECISION_PREDICTION_IDS_INVALID")
+        if self.status == "META_MODEL_PROPOSAL":
+            by_id = {p["evaluation_id"]: p for p in self.predictions}
+            if (
+                not self.model_id
+                or not self.training_snapshot_id
+                or self.fit_completed_at is None
+                or self.proposed_evaluation_id not in by_id
+                or self.anchor_evaluation_id not in by_id
+                or self.raw_best_evaluation_id not in by_id
+                or self.proposed_evaluation_id not in self.tie_set
+                or not by_id[self.proposed_evaluation_id]["eligible"]
+                or any(
+                    not math.isfinite(p[k])
+                    for p in self.predictions
+                    if p["yhat"] is not None
+                    for k in ("raw_is", "yhat", "qhat", "distance")
+                )
+            ):
+                raise MetaRecordError("META_DECISION_WINNER_OR_METRICS_INVALID")
+            anchor = by_id[self.anchor_evaluation_id]
+            if (anchor["yhat"], anchor["qhat"], anchor["distance"]) != (0.0, 0.0, 0.0):
+                raise MetaRecordError("META_DECISION_ANCHOR_IDENTITY_INVALID")
+            if self.ranked_ids and self.ranked_ids[0] != self.proposed_evaluation_id:
+                raise MetaRecordError("META_DECISION_RANK_WINNER_INVALID")
+        elif self.proposed_evaluation_id != self.anchor_evaluation_id:
+            raise MetaRecordError("META_FALLBACK_MUST_USE_EXPLICIT_NATIVE_ANCHOR")
 
     @property
     def decision_id(self):
@@ -103,6 +129,34 @@ def select_indices(y, q, distances, candidate_keys, *, epsilon, tie_tolerance):
     return int(winner), tuple(int(i) for i in ties), safe
 
 
+def rank_decision(decision):
+    """Render a complete ranking from retained scores, never rerun execution."""
+    if decision.status != "META_MODEL_PROPOSAL":
+        return (decision.proposed_evaluation_id,)
+    values = tuple(p for p in decision.predictions if p["yhat"] is not None)
+    minimum = min(p["yhat"] for p in values if p["eligible"])
+    tolerance = decision.guard["tie_tolerance"]
+
+    def key(p):
+        bucket = (
+            max(0, math.ceil((p["yhat"] - minimum) / tolerance) - 1)
+            if tolerance
+            else p["yhat"]
+        )
+        return (
+            not p["eligible"],
+            bucket,
+            p["distance"],
+            p["candidate_id"],
+            p["evaluation_id"],
+        )
+
+    ranked = tuple(p["evaluation_id"] for p in sorted(values, key=key))
+    return ranked + tuple(
+        sorted(p["evaluation_id"] for p in decision.predictions if p["yhat"] is None)
+    )
+
+
 class MetaSelector:
     def __init__(self, *, runtime=None):
         self.runtime = runtime or NumericRuntime()
@@ -121,8 +175,12 @@ class MetaSelector:
             raise MetaRecordError("META_CURRENT_TASK_INVALID")
         if mode not in {"proposal", "shadow"}:
             raise MetaRecordError("META_DECISION_MODE_INVALID")
-        candidates = tuple(
-            sorted(task.candidates, key=lambda c: (c.candidate_id, c.evaluation_id))
+        candidates = (
+            tuple(
+                sorted(task.candidates, key=lambda c: (c.candidate_id, c.evaluation_id))
+            )
+            if full_ranking
+            else task.candidates
         )
         anchor_index = next(
             i
@@ -159,6 +217,13 @@ class MetaSelector:
             schema = schema_from_payload(model.schema)
         if schema is None or schema.schema_id != task.family.descriptor_schema_id:
             raise MetaRecordError("META_CURRENT_SCHEMA_INVALID")
+        if (
+            len(candidates) * len(schema.feature_names) * 64
+            > self.runtime.limits.max_workspace_bytes
+        ):
+            raise MetaRecordError(
+                "META_RESOURCE_LIMIT: preflight before current descriptor materialization"
+            )
         batch = schema.encode(candidates)
         batch = replace(
             batch,
@@ -333,6 +398,13 @@ class MetaSelector:
                     ranking = tuple(
                         selected[i].evaluation_id
                         for i in sorted(range(len(y)), key=rank_key)
+                    )
+                    ranking += tuple(
+                        sorted(
+                            c.evaluation_id
+                            for i, c in enumerate(candidates)
+                            if not batch.valid[i]
+                        )
                     )
                 guard = {
                     "epsilon": settings.epsilon,

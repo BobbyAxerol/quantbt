@@ -625,11 +625,24 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         "pyproject.toml",
         "uv.lock",
     }
-    assert all(
-        baseline.digest((baseline.ROOT / name).read_bytes()) == digest
-        for name, digest in old.items()
-        if name not in allowed
-    )
+    for name, expected in old.items():
+        if name in allowed:
+            continue
+        current = (baseline.ROOT / name).read_bytes()
+        # Approved QMS-04 is only an opt-in numeric export/feature addition.
+        # Normalize those exact additions; all financial Rust bytes stay locked.
+        if name == "rust/native_event/src/lib.rs":
+            current = current.replace(
+                b'#[cfg(feature = "qms-numeric-candidate")]\nmod qms_numeric;\n', b""
+            ).replace(
+                b'    #[cfg(feature = "qms-numeric-candidate")]\n    qms_numeric::register(module)?;\n',
+                b"",
+            )
+        elif name == "rust/native_event/Cargo.toml":
+            current = current.replace(
+                b"\n[features]\nqms-numeric-candidate = []\n", b""
+            )
+        assert baseline.digest(current) == expected, name
     old_versions = {
         (p["name"], p["version"])
         for p in tomllib.loads(baseline.git("show", "5f8a732:uv.lock").decode())[

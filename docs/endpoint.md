@@ -2813,8 +2813,12 @@ causal history foundation, **not** a public meta-selection parameter. Normal
 endpoint calls retain their existing search, selection, financial execution
 and result tables, with no new history/panel work. See
 [history/descriptor/label contracts](meta_selection/HISTORY.md) and the
-[phase report](meta_selection/QMS03_REPORT.md). Learner and public active/shadow
-integration remain separately gated QMS-04/QMS-05 work.
+[phase report](meta_selection/QMS03_REPORT.md). QMS-04 now implements internal
+[origin-sum Ridge, Q guard and model/decision bundles](meta_selection/MODEL.md),
+with tested versioned native numeric candidate blocks and explicit baseline
+NumPy fallback. It does not activate a public selector, alter financial backend
+resolution or add an endpoint argument. Public active/shadow WFO integration
+remains separately gated QMS-05 work; see the [QMS-04 evidence](meta_selection/QMS04_REPORT.md).
 
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG

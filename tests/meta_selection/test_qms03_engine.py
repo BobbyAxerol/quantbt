@@ -447,8 +447,20 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
             if name == "rust/native_event/src/lib.rs":
                 # QMS-04 adds only registered numeric exports, not execution math.
                 current = (baseline.ROOT / name).read_bytes()
-                current = current.replace(b"mod qms_numeric;\n", b"").replace(
-                    b"    qms_numeric::register(module)?;\n", b""
+                current = current.replace(
+                    b'#[cfg(feature = "qms-numeric-candidate")]\nmod qms_numeric;\n',
+                    b"",
+                ).replace(
+                    b'    #[cfg(feature = "qms-numeric-candidate")]\n    qms_numeric::register(module)?;\n',
+                    b"",
+                )
+                assert baseline.git("show", "3ce42bf:" + name) == current, name
+                continue
+            if name == "rust/native_event/Cargo.toml":
+                current = (
+                    (baseline.ROOT / name)
+                    .read_bytes()
+                    .replace(b"\n[features]\nqms-numeric-candidate = []\n", b"")
                 )
                 assert baseline.git("show", "3ce42bf:" + name) == current, name
                 continue

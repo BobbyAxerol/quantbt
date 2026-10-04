@@ -78,6 +78,8 @@ def build(output=OUTPUT):
             "build",
             "--offline",
             "--release",
+            "--features",
+            "qms-numeric-candidate",
             "--manifest-path",
             str(cargo),
             "--interpreter",
