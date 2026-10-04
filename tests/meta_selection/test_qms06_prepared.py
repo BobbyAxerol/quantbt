@@ -78,12 +78,12 @@ def endpoint(
     return QuantBTEndpoint(config)
 
 
-def context(module=None, run_id="qms06-test"):
+def context(module=None, run_id="qms06-test", timeframe="1D"):
     return MetaHistoryContext(
         MetaHistory(),
         "public-sma-demo",
         "SYNTHETICUSD-linear",
-        "1D",
+        timeframe,
         run_id,
         native_module=module,
         # Declared historical completion budget, not measured live readiness.
@@ -92,8 +92,8 @@ def context(module=None, run_id="qms06-test"):
     )
 
 
-def execute(bt, *, module=None, data=None):
-    ctx = context(module)
+def execute(bt, *, module=None, data=None, timeframe="1D"):
+    ctx = context(module, timeframe=timeframe)
     result = bt.backtest(
         data=market() if data is None else data,
         param_ranges=PARAM_RANGES,
@@ -189,6 +189,32 @@ def assert_pools(reference, prepared):
     np.testing.assert_allclose(
         reference.positions, prepared.positions, rtol=RTOL, atol=ATOL
     )
+    np.testing.assert_allclose(
+        reference.returns, prepared.returns, rtol=RTOL, atol=ATOL
+    )
+    from quantbt.core.types import BacktestResult
+    from quantbt.core.results import BacktestResultV2
+
+    if isinstance(reference, BacktestResult):
+        # This legacy schema intentionally has no per-cost/accepted-unit trace.
+        assert reference.metadata["walk_forward"]["target_mode"] == "pct_equity"
+        assert isinstance(prepared, (BacktestResult, BacktestResultV2))
+        assert not hasattr(reference, "fees") and not hasattr(reference, "funding")
+    else:
+        assert isinstance(reference, BacktestResultV2)
+        assert isinstance(prepared, BacktestResultV2)
+        for name in ("fees", "funding"):
+            np.testing.assert_allclose(
+                getattr(reference, name), getattr(prepared, name), rtol=RTOL, atol=ATOL
+            )
+    if "pct_equity_transition" in reference.metadata:
+        # Public pct_equity positions are weights; check actual accepted units too.
+        np.testing.assert_allclose(
+            reference.metadata["pct_equity_transition"]["accepted_positions"],
+            prepared.metadata["pct_equity_transition"]["accepted_positions"],
+            rtol=RTOL,
+            atol=ATOL,
+        )
 
 
 def test_q6_t01_full_public_prepared_reference_decision_sequence(
@@ -214,10 +240,70 @@ def test_q6_t01_pct_equity_fresh_account_parity(candidate_cache):
     assert_pools(a, b)
 
 
+def test_q6_t01_pct_equity_existing_native_account_units_and_cost_parity(
+    candidate_cache,
+):
+    bt = endpoint("shadow", prepared="require", target="pct_equity")
+    bt = QuantBTEndpoint(replace(bt.config, use_funding=True, funding_rate=0.0001))
+    prepared, _ = execute(bt)
+    # Independent ordinary endpoint run, never execution replay in the adapter.
+    ordinary = QuantBTEndpoint(
+        replace(
+            bt.config,
+            mode="pct_equity",
+            backend="legacy",
+            sizing="%_equity",
+        )
+    ).backtest(data=market(), signal=prepared.positions.iloc[:, 0])
+    for name in ("equity", "returns", "fees", "funding", "positions"):
+        np.testing.assert_allclose(
+            getattr(ordinary, name), getattr(prepared, name), rtol=RTOL, atol=ATOL
+        )
+    np.testing.assert_allclose(
+        ordinary.metadata["pct_equity_transition"]["accepted_positions"],
+        prepared.metadata["pct_equity_transition"]["accepted_positions"],
+        rtol=RTOL,
+        atol=ATOL,
+    )
+
+
 def test_q6_t01_reference_numba_matches_prepared_rust(candidate_cache):
     a, _ = execute(endpoint("active", runtime="numba"))
     b, _ = execute(endpoint("active", prepared="require"))
     assert_pools(a, b)
+
+
+def test_q6_t01_hourly_daily_metric_reducer_parity(candidate_cache):
+    data = market(850)
+    data.index = pd.date_range("2020-01-01", periods=len(data), freq="1h", tz="UTC")
+    results = []
+    for policy, runtime in (("off", "numba"), ("require", "rust")):
+        bt = endpoint(
+            "active",
+            prepared=policy,
+            runtime=runtime,
+            split_mode="2020-01-12",
+            split_frequency="weekly",
+            train_window="10D",
+        )
+        result, _ = execute(bt, data=data, timeframe="1h")
+        results.append(result)
+    assert_pools(*results)
+
+
+def test_q6_t02_short_daily_metric_window_not_substituted(candidate_cache):
+    # Each IS shard is less than three UTC days: the reference's bar-return
+    # fallback is not the native daily metric contract, even with the same alpha.
+    data = market(180)
+    data.index = pd.date_range("2020-01-01", periods=len(data), freq="1h", tz="UTC")
+    bt = endpoint(
+        prepared="require",
+        split_mode="2020-01-05",
+        split_frequency="weekly",
+        train_window="3D",
+    )
+    with pytest.raises(NativePreparedPublicWfoUnsupported, match="three UTC days"):
+        execute(bt, data=data, timeframe="1h")
 
 
 def test_q6_t01_cost_funding_quantity_constraints(candidate_cache):
