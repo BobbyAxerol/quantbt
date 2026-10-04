@@ -137,6 +137,14 @@ class PublicMetaRuntime:
                     "mode": c.optimization_mode,
                     "schedule": c.optimization_schedule,
                     "policy": {k: getattr(c, k) for k in anchor_keys},
+                    "parameter_constraints": strategy_fingerprint(
+                        c.parameter_constraints
+                    )
+                    if c.parameter_constraints is not None
+                    else None,
+                    "result_constraints": strategy_fingerprint(c.result_constraints)
+                    if c.result_constraints is not None
+                    else None,
                 }
             ),
             digest(
@@ -145,7 +153,10 @@ class PublicMetaRuntime:
                     if c.sampler_config
                     else "legacy_tpe",
                     "seed_policy": "existing_fold_seed_v1",
+                    "base_seed": c.random_seed,
                     "budget": c.optuna_trials,
+                    "early_stopping": c.optuna_early_stopping,
+                    "warm_start": c.sampler_warm_start,
                 }
             ),
             digest(
@@ -360,6 +371,7 @@ class PublicMetaRuntime:
             objective=chosen.objective,
             mean_is_sharpe=chosen.observation.raw_sharpe - penalty,
             selection_metadata={
+                **native.selection_metadata,
                 "stage": "meta_actual_selection",
                 "meta_actual_selection": True,
                 "native_trial_id": native.trial_id,

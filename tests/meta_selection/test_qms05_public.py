@@ -2,6 +2,8 @@
 
 from dataclasses import replace
 import json
+import os
+from pathlib import Path
 import random
 
 import numpy as np
@@ -557,3 +559,206 @@ def test_q5_t08_active_decision_portable_restore(trained_history):
     assert restored.decision_id == d.decision_id
     assert restored.actual_evaluation_id == d.proposed_evaluation_id
     assert restored.mode == "active"
+
+
+def test_q5_t02_centroid_auxiliary_is_rng_isolated(monkeypatch):
+    original = WalkForwardEngine.evaluate_params_is
+
+    def noisy_auxiliary(self, *args, **kwargs):
+        if kwargs.get("trial_id") == -1:
+            random.random()
+            np.random.random()
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(WalkForwardEngine, "evaluate_params_is", noisy_auxiliary)
+    _bt, baseline, _ = run(centroid=True)
+    states = random.getstate(), np.random.get_state()
+    _bt, shadow, _ = run("shadow", centroid=True, observer=True)
+    assert native_digest(baseline) == native_digest(shadow)
+    assert random.getstate() == states[0]
+    assert np.array_equal(np.random.get_state()[1], states[1][1])
+    assert sum(r["auxiliary_is_evaluations"] for r in sidecar(shadow)["records"]) > 0
+
+
+def test_q5_t05_require_native_capability_fails_before_search(monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("search/evaluation started despite missing QMS capability")
+
+    monkeypatch.setattr(WalkForwardEngine, "optimize_params", forbidden)
+    with pytest.raises(MetaRecordError, match="META_NATIVE_UNAVAILABLE_OR_UNQUALIFIED"):
+        run("active", native_batch_policy="require")
+
+
+def test_q5_t05_fixed_config_override_does_not_ignore_meta():
+    base = public_endpoint()
+    with pytest.raises(ValueError, match="META_ROUTE_UNSUPPORTED"):
+        QuantBTEndpoint.walk_forward(
+            strategy_class=base.config.strategy_class,
+            walkforward_config=replace(
+                base.config.walkforward_config,
+                metadata={"use_scalar_trial_scoring": True},
+            ),
+            optimization_config={"meta_selection": {"mode": "active"}},
+        )
+
+
+def test_q5_t07_no_variance_is_not_a_zero_training_label():
+    base = public_endpoint("active", observer=True)
+
+    def flat(data, params, train_index, test_index, fold):
+        return pd.Series(0.0, index=test_index)
+
+    bt = QuantBTEndpoint(replace(base.config, strategy_class=flat))
+    ctx = context()
+    result = bt.backtest(data=market(), param_ranges=RANGES, meta_history=ctx)
+    for r in sidecar(result)["records"]:
+        assert r["final_selection_reason"] == "META_NOT_APPLICABLE_METRIC"
+        assert not r["past_matured_forward_used_for_selection"]
+    snap = ctx.history.snapshot(
+        family_id=sidecar(result)["records"][0]["family_id"],
+        authorized_corpora=(ctx.corpus_id,),
+        outcome_origins=ctx.outcome_origins,
+        research_exposures=ctx.research_exposures,
+        information_as_of=market().index[-1] + pd.Timedelta(days=1),
+    )
+    assert snap.origin_count == 0
+    assert not snap.training_rows
+
+
+def test_q5_t08_pct_equity_fees_funding_and_boundary_authority():
+    old = public_endpoint("shadow", observer=True)
+    cfg = replace(old.config.walkforward_config, target_mode="pct_equity")
+    bt = QuantBTEndpoint(
+        replace(
+            old.config,
+            walkforward_config=cfg,
+            walkforward_target_mode="pct_equity",
+            sizing="pct_equity",
+            alloc_per_trade=0.5,
+            use_funding=True,
+            funding_rate=0.0001,
+            slippage=0.0001,
+        )
+    )
+    ctx = context()
+    result = bt.backtest(data=market(), param_ranges=RANGES, meta_history=ctx)
+    bare = QuantBTEndpoint.pct_equity(
+        initial_capital=20000,
+        leverage=3,
+        alloc_per_trade=0.5,
+        fee_rate=0.0005,
+        use_funding=True,
+        funding_rate=0.0001,
+        slippage=0.0001,
+    )
+    expected = bare.backtest(
+        data=market(), signal=result.metadata["walk_forward_result"].oos_output
+    )
+    pd.testing.assert_series_equal(result.equity, expected.equity)
+    assert sidecar(result)["observer_failures"] == 0
+
+
+def test_q5_t08_public_active_native_numeric_candidate(trained_history):
+    path = os.environ.get("QMS04_NATIVE_EXTENSION")
+    if path is None:
+        # Ordinary consumers still exercise the explicit missing/require gate.
+        # Actual certification commands supply a real extension, no fake module.
+        with pytest.raises(
+            MetaRecordError, match="META_NATIVE_UNAVAILABLE_OR_UNQUALIFIED"
+        ):
+            run("active", history=trained_history, native_batch_policy="require")
+        return
+    from tools.build_qms04_candidate import load_candidate
+
+    native = load_candidate(Path(path))
+    bt = public_endpoint("active", native_batch_policy="require")
+    result = bt.backtest(
+        data=market(),
+        param_ranges=RANGES,
+        meta_history=context(trained_history, native_module=native),
+    )
+    for r in sidecar(result)["records"]:
+        assert r["numeric_backend"]["selected_backend_by_block"]["gram_solve"] == "rust"
+        assert r["proposal"].numeric["complete_reference_decision_verified"]
+        assert r["proposal"].numeric["current_forward_inputs"] is False
+
+
+def test_q5_t06_strategy_frontier_is_closed_until_actual_seal(monkeypatch):
+    original = WalkForwardEngine._call_strategy_for_indices
+    entries = []
+
+    def checked(self, data, params, train_index, test_index, fold, **kwargs):
+        runtime = getattr(self, "_meta_runtime", None)
+        if runtime is not None:
+            forward = test_index[-1] > fold.train_index[-1]
+            if forward:
+                assert runtime.records[-1]["fold_id"] == fold.fold_id
+                assert runtime.records[-1]["selected_params"] == params
+                assert (
+                    pd.Timestamp(runtime.records[-1]["decision_sealed_at"])
+                    < test_index[0]
+                )
+            else:
+                assert test_index[-1] <= fold.train_index[-1]
+            entries.append((int(fold.fold_id), bool(forward)))
+        return original(self, data, params, train_index, test_index, fold, **kwargs)
+
+    monkeypatch.setattr(WalkForwardEngine, "_call_strategy_for_indices", checked)
+    run("active", observer=True)
+    for fold in {f for f, _ in entries}:
+        flags = [forward for f, forward in entries if f == fold]
+        assert flags[-1] is True
+        assert flags.count(True) == 1
+        assert any(not flag for flag in flags)
+
+
+def test_q5_t05_compatibility_tracks_constraints_and_search_policy(cold):
+    bt = cold[0]
+    cfg, scorer = bt.config.walkforward_config, bt.engine.scorer
+    schema = bt.engine._meta_runtime.schema
+    ctx = context()
+
+    def family(c):
+        return PublicMetaRuntime.compatibility_family(
+            WalkForwardEngine(bt.config.strategy_class, c, scorer=scorer), ctx, schema
+        )
+
+    base = family(cfg)
+    for change in (
+        {"random_seed": cfg.random_seed + 1},
+        {"optuna_early_stopping": 2},
+        {"parameter_constraints": lambda p: (p["window"] - 15,)},
+        {"result_constraints": lambda p, result: (0.0,)},
+    ):
+        assert family(replace(cfg, **change)).family_id != base.family_id
+
+
+def test_q5_t02_shared_conditional_sampler_remains_independent():
+    ranges = {
+        **RANGES,
+        "filter": {"kind": "boolean"},
+        "length": {
+            "kind": "integer",
+            "low": 2,
+            "high": 8,
+            "step": 2,
+            "active_if": {"filter": True},
+        },
+    }
+
+    def sample(mode):
+        old = public_endpoint(mode, observer=bool(mode))
+        cfg = replace(
+            old.config.walkforward_config,
+            sampler_config={"name": "tpe_multivariate_group"},
+            optuna_trials=12,
+        )
+        bt = QuantBTEndpoint(replace(old.config, walkforward_config=cfg))
+        kwargs = {"meta_history": context()} if mode else {}
+        return bt.backtest(data=market(), param_ranges=ranges, **kwargs)
+
+    baseline, shadow = sample(None), sample("shadow")
+    assert native_digest(baseline) == native_digest(shadow)
+    for task in sidecar(shadow)["tasks"]:
+        for c in task.candidates:
+            assert ("length" in c.effective_params) == c.effective_params["filter"]
