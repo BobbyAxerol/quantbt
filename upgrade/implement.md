@@ -22236,6 +22236,11 @@ profile the already-registered first two folds/32 attempts on the original-resul
 shadow route. This is instrumentation only, excluded from economic support and
 ordinary latency numbers. Preserve native params; inspect timestamp/calendar
 witness hashing and report construction before proposing any hot-path change.
+Cold verification also regenerates all 28 OOS signal segments from saved final
+fold params, without running optimization or meta, and replays them through the
+existing pct-equity endpoint. Compare positions/equity/returns, final params and
+the saved full account exactly. These extra verification executions are not new
+independent origins, locked folds or performance measurements.
 
 ### QMS Requirement Coverage And Completion Records
 

@@ -61,6 +61,7 @@ def main():
     progress("RUNNING", "summarize")
     try:
         subprocess.run([sys.executable, str(worker), "summarize"], check=True)
+        subprocess.run([sys.executable, str(worker.with_name("qms_real_fixed_replay.py"))], check=True)
         subprocess.run([sys.executable, str(worker.with_name("qms_real_profile.py"))], check=True)
     except Exception:
         progress("FAILED", "summarize/profile")
