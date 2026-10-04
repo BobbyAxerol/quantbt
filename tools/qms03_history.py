@@ -3,19 +3,25 @@
 from __future__ import annotations
 
 import argparse
+import ast
+from contextlib import ExitStack
 from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
 import resource
+import statistics
 import subprocess
 from time import perf_counter, process_time
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 import optuna
 import pandas as pd
 
 from quantbt import QuantBTEndpoint
+import quantbt.endpoint as endpoint_module
+import quantbt.walkforward as wfo_module
 from quantbt.endpoint import _WalkForwardEndpointScorer
 from quantbt.walkforward import WalkForwardEngine
 from quantbt.core.wfo_contracts import strategy_fingerprint
@@ -49,6 +55,84 @@ GUIDE = baseline.GUIDE
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
+def seal_fixture_task(pool, fold, endpoint, scorer, *, centroid):
+    schema = pool.schema
+    family = CompatibilityFamily(
+        strategy_fingerprint(endpoint.config.strategy_class),
+        schema.space.identity,
+        schema.schema_id,
+        "SYNTHETIC-USD-linear",
+        "1D",
+        "rolling180D-quarterly-v1",
+        scorer._meta_adapter.contract.metric_id,
+        scorer._meta_economics_id,
+        "original-endpoint-reset-v1",
+        "mode4-causal-centroid-v1" if centroid else "mode4-causal-medoid-v1",
+        "legacy-tpe-v1",
+        "fresh-diagnostic-account-v1",
+    )
+    resolved = pool.candidates[0].resolved_at
+    task = MetaTask(
+        family,
+        "qms03-synthetic-original-engine",
+        "qms03-centroid" if centroid else "qms03-medoid",
+        fold.train_index[-1],
+        fold.train_index[0],
+        fold.train_index[-1],
+        fold.test_index[0],
+        fold.test_index[-1],
+        fold.train_index[-1],
+        pool.seed,
+        pool.candidates,
+        pool.anchor_evaluation_id,
+        (
+            CandidateRoleRef(
+                "native_anchor", family.anchor_policy_id, pool.anchor_evaluation_id
+            ),
+        ),
+        resolved,
+        resolved,
+        resolved + pd.Timedelta(microseconds=1),
+        fold.test_index[0],
+        pd.Timestamp.now(tz="UTC"),
+        "historical_replay",
+        "synthetic_counterfactual",
+        "research_only",
+        {
+            "source": "actual WFO trial pool",
+            "study_id": pool.study_id,
+            "seed": pool.seed,
+            "sampler": "tpe_legacy",
+            "trials_requested": wf_config_trials(endpoint),
+            "auxiliary_is_evaluations": pool.auxiliary_is_evaluations,
+        },
+    )
+    return task, freeze_panel(task, schema, sealed_at=task.decision_sealed_at)
+
+
+class FixturePoolCapture(ISPoolCapture):
+    """Freeze actual task/panel at the IS hook, not after observing native OOS."""
+
+    def __init__(self, endpoint, scorer, *, centroid):
+        super().__init__(
+            resolved_at=lambda fold: fold.train_index[-1] + pd.Timedelta(microseconds=1)
+        )
+        self.endpoint, self.scorer, self.centroid = endpoint, scorer, centroid
+        self.sealed_tasks = []
+
+    def capture(self, **kwargs):
+        super().capture(**kwargs)
+        self.sealed_tasks.append(
+            seal_fixture_task(
+                self.pools[-1],
+                kwargs["folds"][0],
+                self.endpoint,
+                self.scorer,
+                centroid=self.centroid,
+            )
+        )
+
+
 def original_engine_run(*, capture=True, centroid=False, mutate_future=False):
     data = baseline.market()
     if mutate_future:
@@ -70,11 +154,7 @@ def original_engine_run(*, capture=True, centroid=False, mutate_future=False):
         meta_metric_support=capture,
     )
     observer = (
-        ISPoolCapture(
-            resolved_at=lambda fold: fold.train_index[-1] + pd.Timedelta(microseconds=1)
-        )
-        if capture
-        else None
+        FixturePoolCapture(endpoint, scorer, centroid=centroid) if capture else None
     )
     engine = WalkForwardEngine(
         endpoint.config.strategy_class,
@@ -87,64 +167,17 @@ def original_engine_run(*, capture=True, centroid=False, mutate_future=False):
 
 
 def financial_fixture(*, centroid=False):
+    total_started = perf_counter()
     data, endpoint, scorer, result, capture = original_engine_run(centroid=centroid)
+    calibration_seconds = perf_counter() - total_started
     revisions, rows = [], []
     observer = PostDecisionObserver(scorer._meta_adapter)
     family = None
     started, cpu = perf_counter(), process_time()
     for pool, fold in zip(capture.pools, result.folds, strict=True):
         schema = pool.schema
-        family = CompatibilityFamily(
-            strategy_fingerprint(endpoint.config.strategy_class),
-            schema.space.identity,
-            schema.schema_id,
-            "SYNTHETIC-USD-linear",
-            "1D",
-            "rolling180D-quarterly-v1",
-            scorer._meta_adapter.contract.metric_id,
-            scorer._meta_economics_id,
-            "original-endpoint-reset-v1",
-            "mode4-causal-centroid-v1" if centroid else "mode4-causal-medoid-v1",
-            "legacy-tpe-v1",
-            "fresh-diagnostic-account-v1",
-        )
-        resolved = pool.candidates[0].resolved_at
-        task = MetaTask(
-            family,
-            "qms03-synthetic-original-engine",
-            "qms03-centroid" if centroid else "qms03-medoid",
-            fold.train_index[-1],
-            fold.train_index[0],
-            fold.train_index[-1],
-            fold.test_index[0],
-            fold.test_index[-1],
-            fold.train_index[-1],
-            pool.seed,
-            pool.candidates,
-            pool.anchor_evaluation_id,
-            (
-                CandidateRoleRef(
-                    "native_anchor", family.anchor_policy_id, pool.anchor_evaluation_id
-                ),
-            ),
-            resolved,
-            resolved,
-            resolved + pd.Timedelta(microseconds=1),
-            fold.test_index[0],
-            pd.Timestamp.now(tz="UTC"),
-            "historical_replay",
-            "synthetic_counterfactual",
-            "research_only",
-            {
-                "source": "actual WFO trial pool",
-                "study_id": pool.study_id,
-                "seed": pool.seed,
-                "sampler": "tpe_legacy",
-                "trials_requested": wf_config_trials(endpoint),
-                "auxiliary_is_evaluations": pool.auxiliary_is_evaluations,
-            },
-        )
-        panel = freeze_panel(task, schema, sealed_at=task.decision_sealed_at)
+        task, panel = capture.sealed_tasks[len(revisions)]
+        family = task.family
 
         def evaluate(candidate):
             prefix = data.loc[: fold.test_index[-1]]
@@ -245,9 +278,15 @@ def financial_fixture(*, centroid=False):
         "training_snapshot_id": view.snapshot_id,
         "origin_count": view.origin_count,
         "training_rows": len(view.training_rows),
+        "native_candidate_table_total_rows": len(result.candidate_table),
+        "panel_sealing_boundary": "inside actual IS selection tap, before native outer OOS realization",
         "observer_attempts": observer.attempts,
         "observer_failures": observer.failures,
         "observer_seconds": observer.elapsed_seconds,
+        "calibration_seconds": calibration_seconds,
+        "total_fixture_seconds": perf_counter() - total_started,
+        "calibration_profile": result.metadata["performance_profile"],
+        "scorer_cache": scorer.prepared_cache_metadata(),
         "retention_and_transform_seconds": perf_counter() - started,
         "cpu_seconds": process_time() - cpu,
         "descriptor_backend": capture.pools[0].schema.backend,
@@ -277,9 +316,89 @@ def source_manifest():
         str(p.relative_to(ROOT))
         for p in (ROOT / "src/quantbt/optimization/meta_selection").glob("*.py")
     ]
+    paths += [
+        "tools/qms03_history.py",
+        "tests/meta_selection/test_qms03_history.py",
+        "tests/meta_selection/test_qms03_engine.py",
+    ]
     return {
         name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
         for name in sorted(set(paths))
+    }
+
+
+def _entry_class(module, name):
+    relative = Path(module.__file__).relative_to(ROOT)
+    source = baseline.git("show", f"{ENTRY}:{relative}").decode()
+    tree = ast.parse(source)
+    node = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == name)
+    namespace = dict(vars(module))
+    exec(
+        compile(
+            ast.Module(body=[node], type_ignores=[]), f"{ENTRY}:{relative}", "exec"
+        ),
+        namespace,
+    )
+    return namespace[name]
+
+
+def disabled_path_measurement():
+    """Pair only the changed classes; all untouched helper/kernel code is shared."""
+    old_engine = _entry_class(wfo_module, "WalkForwardEngine")
+    old_scorer = _entry_class(endpoint_module, "_WalkForwardEndpointScorer")
+    rows = []
+    for repetition in range(4):
+        for lane in (
+            ("entry", "current") if repetition % 2 == 0 else ("current", "entry")
+        ):
+            with ExitStack() as stack:
+                if lane == "entry":
+                    stack.enter_context(
+                        patch.object(wfo_module, "WalkForwardEngine", old_engine)
+                    )
+                    stack.enter_context(
+                        patch.object(
+                            endpoint_module, "_WalkForwardEndpointScorer", old_scorer
+                        )
+                    )
+                started, cpu = perf_counter(), process_time()
+                result = baseline.endpoint(retention="none").backtest(
+                    data=baseline.market(), param_ranges={"window": (3, 31, 2)}
+                )
+                elapsed, cpu_elapsed = perf_counter() - started, process_time() - cpu
+                wf = result.metadata["walk_forward"]
+                rows.append(
+                    {
+                        "lane": lane,
+                        "repetition": repetition,
+                        "warmup": repetition == 0,
+                        "wall_seconds": elapsed,
+                        "cpu_seconds": cpu_elapsed,
+                        "native_outcome_digest": digest(
+                            {
+                                "params_by_fold": baseline.safe(wf["params_by_fold"]),
+                                "trials": baseline.safe(wf["trial_table"]),
+                                "positions": result.positions.to_numpy().tolist(),
+                                "equity": result.equity.to_numpy().tolist(),
+                            }
+                        ),
+                        "strategy_calls": wf["performance_profile"]["strategy_calls"],
+                        "score_calls": wf["performance_profile"]["score_calls"],
+                    }
+                )
+    if len({row["native_outcome_digest"] for row in rows}) != 1:
+        raise AssertionError("disabled entry/current financial/search parity failed")
+    return {
+        "method": "paired parent/current class bodies; unchanged shared helpers and kernels; warmup then 3 alternating pairs",
+        "repetitions": rows,
+        "warm_median_ms": {
+            lane: 1000
+            * statistics.median(
+                r["wall_seconds"] for r in rows if r["lane"] == lane and not r["warmup"]
+            )
+            for lane in ("entry", "current")
+        },
+        "claim": "cost diagnostic on small synthetic fixture, not production overhead/throughput certification",
     }
 
 
@@ -304,6 +423,7 @@ def report():
         },
         "medoid": medoid,
         "centroid": centroid,
+        "disabled_path": disabled_path_measurement(),
     }
 
 
@@ -311,7 +431,15 @@ def receipt(evidence, junit):
     root = ET.parse(junit).getroot()
     cases = list(root.iter("testcase"))
     groups = {
-        f"Q3-T{n:02d}": sum(f"q3_t{n:02d}" in c.attrib["name"] for c in cases)
+        f"Q3-T{n:02d}": sum(
+            c.attrib["name"].startswith(f"test_q3_t{n:02d}_")
+            and c.attrib.get("classname")
+            in {
+                "tests.meta_selection.test_qms03_history",
+                "tests.meta_selection.test_qms03_engine",
+            }
+            for c in cases
+        )
         for n in range(1, 9)
     }
     failed = [
@@ -321,6 +449,15 @@ def receipt(evidence, junit):
     ]
     if failed or not all(groups.values()):
         raise AssertionError("QMS-03 executed test groups incomplete/failed/skipped")
+    if any(
+        not evidence[lane]["training_rows"]
+        or evidence[lane]["observer_failures"]
+        or evidence[lane]["origin_count"] != 2
+        for lane in ("medoid", "centroid")
+    ):
+        raise AssertionError(
+            "original-engine label integration evidence missing/failed"
+        )
     return {
         "schema": "qms03-gate-receipt-v1",
         "entry_commit": ENTRY,

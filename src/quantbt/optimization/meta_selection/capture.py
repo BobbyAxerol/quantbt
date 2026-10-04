@@ -91,6 +91,9 @@ class ISPoolCapture:
             )
         candidates = []
         anchor_id = None
+        from ...core.wfo_contracts import strategy_fingerprint
+
+        strategy_id = strategy_fingerprint(engine.strategy)
         for ordinal, record in enumerate(eligible):
             if (
                 len(record.fold_metrics) != 1
@@ -105,7 +108,7 @@ class ISPoolCapture:
             metadata = record.selection_metadata
             effective = schema.space.effective(record.params)
             candidate_id = schema.space.candidate_key(
-                effective, strategy_identity="qms-pool-v1"
+                effective, strategy_identity=strategy_id
             )
             evaluation_id = digest(
                 {

@@ -1,7 +1,10 @@
 """Actual WFO/backtest integration, with no new financial metric calculator."""
 
 from dataclasses import replace
+import subprocess
+import sys
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -22,6 +25,63 @@ from quantbt.optimization.meta_selection.observer import (
 from quantbt.optimization.meta_selection.persistence import dumps_pending, loads_pending
 from tools import qms01_baseline as baseline
 from tools.qms03_history import financial_fixture, original_engine_run
+
+
+def test_q3_t06_finite_zero_positive_variance_calendar_sample_matches_report():
+    frame = baseline.market().iloc[[0, 5, 15]]
+    endpoint = QuantBTEndpoint.signal_notional(
+        initial_capital=20_000, alloc_per_trade=1000
+    )
+    result = endpoint.backtest(data=frame, signal=pd.Series(1.0, index=frame.index))
+    # Reducer unit fixture, not additional engine-produced label evidence.
+    result = replace(
+        result, equity=pd.Series([20_000.0, 21_000.0, 19_950.0], index=frame.index)
+    )
+    report = result.full_report(trading_days=365, scope="full")
+    observation = ResultMetricAdapter(canonical_metric_contract()).observe(
+        result,
+        expected_index=frame.index,
+        economics_id=economics_identity(endpoint.config),
+        input_signature="metric-reducer-unit",
+        report=report,
+    )
+    assert observation.raw_sharpe == report["sharpe"] == 0.0
+    assert observation.status == OutcomeStatus.VALID and observation.sample_count == 2
+    assert observation.sample_std == pytest.approx(np.std([0.05, -0.05], ddof=1))
+
+
+def test_q3_t07_quantity_constraints_part_of_actual_economics_evidence():
+    frame = baseline.market().iloc[:20]
+    first = QuantBTEndpoint.signal_notional(qty_step=0.001, fee_rate=0.0005)
+    changed = QuantBTEndpoint.signal_notional(qty_step=1.0, fee_rate=0.0005)
+    assert economics_identity(first.config) != economics_identity(changed.config)
+    result = changed.backtest(data=frame, signal=pd.Series(1.0, index=frame.index))
+    with pytest.raises(MetaRecordError, match="economics"):
+        ResultMetricAdapter(canonical_metric_contract()).observe(
+            result,
+            expected_index=frame.index,
+            economics_id=economics_identity(first.config),
+            input_signature="x",
+            execution_config=first.config,
+        )
+
+
+def test_q3_t08_omitted_public_route_does_not_import_meta_or_emit_new_work():
+    source = """
+import sys
+from tools.qms01_baseline import endpoint, market
+e = endpoint(retention="none")
+r = e.backtest(data=market(), param_ranges={"window": (3, 31, 2)})
+assert not any(n.startswith("quantbt.optimization.meta_selection") for n in sys.modules)
+assert not any("meta" in k for k in r.metadata["walk_forward"])
+"""
+    subprocess.run(
+        [sys.executable, "-c", source],
+        cwd=baseline.ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
 
 @pytest.fixture(scope="module", params=[False, True], ids=["medoid", "centroid"])
@@ -109,6 +169,29 @@ def test_q3_t03_actual_runner_future_suffix_mutation_preserves_first_pool_and_an
     assert first.pools[0].anchor_evaluation_id == changed.pools[0].anchor_evaluation_id
     assert before.metadata["params_by_fold"][0] == after.metadata["params_by_fold"][0]
     assert wire(first.pools[-1].candidates) != wire(changed.pools[-1].candidates)
+
+
+def test_q3_t03_actual_panel_seals_before_engine_opens_forward_strategy_view(
+    monkeypatch,
+):
+    original = WalkForwardEngine._call_strategy
+    checked_folds = []
+
+    def checked(engine, *, data, params, fold):
+        if fold.test_index[0] > fold.train_index[-1]:
+            observer = engine._is_pool_observer
+            assert any(
+                task.sampling_provenance["study_id"] == fold.fold_id
+                and panel.sealed_at <= task.first_forward_action_at
+                for task, panel in observer.sealed_tasks
+            )
+            checked_folds.append(fold.fold_id)
+        return original(engine, data=data, params=params, fold=fold)
+
+    monkeypatch.setattr(WalkForwardEngine, "_call_strategy", checked)
+    _, _, _, result, capture = original_engine_run()
+    assert checked_folds == [fold.fold_id for fold in result.folds]
+    assert len(capture.sealed_tasks) == len(result.folds)
 
 
 def test_q3_t03_actual_history_physical_order_and_future_labels_do_not_change_old_snapshot(

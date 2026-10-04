@@ -164,6 +164,8 @@ class ResultMetricAdapter:
         raw = float(report["sharpe"])
         if not result.equity.index.equals(expected_index):
             status = OutcomeStatus.INCOMPLETE_WINDOW
+        elif not np.isfinite(result.equity.to_numpy(dtype=float)).all():
+            status = OutcomeStatus.OUTCOME_FAILED
         elif result.liquidated:
             status = OutcomeStatus.CENSORED
         elif count < 2:
@@ -175,18 +177,21 @@ class ResultMetricAdapter:
         else:
             status = OutcomeStatus.VALID
         # Bind witness to the original result, including first mark and account.
-        witness = digest(
-            {
-                "index": [utc(t).isoformat() for t in result.equity.index],
-                "equity": result.equity.to_numpy(dtype=float).tolist(),
-                "returns": result.returns.to_numpy(dtype=float).tolist(),
-                "positions": result.positions.to_numpy(dtype=float).tolist(),
-                "initial_capital": result.initial_capital,
-                "economics": economics_id,
-                "metric": self.contract.metric_id,
-                "input": input_signature,
-            }
+        witness = hashlib.sha256(
+            digest(
+                {
+                    "index": [utc(t).isoformat() for t in result.equity.index],
+                    "initial_capital": result.initial_capital,
+                    "economics": economics_id,
+                    "metric": self.contract.metric_id,
+                    "input": input_signature,
+                }
+            ).encode()
         )
+        for values in (result.equity, result.returns, result.positions):
+            array = np.ascontiguousarray(values.to_numpy(dtype=np.float64))
+            witness.update(digest({"shape": array.shape, "dtype": "float64"}).encode())
+            witness.update(array.tobytes())
         return MetricObservation(
             status,
             raw if np.isfinite(raw) else None,
@@ -199,8 +204,10 @@ class ResultMetricAdapter:
             end,
             end,
             float(result.initial_capital),
-            float(result.equity.iloc[0]),
-            witness,
+            float(result.equity.iloc[0])
+            if np.isfinite(result.equity.iloc[0])
+            else None,
+            witness.hexdigest(),
             input_signature,
             "original_result",
         )

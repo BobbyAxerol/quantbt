@@ -496,6 +496,18 @@ def test_q3_t04_scaler_reads_only_permitted_historical_is_not_forward_label_magn
     assert scalers[0].training_snapshot_id != scalers[1].training_snapshot_id
 
 
+def test_q3_t04_compiled_vocabulary_feature_order_and_backend_resolution_are_frozen():
+    _, schema = make_task()
+    with pytest.raises(AttributeError, match="immutable"):
+        schema.feature_names = tuple(reversed(schema.feature_names))
+    with pytest.raises(AttributeError, match="immutable"):
+        schema.space.by_name = {}
+    with pytest.raises(TypeError):
+        schema.space.by_name["hma_length"] = None
+    with pytest.raises(TypeError):
+        schema.backend["selected"] = "rust"
+
+
 def test_q3_t04_conditional_feature_without_historical_support_is_explicitly_unsupported():
     task, schema = make_task()
     task = replace(
@@ -803,3 +815,66 @@ def test_q3_t08_pending_does_not_invent_availability_and_retires_at_capacity():
     store.append(revision)
     assert not store.pending
     assert snapshot(store, task, stamp("2025-01-01")).origin_count == 1
+
+
+def test_q3_t08_import_requires_reviewed_complete_revision_not_only_metric_refs():
+    task, schema = make_task()
+    revision = revision_for(task, schema)
+    restored = loads_revision(
+        dumps_revision(revision), verified_output_witnesses=witnesses(revision)
+    )
+    assert restored.verification == "unverified"
+    document = json.loads(dumps_revision(revision))
+    document["payload"]["task"]["roles"].append(
+        {
+            "role": "STATIC",
+            "policy_id": "unreviewed",
+            "evaluation_id": task.anchor_candidate_evaluation_id,
+        }
+    )
+    document["content_digest"] = digest(document["payload"])
+    restored = loads_revision(
+        json.dumps(document),
+        verified_output_witnesses=witnesses(revision),
+        reviewed_revision_ids=(revision.revision_id,),
+    )
+    assert restored.verification == "unverified" and not restored.training_rows
+
+
+@pytest.mark.parametrize(
+    "fault",
+    ["missing_group", "wrong_class", "skip", "failure", "missing_engine_evidence"],
+)
+def test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence(
+    tmp_path, fault
+):
+    import xml.etree.ElementTree as ET
+    from tools.qms03_history import receipt
+
+    root = ET.Element("testsuites")
+    suite = ET.SubElement(root, "testsuite")
+    for i in range(1, 9):
+        if fault == "missing_group" and i == 3:
+            continue
+        case = ET.SubElement(
+            suite,
+            "testcase",
+            name=f"test_q3_t{i:02d}_fixture",
+            classname="other"
+            if fault == "wrong_class"
+            else "tests.meta_selection.test_qms03_history",
+        )
+        if i == 3 and fault in {"skip", "failure"}:
+            ET.SubElement(case, "skipped" if fault == "skip" else "failure")
+    path = tmp_path / "executed.xml"
+    ET.ElementTree(root).write(path, encoding="utf-8")
+    evidence = {
+        lane: {
+            "training_rows": 0 if fault == "missing_engine_evidence" else 10,
+            "observer_failures": 0,
+            "origin_count": 2,
+        }
+        for lane in ("medoid", "centroid")
+    }
+    with pytest.raises(AssertionError):
+        receipt(evidence, path)

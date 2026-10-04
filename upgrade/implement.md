@@ -20708,7 +20708,8 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 **Planning date:** 2026-10-03.
 **Status:** QMS-01 COMPLETE; owner authorized advancement to QMS-02;
 QMS-02 COMPLETE; owner authorized advancement to QMS-03;
-QMS-03 RUNNING; QMS-04 through QMS-08 NOT_STARTED.
+QMS-03 COMPLETE; technical PASS; owner review PENDING;
+QMS-04 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20847,7 +20848,7 @@ completed support. No required QMS work may be relabeled future technical debt.
 |---|---|---|---|
 | [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | RUNNING |
+| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; OWNER_PENDING |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
 | [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
 | [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
@@ -21183,8 +21184,8 @@ and economic acceptance are explicitly NOT_ASSESSED.
 
 ### Phase QMS-03 - Historical Tasks, Descriptors And Causal Label Records
 
-**Status:** RUNNING; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** COMPLETE; technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_COST_ONLY; owner review PENDING. No automatic QMS-04 advance.
 **Goal:** produce trustworthy compact historical learning records and current
 IS descriptors with explicit anchor, information frontier and task revisions.
 **Entry:** accepted QMS-01/02 contracts and phase approval.
@@ -21286,6 +21287,51 @@ appropriate for isolated math/time tests but do not prove financial integration.
 **Technical Debt Rule:** no stale anchor, placeholder validity, winner-only
 history, mutable revision, cross-corpus leakage or unsafe pickle path. Missing
 mandatory validity/provenance blocks that lane rather than entering the learner.
+
+**Execution Result (2026-10-04):** completed approved QMS-03 only on
+`feat/meta-selection-samplers`; source entry `3ce42bf`. Initial verified
+foundation committed as `4f94eb3`; final certification/docs are a subsequent
+scoped local commit. No push/merge or version/native ABI change.
+
+- Delivered focused immutable record/descriptors/panel/history/observer/retention
+  modules and thin internal original-result WFO tap. Full pool is captured
+  before native compaction; centroid receives its own same-IS evaluation,
+  counted separately. Stock native params/objective/tables and stitched signal
+  remain exactly unchanged with the tap enabled.
+- Actual integration fixture seals its task/panel inside the IS hook before
+  the engine opens forward strategy data, not merely by a backdated timestamp.
+  Existing financial engine/report/sample reducer supplies raw D/Y/Q labels;
+  canonical economics include quantity constraints and original market/output
+  witnesses. Failed/undefined/no-variance/censored rows never become zero labels.
+- Bounded authorized as-of index, availability/order guards, immutable parent
+  revisions, full 1/M replacement and safe reviewed JSON/columnar imports pass.
+  Pending outcomes retain nominal maturity but no fabricated actual availability.
+  Caller-reviewed whole revision and original observation digests are required
+  to trust imported rows; self-hashed or conflicting provenance cannot train.
+- `311` tests pass, zero failures/errors/skips: `83` Q3 checks plus `228`
+  prior/affected checks; CLI `70.15s`. Eight legacy mode/schedule routes and
+  prepared/native/nested/retention paths retain their locked behavior.
+  Original-engine synthetic-market medoid/centroid fixtures produce `8/10`
+  valid non-anchor labels over two origins, `10/12` forward attempts, zero
+  failures and `0/2` separately charged exact IS evaluations.
+- Small alternating parent/current omitted-path diagnostic: `169.327ms ->
+  174.549ms` warm median, identical financial/search digest and `12` strategy/
+  `42` score calls. This noisy `+3.08%` observation is cost-only, not production
+  overhead certification. No new archive/evaluation work when omitted.
+  Descriptor runtime is explicitly NumPy reference; native-require fails
+  because no QMS transform capability is installed. QMS-04 owns that addition.
+- `G3-TASK`, `G3-CAUSALITY`, `G3-DESCRIPTORS`, `G3-LABELS`,
+  `G3-PORTABLE_HISTORY`: PASS. `G3-OWNER`: PENDING. No in-scope technical
+  blocker; Ridge/public active-shadow/scalar-native qualification remain
+  their registered QMS-04/05/06 work, not fabricated delivered functionality.
+- [Full report](../docs/meta_selection/QMS03_REPORT.md),
+  [methodology/contracts](../docs/meta_selection/HISTORY.md),
+  [runnable example](../examples/wfo_history_records.py),
+  [executed JUnit](../benchmarks/optimization/meta_selection/qms03_tests.xml),
+  [source/cost evidence](../benchmarks/optimization/meta_selection/qms03_history_evidence.json)
+  and [gate receipt](../benchmarks/optimization/meta_selection/qms03_gate_receipt.json).
+  QMS-01/02 historical artifacts are unchanged. No full suite/Rust rebuild/
+  wheel/remote CI or economic-edge claim; final broad qualification is QMS-08.
 
 <a id="qms-04"></a>
 

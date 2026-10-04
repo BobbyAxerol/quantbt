@@ -1,0 +1,29 @@
+{
+  "schema": "qms03-gate-receipt-v1",
+  "entry_commit": "3ce42bf",
+  "evidence_sha256": "08cca2d871e9de0b471654c3dfc78716ddc236085623837435d468a5f73ccfb4",
+  "junit_sha256": "4fa59bdde7d6ad2553b08703984923c39830fdf31c014474a8cbdc75b51ee9b7",
+  "executed_test_groups": {
+    "Q3-T01": 10,
+    "Q3-T02": 7,
+    "Q3-T03": 13,
+    "Q3-T04": 5,
+    "Q3-T05": 1,
+    "Q3-T06": 19,
+    "Q3-T07": 4,
+    "Q3-T08": 24
+  },
+  "tests": 311,
+  "failures": 0,
+  "skips": 0,
+  "technical": {
+    "G3-TASK": "PASS",
+    "G3-CAUSALITY": "PASS",
+    "G3-DESCRIPTORS": "PASS",
+    "G3-LABELS": "PASS",
+    "G3-PORTABLE_HISTORY": "PASS"
+  },
+  "G3-OWNER": "PENDING",
+  "advancement": "not authorized",
+  "empirical": "NOT_ASSESSED"
+}

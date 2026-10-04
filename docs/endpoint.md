@@ -2808,6 +2808,14 @@ and the [complete runnable example](../examples/wfo_samplers.py). This addition
 is not yet published in core 1.1.1; it does not enable meta-selection, change
 the endpoint signature, objectives or financial execution contract.
 
+Feature-branch QMS-03 adds an internal, opt-in original-result observer and
+causal history foundation, **not** a public meta-selection parameter. Normal
+endpoint calls retain their existing search, selection, financial execution
+and result tables, with no new history/panel work. See
+[history/descriptor/label contracts](meta_selection/HISTORY.md) and the
+[phase report](meta_selection/QMS03_REPORT.md). Learner and public active/shadow
+integration remain separately gated QMS-04/QMS-05 work.
+
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG
 and draw order. `False` keeps the reference loop; sample counts, objectives,

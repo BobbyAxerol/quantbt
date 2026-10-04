@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+from types import MappingProxyType
 
 import numpy as np
 
 from ..parameter_space import NormalizedSearchSpace
-from .common import MetaRecordError, digest, frozen_array
+from .common import MetaRecordError, digest, freeze, frozen_array
 from .records import OutcomeStatus
 
 
@@ -57,6 +58,18 @@ class DescriptorBatch:
             )
 
 
+class _FrozenParameterSpace(NormalizedSearchSpace):
+    def __init__(self, ranges):
+        super().__init__(ranges)
+        self.by_name = MappingProxyType(dict(self.by_name))
+        self._sealed = True
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_sealed", False):
+            raise AttributeError("compiled descriptor parameter schema is immutable")
+        object.__setattr__(self, name, value)
+
+
 class DescriptorSchema:
     version = "qms-parameters_raw_is_activity_v1"
 
@@ -67,7 +80,7 @@ class DescriptorSchema:
             raise NotImplementedError(
                 "META_NATIVE_CAPABILITY_MISSING: installed ABI has no QMS descriptor transform"
             )
-        self.space = NormalizedSearchSpace(ranges)
+        self.space = _FrozenParameterSpace(ranges)
         self.include_activity = bool(include_activity)
         names, numeric, blocks = [], [], []
         for spec in self.space.specs:
@@ -103,15 +116,23 @@ class DescriptorSchema:
                 "include_activity": self.include_activity,
             }
         )
-        self.backend = {
-            "requested": native_policy,
-            "selected": "numpy_reference",
-            "reason": "QMS-03 record foundation; installed ABI has no meta transform; native numeric addition owned by QMS-04",
-            "dtype": "float64",
-            "batch_boundary": "one_contiguous_matrix_per_pool",
-            "ffi_calls": 0,
-            "fast_math": False,
-        }
+        self.backend = freeze(
+            {
+                "requested": native_policy,
+                "selected": "numpy_reference",
+                "reason": "QMS-03 record foundation; installed ABI has no meta transform; native numeric addition owned by QMS-04",
+                "dtype": "float64",
+                "batch_boundary": "one_contiguous_matrix_per_pool",
+                "ffi_calls": 0,
+                "fast_math": False,
+            }
+        )
+        self._sealed = True
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_sealed", False):
+            raise AttributeError("compiled descriptor schema is immutable")
+        object.__setattr__(self, name, value)
 
     def _parameter_values(self, candidates):
         candidates = tuple(candidates)
