@@ -178,6 +178,7 @@ class PreparedWalkForwardContext:
         compare=False,
     )
     calendar_plan: Optional[CalendarPlanV2] = None
+    _witness_owners: list = field(default_factory=list, repr=False, compare=False)
     _stats: Dict[str, int] = field(
         default_factory=lambda: {
             "strategy_slice_requests": 0,
@@ -294,6 +295,21 @@ class PreparedWalkForwardContext:
         """Reject attempted reuse after any result-affecting source mutation."""
         if _complete_data_hash(data) != self.data_signature:
             raise ValueError("prepared walk-forward context source data signature changed")
+
+    def metric_witness(self, config):
+        from .optimization.meta_selection.witness import PreparedMetricWitness
+
+        owner = PreparedMetricWitness(self.data, config=config)
+        self._witness_owners.append(owner)
+        return owner
+
+    def close_witnesses(self):
+        try:
+            for owner in self._witness_owners:
+                owner.validate_source()
+        finally:
+            for owner in self._witness_owners:
+                owner.close()
 
     def window_for(self, index: pd.DatetimeIndex) -> PreparedWfoWindowV1 | None:
         """Return a parameter-independent positional score view when exact."""
@@ -1147,6 +1163,8 @@ class WalkForwardEngine:
             )
             if self._meta_runtime is not None:
                 self._meta_runtime.finalize(result)
+            if prepared_context is not None and prepared_context._witness_owners:
+                prepared_context.validate_source(data_for_strategy)
             return result
         finally:
             adapter = self._prepared_wfo_strategy_adapter
@@ -1179,6 +1197,8 @@ class WalkForwardEngine:
             self._strategy_market_fingerprints = {}
             if self._meta_runtime is not None:
                 self._is_pool_observer = None
+            if prepared_context is not None:
+                prepared_context.close_witnesses()
 
     def _run_aligned(
         self,

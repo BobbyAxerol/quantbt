@@ -22348,6 +22348,13 @@ No weakened signature, narrower label panel or reduced budget is acceptable.
 
 #### QMS-L02 - Qualified Numeric Dispatch And Observed Threads
 
+**L01 implementation receipt:** exact header/prefix derived reuse implemented;
+79 focused QMS-03/QMS-05/new witness tests PASS (27.16s), including byte-exact
+original observations/full shadow pool/account comparison, schema/volume/funding
+mutation, timezone/nanosecond/capital/incomplete-calendar keys and bounded release.
+No financial kernel or native bytes changed. Full real-alpha and installed
+follow-up qualification remain required under L04, not claimed by this receipt.
+
 **Goal:** use qualified Rust for favorable blocks and measured NumPy/BLAS for
 unfavorable geometry; report actual thread state separately from requested caps.
 Read guide [8.5-8.6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8)

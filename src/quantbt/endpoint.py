@@ -4911,6 +4911,7 @@ class _WalkForwardEndpointScorer:
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
+        self._meta_witness = None
         if self.meta_metric_support:
             if wf_config is None:
                 raise NotImplementedError("META_METRIC_SUPPORT_MISSING: WFO metric contract required")
@@ -4977,6 +4978,8 @@ class _WalkForwardEndpointScorer:
         self.market_data = context.data
         self.market_datetime_index = context.datetime_index
         self._stats["walkforward_context_signature"] = context.signature
+        if self.meta_metric_support and self.wf_config.metadata.get("use_prepared_meta_witness", True):
+            self._meta_witness = context.metric_witness(self.score_config)
         if self._native_prepared_wfo is not None:
             self._native_prepared_wfo.bind_walkforward_context(context)
 
@@ -5070,14 +5073,18 @@ class _WalkForwardEndpointScorer:
         if self.meta_metric_support:
             from .optimization.meta_selection.common import wire
             from .optimization.meta_selection.observer import market_signature
-            signature = market_signature(data, index, config=self.score_config)
+            signature = (self._meta_witness.market_signature(data, index)
+                         if self._meta_witness is not None
+                         else market_signature(data, index, config=self.score_config))
             metrics["meta_observation"] = wire(self._meta_adapter.observe(result, expected_index=index,
                 economics_id=self._meta_economics_id, input_signature=signature, report=report,
-                execution_config=self.score_config))
+                execution_config=self.score_config, prepared_witness=self._meta_witness))
         return metrics
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)
+        if self._meta_witness is not None:
+            meta["meta_witness"] = self._meta_witness.metadata
         meta["market_cache_entries"] = (
             len(self._portfolio_market_cache)
             + len(self._single_market_cache)
@@ -5098,6 +5105,7 @@ class _WalkForwardEndpointScorer:
         """Release run-local market snapshots after WFO metadata is captured."""
         if self._native_prepared_wfo is not None:
             self._native_prepared_wfo.close()
+        self._meta_witness = None
         self.market_data = None
         self.market_closes = None
         self.market_highs = None

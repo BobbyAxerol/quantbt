@@ -116,6 +116,7 @@ class ResultMetricAdapter:
         input_signature,
         report=None,
         execution_config=None,
+        prepared_witness=None,
     ):
         from ...core.types import BacktestResult
         from ...core.results import BacktestResultV2
@@ -177,7 +178,11 @@ class ResultMetricAdapter:
         else:
             status = OutcomeStatus.VALID
         # Bind witness to the original result, including first mark and account.
-        witness = hashlib.sha256(
+        witness = prepared_witness.header(
+            result.equity.index, initial_capital=result.initial_capital,
+            economics_id=economics_id, metric_id=self.contract.metric_id,
+            input_signature=input_signature,
+        ) if prepared_witness is not None else hashlib.sha256(
             digest(
                 {
                     "index": [utc(t).isoformat() for t in result.equity.index],
@@ -232,6 +237,7 @@ class PostDecisionObserver:
         label_available_at,
         reporting_lag_seconds=0.0,
         publication_order=None,
+        prepared_witness=None,
     ):
         expected_index = pd.DatetimeIndex(expected_index)
         if (
@@ -270,6 +276,7 @@ class PostDecisionObserver:
                     expected_index=expected_index,
                     economics_id=task.family.economics_id,
                     input_signature=input_signature,
+                    prepared_witness=prepared_witness,
                 )
             except MetaRecordError:
                 raise

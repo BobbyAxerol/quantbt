@@ -397,6 +397,7 @@ class PublicMetaRuntime:
         auxiliary._prepared_context = self.engine._prepared_context
         auxiliary._strategy_market_fingerprints = {}
         auxiliary._lifecycle_records, auxiliary._lifecycle_records_dropped = [], 0
+        witness = getattr(self.engine.scorer, "_meta_witness", None)
 
         def evaluate(candidate):
             with isolated_observer_rng(
@@ -412,9 +413,9 @@ class PublicMetaRuntime:
                     signal=output,
                     symbols=self.engine.scorer.symbols,
                 )
-                return result, market_signature(
-                    prefix, fold.test_index, config=self.engine.scorer.score_config
-                )
+                return result, (witness.market_signature(prefix, fold.test_index)
+                                if witness is not None else market_signature(
+                                    prefix, fold.test_index, config=self.engine.scorer.score_config))
 
         # Physical outcomes are already on disk in replay, but stay inaccessible
         # to selection until their declared terminal/publication time.
@@ -428,6 +429,7 @@ class PublicMetaRuntime:
             expected_index=fold.test_index,
             label_available_at=available,
             reporting_lag_seconds=self.config.reporting_lag_seconds,
+            prepared_witness=witness,
         )
         elapsed = perf_counter() - started
         actual_available = available + pd.Timedelta(seconds=elapsed)
