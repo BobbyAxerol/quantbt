@@ -4862,6 +4862,8 @@ class _WalkForwardEndpointScorer:
         market_highs=None,
         market_lows=None,
         market_datetime_index=None,
+        *,
+        meta_metric_support=False,
     ):
         self.config = config
         self.target_mode = str(target_mode).lower().strip()
@@ -4873,6 +4875,14 @@ class _WalkForwardEndpointScorer:
         self.market_highs = market_highs
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
+        self.meta_metric_support = bool(meta_metric_support)
+        if self.meta_metric_support:
+            if (wf_config is None or wf_config.metadata.get("use_scalar_trial_scoring", True)
+                    or wf_config.metadata.get("native_prepared_wfo", "auto") != "off"):
+                raise NotImplementedError("QMS-03 original-result support requires explicit scalar=false and native_prepared_wfo=off")
+            from .optimization.meta_selection.observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
+            self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(trading_days=wf_config.scoring_trading_days))
+            self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
         self.use_scalar_trial_scoring = bool(
             (wf_config.metadata if wf_config is not None else {}).get("use_scalar_trial_scoring", True)
@@ -5006,7 +5016,7 @@ class _WalkForwardEndpointScorer:
                 "walk-forward endpoint scoring failed during "
                 f"{context} for fold_id={fold.fold_id}; target_mode={self.target_mode!r}; params={params}"
             ) from exc
-        return {
+        metrics = {
             "sharpe": float(report.get("sharpe", 0.0)),
             "turnover": float(report.get("num_trades", 0.0)),
             "trade_count": float(report.get("num_trades", 0.0)),
@@ -5015,6 +5025,14 @@ class _WalkForwardEndpointScorer:
             "max_drawdown_pct": float(report.get("max_drawdown_pct", 0.0)),
             "profit_factor": float(report.get("profit_factor", 0.0)),
         }
+        if self.meta_metric_support:
+            from .optimization.meta_selection.common import wire
+            from .optimization.meta_selection.observer import market_signature
+            signature = market_signature(data, index, config=self.score_config)
+            metrics["meta_observation"] = wire(self._meta_adapter.observe(result, expected_index=index,
+                economics_id=self._meta_economics_id, input_signature=signature, report=report,
+                execution_config=self.score_config))
+        return metrics
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)

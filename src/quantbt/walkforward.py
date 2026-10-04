@@ -976,6 +976,8 @@ class WalkForwardEngine:
         config: Optional[WalkForwardConfig] = None,
         scorer: Optional[Callable[..., Dict[str, float]]] = None,
         native_scorer: Optional[Callable[..., Dict[str, float]]] = None,
+        *,
+        is_pool_observer=None,
     ):
         if strategy is None:
             raise ValueError("WalkForwardEngine requires a strategy callable or strategy class/object")
@@ -986,6 +988,9 @@ class WalkForwardEngine:
         self._research_full_candidate_records: List[WalkForwardTrialRecord] = []
         self.scorer = scorer
         self.native_scorer = native_scorer
+        self._is_pool_observer = is_pool_observer
+        if is_pool_observer is not None:
+            is_pool_observer.validate(self.config, scorer)
         if self.config.scoring_backend == "endpoint" and self.scorer is None:
             raise ValueError("scoring_backend='endpoint' requires a scorer callback")
         if self.config.scoring_backend == "proxy" and self.config.proxy_validation_mode == "enforce" and self.native_scorer is None:
@@ -1872,6 +1877,13 @@ class WalkForwardEngine:
                     "oos_used_for_selection": False,
                 },
             )
+            if self._is_pool_observer is not None:
+                self._is_pool_observer.capture(engine=self, data=data, folds=folds,
+                    param_ranges=param_ranges, selected=selected, records=records,
+                    study_id=study_identifier, seed=study_seed)
+                selected = self._is_pool_observer.strip_support(selected)
+                records = [self._is_pool_observer.strip_support(record) for record in records]
+                candidates = [self._is_pool_observer.strip_support(record) for record in candidates]
             self._capture_research_records(
                 trial_records=records,
                 candidate_records=candidates,
@@ -2010,6 +2022,8 @@ class WalkForwardEngine:
                     "is_required_trades": required_trades,
                     "is_trade_penalty": penalty,
                     "oos_evaluated": False,
+                    **({"meta_observation": is_metrics["meta_observation"]}
+                       if "meta_observation" in is_metrics else {}),
                     **shard_stats,
                 }
             )

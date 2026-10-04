@@ -20707,7 +20707,8 @@ and guide sections 8.1, 8.3, 8.4 and 9.
 
 **Planning date:** 2026-10-03.
 **Status:** QMS-01 COMPLETE; owner authorized advancement to QMS-02;
-QMS-02 COMPLETE; owner review PENDING; QMS-03 through QMS-08 NOT_STARTED.
+QMS-02 COMPLETE; owner authorized advancement to QMS-03;
+QMS-03 RUNNING; QMS-04 through QMS-08 NOT_STARTED.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20715,7 +20716,9 @@ QMS-01 implementation was separately approved by the owner on 2026-10-03;
 the owner subsequently approved QMS-02 implementation on 2026-10-03, accepting
 the source/boundary handoff for that advancement. No later phase, push, merge
 or release is authorized by this approval. The sealed QMS-01 receipt remains
-an immutable record of its original owner-pending state.
+an immutable record of its original owner-pending state. The owner subsequently
+approved QMS-03, accepting the QMS-02 handoff for advancement; its sealed receipt
+also remains a historical owner-pending record. No later phase is authorized.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20843,8 +20846,8 @@ completed support. No required QMS work may be relabeled future technical debt.
 | Phase | Goal/output | Entry dependency | Current status |
 |---|---|---|---|
 | [QMS-01](#qms-01) | Exact source, call map, native/metric baseline and reviewed boundaries | Owner phase approval | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; OWNER_REVIEW_PENDING |
-| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | NOT_STARTED |
+| [QMS-02](#qms-02) | Four sampler recipes through the shared factory | QMS-01 accepted | COMPLETE; ADVANCEMENT_APPROVED |
+| [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | RUNNING |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | NOT_STARTED |
 | [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | NOT_STARTED |
 | [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | NOT_STARTED |
@@ -21180,11 +21183,38 @@ and economic acceptance are explicitly NOT_ASSESSED.
 
 ### Phase QMS-03 - Historical Tasks, Descriptors And Causal Label Records
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** RUNNING; technical NOT_RUN; empirical NOT_ASSESSED;
 performance NOT_MEASURED; owner review PENDING.
 **Goal:** produce trustworthy compact historical learning records and current
 IS descriptors with explicit anchor, information frontier and task revisions.
 **Entry:** accepted QMS-01/02 contracts and phase approval.
+
+**Registered Execution Scope (2026-10-04, before source changes):** entry
+`3ce42bf`, clean `feat/meta-selection-samplers`; implement this phase only.
+Add focused modules under `optimization/meta_selection` for immutable records,
+schema descriptors/standardization, frozen panels, indexed bounded history,
+post-decision observation and safe existing-retention adaptation. Thin internal
+WFO/scorer opt-in plumbing may capture the full IS pool before compaction and
+original-result support inside the owned evaluator lifetime. It must add zero
+work/metadata/imports on the omitted path, never change the native winner, and
+never make forward outcomes selection inputs. The QMS-05 public hook remains
+unimplemented here. Qualify original-result scalar target-series labels using
+the existing metric reducer/sample contract; prepared scalar-only rows without
+variance/sample evidence fail closed rather than silently changing the backend.
+Centroid anchors require an exact same-IS evaluation, separately charged.
+Descriptor batches use contiguous float64 reference buffers with explicit
+NumPy resolution: the installed native ABI has no meta transform capability;
+native-require must fail. QMS-04 owns the native numeric addition/learner,
+not this records foundation. No financial kernel, metric formula, Rust ABI,
+released package version, alpha source, archive service or sampler trajectory
+may change. Do not implement Ridge, active/shadow selection or auto-advance.
+Register bounded synthetic unit histories and a real existing-engine synthetic
+market integration fixture; retain actual output/provenance refs, all required
+panel dispositions, attempts/auxiliary work and no economic-edge claim.
+Default availability equality is excluded unless explicit publication/snapshot
+event ordering proves it. Replay/logical clocks and wall generation remain
+separate. Safe JSON/columnar retention has strict schema/content/provenance
+validation; absent import witnesses remain unverified and cannot train.
 
 **Required guide:** [QMS-03 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-03--historydescriptorslabels-đúng-task-và-thời-gian),
 [descriptors/normalization, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
