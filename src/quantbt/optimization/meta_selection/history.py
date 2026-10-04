@@ -10,6 +10,7 @@ import pandas as pd
 
 from .common import MetaRecordError, digest, token, utc
 from .panel import FrozenLabelPanel
+from .memo import ImmutableMemo, derived_property
 from .records import CandidateForwardRecord, MetaTask, OutcomeStatus
 
 
@@ -30,7 +31,7 @@ class TrainingRow:
 
 
 @dataclass(frozen=True, slots=True)
-class SealedTaskRevision:
+class SealedTaskRevision(ImmutableMemo):
     task: MetaTask
     panel: FrozenLabelPanel
     outcomes: tuple[CandidateForwardRecord, ...]
@@ -125,7 +126,7 @@ class SealedTaskRevision:
                 "same-task diagnostics must use the same market input witness"
             )
 
-    @property
+    @derived_property
     def content_digest(self):
         return digest({"schema": "qms-revision-v1", "record": self})
 
@@ -133,7 +134,7 @@ class SealedTaskRevision:
     def revision_id(self):
         return self.content_digest
 
-    @property
+    @derived_property
     def training_rows(self):
         if self.verification == "unverified":
             return ()
@@ -186,7 +187,7 @@ def _valid(observation):
 
 
 @dataclass(frozen=True, slots=True)
-class HistorySnapshot:
+class HistorySnapshot(ImmutableMemo):
     family_id: str
     authorized_corpora: tuple[str, ...]
     outcome_origins: tuple[str, ...]
@@ -243,7 +244,7 @@ class HistorySnapshot:
             tasks.add(task.task_id)
             origins.add(origin_key)
 
-    @property
+    @derived_property
     def snapshot_id(self):
         return digest(
             {
@@ -261,11 +262,11 @@ class HistorySnapshot:
             }
         )
 
-    @property
+    @derived_property
     def origin_count(self):
         return sum(bool(r.training_rows) for r in self.revisions)
 
-    @property
+    @derived_property
     def training_rows(self):
         return tuple(
             row for revision in self.revisions for row in revision.training_rows

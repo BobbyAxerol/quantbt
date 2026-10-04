@@ -10,6 +10,7 @@ from typing import Mapping
 import pandas as pd
 
 from .common import MetaRecordError, digest, freeze, token, utc
+from .memo import ImmutableMemo, derived_property
 
 
 class OutcomeStatus(str, Enum):
@@ -48,7 +49,7 @@ class MetricContract:
 
 
 @dataclass(frozen=True, slots=True)
-class CompatibilityFamily:
+class CompatibilityFamily(ImmutableMemo):
     strategy_id: str
     parameter_schema_id: str
     descriptor_schema_id: str
@@ -66,7 +67,7 @@ class CompatibilityFamily:
         for name in self.__dataclass_fields__:
             token(getattr(self, name), name)
 
-    @property
+    @derived_property
     def family_id(self):
         return digest({"schema": "qms-family-v1", "contract": self})
 
@@ -178,7 +179,7 @@ class CandidateRoleRef:
 
 
 @dataclass(frozen=True, slots=True)
-class MetaTask:
+class MetaTask(ImmutableMemo):
     family: CompatibilityFamily
     corpus_id: str
     run_id: str
@@ -286,7 +287,7 @@ class MetaTask:
                     "candidate IS origin/window/economics/frontier mismatch"
                 )
 
-    @property
+    @derived_property
     def task_id(self):
         return digest(
             {

@@ -8,10 +8,11 @@ import numpy as np
 import pandas as pd
 
 from .common import MetaRecordError, digest, utc
+from .memo import ImmutableMemo, derived_property
 
 
 @dataclass(frozen=True, slots=True)
-class FrozenLabelPanel:
+class FrozenLabelPanel(ImmutableMemo):
     task_id: str
     base_members: tuple[str, ...]
     required_members: tuple[str, ...]
@@ -45,7 +46,7 @@ class FrozenLabelPanel:
     def members(self):
         return self.base_members + self.extra_union_members
 
-    @property
+    @derived_property
     def panel_id(self):
         return digest({"schema": "qms-label-panel-v1", "panel": self})
 

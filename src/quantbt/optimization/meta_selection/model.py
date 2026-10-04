@@ -11,6 +11,7 @@ import pandas as pd
 from .common import MetaRecordError, digest, freeze, utc, wire
 from .descriptors import DescriptorSchema, OriginBalancedStandardizer
 from .history import HistorySnapshot
+from .memo import ImmutableMemo, derived_property
 from .numerics import NumericLimits, NumericRuntime, reference_fit, solution_diagnostics
 
 
@@ -140,7 +141,7 @@ def scaler_payload(scaler):
 
 
 @dataclass(frozen=True, slots=True)
-class MetaModelArtifact:
+class MetaModelArtifact(ImmutableMemo):
     family_id: str
     training_snapshot_id: str
     information_as_of: pd.Timestamp
@@ -269,7 +270,7 @@ class MetaModelArtifact:
             raise MetaRecordError("META_MODEL_GRAM_NOT_SPD") from exc
         solution_diagnostics(gram, b, beta, self.numeric_limits)
 
-    @property
+    @derived_property
     def model_id(self):
         return digest({"schema": "qms-ridge-model-v1", "model": self})
 

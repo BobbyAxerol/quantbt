@@ -21839,12 +21839,36 @@ retains position/pending-order policy; export is not automatic deployment.
 
 ### Phase QMS-07 - Rust-First DSA Optimization And Chronological Parity
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** RUNNING; technical NOT_RUN; empirical NOT_ASSESSED;
 performance NOT_MEASURED; owner review PENDING.
 **Goal:** optimize the new module and its glue while preserving exact
 information membership, mathematical policy and chronological decisions.
 **Entry:** accepted QMS-04/05/06 paths, frozen resource/information budgets,
 reference receipts and individual phase approval.
+
+**Execution Registration (2026-10-04):** owner approved QMS-07 on
+`feat/meta-selection-samplers`; entry `eb167a4`. Read the linked guide QMS-07,
+sections 8/10/12 and execution-plan/strategy-boundary/WFO-schedule ADRs before
+implementation. This is performance-only: financial sources, public endpoints,
+sampler ask/tell, full candidate/label/history membership, scaler, origin weights,
+lambda, float64 and guard/tie policies remain unchanged. Numeric limits remain
+rtol `1e-9`, atol `1e-10`; account/prepared comparisons remain `1e-10`.
+Profile entry before choosing patches; use one BLAS/OMP worker, seed 731,
+the existing 850-bar/6-study/6-trial synthetic public fixture and small/mixed/high-d
+fixed matrices. Compare matched arms including observer/report and owned FFI
+copies; cold qualification/import and warm execution are separate. No invented
+Numba path, new financial bridge or installed-wheel overwrite. Reuse the private
+QMS-06 candidate unless a measured Rust patch requires an isolated rebuild.
+Record Q7-T01..08 in new evidence/JUnit/report files, keeping QMS-01..06 immutable.
+Disabled overhead is measured against entry source in paired fresh processes;
+3%/5% remain proposed, not owner-accepted cross-platform budgets. Preserve the
+complete reference fit/rank verification at uncertain decision boundaries.
+
+**Discovered/Inherent Debt Ledger:** record new findings here and in the QMS-07
+report rather than silently expanding scope. Inherited: W3 reactive meta needs
+its own full-pool/original-metric seam (ordinary meta-off W3 is unchanged), native
+candidate activation/release pair and economic acceptance belong to QMS-08 or
+explicit owner-approved follow-up. These are not claimed complete by QMS-07.
 
 **Required guide:** [QMS-07 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-07--rust-first-dsa-tối-ưu-và-parity-xuyên-folds),
 [Rust/near-boundary/full-sequence parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
