@@ -526,6 +526,17 @@ def test_q5_t08_lineage_raw_ledgers_and_continuous_account(
     for r in records:
         assert wf["params_by_fold"][r["fold_id"]] == r["selected_params"]
         assert r["proposal"].actual_evaluation_id == r["selected_evaluation_id"]
+        row = wf["fold_selection_table"].set_index("fold_id").loc[r["fold_id"]]
+        assert row["selected_evaluation_id"] == r["selected_evaluation_id"]
+        assert (
+            bool(row["past_matured_forward_used_for_selection"])
+            == r["past_matured_forward_used_for_selection"]
+        )
+        if r["past_matured_forward_used_for_selection"]:
+            assert (
+                row["causality_claim"]
+                == "current_outer_oos_excluded_past_forward_adaptive"
+            )
         assert r["native_selected_evaluation_id"] in {
             c.evaluation_id for c in sidecar(result)["tasks"][r["fold_id"]].candidates
         }
@@ -540,6 +551,17 @@ def test_q5_t08_lineage_raw_ledgers_and_continuous_account(
         == "existing_continuous_stitched_target_account"
     )
     assert not any(k in wf["trial_table"].columns for k in ("yhat", "qhat"))
+    last = records[-1]
+    assert (
+        wf["best_trial"]["selection_metadata"]["selected_evaluation_id"]
+        == last["selected_evaluation_id"]
+    )
+    assert (
+        wf["best_trial"]["selection_metadata"][
+            "past_matured_forward_used_for_selection"
+        ]
+        == last["past_matured_forward_used_for_selection"]
+    )
     json.dumps(wire(records[0]["proposal"]), allow_nan=False)
 
 
@@ -762,3 +784,16 @@ def test_q5_t02_shared_conditional_sampler_remains_independent():
     for task in sidecar(shadow)["tasks"]:
         for c in task.candidates:
             assert ("length" in c.effective_params) == c.effective_params["filter"]
+
+
+def test_q5_t08_runnable_public_example_and_result_consumer():
+    from examples.wfo_meta_selection import run_demo
+
+    endpoint, result, _ = run_demo("shadow", min_origins=1)
+    report = result.full_report(trading_days=365)
+    assert report["final_equity"] == result.equity.iloc[-1]
+    assert len(sidecar(result)["records"]) == len(
+        endpoint.engine.build_folds(result.equity.index)
+    )
+    assert sidecar(result)["observer_attempts"] > 0
+    assert sidecar(result)["observer_failures"] == 0

@@ -467,6 +467,39 @@ class PublicMetaRuntime:
             "account_authority": "existing_continuous_stitched_target_account",
             "observer_account_scope": "independent_reset_counterfactual_diagnostics",
         }
+        if self.config.mode == "active":
+            fields = (
+                "native_selection_information_scope",
+                "final_selection_policy",
+                "current_outer_oos_used_for_selection",
+                "past_matured_forward_used_for_selection",
+                "native_selected_evaluation_id",
+                "meta_proposed_evaluation_id",
+                "selected_evaluation_id",
+            )
+            table = result.metadata["fold_selection_table"].copy()
+            by_fold = {r["fold_id"]: r for r in self.records}
+            table["native_causality_claim"] = table["causality_claim"]
+            for field in fields:
+                table[field] = [by_fold[int(f)][field] for f in table["fold_id"]]
+            table["causality_claim"] = [
+                "current_outer_oos_excluded_past_forward_adaptive"
+                if by_fold[int(f)]["past_matured_forward_used_for_selection"]
+                else native
+                for f, native in zip(table["fold_id"], table["native_causality_claim"])
+            ]
+            result.metadata["fold_selection_table"] = table
+            last = self.records[-1]
+            selected_metadata = dict(result.best_trial["selection_metadata"])
+            selected_metadata["native_causality_claim"] = selected_metadata[
+                "causality_claim"
+            ]
+            selected_metadata.update({k: last[k] for k in fields})
+            if last["past_matured_forward_used_for_selection"]:
+                selected_metadata["causality_claim"] = (
+                    "current_outer_oos_excluded_past_forward_adaptive"
+                )
+            result.best_trial["selection_metadata"] = selected_metadata
         if learned:
             result.metadata.update(
                 validation_claim="chronological_adaptive_meta_selection",
