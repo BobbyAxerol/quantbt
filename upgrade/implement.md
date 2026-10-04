@@ -22242,6 +22242,15 @@ existing pct-equity endpoint. Compare positions/equity/returns, final params and
 the saved full account exactly. These extra verification executions are not new
 independent origins, locked folds or performance measurements.
 
+**Cold publication boundary:** verify saved arrays, original tasks/revisions,
+snapshot availability, pool/selection membership, counters and private hashes
+again without financial execution. Export only an allowlisted aggregate/fold
+metric receipt and normalized profiler owners; keep source, raw market, ranges,
+trial params, full witnesses and notebook outputs ignored. Add verifier tamper
+tests, finalize the separate review report/handoff and commit locally. Preserve
+all sealed QMS-01..08 artifacts; this review does not approve a core performance
+patch, a new upgrade phase or any remote/publication action.
+
 ### QMS Requirement Coverage And Completion Records
 
 | Guide requirement | Primary owner | Final verification |
