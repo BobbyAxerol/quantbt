@@ -21839,8 +21839,8 @@ retains position/pending-order policy; export is not automatic deployment.
 
 ### Phase QMS-07 - Rust-First DSA Optimization And Chronological Parity
 
-**Status:** RUNNING; technical NOT_RUN; empirical NOT_ASSESSED;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** COMPLETE; technical PASS; empirical NOT_ASSESSED;
+performance MEASURED_SCOPED_GAIN; owner review PENDING.
 **Goal:** optimize the new module and its glue while preserving exact
 information membership, mathematical policy and chronological decisions.
 **Entry:** accepted QMS-04/05/06 paths, frozen resource/information budgets,
@@ -21881,6 +21881,12 @@ report rather than silently expanding scope. Inherited: W3 reactive meta needs
 its own full-pool/original-metric seam (ordinary meta-off W3 is unchanged), native
 candidate activation/release pair and economic acceptance belong to QMS-08 or
 explicit owner-approved follow-up. These are not claimed complete by QMS-07.
+Discovered legacy telemetry debt: prepared parallelism reports configured BLAS=4
+while the measured environment caps actual OpenBLAS=1. Keep requested/configured/
+actual distinct in a follow-up; no financial/resource-policy refactor here.
+Numba remains configured at four, with no new meta JIT/parallel path. Mixed/high-d
+Rust solve still loses to qualified BLAS reference; no universal Rust promotion
+or unmeasured geometry dispatch is claimed.
 
 **Required guide:** [QMS-07 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-07--rust-first-dsa-tối-ưu-và-parity-xuyên-folds),
 [Rust/near-boundary/full-sequence parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
@@ -21952,6 +21958,35 @@ revisions, pool/label information and chronological decisions must reconcile.
 **Technical Debt Rule:** no policy change marketed as speed, stale sufficient
 statistics, uncertain tie winners, omitted label costs or fallback without a
 qualified reason. Preserve a correct measured reference instead of forcing Rust.
+
+**Execution Closure (2026-10-04):** [report](../docs/meta_selection/QMS07_REPORT.md),
+[same-work evidence](../benchmarks/optimization/meta_selection/qms07_performance_evidence.json),
+[executed receipt](../benchmarks/optimization/meta_selection/qms07_gate_receipt.json)
+and [JUnit](../benchmarks/optimization/meta_selection/qms07_tests.xml).
+`467 passed`, zero failures/errors/skips, 128.85 s; 31 Q7 cases, group counts
+`4/1/13/3/2/2/5/1`, plus 436 prior/affected regressions. Source/binary/receipt
+verification passes. Five technical gates pass; G7-OWNER remains PENDING and
+local 3%/5% working budget acceptance is not invented.
+
+Object-owned immutable IDs/rows, iterator-based indexed prefix traversal,
+linear reference validation, bounded exact context+buffer fit/prediction reuse
+and a lossless weighted-multiplication Rust cleanup are implemented. Existing
+full reference fit/rank verification, precision, information membership,
+sampler order/RNG and financial source authority remain intact. Full sequences
+include early floor/tie decisions, reviewed resume, late origin replacement and
+rewind. Actual private `0.4.3.dev3` executes; installed/published `1.1.1/0.4.2`
+is untouched. No endpoint or methodology change; no financial replay bridge.
+
+Matched 850-bar/6-study/6-trial public p50: meta reference `2.743 -> 1.916 s`
+(-30.2%); prepared/meta Rust `2.329 -> 1.425 s` (-38.8%). Disabled p50 +2.63%,
+p95 -0.82%, within unchanged proposed 3%/5% budgets. Eight disabled alternating
+process pairs use three studies each; enabled arms have four pairs each. Labels
+(32), models (4), physical score rows (134), bars (12,004) and boundaries (38
+execution +38 witness materializations) are unchanged. Fixed numeric RSS/PSS
+plateau passes; process RSS differences are not marketed as certified savings.
+No economic edge, all-five-mode speedup or universal native-kernel win claimed.
+Implementation commits `8f555c9`, `abcaee2`, `2c64e04`; evidence/docs closure
+follows. No QMS-08, push, merge, tag, version bump or publication authorized.
 
 <a id="qms-08"></a>
 

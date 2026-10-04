@@ -1,13 +1,13 @@
 # WFO Meta Current Handoff
 
-- Branch: `feat/meta-selection-samplers`; QMS-06 entry `3c69cb8`.
+- Branch: `feat/meta-selection-samplers`; QMS-07 entry `eb167a4`.
 - Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-06 prepared parity and portable handoff, COMPLETE.
-- Technical: five gates PASS. Owner/W3-scope acceptance PENDING. Empirical NOT_ASSESSED.
-- Performance: MEASURED_COST_ONLY; no whole-WFO speedup, edge or live claim.
-- QMS-07/08 remain NOT_STARTED. Do not push, merge, retag, release, deploy
+- Current approved scope: QMS-07 exact DSA/numeric reuse and chronological parity, COMPLETE.
+- Technical: five gates PASS. Owner/budget/W3-scope acceptance PENDING. Empirical NOT_ASSESSED.
+- Performance: MEASURED_SCOPED_GAIN on matched synthetic public studies, no edge/live claim.
+- QMS-08 remains NOT_STARTED. Do not push, merge, retag, release, deploy
   or advance without separate approval.
 
 ## Delivered
@@ -47,8 +47,8 @@ Raw/native/meta/actual identities and computation/effect clocks remain distinct.
 
 ## Verification
 
-436 checks passed, zero failures/errors/skips, including 46 QMS-06 checks
-and actual private QMS-04/QMS-06 Rust candidate execution. Affected optimizer,
+467 checks passed, zero failures/errors/skips, including 31 QMS-07 checks
+and actual private QMS-04/QMS-06/QMS-07 Rust candidate execution. Affected optimizer,
 sampler, five-mode schedules, nested causal Mode 1, native WFO and research-audit
 regressions pass. Forced-switch, future/late-label mutation, centroid/conditional
 space/RNG, account fee/funding and result consumers are covered. Hourly/daily
@@ -61,13 +61,30 @@ are exercised with explicit minimum-support-one engineering override. Native and
 reference active runs have identical params/account signatures. Published default
 stays twelve origins; these runs do not prove superior future Sharpe.
 
-Coherent local QMS-06 commits: `4635663`, `6fc13b5`.
-The documentation/evidence closure commit follows them in this branch.
+QMS-07 retains all prior scope/capability guards. Read-only object-owned derived
+memo has unchanged portable bytes; exact fit/prediction caches are run-local,
+bounded and never remove financial evaluations or labels. Late corrections
+replace entire origins; floor/tie/resume/rewind sequences match reference.
+Private native `0.4.3.dev3` leaves installed/published `0.4.2` untouched.
+
+Matched p50: meta reference `2.743 -> 1.916 s`, prepared/meta Rust
+`2.329 -> 1.425 s`. Disabled p50 +2.63%, p95 -0.82% pass local proposed budgets;
+no cross-platform acceptance is invented. Fixed numeric RSS/PSS plateau passes.
+Some native numeric fits still lose to BLAS; qualified reference stays available.
+Prepared parallelism's configured BLAS=4 differs from actual environment-capped
+OpenBLAS=1; this inherited telemetry debt is explicitly recorded for follow-up.
+
+QMS-07 commits: `8f555c9`, `abcaee2`, `2c64e04`; documentation/evidence closure
+follows them. No new phase or publication has started.
 
 ## Read Next
 
 - [Actual endpoint/config/history and information/accounting contract](../docs/meta_selection/INTEGRATION.md)
 - [QMS-06 report](../docs/meta_selection/QMS06_REPORT.md)
+- [QMS-07 report and debt ledger](../docs/meta_selection/QMS07_REPORT.md)
+- [QMS-07 executed receipt](../benchmarks/optimization/meta_selection/qms07_gate_receipt.json)
+- [QMS-07 paired evidence](../benchmarks/optimization/meta_selection/qms07_performance_evidence.json)
+- [QMS-07 executed JUnit](../benchmarks/optimization/meta_selection/qms07_tests.xml)
 - [Executed receipt](../benchmarks/optimization/meta_selection/qms06_gate_receipt.json)
 - [Source/cost evidence](../benchmarks/optimization/meta_selection/qms06_prepared_evidence.json)
 - [Executed JUnit](../benchmarks/optimization/meta_selection/qms06_tests.xml)
@@ -76,10 +93,10 @@ The documentation/evidence closure commit follows them in this branch.
 - [Handoff API and trust/readiness contract](../docs/meta_selection/HANDOFF.md)
 - [Ridge/model artifacts](../docs/meta_selection/MODEL.md)
 - [Sampler syntax](../docs/meta_selection/SAMPLERS.md)
-- [Unified plan](../upgrade/implement.md#qms-06)
+- [Unified plan](../upgrade/implement.md#qms-07)
 
 No mandatory scalar/prepared or portable-handoff functionality is deferred.
 Optional W3 meta scope review is explicit, not a generic reactive success claim.
-QMS-07 measured optimization and QMS-08 economic/installed-wheel/public-release
-qualification remain separately approved phases. Published package and private
+QMS-07 scoped implementation is complete; QMS-08 economic/installed-wheel/public-release
+qualification requires separate approval. Published package and private
 candidate proof must not be conflated; all old receipts remain historical.
