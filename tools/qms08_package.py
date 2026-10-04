@@ -117,8 +117,9 @@ def stage_source(directory):
     return differences
 
 
-def qualify(python, *, output=OUTPUT):
+def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
     """One fresh local interpreter lane; separate off/core-only/installed-pair environments."""
+    python = Path(python).absolute()
     output = Path(output).absolute()
     lane = output / (
         "cp"
@@ -178,33 +179,43 @@ def qualify(python, *, output=OUTPUT):
         cwd=stage,
         log=lane / "core-build.log",
     )
-    env_target = str(ROOT / "rust/target/qms08-candidate")
-    old_target = os.environ.get("CARGO_TARGET_DIR")
-    os.environ["CARGO_TARGET_DIR"] = env_target
-    try:
-        run(
-            [
-                maturin,
-                "build",
-                "--offline",
-                "--release",
-                "--features",
-                FEATURES,
-                "--manifest-path",
-                stage / "rust/native_event/Cargo.toml",
-                "--interpreter",
-                python,
-                "--out",
-                dist,
-            ],
-            cwd=stage,
-            log=lane / "native-build.log",
+    if reuse_native_lane is not None:
+        from tools.qms08_gate import verify_pair
+
+        old_lane = Path(reuse_native_lane).resolve()
+        if old_lane.name != lane.name:
+            raise ValueError("native reuse must match the actual interpreter lane")
+        old_proof = json.loads((old_lane / "proof.json").read_text())
+        verify_pair(old_proof, source_revision="6c0f877")
+        for path in (stage / "rust").rglob("*"):
+            if path.is_file() and path.name != "Cargo.lock":
+                previous = old_lane / "stage" / path.relative_to(stage)
+                if file_hash(path) != file_hash(previous):
+                    raise ValueError("native reuse requires exact staged Rust source")
+        shutil.copy2(old_lane / "stage/rust/Cargo.lock", stage / "rust/Cargo.lock")
+        native_ref = next(r for r in old_proof["artifact_refs"]
+                          if Path(r["path"]).name.startswith("quantbt_native-"))
+        native_source = ROOT / native_ref["path"]
+        shutil.copy2(native_source, dist / native_source.name)
+        (lane / "native-build.log").write_text(
+            f"Exact sealed native wheel reused; Rust bytes unchanged: {native_ref['sha256']}\n"
         )
-    finally:
-        if old_target is None:
-            os.environ.pop("CARGO_TARGET_DIR", None)
-        else:
-            os.environ["CARGO_TARGET_DIR"] = old_target
+    else:
+        env_target = str(ROOT / "rust/target/qms08-candidate")
+        old_target = os.environ.get("CARGO_TARGET_DIR")
+        os.environ["CARGO_TARGET_DIR"] = env_target
+        try:
+            run(
+                [maturin, "build", "--offline", "--release", "--features", FEATURES,
+                 "--manifest-path", stage / "rust/native_event/Cargo.toml",
+                 "--interpreter", python, "--out", dist],
+                cwd=stage, log=lane / "native-build.log",
+            )
+        finally:
+            if old_target is None:
+                os.environ.pop("CARGO_TARGET_DIR", None)
+            else:
+                os.environ["CARGO_TARGET_DIR"] = old_target
     build_seconds = perf_counter() - started
     wheel = next(dist.glob("quantbt_engine-*.whl"))
     sdist = next(dist.glob("quantbt_engine-*.tar.gz"))
@@ -331,8 +342,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--python", type=Path, default=Path(sys.executable))
     parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--reuse-native-lane", type=Path)
     args = parser.parse_args()
-    result = qualify(args.python, output=args.output)
+    result = qualify(args.python, output=args.output, reuse_native_lane=args.reuse_native_lane)
     print(
         json.dumps(
             {
