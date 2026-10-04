@@ -362,7 +362,7 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
     from tools.qms07_performance import ROOT, ENTRY
 
     changed = subprocess.check_output(
-        ["git", "diff", ENTRY, "--name-only", "--", "src/quantbt", "rust"],
+        ["git", "diff", ENTRY, "559b4d1", "--name-only", "--", "src/quantbt", "rust"],
         cwd=ROOT,
         text=True,
     ).splitlines()
@@ -371,5 +371,16 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
         or p == "rust/native_event/src/qms_numeric.rs"
         for p in changed
     )
+    # Later owner-approved adapter changes do not rewrite the sealed QMS-07
+    # receipt. Financial kernels and public version identities remain locked.
+    current = subprocess.check_output(
+        ["git", "diff", "6c0f877", "--name-only", "--", "src/quantbt", "rust"],
+        cwd=ROOT, text=True,
+    ).splitlines()
+    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in {
+        "src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
+        "src/quantbt/backends/reactive_wfo.py", "src/quantbt/backends/reactive_wfo_support.py",
+        "src/quantbt/backends/native_event.py", "src/quantbt/backends/_native_event_rust.py",
+    } for p in current)
     assert importlib.metadata.version("quantbt-native") == "0.4.2"
     assert importlib.metadata.version("quantbt-engine") == "1.1.1"

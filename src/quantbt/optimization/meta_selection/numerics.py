@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import importlib
 import math
+from statistics import median
+from time import perf_counter
 
 import numpy as np
 
@@ -110,6 +112,10 @@ class NumericRuntime:
         self.policy, self.limits = native_policy, limits
         self.native, self.reason, self.calls, self.copied_bytes = None, None, 0, 0
         self.native_identity = None
+        self.dispatch = {}
+        self.dispatch_calls = 0
+        self.dispatch_bytes = 0
+        self.dispatch_seconds = 0.0
         self.work_cache = ExactWorkCache(
             min(8_000_000, limits.max_workspace_bytes // 8) if work_cache else 0
         )
@@ -150,6 +156,43 @@ class NumericRuntime:
                     raise MetaRecordError(self.reason) from exc
         else:
             self.reason = "EXPLICIT_INDEPENDENT_NUMPY_REFERENCE"
+        selected = "rust" if self.native is not None else "numpy"
+        self.selected_blocks = {name: selected for name in ("transform", "gram_solve", "rank")}
+
+    def _fit_backend(self, v, y, weights, lambda_reg):
+        if self.native is None:
+            return "numpy"
+        n, d = v.shape
+        if self.policy != "auto" or not ((n >= 4096 and d >= 8) or (n >= 512 and d >= 24)):
+            return "rust"
+        # Probe only measured unfavorable geometry families. Bound qualification
+        # overhead and storage; never benchmark or change sampler/financial work.
+        key = (int(np.log2(n)), int(np.log2(d)))
+        if key not in self.dispatch:
+            if len(self.dispatch) >= 8:
+                return "rust"
+            started = perf_counter()
+            samples = {"rust": [], "numpy": []}
+            for _ in range(3):
+                tick = perf_counter()
+                actual = self.native.qms_fit_v1(v, y, weights, lambda_reg)
+                samples["rust"].append(perf_counter() - tick)
+                self.dispatch_calls += 1
+                self.dispatch_bytes += v.nbytes + y.nbytes + weights.nbytes
+                tick = perf_counter()
+                expected = reference_fit(v, y, weights, lambda_reg, self.limits)
+                samples["numpy"].append(perf_counter() - tick)
+                if any(not np.allclose(np.asarray(a).reshape(b.shape), b,
+                    rtol=self.limits.parity_rtol, atol=self.limits.parity_atol)
+                    for a, b in zip(actual, expected)):
+                    raise MetaRecordError("META_NATIVE_PARITY_FAILED: auto dispatch fit")
+            times = {name: median(values) for name, values in samples.items()}
+            backend = "numpy" if times["numpy"] < .9 * times["rust"] else "rust"
+            self.dispatch[key] = dict(backend=backend, probe_shape=(n, d),
+                warm_median_seconds=times, parity=True,
+                reason="QUALIFIED_BLAS_CROSSOVER" if backend == "numpy" else "RUST_NO_MEASURED_BLAS_ADVANTAGE")
+            self.dispatch_seconds += perf_counter() - started
+        return self.dispatch[key]["backend"]
 
     def _qualify(self, module):
         v = np.array([[1.0, -2.0], [0.5, 3.0], [-1.0, 1.0]])
@@ -251,6 +294,8 @@ class NumericRuntime:
 
     def fit(self, v, y, weights, lambda_reg, *, cache_identity=None):
         v, y, weights = validate_fit(v, y, weights, lambda_reg, self.limits)
+        backend = self._fit_backend(v, y, weights, lambda_reg)
+        self.selected_blocks["gram_solve"] = backend
         key = self.work_cache.key(
             (cache_identity, lambda_reg, self.limits)
             if cache_identity is not None and self.work_cache.max_bytes
@@ -260,7 +305,7 @@ class NumericRuntime:
         cached = self.work_cache.get("fit", key)
         if cached is not None:
             return cached
-        if self.native is None:
+        if backend == "numpy":
             gram, b, beta = reference_fit(v, y, weights, lambda_reg, self.limits)
         else:
             self.calls += 1
@@ -312,16 +357,14 @@ class NumericRuntime:
 
     @property
     def metadata(self):
-        selected = "rust" if self.native is not None else "numpy"
+        from .telemetry import observed_threads
         return freeze(
             {
                 "requested_backend": self.policy,
                 "selected_backend_by_block": {
                     "parameter_encoding": "python_schema_numpy",
                     "historical_scaler_fit": "numpy",
-                    "transform": selected,
-                    "gram_solve": selected,
-                    "rank": selected,
+                    **self.selected_blocks,
                     "diagnostics": "numpy",
                 },
                 "fallback_reason": self.reason,
@@ -330,6 +373,11 @@ class NumericRuntime:
                 "ffi_calls": self.calls,
                 "input_owned_copy_bytes": self.copied_bytes,
                 "qualification_calls": 3 if self.native else 0,
+                "dispatch": {str(k): v for k, v in self.dispatch.items()},
+                "dispatch_probe_ffi_calls": self.dispatch_calls,
+                "dispatch_probe_owned_copy_bytes": self.dispatch_bytes,
+                "dispatch_probe_seconds": self.dispatch_seconds,
+                "thread_telemetry": observed_threads(native_serial=self.native is not None),
                 "numba": "not_used_no_additional_jit_path",
                 "fast_math": False,
                 "exact_work_cache": self.work_cache.metadata,

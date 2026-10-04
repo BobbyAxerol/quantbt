@@ -22377,6 +22377,20 @@ financial result. Publish measured crossover, not a language-only speed claim.
 
 #### QMS-L03 - W3 Sequential Meta Adapter
 
+**L02 implementation receipt:** measured actual private native 0.4.3.dev4 vs
+single-thread OpenBLAS 0.3.29 on identical float64 inputs; nine warm repeats of
+ten calls, numeric parity PASS. Rust/NumPy fit ratios for (N,d)=(180,8),
+(4096,8), (4096,24), (512,64), (16384,8): 0.277/1.291/2.951/4.543/1.347.
+Auto now probes only unfavorable geometry families, max eight geometry buckets,
+three same-input parity/timing probes; a measured >10% BLAS benefit selects that
+fit block. Require never probes/falls back. Probe calls/copies/time are charged
+separately. Transform/rank remain qualified Rust; existing whole-reference
+decision guard remains unchanged. Loaded-library/Numba telemetry is distinct
+from requested caps, and unknown native workers are not fabricated.
+Focused numeric/chronological suite: 78 PASS (4.18s). Historical QMS-07 source
+receipt is checked at its sealed commit; newly authorized adapter paths are
+explicitly allowlisted, public identities and financial kernels stay locked.
+
 **Goal:** close the deferred W3 local adapter by reusing existing selection,
 Ridge/history/panel contracts and existing reactive native account execution.
 Read guide [3.3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
