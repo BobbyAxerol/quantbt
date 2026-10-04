@@ -244,15 +244,19 @@ class MetaModelArtifact(ImmutableMemo):
         if expected_snapshot != self.training_snapshot_id:
             raise MetaRecordError("META_MODEL_SNAPSHOT_INVALID")
         ids = [(row[0], row[2]) for row in self.fit_row_references]
+        revision_keys = set(refs)
         if len(ids) != len(set(ids)) or any(
-            len(row) != 4 or (row[0], row[1], row[1]) not in refs
+            len(row) != 4 or (row[0], row[1], row[1]) not in revision_keys
             for row in self.fit_row_references
         ):
             raise MetaRecordError("META_MODEL_FIT_MASK_INVALID")
         if len({r[0] for r in self.fit_row_references}) != self.origin_count:
             raise MetaRecordError("META_MODEL_ORIGIN_SUPPORT_INVALID")
+        origin_weights = {}
+        for row in self.fit_row_references:
+            origin_weights.setdefault(row[0], []).append(row[3])
         for tid, _, _ in refs:
-            weights = [r[3] for r in self.fit_row_references if r[0] == tid]
+            weights = origin_weights.get(tid, ())
             if any(
                 not math.isclose(w, 1 / len(weights), rel_tol=0, abs_tol=1e-14)
                 for w in weights
@@ -372,7 +376,13 @@ class RidgeLearner:
             raise MetaRecordError("META_HISTORICAL_SUPPORT_INVALID")
         v = np.ascontiguousarray(values[candidate_indices] - values[anchor_indices])
         y, w = (np.ascontiguousarray(a, dtype=float) for a in (ys, weights))
-        gram, b, beta = self.runtime.fit(v, y, w, self.settings.lambda_reg)
+        gram, b, beta = self.runtime.fit(
+            v,
+            y,
+            w,
+            self.settings.lambda_reg,
+            cache_identity=(schema.schema_id, snapshot.snapshot_id, self.settings),
+        )
         diagnostics = solution_diagnostics(gram, b, beta, self.runtime.limits)
         # Independent whole-fit reference is retained as small sufficient statistics
         # for audited boundary inference, not N rows/equity paths in every model.

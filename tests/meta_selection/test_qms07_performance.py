@@ -62,3 +62,165 @@ def test_q7_t04_object_owned_memo_has_no_global_retention():
     assert all(np.isfinite(row.origin_weight) for row in revision.training_rows)
     with pytest.raises((AttributeError, TypeError)):
         revision.outcomes = ()
+
+
+@pytest.fixture(scope="module")
+def native():
+    from tools.build_qms07_candidate import OUTPUT, load
+
+    paths = list(OUTPUT.glob("_quantbt_native*.so"))
+    assert len(paths) == 1, (
+        "run tools.build_qms07_candidate before native certification"
+    )
+    return load(paths[0])
+
+
+@pytest.mark.parametrize("resume", [False, True])
+def test_q7_t01_full_chronological_membership_and_actual_decisions(native, resume):
+    from tools.qms07_corpus import replay, compare_sequences
+
+    expected = replay(NumericRuntime(native_policy="reference", work_cache=False))
+    actual = replay(
+        NumericRuntime(native_policy="require", native_module=native), resume=resume
+    )
+    compare_sequences(expected, actual)
+    assert len(actual["decisions"]) == 6
+    assert actual["retained_history"] == 8
+    assert actual["decisions"][0]["reference_boundary_fallback"]
+    assert actual["decisions"][0]["params"] != {"recipe": "anchor"}
+
+
+def test_q7_t02_perturbed_floor_recomputes_whole_pool(native, monkeypatch):
+    from tests.meta_selection.test_qms04_ridge import policy_fixture
+    from quantbt.optimization.meta_selection.selection import MetaSelector
+
+    schema, view, reference_fit, task = policy_fixture()
+    runtime = NumericRuntime(native_policy="require", native_module=native)
+    fitted = RidgeLearner(
+        settings=replace(reference_fit.model.settings, epsilon=0.3),
+        runtime=runtime,
+    ).fit(schema, view, fit_completed_at=reference_fit.model.fit_completed_at)
+    original = runtime.rank
+
+    def disturbed(*args, **kwargs):
+        y, q = original(*args, **kwargs)
+        y[1] += 1e-12
+        q[1] -= 1e-12
+        return y, q
+
+    monkeypatch.setattr(runtime, "rank", disturbed)
+    decision = MetaSelector(runtime=runtime).propose(task, fitted, full_ranking=True)
+    expected = MetaSelector(runtime=NumericRuntime(native_policy="reference")).propose(
+        task,
+        fitted,
+        full_ranking=True,
+    )
+    assert (
+        decision.numeric["fallback_reason"] == "WHOLE_REFERENCE_FIT_AND_RANK_BOUNDARY"
+    )
+    assert decision.tie_set == expected.tie_set
+    assert decision.ranked_ids == expected.ranked_ids
+    assert decision.proposed_params == expected.proposed_params
+    assert decision.predictions == expected.predictions
+
+
+@pytest.mark.parametrize("changed", ["context", "v", "y", "weights", "lambda"])
+def test_q7_t03_exact_fit_cache_identity_and_independent_outputs(native, changed):
+    runtime = NumericRuntime(native_policy="require", native_module=native)
+    v, y, w = np.arange(18.0).reshape(6, 3) / 10, np.arange(6.0), np.full(6, 1 / 6)
+    first = runtime.fit(v, y, w, 10.0, cache_identity=("snapshot", "basis", "policy"))
+    cached = runtime.fit(v, y, w, 10.0, cache_identity=("snapshot", "basis", "policy"))
+    assert runtime.work_cache.hits == 1
+    for x, z in zip(first, cached, strict=True):
+        np.testing.assert_array_equal(x, z)
+    cached[2][:] = 900
+    untouched = runtime.fit(
+        v, y, w, 10.0, cache_identity=("snapshot", "basis", "policy")
+    )
+    np.testing.assert_array_equal(untouched[2], first[2])
+    if changed == "v":
+        v[0, 0] += 0.01
+    if changed == "y":
+        y[0] += 0.01
+    if changed == "weights":
+        w[0] += 0.01
+    identity = (
+        ("other-snapshot", "basis", "policy")
+        if changed == "context"
+        else ("snapshot", "basis", "policy")
+    )
+    before = runtime.calls
+    runtime.fit(v, y, w, 11.0 if changed == "lambda" else 10.0, cache_identity=identity)
+    assert runtime.calls == before + 1
+    runtime.work_cache.clear()
+    assert runtime.work_cache.retained_bytes == 0
+
+
+@pytest.mark.parametrize(
+    "changed", ["model", "task", "pool_order", "v", "beta", "delta"]
+)
+def test_q7_t03_prediction_cache_covers_full_pool_and_model(native, changed):
+    runtime = NumericRuntime(native_policy="require", native_module=native)
+    v, beta, delta = np.ones((7, 3)), np.arange(3.0), np.arange(7.0)
+    context = ("model", "task", tuple(range(7)))
+    runtime.rank(v, beta, delta, cache_identity=context)
+    runtime.rank(v, beta, delta, cache_identity=context)
+    assert runtime.work_cache.hits == 1
+    if changed == "v":
+        v[0, 0] += 0.01
+    if changed == "beta":
+        beta[0] += 0.01
+    if changed == "delta":
+        delta[0] += 0.01
+    if changed == "model":
+        context = ("new-model", "task", tuple(range(7)))
+    if changed == "task":
+        context = ("model", "new-task", tuple(range(7)))
+    if changed == "pool_order":
+        context = ("model", "task", tuple(reversed(range(7))))
+    before = runtime.calls
+    runtime.rank(v, beta, delta, cache_identity=context)
+    assert runtime.calls == before + 1
+
+
+def test_q7_t04_workspace_bypass_not_information_truncation(monkeypatch):
+    from quantbt.optimization.meta_selection.numerics import NumericLimits
+    from quantbt.optimization.meta_selection.common import MetaRecordError
+
+    runtime = NumericRuntime(
+        native_policy="reference", limits=NumericLimits(max_workspace_bytes=8000)
+    )
+    monkeypatch.setattr(np, "diag", lambda *a: pytest.fail("NxN weights forbidden"))
+    monkeypatch.setattr(np.linalg, "inv", lambda *a: pytest.fail("inverse forbidden"))
+    runtime.fit(np.ones((20, 3)), np.ones(20), np.ones(20), 10, cache_identity="full")
+    assert runtime.work_cache.retained_bytes <= 1000
+    with pytest.raises(MetaRecordError, match="RESOURCE_LIMIT"):
+        runtime.fit(np.ones((1000, 30)), np.ones(1000), np.ones(1000), 10)
+
+
+def test_q7_t05_actual_native_resolution_and_required_capability(native):
+    from quantbt.optimization.meta_selection.common import MetaRecordError
+
+    runtime = NumericRuntime(native_policy="require", native_module=native)
+    assert runtime.metadata["selected_backend_by_block"]["gram_solve"] == "rust"
+    assert runtime.native_identity["descriptor"]["owned_inputs"]
+    assert runtime.metadata["qualification_calls"] == 3
+    assert runtime.metadata["fast_math"] is False
+    fallback = NumericRuntime(native_module=object())
+    assert fallback.metadata["selected_backend_by_block"]["rank"] == "numpy"
+    assert "UNAVAILABLE_OR_UNQUALIFIED" in fallback.reason
+    with pytest.raises(MetaRecordError):
+        NumericRuntime(native_policy="require", native_module=object())
+
+
+@pytest.mark.parametrize("n,d", [(180, 8), (4096, 8), (4096, 24), (512, 64)])
+def test_q7_t07_identical_numeric_information_and_precision(native, n, d):
+    rng = np.random.default_rng(731)
+    v, y, w = rng.normal(size=(n, d)), rng.normal(size=n), rng.uniform(0.1, 1, size=n)
+    runtime = NumericRuntime(native_policy="require", native_module=native)
+    expected = NumericRuntime(native_policy="reference").fit(v, y, w, 10)
+    actual = runtime.fit(v, y, w, 10)
+    for x, z in zip(actual, expected, strict=True):
+        assert x.dtype == np.dtype("float64")
+        np.testing.assert_allclose(x, z, rtol=1e-9, atol=1e-10)
+    assert runtime.copied_bytes == v.nbytes + y.nbytes + w.nbytes

@@ -9,6 +9,7 @@ import math
 import numpy as np
 
 from .common import MetaRecordError, freeze
+from .work_cache import ExactWorkCache
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,13 +98,21 @@ class NumericRuntime:
     """Resolve once, batch once per block; candidate injection is internal only."""
 
     def __init__(
-        self, *, native_policy="auto", native_module=None, limits=NumericLimits()
+        self,
+        *,
+        native_policy="auto",
+        native_module=None,
+        limits=NumericLimits(),
+        work_cache=True,
     ):
         if native_policy not in {"auto", "require", "reference"}:
             raise MetaRecordError("META_NATIVE_POLICY_INVALID")
         self.policy, self.limits = native_policy, limits
         self.native, self.reason, self.calls, self.copied_bytes = None, None, 0, 0
         self.native_identity = None
+        self.work_cache = ExactWorkCache(
+            min(8_000_000, limits.max_workspace_bytes // 8) if work_cache else 0
+        )
         if native_policy != "reference":
             try:
                 module = (
@@ -240,20 +249,32 @@ class NumericRuntime:
             unsupported, dtype=bool
         )
 
-    def fit(self, v, y, weights, lambda_reg):
+    def fit(self, v, y, weights, lambda_reg, *, cache_identity=None):
         v, y, weights = validate_fit(v, y, weights, lambda_reg, self.limits)
+        key = self.work_cache.key(
+            (cache_identity, lambda_reg, self.limits)
+            if cache_identity is not None and self.work_cache.max_bytes
+            else None,
+            (v, y, weights),
+        )
+        cached = self.work_cache.get("fit", key)
+        if cached is not None:
+            return cached
         if self.native is None:
-            return reference_fit(v, y, weights, lambda_reg, self.limits)
-        self.calls += 1
-        self.copied_bytes += v.nbytes + y.nbytes + weights.nbytes
-        gram, b, beta = self.native.qms_fit_v1(v, y, weights, lambda_reg)
-        return (
+            gram, b, beta = reference_fit(v, y, weights, lambda_reg, self.limits)
+        else:
+            self.calls += 1
+            self.copied_bytes += v.nbytes + y.nbytes + weights.nbytes
+            gram, b, beta = self.native.qms_fit_v1(v, y, weights, lambda_reg)
+        result = (
             np.asarray(gram).reshape((v.shape[1],) * 2),
             np.asarray(b),
             np.asarray(beta),
         )
+        self.work_cache.put("fit", key, result)
+        return result
 
-    def rank(self, v, beta, delta_is):
+    def rank(self, v, beta, delta_is, *, cache_identity=None):
         v, beta, delta_is = (
             np.ascontiguousarray(a, dtype=np.float64) for a in (v, beta, delta_is)
         )
@@ -269,13 +290,25 @@ class NumericRuntime:
             > self.limits.max_workspace_bytes
         ):
             raise MetaRecordError("META_RESOURCE_LIMIT: rank batch too large")
+        key = self.work_cache.key(
+            (cache_identity, self.limits)
+            if cache_identity is not None and self.work_cache.max_bytes
+            else None,
+            (v, beta, delta_is),
+        )
+        cached = self.work_cache.get("rank", key)
+        if cached is not None:
+            return cached
         if self.native is None:
             y = v @ beta
-            return y, delta_is - y
-        self.calls += 1
-        self.copied_bytes += v.nbytes + beta.nbytes + delta_is.nbytes
-        y, q = self.native.qms_rank_v1(v, beta, delta_is)
-        return np.asarray(y), np.asarray(q)
+            q = delta_is - y
+        else:
+            self.calls += 1
+            self.copied_bytes += v.nbytes + beta.nbytes + delta_is.nbytes
+            y, q = self.native.qms_rank_v1(v, beta, delta_is)
+        result = np.asarray(y), np.asarray(q)
+        self.work_cache.put("rank", key, result)
+        return result
 
     @property
     def metadata(self):
@@ -299,5 +332,6 @@ class NumericRuntime:
                 "qualification_calls": 3 if self.native else 0,
                 "numba": "not_used_no_additional_jit_path",
                 "fast_math": False,
+                "exact_work_cache": self.work_cache.metadata,
             }
         )

@@ -38,9 +38,10 @@ fn fit(
     let mut b = vec![0.0; d];
     for (i, row) in v.chunks_exact(d).enumerate() {
         for j in 0..d {
-            b[j] += w[i] * row[j] * y[i];
+            let weighted = w[i] * row[j];
+            b[j] += weighted * y[i];
             for k in 0..=j {
-                g[j * d + k] += w[i] * row[j] * row[k];
+                g[j * d + k] += weighted * row[k];
             }
         }
     }

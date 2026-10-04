@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from bisect import bisect_left, insort
 from dataclasses import dataclass
+from itertools import islice
 import math
 
 import pandas as pd
@@ -366,7 +367,7 @@ class MetaHistory:
                         (family_id, corpus, cohort, exposure), ()
                     )
                     stop = bisect_left(bucket, (cutoff.value + 1, -1, ""))
-                    for _, sequence, rid in bucket[:stop]:
+                    for _, sequence, rid in islice(bucket, stop):
                         revision = self._revisions[rid]
                         if (
                             revision.verification != "unverified"

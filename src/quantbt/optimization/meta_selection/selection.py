@@ -59,8 +59,11 @@ class MetaSelectionDecision:
         ):
             raise MetaRecordError("META_DECISION_CLOCK_INVALID")
         if self.actual_evaluation_id != (
-            self.anchor_evaluation_id if self.mode == "shadow" else
-            self.proposed_evaluation_id if self.mode == "active" else None
+            self.anchor_evaluation_id
+            if self.mode == "shadow"
+            else self.proposed_evaluation_id
+            if self.mode == "active"
+            else None
         ):
             raise MetaRecordError(
                 "META_ACTUAL_SELECTION_INVALID: actual ID must match the declared activation mode"
@@ -268,7 +271,12 @@ class MetaSelector:
                         for c in selected
                     ]
                 )
-                y, q = self.runtime.rank(v, np.asarray(model.coefficients), delta_is)
+                y, q = self.runtime.rank(
+                    v,
+                    np.asarray(model.coefficients),
+                    delta_is,
+                    cache_identity=(model.model_id, task.task_id, batch.evaluation_ids),
+                )
                 y[ai], q[ai] = 0.0, 0.0
                 geometry = schema.parameter_geometry(selected)
                 distances = np.linalg.norm(geometry - geometry[ai], axis=1)
