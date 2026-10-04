@@ -22223,6 +22223,20 @@ and [chronological/numeric gates, section 10](QUANTBT_1_1_1_META_SELECTION_AND_S
   Exit: real executions and reconciliations verified, costs quantified, remaining
   scientific/remote/W3/public-pair debt distinguished from software correctness.
 
+**Interrupted-run disposition:** active/Rust and off main lanes completed and
+are preserved. The unfinished shadow process was interrupted; host process
+inspection confirmed no worker survived before resuming. Remaining lanes run
+sequentially with private PID/progress/log records; completed same-registration
+artifacts are never overwritten. Main timings are single full-study observations,
+not medians. Record the host's ordinary background services as a timing caveat.
+
+**Additional diagnostic registration:** after the first actual cost spans
+showed only 1.34 s fit/select and 19.31 s observer inside a 1086.56 s active run,
+profile the already-registered first two folds/32 attempts on the original-result
+shadow route. This is instrumentation only, excluded from economic support and
+ordinary latency numbers. Preserve native params; inspect timestamp/calendar
+witness hashing and report construction before proposing any hot-path change.
+
 ### QMS Requirement Coverage And Completion Records
 
 | Guide requirement | Primary owner | Final verification |
