@@ -51,7 +51,7 @@ and 138 adjacent optimizer/WFO/account/packaging checks. The initial 561-test
 run also passed before adding installed missing-Optuna and verifier/CI guards;
 it is not added again to inflate the final count. Actual cases are retained in
 [executed JUnit](../../benchmarks/optimization/meta_selection/qms08_tests.xml)
-and the independently derived `qms08_gate_receipt.json`.
+and the independently derived [gate receipt](../../benchmarks/optimization/meta_selection/qms08_gate_receipt.json).
 
 Q1..Q8 requirement-group case counts: **38 / 96 / 83 / 41 / 38 / 46 / 31 / 56**.
 Q8-T01..08 case counts: **9 / 4 / 1 / 11 / 8 / 17 / 5 / 1**.
@@ -186,9 +186,9 @@ kept visible for the user's planned post-QMS review/subphases.
 
 Start with [usage](USAGE.md), [qualification/reproduction](QUALIFICATION.md),
 [portable handoff](HANDOFF.md) and [current handoff](../../handoff/WFO_META_CURRENT.md).
-The final evidence and gate receipt live in
-`benchmarks/optimization/meta_selection/qms08_qualification_evidence.json` and
-`qms08_gate_receipt.json`; earlier sealed QMS artifacts stay unchanged.
+Read [verified evidence](../../benchmarks/optimization/meta_selection/qms08_qualification_evidence.json)
+and [gate receipt](../../benchmarks/optimization/meta_selection/qms08_gate_receipt.json);
+earlier sealed QMS artifacts stay unchanged.
 
 ```bash
 .venv/bin/python -m tools.qms08_gate --check

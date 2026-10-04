@@ -21992,8 +21992,9 @@ follows. No QMS-08, push, merge, tag, version bump or publication authorized.
 
 ### Phase QMS-08 - Regression, Economic Scope, Documentation And Package Gate
 
-**Status:** RUNNING; technical NOT_RUN; empirical NOT_RUN_BUDGET;
-performance NOT_MEASURED; owner review PENDING.
+**Status:** SOFTWARE_COMPLETE_LOCAL; technical PASS_LOCAL, remote matrix NOT_RUN;
+empirical NOT_RUN_BUDGET; performance inherited QMS-07 MEASURED_SCOPED_GAIN,
+no new optimization claim; owner review PENDING.
 **Goal:** qualify an opt-in library capability with complete examples, accurate
 empirical claims and a reproducible installed core/native release candidate.
 **Entry:** accepted QMS-01 through QMS-07; owner-approved study/data/resource
@@ -22115,6 +22116,58 @@ software; correctness, required evidence and truthful status are prerequisites.
 **Technical Debt Rule:** no omitted mandatory route/test/docs/artifact proof,
 uncertified native exports or stale release evidence. Optional scope exclusions
 remain explicit; software completion never implies universal edge or live approval.
+
+### QMS-08 Completion Record - 2026-10-04
+
+- Local software/artifact scope COMPLETE. Independent receipt reports
+  `SOFTWARE_CANDIDATE_READY / EMPIRICAL_VALIDATION_NOT_RUN`; this is not the
+  planned scientific study completed, remote platform certification or release
+  permission. User will review the QMS series and separately approve follow-ups.
+- Entry `559b4d1`; implementation/private consumer/economic guard `2269dc1`,
+  reproducible CI/user docs/strict verifier `25a0744`; evidence/handoff closure
+  follows as a scoped commit. No edits to `src/`, Rust, pyproject or lockfiles
+  against entry; source/installed/public pair remains `1.1.1/0.4.2`.
+- Actual final regression **567 passed, zero failures/errors/skips, 145.66 s**:
+  429 QMS checks and 138 affected optimizer/WFO/account/package checks; includes
+  56 QMS-08 checks. All 64 requirement IDs have actual coverage/dispositions.
+  `Q8-T03 = NOT_RUN_REAL_ALPHA` explicitly, despite passing software tests of
+  that not-run status. No synthetic result is counted as real-alpha lineage.
+- G8-REGRESSION/G8-END_TO_END/G8-DOCS PASS; G8-PACKAGE
+  `PASS_LOCAL_3_INTERPRETERS_REMOTE_PENDING`; G8-EMPIRICAL_SCOPE NOT_RUN_BUDGET;
+  G8-OWNER PENDING. Numeric/chronological/native/reference/prepared parity,
+  disabled/shadow/fixed/TTS and five-mode supported schedule behavior pass.
+- Private build-only `1.1.1+qms08/0.4.3.dev4` compiled and installed on actual
+  CPython **3.11.17 / 3.12.13 / 3.13.16**, four fresh lanes each. Wheel and
+  sdist source match, product handshake, four samplers, real prepared/native
+  numerics, six-fold actual-selection/account parity, missing-Optuna/native
+  errors, extras and dependency checks pass. Six exact stage identity changes
+  plus copied Cargo lock's own-version update are independently audited;
+  original checkout/installed baseline stays intact. No fake Rust module.
+- Actual source/registry/API/module/governance/docs/secret commands are logged;
+  hash/size/consumer-output comparison, entry/history membership, gate/scalar/
+  model/flag tamper negatives and pure saved-output regeneration pass. Prior
+  QMS-01..07 artifacts remain byte-identical, not rewritten for newer source.
+- Documentation includes user/config/history guide, package qualification,
+  endpoint/optimization/causal-WFO/methodology/capability navigation and runnable
+  off/sampler/history/unsupported plus existing shadow/active/host examples.
+- Retained matched performance remains QMS-07 reference meta p50
+  `2.743 -> 1.916 s` (-30.2%), prepared/meta Rust `2.329 -> 1.425 s` (-38.8%).
+  QMS-08 changes no execution math/hot path, makes no extra speed/RSS claim and
+  does not rerun financial benchmarks just for prose/package qualification.
+- Separate decisions/debt: approved real-alpha/calendar/budget and empirical
+  acceptance; public pair/features activation; six remote installed CI jobs;
+  optional unsupported W3 meta; inherited configured BLAS4/observed OpenBLAS1
+  telemetry; mixed/high-d Rust/BLAS dispatch; owner acceptance of QMS-07's
+  proposed disabled budgets. No mandatory local software failure is hidden.
+- Read [QMS-08 report and debt ledger](../docs/meta_selection/QMS08_REPORT.md),
+  [user guide](../docs/meta_selection/USAGE.md),
+  [qualification](../docs/meta_selection/QUALIFICATION.md),
+  [evidence](../benchmarks/optimization/meta_selection/qms08_qualification_evidence.json),
+  [independent receipt](../benchmarks/optimization/meta_selection/qms08_gate_receipt.json),
+  [executed tests](../benchmarks/optimization/meta_selection/qms08_tests.xml)
+  and [current handoff](../handoff/WFO_META_CURRENT.md).
+- No push, merge, tag, GitHub deployment/release or PyPI. Next action is owner
+  review/approved scoped subphases, not automatic phase/release advancement.
 
 ### QMS Requirement Coverage And Completion Records
 

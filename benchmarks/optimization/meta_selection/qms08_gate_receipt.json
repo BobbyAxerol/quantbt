@@ -1,0 +1,654 @@
+{
+  "coverage": {
+    "junit_sha256": "468588074a31bfa654d79e7ced99ca5ae097d77e68365c75e6baf7bf1b216504",
+    "members": {
+      "Q1-T01": [
+        "test_q1_t01_source_mismatch_is_detected[tag]",
+        "test_q1_t01_source_mismatch_is_detected[import]",
+        "test_q1_t01_source_mismatch_is_detected[core]",
+        "test_q1_t01_source_mismatch_is_detected[native]",
+        "test_q1_t01_source_mismatch_is_detected[descriptor]",
+        "test_q1_t01_source_mismatch_is_detected[abi]",
+        "test_q1_t01_source_mismatch_is_detected[source]",
+        "test_q1_t01_source_mismatch_is_detected[guide]"
+      ],
+      "Q1-T02": [
+        "test_q1_t02_actual_public_current_oos_mutation_cannot_change_first_selection"
+      ],
+      "Q1-T03": [
+        "test_q1_t03_native_anchor_is_not_raw_best[medoid]",
+        "test_q1_t03_native_anchor_is_not_raw_best[centroid]",
+        "test_q1_t03_native_anchor_is_not_raw_best[fallback]",
+        "test_q1_t03_centroid_authoritative_same_is_replay_is_available",
+        "test_q1_t03_actual_public_anchor_is_not_raw_best"
+      ],
+      "Q1-T04": [
+        "test_q1_t04_pool_and_compaction_are_traced_before_loss",
+        "test_q1_t04_instrumentation_and_retention_do_not_change_public_outputs"
+      ],
+      "Q1-T05": [
+        "test_q1_t05_installed_prepared_rust_matches_public_oracle",
+        "test_q1_t05_zero_undefined_absent_and_placeholder_are_distinct",
+        "test_q1_t05_native_guards_are_fail_closed_or_observable"
+      ],
+      "Q1-T06": [
+        "test_q1_t06_all_supported_mode_schedule_baselines",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_2_sbb-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_2_sbb-per_fold_causal]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_3_flat_minima-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_3_flat_minima-per_fold_causal]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_4_is_only_robust-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_5_full_robust-per_fold_decay]",
+        "test_q1_t06_unsupported_schedule_behavior_is_preserved[mode_5_full_robust-per_fold_causal]",
+        "test_q1_t06_nested_mode1_without_inner_config_still_fails"
+      ],
+      "Q1-T07": [
+        "test_q1_t07_financial_sources_and_entry_state_preserved"
+      ],
+      "Q1-T08": [
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[budget]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[pool]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[routes]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[payload]",
+        "test_q1_t08_manifest_verifier_rejects_false_evidence[resource]",
+        "test_q1_t08_real_baseline_budgets_no_fabricated_empirical_or_live_claim",
+        "test_q1_t08_receipt_requires_all_executed_groups[missing_group]",
+        "test_q1_t08_receipt_requires_all_executed_groups[failure]",
+        "test_q1_t08_receipt_requires_all_executed_groups[skipped]"
+      ],
+      "Q2-T01": [
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-per_fold_decay]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_1_decay-per_fold_causal]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_2_sbb-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_3_flat_minima-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_4_is_only_robust-global]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t01_omitted_config_exact_released_search_and_account[mode_5_full_robust-global]",
+        "test_q2_t01_explicit_legacy_matches_default_numeric_outcomes",
+        "test_q2_t01_adaptive_trajectory_factory_and_public_observer_are_lossless"
+      ],
+      "Q2-T02": [
+        "test_q2_t02_group_constructor_and_joint_proposals"
+      ],
+      "Q2-T03": [
+        "test_q2_t03_cma_default_rejection_and_explicit_independent",
+        "test_q2_t03_cma_margin_integer_contract"
+      ],
+      "Q2-T04": [
+        "test_q2_t04_mapping_conditional_activity_and_effective_identity",
+        "test_q2_t04_warm_numeric_representation_has_one_effective_identity",
+        "test_q2_t04_nullable_category_keeps_active_and_inactive_geometry_distinct",
+        "test_q2_t04_numeric_centroid_stays_on_the_declared_step_lattice",
+        "test_q2_t04_invalid_schema_fails[spec0]",
+        "test_q2_t04_invalid_schema_fails[spec1]",
+        "test_q2_t04_invalid_schema_fails[spec2]",
+        "test_q2_t04_invalid_schema_fails[spec3]",
+        "test_q2_t04_invalid_schema_fails[spec4]",
+        "test_q2_t04_invalid_schema_fails[spec5]",
+        "test_q2_t04_invalid_schema_fails[spec6]",
+        "test_q2_t04_invalid_schema_fails[spec7]",
+        "test_q2_t04_invalid_schema_fails[spec8]",
+        "test_q2_t04_invalid_schema_fails[spec9]",
+        "test_q2_t04_unordered_geometry_and_log_scale",
+        "test_q2_t04_generic_factory_shares_structured_space_and_fixed_params",
+        "test_q2_t04_fixed_parent_stays_in_conditional_factory_schema",
+        "test_q2_t04_public_conditional_space_is_admissible[tpe_multivariate_group]",
+        "test_q2_t04_public_conditional_space_is_admissible[cmaes]"
+      ],
+      "Q2-T05": [
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[tpe_legacy]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[tpe_multivariate_group]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[cmaes]",
+        "test_q2_t05_owned_sampler_resume_preserves_exact_trajectory[sobol]",
+        "test_q2_t05_sobol_fixed_order_and_independent_categories",
+        "test_q2_t05_failed_trial_remains_failed_without_fake_objective"
+      ],
+      "Q2-T06": [
+        "test_q2_t06_early_constraints_are_pruned_and_skip_financial_work",
+        "test_q2_t06_post_filter_policy_required_and_real_values_retained[cmaes]",
+        "test_q2_t06_post_filter_policy_required_and_real_values_retained[sobol]",
+        "test_q2_t06_formal_tpe_constraints_and_all_rejected",
+        "test_q2_t06_parameter_constraints_require_explicit_post_filter[cmaes]",
+        "test_q2_t06_parameter_constraints_require_explicit_post_filter[sobol]"
+      ],
+      "Q2-T07": [
+        "test_q2_t07_warm_start_availability_rescore_and_budget",
+        "test_q2_t07_same_arm_independent_warm_pool_and_inactive_provenance"
+      ],
+      "Q2-T08": [
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_legacy-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[tpe_multivariate_group-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[cmaes-mode_5_full_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-per_fold_decay]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_1_decay-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_2_sbb-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_3_flat_minima-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_4_is_only_robust-global]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_4_is_only_robust-per_fold_causal]",
+        "test_q2_t08_actual_sampler_only_stage_matrix[sobol-mode_5_full_robust-global]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config0-ranges0]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config1-ranges1]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config2-ranges2]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config3-ranges3]",
+        "test_q2_t08_unsupported_preflight_before_strategy_or_financial_work[config4-ranges4]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[tpe_legacy]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[tpe_multivariate_group]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[cmaes]",
+        "test_q2_t08_installed_native_and_oracle_account_parity[sobol]",
+        "test_q2_t08_package_dependency_and_protected_financial_modules",
+        "test_q2_t08_runnable_public_example[tpe_legacy]",
+        "test_q2_t08_runnable_public_example[tpe_multivariate_group]",
+        "test_q2_t08_runnable_public_example[cmaes]",
+        "test_q2_t08_runnable_public_example[sobol]",
+        "test_q2_t08_centroid_rejected_before_financial_work",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[failure]",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[error]",
+        "test_q2_t08_gate_rejects_nonpassing_test_evidence[skipped]"
+      ],
+      "Q3-T01": [
+        "test_q3_t01_full_pool_retained_before_lossy_native_candidate_table[medoid]",
+        "test_q3_t01_full_pool_retained_before_lossy_native_candidate_table[centroid]",
+        "test_q3_t01_explicit_anchor_roles_order_and_identical_parameter_evaluations",
+        "test_q3_t01_invalid_anchor_rejected[missing]",
+        "test_q3_t01_invalid_anchor_rejected[duplicate_candidate]",
+        "test_q3_t01_invalid_anchor_rejected[missing_role]",
+        "test_q3_t01_invalid_anchor_rejected[double_role]",
+        "test_q3_t01_invalid_anchor_rejected[unknown_role]",
+        "test_q3_t01_panel_quotas_required_union_and_outcome_blind_membership",
+        "test_q3_t01_same_physical_evaluation_can_have_two_roles_without_double_weight"
+      ],
+      "Q3-T02": [
+        "test_q3_t02_original_engine_labels_reconcile_and_centroid_has_own_is[medoid]",
+        "test_q3_t02_original_engine_labels_reconcile_and_centroid_has_own_is[centroid]",
+        "test_q3_t02_raw_label_algebra_and_penalized_objective_not_substituted",
+        "test_q3_t02_cross_origin_contracts_rejected[economics_id-different-cost]",
+        "test_q3_t02_cross_origin_contracts_rejected[metric_contract_id-different-rf]",
+        "test_q3_t02_cross_origin_contracts_rejected[initial_capital-10000]",
+        "test_q3_t02_cross_origin_contracts_rejected[window_start-value3]"
+      ],
+      "Q3-T03": [
+        "test_q3_t03_actual_history_physical_order_and_future_labels_do_not_change_old_snapshot[medoid]",
+        "test_q3_t03_actual_history_physical_order_and_future_labels_do_not_change_old_snapshot[centroid]",
+        "test_q3_t03_capture_does_not_change_native_selection_or_stitched_output[False]",
+        "test_q3_t03_capture_does_not_change_native_selection_or_stitched_output[True]",
+        "test_q3_t03_actual_runner_future_suffix_mutation_preserves_first_pool_and_anchor",
+        "test_q3_t03_actual_panel_seals_before_engine_opens_forward_strategy_view",
+        "test_q3_t03_frozen_snapshot_excludes_arrivals_during_compute_and_equality",
+        "test_q3_t03_revision_frontier_and_computation_after_cutoff",
+        "test_q3_t03_reporting_lag_is_not_actual_availability_or_revision_publication",
+        "test_q3_t03_invalid_clocks_fail_closed[search_completed_at]",
+        "test_q3_t03_invalid_clocks_fail_closed[decision_sealed_at]",
+        "test_q3_t03_invalid_clocks_fail_closed[first_forward_action_at]",
+        "test_q3_t03_invalid_clocks_fail_closed[data_cutoff]"
+      ],
+      "Q3-T04": [
+        "test_q3_t04_category_geometry_permutation_and_activity_masks",
+        "test_q3_t04_origin_balanced_scaling_constant_support_and_no_shape_padding",
+        "test_q3_t04_scaler_reads_only_permitted_historical_is_not_forward_label_magnitudes",
+        "test_q3_t04_compiled_vocabulary_feature_order_and_backend_resolution_are_frozen",
+        "test_q3_t04_conditional_feature_without_historical_support_is_explicitly_unsupported"
+      ],
+      "Q3-T05": [
+        "test_q3_t05_hma_keys_numeric_log_and_identity_not_alpha_specific"
+      ],
+      "Q3-T06": [
+        "test_q3_t06_finite_zero_positive_variance_calendar_sample_matches_report",
+        "test_q3_t06_original_metric_zero_return_sample_has_no_variance_not_valid_zero",
+        "test_q3_t06_actual_result_dispositions[short-INCOMPLETE_WINDOW]",
+        "test_q3_t06_actual_result_dispositions[liquidated-CENSORED]",
+        "test_q3_t06_actual_result_dispositions[few-INSUFFICIENT_SAMPLE]",
+        "test_q3_t06_meta_support_retains_original_result_not_scalar_placeholder[metadata0]",
+        "test_q3_t06_meta_support_retains_original_result_not_scalar_placeholder[metadata1]",
+        "test_q3_t06_meta_support_retains_original_result_not_scalar_placeholder[metadata2]",
+        "test_q3_t06_meta_support_retains_original_result_not_scalar_placeholder[metadata3]",
+        "test_q3_t06_capture_scope_rejected_before_search[mode_1_decay-global]",
+        "test_q3_t06_capture_scope_rejected_before_search[mode_4_is_only_robust-global]",
+        "test_q3_t06_capture_scope_rejected_before_search[mode_5_full_robust-global]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[OUTCOME_FAILED]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[INCOMPLETE_WINDOW]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[CENSORED]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[NO_VARIANCE]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[INSUFFICIENT_SAMPLE]",
+        "test_q3_t06_nontraining_dispositions_never_become_zero_labels[UNVERIFIED]",
+        "test_q3_t06_valid_zero_vs_placeholder_variance"
+      ],
+      "Q3-T07": [
+        "test_q3_t07_quantity_constraints_part_of_actual_economics_evidence",
+        "test_q3_t07_original_economics_mismatch_not_laundered_by_caller_contract",
+        "test_q3_t07_same_legacy_and_one_way_cost_contract_and_funding_sample_signatures",
+        "test_q3_t07_task_family_snapshot_and_authorized_corpus_are_distinct"
+      ],
+      "Q3-T08": [
+        "test_q3_t08_omitted_public_route_does_not_import_meta_or_emit_new_work",
+        "test_q3_t08_pending_portable_maturity_and_observer_failed_attempt_retained[medoid]",
+        "test_q3_t08_pending_portable_maturity_and_observer_failed_attempt_retained[centroid]",
+        "test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sources",
+        "test_q3_t08_safe_roundtrip_witness_policy_and_existing_retention",
+        "test_q3_t08_rehashed_raw_metric_is_not_verified_by_reusing_an_output_reference",
+        "test_q3_t08_checkpoint_corruption_raises[schema]",
+        "test_q3_t08_checkpoint_corruption_raises[hash]",
+        "test_q3_t08_checkpoint_corruption_raises[payload]",
+        "test_q3_t08_checkpoint_corruption_raises[missing]",
+        "test_q3_t08_checkpoint_corruption_raises[extra]",
+        "test_q3_t08_checkpoint_corruption_raises[NaN]",
+        "test_q3_t08_checkpoint_corruption_raises[duplicate]",
+        "test_q3_t08_checkpoint_corruption_raises[oversize]",
+        "test_q3_t08_checkpoint_corruption_raises[pickle]",
+        "test_q3_t08_pending_maturity_revisions_reweight_entire_origin_and_freeze_old_view",
+        "test_q3_t08_bounded_history_no_eviction_or_origin_support_inflation",
+        "test_q3_t08_pending_does_not_invent_availability_and_retires_at_capacity",
+        "test_q3_t08_import_requires_reviewed_complete_revision_not_only_metric_refs",
+        "test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence[missing_group]",
+        "test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence[wrong_class]",
+        "test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence[skip]",
+        "test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence[failure]",
+        "test_q3_t08_receipt_does_not_pass_missing_failed_or_unqualified_evidence[missing_engine_evidence]"
+      ],
+      "Q4-T01": [
+        "test_q4_t01_whitened_reference_and_augmented_lstsq[1-1]",
+        "test_q4_t01_whitened_reference_and_augmented_lstsq[17-3]",
+        "test_q4_t01_whitened_reference_and_augmented_lstsq[57-8]",
+        "test_q4_t01_whitened_reference_and_augmented_lstsq[64-40]",
+        "test_q4_t01_no_inverse_or_n_by_n_weight_allocation"
+      ],
+      "Q4-T02": [
+        "test_q4_t02_anchor_zero_and_pool_permutation",
+        "test_q4_t02_origin_permutation_fit_and_scaler"
+      ],
+      "Q4-T03": [
+        "test_q4_t03_origin_weights_and_support_not_rows",
+        "test_q4_t03_late_one_to_ten_revision_replaces_whole_origin",
+        "test_q4_t03_zero_label_dispositions_preserved_not_support"
+      ],
+      "Q4-T04": [
+        "test_q4_t04_guide_fixture_actual_fitted_selector_not_gap_absolute",
+        "test_q4_t04_total_order_ties_no_nontransitive_comparator[0.0]",
+        "test_q4_t04_total_order_ties_no_nontransitive_comparator[5e-11]",
+        "test_q4_t04_total_order_ties_no_nontransitive_comparator[1e-10]",
+        "test_q4_t04_total_order_ties_no_nontransitive_comparator[1.5e-10]",
+        "test_q4_t04_total_order_ties_no_nontransitive_comparator[2e-10]"
+      ],
+      "Q4-T05": [
+        "test_q4_t05_lambda_origin_sum_and_raw_units",
+        "test_q4_t05_installed_baseline_auto_vs_require_and_candidate_blocks",
+        "test_q4_t05_native_boundary_and_chunk_contract"
+      ],
+      "Q4-T06": [
+        "test_q4_t06_invalid_lambda_and_fit_inputs[nan]",
+        "test_q4_t06_invalid_lambda_and_fit_inputs[inf]",
+        "test_q4_t06_invalid_lambda_and_fit_inputs[0.0]",
+        "test_q4_t06_invalid_lambda_and_fit_inputs[-1.0]",
+        "test_q4_t06_nonfinite_rejected_not_fallback[v]",
+        "test_q4_t06_nonfinite_rejected_not_fallback[y]",
+        "test_q4_t06_nonfinite_rejected_not_fallback[w]",
+        "test_q4_t06_empty_safe_pool_and_resource_and_condition",
+        "test_q4_t06_cold_start_ood_and_invalid_anchor",
+        "test_q4_t06_constant_feature_support_uses_whole_pool_fallback",
+        "test_q4_t06_undefined_anchor_and_unverified_candidate_not_success"
+      ],
+      "Q4-T07": [
+        "test_q4_t07_unmatured_revision_does_not_enter_fit",
+        "test_q4_t07_family_and_future_model_are_typed_errors"
+      ],
+      "Q4-T08": [
+        "test_q4_t08_complete_model_and_decision_roundtrip",
+        "test_q4_t08_missing_complete_bundle_fails[scaler]",
+        "test_q4_t08_missing_complete_bundle_fails[schema]",
+        "test_q4_t08_missing_complete_bundle_fails[reference_gram]",
+        "test_q4_t08_missing_complete_bundle_fails[revision_references]",
+        "test_q4_t08_missing_complete_bundle_fails[coefficients]",
+        "test_q4_t08_missing_complete_bundle_fails[settings]",
+        "test_q4_t08_rehashed_tampering_and_future_model_rejected",
+        "test_q4_t08_missing_scaler_category_and_weights_only_fail_with_reviewed_tamper"
+      ],
+      "Q5-T01": [
+        "test_q5_t01_off_is_legacy_and_never_reads_history"
+      ],
+      "Q5-T02": [
+        "test_q5_t02_shadow_preserves_actual_account_search_and_rng[False]",
+        "test_q5_t02_shadow_preserves_actual_account_search_and_rng[True]",
+        "test_q5_t02_centroid_auxiliary_is_rng_isolated",
+        "test_q5_t02_shared_conditional_sampler_remains_independent"
+      ],
+      "Q5-T03": [
+        "test_q5_t03_active_fitted_switch_reaches_actual_oos_output"
+      ],
+      "Q5-T04": [
+        "test_q5_t04_lower_is_full_pool_winner_not_overwritten"
+      ],
+      "Q5-T05": [
+        "test_q5_t05_unsupported_preflight_before_search[mode_1_decay-per_fold_decay-signal_notional]",
+        "test_q5_t05_unsupported_preflight_before_search[mode_4_is_only_robust-global-signal_notional]",
+        "test_q5_t05_unsupported_preflight_before_search[mode_5_full_robust-global-signal_notional]",
+        "test_q5_t05_unsupported_preflight_before_search[mode_2_sbb-global-signal_notional]",
+        "test_q5_t05_unsupported_preflight_before_search[mode_4_is_only_robust-per_fold_causal-portfolio]",
+        "test_q5_t05_cold_flags_and_no_fabricated_fit",
+        "test_q5_t05_active_same_anchor_still_uses_history",
+        "test_q5_t05_incompatible_execution_fails_without_optimizer[settings0]",
+        "test_q5_t05_incompatible_execution_fails_without_optimizer[settings1]",
+        "test_q5_t05_incompatible_execution_fails_without_optimizer[settings2]",
+        "test_q5_t05_missing_history_and_fixed_params_fail_before_evaluation",
+        "test_q5_t05_strict_config_rejects_invalid_policy[config0]",
+        "test_q5_t05_strict_config_rejects_invalid_policy[config1]",
+        "test_q5_t05_strict_config_rejects_invalid_policy[config2]",
+        "test_q5_t05_strict_config_rejects_invalid_policy[config3]",
+        "test_q5_t05_require_native_capability_fails_before_search",
+        "test_q5_t05_fixed_config_override_does_not_ignore_meta",
+        "test_q5_t05_compatibility_tracks_constraints_and_search_policy"
+      ],
+      "Q5-T06": [
+        "test_q5_t06_future_market_mutation_keeps_earlier_actual_decision",
+        "test_q5_t06_snapshot_frozen_before_delayed_search",
+        "test_q5_t06_unavailable_forward_mutation_is_closed",
+        "test_q5_t06_readiness_does_not_backdate_or_shift",
+        "test_q5_t06_strategy_frontier_is_closed_until_actual_seal"
+      ],
+      "Q5-T07": [
+        "test_q5_t07_observer_publication_only_reaches_later_folds",
+        "test_q5_t07_no_variance_is_not_a_zero_training_label"
+      ],
+      "Q5-T08": [
+        "test_q5_t08_lineage_raw_ledgers_and_continuous_account[False]",
+        "test_q5_t08_lineage_raw_ledgers_and_continuous_account[True]",
+        "test_q5_t08_active_decision_portable_restore",
+        "test_q5_t08_pct_equity_fees_funding_and_boundary_authority",
+        "test_q5_t08_public_active_native_numeric_candidate",
+        "test_q5_t08_runnable_public_example_and_result_consumer"
+      ],
+      "Q6-T01": [
+        "test_q6_t01_full_public_prepared_reference_decision_sequence",
+        "test_q6_t01_pct_equity_fresh_account_parity",
+        "test_q6_t01_pct_equity_existing_native_account_units_and_cost_parity",
+        "test_q6_t01_reference_numba_matches_prepared_rust",
+        "test_q6_t01_hourly_daily_metric_reducer_parity",
+        "test_q6_t01_cost_funding_quantity_constraints",
+        "test_q6_t01_prepared_strategy_protocol_same_pool[W1]",
+        "test_q6_t01_prepared_strategy_protocol_same_pool[W2]"
+      ],
+      "Q6-T02": [
+        "test_q6_t02_short_daily_metric_window_not_substituted",
+        "test_q6_t02_next_open_not_relabelled",
+        "test_q6_t02_zero_variance_not_placeholder_inference",
+        "test_q6_t02_metric_validity_has_authoritative_support[zero-NO_VARIANCE]",
+        "test_q6_t02_metric_validity_has_authoritative_support[one-OUTCOME_FAILED]",
+        "test_q6_t02_metric_validity_has_authoritative_support[negative-OUTCOME_FAILED]",
+        "test_q6_t02_metric_validity_has_authoritative_support[censored-CENSORED]",
+        "test_q6_t02_metric_validity_has_authoritative_support[nonfinite-OUTCOME_FAILED]",
+        "test_q6_t02_incompatible_route_fails_before_search[target_runtime-numba]",
+        "test_q6_t02_incompatible_route_fails_before_search[symbols-value1]",
+        "test_q6_t02_incompatible_route_fails_before_search[target_mode-portfolio]",
+        "test_q6_t02_incompatible_route_fails_before_search[scoring_trading_days-252]",
+        "test_q6_t02_pct_equity_economics_guard[fee_rate-0.0004]",
+        "test_q6_t02_pct_equity_economics_guard[slippage-0.001]"
+      ],
+      "Q6-T03": [
+        "test_q6_t03_native_meta_require_does_not_upgrade_financial_wheel",
+        "test_q6_t03_published_require_fails_auto_observable"
+      ],
+      "Q6-T04": [
+        "test_q6_t04_detached_witness_buffers_survive_reset_and_close",
+        "test_q6_t04_witness_abi_fails_closed[columns]",
+        "test_q6_t04_witness_abi_fails_closed[dtype]",
+        "test_q6_t04_witness_abi_fails_closed[shape]",
+        "test_q6_t04_witness_abi_fails_closed[missing]",
+        "test_q6_t04_source_lock_allows_only_reviewed_additive_witness"
+      ],
+      "Q6-T05": [
+        "test_q6_t05_boundary_counts_and_copies",
+        "test_q6_t05_native_meta_independent_from_prepared_financial"
+      ],
+      "Q6-T06": [
+        "test_q6_t06_complete_handoff_roundtrip",
+        "test_q6_t06_handoff_restore_rejects_unpermitted[not_ready]",
+        "test_q6_t06_handoff_restore_rejects_unpermitted[corpus]",
+        "test_q6_t06_handoff_restore_rejects_unpermitted[family]",
+        "test_q6_t06_handoff_restore_rejects_unpermitted[witnesses]",
+        "test_q6_t06_handoff_restore_rejects_unpermitted[review]",
+        "test_q6_t06_late_effect_never_backdated",
+        "test_q6_t06_future_model_cannot_replace_earlier_snapshot",
+        "test_q6_t06_cached_older_model_with_its_exact_snapshot_is_permitted",
+        "test_q6_t06_corrupt_unknown_fields_and_size"
+      ],
+      "Q6-T07": [
+        "test_q6_t07_host_read_is_pure_and_detached",
+        "test_q6_t07_pure_selector_example_no_financial_replay"
+      ],
+      "Q6-T08": [
+        "test_q6_t08_w3_reviewed_unsupported_before_prepare[shadow]",
+        "test_q6_t08_w3_reviewed_unsupported_before_prepare[active]"
+      ],
+      "Q7-T01": [
+        "test_q7_t01_full_chronological_membership_and_actual_decisions[False-False]",
+        "test_q7_t01_full_chronological_membership_and_actual_decisions[False-True]",
+        "test_q7_t01_full_chronological_membership_and_actual_decisions[True-False]",
+        "test_q7_t01_full_chronological_membership_and_actual_decisions[True-True]"
+      ],
+      "Q7-T02": [
+        "test_q7_t02_perturbed_floor_recomputes_whole_pool"
+      ],
+      "Q7-T03": [
+        "test_q7_t03_derived_values_do_not_change_portable_bytes_or_replacements",
+        "test_q7_t03_late_revision_reweights_entire_origin",
+        "test_q7_t03_exact_fit_cache_identity_and_independent_outputs[context]",
+        "test_q7_t03_exact_fit_cache_identity_and_independent_outputs[v]",
+        "test_q7_t03_exact_fit_cache_identity_and_independent_outputs[y]",
+        "test_q7_t03_exact_fit_cache_identity_and_independent_outputs[weights]",
+        "test_q7_t03_exact_fit_cache_identity_and_independent_outputs[lambda]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[model]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[task]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[pool_order]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[v]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[beta]",
+        "test_q7_t03_prediction_cache_covers_full_pool_and_model[delta]"
+      ],
+      "Q7-T04": [
+        "test_q7_t04_object_owned_memo_has_no_global_retention",
+        "test_q7_t04_workspace_bypass_not_information_truncation",
+        "test_q7_t04_actual_rss_pss_plateau_and_bounded_retention"
+      ],
+      "Q7-T05": [
+        "test_q7_t05_actual_native_resolution_and_required_capability",
+        "test_q7_t05_native_batch_releases_gil_and_detaches_outputs"
+      ],
+      "Q7-T06": [
+        "test_q7_t06_observer_rng_does_not_change_sequential_main_lane",
+        "test_q7_t06_actual_public_sequential_trace_is_entry_exact"
+      ],
+      "Q7-T07": [
+        "test_q7_t07_identical_numeric_information_and_precision[180-8]",
+        "test_q7_t07_identical_numeric_information_and_precision[4096-8]",
+        "test_q7_t07_identical_numeric_information_and_precision[4096-24]",
+        "test_q7_t07_identical_numeric_information_and_precision[512-64]",
+        "test_q7_t07_protected_financial_source_and_published_pair_unchanged"
+      ],
+      "Q7-T08": [
+        "test_q7_t08_disabled_gate_is_measured_not_owner_approval"
+      ],
+      "Q8-T01": [
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_1_decay-global]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_1_decay-per_fold_decay]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_1_decay-per_fold_causal]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_2_sbb-global]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_3_flat_minima-global]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_4_is_only_robust-global]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_4_is_only_robust-per_fold_causal]",
+        "test_q8_t01_fixed_params_and_explicit_off_legacy_parity[mode_5_full_robust-global]",
+        "test_q8_t01_train_test_holdout_off_and_fixed_account_controls"
+      ],
+      "Q8-T02": [
+        "test_q8_t02_runnable_complete_contract_examples[off]",
+        "test_q8_t02_runnable_complete_contract_examples[sampler]",
+        "test_q8_t02_runnable_complete_contract_examples[history]",
+        "test_q8_t02_runnable_complete_contract_examples[unsupported]"
+      ],
+      "Q8-T03": [
+        "test_q8_t03_real_alpha_not_claimed_from_engineering_lineage"
+      ],
+      "Q8-T04": [
+        "test_q8_t04_empirical_budget_support_not_fabricated[attempted_trials_per_cutoff-127]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[matured_origins-11]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[locked_folds-11]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[samplers-value3]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[owner_decision_ref-]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[development_folds--1]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[development_folds-11]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[matured_origins-True]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[locked_folds-12.0]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[samplers-value9]",
+        "test_q8_t04_empirical_budget_support_not_fabricated[alpha_identity- ]"
+      ],
+      "Q8-T05": [
+        "test_q8_t05_invalid_calendar_and_identity_fail_closed[start-not-a-date]",
+        "test_q8_t05_invalid_calendar_and_identity_fail_closed[end-2019-12-31]",
+        "test_q8_t05_invalid_calendar_and_identity_fail_closed[fold_id-True]",
+        "test_q8_t05_lower_is_does_not_imply_forward_improvement",
+        "test_q8_t05_undefined_calendar_and_negative_outcomes_preserved[NO_TRADES]",
+        "test_q8_t05_undefined_calendar_and_negative_outcomes_preserved[ZERO_VARIANCE]",
+        "test_q8_t05_undefined_calendar_and_negative_outcomes_preserved[UNDEFINED]",
+        "test_q8_t05_undefined_calendar_and_negative_outcomes_preserved[FAILED]"
+      ],
+      "Q8-T06": [
+        "test_q8_t06_required_64_ids_and_logs_fail_closed[missing]",
+        "test_q8_t06_required_64_ids_and_logs_fail_closed[failure]",
+        "test_q8_t06_required_64_ids_and_logs_fail_closed[error]",
+        "test_q8_t06_required_64_ids_and_logs_fail_closed[skip]",
+        "test_q8_t06_required_64_ids_and_logs_fail_closed[count]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[gates]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[ids]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[source]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[empirical]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[scalar]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[complete]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[owner]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[release]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[checks]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[check_log]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[entry]",
+        "test_q8_t06_envelope_claim_and_execution_log_tamper_rejected[history]"
+      ],
+      "Q8-T07": [
+        "test_q8_t07_actual_candidate_wheel_sdist_consumers",
+        "test_q8_t07_existing_test_jobs_prepare_isolated_qms_fixtures[ci.yml]",
+        "test_q8_t07_existing_test_jobs_prepare_isolated_qms_fixtures[publish.yml]",
+        "test_q8_t07_existing_test_jobs_prepare_isolated_qms_fixtures[native-release.yml]",
+        "test_q8_t07_remote_candidate_matrix_is_non_publishing"
+      ],
+      "Q8-T08": [
+        "test_q8_t08_report_regeneration_never_executes_or_infers"
+      ]
+    },
+    "tests": 567
+  },
+  "empirical_status": "EMPIRICAL_VALIDATION_NOT_RUN",
+  "evidence_sha256": "65bf6f967ee91108ba86e05d176b17ad227a0ea85110ede30f2b42f03a859b22",
+  "gates": {
+    "G8-DOCS": "PASS",
+    "G8-EMPIRICAL_SCOPE": "NOT_RUN_BUDGET",
+    "G8-END_TO_END": "PASS",
+    "G8-OWNER": "PENDING",
+    "G8-PACKAGE": "PASS_LOCAL_3_INTERPRETERS_REMOTE_PENDING",
+    "G8-REGRESSION": "PASS"
+  },
+  "owner_review": "PENDING",
+  "release_authorized": false,
+  "required_gates": [
+    "G8-REGRESSION",
+    "G8-END_TO_END",
+    "G8-EMPIRICAL_SCOPE",
+    "G8-DOCS",
+    "G8-PACKAGE",
+    "G8-OWNER"
+  ],
+  "schema": "qms08-gate-receipt-v1",
+  "software_status": "SOFTWARE_CANDIDATE_READY",
+  "source_manifest_sha256": "437e51df727efa02b1a4196dc172751c5a0f4a6decd95b2f0e857e2cce62aaa3",
+  "test_dispositions": {
+    "Q1-T01": "PASS",
+    "Q1-T02": "PASS",
+    "Q1-T03": "PASS",
+    "Q1-T04": "PASS",
+    "Q1-T05": "PASS",
+    "Q1-T06": "PASS",
+    "Q1-T07": "PASS",
+    "Q1-T08": "PASS",
+    "Q2-T01": "PASS",
+    "Q2-T02": "PASS",
+    "Q2-T03": "PASS",
+    "Q2-T04": "PASS",
+    "Q2-T05": "PASS",
+    "Q2-T06": "PASS",
+    "Q2-T07": "PASS",
+    "Q2-T08": "PASS",
+    "Q3-T01": "PASS",
+    "Q3-T02": "PASS",
+    "Q3-T03": "PASS",
+    "Q3-T04": "PASS",
+    "Q3-T05": "PASS",
+    "Q3-T06": "PASS",
+    "Q3-T07": "PASS",
+    "Q3-T08": "PASS",
+    "Q4-T01": "PASS",
+    "Q4-T02": "PASS",
+    "Q4-T03": "PASS",
+    "Q4-T04": "PASS",
+    "Q4-T05": "PASS",
+    "Q4-T06": "PASS",
+    "Q4-T07": "PASS",
+    "Q4-T08": "PASS",
+    "Q5-T01": "PASS",
+    "Q5-T02": "PASS",
+    "Q5-T03": "PASS",
+    "Q5-T04": "PASS",
+    "Q5-T05": "PASS",
+    "Q5-T06": "PASS",
+    "Q5-T07": "PASS",
+    "Q5-T08": "PASS",
+    "Q6-T01": "PASS",
+    "Q6-T02": "PASS",
+    "Q6-T03": "PASS",
+    "Q6-T04": "PASS",
+    "Q6-T05": "PASS",
+    "Q6-T06": "PASS",
+    "Q6-T07": "PASS",
+    "Q6-T08": "PASS",
+    "Q7-T01": "PASS",
+    "Q7-T02": "PASS",
+    "Q7-T03": "PASS",
+    "Q7-T04": "PASS",
+    "Q7-T05": "PASS",
+    "Q7-T06": "PASS",
+    "Q7-T07": "PASS",
+    "Q7-T08": "PASS",
+    "Q8-T01": "PASS",
+    "Q8-T02": "PASS",
+    "Q8-T03": "NOT_RUN_REAL_ALPHA",
+    "Q8-T04": "PASS_NOT_RUN_DISPOSITION",
+    "Q8-T05": "PASS",
+    "Q8-T06": "PASS",
+    "Q8-T07": "PASS_LOCAL_REMOTE_PENDING",
+    "Q8-T08": "PASS_SOFTWARE_OWNER_PENDING"
+  }
+}

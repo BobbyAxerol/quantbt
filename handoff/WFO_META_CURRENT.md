@@ -1,14 +1,15 @@
 # WFO Meta Current Handoff
 
-- Branch: `feat/meta-selection-samplers`; QMS-07 entry `eb167a4`.
+- Branch: `feat/meta-selection-samplers`; QMS-08 entry `559b4d1`.
 - Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-07 exact DSA/numeric reuse and chronological parity, COMPLETE.
-- Technical: five gates PASS. Owner/budget/W3-scope acceptance PENDING. Empirical NOT_ASSESSED.
-- Performance: MEASURED_SCOPED_GAIN on matched synthetic public studies, no edge/live claim.
-- QMS-08 remains NOT_STARTED. Do not push, merge, retag, release, deploy
-  or advance without separate approval.
+- Current approved scope: QMS-08 local regression, docs and installed candidate
+  qualification, SOFTWARE_COMPLETE_LOCAL.
+- Technical: regression/end-to-end/docs PASS; package PASS_LOCAL, remote pending.
+  Final owner/budget/W3-scope acceptance PENDING; empirical NOT_RUN_BUDGET.
+- Performance: QMS-07 MEASURED_SCOPED_GAIN retained, no new QMS-08 speed/edge/live claim.
+- Do not push, merge, retag, release, deploy or start unapproved subphases.
 
 ## Delivered
 
@@ -21,8 +22,9 @@ isolated lifecycle and carry-position accounting. QMS-06 qualifies scalar
 W0/W1/W2 with existing off/auto/require and prepared-strategy policies.
 Same-close is not relabelled next-open. Too-short daily score windows fail.
 
-Actual private candidate 0.4.3.dev2 was compiled/executed without reinstalling
-published 0.4.2. The latter lacks the prepared witness: auto records original-result
+The QMS-08 private installed pair `1.1.1+qms08/0.4.3.dev4` was compiled/executed
+on CPython 3.11-3.13 without reinstalling published 0.4.2. The latter lacks the
+prepared witness: auto records original-result
 fallback; require fails. Meta numeric require is independent of financial native
 resolution. W3 reactive/reset-flat meta is explicitly unsupported pending optional
 scope acceptance; no new reactive account/capture machinery was added.
@@ -47,8 +49,8 @@ Raw/native/meta/actual identities and computation/effect clocks remain distinct.
 
 ## Verification
 
-467 checks passed, zero failures/errors/skips, including 31 QMS-07 checks
-and actual private QMS-04/QMS-06/QMS-07 Rust candidate execution. Affected optimizer,
+567 checks passed, zero failures/errors/skips, including 56 QMS-08 checks
+and actual private QMS-04/QMS-06/QMS-07/QMS-08 Rust execution. Affected optimizer,
 sampler, five-mode schedules, nested causal Mode 1, native WFO and research-audit
 regressions pass. Forced-switch, future/late-label mutation, centroid/conditional
 space/RNG, account fee/funding and result consumers are covered. Hourly/daily
@@ -74,11 +76,42 @@ Some native numeric fits still lose to BLAS; qualified reference stays available
 Prepared parallelism's configured BLAS=4 differs from actual environment-capped
 OpenBLAS=1; this inherited telemetry debt is explicitly recorded for follow-up.
 
-QMS-07 commits: `8f555c9`, `abcaee2`, `2c64e04`; documentation/evidence closure
-follows them. No new phase or publication has started.
+QMS-07 commits: `8f555c9`, `abcaee2`, `2c64e04`, `559b4d1`.
+QMS-08 implementation `2269dc1`, CI/docs/verifier `25a0744`; final evidence
+closure follows. No publication has started.
+
+## QMS-08 Qualification And Remaining Decisions
+
+Private wheel/sdist/native bytes and logs are retained under ignored
+`.maturin/qms08`; 12 installed lanes across actual CPython 3.11.17/3.12.13/3.13.16
+pass source inventories, site-packages origins, four samplers, original prepared
+witnesses, selected params/equity/positions and dependency/require/fallback guards.
+`src/`, Rust and public versions/lockfiles are unchanged from QMS-08 entry.
+Local wheels are manylinux_2_34_x86_64, not a manylinux2014 portability claim.
+Read-only six-job Ubuntu22/24 candidate CI is prepared but NOT_RUN until an
+approved push. Private candidates are not public activation/version decisions.
+
+All 64 guide test IDs have actual coverage/dispositions. Q8-T03 real-alpha
+lineage is NOT_RUN_REAL_ALPHA, not passed by synthetic fixtures. No real-alpha
+dataset/calendar/economic budget was supplied: zero assessed market trials,
+origins, dev/locked folds, no empirical gain/uncertainty. A study needs >=128
+attempted trials/cutoff, >=12 matured origins and >=12 paired-valid locked folds;
+reserve >=12 dev folds if selecting recipes. Preserve signed R/Q/IS decomposition,
+negative/undefined outcomes and calendar; mean fold Sharpe is not account Sharpe.
+
+Remaining review items: economic registration/acceptance, new public pair and
+feature activation, remote matrix, optional W3, thread telemetry, measured
+geometry-aware Rust/BLAS dispatch and owner performance-budget acceptance.
+These are explicit decisions/debt, not unreported local software failures.
 
 ## Read Next
 
+- [QMS-08 final report and debt ledger](../docs/meta_selection/QMS08_REPORT.md)
+- [Complete user guide and migration](../docs/meta_selection/USAGE.md)
+- [Package/economic qualification boundary](../docs/meta_selection/QUALIFICATION.md)
+- [QMS-08 verified evidence](../benchmarks/optimization/meta_selection/qms08_qualification_evidence.json)
+- [QMS-08 independent receipt](../benchmarks/optimization/meta_selection/qms08_gate_receipt.json)
+- [QMS-08 actual JUnit](../benchmarks/optimization/meta_selection/qms08_tests.xml)
 - [Actual endpoint/config/history and information/accounting contract](../docs/meta_selection/INTEGRATION.md)
 - [QMS-06 report](../docs/meta_selection/QMS06_REPORT.md)
 - [QMS-07 report and debt ledger](../docs/meta_selection/QMS07_REPORT.md)
@@ -93,10 +126,10 @@ follows them. No new phase or publication has started.
 - [Handoff API and trust/readiness contract](../docs/meta_selection/HANDOFF.md)
 - [Ridge/model artifacts](../docs/meta_selection/MODEL.md)
 - [Sampler syntax](../docs/meta_selection/SAMPLERS.md)
-- [Unified plan](../upgrade/implement.md#qms-07)
+- [Unified plan](../upgrade/implement.md#qms-08)
 
 No mandatory scalar/prepared or portable-handoff functionality is deferred.
 Optional W3 meta scope review is explicit, not a generic reactive success claim.
-QMS-07 scoped implementation is complete; QMS-08 economic/installed-wheel/public-release
-qualification requires separate approval. Published package and private
-candidate proof must not be conflated; all old receipts remain historical.
+QMS-08 local software qualification is complete; economic/public-release and
+remote platform acceptance require separate approval. Published package and
+private candidate proof must not be conflated; all old receipts remain historical.
