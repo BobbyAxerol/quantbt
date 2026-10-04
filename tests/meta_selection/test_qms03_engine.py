@@ -444,6 +444,14 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
     allowed = {"src/quantbt/endpoint.py", "src/quantbt/walkforward.py"}
     for name in names:
         if name not in allowed:
+            if name == "rust/native_event/src/lib.rs":
+                # QMS-04 adds only registered numeric exports, not execution math.
+                current = (baseline.ROOT / name).read_bytes()
+                current = current.replace(b"mod qms_numeric;\n", b"").replace(
+                    b"    qms_numeric::register(module)?;\n", b""
+                )
+                assert baseline.git("show", "3ce42bf:" + name) == current, name
+                continue
             assert (
                 baseline.git("show", "3ce42bf:" + name)
                 == (baseline.ROOT / name).read_bytes()

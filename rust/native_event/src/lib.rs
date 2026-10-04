@@ -7,6 +7,7 @@ use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
 mod prepared_evaluation;
+mod qms_numeric;
 mod reactive_hot_loop;
 mod reactive_numeric;
 mod reactive_score;
@@ -9401,6 +9402,7 @@ fn run_full_tape_profile(
 
 #[pymodule]
 fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    qms_numeric::register(module)?;
     module.add("__version__", VERSION)?;
     module.add_function(wrap_pyfunction!(version, module)?)?;
     module.add_function(wrap_pyfunction!(api_version, module)?)?;

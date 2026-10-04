@@ -21337,11 +21337,48 @@ scoped local commit. No push/merge or version/native ABI change.
 
 ### Phase QMS-04 - Ridge Mathematics, Rust-First Numeric Policy And Artifacts
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** IN_PROGRESS (owner authorized 2026-10-04); technical NOT_RUN; empirical NOT_ASSESSED;
 performance NOT_MEASURED; owner review PENDING.
 **Goal:** implement the exact small-model policy and portable deterministic
 decisions, with Rust-first batch design and an independent numerical reference.
 **Entry:** accepted QMS-03 descriptors/history/labels and phase approval.
+
+**Execution Registration (2026-10-04):** branch `feat/meta-selection-samplers`,
+entry `ac3bd15`, clean worktree. Only QMS-04 is authorized. Reuse QMS-03
+records/schema/as-of snapshots; focused numeric, fit, policy and artifact modules
+under canonical `src/quantbt/optimization/meta_selection`, plus a focused module
+in the existing PyO3 crate. Financial reducers, sampler/search order, public
+endpoint signatures and current-OOS access remain unchanged.
+
+Preregister numerical contracts before measurement: float64, no fast-math,
+lambda > 0, no intercept/jitter/inverse/N-by-N weights; reference whitened-row
+solve. Relative residual limit 1e-10, condition limit 1e12; numerical parity
+rtol 1e-9 / atol 1e-10; boundary review band 1e-8, signed-score tie tolerance
+1e-10. Near-boundary native decisions recompute the entire fit/rank reference,
+not a top-K subset. Default support is 12 mature origins, explicit overrides
+are retained. Constant/unobserved feature support uses the QMS-03 transform.
+Whole-pool registered OOD disposition is native fallback; malformed inputs are
+errors, not scientific fallback.
+
+Native evidence uses an isolated local `0.4.3.dev1` candidate built from the
+current crate with a versioned `qms-numeric-v1` descriptor and owned numeric
+buffers. Stage the candidate version in a temporary build tree; do not replace
+the installed/released 0.4.2 or alter its registry/financial compatibility.
+The internal numeric dispatcher accepts the qualified candidate handle for
+tests/benchmark. Installed 0.4.2 remains an explicit missing-capability NumPy
+fallback for auto, and fails require. QMS-08 owns public version coordination.
+Measure fixed identical matrices including conversion/FFI, fit/rank and retained
+buffers; qualify only measured native blocks, with all used fallback reasons.
+No economic superiority, full WFO integration, push or release is authorized.
+
+**Progress:** the initial focused reference/native/record regression passes
+119 tests. Two native Rust unit tests pass. Candidate 0.4.3.dev1 builds/loads
+locally on CPython 3.12 without replacing installed 0.4.2. Before a tighter
+numeric error bound is registered, every native proposal also verifies the
+whole-pool reference decision from retained reference Gram/b; boundary or
+guard/tie disagreement uses the entire reference outcome. This verification
+cost is included, not hidden as native-only acceleration. QMS-04 remains
+IN_PROGRESS until final support/boundary tests, evidence and docs are complete.
 
 **Required guide:** [QMS-04 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-04--ridge-reference-ranking-và-decision-artifacts),
 [learner/guard/fixtures, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
