@@ -21992,12 +21992,44 @@ follows. No QMS-08, push, merge, tag, version bump or publication authorized.
 
 ### Phase QMS-08 - Regression, Economic Scope, Documentation And Package Gate
 
-**Status:** NOT_STARTED; technical NOT_RUN; empirical NOT_ASSESSED;
+**Status:** RUNNING; technical NOT_RUN; empirical NOT_RUN_BUDGET;
 performance NOT_MEASURED; owner review PENDING.
 **Goal:** qualify an opt-in library capability with complete examples, accurate
 empirical claims and a reproducible installed core/native release candidate.
 **Entry:** accepted QMS-01 through QMS-07; owner-approved study/data/resource
 registration and candidate-version policy; individual phase approval.
+
+**Execution Registration (2026-10-04):** owner explicitly approved QMS-08
+after QMS-07 closure `559b4d1`, on `feat/meta-selection-samplers`. Read this
+section, guide QMS-08 and sections 8/12/13/14/15, repository rules and the
+execution-plan/strategy-boundary/WFO-schedule ADRs before work. Scope is local
+software qualification, accurate scientific disposition, docs/examples and
+isolated artifact consumers; no push, merge, release, tag, deploy or PyPI.
+Published/source versions remain `1.1.1/0.4.2`. Build-only candidate identities
+`1.1.1+qms08/0.4.3.dev4` distinguish private artifacts from published releases;
+they are not a proposed public release number or permission to activate features
+in ordinary builds. Stage registry/descriptor/dependency versions consistently,
+enable the already-implemented numeric/witness candidate features only there,
+and audit every stage-only difference. No financial or methodology rewrite.
+
+Four work groups within this phase: (1) actual legacy/new-feature regression
+and fixed/TTS controls, (2) independently verified 64-ID coverage and pure
+raw-metric report regeneration/tamper tests, (3) public endpoint/methodology/
+capability/examples/navigation docs, (4) source-exact wheel/sdist and isolated
+installed consumers through the supported CPython 3.11-3.13 matrix where local
+interpreters/dependencies are available, with a non-publishing CI gate for the
+remote matrix. Record missing execution rather than claiming CI success.
+
+No specific alpha/BTC dataset, registered calendar or economic resource budget
+was supplied for this phase. Do not import a private alpha or invent a market
+study. Record `EMPIRICAL_VALIDATION_NOT_RUN`, zero assessed trials/origins/folds,
+and the exact registration needed for a later >=128-trial, >=12-origin,
+>=12-paired-fold study. Synthetic forced-switch/lineage fixtures remain software
+evidence, never Q8-T03 real-alpha proof. Preserve all QMS-01..07 sealed artifacts;
+new reports must verify their historical source/logs without rewriting them.
+Track inherited W3 scope, public candidate activation/owner version decision,
+economic acceptance, configured-vs-observed thread telemetry and measured
+mixed/high-d BLAS advantages in the final debt ledger.
 
 **Required guide:** [QMS-08 detailed steps/tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói),
 [reporting/verifier discipline, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
