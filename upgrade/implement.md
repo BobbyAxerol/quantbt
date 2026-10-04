@@ -22169,6 +22169,60 @@ remain explicit; software completion never implies universal edge or live approv
 - No push, merge, tag, GitHub deployment/release or PyPI. Next action is owner
   review/approved scoped subphases, not automatic phase/release advancement.
 
+### QMS Post-08 Real-Alpha Cost And Correctness Review
+
+**Registration (2026-10-04, before outcomes):** owner requested detailed
+correctness/cost/RSS evidence and selected Gradient RSI / ETHUSDT 1h. This is
+an additional local research review, not a release or a new methodology phase.
+Read the [study/claim guide, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [chronological/numeric gates, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
+
+- Preserve the approved notebook and loader. Export only its existing function
+  cell and eight numeric ranges into ignored local storage; record notebook,
+  cell, ranges, market and installed artifact identities. Never commit alpha
+  source, notebook outputs or raw market data.
+- Load real ETHUSDT futures 1h with `CryptoBinance1m.load_resampled`, from
+  2020-01-01 through 2024-04-30. Interpret the loader's naive timestamps as UTC;
+  validate calendar/OHLCV and disclose gaps without filling or fabricating bars.
+- Main review: Mode 4 / per_fold_causal, monthly OOS 2022-01 through 2024-04,
+  rolling 365D IS, 128 attempts/fold, no early stop/warm start, seed 731, one
+  worker. Native selector is IS-only robust medoid, top 10%, one IS subperiod,
+  existing trade penalty 100/year and 0.5. Keep notebook economics exactly:
+  capital 20000, leverage 1, allocation 0.5, legacy fee 0.0005 (canonical
+  one-way 0.00025), slippage 0.0001, funding 0.0001, maintenance 0.005.
+- Compare off, shadow/Rust-meta, active/Rust-meta and active/reference-meta.
+  Financial authority remains Numba in all four to isolate meta costs. Retain
+  all original-result witnesses, default minimum 12 matured origins, lambda 10,
+  Q floor -0.10, full registered observer panel, isolated fresh history/RNG.
+  Use the already-qualified private installed CPython 3.12 core/native pair;
+  no rebuild or changes to sealed QMS-08 source/artifact evidence.
+- Sampler engineering-cost lane: first two monthly folds, 32 trials/fold,
+  tpe_legacy / tpe_multivariate_group / cmaes / sobol, one warmup and three
+  measured independent runs per fresh process. Do not select an economic
+  recipe from this timing lane; do not treat differing candidate pools as parity.
+- Verify real-alpha future-suffix signal invariance; off/shadow proposal,
+  selected-param and account parity; active Rust/reference chronological
+  decision/raw-metric/account parity; continuous stitched account versus the
+  existing standalone endpoint; actual observer validity, pool/panel membership,
+  snapshot availability and native/meta IS-forward decomposition.
+- Record cold and warm wall/CPU, sampler methods, observer/fit/snapshot costs,
+  actual counts, process RSS/PSS and retained outputs. Timing/clock/artifact
+  IDs are not numeric-parity fields. Undefined outcomes stay typed, not zero.
+- ETH is owner-approved real functional evidence, not the guide's primary BTC
+  scientific certificate. Prior alpha/sample research exposure remains explicit;
+  report realized matured/paired support and uncertainty honestly. No recipe
+  tuning, budget escalation after outcomes, edge/default promotion or release.
+- Analysis registration before main outcomes: report all monthly pairs and the
+  subset whose decision already has >=12 matured origins. If >=12 consecutive
+  valid supported monthly pairs exist, use `arch.bootstrap.MovingBlockBootstrap`
+  with block length 3, 4096 resamples, seed 731 and percentile 95% intervals for
+  paired mean R/Q. Otherwise record insufficient dependent-time inference.
+  Intervals are descriptive research uncertainty, not a pristine holdout claim.
+- Add a generic private-input runner, focused runner tests and a separate
+  report/evidence. Preserve historical QMS-01..08 reports/receipts unchanged.
+  Exit: real executions and reconciliations verified, costs quantified, remaining
+  scientific/remote/W3/public-pair debt distinguished from software correctness.
+
 ### QMS Requirement Coverage And Completion Records
 
 | Guide requirement | Primary owner | Final verification |
