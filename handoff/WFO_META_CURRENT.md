@@ -14,6 +14,9 @@
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
   tests and ten installed consumer runs PASS at its historical seal; E03 software
   coverage and original-account proofs are tracked separately in the unified plan.
+  Read [E03 scope, registered study and current qualification](../docs/meta_selection/QMSE03_REPORT.md).
+  Corrected installed wheel/sdist eight-cell proofs pass locally; the registered
+  per-cell studies and final regression are still running, not a claim of gain.
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.

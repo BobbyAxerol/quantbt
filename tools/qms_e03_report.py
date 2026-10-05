@@ -73,6 +73,7 @@ def build(*, study, package, junit, before, after):
         # Fixed whitelist: private parameters, candidate rows, alpha and prices
         # never enter the public receipt.
         rows.append(dict(target=target, backend=backend, empirical_status=row["status"],
+            registered_threshold_pass=row["registered_threshold_pass"],
             calendar_folds=row["calendar_folds"], valid_folds=row["valid_folds"],
             supported_valid_origins=row["supported_valid_origins"],
             all_valid_mean_r=row["all_valid_mean_r"], all_valid_mean_q=row["all_valid_mean_q"],

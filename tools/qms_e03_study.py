@@ -255,6 +255,7 @@ def summarize(output):
         if target == "dca_ladder":
             status = "SIMULATED_STRATEGY_ONLY_NOT_REAL_ALPHA_PROMOTION"
         rows.append(dict(target=target, backend=backend, status=status,
+            registered_threshold_pass=passed,
             matched_full_is_search=True, calendar_folds=raw["calendar_folds"],
             valid_folds=raw["paired_valid_folds"], supported_valid_origins=len(valid),
             all_valid_mean_r=raw["mean_fold_r"], all_valid_mean_q=raw["mean_fold_q"],

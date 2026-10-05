@@ -29,7 +29,8 @@ E03 additionally admits bounded scalar research cells (`signal_notional`,
 `notional`, `unit` on original vectorized/native-event execution, and legacy
 `pct_equity`/structural `dca_ladder`). Read the
 [exact scalar contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
-and [runnable scalar example](../examples/wfo_meta_scalar.py).
+and [runnable scalar example](../examples/wfo_meta_scalar.py), with the
+[phase scope/study report](meta_selection/QMSE03_REPORT.md).
 This is still Mode 4 / `per_fold_causal`, endpoint-backed scoring and opt-in
 meta. Software admission does not assert reduced decay or economic promotion;
 reactive grid/DCA, portfolio, packages and intrabar have separate pending gates.

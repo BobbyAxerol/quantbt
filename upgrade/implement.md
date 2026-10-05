@@ -23767,6 +23767,18 @@ legacy family IDs and original fee, timing, account and prepared-required guards
 remain unchanged. New sizing/backend identities cannot import legacy histories.
 No release, push, activation of other methodologies, or financial kernel edits.
 
+**E03 Execution Notes:** original sizing/backend eight-cell wheel/sdist consumer
+proofs and focused original-account tests pass. Full regression identified an
+earlier prepared-required exception contract; E03 now preserves
+`NativePreparedPublicWfoUnsupported` for incompatible pct-equity costs. The C05
+historical gate recognizes only exact reviewed E03 bytes, not a file-wide waiver.
+The first study registration/failed exports remain archived. A new sealed source
+registration is required for the corrected installed candidate; financial
+inputs, trial budget, RNG, thresholds and formulas stay unchanged. Raw pruned
+Optuna objectives remain explicit nonfinite tokens, never fake zero labels.
+Cold receipt export/account-rebuild memory is separate from execution RSS.
+Remote CI now includes eight scalar installed cells, but is not triggered here.
+
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
 
