@@ -37,8 +37,13 @@ QMS-C04 is **COMPLETE_LOCAL_APPROVED_SCOPE**: opt-in owned exact journal
 continuation, no automatic endpoint/fold resume. **916 scoped checks PASS**
 (114 C04-specific), fresh wheel/sdist four-recipe process consumers PASS.
 Read [the C04 contract](../docs/meta_selection/EXACT_CONTINUATION.md) and
-[final report](../docs/meta_selection/QMSC04_REPORT.md). C05 stays planning-only.
-No new meta mode, public meta batch or publication is authorized by C03/C04.
+[final report](../docs/meta_selection/QMSC04_REPORT.md).
+QMS-C05 is **SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED**: **366 scoped checks
+PASS** (139 C05-specific). The [geometry proposal](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md)
+and [C05 report](../docs/meta_selection/QMSC05_REPORT.md) retain conditional-Sobol/
+mixed-centroid public guards and all production bytes. Owner approval of the new
+math and runtime activation remain separate. No new meta mode, public meta batch
+or publication is authorized by C03/C04/C05.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -22682,7 +22687,7 @@ is a separate later publication-workflow gate. No scientific replacement or
 future QMS-C01..C05 implementation was started.
 
 <a id="qms-capability-gap-roadmap---planning_only"></a>
-### QMS Capability Gap Roadmap - C01 REVIEW; C02-C04 LOCAL; C05 PLANNING_ONLY
+### QMS Capability Gap Roadmap - C01/C05 SPEC REVIEW; C02-C04 LOCAL
 
 **Authorization:** the owner initially requested detailed tracking of the five
 capability groups below, not implementation, methodology research or replacement
@@ -22692,7 +22697,9 @@ implementation plus carry/multi-symbol specification/test approval. Every other
 group requires separate approval and capability/spec review. C03 subsequently
 received scheduler integration approval, and C04 received owned persisted-exact
 continuation approval; their tested scope is recorded below, not inferred from
-the original planning authorization.
+the original planning authorization. C05 subsequently received a phase request;
+the existing spec-before-activation rule was retained. Its independent local
+review/tests are complete, but new mathematical/runtime activation is not inferred.
 Reuse existing typed planning/preparation/evaluation/history/selection/native/
 result contracts; no new account engine, endpoint or sampler factory. Baseline
 off/shadow/RNG/account parity and explicit unsupported errors remain required.
@@ -23237,7 +23244,7 @@ Historical receipts are unchanged. No push, merge, tag, upload or release ran.
 
 #### QMS-C05 - Conditional Sobol And Admissible Mixed-Space Representatives
 
-**Status:** IN_PROGRESS_SPEC_AND_TESTS; baseline `681cb00`.
+**Status:** SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED; baseline `681cb00`.
 **Authorization:** the owner requested C05 on 2026-10-05 (Asia/Saigon).
 The existing review-before-activation rule still applies. A scope clarification
 has been sent; absent separate approval, this pass implements review documents,
@@ -23297,6 +23304,29 @@ methodology approval remains PENDING; spec completion is not runtime activation.
 conditional sampling and mixed representatives, scheduler/exact-continuation
 integration, economic study and release qualification remain explicit follow-up
 capabilities requiring approved semantics and their own activation gates.
+
+**Completion Record (2026-10-05, Asia/Saigon):** C05-T01..T06 PASS_LOCAL_SPEC,
+**366 unique scoped tests PASS** with zero final failures/errors/skips;
+**139 C05-specific** (36/29/13/20/17/24 by group) plus 227 affected sampler/
+history/public-meta/source/financial-replay checks. Real public preflight,
+eight-route medoid/account/RNG compatibility and numeric-centroid exact IS
+acquisition pass. Ruff and eight source/docs/security checks pass.
+
+Independent [receipt](../benchmarks/optimization/meta_selection/qms_c05_gate_receipt.json)
+binds JUnit, check logs and reviewed source/document hashes. Read the
+[proposed semantics](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md) and
+[full conclusion/remaining ledger](../docs/meta_selection/QMSC05_REPORT.md).
+Actual baseline-to-current production diff is empty; guide, dependencies,
+contracts, financial/RNG/scientific math and prepared pair **1.1.2 / 0.4.3**
+remain unchanged. No native/package rebuild, benchmark speed/RSS claim or new
+economic/alpha-decay study was needed or performed in this spec-only pass.
+
+Plan committed before review work: `d92ba8d`; verified specification/reference/
+test/documentation chunk: `f514fce`. Owner methodology review remains PENDING.
+Conditional Sobol/mixed representative factory/selector activation, actual
+category RNG, scheduler/checkpoint/artifact qualification require separate
+approval. Existing C01/C02/C04 capability boundaries and remote/public gates
+remain explicit, not hidden as completed. No push, merge, tag or publication ran.
 
 ### QMS Requirement Coverage And Completion Records
 
