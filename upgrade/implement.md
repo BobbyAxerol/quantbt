@@ -1,10 +1,14 @@
 # QuantBT Upgrade Implementation Plan
 
-**Active planning (2026-10-03):**
+**Current QMS status (2026-10-05, Asia/Saigon):**
 [QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
 The [QMS-V1.1 detailed guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
-is required reading before every phase. Plan authoring is approved; implementation
-requires individual phase approval. No QMS phase has started.
+is required reading before every phase. QMS-01 through QMS-08 software is
+complete locally, including the separately approved local debt closure.
+Remote qualification and public release preparation are now authorized under
+[QMS-R01 through QMS-R03](#qms-release-gap-closure).
+Scientific acceptance, new capability implementation, merge/tag/publication
+remain separate owner decisions. Historical receipts are preserved unchanged.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -20711,8 +20715,11 @@ QMS-02 COMPLETE; owner authorized advancement to QMS-03;
 QMS-03 COMPLETE; owner authorized advancement to QMS-04;
 QMS-04 COMPLETE; technical PASS; owner authorized advancement to QMS-05;
 QMS-05 COMPLETE; technical PASS; owner authorized advancement to QMS-06;
-QMS-06 COMPLETE; five technical gates PASS; owner/W3-scope acceptance PENDING;
-QMS-07 and QMS-08 NOT_STARTED.
+QMS-06 COMPLETE; prepared/handoff technical gates PASS; the separately approved
+sequential W3 adapter is PASS_LOCAL;
+QMS-07 COMPLETE; technical PASS, performance MEASURED_SCOPED_GAIN;
+QMS-08 SOFTWARE_COMPLETE_LOCAL; current source/consumer proof PASS_LOCAL.
+Final scientific/owner acceptance and remote/public qualification are separate.
 **Authorization:** the owner approved writing these eight phases into the unified
 plan. Implementation, phase advancement, merge and publication require their
 respective explicit authorization; this record is not implementation approval.
@@ -20731,6 +20738,11 @@ historical; QMS-06, push, merge and publication require separate authorization.
 The owner subsequently authorized QMS-06 on 2026-10-04 and requested completion.
 This accepts QMS-05 for phase advancement only; its sealed receipt stays
 historical. QMS-07/08, push, merge, tags and publication remain unauthorized.
+Those preceding authorization statements describe their historical cutoffs.
+The owner subsequently approved QMS-07, QMS-08, the ETH review and local debt
+closure; their individual execution records below are authoritative. On
+2026-10-05 the owner approved the three release-gap tasks below, including
+qualification on origin. This does not grant scientific redesign or publication.
 **Detailed specification:** [QMS-V1.1 guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md).
 **Baseline:** released `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`;
 release tag `v1.1.1`, expected source commit
@@ -20862,9 +20874,9 @@ completed support. No required QMS work may be relabeled future technical debt.
 | [QMS-03](#qms-03) | Compact descriptors, historical tasks, labels and immutable revisions | QMS-01/02 accepted | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-04](#qms-04) | Ridge, Rust-first numeric dispatch, guards and artifacts | QMS-03 accepted | COMPLETE; ADVANCEMENT_APPROVED |
 | [QMS-05](#qms-05) | Actual public Mode 4 causal hook, off/shadow/active | QMS-02/03/04 accepted | COMPLETE; ADVANCEMENT_APPROVED |
-| [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | COMPLETE; OWNER/W3_SCOPE_PENDING |
-| [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | NOT_STARTED |
-| [QMS-08](#qms-08) | Regression, bounded economic evidence, docs and package qualification | QMS-01 through QMS-07 accepted | NOT_STARTED |
+| [QMS-06](#qms-06) | Prepared/reference adapters and portable host handoff | QMS-05 accepted | COMPLETE; sequential W3 follow-up PASS_LOCAL |
+| [QMS-07](#qms-07) | Measured numeric/DSA optimization and sequence parity | QMS-04/05/06 accepted | COMPLETE; local witness/dispatch/telemetry follow-up PASS_LOCAL |
+| [QMS-08](#qms-08) | Regression, bounded economic evidence, docs and package qualification | QMS-01 through QMS-07 accepted | SOFTWARE_COMPLETE_LOCAL; remote/public/scientific gates tracked separately |
 
 All 64 guide test IDs Q1-T01 through Q8-T08 are retained below. Map each ID to
 actual test functions, command/log, expected/actual result and evidence hashes
@@ -22489,6 +22501,184 @@ remain immutable. Local mandatory debts are closed; process/batch/deadline W3
 meta or dynamic carry are explicit future capabilities. Remote/platform/public
 activation and economic acceptance remain PENDING_OWNER_APPROVAL. No push,
 merge, tag, release, deploy or PyPI operation was performed.
+
+<a id="qms-release-gap-closure"></a>
+
+### QMS Release Gap Closure - Owner Authorization 2026-10-05
+
+**Approved execution:** QMS-R01/R02/R03 only, on the existing dev-based
+`feat/meta-selection-samplers` branch. Commit verified changes locally; push
+only this branch to `origin` and run read-only qualification. Never force push,
+merge dev/main, create/move a tag or upload a distribution under this scope.
+Core/native version choice requires the owner's explicit response; proposal
+`1.1.2 / 0.4.3`, unchanged native API/ABI and financial contracts. Stage/build
+fresh artifact bytes for the approved pair; private receipts do not certify them.
+
+**Protected scientific scope:** guide sections [14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15),
+original QMS receipts, ETH inputs/registration/outcomes, model mathematics,
+support thresholds, analysis protocol, sampler/RNG/search/accounting stay
+unchanged. Explain scientific limitations separately. Do not rerun, replace or
+redesign that study without a later explicit scientific authorization.
+
+#### QMS-R01 - Current Plan Hygiene And Historical Receipt Preservation
+
+**Goal:** make the active overview truthful without rewriting historical seals.
+**Guide:** [reporting/upgrade discipline, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[QMS-08](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói).
+**To do:** correct the top-level status, common authorization timeline and eight-
+phase map; link the current closure receipt from user-facing qualification and
+handoff. Label old pending/NOT_RUN records as historical; preserve their exact
+artifacts and source identities. Record current remote/release/scientific flags
+independently, not a blanket COMPLETE/PASS.
+**Tests/exit:** docs/link and whitespace checks; compare archived evidence
+hashes with the entry revision; no source/financial/scientific edits. Current
+overview must not say QMS-07/08 NOT_STARTED or imply unpublished QMS exports
+already exist in public native 0.4.2.
+**Debt disposition:** historical records are intentionally immutable; unresolved
+remote/scientific/public decisions are not overwritten with local PASS.
+
+#### QMS-R02 - Installed W3 Proof And Six-Row Remote Qualification
+
+**Goal:** qualify the actual changed source and installed native boundary on
+Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, without publishing.
+**Guide:** [QMS-06](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-06--prepared-adapters-reference-parity-và-host-handoff),
+[8.4-8.6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[QMS-08 package/regression](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói)
+and [current W3 contract](../docs/meta_selection/INTEGRATION.md#w3-sequential-meta).
+**To do:** extend the existing read-only candidate matrix, not a new publisher;
+run installed `python -I` W3 consumer in a cold directory using the exact pair;
+verify package/module origin, versions, compiled native numerics, original-pass
+objective/witness, off/shadow account equality, active lineage, observer and
+cleanup. Retain structured proof, wheel/log hashes, run SHA/job/runner identity.
+Use a qualification-only feature-branch push trigger if workflow dispatch is
+unavailable; no secrets/publication permissions are required. Bind the matrix
+receipt to the actual pushed SHA and all six successful jobs. Missing/failed/
+cancelled rows remain FAIL/PENDING, never inferred from local interpreter runs.
+**Tests/exit:** workflow/parser tests; W3 consumer command on actual installed
+local pair; negative origin/version/receipt tests; six actual remote successes
+with source-exact wheel/sdist and native/core-only/fallback/require behavior.
+No protected alpha, market tape, runtime caches or credentials in uploaded logs.
+**Debt disposition:** remote/platform proof is a gate, not a language-speed or
+scientific certificate; stop/recover concrete CI failures before claiming PASS.
+
+#### QMS-R03 - Exact Public Pair, Default Native Capability And Release Handoff
+
+**Goal:** prepare installable release artifacts that contain the QMS capability
+under ordinary consumer installation, not only opt-in private build flags.
+**Guide:** [QMS-08 step 8/package tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói),
+[Rust/dependency/promotion policy, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[scope and owner gates, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[qualification](../docs/meta_selection/QUALIFICATION.md).
+**To do:** record the owner-approved pair; update canonical versions, platform-
+marked exact dependency, lock files and generated product compatibility through
+their structured generator. Enable the already-qualified QMS exports for default
+native builds; do not make meta active by default or promote other backends.
+Preserve historical private builds by staging their captured source/identity
+explicitly, not silently relabeling archived wheels. Build new canonical core
+wheel/sdist and native wheel without candidate-only flags; check source inventory,
+secret allowlist, ABI/pair/capabilities, optimization-extra dependency resolution,
+off/missing-native/require/reference and actual scalar/W3 installed consumers.
+Extend existing release and public Poetry consumer gates to test QMS when the
+release contract declares it. Public-index proof is authorized only after a
+later publish approval and actual index availability; local exact-wheel proof
+is distinct. Write a short runbook for push/PR dev, PR main, immutable tag,
+native-first publish, core publish, public consumer proof, rollback and failures.
+**Tests/exit:** new declared-pair source consistency, feature activation and
+negative handshake tests; ordinary no-extra-flags Rust compile; exact new
+installed-wheel scalar/W3 parity; remote six-row matrix on the final prepared
+source; public proof workflow structurally ready. Actual PyPI/public-index status
+must remain PENDING_PUBLICATION unless a separately approved publish occurred.
+**Debt disposition:** do not invent scientific acceptance to unblock software
+release, weaken a legacy financial test or reuse 1.1.1/0.4.2 published bytes.
+
+### QMS Capability Gap Roadmap - PLANNING_ONLY
+
+**Authorization:** the owner requested detailed tracking of the five capability
+groups below, not implementation, methodology research or replacement of guide
+section 14. Every group requires a separate approval and capability/spec review.
+Reuse existing typed planning/preparation/evaluation/history/selection/native/
+result contracts; no new account engine, endpoint or sampler factory. Baseline
+off/shadow/RNG/account parity and explicit unsupported errors remain required.
+
+#### QMS-C01 - Additional Meta Modes And Schedules
+
+**Goal:** assess other existing modes without disguising their information role.
+**Guide:** [3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
+**Future work:** map each native anchor/objective/fold clock and history seam;
+draft explicit methodology amendments for Mode 1 decay/Mode 2 bootstrap/Mode 3
+plateau/global schedules and Mode 5 calibration. Do not label OOS-adjusted or
+full-sample selection causal. Owner selects the actual proposed semantics first.
+**Tests/exit:** native meta-off compatibility, exact full pools/anchors/raw
+validity, declared data roles, OOS/future mutation, RNG/selection lineage and
+same-pass accounting; written revised scope and supported matrix before enabling.
+**Not started:** all currently unsupported combinations remain preflight errors.
+
+#### QMS-C02 - W3 Process, Batch, Deadline, Carry And Multi-Symbol Contracts
+
+**Goal:** extend genuine reactive accounting/transport, not coerce it to scalar.
+**Guide:** [8.4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8)
+and [W3 reset-flat boundary](../docs/meta_selection/INTEGRATION.md#w3-sequential-meta).
+**Future work:** typed detached original-result witness across existing process/
+batch boundary, isolation and atomic capture/selection, cancellation/deadline
+safe points. Review a dynamic order/state cross-fold carry contract before
+continuous equity; define shared account and symbol/calendar semantics before
+multi-symbol. Stage each transport/account dimension separately.
+**Tests/exit:** serial/process/batch original-pass pool/objective parity under
+declared schedule; incomplete/cancelled/late jobs, cleanup and bounded retention;
+exact fills/fees/funding/margin/account carry; asynchronous calendars and shared
+margin; no invented reset-equity compounding or deadline backdating.
+**Not started:** no continuous carry/multi-symbol/parallel-meta certificate.
+
+#### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
+
+**Goal:** qualify each recipe on each actual scheduler, not a universal roster.
+**Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10)
+and [current sampler contracts](../docs/meta_selection/SAMPLERS.md).
+**Future work:** reuse shared factory/normalized space, pin supported geometry
+and ask/tell ordering per topology. TPE sequential semantics cannot become
+batched suggestions silently; fixed batches need an explicit algorithm version.
+**Tests/exit:** actual four recipes/capability errors, attempts/pruning/constraints/
+duplicates, conditional activity, seed/QMC consumption, warm provenance,
+same-schedule decisions and original account parity; installed route matrix.
+**Not started:** distinct recipe pools are not same-pool economic comparisons.
+
+#### QMS-C04 - Persisted Exact Optuna Continuation
+
+**Goal:** specify safe deterministic continuation beyond one owned live study.
+**Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6)
+and [existing resume boundary](../docs/meta_selection/SAMPLERS.md#study-seeds-telemetry-and-resume).
+**Future work:** define version-pinned portable sampler/RNG/study/pruner/callback/
+duplicate-cache state, pending-trial commit points, schema/cutoff identity and
+transactional recovery. Evaluate documented upstream support; reject unsafe
+untrusted pickle. A database reload or seed reset alone is not exact resume.
+**Tests/exit:** interrupted versus uninterrupted ask/tell/params/pruning/objective/
+winner parity for each certified recipe; incompatible versions, partial/corrupt
+state, pending failures and future warm-start rejection. Unsupported state
+serializers must fail explicitly, not fabricate exact continuation.
+**Not started:** no persisted-exact-resume promise is added by this plan.
+
+#### QMS-C05 - Conditional Sobol And Admissible Mixed-Space Representatives
+
+**Goal:** design valid conditional sampling/representatives before activation.
+**Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)
+and [current geometry limits](../docs/meta_selection/SAMPLERS.md#range-syntax-and-effective-identity).
+**Future work:** decide a fixed latent-dimension/conditional-mask QMC contract
+and honest point-consumption/discrepancy scope. Define a constrained projection
+or admissible representative for categorical/conditional centroids, including
+distance/tie/version and a real same-IS evaluation of its exact params. Never
+average enum codes, inactive values or infeasible branches into a valid anchor.
+**Tests/exit:** branch activation, log/step/integers/fixed/category constraints,
+effective duplicate identities, projected admissibility, exact-anchor witnesses,
+seed/QMC provenance and old medoid behavior. New math needs owner-approved spec
+and independent expected-value tests, not only parity with an invalid centroid.
+**Not started:** current unsupported guards stay in place; no altered scientific
+or selection methodology is implemented in this release-gap closure.
 
 ### QMS Requirement Coverage And Completion Records
 
