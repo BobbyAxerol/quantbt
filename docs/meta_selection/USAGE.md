@@ -137,6 +137,11 @@ space requires explicit independent policy; otherwise preflight rejects it.
 Conditional/boolean/fixed/integer/log-float fields retain exact effective
 identities. Valid native kwargs and shared constraints/warm-start rules are in
 [SAMPLERS.md](SAMPLERS.md). No adaptive sequential ask/tell is changed to a batch.
+For prepared reactive strategies, C03 also qualifies these recipes through the
+existing `WalkForwardConfig.sampler_config`; see the [W3/R3B scheduler matrix](W3_SAMPLER_SCHEDULES.md)
+and [runnable example](../../examples/wfo_reactive_samplers.py). Batch proposals
+require an explicit versioned contract; meta still requires Mode 4 causal
+sequential reset-flat execution. This local addition is not yet published.
 
 ## Inspect The Decision
 

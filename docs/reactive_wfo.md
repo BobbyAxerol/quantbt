@@ -10,6 +10,9 @@ or imply that published native 0.4.2 includes QMS numeric/prepared features.
 The [C02 transport/account contract](meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
 qualifies native cooperative deadlines and a private R3B witness primitive;
 public meta batch, continuous carry and multi-symbol remain unsupported.
+The locally qualified [C03 sampler/scheduler matrix](meta_selection/W3_SAMPLER_SCHEDULES.md)
+adds the four shared recipes to W3 and versioned opt-in R3B; it does not expand
+meta methodology, change accounts or authorize publication.
 
 `QuantBTEndpoint.prepare_reactive_walk_forward(...)` is QuantBT's explicit walk-forward route for stateful event-driven strategies. It does not turn a strategy into a `pos_weight` series. Rust owns the prepared market clock, orders, fills, fees, funding, margin, liquidation, and scalar account score; Python owns only the declared strategy decision boundary.
 
@@ -152,7 +155,15 @@ result = runtime.backtest(
 )
 ```
 
-With `candidate_matrix`, metadata declares `sampling_contract="fixed_candidate_matrix_r3b_v1"`; with `param_ranges`, it declares `adaptive_optuna_batch_r3b_v1`. Candidate-local native command or wake-plan errors become pruned candidate records and cannot affect the selector. A malformed shared Python batch callback fails the batch closed.
+With `candidate_matrix`, metadata declares `sampling_contract="fixed_candidate_matrix_r3b_v1"`;
+sampler/warm-start/constraint options there are rejected, not silently ignored.
+With legacy ranges and omitted sampler policy, adaptive metadata stays
+`adaptive_optuna_batch_r3b_v1`. Explicit sampler policy or mapped schema uses
+`shared_sampler_batch_r3b_v2` and the shared four-recipe bridge. V2 asks and
+suggests the complete batch before scoring/telling in trial order; it remains
+global/inprocess only and is not sequential-equivalent. Candidate-local native
+command/wake-plan failures become pruned records; malformed shared Python
+callbacks fail the batch closed. See [ordering and telemetry](meta_selection/W3_SAMPLER_SCHEDULES.md).
 
 `reference_best_objective` and `max_quality_regret` are paired evidence gates for throughput experiments, not auto-promotion controls.
 

@@ -243,6 +243,9 @@ Shadow exports a learned proposal but executes the exact native anchor. Active
 executes the proposed candidate, or native anchor on a documented fallback.
 No downstream raw-IS floor restores a lower-IS winner to the native anchor.
 Sampler configuration remains independent and uses the shared QMS-02 bridge.
+The [C03 W3/R3B qualification](W3_SAMPLER_SCHEDULES.md) reuses that same bridge
+and real factory identity. Four recipes now have local installed proof on W3;
+R3B uses an explicit batch proposal version and remains meta-unsupported.
 
 The meta config has a separate digest. It is deliberately not inserted into the
 legacy strategy execution seed hash: merely enabling shadow must not change

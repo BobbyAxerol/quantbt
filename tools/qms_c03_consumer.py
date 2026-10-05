@@ -94,8 +94,17 @@ def qualify(*, example, core_version, native_version):
                        for r in meta["records"])
             assert all(r["selected_params"] == result.params_by_fold[r["fold_id"]]
                        and not r["current_outer_oos_used_for_selection"] for r in meta["records"])
+            process = fixture.execute(config=replace(config, meta_selection=dict(mode=mode,
+                native_batch_policy="require", min_matured_origins=1, label_observer=True)),
+                worker="process", meta_history=MetaHistoryContext(MetaHistory(),
+                    "installed-C03", "BTC", "1D", "engineering"))
+            accounts_equal(result, process)
+            for a, b in zip(result.metadata["sampler_studies"], process.metadata["sampler_studies"], strict=True):
+                assert a["rows"] == b["rows"] and a["ask_tell_digest"] == b["ask_tell_digest"]
+            assert process.metadata["meta_selection"]["observer_failures"] == 0
             meta_rows.append(dict(recipe=recipe, mode=mode, pool_exact=True, selected_lineage=True,
-                same_pass_observer=True, actual_rust_fit=True, shadow_account_exact=mode == "shadow"))
+                same_pass_observer=True, actual_rust_fit=True, process_pool_account_exact=True,
+                shadow_account_exact=mode == "shadow"))
     assert not multiprocessing.active_children()
     return wire(dict(schema="qms-c03-installed-consumer-v1", core=core_version, native=native_version,
         core_origin=str(Path(quantbt.__file__).resolve()), native_origin=str(binaries[0]),

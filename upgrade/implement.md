@@ -13,8 +13,8 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current C02 source/artifacts require a new remote gate. Public proof remains
-PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02.
+current C03 source/artifacts require a new remote gate. Public proof remains
+PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -28,7 +28,11 @@ QMS-C02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: original-pass process/batch witnes
 transport and native cancellation/deadline tests PASS; carry/multi-symbol are
 specification/tests only, not runtime capabilities. Read the
 [C02 report and remaining ledger](../docs/meta_selection/QMSC02_REPORT.md).
-QMS-C03 is authorized for four-recipe W3/scheduler qualification; C04/C05
+QMS-C03 is **COMPLETE_LOCAL_APPROVED_SCOPE**: four shared recipes, W3 sequential/
+safe process, versioned R3B and frozen-pool replay pass exact source/decision/
+account gates. **802 scoped checks PASS** (132 C03-specific), fresh installed
+wheel/sdist and original-pass meta process matrix PASS. Read
+[the final C03 report](../docs/meta_selection/QMSC03_REPORT.md). C04/C05
 remain planning-only. No new meta mode, public meta batch or publication is
 authorized by C03.
 
@@ -22967,7 +22971,9 @@ remain owner-controlled and were not performed.
 
 #### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
 
-**Status:** AUTHORIZED_IN_PROGRESS; entry `b2c6225`, 2026-10-05 (Asia/Saigon).
+**Status:** COMPLETE_LOCAL_APPROVED_SCOPE; entry `b2c6225`, 2026-10-05 (Asia/Saigon).
+**Technical gate:** PASS_LOCAL; **owner review:** PENDING; **economic claim:**
+NOT_CLAIMED; **remote/public promotion:** NOT_AUTHORIZED_IN_C03.
 **Owner scope:** implement/qualify existing four sampler recipes through the
 existing W3 sequential and R3B scheduler boundaries. Preserve financial Rust,
 Ridge, guide, sampler implementations/dependencies and prepared release pair.
@@ -23086,6 +23092,38 @@ whole-run medians **147.18-262.66 ms** on 180 daily bars / 16 attempted trials.
 Different recipe/B>1 pools and score work are not equal-work speedup or economic
 superiority evidence. Broad regression, docs and independent final gate remain
 in progress; no publication is authorized.
+
+**C03 final receipt (2026-10-05):** all eight registered stages and C03-T01..T08
+local gates PASS. Final regression: **783 PASS** (QMS, supported W3/WFO schedules,
+public native WFO and event facade), **18 package checks PASS**, one dedicated
+eight-cell four-recipe shadow/active process matrix PASS: **802 total**, including
+**132 C03-specific checks**, zero skips/errors. The initial documentation-link
+setup failure was repaired by adding the report; no tolerance/gate was weakened.
+Eight source/layout/contracts/API/architecture/docs/benchmark/secret commands,
+Ruff and whitespace PASS. Fresh canonical wheel/sdist expanded v2 consumers
+retain actual recipe classes, original pools/digests/accounts and Rust fits,
+including all eight meta process cells; no child remains. Original C02 native
+wheel reused, no new Rust build or research-environment upgrade.
+Read [final C03 report](../docs/meta_selection/QMSC03_REPORT.md),
+[stable invocation and exact schedules](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md),
+[runnable example](../examples/wfo_reactive_samplers.py),
+[cost samples](../benchmarks/optimization/meta_selection/qms_c03_sampler_evidence.json).
+The independent local receipt is
+`benchmarks/optimization/meta_selection/qms_c03_gate_receipt.json`; ignored
+artifact/log/JUnit refs live in `.maturin/qms08/c03-package-v2` and `c03-review`.
+Source guard pins exact adapters `63ab385`, not an open-ended file allowlist.
+Financial Rust, Ridge/sampler math, guide, pins and 1.1.2/0.4.3 pair are unchanged.
+
+**Remaining ledger after C03:** no approved local C03 implementation blocker.
+C01 additional-mode activation and C01-D01 provenance repair still require
+separate approval. C02 carry/multi-symbol financial runtimes, public meta batch,
+C04 exact persisted RNG continuation and C05 conditional Sobol/admissible mixed
+centroids remain distinct unstarted capabilities. Current-source remote
+qualification must include the installed four-recipe scheduler/meta-process
+proof, not merely reuse pre-C03 W3/remote receipts. Public release/index proof
+and full scientific acceptance remain owner-controlled; no push, merge, tag,
+release or upload was performed. Cost/RSS figures have explicit engineering
+scope and do not certify sampler superiority or improved decay.
 
 #### QMS-C04 - Persisted Exact Optuna Continuation
 

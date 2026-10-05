@@ -2846,6 +2846,13 @@ qualifies cooperative native witness deadlines and the private R3B witness
 primitive. Public meta batches, account carry and multi-symbol W3 still reject
 before execution. No endpoint is renamed or financial model replaced.
 
+C03 locally qualifies the four shared sampler recipes on W3 sequential/safe
+process and versioned global/inprocess R3B. Use the existing
+`WalkForwardConfig.sampler_config`; read
+[`sampler_studies` and proposal-order semantics](meta_selection/W3_SAMPLER_SCHEDULES.md).
+Fixed matrices are replay, not samplers. This does not activate extra meta modes,
+continuous carry, multi-symbol or public meta batching.
+
 For QMS-08 candidate users, start with the [complete user guide](meta_selection/USAGE.md)
 and [installed-artifact qualification](meta_selection/QUALIFICATION.md). The
 public signature remains the same; `meta_history` is the additive keyword-only

@@ -228,9 +228,13 @@ a sampler with its seed or reloading only trial storage is not exact RNG resume.
 Generic optimizer storage remains its existing contract, without a new exact-
 continuation claim.
 
-The shared sampler bridge is for the existing public WFO optimizer, not the
-distinct reactive W3 or specialized fixed-batch schedulers. Their qualification
-remains in the declared later adapter phases.
+C03 now qualifies these same four recipes on W3 sequential/safe process and
+opt-in R3B through the shared bridge. See [the actual scheduler matrix and
+versioned proposal order](W3_SAMPLER_SCHEDULES.md). Fixed `candidate_matrix` is
+replay, not a sampler, and rejects conflicting sampler/warm/constraint options.
+Omitted legacy scheduling is preserved. Batch size greater than one is not
+sequential TPE/QMC equivalence. W3 metadata is directly under
+`result.metadata["sampler_studies"]`, not ordinary WFO's nested `walk_forward`.
 
 ## Evidence And Limits
 
