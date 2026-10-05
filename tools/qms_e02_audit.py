@@ -51,8 +51,8 @@ def snapshot():
                     for r in meta["records"]] if meta else [])
         finally:
             runtime.close()
-    return dict(schema="qms-e02-baseline-v1", native=native, scalar=scalar, reactive=reactive,
-                publication=False, economic_claim=False)
+    return wire(dict(schema="qms-e02-baseline-v1", native=native, scalar=scalar, reactive=reactive,
+                     publication=False, economic_claim=False))
 
 
 def compare(old, new):
