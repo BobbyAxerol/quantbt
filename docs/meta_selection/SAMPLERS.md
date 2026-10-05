@@ -139,6 +139,12 @@ anchor from averaged branch values. Meta descriptors remain QMS-03 scope.
 For medoids, a noninvertible mapped diagnostic centroid has
 `centroid_params=None`; it is not advertised as an executable parameter vector.
 
+The [C05 conditional geometry review](CONDITIONAL_GEOMETRY_REVIEW.md) specifies
+proposed fixed numeric latent coordinates and feasible-support representatives.
+It is **spec/tests only**: conditional Sobol and mixed/constrained centroid guards
+above remain active. The review helpers are not installed sampler/selector APIs.
+New methodology activation needs separate owner approval and runtime gates.
+
 ## Constraints
 
 Two optional runtime callbacks in `optimization_config` use the existing

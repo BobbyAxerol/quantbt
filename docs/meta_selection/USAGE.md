@@ -30,6 +30,11 @@ reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
 Other modes/schedules and portfolio/package/order target meta remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
+Conditional Sobol and mixed/constrained representatives are under
+[C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public
+capabilities. Keep using qualified sampler geometries and `flat_selector="medoid"`
+where required; the review does not enable new config values or relax guards.
+
 ## Minimal Call
 
 Keep your strategy, data, dates, parameter space and account contract. A strategy
