@@ -45,6 +45,12 @@ eight mandatory plus two adapter-specific consumers and exact scalar/W3 parity.
 It opens no new domain. Final remote/public proof must use current bytes, not
 the historical E01 or pre-C02 remote receipt.
 
+E03's [scalar coverage and study](QMSE03_REPORT.md) adds eight installed scalar
+cells on the current canonical wheel/sdist. The candidate matrix also invokes
+`tools.qms_e03_installed` and archives `installed-scalar-proof.json` with its
+exact lane/artifact/log hashes. This is research opt-in software admission;
+per-cell R/Q, simulated-ladder limitations and owner promotion stay separate.
+
 `.github/workflows/qms-candidate.yml` runs both commands for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
 only. Require **six actual successes**, archive JSON/log receipts and record
@@ -99,7 +105,7 @@ not automatic public WFO/financial state resume. Other mode/schedule activation,
 conditional Sobol and admissible mixed-space centroids remain separately
 reviewed work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
 C05 reference geometry tests do not activate conditional Sobol or mixed centroids.
-Current E02 source/artifacts still require remote matrix and public-index proof;
+Current E03 source/artifacts still require remote matrix and public-index proof;
 do not reuse the pre-C02 remote receipt or private local artifacts as release evidence.
 The scientific study/protocol requires a separate owner decision before any
 methodological replacement or additional research; software PASS does not

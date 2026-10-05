@@ -100,6 +100,22 @@ def test_e03_t01_legacy_meta_off_proxy_defaults_are_preserved():
         assert bt.config.walkforward_config.scoring_backend == "proxy"
 
 
+@pytest.mark.parametrize("target", ["signal_notional", "notional", "unit"])
+def test_e03_t04_existing_legacy_scalar_compatibility_is_not_cross_backend_empirical_evidence(target):
+    _, off, _ = execute_scalar(target, "legacy", "off")
+    _, shadow, _ = execute_scalar(target, "legacy", "shadow", support=1)
+    assert off.metadata["walk_forward"]["params_by_fold"] == shadow.metadata["walk_forward"]["params_by_fold"]
+    pd.testing.assert_frame_equal(off.metadata["walk_forward"]["trial_table"], shadow.metadata["walk_forward"]["trial_table"])
+    for name in ("equity", "returns", "positions"):
+        np.testing.assert_array_equal(getattr(off, name), getattr(shadow, name))
+    witness = meta(shadow)
+    assert witness["observer_failures"] == 0
+    assert witness["domain_adapter"]["empirical_promotion"] is False
+    assert witness["domain_adapter"]["scalar_execution"]["backend"] == "legacy"
+    _, native, _ = execute_scalar(target, "native_vectorized", "shadow", support=1)
+    assert meta(native)["tasks"][0].family.family_id != witness["tasks"][0].family.family_id
+
+
 def test_e03_t03_ladder_actual_high_low_required_not_close_proxy():
     with pytest.raises(ValueError, match="actual high/low"):
         execute_scalar("dca_ladder", data=market().drop(columns=["high", "low"]))

@@ -93,6 +93,7 @@ def build(*, study, package, junit, before, after):
             calendar_folds=row["calendar_folds"], valid_folds=row["valid_folds"],
             supported_valid_origins=row["supported_valid_origins"],
             all_valid_mean_r=row["all_valid_mean_r"], all_valid_mean_q=row["all_valid_mean_q"],
+            supported_means=row["supported_means"],
             supported_interval_r_q_is=intervals,
             off_seconds=row["off_seconds"], active_seconds=row["active_seconds"],
             added_seconds=row["active_seconds"]-row["off_seconds"],

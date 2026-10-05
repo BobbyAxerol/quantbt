@@ -8,6 +8,7 @@ import argparse
 from hashlib import sha256
 import importlib.metadata
 import json
+import math
 from pathlib import Path
 from time import perf_counter, process_time
 
@@ -244,6 +245,12 @@ def summarize(output):
                                      for r in active["paired"]])
         supported = {r["fold_id"] for r in active["paired"] if r["matured_origins"] >= 12}
         valid = [r for r in raw["rows"] if r["status"] == "VALID" and r["fold_id"] in supported]
+        supported_means = None
+        if valid:
+            supported_means = {f"{a}_{k}": math.fsum(r["raw"][a][k] for r in valid)/len(valid)
+                               for a in ("native", "meta") for k in ("is_sharpe", "forward_sharpe")}
+            supported_means.update({k:math.fsum(r[k] for r in valid)/len(valid)
+                                    for k in ("native_decay", "meta_decay", "r", "q", "is_difference")})
         intervals, passed = None, False
         if len(valid) >= 12 and all(b["fold_id"] == a["fold_id"]+1 for a,b in zip(valid,valid[1:])):
             values = np.array([[r["r"], r["q"], r["is_difference"]] for r in valid])
@@ -259,6 +266,7 @@ def summarize(output):
             matched_full_is_search=True, calendar_folds=raw["calendar_folds"],
             valid_folds=raw["paired_valid_folds"], supported_valid_origins=len(valid),
             all_valid_mean_r=raw["mean_fold_r"], all_valid_mean_q=raw["mean_fold_q"],
+            supported_means=supported_means,
             supported_interval_r_q_is=intervals, off_report=off["full_report"], active_report=active["full_report"],
             off_seconds=off["wall_seconds"], active_seconds=active["wall_seconds"],
             off_peak_rss_mib=off["after_memory"]["peak_rss_mib"],
