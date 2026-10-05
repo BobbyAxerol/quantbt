@@ -15,6 +15,11 @@ Public proof is PENDING_PUBLICATION.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
+**Current capability work:** the owner authorized [QMS-C01](#qms-c01---additional-meta-modes-and-schedules)
+on 2026-10-05 (Asia/Saigon). C01 reviews the actual mode/schedule information
+contracts and tests them before activation. New semantics require the explicit
+choice recorded in that section; QMS-C02..C05 remain planning-only.
+
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
 
@@ -22667,6 +22672,11 @@ off/shadow/RNG/account parity and explicit unsupported errors remain required.
 
 #### QMS-C01 - Additional Meta Modes And Schedules
 
+**Status:** AUTHORIZED_SCOPE_REVIEW_AND_TESTS; baseline source `b5563de`.
+The owner requested this phase on 2026-10-05. Its existing review-before-enable
+rule remains mandatory. The separate activation-choice question is not approval
+to open every previously unsupported mode or to replace the scientific study.
+
 **Goal:** assess other existing modes without disguising their information role.
 **Guide:** [3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
 [7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
@@ -22679,6 +22689,67 @@ full-sample selection causal. Owner selects the actual proposed semantics first.
 validity, declared data roles, OOS/future mutation, RNG/selection lineage and
 same-pass accounting; written revised scope and supported matrix before enabling.
 **Not started:** all currently unsupported combinations remain preflight errors.
+
+**Execution scope and methodology review:**
+
+1. Inventory all eight existing native mode/schedule combinations at the actual
+   public endpoint. Separate Optuna's adaptive objective, shortlist selection,
+   final native anchor, diagnostics and final execution; a shortlist's first
+   record is not necessarily the final anchor.
+2. Trace original search/IS/inner-validation/OOS scorer windows and their
+   actual input frontiers. Global Mode 4 may evaluate OOS diagnostics without
+   ranking on them; it is still retrospective across the shared train folds.
+   Nested Mode 1 closes outer OOS but consumes inner validation within outer IS.
+3. Record the exact full feasible trial pool, raw versus penalized metrics,
+   centroid witness requirements, study/seed and final anchor provenance.
+   Bootstrap proxy output is never a real forward training label.
+4. Draft a separately versioned amendment, linked from the current integration
+   docs. Mode 1 nested must specify raw outer-IS versus aggregated inner-IS
+   descriptors, full-pool original witnesses, native anchor, distinct family,
+   selection/observer seam and actual-param record metrics before activation.
+5. Specify global/decay/full-sample alternatives as distinct information roles:
+   no retroactive fold seal, no reuse of current selection OOS as pristine
+   labels, no synthetic stress rows in a real-forward cohort, no same-sample
+   Mode 5 replay advertised as validation. Do not invent per-fold schedules
+   that native Mode 2/3/5 does not currently support.
+6. Reuse existing preparation/scorer/Rust-numeric/history/result contracts for
+   any subsequently approved route. Keep the original guide, Ridge math,
+   policy defaults, sampler/search/RNG and financial source immutable during
+   this assessment. No Rust rebuild or alpha-data research is justified by
+   documentation/evidence-only changes.
+
+**Test matrix and artifacts:**
+
+- C01-T01: complete eight-route inventory, actual config validity, source
+  symbol identities and guide hash; unknown/unsupported combinations cannot
+  be inferred as enabled from a proposal entry.
+- C01-T02: omitted versus explicit meta-off parity for full pools, native
+  winner, trials/objectives, RNG, output positions/equity/returns and costs.
+- C01-T03: actual Mode 1 nested scorer windows are within outer IS before
+  selection; mutate only outer OOS and assert the first IS search/pool/anchor
+  is unchanged. Inner validation remains a selection input, not untouched OOS.
+- C01-T04: all new shadow/active combinations remain preflight errors before
+  search, market evaluation or history reads until their activation is approved.
+- C01-T05: global study reuse, last-used-data frontier and Mode 5 full-sample
+  train/test equality; future train observations can change a global earlier
+  replay, so never report a fold-causal certification for it.
+- C01-T06: existing Mode 4 shadow/active full-pool/anchor, raw validity,
+  future/unavailable labels, family isolation and same-pass account regressions.
+- C01-T07: independent formula checks for native decay/SBB and equality of
+  symbol positions/account results; no objective relabelled raw Sharpe.
+- C01-T08: docs links, source and artifact allowlist, immutable historical
+  receipts; structured synthetic evidence and measured scope, no edge claim.
+
+**Exit gate:** written amendment + source-grounded matrix + actual route tests
+PASS. Any enabled combination additionally requires the owner-approved target/
+cohort semantics, a distinct versioned family, original full-pool witnesses,
+chronological off/shadow/active selection/account parity and installed/native
+qualification. A spec/test PASS alone is not an activation PASS.
+
+**Debt disposition:** any missing approved implementation is reported explicitly,
+not marked completed because guards were removed. Deferred C02..C05 transport,
+sampler, persistence and geometry work is outside C01; scientific sections
+14-15 and public release remain separate owner gates.
 
 #### QMS-C02 - W3 Process, Batch, Deadline, Carry And Multi-Symbol Contracts
 
