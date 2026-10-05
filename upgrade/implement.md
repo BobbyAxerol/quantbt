@@ -23709,7 +23709,8 @@ push/merge/tag/publication remain outside E02 authorization.
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
 
-**Status:** AUTHORIZED_IN_PROGRESS; software/empirical gates NOT_RUN.
+**Status:** AUTHORIZED_IN_PROGRESS; correctness/installed proofs PASS;
+registered empirical execution IN_PROGRESS (4/8 pairs complete), final seal pending.
 **Goal:** complete existing scalar WFO route coverage before matrix/package work.
 **Entry:** E02 accepted; per-cell real alpha/data and R/Q thresholds registered.
 **Guide:** [route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
@@ -23778,6 +23779,19 @@ inputs, trial budget, RNG, thresholds and formulas stay unchanged. Raw pruned
 Optuna objectives remain explicit nonfinite tokens, never fake zero labels.
 Cold receipt export/account-rebuild memory is separate from execution RSS.
 Remote CI now includes eight scalar installed cells, but is not triggered here.
+
+**Progress Receipt:** 1,192 distinct executed regression/focused cases PASS,
+zero failures/errors/skips; all E03-T01..T06 groups are represented. Corrected
+core 1.1.2/native 0.4.3 wheel/sdist proofs exercise all eight cells with compiled
+meta `require`; prior mandatory consumers remain PASS. Historical native/scalar/
+W3 pools, params and accounts match the entry baseline. The reviewed-source
+manifest is a mutable input, not a sealed historical receipt; only that verified
+manifest is normalized by the comparator. Actual historical receipts stay exact.
+Four completed empirical pairs currently fail the registered forward-Q gate;
+remaining pairs and two full prepared studies continue without retuning. The
+final report will seal raw hashes, per-origin unique proposals, CPU/wall and
+execution-versus-export memory separately. Receipt rejection tests are now
+included in candidate CI; no remote run or publication is authorized here.
 
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
