@@ -23073,6 +23073,20 @@ shard: **41 PASS**, zero skips. Financial Rust, sampler implementations, Ridge,
 guide, dependency pins and prepared version pair remain unchanged. Fresh
 wheel/sdist consumer and final cost/documentation gates are still in progress.
 
+**C03 stage 3 receipt (2026-10-05):** fresh source-exact canonical core wheel
+and sdist, installed from a cold directory with `python -I`, PASS the eight
+recipe/scheduler cells, four safe-process comparisons, four frozen-pool replays,
+four batch-size-one comparisons and eight off/shadow/active meta lineage cells
+per artifact. Actual Rust fits execute; no child remains. C02 transport consumers
+also PASS. The unchanged C02 native wheel is reused, not rebuilt. Further
+Mode 1/global/per-fold decay, Mode 3/global and Mode 5/global recipe and
+batch-one account parity: **16 PASS**. Eight engineering cost cells retain
+three same-cell exact decision/account digests; sampler medians **8.64-24.49 ms**,
+whole-run medians **147.18-262.66 ms** on 180 daily bars / 16 attempted trials.
+Different recipe/B>1 pools and score work are not equal-work speedup or economic
+superiority evidence. Broad regression, docs and independent final gate remain
+in progress; no publication is authorized.
+
 #### QMS-C04 - Persisted Exact Optuna Continuation
 
 **Goal:** specify safe deterministic continuation beyond one owned live study.

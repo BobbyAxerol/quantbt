@@ -17,6 +17,27 @@ from quantbt.walkforward import WalkForwardEngine, _build_inner_folds, _derive_f
 
 
 @pytest.mark.parametrize("recipe", RECIPES)
+@pytest.mark.parametrize("mode,selector,schedule", [
+    ("mode_1_decay", "robust_decay", "global"),
+    ("mode_1_decay", "robust_decay", "per_fold_decay"),
+    ("mode_3_flat_minima", "is_plateau_robust", "global"),
+    ("mode_5_full_robust", "full_robust", "global"),
+])
+def test_c03_t01_existing_nonmeta_methodology_matrix(recipe, mode, selector, schedule):
+    config = replace(configuration(recipe, trials=12), optimization_schedule=schedule,
+                     optimization_mode=mode, candidate_selection_metric=selector)
+    result = execute(config=config)
+    assert all(s["attempts"] == 12 for s in result.metadata["sampler_studies"])
+    assert all(s["recipe"] == recipe for s in result.metadata["sampler_studies"])
+    assert result.params and all(np.isfinite(f.result.equity).all() for f in result.fold_results)
+    if schedule == "global":
+        batched = execute(config=config, scheduler="throughput_batch_v1", batch_size=1)
+        assert result.metadata["sampler_studies"][0]["rows"] == batched.metadata["sampler_studies"][0]["rows"]
+        from tools.qms_c03_consumer import accounts_equal
+        accounts_equal(result, batched)
+
+
+@pytest.mark.parametrize("recipe", RECIPES)
 def test_c03_t02_inner_study_uses_inner_cutoff_and_fold_seed(recipe):
     config = replace(configuration(recipe, schedule="per_fold_causal", trials=4),
         optimization_mode="mode_1_decay", candidate_selection_metric="robust_decay",
