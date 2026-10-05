@@ -53,7 +53,9 @@ tests PASS**, eight native route/account/RNG identities exact, and all four
 mandatory consumers PASS from both installed wheel and sdist. Read the
 [E01 report](../docs/meta_selection/QMSE01_REPORT.md) and
 [sealed local receipt](../benchmarks/optimization/meta_selection/qms_e01_gate_receipt.json).
-E02-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**; no new empirical study
+E02 is **AUTHORIZED_IN_PROGRESS** for shared contracts and qualified scalar/W3
+adapter migration only; E03-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
+No new empirical study
 or release is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
@@ -23351,8 +23353,9 @@ debt/gaps and extend meta consistently across existing public WFO routes;
 validate each new domain with an existing real strategy before official support.
 This section is a proposed extension to the original guide's bounded route
 matrix, not a claim that its original scalar-only scope included every engine.
-**Execution authorization:** E01 only, by the owner's execution request.
-E02-E08 still require separate owner approval; no release/publication approval.
+**Execution authorization:** E01 completed locally; E02 authorized by the owner's
+execution request. E03-E08 still require separate owner approval; no
+release/publication approval.
 **Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
 Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
 No version bump, push, merge, tag, deployment or upload is authorized by planning.
@@ -23522,7 +23525,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | Phase | Goal | Depends on | Current disposition |
 |---|---|---|---|
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
-| E02 | Shared typed domain adapter and future-route conformance | E01 local gate | PLANNED; NOT_RUN |
+| E02 | Shared typed domain adapter and future-route conformance | E01 local gate | AUTHORIZED_IN_PROGRESS; tests pending |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
 | E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
@@ -23614,7 +23617,7 @@ no release version change or upload.
 <a id="qms-e02"></a>
 #### QMS-E02 - Shared Domain Evaluation Adapter And Future-Route Contract
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests NOT_RUN.
+**Status:** AUTHORIZED_IN_PROGRESS; tests pending (2026-10-05).
 **Goal:** make meta route-generic without diluting financial semantics.
 **Entry:** E01 local gate accepted; owner approves E02 contract and module layout.
 **Guide:** [architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
@@ -23654,6 +23657,22 @@ outputs match under declared tolerances. New registry entries are not activation
 routes explicit until their own gates pass. No extra financial bridge is deferred.
 **Commit Boundary:** contracts/reference tests before adapter migration; one
 verified compatibility chunk before any new domain is implemented.
+
+**Approved Execution Layout (2026-10-05):** baseline `82c1421`, clean
+`feat/meta-selection-samplers`; retain pair 1.1.2 / 0.4.3 and all E01 seals.
+Focused `meta_selection/domains/` modules own typed input/result/compatibility
+contracts, registry, scalar and reactive adapters. They delegate to the existing
+scorer, reducer, native witness and lifecycle; no financial SPI, Rust kernel,
+search policy, learner or account engine is rewritten.
+Before migration, seal eight native routes and scalar/W3 decision/account
+witnesses. Preserve qualified legacy family IDs; future domains must declare
+versioned universe/calendar/instrument/funding/timing/account compatibility,
+never reuse a scalar family by matching array shapes. Existing discovery gains
+additive domain/method/qualification fields; pending registrations cannot
+activate a route. All six test groups, exact before/after witness comparison,
+installed-source checks and retained-work telemetry must pass before completion.
+New E03-E07 route activation, real-alpha studies, C01/C05 mathematical activation,
+push/merge/tag/publication remain outside E02 authorization.
 
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
