@@ -23709,7 +23709,7 @@ push/merge/tag/publication remain outside E02 authorization.
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Status:** AUTHORIZED_IN_PROGRESS; software/empirical gates NOT_RUN.
 **Goal:** complete existing scalar WFO route coverage before matrix/package work.
 **Entry:** E02 accepted; per-cell real alpha/data and R/Q thresholds registered.
 **Guide:** [route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
@@ -23746,6 +23746,26 @@ real-alpha gate and owner review. Missing true ladder alpha/data blocks that cel
 **Debt Disposition:** no blanket scalar PASS from one sizing run; other methods
 and dynamic order strategies remain separate. No backtest default changes.
 **Commit Boundary:** one sizing/backend cell with tests/docs/evidence per chunk.
+
+**Execution Registration (Owner Approved):** E03 implementation authorized;
+Gradient/Delta RSI ETHUSDT 1h paired studies use 128 trials/fold, seed 731,
+at least 12 matured origins and a 95% moving-block interval with 3-month blocks.
+Claim improvement only when mean R > 0 and the lower bound of forward-Q >= 0;
+no outcome-driven retuning. The existing private, byte-checked 2020-2024 dataset
+is research-exposed, not a new locked holdout. Each sizing/backend gets its own
+history and exact native/meta candidate-pool check. No old label is relabelled.
+The owner also authorized a simple simulated ladder strategy: use actual OHLC
+market data and the existing structural ladder engine. This qualifies domain
+software/simulation evidence, not a private real DCA alpha or economic promotion.
+
+**Implementation Boundaries:** reuse the E02 scalar adapter and original
+financial evaluators; add a focused versioned scalar contract/preflight rather
+than a new engine or bridge. Software-qualified new routes are explicit research
+opt-ins under guide section 14.4, never meta defaults or empirical promotion.
+Alias normalization is confined to enabled meta. Omitted/off proxy defaults,
+legacy family IDs and original fee, timing, account and prepared-required guards
+remain unchanged. New sizing/backend identities cannot import legacy histories.
+No release, push, activation of other methodologies, or financial kernel edits.
 
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
