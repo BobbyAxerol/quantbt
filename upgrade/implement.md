@@ -23237,11 +23237,18 @@ Historical receipts are unchanged. No push, merge, tag, upload or release ran.
 
 #### QMS-C05 - Conditional Sobol And Admissible Mixed-Space Representatives
 
+**Status:** IN_PROGRESS_SPEC_AND_TESTS; baseline `681cb00`.
+**Authorization:** the owner requested C05 on 2026-10-05 (Asia/Saigon).
+The existing review-before-activation rule still applies. A scope clarification
+has been sent; absent separate approval, this pass implements review documents,
+isolated executable specifications and independent tests only. No production
+sampler/selector, Ridge/scientific method, account path or public config changes.
+
 **Goal:** design valid conditional sampling/representatives before activation.
 **Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
 [5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)
 and [current geometry limits](../docs/meta_selection/SAMPLERS.md#range-syntax-and-effective-identity).
-**Future work:** decide a fixed latent-dimension/conditional-mask QMC contract
+**Review work:** decide a fixed latent-dimension/conditional-mask QMC contract
 and honest point-consumption/discrepancy scope. Define a constrained projection
 or admissible representative for categorical/conditional centroids, including
 distance/tie/version and a real same-IS evaluation of its exact params. Never
@@ -23250,8 +23257,46 @@ average enum codes, inactive values or infeasible branches into a valid anchor.
 effective duplicate identities, projected admissibility, exact-anchor witnesses,
 seed/QMC provenance and old medoid behavior. New math needs owner-approved spec
 and independent expected-value tests, not only parity with an invalid centroid.
-**Not started:** current unsupported guards stay in place; no altered scientific
-or selection methodology is implemented in this release-gap closure.
+**Execution To-Do:**
+
+1. Record the actual shared-schema/Sobol/centroid/descriptor/anchor seams and
+   protected source/dependency/guide identities. Keep all historical receipts.
+2. Specify a versioned frozen numeric coordinate layout, independent categories,
+   explicit branch masks, linear/log/lattice transforms and unsupported cases.
+   Account separately for warm seeds, first independent attempt, consumed QMC
+   points, rejected/failed/duplicate attempts and effective unique candidates.
+   No power-of-two padding, thinning, retry-until-feasible or hidden draws.
+3. Specify finite-support projection to real feasible same-IS candidates, using
+   the current logical-block geometry. Define duplicate weighting, absolute tie
+   band, canonical tie order, identity and exact original-result witnesses.
+   Do not average categories, inactive values or cluster metrics into an anchor.
+4. Add review-only reference modules outside the installed package. Check them
+   against hand-calculated values, explicit SciPy Sobol prefixes and the current
+   descriptor implementation; do not expose a fifth recipe or new endpoint.
+5. Test actual public preflight failures, unchanged medoid/account/RNG paths,
+   current numeric-centroid exact-IS acquisition and protected production bytes.
+6. Write an independent gate/report with real test members and immutable
+   evidence references. State what remains proposed versus activated; no new
+   economic/decay, speed/RSS or installed/remote certification claims.
+
+**Test Matrix:**
+
+| ID | Required local evidence |
+|---|---|
+| C05-T01 | Fixed layout, nested activity, numeric/log/integer/step/fixed/category validation, effective duplicates and independent expected transforms |
+| C05-T02 | Scramble seed/prefix/order identity, honest point-consumption ledger including warm/startup/pruned/failed/duplicate attempts, no hidden padding or retries |
+| C05-T03 | Hand-calculated mixed/activity distances and finite-support projection, infeasible exclusion, duplicate neutrality, deterministic ties and category permutation |
+| C05-T04 | Own exact same-IS anchor witnesses; wrong role, tape, cutoff, accounting or candidate cannot be substituted; no averaged metrics |
+| C05-T05 | Actual public conditional-Sobol/mixed-centroid guards, unchanged legacy medoid/financial/RNG behavior and numeric-centroid own-IS regression |
+| C05-T06 | Source/guide/dependency/pair locks and fail-closed receipt verifier; no missing/skipped tests or activation/publication claims |
+
+**Exit Gate:** all six local spec/test groups PASS, links/checks PASS, production
+bytes unchanged from baseline and current unsupported guards retained. Owner
+methodology approval remains PENDING; spec completion is not runtime activation.
+**Debt Disposition:** no unapproved implementation is hidden as debt. Production
+conditional sampling and mixed representatives, scheduler/exact-continuation
+integration, economic study and release qualification remain explicit follow-up
+capabilities requiring approved semantics and their own activation gates.
 
 ### QMS Requirement Coverage And Completion Records
 
