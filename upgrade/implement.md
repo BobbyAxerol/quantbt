@@ -23052,6 +23052,18 @@ approved C03 implementation blocker may be hidden behind an older receipt.
 Remote/public gates remain separate owner decisions; C04/C05 stay unstarted.
 Distinct recipe pools are not same-pool economic comparisons.
 
+**C03 stage 1 receipt (2026-10-05):** shared W3 study preflight uses real
+factory identity and exposes original sampler telemetry; opt-in R3B uses
+`shared_sampler_batch_r3b_v2`, with ordered whole-batch asks/tells, real
+constraints, attempted-budget duplicates and terminal abort state. Omitted
+legacy sequential/adaptive contracts remain unchanged. Four actual recipes,
+direct factory oracle, off/shadow/active, safe process, batch-one/sequential,
+partial batch, geometry/constraints/warm-start and frozen-matrix replay: **79
+PASS**; existing affected W3/C02 native transport regression: **59 PASS**, no
+skips. Original financial Rust and shared sampler implementation are unmodified.
+Expanded failure/inner-schedule/source gates, fresh installed route matrix,
+matched cost receipt and final documentation remain IN_PROGRESS.
+
 #### QMS-C04 - Persisted Exact Optuna Continuation
 
 **Goal:** specify safe deterministic continuation beyond one owned live study.

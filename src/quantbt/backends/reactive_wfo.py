@@ -420,6 +420,10 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             raise ReactiveWalkForwardUnsupported("META_ROUTE_UNSUPPORTED: meta_history requires enabled meta")
         index = self._prepared_runner.idx
         folds = engine.build_folds(index)
+        from .reactive_wfo_sampling import prepare_sampler_studies
+
+        prepare_sampler_studies(self, engine, folds, params=params, param_ranges=param_ranges,
+                                candidate_matrix=candidate_matrix)
         if self._meta_runtime is not None:
             self._meta_runtime.validate_market(self.data, index, folds)
         if self._use_prepared_wfo_preparation:
@@ -533,6 +537,15 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 },
             )
             retention_plan = ResearchRetentionPlanV1.from_config(self.config)
+            if getattr(engine, "_sampler_bridges", None) is not None:
+                reactive_result.metadata["sampler_studies"] = list(engine._sampler_studies)
+                reactive_result.metadata["sampler_scheduler"] = {
+                    "schema": "quantbt-reactive-sampler-scheduler-v1",
+                    "optimizer_schedule": self.runtime_config.optimizer_schedule,
+                    "sampling_contract": self._sampling_contract,
+                    "worker_mode": self.runtime_config.worker_mode,
+                    "strategy_identity": next(iter(engine._sampler_bridges.values())).strategy_identity,
+                }
             requested_scope = str(retention_plan.financial_scope)
             declared_scope = dict(self.config.metadata or {}).get("financial_retention_scope")
             if declared_scope is not None and str(declared_scope).lower().strip() != "segmented_reset_flat_execution":
