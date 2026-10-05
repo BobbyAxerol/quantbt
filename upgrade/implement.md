@@ -28,7 +28,9 @@ QMS-C02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: original-pass process/batch witnes
 transport and native cancellation/deadline tests PASS; carry/multi-symbol are
 specification/tests only, not runtime capabilities. Read the
 [C02 report and remaining ledger](../docs/meta_selection/QMSC02_REPORT.md).
-QMS-C03..C05 remain planning-only.
+QMS-C03 is authorized for four-recipe W3/scheduler qualification; C04/C05
+remain planning-only. No new meta mode, public meta batch or publication is
+authorized by C03.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -22965,17 +22967,90 @@ remain owner-controlled and were not performed.
 
 #### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
 
+**Status:** AUTHORIZED_IN_PROGRESS; entry `b2c6225`, 2026-10-05 (Asia/Saigon).
+**Owner scope:** implement/qualify existing four sampler recipes through the
+existing W3 sequential and R3B scheduler boundaries. Preserve financial Rust,
+Ridge, guide, sampler implementations/dependencies and prepared release pair.
+No scientific study replacement, additional meta methodology, carry/multi-symbol
+runtime, public meta batching, checkpoint/conditional-Sobol extension, push,
+merge, tag or publication.
+
 **Goal:** qualify each recipe on each actual scheduler, not a universal roster.
 **Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
 [10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10)
 and [current sampler contracts](../docs/meta_selection/SAMPLERS.md).
-**Future work:** reuse shared factory/normalized space, pin supported geometry
+**Implementation:** reuse shared factory/normalized space, pin supported geometry
 and ask/tell ordering per topology. TPE sequential semantics cannot become
 batched suggestions silently; fixed batches need an explicit algorithm version.
 **Tests/exit:** actual four recipes/capability errors, attempts/pruning/constraints/
 duplicates, conditional activity, seed/QMC consumption, warm provenance,
 same-schedule decisions and original account parity; installed route matrix.
-**Not started:** distinct recipe pools are not same-pool economic comparisons.
+**Execution stages / to-do:**
+
+1. Reconcile W3 sequential inherited `optimize_params`, shared `WfoSamplerStudy`,
+   fixed candidate matrix and adaptive `throughput_batch_v1`. Register exact
+   sampler identity, geometry, state/constraint handling and compatibility
+   contracts before changing code. Sequential proposal order stays unchanged.
+2. Preflight all opt-in W3 studies before strategy preparation/worker creation,
+   using the real strategy-factory identity and actual global/per-fold/inner
+   cutoffs/seeds. Reuse shared factory and space, expose original sampler study
+   telemetry in W3 results. Omitted legacy calls remain on the unchanged path.
+3. Route opt-in adaptive R3B through the same study bridge. Preserve omitted
+   legacy `adaptive_optuna_batch_r3b_v1`. Declare new opt-in contract
+   `shared_sampler_batch_r3b_v2`: ask the whole declared batch, suggest all
+   params without tells, score feasible unique candidates, then tell in trial
+   order. Prunes consume budget; result-infeasible COMPLETE keeps its real IS
+   objective but is excluded from selection. Finish asked trials at early stop;
+   on abort mark pending trials failed rather than leave RUNNING observations.
+4. Fixed `candidate_matrix` is a replay input, not a sampler. Reject sampler/
+   warm-start/constraint options there instead of ignoring them. Replay each
+   recipe's frozen valid pool through the existing matrix boundary, compare
+   original account/selection by effective params, and retain distinct schedule
+   provenance. No per-fold batching or sequential-TPE equivalence is introduced.
+5. Test actual four recipes on sequential inprocess/safe process and adaptive
+   R3B, supported numeric/mixed/conditional geometry and explicit negative
+   capabilities. Keep Sobol conditional and unapproved centroid guards; record
+   first independent/batch startup, dimensions and consumed QMC proposals.
+6. Qualify duplicate/constraints/error/early-stop/order/seed/warm availability,
+   off/shadow active lineage and original fees/funding/margin/equity. Callback
+   protocol and task-local resets remain existing contracts, not Rust alpha
+   translation. Carry/global-meta/process-batch unsupported calls stay closed.
+7. Lock exact source changes, preserving C01/C02 receipts at their old source
+   and validating narrow new adapters separately. Run affected regressions,
+   fresh core wheel/sdist installed route matrix with the unchanged C02 native
+   wheel, example/docs/API/secret/layout gates. No unnecessary native rebuild.
+8. Record matched engineering runtime/cost and all attempts/physical calls;
+   different recipe/schedule pools are not economic improvement or speedup
+   evidence. Update capability docs, example, final report and remaining ledger;
+   commit every coherent verified stage locally.
+
+**Test matrix / exit gates:**
+
+- C03-T01: actual four-class/version/kwargs/seed/relative-dimension telemetry;
+  direct shared-factory proposal and objective parity on the same schedule.
+- C03-T02: W3 sequential global/per-fold/inner seeds, original account parity,
+  safe process equivalence and real meta off/shadow/active lineage on the
+  existing Mode 4/per_fold_causal lane only.
+- C03-T03: versioned R3B ask-B/suggest-B/evaluate-B/tell-B, deterministic trial
+  order, partial final batch, declared batch size, no fabricated sequential claim.
+- C03-T04: effective duplicates, conditional inactivity, parameter PRUNED before
+  native work, actual result constraints, candidate-local failure, no feasible
+  candidate and cancel/abort/early-stop terminal-state consistency.
+- C03-T05: correct fixed/log/integer/step/category geometry; CMA mixed opt-in,
+  unsupported conditional Sobol/centroid/seed/dependency/kwargs fail preflight.
+- C03-T06: params-only warm starts rescored within budget, real factory/schema/
+  availability cutoff, no stale scores, future/duplicate seeds rejected.
+- C03-T07: each recipe's frozen fixed-pool replay matches native per-candidate
+  scores/selection and selected reset-flat account; fixed matrix options cannot
+  be silently ignored. All declared unsupported scheduler/meta routes fail.
+- C03-T08: source/math/guide locks, broad affected regression, isolated fresh
+  wheel/sdist consumer matrix, runnable example and retained cost/artifact proof.
+
+**Exit:** all implemented local gates PASS, every unsupported matrix cell has a
+specific capability error, exact original economic outputs preserved. No open
+approved C03 implementation blocker may be hidden behind an older receipt.
+Remote/public gates remain separate owner decisions; C04/C05 stay unstarted.
+Distinct recipe pools are not same-pool economic comparisons.
 
 #### QMS-C04 - Persisted Exact Optuna Continuation
 
