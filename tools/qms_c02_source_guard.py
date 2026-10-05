@@ -46,6 +46,8 @@ def without_c02_witness(source, name):
     This never skips a protected module. An extra arithmetic/comment change
     fails rather than being hidden by the C02 file-name allowlist.
     """
+    from tools.qms_c03_source_guard import without_c03_sampler
+    source = without_c03_sampler(source, name)
     if name not in ALLOW:
         return source
     if name == "rust/native_event/src/reactive_numeric.rs":
@@ -61,9 +63,11 @@ def without_c02_witness(source, name):
 
 
 def verify():
+    from tools.qms_c03_source_guard import ALLOW as C03_ALLOW, verify as verify_c03
+    c03 = verify_c03()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    validate_changes(names)
+    validate_changes(set(names) - C03_ALLOW)
     for name in set(names) & ALLOW:
         without_c02_witness((ROOT / name).read_bytes(), name)
     name = "rust/native_event/src/reactive_numeric.rs"
@@ -76,4 +80,4 @@ def verify():
         raise AssertionError("C02 changed release/product identity")
     return dict(schema="qms-c02-source-guard-v1", baseline=ENTRY, allowed_changes=names,
                 financial_rust_unchanged=True, additive_atomic_token_getter=True,
-                guide_sha256=GUIDE_SHA, release_identity_unchanged=True)
+                guide_sha256=GUIDE_SHA, release_identity_unchanged=True, later_c03_adapters=c03)

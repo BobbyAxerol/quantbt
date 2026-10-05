@@ -23064,6 +23064,15 @@ skips. Original financial Rust and shared sampler implementation are unmodified.
 Expanded failure/inner-schedule/source gates, fresh installed route matrix,
 matched cost receipt and final documentation remain IN_PROGRESS.
 
+**C03 stage 2 receipt (2026-10-05):** additional actual native candidate-error,
+formal TPE constraints, nested Mode 1 inner cutoff/seed, first-fold future-market
+mutation and explicit unsupported route/dependency gates PASS. The exact C03
+source guard locks the three reviewed sampler adapter files at `63ab385`, and
+composes with (does not bypass) C02/older economic byte checks. Expanded/guard
+shard: **41 PASS**, zero skips. Financial Rust, sampler implementations, Ridge,
+guide, dependency pins and prepared version pair remain unchanged. Fresh
+wheel/sdist consumer and final cost/documentation gates are still in progress.
+
 #### QMS-C04 - Persisted Exact Optuna Continuation
 
 **Goal:** specify safe deterministic continuation beyond one owned live study.
