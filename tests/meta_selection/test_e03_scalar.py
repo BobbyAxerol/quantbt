@@ -126,11 +126,12 @@ def short_market(close):
     ("unit", [0., 10., 10., -10., 0.]),
     ("signal_notional", [0., 10., 10., -1000/90, 0.])])
 @pytest.mark.parametrize("slip", [0., .0002])
-def test_e03_t02_independent_accepted_delta_pnl_fee_slippage_and_turnover(sizing, units, slip):
+@pytest.mark.parametrize("backend", ["native_vectorized", "native_event"])
+def test_e03_t02_independent_accepted_delta_pnl_fee_slippage_and_turnover(sizing, units, slip, backend):
     frame = short_market([100., 100., 110., 90., 100.])
     signal = pd.Series([0., 1., 1., -1., 0.], index=frame.index)
     base = QuantBTEndpoint.signal_notional(initial_capital=20000., alloc_per_trade=1000.,
-        leverage=3., fee_rate=.001, slippage_bps=slip*10000, use_funding=False)
+        leverage=3., fee_rate=.001, slippage_bps=slip*10000, use_funding=False, backend=backend)
     result = QuantBTEndpoint(replace(base.config, mode="single_signal", sizing=sizing)).backtest(data=frame, signal=signal)
     units = np.asarray(units)
     delta = np.diff(units, prepend=0.)
@@ -143,7 +144,7 @@ def test_e03_t02_independent_accepted_delta_pnl_fee_slippage_and_turnover(sizing
     np.testing.assert_allclose(result.positions.iloc[:, 0], units, rtol=1e-12, atol=1e-12)
     np.testing.assert_allclose(result.fees, fees, rtol=1e-12, atol=1e-12)
     np.testing.assert_allclose(result.equity, expected, rtol=1e-12, atol=1e-10)
-    np.testing.assert_allclose(result.margin.iloc[:, 0], np.abs(units)*price/3.)
+    np.testing.assert_allclose(result.margin.iloc[:, 0], np.abs(units)*price/3., atol=1e-10)
 
 
 @pytest.mark.parametrize("constraints", [dict(min_qty=20.), dict(min_notional=2000.), dict(qty_step=3.)])
