@@ -13,7 +13,7 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current E02 source/artifacts require a new remote gate. Public proof remains
+current E03 source/artifacts require a new remote gate. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
@@ -57,9 +57,14 @@ E02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: shared typed adapter and qualified
 scalar/W3 migration, all six gates PASS; **1,118 distinct tests** and ten actual
 installed consumer runs PASS. Read the [E02 report](../docs/meta_selection/QMSE02_REPORT.md)
 and [independent receipt](../benchmarks/optimization/meta_selection/qms_e02_final_gate_receipt.json).
-New domains are not activated. E03-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
-No new empirical study
-or release is authorized. Existing WFO routes
+At the E02 seal new domains were not activated. E03 is now
+**AUTHORIZED_IN_PROGRESS**: 1,192 distinct correctness checks and installed
+eight-cell scalar proofs PASS; owner-registered real-data pairs are running.
+Bounded notional/unit/structural-ladder software opt-ins are not empirical or
+default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md).
+E04-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
+Only the E03 registered study is authorized; no further study or release is
+authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
@@ -23357,8 +23362,9 @@ validate each new domain with an existing real strategy before official support.
 This section is a proposed extension to the original guide's bounded route
 matrix, not a claim that its original scalar-only scope included every engine.
 **Execution authorization:** E01 and E02 completed locally under separate owner
-execution requests. E03-E08 still require separate owner approval; no
-release/publication approval.
+execution requests. E03 is separately authorized, including the fixed Gradient/
+Delta RSI protocol and simple simulated ladder. E04-E08 still require separate
+owner approval; no release/publication approval.
 **Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
 Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
 No version bump, push, merge, tag, deployment or upload is authorized by planning.
@@ -23422,7 +23428,7 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 | Domain | Current WFO/meta state | Planned integration and gate |
 |---|---|---|
 | Scalar signal_notional/pct_equity, W0/W1/W2 | Bounded meta already locally qualified | E02 preserves it; E03 regression plus alias/backend discovery |
-| Scalar notional/unit and structural dca_ladder | Existing WFO route; meta rejected | E03 original-result adapter and separate economics/family evidence |
+| Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Registered per-cell economics pending; no empirical/default promotion |
 | Portfolio/multi-symbol target matrix | Existing WFO; native portfolio scorer exists; meta rejected | E04 shared-account metric/observer/calendar adapter and real portfolio study |
 | Basket/bounded arbitrage package | Final WFO routes exist with scorer/spec limitations | E05 authoritative native IS/forward package evaluator before meta promotion |
 | Intrabar bracket/session, Numba/Rust | Backtest/prepared runner exists; no public target WFO adapter | E06 typed intent WFO/account adapter, then real intrabar meta study |
@@ -23529,7 +23535,7 @@ routes are not silently disabled while new domain coverage is assessed.
 |---|---|---|---|
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
-| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
+| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | AUTHORIZED_IN_PROGRESS; correctness/installed PASS; registered study running |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
 | E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
