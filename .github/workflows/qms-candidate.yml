@@ -74,7 +74,7 @@ jobs:
           .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/meta_selection/test_e01_installed.py tests/meta_selection/test_e01_docs.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py --junitxml=.maturin/qms08/release-gaps.xml
       - name: Validate typed domain admission and actual public dispatch
         run: |
-          .venv/bin/python -m pytest -q tests/meta_selection/test_e02_contracts.py tests/meta_selection/test_e02_inventory.py tests/meta_selection/test_e03_scalar.py tests/meta_selection/test_e03_study_gate.py tests/meta_selection/test_e03_installed.py --junitxml=.maturin/qms08/e02-contracts.xml
+          .venv/bin/python -m pytest -q tests/meta_selection/test_e02_contracts.py tests/meta_selection/test_e02_inventory.py tests/meta_selection/test_e03_scalar.py tests/meta_selection/test_e03_study_gate.py tests/meta_selection/test_e03_installed.py tests/meta_selection/test_e03_queue.py tests/meta_selection/test_e03_report.py --junitxml=.maturin/qms08/e02-contracts.xml
       - name: Build and prove exact release artifacts with default QMS (no publishing)
         run: |
           .venv/bin/python -m tools.qms08_package --release-pair --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
