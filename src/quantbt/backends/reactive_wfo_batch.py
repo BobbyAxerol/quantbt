@@ -9,7 +9,7 @@ the normal TPE route remains certified sequential ask/evaluate/tell.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Mapping, Sequence
 
 import numpy as np
 
@@ -72,8 +72,11 @@ class ReactiveWfoCandidateBatchSchedulerV1:
         trading_days: int,
         batch_size: int,
         max_wall_time_ms: int | None = None,
+        _metric_witness=None,
     ) -> None:
         self._adapter = adapter
+        self._metric_witness = _metric_witness
+        self._witnesses = {}
         self._prepared_runner = prepared_runner
         self._trading_days = int(trading_days)
         self._batch_size = int(batch_size)
@@ -106,6 +109,11 @@ class ReactiveWfoCandidateBatchSchedulerV1:
 
         return {key: dict(value) for key, value in self._failures.items()}
 
+    @property
+    def witnesses(self):
+        """Private C02 primitive outputs; this does not activate public meta batch."""
+        return dict(self._witnesses)
+
     def cancel_active(self) -> None:
         """Ask only the currently active native batch to stop safely."""
 
@@ -115,6 +123,14 @@ class ReactiveWfoCandidateBatchSchedulerV1:
             self._native_cancel_requests += 1
 
     def score_markers(self, markers: Sequence[object]) -> dict[tuple[str, int, str, int, int], dict[str, float]]:
+        self._witnesses.clear()
+        try:
+            return self._score_markers(markers)
+        except BaseException:
+            self._witnesses.clear()
+            raise
+
+    def _score_markers(self, markers: Sequence[object]) -> dict[tuple[str, int, str, int, int], dict[str, float]]:
         """Score a fixed matrix without per-candidate market packing.
 
         All members of a native callback batch share fold, stage and absolute
@@ -165,6 +181,7 @@ class ReactiveWfoCandidateBatchSchedulerV1:
                 strategy,
                 candidate_count=len(markers),
                 trading_days=self._trading_days,
+                **({"_retain_metric_paths": True} if self._metric_witness is not None else {}),
             )
             self._runners[runner_key] = runner
             self._telemetry = ReactiveCandidateBatchTelemetryV1(
@@ -215,6 +232,9 @@ class ReactiveWfoCandidateBatchSchedulerV1:
             key = reactive_wfo_marker_key(marker)
             if int(error_code) == 0:
                 rows.append(_score_row_from_payload(output))
+                if self._metric_witness is not None:
+                    packet = self._metric_witness.reduce(marker, output, runner)
+                    self._witnesses[key] = packet
                 continue
             failure = {
                 "schema": "quantbt-reactive-wfo-candidate-error-v1",
@@ -256,6 +276,7 @@ class ReactiveWfoCandidateBatchSchedulerV1:
             if callable(reset):
                 reset()
         self._runners.clear()
+        self._witnesses.clear()
         self._active_runner = None
         self._closed = True
 

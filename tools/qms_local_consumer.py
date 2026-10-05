@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 
-def consume(*, core_version=None, native_version=None):
+def consume(*, core_version=None, native_version=None, witness_transport=False):
     import numpy as np
     import optuna
     import pandas as pd
@@ -86,7 +86,8 @@ def consume(*, core_version=None, native_version=None):
         flat_eps=1., flat_min_samples=1, scoring_backend="endpoint",
         calendar_contract="exact_v2", strategy_lifecycle_policy="isolated_v1")
 
-    def execute(mode):
+    def execute(mode, worker_mode="inprocess"):
+        from quantbt.backends.reactive_wfo_support import ReactiveWfoRuntimeConfigV1
         endpoint = QuantBTEndpoint.native_event_strategy(initial_capital=20000., leverage=3.,
             fee_rate=.0004, use_funding=True, funding_rate=data.funding_rate,
             native_backend="rust", reactive_kernel_mode="single_pass",
@@ -95,7 +96,8 @@ def consume(*, core_version=None, native_version=None):
         cfg = replace(config, meta_selection=None if mode is None else dict(mode=mode,
             native_batch_policy="require", min_matured_origins=1, label_observer=True))
         runtime = endpoint.prepare_reactive_walk_forward(data=data, strategy_factory=Factory(),
-            walkforward_config=cfg, symbols=["BTC"])
+            walkforward_config=cfg, symbols=["BTC"],
+            runtime_config=ReactiveWfoRuntimeConfigV1(worker_mode=worker_mode))
         try:
             kwargs = {} if mode is None else {"meta_history": MetaHistoryContext(
                 MetaHistory(), "installed-W3", "BTC-linear", "1D", "local-closure")}
@@ -119,6 +121,32 @@ def consume(*, core_version=None, native_version=None):
     for record in meta["records"]:
         assert record["selected_params"] == active.params_by_fold[record["fold_id"]]
         assert record["current_outer_oos_used_for_selection"] is False
+    process_proof = None
+    if witness_transport:
+        from quantbt.backends.reactive_wfo_workers import fork_reactive_wfo_worker_safe
+
+        assert fork_reactive_wfo_worker_safe()
+        assert hasattr(native.ReactiveCandidateBatchRunnerCore, "cancellation_tokens")
+        for mode, local in ((None, off), ("shadow", shadow), ("active", active)):
+            process = execute(mode, "process")
+            assert local.params_by_fold == process.params_by_fold
+            np.testing.assert_array_equal(local.trial_table.objective, process.trial_table.objective)
+            for a, b in zip(local.fold_results, process.fold_results, strict=True):
+                for field in ("equity", "returns", "positions", "fees", "funding"):
+                    np.testing.assert_array_equal(getattr(a.result, field), getattr(b.result, field))
+                np.testing.assert_array_equal(a.result.margin, b.result.margin)
+            if mode:
+                for a, b in zip(local.metadata["meta_selection"]["tasks"],
+                                process.metadata["meta_selection"]["tasks"], strict=True):
+                    assert a.family == b.family
+                    assert [wire(c.observation) for c in a.candidates] == [wire(c.observation) for c in b.candidates]
+                assert process.metadata["meta_selection"]["observer_failures"] == 0
+                assert process.metadata["meta_selection"]["witness_transport"]["market_ipc_bytes_per_task"] == 0
+        import multiprocessing
+
+        assert not multiprocessing.active_children()
+        process_proof = dict(original_pool_account_witness_exact=True, native_tokens=True,
+                            closed_children=True, market_ipc_bytes_per_task=0)
     return wire(dict(installed_origin=str(Path(quantbt.__file__).resolve()),
         core_version=actual_core, native_version=actual_native, python=sys.version,
         native_extension_origin=str(binaries[0]),
@@ -126,7 +154,8 @@ def consume(*, core_version=None, native_version=None):
         off_shadow_exact=True, observer_failures=0, folds=len(active.folds),
         same_pass=True, selected_lineage=True, closed=True,
         account_authority=meta["account_authority"],
-        witness_reuse=meta["witness_reuse"], native_blocks=meta["records"][-1]["numeric_backend"]))
+        witness_reuse=meta["witness_reuse"], native_blocks=meta["records"][-1]["numeric_backend"],
+        c02_transport=process_proof))
 
 
 if __name__ == "__main__":
@@ -135,6 +164,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core-version")
     parser.add_argument("--native-version")
+    parser.add_argument("--witness-transport", action="store_true")
     args = parser.parse_args()
     print(json.dumps(consume(core_version=args.core_version,
-                             native_version=args.native_version), sort_keys=True))
+                             native_version=args.native_version,
+                             witness_transport=args.witness_transport), sort_keys=True))

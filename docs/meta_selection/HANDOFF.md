@@ -9,6 +9,10 @@ remain 1.1.1 / 0.4.2; this feature has not been published.
 
 The owner approved preparation of `1.1.2 / 0.4.3`, not publication. Current
 artifact and installed-W3 gates are in the [release handoff](RELEASE_HANDOFF.md).
+The [C02 W3 transport/account contract](W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+adds detached original-pass worker witnesses, not new host carry permission.
+The native wheel must contain the separately qualified batch cancellation-token
+binding to run the C02 private R3B witness primitive safely.
 
 `DecisionHandoff` contains the actual task/current candidate pool, exact native
 anchor and selection reason, proposed/actual decision, full model when fitted,

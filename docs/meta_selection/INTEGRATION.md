@@ -71,12 +71,15 @@ finally:
 ```
 
 The endpoint must be `native_event_strategy`, `native_backend="rust"` and an
-existing supported numeric reactive co-runtime. W3 meta currently certifies
-`worker_mode="inprocess"`, `optimizer_schedule="certified_sequential_v1"`.
-Process transport, fixed/adaptive throughput batches and native scalar deadline
-budgets are explicitly rejected for meta; their existing meta-off routes remain
-available. Cancellation is checked at candidate-window boundaries. No claim of
-per-bar cancellation/deadline enforcement is made for this original-result lane.
+existing supported numeric reactive co-runtime. C02 locally qualifies
+`worker_mode="inprocess"` or safe Linux fork/COW `"process"`, with
+`optimizer_schedule="certified_sequential_v1"`. Original-result runs honor
+native deadlines/cancellation at completed-account-bar safe points; a blocking
+Python callback is not hard-preemptible by a native deadline. Fixed/adaptive
+public meta batches remain rejected. Their original-pass witness primitive is
+qualified separately, without enabling global meta or a new sampler schedule.
+See [transport/account contracts](W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md) for
+exact binding, ownership, failure and proposed carry/multi-symbol semantics.
 
 One native execution retains minimal original equity/position/return buffers and
 the existing streaming score in the same pass. Optuna receives the **unchanged
@@ -91,6 +94,11 @@ archives cannot be substituted.
 there is no compounded synthetic equity. Metadata describes actual selection,
 history cutoffs, witnesses, original-result cost and separate account authority.
 This is a local feature-branch qualification, not public wheel or live approval.
+`meta_selection["witness_transport"]` records actual worker mode, verified packet
+count/bytes, zero market IPC/replays and temporary original-window path retention.
+Runtime worker telemetry retains actual generation, memory and cleanup.
+Carry and shared-account multi-symbol meta W3 remain fail-closed before strategy
+or financial execution; their proposal tests are not runtime certification.
 
 ## Witness Reuse And Numeric Dispatch
 

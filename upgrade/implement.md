@@ -22898,6 +22898,31 @@ exit source `0bb77b5`; C02 is a separately authorized production extension.
 R3B witness qualification, expanded failure/RNG tests, carry/multi-symbol review
 contracts, installed-source proof and final documentation remain IN_PROGRESS.
 
+**C02 narrow cancellation correction (2026-10-05):** an actual active R3B
+cancel test revealed `RuntimeError: Already mutably borrowed`: the Python
+wrapper called a method on a native runner already executing under a mutable
+PyO3 borrow. Export the existing candidates' independent atomic cancellation
+tokens and acquire them before execution, matching the established R1 token
+pattern. This is a transport/control binding fix under the approved cancellation
+scope, not an accounting/matching/lifecycle or methodology change. The financial
+Rust cores stay byte-identical; only this additive native getter is permitted.
+Rebuild a fresh local extension/wheel to test the changed binding; previous
+native-wheel reuse is no longer adequate for this small addition. No version
+bump, feature activation, remote push or public artifact certification follows.
+
+**C02 stage 2 receipt (2026-10-05):** R3B same-pass scalar/financial-path/raw
+witness parity, local-error exclusion, later-chunk atomic cleanup and actual
+native deadline/cancel tests PASS on the rebuilt `0.4.3` extension. The
+independent cancellation tokens resolve the mutable-borrow regression. Carry
+and shared multi-symbol proposals are documented with independent accounting
+examples and nine before-execution negative preflight tests; no runtime enabled.
+All 71 affected C02/W3/worker/account tests PASS, and 54 source/C01-history tests
+PASS. Runnable synthetic process example PASS (4 folds, 40 verified packets,
+maximum 1,597 UTF-8 JSON bytes; not the full pipe envelope). Original guide,
+Ridge/search/sampler/economic cores and release identities remain unchanged.
+Final installed artifact proof, broader regression and matched transport cost
+receipt remain IN_PROGRESS; no remote/public certificate is inferred.
+
 #### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
 
 **Goal:** qualify each recipe on each actual scheduler, not a universal roster.

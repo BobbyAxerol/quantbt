@@ -668,6 +668,7 @@ class PreparedNativeEventStrategyRunner:
         *,
         candidate_count: int,
         trading_days: int = 365,
+        _retain_metric_paths: bool = False,
     ):
         """Return the R3B scalar runner over this immutable prepared market.
 
@@ -716,6 +717,7 @@ class PreparedNativeEventStrategyRunner:
             clock=get_event_clock_contract(config.execution_contract),
             requirements=adapter.requirements,
             score_trading_days=int(trading_days),
+            retain_metric_paths=bool(_retain_metric_paths),
             _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         return runner, adapter.requirements

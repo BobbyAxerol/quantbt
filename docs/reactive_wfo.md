@@ -1,11 +1,15 @@
 # Reactive Walk-Forward (W3)
 
 Feature-branch QMS local follow-up supports optional meta selection for
-Mode 4/per_fold_causal sequential inprocess W3. It reuses original native result
+Mode 4/per_fold_causal sequential inprocess or safe Linux fork/COW process W3.
+It reuses original native result
 buffers and streaming objectives in one pass, then the shared causal history
 and selector. See [the exact invocation and restrictions](meta_selection/INTEGRATION.md#w3-sequential-meta).
 Reset-flat segments remain reset-flat; this does not authorize live deployment
 or imply that published native 0.4.2 includes QMS numeric/prepared features.
+The [C02 transport/account contract](meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+qualifies native cooperative deadlines and a private R3B witness primitive;
+public meta batch, continuous carry and multi-symbol remain unsupported.
 
 `QuantBTEndpoint.prepare_reactive_walk_forward(...)` is QuantBT's explicit walk-forward route for stateful event-driven strategies. It does not turn a strategy into a `pos_weight` series. Rust owns the prepared market clock, orders, fills, fees, funding, margin, liquidation, and scalar account score; Python owns only the declared strategy decision boundary.
 

@@ -1,6 +1,7 @@
 """Detached original-pass metrics, not a second execution/accounting authority."""
 
 from dataclasses import dataclass
+import math
 
 import pandas as pd
 
@@ -64,6 +65,8 @@ class DetachedReactiveWitnessV1:
         if (self.schema != "quantbt-reactive-original-witness-v1"
                 or self.binding.schema != "quantbt-reactive-witness-binding-v1"
                 or len(self.scores) != len(SCORE_FIELDS)
+                or any(not math.isfinite(value) for value in self.scores[:-1])
+                or math.isnan(self.scores[-1])
                 or self.seal != self._seal(self.binding, self.scores, self.observation)):
             raise MetaRecordError("REACTIVE_WITNESS_INVALID: schema/shape/seal")
         if binding is not None and self.binding != binding:

@@ -2837,10 +2837,14 @@ This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/
 under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
 and adds [portable host handoff](meta_selection/HANDOFF.md).
 Published native 0.4.2 lacks the witness: prepared `auto` falls back observably,
-`require` fails. W3 reactive/reset-flat meta supports the local sequential
-inprocess original-result adapter described in
+`require` fails. W3 reactive/reset-flat meta supports local sequential
+inprocess and safe Linux fork/COW process original-result witnesses described in
 [W3 sequential meta](meta_selection/INTEGRATION.md#w3-sequential-meta);
 no automatic deployment or state reset is added.
+The [C02 transport/account contract](meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+qualifies cooperative native witness deadlines and the private R3B witness
+primitive. Public meta batches, account carry and multi-symbol W3 still reject
+before execution. No endpoint is renamed or financial model replaced.
 
 For QMS-08 candidate users, start with the [complete user guide](meta_selection/USAGE.md)
 and [installed-artifact qualification](meta_selection/QUALIFICATION.md). The

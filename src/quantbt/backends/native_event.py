@@ -2134,6 +2134,7 @@ class NativeEventBackend:
         clock: EventClockContract,
         requirements,
         score_trading_days: int,
+        retain_metric_paths: bool = False,
         _prepared_reactive_market_binding: object | None = None,
     ) -> RustReactiveCandidateBatchCoRuntime:
         """Build an R3B candidate batch over an already-prepared market core.
@@ -2192,6 +2193,7 @@ class NativeEventBackend:
             retain_events=False,
             prepared_market_core=base_runner.prepared_market_core,
             scalar_score=True,
+            retain_metric_paths=bool(retain_metric_paths),
             score_trading_days=int(score_trading_days),
         )
 

@@ -4015,6 +4015,7 @@ class RustReactiveCandidateBatchCoRuntime:
         command_initial_capacity: int = 8,
         command_hard_limit: int = 65_536,
         scalar_score: bool = False,
+        retain_metric_paths: bool = False,
         score_trading_days: int = 365,
     ) -> None:
         candidate_count = int(candidate_count)
@@ -4050,6 +4051,7 @@ class RustReactiveCandidateBatchCoRuntime:
         self.retain_fills = bool(retain_fills)
         self.retain_events = bool(retain_events)
         self.scalar_score = bool(scalar_score)
+        self.retain_metric_paths = bool(retain_metric_paths)
         self.score_trading_days = int(score_trading_days)
         if self.scalar_score and self.score_trading_days <= 0:
             raise NativeEventRustBackendError("reactive candidate scalar score requires trading_days > 0")
@@ -4090,7 +4092,7 @@ class RustReactiveCandidateBatchCoRuntime:
             self.retain_events,
             int(command_initial_capacity),
             int(command_hard_limit),
-            retain_account_paths=not self.scalar_score,
+            retain_account_paths=not self.scalar_score or self.retain_metric_paths,
             retain_command_rows=not self.scalar_score,
             retain_callback_trace=not self.scalar_score,
             retain_terminal_active_orders=not self.scalar_score,
@@ -4104,6 +4106,14 @@ class RustReactiveCandidateBatchCoRuntime:
             ),
         )
         self._core.set_event_contract(self.event_contract.contract_code)
+        self._cancellation_tokens = (
+            tuple(self._core.cancellation_tokens())
+            if hasattr(self._core, "cancellation_tokens") else ()
+        )
+        if self.retain_metric_paths and not self._cancellation_tokens:
+            raise NativeEventRustBackendError(
+                "C02 batch witness requires independent cancellation tokens; install the matching native wheel"
+            )
 
     @property
     def prepared_market_core(self):
@@ -4112,6 +4122,10 @@ class RustReactiveCandidateBatchCoRuntime:
     def request_cancel(self) -> None:
         """Stop an active shared candidate batch at a native bar boundary."""
 
+        if self._cancellation_tokens:
+            for token in self._cancellation_tokens:
+                token.cancel()
+            return
         if not hasattr(self._core, "request_cancel"):
             raise NativeEventRustBackendError(
                 "installed _quantbt_native wheel lacks reactive candidate-batch cancellation"
@@ -4119,6 +4133,10 @@ class RustReactiveCandidateBatchCoRuntime:
         self._core.request_cancel()
 
     def clear_cancellation(self) -> None:
+        if self._cancellation_tokens:
+            for token in self._cancellation_tokens:
+                token.clear()
+            return
         if hasattr(self._core, "clear_cancellation"):
             self._core.clear_cancellation()
 
@@ -4171,8 +4189,7 @@ class RustReactiveCandidateBatchCoRuntime:
             self._assert_scalar_payload(payload)
         return payload
 
-    @staticmethod
-    def _assert_scalar_payload(payload: Mapping[str, object]) -> None:
+    def _assert_scalar_payload(self, payload: Mapping[str, object]) -> None:
         for candidate_payload in payload.get("candidate_outputs", ()):
             if not bool(candidate_payload.get("score_metrics_present", False)):
                 raise NativeEventRustBackendError(
@@ -4181,14 +4198,19 @@ class RustReactiveCandidateBatchCoRuntime:
             if any(
                 np.asarray(candidate_payload[name]).size
                 for name in (
-                    "equity", "positions", "fees", "turnover", "funding",
-                    "initial_margin", "maintenance_margin", "command_bar",
-                    "callback_bar", "terminal_active_order_id",
+                    "command_bar", "callback_bar", "terminal_active_order_id",
                 )
             ):
                 raise NativeEventRustBackendError(
                     "native reactive candidate scalar run retained a path or audit tape unexpectedly"
                 )
+            if not self.retain_metric_paths and any(
+                np.asarray(candidate_payload[name]).size for name in (
+                    "equity", "positions", "fees", "turnover", "funding",
+                    "initial_margin", "maintenance_margin",
+                )
+            ):
+                raise NativeEventRustBackendError("native scalar batch unexpectedly retained account paths")
 
     @property
     def last_callback_name(self) -> str:

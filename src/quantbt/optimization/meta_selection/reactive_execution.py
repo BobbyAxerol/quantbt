@@ -78,9 +78,10 @@ class OriginalReactiveWitnessExecutor:
             execution_config=self.config, prepared_witness=self.witness)
         packet = DetachedReactiveWitnessV1.prepare(binding, row, observation)
         packet.validate(binding=binding, index=index, initial_capital=self.config.account.initial_capital)
-        fingerprint = getattr(strategy, "quantbt_state_fingerprint", None)
         self.runs += 1
-        return packet, fingerprint() if callable(fingerprint) else None
+        # Do not call a user fingerprint a second time or transport arbitrary
+        # strategy-owned objects. The original result has already observed it.
+        return packet, None
 
     def close(self):
         if self.closed:
