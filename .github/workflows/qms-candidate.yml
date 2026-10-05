@@ -1,6 +1,8 @@
 name: QMS Installed Candidate Qualification
 
 on:
+  push:
+    branches: [feat/meta-selection-samplers]
   pull_request:
     branches: [dev, main]
     paths:
@@ -9,6 +11,8 @@ on:
       - "src/quantbt/endpoint.py"
       - "rust/**"
       - "tools/qms08*"
+      - "tools/qms_local*"
+      - "tools/qms_installed_w3.py"
       - "tests/meta_selection/**"
       - ".github/workflows/qms-candidate.yml"
       - "pyproject.toml"
@@ -47,6 +51,11 @@ jobs:
       - name: Build and prove private installed artifacts (no publishing)
         run: |
           .venv/bin/python -m tools.qms08_package --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
+      - name: Prove installed W3 on this exact interpreter (no source imports)
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_installed_w3 --lane "$PWD/.maturin/qms08/qualified/$lane"
       - name: Retain installed consumer and build receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,5 +64,6 @@ jobs:
           retention-days: 7
           path: |
             .maturin/qms08/qualified/cp*/proof.json
+            .maturin/qms08/qualified/cp*/installed-w3-proof.json
             .maturin/qms08/qualified/cp*/*.log
           if-no-files-found: error

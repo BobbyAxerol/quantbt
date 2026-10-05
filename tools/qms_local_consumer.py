@@ -1,11 +1,14 @@
 """Isolated installed W3 proof; no source imports, data download or publication."""
 
 from dataclasses import replace
+from hashlib import sha256
+import importlib.metadata as metadata
 import json
 from pathlib import Path
+import sys
 
 
-def consume():
+def consume(*, core_version=None, native_version=None):
     import numpy as np
     import optuna
     import pandas as pd
@@ -18,6 +21,19 @@ def consume():
     from quantbt.walkforward import WalkForwardConfig
 
     assert "site-packages" in Path(quantbt.__file__).resolve().parts
+    import _quantbt_native as native
+
+    actual_core = metadata.version("quantbt-engine")
+    actual_native = metadata.version("quantbt-native")
+    assert actual_core == quantbt.__version__
+    assert actual_native == native.version()
+    if core_version is not None:
+        assert actual_core == core_version, "installed core version mismatch"
+    if native_version is not None:
+        assert actual_native == native_version, "installed native version mismatch"
+    assert "site-packages" in Path(native.__file__).resolve().parts
+    assert native.qms_numeric_descriptor_v1()["abi"] == "qms-numeric-v1"
+    assert hasattr(native, "QMS_PREPARED_METRIC_SUPPORT_V1")
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     index = pd.date_range("2024-01-01", periods=180, freq="1D", tz="UTC")
     t = np.arange(len(index))
@@ -95,11 +111,26 @@ def consume():
     meta = active.metadata["meta_selection"]
     assert meta["observer_attempts"] > 0 and meta["observer_failures"] == 0
     assert not active.metadata["continuous_equity_available"]
+    assert any(r["numeric_backend"]["selected_backend_by_block"].get("gram_solve") == "rust"
+               for r in meta["records"])
+    for record in meta["records"]:
+        assert record["selected_params"] == active.params_by_fold[record["fold_id"]]
+        assert record["current_outer_oos_used_for_selection"] is False
     return wire(dict(installed_origin=str(Path(quantbt.__file__).resolve()),
+        core_version=actual_core, native_version=actual_native, python=sys.version,
+        native_extension_sha256=sha256(Path(native.__file__).read_bytes()).hexdigest(),
         off_shadow_exact=True, observer_failures=0, folds=len(active.folds),
-        same_pass=True, account_authority=meta["account_authority"],
+        same_pass=True, selected_lineage=True, closed=True,
+        account_authority=meta["account_authority"],
         witness_reuse=meta["witness_reuse"], native_blocks=meta["records"][-1]["numeric_backend"]))
 
 
 if __name__ == "__main__":
-    print(json.dumps(consume(), sort_keys=True))
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--core-version")
+    parser.add_argument("--native-version")
+    args = parser.parse_args()
+    print(json.dumps(consume(core_version=args.core_version,
+                             native_version=args.native_version), sort_keys=True))

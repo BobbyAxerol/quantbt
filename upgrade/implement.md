@@ -22510,8 +22510,8 @@ merge, tag, release, deploy or PyPI operation was performed.
 `feat/meta-selection-samplers` branch. Commit verified changes locally; push
 only this branch to `origin` and run read-only qualification. Never force push,
 merge dev/main, create/move a tag or upload a distribution under this scope.
-Core/native version choice requires the owner's explicit response; proposal
-`1.1.2 / 0.4.3`, unchanged native API/ABI and financial contracts. Stage/build
+The owner explicitly approved `1.1.2 / 0.4.3` via the version-choice reply,
+with preparation only; native API/ABI and financial contracts stay unchanged. Stage/build
 fresh artifact bytes for the approved pair; private receipts do not certify them.
 
 **Protected scientific scope:** guide sections [14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
@@ -22561,6 +22561,14 @@ with source-exact wheel/sdist and native/core-only/fallback/require behavior.
 No protected alpha, market tape, runtime caches or credentials in uploaded logs.
 **Debt disposition:** remote/platform proof is a gate, not a language-speed or
 scientific certificate; stop/recover concrete CI failures before claiming PASS.
+
+**Local R02 receipt:** nine workflow/isolation/negative-receipt checks PASS;
+actual installed CPython 3.12 wheel-pair and sdist W3 consumers PASS, with
+declared versions, native exports, off/shadow financial equality and active
+lineage verified. New `tools/qms_installed_w3.py` emits a separately hashed
+installed-W3 receipt. The existing matrix calls it for each actual interpreter;
+feature-branch pushes are qualification-only. Six remote rows are PENDING until
+the prepared source is committed/pushed and actual run results are recorded.
 
 #### QMS-R03 - Exact Public Pair, Default Native Capability And Release Handoff
 
