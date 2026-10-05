@@ -13,8 +13,8 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current C03 source/artifacts require a new remote gate. Public proof remains
-PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03.
+current C04 source/artifacts require a new remote gate. Public proof remains
+PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -32,9 +32,13 @@ QMS-C03 is **COMPLETE_LOCAL_APPROVED_SCOPE**: four shared recipes, W3 sequential
 safe process, versioned R3B and frozen-pool replay pass exact source/decision/
 account gates. **802 scoped checks PASS** (132 C03-specific), fresh installed
 wheel/sdist and original-pass meta process matrix PASS. Read
-[the final C03 report](../docs/meta_selection/QMSC03_REPORT.md). C04/C05
-remain planning-only. No new meta mode, public meta batch or publication is
-authorized by C03.
+[the final C03 report](../docs/meta_selection/QMSC03_REPORT.md).
+QMS-C04 is **COMPLETE_LOCAL_APPROVED_SCOPE**: opt-in owned exact journal
+continuation, no automatic endpoint/fold resume. **916 scoped checks PASS**
+(114 C04-specific), fresh wheel/sdist four-recipe process consumers PASS.
+Read [the C04 contract](../docs/meta_selection/EXACT_CONTINUATION.md) and
+[final report](../docs/meta_selection/QMSC04_REPORT.md). C05 stays planning-only.
+No new meta mode, public meta batch or publication is authorized by C03/C04.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -22677,14 +22681,18 @@ Public-index proof stays PENDING_PUBLICATION; manylinux2014 release portability
 is a separate later publication-workflow gate. No scientific replacement or
 future QMS-C01..C05 implementation was started.
 
-### QMS Capability Gap Roadmap - C01 REVIEW; C02 TRANSPORT; C03-C05 PLANNING_ONLY
+<a id="qms-capability-gap-roadmap---planning_only"></a>
+### QMS Capability Gap Roadmap - C01 REVIEW; C02-C04 LOCAL; C05 PLANNING_ONLY
 
 **Authorization:** the owner initially requested detailed tracking of the five
 capability groups below, not implementation, methodology research or replacement
 of guide section 14. C01 subsequently received **spec/tests only** approval;
 activation remains a separate decision. C02 subsequently received transport
 implementation plus carry/multi-symbol specification/test approval. Every other
-group requires separate approval and capability/spec review.
+group requires separate approval and capability/spec review. C03 subsequently
+received scheduler integration approval, and C04 received owned persisted-exact
+continuation approval; their tested scope is recorded below, not inferred from
+the original planning authorization.
 Reuse existing typed planning/preparation/evaluation/history/selection/native/
 result contracts; no new account engine, endpoint or sampler factory. Baseline
 off/shadow/RNG/account parity and explicit unsupported errors remain required.
@@ -23188,9 +23196,44 @@ event reconstruction instead of an unsafe pickle checkpoint serializer.
 winner parity for each certified recipe; incompatible versions, partial/corrupt
 state, pending failures and future warm-start rejection. Unsupported state
 serializers must fail explicitly, not fabricate exact continuation.
-**Status:** IN_PROGRESS; no persisted-exact promise for existing endpoint loops
-or third-party mutable callbacks/pruners. Final scope, evidence and limitations
-will be recorded only after the gates above pass.
+**Status:** COMPLETE_LOCAL_APPROVED_SCOPE. Implementation `f3ab6cf`, source/
+installed contracts `050c177`, accounting/cost/verifier `d384dba`; see
+[C04 report](../docs/meta_selection/QMSC04_REPORT.md). No persisted-exact promise
+for existing endpoint loops or third-party mutable callbacks/pruners.
+
+**Completion Record (2026-10-05, Asia/Saigon):** all C04-T01..T06 local gates
+PASS. Broad affected QMS/WFO/W3 regression **886 PASS**, additional current-IS
+financial/account tests **4 PASS**, evidence-verifier tests **8 PASS**, package/
+release compatibility **18 PASS**: **916 unique scoped checks**, no skips/errors;
+**114 C04-specific**. Fresh source-exact wheel/sdist `1.1.2` with reused native
+`0.4.3` pass `python -I` consumers for all four recipes, including actual
+fresh-process reconstruction past startup and all three terminal states.
+Financial endpoint metrics/account/reports remain exact; restore makes zero
+financial evaluator calls. Original guide, sampler/Ridge math, financial Rust,
+dependency versions and endpoint signatures are unchanged. Eight canonical/
+generated API/contract, architecture, benchmark, docs and secret checks PASS.
+Independent receipt:
+`benchmarks/optimization/meta_selection/qms_c04_gate_receipt.json`.
+Actual source/package/JUnit/log refs remain local in `.maturin/qms08/c04-*`.
+
+**Measured Resource Contract:** one warm-up + three retained runs/cell, seed731,
+32/128 completed attempts and eight future-continuation checks, same owned
+two-dimensional objective/pruner/constraints contract. Raw retained samples:
+[C04 evidence](../benchmarks/optimization/meta_selection/qms_c04_continuation_evidence.json).
+At128 attempts: 143,819-146,120 retained JSON bytes, median save/fsync37.89-43.87ms,
+restore468.01-1,103.79ms depending on recipe. Timings ran alongside local
+qualification work; they are observed engineering costs, not isolated latency
+SLAs, speedups, RSS gates or economic improvements. Reconstructing the ordered
+sampler history avoids old alpha/account evaluations, not sampler replay cost.
+
+**Remaining Capability Boundary:** no approved local C04 implementation blocker.
+The utility is not automatic WFO/W3/R3B resume, a financial/strategy/model state
+serializer, uncontrolled distributed continuation or an unseeded RNG snapshot.
+Nop/Median and owned early-stop codecs only; completed-trial barrier; matching
+pinned runtime/source and externally verified bindings/digest required.
+Current-source remote qualification/public release, C01 activation/C01-D01
+approval, carry/multi-symbol accounting/public meta batch and C05 remain separate.
+Historical receipts are unchanged. No push, merge, tag, upload or release ran.
 
 #### QMS-C05 - Conditional Sobol And Admissible Mixed-Space Representatives
 

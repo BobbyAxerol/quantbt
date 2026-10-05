@@ -80,12 +80,15 @@ needed. Force Python/Numba through the existing backend controls, not replay of
 native accounting. If a published artifact is wrong, stop downstream publication
 and prepare a **new** version; never rewrite existing PyPI bytes or release tags.
 
-QMS is currently Mode 4 / `per_fold_causal`. W3 meta is bounded in-process,
-sequential, exact-calendar, isolated/reset-flat; it does not certify process,
-batch, deadline, continuous carry or multi-symbol. Other mode/schedule meta,
-four-recipes W3/fixed-batch qualification, exact persisted Optuna RNG resume,
+QMS is currently Mode 4 / `per_fold_causal`. C02/C03 locally qualify original-pass
+W3 process witness transport/deadlines and four-recipe W3/fixed-batch scheduling;
+continuous carry, multi-symbol and public meta batching remain unsupported.
+C04 locally qualifies a separate [owned exact continuation session](EXACT_CONTINUATION.md),
+not automatic public WFO/financial state resume. Other mode/schedule activation,
 conditional Sobol and admissible mixed-space centroids remain separately
-approved capability work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
+approved work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
+Current C04 source/artifacts still require remote matrix and public-index proof;
+do not reuse the pre-C02 remote receipt or private local artifacts as release evidence.
 The scientific study/protocol requires a separate owner decision before any
 methodological replacement or additional research; software PASS does not
 certify an economic edge.

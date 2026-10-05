@@ -858,3 +858,22 @@ locked evaluation folds, with separate development when choosing recipes.
 No such study is claimed by the QMS-08 synthetic/installed-consumer fixtures.
 Read [usage and clocks](../docs/meta_selection/USAGE.md) and
 [qualification/registration](../docs/meta_selection/QUALIFICATION.md).
+
+### QMS-C04: Exact Owned Search Continuation
+
+The opt-in [owned journal session](../docs/meta_selection/EXACT_CONTINUATION.md)
+preserves the same IS study's ordered proposals, pruning, constraints and
+objective observations. Restore reconstructs the pinned sampler state through
+public API events and verifies exact candidate/state witnesses without rerunning
+financial execution. Seed reset or database trial reload alone is not exact.
+
+Market/calendar/economics/objective/schedule and meta snapshot/basis/task identity
+must match the caller's original reviewed run manifest and cutoff. Old objectives
+are not imported into a new IS window, and labels that mature after the locked
+snapshot cannot join it during restore. Changing those identities starts a new
+study; authorized params-only warm starts must be rescored there.
+
+This utility does not change WFO methodology, causal permissions or stitching,
+activate extra meta modes, serialize account/strategy/model state, or add a public
+endpoint resume flag. It has a completed-trial barrier and version-pinned codecs;
+its software exactness is not evidence of better OOS decay.
