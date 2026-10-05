@@ -122,14 +122,29 @@ def worker(output, target, backend, arm, prepared="off"):
         ranges = {"window": (12, 72, 2)}
 
         def strategy(data, params, train_index, test_index, fold):
+            progress(fold)
             history = data.loc[:test_index[-1]]
             distance = history.close / history.close.rolling(int(params["window"])).mean()-1.
             signal = np.sign(-distance).where(distance.abs() > .01, 0.)*3.
             return signal.reindex(test_index).fillna(0.).astype(float)
     else:
         def strategy(data, params, train_index, test_index, fold):
+            progress(fold)
             generated = alpha.generate_delta_rsi_signals(data.loc[:test_index[-1]], dict(params))
             return generated["pos_weight"].reindex(test_index).fillna(0.).astype(float)
+
+    started = perf_counter()
+    latest_fold = -1
+
+    def progress(fold):
+        nonlocal latest_fold
+        if fold.fold_id > latest_fold:
+            latest_fold = fold.fold_id
+            row = dict(cell=f"{target}/{backend}", arm=arm, stage="fold_started",
+                       fold_id=latest_fold, elapsed_seconds=perf_counter()-started)
+            print(json.dumps(row), flush=True)
+            with (output / f"{name}-progress.jsonl").open("a") as stream:
+                stream.write(json.dumps(row)+"\n")
 
     bt = endpoint(strategy, target, backend, arm, registration, prepared)
     ctx = MetaHistoryContext(MetaHistory(max_revisions=256), "e03-private-cell-study",
@@ -139,6 +154,8 @@ def worker(output, target, backend, arm, prepared="off"):
     result = bt.backtest(data=data, param_ranges=ranges,
                          **({"meta_history": ctx} if arm != "off" else {}))
     elapsed, cpu = perf_counter()-wall, process_time()-cpu
+    execution_memory = memory()
+    export_started = perf_counter()
     wf = result.metadata["walk_forward"]
     studies = wf["sampler_studies"]
     assert len(wf["fold_table"]) == 28
@@ -188,7 +205,9 @@ def worker(output, target, backend, arm, prepared="off"):
         source_sha256=registration["source"]["source_sha256"], core_origin=str(Path(quantbt.__file__).resolve()),
         versions={p:importlib.metadata.version(p) for p in ("quantbt-engine", "quantbt-native", "optuna", "numpy")},
         load_seconds=loading, wall_seconds=elapsed, cpu_seconds=cpu,
-        account_check_seconds=perf_counter()-check_start, before_memory=before, after_memory=memory(),
+        account_check_seconds=perf_counter()-check_start, before_memory=before, after_memory=execution_memory,
+        cold_export_seconds_before_receipt=perf_counter()-export_started,
+        after_export_memory=memory(), timing_policy="cold_public_call_on_shared_vps_not_repeated_median",
         attempts=sum(s["attempts"] for s in studies),
         completed=sum(s["states"].get("COMPLETE", 0) for s in studies),
         pruned=sum(s["states"].get("PRUNED", 0) for s in studies),
@@ -198,7 +217,9 @@ def worker(output, target, backend, arm, prepared="off"):
         observer_failures=meta.get("observer_failures", 0), cache=wf.get("prepared_scoring_cache"),
         checks=dict(account_original=True, snapshot_causal=True, actual_params=True),
         witness_sha256=sha256((output / f"{name}-witness.json").read_bytes()).hexdigest() if witnesses else None)
-    dump(output / f"{name}.json", wire(sample))
+    # Optuna pruned objectives may be infinite; keep their typed state and
+    # explicit nonfinite token rather than feeding them into the label codec.
+    dump(output / f"{name}.json", sample)
     print(json.dumps(dict(cell=f"{target}/{backend}", arm=arm, seconds=elapsed,
         attempts=sample["attempts"], observer=sample["observer_attempts"])), flush=True)
 

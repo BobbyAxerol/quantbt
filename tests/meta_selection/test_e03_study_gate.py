@@ -45,3 +45,14 @@ def test_e03_t05_private_registration_cannot_claim_changed_trial_or_rng_protocol
         file.write_text(json.dumps({**row, field:0}))
         with pytest.raises(AssertionError):
             read_registration(tmp_path)
+
+
+def test_e03_t05_pruned_trial_nonfinite_objectives_remain_explicit_not_label_zero():
+    from tools.qms_real_review import clean
+    record = clean(dict(trials=[dict(state="PRUNED", objective=float("-inf"))],
+                        paired=[dict(status="UNDEFINED", forward_sharpe=None)]))
+    json.dumps(record, allow_nan=False)
+    assert record["trials"][0]["objective"] == "-inf"
+    assert record["paired"][0]["forward_sharpe"] is None
+    source = (ROOT / "tools/qms_e03_study.py").read_text()
+    assert 'dump(output / f"{name}.json", sample)' in source
