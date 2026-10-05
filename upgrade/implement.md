@@ -16,9 +16,12 @@ Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
 **Current capability work:** the owner authorized [QMS-C01](#qms-c01---additional-meta-modes-and-schedules)
-on 2026-10-05 (Asia/Saigon). C01 reviews the actual mode/schedule information
-contracts and tests them before activation. New semantics require the explicit
-choice recorded in that section; QMS-C02..C05 remain planning-only.
+on 2026-10-05 (Asia/Saigon) for **spec/tests; activation separately**. The
+source-grounded eight-route review and [methodology amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md)
+do not enable new meta combinations. [C01 report](../docs/meta_selection/QMSC01_REPORT.md)
+records test evidence and the confirmed Mode 2 provenance discrepancy C01-D01.
+New semantics and that metadata-only repair require separate approval;
+QMS-C02..C05 remain planning-only.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -22661,34 +22664,40 @@ Public-index proof stays PENDING_PUBLICATION; manylinux2014 release portability
 is a separate later publication-workflow gate. No scientific replacement or
 future QMS-C01..C05 implementation was started.
 
-### QMS Capability Gap Roadmap - PLANNING_ONLY
+### QMS Capability Gap Roadmap - C01 REVIEW; C02-C05 PLANNING_ONLY
 
-**Authorization:** the owner requested detailed tracking of the five capability
-groups below, not implementation, methodology research or replacement of guide
-section 14. Every group requires a separate approval and capability/spec review.
+**Authorization:** the owner initially requested detailed tracking of the five
+capability groups below, not implementation, methodology research or replacement
+of guide section 14. C01 subsequently received **spec/tests only** approval;
+activation remains a separate decision. Every other group requires separate
+approval and capability/spec review.
 Reuse existing typed planning/preparation/evaluation/history/selection/native/
 result contracts; no new account engine, endpoint or sampler factory. Baseline
 off/shadow/RNG/account parity and explicit unsupported errors remain required.
 
 #### QMS-C01 - Additional Meta Modes And Schedules
 
-**Status:** AUTHORIZED_SCOPE_REVIEW_AND_TESTS; baseline source `b5563de`.
-The owner requested this phase on 2026-10-05. Its existing review-before-enable
-rule remains mandatory. The separate activation-choice question is not approval
-to open every previously unsupported mode or to replace the scientific study.
+**Status:** SPEC_AND_TESTS_COMPLETE_WITH_RECORDED_METADATA_GAP;
+activation NOT_AUTHORIZED; baseline `b5563de`.
+The owner requested this phase on 2026-10-05 and explicitly answered
+"Chot spec va tests; duyet activation rieng". Its review-before-enable rule
+remains mandatory. This is not approval to open unsupported combinations or
+replace the registered scientific study.
 
 **Goal:** assess other existing modes without disguising their information role.
 **Guide:** [3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
 [7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
 [8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
-**Future work:** map each native anchor/objective/fold clock and history seam;
+**Review deliverable:** map each native anchor/objective/fold clock and history seam;
 draft explicit methodology amendments for Mode 1 decay/Mode 2 bootstrap/Mode 3
 plateau/global schedules and Mode 5 calibration. Do not label OOS-adjusted or
 full-sample selection causal. Owner selects the actual proposed semantics first.
 **Tests/exit:** native meta-off compatibility, exact full pools/anchors/raw
 validity, declared data roles, OOS/future mutation, RNG/selection lineage and
 same-pass accounting; written revised scope and supported matrix before enabling.
-**Not started:** all currently unsupported combinations remain preflight errors.
+**Activation not started:** all currently unsupported combinations remain
+preflight errors. The separate [versioned amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md)
+classifies proposals; it is not a runtime capability registry.
 
 **Execution scope and methodology review:**
 
@@ -22750,6 +22759,34 @@ qualification. A spec/test PASS alone is not an activation PASS.
 not marked completed because guards were removed. Deferred C02..C05 transport,
 sampler, persistence and geometry work is outside C01; scientific sections
 14-15 and public release remain separate owner gates.
+
+**C01 completion record (spec/test scope only):**
+
+- Local scope commit `0e17a42`; delegated public-route trace/tests `0d5a247`;
+  explicit global later-train mutation regression `da98a43`.
+  The [receipt](../benchmarks/optimization/meta_selection/qms_c01_contract_review.json)
+  pins that trace source, source symbols and unchanged guide SHA. Financial,
+  Rust, packaging and historical receipt bytes match C01 entry exactly.
+- Eight omitted/off route pairs preserve full trial pools, native winners,
+  positions/equity/returns and RNG. Nested Mode 1 outer-OOS mutation cannot
+  affect its first pool/anchor. Global Mode 4 later-train mutation is tested
+  separately; it must not acquire a per-fold causal claim.
+- Full-pool capture/actual-anchor/raw validity, existing Mode 4 active/shadow,
+  future labels, prepared/reference/Rust and same-account regressions are
+  recorded in [QMSC01_REPORT](../docs/meta_selection/QMSC01_REPORT.md).
+  **184 tests PASS**, zero failures/errors/skips, 75.76 s: 48 C01 tests plus
+  136 affected regressions. Optuna multivariate/group produces four declared
+  experimental warnings. Documentation links, lint, benchmark governance,
+  whitespace, protected-source identity and staged secret gates PASS.
+- **C01-D01 OPEN:** Mode 2 default `robust_decay` final selection consumes real
+  OOS while the legacy top-level flag is false. The synthetic adaptive objective
+  remains IS-only; tests prove those are distinct stages. Do not use the flag
+  as proof of OOS-free final selection. A separately approved metadata-only
+  correction must classify the actual selector and preserve exact economics/
+  params/objectives/RNG before any Mode 2 meta activation.
+- No new route, Ridge/scientific study, financial source, alpha notebook,
+  release pair, native build, merge, tag or publication is performed. Proposed
+  Mode 1 nested outer-IS cohort needs owner approval before implementation.
 
 #### QMS-C02 - W3 Process, Batch, Deadline, Carry And Multi-Symbol Contracts
 

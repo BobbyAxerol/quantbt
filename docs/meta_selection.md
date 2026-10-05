@@ -27,6 +27,8 @@ candidate proof is distinct from public release approval or real-market edge.
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [Latest local debt closure, costs and real meta-off/on decay](meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)
+- [C01 additional-mode methodology review; activation not authorized](meta_selection/ADDITIONAL_METHODS_REVIEW.md)
+- [C01 actual route tests, findings and activation decisions](meta_selection/QMSC01_REPORT.md)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)
 - [QMS-06 prepared parity and capability report](meta_selection/QMS06_REPORT.md)

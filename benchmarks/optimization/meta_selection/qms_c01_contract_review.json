@@ -1,0 +1,957 @@
+{
+  "activation": false,
+  "entry_sha": "b5563de495263d4b5fb8a9953e727c25c90cc441",
+  "fixture": {
+    "attempts_per_study": 6,
+    "bars": 547,
+    "economic_claim": false,
+    "market": "deterministic_synthetic_daily_v1",
+    "seed": 731,
+    "source": "examples/walk_forward_train_test.py::strategy"
+  },
+  "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+  "lanes": [
+    {
+      "actual_current_outer_OOS_ranking": true,
+      "contract": {
+        "adaptive_input": "all_train_folds",
+        "decision_frontier": "last_selection_observation",
+        "final_selection_input": "all_train_and_test_folds",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_1_decay",
+        "native_anchor": "final_oos_candidate_selector",
+        "proposed_cohort": "separate_retrospective_calibration_tasks",
+        "schedule": "global"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.15700648740149603,
+          "mean_forward_or_synthetic_sharpe": 10.671184935173407,
+          "mean_is_sharpe": 10.828191422574903,
+          "objective": 9.29235880236039,
+          "params": {
+            "window": 9
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 2.6006457782245374,
+          "study_id": 0,
+          "trial_id": 2
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 5,
+      "full_trial_rows": 6,
+      "legacy_metadata_OOS_ranking": true,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "a3fb9bb4c1b6437536aa6d5ea3d8932f2645363f94db0fb5eb061bd7e29a6257",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "robust_decay",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "in-sample scoring",
+        "out-of-sample scoring"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 3,
+      "studies": 1
+    },
+    {
+      "actual_current_outer_OOS_ranking": true,
+      "contract": {
+        "adaptive_input": "outer_IS",
+        "decision_frontier": "outer_test_end",
+        "final_selection_input": "outer_IS_and_current_outer_OOS",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_1_decay",
+        "native_anchor": "final_oos_candidate_selector",
+        "proposed_cohort": "selection_adjusted_not_pristine_forward",
+        "schedule": "per_fold_decay"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": -1.6819277778452406,
+          "mean_forward_or_synthetic_sharpe": 11.610886491021214,
+          "mean_is_sharpe": 9.928958713175973,
+          "objective": 11.610886491021214,
+          "params": {
+            "window": 9
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 0.0,
+          "study_id": 0,
+          "trial_id": 2
+        },
+        {
+          "mean_decay": 2.5259609329045762,
+          "mean_forward_or_synthetic_sharpe": 10.60083051643794,
+          "mean_is_sharpe": 13.126791449342516,
+          "objective": 9.33785004998565,
+          "params": {
+            "window": 3
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 0.0,
+          "study_id": 1,
+          "trial_id": 2
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 10,
+      "full_trial_rows": 12,
+      "legacy_metadata_OOS_ranking": true,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "198103cf594018e14bcbc92e037127475973535fc8845df6be773a6e28b9d49e",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "robust_decay",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "in-sample scoring",
+        "out-of-sample scoring"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 6,
+      "studies": 2
+    },
+    {
+      "actual_current_outer_OOS_ranking": false,
+      "contract": {
+        "adaptive_input": "inner_train_folds",
+        "decision_frontier": "outer_train_end",
+        "final_selection_input": "inner_train_and_validation_within_outer_IS",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_1_decay",
+        "native_anchor": "final_inner_decay_selector",
+        "proposed_cohort": "nested_anchor_outer_IS_real_forward_v1_proposed",
+        "schedule": "per_fold_causal"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": -1.7926634925885339,
+          "mean_forward_or_synthetic_sharpe": 11.266231840373612,
+          "mean_is_sharpe": 9.47356834778508,
+          "objective": 3.957321720911274,
+          "params": {
+            "window": 9
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 14.617820238924676,
+          "study_id": 0,
+          "trial_id": 2
+        },
+        {
+          "mean_decay": 1.619938899115633,
+          "mean_forward_or_synthetic_sharpe": 11.686036519825098,
+          "mean_is_sharpe": 13.30597541894073,
+          "objective": 5.7253865877024435,
+          "params": {
+            "window": 3
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 10.301360965129676,
+          "study_id": 1,
+          "trial_id": 2
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 10,
+      "full_trial_rows": 12,
+      "legacy_metadata_OOS_ranking": false,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "69bd3578dce033c7c5582729f21aadc360c91ca4c5765433d2ee08427d5713be",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "robust_decay",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "in-sample scoring",
+        "out-of-sample scoring",
+        "post-selection outer OOS realization"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-09-02T00:00:00+00:00",
+          "validation_or_test_end": "2020-10-02T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2020-10-02T00:00:00+00:00",
+          "validation_or_test_end": "2020-11-02T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2020-11-02T00:00:00+00:00",
+          "validation_or_test_end": "2020-12-02T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2020-12-02T00:00:00+00:00",
+          "validation_or_test_end": "2020-12-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2020-12-01T00:00:00+00:00",
+          "validation_or_test_end": "2021-01-01T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2021-01-01T00:00:00+00:00",
+          "validation_or_test_end": "2021-02-01T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2021-02-01T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-01T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2021-03-01T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 6,
+      "studies": 2
+    },
+    {
+      "actual_current_outer_OOS_ranking": true,
+      "contract": {
+        "adaptive_input": "synthetic_IS_proxy_returns",
+        "decision_frontier": "last_selection_observation",
+        "final_selection_input": "real_OOS_rerank_for_default_robust_decay",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_2_sbb",
+        "native_anchor": "final_oos_candidate_selector",
+        "proposed_cohort": "separate_real_forward_and_synthetic_stress_tasks",
+        "schedule": "global"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.7078335066498305,
+          "mean_forward_or_synthetic_sharpe": 11.592739834268219,
+          "mean_is_sharpe": 12.30057334091805,
+          "objective": 10.202283665089341,
+          "params": {
+            "window": 9
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 2.0730788317079227,
+          "study_id": 0,
+          "trial_id": 2
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 5,
+      "full_trial_rows": 6,
+      "legacy_metadata_OOS_ranking": false,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": true,
+      "native_identity": "a8a65e5050b7a0eaccc65f26e66cb949b8aa4b2ebce72d73b09487bb68e6b345",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "robust_decay",
+      "rng_exact": true,
+      "score_contexts": [
+        "in-sample scoring",
+        "out-of-sample scoring",
+        "sbb train scoring"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 3,
+      "studies": 1
+    },
+    {
+      "actual_current_outer_OOS_ranking": true,
+      "contract": {
+        "adaptive_input": "all_train_folds",
+        "decision_frontier": "last_selection_observation",
+        "final_selection_input": "real_OOS_rerank_for_default_robust_decay",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_3_flat_minima",
+        "native_anchor": "final_oos_candidate_selector_not_first_plateau",
+        "proposed_cohort": "separate_retrospective_plateau_anchor_tasks",
+        "schedule": "global"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.15700648740149603,
+          "mean_forward_or_synthetic_sharpe": 10.671184935173407,
+          "mean_is_sharpe": 10.828191422574903,
+          "objective": 9.29235880236039,
+          "params": {
+            "window": 9
+          },
+          "selected_by": "robust_decay",
+          "stage": "oos_candidate_selection",
+          "std_decay": 2.6006457782245374,
+          "study_id": 0,
+          "trial_id": 2
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 5,
+      "full_trial_rows": 6,
+      "legacy_metadata_OOS_ranking": true,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "3b989d874bcb02aebd9b44e9ba70ae01aea230c8855c1fcff7c5369cb9c6a796",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "robust_decay",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "in-sample scoring",
+        "out-of-sample scoring"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 4,
+      "studies": 1
+    },
+    {
+      "actual_current_outer_OOS_ranking": false,
+      "contract": {
+        "adaptive_input": "all_train_folds",
+        "decision_frontier": "last_train_observation",
+        "final_selection_input": "IS_robustness_OOS_scored_as_diagnostics",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_4_is_only_robust",
+        "native_anchor": "final_IS_robust_candidate",
+        "proposed_cohort": "retrospective_multi_fold_calibration_not_fold_causal",
+        "schedule": "global"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.13419693017504652,
+          "mean_forward_or_synthetic_sharpe": 9.95862115111443,
+          "mean_is_sharpe": 10.092818081289476,
+          "objective": 8.745239728483872,
+          "params": {
+            "window": 11
+          },
+          "selected_by": "is_only_robust",
+          "stage": "oos_candidate_selection",
+          "std_decay": 2.2925659150860684,
+          "study_id": 0,
+          "trial_id": 4
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 5,
+      "full_trial_rows": 6,
+      "legacy_metadata_OOS_ranking": false,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "fb006ffdd202d09d458660be65de4a4c2c48440ea847605e4551a234039b033b",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "is_only_robust",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "in-sample scoring",
+        "is-only robustness subperiod 0",
+        "is-only robustness subperiod 1",
+        "is-only robustness subperiod 2",
+        "out-of-sample scoring"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 0,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 4,
+      "studies": 1
+    },
+    {
+      "actual_current_outer_OOS_ranking": false,
+      "contract": {
+        "adaptive_input": "outer_IS",
+        "decision_frontier": "outer_train_end",
+        "final_selection_input": "outer_IS_temporal_and_plateau",
+        "meta_status": "SUPPORTED_EXISTING",
+        "mode": "mode_4_is_only_robust",
+        "native_anchor": "final_IS_robust_candidate",
+        "proposed_cohort": "existing_mode4_real_forward_family",
+        "schedule": "per_fold_causal"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.0,
+          "mean_forward_or_synthetic_sharpe": 0.0,
+          "mean_is_sharpe": 9.302934257560004,
+          "objective": 9.302934257560004,
+          "params": {
+            "window": 11
+          },
+          "selected_by": "is_only_robust",
+          "stage": "is_only_candidate_selection",
+          "std_decay": 0.0,
+          "study_id": 0,
+          "trial_id": 4
+        },
+        {
+          "mean_decay": 0.0,
+          "mean_forward_or_synthetic_sharpe": 0.0,
+          "mean_is_sharpe": 12.553851278545238,
+          "objective": 12.553851278545238,
+          "params": {
+            "window": 7
+          },
+          "selected_by": "is_only_robust",
+          "stage": "is_only_candidate_selection",
+          "std_decay": 0.0,
+          "study_id": 1,
+          "trial_id": 5
+        }
+      ],
+      "folds": 2,
+      "full_eligible_rows": 10,
+      "full_trial_rows": 12,
+      "legacy_metadata_OOS_ranking": false,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "43671ffa14a2e960ee3779b642d24ea5ff1628c3bed12b7899232847cf1f4b80",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "is_only_robust",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "is-only robustness subperiod 0",
+        "is-only robustness subperiod 1",
+        "is-only robustness subperiod 2",
+        "post-selection outer OOS realization"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2020-12-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-03-31T00:00:00+00:00"
+        },
+        {
+          "study_id": 1,
+          "train_end": "2021-03-31T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 8,
+      "studies": 2
+    },
+    {
+      "actual_current_outer_OOS_ranking": false,
+      "contract": {
+        "adaptive_input": "entire_declared_sample",
+        "decision_frontier": "sample_end",
+        "final_selection_input": "entire_declared_sample_robustness",
+        "meta_status": "UNSUPPORTED_REVIEW_REQUIRED",
+        "mode": "mode_5_full_robust",
+        "native_anchor": "final_full_sample_candidate",
+        "proposed_cohort": "deployment_calibration_with_separate_later_forward",
+        "schedule": "global"
+      },
+      "equity_bars": 547,
+      "explicit_off_exact": true,
+      "fee_rate_one_way": 0.0005,
+      "final_anchors": [
+        {
+          "mean_decay": 0.0,
+          "mean_forward_or_synthetic_sharpe": 0.0,
+          "mean_is_sharpe": 10.557914776085351,
+          "objective": 10.557914776085351,
+          "params": {
+            "window": 11
+          },
+          "selected_by": "full_robust",
+          "stage": "full_sample_candidate_selection",
+          "std_decay": 0.0,
+          "study_id": 0,
+          "trial_id": 4
+        }
+      ],
+      "folds": 1,
+      "full_eligible_rows": 5,
+      "full_trial_rows": 6,
+      "legacy_metadata_OOS_ranking": false,
+      "meta_metric_validity": "NOT_CREATED_BY_NATIVE_SCALAR_TRACE",
+      "meta_sidecar": false,
+      "metadata_discrepancy": false,
+      "native_identity": "3b9a4cebfa533c4d2ed55ce3d173adffc1a3a77cd3216c3f1657fece398303a1",
+      "optuna_observed_current_OOS": false,
+      "raw_IS_fields_retained": true,
+      "resolved_selector": "full_robust",
+      "rng_exact": true,
+      "score_contexts": [
+        "anti-leakage in-sample search",
+        "is-only robustness subperiod 0",
+        "is-only robustness subperiod 1",
+        "is-only robustness subperiod 2"
+      ],
+      "selection_windows": [
+        {
+          "study_id": 0,
+          "train_end": "2021-06-30T00:00:00+00:00",
+          "validation_or_test_end": "2021-06-30T00:00:00+00:00"
+        }
+      ],
+      "shortlist_rows": 4,
+      "studies": 1
+    }
+  ],
+  "metadata_discrepancies": [
+    "mode_2_sbb"
+  ],
+  "new_meta_methods": [],
+  "protected_source_diff": [],
+  "publication": false,
+  "schema": "qms-c01-methodology-contract-review-v1",
+  "scientific_study": "UNCHANGED_NOT_RERUN",
+  "source_sha": "0d5a24788c32a0031d419d85633292d2fcaa89ec",
+  "source_symbols": [
+    {
+      "end": 363,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "e820e859fdb12c960692c21c8f9e820ec644b1f9e1aff5897c6749191a9f1182",
+      "start": 209,
+      "symbol": "EndpointConfig"
+    },
+    {
+      "end": 5483,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "b373cfe8efd4dc52f68ecafc29f4228a6716f399dba9581d12a118100c5e1390",
+      "start": 5471,
+      "symbol": "_walkforward_scoring_config"
+    },
+    {
+      "end": 2203,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "e059499b7741d9f8a3ea0ff79cd6dbfbaae72cc503592eac87a5f5397e74bef8",
+      "start": 1933,
+      "symbol": "QuantBTEndpoint.walk_forward"
+    },
+    {
+      "end": 2254,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "4462c81611b6f03f9a32b9a7e50a0c23e59d586898b885a71af4437e6c8b1c6d",
+      "start": 2205,
+      "symbol": "QuantBTEndpoint.train_test_split"
+    },
+    {
+      "end": 2463,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "b445c7c1908c722a293077fdfc170cf05016f2f8c0e60eb80bae96e8360b178a",
+      "start": 2256,
+      "symbol": "QuantBTEndpoint.backtest"
+    },
+    {
+      "end": 3996,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "c2b4f1a3faeaf1e38b01051d9c7918dfd395652a0dd04fc74b7efa8ac42b1e93",
+      "start": 3710,
+      "symbol": "QuantBTEndpoint._run_walk_forward"
+    },
+    {
+      "end": 5468,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "569f8cd88507d9811e3f66c121166f9ba7c3f8611c054817f2bd914115aed1d0",
+      "start": 4882,
+      "symbol": "_WalkForwardEndpointScorer"
+    },
+    {
+      "end": 4668,
+      "file": "src/quantbt/endpoint.py",
+      "file_sha256": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+      "sha256": "c80d007873325431c8d2e726119f5def25b8d8f4a0fa536f9a01bd548814bd3c",
+      "start": 4645,
+      "symbol": "_make_walkforward_endpoint_scorer"
+    },
+    {
+      "end": 825,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "0966b7761f4bd456af2afaf529b3413e49a82804131c174ad176f31862fd03c1",
+      "start": 360,
+      "symbol": "WalkForwardConfig"
+    },
+    {
+      "end": 1201,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "84d08c3a9a3d511110a2f08795d73c2928d522dfdcdf68067f2b704dc1df754c",
+      "start": 1025,
+      "symbol": "WalkForwardEngine.run"
+    },
+    {
+      "end": 1722,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "42e91c32eef3ab4adb4943528f4e3eb4a172ad6639181743d80ae2e62209b705",
+      "start": 1531,
+      "symbol": "WalkForwardEngine._run_per_fold_schedule"
+    },
+    {
+      "end": 1979,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "2416872cbc11f06130d07026c9ddda00fe493025c970476a5a3c33084dd4f82b",
+      "start": 1756,
+      "symbol": "WalkForwardEngine.optimize_params"
+    },
+    {
+      "end": 1754,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "af075f4269fb1e7b61df8f15d06996aeccefc4b284e73e53db30e8d0b0c46387",
+      "start": 1724,
+      "symbol": "WalkForwardEngine._capture_research_records"
+    },
+    {
+      "end": 1987,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "1ea9aab4d644848f81e9beeb9f55a8a5a0c7900dbde8c7e349f6209e7507e7a0",
+      "start": 1981,
+      "symbol": "WalkForwardEngine._compact_trial_records"
+    },
+    {
+      "end": 2103,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "b77d8695be523aaf2769dfe83073a2f696d9a5b5ca11cfd17ceb98ade3cbc318",
+      "start": 1989,
+      "symbol": "WalkForwardEngine.evaluate_params_is"
+    },
+    {
+      "end": 2284,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "3e1eb33b33c1e1da6ce631508d1a5ed640812789ecf01859d876659c80a589b0",
+      "start": 2171,
+      "symbol": "WalkForwardEngine.evaluate_params"
+    },
+    {
+      "end": 3024,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "fd4e12019e12eeaf8ea9d13fef0b59a1ed48e0bce5b72936228653502a7c76af",
+      "start": 2868,
+      "symbol": "WalkForwardEngine._call_strategy_for_indices"
+    },
+    {
+      "end": 2714,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "d3990467f65d41f2d26b8d664eb0a95d732f127dfac0fda1a72907b75eaba433",
+      "start": 2601,
+      "symbol": "WalkForwardEngine._score_strategy_outputs_batch"
+    },
+    {
+      "end": 4386,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "eef8c4acfb1448d24e44335e032081fb46f94e7c0fe8bcd78e22ad2e0c52bdce",
+      "start": 4205,
+      "symbol": "select_is_only_robust_record"
+    },
+    {
+      "end": 4485,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "2512c6180b9e027380b6e1dbfe893e887d79bee1e711237629ca669a967f7c0c",
+      "start": 4462,
+      "symbol": "_select_is_candidate_records"
+    },
+    {
+      "end": 4655,
+      "file": "src/quantbt/walkforward.py",
+      "file_sha256": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+      "sha256": "498e7c55187b136b4f7986ba77c849ad8c0558a3261a81477ece302a91b6d0c6",
+      "start": 4640,
+      "symbol": "_without_fold_metrics"
+    },
+    {
+      "end": 694,
+      "file": "src/quantbt/backends/native_wfo_public.py",
+      "file_sha256": "c80546da16db8aaa38139c47a90fb336ad19881d17cc3ca6df9d186b1a614b65",
+      "sha256": "5580feb271ba15852b6584492151af6a7a46ff519324d9d64a2161b0dc65bb9f",
+      "start": 67,
+      "symbol": "NativePreparedPublicWfoScorerV1"
+    },
+    {
+      "end": 644,
+      "file": "src/quantbt/backends/native_prepared_evaluation.py",
+      "file_sha256": "4c1874e79b279c2544961b615fb5f1a97e9c87471964e713576efa5d3e3fddd7",
+      "sha256": "40d71608b93bc9d9b157ad949b387b245bbaef5072ed0d76608c35359d1afefb",
+      "start": 298,
+      "symbol": "NativePreparedEvaluationRuntimeV1"
+    },
+    {
+      "end": 202,
+      "file": "src/quantbt/strategies/wfo_prepared.py",
+      "file_sha256": "e7a420c4ee61c29bfc60910886a4cbd4fa4fcfc0f163227b3397547995c83fa8",
+      "sha256": "90262d76fed418d8d9c4ba4b440087f5dbc9e264552347002bc714bce3f7cdec",
+      "start": 58,
+      "symbol": "PreparedWfoStrategyAdapterV1"
+    },
+    {
+      "end": 319,
+      "file": "src/quantbt/strategies/wfo_prepared.py",
+      "file_sha256": "e7a420c4ee61c29bfc60910886a4cbd4fa4fcfc0f163227b3397547995c83fa8",
+      "sha256": "c497a4026c8ff31f06f6231f75dc06c32afecc68a9929e10e6c2eb98e7569c0c",
+      "start": 205,
+      "symbol": "prepare_public_wfo_strategy"
+    },
+    {
+      "end": 150,
+      "file": "src/quantbt/core/results.py",
+      "file_sha256": "559e17ded4d561b8e98968e0d276fbda4256c322ac2af78cfff06ef5383cbbe3",
+      "sha256": "5f7e687df177d54c40846a10e81d3eb1aaa002dcfef36702ffad1a80862493dd",
+      "start": 123,
+      "symbol": "BacktestScalarScoreResult"
+    },
+    {
+      "end": 54,
+      "file": "src/quantbt/optimization/space.py",
+      "file_sha256": "f19c93bda0025fdd5fb948e387b50686c56f396dd255dc7a64db29e975fc2df3",
+      "sha256": "adbaf49bb3f3a176665eca5c4dcdf918c1ff0aa4fb970fdc95fd1f989fd4a241",
+      "start": 24,
+      "symbol": "suggest_parameter"
+    },
+    {
+      "end": 126,
+      "file": "src/quantbt/optimization/space.py",
+      "file_sha256": "f19c93bda0025fdd5fb948e387b50686c56f396dd255dc7a64db29e975fc2df3",
+      "sha256": "5a3fbb5903f5dab5bf37be7b18ede6cc5aa0ab11cedc58265d41e48040524217",
+      "start": 85,
+      "symbol": "search_space_info"
+    },
+    {
+      "end": 827,
+      "file": "src/quantbt/backends/reactive_wfo.py",
+      "file_sha256": "3184a3848bfd6cd4189618e825b646b7da92a7141375861c40a482309adf93b1",
+      "sha256": "e8cb31d383c6b87dbc2c1f0faa7448b8e3d218664aa3f056ec1afbd737317ac4",
+      "start": 688,
+      "symbol": "ReactivePreparedWfoRuntimeV1._select"
+    },
+    {
+      "end": 127,
+      "file": "src/quantbt/optimization/samplers.py",
+      "file_sha256": "1ef9cfa2beb7f4ddc80e883f2ea22048e8d093baf4a4036b213270e1ac804bdb",
+      "sha256": "b42f70116f455ef7851a7442f8b619ddf60657139f0a5b15efae262e11c12f61",
+      "start": 37,
+      "symbol": "build_sampler"
+    },
+    {
+      "end": 367,
+      "file": "src/quantbt/optimization/optimizer.py",
+      "file_sha256": "975dfb1e991d51c9a1c2ff8f8bb6eaa052da7820a37a3d02d94a7457c0c36ba9",
+      "sha256": "40a496d8414576f8c984d11e5ce4a3522ffe8d88aaa43a1a642e9d7df6c26029",
+      "start": 316,
+      "symbol": "_apply_baseline_floor"
+    },
+    {
+      "end": 117,
+      "file": "src/quantbt/metrics/performance.py",
+      "file_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+      "sha256": "b8d409d3ffe01056c17d095e401e758e79b6952b9b92373038f18d468442cd6e",
+      "start": 113,
+      "symbol": "sharpe"
+    },
+    {
+      "end": 51,
+      "file": "src/quantbt/metrics/performance.py",
+      "file_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+      "sha256": "9a39a21ef62c1b166685db328cfce6ead770e287e99c5a5da4c6c397cb4cbe34",
+      "start": 36,
+      "symbol": "_returns_for_stats"
+    },
+    {
+      "end": 66,
+      "file": "src/quantbt/metrics/performance.py",
+      "file_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+      "sha256": "ba9d73ee7fde330ac135a5f16f3a3eb09fe6e3a147b2f4379b0b8e9293cbdae6",
+      "start": 54,
+      "symbol": "_annualization_periods"
+    },
+    {
+      "end": 221,
+      "file": "src/quantbt/metrics/performance.py",
+      "file_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+      "sha256": "01585bed291d0fa82adfdcb28ea02fb33805f9631139c6c3b6cf6504eac12d9a",
+      "start": 215,
+      "symbol": "number_of_trades"
+    },
+    {
+      "end": 56,
+      "file": "src/quantbt/core/types.py",
+      "file_sha256": "c52a409aeeb21799b393b47b1c658c2f42b371dca1cbc969cc8985c9f7a34eaa",
+      "sha256": "37095d8dc2e8a18376ea0a62532f319f5b51a444ff6fccee8db52dfb25e63e8b",
+      "start": 54,
+      "symbol": "BacktestResult.daily_equity"
+    },
+    {
+      "end": 60,
+      "file": "src/quantbt/core/types.py",
+      "file_sha256": "c52a409aeeb21799b393b47b1c658c2f42b371dca1cbc969cc8985c9f7a34eaa",
+      "sha256": "9b751bcf574d5b7c995ca910ec07321dcd5c66d5e447a4005e7f8e18beff5754",
+      "start": 58,
+      "symbol": "BacktestResult.daily_returns"
+    },
+    {
+      "end": 31,
+      "file": "examples/walk_forward_train_test.py",
+      "file_sha256": "562d2d0f6a9c96aa382c007ee629ae0c562f6638d1a003d698ae685671bff92a",
+      "sha256": "edf29cb97a6d114ab020bdbf8a21413e9e90184a3d98bbc8ad82d6479d9e5aa1",
+      "start": 26,
+      "symbol": "strategy"
+    },
+    {
+      "end": 45,
+      "file": "src/quantbt/optimization/meta_selection/capture.py",
+      "file_sha256": "2cda1462c98152e8c7b5e48de74a22262cbc970e3e275978637691d090673abb",
+      "sha256": "8af6ff6c78f5f498ce47065f683475f80f9094e6d21ef67588794cac9e8c113c",
+      "start": 36,
+      "symbol": "ISPoolCapture.validate"
+    },
+    {
+      "end": 151,
+      "file": "src/quantbt/optimization/meta_selection/capture.py",
+      "file_sha256": "2cda1462c98152e8c7b5e48de74a22262cbc970e3e275978637691d090673abb",
+      "sha256": "5ddbdb5bafacb711c5a569571d4c410001643ab33ffb1e4dfc6fa0153a69f95e",
+      "start": 47,
+      "symbol": "ISPoolCapture.capture"
+    },
+    {
+      "end": 109,
+      "file": "src/quantbt/optimization/meta_selection/config.py",
+      "file_sha256": "870d03df34fb6639be2c9c31c9739383a7753cfdf15871580aa726f9c92c540f",
+      "sha256": "045a6eaf47f67c24d485f28b02bf139c71bf27c0c768cd11f0c0d5e5904c0476",
+      "start": 80,
+      "symbol": "validate_meta_route"
+    },
+    {
+      "end": 169,
+      "file": "src/quantbt/optimization/meta_selection/runtime.py",
+      "file_sha256": "702c52dbc6f287f50510aa991591add8e10c5c01600ac5acee222daf582a67bb",
+      "sha256": "c103c69a1ca568ea2e6e5645144af0ad6d08dadc61215cebf194e9b2808f229c",
+      "start": 87,
+      "symbol": "PublicMetaRuntime.compatibility_family"
+    },
+    {
+      "end": 381,
+      "file": "src/quantbt/optimization/meta_selection/runtime.py",
+      "file_sha256": "702c52dbc6f287f50510aa991591add8e10c5c01600ac5acee222daf582a67bb",
+      "sha256": "0becb9f34dcd12df13c33ffbd2bf5d8b01bde52c5cf9dcb22a57b8bc4dfcde40",
+      "start": 255,
+      "symbol": "PublicMetaRuntime.select"
+    },
+    {
+      "end": 408,
+      "file": "src/quantbt/optimization/meta_selection/runtime.py",
+      "file_sha256": "702c52dbc6f287f50510aa991591add8e10c5c01600ac5acee222daf582a67bb",
+      "sha256": "a5eca4e78ab7d7a6631e086a19715a0d8ce415a88e59d516287400fe9d0e65bf",
+      "start": 383,
+      "symbol": "PublicMetaRuntime.observe"
+    }
+  ],
+  "status": "ASSESSMENT_COMPLETE_ACTIVATION_REQUIRES_OWNER_CHOICE"
+}

@@ -30,6 +30,13 @@ Rust dispatch remains independent of financial backend/prepared-WFO selection.
 The local debt-closure extension adds W3 sequential/reset-flat meta below.
 Ordinary meta-off W3 remains unchanged; its account is not a scalar target proxy.
 
+Other modes and schedules remain unsupported for meta. The owner-approved
+[C01 methodology review](ADDITIONAL_METHODS_REVIEW.md) and
+[spec/test report](QMSC01_REPORT.md) do not activate them. In particular, default
+Mode 2 final robust_decay reranking uses real OOS despite its legacy top-level
+false flag; the review records that provenance gap separately from its IS-only
+synthetic adaptive objective.
+
 ## W3 Sequential Meta
 
 Use the existing `prepare_reactive_walk_forward` boundary and pass typed

@@ -25,6 +25,22 @@
 - Push is authorized only for this feature branch's read-only qualification.
   Do not merge, retag, release, deploy or start unapproved subphases.
 
+## Current C01 Review
+
+The owner chose **spec and tests; activation separately** on 2026-10-05.
+Read the [amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md) and
+[actual report](../docs/meta_selection/QMSC01_REPORT.md). All eight existing
+native combinations are audited; omitted/explicit-off accounting, full pools,
+native winners and RNG match. No additional meta route, scientific replacement,
+financial source change, version change or release is authorized.
+
+Proposed first causal extension: nested Mode 1 with the exact inner-decay native
+anchor, full-pool original outer-IS witnesses and a distinct versioned family;
+target/cohort semantics need owner approval. C01-D01 is confirmed: default
+Mode 2 robust_decay finally ranks on real OOS but its legacy metadata flag is
+false. It remains recorded, not fixed in the approved spec/test scope. C02-C05
+remain planning-only. Prior release/market receipts below keep their exact scope.
+
 ## Latest Local Debt Closure
 
 Read [current report](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md) and

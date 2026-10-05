@@ -22,6 +22,17 @@ the older QMS08 receipts below retain their historical source and scope.
 Detailed requirements remain the
 [approved guide](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói).
 
+## Additional Methodology Review
+
+QMS-C01 is approved for specification and tests only; additional meta activation
+requires a separate owner decision. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
+and [phase report](QMSC01_REPORT.md) classify actual native anchors, data roles,
+full pools and decision frontiers for eight existing native combinations.
+They preserve the original guide, Ridge, financial sources and supported meta
+matrix. Synthetic native/off parity is not new-mode installed-wheel or economic
+certification. C01-D01, the default Mode 2 final-OOS-selection metadata discrepancy,
+is recorded explicitly and is not silently marked fixed.
+
 ## Software Gates
 
 The independent `tools/qms08_gate.py` registry contains all **64** Q1-T01..Q8-T08
