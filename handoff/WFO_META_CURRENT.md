@@ -7,13 +7,14 @@
   [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) for current gates.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-08, the owner-selected Gradient RSI / ETHUSDT
-  review, and exact prepared witnesses/W3/numeric-dispatch/thread-telemetry
-  local debt closure. Local software and real-alpha comparisons are complete.
+- Current approved scope: QMS-R01/R02/R03 release-gap closure and preparation
+  of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
+  witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.
   Financial arithmetic, alpha/data, methodology defaults and published pair remain
   unchanged; narrow same-pass native-output plumbing was added for W3.
-- Technical: regression/end-to-end/docs PASS; package PASS_LOCAL, remote pending.
-  Final owner/economic acceptance and remote/public activation PENDING.
+- Technical: regression/end-to-end/docs and installed package PASS; remote
+  **6/6 PASS** on `0970d55`, [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
+  Final owner/economic acceptance and public-index qualification remain PENDING.
   Historical QMS-08 empirical
   NOT_RUN_BUDGET stays sealed; follow-up PASS_REAL_ETH is a separate receipt,
   not primary BTC, pristine locked-sample or live certification.
@@ -21,7 +22,8 @@
   366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
-- Do not push, merge, retag, release, deploy or start unapproved subphases.
+- Push is authorized only for this feature branch's read-only qualification.
+  Do not merge, retag, release, deploy or start unapproved subphases.
 
 ## Latest Local Debt Closure
 

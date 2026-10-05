@@ -8,12 +8,13 @@ of **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, not merge/tag/publication.
 | Gate | Status |
 |---|---|
 | R01 current plan/status reconciliation | PASS; historical seals unchanged |
-| R02 six-row installed-W3 workflow wiring | PASS locally; remote run pending |
+| R02 six-row installed-W3 qualification | 6/6 PASS remotely on source `0970d55` |
 | R03 ordinary-build QMS feature activation/exact dependency | PASS |
 | Fresh installed release pair and core sdist | PASS; four cold consumer lanes |
 | Installed wheel and sdist W3 | PASS; original native pass, active lineage, no observer failures |
 | QMS regression / required IDs | 490 PASS / 64 IDs; no skipped cases |
 | Packaging, generated registry and release handoff regression | 34 PASS |
+| Build-tool portability and fail-closed release gate follow-up | 37 focused checks PASS |
 | Public-index consumer proof for new pair | PENDING_PUBLICATION, not substituted by private/local PASS |
 | Scientific study/protocol replacement | NOT_AUTHORIZED; no changes/research in this scope |
 
@@ -56,6 +57,28 @@ building the **release identities**, scalar/four-recipe consumers and installed
 W3 on each actual Ubuntu/CPython row. Its JUnit, structured proofs and logs are
 retained per runner; no OIDC token or upload action is granted. Record the actual
 run SHA/URL and all six final conclusions before calling this gate PASS.
+
+**Actual remote result:** [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548)
+completed SUCCESS on `0970d55ffbcdd0548989239652f8346b120f5773`.
+All six rows passed release identities, fresh default-feature build, scalar
+installed consumers, installed-W3 and proof retention:
+
+| Runner | CPython | Job ID | Result |
+|---|---|---|---|
+| Ubuntu 22.04 | 3.11 | 111505439987 | PASS |
+| Ubuntu 22.04 | 3.12 | 111505439935 | PASS |
+| Ubuntu 22.04 | 3.13 | 111505439970 | PASS |
+| Ubuntu 24.04 | 3.11 | 111505439807 | PASS |
+| Ubuntu 24.04 | 3.12 | 111505439972 | PASS |
+| Ubuntu 24.04 | 3.13 | 111505440017 | PASS |
+
+The [remote API receipt](../../benchmarks/optimization/meta_selection/qms_release_remote_qualification.json)
+retains job/source IDs and uploaded bundle digests. Proof payloads are retained
+in six GitHub artifacts for seven days; the API receipt is not an independent
+download of those payloads. The first run failed on CI build-tool lookup;
+the follow-up uses the local venv executable or PATH, with captured failure
+diagnostics. No financial/scientific source changed for this repair.
+This Ubuntu proof does not certify a manylinux2014 publication wheel.
 
 The installed release certifier and later Public Native Consumer Proof now
 require QMS scalar/four-recipe and W3 checks for this pair. Public consumers

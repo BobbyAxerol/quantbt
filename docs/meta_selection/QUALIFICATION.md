@@ -42,7 +42,7 @@ The original software switch fixtures are synthetic/engineered. They prove actua
 candidate lineage, not **Q8-T03 real-alpha market** lineage. That scientific
 expectation remains explicitly NOT_RUN until registered market execution.
 
-## Artifact Qualification
+## Historical Private Artifact Qualification
 
 The builder copies only tracked canonical source and allowlisted packaging
 files. It performs six exact identity adaptations in the build copy: project
@@ -70,8 +70,13 @@ Each interpreter uses fresh environments outside canonical source imports:
 Supported interpreter target is Linux x86_64 CPython 3.11-3.13. Local execution
 on this host does **not** certify manylinux portability or both Ubuntu runner
 images. `.github/workflows/qms-candidate.yml` prepares non-publishing installed
-qualification on Ubuntu 22.04/24.04 x CPython 3.11-3.13. Remote success is not
-claimed before the separately authorized push and actual workflow execution.
+qualification on Ubuntu 22.04/24.04 x CPython 3.11-3.13. For the approved release
+pair, remote qualification now passes all six rows on `0970d55` in
+[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
+Read the [current release-gap report](RELEASE_GAP_REPORT.md), not the historical
+private artifact seals, for that exact source and scope. Default-feature release
+builds use zero staged identity rewrites. Public-index and manylinux2014 release
+qualification are still separate later gates.
 
 ## Reproduce Locally
 

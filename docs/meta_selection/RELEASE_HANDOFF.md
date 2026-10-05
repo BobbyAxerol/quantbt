@@ -40,6 +40,12 @@ x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-rea
 only. Require **six actual successes**, archive JSON/log receipts and record
 the run URL/SHA. Local PASS is not remote or manylinux portability proof.
 
+Completed remote gate: **six successes** on source `0970d55`,
+[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
+See the [current gap report](RELEASE_GAP_REPORT.md) for exact jobs, local artifact
+hashes and retained receipt links. Later release artifacts still require their
+own manylinux/public-index gates; this is not permission to publish.
+
 ## Later Owner-Controlled Publication
 
 These steps are instructions for a **later approved release**, not actions

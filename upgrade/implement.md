@@ -10,7 +10,8 @@ Remote qualification and public release preparation are now authorized under
 Prepared pair: **1.1.2 / 0.4.3**, default compiled QMS capability, meta opt-in.
 Current local release regression: **490 QMS + 34 package checks PASS**;
 fresh wheel/sdist scalar and W3 installed consumers PASS. Remote matrix is
-PENDING until the feature-branch run completes. Public proof is PENDING_PUBLICATION.
+**6/6 PASS** on `0970d55` in [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
+Public proof is PENDING_PUBLICATION.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -22546,7 +22547,8 @@ remote/scientific/public decisions are not overwritten with local PASS.
 
 #### QMS-R02 - Installed W3 Proof And Six-Row Remote Qualification
 
-**Status:** COMPLETE_LOCAL_WIRING_AND_INSTALLED_PROOF; remote matrix PENDING.
+**Status:** COMPLETE_REMOTE_QUALIFICATION; six actual installed-W3 jobs PASS
+on `0970d55`; see the remote receipt below. Not a public-index certificate.
 
 **Goal:** qualify the actual changed source and installed native boundary on
 Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, without publishing.
@@ -22580,7 +22582,7 @@ the prepared source is committed/pushed and actual run results are recorded.
 
 #### QMS-R03 - Exact Public Pair, Default Native Capability And Release Handoff
 
-**Status:** COMPLETE_LOCAL_PREPARATION; remote qualification pending,
+**Status:** COMPLETE_PREPARATION_AND_REMOTE_QUALIFICATION;
 public-index proof PENDING_PUBLICATION. No release/upload authorized.
 
 **Goal:** prepare installable release artifacts that contain the QMS capability
@@ -22633,6 +22635,26 @@ were not upgraded in place. Pair artifacts and receipts are under ignored
 `.maturin/qms08/release-regression-v1`.
 See [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) and
 [current release-gap report](../docs/meta_selection/RELEASE_GAP_REPORT.md).
+
+**R02/R03 remote receipt:**
+[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548),
+source `0970d55ffbcdd0548989239652f8346b120f5773`, actual GitHub UTC window
+2026-10-04 18:49:45-18:52:50. All six Ubuntu 22.04/24.04 x CPython
+3.11/3.12/3.13 rows completed SUCCESS, including exact canonical release
+wheel/sdist builds, four scalar consumers and both installed-W3 consumers.
+The separate [API receipt](../benchmarks/optimization/meta_selection/qms_release_remote_qualification.json)
+binds source/run/job IDs, required-step conclusions and six uploaded artifact
+digests. It records GitHub job/artifact metadata; it does not claim independent
+download/verification of the remote artifact payloads. Each executed verifier
+remains fail-closed. Uploaded proof/log bundles have seven-day retention.
+The first run failed at the build-tool lookup; the verified follow-up resolves
+local `.venv/bin` or PATH tools and preserves subprocess-start failures in logs.
+37 focused release-plumbing checks PASS after that CI-only repair. Historical
+receipts, protected methodology, search, RNG and financial sources remain exact.
+Only the feature branch was pushed; no merge, tag or distribution upload.
+Public-index proof stays PENDING_PUBLICATION; manylinux2014 release portability
+is a separate later publication-workflow gate. No scientific replacement or
+future QMS-C01..C05 implementation was started.
 
 ### QMS Capability Gap Roadmap - PLANNING_ONLY
 
