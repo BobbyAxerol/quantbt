@@ -22,8 +22,9 @@ remain separate owner decisions. Historical receipts are preserved unchanged.
 on 2026-10-05 (Asia/Saigon) for **spec/tests; activation separately**. The
 source-grounded eight-route review and [methodology amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md)
 do not enable new meta combinations. [C01 report](../docs/meta_selection/QMSC01_REPORT.md)
-records test evidence and the confirmed Mode 2 provenance discrepancy C01-D01.
-New C01 semantics and that metadata-only repair require separate approval.
+records the historical Mode 2 provenance discrepancy C01-D01.
+The owner separately authorized its metadata-only repair in E01; new C01
+methodology activation still requires separate approval.
 QMS-C02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: original-pass process/batch witness
 transport and native cancellation/deadline tests PASS; carry/multi-symbol are
 specification/tests only, not runtime capabilities. Read the
@@ -23346,7 +23347,8 @@ debt/gaps and extend meta consistently across existing public WFO routes;
 validate each new domain with an existing real strategy before official support.
 This section is a proposed extension to the original guide's bounded route
 matrix, not a claim that its original scalar-only scope included every engine.
-**Execution authorization:** NONE. Each phase requires separate owner approval.
+**Execution authorization:** E01 only, by the owner's execution request.
+E02-E08 still require separate owner approval; no release/publication approval.
 **Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
 Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
 No version bump, push, merge, tag, deployment or upload is authorized by planning.
@@ -23385,10 +23387,10 @@ reset-flat route. Broader target guards currently reject meta as documented.
 
 | ID | Current finding / boundary | Disposition and planned owner |
 |---|---|---|
-| C01-D01 | Mode 2/global/default robust_decay reranks on real OOS while the top-level flag can remain false | Real metadata bug; E01 proposes selector/stage-based repair only, no objective/search change |
-| E-G02 | Candidate/release/public consumer wiring omits installed C02 transport flag and C03/C04 consumer coverage | Real qualification gap; E01 wires actual proofs, E08 verifies final exact artifacts |
-| E-G03 | Current handoff/release docs still say C02-C05 planning-only or deny qualified W3 process/deadline | Current-summary hygiene debt; E01 reconciles statuses, preserves sealed historical records |
-| E-G04 | Docs checker strips anchors and validates file existence only | Verification gap; E01 validates changed local anchors and adds focused checker tests; the legacy roadmap anchor already exists, do not falsely report it missing |
+| C01-D01 | Historical Mode 2/global/default robust_decay reporting discrepancy | E01 repair implemented: actual selector/stage flag; eight-route search/account/RNG identities exact, final regression pending |
+| E-G02 | Installed C02/C03/C04 proof wiring | E01 shared mandatory gate implemented; actual wheel/sdist consumers PASS locally; E08 owns final remote/public artifacts |
+| E-G03 | Current-summary hygiene debt | E01 current handoff/release/qualification reconciled; historical seals retained |
+| E-G04 | Anchor verification gap | E01 scoped fragment checker and independent negatives PASS; explicit legacy roadmap anchor preserved |
 | E-G05 | Stored six-row remote PASS is on pre-C02 source 0970d55, not current C02-C04 bytes | Current-source gate outstanding; E08 owns remote/exact-pair proof after authorized push |
 | E-G06 | Scalar-specific observer uses signal=output and a single DataFrame; guard relaxation cannot add portfolio/package support | Missing shared domain adapter; E02, followed by actual E03-E05 route implementation |
 | E-G07 | Intrabar/session, explicit command tape, options and Nautilus lack corresponding complete public WFO/meta adapters | Missing/new WFO capabilities, not an existing backtest-engine defect; E06/E07 bounded adapters, future options/Nautilus entry gates below |
@@ -23515,7 +23517,7 @@ routes are not silently disabled while new domain coverage is assessed.
 
 | Phase | Goal | Depends on | Current disposition |
 |---|---|---|---|
-| E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | PLANNED; NOT_RUN |
+| E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | AUTHORIZED_IN_PROGRESS; final regression pending |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | PLANNED; NOT_RUN |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |

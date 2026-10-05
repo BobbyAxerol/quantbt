@@ -107,3 +107,54 @@ def test_e01_t05_all_entrypoints_use_shared_mandatory_consumer_runner():
 def test_e01_t05_unknown_consumer_rejected():
     with pytest.raises(ValueError):
         consumer_arguments("made-up.py", core="1.1.2", native="0.4.3", examples=ROOT / "examples")
+
+
+@pytest.mark.parametrize("failure", [False, True])
+def test_e01_t05_public_entrypoint_executes_shared_gate_and_propagates_failure(tmp_path, monkeypatch, failure):
+    from tools import verify_public_native_consumer as public
+
+    spec = public.ConsumerProofSpec("pypi", "1.1.2", "0.4.3", "poetry", Path("/python"), 30, require_qms=True)
+    monkeypatch.setattr(public, "_run", lambda command, **kwargs: json.dumps({"probe": "unit fixture"}))
+    calls = []
+
+    def qualify(prefix, **kwargs):
+        calls.append((prefix, kwargs))
+        assert prefix == ["poetry", "run", "python"]
+        assert kwargs["logs"] == tmp_path / "public-logs"
+        assert kwargs["core"] == "1.1.2" and kwargs["native"] == "0.4.3"
+        assert kwargs["workspace"] != ROOT and kwargs["timeout"] == 30
+        if failure:
+            raise ValueError("required installed consumer failed")
+        return dict(consumers=records(), logs={}, consumer_source_sha256={})
+
+    monkeypatch.setattr(proof, "qualify", qualify)
+    if failure:
+        with pytest.raises(ValueError, match="required installed consumer"):
+            public.run_consumer_proof(spec, logs_directory=tmp_path / "public-logs")
+    else:
+        result = public.run_consumer_proof(spec, logs_directory=tmp_path / "public-logs")
+        assert set(result["qms_consumers"]) == set(CONSUMERS)
+    assert len(calls) == 1
+
+
+def test_e01_t05_release_entrypoint_cannot_ignore_consumer_failure(tmp_path, monkeypatch):
+    from tools import certify_native_release as release
+
+    monkeypatch.setattr(release, "_release_dependencies", lambda: (
+        lambda: [], lambda: {}, lambda: {}, None, lambda *a, **k: {}))
+    monkeypatch.setattr(release, "_artifact_evidence", lambda *a: (Path("core.whl"), Path("native.whl"), []))
+    monkeypatch.setattr(release, "_build_venv", lambda python, target, **kwargs: target / "bin/python")
+    monkeypatch.setattr(release, "_run_json_script", lambda *a, **k: {})
+    monkeypatch.setattr(release, "_run", lambda *a, **k: None)
+    calls = []
+
+    def fail(prefix, **kwargs):
+        calls.append((prefix, kwargs))
+        assert kwargs["logs"] == tmp_path / "qms-release-consumers"
+        assert kwargs["core"] == "1.1.2" and kwargs["native"] == "0.4.3"
+        raise ValueError("C04 proof failed")
+
+    monkeypatch.setattr(proof, "qualify", fail)
+    with pytest.raises(ValueError, match="C04 proof failed"):
+        release.certify_release(tmp_path, python=Path("/python"))
+    assert len(calls) == 1
