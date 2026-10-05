@@ -16,7 +16,8 @@ from .config import MetaHistoryContext
 from .descriptors import DescriptorSchema
 from .history import SealedTaskRevision
 from .model import RidgeLearner
-from .observer import PostDecisionObserver, market_signature
+from .observer import PostDecisionObserver
+from .domains.registry import adapter_for
 from .panel import freeze_panel
 from .records import CandidateRoleRef, CompatibilityFamily, MetaTask
 from .selection import MetaSelector
@@ -67,6 +68,7 @@ class PublicMetaRuntime:
             context,
             engine.config.meta_selection,
         )
+        self.domain_adapter = adapter_for(self)
         self.schema = DescriptorSchema(ranges)
         # Qualification/require failure occurs before market/search/financial calls.
         self.numeric = context.numeric_runtime(self.config.native_batch_policy)
@@ -169,21 +171,7 @@ class PublicMetaRuntime:
         )
 
     def validate_market(self, data, idx, folds):
-        if not isinstance(data, pd.DataFrame) or len(folds) > self.config.max_folds:
-            raise MetaRecordError(
-                "META_ROUTE_UNSUPPORTED: bounded single DataFrame tape required"
-            )
-        if not isinstance(idx, pd.DatetimeIndex) or not idx.is_unique:
-            raise MetaRecordError(
-                "META_ROUTE_UNSUPPORTED: exact unique calendar required"
-            )
-        utc(idx[0])
-        if len(folds) and any(
-            len(f.train_index) < 2 or len(f.test_index) < 2 for f in folds
-        ):
-            raise MetaRecordError(
-                "META_ROUTE_UNSUPPORTED: finite diagnostic windows require >=2 bars"
-            )
+        self.domain_adapter.validate_market(data, idx, folds)
 
     def begin_fold(self, fold):
         self.started = perf_counter()
@@ -394,6 +382,7 @@ class PublicMetaRuntime:
             task=task, panel=panel, evaluate=evaluate, expected_index=fold.test_index,
             label_available_at=available, reporting_lag_seconds=self.config.reporting_lag_seconds,
             prepared_witness=witness,
+            domain_adapter=self.domain_adapter,
         )
         elapsed = perf_counter() - started
         actual_available = available + pd.Timedelta(seconds=elapsed)
@@ -408,39 +397,10 @@ class PublicMetaRuntime:
         self.elapsed["observer"] += elapsed
 
     def observer_evaluator(self, data, fold, task):
-        from ...endpoint import QuantBTEndpoint
-        from ...walkforward import WalkForwardEngine
+        return self.domain_adapter.observer_evaluator(data, fold, task)
 
-        # Existing lifecycle owns fresh strategy instances; no optimizer/prepared
-        # strategy session or mutable scorer/account is shared with the observer.
-        cfg = replace(self.engine.config, meta_selection=None)
-        auxiliary = WalkForwardEngine(
-            self.engine.strategy, cfg, scorer=self.engine.scorer
-        )
-        auxiliary._prepared_context = self.engine._prepared_context
-        auxiliary._strategy_market_fingerprints = {}
-        auxiliary._lifecycle_records, auxiliary._lifecycle_records_dropped = [], 0
-        witness = getattr(self.engine.scorer, "_meta_witness", None)
-
-        def evaluate(candidate):
-            with isolated_observer_rng(
-                task.resolved_fold_seed + candidate.native_trial_id + 1
-            ):
-                output = auxiliary._call_strategy(
-                    data, dict(candidate.effective_params), fold
-                )
-                prefix = data.loc[: fold.test_index[-1]]
-                diagnostic = QuantBTEndpoint(self.engine.scorer.score_config)
-                result = diagnostic.backtest(
-                    data=prefix.loc[fold.test_index],
-                    signal=output,
-                    symbols=self.engine.scorer.symbols,
-                )
-                return result, (witness.market_signature(prefix, fold.test_index)
-                                if witness is not None else market_signature(
-                                    prefix, fold.test_index, config=self.engine.scorer.score_config))
-
-        return evaluate, auxiliary._lifecycle_records
+    def close(self):
+        self.domain_adapter.clear()
 
     def finalize(self, result):
         learned = any(
@@ -507,3 +467,4 @@ class PublicMetaRuntime:
                 chronological_validation_claim="outer_oos_after_frozen_past_forward_adaptive_selection",
                 causality_claim="current_outer_oos_excluded_past_forward_adaptive",
             )
+        self.domain_adapter.finalize(result)

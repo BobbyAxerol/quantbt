@@ -112,6 +112,8 @@ class EvaluationBinding:
             raise MetaRecordError("META_DOMAIN_ABI_UNSUPPORTED")
         token(self.domain)
         token(self.input_signature)
+        if not isinstance(self.params, Mapping):
+            raise MetaRecordError("META_DOMAIN_PARAMS_INVALID")
         object.__setattr__(self, "input_kind", InputKind(self.input_kind))
         object.__setattr__(self, "stage", EvaluationStage(self.stage))
         index = self.index
@@ -129,6 +131,17 @@ class EvaluationBinding:
             object.__setattr__(self, "decision_sealed_at", seal)
             if not cutoff <= seal < utc(index[0]):
                 raise MetaRecordError("META_DOMAIN_UNSEALED_FORWARD")
+
+
+@dataclass(frozen=True, slots=True)
+class DomainEvaluationOutput:
+    binding: EvaluationBinding
+    original_result: object = field(repr=False, compare=False)
+    abi: str = DOMAIN_ABI
+
+    def __post_init__(self):
+        if self.abi != DOMAIN_ABI or not isinstance(self.binding, EvaluationBinding):
+            raise MetaRecordError("META_DOMAIN_ABI_UNSUPPORTED")
 
 
 @dataclass(frozen=True, slots=True)

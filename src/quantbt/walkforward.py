@@ -975,7 +975,10 @@ def walkforward_support_matrix(as_dataframe: bool = True):
             notes="Reserved for future WFO parity validation, not routed by walk-forward today.",
         ),
     ]
-    rows = [entry.__dict__ for entry in entries]
+    from .optimization.meta_selection.domains.registry import check_route_inventory, route_metadata
+
+    check_route_inventory(entry.target_mode for entry in entries)
+    rows = [{**entry.__dict__, **route_metadata(entry.target_mode)} for entry in entries]
     if as_dataframe:
         return pd.DataFrame(rows)
     return rows
@@ -1197,6 +1200,7 @@ class WalkForwardEngine:
             self._strategy_market_fingerprints = {}
             if self._meta_runtime is not None:
                 self._is_pool_observer = None
+                self._meta_runtime.close()
             if prepared_context is not None:
                 prepared_context.close_witnesses()
 

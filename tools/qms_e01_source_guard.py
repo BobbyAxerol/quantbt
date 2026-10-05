@@ -30,6 +30,11 @@ NEW = b'''            oos_used_for_selection = bool(
 
 
 def without_e01_provenance(source, name):
+    from tools.qms_e02_source_guard import without_e02_adapter
+    try:
+        source = without_e02_adapter(source, name)
+    except AssertionError as exc:
+        raise AssertionError("unapproved E01 source outside reviewed later adapter") from exc
     if name != NAME:
         return source
     original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
@@ -40,11 +45,14 @@ def without_e01_provenance(source, name):
 
 
 def verify():
+    from tools.qms_e02_source_guard import ALLOW as E02_ALLOW, verify as verify_e02
+    verify_e02()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    if names != [NAME]:
+    if set(names) - E02_ALLOW:
         raise AssertionError("E01 must change only the WFO reporting expression")
-    current = (ROOT / NAME).read_bytes()
+    from tools.qms_e02_source_guard import without_e02_adapter
+    current = without_e02_adapter((ROOT / NAME).read_bytes(), NAME)
     original = without_e01_provenance(current, NAME)
     return dict(schema="qms-e01-source-guard-v1", baseline=ENTRY,
                 before_sha256=sha256(original).hexdigest(), after_sha256=sha256(current).hexdigest(),

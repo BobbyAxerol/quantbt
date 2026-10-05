@@ -61,7 +61,17 @@ def compare(old, new):
     assert old["native"]["guide_sha256"] == new["native"]["guide_sha256"]
     for name, value in old["native"]["historical_receipts"].items():
         assert new["native"]["historical_receipts"].get(name) == value, name
-    assert old["scalar"] == new["scalar"]
+    for name, before in old["scalar"].items():
+        after = new["scalar"][name]
+        assert {k: v for k, v in before.items() if k != "decisions"} == {
+            k: v for k, v in after.items() if k != "decisions"}
+        assert len(before["decisions"]) == len(after["decisions"])
+        for a, b in zip(before["decisions"], after["decisions"], strict=True):
+            # Original observer receipts include measured availability clocks;
+            # those revision bytes differ even in two unchanged wall-time runs.
+            assert {k: v for k, v in a.items() if k != "training_revision_ids"} == {
+                k: v for k, v in b.items() if k != "training_revision_ids"}
+            assert len(a["training_revision_ids"]) == len(b["training_revision_ids"])
     assert old["reactive"] == new["reactive"]
     return True
 
@@ -74,9 +84,16 @@ if __name__ == "__main__":
     if args.output.exists():
         raise ValueError("baseline is sealed; choose a fresh output")
     result = snapshot()
+    failed = False
     if args.baseline:
-        result["exact_parity"] = compare(json.loads(args.baseline.read_text()), result)
+        try:
+            result["exact_parity"] = compare(json.loads(args.baseline.read_text()), result)
+        except AssertionError:
+            result["exact_parity"] = False
+            failed = True
         result["baseline_sha256"] = sha256(args.baseline.read_bytes()).hexdigest()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps(dict(exact_parity=result.get("exact_parity"), routes=8, scalar_lanes=4)))
+    if failed:
+        raise AssertionError("E02 exact baseline mismatch; actual failed snapshot retained")

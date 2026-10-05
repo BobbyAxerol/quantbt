@@ -2,7 +2,7 @@
 
 from .observer import canonical_metric_contract, economics_identity
 from .reactive_transport import ReactiveDetachedMetricAdapter
-from .runtime import PublicMetaRuntime, isolated_observer_rng
+from .runtime import PublicMetaRuntime
 from .witness import PreparedMetricWitness
 
 
@@ -97,32 +97,3 @@ class ReactiveMetaRuntime(PublicMetaRuntime):
     def finalize(self, result):
         super().finalize(result)
         result.metadata["meta_selection"]["witness_transport"] = self.engine.scorer.metadata()
-
-    def observer_evaluator(self, data, fold, task):
-        from ...backends.reactive_wfo_support import ReactiveWfoScoreMarkerV1
-
-        boundary = self.engine.scorer
-        lifecycle_start = len(boundary.lifecycle)
-
-        def evaluate(candidate):
-            from time import perf_counter
-
-            with isolated_observer_rng(task.resolved_fold_seed + candidate.native_trial_id + 1):
-                marker = ReactiveWfoScoreMarkerV1(task=boundary.runtime.make_task(
-                    params=candidate.effective_params, fold=fold, evaluation_index=fold.test_index,
-                    stage="post_seal_counterfactual_forward"), params=dict(candidate.effective_params))
-                started = perf_counter()
-                _, result, signature = boundary.execute(marker, include_observation=False,
-                    observer_seed=task.resolved_fold_seed + candidate.native_trial_id + 1)
-                boundary.runtime._score_calls += 1
-                boundary.runtime._score_bars += marker.task.bars
-                boundary.runtime._score_seconds += perf_counter() - started
-                return result, signature
-
-        # The observer records each callback/account reset once. No original
-        # result or strategy is retained in this lightweight lifecycle view.
-        class LifecycleView:
-            def __iter__(self):
-                return iter(boundary.lifecycle[lifecycle_start:])
-
-        return evaluate, LifecycleView()

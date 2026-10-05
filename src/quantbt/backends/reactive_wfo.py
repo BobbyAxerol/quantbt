@@ -388,6 +388,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 try:
                     boundary.close()
                 finally:
+                    if self._meta_runtime is not None:
+                        self._meta_runtime.close()
                     self._meta_runtime = None
 
     def _backtest(

@@ -65,6 +65,8 @@ def without_c02_witness(source, name):
 
 
 def verify():
+    from tools.qms_e02_source_guard import ALLOW as E02_ALLOW, verify as verify_e02
+    verify_e02()
     from tools.qms_c03_source_guard import ALLOW as C03_ALLOW, verify as verify_c03
     from tools.qms_c04_source_guard import ALLOW as C04_ALLOW
     from tools.qms_e01_source_guard import NAME as E01_NAME, verify as verify_e01
@@ -72,7 +74,7 @@ def verify():
     c03 = verify_c03()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    validate_changes(set(names) - C03_ALLOW - C04_ALLOW - {E01_NAME})
+    validate_changes(set(names) - C03_ALLOW - C04_ALLOW - {E01_NAME} - E02_ALLOW)
     for name in set(names) & ALLOW:
         without_c02_witness((ROOT / name).read_bytes(), name)
     name = "rust/native_event/src/reactive_numeric.rs"

@@ -240,6 +240,7 @@ class PostDecisionObserver:
         reporting_lag_seconds=0.0,
         publication_order=None,
         prepared_witness=None,
+        domain_adapter=None,
     ):
         expected_index = pd.DatetimeIndex(expected_index)
         if (
@@ -272,14 +273,28 @@ class PostDecisionObserver:
             self.attempts += 1
             try:
                 # The evaluator owns fresh/reset account and strategy/RNG state.
-                result, input_signature = evaluate(candidate)
-                observation = self.adapter.observe(
-                    result,
-                    expected_index=expected_index,
-                    economics_id=task.family.economics_id,
-                    input_signature=input_signature,
-                    prepared_witness=prepared_witness,
-                )
+                evaluated = evaluate(candidate)
+                if domain_adapter is None:
+                    result, input_signature = evaluated
+                    observation = self.adapter.observe(
+                        result, expected_index=expected_index,
+                        economics_id=task.family.economics_id,
+                        input_signature=input_signature, prepared_witness=prepared_witness,
+                    )
+                else:
+                    from .domains.contracts import DomainEvaluationOutput, EvaluationStage
+
+                    if (not isinstance(evaluated, DomainEvaluationOutput)
+                            or evaluated.binding.stage != EvaluationStage.POST_SEAL_FORWARD
+                            or not evaluated.binding.index.equals(expected_index)
+                            or dict(evaluated.binding.params) != dict(candidate.effective_params)
+                            or evaluated.binding.information_as_of != task.data_cutoff
+                            or evaluated.binding.decision_sealed_at != task.decision_sealed_at):
+                        raise MetaRecordError("META_DOMAIN_RESULT_UNBOUND: candidate/window/seal mismatch")
+                    observation = domain_adapter.observe(evaluated.binding,
+                        evaluated.original_result, metric_adapter=self.adapter,
+                        economics_id=task.family.economics_id,
+                        prepared_witness=prepared_witness).observation
             except (MetaRecordError, RuntimeCanceledError, RuntimeBudgetError):
                 raise
             except Exception:
