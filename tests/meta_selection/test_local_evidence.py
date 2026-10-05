@@ -57,7 +57,10 @@ def current_proof():
 
 def test_followup_wheel_requires_current_source_and_actual_hashes():
     proof = current_proof()
-    assert verify_pair(proof)
+    # The default private local-closure receipt predates R03 and C02. Verify
+    # its sealed source; a supplied fresh proof must still match current bytes.
+    source = None if os.environ.get("QMS08_PACKAGE_PROOF") else "b8f167f"
+    assert verify_pair(proof, source_revision=source)
     with pytest.raises(ValueError, match="drift|changed"):
         verify_pair(proof, source_revision="6c0f877")
 
@@ -74,4 +77,4 @@ def test_followup_artifact_receipt_tampering_fails(mutation):
     else:
         proof["release_authorized"] = True
     with pytest.raises(ValueError):
-        verify_pair(proof)
+        verify_pair(proof, source_revision=None if os.environ.get("QMS08_PACKAGE_PROOF") else "b8f167f")

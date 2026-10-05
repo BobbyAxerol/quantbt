@@ -3,6 +3,7 @@
 import pytest
 
 from tools.qms_c02_source_guard import ROOT, ENTRY, TOKEN_GETTER, validate_changes, validate_rust_control, verify
+from tools.qms_c02_source_guard import without_c02_witness
 import subprocess
 
 
@@ -27,3 +28,15 @@ def test_c02_t08_rust_getter_is_additive_only():
                                    b".map(|candidate| candidate.core.reset())")):
         with pytest.raises(AssertionError, match="unapproved"):
             validate_rust_control(invalid, original)
+
+
+@pytest.mark.parametrize("name", ["src/quantbt/backends/native_event.py",
+                                  "src/quantbt/backends/_native_event_rust.py",
+                                  "src/quantbt/backends/reactive_wfo_workers.py",
+                                  "src/quantbt/endpoint.py",
+                                  "src/quantbt/optimization/meta_selection/observer.py"])
+def test_c02_t08_cannot_hide_other_arithmetic_in_reviewed_adapter(name):
+    source = (ROOT / name).read_bytes()
+    without_c02_witness(source, name)
+    with pytest.raises(AssertionError, match="unapproved"):
+        without_c02_witness(source + b"\n# unreviewed accounting change\n", name)

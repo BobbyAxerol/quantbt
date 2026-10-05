@@ -33,6 +33,26 @@ matrix. Synthetic native/off parity is not new-mode installed-wheel or economic
 certification. C01-D01, the default Mode 2 final-OOS-selection metadata discrepancy,
 is recorded explicitly and is not silently marked fixed.
 
+## C02 Transport Qualification
+
+[C02 transport/account contracts](W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md) extend
+only the existing Mode 4/per_fold_causal/reset-flat W3 lane: inprocess or safe
+Linux fork/COW process, original-pass detached witnesses and native cooperative
+deadlines. The R3B original-result witness primitive is qualified separately;
+public meta batches and carry/multi-symbol runtimes are not activated.
+The additive atomic-token getter fixes an actual active-batch cancellation
+borrow failure; financial Rust source remains exact after removing that getter.
+`tools/qms_c02_source_guard.py` verifies the exact reviewed Python adapters and
+native getter, while older phase gates retain their historical source/artifacts.
+No scientific guide/Ridge/objective/sampler or release identity is exempted.
+Fresh C02 core wheel/sdist plus the rebuilt local native wheel must pass isolated
+`python -I tools/qms_local_consumer.py --witness-transport` in a cold directory.
+Old remote 6/6 or private PASS receipts do not certify these new artifact bytes.
+Final local qualification is **618 QMS/affected checks + 36 native checks PASS**,
+including 50 C02 checks, fresh wheel/sdist installed process consumers and the
+runnable example. The [C02 report](QMSC02_REPORT.md) records exact artifacts,
+source boundaries, matched transport cost and pending remote/public gates.
+
 ## Software Gates
 
 The independent `tools/qms08_gate.py` registry contains all **64** Q1-T01..Q8-T08
@@ -150,8 +170,9 @@ activation and real market acceptance remain separate decisions. The owner-appro
 local follow-up implements exact prepared witnesses, a bounded sequential W3
 adapter, measured Rust/BLAS fit dispatch and observed thread telemetry. Its
 new receipts are separate from sealed QMS-08; see the
-[integration contract](INTEGRATION.md#w3-sequential-meta). Process/batch W3 meta
-and public/remote qualification are not inferred from this local adapter.
+[integration contract](INTEGRATION.md#w3-sequential-meta). C02 process transport
+has a separate local gate; public meta batch and current-source remote/public
+qualification are not inferred from an older local adapter receipt.
 
 To disable QMS, omit/remove its optional config/runtime binding. Qualified
 reference execution remains available when native numerics are slower or missing.

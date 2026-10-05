@@ -453,6 +453,8 @@ def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sourc
             from tools.qms_release_source_guard import without_release_identity
             from tools.qms06_source_guard import without_qms06_witness
             current = without_release_identity((baseline.ROOT / name).read_bytes(), name)
+            from tools.qms_c02_source_guard import without_c02_witness
+            current = without_c02_witness(current, name)
             current = without_qms06_witness(current, name)
             if name == "rust/native_event/src/lib.rs":
                 # QMS-04 adds only registered numeric exports, not execution math.

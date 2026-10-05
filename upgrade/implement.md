@@ -8,10 +8,13 @@ complete locally, including the separately approved local debt closure.
 Remote qualification and public release preparation are now authorized under
 [QMS-R01 through QMS-R03](#qms-release-gap-closure).
 Prepared pair: **1.1.2 / 0.4.3**, default compiled QMS capability, meta opt-in.
-Current local release regression: **490 QMS + 34 package checks PASS**;
-fresh wheel/sdist scalar and W3 installed consumers PASS. Remote matrix is
-**6/6 PASS** on `0970d55` in [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
-Public proof is PENDING_PUBLICATION.
+Historical QMS-R03 release regression: **490 QMS + 34 package checks PASS**.
+Current C02 local regression: **618 checks + 36 affected native checks PASS**;
+fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
+was **6/6 PASS** on pre-C02 `0970d55` in
+[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
+current C02 source/artifacts require a new remote gate. Public proof remains
+PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -21,7 +24,10 @@ source-grounded eight-route review and [methodology amendment](../docs/meta_sele
 do not enable new meta combinations. [C01 report](../docs/meta_selection/QMSC01_REPORT.md)
 records test evidence and the confirmed Mode 2 provenance discrepancy C01-D01.
 New C01 semantics and that metadata-only repair require separate approval.
-QMS-C02 is authorized for witness transport and carry/multi-symbol spec/tests;
+QMS-C02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: original-pass process/batch witness
+transport and native cancellation/deadline tests PASS; carry/multi-symbol are
+specification/tests only, not runtime capabilities. Read the
+[C02 report and remaining ledger](../docs/meta_selection/QMSC02_REPORT.md).
 QMS-C03..C05 remain planning-only.
 
 Previous performance and package closure:
@@ -22792,7 +22798,8 @@ sampler, persistence and geometry work is outside C01; scientific sections
 
 #### QMS-C02 - W3 Process, Batch, Deadline, Carry And Multi-Symbol Contracts
 
-**Status:** AUTHORIZED_TRANSPORT_AND_ACCOUNT_CONTRACT_REVIEW; baseline `0bb77b5`.
+**Status:** COMPLETE_LOCAL_APPROVED_SCOPE; CURRENT_SOURCE_REMOTE_PUBLIC_PENDING.
+Baseline `0bb77b5`; reviewed implementation `2b9f05a`.
 **Owner scope:** 2026-10-05 (Asia/Saigon), "Transport + spec/test
 carry/multi-symbol". No new financial runtime/stitching, additional meta mode,
 scientific study replacement, release version, push/merge/tag or upload.
@@ -22851,8 +22858,9 @@ primitive separately; C03 owns later public recipe/scheduler qualification.
    at their source instead of claiming its old no-change gate for new work.
 8. Update endpoint/integration/handoff/qualification docs, runnable process
    example, capability/error table and a separate C02 source/test/cost receipt.
-   Commit each coherent verified stage. Reuse the installed exact native pair;
-   rebuilding unchanged Rust would add no evidence for Python transport.
+   Commit each coherent verified stage. Reuse unchanged exact native artifacts;
+   only the approved additive cancellation correction below needs a fresh native
+   build. Do not rebuild financial cores or change the release pair for transport.
 
 **Test matrix:**
 
@@ -22920,8 +22928,40 @@ All 71 affected C02/W3/worker/account tests PASS, and 54 source/C01-history test
 PASS. Runnable synthetic process example PASS (4 folds, 40 verified packets,
 maximum 1,597 UTF-8 JSON bytes; not the full pipe envelope). Original guide,
 Ridge/search/sampler/economic cores and release identities remain unchanged.
-Final installed artifact proof, broader regression and matched transport cost
-receipt remain IN_PROGRESS; no remote/public certificate is inferred.
+At this historical stage, installed artifact proof, broader regression and
+matched transport cost were IN_PROGRESS; the final receipt below supersedes
+that progress status without changing the stage's original test evidence.
+
+**C02 final local receipt (2026-10-05):** all eight approved transport/contract
+gates PASS. Final regression: **618 PASS** (including 50 C02 checks), zero
+failures/errors/skips; separate affected R1/R3B/retention/static/sparse native
+regression: **36 PASS**. Fresh canonical `1.1.2` wheel/sdist and rebuilt native
+`0.4.3` consumer PASS via isolated `python -I`, with exact original-result/
+objective/selected-account parity for off/shadow/active process versus inprocess.
+Runnable installed process example and supplemental scalar/Rust consumer PASS.
+Source/guide, contracts, inventory, docs/layout/architecture, benchmark governance
+and tracked-secret gates PASS. Financial Rust remains byte-identical after
+removing only the additive token getter; Ridge/samplers/objectives are unchanged.
+
+Matched small synthetic shadow fixture: 180 bars, 4 folds, 8 trials/fold,
+3 warm paired repeats; inprocess median **0.934988 s**, process **1.444536 s**
+(**54.50% slower**, isolation/control benefit, not acceleration). Each run has
+40 verified packets, zero financial replays and zero market IPC per task;
+maximum packet **1,594 UTF-8 JSON bytes**, not the full pipe envelope.
+Parent high-water RSS **250.37 MiB** is not a fresh-process/whole-tree memory
+gate. The [structured cost receipt](../benchmarks/optimization/meta_selection/qms_c02_transport.json)
+and [final report](../docs/meta_selection/QMSC02_REPORT.md) contain exact scope,
+artifact/JUnit hashes, reproduction and limitations. No scientific decay/alpha
+superiority or parallel/scheduler equivalence is inferred.
+
+**Remaining ledger after C02:** no approved local C02 transport gate is open.
+Carry/multi-symbol financial implementation, public meta batching and C03..C05
+remain separately approved future capabilities, not silently enabled. C01-D01
+metadata correction and additional-mode activation are still separate decisions.
+Current-source remote qualification must run the new installed witness-transport
+consumer across the approved six-row matrix; old remote/private receipts do not
+qualify C02 bytes. Public release/native-first upload and public consumer proof
+remain owner-controlled and were not performed.
 
 #### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
 

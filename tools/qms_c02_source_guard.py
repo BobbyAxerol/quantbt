@@ -6,6 +6,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = "0bb77b5"
+REVIEWED = "2b9f05a"
 GUIDE = "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
 GUIDE_SHA = "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d"
 ALLOW = frozenset({
@@ -39,10 +40,32 @@ def validate_changes(names):
         raise AssertionError(f"unapproved C02 production source change: {sorted(forbidden)}")
 
 
+def without_c02_witness(source, name):
+    """Restore only exact, reviewed adapters before older economic byte gates.
+
+    This never skips a protected module. An extra arithmetic/comment change
+    fails rather than being hidden by the C02 file-name allowlist.
+    """
+    if name not in ALLOW:
+        return source
+    if name == "rust/native_event/src/reactive_numeric.rs":
+        original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
+        validate_rust_control(source, original)
+        return original
+    original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT,
+                              capture_output=True, check=False)
+    reviewed = subprocess.check_output(["git", "show", f"{REVIEWED}:{name}"], cwd=ROOT)
+    if source != reviewed:
+        raise AssertionError(f"unapproved C02 witness adapter source: {name}")
+    return original.stdout if original.returncode == 0 else source
+
+
 def verify():
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
     validate_changes(names)
+    for name in set(names) & ALLOW:
+        without_c02_witness((ROOT / name).read_bytes(), name)
     name = "rust/native_event/src/reactive_numeric.rs"
     original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
     validate_rust_control((ROOT / name).read_bytes(), original)

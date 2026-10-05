@@ -7,6 +7,8 @@ See the [C02 plan](../../upgrade/implement.md#qms-c02---w3-process-batch-deadlin
 and detailed guide [section 8.4](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
 The owner approved transport plus carry/multi-symbol spec/tests on 2026-10-05.
 New account semantics below are **proposals**, not activated capabilities.
+The [final C02 report](QMSC02_REPORT.md) records local tests, artifact hashes,
+transport cost and the separate remaining qualification gates.
 
 | Dimension | C02 implementation | Permission |
 |---|---|---|
