@@ -20,8 +20,9 @@ on 2026-10-05 (Asia/Saigon) for **spec/tests; activation separately**. The
 source-grounded eight-route review and [methodology amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md)
 do not enable new meta combinations. [C01 report](../docs/meta_selection/QMSC01_REPORT.md)
 records test evidence and the confirmed Mode 2 provenance discrepancy C01-D01.
-New semantics and that metadata-only repair require separate approval;
-QMS-C02..C05 remain planning-only.
+New C01 semantics and that metadata-only repair require separate approval.
+QMS-C02 is authorized for witness transport and carry/multi-symbol spec/tests;
+QMS-C03..C05 remain planning-only.
 
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
@@ -22664,13 +22665,14 @@ Public-index proof stays PENDING_PUBLICATION; manylinux2014 release portability
 is a separate later publication-workflow gate. No scientific replacement or
 future QMS-C01..C05 implementation was started.
 
-### QMS Capability Gap Roadmap - C01 REVIEW; C02-C05 PLANNING_ONLY
+### QMS Capability Gap Roadmap - C01 REVIEW; C02 TRANSPORT; C03-C05 PLANNING_ONLY
 
 **Authorization:** the owner initially requested detailed tracking of the five
 capability groups below, not implementation, methodology research or replacement
 of guide section 14. C01 subsequently received **spec/tests only** approval;
-activation remains a separate decision. Every other group requires separate
-approval and capability/spec review.
+activation remains a separate decision. C02 subsequently received transport
+implementation plus carry/multi-symbol specification/test approval. Every other
+group requires separate approval and capability/spec review.
 Reuse existing typed planning/preparation/evaluation/history/selection/native/
 result contracts; no new account engine, endpoint or sampler factory. Baseline
 off/shadow/RNG/account parity and explicit unsupported errors remain required.
@@ -22790,10 +22792,15 @@ sampler, persistence and geometry work is outside C01; scientific sections
 
 #### QMS-C02 - W3 Process, Batch, Deadline, Carry And Multi-Symbol Contracts
 
+**Status:** AUTHORIZED_TRANSPORT_AND_ACCOUNT_CONTRACT_REVIEW; baseline `0bb77b5`.
+**Owner scope:** 2026-10-05 (Asia/Saigon), "Transport + spec/test
+carry/multi-symbol". No new financial runtime/stitching, additional meta mode,
+scientific study replacement, release version, push/merge/tag or upload.
+
 **Goal:** extend genuine reactive accounting/transport, not coerce it to scalar.
 **Guide:** [8.4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8)
 and [W3 reset-flat boundary](../docs/meta_selection/INTEGRATION.md#w3-sequential-meta).
-**Future work:** typed detached original-result witness across existing process/
+**Approved work:** typed detached original-result witness across existing process/
 batch boundary, isolation and atomic capture/selection, cancellation/deadline
 safe points. Review a dynamic order/state cross-fold carry contract before
 continuous equity; define shared account and symbol/calendar semantics before
@@ -22802,7 +22809,83 @@ multi-symbol. Stage each transport/account dimension separately.
 declared schedule; incomplete/cancelled/late jobs, cleanup and bounded retention;
 exact fills/fees/funding/margin/account carry; asynchronous calendars and shared
 margin; no invented reset-equity compounding or deadline backdating.
-**Not started:** no continuous carry/multi-symbol/parallel-meta certificate.
+**Not authorized:** no continuous carry/multi-symbol financial runtime or
+parallel-meta certificate. Batch witness transport is not permission to enable
+global meta or relabel ask-B/tell-B as sequential TPE. Current R3B selection is
+global-only; preserve that guard. Qualify the original-pass batch witness
+primitive separately; C03 owns later public recipe/scheduler qualification.
+
+**Execution stages and to-do:**
+
+1. Reconcile existing sequential COW worker, original-result W3 boundary,
+   R3B runner and native cancellation/deadline safe points. Bind results to
+   exact candidate/params/seed/fold/stage/absolute window/market/calendar/
+   economics/metric contracts. Preserve unchanged native scalar objectives.
+2. Add a typed detached witness packet and reviewed original-result consumer.
+   Validate the complete request/response and native generation before capture;
+   never transmit market, strategy, account or history/model state per task.
+   Reuse the existing pipe/worker owner, not a second process architecture.
+3. Enable Mode 4/per_fold_causal/sequential/reset-flat meta in safe Linux COW
+   process transport. Keep current single-thread-before-fork guard, bounded
+   one-inflight ordering, deterministic cleanup and candidate-local reset.
+   Forward observer RNG isolation must hold inside the worker too.
+4. Enforce configured native deadlines and cancellation on original witness
+   runs at existing completed-account-bar safe points. Distinguish cooperative
+   native deadline from hard preemption of arbitrary Python callbacks. A
+   cancelled/timed-out/incomplete request cannot create a selectable IS record,
+   a valid label or a partial history revision; abort/clear atomic ownership.
+5. Qualify detached original-result witnesses from an existing R3B shared-market
+   batch without execution replay. Preserve per-candidate state/error identity,
+   declared callback semantics and native score; requested witness paths are
+   bounded per chunk and absent from IPC after reduction. Meta-off scalar batch
+   stays unchanged. No new per-fold batch optimizer is silently introduced.
+6. Write versioned carry and shared-account multi-symbol contract proposals:
+   pending commands/orders/OCO/DCA/grid/strategy state and param-transition
+   ownership; gap/funding/fee/margin clocks; asynchronous tradability/calendar;
+   failure/restart/rollback; history-family isolation. Keep actual unsupported
+   calls fail-closed before search/strategy preparation. No multiplied reset
+   equity, independent-symbol account sums or fake state snapshots.
+7. Keep original guide/Ridge/samplers/objectives, financial Rust kernels,
+   quantity/matching/account math and release pair immutable. Allow only narrow
+   Python witness-retention/transport adaptation; freeze historical C01 checks
+   at their source instead of claiming its old no-change gate for new work.
+8. Update endpoint/integration/handoff/qualification docs, runnable process
+   example, capability/error table and a separate C02 source/test/cost receipt.
+   Commit each coherent verified stage. Reuse the installed exact native pair;
+   rebuilding unchanged Rust would add no evidence for Python transport.
+
+**Test matrix:**
+
+- C02-T01: strict versioned binding, detached wire round-trip, wrong candidate/
+  window/calendar/economics/metric/generation, stale/out-of-order/duplicate and
+  missing/truncated replies; no placeholder zero/variance validity.
+- C02-T02: actual serial/process original-pass full-pool/native objective/raw
+  witness/anchor/selected params/accepted positions/equity/fee/funding/margin
+  parity; omitted/off/shadow and actual active candidate lineage; no market IPC.
+- C02-T03: independent reset candidate strategies/accounts, observer RNG,
+  family/panel/label maturity, future-data/archive mutation and portable witness.
+- C02-T04: deadline before/during native work, cancellation while active,
+  candidate/worker errors/death, poison recovery/generation, close idempotence;
+  no published partial pool/revision, bounded scratch and no leaked child.
+- C02-T05: actual R3B versus scalar same-candidate original financial paths,
+  streaming objective and authoritative raw observations; candidate errors
+  remain failures, batch abort/cancel/deadline atomicity, bounded witness chunk.
+- C02-T06: batch public meta/global/unsupported process-batch combinations
+  stay explicit errors; no new sampling recipe/scheduler or fake sequential
+  parity. Carry/multi-symbol requests fail before financial/strategy work.
+- C02-T07: independent carry/shared-margin/calendar expected-value contract
+  examples and transition policies are proposals, never execution authority;
+  no claimed continuous account or multi-symbol certificate.
+- C02-T08: affected local QMS/W3/worker/batch/account regressions, source/guide/
+  historical artifact identity, docs/secret/layout checks; installed-source
+  witness consumer and same-work runtime/IPC/retention measurements.
+
+**Exit gate:** all implemented transport gates PASS with actual native runs;
+new process/deadline meta capability is opt-in and accurately documented.
+Batch witness primitive qualified independently of public meta activation.
+Carry/multi-symbol remain reviewed proposals plus negative preflight tests.
+Any unimplemented approved transport or failed gate is an OPEN blocker, not
+covered by old wheel/remote receipt. No new economic/speed/publication claim.
 
 #### QMS-C03 - Four Samplers On W3 And Fixed-Batch Schedulers
 
