@@ -25,6 +25,15 @@ QMS-08 adds [step-by-step usage](meta_selection/USAGE.md),
 and [complete runnable cases](../examples/wfo_meta_contract.py). Private installed
 candidate proof is distinct from public release approval or real-market edge.
 
+E03 additionally admits bounded scalar research cells (`signal_notional`,
+`notional`, `unit` on original vectorized/native-event execution, and legacy
+`pct_equity`/structural `dca_ladder`). Read the
+[exact scalar contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+and [runnable scalar example](../examples/wfo_meta_scalar.py).
+This is still Mode 4 / `per_fold_causal`, endpoint-backed scoring and opt-in
+meta. Software admission does not assert reduced decay or economic promotion;
+reactive grid/DCA, portfolio, packages and intrabar have separate pending gates.
+
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [Latest local debt closure, costs and real meta-off/on decay](meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)
 - [C01 additional-mode methodology review; activation not authorized](meta_selection/ADDITIONAL_METHODS_REVIEW.md)

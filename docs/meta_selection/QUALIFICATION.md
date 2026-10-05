@@ -74,8 +74,13 @@ Ubuntu 22.04/24.04 x CPython 3.11-3.13 or public-index certificate.
 E02's [shared domain contract](DOMAIN_ADAPTER_CONTRACT.md) and
 [local gate/report](QMSE02_REPORT.md) migrate existing scalar/W3 observers only.
 Typed admission, inventory, lifecycle and new installed core bytes pass locally;
-new target/meta routes remain rejected until E03-E07 software, registered
-real-alpha decay and owner gates pass. A registry entry is not activation.
+E03 extends bounded scalar research opt-ins after original-account software
+qualification; this does not promote meta to a default or certify economic gain.
+`notional`, `unit` and structural `dca_ladder` have separate software and empirical
+statuses. Native-event scalar support is rebalance execution, not reactive orders.
+Other target/meta routes remain rejected until their own E04-E07 qualification.
+Registered real-alpha decay and owner gates govern official empirical promotion.
+A registry entry alone is not activation.
 
 ## Software Gates
 
