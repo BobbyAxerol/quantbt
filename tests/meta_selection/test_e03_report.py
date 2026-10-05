@@ -59,3 +59,24 @@ def test_e03_t04_exact_baseline_waives_only_reviewed_manifest_not_account_or_his
         else: wrong["native"]["historical_receipts"][name] = "unverified"
         with pytest.raises(AssertionError):
             report.baseline_parity(baseline, wrong)
+
+
+def test_e03_t06_summary_counts_unique_params_per_origin_and_separates_execution_from_export():
+    sample = dict(trials=[dict(schedule_fold_id=0, params={"window":12}),
+                          dict(schedule_fold_id=0, params={"window":12}),
+                          dict(schedule_fold_id=1, params={"window":12})],
+        attempts=3, completed=2, pruned=1, wall_seconds=4., cpu_seconds=3.,
+        after_memory=dict(peak_rss_mib=100.), after_export_memory=dict(peak_rss_mib=200.),
+        cold_export_seconds_before_receipt=2., account_check_seconds=1.)
+    before = deepcopy(sample)
+    result = report.execution_summary(sample)
+    assert result["unique_requested_params_by_fold"] == 2
+    assert result["attempts"] == 3 and result["failed"] == 0
+    assert result["wall_seconds"] == 4. and result["cpu_seconds"] == 3.
+    assert result["execution_memory"]["peak_rss_mib"] == 100.
+    assert result["export_memory"]["peak_rss_mib"] == 200.
+    assert result["independent_account_check_seconds"] == 1.
+    assert sample == before
+    sample["completed"] = 3
+    with pytest.raises(AssertionError):
+        report.execution_summary(sample)

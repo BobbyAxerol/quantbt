@@ -49,6 +49,19 @@ def test_receipt(path):
                 evidence=[file_ref(p) for p in paths])
 
 
+def execution_summary(run):
+    trials = run["trials"]
+    assert len(trials) == run["attempts"] == run["completed"] + run["pruned"]
+    unique = {(row["schedule_fold_id"], json.dumps(row["params"], sort_keys=True, allow_nan=False))
+              for row in trials}
+    return dict(attempts=run["attempts"], completed=run["completed"], pruned=run["pruned"],
+        failed=0, unique_requested_params_by_fold=len(unique),
+        wall_seconds=run["wall_seconds"], cpu_seconds=run["cpu_seconds"],
+        execution_memory=run["after_memory"], export_memory=run["after_export_memory"],
+        cold_export_seconds_before_receipt=run["cold_export_seconds_before_receipt"],
+        independent_account_check_seconds=run["account_check_seconds"])
+
+
 def build(*, study, package, junit, before, after):
     import numpy as np
     from tools.qms_real_review import trial_trace
@@ -81,8 +94,14 @@ def build(*, study, package, junit, before, after):
         off, active = [json.loads(p.read_text()) for p in arms]
         assert trial_trace(off) == trial_trace(active)
         raw_refs.extend(file_ref(p) for p in arms)
-        for run in (off, active):
+        assert [r["schedule_fold_id"] for r in off["trials"]] == [r["schedule_fold_id"] for r in active["trials"]]
+        for path, run in zip(arms, (off, active), strict=True):
             assert run["source_sha256"] == source["source_sha256"] and all(run["checks"].values())
+            raw_refs.append(file_ref(path.with_suffix(".npz")))
+            if run["witness_sha256"]:
+                witness = path.with_name(path.stem + "-witness.json")
+                assert sha256(witness.read_bytes()).hexdigest() == run["witness_sha256"]
+                raw_refs.append(file_ref(witness))
             for key in totals:
                 totals[key] += run.get(key, 0)
         intervals = row["supported_interval_r_q_is"]
@@ -100,6 +119,7 @@ def build(*, study, package, junit, before, after):
             overhead_pct=(row["active_seconds"]/row["off_seconds"]-1.)*100.,
             off_peak_rss_mib=row["off_peak_rss_mib"], active_peak_rss_mib=row["active_peak_rss_mib"],
             meta_elapsed=row["meta_elapsed"], observer_attempts=row["observer_attempts"],
+            execution={a:execution_summary(r) for a,r in (("off",off),("active",active))},
             metrics={a:{k:r["full_report"][k] for k in
                 ("final_equity", "sharpe", "max_drawdown_pct", "num_trades")}
                 for a,r in (("off",off),("active",active))},
@@ -117,9 +137,14 @@ def build(*, study, package, junit, before, after):
                 np.testing.assert_allclose(a[key], b[key], rtol=1e-9, atol=1e-8)
                 delta[key] = float(np.max(np.abs(a[key]-b[key])))
         raw_refs.append(file_ref(paths[1]))
+        raw_refs.append(file_ref(paths[1].with_suffix(".npz")))
+        witness = paths[1].with_name(paths[1].stem + "-witness.json")
+        assert sha256(witness.read_bytes()).hexdigest() == prepared["witness_sha256"]
+        raw_refs.append(file_ref(witness))
         prepared_rows.append(dict(target=target, original_seconds=normal["wall_seconds"],
             prepared_seconds=prepared["wall_seconds"], selected_params_exact=True,
             full_trial_pool_parity=True, account_max_absolute_difference=delta,
+            execution=execution_summary(prepared), observer_attempts=prepared["observer_attempts"],
             prepared_peak_rss_mib=prepared["after_memory"]["peak_rss_mib"]))
     return dict(schema="qms-e03-final-evidence-v1", local_software_gate="PASS",
         empirical_promotion=False, owner_review="PENDING", remote_current_source="NOT_RUN",
@@ -134,7 +159,8 @@ def build(*, study, package, junit, before, after):
             interval="95% moving-block percentile / 3 months / 4096 draws", research_exposed=True,
             locked_holdout=False, financial_authority="original per-cell Numba execution",
             meta_numeric_authority="compiled Rust require", timing="cold public call/shared VPS/one study worker"),
-        counts=totals, cells=rows, prepared_full_studies=prepared_rows, private_raw_refs=raw_refs)
+        counts=totals, prepared_additional_attempts=sum(r["execution"]["attempts"] for r in prepared_rows),
+        cells=rows, prepared_full_studies=prepared_rows, private_raw_refs=raw_refs)
 
 
 if __name__ == "__main__":
