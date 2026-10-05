@@ -143,6 +143,25 @@ def test_c01_t05_sbb_last_forward_mutation_keeps_is_pool_but_changes_rerank(trac
     assert original["studies"][0]["compact_candidates"] != changed["studies"][0]["compact_candidates"]
 
 
+def test_c01_t05_global_mode4_later_train_changes_shared_is_pool(traces):
+    original = traces[("mode_4_is_only_robust", "global")][0][0]
+    windows = original["studies"][0]["selected"]["fold_metrics"]
+    assert pd.Timestamp(windows[1]["train_end"]) > pd.Timestamp(windows[0]["test_start"])
+    data = baseline.market()
+    mask = (data.index >= pd.Timestamp("2021-01-01", tz="UTC")) & (
+        data.index <= pd.Timestamp("2021-03-31", tz="UTC"))
+    factor = 1.0 + 0.3 * np.sin(np.arange(mask.sum()) / 3.0)
+    data.loc[mask, ["open", "high", "low", "close"]] *= factor[:, None]
+    changed = run_trace("mode_4_is_only_robust", "global", data=data)[0]
+    assert original["pools"] != changed["pools"]
+    original_trials = original["pools"][0]["all_trials"]
+    changed_trials = changed["pools"][0]["all_trials"]
+    for before, after in zip(original_trials, changed_trials, strict=True):
+        assert before["params"] == after["params"]
+        if not before["pruned"]:
+            assert before["fold_metrics"][0] == after["fold_metrics"][0]
+
+
 def test_c01_t07_native_decay_formula_uses_declared_penalized_metrics(traces):
     for case in CASES:
         payload, _result, engine, _rng = traces[(case.mode, case.schedule)][0]
