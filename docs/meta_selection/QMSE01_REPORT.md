@@ -34,6 +34,9 @@ The sole production edit is the reporting expression in `WalkForwardEngine.run`.
 byte gates. Any other source change fails; no whole-file financial exemption.
 Historical C01/R03/C02-C05 receipt bytes remain immutable and retain their
 original discrepancy/status observations.
+Anchor checks cover the current handoff/docs and unified plan. Three stale
+historical link targets are repaired without rewriting guide or receipt bytes;
+the old mirror tool is explicitly labelled retired, not recreated.
 
 ## Installed Proof Contract
 

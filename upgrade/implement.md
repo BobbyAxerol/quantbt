@@ -12760,7 +12760,7 @@ Detailed guide:
 
 - [P1.3 - Resolve output requirements once](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p13--resolve-outputrequirements-một-lần)
 - [P1.6 through P1.9 - Remove shadow state, reduce transitions, primary audit, and prepared cache](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p16--xóa-python-shadow-state-trong-rust-adapter)
-- [P2.2 and P2.3 - Typed ABI 0.5 and market ownership](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p22--chuyển-thành-rust-workspace-pyo3-chỉ-ở-outer-crate)
+- [P2.2 and P2.3 - Typed ABI 0.5 and market ownership](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p22--thiết-kế-internal-abi-05-typed-ids-handles-và-command-tape)
 - [P2.9 - Flat SoA output and online metrics](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p29--output-architecture-flat-soa-online-metrics-và-zero-unnecessary-materialization)
 - [P2.10 through P2.13 - Strategy hierarchy, batch/WFO, portfolio, and package execution](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p210--native-strategy-execution-hierarchy)
 - [P2.15 - Correct PyO3 boundary optimization](quantbt_p0_p3_native_rust_upgrade_blueprint.md#p215--pyo3-boundary-tối-ưu-đúng-cách)
@@ -19668,7 +19668,7 @@ or a new remote-HEAD verification. Reresolve identities when a phase starts.
 | Mode/schedule contracts | [WalkForwardConfig validation](../src/quantbt/walkforward.py#L516), [prepared fold context](../src/quantbt/walkforward.py#L156) | Five mode names exist; per-fold decay is Mode 1, causal is Mode 1/4. Mode 1 causal needs its existing inner configuration. Do not benchmark invalid combinations or silently substitute a mode. |
 | Research retention | [RequiredComputationPlanV1](../src/quantbt/core/performance_contracts.py#L129), [ResearchAuditWriterV1](../src/quantbt/core/research_audit.py#L479), [artifact](../src/quantbt/core/research_audit_artifact.py#L37) | Separate research/financial retention and keep full trial lineage, not another reporting stack. |
 | Generic audit mitigation | [3de4251 report](../docs/performance/generic_callback_audit_regression.md), [frozen projection tests](../tests/test_generic_callback_audit_regression.py) | Reuse the exact-parity fix. Its 218-test and three-sample results are prior evidence, not NEXT's 30-pair/installed-product certificate. |
-| Canonical distribution | [core pyproject](../pyproject.toml), [MANIFEST.in](../MANIFEST.in), [mirror manifest](../tools/source_mirror_manifest.py) | Setuptools discovers `src/quantbt`; root mirror is outside the wheel. Inventory unique content before deleting anything. |
+| Canonical distribution | [core pyproject](../pyproject.toml), [MANIFEST.in](../MANIFEST.in), historical `tools/source_mirror_manifest.py` (retired in NEXT-03; current [source layout guard](../tools/check_canonical_source_layout.py)) | Setuptools discovers `src/quantbt`; the historical root mirror was outside the wheel. The later approved retirement is recorded separately. |
 | Native distribution | [native pyproject](../rust/native_event/pyproject.toml), [Cargo config](../rust/native_event/Cargo.toml), [workspace](../rust/Cargo.toml) | Existing `quantbt-native` / `_quantbt_native`, maturin and PyO3 0.29. Preserve topology and pin actual toolchain/API identities. |
 | Release channels | [core publish](../.github/workflows/publish.yml), [TestPyPI](../.github/workflows/publish-testpypi.yml), [native publish](../.github/workflows/publish-native.yml) | Native dispatch and core publication are distinct workflows; core GitHub Release alone does not publish native. |
 
@@ -22593,7 +22593,7 @@ on `0970d55`; see the remote receipt below. Not a public-index certificate.
 
 **Goal:** qualify the actual changed source and installed native boundary on
 Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, without publishing.
-**Guide:** [QMS-06](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-06--prepared-adapters-reference-parity-và-host-handoff),
+**Guide:** [QMS-06](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-06--prepared-route-adapter-và-handoff-dùng-được-bởi-host),
 [8.4-8.6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
 [QMS-08 package/regression](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói)
 and [current W3 contract](../docs/meta_selection/INTEGRATION.md#w3-sequential-meta).

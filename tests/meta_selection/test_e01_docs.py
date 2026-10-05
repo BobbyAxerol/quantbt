@@ -7,7 +7,7 @@ import pytest
 from tools.check_docs_links import markdown_anchors, validate_links
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT = [ROOT / "handoff/WFO_META_CURRENT.md", *[ROOT / "docs/meta_selection" / name for name in (
+CURRENT = [ROOT / "upgrade/implement.md", ROOT / "handoff/WFO_META_CURRENT.md", *[ROOT / "docs/meta_selection" / name for name in (
     "QUALIFICATION.md", "RELEASE_HANDOFF.md", "RELEASE_GAP_REPORT.md", "QMSE01_REPORT.md")]]
 
 
