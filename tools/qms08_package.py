@@ -30,15 +30,29 @@ def file_hash(path):
     return sha256(Path(path).read_bytes()).hexdigest()
 
 
+def build_tool(name):
+    local = ROOT / ".venv/bin" / name
+    if local.is_file() and os.access(local, os.X_OK):
+        return local
+    installed = shutil.which(name)
+    if installed is None:
+        raise FileNotFoundError(f"required build tool {name!r} is absent from .venv/bin and PATH")
+    return Path(installed).absolute()
+
+
 def run(command, *, cwd, log):
     env = dict(
         os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1"
     )
     env.pop("PYTHONPATH", None)
     env["UV_CACHE_DIR"] = "/tmp/quantbt-uv-cache"
-    process = subprocess.run(
-        [str(x) for x in command], cwd=cwd, env=env, capture_output=True, text=True
-    )
+    try:
+        process = subprocess.run(
+            [str(x) for x in command], cwd=cwd, env=env, capture_output=True, text=True
+        )
+    except OSError as exc:
+        log.write_text("$ " + " ".join(map(str, command)) + "\n" + str(exc) + "\n")
+        raise RuntimeError(f"package command could not start; see {log}: {exc}") from exc
     log.write_text(
         "$ " + " ".join(map(str, command)) + "\n" + process.stdout + process.stderr
     )
@@ -154,8 +168,8 @@ def qualify(python, *, output=OUTPUT, reuse_native_lane=None, release_pair=False
     differences = stage_source(stage, release_pair=release_pair)
     dist = lane / "dist"
     dist.mkdir()
-    uv = ROOT / ".venv/bin/uv"
-    maturin = ROOT / ".venv/bin/maturin"
+    uv = build_tool("uv")
+    maturin = build_tool("maturin")
     started = perf_counter()
     build_env = lane / "build-env"
     run(
@@ -359,7 +373,13 @@ if __name__ == "__main__":
     parser.add_argument("--reuse-native-lane", type=Path)
     parser.add_argument("--release-pair", action="store_true", help="Build canonical release identities with Cargo default features; never publish")
     args = parser.parse_args()
-    result = qualify(args.python, output=args.output, reuse_native_lane=args.reuse_native_lane, release_pair=args.release_pair)
+    try:
+        result = qualify(args.python, output=args.output, reuse_native_lane=args.reuse_native_lane, release_pair=args.release_pair)
+    except Exception as exc:
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            message = str(exc)[-4000:].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print(f"::error title=QMS installed qualification::{message}", flush=True)
+        raise
     print(
         json.dumps(
             {

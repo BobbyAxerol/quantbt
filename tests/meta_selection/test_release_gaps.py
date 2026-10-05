@@ -11,6 +11,36 @@ import yaml
 from tools import qms_installed_w3
 
 
+def test_build_tool_prefers_local_executable_and_falls_back_to_path(tmp_path, monkeypatch):
+    from tools import qms08_package
+
+    monkeypatch.setattr(qms08_package, "ROOT", tmp_path)
+    system = tmp_path / "system-uv"
+    monkeypatch.setattr(qms08_package.shutil, "which", lambda name: str(system) if name == "uv" else None)
+    assert qms08_package.build_tool("uv") == system
+    local = tmp_path / ".venv/bin/uv"
+    local.parent.mkdir(parents=True)
+    local.write_text("#!/bin/sh\nexit 0\n")
+    assert qms08_package.build_tool("uv") == system
+    local.chmod(0o755)
+    assert qms08_package.build_tool("uv") == local
+    with pytest.raises(FileNotFoundError, match="absent"):
+        qms08_package.build_tool("missing")
+
+
+def test_missing_command_preserves_failed_build_log(tmp_path, monkeypatch):
+    from tools import qms08_package
+
+    def missing(*args, **kwargs):
+        raise FileNotFoundError("no installed uv")
+
+    monkeypatch.setattr(qms08_package.subprocess, "run", missing)
+    log = tmp_path / "build.log"
+    with pytest.raises(RuntimeError, match="could not start"):
+        qms08_package.run(["uv", "venv"], cwd=tmp_path, log=log)
+    assert log.read_text() == "$ uv venv\nno installed uv\n"
+
+
 def fake_lane(tmp_path, monkeypatch):
     lane = tmp_path / "cp312"
     lane.mkdir()
