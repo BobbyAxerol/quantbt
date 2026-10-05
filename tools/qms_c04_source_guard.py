@@ -19,6 +19,8 @@ def validate_changes(names):
 def verify():
     from tools.qms_e02_source_guard import ALLOW as E02_ALLOW, verify as verify_e02
     verify_e02()
+    from tools.qms_e02_source_guard import reviewed_scope
+    E02_ALLOW = reviewed_scope()
     from tools.qms_e01_source_guard import NAME as E01_NAME, verify as verify_e01
     verify_e01()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],

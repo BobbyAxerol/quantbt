@@ -2822,6 +2822,15 @@ was separately gated QMS-05 work; see the [QMS-04 historical evidence](meta_sele
 
 Feature-branch QMS-05 now supports
 `optimization_config["meta_selection"]={"mode": "shadow" | "active", ...}`
+
+E03 adds bounded software research opt-ins for scalar `notional`, `unit` and
+structural `dca_ladder`, plus canonical aliases. See the
+[scalar domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+and [runnable example](../examples/wfo_meta_scalar.py). Mode/schedule stay
+Mode 4 / `per_fold_causal`; endpoint scoring is explicit. Original vectorized,
+native-event rebalance or legacy high/low accounting remains authoritative.
+Per-cell empirical/owner promotion is separate; no defaults or dynamic-order
+capabilities are changed.
 on `mode_4_is_only_robust + per_fold_causal`, with scalar endpoint original-result
 or QMS-06 qualified original-pass prepared-witness scoring, isolated
 strategy lifecycle and continuous carry-position accounting. Bind the caller-owned

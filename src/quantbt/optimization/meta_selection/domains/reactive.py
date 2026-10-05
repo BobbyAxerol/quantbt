@@ -1,13 +1,15 @@
 """W3 stays a reset-flat native window surface, never a scalar signal proxy."""
 
 from .scalar import ScalarDomainAdapter
+from .base import DomainAdapter
 from .contracts import DomainEvaluationOutput, EvaluationStage, InputKind
 from ..common import MetaRecordError
 
 
-class ReactiveDomainAdapter(ScalarDomainAdapter):
+class ReactiveDomainAdapter(DomainAdapter):
     domain = "reactive"
     input_kind = InputKind.REACTIVE_WINDOW
+    validate_market = ScalarDomainAdapter.validate_market
 
     def validate_payload(self, payload, index):
         from ....backends.reactive_wfo_support import ReactiveWfoScoreMarkerV1

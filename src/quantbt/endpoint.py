@@ -2194,7 +2194,9 @@ class QuantBTEndpoint:
             validate_meta_route(wf_config)
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
         backend = kwargs.pop("backend", "auto")
-        return cls(
+        if wf_config.meta_selection is not None and target_mode == "single_signal" and sizing == "single_signal":
+            sizing = "signal_notional"
+        endpoint = cls(
             _config_from_kwargs(
                 mode="walk_forward",
                 backend=backend,
@@ -2205,6 +2207,10 @@ class QuantBTEndpoint:
                 **kwargs,
             )
         )
+        if wf_config.meta_selection is not None:
+            from .optimization.meta_selection.domains.scalar_contract import scalar_execution_contract
+            scalar_execution_contract(endpoint.config, wf_config)
+        return endpoint
 
     @classmethod
     def train_test_split(
@@ -5043,6 +5049,9 @@ class _WalkForwardEndpointScorer:
         trading_days: int,
         _quantbt_prepared_window=None,
     ) -> Dict[str, float]:
+        if self.meta_metric_support and self.target_mode == "dca_ladder":
+            from .optimization.meta_selection.domains.scalar_contract import validate_scalar_payload
+            validate_scalar_payload(output, index, self.target_mode)
         try:
             if self._can_score_single_vectorized_prepared(output):
                 result = self._score_single_vectorized_prepared(

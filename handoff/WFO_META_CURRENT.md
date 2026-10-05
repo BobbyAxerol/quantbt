@@ -8,9 +8,12 @@
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
 - Current approved scope: QMS-E01 debt closure and QMS-E02 typed adapter migration
-  are complete locally after C02-C05 work; E03-E08 execution remains unapproved.
+  are complete locally after C02-C05 work; E03 is now authorized/in progress.
+  E04-E08 execution remains unapproved. E03 adds scalar software research opt-ins,
+  with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
-  tests and ten installed consumer runs PASS; new domains stay closed.
+  tests and ten installed consumer runs PASS at its historical seal; E03 software
+  coverage and original-account proofs are tracked separately in the unified plan.
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.

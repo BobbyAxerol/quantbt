@@ -4,19 +4,51 @@ from dataclasses import replace
 
 import pandas as pd
 
-from ..common import MetaRecordError, utc
+from ..common import MetaRecordError, digest, utc
 from ..observer import market_signature
 from .base import DomainAdapter
-from .contracts import DomainEvaluationOutput, EvaluationStage, InputKind
+from .contracts import DomainCompatibility, DomainEvaluationOutput, EvaluationStage, InputKind
+from .scalar_contract import scalar_execution_contract, validate_scalar_payload
 
 
 class ScalarDomainAdapter(DomainAdapter):
     domain = "scalar"
     input_kind = InputKind.SCALAR_TARGET
 
+    def __init__(self, runtime):
+        super().__init__(runtime)
+        self.execution_contract = scalar_execution_contract(runtime.engine.scorer.config, runtime.engine.config)
+        if runtime.engine.scorer.symbols and len(runtime.engine.scorer.symbols) != 1:
+            raise MetaRecordError("META_ROUTE_UNSUPPORTED: scalar meta requires one symbol")
+
+    @property
+    def metadata(self):
+        from dataclasses import asdict
+        return {**super().metadata, "scalar_execution": asdict(self.execution_contract),
+                "legacy_family_identity_preserved": self.execution_contract.legacy_family,
+                "empirical_promotion": False, "economic_evidence": "CELL_OWNER_REVIEW_REQUIRED"}
+
+    def compatibility(self):
+        owner = self.runtime
+        scorer, config = owner.engine.scorer, owner.engine.config
+        execution = scorer.score_config
+        return DomainCompatibility("scalar", self.input_kind,
+            tuple(scorer.symbols or [owner.context.instrument_id]), config.calendar_contract,
+            digest({"instrument": owner.context.instrument_id, "asset": execution.asset_type,
+                    "contract_size": execution.contract_size}),
+            digest({"use_funding": execution.use_funding,
+                    "source": "aligned_series" if hasattr(execution.funding_rate, "index") else execution.funding_rate}),
+            scorer._meta_economics_id, scorer._meta_adapter.contract.metric_id,
+            self.execution_contract.scorer_contract, "reset_flat", config.fold_account_policy,
+            "original-result-or-same-pass-v1")
+
+    def bind_market(self, data, index):
+        super().bind_market(data, index)
+        if not self.execution_contract.legacy_family:
+            self.market_binding = replace(self.market_binding, compatibility=self.compatibility())
+
     def validate_payload(self, payload, index):
-        if not isinstance(payload, pd.Series) or not payload.index.equals(index):
-            raise MetaRecordError("META_DOMAIN_INPUT_MISMATCH: exact scalar target Series required")
+        validate_scalar_payload(payload, index, self.execution_contract.route)
 
     def validate_market(self, data, index, folds):
         self._check()
@@ -26,6 +58,14 @@ class ScalarDomainAdapter(DomainAdapter):
                 or not index.is_monotonic_increasing or not data.index.equals(index)):
             raise MetaRecordError("META_ROUTE_UNSUPPORTED: exact unique calendar required")
         utc(index[0])
+        if self.domain == "scalar" and self.execution_contract.route == "dca_ladder":
+            import numpy as np
+            if not {"high", "low", "close"}.issubset(data.columns):
+                raise MetaRecordError("META_ROUTE_UNSUPPORTED: ladder requires actual high/low/close")
+            high, low, close = (data[k].to_numpy(dtype=float) for k in ("high", "low", "close"))
+            if (not all(np.isfinite(x).all() for x in (high, low, close)) or
+                    (low <= 0).any() or (high < close).any() or (low > close).any()):
+                raise MetaRecordError("META_DOMAIN_INPUT_MISMATCH: invalid ladder high/low/close")
         if any(len(f.train_index) < 2 or len(f.test_index) < 2 for f in folds):
             raise MetaRecordError("META_ROUTE_UNSUPPORTED: finite diagnostic windows require >=2 bars")
         self.stats["market_validations"] += 1

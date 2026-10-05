@@ -18,6 +18,8 @@ ALLOW = frozenset([
 
 
 def checked_source(source, name):
+    from tools.qms_e03_source_guard import without_e03_scalar
+    source = without_e03_scalar(source, name)
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("baseline") != ENTRY or set(manifest.get("source_sha256", {})) != ALLOW:
         raise AssertionError("E02 reviewed manifest scope mismatch")
@@ -26,6 +28,8 @@ def checked_source(source, name):
 
 
 def without_e02_adapter(source, name):
+    from tools.qms_e03_source_guard import without_e03_scalar
+    source = without_e03_scalar(source, name)
     if name not in ALLOW:
         return source
     original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT,
@@ -37,13 +41,15 @@ def without_e02_adapter(source, name):
 
 
 def verify():
+    from tools.qms_e03_source_guard import ALLOW as E03_ALLOW, verify as verify_e03
+    verify_e03()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
-    if names != ALLOW:
-        raise AssertionError(f"E02 changed unexpected/missing source: {sorted(names ^ ALLOW)}")
-    for name in names:
+    if names != ALLOW | E03_ALLOW:
+        raise AssertionError(f"E02 changed unexpected/missing source: {sorted(names ^ (ALLOW | E03_ALLOW))}")
+    for name in ALLOW:
         checked_source((ROOT / name).read_bytes(), name)
     protected = ("rust", "pyproject.toml", "uv.lock", "contracts",
         "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md")
@@ -51,4 +57,10 @@ def verify():
         raise AssertionError("E02 changed math/native/release/scientific identity")
     return dict(schema="qms-e02-exact-source-guard-v1", baseline=ENTRY,
         source_sha256=json.loads(MANIFEST.read_text())["source_sha256"],
-        financial_numeric_source_unchanged=True, route_activation_unchanged=True)
+        financial_numeric_source_unchanged=True, historical_route_activation_unchanged=True,
+        later_scalar_amendment="E03_SOFTWARE_OPT_IN_NOT_EMPIRICAL_PROMOTION")
+
+
+def reviewed_scope():
+    from tools.qms_e03_source_guard import ALLOW as E03_ALLOW
+    return ALLOW | E03_ALLOW

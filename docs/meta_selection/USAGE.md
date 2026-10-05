@@ -23,8 +23,9 @@ Installing a native wheel does not make arbitrary Python strategies Rust-owned.
 | Mode 4 causal + shadow | Proposal/diagnostics, native winner still executes | Stock native IS-only; proposal has distinct past-history scope |
 | Mode 4 causal + active | Learned proposal or documented native fallback executes | Current IS and permitted matured historical forward labels when learned |
 
-Meta supports **Mode 4 / `per_fold_causal`**, scalar `signal_notional` and
-`pct_equity`, exact aware calendar, isolated strategy lifecycle and final
+Meta supports **Mode 4 / `per_fold_causal`**, scalar `signal_notional`,
+`pct_equity` and E03 software opt-ins `notional`, `unit`, `dca_ladder`, exact
+aware calendar, isolated strategy lifecycle and final
 carry-position account. A separate W3 sequential adapter supports reactive native
 reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
 Other modes/schedules and portfolio/package/order target meta remain unsupported.
@@ -35,6 +36,14 @@ method/schedule, software/empirical status and pending gate columns. A financial
 OOS route does not imply meta support. Read the [shared adapter contract](DOMAIN_ADAPTER_CONTRACT.md)
 and [E02 local report](QMSE02_REPORT.md); no extra arguments are required on
 already qualified routes, and pending domains still fail before search.
+
+For new scalar sizing use the [E03 contract](DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+and [self-contained example](../../examples/wfo_meta_scalar.py). `single_signal`
+and `%_equity` are canonical aliases with meta. Set endpoint scoring explicitly;
+notional/unit meta-off defaults remain proxy. Legacy fee/slippage overrides must
+agree (`fee_rate == fee / 2`). Structural ladder expects signed integer caps and
+actual high/low, not units, execution orders or a dynamic grid. Software
+validation is not an assertion that meta improves this alpha's forward returns.
 
 Conditional Sobol and mixed/constrained representatives are under
 [C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public

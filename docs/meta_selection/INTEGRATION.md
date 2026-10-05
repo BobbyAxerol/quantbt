@@ -15,7 +15,9 @@ for published 0.4.2 below is historical, not a limitation of the prepared wheel.
 Supported opt-in route:
 
 - `mode_4_is_only_robust` with `optimization_schedule="per_fold_causal"`.
-- Scalar `signal_notional` or `pct_equity`, aware unique exact calendar.
+- Scalar `signal_notional`, `pct_equity`, `notional`, `unit` or structural
+  `dca_ladder`, aware unique exact calendar. E03's new sizing cells are software
+  research opt-ins, with empirical promotion/owner review separate and pending.
 - `scoring_backend="endpoint"`, authoritative original-result or prepared score witness.
 - Reference: `use_scalar_trial_scoring=False`, `native_prepared_wfo="off"`.
 - Prepared: `native_prepared_wfo="auto" | "require"` and qualified native witness;
@@ -36,6 +38,15 @@ account behavior remain unchanged. `walkforward_support_matrix()` adds separate
 meta domain/ABI, mode/schedule, software/empirical status and gate-owner columns;
 pending registrations do not activate portfolio/package/intrabar/order meta.
 Read [E02's exact local evidence and limits](QMSE02_REPORT.md) before extending a route.
+
+E03's [scalar contract](DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment) and
+[runnable scalar/ladder example](../../examples/wfo_meta_scalar.py) cover original
+vectorized/native-event rebalance sizing and the legacy high/low ladder. Explicit
+`scoring_backend="endpoint"` is required; omitted/off notional/unit proxy defaults
+are unchanged. Prepared `require` additionally needs `target_runtime="rust"`
+and the existing compatible same-close contract. Ladder/event rebalance do not
+qualify that prepared route. No dynamic order, intrabar or new method support
+is implied; each family and real-alpha cell has its own provenance.
 
 Other modes and schedules remain unsupported for meta. The owner-approved
 [C01 methodology review](ADDITIONAL_METHODS_REVIEW.md) and

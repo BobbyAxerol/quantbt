@@ -39,6 +39,8 @@ def without_c03_sampler(source, name):
 def verify():
     from tools.qms_e02_source_guard import ALLOW as E02_ALLOW, verify as verify_e02
     verify_e02()
+    from tools.qms_e02_source_guard import reviewed_scope
+    E02_ALLOW = reviewed_scope()
     from tools.qms_c04_source_guard import ALLOW as C04_ALLOW, verify as verify_c04
     from tools.qms_e01_source_guard import NAME as E01_NAME
     c04 = verify_c04()

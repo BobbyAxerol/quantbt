@@ -23,7 +23,8 @@ def test_e02_final_current_summary_is_complete_without_authorizing_next_phase():
     assert "AUTHORIZED_IN_PROGRESS" not in e02
     current = (ROOT/"handoff/WFO_META_CURRENT.md").read_text().split("## Historical Local Debt Closure")[0]
     assert "no E02-E08 execution is authorized" not in current
-    assert "E03-E08 execution remains unapproved" in current
+    assert "E04-E08 execution remains unapproved" in current
+    assert "E03 is now authorized" in current
 
 
 def test_e02_final_docs_preserve_original_guide_and_separate_empirical_promotion():

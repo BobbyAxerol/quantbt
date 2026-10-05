@@ -1,0 +1,12 @@
+{
+  "baseline": "b00ad56",
+  "source_sha256": {
+    "src/quantbt/endpoint.py": "c935907afa353ea40737f01f614a338b63520e10fc1ec81f19aae60414a30fb5",
+    "src/quantbt/optimization/meta_selection/config.py": "c869c29051d6a60c80dce5cfa83ef14e4f8f2263f53cddd9fdfcea55096a0d6d",
+    "src/quantbt/optimization/meta_selection/domains/reactive.py": "7ecfb406b14a41079528bc46630f5d0fec194b3e02aced3017cd77174dea66b8",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "21f342f7138ecd362306425a5f636cf0c091a8456a2a954ca3127a2bf1a2dac2",
+    "src/quantbt/optimization/meta_selection/domains/scalar.py": "489692d5f732e11489338365562176b969096c084af773175cdee549a5082026",
+    "src/quantbt/optimization/meta_selection/domains/scalar_contract.py": "d868b66dfced78631484ef3c975e5aa6b4e8bddee2467bd996e77a75b4d44817",
+    "src/quantbt/optimization/meta_selection/runtime.py": "2cf101fdd457e891f3306f617322af398d26cc4ad1dc26ce6b085a2b5bc168dc"
+  }
+}

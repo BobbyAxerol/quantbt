@@ -20,7 +20,11 @@ from tests.meta_selection.test_e02_contracts import request, compatibility
 
 
 def scalar_adapter():
-    return ScalarDomainAdapter(SimpleNamespace())
+    from examples.wfo_meta_scalar import make_scalar_endpoint
+    endpoint = make_scalar_endpoint()
+    scorer = SimpleNamespace(config=endpoint.config, symbols=None)
+    return ScalarDomainAdapter(SimpleNamespace(engine=SimpleNamespace(
+        config=endpoint.config.walkforward_config, scorer=scorer)))
 
 
 def test_e02_t01_adapter_delegates_once_and_observes_original_result_without_replay():
@@ -95,7 +99,7 @@ def test_e02_t05_existing_discovery_exposes_domain_method_axes_without_new_route
     assert [r["target_mode"] for r in matrix] == ["signal_notional", "notional", "unit", "pct_equity",
         "dca_ladder", "portfolio", "basket", "arbitrage", "nautilus_validation"]
     for row in matrix:
-        assert row["meta_route_activated"] == (row["target_mode"] in {"signal_notional", "pct_equity"})
+        assert row["meta_route_activated"] == (row["target_mode"] in {"signal_notional", "pct_equity", "notional", "unit", "dca_ladder"})
         if row["meta_route_activated"]:
             assert row["meta_optimization_modes"] == ("mode_4_is_only_robust",)
             assert row["meta_optimization_schedules"] == ("per_fold_causal",)

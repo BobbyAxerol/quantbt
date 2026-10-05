@@ -18,14 +18,14 @@ class DomainCapability:
 
     @property
     def activated(self):
-        return self.software_status == "QUALIFIED_EXISTING"
+        return self.software_status in {"QUALIFIED_EXISTING", "SOFTWARE_VALIDATED_OPT_IN"}
 
 
 # Future routes have explicit pending gates, never speculative executable adapters.
 CAPABILITIES = (
     DomainCapability("signal_notional", "scalar", InputKind.SCALAR_TARGET, "QUALIFIED_EXISTING", "E03", "EXISTING_BOUNDED_EVIDENCE"),
     DomainCapability("pct_equity", "scalar", InputKind.SCALAR_TARGET, "QUALIFIED_EXISTING", "E03", "EXISTING_BOUNDED_EVIDENCE"),
-    *[DomainCapability(route, "scalar", InputKind.SCALAR_TARGET, "PENDING_ADAPTER_GATE", "E03")
+    *[DomainCapability(route, "scalar", InputKind.SCALAR_TARGET, "SOFTWARE_VALIDATED_OPT_IN", "E03", "OWNER_EMPIRICAL_REVIEW_PENDING")
       for route in ("notional", "unit", "dca_ladder")],
     DomainCapability("portfolio", "portfolio", InputKind.POSITION_MATRIX, "PENDING_ADAPTER_GATE", "E04"),
     *[DomainCapability(route, "package", InputKind.PACKAGE, "PENDING_ADAPTER_GATE", "E05")
@@ -39,6 +39,8 @@ CAPABILITIES = (
 
 
 def capability(route, *, abi=DOMAIN_ABI, require_active=False):
+    from .scalar_contract import canonical_scalar_route
+    route = canonical_scalar_route(route)
     if abi != DOMAIN_ABI:
         raise MetaRecordError("META_DOMAIN_ABI_UNSUPPORTED")
     found = next((row for row in CAPABILITIES if row.route == route), None)

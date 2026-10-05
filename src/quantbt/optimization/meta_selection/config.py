@@ -84,6 +84,7 @@ def validate_meta_route(config, *, route="target_series"):
     reactive = route == "reactive_reset"
     if route not in {"target_series", "reactive_reset"}:
         raise MetaRecordError("META_ROUTE_UNSUPPORTED: unknown route")
+    from .domains.scalar_contract import SCALAR_ROUTES, canonical_scalar_route
     if (
         config.optimization_mode != "mode_4_is_only_robust"
         or config.optimization_schedule != "per_fold_causal"
@@ -92,7 +93,8 @@ def validate_meta_route(config, *, route="target_series"):
             f"META_METHODOLOGY_UNSUPPORTED: {requested}; supported Mode 4/per_fold_causal; disable meta for legacy behavior"
         )
     if (
-        config.target_mode not in {"signal_notional", "pct_equity"}
+        canonical_scalar_route(config.target_mode) not in (
+            {"signal_notional", "pct_equity"} if reactive else SCALAR_ROUTES)
         or config.scoring_backend != "endpoint"
         or config.calendar_contract != "exact_v2"
         or config.strategy_lifecycle_policy != "isolated_v1"
