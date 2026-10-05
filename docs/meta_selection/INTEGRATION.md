@@ -30,12 +30,19 @@ Rust dispatch remains independent of financial backend/prepared-WFO selection.
 The local debt-closure extension adds W3 sequential/reset-flat meta below.
 Ordinary meta-off W3 remains unchanged; its account is not a scalar target proxy.
 
+E02 now routes existing observers through the
+[shared typed adapter contract](DOMAIN_ADAPTER_CONTRACT.md). Public calls and
+account behavior remain unchanged. `walkforward_support_matrix()` adds separate
+meta domain/ABI, mode/schedule, software/empirical status and gate-owner columns;
+pending registrations do not activate portfolio/package/intrabar/order meta.
+Read [E02's exact local evidence and limits](QMSE02_REPORT.md) before extending a route.
+
 Other modes and schedules remain unsupported for meta. The owner-approved
 [C01 methodology review](ADDITIONAL_METHODS_REVIEW.md) and
 [spec/test report](QMSC01_REPORT.md) do not activate them. In particular, default
-Mode 2 final robust_decay reranking uses real OOS despite its legacy top-level
-false flag; the review records that provenance gap separately from its IS-only
-synthetic adaptive objective.
+Mode 2 final robust_decay reranking uses real OOS; E01 corrected its legacy false
+provenance flag without changing the IS-only synthetic adaptive objective. The
+sealed C01 review retains its historical finding, not the current flag value.
 
 ## W3 Sequential Meta
 

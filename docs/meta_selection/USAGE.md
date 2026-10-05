@@ -30,6 +30,12 @@ reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
 Other modes/schedules and portfolio/package/order target meta remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
+Existing `walkforward_support_matrix()` now reports additive meta domain/ABI,
+method/schedule, software/empirical status and pending gate columns. A financial
+OOS route does not imply meta support. Read the [shared adapter contract](DOMAIN_ADAPTER_CONTRACT.md)
+and [E02 local report](QMSE02_REPORT.md); no extra arguments are required on
+already qualified routes, and pending domains still fail before search.
+
 Conditional Sobol and mixed/constrained representatives are under
 [C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public
 capabilities. Keep using qualified sampler geometries and `flat_selector="medoid"`

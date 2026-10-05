@@ -7,8 +7,10 @@
   [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) for current gates.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-E01 audited provenance/docs/installed-proof debt
-  closure, following local C02-C05 work; no E02-E08 execution is authorized.
+- Current approved scope: QMS-E01 debt closure and QMS-E02 typed adapter migration
+  are complete locally after C02-C05 work; E03-E08 execution remains unapproved.
+  [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
+  tests and ten installed consumer runs PASS; new domains stay closed.
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.
@@ -25,7 +27,7 @@
   366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
-- E01 does not authorize push, merge, retag, release, deploy or another phase.
+- E01/E02 do not authorize push, merge, retag, release, deploy or another phase.
 
 ## Current C01 Review
 

@@ -71,6 +71,12 @@ mandatory validators and retained command/source/example/log hashes. Missing
 capabilities fail, not skip. Local wheel/sdist evidence is not the final-source
 Ubuntu 22.04/24.04 x CPython 3.11-3.13 or public-index certificate.
 
+E02's [shared domain contract](DOMAIN_ADAPTER_CONTRACT.md) and
+[local gate/report](QMSE02_REPORT.md) migrate existing scalar/W3 observers only.
+Typed admission, inventory, lifecycle and new installed core bytes pass locally;
+new target/meta routes remain rejected until E03-E07 software, registered
+real-alpha decay and owner gates pass. A registry entry is not activation.
+
 ## Software Gates
 
 The independent `tools/qms08_gate.py` registry contains all **64** Q1-T01..Q8-T08

@@ -40,6 +40,10 @@ consumer commands run per wheel/sdist lane; no successful capability skips.
 Source, toy-example and command/log hashes are retained with each proof.
 Read [E01 scope and reproduction](QMSE01_REPORT.md); its local native reuse is
 not a fresh manylinux release or public-index certificate.
+The [E02 adapter gate](QMSE02_REPORT.md) qualifies newer canonical wheel/sdist,
+eight mandatory plus two adapter-specific consumers and exact scalar/W3 parity.
+It opens no new domain. Final remote/public proof must use current bytes, not
+the historical E01 or pre-C02 remote receipt.
 
 `.github/workflows/qms-candidate.yml` runs both commands for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
@@ -95,7 +99,7 @@ not automatic public WFO/financial state resume. Other mode/schedule activation,
 conditional Sobol and admissible mixed-space centroids remain separately
 reviewed work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
 C05 reference geometry tests do not activate conditional Sobol or mixed centroids.
-Current E01 source/artifacts still require remote matrix and public-index proof;
+Current E02 source/artifacts still require remote matrix and public-index proof;
 do not reuse the pre-C02 remote receipt or private local artifacts as release evidence.
 The scientific study/protocol requires a separate owner decision before any
 methodological replacement or additional research; software PASS does not

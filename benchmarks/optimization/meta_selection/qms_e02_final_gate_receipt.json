@@ -1,0 +1,299 @@
+{
+  "empirical": "NOT_ASSESSED_NO_NEW_STUDY",
+  "gates": {
+    "E02-T01": "PASS",
+    "E02-T02": "PASS",
+    "E02-T03": "PASS",
+    "E02-T04": "PASS",
+    "E02-T05": "PASS",
+    "E02-T06": "PASS"
+  },
+  "inputs": {
+    ".maturin/qms08/e02-measure-v1/measurement.json": "f99bffeae7aa49f304ecabc1fa570882824a8131e2dc2653aeb56d307932871a",
+    ".maturin/qms08/e02-package-v1/e01-proof.json": "7cfd50070d6966f3b87e5af4fd166649b0ec005038e3804de5e1cf9dbb0ebd50",
+    ".maturin/qms08/e02-review/after-verified-v1.json": "acd9c9f4e15e3d75536f42b1b207f598b55adadba075ccfe570efba03eda87ed",
+    ".maturin/qms08/e02-review/before-v2.json": "8070772e66ae05f17e0083d835636d3b923b3a8738b34eaec251d09abe834026",
+    ".maturin/qms08/e02-review/docs-v2.xml": "39ed1390a07a64062d8c8260f15f13a28dd6eb65a921dd12e4843383a3f33e5d",
+    ".maturin/qms08/e02-review/full-regression-v1.xml": "efdb0e9cf08e243a072c7b4c643908496365c08c55adf7d3ef3072b1cd97f81b",
+    ".maturin/qms08/e02-review/gate-negatives-v1.xml": "3f1614cb392fb1fb88640bd47ff9f12d04848a96c482382d92c878f4aff17f85",
+    "benchmarks/optimization/meta_selection/qms_e02_reviewed_source.json": "1f3c0952a4f48b14292c123012f7cd4045d8b1b762fe3373deaad2f92703dfdc",
+    "tools/qms_e02_audit.py": "cb1882f9da9d43e9d3464ead51dd4fdd55aa27fe0307f63564af116d1a2ed1c3",
+    "tools/qms_e02_consumer.py": "014a745a8fc5c9b3c1011f226c0f8838ec25bdfba6d59704ca5fa867b2536bd2",
+    "tools/qms_e02_gate.py": "6ada69a8394897eb5070c2d89fae07acfb0e360131ee67ba9cf5bbca95b59067",
+    "tools/qms_e02_measure.py": "bfbf7929e4f62ac398a9a1ed9a622746eba5fb2c6415556ff336de6141a38bc3"
+  },
+  "installed": {
+    "actual_consumer_runs": 8,
+    "artifacts": [
+      {
+        "bytes": 1010209,
+        "path": ".maturin/qms08/e02-package-v1/dist/quantbt_engine-1.1.2-py3-none-any.whl",
+        "sha256": "aad7c98c04d31af059245a1331f58c3f953c17c50bfb8ceb2281e809d7572f8c"
+      },
+      {
+        "bytes": 901898,
+        "path": ".maturin/qms08/e02-package-v1/dist/quantbt_engine-1.1.2.tar.gz",
+        "sha256": "ced15ecffcd6d0072659f82e06763b209d0b5b0e96ed1f48eb4b481c13d17698"
+      },
+      {
+        "bytes": 1183960,
+        "path": ".maturin/qms08/c02-native-dist/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+        "sha256": "20a9a5116470ad0f385bdfe4ec902ea43ba580a6cdb208920caffda4b8d4ba7a"
+      }
+    ],
+    "installed_lanes": [
+      "wheel",
+      "sdist"
+    ],
+    "native_extension_sha256": "ae43be6e2187e57fcd6a8e8f59e0689172ca24ca5efed27651894c1e7ab1b56a"
+  },
+  "installed_adapter": {
+    "sdist": {
+      "log": ".maturin/qms08/e02-package-v1/e02-sdist-adapter-v2.log",
+      "log_sha256": "1f482454fe8d8d63b682e21400d57c354f57a9af2485e44f8aafa1dc7911a6b9",
+      "record": {
+        "abi": "qms-domain-evaluation-v1",
+        "core": "1.1.2",
+        "example_sha256": "c308715a6b0acd84d81735f322f614bec3a9a750f22c3ef32fd0b540d7773df1",
+        "installed_origin": "/root/bobby/pool_alpha/quantbt/.maturin/qms08/e02-package-v1/consumer/lib/python3.12/site-packages/quantbt/__init__.py",
+        "native": "0.4.3",
+        "observer_attempts": 32,
+        "off_shadow_account_exact": true,
+        "pending_routes_rejected": [
+          "portfolio",
+          "basket",
+          "intrabar",
+          "order_commands",
+          "options",
+          "nautilus_validation"
+        ],
+        "publication": false,
+        "schema": "qms-e02-installed-adapter-v1",
+        "telemetry": {
+          "adapter_market_array_copies": 0,
+          "adapter_owned_market_bytes": 0,
+          "adapter_pyo3_calls": 0,
+          "callback_scope": "financial_delegate_only_not_per_bar",
+          "canceled": false,
+          "closed": true,
+          "domain": "scalar",
+          "financial_delegate_calls": 32,
+          "financial_ffi_calls": "EXISTING_OWNER_TELEMETRY",
+          "financial_replays": 0,
+          "input_bindings": 32,
+          "input_kind": "scalar_target",
+          "legacy_family_identity_preserved": true,
+          "market_binding": {
+            "abi": "qms-domain-evaluation-v1",
+            "calendar_signature": "3dcabeee1240cfd08f9c354116305cd715165ad96b2b25998169498ac312d65c",
+            "compatibility": {
+              "abi": "qms-domain-evaluation-v1",
+              "calendar_policy": "exact_v2",
+              "diagnostic_account": "reset_flat",
+              "domain": "scalar",
+              "economics_id": "9fe3813d0cacf8ffe98b20256fc681d7abcf29eebb8bcb21eb0fb43235c5ba43",
+              "execution_timing": "e8601801e7caebbc909166e61c6478f998b162f170c472fd6458e75f68ac27c1",
+              "final_account": "carry_position",
+              "funding_policy": "14f23405644db119cc90c7cb958d21c5cb7c63551a96b887387c65a851d1ee30",
+              "input_kind": "scalar_target",
+              "instrument_contract": "63ff83bccc3447fcef02bc954bbbccbbf02975cf39daa935cc8c76f2e6c2d33c",
+              "metric_id": "98103da8fd33392d7185da4646816fd38ec0e84030e741ac90380015b8bbe65b",
+              "universe": [
+                "SYNTHETIC-USD-linear"
+              ],
+              "witness_abi": "original-result-or-same-pass-v1"
+            },
+            "funding_signature": "d9dccc30e44e7a4856aed98e152d0ab1682b3584645254eab0389b1221f86af5",
+            "instrument_signature": "9fe3813d0cacf8ffe98b20256fc681d7abcf29eebb8bcb21eb0fb43235c5ba43",
+            "run_id": "qms05-demo",
+            "source_signature": "d9dccc30e44e7a4856aed98e152d0ab1682b3584645254eab0389b1221f86af5"
+          },
+          "market_validations": 1,
+          "original_observations": 32,
+          "schema": "qms-domain-adapter-telemetry-v1"
+        }
+      }
+    },
+    "wheel": {
+      "log": ".maturin/qms08/e02-package-v1/e02-wheel-adapter-v2.log",
+      "log_sha256": "1f482454fe8d8d63b682e21400d57c354f57a9af2485e44f8aafa1dc7911a6b9",
+      "record": {
+        "abi": "qms-domain-evaluation-v1",
+        "core": "1.1.2",
+        "example_sha256": "c308715a6b0acd84d81735f322f614bec3a9a750f22c3ef32fd0b540d7773df1",
+        "installed_origin": "/root/bobby/pool_alpha/quantbt/.maturin/qms08/e02-package-v1/consumer/lib/python3.12/site-packages/quantbt/__init__.py",
+        "native": "0.4.3",
+        "observer_attempts": 32,
+        "off_shadow_account_exact": true,
+        "pending_routes_rejected": [
+          "portfolio",
+          "basket",
+          "intrabar",
+          "order_commands",
+          "options",
+          "nautilus_validation"
+        ],
+        "publication": false,
+        "schema": "qms-e02-installed-adapter-v1",
+        "telemetry": {
+          "adapter_market_array_copies": 0,
+          "adapter_owned_market_bytes": 0,
+          "adapter_pyo3_calls": 0,
+          "callback_scope": "financial_delegate_only_not_per_bar",
+          "canceled": false,
+          "closed": true,
+          "domain": "scalar",
+          "financial_delegate_calls": 32,
+          "financial_ffi_calls": "EXISTING_OWNER_TELEMETRY",
+          "financial_replays": 0,
+          "input_bindings": 32,
+          "input_kind": "scalar_target",
+          "legacy_family_identity_preserved": true,
+          "market_binding": {
+            "abi": "qms-domain-evaluation-v1",
+            "calendar_signature": "3dcabeee1240cfd08f9c354116305cd715165ad96b2b25998169498ac312d65c",
+            "compatibility": {
+              "abi": "qms-domain-evaluation-v1",
+              "calendar_policy": "exact_v2",
+              "diagnostic_account": "reset_flat",
+              "domain": "scalar",
+              "economics_id": "9fe3813d0cacf8ffe98b20256fc681d7abcf29eebb8bcb21eb0fb43235c5ba43",
+              "execution_timing": "e8601801e7caebbc909166e61c6478f998b162f170c472fd6458e75f68ac27c1",
+              "final_account": "carry_position",
+              "funding_policy": "14f23405644db119cc90c7cb958d21c5cb7c63551a96b887387c65a851d1ee30",
+              "input_kind": "scalar_target",
+              "instrument_contract": "63ff83bccc3447fcef02bc954bbbccbbf02975cf39daa935cc8c76f2e6c2d33c",
+              "metric_id": "98103da8fd33392d7185da4646816fd38ec0e84030e741ac90380015b8bbe65b",
+              "universe": [
+                "SYNTHETIC-USD-linear"
+              ],
+              "witness_abi": "original-result-or-same-pass-v1"
+            },
+            "funding_signature": "d9dccc30e44e7a4856aed98e152d0ab1682b3584645254eab0389b1221f86af5",
+            "instrument_signature": "9fe3813d0cacf8ffe98b20256fc681d7abcf29eebb8bcb21eb0fb43235c5ba43",
+            "run_id": "qms05-demo",
+            "source_signature": "d9dccc30e44e7a4856aed98e152d0ab1682b3584645254eab0389b1221f86af5"
+          },
+          "market_validations": 1,
+          "original_observations": 32,
+          "schema": "qms-domain-adapter-telemetry-v1"
+        }
+      }
+    }
+  },
+  "inventory": {
+    "pending_routes_not_activated": true,
+    "public_targets": [
+      "arbitrage",
+      "basket",
+      "dca_ladder",
+      "nautilus_validation",
+      "notional",
+      "pct_equity",
+      "portfolio",
+      "signal_notional",
+      "unit"
+    ],
+    "schema": "qms-e02-public-route-inventory-v1",
+    "typed_dispatch_targets": [
+      "arbitrage",
+      "basket",
+      "pct_equity",
+      "portfolio"
+    ]
+  },
+  "new_domains": "NOT_ACTIVATED_E03_E07",
+  "parity": {
+    "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+    "historical_receipts_unchanged": true,
+    "measured_clock_revision_bytes": "not compared; availability clocks vary per wall-time run; ordered counts and selected decisions compared",
+    "native_routes": 8,
+    "reactive_lanes": 3,
+    "scalar_lanes": 4,
+    "search_pool_anchor_params_account_rng_exact": true
+  },
+  "public": "PENDING_OWNER_RELEASE",
+  "publication": false,
+  "regression": {
+    "groups": {
+      "E02-T01": 11,
+      "E02-T02": 4,
+      "E02-T03": 16,
+      "E02-T04": 11,
+      "E02-T05": 15,
+      "E02-T06": 15
+    },
+    "unique_tests": 1118
+  },
+  "remote": "NOT_RUN_FINAL_SOURCE_E08",
+  "resources": {
+    "added_market_copies_ffi_replays": 0,
+    "disabled_adapter_absent": true,
+    "fresh_process_runs": 18,
+    "performance_claim": "small engineering fixture; no speed-promotion or p95 budget claim",
+    "repeats": 3,
+    "summary": [
+      {
+        "baseline": {
+          "cpu_seconds": 0.8939042060000002,
+          "fresh_process_peak_rss_mib": 286.015625,
+          "seconds": 0.8969917299982626
+        },
+        "current": {
+          "cpu_seconds": 0.9429296659999999,
+          "fresh_process_peak_rss_mib": 285.22265625,
+          "seconds": 0.9438781950157136
+        },
+        "lane": "scalar-off"
+      },
+      {
+        "baseline": {
+          "cpu_seconds": 2.002407973,
+          "fresh_process_peak_rss_mib": 289.77734375,
+          "seconds": 2.0118063270056155
+        },
+        "current": {
+          "cpu_seconds": 2.0560363870000002,
+          "fresh_process_peak_rss_mib": 289.25,
+          "seconds": 2.0570849280047696
+        },
+        "lane": "scalar-active"
+      },
+      {
+        "baseline": {
+          "cpu_seconds": 1.1798780940000002,
+          "fresh_process_peak_rss_mib": 296.6171875,
+          "seconds": 1.185537357989233
+        },
+        "current": {
+          "cpu_seconds": 1.1997634769999999,
+          "fresh_process_peak_rss_mib": 296.02734375,
+          "seconds": 1.2000201840128284
+        },
+        "lane": "reactive-active"
+      }
+    ],
+    "work_and_accounts_exact": true
+  },
+  "schema": "qms-e02-gate-v1",
+  "source_guard": {
+    "baseline": "82c1421",
+    "financial_numeric_source_unchanged": true,
+    "route_activation_unchanged": true,
+    "schema": "qms-e02-exact-source-guard-v1",
+    "source_sha256": {
+      "src/quantbt/backends/reactive_wfo.py": "6bdf21b10158c2d7828b10f7f89f502c042f70f89d7ff3ec6dde56be9072cefd",
+      "src/quantbt/optimization/meta_selection/domains/__init__.py": "61d6df0a6d7f3676dc703b7292101fc9b15159faabbb8bd6d7ec4fee7c0a7101",
+      "src/quantbt/optimization/meta_selection/domains/base.py": "3db81673b766fed3054503d30531dd397160f3ad807874d764bedcb85dd4c507",
+      "src/quantbt/optimization/meta_selection/domains/contracts.py": "d7ea7bb5aba360307491d23d4f3c1634a1e72d66881a3b7fd129b0e95b799234",
+      "src/quantbt/optimization/meta_selection/domains/reactive.py": "8a7e65475094650d6da17ce73acfd5f0ad0693fb4702d9af40d9c2fc4fd1ce6b",
+      "src/quantbt/optimization/meta_selection/domains/registry.py": "664f3541c853bb731a62c0e4928458c018589b9f3b2d6e416164988ca48820af",
+      "src/quantbt/optimization/meta_selection/domains/scalar.py": "56f0bcaaadacaaec033bed707b1919efcfb5de43c8078e756e3498b1ab7cb3a8",
+      "src/quantbt/optimization/meta_selection/observer.py": "de3165a5d53cb1fceb522ea3a977a3532e31da3b868da890b620e0c8e5aacc64",
+      "src/quantbt/optimization/meta_selection/reactive.py": "f88ec8b20f4f894093eced576610f8a194ead797e3b3b827408d14668ad528e7",
+      "src/quantbt/optimization/meta_selection/runtime.py": "53890968492635206cf890db60b60957b38d08a33eb8fd3065eff78ac852afaf",
+      "src/quantbt/walkforward.py": "d45201f5a994da2bbfe758d99e0b37de4fc924c46a4200969731b9501cafabe8"
+    }
+  },
+  "status": "PASS_LOCAL_APPROVED_SCOPE"
+}

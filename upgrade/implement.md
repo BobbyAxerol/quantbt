@@ -13,7 +13,7 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current E01 source/artifacts require a new remote gate. Public proof remains
+current E02 source/artifacts require a new remote gate. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
@@ -53,8 +53,11 @@ tests PASS**, eight native route/account/RNG identities exact, and all four
 mandatory consumers PASS from both installed wheel and sdist. Read the
 [E01 report](../docs/meta_selection/QMSE01_REPORT.md) and
 [sealed local receipt](../benchmarks/optimization/meta_selection/qms_e01_gate_receipt.json).
-E02 is **AUTHORIZED_IN_PROGRESS** for shared contracts and qualified scalar/W3
-adapter migration only; E03-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
+E02 is **COMPLETE_LOCAL_APPROVED_SCOPE**: shared typed adapter and qualified
+scalar/W3 migration, all six gates PASS; **1,118 distinct tests** and ten actual
+installed consumer runs PASS. Read the [E02 report](../docs/meta_selection/QMSE02_REPORT.md)
+and [independent receipt](../benchmarks/optimization/meta_selection/qms_e02_final_gate_receipt.json).
+New domains are not activated. E03-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
 No new empirical study
 or release is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
@@ -23353,8 +23356,8 @@ debt/gaps and extend meta consistently across existing public WFO routes;
 validate each new domain with an existing real strategy before official support.
 This section is a proposed extension to the original guide's bounded route
 matrix, not a claim that its original scalar-only scope included every engine.
-**Execution authorization:** E01 completed locally; E02 authorized by the owner's
-execution request. E03-E08 still require separate owner approval; no
+**Execution authorization:** E01 and E02 completed locally under separate owner
+execution requests. E03-E08 still require separate owner approval; no
 release/publication approval.
 **Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
 Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
@@ -23399,7 +23402,7 @@ reset-flat route. Broader target guards currently reject meta as documented.
 | E-G03 | Current-summary hygiene debt | CLOSED_LOCAL E01: current handoff/release/qualification reconciled; historical seals retained |
 | E-G04 | Anchor verification gap | CLOSED_LOCAL E01: current docs/full unified plan fragment checks and independent negatives PASS; explicit legacy roadmap anchor preserved |
 | E-G05 | Stored six-row remote PASS is on pre-C02 source 0970d55, not current C02-C04 bytes | Current-source gate outstanding; E08 owns remote/exact-pair proof after authorized push |
-| E-G06 | Scalar-specific observer uses signal=output and a single DataFrame; guard relaxation cannot add portfolio/package support | Missing shared domain adapter; E02, followed by actual E03-E05 route implementation |
+| E-G06 | Former scalar-specific observer could not safely extend other domains | CLOSED_LOCAL_ARCHITECTURE E02: typed registry/adapters and scalar/W3 parity PASS; new domain evaluators/studies remain E03-E07, no guard relaxation |
 | E-G07 | Intrabar/session, explicit command tape, options and Nautilus lack corresponding complete public WFO/meta adapters | Missing/new WFO capabilities, not an existing backtest-engine defect; E06/E07 bounded adapters, future options/Nautilus entry gates below |
 | E-G08 | C01 additional modes/schedules have spec/tests, not activated runtime | Separate methodology approval; no E-phase silently enables global/decay/SBB/full-sample meta |
 | E-G09 | W3 continuous carry, multi-symbol shared account and public meta batching remain unavailable | C02 financial/scheduler extensions need explicit approval; E07 must preserve current reset-flat/sequential scope or stop at that boundary |
@@ -23525,7 +23528,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | Phase | Goal | Depends on | Current disposition |
 |---|---|---|---|
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
-| E02 | Shared typed domain adapter and future-route conformance | E01 local gate | AUTHORIZED_IN_PROGRESS; tests pending |
+| E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
 | E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
@@ -23617,7 +23620,7 @@ no release version change or upload.
 <a id="qms-e02"></a>
 #### QMS-E02 - Shared Domain Evaluation Adapter And Future-Route Contract
 
-**Status:** AUTHORIZED_IN_PROGRESS; tests pending (2026-10-05).
+**Status:** COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS (2026-10-05).
 **Goal:** make meta route-generic without diluting financial semantics.
 **Entry:** E01 local gate accepted; owner approves E02 contract and module layout.
 **Guide:** [architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
@@ -23673,6 +23676,35 @@ activate a route. All six test groups, exact before/after witness comparison,
 installed-source checks and retained-work telemetry must pass before completion.
 New E03-E07 route activation, real-alpha studies, C01/C05 mathematical activation,
 push/merge/tag/publication remain outside E02 authorization.
+
+**Completion Receipt (2026-10-05):**
+
+- [Independent gate](../benchmarks/optimization/meta_selection/qms_e02_final_gate_receipt.json)
+  and [actual report](../docs/meta_selection/QMSE02_REPORT.md): all six groups PASS;
+  **1,104 QMS checks + 10 gate negatives + 4 docs checks = 1,118 distinct PASS**,
+  no failures/errors/skips. Architecture/product/API/benchmark/secret checks PASS;
+  original guide and historical receipt bytes unchanged.
+- Eight native routes, four scalar lanes and three W3 lanes preserve search/pool/
+  anchor/params/objective/account/RNG. W0/W1/W2 prepared/original parity and actual
+  future-label/family guards PASS. Measured scalar publication-clock revision IDs
+  vary across runs; ordered support counts and decisions are checked, not falsely
+  called byte-identical.
+- New canonical wheel/sdist: eight mandatory plus two adapter-specific isolated
+  consumers PASS. Native reuse requires exact unchanged Rust/artifact seal;
+  no new build/remote portability claim. Full artifact/log detail is ignored/hashed.
+- Three-pair measurements preserve trials/observer work/outputs. Adapter adds
+  zero market copies/owned arrays/PyO3 crossings/financial replay. Small medians:
+  scalar off 0.897 to 0.944 s, active 2.012 to 2.057 s; W3 active 1.186 to 1.200 s.
+  Peak RSS approximately 285-296 MiB. No speed/RSS win or proposed +3%/+5%
+  percentile-budget PASS is claimed; stable performance qualification remains E08.
+- [Route amendment](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md) and
+  [pre-outcome study template](../docs/meta_selection/DOMAIN_EMPIRICAL_REGISTRATION.md)
+  separate software/empirical/owner gates. Endpoints/signatures and nine discovery
+  rows stay stable; columns are additive. Pending domains are not activated.
+- Chunks: `6a2f2d5` contracts, `6220a62` migration, `ebef9f5` proof/resources.
+  E02 architecture is complete locally; actual evaluators/alpha studies remain
+  E03-E07 and final remote/public qualification E08. C01/C05 activation, carry/
+  multi-symbol/meta batching and release remain unapproved. No push ran.
 
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
