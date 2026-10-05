@@ -2853,6 +2853,11 @@ process and versioned global/inprocess R3B. Use the existing
 Fixed matrices are replay, not samplers. This does not activate extra meta modes,
 continuous carry, multi-symbol or public meta batching.
 
+QMS-C04 adds a separate [owned persisted sampler journal](meta_selection/EXACT_CONTINUATION.md)
+through `quantbt.optimization.continuation`; it adds no endpoint argument or
+automatic study/fold resume. Existing WFO and generic storage semantics stay
+unchanged, and finance/strategy/model state is not serialized by that utility.
+
 For QMS-08 candidate users, start with the [complete user guide](meta_selection/USAGE.md)
 and [installed-artifact qualification](meta_selection/QUALIFICATION.md). The
 public signature remains the same; `meta_history` is the additive keyword-only

@@ -221,12 +221,13 @@ power of two. Public APIs do not expose authoritative CMA generation counts,
 TPE group decomposition or exact startup/adaptive counters; those fields say
 `not_exposed`, not estimates inferred from private internals.
 
-Exact continuation is tested only with the same owned, in-process Optuna study
-and sampler across interruption chunks. No new persisted sampler checkpoint,
-untrusted pickle loader or public WFO resume endpoint is provided. Reconstructing
-a sampler with its seed or reloading only trial storage is not exact RNG resume.
-Generic optimizer storage remains its existing contract, without a new exact-
-continuation claim.
+The existing endpoint loops still provide only owned in-process continuation;
+generic optimizer storage is not an exact RNG resume promise. QMS-C04 adds a
+separate opt-in [owned persisted journal session](EXACT_CONTINUATION.md), with
+version-pinned ask/suggest/report/tell reconstruction and exact proposal/state
+validation. It imports neither pickle nor storage system attributes and does
+not add a public WFO resume endpoint. Seed reset or database reload alone is
+still not exact continuation.
 
 C03 now qualifies these same four recipes on W3 sequential/safe process and
 opt-in R3B through the shared bridge. See [the actual scheduler matrix and

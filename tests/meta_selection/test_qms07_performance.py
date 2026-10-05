@@ -381,10 +381,11 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
     from tools.qms_release_source_guard import PACKAGING_FILES, without_release_identity
     from tools.qms_c02_source_guard import ALLOW, verify
     from tools.qms_c03_source_guard import ALLOW as C03_ALLOW
+    from tools.qms_c04_source_guard import ALLOW as C04_ALLOW
     verify()
     for name in set(current) & PACKAGING_FILES:
         without_release_identity((ROOT / name).read_bytes(), name)
-    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in PACKAGING_FILES or p in ALLOW or p in C03_ALLOW or p in {
+    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in PACKAGING_FILES or p in ALLOW or p in C03_ALLOW or p in C04_ALLOW or p in {
         "src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
         "src/quantbt/backends/reactive_wfo.py", "src/quantbt/backends/reactive_wfo_support.py",
         "src/quantbt/backends/native_event.py", "src/quantbt/backends/_native_event_rust.py",
