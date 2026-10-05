@@ -13,7 +13,7 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current C04 source/artifacts require a new remote gate. Public proof remains
+current E01 source/artifacts require a new remote gate. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
@@ -48,9 +48,13 @@ or publication is authorized by C03/C04/C05.
 
 **New owner-requested planning (2026-10-05):**
 [QMS-E01 through QMS-E08: route-wide WFO/meta integration and debt closure](#qms-endpoint-meta-extension).
-E01 is **AUTHORIZED_IN_PROGRESS** by the owner's execution request; E02-E08
-remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E01 tests are pending; no
-empirical study or release is authorized. Existing WFO routes
+E01 is **COMPLETE_LOCAL_APPROVED_SCOPE**: all five gates PASS, **1,056 distinct
+tests PASS**, eight native route/account/RNG identities exact, and all four
+mandatory consumers PASS from both installed wheel and sdist. Read the
+[E01 report](../docs/meta_selection/QMSE01_REPORT.md) and
+[sealed local receipt](../benchmarks/optimization/meta_selection/qms_e01_gate_receipt.json).
+E02-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**; no new empirical study
+or release is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
@@ -23387,10 +23391,10 @@ reset-flat route. Broader target guards currently reject meta as documented.
 
 | ID | Current finding / boundary | Disposition and planned owner |
 |---|---|---|
-| C01-D01 | Historical Mode 2/global/default robust_decay reporting discrepancy | E01 repair implemented: actual selector/stage flag; eight-route search/account/RNG identities exact, final regression pending |
-| E-G02 | Installed C02/C03/C04 proof wiring | E01 shared mandatory gate implemented; actual wheel/sdist consumers PASS locally; E08 owns final remote/public artifacts |
-| E-G03 | Current-summary hygiene debt | E01 current handoff/release/qualification reconciled; historical seals retained |
-| E-G04 | Anchor verification gap | E01 scoped fragment checker and independent negatives PASS; explicit legacy roadmap anchor preserved |
+| C01-D01 | Historical Mode 2/global/default robust_decay reporting discrepancy | CLOSED_LOCAL E01: actual selector/stage flag; eight-route search/account/RNG identities exact; final regression PASS |
+| E-G02 | Installed C02/C03/C04 proof wiring | CLOSED_LOCAL E01: shared mandatory gate and eight actual wheel/sdist consumer runs PASS; E08 owns final remote/public artifacts |
+| E-G03 | Current-summary hygiene debt | CLOSED_LOCAL E01: current handoff/release/qualification reconciled; historical seals retained |
+| E-G04 | Anchor verification gap | CLOSED_LOCAL E01: current docs/full unified plan fragment checks and independent negatives PASS; explicit legacy roadmap anchor preserved |
 | E-G05 | Stored six-row remote PASS is on pre-C02 source 0970d55, not current C02-C04 bytes | Current-source gate outstanding; E08 owns remote/exact-pair proof after authorized push |
 | E-G06 | Scalar-specific observer uses signal=output and a single DataFrame; guard relaxation cannot add portfolio/package support | Missing shared domain adapter; E02, followed by actual E03-E05 route implementation |
 | E-G07 | Intrabar/session, explicit command tape, options and Nautilus lack corresponding complete public WFO/meta adapters | Missing/new WFO capabilities, not an existing backtest-engine defect; E06/E07 bounded adapters, future options/Nautilus entry gates below |
@@ -23517,7 +23521,7 @@ routes are not silently disabled while new domain coverage is assessed.
 
 | Phase | Goal | Depends on | Current disposition |
 |---|---|---|---|
-| E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | AUTHORIZED_IN_PROGRESS; final regression pending |
+| E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | PLANNED; NOT_RUN |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
@@ -23535,7 +23539,7 @@ or release. Commit coherent verified chunks; record commits/rollback references.
 <a id="qms-e01"></a>
 #### QMS-E01 - Audited Provenance, Documentation And Installed-Proof Debt Closure
 
-**Status:** AUTHORIZED_IN_PROGRESS; local tests pending (2026-10-05).
+**Status:** COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS (2026-10-05).
 **Goal:** repair real audited debt before broadening financial route support.
 **Execution baseline:** clean `feat/meta-selection-samplers` at `5fecad2`;
 prepared pair remains 1.1.2 / 0.4.3. Record before/after native identities and RNG,
@@ -23575,6 +23579,37 @@ declared report-only differences. Remote matrix is not claimed from local tests.
 to E08; C01/C05 math activation and scientific research stay unapproved.
 **Commit Boundary:** metadata/tests, then docs/proof wiring as verified chunks;
 no release version change or upload.
+
+**Completion Receipt (2026-10-05):**
+
+- [Independent E01 gate receipt](../benchmarks/optimization/meta_selection/qms_e01_gate_receipt.json)
+  seals all five local gates; [final report](../docs/meta_selection/QMSE01_REPORT.md)
+  records scope, reproduction and remaining boundaries.
+- Full `tests/meta_selection` regression: **1,039 PASS**, zero failures/errors/
+  skips, **360.38 s**. Supplementary final caller/packaging/anchor/negative runs
+  yield **1,056 distinct passing test identities** after deduplication; repeat
+  runs are not added to the count. Optuna experimental warnings are reported,
+  not capability skips.
+- Eight before/after mode/schedule traces preserve pools, params, objectives,
+  account/signal/positions/equity/returns and Python/NumPy RNG exactly. Meta
+  omitted and explicit `off` remain exact. Only declared provenance changes;
+  fixed-param diagnostics do not count as selection.
+- New canonical core wheel and sdist with exact pair **1.1.2 / 0.4.3** each run
+  all four installed consumers: **eight actual isolated runs PASS**. Native
+  artifact reuse requires unchanged tracked Rust bytes and the C04 wheel hash;
+  loaded extension identity, artifact allowlist/secrets and retained consumer
+  commands/logs are independently rechecked by the final gate.
+- Original guide and sealed historical receipt bytes remain unchanged. No
+  financial/search/math/Rust/endpoint/version change, new alpha study, remote
+  run, push, merge, tag or publication occurred. No speed/RSS gain is claimed.
+- Verified commit/rollback references: `c4a0498` baseline, `fd22328` provenance,
+  `a3338e5` shared installed proofs, `a175279` caller gates, `f591055` anchors.
+  Final evidence/docs follow in a separate coherent completion commit.
+- **No unresolved implementation gap within approved E01 local scope.**
+  Final-source Ubuntu matrix/manylinux/public qualification remains E08 and
+  owner release work; E02-E07 domain adapters, C01/C05 activation and scientific
+  replacement still require separate approval. Historical remote 6/6 does not
+  certify current E01 bytes.
 
 <a id="qms-e02"></a>
 #### QMS-E02 - Shared Domain Evaluation Adapter And Future-Route Contract

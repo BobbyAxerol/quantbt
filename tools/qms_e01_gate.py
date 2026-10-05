@@ -14,6 +14,7 @@ from tools.qms_installed_consumers import source_hashes
 from tools.qms_release_consumers import validate_consumers
 from tools.qms01_baseline import GUIDE, GUIDE_SHA, ROUTES
 from tools.verify_wheels import core_wheel_source_differences
+from tools.check_release_artifacts import inspect_artifact
 
 
 def file_hash(path):
@@ -57,6 +58,8 @@ def check_package(package):
         if (not path.is_relative_to(ROOT / ".maturin/qms08")
                 or file_hash(path) != ref["sha256"] or path.stat().st_size != ref["bytes"]):
             raise ValueError("E01 artifact bytes/path changed")
+        if inspect_artifact(path):
+            raise ValueError("E01 artifact allowlist/secret guard failed")
     core = ROOT / next(r["path"] for r in artifacts if "quantbt_engine-" in r["path"] and r["path"].endswith(".whl"))
     if any(core_wheel_source_differences(core, ROOT / "src/quantbt").values()):
         raise ValueError("E01 installed wheel differs from canonical source")
@@ -115,7 +118,7 @@ def verify(*, before, after, package, junit):
     return dict(schema="qms-e01-gate-v1", status="PASS_LOCAL_APPROVED_SCOPE",
         gates={f"E01-T{i:02}": "PASS" for i in range(1, 6)}, regression=groups,
         source_guard=source, native_account_rng_exact=True, installed=installed,
-        inputs={str(p.relative_to(ROOT)): file_hash(p) for p in (before, after, package, *junit)},
+        inputs={str(p.resolve().relative_to(ROOT)): file_hash(p) for p in (before, after, package, *junit)},
         native_routes=new["lanes"], historical_receipts_unchanged=True,
         guide_sha256=GUIDE_SHA, remote="PENDING_FINAL_SOURCE_E08", public="PENDING_OWNER_RELEASE",
         empirical="NOT_ASSESSED_NO_NEW_STUDY", performance="NOT_BENCHMARKED_REPORT_ONLY",

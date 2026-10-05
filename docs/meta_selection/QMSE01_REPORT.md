@@ -79,7 +79,8 @@ PY=.maturin/qms08/release-regression-v1/bin/python
 "$PY" tools/check_docs_links.py --check-anchors \
   --file handoff/WFO_META_CURRENT.md --file docs/meta_selection/QUALIFICATION.md \
   --file docs/meta_selection/RELEASE_HANDOFF.md \
-  --file docs/meta_selection/RELEASE_GAP_REPORT.md --file docs/meta_selection/QMSE01_REPORT.md
+  --file docs/meta_selection/RELEASE_GAP_REPORT.md --file docs/meta_selection/QMSE01_REPORT.md \
+  --file upgrade/implement.md
 ```
 
 The E01 local builder produces new canonical core wheel/sdist. Native reuse
@@ -90,10 +91,32 @@ The regular candidate/release builder still builds fresh native release bytes.
 
 ## Gate And Remaining Scope
 
-Local validation is IN_PROGRESS until the final receipt is sealed. Before/after
-eight-route search/params/objective/account/RNG parity is exact; 89 focused
-provenance/route/source checks pass. These are test costs, not a speed/RSS claim.
-No new alpha/economic result is measured in E01.
+**COMPLETE_LOCAL_APPROVED_SCOPE**. The
+[independent sealed receipt](../../benchmarks/optimization/meta_selection/qms_e01_gate_receipt.json)
+records E01-T01 through T05 PASS: selector provenance, native parity, docs,
+installed artifacts and fail-closed proof wiring.
+
+- Full `tests/meta_selection`: **1,039 PASS**, zero failures/errors/skips,
+  **360.38 s**; 207 expected Optuna experimental warnings.
+- Final caller/packaging/anchor/negative checks bring the verified union to
+  **1,056 distinct passing tests**. Overlapping and repeated runs are not summed.
+- Before/after eight-route search/pool/params/objective/account/signal/positions/
+  equity/returns and Python/NumPy RNG identities are exact. Explicit meta `off`
+  matches omission. Fixed-param and selector-specific provenance cases pass.
+- Both actual installed core wheel and sdist run all four required consumers,
+  **eight isolated runs PASS**, using the actual native extension. Installed
+  source equality, native binary hash, retained logs, artifact allowlist/secrets
+  and historical receipt bytes are independently checked, not self-declared.
+
+Exact artifact hashes are retained in the receipt. Core wheel SHA-256:
+`d77fe26650a0634ef046b5baa289bd898f384b316f33b6da56fda1b665c3986d`;
+sdist: `d81934d2aeaa022bdb8997464eeb707462b78bcce520dc14501f6cea805bb4a9`.
+Native reuse is the unchanged local CPython 3.12/manylinux_2_34 artifact, not a
+new remote manylinux2014 certification. Original guide, historical receipts,
+financial/search/math/Rust code, endpoint signatures and pair remain unchanged.
+
+These are correctness/proof results and test costs, not a speed/RSS gain claim.
+No new alpha/economic result or scientific-method replacement is measured in E01.
 
 Final-source Ubuntu matrix, manylinux and public-index qualification remain
 pending and belong to E08/owner-controlled release. No earlier remote 6/6 or
