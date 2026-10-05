@@ -45,6 +45,15 @@ mixed-centroid public guards and all production bytes. Owner approval of the new
 math and runtime activation remain separate. No new meta mode, public meta batch
 or publication is authorized by C03/C04/C05.
 
+**New owner-requested planning (2026-10-05):**
+[QMS-E01 through QMS-E08: route-wide WFO/meta integration and debt closure](#qms-endpoint-meta-extension).
+All eight phases are **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**; tests and empirical
+gates are NOT_RUN. The request authorizes this plan only. Existing WFO routes
+must acquire domain-correct meta adapters, not merely relaxed guards. A newly
+integrated route needs its own real-alpha native/meta paired decay study and
+owner promotion review before official support. Original QMS math/scientific
+guide, C01/C05 activation boundaries and release permissions remain unchanged.
+
 Previous performance and package closure:
 [NEXT-01 to NEXT-03](#next-performance-closure) and the completion records below.
 
@@ -23327,6 +23336,588 @@ Conditional Sobol/mixed representative factory/selector activation, actual
 category RNG, scheduler/checkpoint/artifact qualification require separate
 approval. Existing C01/C02/C04 capability boundaries and remote/public gates
 remain explicit, not hidden as completed. No push, merge, tag or publication ran.
+
+<a id="qms-endpoint-meta-extension"></a>
+### QMS Endpoint WFO/Meta Extension And Remaining Debt Closure - E01 To E08
+
+**Planning authorization:** owner request on 2026-10-05: record the audited
+debt/gaps and extend meta consistently across existing public WFO routes;
+validate each new domain with an existing real strategy before official support.
+This section is a proposed extension to the original guide's bounded route
+matrix, not a claim that its original scalar-only scope included every engine.
+**Execution authorization:** NONE. Each phase requires separate owner approval.
+**Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
+Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
+No version bump, push, merge, tag, deployment or upload is authorized by planning.
+
+#### Required Reading And Scope Precedence
+
+- Original detailed guide: [architecture/stages, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+  [public route/methodology matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+  [mathematics, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+  [history/clocks, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+  [actual selection, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+  [adapters/Rust, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+  [measurement, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10),
+  [reports, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
+  [economic evidence, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+  and [Definition of Done, section 15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15).
+- Existing [execution architecture](../docs/architecture/execution-plan.md),
+  [strategy/engine ownership ADR](../docs/adr/ADR-RP-002-strategy-engine-boundary.md),
+  [WFO schedule ADR](../docs/adr/ADR-RP-005-wfo-optimizer-schedules.md)
+  and [current meta integration](../docs/meta_selection/INTEGRATION.md).
+- Current [C01 semantics review](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md),
+  [C02 account/transport proposal](../docs/meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md),
+  [C03 scheduler contract](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md),
+  [C04 continuation limits](../docs/meta_selection/EXACT_CONTINUATION.md)
+  and [C05 geometry proposal](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md).
+- Read the specific phase below and every linked domain guide before edits.
+  Record a versioned route amendment before implementing a new domain; do not
+  rewrite the original guide or historical receipts to imply earlier coverage.
+  Ridge target, normalization, support, Q guard, panels and ties stay unchanged.
+
+#### Current Debt And Capability Ledger
+
+This audit is source-grounded, not a fresh remote CI or public-index receipt.
+Local preflight accepts scalar `signal_notional`/`pct_equity`; W3 has its separate
+reset-flat route. Broader target guards currently reject meta as documented.
+
+| ID | Current finding / boundary | Disposition and planned owner |
+|---|---|---|
+| C01-D01 | Mode 2/global/default robust_decay reranks on real OOS while the top-level flag can remain false | Real metadata bug; E01 proposes selector/stage-based repair only, no objective/search change |
+| E-G02 | Candidate/release/public consumer wiring omits installed C02 transport flag and C03/C04 consumer coverage | Real qualification gap; E01 wires actual proofs, E08 verifies final exact artifacts |
+| E-G03 | Current handoff/release docs still say C02-C05 planning-only or deny qualified W3 process/deadline | Current-summary hygiene debt; E01 reconciles statuses, preserves sealed historical records |
+| E-G04 | Docs checker strips anchors and validates file existence only | Verification gap; E01 validates changed local anchors and adds focused checker tests; the legacy roadmap anchor already exists, do not falsely report it missing |
+| E-G05 | Stored six-row remote PASS is on pre-C02 source 0970d55, not current C02-C04 bytes | Current-source gate outstanding; E08 owns remote/exact-pair proof after authorized push |
+| E-G06 | Scalar-specific observer uses signal=output and a single DataFrame; guard relaxation cannot add portfolio/package support | Missing shared domain adapter; E02, followed by actual E03-E05 route implementation |
+| E-G07 | Intrabar/session, explicit command tape, options and Nautilus lack corresponding complete public WFO/meta adapters | Missing/new WFO capabilities, not an existing backtest-engine defect; E06/E07 bounded adapters, future options/Nautilus entry gates below |
+| E-G08 | C01 additional modes/schedules have spec/tests, not activated runtime | Separate methodology approval; no E-phase silently enables global/decay/SBB/full-sample meta |
+| E-G09 | W3 continuous carry, multi-symbol shared account and public meta batching remain unavailable | C02 financial/scheduler extensions need explicit approval; E07 must preserve current reset-flat/sequential scope or stop at that boundary |
+| E-G10 | W3 Mode 2 lacks a certified causal return-path bootstrap contract | Separate method/evaluator work; do not substitute static return proxies for reactive execution |
+| E-G11 | C04 exact continuation is an owned journal utility, not automatic WFO/account/strategy/model recovery; restore cost scales with history | Explicit capability/performance limit; checkpoint integration requires its own lifecycle plan, not a guard removal |
+| E-G12 | C05 conditional Sobol/mixed representatives are review/reference/tests only | Activation/category RNG/checkpoint qualification requires separate owner approval |
+| E-G13 | Real ETH Delta RSI decay evidence exists, but forward-Q interval includes zero and it is not pristine BTC/live certification | Preserve actual R/Q decomposition; registered scientific replacement remains NOT_AUTHORIZED |
+| E-G14 | Domain-wide real-alpha evidence is absent: scalar ETH results do not certify W3/grid, intrabar or portfolio/package | E03-E07 each own an endpoint-specific paired study and promotion decision |
+
+#### Route Inventory And Coverage Target
+
+The matrix must distinguish final OOS dispatch, native IS evaluator, original
+metric witness, meta observer, account boundary and installed qualification.
+An OOS output route alone is not a native-scored meta capability. Ordinary
+`walkforward_support_matrix()` is not proof that every route supports every mode.
+
+| Domain | Current WFO/meta state | Planned integration and gate |
+|---|---|---|
+| Scalar signal_notional/pct_equity, W0/W1/W2 | Bounded meta already locally qualified | E02 preserves it; E03 regression plus alias/backend discovery |
+| Scalar notional/unit and structural dca_ladder | Existing WFO route; meta rejected | E03 original-result adapter and separate economics/family evidence |
+| Portfolio/multi-symbol target matrix | Existing WFO; native portfolio scorer exists; meta rejected | E04 shared-account metric/observer/calendar adapter and real portfolio study |
+| Basket/bounded arbitrage package | Final WFO routes exist with scorer/spec limitations | E05 authoritative native IS/forward package evaluator before meta promotion |
+| Intrabar bracket/session, Numba/Rust | Backtest/prepared runner exists; no public target WFO adapter | E06 typed intent WFO/account adapter, then real intrabar meta study |
+| Event-driven numeric strategy/W3 R1/R2/R3 | Meta is Mode 4 causal/sequential/single-symbol/reset-flat | E07 real reactive alpha qualification; keep existing lifecycle/protocol |
+| Generic event callback or explicit orders/commands | Standalone backtest exists; no universal auto-WFO/meta route | E07 approved typed/factory adapter only where existing execution can honor it; otherwise explicit BLOCKED |
+| W3 R3B/batch, carry or multi-symbol | Native/meta scheduling and account permissions differ | Dependency E-G09/C01; no automatic promotion from route-wide API consistency |
+| Options or Nautilus validation WFO | Standalone engines, no complete WFO/meta adapter | Future route admission contract; no implicit options engine or venue rewrite in E01-E08 |
+
+#### Shared Architecture And Future-Route Admission Contract
+
+1. Keep existing public constructors and signatures. Meta remains an optional
+   policy on the existing WFO run/config/context, not a new endpoint or Mode 6.
+   Existing calls without meta preserve defaults, outputs and accounting.
+2. Keep two capability axes: financial domain/route and methodology/schedule.
+   E02-E07 extend route coverage under **Mode 4/per_fold_causal** only unless a
+   separately approved C01 amendment permits another combination.
+3. Use one typed, versioned domain-evaluation adapter registry for IS scoring,
+   exact output binding, raw original-result witnesses, post-seal observer
+   evaluation and final OOS execution. Scalar, position matrix, intent/session,
+   command tape and package inputs must never be guessed from similar shapes.
+4. Reuse existing preparation, planning, financial SPI/backend, Ridge/history,
+   result/report and cache ownership. No per-domain learner, account engine,
+   persistent mutable candidate cache or duplicate Python/Rust execution loop.
+5. An adapter declares market/calendar/instrument identity, sizing/cost/funding,
+   metric sample/activity semantics, diagnostic/final account policies, intent
+   effective time, strategy lifecycle and request/result schema versions.
+6. Prepare immutable market/universe/calendar once per declared run lifetime.
+   Candidate/fold accounts, orders, strategies, RNG and model fit are isolated;
+   reuse requires exact source/contract/cutoff identity, not a params-only key.
+7. Prefer existing Rust batch/scalar kernels for owned work. Never translate a
+   user alpha automatically or change its timing/sizing to reach a fast path.
+   NumPy/Numba/reference fallbacks remain explicit and measured.
+8. Capture the full feasible original IS pool before compaction and its exact
+   native anchor. Historical outcomes are acquired after seal and unavailable
+   until actual maturity/publication; no OOS objective is injected into Optuna.
+9. Public capability metadata resolves requested route, adapter/backend, account,
+   modes/schedules, witness ABI, software/empirical status and fallback reason.
+   Unsupported active/shadow requests fail before search/history/execution.
+10. Every future public WFO route must implement the same conformance suite,
+    stable opt-in, real-alpha empirical receipt and owner promotion gate. Adding
+    a dispatch branch without these obligations cannot count as full support.
+
+#### Real-Alpha Evidence And Promotion Contract
+
+This owner-requested route promotion policy is additional to the original
+guide's software-only opt-in distinction; it does not replace section 14's
+registered scientific study or change runtime mathematics. Existing certified
+routes are not silently disabled while new domain coverage is assessed.
+
+- Each E03-E07 route cell gets a written registration **before outcomes**:
+  existing alpha/source/data hashes, instrument/universe, timeframe/calendar,
+  exact financial endpoint, IS/forward windows, account boundary, market roles,
+  sampler/seed/trial budget, history/corpus permissions and analysis thresholds.
+- Use the existing owner's alpha for that domain, not a synthetic renamed
+  strategy or a scalar signal approximation. Gradient/Delta RSI ETH 1h is the
+  approved scalar reference; a true existing intrabar version must execute the
+  actual bracket/session endpoint. Existing grid/MRS, portfolio and bounded
+  basis/pair alphas must be inventoried and approved at their phase entry.
+- Alpha/notebook/loader files remain read-only. A private isolated harness may
+  import or copy only needed code under ignored paths after allowed access;
+  never commit strategy source, raw data, secrets, full private params or paths.
+  New alpha access/data sources need owner approval; unavailable data blocks
+  the empirical gate instead of becoming invented or synthetic real evidence.
+- Within each sampler, native and meta selection consume the **same frozen IS
+  candidate pool** and native anchor, with the same search/RNG/tell sequence.
+  Off/shadow/active ablation records observer cost and any auxiliary evaluations;
+  no unequal warm-start advantage or changed trial budget after weak outcomes.
+- Preserve default twelve matured origins for an economic test. Reduced support
+  is engineering smoke only. Section 14 support/development/locked-evaluation
+  counts remain mandatory when claiming its scientific acceptance; insufficient
+  coverage is LOW_PRECISION/INSUFFICIENT_SUPPORT, not a passed empirical gate.
+- Freeze validation data, methodology, history policy and decision threshold
+  before evaluation. A locked fold is never used to retune Ridge, sampler,
+  ranges or SL/TP architecture. Subsequent labels mature only for later decisions.
+- Use the unchanged raw metric contract, not penalized objective, for decay:
+
+  $$
+  D_{n,k}=I_{n,k}-F_{n,k},\qquad D_{m,k}=I_{m,k}-F_{m,k}
+  $$
+
+  $$
+  R_k=D_{n,k}-D_{m,k}=(I_{n,k}-I_{m,k})+Q_k,
+  \qquad Q_k=F_{m,k}-F_{n,k}.
+  $$
+
+- Report actual R, IS contribution, forward Q, valid/fallback/changed decisions,
+  dependence-aware uncertainty and endpoint account returns/DD/liquidation/costs.
+  Lower IS alone is not evidence of better forward edge. Fold Sharpe averages
+  are not continuous-account Sharpe; segmented equities are never compounded.
+- Before the study, owner approves the estimand, improvement hurdle, forward
+  noninferiority margin, uncertainty method and runtime/RSS budget. Do not invent
+  a universal hardcoded threshold or silently adopt old 0.20/0.10 hurdles.
+- New official route support requires **software PASS + observed real-alpha
+  decay improvement meeting the registered R/Q safeguards + owner promotion
+  approval**. Inconclusive/no-gain evidence remains visible and NOT_PROMOTED;
+  do not retry until a favorable sample appears. No universal/live-edge claim.
+- Software, empirical, performance, installed/remote and owner gates are separate.
+  A blocked economic gate cannot be marked complete because guards were removed;
+  a profitable run cannot excuse a failed account/cutoff/anchor parity check.
+
+#### Phase Map And Execution Order
+
+| Phase | Goal | Depends on | Current disposition |
+|---|---|---|---|
+| E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | PLANNED; NOT_RUN |
+| E02 | Shared typed domain adapter and future-route conformance | E01 local gate | PLANNED; NOT_RUN |
+| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | PLANNED; NOT_RUN |
+| E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
+| E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
+| E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
+| E07 | Event-driven/reactive/order adapters and real-alpha qualification | E06 approved gate; C02/C01 where expanded | PLANNED; NOT_RUN |
+| E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | PLANNED; NOT_RUN |
+
+Proceed one phase and one route cell at a time. Owner approval is required
+before starting and before widening certified support. A blocked required gate
+stops promotion; scope may be narrowed only by an explicit owner disposition.
+No phase entry automatically authorizes the next phase, scientific replacement
+or release. Commit coherent verified chunks; record commits/rollback references.
+
+<a id="qms-e01"></a>
+#### QMS-E01 - Audited Provenance, Documentation And Installed-Proof Debt Closure
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests NOT_RUN.
+**Goal:** repair real audited debt before broadening financial route support.
+**Entry:** owner approves E01; record source/native hashes and current receipts.
+**Guide:** [actual metadata/stages, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[contracts, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[native qualification, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[reporting, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[C01-D01 report](../docs/meta_selection/QMSC01_REPORT.md)
+and [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md).
+**To-Do:**
+
+1. Derive OOS-selection metadata from actual selector/stages. Correct default
+   Mode 2 robust_decay without marking all Mode 2 selectors OOS-consuming.
+   Preserve objective, candidate pool, labels, RNG, accounting and old APIs.
+2. Reconcile current handoff/qualification/release summaries with C02-C05 local
+   status. Retain historical sealed reports and explicit legacy anchors.
+3. Add scoped Markdown anchor validation and independent negative fixtures;
+   do not mistake a preserved explicit anchor for a broken renamed heading.
+4. Wire installed C02 witness transport and real C03/C04 consumers into candidate,
+   exact-release and public consumer entry points. Exercise safe-process guards,
+   actual native extension, fresh-process continuation and isolated imports.
+5. Update workflow change filters and retained proof/log/source/artifact hashes;
+   missing native/tool/data capabilities fail gates, never become successful skips.
+
+**Tests:** E01-T01 selector-specific metadata; T02 eight native schedule/off/RNG/
+account regressions; T03 docs anchors and stale-current-status checks; T04 actual
+wheel/sdist installed C02-C04 consumers; T05 workflow command/artifact allowlists,
+consumer failure injection and immutable historical receipt checks.
+**Deliverables:** metadata-only fix receipt, reconciled current docs, installed
+proof wiring and report that distinguishes local from pending remote/public.
+**Exit Gate:** all five local groups PASS with unchanged search/account bytes or
+declared report-only differences. Remote matrix is not claimed from local tests.
+**Debt Disposition:** E-G02/E-G05 final-source remote/public certification belongs
+to E08; C01/C05 math activation and scientific research stay unapproved.
+**Commit Boundary:** metadata/tests, then docs/proof wiring as verified chunks;
+no release version change or upload.
+
+<a id="qms-e02"></a>
+#### QMS-E02 - Shared Domain Evaluation Adapter And Future-Route Contract
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests NOT_RUN.
+**Goal:** make meta route-generic without diluting financial semantics.
+**Entry:** E01 local gate accepted; owner approves E02 contract and module layout.
+**Guide:** [architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[selection, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[family/labels, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[reuse/ownership, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[measurement, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10),
+[execution architecture](../docs/architecture/execution-plan.md)
+and [strategy boundary](../docs/adr/ADR-RP-002-strategy-engine-boundary.md).
+**To-Do:**
+
+1. Define typed/versioned input binding, evaluate/observe/finalize and capability
+   protocols in focused modules; reuse existing financial SPI and results.
+2. Move the scalar-only signal=output/single-frame observer assumptions behind
+   the scalar adapter. Add domain-specific extension points, not shape guessing.
+3. Bind market/universe/calendar/funding/instruments, metric evidence, execution
+   timing and diagnostic/final account policies to compatibility families.
+   Model basis/history from incompatible domains cannot be borrowed by similarity.
+4. Preserve full pool, exact anchor, post-seal panels, actual-param execution,
+   independent observer RNG and original-result/prepared same-pass witnesses.
+5. Keep one lifecycle/cache/numeric policy; expose route versus method capability
+   axes through existing public discovery/docs. Registry conformance must detect
+   any future WFO dispatch added without meta adapter or explicit pending gate.
+6. Version the owner-requested route/promotion amendment and freeze the real-alpha
+   analysis template; no extension of C01 methods or C05 geometry is implied.
+
+**Tests:** E02-T01 typed request/result routing and wrong-domain rejection;
+T02 scalar/W0-W2/W3 full-pool/anchor/off/shadow/RNG/account parity; T03 future/
+unavailable labels and family/universe/cost isolation; T04 reset/cancel/clear and
+market-signature mutation; T05 capability discovery/unknown routes/ABI guards;
+T06 same-work callback/FFI/copy/RSS counters and no hidden financial replay.
+**Deliverables:** shared adapter contract, route amendment, conformance harness,
+capability inventory and frozen empirical registration template.
+**Exit Gate:** all six groups PASS; old qualified scalar/W3 decisions and financial
+outputs match under declared tolerances. New registry entries are not activation.
+**Debt Disposition:** domain evaluators/studies belong to E03-E07; keep rejected
+routes explicit until their own gates pass. No extra financial bridge is deferred.
+**Commit Boundary:** contracts/reference tests before adapter migration; one
+verified compatibility chunk before any new domain is implemented.
+
+<a id="qms-e03"></a>
+#### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Goal:** complete existing scalar WFO route coverage before matrix/package work.
+**Entry:** E02 accepted; per-cell real alpha/data and R/Q thresholds registered.
+**Guide:** [route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[raw metrics, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[labels, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[prepared constraints, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[paired empirical rules, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [current prepared-native guide](../docs/native_prepared_wfo_public.md).
+**To-Do:**
+
+1. Integrate notional/unit and canonical aliases through their existing target
+   evaluator; preserve allocation, frozen units versus rebalance and leverage.
+   Meta needs endpoint-backed original metrics; keep omitted meta-off proxy
+   defaults unchanged and require explicit compatible scoring configuration.
+2. Cover signal-notional with its actual selected vectorized/native-event backend;
+   native-event rebalance orders are not a generic callback or intrabar proxy.
+3. Integrate structural dca_ladder only with its existing high/low ladder engine
+   and declared transition rules. Dynamic reactive grid/DCA belongs to E07.
+4. Preserve pct-equity transition fee/slippage/prepared-require compatibility and
+   existing final account policy. Do not normalize incompatible timing by shifts.
+5. Run each native/meta real-alpha pair on its declared sizing/backend, retaining
+   exact full IS pools and separately charged observers. Delta RSI scalar evidence
+   is reusable only with matching hashes/contracts, not as ladder/order proof.
+
+**Tests:** E03-T01 target aliases/output/account dispatch; T02 frozen units,
+reversal, costs, quantity constraints, leverage/margin/funding/liquidation;
+T03 ladder transitions/high-low/no-trade boundaries; T04 original/prepared and
+off/shadow/future mutation parity; T05 real-alpha R/IS/Q/account decomposition;
+T06 fresh/prepared full-study wall/CPU/RSS/FFI and installed examples.
+**Deliverables:** per-cell adapter/report/empirical receipt, stable examples and
+updated capability rows distinguishing software PASS from promotion.
+**Exit Gate:** correctness first; each official new cell passes its registered
+real-alpha gate and owner review. Missing true ladder alpha/data blocks that cell.
+**Debt Disposition:** no blanket scalar PASS from one sizing run; other methods
+and dynamic order strategies remain separate. No backtest default changes.
+**Commit Boundary:** one sizing/backend cell with tests/docs/evidence per chunk.
+
+<a id="qms-e04"></a>
+#### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Goal:** support existing portfolio WFO with real shared-account meta labels.
+**Entry:** E03 gate accepted; existing portfolio alpha/universe/data approved.
+**Guide:** [families and labels, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[route contracts, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[native contracts, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[study, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[portfolio domain guide](../docs/portfolio_engine_v3.md)
+and [portfolio target contract](../docs/contracts/portfolio-targets.md).
+**To-Do:**
+
+1. Bind DataFrame/mapping position outputs, ordered universe and exact asynchronous
+   calendar to the existing portfolio scorer, observer and final native engine.
+2. Obtain raw metrics from the aggregate shared-account result, not summed equity
+   ratios or average symbol Sharpe. Preserve report activity-count conventions.
+3. Preserve portfolio modes/sizing/rebalance/frozen-unit/risk-parity warmup,
+   tradability/stale-price, quantity constraints, netting and margin semantics.
+4. Scope immutable market preparation to the exact universe and funding arrays;
+   fresh diagnostic accounts/strategies remain separate from final carry account.
+5. Use original accepted positions/fees/slippage/funding/margin/rejection state
+   as authoritative witnesses. Unsupported backend/result evidence fails closed.
+6. Run the existing portfolio alpha through actual public WFO off/shadow/active;
+   report paired R/Q and final account results, not scalar alpha substitutions.
+
+**Tests:** E04-T01 single/multi-symbol and asynchronous/missing/stale calendars;
+T02 all currently supported portfolio sizing/mode dispatches; T03 independently
+computed accepted delta/cost/margin/PnL reconciliation and risk-parity no-lookahead;
+T04 native/reference/off/shadow/future/history-family isolation; T05 real-alpha
+selection/account/decay evidence; T06 prepared/score/audit/installed parity and RSS.
+**Deliverables:** portfolio adapter, exact universe/family schema, real-study
+report and examples without exposing private alpha source.
+**Exit Gate:** all six groups PASS and registered empirical/owner promotion PASS;
+unsupported modes remain explicit. Portfolio alpha evidence cannot certify W3
+multi-symbol carry, options margin or venue-exact portfolio margin.
+**Debt Disposition:** no symbol-average label or reconstructed shared account is
+accepted as a shortcut. Cross-domain history migration needs explicit permission.
+**Commit Boundary:** typed binding and oracle cases first; observer/public route
+and empirical receipt as separate verified chunks.
+
+<a id="qms-e05"></a>
+#### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Goal:** add meta only after native package IS and forward scores are authoritative.
+**Entry:** E04 gate accepted; supported package specs and real package tapes frozen.
+**Guide:** [evaluation architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[actual selection, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[labels/families, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[native constraints, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[real-study gate, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [pair/basket guide](../docs/pair_basket_guide.md).
+**To-Do:**
+
+1. Inventory real basket/arbitrage WFO IS scorer versus final dispatch. Add the
+   missing endpoint-backed evaluator through the shared adapter, without silently
+   changing legacy meta-off proxy defaults. Never label spread proxies as account PnL.
+2. Bind existing package spec, leg instruments/calendars/hedge ratios and strategy
+   output to exact original native package execution and post-seal observations.
+3. Preserve frozen hedges, leg ratio/unit constraints, accepted/rejected package
+   semantics, actual supported atomicity, fee/funding/margin and package PnL reports.
+4. Separate family identities for basis/stat-pair/basket/etc and their contract
+   structures; quarterly/inverse/quanto capabilities are not inferred from spot/perp.
+5. Qualify supported bounded specs one at a time using existing real basis/pair/
+   basket alpha data; private copied alpha files stay ignored and originals untouched.
+
+**Tests:** E05-T01 native IS/observer/final dispatch with exact leg/spec bindings;
+T02 hedge freeze/reversal/partial reject/atomic admission/constraints;
+T03 fee/funding/equity/package-versus-leg PnL reconciliation; T04 missing calendar,
+unsupported spec, future and unavailable labels; T05 same-pool real package R/Q;
+T06 original/prepared/minimal/audit/installed parity and full-study resources.
+**Deliverables:** per-spec capability and native evaluator, actual package report
+bundles, paired empirical receipts and clear package/WFO invocation examples.
+**Exit Gate:** each claimed spec passes software and registered real-alpha/owner
+gates. Synthetic package tests alone cannot pass empirical promotion.
+**Debt Disposition:** delivery-futures provider, cross-exchange/triangular/options-
+vol specialized engines remain explicit dependencies, not newly supported by meta.
+**Commit Boundary:** one bounded spec/evaluator with tests and evidence at a time.
+
+<a id="qms-e06"></a>
+#### QMS-E06 - Intrabar Intent/Session WFO Adapter And Real Meta Qualification
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Goal:** create the missing faithful intrabar WFO adapter before enabling meta.
+**Entry:** E05 accepted; owner approves the bounded WFO intent/fold-account
+contract and real existing intrabar alpha/data before financial route edits.
+**Guide:** [typed public routes, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[causal/history rules, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[fold flow, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[same timing/ownership, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[empirical criteria, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[intrabar contract and usage](../docs/fast_intrabar.md)
+and [existing Rust oracle suite](../tests/test_phase69_rust_intrabar_authority.py).
+**To-Do:**
+
+1. Add a typed intrabar intent/session output adapter to existing public WFO,
+   reusing prepare_intrabar and existing Numba/Rust kernels; no standalone new
+   optimizer endpoint or conversion into an already-effective pos_weight proxy.
+2. Define exact IS warmup/cutoffs, entry effective time, bracket/session identity,
+   funding events/open-close timestamps, tick/qty rounding and ambiguity policies.
+3. Specify fold transition behavior before implementation. A carried trade keeps
+   its existing protection/state unless the declared intent explicitly amends it;
+   new fold params are not an automatic repricing of old SL/TP/trailing orders.
+   If existing kernels cannot honor that contract, stop for owner-reviewed scope
+   rather than adding unapproved accounting or silently forcing reset_flat.
+4. Build final OOS execution from typed chronological intent with the approved
+   account policy. Never concatenate independently compounded fold equities or
+   shift signals to make close-target metrics look like next-open intrabar fills.
+5. Integrate original score/path witnesses and post-seal observations through
+   E02. Preserve no-variance/liquidation/missing outcome dispositions and own
+   exact-anchor evaluations; reference/fast/prepared outputs stay independently checked.
+6. Run an existing real intrabar Gradient/Delta RSI alpha on that actual endpoint,
+   with unchanged thesis/features/stop architecture and matching native/meta pool.
+   Scalar RSI evidence cannot replace the intrabar experiment.
+
+**Tests:** E06-T01 typed entry/intent/session and calendar/warmup/future guards;
+T02 long/short, gaps, SL/TP collision, dynamic trailing and session transitions;
+T03 fees/slippage/funding/tick/qty/margin/liquidation independently reconciled;
+T04 Python oracle/Numba/Rust, prepared/nonprepared and minimal/audit parity;
+T05 fold-boundary account/protection and active actually-applied params;
+T06 actual real-alpha R/IS/Q/uncertainty and account report; T07 full-WFO wall/
+CPU/RSS/kernel-versus-facade costs and installed example.
+**Deliverables:** versioned bounded WFO intrabar adapter/contract, real alpha
+receipt and documented stable call path with explicit account/effect semantics.
+**Exit Gate:** all seven groups PASS plus registered empirical/owner approval
+before official support. Data/support insufficiency blocks promotion, not tests.
+**Debt Disposition:** shared-cross-margin, multi-symbol intrabar, arbitrary grid/
+DCA or a new fill simulator are not silently included. Any required unsupported
+financial transition must be resolved by approved contract before completing E06.
+**Commit Boundary:** spec/oracle fixtures, then bounded adapter, then meta/study/
+docs; keep kernel accounting changes separate from performance-only work.
+
+<a id="qms-e07"></a>
+#### QMS-E07 - Event-Driven, Reactive And Command WFO Meta Qualification
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Goal:** make existing supported event WFO use the same optional meta layer and
+certify it on a real reactive/order alpha, not scalar RSI results.
+**Entry:** E06 accepted; owner approves actual grid/MRS/order alpha, factory and
+execution/account policy. Expanded carry/batch/multi-symbol requires E-G09/C01
+approval first; this phase cannot infer it from an event_driven constructor.
+**Guide:** [W3 ownership, section 8.4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[history, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[selection, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[cost, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10),
+[empirical gates, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[W3 usage](../docs/reactive_wfo.md),
+[C02 account/transport specification](../docs/meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+and [C03 recipes/schedules](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md).
+**To-Do:**
+
+1. Resolve event_driven strategy/orders facade to declared adapters; keep public
+   calls stable and factory/task isolation explicit. No automatic translation of
+   generic Python callbacks into R1/R2/R3 or a fake scalar target strategy.
+2. Qualify the existing numeric W3 meta route on an actual grid/MRS alpha using
+   order/fill feedback. Inventory generic callbacks and explicit command tapes
+   separately; add only approved adapters the existing execution runtime can honor.
+3. For command-tape WFO, generate candidate/window-specific causal commands with
+   fresh order IDs/state and declared effective bars; preserve cancel/replace/OCO/
+   partial-fill/queue assumptions and original package semantics, not signal proxies.
+4. Reuse full-pool selection/history/observer and original-pass native witnesses,
+   safe process/deadline ownership. A blocking Python callback remains non-hard-
+   preemptible; keep that limitation explicit in public/resource metadata.
+5. Preserve reset-flat W3 segmented account output. Continuous carry, pending
+   cross-fold orders and shared multi-symbol state cannot be invented by attaching
+   the same meta policy. Proposed extensions need approved C02 financial semantics.
+6. Compare real reactive off/shadow/active on the exact allowed Mode 4 causal
+   sequential scheduler. C03 four samplers are qualified recipes, not permission
+   to activate public meta R3B/global. Register separate approved batch studies
+   only after compatible methodology/schedule semantics exist.
+
+**Tests:** E07-T01 facade/factory/command identity and wrong-protocol rejection;
+T02 actual lifecycle/fill-feedback/SL-OCO/cancel/amend/rejection domain cases;
+T03 numeric/reference/process cleanup, cooperative deadlines and task-local RNG;
+T04 full pools, shadow accounting, active executed params and future/history
+mutation; T05 real reactive/order R/Q plus honest segmented account reports;
+T06 full public wall/CPU/RSS-PSS/callback/FFI/native ownership and installed proof.
+**Deliverables:** per-protocol capability rows, stable invocation examples,
+real reactive/order evidence and explicit missing-contract dependency records.
+**Exit Gate:** each official adapter passes all applicable groups and registered
+real-alpha/owner gate. Existing numeric W3 tests cannot certify arbitrary callback
+or batch protocols. Unsupported requested carry/batch capability remains BLOCKED.
+**Debt Disposition:** no blanket event-driven PASS; grid state stays alpha-owned.
+Do not waive C01/C02 financial/scheduler gates to report route completeness.
+**Commit Boundary:** one protocol/account/scheduler cell with tests/docs/evidence
+at a time, no monolithic rewrite of the native-event runtime.
+
+<a id="qms-e08"></a>
+#### QMS-E08 - Domain-Wide Conformance, Exact Artifacts And Owner Handoff
+
+**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; local/remote/public gates NOT_RUN.
+**Goal:** certify the exact integrated route matrix, without overstating empirical
+coverage or publishing unapproved features.
+**Entry:** E01-E07 have accepted gates or explicit owner-approved scope narrowing;
+missing required implementation/real-alpha gates cannot be relabelled complete.
+**Guide:** [reports, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[Definition of Done, section 15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15),
+[public contract, section 13](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s13),
+[scientific claims, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md).
+**To-Do:**
+
+1. Generate an endpoint/domain x mode/schedule x sampler x account/backend matrix
+   from actual capability registrations and test manifests. Split source, local
+   installed, remote and empirical evidence; keep unsupported cells explicit.
+2. Run affected domain regression and prior QMS/C01-C05 compatibility, exact
+   continuation and rejected-method cases. Rebuild native only when source/features
+   change; bind consumers to exact new artifacts and no source-checkout imports.
+3. Qualify Ubuntu 22.04/24.04 x CPython 3.11-3.13 after owner-approved feature-branch
+   push. Include E01 C02/C03/C04 proofs and every officially supported new adapter.
+   Retain final runner/source/guide/artifact hashes, logs and genuine dispositions.
+4. Verify core wheel/sdist/native capabilities, dependency pair, allowlists and
+   secret/private-alpha safety. Pair stays 1.1.2/0.4.3 unless owner approves a change;
+   published versions/tags are immutable and cannot be reused for different bytes.
+5. Update README/methodology/endpoint/capability/usage/migration docs and current
+   handoff. Add runnable sanitized examples and same-work seconds/ms/bars-s/RSS
+   reports; never market observer omission or changed pools as performance gains.
+6. Produce owner review packets per real-alpha route: R/IS/Q uncertainty, actual
+   account metrics, costs, coverage and reason for every non-promoted capability.
+   The original registered scientific/BTC study is not replaced by these packets.
+7. Prepare release workflow instructions, but do not merge/tag/upload. Public
+   consumer proof requires separately authorized publication and real PyPI installs,
+   not private wheel receipts. Preserve native-first/core dependency sequencing.
+
+**Tests:** E08-T01 complete registry/dispatch/conformance coverage; T02 affected
+domain/account/RNG/chronology regression; T03 isolated exact wheel/sdist/native
+consumers; T04 six-row remote matrix; T05 docs/anchors/API/allowlist/secrets;
+T06 reproducible same-work resource/economic receipt verification and owner status.
+**Deliverables:** final scope/debt ledger, exact artifact/remote receipts,
+professional public docs and release review instructions.
+**Exit Gate:** technical/installed/remote gates PASS for claimed cells; every new
+official route has its required real-alpha evidence and owner promotion approval.
+Public proof remains PENDING_PUBLICATION until separately authorized and executed.
+**Debt Disposition:** C01/C05 activation, automatic full-WFO checkpoint recovery,
+W3 bootstrap/carry/batch/multi-symbol and future options/Nautilus routes remain
+explicitly separate unless approved/implemented. No required E-phase gap is hidden
+by declaring an optional exclusion without owner approval.
+**Commit Boundary:** integrated tests/receipts/docs first; release/version changes
+only after separate approval, never speculative tag movement or publication.
+
+#### Future Options/Nautilus And New Endpoint Entry Gate
+
+Options, Nautilus or another future domain may join the same public WFO/meta
+surface only after a separately approved phase supplies the real financial
+WFO evaluator and adapter, exact instrument/calendar/intent/account contracts,
+original-result metric witnesses, full-pool native anchor and chronological
+observer hook. Options expiry/settlement/greeks/hedging/margin or Nautilus fill
+timing cannot be flattened to a scalar convenience proxy. Existing gamma-
+scalping/venue strategies must run on their actual endpoint and real data with
+the same registered R/Q promotion gate. No future financial runtime, provider
+or scientific experiment is authorized by recording this admission rule.
+
+#### Plan Completion And Review Discipline
+
+At this planning commit: implementation NOT_STARTED, all E-tests NOT_RUN,
+empirical NOT_ASSESSED, performance NOT_MEASURED, owner review PENDING.
+After each approved phase append actual baseline/changed/protected files,
+commands/test-ID mapping, valid/fallback origins, source/artifact/raw evidence
+hashes, R/IS/Q and account decomposition, costs/RSS/FFI, remaining blockers,
+commit/rollback references and the exact next approval required. Keep prior
+QMS/C01-C05 receipts intact. No runtime changes or qualification result is
+manufactured by writing this plan.
 
 ### QMS Requirement Coverage And Completion Records
 
