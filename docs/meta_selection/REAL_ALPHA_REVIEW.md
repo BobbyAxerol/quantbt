@@ -1,5 +1,11 @@
 # Real-Alpha Correctness And Cost Review
 
+This is the preserved **pre-debt-closure** report. Its original metrics and
+receipts remain historical; the current owner-approved local follow-up is
+tracked under [QMS Local Debt Closure](../../upgrade/implement.md#qms-local-debt-closure---owner-authorization-2026-10-04).
+Read [the completed current comparison](LOCAL_DEBT_CLOSURE_REPORT.md) for
+post-patch time, unchanged witnesses/accounts and explicit native/meta decay.
+
 ## Status And Scope
 
 Local owner-approved follow-up to QMS-08, 2026-10-04, on

@@ -80,8 +80,9 @@ native capability absent from published 0.4.2; `auto` has an observable
 original-result fallback and `require` fails without it. The candidate proof
 does not change the released matrix. Meta numeric backend is independently
 resolved. See [meta prepared capability](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
-and [portable handoff](meta_selection/HANDOFF.md). W3 remains separate and
-unsupported for meta, not disabled for ordinary reactive WFO.
+and [portable handoff](meta_selection/HANDOFF.md). W3 remains separate: its
+local [sequential meta adapter](meta_selection/INTEGRATION.md#w3-sequential-meta)
+uses original native reset-flat windows, not this scalar prepared scorer.
 
 | Optimization mode | Public native-scoring behavior |
 |---|---|

@@ -4,19 +4,46 @@
 - Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-08 local software qualification, followed by the
-  owner-selected Gradient RSI / ETHUSDT 1h correctness/cost review. Both are
-  locally complete; the real review makes no financial/core/methodology changes.
+- Current approved scope: QMS-08, the owner-selected Gradient RSI / ETHUSDT
+  review, and exact prepared witnesses/W3/numeric-dispatch/thread-telemetry
+  local debt closure. Local software and real-alpha comparisons are complete.
+  Financial arithmetic, alpha/data, methodology defaults and public pair remain
+  unchanged; narrow same-pass native-output plumbing was added for W3.
 - Technical: regression/end-to-end/docs PASS; package PASS_LOCAL, remote pending.
-  Final owner/budget/W3-scope acceptance PENDING. Historical QMS-08 empirical
+  Final owner/economic acceptance and remote/public activation PENDING.
+  Historical QMS-08 empirical
   NOT_RUN_BUDGET stays sealed; follow-up PASS_REAL_ETH is a separate receipt,
   not primary BTC, pristine locked-sample or live certification.
-- Performance: QMS-07 scoped gains retained. Real hourly meta has material
-  witness-generation overhead: 391.024 s off versus 1,086.556 s active Rust,
-  +177.9%; execution peak RSS +14.938 MiB. No whole-study Rust speed claim.
+- Performance: after exact witness reuse, real hourly off/active are
+  366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
+  Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
+  These are single warm studies, not an all-Rust financial speed certificate.
 - Do not push, merge, retag, release, deploy or start unapproved subphases.
 
-## Real-Alpha Follow-Up - Completed 2026-10-04
+## Latest Local Debt Closure
+
+Read [current report](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md) and
+[independently verified evidence](../benchmarks/optimization/meta_selection/qms_local_closure_evidence.json).
+Exact original witnesses, 3,531 IS candidates, 459 labels, pool/panel, params,
+objectives and account arrays match before/after (maximum difference zero).
+New source wheel/sdist and four consumer lanes on CPython 3.11-3.13 pass;
+installed W3 original-pass objective/account and lifecycle checks pass too.
+Native wheel reuse requires exact Rust/source/hash identity, not an ABI guess.
+
+W3 local meta is now Mode4/per_fold_causal/inprocess/sequential/reset-flat;
+unsupported process/batch/deadline/carry contracts fail explicitly. Auto fit
+dispatch is parity-qualified and geometry-measured; require stays Rust.
+Actual loaded math pools are observed separately from configured caps.
+New receipts remain separate from all sealed QMS01..08 artifacts.
+
+Across all 28 ETH folds, mean decay drops 2.144483 to 0.466865 (78.23%).
+On the 15 supported folds, native/meta IS is 2.517793/0.387302, forward is
+-0.567341/0.433721, and signed decay is 3.085134/-0.046419. Lower IS accounts
+for 2.130491 of R=3.131554; actual forward gain Q=1.001062 is not hidden.
+Q's descriptive block interval includes zero. Economic/live superiority is
+not certified; Delta RSI market testing here uses scalar WFO, not reactive W3.
+
+## Historical Pre-Patch Real-Alpha Review
 
 Read [detailed report/debt ledger](../docs/meta_selection/REAL_ALPHA_REVIEW.md)
 and [sanitized evidence](../benchmarks/optimization/meta_selection/qms_real_review_evidence.json).
@@ -46,11 +73,9 @@ Hourly diagnostic confirms ResultMetricAdapter.observe at 19.673/30.631s
 inclusive, with >1.1M UTC conversions. Spans are nested; no fabricated full-run
 component savings. Fit/select totals only 1.342s in active/Rust's full study.
 
-New actionable debt: lossless reuse of exact calendar/market witness material
-through the shared prepared WFO context; preserve all audit inputs, candidate
-pools/labels, hashes, RNG and accounting. Await owner-approved patch/plan.
-Inherited W3, high-d Rust/BLAS dispatch/thread telemetry, remote matrix and
-public-version/feature activation remain separate. No release has been started.
+The witness/W3/dispatch/thread debts identified here are closed by the latest
+local follow-up above. Historical figures and receipts stay unchanged.
+Remote matrix and public-version/feature activation still need approval.
 
 ## Delivered
 
@@ -67,8 +92,8 @@ The QMS-08 private installed pair `1.1.1+qms08/0.4.3.dev4` was compiled/executed
 on CPython 3.11-3.13 without reinstalling published 0.4.2. The latter lacks the
 prepared witness: auto records original-result
 fallback; require fails. Meta numeric require is independent of financial native
-resolution. W3 reactive/reset-flat meta is explicitly unsupported pending optional
-scope acceptance; no new reactive account/capture machinery was added.
+resolution. W3 has the separately qualified local sequential/reset-flat adapter;
+it preserves native accounting and never fabricates a scalar continuous account.
 
 Complete task/pool/native-reason/decision/model/snapshot/revision handoff and
 pure reviewed consumer preserve availability/basis/permissions and distinct
@@ -90,7 +115,7 @@ Raw/native/meta/actual identities and computation/effect clocks remain distinct.
 
 ## Verification
 
-567 checks passed, zero failures/errors/skips, including 56 QMS-08 checks
+At the original QMS08 seal, 567 checks passed, zero failures/errors/skips, including 56 QMS-08 checks
 and actual private QMS-04/QMS-06/QMS-07/QMS-08 Rust execution. Affected optimizer,
 sampler, five-mode schedules, nested causal Mode 1, native WFO and research-audit
 regressions pass. Forced-switch, future/late-label mutation, centroid/conditional
@@ -114,8 +139,9 @@ Matched p50: meta reference `2.743 -> 1.916 s`, prepared/meta Rust
 `2.329 -> 1.425 s`. Disabled p50 +2.63%, p95 -0.82% pass local proposed budgets;
 no cross-platform acceptance is invented. Fixed numeric RSS/PSS plateau passes.
 Some native numeric fits still lose to BLAS; qualified reference stays available.
-Prepared parallelism's configured BLAS=4 differs from actual environment-capped
-OpenBLAS=1; this inherited telemetry debt is explicitly recorded for follow-up.
+The configured BLAS4/observed BLAS1 debt from that seal is resolved by distinct
+configured/observed telemetry and measured fit dispatch, not by changing the
+original financial worker budget.
 
 QMS-07 commits: `8f555c9`, `abcaee2`, `2c64e04`, `559b4d1`.
 QMS-08 implementation `2269dc1`, CI/docs/verifier `25a0744`; final evidence
@@ -144,13 +170,14 @@ attempted trials/cutoff, >=12 matured origins and >=12 paired-valid locked folds
 reserve >=12 dev folds if selecting recipes. Preserve signed R/Q/IS decomposition,
 negative/undefined outcomes and calendar; mean fold Sharpe is not account Sharpe.
 
-Remaining QMS-08 decisions: primary scientific acceptance, new public pair and
+At that historical seal, remaining QMS-08 decisions included primary scientific acceptance, new public pair and
 feature activation, remote matrix, optional W3, thread telemetry, measured
 geometry-aware Rust/BLAS dispatch and owner performance-budget acceptance.
 These are explicit decisions/debt, not unreported local software failures.
 
 ## Read Next
 
+- [Current local debt closure, cost and full decay decomposition](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)
 - [New real ETH correctness, sampler/meta costs and actionable debt](../docs/meta_selection/REAL_ALPHA_REVIEW.md)
 - [QMS-08 final report and debt ledger](../docs/meta_selection/QMS08_REPORT.md)
 - [Complete user guide and migration](../docs/meta_selection/USAGE.md)
@@ -175,7 +202,7 @@ These are explicit decisions/debt, not unreported local software failures.
 - [Unified plan](../upgrade/implement.md#qms-08)
 
 No mandatory scalar/prepared or portable-handoff functionality is deferred.
-Optional W3 meta scope review is explicit, not a generic reactive success claim.
+W3's qualified local scope is explicit, not a generic reactive success claim.
 QMS-08 local software qualification is complete; economic/public-release and
 remote platform acceptance require separate approval. Published package and
 private candidate proof must not be conflated; all old receipts remain historical.

@@ -998,4 +998,8 @@ not concatenated counterfactual reset equities. QMS-06 qualifies prepared scalar
 W0/W1/W2 without changing timing/selection mathematics, and exports a complete
 [portable handoff](meta_selection/HANDOFF.md). Published native 0.4.2 lacks the
 new witness; fallback and require failure remain explicit. Reactive/reset-flat
-W3 meta is unsupported. This is not yet a published 1.1.1 feature.
+W3 meta has a separate local sequential adapter with original native windows,
+same-pass objectives and reset-flat accounting; it never manufactures a stitched
+continuous account. Process/batch meta is not certified. See the
+[W3 contract](meta_selection/INTEGRATION.md#w3-sequential-meta).
+This is not yet a published 1.1.1 feature.

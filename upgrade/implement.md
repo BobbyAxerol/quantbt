@@ -22318,7 +22318,8 @@ patch, a new upgrade phase or any remote/publication action.
 reuse, then Delta RSI meta-off/on decay comparison, and explicitly approved
 "Xu ly ca cac debt local con lai trong luot nay". No remote push, merge,
 release, deploy, PyPI upload or public activation is authorized.
-All gates below start NOT_RUN; implementation starts NOT_STARTED. Preserve the
+At registration all gates below started NOT_RUN/NOT_STARTED. See the local
+completion receipt below for current status. Preserve the
 sealed QMS-01..08 and real-review receipts. New source changes need a new local
 receipt, not replacement of old source hashes or retroactive certification.
 
@@ -22452,6 +22453,42 @@ local installed consumer, docs/link/secret/allowlist checks and new independentl
 verified evidence must pass. Remote/public qualification stays PENDING by scope.
 Commit each coherent verified change locally and update current handoff/debt
 ledger; do not claim pristine/live superiority from previously exposed ETH.
+
+**Local completion receipt (2026-10-05, Asia/Saigon):** L01/L02/L03/L04 PASS_LOCAL within
+their declared scope. Implementation commits: `d003ff3` (exact witnesses),
+`4636794` (measured dispatch/threads), `fbea574` (same-pass W3), `30c4e30`
+(three-interpreter current wheel/sdist consumers). Final affected regression:
+487 PASS / 3 explicit unsafe-POSIX-fork skips; all 64 QMS requirement IDs PASS.
+Four installed consumer lanes per CPython 3.11/3.12/3.13 plus actual native W3
+consumers PASS. Canonical source/API/registry/docs/secret/artifact checks PASS.
+Financial/Rust bytes stay locked apart from exact reviewed Python output-flag
+plumbing; no new ABI, account, sampler, model policy or public version/default.
+
+Real Delta RSI/ETH run: unchanged 28 folds x 128 attempts; 3,531 complete,
+53 duplicate-pruned, zero failures; full 459 labels retained. New off/active
+wall 366.372/418.501s versus previous 391.024/1,086.556s. Active improvement
+2.60x / 61.48%; meta overhead now 52.130s / 14.23%, previously 177.87%.
+Active peak RSS 356.258 MiB, +14.805 MiB over off; no large memory claim.
+One warm full study per arm, not repeated medians/cross-platform certification.
+All pools/panels, original witness hashes, labels, RNG/optimizer trace, params,
+metrics and account buffers match before/after; maximum array difference zero.
+
+All-28 raw mean decay: native 2.144483, meta 0.466865 (78.23% reduction).
+15 supported folds: native/meta IS 2.517793/0.387302, forward
+-0.567341/0.433721, signed decay 3.085134/-0.046419. R=3.131554 equals
+lower-IS contribution 2.130491 plus actual forward Q=1.001062. Registered
+dependent-block Q95 interval [-0.155061,2.516381] includes zero: research
+improvement observed, durable/pristine/live edge NOT_CERTIFIED. No post-outcome
+retuning. W3 correctness uses real native synthetic execution; the ETH economic
+study uses scalar target/Numba, not a W3 market-return claim.
+
+See [current report](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md),
+[sanitized evidence](../benchmarks/optimization/meta_selection/qms_local_closure_evidence.json)
+and [current handoff](../handoff/WFO_META_CURRENT.md). Old phase/evidence seals
+remain immutable. Local mandatory debts are closed; process/batch/deadline W3
+meta or dynamic carry are explicit future capabilities. Remote/platform/public
+activation and economic acceptance remain PENDING_OWNER_APPROVAL. No push,
+merge, tag, release, deploy or PyPI operation was performed.
 
 ### QMS Requirement Coverage And Completion Records
 

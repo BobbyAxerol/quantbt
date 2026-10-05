@@ -26,6 +26,7 @@ and [complete runnable cases](../examples/wfo_meta_contract.py). Private install
 candidate proof is distinct from public release approval or real-market edge.
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
+- [Latest local debt closure, costs and real meta-off/on decay](meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)
 - [QMS-06 prepared parity and capability report](meta_selection/QMS06_REPORT.md)

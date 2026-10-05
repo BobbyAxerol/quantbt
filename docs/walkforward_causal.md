@@ -57,7 +57,9 @@ QMS-06 qualifies the same hook on prepared scalar W0/W1/W2 with original-pass
 metric evidence, without changing same-close timing or sequential trials.
 Published native 0.4.2 still requires observable fallback or explicit `require`
 failure. [Portable handoff](meta_selection/HANDOFF.md) preserves snapshots and
-readiness; export is not activation. Reactive/reset-flat W3 meta is unsupported.
+readiness; export is not activation. The local follow-up additionally qualifies
+[sequential/reset-flat W3 meta](meta_selection/INTEGRATION.md#w3-sequential-meta)
+without replacing its native reactive account with a scalar target proxy.
 
 QMS-08 [usage](meta_selection/USAGE.md) and [qualification](meta_selection/QUALIFICATION.md)
 separate private installed-artifact proof from empirical/live acceptance. No

@@ -320,7 +320,7 @@ def worker(root, kind, arm, recipe):
             observer_failures=meta.get("observer_failures", 0),
             records=records, paired=paired,
             witness_reuse=meta.get("witness_reuse"),
-            prepared_cache_metadata=wf.get("prepared_cache_metadata"),
+            prepared_cache_metadata=wf.get("prepared_scoring_cache"),
             arrays_sha256={name: sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
                            for name, a in arrays.items()},
             checks=dict(signal_future_suffix=True, stitched_account=True,

@@ -1,0 +1,384 @@
+{
+  "schema": "qms-local-debt-closure-v1",
+  "software_parity": {
+    "off": {
+      "account_max_abs_diff": {
+        "positions": 0.0,
+        "equity": 0.0,
+        "returns": 0.0
+      },
+      "trial_trace_exact": true,
+      "selected_params_exact": true,
+      "account_metrics_exact": true
+    },
+    "active_rust": {
+      "account_max_abs_diff": {
+        "positions": 0.0,
+        "equity": 0.0,
+        "returns": 0.0
+      },
+      "trial_trace_exact": true,
+      "selected_params_exact": true,
+      "account_metrics_exact": true
+    },
+    "witnesses": {
+      "original_is_records": 3531,
+      "forward_labels": 459,
+      "byte_exact": true,
+      "full_panel_exact": true,
+      "clocks": "causal wall-derived timestamps, not execution-time parity"
+    }
+  },
+  "all_folds": {
+    "calendar_folds": 28,
+    "valid_folds": 28,
+    "invalid_folds": 0,
+    "native_is_sharpe": 2.506917478078564,
+    "native_forward_sharpe": 0.36243463747274235,
+    "meta_is_sharpe": 1.3655827499851803,
+    "meta_forward_sharpe": 0.8987178914485856,
+    "native_decay": 2.1444828406058214,
+    "meta_decay": 0.46686485853659465,
+    "r": 1.6776179820692267,
+    "q": 0.5362832539758433,
+    "is_difference": 1.1413347280933837,
+    "decay_reduction_pct": 78.22948966079373
+  },
+  "supported_folds": {
+    "calendar_folds": 15,
+    "valid_folds": 15,
+    "invalid_folds": 0,
+    "native_is_sharpe": 2.5177932314012526,
+    "native_forward_sharpe": -0.5673409304785999,
+    "meta_is_sharpe": 0.3873017389602699,
+    "meta_forward_sharpe": 0.43372114360964126,
+    "native_decay": 3.0851341618798527,
+    "meta_decay": -0.04641940464937133,
+    "r": 3.131553566529224,
+    "q": 1.0010620740882412,
+    "is_difference": 2.130491492440983,
+    "decay_reduction_pct": 101.5046154304384
+  },
+  "costs": {
+    "off": {
+      "wall_seconds": 366.3715169079951,
+      "cpu_seconds": 365.186626316,
+      "sampler_seconds": 79.94705913604412,
+      "after_memory": {
+        "rss_mib": 341.5703125,
+        "pss_mib": 331.4599609375,
+        "peak_rss_mib": 341.453125
+      },
+      "counts": {
+        "attempted": 3584,
+        "completed": 3531,
+        "failed": 0,
+        "pruned": 53,
+        "unique_candidates": 3531
+      },
+      "observer_attempts": 0,
+      "observer_failures": 0,
+      "meta_elapsed": {},
+      "previous_wall_seconds": 391.0239205349935,
+      "speedup": 1.0672879918042024,
+      "witness_reuse": null
+    },
+    "active_rust": {
+      "wall_seconds": 418.5011709239916,
+      "cpu_seconds": 417.919780394,
+      "sampler_seconds": 81.97709842643235,
+      "after_memory": {
+        "rss_mib": 356.48046875,
+        "pss_mib": 346.3232421875,
+        "peak_rss_mib": 356.2578125
+      },
+      "counts": {
+        "attempted": 3584,
+        "completed": 3531,
+        "failed": 0,
+        "pruned": 53,
+        "unique_candidates": 3531
+      },
+      "observer_attempts": 459,
+      "observer_failures": 0,
+      "meta_elapsed": {
+        "snapshot": 0.009693059953860939,
+        "fit_select": 2.4683411559672095,
+        "observer": 14.218022309985827
+      },
+      "previous_wall_seconds": 1086.5564735149965,
+      "speedup": 2.5963045004534466,
+      "witness_reuse": {
+        "schema": "qms-prepared-witness-v1",
+        "header_hits": 7493,
+        "header_misses": 56,
+        "market_hits": 7520,
+        "market_misses": 29,
+        "reference_fallbacks": 0,
+        "evictions": 0,
+        "entries": 85,
+        "retained_bytes": 50996,
+        "owned_row_hash_bytes": 303744,
+        "max_entries": 256,
+        "max_bytes": 8000000,
+        "closed": false
+      }
+    },
+    "meta_overhead": {
+      "seconds": 52.12965401599649,
+      "ratio": 1.1422863176044538,
+      "percent": 14.228631760445376
+    }
+  },
+  "accounts": {
+    "off": {
+      "initial_capital": 20000.0,
+      "final_equity": 29600.7286571361,
+      "total_return_pct": 48.0036432856805,
+      "cagr_pct": 18.327218347414988,
+      "sharpe": 0.889175485468331,
+      "sortino": 0.7740752315082533,
+      "calmar": 0.9499118171527273,
+      "omega": 1.2005155538748349,
+      "max_drawdown_pct": 19.29359969681094,
+      "avg_drawdown_pct": 7.8155132798859075,
+      "max_dd_duration_days": 404,
+      "avg_dd_duration_days": 46,
+      "profit_factor": 1.2005155538748349,
+      "long_hitrate_pct": 48.710433763188746,
+      "short_hitrate_pct": 48.06133625410734,
+      "avg_win_pct": 1.0843176972227433,
+      "avg_loss_pct": -0.9414816482062348,
+      "expectancy_pct": 0.038719293578975356,
+      "num_trades": 368,
+      "liquidated": false
+    },
+    "active_rust": {
+      "initial_capital": 20000.0,
+      "final_equity": 34812.73449351949,
+      "total_return_pct": 74.06367246759746,
+      "cagr_pct": 26.85781286834735,
+      "sharpe": 1.1913611561121893,
+      "sortino": 1.0735291278389705,
+      "calmar": 1.8820953240611147,
+      "omega": 1.2573676995371306,
+      "max_drawdown_pct": 14.270166088290665,
+      "avg_drawdown_pct": 6.071973402570854,
+      "max_dd_duration_days": 280,
+      "avg_dd_duration_days": 46,
+      "profit_factor": 1.2573676995371306,
+      "long_hitrate_pct": 50.060576690089654,
+      "short_hitrate_pct": 49.11824763319102,
+      "avg_win_pct": 1.0573198195351954,
+      "avg_loss_pct": -0.9155739293974517,
+      "expectancy_pct": 0.06277248327199642,
+      "num_trades": 358,
+      "liquidated": false
+    }
+  },
+  "uncertainty": {
+    "block_months": 3,
+    "resamples": 4096,
+    "seed": 731,
+    "r_95": [
+      1.8650695183113253,
+      4.773344726571268
+    ],
+    "q_95": [
+      -0.15506133259755908,
+      2.5163807045922497
+    ],
+    "scope": "descriptive exposed ETH research; not independent live certification"
+  },
+  "registered_protocol": {
+    "folds": 28,
+    "attempts_per_fold": 128,
+    "seed": 731,
+    "sampler": "tpe_legacy",
+    "numerical_policy": "require",
+    "financial_authority": "numba"
+  },
+  "new_full_runs": [
+    "off",
+    "active_rust"
+  ],
+  "archived_full_parity": [
+    "off/shadow",
+    "active_rust/reference",
+    "28 independent frozen replay segments"
+  ],
+  "private_input_sha256": {
+    "alpha.py": "bd4b1214cec8cfcc6433f8a1123758a0571a4435b5f50744be0be6b06e99dc7a",
+    "market.csv.gz": "3883aceb0ca8224cc6bfcc568f562c639a6f6ea963d0fc269a13cb4dbd370966",
+    "registration.json": "8816740bcdda663d3c3c6c7a888c1f259e711ba52b4142eb5506bb93801017e5"
+  },
+  "release_authorized": false,
+  "remote_qualified": false,
+  "qualification": {
+    "required_test_ids": 64,
+    "regression_passed": 487,
+    "explicit_posix_skips": 3,
+    "interpreters": [
+      "311",
+      "312",
+      "313"
+    ],
+    "installed_lanes_per_interpreter": 4,
+    "w3_same_pass_consumers_passed": true,
+    "current_checks": [
+      "check_canonical_source_layout.py",
+      "generate_native_event_contracts.py",
+      "generate_product_contracts.py",
+      "generate_public_api_inventory.py",
+      "check_module_architecture.py",
+      "check_benchmark_governance.py",
+      "check_docs_links.py",
+      "scan_public_secrets.py"
+    ]
+  },
+  "numeric_crossover": {
+    "schema": "qms-local-numeric-v1",
+    "native_version": "0.4.3.dev4",
+    "threads": {
+      "configured": {
+        "blas_threads": 1,
+        "openmp_threads": 1
+      },
+      "observed": {
+        "libraries": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "version": "0.3.29",
+            "prefix": "libscipy_openblas"
+          }
+        ],
+        "numba_threads": 4,
+        "native_workers": 1,
+        "native_worker_basis": "qualified_serial_numeric_contract"
+      },
+      "mismatches": [],
+      "inspection_limits": [],
+      "environment": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "NUMBA_NUM_THREADS": null
+      }
+    },
+    "repetitions": 9,
+    "calls_per_repetition": 10,
+    "rows": [
+      {
+        "n": 180,
+        "d": 8,
+        "parity": true,
+        "warm_median_seconds": {
+          "rust": 1.885189994936809e-05,
+          "numpy_blas": 6.804889999330044e-05
+        },
+        "rust_over_numpy": 0.27703460234072996
+      },
+      {
+        "n": 4096,
+        "d": 8,
+        "parity": true,
+        "warm_median_seconds": {
+          "rust": 0.00033430080075049775,
+          "numpy_blas": 0.0002588735005701892
+        },
+        "rust_over_numpy": 1.2913674053704762
+      },
+      {
+        "n": 4096,
+        "d": 24,
+        "parity": true,
+        "warm_median_seconds": {
+          "rust": 0.001815280900336802,
+          "numpy_blas": 0.0006151927998871542
+        },
+        "rust_over_numpy": 2.950751212741407
+      },
+      {
+        "n": 512,
+        "d": 64,
+        "parity": true,
+        "warm_median_seconds": {
+          "rust": 0.0014981176995206625,
+          "numpy_blas": 0.00032979910029098394
+        },
+        "rust_over_numpy": 4.542516029300454
+      },
+      {
+        "n": 16384,
+        "d": 8,
+        "parity": true,
+        "warm_median_seconds": {
+          "rust": 0.0012161785998614505,
+          "numpy_blas": 0.0009025482009747066
+        },
+        "rust_over_numpy": 1.347494348277509
+      }
+    ]
+  },
+  "local_evidence_sha256": {
+    "qualification.json": "1fd37edd56c478ada0c20cac4c86d64757bf2a5fffbad0dc27c3f1e2ebd382c3",
+    "regression.xml": "d693271f235154ffe1a9323868a5c5322ccecd9000a0b2429148ac4b26197731",
+    "numeric.json": "40851893fc5c67fc4ab51aacae2c7aa6f6d746fcf08f72cb5a037a5f23e77934"
+  },
+  "private_artifact_hashes": {
+    "311": {
+      "quantbt_engine-1.1.1+qms08-py3-none-any.whl": "8bb44ba091b1ae1a19e32182c255238cddc59e11308a4fbef41e7fe4adc1d6bc",
+      "quantbt_engine-1.1.1+qms08.tar.gz": "ab6e8d4c90557f7bc14ebb07948fcbfd8eb98608e103dd7c4594d67aacb54c86",
+      "quantbt_native-0.4.3.dev4-cp311-cp311-manylinux_2_34_x86_64.whl": "a9869a00bd372a14939125ed7a67e3ab758a4f90dedc4ffc2449df1422ad515f"
+    },
+    "312": {
+      "quantbt_engine-1.1.1+qms08-py3-none-any.whl": "9a843c86d52a554ecab6fcd7b3c6450c17be2c365e6142df578a51117eead5c2",
+      "quantbt_engine-1.1.1+qms08.tar.gz": "b65f561e86dd632d88a6d6d69eba06b066af66c22960af57a5435eebd9382b32",
+      "quantbt_native-0.4.3.dev4-cp312-cp312-manylinux_2_34_x86_64.whl": "593ea231b0702a5db655fc51d3cdf6ebbad9ecc5efca902af5e9e9e6e3bfc39c"
+    },
+    "313": {
+      "quantbt_engine-1.1.1+qms08-py3-none-any.whl": "e20a0e698e3059cad50f1c09e3458f757b55c502a4779bc1f99f1c6f1471d406",
+      "quantbt_engine-1.1.1+qms08.tar.gz": "d8a6106aef4047bdab5b7ae4c0b698dbe82728359b9b1bf2f61be7f5b2844b42",
+      "quantbt_native-0.4.3.dev4-cp313-cp313-manylinux_2_34_x86_64.whl": "c31b0675bd3822ebba2556276b09e7f7f4f8b905c7e9bae8916d613669fb1046"
+    }
+  },
+  "core_source_hashes": {
+    "src/quantbt/optimization/meta_selection/witness.py": "39ab1877458685ec87f003fbcb72656d634211e9f48485586b585e01c712d45a",
+    "src/quantbt/optimization/meta_selection/prepared.py": "a64aa15946e0f1c0823e2a34cb2ca3e9acbd8b0ce09d677ea6e362d9fc882e2e",
+    "src/quantbt/optimization/meta_selection/selection.py": "8c1ab061a6eb7c62cbf33e41f6b3d288ab215c8f60b485ca778edc4f565e6c56",
+    "src/quantbt/optimization/meta_selection/records.py": "4ea85cb7aafe1691982f9515a7509327e21afa0938222a6210a878f9e5402e31",
+    "src/quantbt/optimization/meta_selection/common.py": "93a572ed5d9bc2538ddf3457c94906b27f6c10e3fa7c8572abfa971ae28114e9",
+    "src/quantbt/optimization/meta_selection/capture.py": "2cda1462c98152e8c7b5e48de74a22262cbc970e3e275978637691d090673abb",
+    "src/quantbt/optimization/meta_selection/telemetry.py": "df8861082f4c5dfa5dbce8bc37bb4ef0869ab0192020e40d426594f549092476",
+    "src/quantbt/optimization/meta_selection/numerics.py": "2dfb9ee439fd8c4714974c2eaff8d4e9f916f3c27021e9204a91570fbeb7d348",
+    "src/quantbt/optimization/meta_selection/__init__.py": "36678d006fd2527c8b48b814fa79274ab54bcdc333fef45a9fbbb11d9dbe6e3c",
+    "src/quantbt/optimization/meta_selection/descriptors.py": "005e0778a231340abc3e875b610209c1aad95618128946abf33a19a398a3c7ce",
+    "src/quantbt/optimization/meta_selection/persistence.py": "01b65133756761b454873f4aeb724f19b251c4109a794e1df3f3c55c41f0a6b8",
+    "src/quantbt/optimization/meta_selection/model.py": "8593c66442541779edd597ded08532ad7982bb1091f6e067f1f50ae85d063fa5",
+    "src/quantbt/optimization/meta_selection/artifacts.py": "e171631931f74df341b30f78d95e0a34bcd0656713ac29daf1f14e27f27ab4bf",
+    "src/quantbt/optimization/meta_selection/config.py": "870d03df34fb6639be2c9c31c9739383a7753cfdf15871580aa726f9c92c540f",
+    "src/quantbt/optimization/meta_selection/runtime.py": "702c52dbc6f287f50510aa991591add8e10c5c01600ac5acee222daf582a67bb",
+    "src/quantbt/optimization/meta_selection/panel.py": "600b538224130c724fe75b163937c0f72297208c8e9f98e25ae2255369d4ca1d",
+    "src/quantbt/optimization/meta_selection/observer.py": "7036c2d52eb9db0f8b6d4e0eceaa25f4d53568f893bd03cf33abb9023a982d3b",
+    "src/quantbt/optimization/meta_selection/reactive.py": "b4bd6b587d04c2a31e3df81aeb5d723d83ba561c043068c2174b56709f440f69",
+    "src/quantbt/optimization/meta_selection/work_cache.py": "0e08284b394031b5703f49d935bdd4eaf3157285466a96efb32966ce45ae894a",
+    "src/quantbt/optimization/meta_selection/handoff.py": "502fee24b7b94e935ef0ec5abc264a58665849533d451a544bf8096064da615d",
+    "src/quantbt/optimization/meta_selection/history.py": "f14de2e18c84c58859acb28aa74d515a2644d2140dd25808215255ba5c0f8071",
+    "src/quantbt/optimization/meta_selection/memo.py": "c424f97fb64318ac8abcc3a60b6e95be9316b8d5948a332bdba3c5bcc84dcad6",
+    "src/quantbt/endpoint.py": "2656490b70398278e209fed8356ed84dca2609b512e81454bce3b4287d61e08a",
+    "src/quantbt/walkforward.py": "ea083fad3c0686ddbd59a074da1a1f41f74e6c974c0d29cf7e092b392638762b",
+    "src/quantbt/backends/reactive_wfo.py": "3184a3848bfd6cd4189618e825b646b7da92a7141375861c40a482309adf93b1",
+    "src/quantbt/backends/reactive_wfo_support.py": "74942280f26b66778ae30b4215046460d225c5125636f2593bfc3e12018ed8b1",
+    "src/quantbt/backends/native_event.py": "80372aa03e3a7ad49b5624ad4646c8715a8a01570a1afad303026b18664a4a94",
+    "src/quantbt/backends/_native_event_rust.py": "7f2a7bf15d1728d767191ed4f698a0c2e5a5520011fb2c80d07eef03753633b8"
+  },
+  "scope": {
+    "w3": "Mode4/per_fold_causal/inprocess/sequential/reset_flat",
+    "real_alpha": "Gradient RSI / ETHUSDT 1h; scalar target WFO, not W3 market certification",
+    "witness_stats": "pre-release finalization snapshot; cleanup separately verified",
+    "main_timing_repeats": 1,
+    "public_pair_unchanged": "1.1.1/0.4.2"
+  }
+}

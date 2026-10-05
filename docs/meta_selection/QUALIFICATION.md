@@ -14,6 +14,8 @@ build cannot retroactively certify the already published native 0.4.2 exports.
 Start with [usage](USAGE.md), [integration](INTEGRATION.md),
 [mathematical model](MODEL.md), [samplers](SAMPLERS.md) and
 [portable handoff](HANDOFF.md). See the [QMS-08 actual report/debt ledger](QMS08_REPORT.md).
+For current source, read [local debt closure and real meta effectiveness](LOCAL_DEBT_CLOSURE_REPORT.md);
+the older QMS08 receipts below retain their historical source and scope.
 Detailed requirements remain the
 [approved guide](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói).
 
@@ -96,10 +98,11 @@ execution or model inference. Old sealed receipts remain historical, not silentl
 updated when new test files are added. New qualification records bind the current
 source and all required test coverage instead.
 
-## Economic Disposition
+## Sealed QMS-08 Economic Disposition
 
 No approved real-alpha/BTC data/calendar/resource registration was supplied for
-QMS-08. Therefore market validation is **EMPIRICAL_VALIDATION_NOT_RUN**: zero
+the original QMS-08 seal. That historical market disposition remains
+**EMPIRICAL_VALIDATION_NOT_RUN**: zero
 assessed market trials/origins/development/evaluation folds and no estimated
 market edge. Reduced-support synthetic demos are never counted toward >=12
 independent valid origins or >=12 paired-valid locked market folds.
@@ -109,7 +112,9 @@ calendar/IS/FWD lengths, original execution economics, allowed history/cohorts,
 support, native pool/panel policy, <=2 sampler recipes, >=128 attempted trials
 per cutoff, >=12 matured origins and >=12 paired-valid locked folds. If choosing
 recipes/model settings, reserve >=12 development folds separately. Do not
-reselect budgets/settings after locked outcomes.
+reselect budgets/settings after locked outcomes. The separately owner-approved
+[ETH real-alpha review](REAL_ALPHA_REVIEW.md) is descriptive research, not
+retroactive pristine BTC certification of this historical seal.
 
 Saved-output reporting preserves signed decay and
 `R = D_native - D_meta = I_native - I_meta + Q`, where `Q` is actual forward
