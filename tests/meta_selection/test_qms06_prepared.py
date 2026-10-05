@@ -470,7 +470,27 @@ def test_q6_t02_metric_validity_has_authoritative_support(mutation, status):
     assert obs.status.value == status
 
 
-def test_q6_t03_native_meta_require_does_not_upgrade_financial_wheel(native):
+def legacy_witness_gate(monkeypatch):
+    """Exercise the retained missing-capability guard with the installed engine."""
+    module = importlib.import_module("_quantbt_native")
+
+    class WithoutWitness:
+        def __getattr__(self, name):
+            if name == "QMS_PREPARED_METRIC_SUPPORT_V1":
+                return None
+            return getattr(module, name)
+
+    original = NativeExecutionPreparationCache.__init__
+
+    def init(self, policy=CachePolicy(), *, module=None):
+        original(self, policy, module=WithoutWitness() if module is None else module)
+
+    monkeypatch.setattr(NativeExecutionPreparationCache, "__init__", init)
+    return module.version()
+
+
+def test_q6_t03_native_meta_require_does_not_upgrade_financial_wheel(native, monkeypatch):
+    installed_version = legacy_witness_gate(monkeypatch)
     bt = endpoint("active", prepared="auto")
     wf = replace(
         bt.config.walkforward_config,
@@ -490,7 +510,7 @@ def test_q6_t03_native_meta_require_does_not_upgrade_financial_wheel(native):
         sidecar(result)["records"][-1]["numeric_backend"]["native"]["version"]
         == "0.4.3.dev2"
     )
-    assert importlib.import_module("_quantbt_native").version() == "0.4.2"
+    assert importlib.import_module("_quantbt_native").version() == installed_version
 
 
 @pytest.mark.parametrize(
@@ -538,7 +558,8 @@ def test_q6_t02_pct_equity_economics_guard(field, value, candidate_cache):
         execute(QuantBTEndpoint(config))
 
 
-def test_q6_t03_published_require_fails_auto_observable(reference):
+def test_q6_t03_published_require_fails_auto_observable(reference, monkeypatch):
+    installed_version = legacy_witness_gate(monkeypatch)
     with pytest.raises(
         NativePreparedPublicWfoUnsupported, match="META_METRIC_SUPPORT_MISSING"
     ):
@@ -549,7 +570,7 @@ def test_q6_t03_published_require_fails_auto_observable(reference):
     assert cache["resolved_policy"] == "fallback"
     assert "META_METRIC_SUPPORT_MISSING" in cache["reason"]
     assert cache["native_batches"] == 0
-    assert importlib.import_module("_quantbt_native").version() == "0.4.2"
+    assert importlib.import_module("_quantbt_native").version() == installed_version
 
 
 def test_q6_t04_detached_witness_buffers_survive_reset_and_close(candidate_cache):

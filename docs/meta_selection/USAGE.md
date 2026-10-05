@@ -6,7 +6,9 @@ QMS is an **opt-in feature-branch candidate**, not part of the already published
 `quantbt-engine==1.1.1` / `quantbt-native==0.4.2` pair. QMS-08 qualifies private
 build-only `1.1.1+qms08` / `0.4.3.dev4` artifacts; these are not public release
 numbers. No feature becomes default and no release is authorized by testing.
-See [qualification and remaining decisions](QUALIFICATION.md).
+The owner approved preparation of `1.1.2 / 0.4.3`, which builds those exports
+by default but does not activate meta or publish them. See the
+[release handoff](RELEASE_HANDOFF.md) and [qualification boundary](QUALIFICATION.md).
 
 Use the same public `QuantBTEndpoint.walk_forward(...)` and `.backtest(...)`.
 There is no new WFO endpoint, sixth mode, account engine, broker or live service.

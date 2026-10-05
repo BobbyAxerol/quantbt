@@ -58,7 +58,7 @@ def current_proof():
 def test_followup_wheel_requires_current_source_and_actual_hashes():
     proof = current_proof()
     assert verify_pair(proof)
-    with pytest.raises(ValueError, match="drift"):
+    with pytest.raises(ValueError, match="drift|changed"):
         verify_pair(proof, source_revision="6c0f877")
 
 
@@ -70,7 +70,7 @@ def test_followup_artifact_receipt_tampering_fails(mutation):
     elif mutation == "consumer":
         proof["consumers"]["pair"]["off_shadow_parity"] = False
     elif mutation == "source":
-        proof["stage_differences"]["src/quantbt/__init__.py"]["source"] = "0" * 64
+        proof["stage_differences"].setdefault("src/quantbt/__init__.py", {})["source"] = "0" * 64
     else:
         proof["release_authorized"] = True
     with pytest.raises(ValueError):

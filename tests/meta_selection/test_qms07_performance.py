@@ -358,7 +358,8 @@ def test_q7_t08_disabled_gate_is_measured_not_owner_approval():
 
 def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
     import subprocess
-    import importlib.metadata
+    import json
+    import sys
     from tools.qms07_performance import ROOT, ENTRY
 
     changed = subprocess.check_output(
@@ -372,15 +373,21 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
         for p in changed
     )
     # Later owner-approved adapter changes do not rewrite the sealed QMS-07
-    # receipt. Financial kernels and public version identities remain locked.
+    # receipt. R03 authorizes packaging only, independently byte-validated.
     current = subprocess.check_output(
         ["git", "diff", "6c0f877", "--name-only", "--", "src/quantbt", "rust"],
         cwd=ROOT, text=True,
     ).splitlines()
-    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in {
+    from tools.qms_release_source_guard import PACKAGING_FILES, without_release_identity
+    for name in set(current) & PACKAGING_FILES:
+        without_release_identity((ROOT / name).read_bytes(), name)
+    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in PACKAGING_FILES or p in {
         "src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
         "src/quantbt/backends/reactive_wfo.py", "src/quantbt/backends/reactive_wfo_support.py",
         "src/quantbt/backends/native_event.py", "src/quantbt/backends/_native_event_rust.py",
     } for p in current)
-    assert importlib.metadata.version("quantbt-native") == "0.4.2"
-    assert importlib.metadata.version("quantbt-engine") == "1.1.1"
+    from tools.qms08_package import declared_pair
+    versions = json.loads(subprocess.check_output(
+        [sys.executable, "-I", "-c", "import importlib.metadata as m,json;print(json.dumps([m.version('quantbt-engine'),m.version('quantbt-native')]))"],
+        cwd="/tmp", text=True))
+    assert tuple(versions) == declared_pair()

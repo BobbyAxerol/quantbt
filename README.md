@@ -35,12 +35,18 @@ the exact pre-built **`quantbt-native`** companion. Users do not need Cargo,
 Rust, Maturin, a second import, or a different endpoint. Unsupported platforms
 retain the complete Python/Numba API.
 
-Release pair:
+Prepared next release pair (not yet published):
 
 | Distribution | Version | Purpose |
 |---|---:|---|
-| `quantbt-engine` | `1.1.1` | Public API, Python/Numba engines, reports, compatibility oracle |
-| `quantbt-native` | `0.4.2` | Internal PyO3 extension for certified Rust workloads |
+| `quantbt-engine` | `1.1.2` | Public API, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-native` | `0.4.3` | Internal PyO3 extension, including default QMS numerics and prepared witnesses |
+
+The published `1.1.1 / 0.4.2` pair remains separate from this preparation.
+QMS is opt-in: enabling its compiled capability does not enable meta selection
+or change an existing endpoint/account policy. See the
+[QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md) for exact artifact,
+installed-W3 and public-consumer gates and the owner-controlled release order.
 
 Optional features:
 

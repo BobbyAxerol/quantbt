@@ -680,6 +680,21 @@ def certify_release(
             cwd=temporary,
             environment=environment,
         )
+        qms = {}
+        if (core_version, native_version) == ("1.1.2", "0.4.3"):
+            from tools.qms_release_consumers import validate_consumers
+
+            optimization = tomllib.loads(CORE_PYPROJECT.read_text())["project"]["optional-dependencies"]["optimization"]
+            _run([str(native_python), "-m", "pip", "install", *optimization],
+                 cwd=temporary, environment=environment)
+            for name in ("qms08_consumer.py", "qms_local_consumer.py"):
+                completed = _run(
+                    [str(native_python), "-I", str(ROOT / "tools" / name),
+                     "--core-version", core_version, "--native-version", native_version],
+                    cwd=temporary, environment=environment,
+                )
+                qms[name] = json.loads(completed.stdout.splitlines()[-1])
+            validate_consumers(qms, core=core_version, native=native_version)
 
     supply_chain = build_supply_chain_report()
     sbom = build_sbom()
@@ -703,6 +718,7 @@ def certify_release(
         "installed_wheel": {
             "core_only": core_only,
             "exact_pair": exact_pair,
+            "qms_consumers": qms,
         },
         "benchmark_evidence": _benchmark_evidence(),
         "migration_audit": {

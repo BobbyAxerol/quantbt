@@ -108,6 +108,13 @@ def test_coverage(junit):
 def verify_pair(proof, *, source_revision=None):
     from tools.qms08_package import CORE, NATIVE, FEATURES
 
+    release_pair = proof["schema"] == "qms-release-installed-pair-v1"
+    if release_pair:
+        from tools.qms08_package import declared_pair
+        CORE, NATIVE = declared_pair()
+        FEATURES = "cargo-default"
+    elif proof["schema"] != "qms08-installed-candidate-v1":
+        raise ValueError("unknown installed pair proof schema")
     if (proof["core"], proof["native"], proof["features"]) != (CORE, NATIVE, FEATURES):
         raise ValueError("candidate pair mismatch")
     if (
@@ -179,6 +186,14 @@ def verify_pair(proof, *, source_revision=None):
     if len(lanes) != 1:
         raise ValueError("installed consumers must share one candidate artifact lane")
     stage = next(iter(lanes)) / "stage"
+    if release_pair:
+        build = next(iter(lanes)) / "native-build.log"
+        command = build.read_text().splitlines()[0]
+        if "--features" in command or "--no-default-features" in command:
+            raise ValueError("release proof must use ordinary Cargo default features")
+        features = tomllib.loads((stage / "rust/native_event/Cargo.toml").read_text())["features"]["default"]
+        if set(features) != {"qms-numeric-candidate", "qms-prepared-witness-candidate"}:
+            raise ValueError("default release QMS capabilities missing")
     expected_changes = {
         "pyproject.toml",
         "src/quantbt/__init__.py",
@@ -187,6 +202,8 @@ def verify_pair(proof, *, source_revision=None):
         "rust/native_event/pyproject.toml",
         "rust/crates/quantbt-domain/src/generated_product_contracts.rs",
     }
+    if release_pair:
+        expected_changes = set()
     if set(proof["stage_differences"]) != expected_changes:
         raise ValueError("unapproved stage identity adaptation")
     def source_bytes(name):
@@ -218,12 +235,14 @@ def verify_pair(proof, *, source_revision=None):
             package = [
                 p for p in original_lock["package"] if p["name"] == "quantbt-native"
             ]
-            if len(package) != 1 or package[0]["version"] != "0.4.2":
+            source_version = tomllib.loads(source_bytes("rust/native_event/Cargo.toml").decode())["package"]["version"]
+            if len(package) != 1 or package[0]["version"] != source_version:
                 raise ValueError("ambiguous source lock identity")
-            package[0]["version"] = "0.4.3-dev.4"
+            if not release_pair:
+                package[0]["version"] = "0.4.3-dev.4"
             if original_lock != staged_lock:
                 raise ValueError("staged Cargo lock changed beyond candidate identity")
-        elif original != staged and n != "README.md":
+        elif original != staged and (release_pair or n != "README.md"):
             raise ValueError("non-identity source drift in installed artifact")
     return True
 

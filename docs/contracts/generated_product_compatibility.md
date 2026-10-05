@@ -7,10 +7,10 @@ This table is the release-facing contract for the optional Rust companion. Autom
 ## Registry
 
 - Product registry: `quantbt-native-event-product-v1` schema `1`
-- Product fingerprint: `45059242ecaaff56a2d35e2899f3f2fc61415c115099c30c88d2c332f69cd62a`
+- Product fingerprint: `b5f12f390a642b6f595e19d82d980c0720a16957d4cb6a10f210eb4f8fcf2820`
 - Lifecycle registry fingerprint: `601d639f1c398ac81f3c8231c30d067372c80e71ae4e5f097182f00c5c91f05d`
-- Core distribution: `quantbt-engine==1.1.1`
-- Native distribution: `quantbt-native==0.4.2` (published: `true`)
+- Core distribution: `quantbt-engine==1.1.2`
+- Native distribution: `quantbt-native==0.4.3` (published: `false`)
 
 ## Promotion Policy
 
@@ -87,7 +87,7 @@ The `Auto profiles` column is the exact profile shape eligible for generated `ba
 
 | Platform | Python | Status |
 |---|---|---|
-| `linux-x86_64` | `3.11, 3.12, 3.13` | `published-certified` |
+| `linux-x86_64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
 | `linux-aarch64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
 | `macos-arm64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
 | `macos-x86_64` | `3.11, 3.12, 3.13` | `ci-certification-target` |
@@ -109,7 +109,7 @@ The `Auto profiles` column is the exact profile shape eligible for generated `ba
 
 | Core | Native | Protocol | Status | Fallback |
 |---|---|---|---|---|
-| `1.1.1` | `0.4.2` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason |
+| `1.1.2` | `0.4.3` | `1..1` | `exact_staged_pair` | explicit_rust_fails_fast; auto_routes_certified_static_ir_or_python_with_reason |
 
 ## Deprecations
 

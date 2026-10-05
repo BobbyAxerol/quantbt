@@ -60,6 +60,10 @@ jobs:
           GITHUB_REF_NAME="${{ inputs.ref }}" python release/tools/check_release_version.py
           core_version="$(python -c 'import tomllib; from pathlib import Path; print(tomllib.loads(Path("release/pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])')"
           native_version="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("release/contracts/native_event_product_registry.json").read_text(encoding="utf-8"))["versions"]["native_package"]["version"])')"
+          qms_args=()
+          if [[ "$core_version" == "1.1.2" && "$native_version" == "0.4.3" ]]; then
+            qms_args+=(--require-qms)
+          fi
           poetry --version
           python consumer-verifier/tools/verify_public_native_consumer.py \
             --index "${{ inputs.index }}" \
@@ -67,6 +71,7 @@ jobs:
             --python "$(command -v python)" \
             --core-version "$core_version" \
             --native-version "$native_version" \
+            "${qms_args[@]}" \
             --output "public-native-consumer-${{ matrix.runner }}-cp${{ matrix.python-version }}.json"
 
       - name: Upload consumer evidence

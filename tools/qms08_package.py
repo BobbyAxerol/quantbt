@@ -1,4 +1,4 @@
-"""Build-only exact private pair and clean installed consumers; never publish."""
+"""Build-only private or approved release pair; clean consumers, never publish."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tomllib
 from time import perf_counter
 import zipfile
 
@@ -48,7 +49,13 @@ def run(command, *, cwd, log):
     return process.stdout
 
 
-def stage_source(directory):
+def declared_pair():
+    core = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
+    native = tomllib.loads((ROOT / "rust/native_event/pyproject.toml").read_text())["project"]["version"]
+    return core, native
+
+
+def stage_source(directory, *, release_pair=False):
     """Only tracked allowlisted files. Never copy a venv, dataset or private alpha."""
     names = subprocess.check_output(
         ["git", "ls-files", "src/quantbt", "rust"], cwd=ROOT, text=True
@@ -62,10 +69,13 @@ def stage_source(directory):
         (ROOT / "contracts/native_event_product_registry.json").read_text()
     )
     product = deepcopy(product)
+    source_core, source_native = declared_pair()
+    if release_pair:
+        return {}
     product["versions"]["core_package"]["version"] = CORE
     product["versions"]["native_package"].update(version=NATIVE, published=False)
     for pair in product["compatibility"]:
-        if pair["core_version"] == "1.1.1" and pair["native_version"] == "0.4.2":
+        if pair["core_version"] == source_core and pair["native_version"] == source_native:
             pair.update(core_version=CORE, native_version=NATIVE)
     fp = _fingerprint(product)
     life = product["lifecycle_registry"]["fingerprint"]
@@ -81,17 +91,17 @@ def stage_source(directory):
         (directory / name).write_text(text)
     edits = {
         "pyproject.toml": [
-            ('version = "1.1.1"', f'version = "{CORE}"'),
-            ("quantbt-native==0.4.2;", f"quantbt-native=={NATIVE};"),
+            (f'version = "{source_core}"', f'version = "{CORE}"'),
+            (f"quantbt-native=={source_native};", f"quantbt-native=={NATIVE};"),
         ],
         "src/quantbt/__init__.py": [
-            ('__version__ = "1.1.1"', f'__version__ = "{CORE}"')
+            (f'__version__ = "{source_core}"', f'__version__ = "{CORE}"')
         ],
         "rust/native_event/pyproject.toml": [
-            ('version = "0.4.2"', f'version = "{NATIVE}"')
+            (f'version = "{source_native}"', f'version = "{NATIVE}"')
         ],
         "rust/native_event/Cargo.toml": [
-            ('version = "0.4.2"', 'version = "0.4.3-dev.4"')
+            (f'version = "{source_native}"', 'version = "0.4.3-dev.4"')
         ],
     }
     for name, replacements in edits.items():
@@ -117,9 +127,12 @@ def stage_source(directory):
     return differences
 
 
-def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
+def qualify(python, *, output=OUTPUT, reuse_native_lane=None, release_pair=False):
     """One fresh local interpreter lane; separate off/core-only/installed-pair environments."""
     python = Path(python).absolute()
+    core_version, native_version = declared_pair() if release_pair else (CORE, NATIVE)
+    if release_pair and reuse_native_lane is not None:
+        raise ValueError("release proof requires a fresh default-feature native build")
     output = Path(output).absolute()
     lane = output / (
         "cp"
@@ -138,7 +151,7 @@ def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
         )
     lane.mkdir(parents=True, exist_ok=True)
     stage = lane / "stage"
-    differences = stage_source(stage)
+    differences = stage_source(stage, release_pair=release_pair)
     dist = lane / "dist"
     dist.mkdir()
     uv = ROOT / ".venv/bin/uv"
@@ -206,7 +219,8 @@ def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
         os.environ["CARGO_TARGET_DIR"] = env_target
         try:
             run(
-                [maturin, "build", "--offline", "--release", "--features", FEATURES,
+                [maturin, "build", "--offline", "--release",
+                 *([] if release_pair else ["--no-default-features", "--features", FEATURES]),
                  "--manifest-path", stage / "rust/native_event/Cargo.toml",
                  "--interpreter", python, "--out", dist],
                 cwd=stage, log=lane / "native-build.log",
@@ -245,7 +259,7 @@ def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
         meta = archive.read(
             next(n for n in archive.namelist() if n.endswith("/METADATA"))
         ).decode()
-        if f"quantbt-native=={NATIVE}" not in meta.replace(" ", ""):
+        if f"quantbt-native=={native_version}" not in meta.replace(" ", ""):
             raise ValueError("candidate dependency not wired")
     consumers = {}
     for name in ("core_off", "core_optimization", "pair", "sdist"):
@@ -303,20 +317,20 @@ def qualify(python, *, output=OUTPUT, reuse_native_lane=None):
                 cwd=lane,
                 log=lane / f"{name}-check.log",
             )
-        args = [vp, "-I", ROOT / "tools/qms08_consumer.py", "--core-version", CORE]
+        args = [vp, "-I", ROOT / "tools/qms08_consumer.py", "--core-version", core_version]
         if name == "core_off":
             args += ["--without-optimization"]
         if name in {"pair", "sdist"}:
-            args += ["--native-version", NATIVE]
+            args += ["--native-version", native_version]
         consumers[name] = json.loads(
             run(args, cwd=lane, log=lane / f"{name}-consumer.log").splitlines()[-1]
         )
     proof = {
-        "schema": "qms08-installed-candidate-v1",
+        "schema": "qms-release-installed-pair-v1" if release_pair else "qms08-installed-candidate-v1",
         "build_only": True,
-        "core": CORE,
-        "native": NATIVE,
-        "features": FEATURES,
+        "core": core_version,
+        "native": native_version,
+        "features": "cargo-default" if release_pair else FEATURES,
         "stage_differences": differences,
         "source_exact_wheel_sdist": True,
         "artifact_allowlist": True,
@@ -343,8 +357,9 @@ if __name__ == "__main__":
     parser.add_argument("--python", type=Path, default=Path(sys.executable))
     parser.add_argument("--output", type=Path, default=OUTPUT)
     parser.add_argument("--reuse-native-lane", type=Path)
+    parser.add_argument("--release-pair", action="store_true", help="Build canonical release identities with Cargo default features; never publish")
     args = parser.parse_args()
-    result = qualify(args.python, output=args.output, reuse_native_lane=args.reuse_native_lane)
+    result = qualify(args.python, output=args.output, reuse_native_lane=args.reuse_native_lane, release_pair=args.release_pair)
     print(
         json.dumps(
             {

@@ -4,6 +4,21 @@ All notable changes to `quantbt-engine` are documented here.
 
 ## [Unreleased]
 
+### Prepared 1.1.2 / Native 0.4.3
+
+- Added opt-in Mode 4 / per-fold causal meta selection and a shared sampler
+  bridge for legacy TPE, grouped multivariate TPE, CMA-ES and fixed-space Sobol.
+- Qualified causal history, ridge artifacts, reference/prepared selection
+  parity, exact reusable calendar/market witnesses, observed thread telemetry
+  and bounded sequential W3 meta on the original native accounting pass.
+- Enabled the already-qualified QMS native exports in default Cargo builds;
+  Linux core dependency is exactly `quantbt-native==0.4.3`. Native ABI and
+  financial kernels are unchanged. Meta remains disabled unless requested.
+- Added source-exact wheel/sdist, installed-W3 and six-row Ubuntu qualification;
+  release/public Poetry gates require the actual QMS/W3 consumers for this pair.
+- Preparation only: no tag, upload, merge or scientific acceptance is implied.
+  See [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md).
+
 ## [1.1.1]
 
 ### Changed

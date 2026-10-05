@@ -7,6 +7,12 @@ version examples below are not instructions to overwrite published artifacts.
 
 ## Phase 55B Public Native Pair
 
+Current preparation is `quantbt-engine==1.1.2 / quantbt-native==0.4.3`, with
+default compiled QMS capability, no implicit meta activation and no new ABI.
+It is not published yet; follow the [QMS release handoff](meta_selection/RELEASE_HANDOFF.md)
+for current exact-wheel/W3 gates. The predecessor examples and Phase 55B/78
+receipts below describe their historical releases, not reusable release proof.
+
 `quantbt-engine==1.1.1` declares `quantbt-native==0.4.2` as a direct runtime
 dependency only on Linux x86_64 / glibc / CPython 3.11-3.13. The native package
 is wheel-only: supported users receive a pre-built manylinux artifact from a

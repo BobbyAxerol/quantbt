@@ -1,13 +1,16 @@
 # WFO Meta Current Handoff
 
 - Branch: `feat/meta-selection-samplers`; QMS-08 entry `559b4d1`.
-- Baseline: core 1.1.1, installed native 0.4.2; published pair unchanged.
+- Published baseline: core 1.1.1 / native 0.4.2; historical receipts unchanged.
+- Approved preparation: core 1.1.2 / native 0.4.3, default compiled QMS,
+  meta still opt-in; no merge, tag or upload authorized. See the
+  [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) for current gates.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
 - Current approved scope: QMS-08, the owner-selected Gradient RSI / ETHUSDT
   review, and exact prepared witnesses/W3/numeric-dispatch/thread-telemetry
   local debt closure. Local software and real-alpha comparisons are complete.
-  Financial arithmetic, alpha/data, methodology defaults and public pair remain
+  Financial arithmetic, alpha/data, methodology defaults and published pair remain
   unchanged; narrow same-pass native-output plumbing was added for W3.
 - Technical: regression/end-to-end/docs PASS; package PASS_LOCAL, remote pending.
   Final owner/economic acceptance and remote/public activation PENDING.

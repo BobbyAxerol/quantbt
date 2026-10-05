@@ -32,6 +32,9 @@ def consume(*, core_version=None, native_version=None):
     if native_version is not None:
         assert actual_native == native_version, "installed native version mismatch"
     assert "site-packages" in Path(native.__file__).resolve().parts
+    origin = Path(native.__file__).resolve()
+    binaries = [origin] if origin.suffix == ".so" else list(origin.parent.glob("_quantbt_native*.so"))
+    assert len(binaries) == 1 and "site-packages" in binaries[0].parts
     assert native.qms_numeric_descriptor_v1()["abi"] == "qms-numeric-v1"
     assert hasattr(native, "QMS_PREPARED_METRIC_SUPPORT_V1")
     optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -118,7 +121,8 @@ def consume(*, core_version=None, native_version=None):
         assert record["current_outer_oos_used_for_selection"] is False
     return wire(dict(installed_origin=str(Path(quantbt.__file__).resolve()),
         core_version=actual_core, native_version=actual_native, python=sys.version,
-        native_extension_sha256=sha256(Path(native.__file__).read_bytes()).hexdigest(),
+        native_extension_origin=str(binaries[0]),
+        native_extension_sha256=sha256(binaries[0].read_bytes()).hexdigest(),
         off_shadow_exact=True, observer_failures=0, folds=len(active.folds),
         same_pass=True, selected_lineage=True, closed=True,
         account_authority=meta["account_authority"],

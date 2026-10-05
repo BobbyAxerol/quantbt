@@ -9,14 +9,14 @@
   "versions": {
     "core_package": {
       "distribution": "quantbt-engine",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "python_requires": ">=3.11,<3.14"
     },
     "native_package": {
       "distribution": "quantbt-native",
-      "version": "0.4.2",
-      "published": true,
-      "release_policy": "public_manylinux_x86_64_cpython_311_313_phase55b"
+      "version": "0.4.3",
+      "published": false,
+      "release_policy": "qms_r03_prepared_only_manylinux_x86_64_cpython_311_313"
     },
     "native_protocol": {
       "minimum": 1,
@@ -111,7 +111,7 @@
     {
       "platform": "linux-x86_64",
       "python": ["3.11", "3.12", "3.13"],
-      "status": "published-certified"
+      "status": "ci-certification-target"
     },
     {
       "platform": "linux-aarch64",
@@ -862,8 +862,8 @@
   ],
   "compatibility": [
     {
-      "core_version": "1.1.1",
-      "native_version": "0.4.2",
+      "core_version": "1.1.2",
+      "native_version": "0.4.3",
       "native_protocol_min": 1,
       "native_protocol_max": 1,
       "command_abis": ["full-command-v1"],

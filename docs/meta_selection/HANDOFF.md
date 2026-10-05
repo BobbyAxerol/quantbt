@@ -7,6 +7,9 @@ the existing Mode-4/per-fold-causal result. This is not a new endpoint,
 broker connection, deployment controller or account engine. Public core/native
 remain 1.1.1 / 0.4.2; this feature has not been published.
 
+The owner approved preparation of `1.1.2 / 0.4.3`, not publication. Current
+artifact and installed-W3 gates are in the [release handoff](RELEASE_HANDOFF.md).
+
 `DecisionHandoff` contains the actual task/current candidate pool, exact native
 anchor and selection reason, proposed/actual decision, full model when fitted,
 and the exact authorized history snapshot with immutable terminal revisions.

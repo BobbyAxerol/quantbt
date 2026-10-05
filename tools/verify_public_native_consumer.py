@@ -38,6 +38,7 @@ class ConsumerProofSpec:
     python: Path
     timeout_seconds: int
     index_url: str | None = None
+    require_qms: bool = False
 
 
 def declared_versions(root: Path = ROOT) -> tuple[str, str]:
@@ -116,6 +117,8 @@ def poetry_install_commands(spec: ConsumerProofSpec) -> tuple[tuple[str, ...], .
         (spec.poetry, "env", "use", str(spec.python), "--no-interaction", "--no-ansi"),
         *poetry_source_commands(spec),
         (spec.poetry, "add", "quantbt-engine", "--no-interaction", "--no-ansi"),
+        *(((spec.poetry, "add", f"quantbt-engine[optimization]=={spec.core_version}",
+            "--no-interaction", "--no-ansi"),) if spec.require_qms else ()),
     )
 
 
@@ -377,6 +380,22 @@ def run_consumer_proof(spec: ConsumerProofSpec) -> dict[str, Any]:
             raise RuntimeError(f"consumer probe did not emit one JSON object: {probe_stdout!r}") from exc
         if not isinstance(probe, dict):
             raise RuntimeError("consumer probe emitted a non-object JSON payload")
+        qms = {}
+        if spec.require_qms:
+            if str(ROOT) not in sys.path:
+                sys.path.insert(0, str(ROOT))
+            from tools.qms_release_consumers import validate_consumers
+
+            for tool in ("qms08_consumer.py", "qms_local_consumer.py"):
+                consumer = workspace / tool
+                consumer.write_bytes((ROOT / "tools" / tool).read_bytes())
+                stdout = _run(
+                    (spec.poetry, "run", "python", "-I", str(consumer),
+                     "--core-version", spec.core_version, "--native-version", spec.native_version),
+                    cwd=workspace, environment=environment, timeout_seconds=spec.timeout_seconds,
+                )
+                qms[tool] = json.loads(stdout.splitlines()[-1])
+            validate_consumers(qms, core=spec.core_version, native=spec.native_version)
 
     return {
         "schema": "quantbt-public-native-consumer-report-v1",
@@ -387,6 +406,8 @@ def run_consumer_proof(spec: ConsumerProofSpec) -> dict[str, Any]:
         "poetry_show_core": show_core,
         "poetry_show_native": show_native,
         "probe": probe,
+        "qms_required": spec.require_qms,
+        "qms_consumers": qms,
     }
 
 
@@ -406,6 +427,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--native-version", default=native_version)
     parser.add_argument("--timeout-seconds", type=int, default=900)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--require-qms", action="store_true", help="Prove four sampler recipes, active meta and installed W3 from public artifacts")
     args = parser.parse_args(argv)
     if args.timeout_seconds <= 0:
         parser.error("--timeout-seconds must be positive")
@@ -420,6 +442,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         python=args.python.resolve(),
         timeout_seconds=int(args.timeout_seconds),
         index_url=str(args.index_url) if args.index_url else None,
+        require_qms=args.require_qms or (args.core_version, args.native_version) == ("1.1.2", "0.4.3"),
     )
     try:
         payload = run_consumer_proof(spec)

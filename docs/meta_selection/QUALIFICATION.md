@@ -3,13 +3,16 @@
 ## Scope
 
 The feature branch implements eight approved QMS phases. New behavior is opt-in
-and remains separate from published core/native `1.1.1/0.4.2`. QMS-08 exercises
+and remains separate from published core/native `1.1.1/0.4.2`. Historical QMS-08 exercises
 private build-only `1.1.1+qms08/0.4.3.dev4`, with QMS numeric and original-pass
 prepared witness feature flags enabled only in those builds.
 
-No public version, artifact, tag or default is changed. The final public pair
-and release activation still require Bobby's decision. A private successful
-build cannot retroactively certify the already published native 0.4.2 exports.
+The owner approved preparation of **1.1.2 / 0.4.3**, including default compiled
+QMS exports. Meta selection remains opt-in; native ABI/financial policies are
+unchanged. No merge, tag or upload is authorized. The fresh release builder
+uses unchanged canonical identities and ordinary Cargo default features;
+private PASS cannot certify that new pair. See the [release handoff](RELEASE_HANDOFF.md)
+for exact artifacts, installed-W3, remote and pending public-index gates.
 
 Start with [usage](USAGE.md), [integration](INTEGRATION.md),
 [mathematical model](MODEL.md), [samplers](SAMPLERS.md) and
@@ -27,14 +30,15 @@ checks source/guide and immutable earlier evidence, artifact bytes and retained
 command logs. Removing required gates, tampering scalar values/completion flags,
 or changing artifact bytes cannot manufacture a PASS receipt.
 
-Financial sources and deployed versions must be unchanged against QMS-08 entry.
+Financial sources stay byte-locked against QMS-08 entry; an exact separate
+packaging allowlist validates the owner-approved identity/default-feature change.
 Legacy eight supported mode/schedule combinations span all five modes; four
 sampler recipes, fixed params, one train/test holdout and stitched accounting
 are exercised. New-feature tests cover cold/shadow/active/same-anchor, exact
 full pool, real lower-IS software switches, conditional geometry, future mutation,
 late revisions, checkpoint restore, origin weights, clocks and native boundaries.
 
-The software switch fixtures are synthetic/engineered. They prove actual
+The original software switch fixtures are synthetic/engineered. They prove actual
 candidate lineage, not **Q8-T03 real-alpha market** lineage. That scientific
 expectation remains explicitly NOT_RUN until registered market execution.
 
@@ -71,7 +75,7 @@ claimed before the separately authorized push and actual workflow execution.
 
 ## Reproduce Locally
 
-Only use these build identities for private qualification:
+For the original private identities (not public release evidence):
 
 ```bash
 .venv/bin/python -m tools.qms08_package --output "$PWD/.maturin/qms08/qualified"

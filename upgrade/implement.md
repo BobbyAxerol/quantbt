@@ -7,6 +7,10 @@ is required reading before every phase. QMS-01 through QMS-08 software is
 complete locally, including the separately approved local debt closure.
 Remote qualification and public release preparation are now authorized under
 [QMS-R01 through QMS-R03](#qms-release-gap-closure).
+Prepared pair: **1.1.2 / 0.4.3**, default compiled QMS capability, meta opt-in.
+Current local release regression: **490 QMS + 34 package checks PASS**;
+fresh wheel/sdist scalar and W3 installed consumers PASS. Remote matrix is
+PENDING until the feature-branch run completes. Public proof is PENDING_PUBLICATION.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -22523,6 +22527,8 @@ redesign that study without a later explicit scientific authorization.
 
 #### QMS-R01 - Current Plan Hygiene And Historical Receipt Preservation
 
+**Status:** COMPLETE_LOCAL; historical seals unchanged.
+
 **Goal:** make the active overview truthful without rewriting historical seals.
 **Guide:** [reporting/upgrade discipline, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
 [QMS-08](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói).
@@ -22539,6 +22545,8 @@ already exist in public native 0.4.2.
 remote/scientific/public decisions are not overwritten with local PASS.
 
 #### QMS-R02 - Installed W3 Proof And Six-Row Remote Qualification
+
+**Status:** COMPLETE_LOCAL_WIRING_AND_INSTALLED_PROOF; remote matrix PENDING.
 
 **Goal:** qualify the actual changed source and installed native boundary on
 Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, without publishing.
@@ -22572,6 +22580,9 @@ the prepared source is committed/pushed and actual run results are recorded.
 
 #### QMS-R03 - Exact Public Pair, Default Native Capability And Release Handoff
 
+**Status:** COMPLETE_LOCAL_PREPARATION; remote qualification pending,
+public-index proof PENDING_PUBLICATION. No release/upload authorized.
+
 **Goal:** prepare installable release artifacts that contain the QMS capability
 under ordinary consumer installation, not only opt-in private build flags.
 **Guide:** [QMS-08 step 8/package tests](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#qms-08--regression-bounded-economic-study-tài-liệu-và-đóng-gói),
@@ -22599,6 +22610,29 @@ source; public proof workflow structurally ready. Actual PyPI/public-index statu
 must remain PENDING_PUBLICATION unless a separately approved publish occurred.
 **Debt disposition:** do not invent scientific acceptance to unblock software
 release, weaken a legacy financial test or reuse 1.1.1/0.4.2 published bytes.
+
+**R02/R03 local receipt (2026-10-05):** fresh canonical 1.1.2/0.4.3 core
+wheel/sdist and native wheel built; native uses ordinary Cargo defaults (no
+candidate-only flags), source-exact staging has zero identity rewrites.
+Four installed consumers PASS: off/core-optimization/native pair/sdist;
+both installed W3 consumers PASS, original-pass accounting and active lineage,
+zero observer failures, four sampler recipes and actual Rust Gram-solve.
+The W3 receipt hashes the actual compiled `.so`, not its Python import wrapper;
+reruns use distinct receipt/log namespaces and never overwrite a sealed proof.
+Local native wheel is manylinux_2_34 on this host, not a claim of manylinux2014
+release portability. Existing publication workflow builds/certifies that target.
+490 QMS tests PASS (all 64 required IDs), plus 34 packaging/registry/handoff
+tests PASS. Financial source locks retain exact arithmetic; release identity
+normalization is an explicit byte-validated allowlist. Missing-capability
+negative fixtures remain enforced; no tolerance was loosened.
+Generated contracts/API inventory, architecture, docs, benchmark governance,
+secret scan and whitespace gates PASS. Guide/model/alpha/registered scientific
+inputs and archived outcome evidence have no diff. Source/install environments
+were not upgraded in place. Pair artifacts and receipts are under ignored
+`.maturin/qms08/release-1.1.2-v2/cp312`; regression receipts are under
+`.maturin/qms08/release-regression-v1`.
+See [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) and
+[current release-gap report](../docs/meta_selection/RELEASE_GAP_REPORT.md).
 
 ### QMS Capability Gap Roadmap - PLANNING_ONLY
 

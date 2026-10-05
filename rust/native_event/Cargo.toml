@@ -1,10 +1,11 @@
 [package]
 name = "quantbt-native"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2024"
 publish = false
 
 [features]
+default = ["qms-numeric-candidate", "qms-prepared-witness-candidate"]
 qms-numeric-candidate = []
 qms-prepared-witness-candidate = []
 

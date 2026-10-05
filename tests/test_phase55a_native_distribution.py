@@ -87,8 +87,8 @@ def test_phase55a_native_metadata_and_registry_are_exact_release_candidate_pair(
     assert native_pyproject["project"]["version"] == native_version
     assert native_version.count(".") == 2
     assert cargo["package"]["version"] == native_version
-    assert registry["versions"]["native_package"]["published"] is True
-    assert registry["versions"]["native_package"]["release_policy"] == "public_manylinux_x86_64_cpython_311_313_phase55b"
+    assert registry["versions"]["native_package"]["published"] is False
+    assert registry["versions"]["native_package"]["release_policy"] == "qms_r03_prepared_only_manylinux_x86_64_cpython_311_313"
     assert registry["compatibility"] == [
         {
             "command_abis": ["full-command-v1"],

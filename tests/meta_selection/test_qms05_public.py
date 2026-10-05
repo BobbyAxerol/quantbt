@@ -606,7 +606,10 @@ def test_q5_t05_require_native_capability_fails_before_search(monkeypatch):
 
     monkeypatch.setattr(WalkForwardEngine, "optimize_params", forbidden)
     with pytest.raises(MetaRecordError, match="META_NATIVE_UNAVAILABLE_OR_UNQUALIFIED"):
-        run("active", native_batch_policy="require")
+        from types import SimpleNamespace
+        bt = public_endpoint("active", native_batch_policy="require")
+        bt.backtest(data=market(), param_ranges=RANGES,
+                    meta_history=context(native_module=SimpleNamespace()))
 
 
 def test_q5_t05_fixed_config_override_does_not_ignore_meta():

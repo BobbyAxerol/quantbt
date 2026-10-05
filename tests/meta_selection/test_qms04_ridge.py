@@ -385,7 +385,8 @@ def test_q4_t07_unmatured_revision_does_not_enter_fit(trained):
     future = revision_for(task, schema)
     changed = snapshot(revisions, extra=(future,))
     assert changed.snapshot_id == past.snapshot_id
-    new = RidgeLearner(settings=fit.model.settings).fit(
+    new = RidgeLearner(settings=fit.model.settings,
+                       runtime=NumericRuntime(native_policy="reference")).fit(
         schema, changed, fit_completed_at=fit.model.fit_completed_at
     )
     assert np.array_equal(new.model.coefficients, fit.model.coefficients)
@@ -470,6 +471,7 @@ def test_q4_t05_installed_baseline_auto_vs_require_and_candidate_blocks():
         import _quantbt_native as baseline
     except ImportError:
         baseline = None
+    installed_version = None if baseline is None else baseline.version()
 
     candidate = os.environ.get("QMS04_NATIVE_EXTENSION")
     if not candidate:
@@ -510,7 +512,7 @@ def test_q4_t05_installed_baseline_auto_vs_require_and_candidate_blocks():
     )
     assert runtime.metadata["selected_backend_by_block"]["gram_solve"] == "rust"
     if baseline is not None:
-        assert baseline.version() == "0.4.2"  # No financial baseline replacement.
+        assert baseline.version() == installed_version  # No in-test wheel replacement.
 
 
 def test_q4_t06_constant_feature_support_uses_whole_pool_fallback():

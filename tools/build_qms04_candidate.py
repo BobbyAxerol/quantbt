@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,9 +51,10 @@ def build(output=OUTPUT, *, candidate=CANDIDATE, features="qms-numeric-candidate
         # Mechanical build-only version rewrite. Source registry and lockfile in
         # the checkout stay untouched; released financial compatibility stays exact.
         cargo = stage / "native_event/Cargo.toml"
+        source_version = tomllib.loads(cargo.read_text())["package"]["version"]
         cargo.write_text(
             cargo.read_text().replace(
-                'version = "0.4.2"',
+                f'version = "{source_version}"',
                 f'version = "{candidate.replace(".dev", "-dev.")}"',
                 1,
             )
@@ -60,12 +62,12 @@ def build(output=OUTPUT, *, candidate=CANDIDATE, features="qms-numeric-candidate
         project = stage / "native_event/pyproject.toml"
         project.write_text(
             project.read_text().replace(
-                'version = "0.4.2"', f'version = "{candidate}"', 1
+                f'version = "{source_version}"', f'version = "{candidate}"', 1
             )
         )
         generated = stage / "crates/quantbt-domain/src/generated_product_contracts.rs"
         text = generated.read_text()
-        old = 'pub const NATIVE_PACKAGE_VERSION: &str = "0.4.2";'
+        old = f'pub const NATIVE_PACKAGE_VERSION: &str = "{source_version}";'
         if text.count(old) != 1:
             raise RuntimeError(
                 "candidate generator constant changed; explicit version migration required"
@@ -82,6 +84,7 @@ def build(output=OUTPUT, *, candidate=CANDIDATE, features="qms-numeric-candidate
             "build",
             "--offline",
             "--release",
+            "--no-default-features",
             "--features",
             features,
             "--manifest-path",

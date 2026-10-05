@@ -13,6 +13,9 @@ on:
       - "tools/qms08*"
       - "tools/qms_local*"
       - "tools/qms_installed_w3.py"
+      - "tools/qms_release*"
+      - "tools/verify_public_native_consumer.py"
+      - "tools/certify_native_release.py"
       - "tests/meta_selection/**"
       - ".github/workflows/qms-candidate.yml"
       - "pyproject.toml"
@@ -46,11 +49,14 @@ jobs:
       - name: Install pinned tooling and populate Cargo cache
         run: |
           uv sync --locked --extra optimization --dev
-          uv pip install --python .venv/bin/python 'maturin>=1.9,<2'
+          uv pip install --python .venv/bin/python 'maturin>=1.9,<2' 'PyYAML==6.0.3'
           cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
-      - name: Build and prove private installed artifacts (no publishing)
+      - name: Validate release identities and fail-closed proof gates
         run: |
-          .venv/bin/python -m tools.qms08_package --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
+          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py --junitxml=.maturin/qms08/release-gaps.xml
+      - name: Build and prove exact release artifacts with default QMS (no publishing)
+        run: |
+          .venv/bin/python -m tools.qms08_package --release-pair --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
       - name: Prove installed W3 on this exact interpreter (no source imports)
         shell: bash
         run: |
@@ -66,4 +72,6 @@ jobs:
             .maturin/qms08/qualified/cp*/proof.json
             .maturin/qms08/qualified/cp*/installed-w3-proof.json
             .maturin/qms08/qualified/cp*/*.log
+            .maturin/qms08/qualified/cp*/installed-w3-proof/*.log
+            .maturin/qms08/release-gaps.xml
           if-no-files-found: error

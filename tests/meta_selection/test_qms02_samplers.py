@@ -634,6 +634,8 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         if name in allowed:
             continue
         current = (baseline.ROOT / name).read_bytes()
+        from tools.qms_release_source_guard import without_release_identity
+        current = without_release_identity(current, name)
         from tools.qms06_source_guard import without_qms06_witness
 
         current = without_qms06_witness(current, name)
@@ -658,7 +660,8 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         ]
     }
     assert {
-        (p["name"], p["version"]) for p in lock["package"] if p["name"] != "cmaes"
+        (p["name"], {"quantbt-engine": "1.1.1", "quantbt-native": "0.4.2"}.get(p["name"], p["version"]))
+        for p in lock["package"] if p["name"] != "cmaes"
     } == old_versions
 
 

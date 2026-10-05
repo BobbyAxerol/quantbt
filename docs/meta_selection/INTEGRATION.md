@@ -2,10 +2,15 @@
 
 ## Availability And Scope
 
-Implemented through QMS-06 on `feat/meta-selection-samplers`, not yet published.
+Implemented through QMS-08 and local closure on `feat/meta-selection-samplers`, not yet published.
 Released core/native remain `1.1.1` / `0.4.2`. The public entry remains
 `QuantBTEndpoint.walk_forward`; meta is an optional selector, not a new
 backtest endpoint, financial engine, WFO mode, or order dispatcher.
+
+Next pair `1.1.2 / 0.4.3` is approved for preparation only, including the
+compiled numeric/witness capabilities in ordinary builds. See the
+[release handoff](RELEASE_HANDOFF.md); missing-capability behavior documented
+for published 0.4.2 below is historical, not a limitation of the prepared wheel.
 
 Supported opt-in route:
 

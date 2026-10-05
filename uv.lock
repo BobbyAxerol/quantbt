@@ -1523,7 +1523,7 @@ wheels = [
 
 [[package]]
 name = "quantbt-engine"
-version = "1.1.1"
+version = "1.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "numba" },
@@ -1609,7 +1609,7 @@ dev = [
 
 [[package]]
 name = "quantbt-native"
-version = "0.4.2"
+version = "0.4.3"
 source = { directory = "rust/native_event" }
 
 [[package]]
