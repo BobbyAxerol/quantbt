@@ -68,6 +68,7 @@ def endpoint(strategy, target, backend, arm, registration, prepared):
         account["alloc_per_trade"] = registration["scalar_allocation_quote"]
         account["qty_step"] = registration["scalar_qty_step"]
     if backend != "legacy":
+        account.pop("slippage")
         account["slippage_bps"] = registration["v2_slippage_bps"]
     extra = dict(registration["ladder_policy"]) if target == "dca_ladder" else {}
     return QuantBTEndpoint.walk_forward(strategy_class=strategy,
