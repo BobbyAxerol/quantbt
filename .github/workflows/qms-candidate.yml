@@ -9,15 +9,30 @@ on:
       - "src/quantbt/optimization/**"
       - "src/quantbt/walkforward.py"
       - "src/quantbt/endpoint.py"
+      - "src/quantbt/backends/reactive_wfo*.py"
+      - "src/quantbt/backends/native_wfo*.py"
+      - "src/quantbt/backends/native_prepared_evaluation.py"
+      - "src/quantbt/backends/_native_event_rust.py"
+      - "src/quantbt/backends/native_event.py"
+      - "src/quantbt/strategies/wfo_prepared.py"
       - "rust/**"
       - "tools/qms08*"
       - "tools/qms_local*"
       - "tools/qms_installed_w3.py"
+      - "tools/qms_installed_consumers.py"
+      - "tools/qms_c0*"
+      - "tools/qms_e01*"
+      - "tools/check_docs_links.py"
+      - "examples/wfo_reactive_samplers.py"
+      - "examples/optimization_exact_continuation.py"
       - "tools/qms_release*"
       - "tools/verify_public_native_consumer.py"
       - "tools/certify_native_release.py"
       - "tests/meta_selection/**"
       - ".github/workflows/qms-candidate.yml"
+      - ".github/workflows/native-release.yml"
+      - ".github/workflows/publish-native.yml"
+      - ".github/workflows/public-native-consumer.yml"
       - "pyproject.toml"
       - "uv.lock"
       - "contracts/**"
@@ -53,7 +68,7 @@ jobs:
           cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
       - name: Validate release identities and fail-closed proof gates
         run: |
-          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py --junitxml=.maturin/qms08/release-gaps.xml
+          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/meta_selection/test_e01_installed.py tests/meta_selection/test_e01_docs.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py --junitxml=.maturin/qms08/release-gaps.xml
       - name: Build and prove exact release artifacts with default QMS (no publishing)
         run: |
           .venv/bin/python -m tools.qms08_package --release-pair --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
@@ -72,6 +87,6 @@ jobs:
             .maturin/qms08/qualified/cp*/proof.json
             .maturin/qms08/qualified/cp*/installed-w3-proof.json
             .maturin/qms08/qualified/cp*/*.log
-            .maturin/qms08/qualified/cp*/installed-w3-proof/*.log
+            .maturin/qms08/qualified/cp*/installed-w3-proof/**/*.log
             .maturin/qms08/release-gaps.xml
           if-no-files-found: error

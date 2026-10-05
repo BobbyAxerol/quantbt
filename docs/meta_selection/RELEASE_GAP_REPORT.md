@@ -4,6 +4,9 @@
 
 2026-10-05; branch `feat/meta-selection-samplers`. Owner approved preparation
 of **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, not merge/tag/publication.
+Current E01 debt closure and artifact receipts are in [the E01 report](QMSE01_REPORT.md).
+The following R01-R03 table/artifact hashes are historical, source-bound seals,
+not a current-C02-C05 or E01 remote certificate.
 
 | Gate | Status |
 |---|---|
@@ -20,10 +23,12 @@ of **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, not merge/tag/publication.
 
 The unchanged [real Delta RSI evidence](LOCAL_DEBT_CLOSURE_REPORT.md) remains
 research-only. This release pass makes no new timing, market-alpha or economic
-acceptance claim. New capabilities remain planning-only in
+acceptance claim. C02 process/witness transport, C03 four-recipe W3/R3B and C04
+owned exact continuation have separate local gates; C01/C05 method/geometry
+activation remains closed. See the current capability roadmap in
 [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
 
-## Exact Local Artifacts
+## Historical R03 Local Artifacts
 
 Build: `.maturin/qms08/release-1.1.2-v2/cp312`, CPython 3.12.
 Fresh native build uses no `--features` or candidate-only flag. Core wheel and
@@ -80,8 +85,9 @@ the follow-up uses the local venv executable or PATH, with captured failure
 diagnostics. No financial/scientific source changed for this repair.
 This Ubuntu proof does not certify a manylinux2014 publication wheel.
 
-The installed release certifier and later Public Native Consumer Proof now
-require QMS scalar/four-recipe and W3 checks for this pair. Public consumers
+E01 connects installed C02 transport and actual C03/C04 consumers to the candidate,
+exact-release and later Public Native Consumer Proof, in addition to scalar/W3.
+Final-source remote/manylinux/public gates remain pending. Public consumers
 first resolve `poetry add quantbt-engine`, then its exact optimization extra.
 They execute outside checkout with `python -I`; local source cannot satisfy
 that public-index proof. Follow the [owner-controlled runbook](RELEASE_HANDOFF.md)

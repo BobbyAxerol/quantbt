@@ -9,6 +9,8 @@ import pytest
 import yaml
 
 from tools import qms_installed_w3
+from tools import qms_installed_consumers
+from _e01_fixtures import records as extended_records
 
 
 def test_build_tool_prefers_local_executable_and_falls_back_to_path(tmp_path, monkeypatch):
@@ -53,6 +55,11 @@ def fake_lane(tmp_path, monkeypatch):
     return lane, record
 
 
+def consumer_output(command, w3):
+    name = Path(command[command.index("-I") + 1]).name
+    return json.dumps(extended_records(w3["core_version"], w3["native_version"], w3=w3)[name])
+
+
 def test_remote_workflow_has_all_six_installed_w3_rows_without_publish():
     root = Path(__file__).resolve().parents[2]
     text = (root / ".github/workflows/qms-candidate.yml").read_text()
@@ -77,11 +84,11 @@ def test_installed_proof_checks_both_wheel_and_sdist_with_isolation(tmp_path, mo
         assert "-I" in command and "--core-version" in command and "--native-version" in command
         assert kwargs["cwd"] == lane / "installed-w3-proof/workspace"
         assert "PYTHONPATH" not in kwargs["env"]
-        return SimpleNamespace(returncode=0, stdout=json.dumps(record), stderr="")
+        return SimpleNamespace(returncode=0, stdout=consumer_output(command, record), stderr="")
 
-    monkeypatch.setattr(qms_installed_w3.subprocess, "run", run)
+    monkeypatch.setattr(qms_installed_consumers.subprocess, "run", run)
     result = qms_installed_w3.qualify(lane)
-    assert len(calls) == 2 and set(result["consumers"]) == {"pair", "sdist"}
+    assert len(calls) == 8 and set(result["consumers"]) == {"pair", "sdist"}
     assert result["publication"] is False
     with pytest.raises(ValueError, match="sealed"):
         qms_installed_w3.qualify(lane)
@@ -94,16 +101,16 @@ def test_incomplete_installed_proof_fails(tmp_path, monkeypatch, mutation):
     key = dict(version="native_version", shadow="off_shadow_exact", same_pass="same_pass",
                lineage="selected_lineage", cleanup="closed", observer="observer_failures")[mutation]
     row[key] = "wrong" if mutation == "version" else 1 if mutation == "observer" else False
-    monkeypatch.setattr(qms_installed_w3.subprocess, "run", lambda *a, **k: SimpleNamespace(
-        returncode=0, stdout=json.dumps(row), stderr=""))
-    with pytest.raises(ValueError, match="contract mismatch"):
+    monkeypatch.setattr(qms_installed_consumers.subprocess, "run", lambda command, **k: SimpleNamespace(
+        returncode=0, stdout=consumer_output(command, row), stderr=""))
+    with pytest.raises(ValueError, match="proof failed|pair mismatch"):
         qms_installed_w3.qualify(lane)
     assert not (lane / "installed-w3-proof.json").exists()
 
 
 def test_failed_consumer_cannot_produce_pass_receipt(tmp_path, monkeypatch):
     lane, _ = fake_lane(tmp_path, monkeypatch)
-    monkeypatch.setattr(qms_installed_w3.subprocess, "run", lambda *a, **k: SimpleNamespace(
+    monkeypatch.setattr(qms_installed_consumers.subprocess, "run", lambda *a, **k: SimpleNamespace(
         returncode=1, stdout="", stderr="native mismatch"))
     with pytest.raises(ValueError, match="consumer failed"):
         qms_installed_w3.qualify(lane)
@@ -112,8 +119,8 @@ def test_failed_consumer_cannot_produce_pass_receipt(tmp_path, monkeypatch):
 
 def test_new_w3_receipt_preserves_previous_logs(tmp_path, monkeypatch):
     lane, record = fake_lane(tmp_path, monkeypatch)
-    monkeypatch.setattr(qms_installed_w3.subprocess, "run", lambda *a, **k: SimpleNamespace(
-        returncode=0, stdout=json.dumps(record), stderr=""))
+    monkeypatch.setattr(qms_installed_consumers.subprocess, "run", lambda command, **k: SimpleNamespace(
+        returncode=0, stdout=consumer_output(command, record), stderr=""))
     qms_installed_w3.qualify(lane)
     originals = {p: p.read_bytes() for p in lane.rglob("*") if p.is_file()}
     qms_installed_w3.qualify(lane, receipt_name="installed-w3-v2.json")
@@ -191,7 +198,9 @@ def test_exact_release_consumers_fail_closed(mutation):
         numeric_blocks={"selected_backend_by_block": {"gram_solve": "rust"}})
     w3 = dict(core_version="1.1.2", native_version="0.4.3", off_shadow_exact=True,
               same_pass=True, selected_lineage=True, closed=True, observer_failures=0)
-    rows = {"qms08_consumer.py": scalar, "qms_local_consumer.py": w3}
+    rows = extended_records(w3=w3)
+    rows["qms08_consumer.py"] = scalar
+    w3 = rows["qms_local_consumer.py"]
     assert validate_consumers(rows, core="1.1.2", native="0.4.3")
     if mutation == "pair":
         scalar["native_version"] = "0.4.2"

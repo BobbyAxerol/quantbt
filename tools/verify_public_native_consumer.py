@@ -341,7 +341,7 @@ def _run(command: Sequence[str], *, cwd: Path, environment: Mapping[str, str], t
     return completed.stdout
 
 
-def run_consumer_proof(spec: ConsumerProofSpec) -> dict[str, Any]:
+def run_consumer_proof(spec: ConsumerProofSpec, *, logs_directory: Path | None = None) -> dict[str, Any]:
     """Install public artifacts through Poetry and return an auditable probe report."""
 
     with tempfile.TemporaryDirectory(prefix="quantbt-public-consumer-") as raw:
@@ -384,18 +384,13 @@ def run_consumer_proof(spec: ConsumerProofSpec) -> dict[str, Any]:
         if spec.require_qms:
             if str(ROOT) not in sys.path:
                 sys.path.insert(0, str(ROOT))
-            from tools.qms_release_consumers import validate_consumers
+            from tools.qms_installed_consumers import qualify as qualify_qms
 
-            for tool in ("qms08_consumer.py", "qms_local_consumer.py"):
-                consumer = workspace / tool
-                consumer.write_bytes((ROOT / "tools" / tool).read_bytes())
-                stdout = _run(
-                    (spec.poetry, "run", "python", "-I", str(consumer),
-                     "--core-version", spec.core_version, "--native-version", spec.native_version),
-                    cwd=workspace, environment=environment, timeout_seconds=spec.timeout_seconds,
-                )
-                qms[tool] = json.loads(stdout.splitlines()[-1])
-            validate_consumers(qms, core=spec.core_version, native=spec.native_version)
+            qms_bundle = qualify_qms([spec.poetry, "run", "python"], root=ROOT,
+                core=spec.core_version, native=spec.native_version, workspace=workspace,
+                logs=logs_directory or Path.cwd() / "public-qms-consumers",
+                environment=environment, timeout=spec.timeout_seconds)
+            qms = qms_bundle["consumers"]
 
     return {
         "schema": "quantbt-public-native-consumer-report-v1",
@@ -408,6 +403,7 @@ def run_consumer_proof(spec: ConsumerProofSpec) -> dict[str, Any]:
         "probe": probe,
         "qms_required": spec.require_qms,
         "qms_consumers": qms,
+        "qms_consumer_evidence": qms_bundle if qms else {},
     }
 
 
@@ -445,7 +441,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         require_qms=args.require_qms or (args.core_version, args.native_version) == ("1.1.2", "0.4.3"),
     )
     try:
-        payload = run_consumer_proof(spec)
+        logs = None if args.output is None else args.output.parent / (args.output.stem + "-qms-consumers")
+        payload = run_consumer_proof(spec, logs_directory=logs)
     except (OSError, RuntimeError, subprocess.TimeoutExpired, ValueError) as exc:
         print(f"public Poetry consumer proof failed: {exc}", file=sys.stderr)
         return 1

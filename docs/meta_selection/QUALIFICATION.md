@@ -30,8 +30,10 @@ and [phase report](QMSC01_REPORT.md) classify actual native anchors, data roles,
 full pools and decision frontiers for eight existing native combinations.
 They preserve the original guide, Ridge, financial sources and supported meta
 matrix. Synthetic native/off parity is not new-mode installed-wheel or economic
-certification. C01-D01, the default Mode 2 final-OOS-selection metadata discrepancy,
-is recorded explicitly and is not silently marked fixed.
+certification. C01-D01 was recorded at that historical review; its metadata-only
+repair is separately authorized in [E01](QMSE01_REPORT.md). Default Mode 2 final
+robust_decay selection now reports OOS use, without changing its synthetic-IS
+search. Optional IS-only selectors and fixed diagnostics are classified separately.
 
 ## C02 Transport Qualification
 
@@ -52,6 +54,22 @@ Final local qualification is **618 QMS/affected checks + 36 native checks PASS**
 including 50 C02 checks, fresh wheel/sdist installed process consumers and the
 runnable example. The [C02 report](QMSC02_REPORT.md) records exact artifacts,
 source boundaries, matched transport cost and pending remote/public gates.
+
+## C03-C05 And Current Installed Gate
+
+[C03](QMSC03_REPORT.md) qualifies four shared recipes on W3 sequential/safe process
+and versioned R3B. Active meta remains on sequential Mode 4/per_fold_causal,
+reset-flat/single-symbol; R3B qualification is not public meta-batch activation.
+[C04](QMSC04_REPORT.md) qualifies an opt-in owned exact study journal and fresh-
+process resume, not automatic public fold/financial-account resume.
+[C05](QMSC05_REPORT.md) is specification/reference tests only; conditional Sobol
+and admissible mixed centroids remain closed pending math/activation approval.
+
+E01 wires the real installed transport/sampler/continuation consumers into
+candidate, exact-release and public proof commands. Each gate uses the shared
+mandatory validators and retained command/source/example/log hashes. Missing
+capabilities fail, not skip. Local wheel/sdist evidence is not the final-source
+Ubuntu 22.04/24.04 x CPython 3.11-3.13 or public-index certificate.
 
 ## Software Gates
 
@@ -102,7 +120,7 @@ Supported interpreter target is Linux x86_64 CPython 3.11-3.13. Local execution
 on this host does **not** certify manylinux portability or both Ubuntu runner
 images. `.github/workflows/qms-candidate.yml` prepares non-publishing installed
 qualification on Ubuntu 22.04/24.04 x CPython 3.11-3.13. For the approved release
-pair, remote qualification now passes all six rows on `0970d55` in
+pair, historical remote qualification passed all six rows on `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
 Read the [current release-gap report](RELEASE_GAP_REPORT.md), not the historical
 private artifact seals, for that exact source and scope. Default-feature release

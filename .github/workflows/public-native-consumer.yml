@@ -78,5 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: public-native-consumer-${{ inputs.index }}-${{ matrix.runner }}-cp${{ matrix.python-version }}
-          path: public-native-consumer-*.json
+          path: |
+            public-native-consumer-*.json
+            public-native-consumer-*-qms-consumers/*.log
           if-no-files-found: error

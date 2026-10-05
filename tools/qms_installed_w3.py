@@ -7,9 +7,9 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
-import subprocess
 
 from tools.qms08_gate import ROOT, verify_pair
+from tools.qms_installed_consumers import qualify as qualify_consumers
 
 
 def qualify(lane: Path, *, receipt_name="installed-w3-proof.json") -> dict:
@@ -30,25 +30,11 @@ def qualify(lane: Path, *, receipt_name="installed-w3-proof.json") -> dict:
     environment.pop("PYTHONPATH", None)
     records = {}
     for name in ("pair", "sdist"):
-        command = [str(lane / name / "bin/python"), "-I",
-                   str(ROOT / "tools/qms_local_consumer.py"),
-                   "--core-version", proof["core"], "--native-version", proof["native"]]
-        process = subprocess.run(command, cwd=workspace, env=environment,
-                                 capture_output=True, text=True, timeout=180)
-        log = records_directory / f"{name}-w3-consumer.log"
-        log.write_text("$ " + " ".join(command) + "\n" + process.stdout + process.stderr)
-        if process.returncode:
-            raise ValueError(f"installed W3 consumer failed; see {log}")
-        record = json.loads(process.stdout.splitlines()[-1])
-        required = ("off_shadow_exact", "same_pass", "selected_lineage", "closed")
-        if (any(record.get(k) is not True for k in required)
-                or record.get("observer_failures") != 0
-                or (record.get("core_version"), record.get("native_version"))
-                != (proof["core"], proof["native"])):
-            raise ValueError("installed W3 consumer contract mismatch")
-        records[name] = dict(consumer=record, log_path=str(log.relative_to(lane)),
-                            log_sha256=sha256(log.read_bytes()).hexdigest())
-    result = dict(schema="qms-installed-w3-v1", core=proof["core"], native=proof["native"],
+        bundle = qualify_consumers([lane / name / "bin/python"], root=ROOT,
+            core=proof["core"], native=proof["native"], workspace=workspace,
+            logs=records_directory / name, environment=environment)
+        records[name] = dict(consumer=bundle["consumers"]["qms_local_consumer.py"], **bundle)
+    result = dict(schema="qms-installed-w3-v2", core=proof["core"], native=proof["native"],
         package_proof_sha256=sha256(proof_path.read_bytes()).hexdigest(),
         consumer_source_sha256=sha256((ROOT / "tools/qms_local_consumer.py").read_bytes()).hexdigest(),
         consumers=records, publication=False)

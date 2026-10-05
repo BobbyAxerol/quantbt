@@ -153,12 +153,14 @@ jobs:
             --output native-release-evidence/sbom.cdx.json
 
       - name: Upload release certification evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-release-certification-cpython-${{ matrix.python-version }}
           path: |
             native-release-evidence/*
             dist/staged/*
+            dist/staged/qms-release-consumers/*.log
           if-no-files-found: error
 
   supply-chain:

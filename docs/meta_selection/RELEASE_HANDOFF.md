@@ -31,9 +31,15 @@ existing sealed output; choose a new suffix. The release builder uses ordinary
 Cargo defaults, copies tracked allowlisted source, and requires byte-identical
 wheel/sdist modules and unchanged staged identities. Its four cold consumers
 cover core-off, core-with-optimization, exact native pair and installed sdist;
-the separate W3 receipt binds two installed consumers to artifact hashes.
+the separate W3 v2 receipt binds both installed lanes to artifact hashes.
 Each checks installed origin, exact pair, Rust numerics, off/shadow account
 equality, active selection lineage, native-missing/require behavior and cleanup.
+E01 requires actual C02 safe-process witness transport, C03 four recipes across
+W3/sequential/process/R3B and C04 fresh-process exact continuation. Four isolated
+consumer commands run per wheel/sdist lane; no successful capability skips.
+Source, toy-example and command/log hashes are retained with each proof.
+Read [E01 scope and reproduction](QMSE01_REPORT.md); its local native reuse is
+not a fresh manylinux release or public-index certificate.
 
 `.github/workflows/qms-candidate.yml` runs both commands for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
@@ -66,8 +72,9 @@ performed by the qualification workflow:
    the GitHub Release/core `1.1.2`; the core workflow resolves the exact native
    dependency before uploading. Never upload core first.
 6. Dispatch **Public Native Consumer Proof** for `ref=v1.1.2`, `index=pypi`.
-   All six fresh Poetry projects first run `poetry add quantbt-engine`, then
-   install its matching optimization extra and exercise actual public QMS/W3.
+All six fresh Poetry projects first run `poetry add quantbt-engine`, then
+   install its matching optimization extra and exercise scalar/W3, C02 transport,
+   C03 samplers and C04 continuation from actual public artifacts.
    Archive the public-index receipts. Until then: `PENDING_PUBLICATION`.
 
 No protected alpha, market history, `.venv`, cache, token or private receipt is
@@ -86,8 +93,9 @@ continuous carry, multi-symbol and public meta batching remain unsupported.
 C04 locally qualifies a separate [owned exact continuation session](EXACT_CONTINUATION.md),
 not automatic public WFO/financial state resume. Other mode/schedule activation,
 conditional Sobol and admissible mixed-space centroids remain separately
-approved work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
-Current C04 source/artifacts still require remote matrix and public-index proof;
+reviewed work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
+C05 reference geometry tests do not activate conditional Sobol or mixed centroids.
+Current E01 source/artifacts still require remote matrix and public-index proof;
 do not reuse the pre-C02 remote receipt or private local artifacts as release evidence.
 The scientific study/protocol requires a separate owner decision before any
 methodological replacement or additional research; software PASS does not

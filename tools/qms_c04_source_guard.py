@@ -18,7 +18,7 @@ def validate_changes(names):
 
 def verify():
     from tools.qms_e01_source_guard import NAME as E01_NAME, verify as verify_e01
-    e01 = verify_e01()
+    verify_e01()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
     names = [name for name in names if name != E01_NAME]
@@ -37,5 +37,4 @@ def verify():
         raise AssertionError("C04 changed release/dependency/scientific contract")
     return dict(schema="qms-c04-source-guard-v1", baseline=ENTRY, reviewed=REVIEWED,
                 additive_module_sha256=hashes, financial_samplers_math_unchanged=True,
-                public_endpoints_unchanged=True, release_identity_unchanged=True,
-                later_e01_reporting=e01)
+                public_endpoints_unchanged=True, release_identity_unchanged=True)

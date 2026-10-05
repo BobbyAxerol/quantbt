@@ -32,9 +32,11 @@ def require_no_production_changes(names):
 
 
 def source_lock():
+    from tools.qms_e01_source_guard import NAME as E01_NAME, verify as verify_e01
+    verify_e01()
     changed = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", *PROTECTED], cwd=ROOT, text=True).splitlines()
     untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", *PROTECTED], cwd=ROOT, text=True).splitlines()
-    require_no_production_changes([*changed, *untracked])
+    require_no_production_changes([*[name for name in changed if name != E01_NAME], *untracked])
     if file_hash(ROOT / GUIDE) != GUIDE_SHA:
         raise ValueError("C05 detailed guide changed")
     earlier = verify_c04()

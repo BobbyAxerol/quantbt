@@ -562,7 +562,14 @@ def test_q2_t08_actual_sampler_only_stage_matrix(mode, schedule, recipe):
         for item in frozen["lanes"]
         if (item["mode"], item["schedule"]) == (mode, schedule)
     )
-    assert wf["oos_used_for_selection"] == lane["summary"]["oos_used_for_selection"]
+    if mode == "mode_2_sbb" and schedule == "global":
+        # E01 repairs this one reporting discrepancy; keep the historical seal.
+        assert lane["summary"]["oos_used_for_selection"] is False
+        assert wf["best_trial"]["selection_metadata"]["stage"] == "oos_candidate_selection"
+        assert wf["best_trial"]["selection_metadata"]["selected_by"] == "robust_decay"
+        assert wf["oos_used_for_selection"] is True
+    else:
+        assert wf["oos_used_for_selection"] == lane["summary"]["oos_used_for_selection"]
 
 
 @pytest.mark.parametrize(

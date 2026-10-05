@@ -7,13 +7,16 @@
   [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) for current gates.
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
-- Current approved scope: QMS-R01/R02/R03 release-gap closure and preparation
+- Current approved scope: QMS-E01 audited provenance/docs/installed-proof debt
+  closure, following local C02-C05 work; no E02-E08 execution is authorized.
+  Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.
   Financial arithmetic, alpha/data, methodology defaults and published pair remain
   unchanged; narrow same-pass native-output plumbing was added for W3.
 - Technical: regression/end-to-end/docs and installed package PASS; remote
   **6/6 PASS** on `0970d55`, [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
+  This is historical pre-C02 evidence, not the current source's remote gate.
   Final owner/economic acceptance and public-index qualification remain PENDING.
   Historical QMS-08 empirical
   NOT_RUN_BUDGET stays sealed; follow-up PASS_REAL_ETH is a separate receipt,
@@ -22,8 +25,7 @@
   366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
-- Push is authorized only for this feature branch's read-only qualification.
-  Do not merge, retag, release, deploy or start unapproved subphases.
+- E01 does not authorize push, merge, retag, release, deploy or another phase.
 
 ## Current C01 Review
 
@@ -36,12 +38,25 @@ financial source change, version change or release is authorized.
 
 Proposed first causal extension: nested Mode 1 with the exact inner-decay native
 anchor, full-pool original outer-IS witnesses and a distinct versioned family;
-target/cohort semantics need owner approval. C01-D01 is confirmed: default
-Mode 2 robust_decay finally ranks on real OOS but its legacy metadata flag is
-false. It remains recorded, not fixed in the approved spec/test scope. C02-C05
-remain planning-only. Prior release/market receipts below keep their exact scope.
+target/cohort semantics need owner approval. E01 repairs C01-D01 reporting:
+default Mode 2 robust_decay finally ranks on real OOS and now reports true;
+IS-only selectors and fixed-param diagnostics report false. The adaptive search
+still uses synthetic IS paths; its pool/objectives/params/RNG/accounting do not
+change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT.md).
 
-## Latest Local Debt Closure
+| Capability | Current local disposition |
+|---|---|
+| C01 additional methods | Spec/tests complete; activation NOT_AUTHORIZED |
+| C02 transport | Safe Linux process, original-pass witnesses and native cooperative deadlines qualified |
+| C03 samplers | Four recipes on sequential/safe-process W3 and native-off-meta R3B qualified |
+| C04 continuation | Owned exact journal, four recipes and fresh-process resume qualified; not automatic WFO/account resume |
+| C05 geometry | Spec/reference tests complete; conditional Sobol/mixed centroid NOT_ACTIVATED |
+| Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
+
+Remote/public gates require new source/artifact qualification. Existing historical
+seals and market numbers below retain their original scope and bytes.
+
+## Historical Local Debt Closure
 
 Read [current report](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md) and
 [independently verified evidence](../benchmarks/optimization/meta_selection/qms_local_closure_evidence.json).
@@ -51,7 +66,7 @@ New source wheel/sdist and four consumer lanes on CPython 3.11-3.13 pass;
 installed W3 original-pass objective/account and lifecycle checks pass too.
 Native wheel reuse requires exact Rust/source/hash identity, not an ABI guess.
 
-W3 local meta is now Mode4/per_fold_causal/inprocess/sequential/reset-flat;
+At this historical seal W3 local meta was Mode4/per_fold_causal/inprocess/sequential/reset-flat;
 unsupported process/batch/deadline/carry contracts fail explicitly. Auto fit
 dispatch is parity-qualified and geometry-measured; require stays Rust.
 Actual loaded math pools are observed separately from configured caps.
