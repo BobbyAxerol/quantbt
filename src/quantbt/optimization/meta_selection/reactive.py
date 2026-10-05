@@ -1,7 +1,7 @@
 """W3 adapter: existing native window execution, shared causal selector/history."""
 
-from .common import wire
-from .observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
+from .observer import canonical_metric_contract, economics_identity
+from .reactive_transport import ReactiveDetachedMetricAdapter
 from .runtime import PublicMetaRuntime, isolated_observer_rng
 from .witness import PreparedMetricWitness
 
@@ -15,39 +15,60 @@ class ReactiveMetricBoundary:
         self.runtime = runtime
         self.score_config = runtime.endpoint.config
         self.symbols = runtime.symbols
-        self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(
+        self._meta_adapter = ReactiveDetachedMetricAdapter(canonical_metric_contract(
             trading_days=runtime.config.scoring_trading_days))
         self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self._meta_witness = PreparedMetricWitness(runtime.data, config=self.score_config)
         self.lifecycle = []
+        self._executor = None
 
-    def execute(self, marker, *, include_observation=True):
-        from ...endpoint import _attach_endpoint_run_config
-        from ...backends.reactive_wfo_workers import _score_row_from_scalar_payload
+    def executor(self):
+        from .reactive_execution import OriginalReactiveWitnessExecutor
 
+        if self._executor is None:
+            owner = self.runtime
+            self._executor = OriginalReactiveWitnessExecutor(adapter=owner._adapter,
+                prepared_runner=owner._prepared_runner, data=owner.data,
+                trading_days=owner.config.scoring_trading_days,
+                max_wall_time_ms=owner.runtime_config.runtime_budget.max_wall_time_ms,
+                witness=self._meta_witness)
+        return self._executor
+
+    def cancel_active(self):
+        if self._executor is not None:
+            self._executor.cancel_active()
+
+    def execute(self, marker, *, include_observation=True, observer_seed=None):
         owner, task = self.runtime, marker.task
         owner._check_canceled()
-        strategy = owner._adapter.build_strategy(params=marker.params, task=task)
-        result = owner._prepared_runner.run_window(strategy, start_bar=task.start_bar,
-            end_bar=task.end_bar, report_level="minimal",
-            _metric_witness_trading_days=owner.config.scoring_trading_days)
-        _attach_endpoint_run_config(result, self.score_config)
+        executor = self.executor()
+        binding = executor.binding(marker, observer_seed=observer_seed)
+        if owner.runtime_config.worker_mode == "process":
+            from ...backends.reactive_wfo_workers import ReactiveWfoWorkerError
+            from .common import MetaRecordError
+
+            try:
+                packet = owner._ensure_process_worker().score(marker,
+                    canceled=lambda: owner._cancel.canceled, witness_binding=binding)
+            except ReactiveWfoWorkerError as exc:
+                raise MetaRecordError("REACTIVE_WITNESS_TRANSPORT_ABORTED: " + str(exc)) from exc
+        else:
+            packet, _fingerprint = executor.execute(marker, observer_seed=observer_seed)
+        owner._check_canceled()
         index = owner._prepared_runner.idx[task.start_bar:task.end_bar]
-        signature = self._meta_witness.market_signature(owner.data, index)
-        row = _score_row_from_scalar_payload(result.metadata["reactive_numeric_observability"]["same_pass_score"])
-        if include_observation:
-            report = result.full_report(trading_days=owner.config.scoring_trading_days, scope="full")
-            observation = self._meta_adapter.observe(result, expected_index=index,
-                economics_id=self._meta_economics_id, input_signature=signature, report=report,
-                execution_config=self.score_config, prepared_witness=self._meta_witness)
-            row["meta_observation"] = wire(observation)
+        packet.validate(binding=binding, index=index, initial_capital=self.score_config.account.initial_capital)
+        row = packet.row()
+        if not include_observation:
+            row.pop("meta_observation")
         if task.stage == "post_seal_counterfactual_forward":
             self.lifecycle.append(dict(stage=task.stage, fold_id=task.fold_id,
                 candidate_id=task.candidate_id, fresh_account=True, fresh_strategy=True))
-        return row, result, signature
+        return row, packet, binding.market_id
 
     def close(self):
         try:
+            if self._executor is not None:
+                self._executor.close()
             self._meta_witness.validate_source()
         finally:
             self._meta_witness.close()
@@ -68,7 +89,8 @@ class ReactiveMetaRuntime(PublicMetaRuntime):
                     params=candidate.effective_params, fold=fold, evaluation_index=fold.test_index,
                     stage="post_seal_counterfactual_forward"), params=dict(candidate.effective_params))
                 started = perf_counter()
-                _, result, signature = boundary.execute(marker, include_observation=False)
+                _, result, signature = boundary.execute(marker, include_observation=False,
+                    observer_seed=task.resolved_fold_seed + candidate.native_trial_id + 1)
                 boundary.runtime._score_calls += 1
                 boundary.runtime._score_bars += marker.task.bars
                 boundary.runtime._score_seconds += perf_counter() - started

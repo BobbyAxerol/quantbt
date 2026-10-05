@@ -273,6 +273,8 @@ def _fork_score_worker_main(
     trading_days: int,
     max_wall_time_ms: int | None,
     environment: Mapping[str, str],
+    metric_executor=None,
+    generation: int = 0,
 ) -> None:
     """Run in a forked child with inherited, immutable prepared tape state."""
 
@@ -293,14 +295,25 @@ def _fork_score_worker_main(
             request_id = int(request["request_id"])
             marker = request["marker"]
             try:
-                row, fingerprint = sessions.score(marker)
+                if metric_executor is None:
+                    row, fingerprint = sessions.score(marker)
+                    packet = None
+                    session_metadata = sessions.metadata()
+                else:
+                    packet, fingerprint = metric_executor.execute(marker,
+                        observer_seed=request["witness_binding"].observer_seed)
+                    packet.validate(binding=request["witness_binding"])
+                    row = None
+                    session_metadata = metric_executor.metadata()
                 response_connection.send(
                     {
                         "kind": "score",
                         "request_id": request_id,
+                        "generation": generation,
                         "row": row,
+                        "witness": None if packet is None else packet.to_payload(),
                         "state_fingerprint": fingerprint,
-                        "scalar_sessions": sessions.metadata(),
+                        "scalar_sessions": session_metadata,
                         "worker_memory": _memory_snapshot(os.getpid()),
                     }
                 )
@@ -309,6 +322,7 @@ def _fork_score_worker_main(
                     {
                         "kind": "error",
                         "request_id": request_id,
+                        "generation": generation,
                         "error_type": type(exc).__name__,
                         "error_code": getattr(exc, "code", None),
                         "message": str(exc),
@@ -322,6 +336,8 @@ def _fork_score_worker_main(
                 return
     finally:
         sessions.close()
+        if metric_executor is not None:
+            metric_executor.close()
 
 
 class ForkReactiveWfoWorkerV1:
@@ -342,6 +358,7 @@ class ForkReactiveWfoWorkerV1:
         parallelism_plan: ParallelismPlanV1,
         max_inflight_tasks: int,
         max_wall_time_ms: int | None = None,
+        metric_executor=None,
     ) -> None:
         if not fork_reactive_wfo_worker_supported():
             raise NotImplementedError(
@@ -349,6 +366,7 @@ class ForkReactiveWfoWorkerV1:
                 "use worker_mode='inprocess' on this platform"
             )
         self._adapter = adapter
+        self._metric_executor = metric_executor
         self._prepared_runner = prepared_runner
         self._trading_days = int(trading_days)
         self._max_wall_time_ms = (
@@ -400,6 +418,8 @@ class ForkReactiveWfoWorkerV1:
                 "trading_days": self._trading_days,
                 "max_wall_time_ms": self._max_wall_time_ms,
                 "environment": self._parallelism_plan.environment,
+                "metric_executor": self._metric_executor,
+                "generation": self._identity.generation + 1,
             },
             daemon=True,
             name="quantbt-reactive-wfo-v1",
@@ -408,7 +428,7 @@ class ForkReactiveWfoWorkerV1:
         self._pool_creations += 1
         self._identity = self._identity.next_generation()
 
-    def score(self, marker, *, canceled: Callable[[], bool]) -> dict[str, float]:
+    def score(self, marker, *, canceled: Callable[[], bool], witness_binding=None):
         self._start()
         if canceled():
             self._cancel_and_discard()
@@ -417,7 +437,10 @@ class ForkReactiveWfoWorkerV1:
         self._next_request_id += 1
         assert self._request_connection is not None
         assert self._response_connection is not None
-        self._request_connection.send({"kind": "score", "request_id": request_id, "marker": marker})
+        if (self._metric_executor is not None) != (witness_binding is not None):
+            raise ReactiveWfoWorkerError("reactive worker witness mode/binding mismatch")
+        self._request_connection.send({"kind": "score", "request_id": request_id,
+                                      "marker": marker, "witness_binding": witness_binding})
         while True:
             if canceled():
                 self._cancel_and_discard()
@@ -432,9 +455,10 @@ class ForkReactiveWfoWorkerV1:
             except EOFError:
                 self._discard(join_timeout=0.0)
                 raise ReactiveWfoWorkerError("reactive WFO worker closed its response channel") from None
-            if int(response.get("request_id", request_id)) != request_id:
+            if (response.get("request_id") != request_id
+                    or response.get("generation") != self._identity.generation):
                 self._discard(join_timeout=0.0)
-                raise ReactiveWfoWorkerError("reactive WFO worker returned an out-of-order response")
+                raise ReactiveWfoWorkerError("reactive WFO worker returned an out-of-order/stale response")
             memory = response.get("worker_memory")
             if isinstance(memory, Mapping):
                 self._last_worker_memory = {key: int(value) for key, value in memory.items()}
@@ -442,6 +466,17 @@ class ForkReactiveWfoWorkerV1:
             if isinstance(scalar_sessions, Mapping):
                 self._last_scalar_sessions = dict(scalar_sessions)
             if response.get("kind") == "score":
+                if witness_binding is not None:
+                    from ..optimization.meta_selection.reactive_transport import DetachedReactiveWitnessV1
+
+                    try:
+                        packet = DetachedReactiveWitnessV1.from_payload(response["witness"])
+                        packet.validate(binding=witness_binding)
+                    except Exception:
+                        self._discard(join_timeout=0.0, terminate=True)
+                        raise
+                    self._task_count += 1
+                    return packet
                 self._task_count += 1
                 return {key: float(value) for key, value in dict(response["row"]).items()}
             self._poison_recoveries += 1
@@ -511,7 +546,8 @@ class ForkReactiveWfoWorkerV1:
             "worker_tasks_completed": int(self._task_count),
             "worker_poison_recoveries": int(self._poison_recoveries),
             "worker_market_ipc_bytes_per_task": 0,
-            "worker_metric_ipc": "small_scalar_row_v1",
+            "worker_metric_ipc": ("detached_original_witness_v1"
+                                  if self._metric_executor is not None else "small_scalar_row_v1"),
             "max_wall_time_ms": self._max_wall_time_ms,
             "fork_parent_thread_contract": "one_kernel_thread_before_fork_v1",
             "fork_parent_os_threads": int(_parent_os_thread_count()),

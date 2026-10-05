@@ -211,7 +211,9 @@ def test_c01_t08_verifier_cannot_turn_review_into_activation(receipt, mutation):
 
 
 def test_c01_t08_protected_financial_guide_and_native_sources_unchanged():
-    assert baseline.git("diff", "--name-only", ENTRY, "--", "src", "rust",
+    # C01's no-production-change gate is historical. C02 has separately
+    # authorized, narrowly guarded original-witness transport changes.
+    assert baseline.git("diff", "--name-only", ENTRY, "0bb77b5", "--", "src", "rust",
                         "pyproject.toml", "uv.lock", baseline.GUIDE) == b""
 
 

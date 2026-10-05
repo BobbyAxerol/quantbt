@@ -13,7 +13,7 @@ from quantbt.backends.reactive_wfo_support import ReactiveWfoRuntimeConfigV1
 from tests.test_phase76_reactive_wfo import _bars, _endpoint, _config, _ReactiveFactory
 
 
-def execute(mode=None, *, data=None, history=None, settings=None):
+def execute(mode=None, *, data=None, history=None, settings=None, runtime_config=None):
     data = _bars() if data is None else data
     cfg = replace(_config(mode="mode_4_is_only_robust"),
         optimization_schedule="per_fold_causal", optuna_trials=8, scoring_backend="endpoint",
@@ -21,7 +21,7 @@ def execute(mode=None, *, data=None, history=None, settings=None):
         meta_selection=dict(mode=mode, native_batch_policy="reference", min_matured_origins=1,
                             label_observer=True, **(settings or {})) if mode else None)
     runtime = _endpoint(data).prepare_reactive_walk_forward(data=data, strategy_factory=_ReactiveFactory(),
-        walkforward_config=cfg, symbols=["BTC"])
+        walkforward_config=cfg, symbols=["BTC"], runtime_config=runtime_config)
     context = MetaHistoryContext(history or MetaHistory(), "w3-local-test", "BTC-linear", "1D", "w3-test")
     result = runtime.backtest(param_ranges={"direction": [-1., 1.]},
                               **({"meta_history": context} if mode else {}))
@@ -65,7 +65,7 @@ def test_w3_active_metadata_actual_params_and_future_invariance():
     assert old.metadata["continuous_equity_available"] is False
 
 
-@pytest.mark.parametrize("change", ["mode", "schedule", "account", "process", "batch"])
+@pytest.mark.parametrize("change", ["mode", "schedule", "account", "batch"])
 def test_w3_unsupported_preflight(change):
     data = _bars()
     cfg = replace(_config(mode="mode_4_is_only_robust"), optimization_schedule="per_fold_causal",
@@ -79,8 +79,6 @@ def test_w3_unsupported_preflight(change):
         cfg = replace(cfg, optimization_schedule="global")
     elif change == "account":
         cfg = replace(cfg, fold_account_policy="carry_position", fold_boundary_position_policy="carry")
-    elif change == "process":
-        runtime = replace(runtime, worker_mode="process")
     else:
         runtime = replace(runtime, optimizer_schedule="throughput_batch_v1")
     with pytest.raises((ValueError, NotImplementedError), match="META_"):

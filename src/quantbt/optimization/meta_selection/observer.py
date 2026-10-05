@@ -9,6 +9,8 @@ from time import perf_counter
 import numpy as np
 import pandas as pd
 
+from ...core.runtime_governance import RuntimeBudgetError, RuntimeCanceledError
+
 from .common import MetaRecordError, digest, utc
 from .records import (
     CandidateForwardRecord,
@@ -278,7 +280,7 @@ class PostDecisionObserver:
                     input_signature=input_signature,
                     prepared_witness=prepared_witness,
                 )
-            except MetaRecordError:
+            except (MetaRecordError, RuntimeCanceledError, RuntimeBudgetError):
                 raise
             except Exception:
                 self.failures += 1

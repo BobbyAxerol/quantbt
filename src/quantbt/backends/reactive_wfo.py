@@ -73,11 +73,10 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 raise ReactiveWalkForwardUnsupported("META_ROUTE_UNSUPPORTED: typed WalkForwardConfig required")
             validate_meta_route(walkforward_config, route="reactive_reset")
             requested = runtime_config or ReactiveWfoRuntimeConfigV1()
-            if (requested.worker_mode != "inprocess" or requested.optimizer_schedule != "certified_sequential_v1"
-                    or requested.runtime_budget.max_wall_time_ms is not None):
+            if requested.optimizer_schedule != "certified_sequential_v1":
                 raise ReactiveWalkForwardUnsupported(
-                    "META_ROUTE_UNSUPPORTED: original-result W3 meta requires inprocess certified_sequential_v1; "
-                    "process/batch/deadline scalar witness transport is not certified")
+                    "META_ROUTE_UNSUPPORTED: original-result W3 meta requires certified_sequential_v1; "
+                    "public meta batch selection is not certified")
         if not isinstance(data, pd.DataFrame):
             raise ReactiveWalkForwardUnsupported("public reactive WFO currently requires one canonical OHLCV DataFrame")
         if str(endpoint.config.mode).lower().strip() != "native_event_strategy":
@@ -177,6 +176,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             self._scalar_sessions.cancel_active()
         if self._active_candidate_scheduler is not None:
             self._active_candidate_scheduler.cancel_active()
+        if self._meta_boundary is not None:
+            self._meta_boundary.cancel_active()
 
     def close(self) -> None:
         if self._closed:
@@ -331,6 +332,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 parallelism_plan=self._parallelism_plan,
                 max_inflight_tasks=int(self.runtime_config.max_inflight_tasks),
                 max_wall_time_ms=self.runtime_config.runtime_budget.max_wall_time_ms,
+                metric_executor=(None if self._meta_boundary is None
+                                 else self._meta_boundary.executor()),
             )
         return self._process_worker
 

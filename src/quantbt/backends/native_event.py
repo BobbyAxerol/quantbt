@@ -2226,6 +2226,7 @@ class NativeEventBackend:
         end_bar: Optional[int] = None,
         prepared_market_cache_key: tuple[str, ...] | None = None,
         metric_witness_trading_days: int | None = None,
+        metric_witness_control=None,
     ) -> BacktestResultV2:
         """Run one explicit R1/R2/R3 numeric co-runtime once.
 
@@ -2263,6 +2264,8 @@ class NativeEventBackend:
         )
         result_adapt_started_ns = perf_counter_ns()
         try:
+            if metric_witness_control is not None:
+                metric_witness_control.attach(runner)
             window_start = int(start_bar)
             window_end = len(idx) if end_bar is None else int(end_bar)
             if window_start == 0 and window_end == len(idx):
@@ -2293,6 +2296,10 @@ class NativeEventBackend:
                     strategy_id=strategy_adapter.strategy_id,
                 ) from exc
             raise
+
+        finally:
+            if metric_witness_control is not None:
+                metric_witness_control.detach()
 
         runtime_metadata = dict(payload["metadata"])
         if metric_witness_trading_days is not None:
@@ -3698,6 +3705,7 @@ class NativeEventBackend:
         _allow_prepared_window: bool = False,
         _prepared_reactive_market_binding: object | None = None,
         _metric_witness_trading_days: int | None = None,
+        _metric_witness_control=None,
     ) -> Union[BacktestResultV2, NativeEventScoreResult]:
         """
         Run a reactive strategy against native-event v2 lifecycle semantics.
@@ -3991,6 +3999,7 @@ class NativeEventBackend:
             return self._run_reactive_numeric_coruntime(
                 idx=idx,
                 metric_witness_trading_days=_metric_witness_trading_days,
+                metric_witness_control=_metric_witness_control,
                 strategy=strategy,
                 strategy_adapter=strategy_adapter,
                 symbol_list=symbol_list,
