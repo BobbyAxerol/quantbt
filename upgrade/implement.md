@@ -47,8 +47,9 @@ or publication is authorized by C03/C04/C05.
 
 **New owner-requested planning (2026-10-05):**
 [QMS-E01 through QMS-E08: route-wide WFO/meta integration and debt closure](#qms-endpoint-meta-extension).
-All eight phases are **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**; tests and empirical
-gates are NOT_RUN. The request authorizes this plan only. Existing WFO routes
+E01 is **AUTHORIZED_IN_PROGRESS** by the owner's execution request; E02-E08
+remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E01 tests are pending; no
+empirical study or release is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
@@ -23532,8 +23533,12 @@ or release. Commit coherent verified chunks; record commits/rollback references.
 <a id="qms-e01"></a>
 #### QMS-E01 - Audited Provenance, Documentation And Installed-Proof Debt Closure
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests NOT_RUN.
+**Status:** AUTHORIZED_IN_PROGRESS; local tests pending (2026-10-05).
 **Goal:** repair real audited debt before broadening financial route support.
+**Execution baseline:** clean `feat/meta-selection-samplers` at `5fecad2`;
+prepared pair remains 1.1.2 / 0.4.3. Record before/after native identities and RNG,
+installed extension/artifact hashes and immutable historical receipt hashes.
+No new meta route, mathematical/scientific activation, push or publication.
 **Entry:** owner approves E01; record source/native hashes and current receipts.
 **Guide:** [actual metadata/stages, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
 [contracts, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
