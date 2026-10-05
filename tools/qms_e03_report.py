@@ -1,15 +1,31 @@
 """Rebuild a public E03 receipt from private raw results; never copies alpha/params."""
 
 import argparse
+from copy import deepcopy
 from hashlib import sha256
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from tools.qms_e02_audit import compare
+from tools.qms_e02_audit import compare as compare_e02
 from tools.qms_e03_queue import prepared_trace_parity
 from tools.qms_e03_source_guard import ROOT, verify
 from tools.qms_e03_study import CELLS, read_registration, summarize
+
+
+def baseline_parity(before, after):
+    # E02's broad JSON inventory includes E03's mutable reviewed-source input,
+    # not just sealed historical receipts. Validate its current bytes separately;
+    # every actual historical receipt and all financial/scientific lanes remain
+    # subject to the original exact E02 comparator.
+    a, b = deepcopy(before), deepcopy(after)
+    name = "benchmarks/optimization/meta_selection/qms_e03_reviewed_source.json"
+    if name in b["native"]["historical_receipts"]:
+        assert b["native"]["historical_receipts"][name] == sha256((ROOT/name).read_bytes()).hexdigest()
+    a["native"]["historical_receipts"].pop(name, None)
+    b["native"]["historical_receipts"].pop(name, None)
+    verify()
+    return compare_e02(a, b)
 
 
 def file_ref(path):
@@ -18,8 +34,8 @@ def file_ref(path):
 
 
 def test_receipt(path):
-    root = ET.parse(path).getroot()
-    cases = list(root.iter("testcase"))
+    paths = [path] if isinstance(path, (str, Path)) else list(path)
+    cases = [case for member in paths for case in ET.parse(member).getroot().iter("testcase")]
     identities = {(c.get("classname"), c.get("name")) for c in cases}
     if not cases or len(identities) != len(cases):
         raise ValueError("missing/duplicate executed test identities")
@@ -30,7 +46,7 @@ def test_receipt(path):
     if not all(groups.values()):
         raise ValueError("E03 required test group missing")
     return dict(distinct_tests=len(cases), e03_members=groups, failures=0, errors=0, skipped=0,
-                evidence=file_ref(path))
+                evidence=[file_ref(p) for p in paths])
 
 
 def build(*, study, package, junit, before, after):
@@ -40,7 +56,7 @@ def build(*, study, package, junit, before, after):
     tests = test_receipt(junit)
     baseline = json.loads(Path(before).read_text())
     current = json.loads(Path(after).read_text())
-    assert compare(baseline, current)
+    assert baseline_parity(baseline, current)
     artifact = json.loads((package / "e03-proof.json").read_text())
     assert artifact["source_guard"] == source
     assert artifact["source_exact_wheel"] and artifact["source_exact_sdist"]
@@ -122,8 +138,9 @@ def build(*, study, package, junit, before, after):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("study", "package", "junit", "before", "after", "output"):
+    for name in ("study", "package", "before", "after", "output"):
         parser.add_argument("--"+name, type=Path, required=True)
+    parser.add_argument("--junit", type=Path, nargs="+", required=True)
     args = vars(parser.parse_args())
     output = args.pop("output")
     if output.exists():

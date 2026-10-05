@@ -877,3 +877,15 @@ This utility does not change WFO methodology, causal permissions or stitching,
 activate extra meta modes, serialize account/strategy/model state, or add a public
 endpoint resume flag. It has a completed-trial barrier and version-pinned codecs;
 its software exactness is not evidence of better OOS decay.
+
+### QMS-E03: Sizing-Specific Meta Observations
+
+The [scalar amendment](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+extends software opt-ins to notional/unit and structural ladder, plus original
+signal-to-rebalance event execution. It changes neither Mode 4's data-access
+policy nor Ridge labels. Each target/backend has its original reset diagnostic
+account and compatible family; different sizing/timing is not shared history.
+One final original account executes stitched targets, not concatenated fold
+equities. The [E03 report](../docs/meta_selection/QMSE03_REPORT.md) separates
+software validity, signed decay $R$, forward $Q$, uncertainty and owner promotion.
+Simulation evidence for a ladder is not proof for a private real DCA alpha.
