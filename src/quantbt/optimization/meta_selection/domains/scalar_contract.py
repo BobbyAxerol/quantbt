@@ -66,10 +66,16 @@ def scalar_execution_contract(config, wf_config):
     if backend == "legacy":
         # The original compatibility engine consumes fee/slippage, not V2
         # overrides. Reject disagreement rather than change old accounting.
+        reason = None
         if abs(config.v2_fee_rate - config.fee / 2.0) > 1e-15:
-            raise MetaRecordError("META_DOMAIN_ECONOMICS_MISMATCH: legacy fee_rate must equal fee / 2")
-        if config.execution.slippage_rate and abs(config.execution.slippage_rate - config.slippage) > 1e-15:
-            raise MetaRecordError("META_DOMAIN_ECONOMICS_MISMATCH: legacy slippage and slippage_bps disagree")
+            reason = "legacy fee_rate must equal fee / 2"
+        elif config.execution.slippage_rate and abs(config.execution.slippage_rate - config.slippage) > 1e-15:
+            reason = "legacy slippage and slippage_bps disagree"
+        if reason is not None:
+            if route == "pct_equity" and wf_config.metadata.get("native_prepared_wfo", "off") == "require":
+                from ....backends.native_wfo_public import NativePreparedPublicWfoUnsupported
+                raise NativePreparedPublicWfoUnsupported(reason)
+            raise MetaRecordError(f"META_DOMAIN_ECONOMICS_MISMATCH: {reason}")
     if route == "dca_ladder":
         if wf_config.metadata.get("native_prepared_wfo", "off") == "require":
             raise MetaRecordError("META_ROUTE_UNSUPPORTED: structural ladder has no prepared-native scorer")
