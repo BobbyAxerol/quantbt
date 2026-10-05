@@ -1346,18 +1346,12 @@ class WalkForwardEngine:
             )
             causality_claim = "retrospective_global_calibration"
             chronological_validation_claim = "not_causal_multi_fold_global_calibration"
-            oos_used_for_selection = self.config.optimization_mode not in {
-                "mode_2_sbb",
-                "mode_4_is_only_robust",
-                "mode_5_full_robust",
-            } and self.config.candidate_selection_metric not in {
-                "is_plateau_robust",
-                "is_only_robust",
-                "full_robust",
-                "full_plateau_robust",
-                "full_temporal_robust",
-                "full_best",
-            }
+            oos_used_for_selection = bool(
+                optimization_requested
+                and selected_record.selection_metadata.get("stage") == "oos_candidate_selection"
+                and selected_record.selection_metadata.get("selected_by")
+                in {"robust_decay", "mean_oos_sharpe"}
+            )
             params_semantics = "single_global_parameter_set"
 
         execution_runtime = getattr(self, "_wfo_execution_runtime", None)

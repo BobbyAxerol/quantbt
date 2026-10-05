@@ -33,16 +33,17 @@ def without_c03_sampler(source, name):
 
 def verify():
     from tools.qms_c04_source_guard import ALLOW as C04_ALLOW, verify as verify_c04
+    from tools.qms_e01_source_guard import NAME as E01_NAME
     c04 = verify_c04()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    validate_changes(set(names) - C04_ALLOW)
-    for name in set(names) - C04_ALLOW:
+    validate_changes(set(names) - C04_ALLOW - {E01_NAME})
+    for name in set(names) - C04_ALLOW - {E01_NAME}:
         without_c03_sampler((ROOT / name).read_bytes(), name)
     if subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "pyproject.toml",
         "uv.lock", "contracts", "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"], cwd=ROOT):
         raise AssertionError("C03 changed scientific guide or release/dependency identity")
     return dict(schema="qms-c03-source-guard-v1", baseline=ENTRY, reviewed=REVIEWED,
-        allowed_changes=sorted(set(names) - C04_ALLOW), financial_rust_unchanged=True, shared_sampler_math_unchanged=True,
+        allowed_changes=sorted(set(names) - C04_ALLOW - {E01_NAME}), financial_rust_unchanged=True, shared_sampler_math_unchanged=True,
         exact_adapter_sha256={name: sha256((ROOT / name).read_bytes()).hexdigest() for name in names if name in ALLOW},
         later_c04_additions=c04)

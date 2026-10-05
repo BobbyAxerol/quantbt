@@ -47,6 +47,8 @@ def without_c02_witness(source, name):
     fails rather than being hidden by the C02 file-name allowlist.
     """
     from tools.qms_c03_source_guard import without_c03_sampler
+    from tools.qms_e01_source_guard import without_e01_provenance
+    source = without_e01_provenance(source, name)
     source = without_c03_sampler(source, name)
     if name not in ALLOW:
         return source
@@ -65,10 +67,12 @@ def without_c02_witness(source, name):
 def verify():
     from tools.qms_c03_source_guard import ALLOW as C03_ALLOW, verify as verify_c03
     from tools.qms_c04_source_guard import ALLOW as C04_ALLOW
+    from tools.qms_e01_source_guard import NAME as E01_NAME, verify as verify_e01
+    verify_e01()
     c03 = verify_c03()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    validate_changes(set(names) - C03_ALLOW - C04_ALLOW)
+    validate_changes(set(names) - C03_ALLOW - C04_ALLOW - {E01_NAME})
     for name in set(names) & ALLOW:
         without_c02_witness((ROOT / name).read_bytes(), name)
     name = "rust/native_event/src/reactive_numeric.rs"
