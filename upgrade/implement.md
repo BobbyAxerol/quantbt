@@ -23874,9 +23874,10 @@ included in candidate CI; no remote run or publication is authorized here.
 <a id="e03-g01"></a>
 ##### E03-G01 - Prepared Liquidation Metric Compatibility Repair Proposal
 
-**Status:** OPEN_BLOCKER; SCOPE_APPROVAL_PENDING. This is not an activated phase
-or permission to change the scientific method. E03 financial/Rust byte locks
-still apply until the owner approves the bounded amendment.
+**Status:** REPAIR_AUTHORIZED_IN_PROGRESS (2026-10-06). Owner request to close
+the listed gaps authorizes this bounded legacy-metric compatibility repair,
+not an estimator replacement or economic retuning. Historical failed receipts
+and scientific rules remain unchanged. PASS requires new executed evidence.
 **Goal:** preserve the existing canonical objective for every prepared candidate,
 including liquidation/zero-equity paths, before claiming identical search work.
 **Guide:** [raw metric identity, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
@@ -23912,6 +23913,54 @@ of bankrupt tails, silently reset unit reference price, or invented fallback.
 not have a new fail-closed liquidation guard; that limitation is explicit.
 **Debt Disposition:** keep blocker open until actual repaired-artifact evidence;
 the eight ordinary studies and negative economic outcomes remain usable records.
+
+<a id="qms-gap-closure-2026-10-06"></a>
+##### QMS Gap Closure - Approved Compatibility Repair And Honest Qualification
+
+**Entry/baseline:** owner request to close reported gaps; `51894c2`, branch
+`feat/meta-selection-samplers`. Read E03-G01 and linked guide sections 5/8/14,
+[E04 diagnostic](../docs/meta_selection/QMSE04_REAL_DIAGNOSTIC.md),
+[E05 scope](../docs/meta_selection/QMSE05_REPORT.md) and
+[cleanup rules](../docs/BUILD_TEST_CLEANUP.md) before edits.
+**Goal:** close reproducible correctness gaps without manufacturing positive
+economic outcomes, silently expanding financial contracts, or publishing.
+**To-Do / ordered gates:**
+
+1. Add an explicit versioned zero-base return compatibility policy at the
+   existing Rust direct-target metric boundary. Ordinary native metric defaults
+   retain skip semantics; prepared endpoint scoring requests legacy zero samples.
+   Bind policy to request/cache/metric identities; old extensions must fail
+   closed or visibly fall back, never silently emit incompatible scores.
+2. Test independent zero tails, recovery, daily boundaries, short/constant
+   samples, unchanged native defaults, all output profiles and prepared binding.
+   Do not change financial kernels, Ridge, penalties, RNG or guide arithmetic.
+3. Seal only exact approved source bytes under a new amendment. Existing seals
+   remain historical; new consumers use freshly built native/core wheel/sdist.
+   Replay the original unit study with the identical registration/pool/budget;
+   verify all objectives, params, accounts and chronological decisions.
+4. Reconcile E04's failed R/Q economic gate as NOT_PROMOTED. Independent replay
+   remains the correctness gate; a new locked economic protocol needs separate
+   approval, never retry-until-positive. E05 quarterly expiry/roll/data gaps
+   require an approved real-domain amendment before any promotion study.
+5. Update current summaries and actionable dependencies, leaving historical
+   receipts intact. Current-source remote matrix requires authorized branch
+   push; public proof requires separately authorized publication. C01/C05 and
+   W3 carry/batch/multi-symbol/Mode 2/full recovery remain separately reviewed
+   capability contracts, not implicit activation by this repair.
+
+**Tests:** G01-T01 independent reducer expected values; T02 policy/fingerprint/
+old-extension guards; T03 direct/prepared/score/compact/audit parity; T04 affected
+scalar and prior QMS/E regressions; T05 exact wheel/sdist/native consumers; T06
+registered full unit-study objective/selection/account replay; T07 docs/source/
+secret guards and cleanup. Remote six-row and public gates have distinct status.
+**Resource plan:** initial free space approximately 27 GiB; budget at most 4 GiB
+incremental build/test space, minimum 5 GiB additional headroom. Retain exact
+artifacts, staging, logs, receipts, failed evidence and private frozen inputs.
+Use one fresh compatibility lane and existing tooling/offline dependency cache;
+remove only explicitly inventoried inactive reproducible scratch after checks.
+**Exit:** E03-G01 closes only on T01-T07 PASS at existing tolerances. Report
+economic FAIL/data insufficiency/remote pending separately. No release, merge,
+tag or scientific capability activation is implied. Commit each coherent step.
 
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
