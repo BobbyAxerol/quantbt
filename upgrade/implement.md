@@ -89,9 +89,13 @@ selection parity after liquidation. No cell passes the registered forward-Q gate
 Bounded notional/unit/structural-ladder software opt-ins are not empirical or
 default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md)
 and [bounded compatibility repair proposal E03-G01](#e03-g01).
-E04-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
-Only the E03 registered study is authorized; no further study or release is
-authorized. Existing WFO routes
+E04 is **AUTHORIZED_IN_PROGRESS**: original shared-account portfolio integration
+is committed, scoped software/account tests PASS, and installed proof/docs and
+real-alpha qualification remain open. E05 is **OWNER_AUTHORIZED_PENDING_E04_GATE**
+under the 2026-10-06 debt-closure request; no package promotion is implied.
+E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01 compatibility
+repair and the exact real-alpha protocol need their explicit scope decisions.
+No release, push, merge, tag or publication is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
@@ -23904,8 +23908,10 @@ the eight ordinary studies and negative economic outcomes remain usable records.
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
 
-**Status:** AUTHORIZED_IN_PROGRESS (2026-10-06, Asia/Saigon); software tests
-pending; real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING.
+**Status:** AUTHORIZED_IN_PROGRESS (2026-10-06, Asia/Saigon); scoped software
+tests PASS (113 checks in `e04-tests-v3.xml`, 57 accounting checks in
+`e04-financial-v1.xml`, not a sum of distinct tests); installed artifact gate
+INCOMPLETE_ENOSPC; real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING.
 **Goal:** support existing portfolio WFO with real shared-account meta labels.
 **Entry:** owner authorized E04 independently at `7b83ba4`. E03-G01 remains
 BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; this phase does not repair, waive or
@@ -23972,10 +23978,30 @@ and empirical receipt as separate verified chunks.
 - Finish software/docs/proofs before reporting. Real-alpha R/Q and remote/public
   qualification remain explicit gates; no merge, push, tag or publication here.
 
+**Owner-Requested Closure (2026-10-06):**
+
+1. Rebuild in a fresh ignored E04 package lane, never overwrite the failed v2
+   receipt. Verify original core/native pair, isolated wheel/sdist imports,
+   mandatory existing consumers and both portfolio sizing consumers.
+2. Finish report/docs/example/CI bindings and reconcile current overview.
+   Preserve all failed historical receipts, and commit each verified chunk.
+3. Freeze real portfolio alpha/universe/calendar/account/search and R/Q analysis
+   before execution. Proposed Delta RSI ETHUSDT/BTCUSDT 1h study requires the
+   owner's explicit protocol decision; do not call synthetic fixtures real alpha.
+4. E03-G01 remains separate: request bounded legacy-estimator compatibility
+   approval before changing protected native reduction/guards/artifacts.
+5. E05 is authorized next, but requires domain-correct package evaluation and its
+   own real study; E04 synthetic evidence cannot certify package economics.
+6. Initial disk budget: about 27 GiB free, inode use 14%; cap incremental scratch
+   at 8 GiB with at least 5 GiB headroom. Retain exact dist/source staging, logs,
+   XML/JSON receipts and current tooling; after verification remove only reviewed
+   inactive consumer environments/incremental scratch, hash retained outputs,
+   record actual free bytes and reinstall requirements in the closure report.
+
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Status:** OWNER_AUTHORIZED_PENDING_E04_GATE (2026-10-06); tests/empirical NOT_RUN.
 **Goal:** add meta only after native package IS and forward scores are authoritative.
 **Entry:** E04 gate accepted; supported package specs and real package tapes frozen.
 **Guide:** [evaluation architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
