@@ -24008,6 +24008,25 @@ and empirical receipt as separate verified chunks.
    inactive consumer environments/incremental scratch, hash retained outputs,
    record actual free bytes and reinstall requirements in the closure report.
 
+**Real Portfolio Diagnostic Amendment (2026-10-06):** the owner requested an
+actual portfolio on/off run and continued execution. Freeze a new private
+diagnostic before outcomes, using the already approved E03 analysis budget:
+128 attempts/fold, seed 731, monthly origins 2022-01 through 2024-04, rolling
+365D IS, twelve matured origins, block-three-month 95% intervals, no retuning.
+Use unchanged private Gradient/Delta RSI independently on ETHUSDT/BTCUSDT 1h,
+shared params and original longshort `%_equity` account: capital 20,000,
+allocation 0.25 per symbol, leverage one, one-way fee 0.00025, slippage one bps,
+original funding 0.0001 policy. Read BTC via the existing loader; require the
+exact ETH calendar, do not repair/resample missing observations. Run installed
+current pair, fresh off/active processes, preserve exact search pool and original
+aggregate labels/account outputs. Analyze saved outcomes and charge independent
+final-account conformance separately. Do not change financial/scientific code.
+This diagnostic does not replace owner approval of a new portfolio universe or
+the guide's development/locked-evaluation protocol. Even positive R/Q is not a
+promotion. Keep alpha, data and raw evidence ignored; publish only sanitized
+summary/hashes. Bound incremental output to 1 GiB, retain the current consumer,
+and review inactive generated scratch after completion. E03-G01 remains open.
+
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
 
